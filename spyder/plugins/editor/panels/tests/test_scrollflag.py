@@ -15,7 +15,6 @@ import pytest
 
 # Local imports
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
-from qtpy import PYQT4
 
 
 # ---------------------------------------------------------------------------
@@ -106,7 +105,16 @@ def test_flag_painting(editor_bot):
     # Trigger the painting of all flag types.
     editor.add_remove_breakpoint(line_number=2)
     editor.process_todo([[True, 3]])
-    editor.process_code_analysis([['E227 warning', 4], ['syntax error', 5]])
+    analysis = [{'source': 'pycodestyle', 'range':{
+                    'start': {'line': 4, 'character': 0},
+                    'end': {'line': 4, 'character': 1}},
+                 'line': 4, 'code': 'E227','message': 'E227 warning',
+                 'severity': 2},
+                 {'source': 'pyflakes', 'range':{
+                     'start': {'line': 5, 'character': 0},
+                     'end': {'line': 5, 'character': 1}},
+                  'message': 'syntax error', 'severity': 1}]
+    editor.process_code_analysis(analysis)
     editor.highlight_found_results('line6')
     with qtbot.waitSignal(editor.sig_flags_changed, raising=True,
                           timeout=5000):
@@ -121,7 +129,16 @@ def test_flag_painting(editor_bot):
     # Trigger the painting of all flag types.
     editor.add_remove_breakpoint(line_number=2)
     editor.process_todo([[True, 3]])
-    editor.process_code_analysis([['E227 warning', 4], ['syntax error', 5]])
+    analysis = [{'source': 'pycodestyle', 'range':{
+                    'start': {'line': 4, 'character': 0},
+                    'end': {'line': 4, 'character': 1}},
+                 'line': 4, 'code': 'E227','message': 'E227 warning',
+                 'severity': 2},
+                 {'source': 'pyflakes', 'range':{
+                     'start': {'line': 5, 'character': 0},
+                     'end': {'line': 5, 'character': 1}},
+                  'message': 'syntax error', 'severity': 1}]
+    editor.process_code_analysis(analysis)
     editor.highlight_found_results('line6')
     with qtbot.waitSignal(editor.sig_flags_changed, raising=True,
                           timeout=5000):

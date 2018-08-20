@@ -9,6 +9,7 @@ import pytest
 from qtpy.QtGui import QTextOption
 
 from spyder.plugins.history import plugin as history
+from spyder.py3compat import to_text_string
 
 #==============================================================================
 # Utillity Functions
@@ -74,6 +75,26 @@ def historylog_with_tab(historylog, mocker, monkeypatch):
 #==============================================================================
 # Tests
 #==============================================================================
+def test_max_entries(historylog, tmpdir):
+    """Test that history is truncated at max_entries."""
+    max_entries = historylog.get_option('max_entries')
+
+    # Write more than max entries in a test file
+    history = ''
+    for i in range(max_entries + 1):
+        history = history + '{}\n'.format(i)
+
+    history_file = tmpdir.join('history.py')
+    history_file.write(history)
+
+    # Load test file in plugin
+    historylog.add_history(to_text_string(history_file))
+
+    # Assert that we have max_entries after loading history and
+    # that there's no 0 in the first line
+    assert len(history_file.readlines()) == max_entries
+    assert '0' not in history_file.readlines()[0]
+
 
 def test_init(historylog):
     """Test HistoryLog.__init__.

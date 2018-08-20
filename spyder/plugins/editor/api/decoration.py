@@ -62,7 +62,7 @@ class TextDecoration(QTextEdit.ExtraSelection):
 
     def __init__(self, cursor_or_bloc_or_doc, start_pos=None, end_pos=None,
                  start_line=None, end_line=None, draw_order=0, tooltip=None,
-                 full_width=False):
+                 full_width=False, font=None):
         """
         Creates a text decoration.
 
@@ -103,6 +103,8 @@ class TextDecoration(QTextEdit.ExtraSelection):
         if end_line is not None:
             self.cursor.movePosition(self.cursor.Down, self.cursor.KeepAnchor,
                                      end_line - start_line)
+        if font is not None:
+            self.format.setFont(font)
 
     def contains_cursor(self, cursor):
         """

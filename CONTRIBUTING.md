@@ -1,4 +1,4 @@
-# Contributing to Spyder-IDE
+# Contributing to Spyder
 
 :+1::tada: First off, thanks for taking the time to contribute to Spyder! :tada::+1:
 
@@ -7,15 +7,28 @@
 
 This page documents at a very high level how to contribute to Spyder.
 Please check the
-[Spyder IDE Contributor Documentation](https://github.com/spyder-ide/spyder/wiki/Contributing-to-Spyder)
+[Spyder IDE Contributor Documentation](
+https://github.com/spyder-ide/spyder/wiki/Contributing-to-Spyder)
 for a more detailed guide on how to do so.
+
+
+## Troubleshooting
+
+Before posting a report, *please* carefully read our
+**[Troubleshooting Guide](
+https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ)**
+and search the [issue tracker](https://github.com/spyder-ide/spyder/issues)
+for your error message and problem description, as the great majority of bugs
+are either duplicates, or can be fixed on the user side with a few easy steps.
+Thanks!
 
 
 ## Submitting a Helpful Issue
 
 Submitting useful, effective and to-the-point issue reports can go a long
 way toward improving Spyder for everyone. Accordingly, please read the
-[relevant section](https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ#calling-for-help-still-have-a-problem)
+[relevant section](
+https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ#calling-for-help-still-have-a-problem)
 of the Spyder Troubleshooting Guide, which describes in detail how to do
 just that.
 
@@ -76,13 +89,43 @@ the directory where your git clone is stored and run:
   $ pip install -r requirements/requirements.txt
 ```
 
-If you are using `pip` and Python 2, you also need to install a Qt binding
-package (PyQt4 or PyQt5, with the latter strongly recommended).
-This can be achieved by running:
+If you are using `pip` and Python 3, you also need to install a Qt binding
+package (PyQt5). This can be achieved by running:
 
 ```bash
   $ pip install pyqt5
 ```
+
+### Using the correct version of spyder-kernels
+
+Following the separation in v3.3 of Spyder's console code into its own package,
+`spyder-kernels`, you'll need to have the corresponding version of it
+available—`0.x` for Spyder 3 (`3.x` branch), and `1.x` for Spyder 4
+(`master` branch). The above procedure will install the `0.x` version;
+to test the `master` branch (Spyder 4), you'll need to install the
+corresponding `1.x` version of `spyder-kernels`.
+
+This can be done via two methods: installing the correct version via `conda`:
+
+```bash
+conda install -c spyder-ide spyder-kernels=1.*
+```
+
+or `pip`:
+
+```bash
+pip install spyder-kernels==1.*
+```
+
+(and using `conda install spyder-kernels=0.*` to switch back to the
+Spyder 3 version), or by `clone`-ing the
+[spyder-kernels git repository](https://github.com/spyder-ide/spyder-kernels)
+to somewhere on your path checking out the appropriate branch
+(`0.x` or `master`) corresponding to the version of Spyder (3 or 4)
+you would like to run, and running the commend `pip install -e` at the root.
+For any non-trivial development work, keeping two separate virtual environments
+(with `conda-env` or `venv`) for Spyder 3 and 4 makes this process
+much quicker and less tedious.
 
 ### Running Spyder
 
@@ -169,11 +212,27 @@ To run the Spyder test suite, please use (from the `spyder` root directory):
 ```
 
 
-## Troubleshooting
+## More information
 
-Before posting a report, *please* carefully read our
-**[Troubleshooting Guide](https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ)**
-and search the [issue tracker](https://github.com/spyder-ide/spyder/issues)
-for your error message and problem description, as the great majority of bugs
-are either duplicates, or can be fixed on the user side with a few easy steps.
-Thanks!
+[Main Website](https://www.spyder-ide.org/)
+
+[Download Spyder (with Anaconda)](https://www.anaconda.com/download/)
+
+[Online Documentation](https://docs.spyder-ide.org/)
+
+[Spyder Github](https://github.com/spyder-ide/spyder)
+
+[Troubleshooting Guide and FAQ](
+https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ)
+
+[Development Wiki](https://github.com/spyder-ide/spyder/wiki/Dev:-Index)
+
+[Gitter Chatroom](https://gitter.im/spyder-ide/public)
+
+[Google Group](https://groups.google.com/group/spyderlib)
+
+[@Spyder_IDE on Twitter](https://twitter.com/spyder_ide)
+
+[@SpyderIDE on Facebook](https://www.facebook.com/SpyderIDE/)
+
+[Support Spyder on OpenCollective](https://opencollective.com/spyder/)

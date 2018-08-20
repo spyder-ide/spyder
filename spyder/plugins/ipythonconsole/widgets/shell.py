@@ -23,14 +23,13 @@ from spyder.utils import programs
 from spyder.utils import syntaxhighlighters as sh
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style, create_style_class
 from spyder.widgets.helperwidgets import MessageCheckBox
-from spyder.plugins.ipythonconsole.widgets import (ControlWidget,
-                                                   DebuggingWidget,
-                                                   HelpWidget,
-                                                   NamepaceBrowserWidget,
-                                                   PageControlWidget)
+from spyder.plugins.ipythonconsole.widgets import (
+        ControlWidget, DebuggingWidget, FigureBrowserWidget,
+        HelpWidget, NamepaceBrowserWidget, PageControlWidget)
 
 
-class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
+class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
+                  FigureBrowserWidget):
     """
     Shell widget for the IPython Console
 
@@ -44,6 +43,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     sig_var_properties = Signal(object)
     sig_show_syspath = Signal(object)
     sig_show_env = Signal(object)
+
+    # For FigureBrowserWidget
+    sig_new_inline_figure = Signal(object, str)
 
     # For DebuggingWidget
     sig_pdb_step = Signal(str, int)
@@ -64,6 +66,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         # To override the Qt widget used by RichJupyterWidget
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
+        self.custom_edit = True
         super(ShellWidget, self).__init__(*args, **kw)
 
         self.ipyclient = ipyclient
@@ -252,6 +255,7 @@ the sympy module (e.g. plot)
             # Update checkbox based on user interaction
             CONF.set('ipython_console', 'show_reset_namespace_warning',
                      not box.is_checked())
+            self.ipyclient.reset_warning = not box.is_checked()
 
             if answer != QMessageBox.Yes:
                 return
@@ -429,9 +433,9 @@ the sympy module (e.g. plot)
                     calling_mayavi = True
                     break
         if calling_mayavi:
-            message = _("Changing backend to Qt for Mayavi")
+            message = _("Changing backend to Qt4 for Mayavi")
             self._append_plain_text(message + '\n')
-            self.silent_execute("%gui inline\n%gui qt")
+            self.silent_execute("%gui inline\n%gui qt4")
 
     def change_mpl_backend(self, command):
         """

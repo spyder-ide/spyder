@@ -69,8 +69,6 @@ class WorkingDirectory(SpyderPluginWidget):
         self.toolbar.addAction(self.previous_action)
 
         # Next dir action
-        self.history = []
-        self.histindex = None
         self.next_action = create_action(self, "next", None,
                                      ima.icon('next'), _('Next'),
                                      triggered=self.next_directory)
@@ -174,7 +172,10 @@ class WorkingDirectory(SpyderPluginWidget):
         """Save history to a text file in user home directory"""
         text = [ to_text_string( self.pathedit.itemText(index) ) \
                  for index in range(self.pathedit.count()) ]
-        encoding.writelines(text, self.LOG_PATH)
+        try:
+            encoding.writelines(text, self.LOG_PATH)
+        except EnvironmentError:
+            pass
     
     @Slot()
     def select_directory(self):

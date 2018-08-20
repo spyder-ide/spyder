@@ -10,10 +10,15 @@ mode and Spyder
 """
 
 import ast
+import pdb
+import pickle
 
 from qtpy.QtCore import Qt
-
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
+
+from spyder.config.base import PICKLE_PROTOCOL
+from spyder.config.main import CONF
+from spyder.py3compat import to_text_string
 
 
 class DebuggingWidget(RichJupyterWidget):
@@ -28,11 +33,19 @@ class DebuggingWidget(RichJupyterWidget):
         """Send raw characters to the IPython kernel through stdin"""
         self.kernel_client.input(line)
 
-    def set_spyder_breakpoints(self):
+    def set_spyder_breakpoints(self, force=False):
         """Set Spyder breakpoints into a debugging session"""
-        if self._reading:
-            self.kernel_client.input(
-                "!get_ipython().kernel._set_spyder_breakpoints()")
+        if self._reading or force:
+            breakpoints_dict = CONF.get('run', 'breakpoints', {})
+
+            # We need to enclose pickled values in a list to be able to
+            # send them to the kernel in Python 2
+            serialiazed_breakpoints = [pickle.dumps(breakpoints_dict,
+                                                    protocol=PICKLE_PROTOCOL)]
+            breakpoints = to_text_string(serialiazed_breakpoints)
+
+            cmd = u"!get_ipython().kernel._set_spyder_breakpoints({})"
+            self.kernel_client.input(cmd.format(breakpoints))
 
     def dbg_exec_magic(self, magic, args=''):
         """Run an IPython magic while debugging."""
@@ -45,8 +58,7 @@ class DebuggingWidget(RichJupyterWidget):
         Refresh Variable Explorer and Editor from a Pdb session,
         after running any pdb command.
 
-        See publish_pdb_state in utils/ipython/spyder_kernel.py and
-        notify_spyder in utils/site/sitecustomize.py and
+        See publish_pdb_state and notify_spyder in spyder_kernels
         """
         if 'step' in pdb_state and 'fname' in pdb_state['step']:
             fname = pdb_state['step']['fname']
@@ -75,7 +87,10 @@ class DebuggingWidget(RichJupyterWidget):
             # Save history to browse it later
             if not (len(self._control.history) > 0
                     and self._control.history[-1] == line):
-                self._control.history.append(line)
+                # do not save pdb commands
+                cmd = line.split(" ")[0]
+                if "do_" + cmd not in dir(pdb.Pdb):
+                    self._control.history.append(line)
 
             # This is the Spyder addition: add a %plot magic to display
             # plots while debugging
@@ -103,6 +118,8 @@ class DebuggingWidget(RichJupyterWidget):
                 return True
             elif key in (Qt.Key_Return, Qt.Key_Enter):
                 self._control.reset_search_pos()
+            else:
+                self._control.hist_wholeline = False
             return super(DebuggingWidget,
                          self)._event_filter_console_keypress(event)
         else:

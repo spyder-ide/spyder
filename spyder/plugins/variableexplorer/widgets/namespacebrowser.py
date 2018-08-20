@@ -20,21 +20,24 @@ from qtpy.QtGui import QCursor
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QInputDialog, QMenu,
                             QMessageBox, QToolButton, QVBoxLayout, QWidget)
 
+from spyder_kernels.utils.iofuncs import iofunctions
+from spyder_kernels.utils.misc import fix_reference_name
+from spyder_kernels.utils.nsview import get_supported_types, REMOTE_SETTINGS
+
 # Local imports
-from spyder.config.base import _, get_supported_types
+from spyder.config.base import _
 from spyder.config.main import CONF
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
-from spyder.utils.iofuncs import iofunctions
-from spyder.utils.misc import fix_reference_name, getcwd_or_home
+from spyder.utils.misc import getcwd_or_home
 from spyder.utils.programs import is_module_installed
 from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton, create_plugin_layout)
+                                    create_toolbutton, create_plugin_layout,
+                                    MENU_SEPARATOR)
 from spyder.plugins.variableexplorer.widgets.collectionseditor import (
     RemoteCollectionsEditorTableView)
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
-from spyder.plugins.variableexplorer.utils import REMOTE_SETTINGS
 
 
 SUPPORTED_TYPES = get_supported_types()
@@ -44,9 +47,9 @@ class NamespaceBrowser(QWidget):
     """Namespace browser (global variables explorer widget)"""
     sig_option_changed = Signal(str, object)
     sig_collapse = Signal()
-    
-    def __init__(self, parent, options_button=None, menu=None,
-                 plugin_actions=None):
+    sig_free_memory = Signal()
+
+    def __init__(self, parent, options_button=None, plugin_actions=[]):
         QWidget.__init__(self, parent)
         
         self.shellwidget = None
@@ -71,7 +74,6 @@ class NamespaceBrowser(QWidget):
         self.exclude_capitalized_action = None
         self.exclude_unsupported_action = None
         self.options_button = options_button
-        self.menu = menu
         self.actions = None
         self.plugin_actions = plugin_actions
 
@@ -118,38 +120,23 @@ class NamespaceBrowser(QWidget):
 
         self.editor.sig_option_changed.connect(self.sig_option_changed.emit)
         self.editor.sig_files_dropped.connect(self.import_data)
+        self.editor.sig_free_memory.connect(self.sig_free_memory.emit)
 
-        # Setup layout
-        blayout = QHBoxLayout()
-        toolbar = self.setup_toolbar(exclude_private, exclude_uppercase,
-                                     exclude_capitalized, exclude_unsupported)
+        self.setup_option_actions(exclude_private, exclude_uppercase,
+                                  exclude_capitalized, exclude_unsupported)
+
+        # Setup toolbar layout.
+
+        self.tools_layout = QHBoxLayout()
+        toolbar = self.setup_toolbar()
         for widget in toolbar:
-            blayout.addWidget(widget)
+            self.tools_layout.addWidget(widget)
+        self.tools_layout.addStretch()
+        self.setup_options_button()
 
-        # Options menu
-        editor = self.editor
-        actions = [self.exclude_private_action, self.exclude_uppercase_action,
-                   self.exclude_capitalized_action,
-                   self.exclude_unsupported_action, None]
-        if is_module_installed('numpy'):
-            actions.append(editor.minmax_action)
-        if self.plugin_actions:
-            actions = actions + self.plugin_actions
-        self.actions = actions
-        if not self.options_button:
-            self.options_button = create_toolbutton(
-                                        self, text=_('Options'),
-                                        icon=ima.icon('tooloptions'))
-            self.options_button.setPopupMode(QToolButton.InstantPopup)
-        if not self.menu:
-            self.menu = QMenu(self)
-        add_actions(self.menu, self.actions)
-        self.options_button.setMenu(self.menu)
+        # Setup layout.
 
-        blayout.addStretch()
-        blayout.addWidget(self.options_button)
-
-        layout = create_plugin_layout(blayout, self.editor)
+        layout = create_plugin_layout(self.tools_layout, self.editor)
         self.setLayout(layout)
 
         self.sig_option_changed.connect(self.option_changed)
@@ -163,12 +150,8 @@ class NamespaceBrowser(QWidget):
         """Get actions of the widget."""
         return self.actions
 
-    def setup_toolbar(self, exclude_private, exclude_uppercase,
-                      exclude_capitalized, exclude_unsupported):
+    def setup_toolbar(self):
         """Setup toolbar"""
-        self.setup_in_progress = True
-        toolbar = []
-
         load_button = create_toolbutton(self, text=_('Import data'),
                                         icon=ima.icon('fileimport'),
                                         triggered=lambda: self.import_data())
@@ -184,8 +167,13 @@ class NamespaceBrowser(QWidget):
                 self, text=_("Remove all variables"),
                 icon=ima.icon('editdelete'), triggered=self.reset_namespace)
 
-        toolbar += [load_button, self.save_button, save_as_button,
-                    reset_namespace_button]
+        return [load_button, self.save_button, save_as_button,
+                reset_namespace_button]
+
+    def setup_option_actions(self, exclude_private, exclude_uppercase,
+                             exclude_capitalized, exclude_unsupported):
+        """Setup the actions to show in the cog menu."""
+        self.setup_in_progress = True
 
         self.exclude_private_action = create_action(self,
                 _("Exclude private references"),
@@ -217,10 +205,31 @@ class NamespaceBrowser(QWidget):
                 toggled=lambda state:
                 self.sig_option_changed.emit('exclude_unsupported', state))
         self.exclude_unsupported_action.setChecked(exclude_unsupported)
-        
+
+        self.actions = [
+            self.exclude_private_action, self.exclude_uppercase_action,
+            self.exclude_capitalized_action, self.exclude_unsupported_action]
+        if is_module_installed('numpy'):
+            self.actions.extend([MENU_SEPARATOR, self.editor.minmax_action])
+
         self.setup_in_progress = False
-        
-        return toolbar
+
+    def setup_options_button(self):
+        """Add the cog menu button to the toolbar."""
+        if not self.options_button:
+            self.options_button = create_toolbutton(
+                self, text=_('Options'), icon=ima.icon('tooloptions'))
+
+            actions = self.actions + [MENU_SEPARATOR] + self.plugin_actions
+            self.options_menu = QMenu(self)
+            add_actions(self.options_menu, actions)
+            self.options_button.setMenu(self.options_menu)
+
+        if self.tools_layout.itemAt(self.tools_layout.count() - 1) is None:
+            self.tools_layout.insertWidget(
+                self.tools_layout.count() - 1, self.options_button)
+        else:
+            self.tools_layout.addWidget(self.options_button)
 
     def option_changed(self, option, value):
         """Option has changed"""

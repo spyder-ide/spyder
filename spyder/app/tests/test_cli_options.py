@@ -25,7 +25,8 @@ def test_get_options():
     assert not options.multithreaded
     assert not options.profile
     assert options.window_title is None
-    assert options.open_project is None
+    assert options.project is None
+    assert options.opengl_implementation is None
     assert options.files == []
     assert args == []
 
@@ -44,7 +45,7 @@ def test_get_options():
     assert options.window_title == 'MyWindow'
 
     options, args = getopt('-p myproject test_file.py another_file.py'.split())
-    assert options.open_project == 'myproject'
+    assert options.project == 'myproject'
     assert options.files == ['test_file.py', 'another_file.py']
     assert args == ['test_file.py', 'another_file.py']
 
@@ -58,6 +59,9 @@ def test_get_options():
     # Requires string.
     with pytest.raises(SystemExit):
         options, args = getopt(['-p'])
+
+    options, args = getopt('--opengl software'.split())
+    assert options.opengl_implementation == 'software'
 
 
 if __name__ == "__main__":

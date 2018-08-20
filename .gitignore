@@ -7,6 +7,9 @@
 # Notepad++ files
 nppBackup/
 
+# Pytest dirs/files
+.pytest_cache/
+
 # Special dirs and files
 build/
 dist/
@@ -23,3 +26,9 @@ spyder_crash.log
 
 # git .orig files
 *.orig
+
+# log files
+*.log
+
+# Rope project folders
+.ropeproject/

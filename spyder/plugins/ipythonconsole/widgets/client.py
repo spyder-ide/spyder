@@ -18,7 +18,7 @@ import os
 import os.path as osp
 from string import Template
 from threading import Thread
-from time import ctime, time, strftime, gmtime
+import time
 
 # Third party imports (qtpy)
 from qtpy.QtCore import QUrl, QTimer, Signal, Slot
@@ -60,6 +60,11 @@ BLANK = open(osp.join(TEMPLATES_PATH, 'blank.html')).read()
 LOADING = open(osp.join(TEMPLATES_PATH, 'loading.html')).read()
 KERNEL_ERROR = open(osp.join(TEMPLATES_PATH, 'kernel_error.html')).read()
 
+try:
+    time.monotonic  # time.monotonic new in 3.3
+except AttributeError:
+    time.monotonic = time.time
+
 
 #-----------------------------------------------------------------------------
 # Auxiliary functions
@@ -86,7 +91,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     to print different messages there.
     """
 
-    SEPARATOR = '{0}## ---({1})---'.format(os.linesep*2, ctime())
+    SEPARATOR = '{0}## ---({1})---'.format(os.linesep*2, time.ctime())
     INITHISTORY = ['# -*- coding: utf-8 -*-',
                    '# *** Spyder Python Console History Log ***',]
 
@@ -100,7 +105,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                  external_kernel=False, given_name=None,
                  options_button=None,
                  show_elapsed_time=False,
-                 reset_warning=True):
+                 reset_warning=True,
+                 ask_before_restart=True):
         super(ClientWidget, self).__init__(plugin)
         SaveHistoryMixin.__init__(self, history_filename)
 
@@ -114,6 +120,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.given_name = given_name
         self.show_elapsed_time = show_elapsed_time
         self.reset_warning = reset_warning
+        self.ask_before_restart = ask_before_restart
 
         # --- Other attrs
         self.options_button = options_button
@@ -138,7 +145,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
         # Elapsed time
         self.time_label = None
-        self.t0 = None
+        self.t0 = time.monotonic()
         self.timer = QTimer(self)
 
         # --- Layout
@@ -248,7 +255,11 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.stop_button.setEnabled(True)
 
     def disable_stop_button(self):
-        self.stop_button.setDisabled(True)
+        # This avoids disabling automatically the button when
+        # re-running files on dedicated consoles.
+        # See issue #5958
+        if not self.shellwidget._executing:
+            self.stop_button.setDisabled(True)
 
     @Slot()
     def stop_button_click_handler(self):
@@ -268,7 +279,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             error = error.replace(eol, '<br>')
 
         # Don't break lines in hyphens
-        # From http://stackoverflow.com/q/7691569/438386
+        # From https://stackoverflow.com/q/7691569/438386
         error = error.replace('-', '&#8209')
 
         # Create error page
@@ -279,7 +290,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                                                 error=error)
 
         # Show error
-        self.infowidget.setHtml(page)
+        self.infowidget.setHtml(page, QUrl.fromLocalFile(CSS_PATH))
         self.shellwidget.hide()
         self.infowidget.show()
 
@@ -294,6 +305,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             # Adding id to name
             client_id = self.id_['int_id'] + u'/' + self.id_['str_id']
             name = name + u' ' + client_id
+        elif self.given_name in ["Pylab", "SymPy", "Cython"]:
+            client_id = self.id_['int_id'] + u'/' + self.id_['str_id']
+            name = self.given_name + u' ' + client_id
         else:
             name = self.given_name + u'/' + self.id_['str_id']
         return name
@@ -434,7 +448,12 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def set_color_scheme(self, color_scheme, reset=True):
         """Set IPython color scheme."""
-        self.shellwidget.set_color_scheme(color_scheme, reset)
+        # Needed to handle not initialized kernel_client
+        # See issue 6996
+        try:
+            self.shellwidget.set_color_scheme(color_scheme, reset)
+        except AttributeError:
+            pass
 
     def shutdown(self):
         """Shutdown kernel"""
@@ -462,7 +481,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """
         sw = self.shellwidget
 
-        if not running_under_pytest():
+        if not running_under_pytest() and self.ask_before_restart:
             message = _('Are you sure you want to restart the kernel?')
             buttons = QMessageBox.Yes | QMessageBox.No
             result = QMessageBox.question(self, _('Restart kernel?'),
@@ -470,7 +489,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         else:
             result = None
 
-        if result == QMessageBox.Yes or running_under_pytest():
+        if (result == QMessageBox.Yes or
+           running_under_pytest() or
+           not self.ask_before_restart):
             if sw.kernel_manager:
                 if self.infowidget.isVisible():
                     self.infowidget.hide()
@@ -569,8 +590,13 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """Text to show in time_label."""
         if self.time_label is None:
             return
-        elapsed_time = time() - self.t0
-        if elapsed_time > 24 * 3600: # More than a day...!
+
+        elapsed_time = time.monotonic() - self.t0
+        # System time changed to past date, so reset start.
+        if elapsed_time < 0:
+            self.t0 = time.monotonic()
+            elapsed_time = 0
+        if elapsed_time > 24 * 3600:  # More than a day...!
             fmt = "%d %H:%M:%S"
         else:
             fmt = "%H:%M:%S"
@@ -579,7 +605,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         else:
             color = "#AA6655"
         text = "<span style=\'color: %s\'><b>%s" \
-               "</b></span>" % (color, strftime(fmt, gmtime(elapsed_time)))
+               "</b></span>" % (color,
+                                time.strftime(fmt, time.gmtime(elapsed_time)))
         self.time_label.setText(text)
 
     def update_time_label_visibility(self):

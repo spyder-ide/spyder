@@ -16,3 +16,5 @@ pyzmq
 chardet>=2.0.0
 numpydoc
 pyqt5
+keyring
+spyder-kernels>=1.0

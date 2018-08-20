@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Std imports
+import ctypes
 import os
 import os.path as osp
 import random
@@ -12,10 +13,10 @@ import time
 # See issue 5324
 import zmq
 
-# This import is needed to fix errors with OpenGL when installed using pip
-# See issue 3332
+# Load GL library to prevent segmentation faults on some Linux systems
+# See issues 3226 and 3332
 try:
-    from OpenGL import GL
+    ctypes.CDLL("libGL.so.1", mode=ctypes.RTLD_GLOBAL)
 except:
     pass
 
@@ -39,7 +40,7 @@ def send_args_to_spyder(args):
     port = CONF.get('main', 'open_files_port')
 
     # Wait ~50 secs for the server to be up
-    # Taken from http://stackoverflow.com/a/4766598/438386
+    # Taken from https://stackoverflow.com/a/4766598/438386
     for _x in range(200):
         try:
             for arg in args:
@@ -96,8 +97,8 @@ def main():
         os.environ['QT_SCALE_FACTOR'] = ''
         os.environ['QT_SCREEN_SCALE_FACTORS'] = ''
 
-    # Prevent Spyder from crashing in macOS if locale is not defined
     if sys.platform == 'darwin':
+        # Prevent Spyder from crashing in macOS if locale is not defined
         LANG = os.environ.get('LANG')
         LC_ALL = os.environ.get('LC_ALL')
         if bool(LANG) and not bool(LC_ALL):
@@ -109,6 +110,25 @@ def main():
 
         os.environ['LANG'] = LANG
         os.environ['LC_ALL'] = LC_ALL
+
+        # Don't show useless warning in the terminal where Spyder
+        # was started
+        # See issue 3730
+        os.environ['EVENT_NOKQUEUE'] = '1'
+    else:
+        # Prevent our kernels to crash when Python fails to identify
+        # the system locale.
+        # Fixes issue 7051.
+        try:
+            from locale import getlocale
+            getlocale()
+        except ValueError:
+            # This can fail on Windows. See issue 6886
+            try:
+                os.environ['LANG'] = 'C'
+                os.environ['LC_ALL'] = 'C'
+            except Exception:
+                pass
 
     if CONF.get('main', 'single_instance') and not options.new_instance \
       and not options.reset_config_files and not running_in_mac_app():

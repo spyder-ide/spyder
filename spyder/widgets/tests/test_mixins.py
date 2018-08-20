@@ -16,6 +16,7 @@ from spyder.widgets import mixins
 class BaseWidget(QPlainTextEdit, mixins.BaseEditMixin):
     pass
 
+
 # --- Fixtures
 # -----------------------------------------------------------------------------
 
@@ -29,6 +30,25 @@ def mixinsbot(qtbot):
 
 # --- Tests
 # -----------------------------------------------------------------------------
+def test_get_unicode_regexp(mixinsbot):
+    """
+    Test that we can search with regexp's containing unicode
+    characters.
+
+    For issue 6812
+    """
+    qtbot, widget = mixinsbot
+    get = widget.get_number_matches
+
+    # CodeEditor and findreplace texts are handled in
+    # unicode by PyQt5 in Python 2
+    code = (u'print("И")\n'
+            u'foo("И")')
+    widget.setPlainText(code)
+    cursor = widget.textCursor()
+    cursor.setPosition(widget.get_position('sof'))
+    assert widget.find_text(u't.*И', regexp=True)
+    assert get(u't.*И', source_text=code, regexp=True) == 1
 
 
 def test_get_number_matches(mixinsbot):

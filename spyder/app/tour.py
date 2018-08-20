@@ -84,7 +84,7 @@ def get_tour(index):
     updated accordingly
     """
     sw = SpyderWidgets
-    qtconsole_link = "http://ipython.org/ipython-doc/stable/interactive/qtconsole.html"
+    qtconsole_link = "https://qtconsole.readthedocs.io/en/stable/index.html"
 
     # This test should serve as example of keys to use in the tour frame dics
     test = [{'title': "Welcome to Spyder introduction tour",

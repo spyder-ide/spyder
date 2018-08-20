@@ -50,6 +50,14 @@ def has_mixed_eol_chars(text):
     return repr(correct_text) != repr(text)
 
 
+def normalize_eols(text, eol='\n'):
+    """Use the same eol's in text"""
+    for eol_char, _ in EOL_CHARS:
+        if eol_char != eol:
+            text = text.replace(eol_char, eol)
+    return text
+
+
 def fix_indentation(text, indent_chars):
     """Replace tabs by spaces"""
     return text.replace('\t', indent_chars)
@@ -110,7 +118,7 @@ def path_components(path):
     Return the individual components of a given file path
     string (for the local operating system).
 
-    Taken from http://stackoverflow.com/q/21498939/438386
+    Taken from https://stackoverflow.com/q/21498939/438386
     """
     components = []
     # The loop guarantees that the returned components can be
@@ -130,7 +138,7 @@ def differentiate_prefix(path_components0, path_components1):
     """
     Return the differentiated prefix of the given two iterables. 
      
-    Taken from http://stackoverflow.com/q/21498939/438386
+    Taken from https://stackoverflow.com/q/21498939/438386
     """
     longest_prefix = []
     root_comparison = False

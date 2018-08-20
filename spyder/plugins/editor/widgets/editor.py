@@ -17,9 +17,9 @@ import os
 import os.path as osp
 import sys
 from collections import MutableSequence
+import unicodedata
 
 # Third party imports
-from qtpy import is_pyqt46
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import (QByteArray, QFileInfo, QObject, QPoint, QSize, Qt,
                          QThread, QTimer, Signal, Slot)
@@ -29,7 +29,8 @@ from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
                             QVBoxLayout, QWidget, QListWidget, QListWidgetItem)
 
 # Local imports
-from spyder.config.base import _, DEBUG, STDERR, STDOUT, running_under_pytest
+from spyder.config.base import (_, debug_print, DEBUG, STDERR,
+                                STDOUT, running_under_pytest)
 from spyder.config.gui import config_shortcut, get_shortcut
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
@@ -115,13 +116,14 @@ class ThreadManager(QObject):
 
     def add_thread(self, checker, end_callback, source_code, parent):
         """Add thread to queue"""
-        parent_id = id(parent)
-        thread = AnalysisThread(self, checker, source_code)
-        self.end_callbacks[id(thread)] = end_callback
-        self.pending_threads.append((thread, parent_id))
-        if DEBUG_EDITOR:
-            print("Added thread %r to queue" % thread, file=STDOUT)
-        QTimer.singleShot(50, self.update_queue)
+        pass
+        # parent_id = id(parent)
+        # thread = AnalysisThread(self, checker, source_code)
+        # self.end_callbacks[id(thread)] = end_callback
+        # self.pending_threads.append((thread, parent_id))
+        # if DEBUG_EDITOR:
+        #     print("Added thread %r to queue" % thread, file=STDOUT)
+        # QTimer.singleShot(50, self.update_queue)
 
     def update_queue(self):
         """Update queue"""
@@ -201,6 +203,8 @@ class FileInfo(QObject):
 
     def run_code_analysis(self, run_pyflakes, run_pep8):
         """Run code analysis"""
+        run_pyflakes = False
+        run_pep8 = False
         run_pyflakes = run_pyflakes and codeanalysis.is_pyflakes_installed()
         run_pep8 = run_pep8 and\
                    codeanalysis.get_checker_executable('pycodestyle') is not None
@@ -346,7 +350,7 @@ class TabSwitcherWidget(QListWidget):
 
     def __init__(self, parent, stack_history, tabs):
         QListWidget.__init__(self, parent)
-        self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint | Qt.Dialog)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
 
         self.editor = parent
         self.stack_history = stack_history
@@ -372,6 +376,7 @@ class TabSwitcherWidget(QListWidget):
 
         Add elements in inverse order of stack_history.
         """
+
         for index in reversed(self.stack_history):
             text = self.tabs.tabText(index)
             text = text.replace('&', '')
@@ -431,6 +436,17 @@ class TabSwitcherWidget(QListWidget):
         elif event.key() == Qt.Key_Up:
             self.select_row(-1)
 
+    def focusOutEvent(self, event):
+        """Reimplement Qt method to close the widget when loosing focus."""
+        event.ignore()
+        # Inspired from CompletionWidget.focusOutEvent() in file
+        # widgets/sourcecode/base.py line 212
+        if sys.platform == "darwin":
+            if event.reason() != Qt.ActiveWindowFocusReason:
+                self.close()
+        else:
+            self.close()
+
 
 class EditorStack(QWidget):
     reset_statusbar = Signal()
@@ -447,11 +463,13 @@ class EditorStack(QWidget):
     zoom_in = Signal()
     zoom_out = Signal()
     zoom_reset = Signal()
+    sig_open_file = Signal(dict)
     sig_close_file = Signal(str, str)
     file_saved = Signal(str, str, str)
     file_renamed_in_data = Signal(str, str, str)
     sig_undock_window = Signal()
     opened_files_list_changed = Signal()
+    active_languages_stats = Signal(set)
     analysis_results_changed = Signal()
     todo_results_changed = Signal()
     update_code_analysis_actions = Signal()
@@ -459,7 +477,7 @@ class EditorStack(QWidget):
     refresh_save_all_action = Signal()
     save_breakpoints = Signal(str, str)
     text_changed_at = Signal(str, int)
-    current_file_changed = Signal(str ,int)
+    current_file_changed = Signal(str, int)
     plugin_load = Signal((str,), ())
     edit_goto = Signal(str, int, str)
     sig_split_vertically = Signal()
@@ -471,6 +489,8 @@ class EditorStack(QWidget):
     sig_next_cursor = Signal()
     sig_prev_warning = Signal()
     sig_next_warning = Signal()
+    sig_go_to_definition = Signal(str, int, int)
+    perform_lsp_request = Signal(str, str, dict)
 
     def __init__(self, parent, actions):
         QWidget.__init__(self, parent)
@@ -519,7 +539,7 @@ class EditorStack(QWidget):
                                     triggered=self.close_all_right)
         close_all_but_this = create_action(self, _("Close all but this"),
                                            triggered=self.close_all_but_this)
-        
+
         if sys.platform == 'darwin':
            text=_("Show in Finder")
         else:
@@ -834,8 +854,6 @@ class EditorStack(QWidget):
                 self.outlineexplorer.remove_editor(finfo.editor)
 
         QWidget.closeEvent(self, event)
-        if is_pyqt46:
-            self.destroyed.emit()
 
     def clone_editor_from(self, other_finfo, set_current):
         fname = other_finfo.filename
@@ -871,10 +889,10 @@ class EditorStack(QWidget):
         self.fileswitcher_dlg.is_visible = True
 
     @Slot()
-    def open_symbolfinder_dlg(self): 
+    def open_symbolfinder_dlg(self):
         self.open_fileswitcher_dlg()
         self.fileswitcher_dlg.set_search_text('@')
-        
+
     def get_current_tab_manager(self):
         """Get the widget with the TabWidget attribute."""
         return self
@@ -903,15 +921,26 @@ class EditorStack(QWidget):
 
     def inspect_current_object(self):
         """Inspect current object in the Help plugin"""
-        if self.introspector:
-            editor = self.get_current_editor()
-            position = editor.get_position('cursor')
-            self.help.switch_to_editor_source()
-            self.introspector.show_object_info(position, auto=False)
-        else:
-            text = self.get_current_editor().get_current_object()
-            if text:
-                self.send_to_help(text, force=True)
+        # if self.introspector:
+        editor = self.get_current_editor()
+        editor.sig_display_signature.connect(self.display_signature_help)
+        line, col = editor.get_cursor_line_column()
+        editor.request_hover(line, col)
+        # editor.request_signature()
+        # position = editor.get_position('cursor')
+        # self.help.switch_to_editor_source()
+        # self.introspector.show_object_info(position, auto=False)
+        # else:
+        #     text = self.get_current_editor().get_current_object()
+        #     if text:
+        #         self.send_to_help(text, force=True)
+
+    def display_signature_help(self, signature):
+        editor = self.get_current_editor()
+        name = editor.get_current_word()
+        self.help.switch_to_editor_source()
+        editor.sig_display_signature.disconnect(self.display_signature_help)
+        self.send_to_help(name, signature, force=True)
 
     #------ Editor Widget Settings
     def set_closable(self, state):
@@ -1120,8 +1149,8 @@ class EditorStack(QWidget):
         self.tab_stop_width_spaces = tab_stop_width_spaces
         if self.data:
             for finfo in self.data:
-                finfo.editor.setTabStopWidth(tab_stop_width_spaces
-                                             * self.fontMetrics().width('9'))
+                finfo.editor.tab_stop_width_spaces = tab_stop_width_spaces
+                finfo.editor.update_tab_stop_width_spaces()
 
     def set_help_enabled(self, state):
         self.help_enabled = state
@@ -1424,7 +1453,7 @@ class EditorStack(QWidget):
             else:
                 self.stack_history.remove_and_append(index)
 
-            return editor  
+            return editor
 
     def is_file_opened(self, filename=None):
         """Return if filename is in the editor stack.
@@ -1505,6 +1534,7 @@ class EditorStack(QWidget):
 
             filename = self.data[index].filename
             self.remove_from_data(index)
+            finfo.editor.notify_close()
 
             # We pass self object ID as a QString, because otherwise it would
             # depend on the platform: long for 64bit, int for 32bit. Replacing
@@ -1540,6 +1570,22 @@ class EditorStack(QWidget):
         self.__modify_stack_title()
         return is_ok
 
+    def poll_open_file_languages(self):
+        """Get list of current opened files' languages"""
+        languages = []
+        for index in range(self.get_stack_count()):
+            languages.append(
+                self.tabs.widget(index).language.lower())
+        return set(languages)
+
+    def notify_server_ready(self, language, config):
+        """Notify language server availability to code editors."""
+        for index in range(self.get_stack_count()):
+            editor = self.tabs.widget(index)
+            debug_print(editor.language.lower(), language)
+            if editor.language.lower() == language:
+                editor.start_lsp_services(config)
+
     def close_all_files(self):
         """Close all opened scripts"""
         while self.close_file():
@@ -1551,19 +1597,19 @@ class EditorStack(QWidget):
         n = self.get_stack_count()
         for i in range(num, n-1):
             self.close_file(num+1)
-    
+
     def close_all_but_this(self):
         """Close all files but the current one"""
         self.close_all_right()
         for i in range(0, self.get_stack_count()-1  ):
             self.close_file(0)
-            
+
     def add_last_closed_file(self, fname):
         """Add to last closed file list."""
         if fname in self.last_closed_files:
             self.last_closed_files.remove(fname)
         self.last_closed_files.insert(0, fname)
-        if len(self.last_closed_files) > 10: 
+        if len(self.last_closed_files) > 10:
             self.last_closed_files.pop(-1)
 
     def get_last_closed_files(self):
@@ -1678,6 +1724,7 @@ class EditorStack(QWidget):
             self.set_os_eol_chars(osname=osname)
         txt = to_text_string(finfo.editor.get_text_with_eol())
         try:
+            finfo.editor.notify_save()
             finfo.encoding = encoding.write(txt, finfo.filename,
                                             finfo.encoding)
             finfo.newly_created = False
@@ -1710,7 +1757,7 @@ class EditorStack(QWidget):
         except EnvironmentError as error:
             self.msgbox = QMessageBox(
                     QMessageBox.Critical,
-                    _("Save"),
+                    _("Save Error"),
                     _("<b>Unable to save file '%s'</b>"
                       "<br><br>Error message:<br>%s"
                       ) % (osp.basename(finfo.filename),
@@ -1873,7 +1920,7 @@ class EditorStack(QWidget):
             except EnvironmentError as error:
                 self.msgbox = QMessageBox(
                     QMessageBox.Critical,
-                    _("Save"),
+                    _("Save Error"),
                     _("<b>Unable to save file '%s'</b>"
                       "<br><br>Error message:<br>%s"
                       ) % (osp.basename(finfo.filename),
@@ -1943,6 +1990,8 @@ class EditorStack(QWidget):
 #            btn.setEnabled(count > 1)
 
         editor = self.get_current_editor()
+        if editor.lsp_ready and not editor.document_opened:
+            editor.document_did_open()
         if index != -1:
             editor.setFocus()
             if DEBUG_EDITOR:
@@ -2088,7 +2137,7 @@ class EditorStack(QWidget):
                           "your changes?") % name,
                         QMessageBox.Yes | QMessageBox.No,
                         self)
-                    answer = self.msgbox.exec_()  
+                    answer = self.msgbox.exec_()
                     if answer == QMessageBox.Yes:
                         self.reload(index)
                     else:
@@ -2198,7 +2247,7 @@ class EditorStack(QWidget):
                       ) % osp.basename(filename),
                     QMessageBox.Yes | QMessageBox.No,
                     self)
-            answer = self.msgbox.exec_()  
+            answer = self.msgbox.exec_()
             if answer != QMessageBox.Yes:
                 return
         self.reload(index)
@@ -2213,7 +2262,10 @@ class EditorStack(QWidget):
         introspector = self.introspector
         editor.get_completions.connect(introspector.get_completions)
         editor.sig_show_object_info.connect(introspector.show_object_info)
-        editor.go_to_definition.connect(introspector.go_to_definition)
+        # editor.go_to_definition.connect(introspector.go_to_definition)
+        editor.go_to_definition.connect(
+            lambda fname, line, column: self.sig_go_to_definition.emit(
+                fname, line, column))
 
         finfo = FileInfo(fname, enc, editor, new, self.threadmanager,
                          self.introspector)
@@ -2272,6 +2324,10 @@ class EditorStack(QWidget):
         editor.sig_cursor_position_changed.connect(
                                            self.editor_cursor_position_changed)
         editor.textChanged.connect(self.start_stop_analysis_timer)
+        debug_print("Connecting signal...")
+        editor.sig_perform_lsp_request.connect(
+            lambda lang, method, params: self.perform_lsp_request.emit(
+                lang, method, params))
         editor.modificationChanged.connect(
                      lambda state: self.modification_changed(state,
                                                     editor_id=id(editor)))
@@ -2290,32 +2346,41 @@ class EditorStack(QWidget):
         # is in use
         editor.run_pygments_highlighter()
 
+        if cloned_from is None:
+            options = {
+                'language': editor.language,
+                'filename': editor.filename,
+                'signal': editor.lsp_response_signal
+            }
+            self.sig_open_file.emit(options)
+            if self.get_stack_index() == 0:
+                self.current_changed(0)
+
         return finfo
 
     def editor_cursor_position_changed(self, line, index):
         """Cursor position of one of the editor in the stack has changed"""
         self.sig_editor_cursor_position_changed.emit(line, index)
 
-    def send_to_help(self, qstr1, qstr2=None, qstr3=None, qstr4=None,
-                     force=False):
+    def send_to_help(self, name, signature, force=False):
         """qstr1: obj_text, qstr2: argpspec, qstr3: note, qstr4: doc_text"""
         if not force and not self.help_enabled:
             return
         if self.help is not None \
           and (force or self.help.dockwidget.isVisible()):
-            # Help plugin exists and is visible
-            if qstr4 is None:
-                self.help.set_object_text(qstr1, ignore_unknown=True,
-                                          force_refresh=force)
-            else:
-                objtxt = to_text_string(qstr1)
-                name = objtxt.split('.')[-1]
-                argspec = to_text_string(qstr2)
-                note = to_text_string(qstr3)
-                docstring = to_text_string(qstr4)
-                doc = {'obj_text': objtxt, 'name': name, 'argspec': argspec,
-                       'note': note, 'docstring': docstring}
-                self.help.set_editor_doc(doc, force_refresh=force)
+            signature = to_text_string(signature)
+            signature = unicodedata.normalize("NFKD", signature)
+            parts = signature.split('\n\n')
+            definition = parts[0]
+            documentation = '\n\n'.join(parts[1:])
+            args = ''
+            if '(' in definition:
+                args = definition[definition.find('('):]
+
+            doc = {'obj_text': '', 'name': name,
+                   'argspec': args, 'note': '',
+                   'docstring': documentation}
+            self.help.set_editor_doc(doc, force_refresh=force)
             editor = self.get_current_editor()
             editor.setFocus()
 
@@ -2366,10 +2431,10 @@ class EditorStack(QWidget):
 
     def set_os_eol_chars(self, index=None, osname=None):
         """Sets the EOL character(s) based on the operating system.
-        
+
         If `osname` is None, then the default line endings for the current
         operating system (`os.name` value) will be used.
-        
+
         `osname` can be one of:
             ('posix', 'nt', 'java')
         """
@@ -2399,7 +2464,7 @@ class EditorStack(QWidget):
     #------ Run
     def run_selection(self):
         """
-        Run selected text or current line in console. 
+        Run selected text or current line in console.
 
         If some text is selected, then execute that text in console.
 
@@ -2562,8 +2627,6 @@ class EditorSplitter(QSplitter):
         receives a window close request from a top-level widget.
         """
         QSplitter.closeEvent(self, event)
-        if is_pyqt46:
-            self.destroyed.emit()
 
     def __give_focus_to_remaining_editor(self):
         focus_widget = self.plugin.get_focus_widget()
@@ -2877,7 +2940,7 @@ class EditorMainWindow(QMainWindow):
     def add_toolbars_to_menu(self, menu_title, actions):
         """Add toolbars to a menu."""
         # Six is the position of the view menu in menus list
-        # that you can find in plugins/editor.py setup_other_windows. 
+        # that you can find in plugins/editor.py setup_other_windows.
         view_menu = self.menus[6]
         if actions == self.toolbars and view_menu:
             toolbars = []
@@ -2889,7 +2952,7 @@ class EditorMainWindow(QMainWindow):
     def load_toolbars(self):
         """Loads the last visible toolbars from the .ini file."""
         toolbars_names = CONF.get('main', 'last_visible_toolbars', default=[])
-        if toolbars_names:            
+        if toolbars_names:
             dic = {}
             for toolbar in self.toolbars:
                 dic[toolbar.objectName()] = toolbar
@@ -2909,12 +2972,6 @@ class EditorMainWindow(QMainWindow):
     def closeEvent(self, event):
         """Reimplement Qt method"""
         QMainWindow.closeEvent(self, event)
-        if is_pyqt46:
-            self.destroyed.emit()
-            for editorstack in self.editorwidget.editorstacks[:]:
-                if DEBUG_EDITOR:
-                    print("--> destroy_editorstack:", editorstack, file=STDOUT)
-                editorstack.destroyed.emit()
 
     def get_layout_settings(self):
         """Return layout state"""
@@ -2985,11 +3042,11 @@ class EditorPluginExample(QSplitter):
         self.menu_list = None
         self.setup_window([], [])
 
-    def go_to_file(self, fname, lineno, text):
+    def go_to_file(self, fname, lineno, text='', start_column=None):
         editorstack = self.editorstacks[0]
         editorstack.set_current_filename(to_text_string(fname))
         editor = editorstack.get_current_editor()
-        editor.go_to_line(lineno, word=text)
+        editor.go_to_line(lineno, word=text, start_column=start_column)
 
     def closeEvent(self, event):
         for win in self.editorwindows[:]:

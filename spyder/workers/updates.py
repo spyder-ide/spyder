@@ -6,7 +6,9 @@
 
 # Standard library imports
 import json
+import os
 import ssl
+import sys
 
 # Third party imports
 from qtpy.QtCore import QObject, Signal
@@ -15,6 +17,7 @@ from qtpy.QtCore import QObject, Signal
 from spyder import __version__
 from spyder.config.base import _
 from spyder.py3compat import PY3, is_text_string
+from spyder.config.utils import is_anaconda
 from spyder.utils.programs import check_version, is_stable_version
 
 
@@ -27,30 +30,36 @@ else:
 
 class WorkerUpdates(QObject):
     """
-    Worker that checks for releases using the Github API without blocking the
-    Spyder user interface, in case of connections issues.
+    Worker that checks for releases using either the Anaconda
+    default channels or the Github Releases page without
+    blocking the Spyder user interface, in case of connection
+    issues.
     """
     sig_ready = Signal()
 
-    def __init__(self, parent, startup):
+    def __init__(self, parent, startup, version=""):
         QObject.__init__(self)
         self._parent = parent
         self.error = None
         self.latest_release = None
         self.startup = startup
+        self.version = version
 
-    def check_update_available(self, version, releases):
+    def check_update_available(self, version, releases, github=False):
         """Checks if there is an update available.
 
         It takes as parameters the current version of Spyder and a list of
-        valid cleaned releases in chronological order (what github api returns
-        by default). Example: ['2.3.4', '2.3.3' ...]
+        valid cleaned releases in chronological order.
+        Example: ['2.3.2', '2.3.3' ...] or with github ['2.3.4', '2.3.3' ...]
         """
         if is_stable_version(version):
             # Remove non stable versions from the list
             releases = [r for r in releases if is_stable_version(r)]
 
-        latest_release = releases[0]
+        if github:
+            latest_release = releases[0]
+        else:
+            latest_release = releases[-1]
 
         if version.endswith('dev'):
             return (False, latest_release)
@@ -59,7 +68,17 @@ class WorkerUpdates(QObject):
 
     def start(self):
         """Main method of the WorkerUpdates worker"""
-        self.url = 'https://api.github.com/repos/spyder-ide/spyder/releases'
+        if is_anaconda():
+            self.url = 'https://repo.anaconda.com/pkgs/main'
+            if os.name == 'nt':
+                self.url += '/win-64/repodata.json'
+            elif sys.platform == 'darwin':
+                self.url += '/osx-64/repodata.json'
+            else:
+                self.url += '/linux-64/repodata.json'
+        else:
+            self.url = ('https://api.github.com/repos/'
+                        'spyder-ide/spyder/releases')
         self.update_available = False
         self.latest_release = __version__
 
@@ -81,10 +100,22 @@ class WorkerUpdates(QObject):
                     data = data.decode()
 
                 data = json.loads(data)
-                releases = [item['tag_name'].replace('v', '') for item in data]
-                version = __version__
+                if not self.version:
+                    self.version = __version__
 
-                result = self.check_update_available(version, releases)
+                if is_anaconda():
+                    releases = []
+                    for item in data['packages']:
+                        if 'spyder' in item and 'spyder-kernels' not in item:
+                            releases.append(item.split('-')[1])
+                    result = self.check_update_available(self.version,
+                                                         releases)
+                else:
+                    releases = [item['tag_name'].replace('v', '')
+                                for item in data]
+                    result = self.check_update_available(self.version,
+                                                         releases,
+                                                         github=True)
                 self.update_available, self.latest_release = result
             except Exception:
                 error_msg = _('Unable to retrieve information.')

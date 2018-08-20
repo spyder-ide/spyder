@@ -38,10 +38,11 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.colors import ColorLayout
+from spyder.widgets.comboboxes import FileComboBox
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 
 
-HDPI_QT_PAGE = "http://doc.qt.io/qt-5/highdpi.html"
+HDPI_QT_PAGE = "https://doc.qt.io/qt-5/highdpi.html"
 
 
 class ConfigAccessMixin(object):
@@ -342,7 +343,11 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                 # integer for example (see qtpy.compat.from_qvariant):
                 if to_text_string(data) == to_text_string(value):
                     break
-            combobox.setCurrentIndex(index)
+            else:
+                if combobox.count() == 0:
+                    index = None
+            if index:
+                combobox.setCurrentIndex(index)
             combobox.currentIndexChanged.connect(lambda _foo, opt=option:
                                                  self.has_been_modified(opt))
             if combobox.restart_required:
@@ -676,7 +681,43 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         combobox.restart_required = restart
         combobox.label_text = text
         return widget
-    
+
+    def create_file_combobox(self, text, choices, option, default=NoDefault,
+                             tip=None, restart=False, filters=None,
+                             adjust_to_contents=False,
+                             default_line_edit=False):
+        """choices: couples (name, key)"""
+        combobox = FileComboBox(self, adjust_to_contents=adjust_to_contents,
+                                default_line_edit=default_line_edit)
+        combobox.restart_required = restart
+        combobox.label_text = text
+        edit = combobox.lineEdit()
+        edit.label_text = text
+        edit.restart_required = restart
+        self.lineedits[edit] = (option, default)
+
+        if tip is not None:
+            combobox.setToolTip(tip)
+        combobox.addItems(choices)
+        self.comboboxes[combobox] = (option, default)
+
+        msg = _('Invalid file path')
+        self.validate_data[edit] = (osp.isfile, msg)
+        browse_btn = QPushButton(ima.icon('FileIcon'), '', self)
+        browse_btn.setToolTip(_("Select file"))
+        browse_btn.clicked.connect(lambda: self.select_file(edit, filters))
+
+        layout = QGridLayout()
+        layout.addWidget(combobox, 0, 0, 0, 9)
+        layout.addWidget(browse_btn, 0, 10)
+        layout.setContentsMargins(0, 0, 0, 0)
+        widget = QWidget(self)
+        widget.combobox = combobox
+        widget.browse_btn = browse_btn
+        widget.setLayout(layout)
+
+        return widget
+
     def create_fontgroup(self, option=None, text=None, title=None,
                          tip=None, fontfilters=None, without_group=False):
         """Option=None -> setting plugin font"""
@@ -802,16 +843,28 @@ class MainConfigPage(GeneralConfigPage):
 
         # --- Interface
         general_group = QGroupBox(_("General"))
+
         languages = LANGUAGE_CODES.items()
         language_choices = sorted([(val, key) for key, val in languages])
-        language_combo = self.create_combobox(_('Language'), language_choices,
+        language_combo = self.create_combobox(_('Language:'),
+                                              language_choices,
                                               'interface_language',
                                               restart=True)
+
+        opengl_options = ['Automatic', 'Desktop', 'Software']
+        opengl_choices = list(zip(opengl_options,
+                                  [c.lower() for c in opengl_options]))
+        opengl_combo = self.create_combobox(_('Rendering engine:'),
+                                            opengl_choices,
+                                            'opengl',
+                                            restart=True)
+
         single_instance_box = newcb(_("Use a single instance"),
                                     'single_instance',
                                     tip=_("Set this to open external<br> "
                                           "Python files in an already running "
                                           "instance (Requires a restart)"))
+
         prompt_box = newcb(_("Prompt when exiting"), 'prompt_on_exit')
         popup_console_box = newcb(_("Show internal Spyder errors to report "
                                     "them to Github"), 'show_internal_errors')
@@ -823,8 +876,17 @@ class MainConfigPage(GeneralConfigPage):
             self.set_option("single_instance", True)
             single_instance_box.setEnabled(False)
 
+        comboboxes_advanced_layout = QHBoxLayout()
+        cbs_adv_grid = QGridLayout()
+        cbs_adv_grid.addWidget(language_combo.label, 0, 0)
+        cbs_adv_grid.addWidget(language_combo.combobox, 0, 1)
+        cbs_adv_grid.addWidget(opengl_combo.label, 1, 0)
+        cbs_adv_grid.addWidget(opengl_combo.combobox, 1, 1)
+        comboboxes_advanced_layout.addLayout(cbs_adv_grid)
+        comboboxes_advanced_layout.addStretch(1)
+
         general_layout = QVBoxLayout()
-        general_layout.addWidget(language_combo)
+        general_layout.addLayout(comboboxes_advanced_layout)
         general_layout.addWidget(single_instance_box)
         general_layout.addWidget(prompt_box)
         general_layout.addWidget(popup_console_box)

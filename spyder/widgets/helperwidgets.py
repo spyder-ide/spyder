@@ -102,7 +102,7 @@ class MessageCheckBox(QMessageBox):
 class HTMLDelegate(QStyledItemDelegate):
     """With this delegate, a QListWidgetItem or a QTableItem can render HTML.
 
-    Taken from http://stackoverflow.com/a/5443112/2399799
+    Taken from https://stackoverflow.com/a/5443112/2399799
     """
     def __init__(self, parent, margin=0):
         super(HTMLDelegate, self).__init__(parent)
@@ -152,6 +152,45 @@ class HTMLDelegate(QStyledItemDelegate):
         doc.setHtml(options.text)
 
         return QSize(doc.idealWidth(), doc.size().height() - 2)
+
+
+class ItemDelegate(QStyledItemDelegate):
+    def __init__(self, parent):
+        QStyledItemDelegate.__init__(self, parent)
+
+    def paint(self, painter, option, index):
+        options = QStyleOptionViewItem(option)
+        self.initStyleOption(options, index)
+
+        style = (QApplication.style() if options.widget is None
+                 else options.widget.style())
+
+        doc = QTextDocument()
+        doc.setDocumentMargin(0)
+        doc.setHtml(options.text)
+
+        options.text = ""
+        style.drawControl(QStyle.CE_ItemViewItem, options, painter)
+
+        ctx = QAbstractTextDocumentLayout.PaintContext()
+
+        textRect = style.subElementRect(QStyle.SE_ItemViewItemText, options)
+        painter.save()
+
+        painter.translate(textRect.topLeft())
+        painter.setClipRect(textRect.translated(-textRect.topLeft()))
+        doc.documentLayout().draw(painter, ctx)
+        painter.restore()
+
+    def sizeHint(self, option, index):
+        options = QStyleOptionViewItem(option)
+        self.initStyleOption(options, index)
+
+        doc = QTextDocument()
+        doc.setHtml(options.text)
+        doc.setTextWidth(options.rect.width())
+
+        return QSize(doc.idealWidth(), doc.size().height())
 
 
 class IconLineEdit(QLineEdit):

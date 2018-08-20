@@ -12,6 +12,7 @@ from qtpy.QtGui import QPainter, QBrush, QColor, QCursor
 from qtpy.QtWidgets import (QStyle, QStyleOptionSlider, QApplication)
 
 from spyder.api.panel import Panel
+from spyder.plugins.editor.lsp import DiagnosticSeverity
 
 
 class ScrollFlagArea(Panel):
@@ -82,7 +83,8 @@ class ScrollFlagArea(Panel):
                 if data.code_analysis:
                     # Paint the warnings
                     color = self.editor.warning_color
-                    for _message, error in data.code_analysis:
+                    for source, code, severity, message in data.code_analysis:
+                        error = severity == DiagnosticSeverity.ERROR
                         if error:
                             color = self.editor.error_color
                             break

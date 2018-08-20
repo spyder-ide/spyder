@@ -27,7 +27,7 @@ def create_executable():
     except ImportError:
         python_qt = 'pyside'
     dist.setup(name="Spyder", version=ver, script="spyder/spyder.py",
-               description="Scientific PYthon Development EnviRonment",
+               description="The Scientific Python Development Environment",
                target_name="%s.exe" % name, icon="%s.ico" % name,
                target_dir="%s-win32-%s-sa-%s" % (name, python_qt, ver))
     spyder.add_to_distribution(dist)
