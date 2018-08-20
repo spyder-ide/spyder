@@ -14,7 +14,10 @@ environment:
       qtawesome cloudpickle pickleshare pyzmq chardet mock pandas pytest
       pytest-cov numpydoc scipy pillow qtconsole matplotlib jedi pywin32
       sympy cython keyring
-    PIP_DEPENDENCIES: "pytest-qt pytest-mock pytest-timeout flaky codecov"
+    PIP_DEPENDENCIES: >
+      pytest-qt pytest-mock pytest-timeout flaky codecov
+      coloredlogs python-language-server[all] pydocstyle pexpect
+    APPVEYOR_RDP_PASSWORD: "dcca4c4863E30d56c2e0dda6327370b3#"
 
   matrix:
     - PYTHON_VERSION: "2.7"
@@ -53,6 +56,9 @@ build: false
 
 test_script:
   - "%CMD_IN_ENV% python runtests.py || %CMD_IN_ENV% python runtests.py || %CMD_IN_ENV% python runtests.py"
+
+init:
+  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
 on_success:
   - codecov

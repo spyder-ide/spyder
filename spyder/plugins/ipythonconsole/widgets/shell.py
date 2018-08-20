@@ -23,14 +23,13 @@ from spyder.utils import programs
 from spyder.utils import syntaxhighlighters as sh
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style, create_style_class
 from spyder.widgets.helperwidgets import MessageCheckBox
-from spyder.plugins.ipythonconsole.widgets import (ControlWidget,
-                                                   DebuggingWidget,
-                                                   HelpWidget,
-                                                   NamepaceBrowserWidget,
-                                                   PageControlWidget)
+from spyder.plugins.ipythonconsole import (
+        ControlWidget, DebuggingWidget, FigureBrowserWidget,
+        HelpWidget, NamepaceBrowserWidget, PageControlWidget)
 
 
-class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
+class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
+                  FigureBrowserWidget):
     """
     Shell widget for the IPython Console
 
@@ -44,6 +43,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     sig_var_properties = Signal(object)
     sig_show_syspath = Signal(object)
     sig_show_env = Signal(object)
+
+    # For FigureBrowserWidget
+    sig_new_inline_figure = Signal(object, str)
 
     # For DebuggingWidget
     sig_pdb_step = Signal(str, int)

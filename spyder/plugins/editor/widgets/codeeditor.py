@@ -71,6 +71,11 @@ from spyder.plugins.editor.extensions.manager import (
 from spyder.plugins.editor.extensions.closequotes import (
         CloseQuotesExtension)
 from spyder.plugins.editor.api.decoration import TextDecoration
+from spyder.widgets.sourcecode.utils.lsp import (
+    request, handles, class_register)
+from spyder.utils.code_analysis import (
+    LSPRequestTypes, TextDocumentSyncKind, DiagnosticSeverity,
+    TextDocumentSaveReason)
 from spyder.api.panel import Panel
 
 try:
@@ -94,6 +99,8 @@ def is_letter_or_number(char):
 # =============================================================================
 # Go to line dialog box
 # =============================================================================
+
+
 class GoToLineDialog(QDialog):
     def __init__(self, editor):
         QDialog.__init__(self, editor, Qt.WindowTitleHint
@@ -169,13 +176,15 @@ class GoToLineDialog(QDialog):
 # CodeEditor widget
 #===============================================================================
 class BlockUserData(QTextBlockUserData):
-    def __init__(self, editor):
+    def __init__(self, editor, cursor=None, color=None):
         QTextBlockUserData.__init__(self)
         self.editor = editor
         self.breakpoint = False
         self.breakpoint_condition = None
         self.code_analysis = []
         self.todo = ''
+        self.selection = cursor
+        self.color = color
         self.editor.blockuserdata_list.append(self)
 
     def is_empty(self):
@@ -207,6 +216,7 @@ def get_file_language(filename, text=None):
     return language
 
 
+@class_register
 class CodeEditor(TextEditBaseWidget):
     """Source Code Editor Widget based exclusively on Qt"""
 
@@ -237,13 +247,13 @@ class CodeEditor(TextEditBaseWidget):
 
     breakpoints_changed = Signal()
     get_completions = Signal(bool)
-    go_to_definition = Signal(int)
+    go_to_definition = Signal(str, int, int)
     sig_show_object_info = Signal(int)
     run_selection = Signal()
     run_cell_and_advance = Signal()
     run_cell = Signal()
     re_run_last_cell = Signal()
-    go_to_definition_regex = Signal(int)
+    go_to_definition_regex = Signal(str, int, int)
     sig_cursor_position_changed = Signal(int, int)
     sig_new_file = Signal(str)
 
@@ -272,6 +282,12 @@ class CodeEditor(TextEditBaseWidget):
 
     #: Signal emitted when a new text is set on the widget
     new_text_set = Signal()
+
+    # LSP Signals
+    sig_perform_lsp_request = Signal(str, str, dict)
+    lsp_response_signal = Signal(str, dict)
+    sig_display_signature = Signal(str)
+    sig_signature_invoked = Signal()
 
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
@@ -382,6 +398,7 @@ class CodeEditor(TextEditBaseWidget):
         self.__find_first_pos = None
         self.__find_flags = None
 
+        self.language = None
         self.supported_language = False
         self.supported_cell_language = False
         self.classfunc_match = None
@@ -456,6 +473,29 @@ class CodeEditor(TextEditBaseWidget):
                                        lambda value: self.rehighlight_cells())
 
         self.oe_proxy = None
+
+        # Language Server
+        self.lsp_requests = {}
+        self.document_opened = False
+        self.filename = None
+        self.lsp_ready = False
+        self.text_version = 0
+        self.save_include_text = True
+        self.open_close_notifications = True
+        self.sync_mode = TextDocumentSyncKind.FULL
+        self.will_save_notify = False
+        self.will_save_until_notify = False
+        self.enable_hover = False
+        self.auto_completion_characters = []
+        self.signature_completion_characters = []
+        self.lsp_go_to_definition_enabled = False
+        self.find_references_enabled = False
+        self.highlight_enabled = False
+        self.formatting_enabled = False
+        self.range_formatting_enabled = False
+        self.formatting_characters = []
+        self.rename_support = False
+        self.lsp_response_signal.connect(self.handle_response)
 
         # Editor Extensions
         self.editor_extensions = EditorExtensionsManager(self)
@@ -678,6 +718,7 @@ class CodeEditor(TextEditBaseWidget):
         self.toggle_line_numbers(linenumbers, markers)
 
         # Lexer
+        self.filename = filename
         self.set_language(language, filename)
 
         # Highlight current cell
@@ -712,6 +753,244 @@ class CodeEditor(TextEditBaseWidget):
         # Class/Function dropdown will be disabled if we're not in a Python file.
         self.classfuncdropdown.setVisible(show_class_func_dropdown
                                           and self.is_python_like())
+
+    # ------------- LSP-related methods ---------------------------------------
+
+    @Slot(str, dict)
+    def handle_response(self, method, params):
+        if method in self.handler_registry:
+            handler_name = self.handler_registry[method]
+            handler = getattr(self, handler_name)
+            handler(params)
+
+    def emit_request(self, method, params, requires_response):
+        """Send request to LSP manager."""
+        params['requires_response'] = requires_response
+        params['response_sig'] = self.lsp_response_signal
+        self.sig_perform_lsp_request.emit(
+            self.language.lower(), method, params)
+
+    # ------------- LSP: Configuration and protocol start/end ----------------
+
+    def start_lsp_services(self, config):
+        """Start LSP integration if it wasn't done before."""
+        if not self.lsp_ready:
+            self.parse_lsp_config(config)
+            self.lsp_ready = True
+            self.document_did_open()
+
+    def parse_lsp_config(self, config):
+        """Parse and load LSP server editor capabilities."""
+        sync_options = config['textDocumentSync']
+        completion_options = config['completionProvider']
+        signature_options = config['signatureHelpProvider']
+        range_formatting_options = config['documentOnTypeFormattingProvider']
+        self.open_close_notifications = sync_options['openClose']
+        self.sync_mode = sync_options['change']
+        self.will_save_notify = sync_options['willSave']
+        self.will_save_until_notify = sync_options['willSaveWaitUntil']
+        self.save_include_text = sync_options['save']['includeText']
+        self.enable_hover = config['hoverProvider']
+        self.auto_completion_characters = (
+            completion_options['triggerCharacters'])
+        self.signature_completion_characters = (
+            signature_options['triggerCharacters'])
+        self.lsp_go_to_definition_enabled = config['definitionProvider']
+        self.find_references_enabled = config['referencesProvider']
+        self.highlight_enabled = config['documentHighlightProvider']
+        self.formatting_enabled = config['documentFormattingProvider']
+        self.range_formatting_enabled = (
+            config['documentRangeFormattingProvider'])
+        self.formatting_characters.append(
+            range_formatting_options['firstTriggerCharacter'])
+        self.formatting_characters += (
+            range_formatting_options['moreTriggerCharacter'])
+
+    @request(method=LSPRequestTypes.DOCUMENT_DID_OPEN, requires_response=False)
+    def document_did_open(self):
+        """Send textDocument/didOpen request to server."""
+        self.document_opened = True
+        params = {
+            'file': self.filename,
+            'language': self.language,
+            'version': self.text_version,
+            'text': self.toPlainText(),
+            'signal': self.lsp_response_signal
+        }
+        return params
+
+    # ------------- LSP: Linting ---------------------------------------
+    @request(
+        method=LSPRequestTypes.DOCUMENT_DID_CHANGE, requires_response=False)
+    def document_did_change(self, text=None):
+        """Send textDocument/didChange request to server."""
+        self.text_version += 1
+        params = {
+            'file': self.filename,
+            'version': self.text_version,
+            'text': self.toPlainText()
+        }
+        return params
+
+    @handles(LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
+    def linting_diagnostics(self, params):
+        self.process_code_analysis(params['params'])
+
+    # ------------- LSP: Completion ---------------------------------------
+
+    @request(method=LSPRequestTypes.DOCUMENT_COMPLETION)
+    def do_completion(self, automatic=False):
+        """Trigger completion"""
+        # if self.is_completion_widget_visible():
+        #     return
+        self.document_did_change('')
+        line, column = self.get_cursor_line_column()
+        params = {
+            'file': self.filename,
+            'line': line,
+            'column': column
+        }
+        return params
+
+    @handles(LSPRequestTypes.DOCUMENT_COMPLETION)
+    def process_completion(self, params):
+        if len(params['params']) > 0:
+            completion_list = sorted(
+                params['params'], key=lambda x: x['sortText'])
+            self.completion_widget.show_list(completion_list)
+
+    # ------------- LSP: Signature Hints ------------------------------------
+
+    @request(method=LSPRequestTypes.DOCUMENT_SIGNATURE)
+    def request_signature(self):
+        self.document_did_change('')
+        line, column = self.get_cursor_line_column()
+        params = {
+            'file': self.filename,
+            'line': line,
+            'column': column
+        }
+        return params
+
+    @handles(LSPRequestTypes.DOCUMENT_SIGNATURE)
+    def process_signatures(self, params):
+        # self.hide_completion_widget()
+        signature = params['params']
+        if (signature is not None and
+                'activeParameter' in signature):
+            self.sig_signature_invoked.emit()
+            line, _ = self.get_cursor_line_column()
+            active_parameter_idx = signature['activeParameter']
+            signature = signature['signatures']
+            func_doc = signature['documentation']
+            func_signature = signature['label']
+            parameters = signature['parameters']
+            parameter = parameters[active_parameter_idx]
+
+            font = self.font()
+            size = font.pointSize()
+            family = font.family()
+
+            parameter_str = ''
+            color_change_str = ('<span style=\'font-family: "{0}"; '
+                                'font-size: {1}pt; color: {2}\'>')
+            if (parameter['documentation'] is not None and
+                    len(parameter['documentation']) > 0):
+                parameter_fmt = ('{0}<b>{1}</b></span>: {2}\n')
+                parameter_str = parameter_fmt.format(
+                    color_change_str.format(family, size, '#daa520'),
+                    parameter['label'], parameter['documentation'])
+
+            title = func_signature.replace(
+                parameter['label'], '{0}{1}</span>'.format(
+                    color_change_str.format(family, size, '#daa520'),
+                    parameter['label']))
+            tooltip_text = "{0}{1}".format(parameter_str, func_doc)
+            self.show_calltip(
+                title, tooltip_text, color='#999999')
+
+    # ------------- LSP: Hover ---------------------------------------
+
+    @request(method=LSPRequestTypes.DOCUMENT_HOVER)
+    def request_hover(self, line, col):
+        params = {
+            'file': self.filename,
+            'line': line,
+            'column': col
+        }
+        return params
+
+    @handles(LSPRequestTypes.DOCUMENT_HOVER)
+    def handle_hover_response(self, contents):
+        text = contents['params']
+        self.sig_display_signature.emit(text)
+        self.show_calltip(_("Hint"), text, at_point=self.mouse_point)
+        # QTimer.singleShot(20000, lambda: QToolTip.hideText())
+
+    # ------------- LSP: Go To Definition ----------------------------
+
+    @Slot()
+    @request(method=LSPRequestTypes.DOCUMENT_DEFINITION)
+    def go_to_definition_from_cursor(self, cursor=None):
+        """Go to definition from cursor instance (QTextCursor)"""
+        if (not self.go_to_definition_enabled or
+                not self.lsp_go_to_definition_enabled):
+            return
+        if cursor is None:
+            cursor = self.textCursor()
+        if self.in_comment_or_string():
+            return
+        # position = cursor.position()
+        text = to_text_string(cursor.selectedText())
+        if len(text) == 0:
+            cursor.select(QTextCursor.WordUnderCursor)
+            text = to_text_string(cursor.selectedText())
+        if text is not None:
+            # self.go_to_definition.emit(position)
+            line, column = self.get_cursor_line_column()
+            params = {
+                'file': self.filename,
+                'line': line,
+                'column': column
+            }
+            return params
+
+    @handles(LSPRequestTypes.DOCUMENT_DEFINITION)
+    def handle_go_to_definition(self, position):
+        position = position['params']
+        if position is not None:
+            def_range = position['range']
+            start = def_range['start']
+            if self.filename == position['file']:
+                self.go_to_line(start['line'] + 1, start['character'],
+                                None, word=None)
+            else:
+                self.go_to_definition.emit(position['file'], start['line'] + 1,
+                                           start['character'])
+
+    # ------------- LSP: Save/close file -----------------------------------
+
+    @request(method=LSPRequestTypes.DOCUMENT_WILL_SAVE,
+             requires_response=False)
+    def notify_save(self):
+        if self.will_save_notify:
+            params = {
+                'file': self.filename,
+                'reason': TextDocumentSaveReason.MANUAL
+            }
+            return params
+
+    @request(method=LSPRequestTypes.DOCUMENT_DID_CLOSE,
+             requires_response=False)
+    def notify_close(self):
+        if self.lsp_ready:
+            params = {
+                'file': self.filename,
+                'signal': self.lsp_response_signal
+            }
+            return params
+
+    # -------------------------------------------------------------------------
 
     def set_tab_mode(self, enable):
         """
@@ -778,11 +1057,13 @@ class CodeEditor(TextEditBaseWidget):
         self.tab_indents = language in self.TAB_ALWAYS_INDENTS
         self.comment_string = ''
         sh_class = sh.TextSH
+        self.language = 'Text'
         if language is not None:
             for (key, value) in ALL_LANGUAGES.items():
                 if language.lower() in value:
                     self.supported_language = True
                     sh_class, comment_string, CFMatch = self.LANGUAGES[key]
+                    self.language = key
                     self.comment_string = comment_string
                     if key in CELL_LANGUAGES:
                         self.supported_cell_language = True
@@ -795,6 +1076,8 @@ class CodeEditor(TextEditBaseWidget):
         if filename is not None and not self.supported_language:
             sh_class = sh.guess_pygments_highlighter(filename)
             self.support_language = sh_class is not sh.TextSH
+            if self.support_language:
+                self.language = sh_class._lexer.name
         self._set_highlighter(sh_class)
 
     def _set_highlighter(self, sh_class):
@@ -981,6 +1264,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def __highlight_selection(self, key, cursor, foreground_color=None,
                         background_color=None, underline_color=None,
+                        outline_color=None,
                         underline_style=QTextCharFormat.WaveUnderline,
                         update=False):
         extra_selections = self.get_extra_selections(key)
@@ -994,8 +1278,10 @@ class CodeEditor(TextEditBaseWidget):
                                          to_qvariant(underline_style))
             selection.format.setProperty(QTextFormat.TextUnderlineColor,
                                          to_qvariant(underline_color))
-        selection.format.setProperty(QTextFormat.FullWidthSelection,
-                                     to_qvariant(True))
+        if outline_color is not None:
+            selection.set_outline(outline_color)
+        # selection.format.setProperty(QTextFormat.FullWidthSelection,
+                                     # to_qvariant(True))
         extra_selections.append(selection)
         self.set_extra_selections(key, extra_selections)
         if update:
@@ -1206,15 +1492,11 @@ class CodeEditor(TextEditBaseWidget):
         self.breakpoints_changed.emit()
 
     #-----Code introspection
-    def do_completion(self, automatic=False):
-        """Trigger completion"""
-        if not self.is_completion_widget_visible():
-            self.get_completions.emit(automatic)
-
     def do_go_to_definition(self):
         """Trigger go-to-definition"""
-        if not self.in_comment_or_string():
-            self.go_to_definition.emit(self.textCursor().position())
+        self.go_to_definition_from_cursor()
+        # if not self.in_comment_or_string():
+        #     self.go_to_definition.emit(self.textCursor().position())
 
     def show_object_info(self, position):
         """Trigger a calltip"""
@@ -1325,6 +1607,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def set_text_from_file(self, filename, language=None):
         """Set the text of the editor from file *fname*"""
+        self.filename = filename
         text, _enc = encoding.read(filename)
         if language is None:
             language = get_file_language(filename, text)
@@ -1348,9 +1631,27 @@ class CodeEditor(TextEditBaseWidget):
         text = to_text_string(clipboard.text())
         if len(text.splitlines()) > 1:
             eol_chars = self.get_line_separator()
-            clipboard.setText( eol_chars.join((text+eol_chars).splitlines()) )
+            text = eol_chars.join((text + eol_chars).splitlines())
+            clipboard.setText(text)
         # Standard paste
         TextEditBaseWidget.paste(self)
+        self.document_did_change(text)
+
+    @Slot()
+    def undo(self):
+        """Reimplement undo to decrease text version number."""
+        if self.document().isUndoAvailable():
+            self.text_version -= 1
+            self.document_did_change('')
+        TextEditBaseWidget.undo(self)
+
+    @Slot()
+    def redo(self):
+        """Reimplement redo to increase text version number."""
+        if self.document().isRedoAvailable():
+            self.document_did_change('text')
+            self.text_version += 1
+        TextEditBaseWidget.redo(self)
 
     def get_block_data(self, block):
         """Return block data (from syntax highlighter)"""
@@ -1373,9 +1674,11 @@ class CodeEditor(TextEditBaseWidget):
         self.centerCursor()
         self.focus_in.disconnect(self.center_cursor_on_next_focus)
 
-    def go_to_line(self, line, word=''):
+    def go_to_line(self, line, start_column=0, end_column=0, word=''):
         """Go to line number *line* and eventually highlight it"""
-        self.text_helper.goto_line(line, move=True, word=word)
+        self.text_helper.goto_line(line, column=start_column,
+                                   end_column=end_column, move=True,
+                                   word=word)
 
     def exec_gotolinedialog(self):
         """Execute the GoToLineDialog dialog box"""
@@ -1401,62 +1704,70 @@ class CodeEditor(TextEditBaseWidget):
     def process_code_analysis(self, check_results):
         """Analyze filename code with pyflakes"""
         self.cleanup_code_analysis()
-        if check_results is None:
-            # Not able to compile module
-            return
+        # if check_results is None:
+        #     # Not able to compile module
+        #     return
         self.setUpdatesEnabled(False)
         cursor = self.textCursor()
         document = self.document()
-        flags = QTextDocument.FindCaseSensitively|QTextDocument.FindWholeWords
-        for message, line_number in check_results:
-            error = 'syntax' in message
-            # Note: line_number start from 1 (not 0)
-            block = self.document().findBlockByNumber(line_number-1)
+        for diagnostic in check_results:
+            source = diagnostic['source']
+            msg_range = diagnostic['range']
+            start = msg_range['start']
+            end = msg_range['end']
+            code = diagnostic.get('code', 'E')
+            message = diagnostic['message']
+            severity = diagnostic.get(
+                'severity', DiagnosticSeverity.ERROR)
+
+            block = document.findBlockByNumber(start['line'])
+            error = severity == DiagnosticSeverity.ERROR
+            color = self.error_color if error else self.warning_color
+            cursor.setPosition(block.position())
+            cursor.movePosition(QTextCursor.StartOfBlock)
+            cursor.movePosition(
+                QTextCursor.NextCharacter, n=start['character'])
+            block2 = document.findBlockByNumber(end['line'])
+            cursor.setPosition(block2.position(), QTextCursor.KeepAnchor)
+            cursor.movePosition(
+                QTextCursor.StartOfBlock, mode=QTextCursor.KeepAnchor)
+            cursor.movePosition(
+                QTextCursor.NextCharacter, n=end['character'],
+                mode=QTextCursor.KeepAnchor)
+            color = QColor(color)
+            color.setAlpha(50)
+
             data = block.userData()
             if not data:
-                data = BlockUserData(self)
-            data.code_analysis.append( (message, error) )
+                data = BlockUserData(
+                    self, cursor=QTextCursor(cursor), color=color)
+            data.code_analysis.append((source, code, severity, message))
             block.setUserData(data)
-            refs = re.findall(r"\'[a-zA-Z0-9_]*\'", message)
-            for ref in refs:
-                # Highlighting found references
-                text = ref[1:-1]
-                # Scanning line number *line* and following lines if continued
-                def is_line_splitted(line_no):
-                    text = to_text_string(
-                                document.findBlockByNumber(line_no).text())
-                    stripped = text.strip()
-                    return stripped.endswith('\\') or stripped.endswith(',') \
-                           or len(stripped) == 0
-                line2 = line_number-1
-                while line2 < self.blockCount()-1 and is_line_splitted(line2):
-                    line2 += 1
-                cursor.setPosition(block.position())
-                cursor.movePosition(QTextCursor.StartOfBlock)
-                regexp = QRegExp(r"\b%s\b" % QRegExp.escape(text),
-                                 Qt.CaseSensitive)
-                color = self.error_color if error else self.warning_color
-                # Highlighting all occurrences (this is a compromise as pyflakes
-                # do not provide the column number -- see Issue 709 on Spyder's
-                # GoogleCode project website)
-                cursor = document.find(regexp, cursor, flags)
-                if cursor:
-                    while cursor and cursor.blockNumber() <= line2 \
-                          and cursor.blockNumber() >= line_number-1 \
-                          and cursor.position() > 0:
-                        self.__highlight_selection('code_analysis', cursor,
-                                       underline_color=QColor(color))
-                        cursor = document.find(text, cursor, flags)
+            block.selection = QTextCursor(cursor)
+            block.color = color
+
         self.update_extra_selections()
         self.setUpdatesEnabled(True)
         self.linenumberarea.update()
         self.classfuncdropdown.update()
 
-    def show_code_analysis_results(self, line_number, code_analysis):
+    def show_code_analysis_results(self, line_number, block_data):
         """Show warning/error messages"""
-        msglist = [ msg for msg, _error in code_analysis ]
+        code_analysis = block_data.code_analysis
+        msglist = ['{0} [{1}]: {2}'.format(
+            src, code, msg) for src, code, _sev, msg in code_analysis]
         self.show_calltip(_("Code analysis"), msglist,
                           color='#129625', at_line=line_number)
+        self.highlight_line_warning(block_data)
+
+    def highlight_line_warning(self, block_data):
+        self.clear_extra_selections('code_analysis')
+        self.__highlight_selection('code_analysis', block_data.selection,
+                                   background_color=block_data.color)
+        self.update_extra_selections()
+        self.linenumberarea.update()
+        QTimer.singleShot(
+            5000, lambda: self.clear_extra_selections('code_analysis'))
 
     def go_to_next_warning(self):
         """Go to next code analysis warning message
@@ -1473,7 +1784,7 @@ class CodeEditor(TextEditBaseWidget):
                 break
         line_number = block.blockNumber()+1
         self.go_to_line(line_number)
-        self.show_code_analysis_results(line_number, data.code_analysis)
+        self.show_code_analysis_results(line_number, data)
         return self.get_position('cursor')
 
     def go_to_previous_warning(self):
@@ -1490,7 +1801,7 @@ class CodeEditor(TextEditBaseWidget):
                 break
         line_number = block.blockNumber()+1
         self.go_to_line(line_number)
-        self.show_code_analysis_results(line_number, data.code_analysis)
+        self.show_code_analysis_results(line_number, data)
         return self.get_position('cursor')
 
 
@@ -2552,7 +2863,9 @@ class CodeEditor(TextEditBaseWidget):
         checks = [('SelectAll', 'Select All'),
                   ('Copy', 'Copy'),
                   ('Cut', 'Cut'),
-                  ('Paste', 'Paste')]
+                  ('Paste', 'Paste'),
+                  ('Undo', 'Undo'),
+                  ('Redo', 'Redo')]
 
         for qname, name in checks:
             seq = getattr(QKeySequence, qname)
@@ -2654,22 +2967,33 @@ class CodeEditor(TextEditBaseWidget):
                     TextEditBaseWidget.keyPressEvent(self, event)
                     if self.is_completion_widget_visible():
                         self.completion_text = self.completion_text[:-1]
-        elif key == Qt.Key_Period:
-            self.insert_text(text)
-            if (self.is_python_like()) and not \
-              self.in_comment_or_string() and self.codecompletion_auto:
-                # Enable auto-completion only if last token isn't a float
-                last_obj = getobj(self.get_text('sol', 'cursor'))
-                if last_obj and not last_obj.isdigit():
-                    self.do_completion(automatic=True)
+        # elif key == Qt.Key_Period:
+        #     self.insert_text(text)
+        #     if (self.is_python_like()) and not \
+        #       self.in_comment_or_string() and self.codecompletion_auto:
+        #         # Enable auto-completion only if last token isn't a float
+        #         last_obj = getobj(self.get_text('sol', 'cursor'))
+        #         if last_obj and not last_obj.isdigit():
+        #             self.do_completion(automatic=True)
         elif key == Qt.Key_Home:
             self.stdkey_home(shift, ctrl)
         elif key == Qt.Key_End:
             # See Issue 495: on MacOS X, it is necessary to redefine this
             # basic action which should have been implemented natively
             self.stdkey_end(shift, ctrl)
-        elif text == '(' and not has_selection:
-            self.hide_completion_widget()
+        elif text in self.auto_completion_characters:
+            self.insert_text(text)
+            if not self.in_comment_or_string() and self.codecompletion_auto:
+                last_obj = getobj(self.get_text('sol', 'cursor'))
+                if last_obj and not last_obj.isdigit():
+                    self.do_completion(automatic=True)
+        elif (text != '(' and text in self.signature_completion_characters and
+                not self.has_selected_text()):
+            self.insert_text(text)
+            self.request_signature()
+        elif (text == '(' and
+              not self.has_selected_text()):
+            # self.hide_completion_widget()
             self.handle_parentheses(text)
         elif (text in ('[', '{') and not has_selection and
               self.close_parentheses_enabled):
@@ -2741,6 +3065,9 @@ class CodeEditor(TextEditBaseWidget):
             TextEditBaseWidget.keyPressEvent(self, event)
             if self.is_completion_widget_visible() and text:
                 self.completion_text += text
+        if len(text) > 0:
+            self.document_did_change(text)
+            # self.do_completion(automatic=True)
         if not event.modifiers():
             # Accept event to avoid it being handled by the parent
             # Modifiers should be passed to the parent because they
@@ -2754,7 +3081,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def handle_parentheses(self, text):
         """Handle left and right parenthesis depending on editor config."""
-        position = self.get_position('cursor')
+        # position = self.get_position('cursor')
         rest = self.get_text('cursor', 'eol').rstrip()
         valid = not rest or rest[0] in (',', ')', ']', '}')
         if self.close_parentheses_enabled and valid:
@@ -2764,12 +3091,16 @@ class CodeEditor(TextEditBaseWidget):
             self.setTextCursor(cursor)
         else:
             self.insert_text(text)
-        if self.is_python_like() and self.get_text('sol', 'cursor') and \
-                self.calltips:
-            self.sig_show_object_info.emit(position)
+        if '(' in self.signature_completion_characters:
+            self.request_signature()
+        # if self.is_python_like() and self.get_text('sol', 'cursor') and \
+        #         self.calltips:
+        #     self.sig_show_object_info.emit(position)
 
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""
+        self.mouse_point = event.pos()
+        QToolTip.hideText()
         if event.modifiers() & Qt.AltModifier:
             self.sig_alt_mouse_moved.emit(event)
             event.accept()
@@ -2800,6 +3131,12 @@ class CodeEditor(TextEditBaseWidget):
             QApplication.restoreOverrideCursor()
             self.__cursor_changed = False
             self.clear_extra_selections('ctrl_click')
+        # TODO: LSP addition - Define hover expected behaviour and UI element
+        # else:
+        #     cursor = self.cursorForPosition(event.pos())
+        #     line, col = cursor.blockNumber(), cursor.columnNumber()
+        #     if self.enable_hover:
+        #         self.request_hover(line, col)
         TextEditBaseWidget.mouseMoveEvent(self, event)
 
     def setPlainText(self, txt):
@@ -2828,23 +3165,6 @@ class CodeEditor(TextEditBaseWidget):
             self.clear_extra_selections('ctrl_click')
         TextEditBaseWidget.leaveEvent(self, event)
 
-    @Slot()
-    def go_to_definition_from_cursor(self, cursor=None):
-        """Go to definition from cursor instance (QTextCursor)"""
-        if not self.go_to_definition_enabled:
-            return
-        if cursor is None:
-            cursor = self.textCursor()
-        if self.in_comment_or_string():
-            return
-        position = cursor.position()
-        text = to_text_string(cursor.selectedText())
-        if len(text) == 0:
-            cursor.select(QTextCursor.WordUnderCursor)
-            text = to_text_string(cursor.selectedText())
-        if not text is None:
-            self.go_to_definition.emit(position)
-
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
         ctrl = event.modifiers() & Qt.ControlModifier
@@ -2856,6 +3176,10 @@ class CodeEditor(TextEditBaseWidget):
         elif event.button() == Qt.LeftButton and alt:
             self.sig_alt_left_mouse_pressed.emit(event)
         else:
+            # cursor = self.cursorForPosition(event.pos())
+            # line, col = cursor.blockNumber(), cursor.columnNumber()
+            # if self.enable_hover:
+            #     self.request_hover(line, col)
             TextEditBaseWidget.mousePressEvent(self, event)
 
     def contextMenuEvent(self, event):
@@ -3034,12 +3358,13 @@ def test(fname):
     win.load(fname)
     win.resize(900, 700)
 
-    from spyder.utils.codeanalysis import (check_with_pyflakes,
-                                           check_with_pep8)
+    # from spyder.utils.codeanalysis import (check_with_pyflakes,
+    # check_with_pep8)
     source_code = to_text_string(win.editor.toPlainText())
-    results = check_with_pyflakes(source_code, fname) + \
-              check_with_pep8(source_code, fname)
-    win.editor.process_code_analysis(results)
+    # results = check_with_pyflakes(source_code, fname) + \
+    # check_with_pep8(source_code, fname)
+    results = win.editor.document_did_change()
+    # win.editor.process_code_analysis(results)
 
     sys.exit(app.exec_())
 

@@ -698,16 +698,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
 
         if tip is not None:
             combobox.setToolTip(tip)
-        for name, key in choices:
-            if not (name is None and key is None):
-                combobox.addItem(name, to_qvariant(key))
-        # Insert separators
-        count = 0
-        for index, item in enumerate(choices):
-            name, key = item
-            if name is None and key is None:
-                combobox.insertSeparator(index + count)
-                count += 1
+        combobox.addItems(choices)
         self.comboboxes[combobox] = (option, default)
 
         msg = _('Invalid file path')
@@ -852,16 +843,28 @@ class MainConfigPage(GeneralConfigPage):
 
         # --- Interface
         general_group = QGroupBox(_("General"))
+
         languages = LANGUAGE_CODES.items()
         language_choices = sorted([(val, key) for key, val in languages])
-        language_combo = self.create_combobox(_('Language'), language_choices,
+        language_combo = self.create_combobox(_('Language:'),
+                                              language_choices,
                                               'interface_language',
                                               restart=True)
+
+        opengl_options = ['Automatic', 'Desktop', 'Software']
+        opengl_choices = list(zip(opengl_options,
+                                  [c.lower() for c in opengl_options]))
+        opengl_combo = self.create_combobox(_('Rendering engine:'),
+                                            opengl_choices,
+                                            'opengl',
+                                            restart=True)
+
         single_instance_box = newcb(_("Use a single instance"),
                                     'single_instance',
                                     tip=_("Set this to open external<br> "
                                           "Python files in an already running "
                                           "instance (Requires a restart)"))
+
         prompt_box = newcb(_("Prompt when exiting"), 'prompt_on_exit')
         popup_console_box = newcb(_("Show internal Spyder errors to report "
                                     "them to Github"), 'show_internal_errors')
@@ -873,8 +876,17 @@ class MainConfigPage(GeneralConfigPage):
             self.set_option("single_instance", True)
             single_instance_box.setEnabled(False)
 
+        comboboxes_advanced_layout = QHBoxLayout()
+        cbs_adv_grid = QGridLayout()
+        cbs_adv_grid.addWidget(language_combo.label, 0, 0)
+        cbs_adv_grid.addWidget(language_combo.combobox, 0, 1)
+        cbs_adv_grid.addWidget(opengl_combo.label, 1, 0)
+        cbs_adv_grid.addWidget(opengl_combo.combobox, 1, 1)
+        comboboxes_advanced_layout.addLayout(cbs_adv_grid)
+        comboboxes_advanced_layout.addStretch(1)
+
         general_layout = QVBoxLayout()
-        general_layout.addWidget(language_combo)
+        general_layout.addLayout(comboboxes_advanced_layout)
         general_layout.addWidget(single_instance_box)
         general_layout.addWidget(prompt_box)
         general_layout.addWidget(popup_console_box)

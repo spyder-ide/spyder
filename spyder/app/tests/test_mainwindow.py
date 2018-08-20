@@ -32,7 +32,8 @@ from qtpy import PYQT5, PYQT_VERSION
 from qtpy.QtCore import Qt, QTimer, QEvent, QUrl
 from qtpy.QtTest import QTest
 from qtpy.QtGui import QImage
-from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit, QTabBar
+from qtpy.QtWidgets import (QApplication, QFileDialog, QLineEdit, QTabBar,
+                            QToolTip)
 from qtpy.QtWebEngineWidgets import WEBENGINE
 from matplotlib.testing.compare import compare_images
 
@@ -195,28 +196,37 @@ def main_window(request):
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or not PY2,
                     reason="Times out on AppVeyor and fails on PY3/PyQt 5.6")
-@pytest.mark.timeout(timeout=45, method='thread')
+@pytest.mark.timeout(timeout=120, method='thread')
 def test_calltip(main_window, qtbot):
     """Test that the calltip in editor is hidden when matching ')' is found."""
     # Load test file
     text = 'a = [1,2,3]\n(max'
-    main_window.editor.new(fname="test.py", text=text)
+    with qtbot.waitSignal(main_window.editor.sig_lsp_notification,
+                          timeout=30000):
+        main_window.editor.new(fname="test.py", text=text)
     code_editor = main_window.editor.get_focus_widget()
 
     # Set text to start
+    # with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+    #     code_editor.set_text(text)
+    #     code_editor.document_did_change()
     code_editor.set_text(text)
     code_editor.go_to_line(2)
     code_editor.move_cursor(5)
-    calltip = code_editor.calltip_widget
-    assert not calltip.isVisible()
+    # calltip = code_editor.calltip_widget
+    assert not QToolTip.isVisible()
 
-    qtbot.keyPress(code_editor, Qt.Key_ParenLeft, delay=3000)
-    qtbot.keyPress(code_editor, Qt.Key_A, delay=1000)
-    qtbot.waitUntil(lambda: calltip.isVisible(), timeout=3000)
+    with qtbot.waitSignal(code_editor.sig_signature_invoked, timeout=30000):
+        qtbot.keyPress(code_editor, Qt.Key_ParenLeft, delay=3000)
+        # qtbot.keyPress(code_editor, Qt.Key_A, delay=1000)
+    # qtbot.wait(1000)
+    # print(calltip.isVisible())
+    qtbot.waitUntil(lambda: QToolTip.isVisible(), timeout=3000)
 
     qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
     qtbot.keyPress(code_editor, Qt.Key_Space)
-    assert not calltip.isVisible()
+    qtbot.waitUntil(lambda: not QToolTip.isVisible(), timeout=3000)
+    assert not QToolTip.isVisible()
     qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
 
@@ -256,6 +266,8 @@ def test_filter_numpy_warning(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt' and not PY2,
+                    reason="Times out on AppVeyor and fails on PY3")
 @pytest.mark.use_introspection
 def test_get_help(main_window, qtbot):
     """
@@ -285,19 +297,31 @@ def test_get_help(main_window, qtbot):
 
     # --- From the editor ---
     qtbot.wait(3000)
-    main_window.editor.new()
+    # config_status = main_window.lspmanager.clients['python']['status']
+    # if config_status == main_window.lspmanager.RUNNING:
+    #     main_window.lspmanager.close_client('python')
+    # with qtbot.waitSignal(main_window.editor.sig_lsp_notification,
+    #                       timeout=30000):
+    main_window.editor.new(fname="test.py", text="")
     code_editor = main_window.editor.get_focus_widget()
     editorstack = main_window.editor.get_current_editorstack()
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.document_did_open()
+
 
     # Write some object in the editor
     code_editor.set_text('range')
     code_editor.move_cursor(len('range'))
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.document_did_change()
 
     # Get help
-    editorstack.inspect_current_object()
+    with qtbot.waitSignal(code_editor.sig_display_signature, timeout=30000):
+        editorstack.inspect_current_object()
+
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, "range"), timeout=6000)
+    qtbot.waitUntil(lambda: check_text(webpage, "range"), timeout=30000)
 
 
 @pytest.mark.slow

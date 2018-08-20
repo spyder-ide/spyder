@@ -16,6 +16,7 @@ from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.programs import check_version
 from spyder.api.panel import Panel
+from spyder.utils.code_analysis import DiagnosticSeverity
 
 
 QT55_VERSION = check_version(QT_VERSION, "5.5", ">=")
@@ -57,7 +58,6 @@ class LineNumberArea(Panel):
 
         Painting line number area
         """
-
         painter = QPainter(self)
         painter.fillRect(event.rect(), self.editor.sideareas_color)
         # This is needed to make that the font size of line numbers
@@ -97,7 +97,8 @@ class LineNumberArea(Panel):
             data = block.userData()
             if self._markers_margin and data:
                 if data.code_analysis:
-                    for _message, error in data.code_analysis:
+                    for source, code, severity, message in data.code_analysis:
+                        error = severity == DiagnosticSeverity.ERROR
                         if error:
                             break
                     if error:
@@ -126,7 +127,7 @@ class LineNumberArea(Panel):
         check = self._released == -1
         if data and data.code_analysis and check:
             self.editor.show_code_analysis_results(line_number,
-                                                   data.code_analysis)
+                                                   data)
 
         if event.buttons() == Qt.LeftButton:
             self._released = line_number

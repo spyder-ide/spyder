@@ -98,12 +98,13 @@ from qtawesome.iconic_font import FontError
 
 #==============================================================================
 # Proper high DPI scaling is available in Qt >= 5.6.0. This attibute must
-# be set before creating the application. 
+# be set before creating the application.
 #==============================================================================
 from spyder.config.main import CONF
 
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
-    QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling, CONF.get('main', 'high_dpi_scaling'))
+    QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling,
+                                  CONF.get('main', 'high_dpi_scaling'))
 
 
 #==============================================================================
@@ -122,7 +123,7 @@ else:
 MAIN_APP.setWindowIcon(APP_ICON)
 
 #==============================================================================
-# Create splash screen out of MainWindow to reduce perceived startup time. 
+# Create splash screen out of MainWindow to reduce perceived startup time.
 #==============================================================================
 from spyder.config.base import _, get_image_path, DEV, running_under_pytest
 
@@ -159,6 +160,8 @@ from spyder.utils.introspection import module_completion
 from spyder.utils.programs import is_module_installed
 from spyder.utils.misc import select_port, getcwd_or_home, get_python_executable
 from spyder.widgets.fileswitcher import FileSwitcher
+from spyder.plugins.lspmanager import LSPManager
+
 
 
 #==============================================================================
@@ -265,7 +268,7 @@ class MainWindow(QMainWindow):
         self.profile = options.profile
         self.multithreaded = options.multithreaded
         self.new_instance = options.new_instance
-        self.open_project = options.open_project
+        self.open_project = options.project
         self.window_title = options.window_title
 
         self.debug_print("Start of MainWindow constructor")
@@ -332,13 +335,14 @@ class MainWindow(QMainWindow):
         self.historylog = None
         self.ipyconsole = None
         self.variableexplorer = None
+        self.plots = None
         self.findinfiles = None
         self.thirdparty_plugins = []
 
         # Tour  # TODO: Should I consider it a plugin?? or?
         self.tour = None
         self.tours_available = None
-        
+
         # File switcher
         self.fileswitcher = None
 
@@ -800,6 +804,10 @@ class MainWindow(QMainWindow):
                                     "Please don't use it to run your code\n\n"))
         self.console.register_plugin()
 
+        # Language Server Protocol Client initialization
+        self.set_splash(_("Creating LSP Manager..."))
+        self.lspmanager = LSPManager(self)
+
         # Working directory plugin
         self.debug_print("  ..plugin: working directory")
         from spyder.plugins.workingdirectory.plugin import WorkingDirectory
@@ -827,6 +835,10 @@ class MainWindow(QMainWindow):
         self.editor = Editor(self)
         self.editor.register_plugin()
 
+        # Start LSP client
+        self.set_splash(_("Launching LSP Client..."))
+        self.lspmanager.start_lsp_client('python')
+
         # Populating file menu entries
         quit_action = create_action(self, _("&Quit"),
                                     icon=ima.icon('exit'),
@@ -848,11 +860,18 @@ class MainWindow(QMainWindow):
 
         self.debug_print("  ..widgets")
 
+
         # Namespace browser
         self.set_splash(_("Loading namespace browser..."))
         from spyder.plugins.variableexplorer.plugin import VariableExplorer
         self.variableexplorer = VariableExplorer(self)
         self.variableexplorer.register_plugin()
+
+        # Figure browser
+        self.set_splash(_("Loading figure browser..."))
+        from spyder.plugins.plots import Plots
+        self.plots = Plots(self)
+        self.plots.register_plugin()
 
         # History log widget
         if CONF.get('historylog', 'enable'):
@@ -1316,8 +1335,8 @@ class MainWindow(QMainWindow):
         else:
             hexstate = get_func(section, prefix+'state', None)
         pos = get_func(section, prefix+'position')
-        
-        # It's necessary to verify if the window/position value is valid 
+
+        # It's necessary to verify if the window/position value is valid
         # with the current screen. See issue 3748
         width = pos[0]
         height = pos[1]
@@ -1326,7 +1345,7 @@ class MainWindow(QMainWindow):
         current_height = screen_shape.height()
         if current_width < width or current_height < height:
             pos = CONF.get_default(section, prefix+'position')
-        
+
         is_maximized =  get_func(section, prefix+'is_maximized')
         is_fullscreen = get_func(section, prefix+'is_fullscreen')
         return hexstate, window_size, prefs_dialog_size, pos, is_maximized, \
@@ -1428,12 +1447,12 @@ class MainWindow(QMainWindow):
 
             # Now that the initial setup is done, copy the window settings,
             # except for the hexstate in the quick layouts sections for the
-            # default layouts. 
+            # default layouts.
             # Order and name of the default layouts is found in config.py
             section = 'quick_layouts'
             get_func = CONF.get_default if default else CONF.get
             order = get_func(section, 'order')
-            
+
             # restore the original defaults if reset layouts is called
             if default:
                 CONF.set(section, 'active', order)
@@ -1450,7 +1469,7 @@ class MainWindow(QMainWindow):
             section = 'quick_layouts'
             self.save_current_window_settings(prefix, section, none_state=True)
             self.current_quick_layout = 'default'
-            
+
             # Regenerate menu
             self.quick_layout_set_menu()
         self.set_window_settings(*settings)
@@ -1461,7 +1480,7 @@ class MainWindow(QMainWindow):
             except Exception as error:
                 print("%s: %s" % (plugin, str(error)), file=STDERR)
                 traceback.print_exc(file=STDERR)
-       
+
     def setup_default_layouts(self, index, settings):
         """Setup default layouts when run for the first time"""
         self.set_window_settings(*settings)
@@ -1478,6 +1497,7 @@ class MainWindow(QMainWindow):
         explorer_project = self.projects
         explorer_file = self.explorer
         explorer_variable = self.variableexplorer
+        plots = self.plots
         history = self.historylog
         finder = self.findinfiles
         help_plugin = self.help
@@ -1500,8 +1520,8 @@ class MainWindow(QMainWindow):
                     # column 2
                     [[outline]],
                     # column 3
-                    [[help_plugin, explorer_variable, helper, explorer_file,
-                      finder] + plugins,
+                    [[help_plugin, explorer_variable, plots, helper,
+                      explorer_file, finder] + plugins,
                      [console_int, console_ipy, history]]
                     ],
                     'width fraction': [0.0,             # column 0 width
@@ -1513,14 +1533,15 @@ class MainWindow(QMainWindow):
                                         [1.0],          # column 2, row heights
                                         [0.46, 0.54]],  # column 3, row heights
                     'hidden widgets': [outline],
-                    'hidden toolbars': [],                               
+                    'hidden toolbars': [],
                     }
         r_layout = {'widgets': [
                     # column 0
                     [[editor],
                      [console_ipy, console_int]],
                     # column 1
-                    [[explorer_variable, history, outline, finder] + plugins,
+                    [[explorer_variable, plots, history, outline,
+                      finder] + plugins,
                      [explorer_file, explorer_project, help_plugin, helper]]
                     ],
                     'width fraction': [0.55,            # column 0 width
@@ -1528,7 +1549,7 @@ class MainWindow(QMainWindow):
                     'height fraction': [[0.55, 0.45],   # column 0, row heights
                                         [0.55, 0.45]],  # column 1, row heights
                     'hidden widgets': [outline],
-                    'hidden toolbars': [],                               
+                    'hidden toolbars': [],
                     }
         # Matlab
         m_layout = {'widgets': [
@@ -1539,7 +1560,7 @@ class MainWindow(QMainWindow):
                     [[editor],
                      [console_ipy, console_int]],
                     # column 2
-                    [[explorer_variable, finder] + plugins,
+                    [[explorer_variable, plots, finder] + plugins,
                      [history, help_plugin, helper]]
                     ],
                     'width fraction': [0.20,            # column 0 width
@@ -1556,7 +1577,7 @@ class MainWindow(QMainWindow):
                     # column 0
                     [[editor],
                      [console_ipy, console_int, explorer_file,
-                      explorer_project, help_plugin, explorer_variable,
+                      explorer_project, help_plugin, explorer_variable, plots,
                       history, outline, finder, helper] + plugins]
                     ],
                     'width fraction': [1.0],            # column 0 width
@@ -1570,7 +1591,7 @@ class MainWindow(QMainWindow):
                     [[editor]],
                     # column 1
                     [[console_ipy, console_int, explorer_file,
-                      explorer_project, help_plugin, explorer_variable,
+                      explorer_project, help_plugin, explorer_variable, plots,
                       history, outline, finder, helper] + plugins]
                     ],
                     'width fraction': [0.55,      # column 0 width
@@ -1590,7 +1611,7 @@ class MainWindow(QMainWindow):
 
         layout = layouts[index]
 
-        widgets_layout = layout['widgets']         
+        widgets_layout = layout['widgets']
         widgets = []
         for column in widgets_layout :
             for row in column:
@@ -1611,7 +1632,7 @@ class MainWindow(QMainWindow):
                 self.splitDockWidget(first.dockwidget, second.dockwidget,
                                      Qt.Horizontal)
 
-        # Arrange rows vertically 
+        # Arrange rows vertically
         for column in widgets_layout :
             for i in range(len(column) - 1):
                 first_row, second_row = column[i], column[i+1]
@@ -1659,7 +1680,7 @@ class MainWindow(QMainWindow):
 #            widget.setMinimumWidth(new_width)
 #            widget.setMaximumWidth(new_width)
 #            widget.updateGeometry()
-        
+
         # fix column height
         for c, column in enumerate(widgets_layout):
             for r in range(len(column) - 1):
@@ -2164,7 +2185,7 @@ class MainWindow(QMainWindow):
 
         # To be used by the tour to be able to resize
         self.sig_resized.emit(event)
-        
+
     def moveEvent(self, event):
         """Reimplement Qt method"""
         if not self.isMaximized() and not self.fullscreen_flag:
@@ -2217,6 +2238,7 @@ class MainWindow(QMainWindow):
         self.dialog_manager.close_all()
         if self.toolbars_visible:
             self.save_visible_toolbars()
+        self.lspmanager.closing_plugin(cancelable)
         self.already_closed = True
         return True
 
@@ -2678,7 +2700,7 @@ class MainWindow(QMainWindow):
             widget = PrefPageClass(dlg, main=self)
             widget.initialize()
             dlg.add_page(widget)
-        for plugin in [self.workingdirectory, self.editor,
+        for plugin in [self.workingdirectory, self.lspmanager, self.editor,
                        self.projects, self.ipyconsole,
                        self.historylog, self.help, self.variableexplorer,
                        self.onlinehelp, self.explorer, self.findinfiles
@@ -3118,8 +3140,9 @@ def main():
         options.profile = False
         options.multithreaded = False
         options.new_instance = False
-        options.open_project = None
+        options.project = None
         options.window_title = None
+        options.opengl_implementation = None
 
         app = initialize()
         window = run_spyder(app, options, None)
@@ -3130,6 +3153,17 @@ def main():
     # It's important to collect options before monkey patching sys.exit,
     # otherwise, argparse won't be able to exit if --help option is passed
     options, args = get_options()
+
+    if options.opengl_implementation:
+        if options.opengl_implementation == 'software':
+            QCoreApplication.setAttribute(Qt.AA_UseSoftwareOpenGL)
+        elif options.opengl_implementation == 'desktop':
+            QCoreApplication.setAttribute(Qt.AA_UseDesktopOpenGL)
+    else:
+        if CONF.get('main', 'opengl') == 'software':
+            QCoreApplication.setAttribute(Qt.AA_UseSoftwareOpenGL)
+        elif CONF.get('main', 'opengl') == 'desktop':
+            QCoreApplication.setAttribute(Qt.AA_UseDesktopOpenGL)
 
     if options.show_console:
         print("(Deprecated) --show console does nothing, now the default "

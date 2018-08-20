@@ -2,7 +2,7 @@
 
 if [ "$USE_CONDA" = "no" ]; then
     export PIP_DEPENDENCIES_FLAGS="-q"
-    export PIP_DEPENDENCIES="coveralls"
+    export PIP_DEPENDENCIES="coveralls coloredlogs python-language-server[all] pydocstyle pexpect"
     export CONDA_DEPENDENCIES=""
 else
     export CONDA_DEPENDENCIES_FLAGS="--quiet"
@@ -10,7 +10,8 @@ else
                                qtawesome cloudpickle pickleshare qtpy pyzmq chardet mock nomkl pandas \
                                pytest pytest-cov numpydoc scipy cython pillow jedi pycodestyle sympy \
                                keyring"
-    export PIP_DEPENDENCIES="coveralls pytest-qt pytest-mock pytest-timeout flaky"
+    export PIP_DEPENDENCIES="coveralls pytest-qt pytest-mock pytest-timeout flaky \
+                             coloredlogs python-language-server[all] pydocstyle pexpect"
 fi
 
 

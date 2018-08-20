@@ -105,7 +105,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                  external_kernel=False, given_name=None,
                  options_button=None,
                  show_elapsed_time=False,
-                 reset_warning=True):
+                 reset_warning=True,
+                 ask_before_restart=True):
         super(ClientWidget, self).__init__(plugin)
         SaveHistoryMixin.__init__(self, history_filename)
 
@@ -119,6 +120,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.given_name = given_name
         self.show_elapsed_time = show_elapsed_time
         self.reset_warning = reset_warning
+        self.ask_before_restart = ask_before_restart
 
         # --- Other attrs
         self.options_button = options_button
@@ -288,7 +290,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                                                 error=error)
 
         # Show error
-        self.infowidget.setHtml(page)
+        self.infowidget.setHtml(page, QUrl.fromLocalFile(CSS_PATH))
         self.shellwidget.hide()
         self.infowidget.show()
 
@@ -479,7 +481,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """
         sw = self.shellwidget
 
-        if not running_under_pytest():
+        if not running_under_pytest() and self.ask_before_restart:
             message = _('Are you sure you want to restart the kernel?')
             buttons = QMessageBox.Yes | QMessageBox.No
             result = QMessageBox.question(self, _('Restart kernel?'),
@@ -487,7 +489,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         else:
             result = None
 
-        if result == QMessageBox.Yes or running_under_pytest():
+        if (result == QMessageBox.Yes or
+           running_under_pytest() or
+           not self.ask_before_restart):
             if sw.kernel_manager:
                 if self.infowidget.isVisible():
                     self.infowidget.hide()

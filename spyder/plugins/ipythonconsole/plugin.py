@@ -310,6 +310,11 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                 tip=_("This option lets you hide the warning message shown\n"
                       "when resetting the namespace from Spyder."))
         show_time_box = newcb(_("Show elapsed time"), 'show_elapsed_time')
+        ask_restart_box = newcb(
+                _("Ask for confirmation before restarting"),
+                'ask_before_restart',
+                tip=_("This option lets you hide the warning message shown\n"
+                      "when restarting the kernel."))
 
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(banner_box)
@@ -318,6 +323,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         interface_layout.addWidget(ask_box)
         interface_layout.addWidget(reset_namespace_box)
         interface_layout.addWidget(show_time_box)
+        interface_layout.addWidget(ask_restart_box)
         interface_group.setLayout(interface_layout)
 
         comp_group = QGroupBox(_("Completion Type"))
@@ -656,6 +662,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.help = None               # Help plugin
         self.historylog = None         # History log plugin
         self.variableexplorer = None   # Variable explorer plugin
+        self.plots = None              # plots plugin
         self.editor = None             # Editor plugin
         self.projects = None           # Projects plugin
 
@@ -739,6 +746,8 @@ class IPythonConsole(SpyderPluginWidget):
         show_time_o = self.get_option(show_time_n)
         reset_namespace_n = 'show_reset_namespace_warning'
         reset_namespace_o = self.get_option(reset_namespace_n)
+        ask_before_restart_n = 'ask_before_restart'
+        ask_before_restart_o = self.get_option(ask_before_restart_n)
         for client in self.clients:
             control = client.get_control()
             if font_n in options:
@@ -752,6 +761,8 @@ class IPythonConsole(SpyderPluginWidget):
                 client.set_elapsed_time_visible(show_time_o)
             if reset_namespace_n in options:
                 client.reset_warning = reset_namespace_o
+            if ask_before_restart_n in options:
+                client.ask_before_restart = ask_before_restart_o
 
     def toggle_view(self, checked):
         """Toggle view"""
@@ -812,6 +823,7 @@ class IPythonConsole(SpyderPluginWidget):
         if client and not self.testing:
             sw = client.shellwidget
             self.variableexplorer.set_shellwidget_from_id(id(sw))
+            self.plots.set_shellwidget_from_id(id(sw))
             self.help.set_shell(sw)
         self.update_tabs_text()
         self.sig_update_plugin_title.emit()
@@ -897,6 +909,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.help = self.main.help
         self.historylog = self.main.historylog
         self.variableexplorer = self.main.variableexplorer
+        self.plots = self.main.plots
         self.editor = self.main.editor
         self.explorer = self.main.explorer
         self.projects = self.main.projects
@@ -1062,7 +1075,12 @@ class IPythonConsole(SpyderPluginWidget):
     def write_to_stdin(self, line):
         sw = self.get_current_shellwidget()
         if sw is not None:
-            sw.write_to_stdin(line)
+            # Needed to handle an error when kernel_client is None
+            # See issue 7578
+            try:
+                sw.write_to_stdin(line)
+            except AttributeError:
+                pass
 
     @Slot()
     @Slot(bool)
@@ -1079,6 +1097,7 @@ class IPythonConsole(SpyderPluginWidget):
         cf = self._new_connection_file()
         show_elapsed_time = self.get_option('show_elapsed_time')
         reset_warning = self.get_option('show_reset_namespace_warning')
+        ask_before_restart = self.get_option('ask_before_restart')
         client = ClientWidget(self, id_=client_id,
                               history_filename=get_conf_path('history.py'),
                               config_options=self.config_options(),
@@ -1091,7 +1110,8 @@ class IPythonConsole(SpyderPluginWidget):
                               options_button=self.options_button,
                               show_elapsed_time=show_elapsed_time,
                               reset_warning=reset_warning,
-                              given_name=given_name)
+                              given_name=given_name,
+                              ask_before_restart=ask_before_restart)
         if self.testing:
             client.stderr_dir = self.test_dir
         self.add_tab(client, name=client.get_name(), filename=filename)
@@ -1600,7 +1620,15 @@ class IPythonConsole(SpyderPluginWidget):
                 stderr = None
         else:
             stderr = None
-        kernel_manager.start_kernel(stderr=stderr)
+
+        # Catch any error generated when trying to start the kernel
+        # See issue 7302
+        try:
+            kernel_manager.start_kernel(stderr=stderr)
+        except Exception:
+            error_msg = _("The error is:<br><br>"
+                          "<tt>{}</tt>").format(traceback.format_exc())
+            return (error_msg, None)
 
         # Kernel client
         kernel_client = kernel_manager.client()
@@ -1751,10 +1779,14 @@ class IPythonConsole(SpyderPluginWidget):
             self.help.set_shell(client.shellwidget)
         if self.variableexplorer is not None:
             self.variableexplorer.add_shellwidget(client.shellwidget)
+        if self.plots is not None:
+            self.plots.add_shellwidget(client.shellwidget)
 
     def process_finished(self, client):
         if self.variableexplorer is not None:
             self.variableexplorer.remove_shellwidget(id(client.shellwidget))
+        if self.plots is not None:
+            self.plots.remove_shellwidget(id(client.shellwidget))
 
     def connect_external_kernel(self, shellwidget):
         """
@@ -1822,6 +1854,7 @@ class IPythonConsole(SpyderPluginWidget):
         # Creating the client
         show_elapsed_time = self.get_option('show_elapsed_time')
         reset_warning = self.get_option('show_reset_namespace_warning')
+        ask_before_restart = self.get_option('ask_before_restart')
         client = ClientWidget(self,
                               id_=client_id,
                               given_name=given_name,
@@ -1835,7 +1868,8 @@ class IPythonConsole(SpyderPluginWidget):
                               external_kernel=external_kernel,
                               slave=True,
                               show_elapsed_time=show_elapsed_time,
-                              reset_warning=reset_warning)
+                              reset_warning=reset_warning,
+                              ask_before_restart=ask_before_restart)
 
         # Create kernel client
         kernel_client = QtKernelClient(connection_file=connection_file)

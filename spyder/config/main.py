@@ -69,6 +69,7 @@ DEFAULTS = [
             ('main',
              {
               'icon_theme': 'spyder 3',
+              'opengl': 'automatic',
               'single_instance': True,
               'open_files_port': OPEN_FILES_PORT,
               'tear_off_menus': False,
@@ -139,8 +140,8 @@ DEFAULTS = [
               'umr/enabled': True,
               'umr/verbose': True,
               'umr/namelist': [],
-              'custom_list': [],
-              'custom_executable': '',
+              'custom_interpreters_list': [],
+              'custom_interpreter': '',
               }),
             ('ipython_console',
              {
@@ -168,7 +169,8 @@ DEFAULTS = [
               'symbolic_math': False,
               'in_prompt': '',
               'out_prompt': '',
-              'show_elapsed_time': False
+              'show_elapsed_time': False,
+              'ask_before_restart': True
               }),
             ('variable_explorer',
              {
@@ -182,6 +184,11 @@ DEFAULTS = [
               'exclude_unsupported': True,
               'truncate': True,
               'minmax': False
+             }),
+            ('plots',
+             {
+              'mute_inline_plotting': False,
+              'show_plot_outline': False,
              }),
             ('editor',
              {
@@ -652,7 +659,82 @@ DEFAULTS = [
               'solarized/dark/string':     ('#2aa198', False, False),
               'solarized/dark/number':     ('#cb4b16', False, False),
               'solarized/dark/instance':   ('#b58900', False, True)
-             })
+             }),
+            ('lsp-server', {
+                'python': {
+                    'index': 0,
+                    'cmd': 'pyls',
+                    'args': '--host %(host)s --port %(port)s --tcp',
+                    'host': '127.0.0.1',
+                    'port': 2087,
+                    'external': False,
+                    'configurations': {
+                        'pyls': {
+                            'configurationSources': [
+                                "pycodestyle", "pyflakes"],
+                            'plugins': {
+                                'pycodestyle': {
+                                    'enabled': True,
+                                    'exclude': [],
+                                    'filename': [],
+                                    'select': [],
+                                    'ignore': [],
+                                    'hangClosing': False,
+                                    'maxLineLength': 79
+                                },
+                                'pyflakes': {
+                                    'enabled': True
+                                },
+                                'yapf': {
+                                    'enabled': False
+                                },
+                                'pydocstyle': {
+                                    'enabled': False,
+                                    'convention': 'pep257',
+                                    'addIgnore': [],
+                                    'addSelect': [],
+                                    'ignore': [],
+                                    'select': [],
+                                    'match': "(?!test_).*\\.py",
+                                    'matchDir': '[^\\.].*',
+                                },
+                                'rope': {
+                                    'extensionModules': None,
+                                    'ropeFolder': []
+                                },
+                                'rope_completion': {
+                                    'enabled': False
+                                },
+                                'jedi_completion': {
+                                    'enabled': True
+                                },
+                                'jedi_hover': {
+                                    'enabled': True
+                                },
+                                'jedi_references': {
+                                    'enabled': True
+                                },
+                                'jedi_signature_help': {
+                                    'enabled': True
+                                },
+                                'jedi_symbols': {
+                                    'enabled': True,
+                                    'all_scopes': True
+                                },
+                                'mccabe': {
+                                    'enabled': False,
+                                    'threshold': 15
+                                },
+                                'preload': {
+                                    'enabled': True,
+                                    'modules': []
+                                }
+                            },
+
+                        }
+                    }
+                }
+            })
             ]
 
 
@@ -666,7 +748,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '44.1.0'
+CONF_VERSION = '45.0.0'
 
 # Main configuration instance
 try:
