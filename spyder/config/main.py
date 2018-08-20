@@ -647,7 +647,82 @@ DEFAULTS = [
               'solarized/dark/string':     ('#2aa198', False, False),
               'solarized/dark/number':     ('#cb4b16', False, False),
               'solarized/dark/instance':   ('#b58900', False, True)
-             })
+             }),
+            ('lsp-server', {
+                'python': {
+                    'index': 0,
+                    'cmd': 'pyls',
+                    'args': '--host %(host)s --port %(port)s --tcp',
+                    'host': '127.0.0.1',
+                    'port': 2087,
+                    'external': False,
+                    'configurations': {
+                        'pyls': {
+                            'configurationSources': [
+                                "pycodestyle", "pyflakes"],
+                            'plugins': {
+                                'pycodestyle': {
+                                    'enabled': True,
+                                    'exclude': [],
+                                    'filename': [],
+                                    'select': [],
+                                    'ignore': [],
+                                    'hangClosing': False,
+                                    'maxLineLength': 79
+                                },
+                                'pyflakes': {
+                                    'enabled': True
+                                },
+                                'yapf': {
+                                    'enabled': False
+                                },
+                                'pydocstyle': {
+                                    'enabled': False,
+                                    'convention': 'pep257',
+                                    'addIgnore': [],
+                                    'addSelect': [],
+                                    'ignore': [],
+                                    'select': [],
+                                    'match': "(?!test_).*\\.py",
+                                    'matchDir': '[^\\.].*',
+                                },
+                                'rope': {
+                                    'extensionModules': None,
+                                    'ropeFolder': []
+                                },
+                                'rope_completion': {
+                                    'enabled': False
+                                },
+                                'jedi_completion': {
+                                    'enabled': True
+                                },
+                                'jedi_hover': {
+                                    'enabled': True
+                                },
+                                'jedi_references': {
+                                    'enabled': True
+                                },
+                                'jedi_signature_help': {
+                                    'enabled': True
+                                },
+                                'jedi_symbols': {
+                                    'enabled': True,
+                                    'all_scopes': True
+                                },
+                                'mccabe': {
+                                    'enabled': False,
+                                    'threshold': 15
+                                },
+                                'preload': {
+                                    'enabled': True,
+                                    'modules': []
+                                }
+                            },
+
+                        }
+                    }
+                }
+            })
             ]
 
 

@@ -18,6 +18,7 @@ from qtpy.QtGui import QColor, QTextCursor, QTextBlock, QTextDocument, QCursor
 
 from qtpy.QtWidgets import QApplication
 
+from spyder.config.base import debug_print
 from spyder.py3compat import to_text_string
 
 
@@ -44,7 +45,7 @@ def drift_color(base_color, factor=110):
 
 class DelayJobRunner(object):
     """
-    Utility class for running job after a certain delay. 
+    Utility class for running job after a certain delay.
     If a new request is made during this delay, the previous request is dropped
     and the timer is restarted for the new request.
 
@@ -69,8 +70,8 @@ class DelayJobRunner(object):
         """
         Request a job execution.
 
-        The job will be executed after the delay specified in the 
-        DelayJobRunner contructor elapsed if no other job is requested until 
+        The job will be executed after the delay specified in the
+        DelayJobRunner contructor elapsed if no other job is requested until
         then.
 
         :param job: job.
@@ -119,7 +120,7 @@ class TextHelper(object):
         except TypeError:
             self._editor_ref = editor
 
-    def goto_line(self, line, column=0, move=True, word=''):
+    def goto_line(self, line, column=0, end_column=0, move=True, word=''):
         """
         Moves the text cursor to the specified position.
 
@@ -133,9 +134,13 @@ class TextHelper(object):
         """
         line = min(line, self.line_count())
         text_cursor = self._move_cursor_to(line)
+        debug_print(end_column)
         if column:
             text_cursor.movePosition(text_cursor.Right, text_cursor.MoveAnchor,
                                      column)
+        if end_column:
+            text_cursor.movePosition(text_cursor.Right, text_cursor.KeepAnchor,
+                                     end_column)
         if move:
             block = text_cursor.block()
             self.unfold_if_colapsed(block)
@@ -145,8 +150,7 @@ class TextHelper(object):
                 self._editor.centerCursor()
             else:
                 self._editor.focus_in.connect(
-                        self._editor.center_cursor_on_next_focus)
-
+                    self._editor.center_cursor_on_next_focus)
             if word and to_text_string(word) in to_text_string(block.text()):
                 self._editor.find(word, QTextDocument.FindCaseSensitively)
         return text_cursor

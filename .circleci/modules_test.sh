@@ -69,6 +69,12 @@ for f in spyder/*/*/*.py; do
     if [[ $f == spyder/utils/introspection/numpy_docstr.py ]]; then
         continue
     fi
+    if [[ $f == spyder/utils/lsp_transport/*.py ]]; then
+        continue
+    fi
+    if [[ $f == spyder/utils/code_analysis/*.py ]]; then
+        continue
+    fi
     if [[ $f == spyder/widgets/ipythonconsole/__init__.py ]]; then
         continue
     fi
@@ -82,6 +88,9 @@ done
 # Depth 4
 for f in spyder/*/*/*/*.py; do
     if [[ $f == *test*/*.* ]]; then
+        continue
+    fi
+    if [[ $f == spyder/utils/code_analysis/lsp_*/*.py ]]; then
         continue
     fi
     python "$f"
