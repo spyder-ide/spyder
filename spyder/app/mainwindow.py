@@ -482,9 +482,9 @@ class MainWindow(QMainWindow):
         # The following flag remember the maximized state even when
         # the window is in fullscreen mode:
         self.maximized_flag = None
+        # The following flag is used to restore window's geometry when
+        # toggling out of fullscreen mode in Windows.
         self.saved_normal_geometry = None
-        # This flag is used to restore window's geometry when toggling out of
-        # fullscreen mode in Windows.
 
         # To keep track of the last focused widget
         self.last_focused_widget = None
