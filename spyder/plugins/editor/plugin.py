@@ -53,8 +53,8 @@ from spyder.api.preferences import PluginConfigPage
 from spyder.preferences.runconfig import (ALWAYS_OPEN_FIRST_RUN_OPTION,
                                       get_run_configuration,
                                       RunConfigDialog, RunConfigOneDialog)
-from spyder.utils.code_analysis import (LSPRequestTypes, LSPEventTypes,
-                                        TextDocumentSyncKind)
+from spyder.plugins.editor.utils.code_analysis import (
+    LSPRequestTypes, LSPEventTypes, TextDocumentSyncKind)
 
 
 # Dependencies

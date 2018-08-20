@@ -21,15 +21,14 @@ import os.path as osp
 # from spyder.config.base import DEV
 from spyder.py3compat import PY2, getcwd
 from spyder.config.base import debug_print, get_conf_path
-from spyder.utils.code_analysis import (CLIENT_CAPABILITES,
-                                        SERVER_CAPABILITES, TRACE,
-                                        TEXT_DOCUMENT_SYNC_OPTIONS,
-                                        LSPRequestTypes,
-                                        LSPEventTypes, ClientConstants)
-from spyder.utils.code_analysis.decorators import (send_request,
-                                                   class_register,
-                                                   handles)
-from spyder.utils.code_analysis.lsp_providers import LSPMethodProviderMixIn
+from spyder.plugins.editor.utils.code_analysis import (
+    CLIENT_CAPABILITES, SERVER_CAPABILITES, TRACE,
+    TEXT_DOCUMENT_SYNC_OPTIONS, LSPRequestTypes,
+    LSPEventTypes, ClientConstants)
+from spyder.plugins.editor.utils.code_analysis.decorators import (
+    send_request, class_register, handles)
+from spyder.plugins.editor.utils.code_analysis.lsp_providers import (
+    LSPMethodProviderMixIn)
 
 from qtpy.QtCore import QObject, Signal, QSocketNotifier, Slot
 # from qtpy.QtWidgets import QApplication

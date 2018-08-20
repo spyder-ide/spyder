@@ -10,8 +10,9 @@ import os.path as osp
 
 from spyder.py3compat import PY2
 from spyder.config.base import debug_print
-from spyder.utils.code_analysis.decorators import handles, send_request
-from spyder.utils.code_analysis import (
+from spyder.plugins.editor.utils.code_analysis.decorators import (
+    handles, send_request)
+from spyder.plugins.editor.utils.code_analysis import (
     LSPRequestTypes, InsertTextFormat, CompletionItemKind, ClientConstants)
 
 if PY2:

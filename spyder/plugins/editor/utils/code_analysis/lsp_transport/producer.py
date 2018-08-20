@@ -18,7 +18,6 @@ import logging
 import subprocess
 from spyder.py3compat import getcwd
 from consumer import IncomingMessageThread
-# from spyder.utils.code_analysis import EDITOR_CAPABILITES, TRACE
 
 
 TIMEOUT = 5000

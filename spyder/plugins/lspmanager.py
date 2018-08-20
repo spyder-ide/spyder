@@ -35,7 +35,7 @@ from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
 from spyder.widgets.helperwidgets import ItemDelegate
 from spyder.config.gui import get_font, get_color_scheme
-from spyder.utils.code_analysis.lsp_client import LSPClient
+from spyder.plugins.editor.utils.code_analysis.lsp_client import LSPClient
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 
 

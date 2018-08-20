@@ -35,7 +35,7 @@ from spyder.widgets.mixins import BaseEditMixin
 from spyder.plugins.editor.utils.terminal import ANSIEscapeCodeHandler
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
-from spyder.utils.code_analysis import CompletionItemKind
+from spyder.plugins.editor.utils.code_analysis import CompletionItemKind
 
 
 def insert_text_to(cursor, text, fmt):

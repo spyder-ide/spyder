@@ -6,7 +6,7 @@
 
 """Spyder Language Server Protocol Client method providers."""
 
-from spyder.utils.code_analysis.lsp_providers.document import DocumentProvider
+from .document import DocumentProvider
 
 
 class LSPMethodProviderMixIn(DocumentProvider):

@@ -73,7 +73,7 @@ from spyder.plugins.editor.extensions.closequotes import (
 from spyder.plugins.editor.api.decoration import TextDecoration
 from spyder.plugins.editor.utils.lsp import (
     request, handles, class_register)
-from spyder.utils.code_analysis import (
+from spyder.plugins.editor.utils.code_analysis import (
     LSPRequestTypes, TextDocumentSyncKind, DiagnosticSeverity,
     TextDocumentSaveReason)
 from spyder.api.panel import Panel
