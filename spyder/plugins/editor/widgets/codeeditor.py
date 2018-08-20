@@ -71,7 +71,7 @@ from spyder.plugins.editor.extensions.manager import (
 from spyder.plugins.editor.extensions.closequotes import (
         CloseQuotesExtension)
 from spyder.plugins.editor.api.decoration import TextDecoration
-from spyder.widgets.sourcecode.utils.lsp import (
+from spyder.plugins.editor.utils.lsp import (
     request, handles, class_register)
 from spyder.utils.code_analysis import (
     LSPRequestTypes, TextDocumentSyncKind, DiagnosticSeverity,
