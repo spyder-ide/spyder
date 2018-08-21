@@ -16,8 +16,9 @@ from qtpy.QtCore import Qt
 
 # Local imports
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
-from spyder.plugins.outlineexplorer.widgets import (OutlineExplorerWidget,
-    FileRootItem, FunctionItem, CommentItem, CellItem, ClassItem)
+from spyder.plugins.outlineexplorer.widgets import (
+    OutlineExplorerWidget, FileRootItem, FunctionItem, CommentItem,
+    CellItem, ClassItem)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 
 
@@ -186,11 +187,23 @@ def test_outline_explorer(outlineexplorer_bot):
             assert item.is_method() == expected_result[2]
 
 
-# def test_go_to_cursor_position(setup_outline_explorer):
-#     outlineexplorer, qtbot = outline_explorer_bot
-#     qtbot.mouseClick(outlineexplorer.fromcursor_btn, Qt.LeftButton)
-    
-#     outlineexplorer.treewidget.current_editor
+def test_go_to_cursor_position(outlineexplorer_bot):
+    """
+    Test that clicking on the 'Go to cursor position' button located in the
+    toolbar of the outline explorer is working as expected.
+    """
+    outlineexplorer, qtbot = outlineexplorer_bot(TEXT, 'test.py')
+
+    # Move the mouse cursor in the editor to line 31 :
+    editor = outlineexplorer.treewidget.current_editor
+    editor._editor.go_to_line(31)
+    assert editor._editor.get_text_line(31) == "        if False:"
+
+    # Click on the 'Go to cursor position' button of the outline explorer's
+    # toolbar :
+    qtbot.mouseClick(outlineexplorer.fromcursor_btn, Qt.LeftButton)
+    current_item = outlineexplorer.treewidget.currentItem()
+    assert current_item.text(0) == 'method1'
 
 
 def test_code_cell_grouping(outlineexplorer_bot):
