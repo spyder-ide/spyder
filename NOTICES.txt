@@ -8,8 +8,14 @@ These files are listed here with their corresponding authors,
 permission notices, disclaimers, and copyright statements; these are also
 included in the files' directory and/or their headers, as appropriate.
 
-Any file not listed here is covered by Spyder's MIT (Expat) License,
+Any file not listed here is covered by Spyder's MIT (Expat) license,
 described in the LICENSE.txt file in this repository and Spyder's __init__.py.
+
+Images, icons and font gyphs that include trademarked elements are used for
+informational purposes only, and do not necessarily constitute any endorsement,
+association or ownership by or of the marks or their respective owners.
+
+All trademarks are the property of their respective owners.
 
 
 
@@ -18,8 +24,18 @@ described in the LICENSE.txt file in this repository and Spyder's __init__.py.
 
 
 
-Images and Icons
-================
+Images and Icons under spyder/images
+====================================
+
+
+The following lists the source, license and accompanying details for every
+image and icon under the spyder/images directory, including those made by
+the Spyder project in-house. All images and icons in any other directory
+of the repository or package are an original creation of the Spyder team
+and are covered by Spyder's overall MIT (Expat) license as described above.
+
+
+-------------------------------------------------------------------------------
 
 
 
@@ -60,9 +76,9 @@ Files covered:
 
 spyder/images/arredit.png
 spyder/images/dictedit.png
+spyder/images/matplotlib.png
 spyder/images/none.png
 spyder/images/not_found.png
-spyder/images/matplotlib.png
 spyder/images/options.svg
 spyder/images/set_workdir.png
 spyder/images/splash.png
@@ -71,8 +87,11 @@ spyder/images/spyder_light.svg
 spyder/images/whole_words.png
 spyder/images/win_env.png
 spyder/images/actions/hist.png
-spyder/images/actions/window_nofullscreen.png
+spyder/images/console/ipython_console.png
+spyder/images/console/ipython_console_t.png
 spyder/images/editor/attribute.png
+spyder/images/editor/blockcomment.png
+spyder/images/editor/cell.png
 spyder/images/editor/filelist.png
 spyder/images/editor/function.png
 spyder/images/editor/method.png
@@ -80,11 +99,8 @@ spyder/images/editor/module.png
 spyder/images/editor/no_match.png
 spyder/images/editor/private1.png
 spyder/images/editor/private2.png
-spyder/images/editor/cell.png
-spyder/images/editor/blockcomment.png
 spyder/images/editor/refactor.png
-spyder/images/console/ipython_console.png
-spyder/images/console/ipython_console_t.png
+spyder/images/actions/window_nofullscreen.png
 
 
 -------------------------------------------------------------------------------
@@ -290,16 +306,16 @@ spyder/images/actions/arrow-step-in.png
 spyder/images/actions/arrow-step-out.png
 spyder/images/actions/arrow-step-over.png
 spyder/images/actions/maximize.png
+spyder/images/actions/stop.png
 spyder/images/actions/stop_debug.png
 spyder/images/actions/unmaximize.png
 spyder/images/actions/window_fullscreen.png
+spyder/images/console/terminated.png
 spyder/images/editor/breakpoint_big.png
 spyder/images/editor/breakpoint_cond_big.png
 spyder/images/editor/breakpoint_cond_small.png
 spyder/images/editor/breakpoint_small.png
 spyder/images/editor/debug.png
-spyder/images/console/terminated.png
-spyder/images/actions/stop.png
 
 
 -------------------------------------------------------------------------------
