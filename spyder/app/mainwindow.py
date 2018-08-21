@@ -481,10 +481,13 @@ class MainWindow(QMainWindow):
         self.current_quick_layout = None
         self.previous_layout_settings = None  # TODO: related to quick layouts
         self.last_plugin = None
-        self.fullscreen_flag = None # isFullscreen does not work as expected
+        self.fullscreen_flag = None  # isFullscreen does not work as expected
         # The following flag remember the maximized state even when
         # the window is in fullscreen mode:
         self.maximized_flag = None
+        # The following flag is used to restore window's geometry when
+        # toggling out of fullscreen mode in Windows.
+        self.saved_normal_geometry = None
 
         # To keep track of the last focused widget
         self.last_focused_widget = None
@@ -2332,7 +2335,7 @@ class MainWindow(QMainWindow):
         self.__update_maximize_action()
 
     def __update_fullscreen_action(self):
-        if self.isFullScreen():
+        if self.fullscreen_flag:
             icon = ima.icon('window_nofullscreen')
         else:
             icon = ima.icon('window_fullscreen')
@@ -2342,15 +2345,34 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def toggle_fullscreen(self):
-        if self.isFullScreen():
+        if self.fullscreen_flag:
             self.fullscreen_flag = False
+            if os.name == 'nt':
+                self.setWindowFlags(
+                    self.windowFlags()
+                    ^ (Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint))
+                self.setGeometry(self.saved_normal_geometry)
             self.showNormal()
             if self.maximized_flag:
                 self.showMaximized()
         else:
             self.maximized_flag = self.isMaximized()
             self.fullscreen_flag = True
-            self.showFullScreen()
+            self.saved_normal_geometry = self.normalGeometry()
+            if os.name == 'nt':
+                # Due to limitations of the Windows DWM, compositing is not
+                # handled correctly for OpenGL based windows when going into
+                # full screen mode, so we need to use this workaround.
+                # See Issue #4291.
+                self.setWindowFlags(self.windowFlags()
+                                    | Qt.FramelessWindowHint
+                                    | Qt.WindowStaysOnTopHint)
+                r = QApplication.desktop().screenGeometry()
+                self.setGeometry(
+                    r.left() - 1, r.top() - 1, r.width() + 2, r.height() + 2)
+                self.showNormal()
+            else:
+                self.showFullScreen()
         self.__update_fullscreen_action()
 
     def add_to_toolbar(self, toolbar, widget):
