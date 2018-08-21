@@ -2391,8 +2391,8 @@ class MainWindow(QMainWindow):
             rev = versions['revision']
             revlink = " (<a href='https://github.com/spyder-ide/spyder/"\
                       "commit/%s'>Commit: %s</a>)" % (rev, rev)
-        QMessageBox.about(self,
-            _("About %s") % "Spyder",
+        msgBox = QMessageBox(self)
+        msgBox.setText(
             """<b>Spyder %s</b> %s
             <br>The Scientific Python Development Environment
             <br>Copyright &copy; The Spyder Project Contributors
@@ -2412,17 +2412,24 @@ class MainWindow(QMainWindow):
             <a href="https://winpython.github.io/">WinPython</a>
             also contribute to this plan.
             <p>Python %s %dbits, Qt %s, %s %s on %s
-            <p><small>Most of the icons for the Spyder 2 theme come from the Crystal
-            Project (&copy; 2006-2007 Everaldo Coelho). Other icons for that
-            theme come from <a href="http://p.yusukekamiyamane.com/"> Yusuke
-            Kamiyamane</a> (all rights reserved) and from
+            <p><small>Most of the icons for the Spyder 2 theme come from the
+            Crystal Project (&copy; 2006-2007 Everaldo Coelho).
+            Other icons for that theme come from
+            <a href="http://p.yusukekamiyamane.com/">
+            Yusuke Kamiyamane</a> (all rights reserved) and from
             <a href="http://www.oxygen-icons.org/">
             The Oxygen icon theme</a></small>.
             """
             % (versions['spyder'], revlink, __project_url__, __trouble_url__,
                __project_url__, __forum_url__, versions['python'],
                versions['bitness'], versions['qt'], versions['qt_api'],
-               versions['qt_api_ver'], versions['system']))
+               versions['qt_api_ver'], versions['system'])
+        )
+        msgBox.setWindowTitle(_("About %s") % "Spyder")
+        msgBox.setStandardButtons(QMessageBox.Ok)
+        msgBox.setIconPixmap(APP_ICON.pixmap(QSize(64, 64)))
+        msgBox.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        msgBox.exec_()
 
     @Slot()
     def show_dependencies(self):
