@@ -20,7 +20,7 @@ class OutlineExplorerProxyEditor(OutlineExplorerProxy):
     def give_focus(self):
         self._editor.clearFocus()
         self._editor.setFocus()
-        
+
     def get_cursor_line_number(self):
         return self._editor.get_cursor_line_number()
 
