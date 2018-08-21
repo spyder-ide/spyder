@@ -26,7 +26,8 @@ class OutlineExplorerProxyEditor(OutlineExplorerProxy):
 
     def get_outlineexplorer_data(self):
         oe_data = self._editor.get_outlineexplorer_data()
-        self._editor.has_cell_separators = oe_data.pop('found_cell_separators', False)
+        self._editor.has_cell_separators = oe_data.pop(
+            'found_cell_separators', False)
         return oe_data
 
     def get_line_count(self):
