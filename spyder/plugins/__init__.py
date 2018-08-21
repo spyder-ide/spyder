@@ -7,6 +7,3 @@
 """
 Spyder core plugins
 """
-
-# For backwards compatibility with Spyder 3.0
-from spyder.api.plugins import SpyderPluginWidget  # analysis:ignore

@@ -18,13 +18,14 @@ import time
 from pygments.token import Token
 
 from spyder.utils.debug import log_dt
-from spyder.utils import sourcecode, encoding
+from spyder.utils import encoding
 from spyder.utils.introspection.manager import (DEBUG_EDITOR, LOG_FILENAME,
                                                 IntrospectionPlugin)
 from spyder.utils.introspection.utils import (default_info_response,
                                               get_parent_until, memoize,
                                               find_lexer_for_filename,
                                               get_keywords)
+from spyder.plugins.editor.utils import languages
 
 
 class FallbackPlugin(IntrospectionPlugin):
@@ -264,15 +265,15 @@ def get_matches(patterns, source, token, start_line):
 def python_like_exts():
     """Return a list of all python-like extensions"""
     exts = []
-    for lang in sourcecode.PYTHON_LIKE_LANGUAGES:
-        exts.extend(list(sourcecode.ALL_LANGUAGES[lang]))
+    for lang in languages.PYTHON_LIKE_LANGUAGES:
+        exts.extend(list(languages.ALL_LANGUAGES[lang]))
     return ['.' + ext for ext in exts]
 
 
 def all_editable_exts():
     """Return a list of all editable extensions"""
     exts = []
-    for (language, extensions) in sourcecode.ALL_LANGUAGES.items():
+    for (language, extensions) in languages.ALL_LANGUAGES.items():
         exts.extend(list(extensions))
     return ['.' + ext for ext in exts]
 

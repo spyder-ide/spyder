@@ -44,11 +44,11 @@ from spyder.app.mainwindow import MainWindow  # Tests fail without this import
 from spyder.config.base import get_home_dir, get_module_path
 from spyder.config.main import CONF
 from spyder.widgets.dock import TabFilter
-from spyder.plugins.help import ObjectComboBox
-from spyder.plugins.runconfig import RunConfiguration
-from spyder.plugins.tests.test_help import check_text
+from spyder.preferences.runconfig import RunConfiguration
+from spyder.plugins.help.widgets import ObjectComboBox
+from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.py3compat import PY2, to_text_string
-from spyder.utils.ipython.kernelspec import SpyderKernelSpec
+from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.utils.programs import is_module_installed
 
 # For testing various Spyder urls
@@ -1390,7 +1390,7 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot):
 def test_fileswitcher(main_window, qtbot):
     """Test the use of shorten paths when necessary in the fileswitcher."""
     # Load tests files
-    dir_b = osp.join(TEMP_DIRECTORY, 'temp_dir_a', 'temp_b')
+    dir_b = osp.join(TEMP_DIRECTORY, 'temp_dir_a', 'temporal_b')
     filename_b =  osp.join(dir_b, 'c.py')
     if not osp.isdir(dir_b):
         os.makedirs(dir_b)
@@ -1398,16 +1398,14 @@ def test_fileswitcher(main_window, qtbot):
         file_c = open(filename_b, 'w+')
         file_c.close()
     if PYQT5:
-        dir_d = osp.join(TEMP_DIRECTORY, 'temp_dir_a', 'temp_c', 'temp_d', 'temp_e')
+        if os.name == 'nt':
+            dir_d = osp.join(TEMP_DIRECTORY, 'temp_dir_a', 'temp_c',
+                             'temp_d', 'temp_e')
+        else:
+            dir_d = osp.join(TEMP_DIRECTORY, 'temp_dir_a', 'temporal_c',
+                             'temporal_d', 'temporal_e')
     else:
         dir_d = osp.join(TEMP_DIRECTORY, 'temp_dir_a', 'temp_c', 'temp_d')
-        dir_e = osp.join(TEMP_DIRECTORY, 'temp_dir_a', 'temp_c', 'temp_dir_f', 'temp_e')
-        filename_e = osp.join(dir_e, 'a.py')
-        if not osp.isdir(dir_e):
-            os.makedirs(dir_e)
-        if not osp.isfile(filename_e):
-            file_e = open(filename_e, 'w+')
-            file_e.close()
     filename_d =  osp.join(dir_d, 'c.py')
     if not osp.isdir(dir_d):
         os.makedirs(dir_d)
@@ -1434,7 +1432,8 @@ def test_fileswitcher(main_window, qtbot):
     # Assert that the path shown in the fileswitcher is shorter
     if PYQT5:
         main_window.open_fileswitcher()
-        item_text = main_window.fileswitcher.list.currentItem().text()
+        for i in range(main_window.fileswitcher.list.count()):
+            item_text += main_window.fileswitcher.list.item(i).text()
         assert '...' in item_text
 
 
@@ -1518,8 +1517,7 @@ def test_tabfilter_typeerror_full(main_window):
 
 @flaky(max_runs=3)
 @pytest.mark.slow
-@pytest.mark.skipif(os.environ.get('CI', None) is None,
-                    reason="It's not meant to be run outside of CIs")
+@pytest.mark.xfail
 def test_help_opens_when_show_tutorial_full(main_window, qtbot):
     """Test fix for #6317 : 'Show tutorial' opens the help plugin if closed."""
     HELP_STR = "Help"

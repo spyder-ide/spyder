@@ -24,9 +24,10 @@ from spyder.config.gui import get_font
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import restore_keyevent
 from spyder.widgets.github.backend import GithubBackend
+from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.widgets.mixins import BaseEditMixin, TracebackLinksMixin
-from spyder.widgets.sourcecode.codeeditor import CodeEditor
-from spyder.widgets.sourcecode.base import ConsoleBaseWidget
+from spyder.plugins.editor.widgets.base import ConsoleBaseWidget
+from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 
 
 # Minimum number of characters to introduce in the title and

@@ -19,27 +19,6 @@ if PY2:
 # Order is important:
 EOL_CHARS = (("\r\n", 'nt'), ("\n", 'posix'), ("\r", 'mac'))
 
-ALL_LANGUAGES = {
-                 'Python': ('py', 'pyw', 'python', 'ipy'),
-                 'Cython': ('pyx', 'pxi', 'pxd'),
-                 'Enaml': ('enaml',),
-                 'Fortran77': ('f', 'for', 'f77'),
-                 'Fortran': ('f90', 'f95', 'f2k'),
-                 'Idl': ('pro',),
-                 'Diff': ('diff', 'patch', 'rej'),
-                 'GetText': ('po', 'pot'),
-                 'Nsis': ('nsi', 'nsh'),
-                 'Html': ('htm', 'html'),
-                 'Cpp': ('c', 'cc', 'cpp', 'cxx', 'h', 'hh', 'hpp', 'hxx'),
-                 'OpenCL': ('cl',),
-                 'Yaml':('yaml','yml'),
-                 "Markdown": ('md', 'mdw'),
-                 }
-
-PYTHON_LIKE_LANGUAGES = ('Python', 'Cython', 'Enaml')
-
-CELL_LANGUAGES = {'Python': ('#%%', '# %%', '# <codecell>', '# In[')}
-
 
 def get_eol_chars(text):
     """Get text EOL characters"""

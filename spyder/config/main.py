@@ -299,6 +299,18 @@ DEFAULTS = [
               'more_options': False,
               'case_sensitive': True
               }),
+            ('breakpoints',
+             {
+              'enable': True,
+              }),
+            ('profiler',
+             {
+              'enable': True,
+              }),
+            ('pylint',
+             {
+              'enable': True,
+              }),
             ('workingdir',
              {
               'working_dir_adjusttocontents': False,

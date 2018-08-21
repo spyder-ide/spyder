@@ -21,7 +21,8 @@ class EditorExtension(object):
 
     A panel (model child class) is added to an editor by using the
     PanelsManager:
-        - :meth:`spyder.widgets.sourcecode.CodeEditor.panels.append`
+        - :meth:
+            `spyder.plugins.editor.widgets.codeeditor.CodeEditor.panels.append`
 
     Subclasses may/should override the following methods:
 
@@ -41,7 +42,7 @@ class EditorExtension(object):
 
         **READ ONLY**
 
-        :rtype: spyder.widgets.sourcecode.CodeEditor
+        :rtype: spyder.plugins.editor.widgets.codeeditor.CodeEditor
         """
         if self._editor is not None:
             return self._editor
@@ -87,7 +88,7 @@ class EditorExtension(object):
         Installs the extension on the editor.
 
         :param editor: editor widget instance
-        :type editor: spyder.widgets.sourcecode.CodeEditor
+        :type editor: spyder.plugins.editor.widgets.codeeditor.CodeEditor
 
         .. note:: This method is called by editor when you install a
                   EditorExtension.

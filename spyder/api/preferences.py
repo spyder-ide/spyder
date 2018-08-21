@@ -10,7 +10,7 @@ given plugin.
 """
 
 # Local imports
-from spyder.plugins.configdialog import SpyderConfigPage
+from spyder.preferences.configdialog import SpyderConfigPage
 
 class PluginConfigPage(SpyderConfigPage):
     """Plugin configuration dialog box page widget"""

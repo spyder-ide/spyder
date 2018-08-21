@@ -459,7 +459,11 @@ msgstr "Прикреплённая консоль (отладка)"
 #: spyder/widgets/variableexplorer/collectionseditor.py:454
 #: spyder/widgets/variableexplorer/dataframeeditor.py:778
 #: spyder/widgets/variableexplorer/dataframeeditor.py:782
+#: spyder/plugins/pylint/widgets/pylintgui.py:128
 #: spyder/widgets/variableexplorer/namespacebrowser.py:311
+#: spyder/plugins/pylint/widgets/pylintgui.py:363
+#: spyder/plugins/pylint/widgets/pylintgui.py:391
+#: spyder/plugins/profiler/widgets/profilergui.py:295
 msgid "Error"
 msgstr "Ошибка"
 
@@ -511,6 +515,7 @@ msgstr "Вернуть компоновку по умолчанию"
 #: spyder/widgets/variableexplorer/arrayeditor.py:510
 #: spyder/widgets/variableexplorer/collectionseditor.py:443
 #: spyder/widgets/variableexplorer/collectionseditor.py:1124
+#: spyder/plugins/pylint/widgets/pylintgui.py:126
 #: spyder/widgets/variableexplorer/namespacebrowser.py:305
 msgid "Warning"
 msgstr "Предупреждение"
@@ -840,7 +845,7 @@ msgstr ""
 "Обновите LANGUAGE_CODES (в файле config/base.py) если добавили новый перевод "
 "в Spyder"
 
-#: spyder/config/utils.py:25
+#: spyder/config/utils.py:24 spyder/plugins/pylint/widgets/pylintgui.py:289
 msgid "Python files"
 msgstr "Файлы Python"
 
@@ -1316,6 +1321,7 @@ msgid "Run Python script"
 msgstr "Запуск скрипта Python"
 
 #: spyder/plugins/console.py:266 spyder/widgets/explorer.py:814
+#: spyder/plugins/profiler/widgets/profilergui.py:220
 msgid "Python scripts"
 msgstr "Скрипты Python"
 
@@ -1721,6 +1727,7 @@ msgid "Set/Edit conditional breakpoint"
 msgstr "Поставить/Редактировать условную точку останова"
 
 #: spyder/plugins/editor.py:760
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:180
 msgid "Clear breakpoints in all files"
 msgstr "Очистить точки останова во всех файлах"
 
@@ -1766,6 +1773,8 @@ msgstr "Выполнять пока функция или метод не зав
 
 #: spyder/plugins/editor.py:801 spyder/widgets/findinfiles.py:438
 #: spyder/widgets/ipythonconsole/client.py:363
+#: spyder/plugins/pylint/widgets/pylintgui.py:211
+#: spyder/plugins/profiler/widgets/profilergui.py:87
 msgid "Stop"
 msgstr "Стоп"
 
@@ -2192,7 +2201,7 @@ msgstr ""
 msgid "No source code available."
 msgstr "Исходный код не доступен."
 
-#: spyder/plugins/history.py:41
+#: spyder/plugins/history.py:39 spyder/plugins/pylint/plugin.py:35
 msgid "Settings"
 msgstr "Настройки"
 
@@ -2212,19 +2221,20 @@ msgstr "Автоматически пролистывать к последне�
 msgid "History log"
 msgstr "Журнал истории"
 
-#: spyder/plugins/history.py:155
+#: spyder/plugins/history.py:153 spyder/plugins/pylint/plugin.py:115
 msgid "History..."
 msgstr "История..."
 
-#: spyder/plugins/history.py:157
+#: spyder/plugins/history.py:155 spyder/plugins/pylint/plugin.py:117
 msgid "Set history maximum entries"
 msgstr "Установить максимум записей истории"
 
-#: spyder/plugins/history.py:268
+#: spyder/plugins/history.py:260 spyder/plugins/pylint/plugin.py:39
+#: spyder/plugins/pylint/plugin.py:160
 msgid "History"
 msgstr "История"
 
-#: spyder/plugins/history.py:269
+#: spyder/plugins/history.py:261 spyder/plugins/pylint/plugin.py:161
 msgid "Maximum entries"
 msgstr "Максимум записей"
 
@@ -3946,6 +3956,8 @@ msgid "Parent"
 msgstr "Родительская"
 
 #: spyder/widgets/fileswitcher.py:110
+#: spyder/plugins/pylint/widgets/pylintgui.py:364
+#: spyder/plugins/profiler/widgets/profilergui.py:296
 msgid "unsaved file"
 msgstr "несохранённый файл"
 
@@ -5302,6 +5314,7 @@ msgstr "Импортировать данные"
 #: spyder/widgets/variableexplorer/namespacebrowser.py:187
 #: spyder/widgets/variableexplorer/namespacebrowser.py:477
 #: spyder/widgets/variableexplorer/namespacebrowser.py:491
+#: spyder/plugins/profiler/widgets/profilergui.py:121
 msgid "Save data"
 msgstr "Сохранить данные"
 
@@ -5914,6 +5927,275 @@ msgstr "Не удалось проверить обновления."
 #~ msgid "Refresh periodically"
 #~ msgstr "Обновлять периодически"
 
+#: spyder/plugins/breakpoints/plugin.py:45
+msgid "Breakpoints"
+msgstr "Точки останова"
+
+#: spyder/plugins/breakpoints/plugin.py:80
+msgid "List breakpoints"
+msgstr "Список точек останова"
+
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:97
+msgid "Condition"
+msgstr "Условие"
+
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:97
+msgid "File"
+msgstr "Файл"
+
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:97
+msgid "Line"
+msgstr "Строка"
+
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:201
+msgid "Clear this breakpoint"
+msgstr "Убрать эту точку останова"
+
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:206
+msgid "Edit this breakpoint"
+msgstr "Редактировать эту точку останова"
+
+#: spyder/plugins/pylint/plugin.py:36
+msgid "Save file before analyzing it"
+msgstr "Сохранить файл перед его анализом"
+
+#: spyder/plugins/pylint/plugin.py:40
+msgid "The following option will be applied at next startup."
+msgstr "Следующая опция будет применена при следующем запуске."
+
+#: spyder/plugins/pylint/plugin.py:43
+msgid "History: "
+msgstr "История:"
+
+#: spyder/plugins/pylint/plugin.py:44
+msgid " results"
+msgstr " результаты"
+
+#: spyder/plugins/pylint/plugin.py:47 spyder/plugins/profiler/plugin.py:33
+msgid "Results"
+msgstr "Результаты"
+
+#: spyder/plugins/pylint/plugin.py:48
+msgid "Results are stored here:"
+msgstr "Результаты хранятся здесь:"
+
+#: spyder/plugins/pylint/plugin.py:98
+#: spyder/plugins/pylint/widgets/pylintgui.py:83
+msgid "Static code analysis"
+msgstr "Статический анализ кода"
+
+#: spyder/plugins/pylint/plugin.py:133
+msgid "Run static code analysis"
+msgstr "Запустить статический анализ кода"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:117
+msgid "Results for "
+msgstr "Результаты для"
+
+# Соглашения, Конвенции
+#: spyder/plugins/pylint/widgets/pylintgui.py:122
+msgid "Convention"
+msgstr "Договорённости"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:124
+msgid "Refactor"
+msgstr "Рефакторинг"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:206
+msgid "Analyze"
+msgstr "Анализ"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:207
+msgid "Run analysis"
+msgstr "Запустить анализ"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:212
+msgid "Stop current analysis"
+msgstr "Остановить текущий анализ"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:218
+#: spyder/plugins/pylint/widgets/pylintgui.py:288
+msgid "Select Python file"
+msgstr "Выбрать файл Python"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:224
+#: spyder/plugins/profiler/widgets/profilergui.py:102
+msgid "Output"
+msgstr "Вывод"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:226
+msgid "Complete output"
+msgstr "Детальный вывод:"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:260
+msgid "Pylint script was not found. Please add \"%s\" to PATH."
+msgstr "Скрипт pylint не найден. Пожалуйста добавьте \"%s\" в PATH."
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:263
+msgid "Please install <b>pylint</b>:"
+msgstr "Пожалуйста, установите <b>pylint</b>:"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:326
+msgid "Pylint output"
+msgstr "Вывод pylint"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:465
+msgid "Source code has not been rated yet."
+msgstr "Исходный код еще не был оценен."
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:471
+msgid "Analysis did not succeed (see output for more details)."
+msgstr "Анализ не удался (смотрите подробности в выводе)."
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:484
+msgid "Global evaluation:"
+msgstr "Общая оценка:"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:488
+msgid "previous run:"
+msgstr "предыдущий запуск:"
+
+#: spyder/plugins/profiler/plugin.py:34
+msgid ""
+"Profiler plugin results (the output of python's profile/cProfile)\n"
+"are stored here:"
+msgstr ""
+"Результаты Профайлера (вывод profile/cProfile python'а)\n"
+"хранятся здесь:"
+
+#: spyder/plugins/profiler/plugin.py:75
+msgid "Profiler"
+msgstr "Профайлер"
+
+#: spyder/plugins/profiler/plugin.py:104
+#: spyder/plugins/profiler/widgets/profilergui.py:81
+msgid "Profile"
+msgstr "Профилировать"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:82
+msgid "Run profiler"
+msgstr "Запустить профайлер"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:88
+msgid "Stop current profiling"
+msgstr "Остановить текущее профилирование"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:96
+#: spyder/plugins/profiler/widgets/profilergui.py:219
+msgid "Select Python script"
+msgstr "Выбрать скрипт Python"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:104
+msgid "Show program's output"
+msgstr "Показать вывод программы"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:113
+msgid "Collapse one level up"
+msgstr "Свернуть на один уровень вверх"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:118
+msgid "Expand one level down"
+msgstr "Раскрыть на один уровень вниз"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:124
+msgid "Save profiling data"
+msgstr "Сохранить данные профилирования"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:126
+msgid "Load data"
+msgstr "Загрузить данные"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:129
+msgid "Load profiling data for comparison"
+msgstr "Загрузить данные профилирования для сравнения"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:131
+msgid "Clear comparison"
+msgstr "Очистить сравнение"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:171
+msgid "Please install"
+msgstr "Пожалуйста, установите"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:172
+msgid "the Python profiler modules"
+msgstr "модули профайлера Python"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:179
+msgid "Save profiler result"
+msgstr "Сохранить результаты профилирования"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:182
+#: spyder/plugins/profiler/widgets/profilergui.py:188
+msgid "Profiler result"
+msgstr "Результаты профилирования"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:187
+msgid "Select script to compare"
+msgstr "Выберите скрипт для сравнения"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:227
+#: spyder/plugins/profiler/widgets/profilergui.py:232
+msgid "Profiler output"
+msgstr "Вывод профайлера"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:251
+msgid "Profiling, please wait..."
+msgstr "Профилирование, пожалуйста, подождите..."
+
+#: spyder/plugins/profiler/widgets/profilergui.py:343
+msgid "Sorting data, please wait..."
+msgstr "Сортировка данных, пожалуйста, подождите..."
+
+#: spyder/plugins/profiler/widgets/profilergui.py:389
+msgid "Function/Module"
+msgstr "Функция/Модуль"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:389
+msgid "Total Time"
+msgstr "Общее время"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:389
+#: spyder/plugins/profiler/widgets/profilergui.py:390
+msgid "Diff"
+msgstr "Различие"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:390
+msgid "Calls"
+msgstr "Вызовы"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:390
+msgid "Local Time"
+msgstr "Локальное время"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:391
+msgid "File:line"
+msgstr "Файл:строка"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:565
+msgid "Function or module name"
+msgstr "Функция/Модуль"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:569
+msgid "Time in function (including sub-functions)"
+msgstr "Время в функции (включая подфункции)"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:578
+msgid "Local time in function (not in sub-functions)"
+msgstr "Локальное время в функции (исключая подфункции)"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:588
+msgid "Total number of calls (including recursion)"
+msgstr "Общее число вызовов (включая рекурсию)"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:598
+msgid "File:line where function is defined"
+msgstr "Файл:строка, где функция определена"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:603
+msgid "recursion"
+msgstr "рекурсия"
+
 #~ msgid "Python(x,y)"
 #~ msgstr "Python(x,y)"
 
@@ -6250,9 +6532,6 @@ msgstr "Не удалось проверить обновления."
 
 #~ msgid "Save session and quit..."
 #~ msgstr "Сохранить сессию и выйти..."
-
-#~ msgid "Breakpoints"
-#~ msgstr "Точки останова"
 
 #~ msgid "Exit"
 #~ msgstr "Выход"

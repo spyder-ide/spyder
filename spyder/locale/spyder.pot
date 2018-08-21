@@ -430,7 +430,11 @@ msgstr ""
 #: spyder/widgets/variableexplorer/collectionseditor.py:454
 #: spyder/widgets/variableexplorer/dataframeeditor.py:778
 #: spyder/widgets/variableexplorer/dataframeeditor.py:782
+#: spyder/plugins/profiler/widgets/profilergui.py:295
 #: spyder/widgets/variableexplorer/namespacebrowser.py:311
+#: spyder/plugins/pylint/widgets/pylintgui.py:128
+#: spyder/plugins/pylint/widgets/pylintgui.py:363
+#: spyder/plugins/pylint/widgets/pylintgui.py:391
 msgid "Error"
 msgstr ""
 
@@ -466,6 +470,7 @@ msgstr ""
 #: spyder/widgets/variableexplorer/arrayeditor.py:510
 #: spyder/widgets/variableexplorer/collectionseditor.py:443
 #: spyder/widgets/variableexplorer/collectionseditor.py:1124
+#: spyder/plugins/pylint/widgets/pylintgui.py:126
 #: spyder/widgets/variableexplorer/namespacebrowser.py:305
 msgid "Warning"
 msgstr ""
@@ -677,7 +682,7 @@ msgstr ""
 msgid "Update LANGUAGE_CODES (inside config/base.py) if a new translation has been added to Spyder"
 msgstr ""
 
-#: spyder/config/utils.py:25
+#: spyder/config/utils.py:24 spyder/plugins/pylint/widgets/pylintgui.py:289
 msgid "Python files"
 msgstr ""
 
@@ -1134,6 +1139,7 @@ msgid "Run Python script"
 msgstr ""
 
 #: spyder/plugins/console.py:266 spyder/widgets/explorer.py:814
+#: spyder/plugins/profiler/widgets/profilergui.py:220
 msgid "Python scripts"
 msgstr ""
 
@@ -1499,6 +1505,7 @@ msgid "Set/Edit conditional breakpoint"
 msgstr ""
 
 #: spyder/plugins/editor.py:760
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:180
 msgid "Clear breakpoints in all files"
 msgstr ""
 
@@ -1544,6 +1551,8 @@ msgstr ""
 
 #: spyder/plugins/editor.py:801 spyder/widgets/findinfiles.py:438
 #: spyder/widgets/ipythonconsole/client.py:363
+#: spyder/plugins/profiler/widgets/profilergui.py:87
+#: spyder/plugins/pylint/widgets/pylintgui.py:211
 msgid "Stop"
 msgstr ""
 
@@ -1936,7 +1945,7 @@ msgstr ""
 msgid "No source code available."
 msgstr ""
 
-#: spyder/plugins/history.py:41
+#: spyder/plugins/history.py:39 spyder/plugins/pylint/plugin.py:35
 msgid "Settings"
 msgstr ""
 
@@ -1956,19 +1965,20 @@ msgstr ""
 msgid "History log"
 msgstr ""
 
-#: spyder/plugins/history.py:155
+#: spyder/plugins/history.py:153 spyder/plugins/pylint/plugin.py:115
 msgid "History..."
 msgstr ""
 
-#: spyder/plugins/history.py:157
+#: spyder/plugins/history.py:155 spyder/plugins/pylint/plugin.py:117
 msgid "Set history maximum entries"
 msgstr ""
 
-#: spyder/plugins/history.py:268
+#: spyder/plugins/history.py:260 spyder/plugins/pylint/plugin.py:39
+#: spyder/plugins/pylint/plugin.py:160
 msgid "History"
 msgstr ""
 
-#: spyder/plugins/history.py:269
+#: spyder/plugins/history.py:261 spyder/plugins/pylint/plugin.py:161
 msgid "Maximum entries"
 msgstr ""
 
@@ -3395,7 +3405,8 @@ msgid "Previous"
 msgstr ""
 
 #: spyder/widgets/explorer.py:1201
-msgid "Parent"
+#: spyder/plugins/profiler/widgets/profilergui.py:296
+#: spyder/plugins/pylint/widgets/pylintgui.py:364
 msgstr ""
 
 #: spyder/widgets/fileswitcher.py:110
@@ -4643,6 +4654,7 @@ msgstr ""
 #: spyder/widgets/variableexplorer/namespacebrowser.py:187
 #: spyder/widgets/variableexplorer/namespacebrowser.py:477
 #: spyder/widgets/variableexplorer/namespacebrowser.py:491
+#: spyder/plugins/profiler/widgets/profilergui.py:121
 msgid "Save data"
 msgstr ""
 
@@ -4702,3 +4714,268 @@ msgstr ""
 msgid "Unable to check for updates."
 msgstr ""
 
+#: spyder/plugins/breakpoints/plugin.py:45
+msgid "Breakpoints"
+msgstr ""
+
+#: spyder/plugins/breakpoints/plugin.py:80
+msgid "List breakpoints"
+msgstr ""
+
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:97
+msgid "Condition"
+msgstr ""
+
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:97
+msgid "File"
+msgstr ""
+
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:97
+msgid "Line"
+msgstr ""
+
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:201
+msgid "Clear this breakpoint"
+msgstr ""
+
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:206
+msgid "Edit this breakpoint"
+msgstr ""
+
+#: spyder/plugins/profiler/plugin.py:33 spyder/plugins/pylint/plugin.py:47
+msgid "Results"
+msgstr ""
+
+#: spyder/plugins/profiler/plugin.py:34
+msgid ""
+"Profiler plugin results (the output of python's profile/cProfile)\n"
+"are stored here:"
+msgstr ""
+
+#: spyder/plugins/profiler/plugin.py:75
+msgid "Profiler"
+msgstr ""
+
+#: spyder/plugins/profiler/plugin.py:104
+#: spyder/plugins/profiler/widgets/profilergui.py:81
+msgid "Profile"
+msgstr ""
+
+#: spyder/plugins/profiler/widgets/profilergui.py:82
+msgid "Run profiler"
+msgstr ""
+
+#: spyder/plugins/profiler/widgets/profilergui.py:88
+msgid "Stop current profiling"
+msgstr ""
+
+#: spyder/plugins/profiler/widgets/profilergui.py:96
+#: spyder/plugins/profiler/widgets/profilergui.py:219
+msgid "Select Python script"
+msgstr ""
+
+#: spyder/plugins/profiler/widgets/profilergui.py:102
+#: spyder/plugins/pylint/widgets/pylintgui.py:224
+msgid "Output"
+msgstr ""
+
+#: spyder/plugins/profiler/widgets/profilergui.py:104
+msgid "Show program's output"
+msgstr ""
+
+#: spyder/plugins/profiler/widgets/profilergui.py:113
+msgid "Collapse one level up"
+msgstr ""
+
+#: spyder/plugins/profiler/widgets/profilergui.py:118
+msgid "Expand one level down"
+msgstr ""
+
+#: spyder/plugins/profiler/widgets/profilergui.py:124
+msgid "Save profiling data"
+msgstr ""
+
+#: spyder/plugins/profiler/widgets/profilergui.py:126
+msgid "Load data"
+msgstr ""
+
+#: spyder/plugins/profiler/widgets/profilergui.py:129
+msgid "Load profiling data for comparison"
+msgstr ""
+
+#: spyder/plugins/profiler/widgets/profilergui.py:131
+msgid "Clear comparison"
+msgstr ""
+
+#: spyder/plugins/profiler/widgets/profilergui.py:171
+msgid "Please install"
+msgstr ""
+
+#: spyder/plugins/profiler/widgets/profilergui.py:172
+msgid "the Python profiler modules"
+msgstr ""
+
+#: spyder/plugins/profiler/widgets/profilergui.py:179
+msgid "Save profiler result"
+msgstr ""
+
+#: spyder/plugins/profiler/widgets/profilergui.py:182
+#: spyder/plugins/profiler/widgets/profilergui.py:188
+msgid "Profiler result"
+msgstr ""
+
+#: spyder/plugins/profiler/widgets/profilergui.py:187
+msgid "Select script to compare"
+msgstr ""
+
+#: spyder/plugins/profiler/widgets/profilergui.py:227
+#: spyder/plugins/profiler/widgets/profilergui.py:232
+msgid "Profiler output"
+msgstr ""
+
+#: spyder/plugins/profiler/widgets/profilergui.py:251
+msgid "Profiling, please wait..."
+msgstr ""
+
+#: spyder/plugins/profiler/widgets/profilergui.py:343
+msgid "Sorting data, please wait..."
+msgstr ""
+
+#: spyder/plugins/profiler/widgets/profilergui.py:389
+msgid "Function/Module"
+msgstr ""
+
+#: spyder/plugins/profiler/widgets/profilergui.py:389
+msgid "Total Time"
+msgstr ""
+
+#: spyder/plugins/profiler/widgets/profilergui.py:389
+#: spyder/plugins/profiler/widgets/profilergui.py:390
+msgid "Diff"
+msgstr ""
+
+#: spyder/plugins/profiler/widgets/profilergui.py:390
+msgid "Calls"
+msgstr ""
+
+#: spyder/plugins/profiler/widgets/profilergui.py:390
+msgid "Local Time"
+msgstr ""
+
+#: spyder/plugins/profiler/widgets/profilergui.py:391
+msgid "File:line"
+msgstr ""
+
+#: spyder/plugins/profiler/widgets/profilergui.py:565
+msgid "Function or module name"
+msgstr ""
+
+#: spyder/plugins/profiler/widgets/profilergui.py:569
+msgid "Time in function (including sub-functions)"
+msgstr ""
+
+#: spyder/plugins/profiler/widgets/profilergui.py:578
+msgid "Local time in function (not in sub-functions)"
+msgstr ""
+
+#: spyder/plugins/profiler/widgets/profilergui.py:588
+msgid "Total number of calls (including recursion)"
+msgstr ""
+
+#: spyder/plugins/profiler/widgets/profilergui.py:598
+msgid "File:line where function is defined"
+msgstr ""
+
+#: spyder/plugins/profiler/widgets/profilergui.py:603
+msgid "recursion"
+msgstr ""
+
+#: spyder/plugins/pylint/plugin.py:36
+msgid "Save file before analyzing it"
+msgstr ""
+
+#: spyder/plugins/pylint/plugin.py:40
+msgid "The following option will be applied at next startup."
+msgstr ""
+
+#: spyder/plugins/pylint/plugin.py:43
+msgid "History: "
+msgstr ""
+
+#: spyder/plugins/pylint/plugin.py:44
+msgid " results"
+msgstr ""
+
+#: spyder/plugins/pylint/plugin.py:48
+msgid "Results are stored here:"
+msgstr ""
+
+#: spyder/plugins/pylint/plugin.py:98
+#: spyder/plugins/pylint/widgets/pylintgui.py:83
+msgid "Static code analysis"
+msgstr ""
+
+#: spyder/plugins/pylint/plugin.py:133
+msgid "Run static code analysis"
+msgstr ""
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:117
+msgid "Results for "
+msgstr ""
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:122
+msgid "Convention"
+msgstr ""
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:124
+msgid "Refactor"
+msgstr ""
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:206
+msgid "Analyze"
+msgstr ""
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:207
+msgid "Run analysis"
+msgstr ""
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:212
+msgid "Stop current analysis"
+msgstr ""
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:218
+#: spyder/plugins/pylint/widgets/pylintgui.py:288
+msgid "Select Python file"
+msgstr ""
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:226
+msgid "Complete output"
+msgstr ""
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:260
+msgid "Pylint script was not found. Please add \"%s\" to PATH."
+msgstr ""
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:263
+msgid "Please install <b>pylint</b>:"
+msgstr ""
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:326
+msgid "Pylint output"
+msgstr ""
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:465
+msgid "Source code has not been rated yet."
+msgstr ""
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:471
+msgid "Analysis did not succeed (see output for more details)."
+msgstr ""
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:484
+msgid "Global evaluation:"
+msgstr ""
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:488
+msgid "previous run:"
+msgstr ""

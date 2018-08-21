@@ -455,7 +455,11 @@ msgstr "Janela do console anexada (depuração)"
 #: spyder/widgets/variableexplorer/collectionseditor.py:454
 #: spyder/widgets/variableexplorer/dataframeeditor.py:778
 #: spyder/widgets/variableexplorer/dataframeeditor.py:782
+#: spyder/plugins/pylint/widgets/pylintgui.py:128
 #: spyder/widgets/variableexplorer/namespacebrowser.py:311
+#: spyder/plugins/pylint/widgets/pylintgui.py:363
+#: spyder/plugins/pylint/widgets/pylintgui.py:391
+#: spyder/plugins/profiler/widgets/profilergui.py:295
 msgid "Error"
 msgstr "Erro"
 
@@ -506,6 +510,7 @@ msgstr "Resetar para o layout padrão do Spyder"
 #: spyder/widgets/variableexplorer/arrayeditor.py:510
 #: spyder/widgets/variableexplorer/collectionseditor.py:443
 #: spyder/widgets/variableexplorer/collectionseditor.py:1124
+#: spyder/plugins/pylint/widgets/pylintgui.py:126
 #: spyder/widgets/variableexplorer/namespacebrowser.py:305
 msgid "Warning"
 msgstr "Aviso"
@@ -841,7 +846,7 @@ msgstr ""
 "Atualize LANGUAGE_CODES (config/base.py) se um novo idioma for adicionado ao "
 "Spyder"
 
-#: spyder/config/utils.py:25
+#: spyder/config/utils.py:24 spyder/plugins/pylint/widgets/pylintgui.py:289
 msgid "Python files"
 msgstr "Arquivos Python"
 
@@ -1317,6 +1322,7 @@ msgid "Run Python script"
 msgstr "Executar script Python"
 
 #: spyder/plugins/console.py:266 spyder/widgets/explorer.py:814
+#: spyder/plugins/profiler/widgets/profilergui.py:220
 msgid "Python scripts"
 msgstr "Scripts Python"
 
@@ -1721,6 +1727,7 @@ msgid "Set/Edit conditional breakpoint"
 msgstr "Adicionar ou editar um ponto de interrupção condicional"
 
 #: spyder/plugins/editor.py:760
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:180
 msgid "Clear breakpoints in all files"
 msgstr "Limpar pontos de interrupção em todos os arquivos"
 
@@ -1766,6 +1773,8 @@ msgstr "Executar até que a função ou método atual terminem"
 
 #: spyder/plugins/editor.py:801 spyder/widgets/findinfiles.py:438
 #: spyder/widgets/ipythonconsole/client.py:363
+#: spyder/plugins/pylint/widgets/pylintgui.py:211
+#: spyder/plugins/profiler/widgets/profilergui.py:87
 msgid "Stop"
 msgstr "Parar"
 
@@ -2191,7 +2200,7 @@ msgstr ""
 msgid "No source code available."
 msgstr "O código fonte não está disponível."
 
-#: spyder/plugins/history.py:41
+#: spyder/plugins/history.py:39 spyder/plugins/pylint/plugin.py:35
 msgid "Settings"
 msgstr "Configurações"
 
@@ -2211,19 +2220,20 @@ msgstr "Ir automaticamente para a última entrada"
 msgid "History log"
 msgstr "Log do histórico"
 
-#: spyder/plugins/history.py:155
+#: spyder/plugins/history.py:153 spyder/plugins/pylint/plugin.py:115
 msgid "History..."
 msgstr "Histórico..."
 
-#: spyder/plugins/history.py:157
+#: spyder/plugins/history.py:155 spyder/plugins/pylint/plugin.py:117
 msgid "Set history maximum entries"
 msgstr "Definir número máximo de entradas para armazenar"
 
-#: spyder/plugins/history.py:268
+#: spyder/plugins/history.py:260 spyder/plugins/pylint/plugin.py:39
+#: spyder/plugins/pylint/plugin.py:160
 msgid "History"
 msgstr "Histórico"
 
-#: spyder/plugins/history.py:269
+#: spyder/plugins/history.py:261 spyder/plugins/pylint/plugin.py:161
 msgid "Maximum entries"
 msgstr "Número máximo de entradas"
 
@@ -3944,6 +3954,8 @@ msgid "Parent"
 msgstr "Superior"
 
 #: spyder/widgets/fileswitcher.py:110
+#: spyder/plugins/pylint/widgets/pylintgui.py:364
+#: spyder/plugins/profiler/widgets/profilergui.py:296
 msgid "unsaved file"
 msgstr "arquivo não salvo"
 
@@ -5318,6 +5330,7 @@ msgstr "Importar data"
 #: spyder/widgets/variableexplorer/namespacebrowser.py:187
 #: spyder/widgets/variableexplorer/namespacebrowser.py:477
 #: spyder/widgets/variableexplorer/namespacebrowser.py:491
+#: spyder/plugins/profiler/widgets/profilergui.py:121
 msgid "Save data"
 msgstr "Salvar data"
 
@@ -5526,9 +5539,9 @@ msgstr "Não foi possível verificar por atualizações."
 #~ "Procurar em todos os arquivos e diretórios presentes no caminho atual do "
 #~ "Spyder"
 
-#, fuzzy
-#~ msgid "At startup, the current working directory is:"
-#~ msgstr "Ao iniciar, o diretório de trabalho global é:"
+#: spyder/plugins/breakpoints/plugin.py:45
+msgid "Breakpoints"
+msgstr "Pontos de interrupção"
 
 #, fuzzy
 #~ msgid "At startup,"
@@ -5544,267 +5557,268 @@ msgstr "Não foi possível verificar por atualizações."
 #~ msgid "Reset IPython namespace"
 #~ msgstr "Resetar IPython namespace"
 
-#~ msgid "Loading external console..."
-#~ msgstr "Carregando console externo..."
 
-#~ msgid "The Python console"
-#~ msgstr "O Console Python"
+#: spyder/plugins/breakpoints/plugin.py:80
+msgid "List breakpoints"
+msgstr "Listar pontos de interrupção"
 
-#~ msgid ""
-#~ "You can also run your code on a Python console. These consoles are useful "
-#~ "because they let you run a file in a console dedicated only to it.To "
-#~ "select this behavior, please press the <b>F6</b> key.<br><br>By pressing "
-#~ "the button below and then focusing the Variable Explorer, you will notice "
-#~ "that Python consoles are also connected to that pane, and that the "
-#~ "Variable Explorer only shows the variables of the currently focused "
-#~ "console."
-#~ msgstr ""
-#~ "Você também pode executar seu código em um console Python. Estes consoles "
-#~ "são úteis porque permitem que você execute um arquivo em um console "
-#~ "dedicado apenas para ele. Para selecionar este comportamento por favor "
-#~ "pressione a tecla <b>F6</b>.<br><br>Apertando o botão abaixo e indo no "
-#~ "Explorador de Variáveis você irá notar que os consoles Python também "
-#~ "estão conectados a este painel e que o Explorador de Variáveis só mostra "
-#~ "as variáveis do console atual."
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:97
+msgid "Condition"
+msgstr "Condição"
 
-#~ msgid "Sort files according to full path"
-#~ msgstr "Ordenar arquivos seguindo seu caminho completo"
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:97
+msgid "File"
+msgstr "Arquivo"
 
-#~ msgid "&Configure..."
-#~ msgstr "&Configurar..."
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:97
+msgid "Line"
+msgstr "Linha"
 
-#~ msgid "Show TODO/FIXME/XXX/HINT/TIP/@todo comments list"
-#~ msgstr ""
-#~ "Mostrar a lista de comentários dos\n"
-#~ "TODO/FIXME/XXX/HINT/TIP/@todo"
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:201
+msgid "Clear this breakpoint"
+msgstr "Limpar este ponto"
 
-#~ msgid "Interactive data plotting in the consoles"
-#~ msgstr "Mostra dados interativos no console"
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:206
+msgid "Edit this breakpoint"
+msgstr "Editar este ponto"
 
-#~ msgid "Python console"
-#~ msgstr "Console Python"
+#: spyder/plugins/pylint/plugin.py:36
+msgid "Save file before analyzing it"
+msgstr "Salvar arquivo antes de analisá-lo"
 
-#~ msgid "One tab per script"
-#~ msgstr "Uma aba por script"
+#: spyder/plugins/pylint/plugin.py:40
+msgid "The following option will be applied at next startup."
+msgstr ""
+"A seguinte opção será aplicada na próxima vez que o Spyder for iniciado."
+#: spyder/plugins/pylint/plugin.py:43
+msgid "History: "
+msgstr "Histórico:"
 
-#~ msgid "Buffer: "
-#~ msgstr "Buffer:"
+#: spyder/plugins/pylint/plugin.py:44
+msgid " results"
+msgstr " resultados"
 
-#~ msgid "Merge process standard output/error channels"
-#~ msgstr "Combinar os canais de saída/erro do processo"
+#: spyder/plugins/pylint/plugin.py:47 spyder/plugins/profiler/plugin.py:33
+msgid "Results"
+msgstr "Resultados"
 
-#~ msgid ""
-#~ "Merging the output channels of the process means that\n"
-#~ "the standard error won't be written in red anymore,\n"
-#~ "but this has the effect of speeding up display."
-#~ msgstr ""
-#~ "Combinar os canais de saída do processo significa que\n"
-#~ "o erro padrão não será escrito em vermelho, mas isso ajuda a\n"
-#~ "melhorar a velocidade em que aparece o texto no console."
+#: spyder/plugins/pylint/plugin.py:48
+msgid "Results are stored here:"
+msgstr "Os resultados são armazenados aqui:"
 
-#~ msgid "Colorize standard error channel using ANSI escape codes"
-#~ msgstr "Colorir o canal de error padrão utilizando códigos de escape ANSI "
+#: spyder/plugins/pylint/plugin.py:98
+#: spyder/plugins/pylint/widgets/pylintgui.py:83
+msgid "Static code analysis"
+msgstr "Análise de código"
 
-#~ msgid ""
-#~ "This method is the only way to have colorized standard\n"
-#~ "error channel when the output channels have been merged."
-#~ msgstr ""
-#~ "Este método é a única forma de ter cor no canal de erro\n"
-#~ "padrão quando os canais de saída forem combinados."
+#: spyder/plugins/pylint/plugin.py:133
+msgid "Run static code analysis"
+msgstr "Executar análise de código"
 
-#~ msgid ""
-#~ "This option will be applied the next time a Python console or a terminal "
-#~ "is opened."
-#~ msgstr ""
-#~ "Esta opção será ativada na próxima vez que um console Python ou um "
-#~ "terminal for aberto."
+#: spyder/plugins/pylint/widgets/pylintgui.py:117
+msgid "Results for "
+msgstr "Resultados para "
 
-#~ msgid "Light background (white color)"
-#~ msgstr "Fundo claro (cor branca)"
+#: spyder/plugins/pylint/widgets/pylintgui.py:122
+msgid "Convention"
+msgstr "Convention"
 
-#~ msgid "PYTHONSTARTUP replacement"
-#~ msgstr "Substituto do PYTHONSTARTUP"
+#: spyder/plugins/pylint/widgets/pylintgui.py:124
+msgid "Refactor"
+msgstr "Refatoração"
 
-#~ msgid ""
-#~ "This option will override the PYTHONSTARTUP environment variable which\n"
-#~ "defines the script to be executed during the Python console startup."
-#~ msgstr ""
-#~ "Esta opção modificará a variável de ambiente PYTHONSTARTUP, a qual\n"
-#~ "define o script que é executado durante a inicialização do console\n"
-#~ "Python."
+#: spyder/plugins/pylint/widgets/pylintgui.py:206
+msgid "Analyze"
+msgstr "Analisar"
 
-#~ msgid "Default PYTHONSTARTUP script"
-#~ msgstr "Script PYTHONSTARTUP padrão"
+#: spyder/plugins/pylint/widgets/pylintgui.py:207
+msgid "Run analysis"
+msgstr "Executar análise"
 
-#~ msgid "Use the following startup script:"
-#~ msgstr "Usar o seguinte script de inicialização:"
+#: spyder/plugins/pylint/widgets/pylintgui.py:212
+msgid "Stop current analysis"
+msgstr "Parar análise atual"
 
-#~ msgid "Monitor"
-#~ msgstr "Monitor"
+#: spyder/plugins/pylint/widgets/pylintgui.py:218
+#: spyder/plugins/pylint/widgets/pylintgui.py:288
+msgid "Select Python file"
+msgstr "Selecionar arquivo Python"
 
-#~ msgid ""
-#~ "The monitor provides introspection features to console: code completion, "
-#~ "calltips and variable explorer. Because it relies on several modules, "
-#~ "disabling the monitor may be useful to accelerate console startup."
-#~ msgstr ""
-#~ "O monitor fornece características de introspecção para o console: "
-#~ "completador de código, sugestões e o explorador de variáveis. Porque ele "
-#~ "depende de vários módulos adicionais, desativando o monitor é possível "
-#~ "acelerar a inicialização do console."
+#: spyder/plugins/pylint/widgets/pylintgui.py:224
+#: spyder/plugins/profiler/widgets/profilergui.py:102
+msgid "Output"
+msgstr "Saída"
 
-#~ msgid "Enable monitor"
-#~ msgstr "Ativar monitor"
+#: spyder/plugins/pylint/widgets/pylintgui.py:226
+msgid "Complete output"
+msgstr "Saída completa"
 
-#~ msgid "Default library"
-#~ msgstr "Biblioteca padrão"
+#: spyder/plugins/pylint/widgets/pylintgui.py:260
+msgid "Pylint script was not found. Please add \"%s\" to PATH."
+msgstr ""
+"O script do Pylint não foi encontrada. Por favor adicione \"%s\" ao PATH."
 
-#~ msgid "Qt-Python Bindings"
-#~ msgstr "Integração Qt-Python"
+#: spyder/plugins/pylint/widgets/pylintgui.py:263
+msgid "Please install <b>pylint</b>:"
+msgstr "Por favor instale o <b>pylint</b>:"
 
-#~ msgid "Library:"
-#~ msgstr "Biblioteca:"
+#: spyder/plugins/pylint/widgets/pylintgui.py:326
+msgid "Pylint output"
+msgstr "Saída do Pylint"
 
-#~ msgid ""
-#~ "This option will act on<br> libraries such as Matplotlib, guidata or ETS"
-#~ msgstr ""
-#~ "Esta opção trará efeitos <br> em bibliotecas como Matplotlib, guidata ou "
-#~ "ETS"
+#: spyder/plugins/pylint/widgets/pylintgui.py:465
+msgid "Source code has not been rated yet."
+msgstr "O código fonte não foi avaliado ainda."
 
-#~ msgid ""
-#~ "Decide which backend to use to display graphics. If unsure, please select "
-#~ "the <b>Automatic</b> backend.<br><br><b>Note:</b> We support a very "
-#~ "limited number of backends in our Python consoles. If you prefer to work "
-#~ "with a different one, please use an IPython console."
-#~ msgstr ""
-#~ "Decidir qual saída usar para mostrar gráficos. Se não possui certeza, por "
-#~ "favor selecione a saída <b>Automática</b>.<br><br><b>Nota:</b> Suportamos "
-#~ "um número muito limitado de saídas nos consoles Python. Se você preferir "
-#~ "preferir trabalhar com uma diferente utilize um console IPython."
+#: spyder/plugins/pylint/widgets/pylintgui.py:471
+msgid "Analysis did not succeed (see output for more details)."
+msgstr "A análise não foi bem sucedida (veja a saída para mais detalhes)."
 
-#~ msgid "None"
-#~ msgstr "Nenhum"
+#: spyder/plugins/pylint/widgets/pylintgui.py:484
+msgid "Global evaluation:"
+msgstr "Avaliação global:"
 
-#~ msgid "Enthought Tool Suite"
-#~ msgstr "Enthought Tool Suite"
+#: spyder/plugins/pylint/widgets/pylintgui.py:488
+msgid "previous run:"
+msgstr "análise anterior:"
 
-#~ msgid ""
-#~ "Enthought Tool Suite (ETS) supports PyQt4 (qt4) and wxPython (wx) "
-#~ "graphical user interfaces."
-#~ msgstr ""
-#~ "Enthought Tool Suite (ETS) suporta as bibliotecas gráficas PyQt4 (qt4) "
-#~ "e \n"
-#~ "wxPython (wx)."
+#: spyder/plugins/profiler/plugin.py:34
+msgid ""
+"Profiler plugin results (the output of python's profile/cProfile)\n"
+"are stored here:"
+msgstr "Os resultados do plugin Profiler são armazenados aqui: "
 
-#~ msgid "ETS_TOOLKIT:"
-#~ msgstr "ETS_TOOLKIT:"
+#: spyder/plugins/profiler/plugin.py:75
+msgid "Profiler"
+msgstr "Profiler"
 
-#~ msgid "External modules"
-#~ msgstr "Módulos externos"
+#: spyder/plugins/profiler/plugin.py:104
+#: spyder/plugins/profiler/widgets/profilergui.py:81
+msgid "Profile"
+msgstr "Profiler"
 
-#~ msgid ""
-#~ "No Python console is currently selected to run <b>%s</b>.<br><br>Please "
-#~ "select or open a new Python console and try again."
-#~ msgstr ""
-#~ "Nenhum console Python foi selecionado para executar <b>%s</b>.<br><br>Por "
-#~ "favor selecione ou abra um novo console Python e tente novamente."
+#: spyder/plugins/profiler/widgets/profilergui.py:82
+msgid "Run profiler"
+msgstr "Executar Profiler"
 
-#~ msgid ""
-#~ "%s is already running in a separate process.\n"
-#~ "Do you want to kill the process before starting a new one?"
-#~ msgstr ""
-#~ "%s já está sendo executado em um processo separado.\n"
-#~ "Você deseja matar o processo antes de iniciar um novo?"
+#: spyder/plugins/profiler/widgets/profilergui.py:88
+msgid "Stop current profiling"
+msgstr "Parar processo atual"
 
-#~ msgid "Command Window"
-#~ msgstr "Janela de comando"
+#: spyder/plugins/profiler/widgets/profilergui.py:96
+#: spyder/plugins/profiler/widgets/profilergui.py:219
+msgid "Select Python script"
+msgstr "Selecionar script Python"
 
-#~ msgid "Open a &Python console"
-#~ msgstr "Abrir um console &Python"
+#: spyder/plugins/profiler/widgets/profilergui.py:104
+msgid "Show program's output"
+msgstr "Mostrar saída do programa"
 
-#~ msgid "Open &command prompt"
-#~ msgstr "Abrir &prompt de comando"
+#: spyder/plugins/profiler/widgets/profilergui.py:113
+msgid "Collapse one level up"
+msgstr "Subir um nível"
 
-#~ msgid "Open a Windows command prompt"
-#~ msgstr "Abrir o prompt de comando do Windows"
+#: spyder/plugins/profiler/widgets/profilergui.py:118
+msgid "Expand one level down"
+msgstr "Descer um nível"
 
-#~ msgid "Open a &terminal"
-#~ msgstr "Abrir um &terminal"
+#: spyder/plugins/profiler/widgets/profilergui.py:124
+msgid "Save profiling data"
+msgstr "Salvar dados"
 
-#~ msgid "Open a terminal window"
-#~ msgstr "Abrir uma janela de terminal"
+#: spyder/plugins/profiler/widgets/profilergui.py:126
+msgid "Load data"
+msgstr "Carregar data"
 
-#~ msgid "Python Console"
-#~ msgstr "Console Python"
+#: spyder/plugins/profiler/widgets/profilergui.py:129
+msgid "Load profiling data for comparison"
+msgstr "Carregar dados para comparação"
 
-#~ msgid "Light background"
-#~ msgstr "Fundo claro"
+#: spyder/plugins/profiler/widgets/profilergui.py:131
+msgid "Clear comparison"
+msgstr "Limpar comparação"
 
-#~ msgid "Dark background"
-#~ msgstr "Fundo escuro"
+#: spyder/plugins/profiler/widgets/profilergui.py:171
+msgid "Please install"
+msgstr "Por favor instale"
 
-#~ msgid "Working directory:"
-#~ msgstr "Diretório de trabalho:"
+#: spyder/plugins/profiler/widgets/profilergui.py:172
+msgid "the Python profiler modules"
+msgstr "Módulos do Python Profiler"
 
-#~ msgid "Dedicated Python console"
-#~ msgstr "Console do Python dedicado"
+#: spyder/plugins/profiler/widgets/profilergui.py:179
+msgid "Save profiler result"
+msgstr "Salvar profiler result"
 
-#~ msgid "Show warning when killing running process"
-#~ msgstr "Mostrar um aviso quando matar o processo"
+#: spyder/plugins/profiler/widgets/profilergui.py:182
+#: spyder/plugins/profiler/widgets/profilergui.py:188
+msgid "Profiler result"
+msgstr "Resultado do Profiler"
 
-#~ msgid "Run Settings"
-#~ msgstr "Opções de execução"
+#: spyder/plugins/profiler/widgets/profilergui.py:187
+msgid "Select script to compare"
+msgstr "Selecione um script para comparar"
 
-#~ msgid "the script directory"
-#~ msgstr "Diretório do script atual"
+#: spyder/plugins/profiler/widgets/profilergui.py:227
+#: spyder/plugins/profiler/widgets/profilergui.py:232
+msgid "Profiler output"
+msgstr "Saída do Profiler"
 
-#~ msgid "Show warning when killing running processes"
-#~ msgstr "Mostrar aviso quando um processo em execução for morto"
+#: spyder/plugins/profiler/widgets/profilergui.py:251
+msgid "Profiling, please wait..."
+msgstr "Processando..."
 
-#~ msgid "Autorefresh"
-#~ msgstr "Atualizar automaticamente"
+#: spyder/plugins/profiler/widgets/profilergui.py:343
+msgid "Sorting data, please wait..."
+msgstr "Ordenando dados..."
 
-#~ msgid "Enable autorefresh"
-#~ msgstr "Ativar atualização automatica"
+#: spyder/plugins/profiler/widgets/profilergui.py:389
+msgid "Function/Module"
+msgstr "Função/Módulo"
 
-#~ msgid "Refresh interval: "
-#~ msgstr "Intervalo de atualização"
+#: spyder/plugins/profiler/widgets/profilergui.py:389
+msgid "Total Time"
+msgstr "Tempo Total"
 
-#~ msgid ""
-#~ "The <b>global working directory</b> is the working directory for newly "
-#~ "opened <i>consoles</i> (Python/IPython consoles and terminals), for the "
-#~ "<i>file explorer</i>, for the <i>find in files</i> plugin and for new "
-#~ "files created in the <i>editor</i>."
-#~ msgstr ""
-#~ "O <b>diretório de trabalho global</b> é o diretório de trabalho para os "
-#~ "<i>consoles</i> recém abertos (do IPython/Python e dos terminais), para o "
-#~ "<i>Explorador de arquivos</i>, <i>Buscar em arquivos</i> e para os novos "
-#~ "arquivos criados no <i>Editor</i>."
+#: spyder/plugins/profiler/widgets/profilergui.py:389
+#: spyder/plugins/profiler/widgets/profilergui.py:390
+msgid "Diff"
+msgstr "Diff"
 
-#~ msgid "the same as in last session"
-#~ msgstr "O mesmo da última sessão"
+#: spyder/plugins/profiler/widgets/profilergui.py:390
+msgid "Calls"
+msgstr "Chamadas"
 
-#~ msgid ""
-#~ "At startup, Spyder will restore the global directory from last session"
-#~ msgstr ""
-#~ "Ao iniciar o Spyder irá restaurar o diretório global da última sessão"
+#: spyder/plugins/profiler/widgets/profilergui.py:390
+msgid "Local Time"
+msgstr "Hora Local"
 
-#~ msgid "Files are opened from:"
-#~ msgstr "Os arquivos são abertos de:"
+#: spyder/plugins/profiler/widgets/profilergui.py:391
+msgid "File:line"
+msgstr "Arquivo/Linha"
 
-#~ msgid "the current file directory"
-#~ msgstr "O diretório do arquivo atual"
+#: spyder/plugins/profiler/widgets/profilergui.py:565
+msgid "Function or module name"
+msgstr "Nome da função ou módulo"
 
-#~ msgid "the global working directory"
-#~ msgstr "O diretório de trabalho global"
+#: spyder/plugins/profiler/widgets/profilergui.py:569
+msgid "Time in function (including sub-functions)"
+msgstr "Tempo decorrido na função (sub-funções incluídas)"
+#: spyder/plugins/profiler/widgets/profilergui.py:578
+msgid "Local time in function (not in sub-functions)"
+msgstr "Tempo decorrido na função (excluindo sub-funções)"
 
-#~ msgid "Change to file base directory"
-#~ msgstr "Mudar para diretório base do arquivo"
+#: spyder/plugins/profiler/widgets/profilergui.py:588
+msgid "Total number of calls (including recursion)"
+msgstr "Número total de chamadas (incluindo recursão)"
 
-#~ msgid "When opening a file"
-#~ msgstr "Ao abrir um arquivo"
+#: spyder/plugins/profiler/widgets/profilergui.py:598
+msgid "File:line where function is defined"
+msgstr "Arquivo/Linha onde a função está definida"
 
-#~ msgid "When saving a file"
-#~ msgstr "Ao salvar um arquivo"
+#: spyder/plugins/profiler/widgets/profilergui.py:603
+msgid "recursion"
+msgstr "recursão"
 
 #~ msgid "Global working directory"
 #~ msgstr "Diretório de trabalho global"
