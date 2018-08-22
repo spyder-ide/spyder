@@ -191,6 +191,8 @@ def test_go_to_cursor_position(outlineexplorer_bot):
     """
     Test that clicking on the 'Go to cursor position' button located in the
     toolbar of the outline explorer is working as expected.
+
+    Regression test for issue #7729.
     """
     outlineexplorer, qtbot = outlineexplorer_bot(TEXT, 'test.py')
 
@@ -210,8 +212,9 @@ def test_go_to_last_item(outlineexplorer_bot):
     """
     Test that clicking on the 'Go to cursor position' button located in the
     toolbar of the outline explorer is working as expected when the cursor
-    is located in the editor in the last item of the outline.
-    Catch Issue #
+    is located in the editor under the last item of the outline tree widget.
+
+    Regression test for issue #7744.
     """
     outlineexplorer, qtbot = outlineexplorer_bot(TEXT, 'test.py')
 
