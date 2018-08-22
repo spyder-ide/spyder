@@ -436,7 +436,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                                     triggered=self.exit_callback)
 
         add_actions(menu, (None, inspect_action, clear_line_action,
-                           clear_console_action,copy_console_action, reset_namespace_action,
+                           clear_console_action, copy_console_action, reset_namespace_action,
                            None, quit_action))
         return menu
 
