@@ -111,6 +111,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         SaveHistoryMixin.__init__(self, history_filename)
 
         # --- Init attrs
+        self.plugin = plugin
         self.id_ = id_
         self.connection_file = connection_file
         self.hostname = hostname
@@ -428,11 +429,14 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                                                                'clear shell')),
                                              triggered=self.clear_console)
 
+        copy_console_action = create_action(self, _("Copy history to editor"),
+                                             triggered=self.copy_console)
+
         quit_action = create_action(self, _("&Quit"), icon=ima.icon('exit'),
                                     triggered=self.exit_callback)
 
         add_actions(menu, (None, inspect_action, clear_line_action,
-                           clear_console_action, reset_namespace_action,
+                           clear_console_action,copy_console_action, reset_namespace_action,
                            None, quit_action))
         return menu
 
@@ -554,6 +558,16 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     def clear_console(self):
         """Clear the whole console"""
         self.shellwidget.clear_console()
+
+    @Slot()
+    def copy_console(self):
+        """Copy the all inputs from console to editor"""
+        editor = self.plugin.editor.get_current_editor()
+        reverse_history = list(reversed(self.history))
+        index = min(reverse_history.index("clear"),reverse_history.index("%clear"))
+        if index != 0:
+            for i in self.history[-index:]:
+                editor.insert_text(i + "\n") 
 
     @Slot()
     def reset_namespace(self):
