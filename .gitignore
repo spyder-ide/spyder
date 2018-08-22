@@ -4,6 +4,12 @@
 # gedit files
 *~
 
+# Notepad++ files
+nppBackup/
+
+# Pytest dirs/files
+.pytest_cache/
+
 # Special dirs and files
 build/
 dist/
@@ -13,10 +19,16 @@ Thumbs.db
 .DS_Store/
 spyder_crash.log
 .DS_Store
-.spyderproject
+.spyproject
 .idea/
 .cache
-.coverage
+.coverage*
 
 # git .orig files
 *.orig
+
+# log files
+*.log
+
+# Rope project folders
+.ropeproject/

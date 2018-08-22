@@ -28,7 +28,8 @@ from spyder.utils import programs
 from spyder.plugins.help.utils.sphinxify import (CSS_PATH, generate_context,
                                                  usage, warning)
 from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton)
+                                    create_toolbutton, create_plugin_layout,
+                                    MENU_SEPARATOR)
 from spyder.plugins.help.confpage import HelpConfigPage
 from spyder.plugins.help.utils.sphinxthread import SphinxThread
 from spyder.plugins.help.widgets import PlainText, RichText, ObjectComboBox
@@ -37,6 +38,7 @@ from spyder.plugins.help.widgets import PlainText, RichText, ObjectComboBox
 dependencies.add("sphinx", _("Show help for objects in the Editor and "
                              "Consoles in a dedicated pane"),
                  required_version='>=0.6.6')
+
 
 
 class Help(SpyderPluginWidget):
@@ -51,10 +53,11 @@ class Help(SpyderPluginWidget):
     # Signals
     focus_changed = Signal()
 
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         SpyderPluginWidget.__init__(self, parent)
 
         self.internal_shell = None
+        self.console = None
 
         # Initialize plugin
         self.initialize_plugin()
@@ -100,7 +103,7 @@ class Help(SpyderPluginWidget):
         self.source_combo.addItems([_("Console"), _("Editor")])
         self.source_combo.currentIndexChanged.connect(self.source_changed)
         if (not programs.is_module_installed('rope') and
-                not programs.is_module_installed('jedi', '>=0.8.1')):
+                not programs.is_module_installed('jedi', '>=0.11.0')):
             self.source_combo.hide()
             source_label.hide()
         layout_edit.addWidget(self.source_combo)
@@ -149,15 +152,13 @@ class Help(SpyderPluginWidget):
         self._update_lock_icon()
 
         # Option menu
-        options_button = create_toolbutton(self, text=_('Options'),
-                                           icon=ima.icon('tooloptions'))
-        options_button.setPopupMode(QToolButton.InstantPopup)
-        menu = QMenu(self)
-        add_actions(menu, [self.rich_text_action, self.plain_text_action,
-                           self.show_source_action, None,
-                           self.auto_import_action])
-        options_button.setMenu(menu)
-        layout_edit.addWidget(options_button)
+        self.menu = QMenu(self)
+        add_actions(self.menu, [self.rich_text_action, self.plain_text_action,
+                                self.show_source_action, MENU_SEPARATOR,
+                                self.auto_import_action, MENU_SEPARATOR,
+                                self.undock_action])
+        self.options_button.setMenu(self.menu)
+        layout_edit.addWidget(self.options_button)
 
         if self.rich_help:
             self.switch_to_rich_text()
@@ -168,9 +169,8 @@ class Help(SpyderPluginWidget):
         self.source_changed()
 
         # Main layout
-        layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addLayout(layout_edit)
+        layout = create_plugin_layout(layout_edit)
+        # we have two main widgets, but only one of them is shown at a time
         layout.addWidget(self.plain_text)
         layout.addWidget(self.rich_text)
         self.setLayout(layout)
@@ -220,7 +220,9 @@ class Help(SpyderPluginWidget):
         self.focus_changed.connect(self.main.plugin_focus_changed)
         self.main.add_dockwidget(self)
         self.main.console.set_help(self)
+
         self.internal_shell = self.main.console.shell
+        self.console = self.main.console
 
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
@@ -451,6 +453,10 @@ class Help(SpyderPluginWidget):
 
     @Slot()
     def show_tutorial(self):
+        """Show the Spyder tutorial in the Help plugin, opening it if needed"""
+        if not self.dockwidget.isVisible():
+            self.dockwidget.show()
+            self.toggle_view_action.setChecked(True)
         tutorial_path = get_module_source_path('spyder.plugins.help.utils')
         tutorial = osp.join(tutorial_path, 'tutorial.rst')
         text = open(tutorial).read()
@@ -524,13 +530,13 @@ class Help(SpyderPluginWidget):
         index = self.source_combo.currentIndex()
         if hasattr(self.main, 'tabifiedDockWidgets'):
             # 'QMainWindow.tabifiedDockWidgets' was introduced in PyQt 4.5
-            if self.dockwidget and (force or self.dockwidget.isVisible()) \
-               and not self.ismaximized \
-               and (force or text != self._last_texts[index]):
+            if (self.dockwidget and (force or self.dockwidget.isVisible()) and
+                    not self.ismaximized and
+                    (force or text != self._last_texts[index])):
                 dockwidgets = self.main.tabifiedDockWidgets(self.dockwidget)
-                if self.main.console.dockwidget not in dockwidgets and \
-                   (hasattr(self.main, 'ipyconsole') and \
-                    self.main.ipyconsole.dockwidget not in dockwidgets):
+                if (self.console.dockwidget not in dockwidgets and
+                        self.main.ipyconsole is not None and
+                        self.main.ipyconsole.dockwidget not in dockwidgets):
                     self.dockwidget.show()
                     self.dockwidget.raise_()
         self._last_texts[index] = text
@@ -546,9 +552,12 @@ class Help(SpyderPluginWidget):
 
     def save_history(self):
         """Save history to a text file in user home directory"""
-        open(self.LOG_PATH, 'w').write("\n".join( \
-                [to_text_string(self.combo.itemText(index))
-                 for index in range(self.combo.count())] ))
+        try:
+            open(self.LOG_PATH, 'w').write("\n".join( \
+                    [to_text_string(self.combo.itemText(index))
+                     for index in range(self.combo.count())] ))
+        except (UnicodeDecodeError, EnvironmentError):
+            pass
 
     @Slot(bool)
     def toggle_plain_text(self, checked):
@@ -608,7 +617,9 @@ class Help(SpyderPluginWidget):
         Return shell which is currently bound to Help,
         or another running shell if it has been terminated
         """
-        if not hasattr(self.shell, 'get_doc') or not self.shell.is_running():
+        if (not hasattr(self.shell, 'get_doc') or
+                (hasattr(self.shell, 'is_running') and
+                 not self.shell.is_running())):
             self.shell = None
             if self.main.ipyconsole is not None:
                 shell = self.main.ipyconsole.get_current_shellwidget()
@@ -621,8 +632,11 @@ class Help(SpyderPluginWidget):
     def render_sphinx_doc(self, doc, context=None):
         """Transform doc string dictionary to HTML and show it"""
         # Math rendering option could have changed
-        fname = self.parent().parent().editor.get_current_filename()
-        dname = osp.dirname(fname)
+        if self.main.editor is not None:
+            fname = self.main.editor.get_current_filename()
+            dname = osp.dirname(fname)
+        else:
+            dname = ''
         self._sphinx_thread.render(doc, context, self.get_option('math'),
                                    dname)
 

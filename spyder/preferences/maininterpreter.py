@@ -35,6 +35,7 @@ class MainInterpreterConfigPage(GeneralConfigPage):
         GeneralConfigPage.__init__(self, parent, main)
         self.cus_exec_radio = None
         self.pyexec_edit = None
+        self.cus_exec_combo = None
 
         # Python executable selection (initializing default values as well)
         executable = self.get_option('executable', get_python_executable())
@@ -54,10 +55,14 @@ class MainInterpreterConfigPage(GeneralConfigPage):
             self.set_option('executable',
                             executable.replace("pythonw.exe", "python.exe"))
 
+        if not self.get_option('default'):
+            if not self.get_option('custom_interpreter'):
+                self.set_option('custom_interpreter', ' ')
+            self.set_custom_interpreters_list(executable)
+            self.validate_custom_interpreters_list()
+
     def initialize(self):
         GeneralConfigPage.initialize(self)
-        self.pyexec_edit.textChanged.connect(self.python_executable_changed)
-        self.cus_exec_radio.toggled.connect(self.python_executable_switched)
 
     def setup_page(self):
         newcb = self.create_checkbox
@@ -67,7 +72,7 @@ class MainInterpreterConfigPage(GeneralConfigPage):
         pyexec_bg = QButtonGroup(pyexec_group)
         pyexec_label = QLabel(_("Select the Python interpreter for all Spyder "
                                 "consoles"))
-        def_exec_radio = self.create_radiobutton(
+        self.def_exec_radio = self.create_radiobutton(
                                 _("Default (i.e. the same as Spyder's)"),
                                 'default', button_group=pyexec_bg)
         self.cus_exec_radio = self.create_radiobutton(
@@ -77,18 +82,26 @@ class MainInterpreterConfigPage(GeneralConfigPage):
             filters = _("Executables")+" (*.exe)"
         else:
             filters = None
-        pyexec_file = self.create_browsefile('', 'executable', filters=filters)
-        for le in self.lineedits:
-            if self.lineedits[le][0] == 'executable':
-                self.pyexec_edit = le
-        def_exec_radio.toggled.connect(pyexec_file.setDisabled)
-        self.cus_exec_radio.toggled.connect(pyexec_file.setEnabled)
+
         pyexec_layout = QVBoxLayout()
         pyexec_layout.addWidget(pyexec_label)
-        pyexec_layout.addWidget(def_exec_radio)
+        pyexec_layout.addWidget(self.def_exec_radio)
         pyexec_layout.addWidget(self.cus_exec_radio)
-        pyexec_layout.addWidget(pyexec_file)
+        self.validate_custom_interpreters_list()
+        self.cus_exec_combo = self.create_file_combobox(
+                                  _('Recent custom interpreters'),
+                                  self.get_option('custom_interpreters_list'),
+                                  'custom_interpreter',
+                                  filters=filters,
+                                  default_line_edit=True,
+                                  adjust_to_contents=True
+                                  )
+        self.def_exec_radio.toggled.connect(self.cus_exec_combo.setDisabled)
+        self.cus_exec_radio.toggled.connect(self.cus_exec_combo.setEnabled)
+        pyexec_layout.addWidget(self.cus_exec_combo)
         pyexec_group.setLayout(pyexec_layout)
+
+        self.pyexec_edit = self.cus_exec_combo.combobox.lineEdit()
 
         # UMR Group
         umr_group = QGroupBox(_("User Module Reloader (UMR)"))
@@ -138,28 +151,21 @@ class MainInterpreterConfigPage(GeneralConfigPage):
     def python_executable_changed(self, pyexec):
         """Custom Python executable value has been changed"""
         if not self.cus_exec_radio.isChecked():
-            return
+            return False
+        def_pyexec = get_python_executable()
         if not is_text_string(pyexec):
             pyexec = to_text_string(pyexec.toUtf8(), 'utf-8')
-        if programs.is_python_interpreter(pyexec):
-            self.warn_python_compatibility(pyexec)
-        else:
+        if pyexec == def_pyexec:
+            return False
+        if (not programs.is_python_interpreter(pyexec) or
+                not self.warn_python_compatibility(pyexec)):
             QMessageBox.warning(self, _('Warning'),
                     _("You selected an invalid Python interpreter for the "
                       "console so the previous interpreter will stay. Please "
                       "make sure to select a valid one."), QMessageBox.Ok)
-            self.pyexec_edit.setText(get_python_executable())
-            return
-
-    def python_executable_switched(self, custom):
-        """Python executable default/custom radio button has been toggled"""
-        def_pyexec = get_python_executable()
-        cust_pyexec = self.pyexec_edit.text()
-        if not is_text_string(cust_pyexec):
-            cust_pyexec = to_text_string(cust_pyexec.toUtf8(), 'utf-8')
-        if def_pyexec != cust_pyexec:
-            if custom:
-                self.warn_python_compatibility(cust_pyexec)
+            self.def_exec_radio.setChecked(True)
+            return False
+        return True
 
     def warn_python_compatibility(self, pyexec):
         if not osp.isfile(pyexec):
@@ -171,6 +177,8 @@ class MainInterpreterConfigPage(GeneralConfigPage):
             console_version = int(proc.communicate()[0])
         except IOError:
             console_version = spyder_version
+        except ValueError:
+            return False
         if spyder_version != console_version:
             QMessageBox.warning(self, _('Warning'),
                 _("You selected a <b>Python %d</b> interpreter for the console "
@@ -180,6 +188,7 @@ class MainInterpreterConfigPage(GeneralConfigPage):
                   "seeing false warnings and errors due to the incompatible "
                   "syntax between these two Python versions."
                   ) % (console_version, spyder_version), QMessageBox.Ok)
+        return True
 
     def set_umr_namelist(self):
         """Set UMR excluded modules name list"""
@@ -222,5 +231,34 @@ class MainInterpreterConfigPage(GeneralConfigPage):
                 fixed_namelist = []
             self.set_option('umr/namelist', fixed_namelist)
 
+    def set_custom_interpreters_list(self, value):
+        """Update the list of interpreters used and the current one."""
+        custom_list = self.get_option('custom_interpreters_list')
+        if value not in custom_list and value != get_python_executable():
+            custom_list.append(value)
+            self.set_option('custom_interpreters_list', custom_list)
+
+    def validate_custom_interpreters_list(self):
+        """Check that the used custom interpreters are still valid."""
+        custom_list = self.get_option('custom_interpreters_list')
+        valid_custom_list = []
+        for value in custom_list:
+            if (osp.isfile(value) and programs.is_python_interpreter(value)
+                    and value != get_python_executable()):
+                valid_custom_list.append(value)
+        self.set_option('custom_interpreters_list', valid_custom_list)
+
     def apply_settings(self, options):
+        if not self.def_exec_radio.isChecked():
+            executable = self.pyexec_edit.text()
+            executable = osp.normpath(executable)
+            if executable.endswith('pythonw.exe'):
+                executable = executable.replace("pythonw.exe", "python.exe")
+            change = self.python_executable_changed(executable)
+            if change:
+                self.set_custom_interpreters_list(executable)
+                self.set_option('executable', executable)
+                self.set_option('custom_interpreter', executable)
+        if not self.pyexec_edit.text():
+            self.set_option('custom_interpreter', '')
         self.main.apply_settings()

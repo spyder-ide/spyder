@@ -9,6 +9,7 @@ from __future__ import print_function
 from collections import OrderedDict
 import time
 import logging
+import sys
 
 # Third party imports
 from qtpy.QtCore import QObject, QTimer, Signal
@@ -35,7 +36,7 @@ dependencies.add('rope',
                  _("Editor's code completion, go-to-definition and help"),
                  required_version=ROPE_REQVER)
 
-JEDI_REQVER = '>=0.9.0'
+JEDI_REQVER = '>=0.11.0'
 dependencies.add('jedi',
                  _("Editor's code completion, go-to-definition and help"),
                  required_version=JEDI_REQVER)
@@ -43,15 +44,15 @@ dependencies.add('jedi',
 
 class PluginManager(QObject):
 
-    introspection_complete = Signal(object)
+    sig_introspection_complete = Signal(object)
 
-    def __init__(self, executable, extra_path=None):
+    def __init__(self, executable):
 
         super(PluginManager, self).__init__()
         plugins = OrderedDict()
         for name in PLUGINS:
             try:
-                plugin = PluginClient(name, executable, extra_path=extra_path)
+                plugin = PluginClient(name, executable)
                 plugin.run()
             except Exception as e:
                 logger.exception('Introspection Plugin Failed: %s', name)
@@ -144,8 +145,8 @@ class PluginManager(QObject):
                          self.info.name, response['name'], response['result'],
                          delta)
             response['info'] = self.info
-            self.introspection_complete.emit(response)
             self.info = None
+            self.sig_introspection_complete.emit(response)
         if self.pending_request:
             info = self.pending_request
             self.pending_request = None
@@ -161,34 +162,38 @@ class PluginManager(QObject):
 
 class IntrospectionManager(QObject):
 
-    send_to_help = Signal(str, str, str, str, bool)
-    edit_goto = Signal(str, int, str)
+    sig_send_to_help = Signal(str, str, str, str, bool)
+    sig_edit_goto = Signal(str, int, str)
 
-    def __init__(self, executable=None, extra_path=None):
+    def __init__(self, executable=None, extra_path=[]):
         super(IntrospectionManager, self).__init__()
         self.editor_widget = None
         self.pending = None
+        self.sys_path = sys.path[:]
         self.extra_path = extra_path
+        if self.extra_path:
+            self.sys_path.extend(extra_path)
         self.executable = executable
-        self.plugin_manager = PluginManager(executable, extra_path)
-        self.plugin_manager.introspection_complete.connect(
-            self._introspection_complete)
+        self.plugin_manager = PluginManager(executable)
+        self.plugin_manager.sig_introspection_complete.connect(
+            self.introspection_complete)
 
     def change_executable(self, executable):
         self.executable = executable
         self._restart_plugin()
 
     def change_extra_path(self, extra_path):
+        """Change extra_path and update sys_path."""
         if extra_path != self.extra_path:
             self.extra_path = extra_path
-            self._restart_plugin()
+            self.sys_path = sys.path[:]
+            self.sys_path.extend(extra_path)
 
     def _restart_plugin(self):
         self.plugin_manager.close()
-        self.plugin_manager = PluginManager(self.executable,
-                                            extra_path=self.extra_path)
-        self.plugin_manager.introspection_complete.connect(
-            self._introspection_complete)
+        self.plugin_manager = PluginManager(self.executable)
+        self.plugin_manager.sig_introspection_complete.connect(
+            self.introspection_complete)
 
     def set_editor_widget(self, editor_widget):
         self.editor_widget = editor_widget
@@ -205,6 +210,7 @@ class IntrospectionManager(QObject):
         kwargs['editor'] = editor
         kwargs['finfo'] = finfo
         kwargs['editor_widget'] = self.editor_widget
+        kwargs['sys_path'] = self.sys_path
 
         return CodeInfo(name, finfo.get_source_code(), position,
             finfo.filename, editor.is_python_like, in_comment_or_string,
@@ -240,7 +246,7 @@ class IntrospectionManager(QObject):
             if hasattr(window, 'is_starting_up') and not window.is_starting_up:
                 return True
 
-    def _introspection_complete(self, response):
+    def introspection_complete(self, response):
         """
         Handle an introspection response completion.
 
@@ -313,16 +319,16 @@ class IntrospectionManager(QObject):
                                      signature=True,
                                      at_position=prev_info.position)
 
-        if resp['name']:
-            self.send_to_help.emit(
-                resp['name'], resp['argspec'],
-                resp['note'], resp['docstring'],
-                not prev_info.auto)
+        self.sig_send_to_help.emit(resp['name'],
+                                   resp['argspec'],
+                                   resp['note'],
+                                   resp['docstring'],
+                                   not prev_info.auto)
 
     def _handle_definition_result(self, resp, info, prev_info):
         """Handle a `definition` result"""
         fname, lineno = resp
-        self.edit_goto.emit(fname, lineno, "")
+        self.sig_edit_goto.emit(fname, lineno, "")
 
     def _post_message(self, message, timeout=60000):
         """

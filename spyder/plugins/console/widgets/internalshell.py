@@ -21,16 +21,17 @@ import threading
 # Third party imports
 from qtpy.QtCore import QEventLoop, QObject, Signal, Slot
 from qtpy.QtWidgets import QMessageBox
+from spyder_kernels.utils.dochelpers import (getargtxt, getdoc, getobjdir,
+                                             getsource)
 
 # Local imports
 from spyder import get_versions
 from spyder.plugins.console.interpreter import Interpreter
-from spyder.py3compat import (builtins, getcwd, to_binary_string,
+from spyder.py3compat import (builtins, to_binary_string,
                               to_text_string)
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs
-from spyder.utils.dochelpers import getargtxt, getdoc, getobjdir, getsource
-from spyder.utils.misc import get_error_match
+from spyder.utils.misc import get_error_match, getcwd_or_home
 from spyder.utils.qthelpers import create_action
 from spyder.plugins.console.widgets.shell import PythonShellWidget
 from spyder.plugins.variableexplorer.widgets.objecteditor import oedit
@@ -407,10 +408,19 @@ class InternalShell(PythonShellWidget):
         else:
             if history:
                 self.add_to_history(cmd)
-        self.interpreter.stdin_write.write(to_binary_string(cmd + '\n'))
         if not self.multithreaded:
-            self.interpreter.run_line()
-            self.refresh.emit()
+            if 'input' not in cmd:
+                self.interpreter.stdin_write.write(
+                                                to_binary_string(cmd + '\n'))
+                self.interpreter.run_line()
+                self.refresh.emit()
+            else:
+                self.write(_('In order to use commands like "raw_input" '
+                             'or "input" run Spyder with the multithread '
+                             'option (--multithread) from a system terminal'),
+                           error=True)
+        else:
+            self.interpreter.stdin_write.write(to_binary_string(cmd + '\n'))
     
     
     #------ Code completion / Calltips
@@ -430,7 +440,7 @@ class InternalShell(PythonShellWidget):
         
     def get_cdlistdir(self):
         """Return shell current directory list dir"""
-        return os.listdir(getcwd())
+        return os.listdir(getcwd_or_home())
                 
     def iscallable(self, objtxt):
         """Is object callable?"""

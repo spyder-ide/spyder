@@ -15,14 +15,15 @@
 import sys
 
 # Third party imports
-from qtpy.QtCore import Signal, Slot
+from qtpy.QtCore import Signal, Slot, Qt
+from qtpy.QtGui import QKeySequence
 from qtpy.QtWidgets import QApplication, QVBoxLayout
 
 # Local imports
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.config.base import _
 from spyder.config.utils import get_edit_extensions
-from spyder.py3compat import getcwd
+from spyder.utils.misc import getcwd_or_home
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from spyder.plugins.findinfiles.widgets import FindInFilesWidget
@@ -52,13 +53,17 @@ class FindInFiles(SpyderPluginWidget):
         exclude_regexp = self.get_option('exclude_regexp')
         in_python_path = self.get_option('in_python_path')
         more_options = self.get_option('more_options')
+        case_sensitive = self.get_option('case_sensitive')
+        path_history = self.get_option('path_history', [])
 
         self.findinfiles = FindInFilesWidget(
                                    self,
                                    search_text, search_text_regexp, search_path,
                                    exclude, exclude_idx, exclude_regexp,
                                    supported_encodings,
-                                   in_python_path, more_options)
+                                   in_python_path, more_options,
+                                   case_sensitive, path_history,
+                                   options_button=self.options_button)
 
         layout = QVBoxLayout()
         layout.addWidget(self.findinfiles)
@@ -76,7 +81,8 @@ class FindInFiles(SpyderPluginWidget):
     
     def refreshdir(self):
         """Refresh search directory"""
-        self.findinfiles.find_options.set_directory(getcwd())
+        self.findinfiles.find_options.set_directory(
+            getcwd_or_home())
 
     def set_project_path(self, path):
         """Refresh current project path"""
@@ -145,11 +151,14 @@ class FindInFiles(SpyderPluginWidget):
         self.main.projects.sig_project_closed.connect(self.unset_project_path)
         self.main.editor.open_file_update.connect(self.set_current_opened_file)
 
-        findinfiles_action = create_action(self, _("&Find in files"),
+        findinfiles_action = create_action(
+                                   self, _("&Find in files"),
                                    icon=ima.icon('findf'),
-                                   triggered=self.findinfiles_callback,
-                                   tip=_("Search text in multiple files"))        
-        
+                                   triggered=self.switch_to_plugin,
+                                   shortcut=QKeySequence(self.shortcut),
+                                   context=Qt.WidgetShortcut,
+                                   tip=_("Search text in multiple files"))
+
         self.main.search_menu_actions += [MENU_SEPARATOR, findinfiles_action]
         self.main.search_toolbar_actions += [MENU_SEPARATOR,
                                              findinfiles_action]
@@ -164,13 +173,15 @@ class FindInFiles(SpyderPluginWidget):
         self.findinfiles.closing_widget()  # stop search thread and clean-up
         options = self.findinfiles.find_options.get_options(all=True)
         if options is not None:
-            search_text, text_re, search_path, \
-            exclude, exclude_idx, exclude_re, \
-            in_python_path, more_options = options
+            (search_text, text_re, search_path,
+             exclude, exclude_idx, exclude_re,
+             in_python_path, more_options, case_sensitive,
+             path_history) = options
             hist_limit = 15
             search_text = search_text[:hist_limit]
             search_path = search_path[:hist_limit]
             exclude = exclude[:hist_limit]
+            path_history = path_history[-hist_limit:]
             self.set_option('search_text', search_text)
             self.set_option('search_text_regexp', text_re)
             self.set_option('search_path', search_path)
@@ -179,6 +190,8 @@ class FindInFiles(SpyderPluginWidget):
             self.set_option('exclude_regexp', exclude_re)
             self.set_option('in_python_path', in_python_path)
             self.set_option('more_options', more_options)
+            self.set_option('case_sensitive', case_sensitive)
+            self.set_option('path_history', path_history)
         return True
 
 

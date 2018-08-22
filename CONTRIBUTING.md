@@ -1,13 +1,42 @@
-# Contributing to Spyder-IDE
+# Contributing to Spyder
 
 :+1::tada: First off, thanks for taking the time to contribute to Spyder! :tada::+1:
+
 
 ## General Guidelines
 
 This page documents at a very high level how to contribute to Spyder.
-Please Check the
-[Spyder IDE Contributor Documentation](https://github.com/spyder-ide/spyder/wiki/Contributing-to-Spyder)
-for a more detailed guide on how to contribute to the Spyder.
+Please check the
+[Spyder IDE Contributor Documentation](
+https://github.com/spyder-ide/spyder/wiki/Contributing-to-Spyder)
+for a more detailed guide on how to do so.
+
+
+## Troubleshooting
+
+Before posting a report, *please* carefully read our
+**[Troubleshooting Guide](
+https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ)**
+and search the [issue tracker](https://github.com/spyder-ide/spyder/issues)
+for your error message and problem description, as the great majority of bugs
+are either duplicates, or can be fixed on the user side with a few easy steps.
+Thanks!
+
+
+## Submitting a Helpful Issue
+
+Submitting useful, effective and to-the-point issue reports can go a long
+way toward improving Spyder for everyone. Accordingly, please read the
+[relevant section](
+https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ#calling-for-help-still-have-a-problem)
+of the Spyder Troubleshooting Guide, which describes in detail how to do
+just that.
+
+Most importantly, aside from the error message/traceback and the requested
+environment/dependency information, *please* be sure you include a detailed,
+step by step description of exactly what triggered the problem. Otherwise,
+we likely won't be able to find and fix it, and your issue will have to be
+closed after a week (7 days). Thanks!
 
 
 ## Setting Up a Development Environment
@@ -22,14 +51,18 @@ for a more detailed guide on how to contribute to the Spyder.
 ### Creating a conda environment or virtualenv
 
 If you use Anaconda you can create a conda environment with
-these instructions
+the following commands:
 
 ```bash
   $ conda create -n spyder-dev python=3
   $ source activate spyder-dev
 ```
 
-You can also use `virtualenv` on Linux, but `conda` is preferred:
+On Windows, you'll want to run the commands with the Anaconda Prompt,
+and use just ```activate spyder-dev``` for the second command.
+
+You can also use `virtualenv` on Linux, but `conda` is strongly
+recommended:
 
 ```bash
   $ mkvirtualenv spyder-dev
@@ -39,75 +72,117 @@ You can also use `virtualenv` on Linux, but `conda` is preferred:
 ### Installing dependencies
 
 After you have created your development environment, you need to install
-Spyder necessary dependencies. For that you need to go to the directory
-where your git clone is placed and run:
+Spyder's necessary dependencies. The easiest way to do so (with Anaconda) is
 
 ```bash
-  $ conda install --file requirements/requirements.txt
+  $ conda install spyder
+  $ conda remove spyder
 ```
 
-or using pip and virtualenv:
+This installs all of Spyder's dependencies into the environment along with
+the stable/packaged version of Spyder itself, and then removes the latter.
+
+If using `pip` and `virtualenv` (not recommended), you need to `cd` to
+the directory where your git clone is stored and run:
 
 ```bash
   $ pip install -r requirements/requirements.txt
 ```
 
-*Note*: If you are using pip, you also need to install a Qt binding
-package. This can be achieved by running
+If you are using `pip` and Python 3, you also need to install a Qt binding
+package (PyQt5). This can be achieved by running:
 
 ```bash
   $ pip install pyqt5
 ```
 
+### Using the correct version of spyder-kernels
+
+Following the separation in v3.3 of Spyder's console code into its own package,
+`spyder-kernels`, you'll need to have the corresponding version of it
+available—`0.x` for Spyder 3 (`3.x` branch), and `1.x` for Spyder 4
+(`master` branch). The above procedure will install the `0.x` version;
+to test the `master` branch (Spyder 4), you'll need to install the
+corresponding `1.x` version of `spyder-kernels`.
+
+This can be done via two methods: installing the correct version via `conda`:
+
+```bash
+conda install -c spyder-ide spyder-kernels=1.*
+```
+
+or `pip`:
+
+```bash
+pip install spyder-kernels==1.*
+```
+
+(and using `conda install spyder-kernels=0.*` to switch back to the
+Spyder 3 version), or by `clone`-ing the
+[spyder-kernels git repository](https://github.com/spyder-ide/spyder-kernels)
+to somewhere on your path checking out the appropriate branch
+(`0.x` or `master`) corresponding to the version of Spyder (3 or 4)
+you would like to run, and running the commend `pip install -e` at the root.
+For any non-trivial development work, keeping two separate virtual environments
+(with `conda-env` or `venv`) for Spyder 3 and 4 makes this process
+much quicker and less tedious.
+
 ### Running Spyder
 
-To start Spyder directly from your clone, i.e. without installing it to your
-environment, you need to run
+To start Spyder directly from your clone, i.e. without installing it into
+your environment, you need to run
+(from the directory you cloned it to e.g. `spyder`):
 
 ```bash
   $ python bootstrap.py
 ```
 
-**Important Note**: You need to restart Spyder after any change you do to its
-source code. This is the only way to test your new code.
+To start Spyder in debug mode, useful for tracking down an issue, you can run:
+
+```bash
+  $ python bootstrap.py --debug
+```
+
+**Important Note**: To test any changes you've made to the Spyder source code,
+you need to restart Spyder or start a fresh instance (you can run multiple
+copies simultaneously by unchecking the Preferences option
+<kbd>Use a single instance</kbd> under
+<kbd>General</kbd> > <kbd>Advanced Settings</kbd> .
+
 
 ## Spyder Branches
 
 When you start to work on a new pull request (PR), you need to be sure that your
-feature branch is a child of the right Spyder branch, and also that you make
-your PR on Github against it.
+work is done on top of the correct Spyder branch, and that you base your
+PR on Github against it.
 
-Besides, issues are marked with a milestone that indicates the correct branch
-to use, like this:
+To guide you, issues on Github are marked with a milestone that indicates
+the correct branch to use. If not, follow these guidelines:
 
-* Use the `3.1.x` branch for bugfixes only (milestones `v3.1.1`, `v3.1.2`, `v3.1.3`,
-  etc)
+* Use the `3.x` branch for bugfixes only (*e.g.* milestones `v3.2.1`, `v3.2.2`,
+  or `v3.2.3`)
+* Use `master` to introduce new features or break compatibility with previous
+  Spyder versions (*e.g.* milestones `v4.0beta1` or `v4.0beta2`).
 
-* Use the `3.x` branch to introduce new features that don't require major internal
-  changes (milestones `v3.1`, `v3.2`, `v3.3`, etc).
+You should also submit bugfixes to `3.x` or `master` for errors that are
+only present in those respective branches.
 
-* Use `master` to introduce new features that break compatibility with previous
-  Spyder versions (Milestone `v4.0beta1`, `v4.0beta2`, etc).
-
-
-You can also submit bugfixes to `3.x` or `master` for errors that are only present in
-those branches.
-
-So to start working on a new PR, you need to follow these commands:
+To start working on a new PR, you need to execute these commands, filling in
+the branch names where appropriate:
 
 ```bash
-  $ git checkout <branch>
-  $ git pull upstream <branch>
-  $ git checkout -b name-new-branch
+  $ git checkout <SPYDER-BASE-BRANCH>
+  $ git pull upstream <SPYDER-BASE-BRANC>
+  $ git checkout -b NAME-NEW-BRANCH
 ```
 
-### Changing base branch
+### Changing the base branch
 
-If you started your work in the wrong branch, or want to backport it, you could
-change the base branch using `git rebase --onto`, like this:
+If you started your work in the wrong base branch, or want to backport it,
+you can change the base branch using `git rebase --onto`, like this:
 
 ```bash
-  $ git rebase --onto <new_base> <old_base> <branch>
+  $ git rebase --onto <NEW-BASE-BRANCH> <OLD-BASE-BRANCH> <YOUR-BRANCH>
 ```
 
 For example, backporting `my_branch` from `master` to `3.x`:
@@ -116,20 +191,48 @@ For example, backporting `my_branch` from `master` to `3.x`:
   $ git rebase --onto 3.x master my_branch
 ```
 
+
 ##  Running Tests
 
-Install our test dependencies:
+To install our test dependencies under Anaconda:
 
 ```bash
   $ conda install --file requirements/test_requirements.txt -c spyder-ide
 ```
 
-or using pip
+If using `pip` (for experts only), run the following from the directory
+where your git clone is stored:
 ```bash
   $ pip install -r requirements/test_requirements.txt
 ```
 
-To run Spyder test suite, please use:
+To run the Spyder test suite, please use (from the `spyder` root directory):
 ```bash
   $ python runtests.py
 ```
+
+
+## More information
+
+[Main Website](https://www.spyder-ide.org/)
+
+[Download Spyder (with Anaconda)](https://www.anaconda.com/download/)
+
+[Online Documentation](https://docs.spyder-ide.org/)
+
+[Spyder Github](https://github.com/spyder-ide/spyder)
+
+[Troubleshooting Guide and FAQ](
+https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ)
+
+[Development Wiki](https://github.com/spyder-ide/spyder/wiki/Dev:-Index)
+
+[Gitter Chatroom](https://gitter.im/spyder-ide/public)
+
+[Google Group](https://groups.google.com/group/spyderlib)
+
+[@Spyder_IDE on Twitter](https://twitter.com/spyder_ide)
+
+[@SpyderIDE on Facebook](https://www.facebook.com/SpyderIDE/)
+
+[Support Spyder on OpenCollective](https://opencollective.com/spyder/)

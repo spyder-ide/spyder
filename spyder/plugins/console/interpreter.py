@@ -18,11 +18,12 @@ import os.path as osp
 import pydoc
 from code import InteractiveConsole
 
+from spyder_kernels.utils.dochelpers import isdefined
+
 # Local imports:
-from spyder.utils.dochelpers import isdefined
 from spyder.utils import encoding, programs
-from spyder.py3compat import is_text_string, getcwd
-from spyder.utils.misc import remove_backslashes
+from spyder.py3compat import is_text_string
+from spyder.utils.misc import remove_backslashes, getcwd_or_home
 
 # Force Python to search modules in the current directory first:
 sys.path.insert(0, '')
@@ -34,7 +35,7 @@ def guess_filename(filename):
         return filename
     if not filename.endswith('.py'):
         filename += '.py'
-    for path in [getcwd()] + sys.path:
+    for path in [getcwd_or_home()] + sys.path:
         fname = osp.join(path, filename)
         if osp.isfile(fname):
             return fname
@@ -128,7 +129,7 @@ class Interpreter(InteractiveConsole, threading.Thread):
 Welcome to Python %s!  This is the online help utility.
 
 If this is your first time using Python, you should definitely check out
-the tutorial on the Internet at http://www.python.org/doc/tut/.
+the tutorial on the Internet at https://www.python.org/about/gettingstarted/
 
 Enter the name of any module, keyword, or topic to get help on writing
 Python programs and using Python modules.  To quit this help utility and

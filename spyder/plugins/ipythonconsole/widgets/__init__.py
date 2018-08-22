@@ -12,6 +12,7 @@ from .control import ControlWidget, PageControlWidget
 from .debugging import DebuggingWidget
 from .help import HelpWidget
 from .namespacebrowser import NamepaceBrowserWidget
+from .figurebrowser import FigureBrowserWidget
 
 # ShellWidget contains the other widgets and ClientWidget
 # contains it

@@ -11,12 +11,14 @@ Functions 'get_coding', 'decode', 'encode' and 'to_unicode' come from Eric4
 source code (Utilities/__init___.py) Copyright © 2003-2009 Detlev Offenbach
 """
 
+# Standard library imports
+from codecs import BOM_UTF8, BOM_UTF16, BOM_UTF32
+import locale
 import re
 import os
-import locale
 import sys
-from codecs import BOM_UTF8, BOM_UTF16, BOM_UTF32, getincrementaldecoder
 
+# Third-party imports
 from chardet.universaldetector import UniversalDetector
 
 # Local imports
@@ -94,31 +96,35 @@ def to_fs_from_unicode(unic):
 
 # Codecs for working with files and text.
 CODING_RE = re.compile(r"coding[:=]\s*([-\w_.]+)")
-CODECS = ['utf-8', 'iso8859-1',  'iso8859-15', 'ascii', 'koi8-r',
+CODECS = ['utf-8', 'iso8859-1',  'iso8859-15', 'ascii', 'koi8-r', 'cp1251',
           'koi8-u', 'iso8859-2', 'iso8859-3', 'iso8859-4', 'iso8859-5',
           'iso8859-6', 'iso8859-7', 'iso8859-8', 'iso8859-9',
           'iso8859-10', 'iso8859-13', 'iso8859-14', 'latin-1',
           'utf-16']
 
-def get_coding(text):
+
+def get_coding(text, force_chardet=False):
     """
     Function to get the coding of a text.
     @param text text to inspect (string)
     @return coding string
     """
-    for line in text.splitlines()[:2]:
-        try:
-            result = CODING_RE.search(to_text_string(line))
-        except UnicodeDecodeError:
-            # This could fail because to_text_string assume the text is utf8-like
-            # and we don't know the encoding to give it to to_text_string
-            pass
-        else:
-            if result:
-                codec = result.group(1)
-                # sometimes we find a false encoding that can result in errors
-                if codec in CODECS:
-                    return codec
+    if not force_chardet:
+        for line in text.splitlines()[:2]:
+            try:
+                result = CODING_RE.search(to_text_string(line))
+            except UnicodeDecodeError:
+                # This could fail because to_text_string assume the text
+                # is utf8-like and we don't know the encoding to give
+                # it to to_text_string
+                pass
+            else:
+                if result:
+                    codec = result.group(1)
+                    # sometimes we find a false encoding that can
+                    # result in errors
+                    if codec in CODECS:
+                        return codec
 
     # Fallback using chardet
     if is_binary_string(text):

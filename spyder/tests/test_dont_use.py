@@ -14,15 +14,16 @@ root_path = os.path.realpath(os.path.join(os.getcwd(), 'spyder'))
 
 
 @pytest.mark.parametrize("pattern,exclude_patterns,message", [
-    ("isinstance\(.*,.*str\)", ['py3compat.py'],
+    ("isinstance\(.*,.*str\)", ['py3compat.py', 'example_latin1.py'],
      ("Don't use builtin isinstance() function,"
       "use spyder.py3compat.is_text_string() instead")),
 
-    (r"^[\s\#]*\bprint\(((?!file=).)*\)", ['.*test.*', 'example.py', 'binaryornot'],
+    (r"^[\s\#]*\bprint\(((?!file=).)*\)", ['.*test.*', 'example.py',
+                                           'example_latin1.py', 'binaryornot'],
      ("Don't use print() functions, ",
       "for debuging you could use logging module instead")),
 
-    (r"^[\s\#]*\bprint\s+(?!>>)((?!#).)*", ['.*test.*'],
+    (r"^[\s\#]*\bprint\s+(?!>>)((?!#).)*", ['.*test.*', 'example_latin1.py'],
      ("Don't use print __builtin__, ",
       "for debuging you could use logging module instead")),
 ])

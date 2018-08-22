@@ -18,7 +18,7 @@ from __future__ import print_function
 
 # Third party imports
 from qtpy.compat import from_qvariant, to_qvariant
-from qtpy.QtCore import (QAbstractTableModel, QItemSelection,
+from qtpy.QtCore import (QAbstractTableModel, QItemSelection, QLocale,
                          QItemSelectionRange, QModelIndex, Qt, Slot)
 from qtpy.QtGui import QColor, QCursor, QDoubleValidator, QKeySequence
 from qtpy.QtWidgets import (QAbstractItemDelegate, QApplication, QCheckBox,
@@ -42,15 +42,15 @@ from spyder.utils.qthelpers import add_actions, create_action, keybinding
 
 # Note: string and unicode data types will be formatted with '%s' (see below)
 SUPPORTED_FORMATS = {
-                     'single': '%.3f',
-                     'double': '%.3f',
-                     'float_': '%.3f',
-                     'longfloat': '%.3f',
-                     'float16': '%.3f',
-                     'float32': '%.3f',
-                     'float64': '%.3f',
-                     'float96': '%.3f',
-                     'float128': '%.3f',
+                     'single': '%.6g',
+                     'double': '%.6g',
+                     'float_': '%.6g',
+                     'longfloat': '%.6g',
+                     'float16': '%.6g',
+                     'float32': '%.6g',
+                     'float64': '%.6g',
+                     'float96': '%.6g',
+                     'float128': '%.6g',
                      'csingle': '%r',
                      'complex_': '%r',
                      'clongfloat': '%r',
@@ -119,7 +119,7 @@ class ArrayModel(QAbstractTableModel):
     ROWS_TO_LOAD = 500
     COLS_TO_LOAD = 40
 
-    def __init__(self, data, format="%.3f", xlabels=None, ylabels=None,
+    def __init__(self, data, format="%.6g", xlabels=None, ylabels=None,
                  readonly=False, parent=None):
         QAbstractTableModel.__init__(self)
 
@@ -244,7 +244,11 @@ class ArrayModel(QAbstractTableModel):
     def get_value(self, index):
         i = index.row()
         j = index.column()
-        return self.changes.get((i, j), self._data[i, j])
+        if len(self._data.shape) == 1:
+            value = self._data[j]
+        else:
+            value = self._data[i, j]
+        return self.changes.get((i, j), value)
 
     def data(self, index, role=Qt.DisplayRole):
         """Cell content"""
@@ -260,17 +264,24 @@ class ArrayModel(QAbstractTableModel):
             if value is np.ma.masked:
                 return ''
             else:
-                return to_qvariant(self._format % value)
+                try:
+                    return to_qvariant(self._format % value)
+                except TypeError:
+                    self.readonly = True
+                    return repr(value)
         elif role == Qt.TextAlignmentRole:
             return to_qvariant(int(Qt.AlignCenter|Qt.AlignVCenter))
         elif role == Qt.BackgroundColorRole and self.bgcolor_enabled \
           and value is not np.ma.masked:
-            hue = self.hue0+\
-                  self.dhue*(float(self.vmax)-self.color_func(value)) \
-                  /(float(self.vmax)-self.vmin) #float convert to handle bool arrays
-            hue = float(np.abs(hue))
-            color = QColor.fromHsvF(hue, self.sat, self.val, self.alp)
-            return to_qvariant(color)
+            try:
+                hue = (self.hue0 +
+                       self.dhue * (float(self.vmax) - self.color_func(value))
+                       / (float(self.vmax) - self.vmin))
+                hue = float(np.abs(hue))
+                color = QColor.fromHsvF(hue, self.sat, self.val, self.alp)
+                return to_qvariant(color)
+            except TypeError:
+                return to_qvariant()
         elif role == Qt.FontRole:
             return to_qvariant(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
         return to_qvariant()
@@ -304,13 +315,13 @@ class ArrayModel(QAbstractTableModel):
                                      "Value error: %s" % str(e))
                 return False
         try:
-            self.test_array[0] = val # will raise an Exception eventually
+            self.test_array[0] = val  # will raise an Exception eventually
         except OverflowError as e:
-            print(type(e.message))  # spyder: test-skip
+            print("OverflowError: " + str(e))  # spyder: test-skip
             QMessageBox.critical(self.dialog, "Error",
-                                 "Overflow error: %s" % e.message)
+                                 "Overflow error: %s" % str(e))
             return False
-        
+
         # Add change to self.changes
         self.changes[(i, j)] = val
         self.dataChanged.emit(index, index)
@@ -362,7 +373,9 @@ class ArrayDelegate(QItemDelegate):
             editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
             editor.setAlignment(Qt.AlignCenter)
             if is_number(self.dtype):
-                editor.setValidator(QDoubleValidator(editor))
+                validator = QDoubleValidator(editor)
+                validator.setLocale(QLocale('C'))
+                editor.setValidator(validator)
             editor.returnPressed.connect(self.commitAndCloseEditor)
             return editor
 
@@ -370,9 +383,7 @@ class ArrayDelegate(QItemDelegate):
         """Commit and close editor"""
         editor = self.sender()
         # Avoid a segfault with PyQt5. Variable value won't be changed
-        # but at least Spyder won't crash. It seems generated by a
-        # bug in sip. See
-        # http://comments.gmane.org/gmane.comp.python.pyqt-pykde/26544
+        # but at least Spyder won't crash. It seems generated by a bug in sip.
         try:
             self.commitData.emit(editor)
         except AttributeError:
@@ -511,6 +522,7 @@ class ArrayView(QTableView):
 
 
 class ArrayEditorWidget(QWidget):
+
     def __init__(self, parent, data, readonly=False,
                  xlabels=None, ylabels=None):
         QWidget.__init__(self, parent)
@@ -592,6 +604,8 @@ class ArrayEditor(QDialog):
         self.arraywidget = None
         self.stack = None
         self.layout = None
+        self.btn_save_and_close = None
+        self.btn_close = None
         # Values for 3d array editor
         self.dim_indexes = [{}, {}, {}]
         self.last_dim = 0  # Adjust this for changing the startup dimension
@@ -658,6 +672,9 @@ class ArrayEditor(QDialog):
             self.stack.addWidget(ArrayEditorWidget(self, data, readonly,
                                                    xlabels, ylabels))
         self.arraywidget = self.stack.currentWidget()
+        if self.arraywidget:
+            self.arraywidget.model.dataChanged.connect(
+                                                    self.save_and_close_enable)
         self.stack.currentChanged.connect(self.current_widget_changed)
         self.layout.addWidget(self.stack, 1, 0)
 
@@ -711,11 +728,20 @@ class ArrayEditor(QDialog):
                                    "to masked array won't be reflected in "\
                                    "array's data (and vice-versa)."))
                 btn_layout.addWidget(label)
-            btn_layout.addStretch()
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        bbox.accepted.connect(self.accept)
-        bbox.rejected.connect(self.reject)
-        btn_layout.addWidget(bbox)
+
+        btn_layout.addStretch()
+
+        if not readonly:
+            self.btn_save_and_close = QPushButton(_('Save and Close'))
+            self.btn_save_and_close.setDisabled(True)
+            self.btn_save_and_close.clicked.connect(self.accept)
+            btn_layout.addWidget(self.btn_save_and_close)
+
+        self.btn_close = QPushButton(_('Close'))
+        self.btn_close.setAutoDefault(True)
+        self.btn_close.setDefault(True)
+        self.btn_close.clicked.connect(self.reject)
+        btn_layout.addWidget(self.btn_close)
         self.layout.addLayout(btn_layout, 2, 0)
 
         self.setMinimumSize(400, 300)
@@ -724,9 +750,18 @@ class ArrayEditor(QDialog):
         self.setWindowFlags(Qt.Window)
         
         return True
-            
+
+    @Slot(QModelIndex, QModelIndex)
+    def save_and_close_enable(self, left_top, bottom_right):
+        """Handle the data change event to enable the save and close button."""
+        if self.btn_save_and_close:
+            self.btn_save_and_close.setEnabled(True)
+            self.btn_save_and_close.setAutoDefault(True)
+            self.btn_save_and_close.setDefault(True)
+
     def current_widget_changed(self, index):
-        self.arraywidget = self.stack.widget(index)     
+        self.arraywidget = self.stack.widget(index)
+        self.arraywidget.model.dataChanged.connect(self.save_and_close_enable)
             
     def change_active_widget(self, index):
         """
@@ -747,8 +782,11 @@ class ArrayEditor(QDialog):
         stack_index = self.dim_indexes[self.last_dim].get(data_index)
         if stack_index == None:
             stack_index = self.stack.count()
-            self.stack.addWidget(ArrayEditorWidget(self,
-                                                   self.data[slice_index]))
+            try:
+                self.stack.addWidget(ArrayEditorWidget(self,
+                                                       self.data[slice_index]))
+            except IndexError:  # Handle arrays of size 0 in one axis
+                self.stack.addWidget(ArrayEditorWidget(self, self.data))
             self.dim_indexes[self.last_dim][data_index] = stack_index
             self.stack.update()
         self.stack.setCurrentIndex(stack_index)

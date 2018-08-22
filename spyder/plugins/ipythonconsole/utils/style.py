@@ -13,7 +13,8 @@ from spyder.config.gui import get_color_scheme
 
 # Third party imports
 from pygments.style import Style
-from pygments.token import Name, Keyword, Comment, String, Number, Punctuation
+from pygments.token import (Name, Keyword, Comment, String, Number,
+                            Punctuation, Operator)
 
 from qtconsole.styles import dark_color
 
@@ -49,7 +50,6 @@ def create_qss_style(color_scheme):
         in_prompt_color = 'lime'
         out_prompt_color = 'red'
     background_color = color_scheme['background']
-    selection_background_color = '#ccc'
     error_color = 'red'
     in_prompt_number_font_weight = 'bold'
     out_prompt_number_font_weight = 'bold'
@@ -59,7 +59,6 @@ def create_qss_style(color_scheme):
     sheet = """QPlainTextEdit, QTextEdit, ControlWidget {{
                                           color: {} ;
                                           background-color: {};
-                                          selection-background-color: {}
                                          }}
               .error {{ color: {}; }}
               .in-prompt {{ color: {}; }}
@@ -70,7 +69,6 @@ def create_qss_style(color_scheme):
               """
 
     sheet_formatted = sheet.format(font_color, background_color,
-                                   selection_background_color,
                                    error_color,
                                    in_prompt_color, in_prompt_color,
                                    in_prompt_number_font_weight,
@@ -161,7 +159,8 @@ def create_pygments_dict(color_scheme_name):
                         Comment: comment_token.strip(),
                         String: string_token.strip(),
                         Number: number_token.strip(),
-                        Punctuation: font_token.strip()}
+                        Punctuation: font_token.strip(),
+                        Operator.Word: keyword_token.strip()}
 
     return syntax_style_dic
 

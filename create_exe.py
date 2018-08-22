@@ -27,7 +27,7 @@ def create_executable():
     except ImportError:
         python_qt = 'pyside'
     dist.setup(name="Spyder", version=ver, script="spyder/spyder.py",
-               description="Scientific PYthon Development EnviRonment",
+               description="The Scientific Python Development Environment",
                target_name="%s.exe" % name, icon="%s.ico" % name,
                target_dir="%s-win32-%s-sa-%s" % (name, python_qt, ver))
     spyder.add_to_distribution(dist)
@@ -37,8 +37,7 @@ def create_executable():
         dist.add_modules('guiqwt')
     except ImportError:
         pass
-    dist.includes += ['spyder.scientific_startup',
-                      'spyder.widgets.externalshell.sitecustomize']
+    dist.includes += ['spyder.utils.site.sitecustomize']
 
     #XXX: ...until we are able to distribute them (see guidata.disthelpers)
     dist.excludes += ['sphinx', 'zmq', 'IPython']

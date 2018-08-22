@@ -17,11 +17,11 @@ from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
                             QListWidget, QListWidgetItem, QMessageBox,
-                            QVBoxLayout)
+                            QVBoxLayout, QCheckBox)
 
 # Local imports
 from spyder.config.base import _
-from spyder.py3compat import getcwd
+from spyder.utils.misc import getcwd_or_home
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_toolbutton
 
@@ -29,7 +29,8 @@ from spyder.utils.qthelpers import create_toolbutton
 class PathManager(QDialog):
     redirect_stdio = Signal(bool)
     
-    def __init__(self, parent=None, pathlist=None, ro_pathlist=None, sync=True):
+    def __init__(self, parent=None, pathlist=None, ro_pathlist=None,
+                 not_active_pathlist=None, sync=True):
         QDialog.__init__(self, parent)
         
         # Destroying the C++ object right after closing the dialog box,
@@ -40,11 +41,14 @@ class PathManager(QDialog):
         
         assert isinstance(pathlist, list)
         self.pathlist = pathlist
+        if not_active_pathlist is None:
+            not_active_pathlist = []
+        self.not_active_pathlist = not_active_pathlist
         if ro_pathlist is None:
             ro_pathlist = []
         self.ro_pathlist = ro_pathlist
         
-        self.last_path = getcwd()
+        self.last_path = getcwd_or_home()
         
         self.setWindowTitle(_("PYTHONPATH manager"))
         self.setWindowIcon(ima.icon('pythonpath'))
@@ -61,6 +65,7 @@ class PathManager(QDialog):
 
         self.listwidget = QListWidget(self)
         self.listwidget.currentRowChanged.connect(self.refresh)
+        self.listwidget.itemChanged.connect(self.update_not_active_pathlist)
         layout.addWidget(self.listwidget)
 
         bottom_layout = QHBoxLayout()
@@ -75,7 +80,12 @@ class PathManager(QDialog):
         
         self.update_list()
         self.refresh()
-        
+
+    @property
+    def active_pathlist(self):
+        return [path for path in self.pathlist
+                if path not in self.not_active_pathlist]
+
     def _add_widgets_to_layout(self, layout, widgets):
         layout.setAlignment(Qt.AlignLeft)
         for widget in widgets:
@@ -160,20 +170,35 @@ class PathManager(QDialog):
                                           listdict2envdict)
         env = get_user_env()
         if remove:
-            ppath = self.pathlist+self.ro_pathlist
+            ppath = self.active_pathlist+self.ro_pathlist
         else:
             ppath = env.get('PYTHONPATH', [])
             if not isinstance(ppath, list):
                 ppath = [ppath]
             ppath = [path for path in ppath
-                     if path not in (self.pathlist+self.ro_pathlist)]
-            ppath.extend(self.pathlist+self.ro_pathlist)
+                     if path not in (self.active_pathlist+self.ro_pathlist)]
+            ppath.extend(self.active_pathlist+self.ro_pathlist)
         env['PYTHONPATH'] = ppath
-        set_user_env( listdict2envdict(env), parent=self )
-        
+        set_user_env(listdict2envdict(env), parent=self)
+
     def get_path_list(self):
         """Return path list (does not include the read-only path list)"""
         return self.pathlist
+
+    def update_not_active_pathlist(self, item):
+        path = item.text()
+        if bool(item.checkState()) is True:
+            self.remove_from_not_active_pathlist(path)
+        else:
+            self.add_to_not_active_pathlist(path)
+
+    def add_to_not_active_pathlist(self, path):
+        if path not in self.not_active_pathlist:
+            self.not_active_pathlist.append(path)
+
+    def remove_from_not_active_pathlist(self, path):
+        if path in self.not_active_pathlist:
+            self.not_active_pathlist.remove(path)
         
     def update_list(self):
         """Update path list"""
@@ -182,7 +207,14 @@ class PathManager(QDialog):
             item = QListWidgetItem(name)
             item.setIcon(ima.icon('DirClosedIcon'))
             if name in self.ro_pathlist:
-                item.setFlags(Qt.NoItemFlags)
+                item.setFlags(Qt.NoItemFlags | Qt.ItemIsUserCheckable)
+                item.setCheckState(Qt.Checked)
+            elif name in self.not_active_pathlist:
+                item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
+                item.setCheckState(Qt.Unchecked)
+            else:
+                item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
+                item.setCheckState(Qt.Checked)
             self.listwidget.addItem(item)
         self.refresh()
         
@@ -216,6 +248,8 @@ class PathManager(QDialog):
             QMessageBox.Yes | QMessageBox.No)
         if answer == QMessageBox.Yes:
             self.pathlist.pop(self.listwidget.currentRow())
+            self.remove_from_not_active_pathlist(
+                    self.listwidget.currentItem().text())
             self.update_list()
 
     @Slot()
@@ -228,6 +262,8 @@ class PathManager(QDialog):
             directory = osp.abspath(directory)
             self.last_path = directory
             if directory in self.pathlist:
+                item = self.listwidget.findItems(directory, Qt.MatchExactly)[0]
+                item.setCheckState(Qt.Checked)
                 answer = QMessageBox.question(self, _("Add path"),
                     _("This directory is already included in Spyder path "
                             "list.<br>Do you want to move it to the top of "

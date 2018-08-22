@@ -20,20 +20,24 @@ from qtpy.QtGui import QCursor
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QInputDialog, QMenu,
                             QMessageBox, QToolButton, QVBoxLayout, QWidget)
 
+from spyder_kernels.utils.iofuncs import iofunctions
+from spyder_kernels.utils.misc import fix_reference_name
+from spyder_kernels.utils.nsview import get_supported_types, REMOTE_SETTINGS
+
 # Local imports
-from spyder.config.base import _, get_supported_types
-from spyder.py3compat import is_text_string, getcwd, to_text_string
+from spyder.config.base import _
+from spyder.config.main import CONF
+from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
-from spyder.utils.iofuncs import iofunctions
-from spyder.utils.misc import fix_reference_name
+from spyder.utils.misc import getcwd_or_home
 from spyder.utils.programs import is_module_installed
 from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton)
+                                    create_toolbutton, create_plugin_layout,
+                                    MENU_SEPARATOR)
 from spyder.plugins.variableexplorer.widgets.collectionseditor import (
     RemoteCollectionsEditorTableView)
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
-from spyder.plugins.variableexplorer.utils import REMOTE_SETTINGS
 
 
 SUPPORTED_TYPES = get_supported_types()
@@ -43,8 +47,9 @@ class NamespaceBrowser(QWidget):
     """Namespace browser (global variables explorer widget)"""
     sig_option_changed = Signal(str, object)
     sig_collapse = Signal()
-    
-    def __init__(self, parent):
+    sig_free_memory = Signal()
+
+    def __init__(self, parent, options_button=None, plugin_actions=[]):
         QWidget.__init__(self, parent)
         
         self.shellwidget = None
@@ -68,6 +73,9 @@ class NamespaceBrowser(QWidget):
         self.exclude_uppercase_action = None
         self.exclude_capitalized_action = None
         self.exclude_unsupported_action = None
+        self.options_button = options_button
+        self.actions = None
+        self.plugin_actions = plugin_actions
 
         self.filename = None
 
@@ -112,35 +120,24 @@ class NamespaceBrowser(QWidget):
 
         self.editor.sig_option_changed.connect(self.sig_option_changed.emit)
         self.editor.sig_files_dropped.connect(self.import_data)
+        self.editor.sig_free_memory.connect(self.sig_free_memory.emit)
 
-        # Setup layout
-        layout = QVBoxLayout()
-        blayout = QHBoxLayout()
-        toolbar = self.setup_toolbar(exclude_private, exclude_uppercase,
-                                     exclude_capitalized, exclude_unsupported)
+        self.setup_option_actions(exclude_private, exclude_uppercase,
+                                  exclude_capitalized, exclude_unsupported)
+
+        # Setup toolbar layout.
+
+        self.tools_layout = QHBoxLayout()
+        toolbar = self.setup_toolbar()
         for widget in toolbar:
-            blayout.addWidget(widget)
+            self.tools_layout.addWidget(widget)
+        self.tools_layout.addStretch()
+        self.setup_options_button()
 
-        # Options menu
-        options_button = create_toolbutton(self, text=_('Options'),
-                                           icon=ima.icon('tooloptions'))
-        options_button.setPopupMode(QToolButton.InstantPopup)
-        menu = QMenu(self)
-        editor = self.editor
-        actions = [self.exclude_private_action, self.exclude_uppercase_action,
-                   self.exclude_capitalized_action,
-                   self.exclude_unsupported_action, None]
-        if is_module_installed('numpy'):
-            actions.append(editor.minmax_action)
-        add_actions(menu, actions)
-        options_button.setMenu(menu)
+        # Setup layout.
 
-        blayout.addStretch()
-        blayout.addWidget(options_button)
-        layout.addLayout(blayout)
-        layout.addWidget(self.editor)
+        layout = create_plugin_layout(self.tools_layout, self.editor)
         self.setLayout(layout)
-        layout.setContentsMargins(0, 0, 0, 0)
 
         self.sig_option_changed.connect(self.option_changed)
         
@@ -149,12 +146,12 @@ class NamespaceBrowser(QWidget):
         self.shellwidget = shellwidget
         shellwidget.set_namespacebrowser(self)
 
-    def setup_toolbar(self, exclude_private, exclude_uppercase,
-                      exclude_capitalized, exclude_unsupported):
-        """Setup toolbar"""
-        self.setup_in_progress = True
-        toolbar = []
+    def get_actions(self):
+        """Get actions of the widget."""
+        return self.actions
 
+    def setup_toolbar(self):
+        """Setup toolbar"""
         load_button = create_toolbutton(self, text=_('Import data'),
                                         icon=ima.icon('fileimport'),
                                         triggered=lambda: self.import_data())
@@ -166,8 +163,17 @@ class NamespaceBrowser(QWidget):
                                            text=_("Save data as..."),
                                            icon=ima.icon('filesaveas'),
                                            triggered=self.save_data)
+        reset_namespace_button = create_toolbutton(
+                self, text=_("Remove all variables"),
+                icon=ima.icon('editdelete'), triggered=self.reset_namespace)
 
-        toolbar += [load_button, self.save_button, save_as_button]
+        return [load_button, self.save_button, save_as_button,
+                reset_namespace_button]
+
+    def setup_option_actions(self, exclude_private, exclude_uppercase,
+                             exclude_capitalized, exclude_unsupported):
+        """Setup the actions to show in the cog menu."""
+        self.setup_in_progress = True
 
         self.exclude_private_action = create_action(self,
                 _("Exclude private references"),
@@ -199,10 +205,31 @@ class NamespaceBrowser(QWidget):
                 toggled=lambda state:
                 self.sig_option_changed.emit('exclude_unsupported', state))
         self.exclude_unsupported_action.setChecked(exclude_unsupported)
-        
+
+        self.actions = [
+            self.exclude_private_action, self.exclude_uppercase_action,
+            self.exclude_capitalized_action, self.exclude_unsupported_action]
+        if is_module_installed('numpy'):
+            self.actions.extend([MENU_SEPARATOR, self.editor.minmax_action])
+
         self.setup_in_progress = False
-        
-        return toolbar
+
+    def setup_options_button(self):
+        """Add the cog menu button to the toolbar."""
+        if not self.options_button:
+            self.options_button = create_toolbutton(
+                self, text=_('Options'), icon=ima.icon('tooloptions'))
+
+            actions = self.actions + [MENU_SEPARATOR] + self.plugin_actions
+            self.options_menu = QMenu(self)
+            add_actions(self.options_menu, actions)
+            self.options_button.setMenu(self.options_menu)
+
+        if self.tools_layout.itemAt(self.tools_layout.count() - 1) is None:
+            self.tools_layout.insertWidget(
+                self.tools_layout.count() - 1, self.options_button)
+        else:
+            self.tools_layout.addWidget(self.options_button)
 
     def option_changed(self, option, value):
         """Option has changed"""
@@ -253,7 +280,7 @@ class NamespaceBrowser(QWidget):
         title = _("Import data")
         if filenames is None:
             if self.filename is None:
-                basedir = getcwd()
+                basedir = getcwd_or_home()
             else:
                 basedir = osp.dirname(self.filename)
             filenames, _selfilter = getopenfilenames(self, title, basedir,
@@ -315,14 +342,20 @@ class NamespaceBrowser(QWidget):
                                        "<br><br>Error message:<br>%s"
                                        ) % (self.filename, error_message))
             self.refresh_table()
-            
+
+    @Slot()
+    def reset_namespace(self):
+        warning = CONF.get('ipython_console', 'show_reset_namespace_warning')
+        self.shellwidget.reset_namespace(warning=warning, silent=True,
+                                         message=True)
+
     @Slot()
     def save_data(self, filename=None):
         """Save data"""
         if filename is None:
             filename = self.filename
             if filename is None:
-                filename = getcwd()
+                filename = getcwd_or_home()
             filename, _selfilter = getsavefilename(self, _("Save data"),
                                                    filename,
                                                    iofunctions.save_filters)

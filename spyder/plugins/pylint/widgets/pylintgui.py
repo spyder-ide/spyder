@@ -28,10 +28,11 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMessageBox, QTreeWidgetItem,
 # Local imports
 from spyder import dependencies
 from spyder.config.base import get_conf_path, get_translation
-from spyder.py3compat import getcwd, pickle, to_text_string
+from spyder.py3compat import pickle, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.encoding import to_unicode_from_fs
 from spyder.utils.qthelpers import create_toolbutton
+from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.comboboxes import (is_module_or_package,
                                        PythonModulesComboBox)
 from spyder.widgets.onecolumntree import OneColumnTree
@@ -149,7 +150,7 @@ class PylintWidget(QWidget):
     VERSION = '1.1.0'
     redirect_stdio = Signal(bool)
     
-    def __init__(self, parent, max_entries=100):
+    def __init__(self, parent, max_entries=100, options_button=None):
         QWidget.__init__(self, parent)
         
         self.setWindowTitle("Pylint")
@@ -168,9 +169,6 @@ class PylintWidget(QWidget):
                 pass
 
         self.filecombo = PythonModulesComboBox(self)
-        if self.rdata:
-            self.remove_obsolete_items()
-            self.filecombo.addItems(self.get_filenames())
         
         self.start_button = create_toolbutton(self, icon=ima.icon('run'),
                                     text=_("Analyze"),
@@ -202,6 +200,8 @@ class PylintWidget(QWidget):
         hlayout1.addWidget(browse_button)
         hlayout1.addWidget(self.start_button)
         hlayout1.addWidget(self.stop_button)
+        if options_button:
+            hlayout1.addWidget(options_button)
 
         hlayout2 = QHBoxLayout()
         hlayout2.addWidget(self.ratelabel)
@@ -219,7 +219,13 @@ class PylintWidget(QWidget):
         self.process = None
         self.set_running_state(False)
         self.show_data()
-        
+
+        if self.rdata:
+            self.remove_obsolete_items()
+            self.filecombo.addItems(self.get_filenames())
+        else:
+            self.start_button.setEnabled(False)
+
     def analyze(self, filename):
         filename = to_text_string(filename) # filename is a QString instance
         self.kill_if_running()
@@ -236,8 +242,9 @@ class PylintWidget(QWidget):
     @Slot()
     def select_file(self):
         self.redirect_stdio.emit(False)
-        filename, _selfilter = getopenfilename(self, _("Select Python file"),
-                           getcwd(), _("Python files")+" (*.py ; *.pyw)")
+        filename, _selfilter = getopenfilename(
+                self, _("Select Python file"),
+                getcwd_or_home(), _("Python files")+" (*.py ; *.pyw)")
         self.redirect_stdio.emit(True)
         if filename:
             self.analyze(filename)
@@ -355,7 +362,7 @@ class PylintWidget(QWidget):
                 module = line[len(txt_module):]
                 continue
             # Supporting option include-ids: ('R3873:' instead of 'R:')
-            if not re.match('^[CRWE]+([0-9]{4})?:', line):
+            if not re.match(r'^[CRWE]+([0-9]{4})?:', line):
                 continue
             i1 = line.find(':')
             if i1 == -1:

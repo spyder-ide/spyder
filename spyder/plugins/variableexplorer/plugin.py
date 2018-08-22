@@ -7,17 +7,28 @@
 """Variable Explorer Plugin."""
 
 # Third party imports
-from qtpy.QtCore import Signal, Slot
+from qtpy.QtCore import QTimer, Signal, Slot
 from qtpy.QtWidgets import QStackedWidget, QVBoxLayout
+from spyder_kernels.utils.nsview import REMOTE_SETTINGS
 
 # Local imports
+from spyder import dependencies
 from spyder.config.base import _
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.utils import icon_manager as ima
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
         NamespaceBrowser)
-from spyder.plugins.variableexplorer.utils import REMOTE_SETTINGS
 from spyder.plugins.variableexplorer.confpage import VariableExplorerConfigPage
+
+PANDAS_REQVER = '>=0.13.1'
+dependencies.add('pandas',  _("View and edit DataFrames and Series in the "
+                              "Variable Explorer"),
+                 required_version=PANDAS_REQVER, optional=True)
+
+NUMPY_REQVER = '>=1.7'
+dependencies.add("numpy", _("View and edit two and three dimensional arrays "
+                            "in the Variable Explorer"),
+                 required_version=NUMPY_REQVER, optional=True)
 
 
 class VariableExplorer(SpyderPluginWidget):
@@ -25,6 +36,9 @@ class VariableExplorer(SpyderPluginWidget):
 
     CONF_SECTION = 'variable_explorer'
     CONFIGWIDGET_CLASS = VariableExplorerConfigPage
+    DISABLE_ACTIONS_WHEN_HIDDEN = False
+    INITIAL_FREE_MEMORY_TIME_TRIGGER = 60 * 1000  # ms
+    SECONDARY_FREE_MEMORY_TIME_TRIGGER = 180 * 1000  # ms
     sig_option_changed = Signal(str, object)
 
     def __init__(self, parent):
@@ -38,6 +52,7 @@ class VariableExplorer(SpyderPluginWidget):
         layout = QVBoxLayout()
         layout.addWidget(self.stack)
         self.setLayout(layout)
+
 
         # Initialize plugin
         self.initialize_plugin()
@@ -78,9 +93,22 @@ class VariableExplorer(SpyderPluginWidget):
             new_value = new_value[1:]
         self.sig_option_changed.emit(option_name, new_value)
 
+    @Slot()
+    def free_memory(self):
+        """Free memory signal."""
+        self.main.free_memory()
+        QTimer.singleShot(self.INITIAL_FREE_MEMORY_TIME_TRIGGER,
+                          lambda: self.main.free_memory())
+        QTimer.singleShot(self.SECONDARY_FREE_MEMORY_TIME_TRIGGER,
+                          lambda: self.main.free_memory())
+
     # ----- Stack accesors ----------------------------------------------------
     def set_current_widget(self, nsb):
         self.stack.setCurrentWidget(nsb)
+        # We update the actions of the options button (cog menu) and we move
+        # it to the layout of the current widget.
+        self.refresh_actions()
+        nsb.setup_options_button()
 
     def current_widget(self):
         return self.stack.currentWidget()
@@ -104,10 +132,12 @@ class VariableExplorer(SpyderPluginWidget):
         """
         shellwidget_id = id(shellwidget)
         if shellwidget_id not in self.shellwidgets:
-            nsb = NamespaceBrowser(self)
+            self.options_button.setVisible(True)
+            nsb = NamespaceBrowser(self, options_button=self.options_button)
             nsb.set_shellwidget(shellwidget)
             nsb.setup(**self.get_settings())
             nsb.sig_option_changed.connect(self.change_option)
+            nsb.sig_free_memory.connect(self.free_memory)
             self.add_widget(nsb)
             self.shellwidgets[shellwidget_id] = nsb
             self.set_shellwidget_from_id(shellwidget_id)
@@ -159,15 +189,15 @@ class VariableExplorer(SpyderPluginWidget):
     def refresh_plugin(self):
         """Refresh widget"""
         pass
-    
+
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
-        return []
-    
+        return self.current_widget().actions if self.current_widget() else []
+
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.main.add_dockwidget(self)
-        
+
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
         for nsb in list(self.shellwidgets.values()):

@@ -11,13 +11,13 @@ Patching rope:
     cx_Freeze
 
 [2] For better performance, see this thread:
-    http://groups.google.com/group/rope-dev/browse_thread/thread/57de5731f202537a
+    https://groups.google.com/forum/#!topic/rope-dev/V95XMfICU3o
 
 [3] To avoid considering folders without __init__.py as Python packages, thus
     avoiding side effects as non-working introspection features on a Python
     module or package when a folder in current directory has the same name.
     See this thread:
-    http://groups.google.com/group/rope-dev/browse_thread/thread/924c4b5a6268e618
+    https://groups.google.com/forum/#!topic/rope-dev/kkxLWmJo5hg
 
 [4] To avoid rope adding a 2 spaces indent to every docstring it gets, because
     it breaks the work of Sphinx on the Help plugin. Also, to better
@@ -130,7 +130,7 @@ def apply():
     # 3. get_calltip
     # To easily get calltips of forced builtins
     from rope.contrib import codeassist
-    from spyder.utils.dochelpers import getdoc
+    from spyder_kernels.utils.dochelpers import getdoc
     from rope.base import exceptions
     class PatchedPyDocExtractor(codeassist.PyDocExtractor):
         def get_builtin_doc(self, pyobject):

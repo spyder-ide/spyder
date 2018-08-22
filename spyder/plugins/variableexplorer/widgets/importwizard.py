@@ -22,9 +22,11 @@ from qtpy.QtWidgets import (QCheckBox, QDialog, QFrame, QGridLayout, QGroupBox,
                             QSizePolicy, QSpacerItem, QTableView, QTabWidget,
                             QTextEdit, QVBoxLayout, QWidget)
 
+# If pandas fails to import here (for any reason), Spyder
+# will crash at startup.
 try:
     import pandas as pd
-except ImportError:
+except:
     pd = None
 
 # Local import
@@ -58,7 +60,7 @@ class FakeObject(object):
     pass
 try:
     from numpy import ndarray, array
-except ImportError:
+except:
     class ndarray(FakeObject):  # analysis:ignore
         """Fake ndarray"""
         pass
@@ -67,7 +69,7 @@ except ImportError:
 import datetime
 try:
     from dateutil.parser import parse as dateparse
-except ImportError:
+except:
     def dateparse(datestr, dayfirst=True):  # analysis:ignore
         """Just for 'day/month/year' strings"""
         _a, _b, _c = list(map(int, datestr.split('/')))
@@ -83,6 +85,7 @@ COLORS = {
           bool: Qt.magenta,
           tuple([float] + list(INT_TYPES)): Qt.blue,
           list: Qt.yellow,
+          set: Qt.darkGreen,
           dict: Qt.cyan,
           tuple: Qt.lightGray,
           TEXT_TYPES: Qt.darkRed,

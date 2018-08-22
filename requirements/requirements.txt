@@ -1,5 +1,6 @@
-rope>=0.10.5
-jedi>=0.9.0
+cloudpickle
+rope>=0.9.4
+jedi>=0.11.0
 pyflakes
 pygments>=2.0
 qtconsole>=4.2.0
@@ -9,8 +10,11 @@ pycodestyle
 pylint
 psutil
 qtawesome>=0.4.1
-qtpy>=1.1.0
+qtpy>=1.2.0
 pickleshare
 pyzmq
 chardet>=2.0.0
 numpydoc
+pyqt5
+keyring
+spyder-kernels>=1.0

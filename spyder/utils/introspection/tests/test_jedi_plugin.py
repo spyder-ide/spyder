@@ -5,12 +5,15 @@
 
 """Tests for jedi_plugin.py"""
 
+import os
+import os.path as osp
 from textwrap import dedent
 
 import pytest
 
-from spyder.utils.introspection.manager import CodeInfo
+from spyder.utils.programs import is_module_installed
 from spyder.utils.introspection import jedi_plugin
+from spyder.utils.introspection.manager import CodeInfo
 
 try:
     import numpydoc
@@ -27,6 +30,8 @@ try:
 except ImportError:
     matplotlib = None
 
+LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
+
 p = jedi_plugin.JediPlugin()
 p.load_plugin()
 
@@ -35,6 +40,14 @@ def test_get_info():
     source_code = "import os; os.walk"
     docs = p.get_info(CodeInfo('info', source_code, len(source_code)))
     assert docs['calltip'].startswith('walk(') and docs['name'] == 'walk'
+
+
+def test_get_info_from_method():
+    """Regression test for issue 6516."""
+    source_code = "L = [1]; L.append"
+    docs = p.get_info(CodeInfo('info', source_code, len(source_code)))
+    assert docs['calltip'].startswith('L.append(')
+    assert docs['name'] == 'L.append'
 
 
 def test_get_completions():
@@ -70,12 +83,30 @@ def test_get_docstring():
     assert line == 2
 
     docs = p.get_info(CodeInfo('info', source_code, len(source_code),
-                               __file__))
-    assert 'Test docstring' in docs['docstring']
+                               __file__, is_python_like=True))
+    assert 'test' in docs['name']
+    assert '(a, b)' == docs['argspec']
+    assert 'Test docstring' == docs['docstring']
+
+
+def test_default_info():
+    """Test default info response."""
+    source_code = 'foo'
+    docs = p.get_info(CodeInfo('info', source_code, len(source_code),
+                               __file__, is_python_like=True))
+    assert sorted(list(docs.keys())) == sorted(['name', 'argspec', 'note',
+                                                'docstring', 'calltip'])
+    assert not docs['name']
+    assert not docs['argspec']
+    assert not docs['note']
+    assert not docs['docstring']
+    assert not docs['calltip']
 
 
 @pytest.mark.skipif(not(numpy and numpydoc),
                     reason="numpy and numpydoc required")
+@pytest.mark.skipif(not is_module_installed('jedi', '<0.12.0'),
+                    reason="Fails under jedi >=0.12")
 def test_numpy_returns():
     source_code = dedent('''
     import numpy as np
@@ -88,6 +119,8 @@ def test_numpy_returns():
 
 @pytest.mark.skipif(not(matplotlib and numpydoc),
                     reason="matplotlib required")
+@pytest.mark.skipif(not is_module_installed('jedi', '<0.12.0'),
+                    reason="Fails under jedi >=0.12")
 def test_matplotlib_fig_returns():
     source_code = dedent('''
     import matplotlib.pyplot as plt
@@ -96,6 +129,14 @@ def test_matplotlib_fig_returns():
     completions = p.get_completions(CodeInfo('completions', source_code,
                                              len(source_code)))
     assert ('add_axes', 'function') in completions
+
+
+def test_completions_custom_path():
+    source_code = dedent('import test_')
+    completions = p.get_completions(CodeInfo('completions', source_code,
+                                             len(source_code),
+                                             sys_path=[LOCATION]))
+    assert ('test_jedi_plugin', 'module') in completions
 
 
 if __name__ == '__main__':

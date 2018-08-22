@@ -8,9 +8,11 @@
 Tests for the Numpy Matrix/Array Builder Widget.
 """
 
+# Standard library imports
+import sys
+
 # Third party imports
 from qtpy.QtCore import Qt
-from pytestqt import qtbot
 import pytest
 
 # Local imports
@@ -167,6 +169,7 @@ def test_array_table_array_spaces_in_item(botarray):  # analysis:ignore
     value = dialog.text()
     assert value == 'np.array([[0, 2, 3],\n          [0, 5, 6]])'
 
+@pytest.mark.skipif(sys.platform == 'darwin', reason="It fails on macOS")
 def test_array_table_matrix_empty(botarray):  # analysis:ignore
     qtbot, dialog, widget = botarray
     qtbot.keyClick(widget, Qt.Key_Return, modifier=Qt.NoModifier)

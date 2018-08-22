@@ -20,7 +20,8 @@ import os.path as osp
 # Third party imports
 from qtpy.QtCore import QEvent, Qt, QTimer, QUrl, Signal
 from qtpy.QtGui import QFont
-from qtpy.QtWidgets import QComboBox, QCompleter, QSizePolicy, QToolTip
+from qtpy.QtWidgets import (QComboBox, QCompleter, QLineEdit,
+                            QSizePolicy, QToolTip)
 
 # Local imports
 from spyder.config.base import _
@@ -135,6 +136,8 @@ class PatternComboBox(BaseComboBox):
     def __init__(self, parent, items=None, tip=None,
                  adjust_to_minimum=True):
         BaseComboBox.__init__(self, parent)
+        if hasattr(self.lineEdit(), 'setClearButtonEnabled'):  # only Qt >= 5.2
+            self.lineEdit().setClearButtonEnabled(True)
         if adjust_to_minimum:
             self.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
@@ -173,7 +176,7 @@ class EditableComboBox(BaseComboBox):
 
     def validate(self, qstr, editing=True):
         """Validate entered path"""
-        if self.selected_text == qstr:
+        if self.selected_text == qstr and qstr != '':
             self.valid.emit(True, True)
             return
 
@@ -208,6 +211,7 @@ class PathComboBox(EditableComboBox):
         self.setLineEdit(lineedit)
 
         # Signals
+        self.highlighted.connect(self.add_tooltip_to_highlighted_item)
         self.sig_tab_pressed.connect(self.tab_complete)
         self.sig_double_tab_pressed.connect(self.double_tab_complete)
         self.valid.connect(lineedit.update_status)
@@ -280,6 +284,13 @@ class PathComboBox(EditableComboBox):
                 text = text[:-1]
         self.add_text(text)
 
+    def add_tooltip_to_highlighted_item(self, index):
+        """
+        Add a tooltip showing the full path of the currently highlighted item
+        of the PathComboBox.
+        """
+        self.setItemData(index, self.itemText(index), Qt.ToolTipRole)
+
 
 class UrlComboBox(PathComboBox):
     """
@@ -294,6 +305,32 @@ class UrlComboBox(PathComboBox):
         if qstr is None:
             qstr = self.currentText()
         return QUrl(qstr).isValid()
+
+
+class FileComboBox(PathComboBox):
+    """
+    QComboBox handling File paths
+    """
+    def __init__(self, parent=None, adjust_to_contents=False,
+                 default_line_edit=False):
+        PathComboBox.__init__(self, parent, adjust_to_contents)
+
+        if default_line_edit:
+            line_edit = QLineEdit(self)
+            self.setLineEdit(line_edit)
+
+        # Widget setup
+        if adjust_to_contents:
+            self.setSizeAdjustPolicy(QComboBox.AdjustToContents)
+        else:
+            self.setSizeAdjustPolicy(QComboBox.AdjustToContentsOnFirstShow)
+            self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+
+    def is_valid(self, qstr=None):
+        """Return True if string is valid"""
+        if qstr is None:
+            qstr = self.currentText()
+        return osp.isfile(to_text_string(qstr))
 
 
 def is_module_or_package(path):

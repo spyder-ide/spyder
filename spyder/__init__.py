@@ -32,7 +32,10 @@ version_info = (4, 0, 0, "dev0")
 __version__ = '.'.join(map(str, version_info))
 __license__ = __doc__
 __project_url__ = 'https://github.com/spyder-ide/spyder'
-__forum_url__   = 'http://groups.google.com/group/spyderlib'
+__forum_url__   = 'https://groups.google.com/group/spyderlib'
+__trouble_url__ = __project_url__ + '/wiki/Troubleshooting-Guide-and-FAQ'
+__trouble_url_short__ = 'https://tinyurl.com/SpyderHelp'
+__website_url__ = 'https://www.spyder-ide.org/'
 
 # Dear (Debian, RPM, ...) package makers, please feel free to customize the
 # following path to module's data (images) and translations:
@@ -82,8 +85,9 @@ def get_versions(reporev=True):
         'python': platform.python_version(),  # "2.7.3"
         'bitness': 64 if sys.maxsize > 2**32 else 32,
         'qt': qtpy.QtCore.__version__,
-        'qt_api': qtpy.API_NAME,      # PyQt5 or PyQt4
+        'qt_api': qtpy.API_NAME,      # PyQt5
         'qt_api_ver': qtpy.PYQT_VERSION,
         'system': system,   # Linux, Windows, ...
+        'release': platform.release(),  # XP, 10.6, 2.2.0, etc.
         'revision': revision,  # '9fdf926eccce'
     }

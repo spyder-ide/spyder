@@ -200,10 +200,24 @@ _qtaargs = {
     '1uparrow':                [('fa.angle-up',), {}],
     '2downarrow':              [('fa.angle-double-down',), {}],
     '1downarrow':              [('fa.angle-down',), {}],
+    # --- Autocompletion type icons --------------
     'attribute':               [('spyder.circle-letter-a',), {'color': 'magenta'}],
     'module':                  [('spyder.circle-letter-m',), {'color': '#daa520'}],
+    'class':                   [('spyder.circle-letter-c',), {'color':'#3775a9'}],
+    'private2':                [('spyder.circle-underscore',), {'color':'#e69c9c'}],
+    'private1':                [('spyder.circle-underscore',), {'color':'#e69c9c'}],
+    'method':                  [('spyder.circle-letter-m',), {'color':'#7ea67e'}],
+    'function':                [('spyder.circle-letter-f',), {'color':'orange'}],
+    'blockcomment':            [('spyder.circle-hash',), {'color':'grey'}],
+    'cell':                    [('spyder.circle-percent',), {'color':'red'}],
     'no_match':                [('fa.circle',), {'color': 'gray'}],
-    'no_match':                [('fa.circle',), {'color': 'gray'}],
+    'github':                  [('fa.github',), {'color': 'black'}],
+    # --- Spyder Tour --------------------------------------------------------
+    'tour.close':              [('fa.close',), {}],
+    'tour.home':               [('fa.fast-backward',), {}],
+    'tour.previous':           [('fa.backward',), {}],
+    'tour.next':               [('fa.forward',), {}],
+    'tour.end':                [('fa.fast-forward',), {}],
     # --- Third party plugins ------------------------------------------------
     'profiler':                [('fa.clock-o',), {}],
     'pylint':                  [('fa.search', 'fa.check'), {'options': [{}, {'offset': (0.125, 0.125), 'color': 'orange'}]}],
@@ -217,6 +231,10 @@ _qtaargs = {
     'folding.arrow_right_on':  [('fa.caret-right',), {}],
     'folding.arrow_down_off':  [('fa.caret-down',), {'color': 'gray'}],
     'folding.arrow_down_on':   [('fa.caret-down',), {}],
+    'lspserver':               [('fa.server',), {}],
+    'dependency_ok':           [('fa.check',), {}],
+    'dependency_warning':      [('fa.warning',), {'color': 'orange'}],
+    'dependency_error':        [('fa.warning',), {'color': 'darkred'}],
 }
 
 

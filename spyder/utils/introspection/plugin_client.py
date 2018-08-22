@@ -43,8 +43,7 @@ class AsyncClient(QObject):
     received = Signal(object)
 
     def __init__(self, target, executable=None, name=None,
-                 extra_args=None, libs=None, cwd=None, env=None,
-                 extra_path=None):
+                 extra_args=None, libs=None, cwd=None, env=None):
         super(AsyncClient, self).__init__()
         self.executable = executable or sys.executable
         self.extra_args = extra_args
@@ -53,7 +52,6 @@ class AsyncClient(QObject):
         self.libs = libs
         self.cwd = cwd
         self.env = env
-        self.extra_path = extra_path
         self.is_initialized = False
         self.closing = False
         self.notifier = None
@@ -92,13 +90,6 @@ class AsyncClient(QObject):
                     python_path = osp.pathsep.join([python_path, path])
                 except ImportError:
                     pass
-            if self.extra_path:
-                try:
-                    python_path = osp.pathsep.join([python_path] +
-                                                   self.extra_path)
-                except Exception as e:
-                    logger.exception(
-                            "Error when adding extra_path to plugin env")
             env.append("PYTHONPATH=%s" % python_path)
         if self.env:
             env.update(self.env)
@@ -213,10 +204,10 @@ class PluginClient(AsyncClient):
     def __init__(self, plugin_name, executable=None, env=None,
                  extra_path=None):
         cwd = os.path.dirname(__file__)
-        super(PluginClient, self).__init__('plugin_server.py',
-            executable=executable, cwd=cwd, env=env,
-            extra_args=[plugin_name], libs=[plugin_name],
-            extra_path=extra_path)
+        super(PluginClient, self).__init__(
+                'plugin_server.py',
+                executable=executable, cwd=cwd, env=env,
+                extra_args=[plugin_name], libs=[plugin_name])
         self.name = plugin_name
 
 

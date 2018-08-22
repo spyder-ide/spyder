@@ -1,13 +1,14 @@
 [Desktop Entry]
-Version=1.0
 Type=Application
+Version=1.0
 Name=Spyder3
 GenericName=Spyder3
-Comment=Scientific PYthon Development EnviRonment - Python3
+Comment=The Scientific Python Development Environment - Python 3
+Icon=spyder3
 TryExec=spyder3
 Exec=spyder3 %F
-Categories=Development;Science;IDE;Qt;
-Icon=spyder3
 Terminal=false
-StartupNotify=true
 MimeType=text/x-python;
+Categories=Development;Science;IDE;Qt;
+Keywords=Development;Science;IDE;Qt;
+StartupNotify=true

@@ -20,6 +20,7 @@ import errno, os
 from time import time as _uniquefloat
 
 import psutil
+from spyder.config.base import running_under_pytest
 from spyder.py3compat import PY2, to_binary_string
 
 def unique():
@@ -41,7 +42,7 @@ else:
     import ctypes
     from ctypes import wintypes
 
-    # http://msdn.microsoft.com/en-us/library/windows/desktop/ms684880(v=vs.85).aspx
+    # https://docs.microsoft.com/en-us/windows/desktop/ProcThread/process-security-and-access-rights
     PROCESS_QUERY_INFORMATION = 0x400
 
     # GetExitCodeProcess uses a special exit code to indicate that the
@@ -49,7 +50,7 @@ else:
     STILL_ACTIVE = 259
     
     def _is_pid_running(pid):
-        """Taken from http://www.madebuild.org/blog/?p=30"""
+        """Taken from https://www.madebuild.org/blog/?p=30"""
         kernel32 = ctypes.windll.kernel32
         handle = kernel32.OpenProcess(PROCESS_QUERY_INFORMATION, 0, pid)
         if handle == 0:
@@ -87,8 +88,11 @@ else:
         try:
             rename(newlinkname, filename)
         except:
-            os.remove(newvalname)
-            os.rmdir(newlinkname)
+            try:
+                os.remove(newvalname)
+                os.rmdir(newlinkname)
+            except (IOError, OSError):
+                pass
             raise
 
     def readlink(filename):   #analysis:ignore
@@ -178,14 +182,18 @@ class FilesystemLock:
                         # Verify that the running process corresponds to
                         # a Spyder one
                         p = psutil.Process(int(pid))
-                        if os.name == 'nt':
-                            conditions = ['spyder' in c.lower()
-                                          for c in p.cmdline()]
-                        else:
-                            conditions = [p.name() == 'spyder',
-                                          p.name() == 'spyder3']
-                        # For DEV
-                        conditions += ['bootstrap.py' in p.cmdline()]
+
+                        # Valid names for main script
+                        names = set(['spyder', 'spyder3', 'spyder.exe',
+                                     'spyder3.exe', 'bootstrap.py',
+                                     'spyder-script.py'])
+                        if running_under_pytest():
+                            names.add('runtests.py')
+
+                        # Check the first three command line arguments
+                        arguments = set(os.path.basename(arg)
+                                        for arg in p.cmdline()[:3])
+                        conditions = [names & arguments]
                         if not any(conditions):
                             raise(OSError(errno.ESRCH, 'No such process'))
                     except OSError as e:

@@ -15,6 +15,22 @@ from qtpy.QtGui import (QTextCursor, QFont, QPen, QColor, QTextFormat,
                         QTextCharFormat)
 
 
+# DRAW_ORDERS are used for make some decorations appear in top of others,
+# and avoid a decoration from overlapping/hiding other decorations.
+#
+# For example, codefolding will appear in front of current cell but behind
+# other decorations.
+#
+# NOTE: If two decorations have the same draw_order smaller decoration will
+# appear in front of the other.
+
+DRAW_ORDERS = {'on_bottom': 0,
+               'current_cell': 1,
+               'codefolding': 2,
+               'current_line': 3,
+               'on_top': 4}
+
+
 class TextDecoration(QTextEdit.ExtraSelection):
     """
     Helper class to quickly create a text decoration.
@@ -46,7 +62,7 @@ class TextDecoration(QTextEdit.ExtraSelection):
 
     def __init__(self, cursor_or_bloc_or_doc, start_pos=None, end_pos=None,
                  start_line=None, end_line=None, draw_order=0, tooltip=None,
-                 full_width=False):
+                 full_width=False, font=None):
         """
         Creates a text decoration.
 
@@ -87,6 +103,8 @@ class TextDecoration(QTextEdit.ExtraSelection):
         if end_line is not None:
             self.cursor.movePosition(self.cursor.Down, self.cursor.KeepAnchor,
                                      end_line - start_line)
+        if font is not None:
+            self.format.setFont(font)
 
     def contains_cursor(self, cursor):
         """
