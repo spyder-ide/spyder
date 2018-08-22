@@ -228,7 +228,6 @@ def test_go_to_last_item(outlineexplorer_bot):
     # toolbar :
     assert outlineexplorer.treewidget.currentItem() is None
     qtbot.mouseClick(outlineexplorer.fromcursor_btn, Qt.LeftButton)
-    current_item = outlineexplorer.treewidget.currentItem()
     assert outlineexplorer.treewidget.currentItem().text(0) == 'method2'
 
 
