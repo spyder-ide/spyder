@@ -204,7 +204,8 @@ def test_go_to_cursor_position(outlineexplorer_bot):
     assert outlineexplorer.treewidget.currentItem() is None
     qtbot.mouseClick(outlineexplorer.fromcursor_btn, Qt.LeftButton)
     assert outlineexplorer.treewidget.currentItem().text(0) == 'method1'
-    
+
+
 def test_go_to_last_item(outlineexplorer_bot):
     """
     Test that clicking on the 'Go to cursor position' button located in the
@@ -219,13 +220,14 @@ def test_go_to_last_item(outlineexplorer_bot):
     line_count = editor._editor.document().blockCount() - 1
     editor._editor.go_to_line(line_count)
     assert editor._editor.get_text_line(line_count) == "            pass"
-    
+
     # Click on the 'Go to cursor position' button of the outline explorer's
     # toolbar :
     assert outlineexplorer.treewidget.currentItem() is None
     qtbot.mouseClick(outlineexplorer.fromcursor_btn, Qt.LeftButton)
     current_item = outlineexplorer.treewidget.currentItem()
     assert outlineexplorer.treewidget.currentItem().text(0) == 'method2'
+
 
 def test_code_cell_grouping(outlineexplorer_bot):
     """
