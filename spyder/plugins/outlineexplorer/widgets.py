@@ -558,12 +558,11 @@ class OutlineExplorerWidget(QWidget):
 
     def setup_buttons(self):
         """Setup the buttons of the outline explorer widget toolbar."""
-        fromcursor_btn = create_toolbutton(
-                             self, icon=ima.icon('fromcursor'),
-                             tip=_('Go to cursor position'),
-                             triggered=self.treewidget.go_to_cursor_position)
+        self.fromcursor_btn = create_toolbutton(
+            self, icon=ima.icon('fromcursor'), tip=_('Go to cursor position'),
+            triggered=self.treewidget.go_to_cursor_position)
 
-        buttons = [fromcursor_btn]
+        buttons = [self.fromcursor_btn]
         for action in [self.treewidget.collapse_all_action,
                        self.treewidget.expand_all_action,
                        self.treewidget.restore_action,
