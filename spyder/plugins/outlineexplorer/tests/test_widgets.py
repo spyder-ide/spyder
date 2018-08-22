@@ -201,10 +201,31 @@ def test_go_to_cursor_position(outlineexplorer_bot):
 
     # Click on the 'Go to cursor position' button of the outline explorer's
     # toolbar :
+    assert outlineexplorer.treewidget.currentItem() is None
+    qtbot.mouseClick(outlineexplorer.fromcursor_btn, Qt.LeftButton)
+    assert outlineexplorer.treewidget.currentItem().text(0) == 'method1'
+    
+def test_go_to_last_item(outlineexplorer_bot):
+    """
+    Test that clicking on the 'Go to cursor position' button located in the
+    toolbar of the outline explorer is working as expected when the cursor
+    is located in the editor in the last item of the outline.
+    Catch Issue #
+    """
+    outlineexplorer, qtbot = outlineexplorer_bot(TEXT, 'test.py')
+
+    # Move the mouse cursor in the editor to the last line :
+    editor = outlineexplorer.treewidget.current_editor
+    line_count = editor._editor.document().blockCount() - 1
+    editor._editor.go_to_line(line_count)
+    assert editor._editor.get_text_line(line_count) == "            pass"
+    
+    # Click on the 'Go to cursor position' button of the outline explorer's
+    # toolbar :
+    assert outlineexplorer.treewidget.currentItem() is None
     qtbot.mouseClick(outlineexplorer.fromcursor_btn, Qt.LeftButton)
     current_item = outlineexplorer.treewidget.currentItem()
-    assert current_item.text(0) == 'method1'
-
+    assert outlineexplorer.treewidget.currentItem().text(0) == 'method2'
 
 def test_code_cell_grouping(outlineexplorer_bot):
     """
