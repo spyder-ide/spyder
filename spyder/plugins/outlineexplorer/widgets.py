@@ -524,11 +524,12 @@ class OutlineExplorerWidget(QWidget):
                  group_cells=True, show_comments=True, options_button=None):
         QWidget.__init__(self, parent)
 
-        self.treewidget = OutlineExplorerTreeWidget(self,
-                                            show_fullpath=show_fullpath,
-                                            show_all_files=show_all_files,
-                                            group_cells=group_cells,
-                                            show_comments=show_comments)
+        self.treewidget = OutlineExplorerTreeWidget(
+                self,
+                show_fullpath=show_fullpath,
+                show_all_files=show_all_files,
+                group_cells=group_cells,
+                show_comments=show_comments)
 
         self.visibility_action = create_action(self,
                                            _("Show/hide outline explorer"),

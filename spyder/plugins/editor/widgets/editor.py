@@ -2820,11 +2820,12 @@ class EditorWidget(QSplitter):
         self.find_widget = FindReplace(self, enable_replace=True)
         self.plugin.register_widget_shortcuts(self.find_widget)
         self.find_widget.hide()
-        self.outlineexplorer = OutlineExplorerWidget(self,
-                                            show_fullpath=show_fullpath,
-                                            show_all_files=show_all_files,
-                                            group_cells=group_cells,
-                                            show_comments=show_comments)
+        self.outlineexplorer = OutlineExplorerWidget(
+                self,
+                show_fullpath=show_fullpath,
+                show_all_files=show_all_files,
+                group_cells=group_cells,
+                show_comments=show_comments)
         self.outlineexplorer.edit_goto.connect(
                      lambda filenames, goto, word:
                      plugin.load(filenames=filenames, goto=goto, word=word,
