@@ -138,6 +138,8 @@ def item_at_line(root_item, line):
         if item.line > line:
             return previous_item
         previous_item = item
+    else:
+        return item
 
 
 def remove_from_tree_cache(tree_cache, line=None, item=None):
