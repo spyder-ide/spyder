@@ -27,7 +27,7 @@ import sys
 import time
 
 # Third party imports
-from qtpy.compat import to_qvariant
+from qtpy.compat import to_qvariant, getopenfilename
 from qtpy.QtCore import QRegExp, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import (QColor, QCursor, QFont, QIntValidator,
                         QKeySequence, QPaintEvent, QPainter, QMouseEvent,
@@ -2813,6 +2813,9 @@ class CodeEditor(TextEditBaseWidget):
         zoom_reset_action = create_action(
             self, _("Zoom reset"), shortcut=QKeySequence("Ctrl+0"),
             triggered=self.zoom_reset.emit)
+        insert_filepath = create_action(
+            self, _("Insert file path"), shortcut=QKeySequence(""),
+            triggered=self.insert_filepath)
 
         # Build menu
         self.menu = QMenu(self)
@@ -2822,7 +2825,7 @@ class CodeEditor(TextEditBaseWidget):
                      self.redo_action, None, self.cut_action,
                      self.copy_action, self.paste_action, selectall_action]
         actions_2 = [None, zoom_in_action, zoom_out_action, zoom_reset_action,
-                     None, toggle_comment_action]
+                     insert_filepath, None, toggle_comment_action]
         if nbformat is not None:
             nb_actions = [self.clear_all_output_action,
                           self.ipynb_convert_action, None]
@@ -3290,6 +3293,15 @@ class CodeEditor(TextEditBaseWidget):
 
     def is_editor(self):
         return True
+
+    @Slot()
+    def insert_filepath(self):
+        """
+        Open a window for selecting a file,
+        then returns the file's path and inserts it in the cursor position
+        """
+        filepath = getopenfilename(self, '', '', '')
+        self.insert_text(filepath[0])
 
 
 #===============================================================================
