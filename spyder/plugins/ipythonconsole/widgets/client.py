@@ -566,10 +566,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         reverse_history = list(reversed(self.history))
         try:
             index = min(reverse_history.index("clear"),
-                    reverse_history.index("%clear"))
+                        reverse_history.index("%clear"))
             if index != 0:
                 for i in self.history[-index:]:
-                    editor.insert_text(i + "\n") 
+                    editor.insert_text(i + "\n")
         except ValueError:
             pass
 
