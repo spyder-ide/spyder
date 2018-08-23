@@ -1425,6 +1425,13 @@ class EditorStack(QWidget):
         if self.data:
             return self.data[self.get_stack_index()].filename
 
+    def get_filenames(self):
+        """
+        Return a list with the names of all the files currently opened in
+        the editorstack.
+        """
+        return [finfo.filename for finfo in self.data]
+
     def has_filename(self, filename):
         """Return the self.data index position for the filename.
 
