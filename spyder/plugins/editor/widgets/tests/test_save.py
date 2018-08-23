@@ -305,7 +305,7 @@ def test_save_as_with_outline(editor_bot, mocker, tmpdir):
     assert editorstack.get_filenames() == ['foo.py', 'secondtab.py', __file__]
 
     # Save secondtab.py as foo2.py
-    new_filename = osp.join(tmpdir, 'foo2.py')
+    new_filename = osp.normpath(tmpdir.join('foo2.py'))
     editorstack.select_savename.return_value = new_filename
     assert not osp.exists(new_filename)
     assert editorstack.save_as() is True
