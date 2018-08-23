@@ -268,6 +268,7 @@ DEFAULTS = [
               'enable': True,
               'show_fullpath': False,
               'show_all_files': False,
+              'group_cells': True,
               'show_comments': True,
               }),
             ('project_explorer',

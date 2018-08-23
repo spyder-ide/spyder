@@ -1645,6 +1645,7 @@ class Editor(SpyderPluginWidget):
                                   self.toolbar_list, self.menu_list,
                                   show_fullpath=oe_options['show_fullpath'],
                                   show_all_files=oe_options['show_all_files'],
+                                  group_cells=oe_options['group_cells'],
                                   show_comments=oe_options['show_comments'])
         window.add_toolbars_to_menu("&View", window.get_toolbars())
         window.load_toolbars()

@@ -32,6 +32,7 @@ class OutlineExplorer(SpyderPluginWidget):
 
         show_fullpath = self.get_option('show_fullpath')
         show_all_files = self.get_option('show_all_files')
+        group_cells = self.get_option('group_cells')
         show_comments = self.get_option('show_comments')
 
         # Initialize plugin
@@ -40,6 +41,7 @@ class OutlineExplorer(SpyderPluginWidget):
                                        self,
                                        show_fullpath=show_fullpath,
                                        show_all_files=show_all_files,
+                                       group_cells=group_cells,
                                        show_comments=show_comments,
                                        options_button=self.options_button)
 

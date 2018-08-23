@@ -165,12 +165,12 @@ def remove_from_tree_cache(tree_cache, line=None, item=None):
 
 
 class OutlineExplorerTreeWidget(OneColumnTree):
-    def __init__(self, parent, show_fullpath=False,
-                 show_all_files=True, show_comments=True, group_cells=True):
+    def __init__(self, parent, show_fullpath=False, show_all_files=True,
+                 group_cells=True, show_comments=True):
         self.show_fullpath = show_fullpath
         self.show_all_files = show_all_files
-        self.show_comments = show_comments
         self.group_cells = group_cells
+        self.show_comments = show_comments
         OneColumnTree.__init__(self, parent)
         self.freeze = False # Freezing widget to avoid any unwanted update
         self.editor_items = {}
@@ -528,14 +528,16 @@ class OutlineExplorerWidget(QWidget):
     edit = Signal(str)
     is_visible = Signal()
     
-    def __init__(self, parent=None, show_fullpath=True,
-                 show_all_files=True, show_comments=True, options_button=None):
+    def __init__(self, parent=None, show_fullpath=True, show_all_files=True,
+                 group_cells=True, show_comments=True, options_button=None):
         QWidget.__init__(self, parent)
 
-        self.treewidget = OutlineExplorerTreeWidget(self,
-                                            show_fullpath=show_fullpath,
-                                            show_all_files=show_all_files,
-                                            show_comments=show_comments)
+        self.treewidget = OutlineExplorerTreeWidget(
+                self,
+                show_fullpath=show_fullpath,
+                show_all_files=show_all_files,
+                group_cells=group_cells,
+                show_comments=show_comments)
 
         self.visibility_action = create_action(self,
                                            _("Show/hide outline explorer"),
@@ -595,6 +597,7 @@ class OutlineExplorerWidget(QWidget):
         """
         return dict(show_fullpath=self.treewidget.show_fullpath,
                     show_all_files=self.treewidget.show_all_files,
+                    group_cells=self.treewidget.group_cells,
                     show_comments=self.treewidget.show_comments,
                     expanded_state=self.treewidget.get_expanded_state(),
                     scrollbar_position=self.treewidget.get_scrollbar_position(),
