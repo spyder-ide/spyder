@@ -125,6 +125,7 @@ class CellItem(TreeItem):
         self.setToolTip(0, _("Cell starts at line %s") % str(self.line))
 
 def get_item_children(item):
+    """Return a sorted list of all the children items of 'item'."""
     children = [item.child(index) for index in range(item.childCount())]
     for child in children[:]:
         others = get_item_children(child)
@@ -132,12 +133,19 @@ def get_item_children(item):
             children += others
     return sorted(children, key=lambda child: child.line)
 
+
 def item_at_line(root_item, line):
+    """
+    Find and return the item of the outline explorer under which is located
+    the specified 'line' of the editor.
+    """
     previous_item = root_item
     for item in get_item_children(root_item):
         if item.line > line:
             return previous_item
         previous_item = item
+    else:
+        return item
 
 
 def remove_from_tree_cache(tree_cache, line=None, item=None):
