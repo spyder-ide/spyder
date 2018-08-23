@@ -561,7 +561,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     @Slot()
     def copy_console(self):
-        """Copy the all inputs from console to editor"""
+        """Copy the inputs from console to editor"""
         editor = self.plugin.editor.get_current_editor()
         reverse_history = list(reversed(self.history))
         index = min(reverse_history.index("clear"),reverse_history.index("%clear"))
