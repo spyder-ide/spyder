@@ -1128,7 +1128,13 @@ class BaseTableView(QTableView):
             elif isinstance(obj, (DataFrame, Series)) \
               and DataFrame is not FakeObject:
                 output = io.StringIO()
-                obj.to_csv(output, sep='\t', index=True, header=True)
+                try:
+                    obj.to_csv(output, sep='\t', index=True, header=True)
+                except Exception:
+                    QMessageBox.warning(self, _("Warning"),
+                                        _("It was not possible to copy "
+                                          "this dataframe"))
+                    return
                 if PY3:
                     obj = output.getvalue()
                 else:
