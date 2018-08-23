@@ -430,14 +430,14 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                                              triggered=self.clear_console)
 
         copy_console_action = create_action(self, _("Copy history to editor"),
-                                             triggered=self.copy_console)
+                                            triggered=self.copy_console)
 
         quit_action = create_action(self, _("&Quit"), icon=ima.icon('exit'),
                                     triggered=self.exit_callback)
 
         add_actions(menu, (None, inspect_action, clear_line_action,
-                           clear_console_action, copy_console_action, reset_namespace_action,
-                           None, quit_action))
+                           clear_console_action, copy_console_action,
+                           reset_namespace_action, None, quit_action))
         return menu
 
     def set_font(self, font):
@@ -564,10 +564,14 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """Copy the inputs from console to editor"""
         editor = self.plugin.editor.get_current_editor()
         reverse_history = list(reversed(self.history))
-        index = min(reverse_history.index("clear"),reverse_history.index("%clear"))
-        if index != 0:
-            for i in self.history[-index:]:
-                editor.insert_text(i + "\n") 
+        try:
+            index = min(reverse_history.index("clear"),
+                    reverse_history.index("%clear"))
+            if index != 0:
+                for i in self.history[-index:]:
+                    editor.insert_text(i + "\n") 
+        except ValueError:
+            pass
 
     @Slot()
     def reset_namespace(self):
