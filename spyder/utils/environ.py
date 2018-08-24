@@ -42,11 +42,17 @@ class RemoteEnvDialog(CollectionsEditor):
 
     def __init__(self, environ, parent=None):
         super(RemoteEnvDialog, self).__init__(parent)
-        self.setup(envdict2listdict(environ),
-                   title=_("Environment variables"),
-                   width=700,
-                   readonly=True,
-                   icon=ima.icon('environ'))
+        try:
+            self.setup(envdict2listdict(environ),
+                    title=_("Environment variables"),
+                    width=700,
+                    readonly=True,
+                    icon=ima.icon('environ'))
+        except Exception as e:
+            QMessageBox.warning(parent, _("Warning"),
+                    _("An error occurred while trying to show your "
+                      "environment variables. The error was<br><br>"
+                      "<tt>{0}</tt>").format(e), QMessageBox.Ok)
 
 
 class EnvDialog(RemoteEnvDialog):
@@ -91,7 +97,7 @@ try:
                                   SMTO_ABORTIFHUNG)
             SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, 0,
                                "Environment", SMTO_ABORTIFHUNG, 5000)
-        except ImportError:
+        except Exception:
             QMessageBox.warning(parent, _("Warning"),
                         _("Module <b>pywin32 was not found</b>.<br>"
                           "Please restart this Windows <i>session</i> "
@@ -122,7 +128,7 @@ try:
             set_user_env(listdict2envdict(self.get_value()), parent=self)
             QDialog.accept(self)
 
-except ImportError:
+except Exception:
     pass
 
 def main():
