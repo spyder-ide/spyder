@@ -284,13 +284,13 @@ def test_save_as(editor_bot, mocker):
 @pytest.mark.show_save_dialog
 def test_save_as_with_outline(editor_bot, mocker, tmpdir):
     """
-    Test EditorStack.save_as() when there the outline explorer is not None.
+    Test EditorStack.save_as() when the outline explorer is not None.
 
     Regression test for issue #7754.
     """
     editorstack, qtbot = editor_bot
 
-    # Assert the initial state.
+    # Set and assert the initial state.
     editorstack.tabs.setCurrentIndex(1)
     assert editorstack.get_current_filename() == 'secondtab.py'
 
@@ -304,7 +304,7 @@ def test_save_as_with_outline(editor_bot, mocker, tmpdir):
     assert editorstack.save_as() is False
     assert editorstack.get_filenames() == ['foo.py', 'secondtab.py', __file__]
 
-    # Save secondtab.py as foo2.py
+    # Save secondtab.py as foo2.py in a tmpdir
     new_filename = osp.join(tmpdir.strpath, 'foo2.py')
     editorstack.select_savename.return_value = new_filename
     assert not osp.exists(new_filename)
