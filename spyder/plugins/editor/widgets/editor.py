@@ -1342,7 +1342,8 @@ class EditorStack(QWidget):
             # Fixes Issue 1287
             self.set_current_filename(current_fname)
         if self.outlineexplorer is not None:
-            self.outlineexplorer.file_renamed(finfo.editor, finfo.filename)
+            self.outlineexplorer.file_renamed(
+                finfo.editor.oe_proxy, finfo.filename)
         return new_index
 
     def set_stack_title(self, index, is_modified):
