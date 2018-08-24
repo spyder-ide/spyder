@@ -366,4 +366,3 @@ def test_save_all(editor_bot, mocker):
 
 if __name__ == "__main__":
     pytest.main()
-    # pytest.main(['-x', osp.basename(__file__), '-v', '-rw'])
