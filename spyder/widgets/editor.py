@@ -2405,6 +2405,8 @@ class EditorStack(QWidget):
             editor = self.get_current_editor()
             if editor is not None:
                 editor.insert_text(source.text())
+        else:
+            event.ignore()
         event.acceptProposedAction()
 
 
