@@ -8,9 +8,10 @@
 
 from __future__ import print_function
 
-import sys
+import os
 import os.path as osp
 import subprocess
+import sys
 
 # Local imports
 from spyder.utils import programs
@@ -31,7 +32,7 @@ SUPPORTED = [
     'name': 'Git',
     'rootdir': '.git',
     'actions': dict(
-        commit=( ('git', ['gui']), ),
+        commit=( ('git', ['gui' if os.name == 'nt' else 'cola']), ),
         browse=( ('gitk', []), ))
 }]
 
