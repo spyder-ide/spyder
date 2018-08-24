@@ -9,23 +9,32 @@ Tests for vcs.py
 """
 
 # Standard library imports
+import os
 import os.path as osp
+import sys
 
 # Test library imports
 import pytest
 
 # Local imports
-from spyder.utils.vcs import get_git_revision, get_vcs_root, run_vcs_tool
+from spyder.utils.vcs import (ActionToolNotFound, get_git_revision,
+                              get_vcs_root, run_vcs_tool)
 
 
+@pytest.mark.skipif(os.environ.get('CI', None) is None,
+                    reason="Not to be run outside of CIs")
 def test_vcs_tool():
-    root = get_vcs_root(osp.dirname(__file__))
-    assert run_vcs_tool(root, 'browse')
-    assert run_vcs_tool(root, 'commit')
+    if sys.platform.startswith('linux'):
+        with pytest.raises(ActionToolNotFound):
+            run_vcs_tool(osp.dirname(__file__), 'browse')
+    else:
+        assert run_vcs_tool(osp.dirname(__file__), 'browse')
+        assert run_vcs_tool(osp.dirname(__file__), 'commit')
 
 
 def test_vcs_root(tmpdir):
-    assert get_vcs_root(tmpdir.mkdir('foo')) == None
+    directory = tmpdir.mkdir('foo')
+    assert get_vcs_root(str(directory)) == None
     assert get_vcs_root(osp.dirname(__file__)) != None
 
 
