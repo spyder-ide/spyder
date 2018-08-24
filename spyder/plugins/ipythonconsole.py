@@ -1436,8 +1436,8 @@ class IPythonConsole(SpyderPluginWidget):
             except Exception as e:
                 QMessageBox.warning(self, _('Warning'),
                     _("It was not possible to restart the IPython console "
-                      "when switching to this project. "
-                      "The error was {0}").format(e), QMessageBox.Ok)
+                      "when switching to this project. The error was<br><br>"
+                      "<tt>{0}</tt>").format(e), QMessageBox.Ok)
             self.close_client(client=client, force=True)
         self.create_new_client(give_focus=False)
         self.create_new_client_if_empty = True
