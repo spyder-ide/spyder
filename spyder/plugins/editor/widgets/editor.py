@@ -1342,7 +1342,8 @@ class EditorStack(QWidget):
             # Fixes Issue 1287
             self.set_current_filename(current_fname)
         if self.outlineexplorer is not None:
-            self.outlineexplorer.file_renamed(finfo.editor, finfo.filename)
+            self.outlineexplorer.file_renamed(
+                finfo.editor.oe_proxy, finfo.filename)
         return new_index
 
     def set_stack_title(self, index, is_modified):
@@ -1424,6 +1425,13 @@ class EditorStack(QWidget):
     def get_current_filename(self):
         if self.data:
             return self.data[self.get_stack_index()].filename
+
+    def get_filenames(self):
+        """
+        Return a list with the names of all the files currently opened in
+        the editorstack.
+        """
+        return [finfo.filename for finfo in self.data]
 
     def has_filename(self, filename):
         """Return the self.data index position for the filename.
