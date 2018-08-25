@@ -8,11 +8,13 @@
 
 from __future__ import print_function
 
-import sys
+import os
 import os.path as osp
 import subprocess
+import sys
 
 # Local imports
+from spyder.config.base import running_under_pytest
 from spyder.utils import programs
 from spyder.utils.misc import abspardir
 from spyder.py3compat import PY3
@@ -31,7 +33,7 @@ SUPPORTED = [
     'name': 'Git',
     'rootdir': '.git',
     'actions': dict(
-        commit=( ('git', ['gui']), ),
+        commit=( ('git', ['gui' if os.name == 'nt' else 'cola']), ),
         browse=( ('gitk', []), ))
 }]
 
@@ -81,7 +83,10 @@ def run_vcs_tool(path, action):
     tools = info['actions'][action]
     for tool, args in tools:
         if programs.find_program(tool):
-            programs.run_program(tool, args, cwd=path)
+            if not running_under_pytest():
+                programs.run_program(tool, args, cwd=path)
+            else:
+                return True
             return
     else:
         cmdnames = [name for name, args in tools]
@@ -142,11 +147,3 @@ def get_git_revision(repopath):
         return commit, branch
     except (subprocess.CalledProcessError, AssertionError, AttributeError):
         return None, None
-
-
-if __name__ == '__main__':
-    print(get_vcs_root(osp.dirname(__file__)))  # spyder: test-skip
-    print(get_vcs_root(r'D:\Python\ipython\IPython\kernel'))  # spyder: test-skip
-    #run_vcs_tool(r'D:\Python\userconfig\userconfig', 'commit')
-    print(get_git_revision(osp.dirname(__file__)+"/../.."))  # spyder: test-skip
-    print(get_git_revision('/'))  # spyder: test-skip
