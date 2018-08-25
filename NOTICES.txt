@@ -469,7 +469,7 @@ Download (official mirror): https://github.com/KDE/oxygen-icons
 License: GNU Lesser General Public License 3.0 or later
 https://www.gnu.org/licenses/lgpl.html
 
-No modifications made.
+Modifications made: Assets combined to make new icons as listed below.
 
 
 This library is free software; you can redistribute it and/or
@@ -514,6 +514,15 @@ See below for the full text of the GNU LGPL 3.0, along with the GPL 3.0.
 
 Later versions of the GNU LGPL may be found at:
 https://www.gnu.org/licenses/lgpl.html
+
+SVG sources for the assets used located in img_src/Oxygen_Icon_Set directory.
+
+
+Assets used:
+
+img_src/arrow-right.svgz
+img_src/configure.svgz
+img_src/edit-undo.svgz
 
 
 Files covered:
