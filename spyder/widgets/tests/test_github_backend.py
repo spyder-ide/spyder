@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
-# Copyright © QCrash - Colin Duquesnoy
-# Copyright © Spyder Project Contributors
+# -----------------------------------------------------------------------------
+# Copyright (c) 2016 Colin Duquesnoy (QCrash project)
+# Copyright (c) 2018- Spyder Project Contributors
+#
 # Licensed under the terms of the MIT License
-# (see spyder/__init__.py for details)
+# (see spyder/widgets/github/LICENSE.txt for details)
+# -----------------------------------------------------------------------------
 
 """
-Tests for the Github backend
+Tests for the Github backend.
 
-Taken from the QCrash Project:
-https://github.com/ColinDuquesnoy/QCrash
+Adapted from tests/test_backends/test_github.py of the
+`QCrash Project <https://github.com/ColinDuquesnoy/QCrash>`_.
 """
 
 import os

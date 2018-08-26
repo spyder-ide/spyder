@@ -180,6 +180,76 @@ Files covered:
 spyder/utils/help/js/jquery.js
 
 
+-------------------------------------------------------------------------------
+
+
+
+QCrash
+------
+
+
+Copyright (c) 2016 Colin Duquesnoy
+Copyright (c) 2018- Spyder Project Contributors
+
+Author: Colin Duquesnoy | https://github.com/ColinDuquesnoy
+Source: https://github.com/ColinDuquesnoy/QCrash
+License: MIT (Expat) License | https://opensource.org/licenses/MIT
+
+Modifications made to each file adapt QCrash to Spyder and improve it further.
+
+
+QCrash is licensed under the MIT license.
+
+
+See below for the full text of the MIT (Expat) license.
+
+The current QCrash license can be viewed at:
+https://github.com/ColinDuquesnoy/QCrash/blob/master/LICENSE
+
+
+Files covered:
+
+spyder/widgets/github/backend.py
+spyder/widgets/github/gh_login.py
+spyder/widgets/tests/test_github_backend.py
+
+
+-------------------------------------------------------------------------------
+
+
+
+Githubpy
+--------
+
+
+Copyright 2014 Michael Liao (askxuefeng@gmail.com)
+
+
+Author: Micheal Liao | askxuefeng@gmail.com | https://www.liaoxuefeng.com/
+Site: https://github.liaoxuefeng.com/githubpy/
+Source: https://github.com/michaelliao/githubpy
+License: Apache License Version 2.0
+https://www.apache.org/licenses/LICENSE-2.0
+
+No modifications made.
+
+
+githubpy is distributed under Apache License 2.0. Enjoy!
+
+
+Also included as part of QCrash, with no modifications made.
+
+See below for the full text of the Apache License Version 2.0.
+
+The current Githubpy license can be viewed at:
+https://github.com/michaelliao/githubpy/blob/master/LICENSE.txt
+
+
+Files covered:
+
+spyder/utils/external/github.py
+
+
 
 ===============================================================================
 

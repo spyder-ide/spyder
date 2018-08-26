@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
-# Copyright © QCrash - Colin Duquesnoy
-# Copyright © Spyder Project Contributors
+# -----------------------------------------------------------------------------
+# Copyright (c) 2016 Colin Duquesnoy (QCrash project)
+# Copyright (c) 2018- Spyder Project Contributors
+#
 # Licensed under the terms of the MIT License
-# (see spyder/__init__.py for details)
+# (see LICENSE.txt in this directory for details)
+# -----------------------------------------------------------------------------
 
 """
 Backend to open issues automatically on Github.
 
-Taken from the QCrash Project:
-https://github.com/ColinDuquesnoy/QCrash
+Adapted from qcrash/backends/base.py and qcrash/backends/github.py of the
+`QCrash Project <https://github.com/ColinDuquesnoy/QCrash>`_.
 """
 
 import logging
