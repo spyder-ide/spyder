@@ -1,22 +1,29 @@
 # -*- coding: utf-8 -*-
-"""Module completion auxiliary functions"""
+# -----------------------------------------------------------------------------
+# Copyright (c) 2010-2011 The IPython Development Team
+# Copyright (c) 2011- Spyder Project Contributors
+#
+# Distributed under the terms of the Modified BSD License
+# (BSD 3-clause; see NOTICE.txt in the Spyder root directory for details).
+# -----------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
+"""
+Module completion auxiliary functions.
+
+Adapted from IPython/core/completerlib.py of the
+`IPython Project <https://github.com/ipython/ipython>`_.
+"""
+
+# -----------------------------------------------------------------------------
 #
-#  Most functions on this file were taken from the file core/completerlib,
-#  which belongs to the IPython project (v0.13). They were added here because
-#  a) IPython is not an Spyder runtime dependency, and b) we want to perfom
-#  module completion not only on our Python console, but also on our source
-#  code editor.
+# Most functions on this file were taken from the file core/completerlib,
+# which belongs to the IPython project (v0.13). They were added here because
+# we want to perfom module completion not only on our Python console,
+# but also on our source code editor.
 #
-#  Several of these functions were modified to make it work according to our
-#  needs
+# Several of these functions were modified according to our needs.
 #
-#  Distributed under the terms of the BSD License.
-#  Copyright (C) 2010-2011 The IPython Development Team.
-#  Copyright (C) Spyder Project Contributors
-#
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import imp
 import inspect

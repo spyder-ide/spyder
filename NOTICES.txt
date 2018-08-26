@@ -288,6 +288,140 @@ spyder/utils/help/sphinxify.py
 spyder/utils/help/templates/layout.html
 
 
+-------------------------------------------------------------------------------
+
+
+
+IPython
+-------
+
+
+Copyright (c) 2001 Nathaniel Gray <n8gray@caltech.edu>
+Copyright (c) 2001 Janko Hauser <jhauser@zscout.de>
+Copyright (c) 2001-2007 Fernando Perez <fernando.perez@colorado.edu>
+Copyright (c) 2008- IPython Development Team
+
+
+Author: IPython Development Team (see above) | https://ipython.org/
+Site: https://ipython.readthedocs.io/en/stable/
+Source: https://github.com/ipython/ipython
+License: BSD (3-clause) License | https://opensource.org/licenses/BSD-3-Clause
+
+Modifications made to below files integrate with Spyder/QtPy and fix bugs.
+
+
+IPython is licensed under the terms of the Modified BSD License (also known as
+New or Revised or 3-Clause BSD).
+
+Fernando Perez began IPython in 2001 based on code from Janko Hauser
+<jhauser@zscout.de> and Nathaniel Gray <n8gray@caltech.edu>.  Fernando is still
+the project lead.
+
+The IPython Development Team is the set of all contributors to the IPython
+project. This includes all of the IPython subprojects.
+
+The core team that coordinates development on GitHub can be found here:
+https://github.com/ipython/.
+
+IPython uses a shared copyright model. Each contributor maintains copyright
+over their contributions to IPython. But, it is important to note that these
+contributions are typically only changes to the repositories. Thus, the IPython
+source code, in its entirety is not the copyright of any single person or
+institution.  Instead, it is the collective copyright of the entire IPython
+Development Team.  If individual contributors want to maintain a record of what
+changes/contributions they have specific copyright on, they should indicate
+their copyright in the commit message of the change, when they commit the
+change to one of the IPython repositories.
+
+
+Spyder's Console is ultimately a frontend to the IPython interpreter,
+which is used to run all interactive commands, scripts and executable code.
+
+IPython frontend components were developed into Jupyter QtConsole; see below.
+
+In addition to the list below, modified IPython code snippits included in:
+
+create_app.py
+spyder/plugins/ipythonconsole.py
+setup.py
+spyder/utils/programs.py
+spyder/widgets/sourcecode/codeeditor.py
+
+See below for the full text of the Modified BSD (3-clause) License.
+
+The current IPython license can be viewed at:
+https://github.com/ipython/ipython/blob/master/LICENSE
+
+The current IPython license summary can be viewed at:
+https://github.com/ipython/ipython/blob/master/COPYING.rst
+
+
+Files covered:
+
+spyder/utils/introspection/module_completion.py
+spyder/widgets/calltip.py
+
+
+-------------------------------------------------------------------------------
+
+
+
+Jupyter QtConsole
+-----------------
+
+
+Copyright (c) 2001-2015 IPython Development Team
+Copyright (c) 2015- Jupyter Development Team
+
+
+Author: IPython/Project Jupyter Development Team | https://jupyter.org/
+Site: https://qtconsole.readthedocs.io/en/stable/
+Source: https://github.com/jupyter/qtconsole/
+License: BSD (3-clause) License | https://opensource.org/licenses/BSD-3-Clause
+
+Modifications made to below files to integrate with Spyder and migrate to QtPy.
+
+
+This project is licensed under the terms of the Modified BSD License
+(also known as New or Revised or 3-Clause BSD).
+
+The Jupyter Development Team is the set of all contributors to the
+Jupyter project. This includes all of the Jupyter subprojects.
+
+The core team that coordinates development on GitHub can be found here:
+https://github.com/jupyter/.
+
+Jupyter uses a shared copyright model. Each contributor maintains copyright
+over their contributions to Jupyter. But, it is important to note that
+these contributions are typically only changes to the repositories.
+Thus, the Jupyter source code, in its entirety is not the copyright of any
+single person or institution. Instead, it is the collective copyright of the
+entire Jupyter Development Team. If individual contributors want to maintain
+a record of what changes/contributions they have specific copyright on,
+they should indicate their copyright in the commit message of the change,
+when they commit the change to one of the Jupyter repositories.
+
+
+Spyder also relies on the QtConsole Python package to provide its Console UI.
+
+Jupyter QtConsole was originally developed as part of IPython; see above.
+
+In addition to the list below, modified QtConsole code snippits included in:
+
+spyder/widgets/client.py
+spyder/widgets/sourcecode/codeeditor.py
+
+See below for the full text of the Modified BSD (3-clause) License.
+
+The current QtConsole license can be viewed at:
+https://github.com/jupyter/qtconsole/blob/master/LICENSE
+
+
+Files covered:
+
+spyder/widgets/sourcecode/kill_ring.py
+
+
 
 ===============================================================================
 
