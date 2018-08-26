@@ -189,7 +189,7 @@ QCrash
 
 
 Copyright (c) 2016 Colin Duquesnoy
-Copyright (c) 2018- Spyder Project Contributors
+Copyright (c) 2018- Spyder Project Contributors (see AUTHORS.txt)
 
 Author: Colin Duquesnoy | https://github.com/ColinDuquesnoy
 Source: https://github.com/ColinDuquesnoy/QCrash
@@ -250,6 +250,42 @@ https://github.com/michaelliao/githubpy/blob/master/LICENSE.txt
 Files covered:
 
 spyder/utils/external/github.py
+
+
+-------------------------------------------------------------------------------
+
+
+
+Sphinixfy (from the Sage Project)
+---------------------------------
+
+
+Copyright (C) 2009 Tim Dumol <tim@timdumol.com>
+Copyright (C) 2010- Spyder Project Contributors (see AUTHORS.txt)
+
+
+Author: Tim Joseph Dumol | tim@timdumol.com | https://www.timdumol.com/
+Site: https://www.sagemath.org/
+Source: https://github.com/sagemath/sagenb
+License: BSD (3-clause) License | https://opensource.org/licenses/BSD-3-Clause
+
+Modifications made to each file adapt Sphinixfy to Spyder and fix bugs.
+
+
+Distributed under the terms of the BSD License.
+
+
+See below for the full text of the BSD (3-clause) License.
+
+The current version of the original file can be viewed at:
+https://github.com/sagemath/sagenb/blob/master/sagenb/misc/sphinxify.py
+
+
+Files covered:
+
+spyder/utils/help/conf.py
+spyder/utils/help/sphinxify.py
+spyder/utils/help/templates/layout.html
 
 
 
