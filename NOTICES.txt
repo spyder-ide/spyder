@@ -475,9 +475,89 @@ https://github.com/audreyr/binaryornot/blob/master/LICENSE
 
 Files covered:
 
-spyder/utils/externel/binaryornot/__init__.py
-spyder/utils/externel/binaryornot/check.py
-spyder/utils/externel/binaryornot/helpers.py
+spyder/utils/external/binaryornot/__init__.py
+spyder/utils/external/binaryornot/check.py
+spyder/utils/external/binaryornot/helpers.py
+
+
+-------------------------------------------------------------------------------
+
+
+
+Lockfile Module from Twisted 12.3.0
+-----------------------------------
+
+
+Copyright (c) 2005 Divmod, Inc.
+Copyright (c) 2008-2011 Twisted Matrix Laboratories
+Copyright (c) 2012- Spyder Project Contributors
+
+
+Author: Twisted Matrix Laboratories | https://github.com/ColinDuquesnoy
+Site: https://www.twistedmatrix.com/
+Source: https://github.com/twisted/twisted
+License: MIT (Expat) License | https://opensource.org/licenses/MIT
+
+Modifications made to adapt/improve the code for Spyder (see file for details).
+
+
+All of the code in this distribution is
+Copyright (c) 2001-2012 Twisted Matrix Laboratories.
+
+Twisted is made available under the MIT license.
+
+Copyright (c) 2001-2012
+Allen Short
+Andy Gayton
+Andrew Bennetts
+Antoine Pitrou
+Apple Computer, Inc.
+Benjamin Bruheim
+Bob Ippolito
+Canonical Limited
+Christopher Armstrong
+David Reid
+Donovan Preston
+Eric Mangold
+Eyal Lotem
+Itamar Turner-Trauring
+James Knight
+Jason A. Mobarak
+Jean-Paul Calderone
+Jessica McKellar
+Jonathan Jacobs
+Jonathan Lange
+Jonathan D. Simms
+Jürgen Hermann
+Kevin Horn
+Kevin Turner
+Mary Gardiner
+Matthew Lefkowitz
+Massachusetts Institute of Technology
+Moshe Zadka
+Paul Swartz
+Pavel Pergamenshchik
+Ralph Meijer
+Sean Riley
+Software Freedom Conservancy
+Travis B. Hartwell
+Thijs Triemstra
+Thomas Herve
+Timothy Allen
+
+
+See below for the full text of the MIT (Expat) license.
+
+The current Twisted license can be viewed at:
+https://github.com/twisted/twisted/blob/trunk/LICENSE
+
+The current version of the original file can be viewed at:
+https://github.com/twisted/twisted/blob/trunk/src/twisted/python/lockfile.py
+
+
+Files covered:
+
+spyder/utils/external/lockfile.py
 
 
 
