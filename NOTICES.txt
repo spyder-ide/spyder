@@ -184,8 +184,8 @@ spyder/utils/help/js/jquery.js
 
 
 
-QCrash
-------
+QCrash 0.2.0
+------------
 
 
 Copyright (c) 2016 Colin Duquesnoy
@@ -220,8 +220,8 @@ spyder/widgets/github/tests/test_github_backend.py
 
 
 
-Githubpy
---------
+Githubpy 1.1.1
+--------------
 
 
 Copyright 2014 Michael Liao (askxuefeng@gmail.com)
@@ -420,6 +420,64 @@ https://github.com/jupyter/qtconsole/blob/master/LICENSE
 Files covered:
 
 spyder/widgets/sourcecode/kill_ring.py
+
+
+-------------------------------------------------------------------------------
+
+
+
+BinaryOrNot 0.4.0
+-----------------
+
+
+Copyright (c) 2013 Audrey Roy
+
+
+Author: Audrey Roy Greenfeld and contributors | audreyr@gmail.com |
+https://github.com/audreyr/binaryornot/blob/master/AUTHORS.rst
+Site: https://binaryornot.readthedocs.io/en/latest/
+Source: https://github.com/audreyr/binaryornot
+License: BSD (3-clause) License | https://opensource.org/licenses/BSD-3-Clause
+
+Minor modifications made to below files to integrate with Spyder.
+
+
+Free software: BSD license
+
+Development Lead:
+
+Audrey Roy Greenfeld (https://github.com/audreyr)
+
+Contributors:
+
+* Nick Coghlan (https://github.com/ncoghlan)
+* Ville Skyttä (https://github.com/scop)
+* Vincent Bernat (https://github.com/vincentbernat)
+* Daniel Roy Greenfeld (https://github.com/pydanny)
+* Philippe Ombredanne (https://github.com/pombredanne)
+* Aaron Meurer (https://github.com/asmeurer)
+* David R. MacIver (https://github.com/DRMacIver)
+* Raphael Pierzina (https://github.com/hackebrot)
+* Johannes (https://github.com/johtso)
+
+Special thanks to Eli Bendersky (@eliben) for his writeup explaining
+the heuristic and his implementation, which this is largely based on.
+
+Source code from the portion of Perl's pp_fttext that checks for textiness:
+https://github.com/Perl/perl5/blob/v5.23.1/pp_sys.c#L3527-L3587
+
+
+See below for the full text of the Modified BSD (3-clause) License.
+
+The current BinaryOrNot license can be viewed at:
+https://github.com/audreyr/binaryornot/blob/master/LICENSE
+
+
+Files covered:
+
+spyder/utils/externel/binaryornot/__init__.py
+spyder/utils/externel/binaryornot/check.py
+spyder/utils/externel/binaryornot/helpers.py
 
 
 
