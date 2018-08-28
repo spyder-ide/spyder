@@ -1,16 +1,24 @@
 # -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2011-2012 Lambda Foundry, Inc. and PyData Development Team
+# Copyright (c) 2013 Jev Kuznetsov and contributors
+# Copyright (c) 2014- Spyder Project Contributors
 #
-# Copyright © Spyder Project Contributors
-# Licensed under the terms of the New BSD License
-#
-# DataFrameModel is based on the class ArrayModel from array editor
-# and the class DataFrameModel from the pandas project.
-# Present in pandas.sandbox.qtpandas in v0.13.1
-# Copyright (c) 2011-2012, Lambda Foundry, Inc.
-# and PyData Development Team All rights reserved
+# Distributed under the terms of the New BSD License
+# (BSD 3-clause; see NOTICE.txt in the Spyder root directory for details).
+# -----------------------------------------------------------------------------
 
 """
-Pandas DataFrame Editor Dialog
+Pandas DataFrame Editor Dialog.
+
+DataFrameModel is based on the class ArrayModel from array editor
+and the class DataFrameModel from the pandas project.
+Present in pandas.sandbox.qtpandas in v0.13.1.
+
+Originally based on pandas/sandbox/qtpandas.py of the
+`pandas project <https://github.com/pandas-dev/pandas>`_.
+The current version is qtpandas/models/DataFrameModel.py of the
+`QtPandas project <https://github.com/draperjames/qtpandas>`_.
 """
 
 # Third party imports
