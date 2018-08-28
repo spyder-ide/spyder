@@ -195,6 +195,8 @@ class EditorConfigPage(PluginConfigPage):
         run_selection_group = QGroupBox(_("Run selection"))
         focus_box = newcb(_("Maintain focus in the Editor after running cells "
                             "or selections"), 'focus_to_editor')
+        run_cell_box = newcb(_("Use the run cell function to execute code "
+                            "cells"), 'run_cell_func')
 
         introspection_group = QGroupBox(_("Introspection"))
         rope_is_installed = programs.is_module_installed('rope')
@@ -315,6 +317,7 @@ class EditorConfigPage(PluginConfigPage):
 
         run_selection_layout = QVBoxLayout()
         run_selection_layout.addWidget(focus_box)
+        run_selection_layout.addWidget(run_cell_box)
         run_selection_group.setLayout(run_selection_layout)
 
         introspection_layout = QVBoxLayout()
@@ -1431,6 +1434,7 @@ class Editor(SpyderPluginWidget):
             ('set_calltips_enabled',                'calltips'),
             ('set_go_to_definition_enabled',        'go_to_definition'),
             ('set_focus_to_editor',                 'focus_to_editor'),
+            ('set_run_cell_func',                   'run_cell_func'),
             ('set_close_parentheses_enabled',       'close_parentheses'),
             ('set_close_quotes_enabled',            'close_quotes'),
             ('set_add_colons_enabled',              'add_colons'),
@@ -2752,6 +2756,8 @@ class Editor(SpyderPluginWidget):
             converteol_o = self.get_option(converteol_n)
             converteolto_n = 'convert_eol_on_save_to'
             converteolto_o = self.get_option(converteolto_n)
+            runcellfunc_n = 'run_cell_func'
+            runcellfunc_o = self.get_option(runcellfunc_n)
             autocomp_n = 'codecompletion/auto'
             autocomp_o = self.get_option(autocomp_n)
             case_comp_n = 'codecompletion/case_sensitive'
@@ -2812,6 +2818,8 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_convert_eol_on_save(converteol_o)
                 if converteolto_n in options:
                     editorstack.set_convert_eol_on_save_to(converteolto_o)
+                if runcellfunc_n in options:
+                    editorstack.set_run_cell_func(runcellfunc_o)
                 if autocomp_n in options:
                     editorstack.set_codecompletion_auto_enabled(autocomp_o)
                 if case_comp_n in options:

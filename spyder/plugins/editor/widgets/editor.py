@@ -534,6 +534,7 @@ class EditorStack(QWidget):
         self.convert_eol_on_save = False
         self.convert_eol_on_save_to = 'LF'
         self.focus_to_editor = True
+        self.run_cell_func = True
         self.create_new_file_if_empty = True
         self.indent_guides = False
         ccs = 'Spyder'
@@ -1156,6 +1157,13 @@ class EditorStack(QWidget):
 
     def set_focus_to_editor(self, state):
         self.focus_to_editor = state
+
+    def set_run_cell_func(self, state):
+        """If `state` is `True`, run_cell() will be used for code cells."""
+        self.run_cell_func = state
+
+    def set_introspector(self, introspector):
+        self.introspector = introspector
 
     #------ Stacked widget management
     def get_stack_index(self):
@@ -2405,8 +2413,15 @@ class EditorStack(QWidget):
 
     def run_cell(self):
         """Run current cell"""
-        text, line = self.get_current_editor().get_cell_as_executable_code()
-        self._run_cell_text(text, line)
+        text, line = self.get_current_editor().\
+                     get_cell_as_executable_code(self.run_cell_func)
+        finfo = self.get_current_finfo()
+        if finfo.editor.is_python() and text:
+            if self.run_cell_func:
+                self._run_cell_text(text, line)
+            else:
+                self.exec_in_extconsole.emit(text, self.focus_to_editor)
+        
 
     def run_cell_and_advance(self):
         """Run current cell and advance to the next one"""
@@ -2435,7 +2450,7 @@ class EditorStack(QWidget):
 
     def re_run_last_cell(self):
         text, line = self.get_current_editor().\
-                     get_last_cell_as_executable_code()
+                     get_last_cell_as_executable_code(self.run_cell_func)
         self._run_cell_text(text, line)
 
     def _run_cell_text(self, text, line):

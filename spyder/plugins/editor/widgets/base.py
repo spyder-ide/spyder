@@ -689,7 +689,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         return ls.join(lines)
 
-    def __exec_cell(self):
+    def __exec_cell(self, run_cell_func):
         init_cursor = QTextCursor(self.textCursor())
         start_pos, end_pos = self.__save_selection()
         cursor, whole_file_selected = self.select_current_cell()
@@ -699,21 +699,22 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         text = self.get_selection_as_executable_code()
         self.last_cursor_cell = init_cursor
         self.__restore_selection(start_pos, end_pos)
+        line = line_from if run_cell_func else 0
         if text is not None:
             text = text.rstrip()
-            text = '\n' * line_from + text
-        return text, line_from
+            text = '\n' * line + text
+        return text, line
 
-    def get_cell_as_executable_code(self):
+    def get_cell_as_executable_code(self, run_cell_func):
         """Return cell contents as executable code"""
-        return self.__exec_cell()
+        return self.__exec_cell(run_cell_func)
 
-    def get_last_cell_as_executable_code(self):
+    def get_last_cell_as_executable_code(self, run_cell_func):
         text = None
         if self.last_cursor_cell:
             self.setTextCursor(self.last_cursor_cell)
             self.highlight_current_cell()
-            text, line = self.__exec_cell()
+            text, line = self.__exec_cell(run_cell_func)
         return text, line
 
     def is_cell_separator(self, cursor=None, block=None):
