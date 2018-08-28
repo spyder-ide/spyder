@@ -648,6 +648,54 @@ Files covered:
 spyder/utils/help/js/copy_button.js
 
 
+-------------------------------------------------------------------------------
+
+
+
+QtWaitingSpinner
+----------------
+
+
+Copyright (c) 2012-2014 Alexander Turkin
+Copyright (c) 2014 William Hallatt
+Copyright (c) 2015 Jacob Dawid
+Copyright (c) 2016 Luca Weiss
+Copyright (c) 2017- Spyder Project Contributors
+
+
+Author: Alex Turkin, Luca Weiss and Contributors
+https://github.com/z3ntu/QtWaitingSpinner/graphs/contributors
+Site: https://github.com/snowwlex/QtWaitingSpinner
+Source: https://github.com/z3ntu/QtWaitingSpinner
+License: MIT (Expat) License | https://opensource.org/licenses/MIT
+
+A trivial modification was made to ensure independent function with Spyder.
+
+
+Original Work Copyright (c) 2012-2015 Alexander Turkin
+Modified 2014 by William Hallatt
+
+Modified for Python by Luca Weiss (@z3ntu)
+https://github.com/z3ntu
+
+Thanks to @snowwlex for the base of my port (and the README)!
+https://github.com/snowwlex
+
+QtWaitingSpinner was inspired by the spin.js project.
+https://spin.js.org/
+
+
+See below for the full text of the MIT (Expat) License.
+
+The current Waiting Spinner license can be viewed at:
+https://github.com/z3ntu/QtWaitingSpinner/blob/master/LICENSE.md
+
+
+Files covered:
+
+spyder/widgets/waitingspinner.py
+
+
 
 ===============================================================================
 
