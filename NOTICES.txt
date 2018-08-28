@@ -560,6 +560,46 @@ Files covered:
 spyder/utils/external/lockfile.py
 
 
+-------------------------------------------------------------------------------
+
+
+
+Toggleable Sections from the Cloud Sphinx Theme 1.6
+---------------------------------------------------
+
+
+Copyright (c) 2011-2012 Assurance Technologies
+Copyright (c) 2014- Spyder Project Contributors
+
+
+Author: Assurance Technologies | https://www.assurancetechnologies.com
+Site/Source: https://bitbucket.org/ecollins/cloud_sptheme/
+License: BSD (3-clause) License | https://opensource.org/licenses/BSD-3-Clause
+
+Modifications made to extract and adapt a specific section of code for Spyder.
+
+
+cloud_sptheme is released under the BSD license,
+and is (c) `Assurance Technologies <https://www.assurancetechnologies.com>`_
+
+The "cloud_sptheme" python package and artwork is
+Copyright (c) 2010-2012 by Assurance Technologies, LLC.
+
+
+See below for the full text of the 3-clause BSD license.
+
+The current Cloud Sphinx Theme license can be viewed at:
+https://bitbucket.org/ecollins/cloud_sptheme/src/default/LICENSE
+
+The current version of the original file can be viewed at:
+https://bitbucket.org/ecollins/cloud_sptheme/src/default/cloud_sptheme/themes/cloud/static/cloud.js_t
+
+
+Files covered:
+
+spyder/utils/help/js/collapse_sections.js
+
+
 
 ===============================================================================
 
