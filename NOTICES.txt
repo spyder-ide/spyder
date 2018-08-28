@@ -600,6 +600,54 @@ Files covered:
 spyder/utils/help/js/collapse_sections.js
 
 
+-------------------------------------------------------------------------------
+
+
+
+Copy Button from the Python Docs Theme
+--------------------------------------
+
+
+Copyright (c) 2012 Python Software Foundation
+Copyright (c) 2012- Spyder Project Contributors
+
+
+Author: Python Software Foundation | https://www.python.org/
+Site: https://docs.python.org/3/
+Source: https://github.com/python/python-docs-theme
+License: Python Software Foundation License Version 2
+https://docs.python.org/3/license.html
+
+Minor modifications made to style.
+
+
+Note that when adopting this theme, you're also borrowing an element of the
+trust and credibility established by the CPython core developers over the
+years. That's fine, and you're welcome to do so for other Python community
+projects if you so choose, but please keep in mind that in doing so you're also
+choosing to accept some of the responsibility for maintaining that collective
+trust.
+
+The Python name and logo is a trademark of the Python Software Foundation.
+
+
+See below for the full text of the PSF License Version 2.
+
+The current Cloud Sphinx Theme license can be viewed at:
+https://bitbucket.org/ecollins/cloud_sptheme/src/default/LICENSE
+
+The current version of the original file can be viewed at:
+https://github.com/python/python-docs-theme/blob/master/python_docs_theme/static/copybutton.js
+
+The original file is used online at:
+https://docs.python.org/_static/copybutton.js
+
+
+Files covered:
+
+spyder/utils/help/js/copy_button.js
+
+
 
 ===============================================================================
 
