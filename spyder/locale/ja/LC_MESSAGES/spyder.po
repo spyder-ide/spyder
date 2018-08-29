@@ -1,9 +1,17 @@
-# Japanese translations for PACKAGE package
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2009- Spyder Project Contributors
+#
+# Distributed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
+#
+# Spyder's Japanese gettext translation file
+#
 # PACKAGE パッケージに対する英訳.
-# Copyright (C) 2016 THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
 # Ohnishi Seiki <s.ohnishi77@gmail.com>, 2016.
 #
+
 msgid ""
 msgstr ""
 "Project-Id-Version: Spyder3\n"
