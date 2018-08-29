@@ -927,9 +927,12 @@ class IPythonConsole(SpyderPluginWidget):
         is_internal_kernal = False
         if client is not None:
             # Internal kernels, use runcell
-            if True:  # client.get_kernel() is not None:
-                line = "{}('{}','{}')".format('runcell', norm(cell_name),
-                                              norm(filename))
+            if client.get_kernel() is not None:
+                line = "{}('{}','{}')".format('runcell',
+                                              to_text_string(cell_name).\
+                                                      replace("'", r"\'"),
+                                              norm(filename).\
+                                                      replace("'", r"\'"))
                 is_internal_kernal = True
             else:  # External kernels, just execute the code
                 line = code.strip()

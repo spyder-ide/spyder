@@ -615,7 +615,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             super(TextEditBaseWidget, self).keyPressEvent(event)
 
     #------Text: get, set, ...
-    def get_selection_as_executable_code(self):
+    def get_selection_as_executable_code(self, run_cell_func=False):
         """Return selected text as a processed text,
         to be executable in a Python/IPython interpreter"""
         ls = self.get_line_separator()
@@ -652,9 +652,11 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         # Remove any leading whitespace or comment lines
         # since they confuse the reserved word detector that follows below
+        lines_removed = 0
         while lines:
             first_line = lines[0].lstrip()
             if first_line == '' or first_line[0] == '#':
+                lines_removed += 1
                 lines.pop(0)
             else:
                 break
@@ -686,23 +688,26 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 lines[-1] += ls
             else:
                 lines.append(ls)
-
-        return ls.join(lines)
+        
+        # Adding removed lines back to have correct traceback line numbers
+        leading_lines_str = ls * lines_removed if run_cell_func else ''
+        
+        return leading_lines_str + ls.join(lines)
 
     def __exec_cell(self, run_cell_func):
+        ls = self.get_line_separator()
         init_cursor = QTextCursor(self.textCursor())
         start_pos, end_pos = self.__save_selection()
         cursor, whole_file_selected = self.select_current_cell()
-        if not whole_file_selected:
-            self.setTextCursor(cursor)
+        self.setTextCursor(cursor)
         line_from, line_to = self.get_selection_bounds()
-        text = self.get_selection_as_executable_code()
+        text = self.get_selection_as_executable_code(run_cell_func)
         self.last_cursor_cell = init_cursor
         self.__restore_selection(start_pos, end_pos)
         line = line_from if run_cell_func else 0
         if text is not None:
             text = text.rstrip()
-            text = '\n' * line + text
+            text = ls * line + text
         return text, line
 
     def get_cell_as_executable_code(self, run_cell_func):
