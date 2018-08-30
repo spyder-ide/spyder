@@ -102,6 +102,8 @@ def test_adding_warnings(qtbot, construct_editor):
             # assert expected in warning
 
 
+@pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
+                    reason="Times out on AppVeyor")
 def test_move_warnings(qtbot, construct_editor):
     editor, lsp_manager = construct_editor
 
