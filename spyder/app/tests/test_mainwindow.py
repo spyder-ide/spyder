@@ -266,6 +266,8 @@ def test_filter_numpy_warning(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
+                    reason="Times out on AppVeyor")
 @pytest.mark.use_introspection
 def test_get_help_ipython_console(main_window, qtbot):
     """Test that Help works when called from the IPython console."""
@@ -290,6 +292,8 @@ def test_get_help_ipython_console(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
+                    reason="Times out on AppVeyor")
 @pytest.mark.use_introspection
 def test_get_help_editor(main_window, qtbot):
     """ Test that Help works when called from the Editor."""
