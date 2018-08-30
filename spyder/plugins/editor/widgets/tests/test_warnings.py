@@ -75,8 +75,8 @@ def construct_editor(qtbot, *args, **kwargs):
     lsp_manager.closing_plugin()
 
 
-@pytest.mark.skipif(os.name == 'nt' and not PY2,
-                    reason="Times out on AppVeyor and fails on PY3/PyQt 5.6")
+@pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
+                    reason="Times out on AppVeyor")
 def test_adding_warnings(qtbot, construct_editor):
     """Test that warning are saved in the blocks of the editor."""
     editor, lsp_manager = construct_editor
