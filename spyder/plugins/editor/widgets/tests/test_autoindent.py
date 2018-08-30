@@ -18,8 +18,7 @@ from spyder.py3compat import to_text_string
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 
 
-# --- Fixtures
-# -----------------------------------------------------------------------------
+# ---- Fixtures
 def get_indent_fix(text, indent_chars=" " * 4, tab_stop_width_spaces=4,
                    sol=False, forward=True, language='Python'):
     """Return text with last line's indentation fixed."""
@@ -40,8 +39,7 @@ def get_indent_fix(text, indent_chars=" " * 4, tab_stop_width_spaces=4,
     return to_text_string(editor.toPlainText())
 
 
-# --- Tests
-# -----------------------------------------------------------------------------
+# ---- Tests
 def test_simple_tuple():
     text = get_indent_fix("this_tuple = (1, 2)\n")
     assert text == "this_tuple = (1, 2)\n"
@@ -72,28 +70,33 @@ def test_open_parenthesis():
     text = get_indent_fix("open_parenthesis(\n")
     assert text == "open_parenthesis(\n        ", repr(text)
 
+
 def test_open_bracket():
     # An open bracket with no item is followed by a hanging indent
     text = get_indent_fix("open_bracket[\n")
     assert text == "open_bracket[\n        ", repr(text)
-    
+
+
 def test_open_curly():
     # An open curly bracket with no item is followed by a hanging indent
     text = get_indent_fix("open_curly{\n")
     assert text == "open_curly{\n        ", repr(text)
-    
+
+
 def test_align_on_parenthesis():
     # An open parenthesis with one or more item is followed by an indent
     # up to the parenthesis.
     text = get_indent_fix("parenthesis_w_item = (1,\n")
-    assert text == "parenthesis_w_item = (1,\n                      ", repr(text)    
+    assert text == "parenthesis_w_item = (1,\n                      ", repr(text)
+
 
 def test_align_on_bracket():
     # An open bracket with one or more item is followed by an indent
     # up to the parenthesis.
     text = get_indent_fix("bracket_w_item = (1,\n")
-    assert text == "bracket_w_item = (1,\n                  ", repr(text)    
-    
+    assert text == "bracket_w_item = (1,\n                  ", repr(text)
+
+
 def test_align_on_curly():
     # An open curly bracket with one or more item is followed by an indent
     # up to the parenthesis.
@@ -173,12 +176,11 @@ def test_def_with_unindented_comment():
     assert text == "def function():\n# Comment\n    ", repr(text)
 
 
-# --- Tabs tests
-# -----------------------------------------------------------------------------
 @pytest.mark.parametrize("tab_stop_width_spaces", [1,2,3,4,5,6,7,8])
 @pytest.mark.parametrize(
     "text_input, expected, test_text",
     [
+# ---- Tabs tests
         ("this_tuple = (1, 2)\n", "this_tuple = (1, 2)\n", "simple tuple"),
         ("\ndef function():\n", "\ndef function():\n\t", "def with new line"),
         ("def function():\n\t# Comment\n", "def function():\n\t# Comment\n\t",
@@ -242,12 +244,11 @@ def test_unindentation_with_tabs(text_input, expected, test_text,
     assert text == expected, test_text
 
 
-# --- Simple indentation tests
-# -----------------------------------------------------------------------------
 
 @pytest.mark.parametrize(
     "text_input, expected, test_text",
     [
+# ---- Simple indentation tests
         ("hola\n", "hola\n", "witout indentation"),
         ("  hola\n", "  hola\n  ", "some indentation"),
         ("\thola\n", "\thola\n\t", "tab indentation"),
