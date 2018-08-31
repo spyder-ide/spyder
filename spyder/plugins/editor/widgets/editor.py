@@ -851,7 +851,7 @@ class EditorStack(QWidget):
         # Remove editor references from the outline explorer settings
         if self.outlineexplorer is not None:
             for finfo in self.data:
-                self.outlineexplorer.remove_editor(finfo.editor)
+                self.outlineexplorer.remove_editor(finfo.editor.oe_proxy)
 
         QWidget.closeEvent(self, event)
 
