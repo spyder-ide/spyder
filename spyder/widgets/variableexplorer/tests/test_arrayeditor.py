@@ -87,13 +87,11 @@ def test_arrayeditor_with_string_array(qtbot):
     assert arr == launch_arrayeditor(arr, "string array")
 
 
-@pytest.mark.skipif(sys.platform == 'darwin', reason="It fails on macOS")
 def test_arrayeditor_with_unicode_array(qtbot):
     arr = np.array([u"ñññéáíó"])
     assert arr == launch_arrayeditor(arr, "unicode array")
 
 
-@pytest.mark.skipif(sys.platform == 'darwin', reason="It fails on macOS")
 def test_arrayeditor_with_masked_array(qtbot):
     arr = np.ma.array([[1, 0], [1, 0]], mask=[[True, False], [False, False]])
     assert_array_equal(arr, launch_arrayeditor(arr, "masked array"))
