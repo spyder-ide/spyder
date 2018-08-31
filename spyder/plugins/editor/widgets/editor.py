@@ -2651,9 +2651,9 @@ class EditorSplitter(QSplitter):
             print("method 'editorstack_closed':", file=STDOUT)
             print("    self  :", self, file=STDOUT)
 #            print >>STDOUT, "    sender:", self.sender()
-        self.unregister_editorstack_cb(self.editorstack)
-        self.editorstack = None
         try:
+            self.unregister_editorstack_cb(self.editorstack)
+            self.editorstack = None
             close_splitter = self.count() == 1
         except RuntimeError:
             # editorsplitter has been destroyed (happens when closing a
