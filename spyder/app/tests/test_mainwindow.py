@@ -266,13 +266,11 @@ def test_filter_numpy_warning(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' and not PY2,
-                    reason="Times out on AppVeyor and fails on PY3")
+@pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
+                    reason="Times out on AppVeyor")
 @pytest.mark.use_introspection
-def test_get_help(main_window, qtbot):
-    """
-    Test that Help works when called from the Editor and the IPython console.
-    """
+def test_get_help_ipython_console(main_window, qtbot):
+    """Test that Help works when called from the IPython console."""
     shell = main_window.ipyconsole.get_current_shellwidget()
     control = shell._control
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
@@ -280,12 +278,8 @@ def test_get_help(main_window, qtbot):
 
     help_plugin = main_window.help
     webview = help_plugin.rich_text.webview._webview
-    if WEBENGINE:
-        webpage = webview.page()
-    else:
-        webpage = webview.page().mainFrame()
+    webpage = webview.page() if WEBENGINE else webview.page().mainFrame()
 
-    # --- From the console ---
     # Write some object in the console
     qtbot.keyClicks(control, 'runfile')
 
@@ -295,8 +289,18 @@ def test_get_help(main_window, qtbot):
     # Check that a expected text is part of the page
     qtbot.waitUntil(lambda: check_text(webpage, "namespace"), timeout=6000)
 
-    # --- From the editor ---
-    qtbot.wait(3000)
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
+                    reason="Times out on AppVeyor")
+@pytest.mark.use_introspection
+def test_get_help_editor(main_window, qtbot):
+    """ Test that Help works when called from the Editor."""
+    help_plugin = main_window.help
+    webview = help_plugin.rich_text.webview._webview
+    webpage = webview.page() if WEBENGINE else webview.page().mainFrame()
+
     # config_status = main_window.lspmanager.clients['python']['status']
     # if config_status == main_window.lspmanager.RUNNING:
     #     main_window.lspmanager.close_client('python')
@@ -308,7 +312,6 @@ def test_get_help(main_window, qtbot):
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_open()
 
-
     # Write some object in the editor
     code_editor.set_text('range')
     code_editor.move_cursor(len('range'))
@@ -318,7 +321,6 @@ def test_get_help(main_window, qtbot):
     # Get help
     with qtbot.waitSignal(code_editor.sig_display_signature, timeout=30000):
         editorstack.inspect_current_object()
-
 
     # Check that a expected text is part of the page
     qtbot.waitUntil(lambda: check_text(webpage, "range"), timeout=30000)
