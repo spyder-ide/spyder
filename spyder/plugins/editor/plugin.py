@@ -196,7 +196,7 @@ class EditorConfigPage(PluginConfigPage):
         focus_box = newcb(_("Maintain focus in the Editor after running cells "
                             "or selections"), 'focus_to_editor')
         run_cell_box = newcb(_("Use the run cell function to execute code "
-                            "cells"), 'run_cell_func')
+                               "cells"), 'run_cell_func')
 
         introspection_group = QGroupBox(_("Introspection"))
         rope_is_installed = programs.is_module_installed('rope')

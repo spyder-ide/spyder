@@ -384,6 +384,17 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
                      ufstring1, ufstring2, ufstring3, ufstring4, string,
                      number, any("SYNC", [r"\n"])])
 
+def get_code_cell_name(text):
+    """Returns a code cell name from a code cell comment"""
+    name = text.strip().lstrip("#% ")
+    if name.startswith("<codecell>"):
+        name = name[10:].lstrip()
+    elif name.startswith("In["):
+        name = name[2:]
+        if name.endswith("]:"):
+            name = name[:-1]
+        name = name.strip()
+    return name
 
 class PythonSH(BaseSH):
     """Python Syntax Highlighter"""
@@ -472,7 +483,7 @@ class PythonSH(BaseSH):
                                     oedata.cell_level = len(cell_head) - 2
                                 oedata.fold_level = start
                                 oedata.def_type = OutlineExplorerData.CELL
-                                oedata.def_name = text.strip()
+                                oedata.def_name = get_code_cell_name(text)
                             elif self.OECOMMENT.match(text.lstrip()):
                                 oedata = OutlineExplorerData()
                                 oedata.text = to_text_string(text).strip()

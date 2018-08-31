@@ -2413,15 +2413,8 @@ class EditorStack(QWidget):
 
     def run_cell(self):
         """Run current cell"""
-        text, line = self.get_current_editor().\
-                     get_cell_as_executable_code(self.run_cell_func)
-        finfo = self.get_current_finfo()
-        if finfo.editor.is_python() and text:
-            if self.run_cell_func:
-                self._run_cell_text(text, line)
-            else:
-                self.exec_in_extconsole.emit(text, self.focus_to_editor)
-        
+        text, line = self.get_current_editor().get_cell_as_executable_code()
+        self._run_cell_text(text, line)
 
     def run_cell_and_advance(self):
         """Run current cell and advance to the next one"""
@@ -2450,7 +2443,7 @@ class EditorStack(QWidget):
 
     def re_run_last_cell(self):
         text, line = self.get_current_editor().\
-                     get_last_cell_as_executable_code(self.run_cell_func)
+                     get_last_cell_as_executable_code()
         self._run_cell_text(text, line)
 
     def _run_cell_text(self, text, line):
@@ -2463,19 +2456,15 @@ class EditorStack(QWidget):
         editor = self.get_current_editor()
         oe_data = editor.highlighter.get_outlineexplorer_data()
         try:
-            cell_name = oe_data.get(line-1).text
+            cell_name = oe_data.get(line-1).def_name
         except AttributeError:
             cell_name = ''
-        cell_name = cell_name.lstrip("#% ")
-        if cell_name.startswith("<codecell>"):
-            cell_name = cell_name[10:].lstrip()
-        elif cell_name.startswith("In["):
-            cell_name = cell_name[2:]
-            if cell_name.endswith("]:"):
-                cell_name = cell_name[:-1]
-            cell_name = cell_name.strip()
         if finfo.editor.is_python() and text:
-            self.run_cell_in_ipyclient.emit(text, cell_name, finfo.filename)
+            if self.run_cell_func:
+                self.run_cell_in_ipyclient.emit(text, cell_name, finfo.filename)
+            else:
+                self.exec_in_extconsole.emit(text.lstrip(),
+                                             self.focus_to_editor)
         editor.setFocus()
 
     #------ Drag and drop

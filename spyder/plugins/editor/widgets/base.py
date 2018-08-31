@@ -615,7 +615,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             super(TextEditBaseWidget, self).keyPressEvent(event)
 
     #------Text: get, set, ...
-    def get_selection_as_executable_code(self, run_cell_func=False):
+    def get_selection_as_executable_code(self):
         """Return selected text as a processed text,
         to be executable in a Python/IPython interpreter"""
         ls = self.get_line_separator()
@@ -690,36 +690,35 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 lines.append(ls)
         
         # Adding removed lines back to have correct traceback line numbers
-        leading_lines_str = ls * lines_removed if run_cell_func else ''
+        leading_lines_str = ls * lines_removed
         
         return leading_lines_str + ls.join(lines)
 
-    def __exec_cell(self, run_cell_func):
+    def __exec_cell(self):
         ls = self.get_line_separator()
         init_cursor = QTextCursor(self.textCursor())
         start_pos, end_pos = self.__save_selection()
         cursor, whole_file_selected = self.select_current_cell()
         self.setTextCursor(cursor)
         line_from, line_to = self.get_selection_bounds()
-        text = self.get_selection_as_executable_code(run_cell_func)
+        text = self.get_selection_as_executable_code()
         self.last_cursor_cell = init_cursor
         self.__restore_selection(start_pos, end_pos)
-        line = line_from if run_cell_func else 0
         if text is not None:
             text = text.rstrip()
-            text = ls * line + text
-        return text, line
+            text = ls * line_from + text
+        return text, line_from
 
-    def get_cell_as_executable_code(self, run_cell_func):
+    def get_cell_as_executable_code(self):
         """Return cell contents as executable code"""
-        return self.__exec_cell(run_cell_func)
+        return self.__exec_cell()
 
-    def get_last_cell_as_executable_code(self, run_cell_func):
+    def get_last_cell_as_executable_code(self):
         text = None
         if self.last_cursor_cell:
             self.setTextCursor(self.last_cursor_cell)
             self.highlight_current_cell()
-            text, line = self.__exec_cell(run_cell_func)
+            text, line = self.__exec_cell()
         return text, line
 
     def is_cell_separator(self, cursor=None, block=None):
