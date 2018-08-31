@@ -101,7 +101,7 @@ def test_arrayeditor_with_masked_array(qtbot):
 
 def test_arrayeditor_with_record_array(qtbot):
     arr = np.zeros((2, 2), {'names': ('red', 'green', 'blue'),
-                           'formats': (np.float32, np.float32, np.float32)})
+                            'formats': (np.float32, np.float32, np.float32)})
     assert_array_equal(arr, launch_arrayeditor(arr, "record array"))
 
 
