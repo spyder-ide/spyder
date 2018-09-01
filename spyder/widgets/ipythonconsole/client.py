@@ -34,7 +34,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import sourcecode
 from spyder.utils.encoding import get_coding
 from spyder.utils.environ import RemoteEnvDialog
-from spyder.utils.programs import TEMPDIR
+from spyder.utils.programs import get_temp_dir
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, DialogManager,
                                     MENU_SEPARATOR)
@@ -188,9 +188,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                 stderr_file = osp.join(self.stderr_dir, stderr_file)
             else:
                 try:
-                    if not osp.isdir(TEMPDIR):
-                        os.makedirs(TEMPDIR)
-                    stderr_file = osp.join(TEMPDIR, stderr_file)
+                    stderr_file = osp.join(get_temp_dir(), stderr_file)
                 except (IOError, OSError):
                     stderr_file = None
         return stderr_file
