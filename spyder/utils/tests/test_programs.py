@@ -15,7 +15,7 @@ from spyder.utils.programs import (run_python_script_in_terminal,
                                    is_python_interpreter,
                                    is_python_interpreter_valid_name,
                                    find_program, shell_split, check_version,
-                                   is_module_installed)
+                                   is_module_installed, get_temp_dir)
 
 
 if os.name == 'nt':
@@ -109,6 +109,19 @@ def test_is_module_installed():
     assert not is_module_installed('IPython', '>=1.0;<3.0')
     assert is_module_installed('jedi', '>=0.7.0')
 
+def test_get_temp_dir_ensure_dir_exists():
+    """Test that the call to get_temp_dir creates the dir if it does not exists"""
+    temp_dir = get_temp_dir(suffix='test')
+    assert os.path.exists(temp_dir)
+
+    os.rmdir(temp_dir)
+
+    another_call = get_temp_dir(suffix='test')
+
+    assert os.path.exists(another_call)
+    assert another_call == temp_dir
+
+
 if __name__ == '__main__':
     pytest.main()
-    
+
