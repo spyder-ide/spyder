@@ -53,7 +53,7 @@ from spyder.utils.ipython.style import create_qss_style
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, programs, sourcecode
-from spyder.utils.programs import TEMPDIR
+from spyder.utils.programs import get_temp_dir
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.ipythonconsole import ClientWidget
@@ -652,7 +652,7 @@ class IPythonConsole(SpyderPluginWidget):
                              "required to create IPython consoles. Please "
                              "make it writable.")
 
-    def __init__(self, parent, testing=False, test_dir=TEMPDIR,
+    def __init__(self, parent, testing=False, test_dir=None,
                  test_no_stderr=False):
         """Ipython Console constructor."""
         if PYQT5:
@@ -677,7 +677,11 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Attrs for testing
         self.testing = testing
-        self.test_dir = test_dir
+        if test_dir is None:
+            self.test_dir = get_temp_dir()
+        else:
+            self.test_dir = test_dir
+
         self.test_no_stderr = test_no_stderr
 
         # Initialize plugin
@@ -685,7 +689,7 @@ class IPythonConsole(SpyderPluginWidget):
             self.initialize_plugin()
 
         # Create temp dir on testing to save kernel errors
-        if self.testing:
+        if self.testing and test_dir is not None:
             if not osp.isdir(osp.join(test_dir)):
                 os.makedirs(osp.join(test_dir))
 

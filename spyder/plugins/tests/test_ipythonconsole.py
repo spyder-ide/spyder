@@ -33,7 +33,6 @@ from spyder.config.main import CONF
 from spyder.py3compat import PY2, to_text_string
 from spyder.plugins.ipythonconsole import IPythonConsole
 from spyder.utils.ipython.style import create_style_class
-from spyder.utils.programs import TEMPDIR
 
 
 # =============================================================================
@@ -42,6 +41,7 @@ from spyder.utils.programs import TEMPDIR
 SHELL_TIMEOUT = 20000
 TEMP_DIRECTORY = tempfile.gettempdir()
 NON_ASCII_DIR = osp.join(TEMP_DIRECTORY, u'測試', u'اختبار')
+ASCII_DIR = osp.join(TEMP_DIRECTORY, 'username')
 
 
 # =============================================================================
@@ -73,7 +73,7 @@ def ipyconsole(qtbot, request):
     if non_ascii_dir:
         test_dir = NON_ASCII_DIR
     else:
-        test_dir = TEMPDIR
+        test_dir = ASCII_DIR
 
     # Instruct the console to not use a stderr file
     no_stderr_file = request.node.get_marker('no_stderr_file')
