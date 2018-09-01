@@ -557,14 +557,15 @@ class FindOptions(QWidget):
         file_search = self.path_selection_combo.is_file_search()
         path = self.path_selection_combo.get_current_searchpath()
 
-        # Finding text occurrences
+        if not exclude_re:
+            items = [fnmatch.translate(item.strip())
+                     for item in exclude.split(",")]
+            exclude = '|'.join(items)
+
+        # Validate regular expressions:
+
         try:
-            if not exclude_re:
-                items = [fnmatch.translate(item.strip())
-                         for item in exclude.split(",")]
-                exclude = '|'.join(items)
-            else:
-                exclude = re.compile(exclude)
+            exclude = re.compile(exclude)
         except Exception:
             exclude_edit = self.exclude_pattern.lineEdit()
             exclude_edit.setStyleSheet(self.REGEX_INVALID)
