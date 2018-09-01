@@ -495,7 +495,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         while isinstance(root_item.parent(), QTreeWidgetItem):
             root_item = root_item.parent()
         return root_item
-    
+
     def get_visible_items(self):
         """Return a list of all visible items in the treewidget."""
         items = []
@@ -509,7 +509,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 items.append(item)
             iterator += 1
         return items
-                
+
     def activated(self, item):
         """Double-click event"""
         line = 0
