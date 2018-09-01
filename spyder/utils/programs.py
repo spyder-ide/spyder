@@ -30,11 +30,17 @@ class ProgramError(Exception):
     pass
 
 
-if os.name == 'nt':
-    TEMPDIR = tempfile.gettempdir() + osp.sep + 'spyder'
-else:
-    username = encoding.to_unicode_from_fs(getuser())
-    TEMPDIR = tempfile.gettempdir() + osp.sep + 'spyder-' + username
+def get_temp_dir():
+    if os.name == 'nt':
+        tempdir = tempfile.gettempdir() + osp.sep + 'spyder'
+    else:
+        username = encoding.to_unicode_from_fs(getuser())
+        tempdir = tempfile.gettempdir() + osp.sep + 'spyder-' + username
+
+    if not osp.isdir(tempdir):
+        os.mkdir(tempdir)
+
+    return tempdir
 
 
 def is_program_installed(basename):
@@ -407,7 +413,7 @@ def is_module_installed(module_name, version=None, installed_version=None,
             get_modver = inspect.getsource(get_module_version)
             stable_ver = inspect.getsource(is_stable_version)
             ismod_inst = inspect.getsource(is_module_installed)
-            fd, script = tempfile.mkstemp(suffix='.py', dir=TEMPDIR)
+            fd, script = tempfile.mkstemp(suffix='.py', dir=get_temp_dir())
             with os.fdopen(fd, 'w') as f:
                 f.write("# -*- coding: utf-8 -*-" + "\n\n")
                 f.write("from distutils.version import LooseVersion" + "\n")
