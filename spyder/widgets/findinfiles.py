@@ -560,7 +560,8 @@ class FindOptions(QWidget):
         # Finding text occurrences
         try:
             if not exclude_re:
-                items = [fnmatch.translate(item.strip()) for item in exclude.split(",")]
+                items = [fnmatch.translate(item.strip())
+                         for item in exclude.split(",")]
                 exclude = '|'.join(items)
             else:
                 exclude = re.compile(exclude)

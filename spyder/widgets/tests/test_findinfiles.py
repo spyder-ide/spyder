@@ -129,7 +129,8 @@ def test_exclude_extension_regex(qtbot):
 
 
 def test_exclude_extension_string(qtbot):
-    find_in_files = setup_findinfiles(qtbot, exclude="*.py", exclude_regexp=False)
+    find_in_files = setup_findinfiles(qtbot, exclude="*.py",
+                                      exclude_regexp=False)
     find_in_files.set_search_text("spam")
     find_in_files.find_options.set_directory(osp.join(LOCATION, "data"))
     find_in_files.find()
@@ -146,7 +147,8 @@ def test_exclude_extension_string(qtbot):
 
 
 def test_exclude_extension_multiple_string(qtbot):
-    find_in_files = setup_findinfiles(qtbot, exclude="*.py, *.cpp", exclude_regexp=False)
+    find_in_files = setup_findinfiles(qtbot, exclude="*.py, *.cpp",
+                                      exclude_regexp=False)
     find_in_files.set_search_text("spam")
     find_in_files.find_options.set_directory(osp.join(LOCATION, "data"))
     find_in_files.find()
