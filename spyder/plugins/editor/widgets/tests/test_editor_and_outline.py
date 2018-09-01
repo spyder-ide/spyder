@@ -28,7 +28,7 @@ from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
 def python_files(tmpdir_factory):
     """Create and save some python codes in temporary files."""
     tmpdir = tmpdir_factory.mktemp("files")
-    
+
     filename1 = osp.join(tmpdir.strpath, 'foo1.py')
     with open(filename1, 'w') as f:
         f.write("# -*- coding: utf-8 -*-\n"
@@ -41,6 +41,7 @@ def python_files(tmpdir_factory):
                 "# ---- a comment\n")
 
     return [filename1, filename2]
+
 
 @pytest.fixture
 def empty_editor_bot(qtbot):
@@ -62,10 +63,10 @@ def empty_editor_bot(qtbot):
     editorstack.analysis_timer = Mock()
     editorstack.save_dialog_on_tests = True
     editorstack.set_outlineexplorer(outlineexplorer)
-    
+
     qtbot.addWidget(editorstack)
     editorstack.show()
-    
+
     return editorstack, outlineexplorer, qtbot
 
 
@@ -80,6 +81,7 @@ def editor_bot(empty_editor_bot, python_files):
 
     return editorstack, outlineexplorer, qtbot
 
+
 # ---- Tests
 def test_load_files(empty_editor_bot, python_files):
     """
@@ -88,22 +90,23 @@ def test_load_files(empty_editor_bot, python_files):
     """
     editorstack, outlineexplorer, qtbot = empty_editor_bot
     treewidget = outlineexplorer.treewidget
-    
+
     # Load the first file and assert the content of the outline explorer.
     editorstack.load(python_files[0])
     assert editorstack.get_current_filename() == python_files[0]
     editorstack.tabs.currentIndex() == 0
-    
+
     results = [item.text(0) for item in treewidget.get_visible_items()]
     assert results == ['foo1.py', 'foo']
-        
+
     # Load the second file and assert the content of the outline explorer tree.
     editorstack.load(python_files[1])
     assert editorstack.get_current_filename() == python_files[1]
     editorstack.tabs.currentIndex() == 1
-    
+
     results = [item.text(0) for item in treewidget.get_visible_items()]
     assert results == ['foo1.py', 'foo2.py', '---- a comment']
+
 
 def test_close_editor(editor_bot):
     """
@@ -120,8 +123,8 @@ def test_close_editor(editor_bot):
     editorstack.close()
 
     assert not treewidget.get_visible_items()
-    
-        
+
+
 def test_close_a_file(editor_bot):
     """
     Test that the content of the outline explorer is updated corrrectly
@@ -131,7 +134,7 @@ def test_close_a_file(editor_bot):
     """
     editorstack, outlineexplorer, qtbot = editor_bot
     treewidget = outlineexplorer.treewidget
-    
+
     # Close 'foo2.py' and assert that the content of the outline explorer
     # tree has been updated.
     editorstack.close_file(index=1)
