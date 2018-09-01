@@ -65,6 +65,7 @@ def editor_find_replace_bot(base_editor_bot):
     editor_stack.set_find_widget(find_replace)
     find_replace.set_editor(finfo.editor)
     qtbot.addWidget(editor_stack)
+    qtbot.addWidget(find_replace)
     return editor_stack, finfo.editor, find_replace, qtbot
 
 @pytest.fixture
@@ -103,6 +104,7 @@ def editor_folding_bot(base_editor_bot):
     editor_stack.set_find_widget(find_replace)
     find_replace.set_editor(finfo.editor)
     qtbot.addWidget(editor_stack)
+    qtbot.addWidget(find_replace)
     return editor_stack, finfo.editor, find_replace, qtbot
 
 
