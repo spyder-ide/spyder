@@ -121,4 +121,24 @@ def test_close_editor(editor_bot):
 
     assert not treewidget.get_visible_items()
     
+        
+def test_close_a_file(editor_bot):
+    """
+    Test that the content of the outline explorer is updated corrrectly
+    after a file has been closed in the editorstack.
+
+    Regression test for issue #7798.
+    """
+    editorstack, outlineexplorer, qtbot = editor_bot
+    treewidget = outlineexplorer.treewidget
     
+    # Close 'foo2.py' and assert that the content of the outline explorer
+    # tree has been updated.
+    editorstack.close_file(index=1)
+    results = [item.text(0) for item in treewidget.get_visible_items()]
+    assert results == ['foo1.py', 'foo']
+
+
+if __name__ == "__main__":
+    import os
+    pytest.main([os.path.basename(__file__), '-vv', '-rw'])
