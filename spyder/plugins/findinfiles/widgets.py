@@ -139,10 +139,16 @@ class SearchThread(QThread):
                     return False
             try:
                 for d in dirs[:]:
+                    with QMutexLocker(self.mutex):
+                        if self.stopped:
+                            return False
                     dirname = os.path.join(path, d)
                     if re.search(self.exclude, dirname + os.sep):
                         dirs.remove(d)
                 for f in files:
+                    with QMutexLocker(self.mutex):
+                        if self.stopped:
+                            return False
                     filename = os.path.join(path, f)
                     if re.search(self.exclude, filename):
                         continue
@@ -159,6 +165,9 @@ class SearchThread(QThread):
         try:
             for lineno, line in enumerate(open(fname, 'rb')):
                 for text, enc in self.texts:
+                    with QMutexLocker(self.mutex):
+                        if self.stopped:
+                            return False
                     line_search = line
                     if not self.case_sensitive:
                         line_search = line_search.lower()
@@ -178,6 +187,9 @@ class SearchThread(QThread):
                     line = line.lower()
                 if self.text_re:
                     for match in re.finditer(text, line):
+                        with QMutexLocker(self.mutex):
+                            if self.stopped:
+                                return False
                         self.total_matches += 1
                         self.sig_file_match.emit((osp.abspath(fname),
                                                   lineno + 1,
@@ -187,6 +199,9 @@ class SearchThread(QThread):
                 else:
                     found = line.find(text)
                     while found > -1:
+                        with QMutexLocker(self.mutex):
+                            if self.stopped:
+                                return False
                         self.total_matches += 1
                         self.sig_file_match.emit((osp.abspath(fname),
                                                   lineno + 1,
@@ -546,15 +561,17 @@ class FindOptions(QWidget):
         path = self.path_selection_combo.get_current_searchpath()
 
         # Finding text occurrences
-        if not exclude_re:
-            exclude = fnmatch.translate(exclude)
-        else:
-            try:
+        try:
+            if not exclude_re:
+                items = [fnmatch.translate(item.strip())
+                         for item in exclude.split(",")]
+                exclude = '|'.join(items)
+            else:
                 exclude = re.compile(exclude)
-            except Exception:
-                exclude_edit = self.exclude_pattern.lineEdit()
-                exclude_edit.setStyleSheet(self.REGEX_INVALID)
-                return None
+        except Exception:
+            exclude_edit = self.exclude_pattern.lineEdit()
+            exclude_edit.setStyleSheet(self.REGEX_INVALID)
+            return None
 
         if text_re:
             try:
