@@ -13,7 +13,8 @@ import os.path as osp
 # Third party imports
 from qtpy.compat import from_qvariant
 from qtpy.QtCore import QSize, Qt, Signal, Slot
-from qtpy.QtWidgets import QHBoxLayout, QTreeWidgetItem, QVBoxLayout, QWidget
+from qtpy.QtWidgets import (QHBoxLayout, QTreeWidgetItem, QVBoxLayout, QWidget,
+                            QTreeWidgetItemIterator)
 
 # Local imports
 from spyder.config.base import _, STDOUT
@@ -489,10 +490,25 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             self.root_item_selected(self.editor_items[editor_id])
 
     def get_root_item(self, item):
+        """Return the root item of the specified item."""
         root_item = item
         while isinstance(root_item.parent(), QTreeWidgetItem):
             root_item = root_item.parent()
         return root_item
+    
+    def get_visible_items(self):
+        """Return a list of all visible items in the treewidget."""
+        items = []
+        iterator = QTreeWidgetItemIterator(self)
+        while iterator.value():
+            item = iterator.value()
+            if item.parent():
+                if item.parent().isExpanded():
+                    items.append(item)
+            else:
+                items.append(item)
+            iterator += 1
+        return items
                 
     def activated(self, item):
         """Double-click event"""
