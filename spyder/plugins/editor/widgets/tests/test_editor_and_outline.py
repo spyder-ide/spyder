@@ -105,3 +105,20 @@ def test_load_files(empty_editor_bot, python_files):
     results = [item.text(0) for item in treewidget.get_visible_items()]
     assert results == ['foo1.py', 'foo2.py', '---- a comment']
 
+def test_close_editor(editor_bot):
+    """
+    Test that the content of the outline explorer is empty after the
+    editorstack has been closed.
+
+    Regression test for issue #7798.
+    """
+    editorstack, outlineexplorer, qtbot = editor_bot
+    treewidget = outlineexplorer.treewidget
+    assert treewidget.get_visible_items()
+
+    # Close the editor and assert that the outline explorer tree is empty.
+    editorstack.close()
+
+    assert not treewidget.get_visible_items()
+    
+    
