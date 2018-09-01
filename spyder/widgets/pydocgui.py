@@ -39,11 +39,11 @@ class PydocServer(QThread):
             try:
                 self.callback(pydoc._start_server(pydoc._url_handler,
                                                   port=self.port))
-            except:
+            except TypeError:
                 # Python 3.7
                 self.callback(pydoc._start_server(pydoc._url_handler,
-                                              hostname='localhost',
-                                              port=self.port))
+                                                  hostname='localhost',
+                                                  port=self.port))
         else:
             # Python 2
             pydoc.serve(self.port, self.callback, self.completer)
