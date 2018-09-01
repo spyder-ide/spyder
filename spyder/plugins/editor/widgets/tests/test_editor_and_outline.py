@@ -121,7 +121,6 @@ def test_close_editor(editor_bot):
 
     # Close the editor and assert that the outline explorer tree is empty.
     editorstack.close()
-
     assert not treewidget.get_visible_items()
 
 
