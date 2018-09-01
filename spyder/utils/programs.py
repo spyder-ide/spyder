@@ -420,8 +420,10 @@ def is_module_installed(module_name, version=None, installed_version=None,
             get_modver = inspect.getsource(get_module_version)
             stable_ver = inspect.getsource(is_stable_version)
             ismod_inst = inspect.getsource(is_module_installed)
-            fd, script = tempfile.mkstemp(suffix='.py', dir=get_temp_dir())
-            with os.fdopen(fd, 'w') as f:
+
+            with tempfile.NamedTemporaryFile('wt', suffix='.py',
+                                             dir=get_temp_dir()) as f:
+                script = f.name
                 f.write("# -*- coding: utf-8 -*-" + "\n\n")
                 f.write("from distutils.version import LooseVersion" + "\n")
                 f.write("import re" + "\n\n")
@@ -434,15 +436,16 @@ def is_module_installed(module_name, version=None, installed_version=None,
                             % (module_name, version))
                 else:
                     f.write("print(is_module_installed('%s'))" % module_name)
-            try:
-                proc = run_program(interpreter, [script])
-                output, _err = proc.communicate()
-            except subprocess.CalledProcessError:
-                return True
-            if output:  # TODO: Check why output could be empty!
+
+                # We need to flush changes to ensure that the content of the
+                # file is in disk before running the script
+                f.flush()
+                try:
+                    proc = run_program(interpreter, [script])
+                    output, _err = proc.communicate()
+                except subprocess.CalledProcessError:
+                    return True
                 return eval(output.decode())
-            else:
-                return False
         else:
             # Try to not take a wrong decision if there is no interpreter
             # available (needed for the change_pystartup method of ExtConsole
