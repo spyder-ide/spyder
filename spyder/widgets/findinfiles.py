@@ -101,7 +101,8 @@ class SearchThread(QThread):
         self.rootpath = path
         self.python_path = False
         self.hg_manifest = False
-        self.exclude = re.compile(exclude)
+        if exclude:
+            self.exclude = re.compile(exclude)
         self.texts = texts
         self.text_re = text_re
         self.is_file = is_file
@@ -143,14 +144,15 @@ class SearchThread(QThread):
                         if self.stopped:
                             return False
                     dirname = os.path.join(path, d)
-                    if re.search(self.exclude, dirname + os.sep):
+                    if self.exclude \
+                       and re.search(self.exclude, dirname + os.sep):
                         dirs.remove(d)
                 for f in files:
                     with QMutexLocker(self.mutex):
                         if self.stopped:
                             return False
                     filename = os.path.join(path, f)
-                    if re.search(self.exclude, filename):
+                    if self.exclude and re.search(self.exclude, filename):
                         continue
                     if is_text_file(filename):
                         self.find_string_in_file(filename)
@@ -557,13 +559,16 @@ class FindOptions(QWidget):
         file_search = self.path_selection_combo.is_file_search()
         path = self.path_selection_combo.get_current_searchpath()
 
-        # Finding text occurrences
+        if not exclude_re:
+            items = [fnmatch.translate(item.strip())
+                     for item in exclude.split(",")
+                     if item.strip() != '']
+            exclude = '|'.join(items)
+
+        # Validate regular expressions:
+
         try:
-            if not exclude_re:
-                items = [fnmatch.translate(item.strip())
-                         for item in exclude.split(",")]
-                exclude = '|'.join(items)
-            else:
+            if exclude:
                 exclude = re.compile(exclude)
         except Exception:
             exclude_edit = self.exclude_pattern.lineEdit()
