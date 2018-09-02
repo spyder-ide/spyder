@@ -561,7 +561,8 @@ class FindOptions(QWidget):
 
         if not exclude_re:
             items = [fnmatch.translate(item.strip())
-                     for item in exclude.split(",")]
+                     for item in exclude.split(",")
+                     if item.strip() != '']
             exclude = '|'.join(items)
 
         # Validate regular expressions:
