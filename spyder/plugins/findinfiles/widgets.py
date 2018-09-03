@@ -33,7 +33,7 @@ from qtpy.QtWidgets import (QApplication, QComboBox, QHBoxLayout, QLabel,
 
 # Local imports
 from spyder.config.base import _
-from spyder.py3compat import to_text_string
+from spyder.py3compat import to_text_string, PY2
 from spyder.utils import icon_manager as ima
 from spyder.utils.encoding import is_text_file, to_unicode_from_fs
 from spyder.utils.misc import getcwd_or_home
@@ -787,7 +787,7 @@ class ResultsBrowser(OneColumnTree):
         self.set_title(title + text)
 
     def truncate_result(self, line, start, end):
-        ellipsis = '...'
+        ellipsis = u'...'
         max_line_length = 80
         max_num_char_fragment = 40
 
@@ -803,7 +803,8 @@ class ResultsBrowser(OneColumnTree):
             """Produce entities within text."""
             return "".join(html_escape_table.get(c, c) for c in text)
 
-        line = to_text_string(line)
+        if PY2:
+            line = to_text_string(line, encoding='utf8')
         left, match, right = line[:start], line[start:end], line[end:]
 
         if len(line) > max_line_length:
