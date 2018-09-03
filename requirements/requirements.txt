@@ -18,3 +18,4 @@ numpydoc
 pyqt5
 keyring
 spyder-kernels>=1.0
+python-language-server
