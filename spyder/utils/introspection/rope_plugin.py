@@ -22,7 +22,6 @@ from spyder.utils.introspection.manager import (
     DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin)
 from spyder.utils.introspection.module_completion import (
     get_preferred_submodules)
-from spyder.utils.introspection.manager import ROPE_REQVER
 from spyder.utils.introspection.utils import default_info_response
 
 try:
@@ -60,8 +59,8 @@ class RopePlugin(IntrospectionPlugin):
 
     def load_plugin(self):
         """Load the Rope introspection plugin"""
-        if not programs.is_module_installed('rope', ROPE_REQVER):
-            raise ImportError('Requires Rope %s' % ROPE_REQVER)
+        if not programs.is_module_installed('rope'):
+            raise ImportError('Requires Rope')
         self.project = None
         self.create_rope_project(root_path=get_conf_path())
         submods = get_preferred_submodules()

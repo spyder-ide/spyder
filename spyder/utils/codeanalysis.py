@@ -90,7 +90,7 @@ def check_with_pyflakes(source_code, filename=None):
 
 def is_pyflakes_installed():
     """Return True if pyflakes required version is installed"""
-    return programs.is_module_installed('pyflakes', PYFLAKES_REQVER)
+    return programs.is_module_installed('pyflakes')
 
 
 def get_checker_executable(name):
