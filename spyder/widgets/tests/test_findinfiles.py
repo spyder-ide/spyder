@@ -178,12 +178,14 @@ def test_truncate_result_with_different_input(qtbot, line_input):
     slice_end = 2
 
     if PY2:
-        line_input = line_input.decode('utf-8')
+        line_input_expected = line_input.decode('utf-8')
+    else:
+        line_input_expected = line_input
 
     expected_result = u'%s<b>%s</b>%s' % (
-        line_input[:slice_start],
-        line_input[slice_start:slice_end],
-        line_input[slice_end:])
+        line_input_expected[:slice_start],
+        line_input_expected[slice_start:slice_end],
+        line_input_expected[slice_end:])
 
     # when
     truncated_line = find_in_files.result_browser.truncate_result(
