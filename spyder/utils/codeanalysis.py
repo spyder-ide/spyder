@@ -18,7 +18,6 @@ import traceback
 from spyder.config.base import _, DEBUG
 from spyder.utils import programs, encoding
 from spyder.py3compat import to_text_string, to_binary_string, PY3
-from spyder import dependencies
 DEBUG_EDITOR = DEBUG >= 3
 
 #==============================================================================
@@ -87,16 +86,6 @@ def check_with_pyflakes(source_code, filename=None):
         if DEBUG_EDITOR:
             traceback.print_exc()  # Print exception in internal console
     return results
-
-# Required version:
-# Why 0.5 (Python2)? Because it's based on _ast (thread-safe)
-PYFLAKES_REQVER = '>=0.6.0' if PY3 else '>=0.5.0'
-dependencies.add("pyflakes", _("Real-time code analysis on the Editor"),
-                 required_version=PYFLAKES_REQVER)
-
-PYCODESTYLE_REQVER = '>=2.3'
-dependencies.add("pycodestyle", _("Real-time code style analysis on the Editor"),
-                 required_version=PYCODESTYLE_REQVER)
 
 
 def is_pyflakes_installed():
