@@ -1,12 +1,8 @@
 cloudpickle
-rope>=0.9.4
-jedi>=0.11.0
-pyflakes
 pygments>=2.0
 qtconsole>=4.2.0
 nbconvert
 sphinx
-pycodestyle
 pylint
 psutil
 qtawesome>=0.4.1
