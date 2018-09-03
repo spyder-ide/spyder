@@ -1150,6 +1150,9 @@ class BaseTableView(QTableView):
     def import_from_string(self, text, title=None):
         """Import data from string"""
         data = self.model.get_data()
+        # Check if data is a dict
+        if not hasattr(data, "keys"):
+            return
         editor = ImportWizard(self, text, title=title,
                               contents_title=_("Clipboard contents"),
                               varname=fix_reference_name("data",

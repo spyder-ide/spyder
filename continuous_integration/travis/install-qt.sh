@@ -16,7 +16,7 @@ if [ "$USE_CONDA" = "no" ]; then
     # Install spyder-kernels from Github
     pip install -q git+https://github.com/spyder-ide/spyder-kernels@0.x
 else
-    conda install -q qt=5.* pyqt=5.* qtconsole matplotlib
+    conda install -q qt=5* pyqt=5.* sip=4.19.8 qtconsole matplotlib
 
     # Install spyder-kernels from Github
     pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels@0.x
