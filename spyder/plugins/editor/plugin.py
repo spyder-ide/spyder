@@ -58,6 +58,12 @@ from spyder.plugins.editor.lsp import (
 
 
 # Dependencies
+PYLS_REQVER = '>=0.19.0'
+dependencies.add('pyls',
+                 _("Editor's code completion, go-to-definition, help and "
+                   "real-time code analysis"),
+                 required_version=PYLS_REQVER)
+
 NBCONVERT_REQVER = ">=4.0"
 dependencies.add("nbconvert", _("Manipulate Jupyter notebooks on the Editor"),
                  required_version=NBCONVERT_REQVER)

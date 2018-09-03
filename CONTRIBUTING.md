@@ -54,7 +54,7 @@ If you use Anaconda you can create a conda environment with
 the following commands:
 
 ```bash
-  $ conda create -n spyder-dev python=3
+  $ conda create -n spyder-dev -c conda-forge python=3
   $ source activate spyder-dev
 ```
 
@@ -75,7 +75,8 @@ After you have created your development environment, you need to install
 Spyder's necessary dependencies. The easiest way to do so (with Anaconda) is
 
 ```bash
-  $ conda install spyder
+  $ conda install -c conda-forge/label/beta spyder=4.0.0b1
+  $ conda install -c conda-forge python-language-server
   $ conda remove spyder
 ```
 
@@ -150,6 +151,26 @@ copies simultaneously by unchecking the Preferences option
 <kbd>General</kbd> > <kbd>Advanced Settings</kbd> .
 
 
+##  Running Tests
+
+To install our test dependencies under Anaconda:
+
+```bash
+  $ conda install --file requirements/test_requirements.txt -c conda-forge
+```
+
+If using `pip` (for experts only), run the following from the directory
+where your git clone is stored:
+```bash
+  $ pip install -r requirements/test_requirements.txt
+```
+
+To run the Spyder test suite, please use (from the `spyder` root directory):
+```bash
+  $ python runtests.py
+```
+
+
 ## Spyder Branches
 
 When you start to work on a new pull request (PR), you need to be sure that your
@@ -189,26 +210,6 @@ For example, backporting `my_branch` from `master` to `3.x`:
 
 ```bash
   $ git rebase --onto 3.x master my_branch
-```
-
-
-##  Running Tests
-
-To install our test dependencies under Anaconda:
-
-```bash
-  $ conda install --file requirements/test_requirements.txt -c spyder-ide
-```
-
-If using `pip` (for experts only), run the following from the directory
-where your git clone is stored:
-```bash
-  $ pip install -r requirements/test_requirements.txt
-```
-
-To run the Spyder test suite, please use (from the `spyder` root directory):
-```bash
-  $ python runtests.py
 ```
 
 
