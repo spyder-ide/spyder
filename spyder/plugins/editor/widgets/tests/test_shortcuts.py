@@ -174,3 +174,19 @@ def test_delete_line_shortcut(editor_bot):
     qtbot.keyClick(editor, Qt.Key_D, modifier=Qt.ControlModifier)
     assert editor.toPlainText() == 'Line1\nLine3\nLine4\n'
 
+
+def test_go_to_line_shortcut(editor_bot, mocker):
+    """
+    Test that the go to line keyboard shortcut is working
+    as expected with the default Spyder keybindings.
+    """
+    editorstack, qtbot = editor_bot
+    editor = editorstack.get_current_editor()
+    qtbot.keyClick(editor, Qt.Key_Home, modifier=Qt.ControlModifier)
+
+    # Go to line 3.
+    mocker.patch.object(GoToLineDialog, 'exec_', return_value=True)
+    mocker.patch.object(GoToLineDialog, 'get_line_number', return_value=3)
+    qtbot.keyClick(editor, Qt.Key_L, modifier=Qt.ControlModifier)
+    assert editor.get_cursor_line_column() == (2, 0)
+
