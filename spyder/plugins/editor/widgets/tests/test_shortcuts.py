@@ -120,3 +120,30 @@ def test_del_undo_redo_shortcuts(editor_bot):
     qtbot.keyClick(editor, Qt.Key_Z, modifier=Qt.ControlModifier)
     assert editor.get_text_line(cursor_line) == 'Line1'
 
+
+def test_copy_cut_paste_shortcuts(editor_bot):
+    """
+    Test that the copy, cut, and paste keyboard shortcuts are working as
+    expected with the default Spyder keybindings.
+    """
+    editorstack, qtbot = editor_bot
+    editor = editorstack.get_current_editor()
+
+    # Select and Copy the first line in the editor.
+    qtbot.keyClick(editor, Qt.Key_End, modifier=Qt.ShiftModifier)
+    assert editor.get_selected_text() == 'Line1'
+    qtbot.keyClick(editor, Qt.Key_C, modifier=Qt.ControlModifier)
+    assert QApplication.clipboard().text() == 'Line1'
+
+    # Paste the selected text.
+    qtbot.keyClick(editor, Qt.Key_Home)
+    qtbot.keyClick(editor, Qt.Key_V, modifier=Qt.ControlModifier)
+    assert editor.get_text_line(0) == 'Line1Line1'
+
+    # Select and Cut the first line in the editor.
+    qtbot.keyClick(editor, Qt.Key_Home)
+    qtbot.keyClick(editor, Qt.Key_End, modifier=Qt.ShiftModifier)
+    assert editor.get_selected_text() == 'Line1Line1'
+    qtbot.keyClick(editor, Qt.Key_X, modifier=Qt.ControlModifier)
+    assert QApplication.clipboard().text() == 'Line1Line1'
+
