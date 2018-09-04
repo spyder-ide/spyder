@@ -147,3 +147,16 @@ def test_copy_cut_paste_shortcuts(editor_bot):
     qtbot.keyClick(editor, Qt.Key_X, modifier=Qt.ControlModifier)
     assert QApplication.clipboard().text() == 'Line1Line1'
 
+
+def test_select_all_shortcut(editor_bot):
+    """
+    Test that the select all keyboard shortcut is working as
+    expected with the default Spyder keybindings.
+    """
+    editorstack, qtbot = editor_bot
+    editor = editorstack.get_current_editor()
+
+    # Select all the text in the editor.
+    qtbot.keyClick(editor, Qt.Key_A, modifier=Qt.ControlModifier)
+    assert editor.get_selected_text() == 'Line1\nLine2\nLine3\nLine4\n'
+
