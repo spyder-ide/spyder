@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Wed Feb 23 15:44:03 2011
+# -----------------------------------------------------------------------------
+# Copyright (c) 2009- Spyder Project Contributors
+#
+# Distributed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
 
-@author: Pierre Raybaut
-"""
 
 import time, os.path as osp
 
