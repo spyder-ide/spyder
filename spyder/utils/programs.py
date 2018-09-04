@@ -31,6 +31,9 @@ class ProgramError(Exception):
 
 
 def get_temp_dir(suffix=None):
+    """
+    Returns the temporary path, checking previously that this path exists.
+    """
     to_join = [tempfile.gettempdir()]
 
     if os.name == 'nt':
