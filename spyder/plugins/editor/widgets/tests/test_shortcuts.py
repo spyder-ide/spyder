@@ -90,3 +90,33 @@ def test_start_and_end_of_document_shortcuts(editor_bot):
     qtbot.keyClick(editor, Qt.Key_Home, modifier=Qt.ControlModifier)
     assert editor.get_cursor_line_column() == (0, 0)
 
+
+def test_del_undo_redo_shortcuts(editor_bot):
+    """
+    Test that the undo and redo keyboard shortcuts are working as expected
+    with the default Spyder keybindings.
+
+    Regression test for issue #7743.
+    """
+    editorstack, qtbot = editor_bot
+    editor = editorstack.get_current_editor()
+
+    # Delete the first character of the first line, then do the key sequence
+    # for the 'Undo' keyboard shortcut, finally do the key sequence for the
+    # 'Redo' keyboard shortcut.
+
+    cursor_line, cursor_column = editor.get_cursor_line_column()
+    # Delete.
+    qtbot.keyClick(editor, Qt.Key_Delete)
+    assert editor.get_text_line(cursor_line) == 'ine1'
+    # Undo.
+    qtbot.keyClick(editor, Qt.Key_Z, modifier=Qt.ControlModifier)
+    assert editor.get_text_line(cursor_line) == 'Line1'
+    # Redo.
+    qtbot.keyClick(editor, Qt.Key_Z,
+                   modifier=Qt.ControlModifier | Qt.ShiftModifier)
+    assert editor.get_text_line(cursor_line) == 'ine1'
+    # Undo.
+    qtbot.keyClick(editor, Qt.Key_Z, modifier=Qt.ControlModifier)
+    assert editor.get_text_line(cursor_line) == 'Line1'
+
