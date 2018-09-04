@@ -8,13 +8,17 @@
 
 
 """
-Tests for variableexplorer.py
+Tests for Spyder's Variable Explorer.
 """
 
+
+# Standard library imports
 import pytest
 
+# Third party imports
 from spyder.utils.qthelpers import qapplication
 from spyder.plugins.variableexplorer.plugin import VariableExplorer
+
 
 def test_get_settings(monkeypatch):
     def mock_get_option(self, option):

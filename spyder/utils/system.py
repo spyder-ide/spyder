@@ -6,9 +6,13 @@
 # (see spyder/__init__.py for details)
 # -----------------------------------------------------------------------------
 
-"""Operating system utilities"""
+
+"""
+Operating-system-specific utilities.
+"""
 
 
+# Standard library imports
 import os
 
 # Local imports

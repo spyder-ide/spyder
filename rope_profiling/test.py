@@ -7,11 +7,15 @@
 # -----------------------------------------------------------------------------
 
 
-import time, os.path as osp
+# Standard library imports
+import os.path as osp
+import time
 
+# Third party imports
 import rope.base.project
 import rope.base.libutils
 import rope.contrib.codeassist
+
 
 ROPE_PREFS = {
                'ignore_syntax_errors': True,
@@ -101,7 +105,8 @@ def other_features():
     print '*** DOCUMENTATION ***' + '*'*60
     print doc_text
     print '*********************' + '*'*60
-    
+
+
 if __name__ == '__main__':
-#    ropetest()
+    # ropetest()
     other_features()
