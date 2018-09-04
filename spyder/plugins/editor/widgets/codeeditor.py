@@ -44,7 +44,7 @@ from spyder_kernels.utils.dochelpers import getobj
 
 # Local imports
 from spyder.config.base import get_conf_path, _, DEBUG
-from spyder.config.gui import config_shortcut, get_shortcut
+from spyder.config.gui import get_shortcut, iter_shortcuts
 from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
                                 RUN_CELL_AND_ADVANCE_SHORTCUT)
 from spyder.py3compat import to_text_string
@@ -465,6 +465,7 @@ class CodeEditor(TextEditBaseWidget):
 
         # Keyboard shortcuts
         self.shortcuts = self.create_shortcuts()
+        self.shortcut_callbacks = self.create_shortcut_callbacks()
 
         # Code editor
         self.__visible_blocks = []  # Visible blocks, update with repaint
@@ -502,130 +503,83 @@ class CodeEditor(TextEditBaseWidget):
         self.editor_extensions = EditorExtensionsManager(self)
 
         self.editor_extensions.add(CloseQuotesExtension())
+        
+    # ---- Keyboard Shortcuts
+
+    def create_cursor_callback(self, attr):
+        """Make a callback for cursor move event type, (e.g. "Start")"""
+        def cursor_move_event():
+            cursor = self.textCursor()
+            move_type = getattr(QTextCursor, attr)
+            cursor.movePosition(move_type)
+            self.setTextCursor(cursor)
+        return cursor_move_event
+
+    def create_shortcut_callbacks(self):
+        """Make callbacks for the local shortcuts of the editor."""
+        shortcut_callbacks = {
+            'editor/code completion': self.do_completion,
+            'editor/duplicate line': self.duplicate_line,
+            'editor/copy line': self.copy_line,
+            'editor/delete line': self.delete_line,
+            'editor/move line up': self.move_line_up,
+            'editor/move line down': self.move_line_down,
+            'editor/go to new line': self.go_to_new_line,
+            'editor/go to definition': self.do_go_to_definition,
+            'editor/toggle comment': self.toggle_comment,
+            'editor/blockcomment': self.blockcomment,
+            'editor/unblockcomment': self.unblockcomment,
+            'editor/transform to uppercase': self.transform_to_uppercase,
+            'editor/transform to lowercase': self.transform_to_lowercase,
+            'editor/indent': lambda: self.indent(force=True),
+            'editor/unindent': lambda: self.unindent(force=True),
+            'editor/start of line': self.create_cursor_callback('StartOfLine'),
+            'editor/end of line': self.create_cursor_callback('EndOfLine'),
+            'editor/previous line': self.create_cursor_callback('Up'),
+            'editor/next line': self.create_cursor_callback('Down'),
+            'editor/previous char': self.create_cursor_callback('Left'),
+            'editor/next char': self.create_cursor_callback('Right'),
+            'editor/previous word': self.create_cursor_callback('StartOfWord'),
+            'editor/next word': self.create_cursor_callback('EndOfWord'),
+            'editor/kill to line end': self.kill_line_end,
+            'editor/kill to line start': self.kill_line_start,
+            'editor/yank': self._kill_ring.yank,
+            'editor/rotate kill ring': self._kill_ring.rotate,
+            'editor/kill previous word': self.kill_prev_word,
+            'editor/kill next word': self.kill_next_word,
+            'editor/start of document': self.create_cursor_callback('Start'),
+            'editor/end of document': self.create_cursor_callback('End'),
+            'editor/undo': self.undo,
+            'editor/redo': self.redo,
+            'editor/cut': self.cut,
+            'editor/copy': self.copy,
+            'editor/paste': self.paste,
+            'editor/delete': self.delete,
+            'editor/select all': self.selectAll,
+            'array_builder/enter array inline': self.enter_array_inline,
+            'array_builder/enter array table': self.enter_array_table
+            }
+
+        # The following actions should normally be handled by shortcuts
+        # configured in the EditorStack. However, if a reserved qt builtin
+        # key sequence is assigned to one of these actions (ex.: Ctrl+C),
+        # the action of the shortcut will never be called and the event
+        # will be handled instead directly in the keyPressEvent of the
+        # CodedEditor. In this case, we need to emit a signal to trigger the
+        # corresponding action in the EditorStack.
+        # See Issue #7743 and PR #7768.
+        shortcut_callbacks.update({
+            'editor/run cell': self.sig_run_cell.emit,
+            'editor/run cell and advance': self.sig_run_cell_and_advance.emit,
+            'editor/run selection': self.sig_run_selection.emit,
+            'editor/go to line': self.sig_go_to_line.emit,
+            'editor/re-run last cell': self.sig_re_run_last_cell.emit
+            })
+        return shortcut_callbacks
 
     def create_shortcuts(self):
-        codecomp = config_shortcut(self.do_completion, context='Editor',
-                                   name='Code Completion', parent=self)
-        duplicate_line = config_shortcut(self.duplicate_line, context='Editor',
-                                         name='Duplicate line', parent=self)
-        copyline = config_shortcut(self.copy_line, context='Editor',
-                                   name='Copy line', parent=self)
-        deleteline = config_shortcut(self.delete_line, context='Editor',
-                                     name='Delete line', parent=self)
-        movelineup = config_shortcut(self.move_line_up, context='Editor',
-                                     name='Move line up', parent=self)
-        movelinedown = config_shortcut(self.move_line_down, context='Editor',
-                                       name='Move line down', parent=self)
-        gotonewline = config_shortcut(self.go_to_new_line, context='Editor',
-                                      name='Go to new line', parent=self)
-        gotodef = config_shortcut(self.do_go_to_definition, context='Editor',
-                                  name='Go to definition', parent=self)
-        toggle_comment = config_shortcut(self.toggle_comment, context='Editor',
-                                         name='Toggle comment', parent=self)
-        blockcomment = config_shortcut(self.blockcomment, context='Editor',
-                                       name='Blockcomment', parent=self)
-        unblockcomment = config_shortcut(self.unblockcomment, context='Editor',
-                                         name='Unblockcomment', parent=self)
-        transform_uppercase = config_shortcut(self.transform_to_uppercase,
-                                              context='Editor',
-                                              name='Transform to uppercase',
-                                              parent=self)
-        transform_lowercase = config_shortcut(self.transform_to_lowercase,
-                                              context='Editor',
-                                              name='Transform to lowercase',
-                                              parent=self)
-
-        indent = config_shortcut(lambda: self.indent(force=True),
-                                 context='Editor', name='Indent', parent=self)
-        unindent = config_shortcut(lambda: self.unindent(force=True),
-                                   context='Editor', name='Unindent',
-                                   parent=self)
-
-        def cb_maker(attr):
-            """Make a callback for cursor move event type, (e.g. "Start")
-            """
-            def cursor_move_event():
-                cursor = self.textCursor()
-                move_type = getattr(QTextCursor, attr)
-                cursor.movePosition(move_type)
-                self.setTextCursor(cursor)
-            return cursor_move_event
-
-        line_start = config_shortcut(cb_maker('StartOfLine'), context='Editor',
-                                     name='Start of line', parent=self)
-        line_end = config_shortcut(cb_maker('EndOfLine'), context='Editor',
-                                   name='End of line', parent=self)
-
-        prev_line = config_shortcut(cb_maker('Up'), context='Editor',
-                                    name='Previous line', parent=self)
-        next_line = config_shortcut(cb_maker('Down'), context='Editor',
-                                    name='Next line', parent=self)
-
-        prev_char = config_shortcut(cb_maker('Left'), context='Editor',
-                                    name='Previous char', parent=self)
-        next_char = config_shortcut(cb_maker('Right'), context='Editor',
-                                    name='Next char', parent=self)
-
-        prev_word = config_shortcut(cb_maker('StartOfWord'), context='Editor',
-                                    name='Previous word', parent=self)
-        next_word = config_shortcut(cb_maker('EndOfWord'), context='Editor',
-                                    name='Next word', parent=self)
-
-        kill_line_end = config_shortcut(self.kill_line_end, context='Editor',
-                                        name='Kill to line end', parent=self)
-        kill_line_start = config_shortcut(self.kill_line_start,
-                                          context='Editor',
-                                          name='Kill to line start',
-                                          parent=self)
-        yank = config_shortcut(self._kill_ring.yank, context='Editor',
-                               name='Yank', parent=self)
-        kill_ring_rotate = config_shortcut(self._kill_ring.rotate,
-                                           context='Editor',
-                                           name='Rotate kill ring',
-                                           parent=self)
-
-        kill_prev_word = config_shortcut(self.kill_prev_word, context='Editor',
-                                         name='Kill previous word',
-                                         parent=self)
-        kill_next_word = config_shortcut(self.kill_next_word, context='Editor',
-                                         name='Kill next word', parent=self)
-
-        start_doc = config_shortcut(cb_maker('Start'), context='Editor',
-                                    name='Start of Document', parent=self)
-
-        end_doc = config_shortcut(cb_maker('End'), context='Editor',
-                                  name='End of document', parent=self)
-
-        undo = config_shortcut(self.undo, context='Editor',
-                               name='undo', parent=self)
-        redo = config_shortcut(self.redo, context='Editor',
-                               name='redo', parent=self)
-        cut = config_shortcut(self.cut, context='Editor',
-                              name='cut', parent=self)
-        copy = config_shortcut(self.copy, context='Editor',
-                               name='copy', parent=self)
-        paste = config_shortcut(self.paste, context='Editor',
-                                name='paste', parent=self)
-        delete = config_shortcut(self.delete, context='Editor',
-                                 name='delete', parent=self)
-        select_all = config_shortcut(self.selectAll, context='Editor',
-                                     name='Select All', parent=self)
-        array_inline = config_shortcut(lambda: self.enter_array_inline(),
-                                       context='array_builder',
-                                       name='enter array inline', parent=self)
-        array_table = config_shortcut(lambda: self.enter_array_table(),
-                                      context='array_builder',
-                                      name='enter array table', parent=self)
-
-        return [codecomp, duplicate_line, copyline, deleteline, movelineup,
-                movelinedown, gotonewline, gotodef, toggle_comment, blockcomment,
-                unblockcomment, transform_uppercase, transform_lowercase,
-                line_start, line_end, prev_line, next_line,
-                prev_char, next_char, prev_word, next_word, kill_line_end,
-                kill_line_start, yank, kill_ring_rotate, kill_prev_word,
-                kill_next_word, start_doc, end_doc, undo, redo, cut, copy,
-                paste, delete, select_all, array_inline, array_table, indent,
-                unindent]
+        """Create the local shortcuts for the CodeEditor."""
+        return []
 
     def get_shortcut_data(self):
         """
@@ -2845,47 +2799,58 @@ class CodeEditor(TextEditBaseWidget):
 
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
+        # Send the signal to the editor's extension.
         event.ignore()
         self.sig_key_pressed.emit(event)
+
         key = event.key()
-        ctrl = event.modifiers() & Qt.ControlModifier
-        shift = event.modifiers() & Qt.ShiftModifier
         text = to_text_string(event.text())
-        has_selection = self.has_selected_text()
         if text:
             self.__clear_occurrences()
         if QToolTip.isVisible():
             self.hide_tooltip_if_necessary(key)
 
-        # Handle the Qt Builtin key sequences
-        checks = [('SelectAll', 'Select All'),
-                  ('Copy', 'Copy'),
-                  ('Cut', 'Cut'),
-                  ('Paste', 'Paste'),
-                  ('Undo', 'Undo'),
-                  ('Redo', 'Redo')]
+        if event.isAccepted():
+            # The event was handled by one of the editor extension.
+            return
 
-        for qname, name in checks:
-            seq = getattr(QKeySequence, qname)
-            sc = get_shortcut('editor', name)
-            default = QKeySequence(seq).toString()
-            # XXX - Using debug_print, it can be seen that event and seq
-            # will never be equal, so this code is never executed.
-            # Need to find out the intended purpose and if it should be
-            # retained.
-            if event == seq and sc != default:
-                # if we have overridden it, call our action
-                for shortcut in self.shortcuts:
-                    qsc, name, keystr = shortcut.data
-                    if keystr == default:
-                        qsc.activated.emit()
-                        event.ignore()
-                        return
+        # ---- Handle local shortcuts
+        # See Issue #7743 and PR #7768.
+        event_modifiers = event.modifiers() & ~Qt.KeypadModifier
+        event_keyseq = QKeySequence(event_modifiers | event.key())
+        event_keystr = event_keyseq.toString()
 
-                # otherwise, pass it on to parent
+        # Iterate over all shortcuts to search for a global or a local
+        # shortcut that matches the key sequence of the event.
+        for sc_context, sc_name, sc_keystr in iter_shortcuts():
+            if sc_context == '_' and event_keystr == sc_keystr:
+                # The key sequence of the event corresponds to a
+                # global shortcut, so we let the parent handle it.
                 event.ignore()
                 return
+            elif (sc_context in ['editor', 'array_builder']
+                  and event_keystr == sc_keystr):
+                sc_callback = \
+                    self.shortcut_callbacks.get(sc_context + '/' + sc_name)
+                if sc_callback is None:
+                    # The key sequence of the event corresponds to a
+                    # local shortcut that is handled in the editorstack.
+                    event.ignore()
+                else:
+                    # The key sequence of the event corresponds to a
+                    # local shortcut, so we call our action.
+                    event.accept()
+                    sc_callback()
+                return
+        else:
+            # There is no local or global shortcut matching the key sequence
+            # of the event, so we let the codeeditor handle it.
+            event.ignore()
 
+        # ---- Handle hard coded and builtin actions
+        has_selection = self.has_selected_text()
+        ctrl = event.modifiers() & Qt.ControlModifier
+        shift = event.modifiers() & Qt.ShiftModifier
         if key in (Qt.Key_Enter, Qt.Key_Return):
             if not shift and not ctrl:
                 if self.add_colons_enabled and self.is_python_like() and \
