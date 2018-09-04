@@ -345,7 +345,7 @@ class ProfilerWidget(QWidget):
     def show_data(self, justanalyzed=False):
         if not justanalyzed:
             self.output = None
-        self.log_button.setEnabled(self.output is not None \
+        self.log_button.setEnabled(self.output is not None
                                    and len(self.output) > 0)
         self.kill_if_running()
         filename = to_text_string(self.filecombo.currentText())
@@ -359,20 +359,23 @@ class ProfilerWidget(QWidget):
 
         self.datelabel.setText(_('Sorting data, please wait...'))
         QApplication.processEvents()
-        
+
         self.datatree.load_data(self.DATAPATH)
         self.datatree.show_tree()
-            
+
         text_style = "<span style=\'color: #444444\'><b>%s </b></span>"
         date_text = text_style % time.strftime("%Y-%m-%d %H:%M:%S",
                                                time.localtime())
         self.datelabel.setText(date_text)
 
+
 def gettime_s(text):
-    """Parse text and returns a time in seconds
-    
-    The text is of the format 0h : 0.min:0.0s:0 ms:0us:0 ns. 
-    Spaces are not taken into account and any of the specifiers can be ignored"""
+    """
+    Parse text and return a time in seconds.
+
+    The text is of the format 0h : 0.min:0.0s:0 ms:0us:0 ns.
+    Spaces are not taken into account and any of the specifiers can be ignored.
+    """
     pattern = r'([+-]?\d+\.?\d*) ?([munsecinh]+)'
     matches = re.findall(pattern, text)
     if len(matches) == 0:

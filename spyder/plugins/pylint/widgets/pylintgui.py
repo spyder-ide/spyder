@@ -452,14 +452,15 @@ class PylintWidget(QWidget):
                                                     datetime),
                                       encoding='utf8')
                 date_text = text_style % date
-            
+
         self.ratelabel.setText(text)
         self.datelabel.setText(date_text)
 
 
-#==============================================================================
+# =============================================================================
 # Tests
-#==============================================================================
+# =============================================================================
+
 def test():
     """Run pylint widget test"""
     from spyder.utils.qthelpers import qapplication
