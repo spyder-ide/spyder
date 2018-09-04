@@ -205,3 +205,21 @@ def test_transform_to_lowercase_shortcut(editor_bot):
                    modifier=Qt.ControlModifier | Qt.ShiftModifier)
     assert editor.get_text_line(0) == 'LINE1'
 
+
+def test_transform_to_uppercase_shortcut(editor_bot):
+    """
+    Test that the transform to uppercase shorcuts is working as expected with
+    the default Spyder keybindings.
+    """
+    editorstack, qtbot = editor_bot
+    editor = editorstack.get_current_editor()
+
+    # Transform the first line to lowercase.
+    qtbot.keyClick(editor, Qt.Key_Home)
+    qtbot.keyClick(editor, Qt.Key_End, modifier=Qt.ShiftModifier)
+    qtbot.keyClick(editor, Qt.Key_U, modifier=Qt.ControlModifier)
+    assert editor.get_text_line(0) == 'line1'
+
+
+if __name__ == "__main__":
+    pytest.main(['-vv', '-rw'])
