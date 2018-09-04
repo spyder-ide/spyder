@@ -190,3 +190,18 @@ def test_go_to_line_shortcut(editor_bot, mocker):
     qtbot.keyClick(editor, Qt.Key_L, modifier=Qt.ControlModifier)
     assert editor.get_cursor_line_column() == (2, 0)
 
+
+def test_transform_to_lowercase_shortcut(editor_bot):
+    """
+    Test that the transform to lowercase shorcut is working as expected with
+    the default Spyder keybindings.
+    """
+    editorstack, qtbot = editor_bot
+    editor = editorstack.get_current_editor()
+
+    # Transform the first line to uppercase.
+    qtbot.keyClick(editor, Qt.Key_End, modifier=Qt.ShiftModifier)
+    qtbot.keyClick(editor, Qt.Key_U,
+                   modifier=Qt.ControlModifier | Qt.ShiftModifier)
+    assert editor.get_text_line(0) == 'LINE1'
+
