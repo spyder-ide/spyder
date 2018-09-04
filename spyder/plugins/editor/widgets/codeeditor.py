@@ -2881,25 +2881,6 @@ class CodeEditor(TextEditBaseWidget):
                     TextEditBaseWidget.keyPressEvent(self, event)
                     self.fix_indent(comment_or_string=cmt_or_str)
                     self.textCursor().endEditBlock()
-            elif shift:
-                self.run_cell_and_advance.emit()
-            elif ctrl:
-                self.run_cell.emit()
-        elif shift and key == Qt.Key_Delete:
-            # Shift + Del is a Key sequence reserved by most OSes
-            # https://github.com/spyder-ide/spyder/issues/3405
-            # For now, add back reserved sequence for cut (issue 5973).
-            # Since Ctrl+X is configurable, this should also use preferences.
-            # https://doc.qt.io/qt-5/qkeysequence.html
-            if has_selection:
-                self.cut()
-            else:
-                self.delete_line()
-        elif shift and key == Qt.Key_Insert:
-            # For now, add back reserved sequence for paste (issue 5973).
-            # Since Ctrl+V is configurable, this should also use preferences.
-            # https://doc.qt.io/qt-5/qkeysequence.html
-            self.paste()
         elif key == Qt.Key_Insert and not shift and not ctrl:
             self.setOverwriteMode(not self.overwriteMode())
         elif key == Qt.Key_Backspace and not shift and not ctrl:
