@@ -1344,8 +1344,8 @@ class IPythonConsole(SpyderPluginWidget):
             return
         if client is not None:
             index = self.tabwidget.indexOf(client)
-            # if index is not found in tabwidget it's because this client was already close
-            # and the call was performed by the exit callback
+            # if index is not found in tabwidget it's because this client was
+            # already close and the call was performed by the exit callback
             if index == -1:
                 return
         if index is None and client is None:

@@ -112,14 +112,15 @@ def test_is_module_installed():
 
 def test_is_module_installed_with_custom_interpreter():
     """Test if a module with the proper version is installed"""
-    current_interpreter = sys.executable
-    assert is_module_installed('qtconsole', '>=4.0', interpreter=current_interpreter)
-    assert not is_module_installed('IPython', '>=1.0;<3.0', interpreter=current_interpreter)
-    assert is_module_installed('jedi', '>=0.7.0', interpreter=current_interpreter)
+    current = sys.executable
+    assert is_module_installed('qtconsole', '>=4.0', interpreter=current)
+    assert not is_module_installed('IPython', '>=1.0;<3.0', interpreter=current)
+    assert is_module_installed('jedi', '>=0.7.0', interpreter=current)
 
 
 def test_get_temp_dir_ensure_dir_exists():
-    """Test that the call to get_temp_dir creates the dir if it does not exists"""
+    """Test that the call to get_temp_dir creates the dir when it doesn't exists
+    """
     temp_dir = get_temp_dir(suffix='test')
     assert os.path.exists(temp_dir)
 
@@ -133,4 +134,3 @@ def test_get_temp_dir_ensure_dir_exists():
 
 if __name__ == '__main__':
     pytest.main()
-

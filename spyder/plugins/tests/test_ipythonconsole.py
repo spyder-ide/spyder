@@ -888,7 +888,8 @@ def test_stderr_file_is_remove_two_kernels(ipyconsole, qtbot, monkeypatch):
                     timeout=SHELL_TIMEOUT)
 
     # New client with the same kernel
-    ipyconsole._create_client_for_kernel(client.connection_file, None, None, None)
+    ipyconsole._create_client_for_kernel(client.connection_file, None, None,
+                                         None)
 
     assert len(ipyconsole.get_related_clients(client)) == 1
     other_client = ipyconsole.get_related_clients(client)[0]
@@ -914,7 +915,8 @@ def test_stderr_file_remains_two_kernels(ipyconsole, qtbot, monkeypatch):
                     timeout=SHELL_TIMEOUT)
 
     # New client with the same kernel
-    ipyconsole._create_client_for_kernel(client.connection_file, None, None, None)
+    ipyconsole._create_client_for_kernel(client.connection_file, None, None,
+                                         None)
 
     assert len(ipyconsole.get_related_clients(client)) == 1
     other_client = ipyconsole.get_related_clients(client)[0]
