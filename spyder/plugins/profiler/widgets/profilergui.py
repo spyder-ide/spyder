@@ -364,7 +364,7 @@ class ProfilerWidget(QWidget):
         self.datatree.show_tree()
             
         text_style = "<span style=\'color: #444444\'><b>%s </b></span>"
-        date_text = text_style % time.strftime("%d %b %Y %H:%M",
+        date_text = text_style % time.strftime("%Y-%m-%d %H:%M:%S",
                                                time.localtime())
         self.datelabel.setText(date_text)
 

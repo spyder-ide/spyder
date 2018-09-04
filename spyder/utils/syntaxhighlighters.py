@@ -754,7 +754,7 @@ class Fortran77SH(FortranSH):
 #==============================================================================
 # IDL highlighter
 #
-# Contribution from Stuart Mumford (Littlemumford) - 02/02/2012
+# Contribution from Stuart Mumford (Littlemumford) - 2012-02-02
 # See Issue #850
 #==============================================================================
 def make_idl_patterns():
