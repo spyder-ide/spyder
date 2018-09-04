@@ -253,6 +253,7 @@ class CodeEditor(TextEditBaseWidget):
     sig_run_cell_and_advance = Signal()
     sig_run_cell = Signal()
     sig_re_run_last_cell = Signal()
+    sig_go_to_line = Signal()
     go_to_definition_regex = Signal(str, int, int)
     sig_cursor_position_changed = Signal(int, int)
     sig_new_file = Signal(str)
