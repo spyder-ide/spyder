@@ -18,7 +18,7 @@ from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QGridLayout, QLabel,
                             QMessageBox, QPushButton, QVBoxLayout)
 
 # Local imports
-from spyder.config.base import _
+from spyder.config.base import _, running_under_pytest
 from spyder.py3compat import PY2
 if PY2:
     import shutil
@@ -228,6 +228,12 @@ class RecoveryDialog(QDialog):
             return self.exec_()
         else:
             return QDialog.Accepted
+
+    def exec_(self):
+        """Execute dialog window."""
+        if running_under_pytest():
+            return QDialog.Accepted
+        return super(RecoveryDialog, self).exec_()
 
 
 def make_temporary_files(tempdir):
