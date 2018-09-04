@@ -2743,10 +2743,7 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return False
 
-
-#===============================================================================
-#    Qt Event handlers
-#===============================================================================
+    # ------ Qt Event handlers
     def setup_context_menu(self):
         """Setup context menu"""
         self.undo_action = create_action(
