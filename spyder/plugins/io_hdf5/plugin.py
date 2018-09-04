@@ -7,7 +7,8 @@
 # -----------------------------------------------------------------------------
 
 
-"""I/O plugin for loading/saving HDF5 files
+"""
+I/O plugin for loading/saving HDF5 files.
 
 Note that this is a fairly dumb implementation which reads the whole HDF5 file into
 Spyder's variable explorer.  Since HDF5 files are designed for storing very large
