@@ -25,6 +25,7 @@ from pygments.token import Name
 import pytest
 from qtpy import PYQT5
 from qtpy.QtCore import Qt
+from qtpy.QtWidgets import QMessageBox
 import zmq
 
 # Local imports
@@ -855,6 +856,76 @@ def test_set_elapsed_time(ipyconsole, qtbot):
     assert '00:00:00' in client.time_label.text()
 
     client.timer.timeout.disconnect(client.show_time)
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_stderr_file_is_remove_one_kernel(ipyconsole, qtbot, monkeypatch):
+    """Test that consoles removes stderr when client is close."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    client = ipyconsole.get_current_client()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # In a normal situation file should exists
+    monkeypatch.setattr(QMessageBox, 'question',
+                        lambda *args, **kwargs: QMessageBox.Yes)
+    assert osp.exists(client.stderr_file)
+    ipyconsole.close_client(client=client)
+    assert not osp.exists(client.stderr_file)
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_stderr_file_is_remove_two_kernels(ipyconsole, qtbot, monkeypatch):
+    """Test that console removes stderr when client and related clients
+    are close."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    client = ipyconsole.get_current_client()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # New client with the same kernel
+    ipyconsole._create_client_for_kernel(client.connection_file, None, None, None)
+
+    assert len(ipyconsole.get_related_clients(client)) == 1
+    other_client = ipyconsole.get_related_clients(client)[0]
+    assert client.stderr_file == other_client.stderr_file
+
+    # In a normal situation file should exists
+    monkeypatch.setattr(QMessageBox, 'question',
+                        lambda *args, **kwargs: QMessageBox.Yes)
+    assert osp.exists(client.stderr_file)
+    ipyconsole.close_client(client=client)
+    assert not osp.exists(client.stderr_file)
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_stderr_file_remains_two_kernels(ipyconsole, qtbot, monkeypatch):
+    """Test that console doesn't remove stderr when a related client is not
+    close."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    client = ipyconsole.get_current_client()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # New client with the same kernel
+    ipyconsole._create_client_for_kernel(client.connection_file, None, None, None)
+
+    assert len(ipyconsole.get_related_clients(client)) == 1
+    other_client = ipyconsole.get_related_clients(client)[0]
+    assert client.stderr_file == other_client.stderr_file
+
+    # In a normal situation file should exists
+    monkeypatch.setattr(QMessageBox, 'question',
+                        lambda *args, **kwargs: QMessageBox.No)
+    assert osp.exists(client.stderr_file)
+    ipyconsole.close_client(client=client)
+    assert osp.exists(client.stderr_file)
 
 
 if __name__ == "__main__":

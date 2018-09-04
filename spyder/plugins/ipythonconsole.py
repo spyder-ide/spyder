@@ -1344,6 +1344,10 @@ class IPythonConsole(SpyderPluginWidget):
             return
         if client is not None:
             index = self.tabwidget.indexOf(client)
+            # if index is not found in tabwidget it's because this client was already close
+            # and the call was performed by the exit callback
+            if index == -1:
+                return
         if index is None and client is None:
             index = self.tabwidget.currentIndex()
         if index is not None:
@@ -1365,6 +1369,7 @@ class IPythonConsole(SpyderPluginWidget):
         # Check if related clients or kernels are opened
         # and eventually ask before closing them
         if not self.mainwindow_close and not force:
+            should_remove_stderr_file = False
             close_all = True
             if self.get_option('ask_before_closing'):
                 close = QMessageBox.question(self, self.get_plugin_title(),
@@ -1377,9 +1382,19 @@ class IPythonConsole(SpyderPluginWidget):
                          _("Do you want to close all other consoles connected "
                            "to the same kernel as this one?"),
                            QMessageBox.Yes | QMessageBox.No)
+            else:
+                should_remove_stderr_file = True
+
             client.shutdown()
             if close_all == QMessageBox.Yes:
                 self.close_related_clients(client)
+                should_remove_stderr_file = True
+        else:
+            should_remove_stderr_file = True
+
+        if should_remove_stderr_file and osp.exists(client.stderr_file):
+            os.remove(client.stderr_file)
+
         client.close()
 
         # Note: client index may have changed after closing related widgets
@@ -1806,6 +1821,8 @@ class IPythonConsole(SpyderPluginWidget):
                               show_elapsed_time=show_elapsed_time,
                               reset_warning=reset_warning,
                               ask_before_restart=ask_before_restart)
+        if self.testing:
+            client.stderr_dir = self.test_dir
 
         # Create kernel client
         kernel_client = QtKernelClient(connection_file=connection_file)
