@@ -182,7 +182,7 @@ def test_recoverydialog_restore_when_error(qtbot, recovery_env, mocker):
         assert f.read() == 'ham = "original"\n'
     with open(osp.join(autosave_dir, 'ham.py')) as f:
         assert f.read() == 'ham = "autosave"\n'
-    mock_QMessageBox.assert_called_once()
+    assert mock_QMessageBox.called
     for col in range(grid.columnCount()):
         assert grid.itemAtPosition(1, col).widget().isEnabled()
 
@@ -244,7 +244,7 @@ def test_recoverydialog_discard_when_error(qtbot, recovery_env, mocker):
         assert f.read() == 'ham = "original"\n'
     with open(osp.join(autosave_dir, 'ham.py')) as f:
         assert f.read() == 'ham = "autosave"\n'
-    mock_QMessageBox.assert_called_once()
+    assert mock_QMessageBox.called
     for col in range(grid.columnCount()):
         assert grid.itemAtPosition(1, col).widget().isEnabled()
 
