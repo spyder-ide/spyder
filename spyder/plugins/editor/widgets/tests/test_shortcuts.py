@@ -160,3 +160,17 @@ def test_select_all_shortcut(editor_bot):
     qtbot.keyClick(editor, Qt.Key_A, modifier=Qt.ControlModifier)
     assert editor.get_selected_text() == 'Line1\nLine2\nLine3\nLine4\n'
 
+
+def test_delete_line_shortcut(editor_bot):
+    """
+    Test that the delete line keyboard shortcut is working as
+    expected with the default Spyder keybindings.
+    """
+    editorstack, qtbot = editor_bot
+    editor = editorstack.get_current_editor()
+
+    # Delete the second line in the editor.
+    editor.go_to_line(2)
+    qtbot.keyClick(editor, Qt.Key_D, modifier=Qt.ControlModifier)
+    assert editor.toPlainText() == 'Line1\nLine3\nLine4\n'
+
