@@ -7,8 +7,10 @@
 # -----------------------------------------------------------------------------
 
 
+# Standard library imports
 import os
 import re
+
 
 root_path = os.path.realpath(os.path.join(os.getcwd(), 'spyder'))
 

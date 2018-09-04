@@ -10,9 +10,8 @@
 """
 Spyder MS Language Server Protocol v3.0 transport proxy implementation.
 
-This module handles and processes incoming TCP messages sent by
-a lsp-server, then it relays the information to the actual Spyder lsp
-client via ZMQ.
+This module handles and processes incoming TCP messages sent by an LSP server,
+then it relays the information to the actual Spyder LSP client via ZMQ.
 """
 
 

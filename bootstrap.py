@@ -9,10 +9,10 @@
 
 
 """
-Bootstrapping Spyder
+Bootstrap Spyder.
 
-Detect environment and execute Spyder from source checkout
-See Issue 741
+Detect environment and execute Spyder from source checkout.
+See Issue #741.
 """
 
 # pylint: disable=C0103
