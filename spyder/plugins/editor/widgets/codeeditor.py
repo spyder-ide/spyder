@@ -249,10 +249,10 @@ class CodeEditor(TextEditBaseWidget):
     get_completions = Signal(bool)
     go_to_definition = Signal(str, int, int)
     sig_show_object_info = Signal(int)
-    run_selection = Signal()
-    run_cell_and_advance = Signal()
-    run_cell = Signal()
-    re_run_last_cell = Signal()
+    sig_run_selection = Signal()
+    sig_run_cell_and_advance = Signal()
+    sig_run_cell = Signal()
+    sig_re_run_last_cell = Signal()
     go_to_definition_regex = Signal(str, int, int)
     sig_cursor_position_changed = Signal(int, int)
     sig_new_file = Signal(str)
@@ -2786,20 +2786,20 @@ class CodeEditor(TextEditBaseWidget):
         self.run_cell_action = create_action(
             self, _("Run cell"), icon=ima.icon('run_cell'),
             shortcut=QKeySequence(RUN_CELL_SHORTCUT),
-            triggered=self.run_cell.emit)
+            triggered=self.sig_run_cell.emit)
         self.run_cell_and_advance_action = create_action(
             self, _("Run cell and advance"), icon=ima.icon('run_cell'),
             shortcut=QKeySequence(RUN_CELL_AND_ADVANCE_SHORTCUT),
-            triggered=self.run_cell_and_advance.emit)
+            triggered=self.sig_run_cell_and_advance.emit)
         self.re_run_last_cell_action = create_action(
             self, _("Re-run last cell"), icon=ima.icon('run_cell'),
             shortcut=get_shortcut('editor', 're-run last cell'),
-            triggered=self.re_run_last_cell.emit)
+            triggered=self.sig_re_run_last_cell.emit)
         self.run_selection_action = create_action(
             self, _("Run &selection or current line"),
             icon=ima.icon('run_selection'),
             shortcut=get_shortcut('editor', 'run selection'),
-            triggered=self.run_selection.emit)
+            triggered=self.sig_run_selection.emit)
 
         # Zoom actions
         zoom_in_action = create_action(
