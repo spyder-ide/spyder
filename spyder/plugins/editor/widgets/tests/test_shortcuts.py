@@ -72,3 +72,21 @@ def test_default_keybinding_values():
     assert get_shortcut('editor', 'transform to uppercase') == 'Ctrl+Shift+U'
     assert get_shortcut('editor', 'go to line') == 'Ctrl+L'
 
+
+def test_start_and_end_of_document_shortcuts(editor_bot):
+    """
+    Test that the start of document and end of document shortcut are working
+    as expected.
+    """
+    editorstack, qtbot = editor_bot
+    editor = editorstack.get_current_editor()
+
+    # Assert initial state.
+    assert editor.get_cursor_line_column() == (0, 0)
+    # End of Document.
+    qtbot.keyClick(editor, Qt.Key_End, modifier=Qt.ControlModifier)
+    assert editor.get_cursor_line_column() == (4, 0)
+    # Start of Document.
+    qtbot.keyClick(editor, Qt.Key_Home, modifier=Qt.ControlModifier)
+    assert editor.get_cursor_line_column() == (0, 0)
+
