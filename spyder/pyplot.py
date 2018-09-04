@@ -8,10 +8,11 @@
 
 
 """
-Importing guiqwt's pyplot module or matplotlib's pyplot
+Import guiqwt's pyplot module or matplotlib's pyplot.
 """
+
 
 try:
     from guiqwt.pyplot import *
-except:
+except Exception:
     from matplotlib.pyplot import *

@@ -7,7 +7,8 @@
 # -----------------------------------------------------------------------------
 
 
-"""Breakpoint Plugin"""
+"""Breakpoint Plugin."""
+
 
 # pylint: disable=C0103
 # pylint: disable=R0903

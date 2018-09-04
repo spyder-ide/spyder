@@ -8,8 +8,9 @@
 
 
 """
-Widgets for the IPython Console
+Widgets for the IPython Console.
 """
+
 
 from .control import ControlWidget, PageControlWidget
 from .debugging import DebuggingWidget

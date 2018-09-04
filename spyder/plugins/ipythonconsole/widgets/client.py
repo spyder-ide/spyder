@@ -8,10 +8,11 @@
 
 
 """
-Client widget for the IPython Console
+Client widget for the IPython Console.
 
-This is the widget used on all its tabs
+This is the widget used on all its tabs.
 """
+
 
 # Standard library imports
 from __future__ import absolute_import  # Fix for Issue 1356
