@@ -32,4 +32,3 @@ def test_get_settings(monkeypatch):
 
 if __name__ == "__main__":
     pytest.main()
-    
