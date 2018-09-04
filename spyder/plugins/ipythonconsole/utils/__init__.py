@@ -8,5 +8,5 @@
 
 
 """
-Utilities for the IPython console
+Utilities for the IPython console.
 """

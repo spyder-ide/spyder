@@ -11,5 +11,5 @@
 spyder.utils
 ============
 
-Spyder utilities
+Spyder utilities.
 """

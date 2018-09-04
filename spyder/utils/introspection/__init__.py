@@ -8,5 +8,5 @@
 
 
 """
-Introspection utilities used by Spyder
+Introspection utilities used by Spyder.
 """

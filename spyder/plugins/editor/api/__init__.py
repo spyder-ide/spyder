@@ -11,5 +11,5 @@
 spyder.plugins.editor.api
 =========================
 
-API to interact with some features of Editor and CodeEditor
+API to interact with some features of Editor and CodeEditor.
 """

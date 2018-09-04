@@ -11,5 +11,5 @@
 spyder.plugins.editor
 =====================
 
-Editor Plugin
+Editor Plugin.
 """

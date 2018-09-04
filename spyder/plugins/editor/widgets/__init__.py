@@ -11,5 +11,5 @@
 spyder.plugins.editor.widgets
 =============================
 
-Editor related widgets (Editor,EditorStack, CodeEditor) based exclusively on Qt
+Editor related widgets (Editor, EditorStack, CodeEditor) based on only Qt.
 """

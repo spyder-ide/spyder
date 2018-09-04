@@ -9,7 +9,7 @@
 
 """
 spyder.plugins.variableexplorer.widgets
-===============================
+=======================================
 
-Variable Explorer related widgets
+Variable Explorer-related widgets.
 """

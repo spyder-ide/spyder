@@ -11,5 +11,5 @@
 spyder.plugins.console
 ======================
 
-Internal Console Plugin
+Internal Console Plugin.
 """
