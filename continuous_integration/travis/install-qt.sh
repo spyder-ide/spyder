@@ -1,7 +1,7 @@
 #!/bin/bash
 
-export PATH="$HOME/miniconda/bin:$PATH"
-source activate test
+source $HOME/miniconda/etc/profile.d/conda.sh
+conda activate test
 
 if [ "$USE_CONDA" = "no" ]; then
     # Remove pytest-xvfb because it causes hangs

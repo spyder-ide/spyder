@@ -15,8 +15,8 @@ export PIP_DEPENDENCIES="coveralls pytest-qt pytest-mock pytest-xvfb flaky jedi 
 echo -e "PYTHON = $PYTHON_VERSION \n============"
 git clone git://github.com/astropy/ci-helpers.git > /dev/null
 source ci-helpers/travis/setup_conda_$TRAVIS_OS_NAME.sh
-export PATH="$HOME/miniconda/bin:$PATH"
-source activate test
+source $HOME/miniconda/etc/profile.d/conda.sh
+conda activate test
 
 # Install spyder-kernels
-pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels
+pip install --no-deps git+https://github.com/spyder-ide/spyder-kernels
