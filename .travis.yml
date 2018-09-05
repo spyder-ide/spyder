@@ -33,13 +33,13 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y matchbox-window-manager; fi
 
 install:
-  - ./continuous_integration/travis/install.sh;
-  - ./continuous_integration/travis/install-qt.sh;
+  - ./continuous_integration/posix/install.sh;
+  - ./continuous_integration/posix/install-qt.sh;
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then DISPLAY=:99 matchbox-window-manager& fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sleep 5; fi
 
 script:
-  - ./continuous_integration/travis/runtests.sh || ./continuous_integration/travis/runtests.sh || ./continuous_integration/travis/runtests.sh;
+  - ./continuous_integration/posix/runtests.sh || ./continuous_integration/posix/runtests.sh || ./continuous_integration/posix/runtests.sh;
 
 after_success:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export PATH="$HOME/miniconda/bin:$PATH" && source activate test && coveralls; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then source $HOME/miniconda/etc/profile.d/conda.sh && conda activate test && coveralls; fi
