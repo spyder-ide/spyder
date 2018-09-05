@@ -15,11 +15,12 @@ matrix:
       os: osx
       language: generic
     - python: "2.7"
-      env: USE_CONDA=yes
+      env: USE_CONDA=yes PYTHON_VERSION=2.7
+      os: osx
+      language: generic
+    - env: USE_CONDA=yes PYTHON_VERSION=3.7
       os: linux
-    - python: "3.5"
-      env: USE_CONDA=yes
-      os: linux
+      language: generic
     - python: "3.6"
       env: USE_CONDA=yes
       os: linux

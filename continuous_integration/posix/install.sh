@@ -31,5 +31,5 @@ if [ "$USE_CONDA" = "no" ]; then
     pip install git+https://github.com/jupyter/qtconsole.git
 
     # Install Spyder and its dependencies
-    pip install .[test]
+    pip install -e .[test]
 fi
