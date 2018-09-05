@@ -2,6 +2,15 @@ Included Software, Images and Icons
 ###################################
 
 
+General Information
+===================
+
+
+
+Overview
+--------
+
+
 Spyder incorporates code and image assets from various external sources,
 each of which is covered by its own license and copyright notice.
 These files are listed here with their corresponding authors,
@@ -18,8 +27,140 @@ association or ownership by or of the marks or their respective owners.
 All trademarks are the property of their respective owners.
 
 
+-------------------------------------------------------------------------------
 
-==============================================================================
+
+
+Instructions for Adding a New Entry
+-----------------------------------
+
+
+All files or groups of files, including source code, images, icons, and other
+assets, that originate from projects outside of the Spyder organization
+(regardless of the license), must be documented here.
+Please see the Contributing Guide, CONTRIBUTING.md, for full details on the
+criteria for inclusion and other steps you need to take to ensure transparency,
+legal clarity and license compliance.
+Always check with the Spyder team (on Github, Gitter or the Google Group)
+before adding content from an external project, and only do so when necessary.
+
+Add one entry per code repo, icon set or font face, or other cohesive
+unit within which the source material is organized and distributed as.
+New entires for icons should be in order of the number of icons used;
+other entries should be in order of inclusion.
+
+Pay careful attention to the number of blank lines before and after headings,
+horizontal rules, sections, and other elements.
+This helps keep this document semi-machine-readable and helps avoid conflicts.
+Break this document at 79 characters, and at periods (sentences) unless the
+text is copied directly from an external file (license, header, etc).
+Follow the project standards here and for added files (see CONTRIBUTING.md).
+
+Please check the list below to ensure your project's license is on it.
+If not, you'll need to add it (but double-check it with us first).
+Add its name here, and copy the plain text (broken at > 80 characters) in the
+final section at the end of this document, at the end of the list.
+
+
+Source code licenses:
+
+* MIT (Expat) License
+* 3-Clause ("Modified") BSD License
+* Python Software Foundation License Version 2
+* Apache License 2.0
+
+
+Additional asset licenses:
+
+* GNU LGPL 2.1 (with GPL 2.0)
+* GNU LGPL 3.0 (with GPL 3.0)
+* Creative Commons Attribution 3.0
+* SIL Open Font License 1.1
+
+
+-------------------------------------------------------------------------------
+
+
+
+New Entry Template
+------------------
+
+
+# Fields that should be replaced are marked with <this-is-a-field>.
+# Some fields are optional, indicated with [<option-one> OR <two>]
+# Comments, indicated with # (like this one) are only for reference and should
+# not be included in the final product.
+
+# Beginning of template #
+
+
+[<Project-Name> OR <Named-Subcomponent> from <Project-Name>] <version-used>
+-------------------------------------------------------------------------
+
+
+Copyright <year(s)> <author-name> [(<email-or-website>) IF provided]
+# Use the author-provided form, if given, correcting obvious syntax errors
+# (e.g. remove commas, false "All rights reserved" statements, etc)
+# List additional copyright lines here, if provided
+# If modified by Spyder contributors after adding, additionally list:
+[Copyright (c) <current-year>- Spyder Project Contributors (see AUTHORS.txt)]
+
+
+Author: <author-name> | <author-email> | <author-website>
+Site: <main-project-website-other-than-github>  # Unless no site exists
+[Source: <main-page-of-github-etc-repository>]
+[Download: <page-to-download-icons-or-assets>]  # If not the same as above
+License: <full-name-of-license-including-version>
+<canonical-url-to-authoritative-license-text>
+
+[No modifications made. OR Modifications made to [each file] to <purpose>.]
+
+
+<license-summary-text-and-notices-from-original-project>
+# If the project includes a NOTICE.txt file, copy its contents verbatim here.
+# Additionally, include any non-canonical text in the project's license file
+# (i.e. that not part of the actual license itself, as reproduced below)
+# Any text from an AUTHORS file, any file header text aside from the copyright,
+# Any legal-related text in the readme (credits, acknowledgments, license, etc)
+# and any other legal text, disclaimer, notice, attribution etc. present.
+# Trim all line breaks to no more than one consecutive blank line
+
+
+[<project-name> is used in Spyder under the terms of the <specific-licensed>.
+See below for the full text of the <specific-license>.]  # If dual-licensed
+# Pick the license closest to Spyder's, or otherwise the most permissive
+
+# Include any additional custom explanatory text describing usage of the
+# project/component/asset with Spyder here
+
+See below for the full text of the <full-name-of-license-including-version>.
+
+The current <project-name> license can be viewed at:
+<direct-link-to-license-file-on-github-etc>
+
+[Later versions of the <full-name-of-license] can be viewed at:
+<link-to-license-creator-site>]  # For "any later version" licenses, like LGPL
+
+[The current license summary can be viewed at:
+<link-to-license-summary-on-project-or-license-creator-page>]  # If present
+
+[The current version of the original file[s] can be viewed at:
+<link-to-github-etc-of-original-file>]  # If only specific file(s) used
+<links-to-further-files-if-applicable]
+
+
+Files covered:
+
+<path/to/file/in/spyder/repo.py>  # Should always be relative to the repo root
+
+
+-------------------------------------------------------------------------------
+
+# End of template #
+
+
+
+===============================================================================
 
 
 

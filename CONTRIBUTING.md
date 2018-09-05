@@ -212,6 +212,18 @@ To run the Spyder test suite, please use (from the `spyder` root directory):
 ```
 
 
+## Adding Third-Party Content
+
+All files or groups of files, including source code, images, icons, and other
+assets, that are sourced from projects outside of the Spyder organization
+(regardless of the license), must be documented here.
+Code considered for inclusion must be under a permissive (i.e. non-copyleft)
+license, e.g. (MIT, BSD, ISC, Apache 2.0); external assets (fonts, icons,
+images, sounds, animations, etc) can be 
+
+
+
+
 ## More information
 
 [Main Website](https://www.spyder-ide.org/)
