@@ -1580,9 +1580,6 @@ class IPythonConsole(SpyderPluginWidget):
             error_msg = _("The error is:<br><br>"
                           "<tt>{}</tt>").format(traceback.format_exc())
             return (error_msg, None)
-        finally:
-            if stderr is not None and not stderr.closed:
-                stderr.close()
 
         # Kernel client
         kernel_client = kernel_manager.client()
