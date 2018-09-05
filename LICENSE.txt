@@ -1,9 +1,6 @@
-Spyder License Agreement (MIT License)
---------------------------------------
+MIT License
 
-The spyder/images dir and some source files under other terms; see NOTICE.txt
-
-Copyright (c) Spyder Project Contributors
+Copyright (c) 2009- Spyder Project Contributors and others (see AUTHORS.txt); the spyder/images dir and some source files under other terms (see NOTICE.txt)
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
