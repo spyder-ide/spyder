@@ -33,7 +33,7 @@ from qtpy.QtWidgets import (QApplication, QComboBox, QHBoxLayout, QLabel,
 
 # Local imports
 from spyder.config.base import _
-from spyder.py3compat import to_text_string
+from spyder.py3compat import to_text_string, PY2
 from spyder.utils import icon_manager as ima
 from spyder.utils.encoding import is_text_file, to_unicode_from_fs
 from spyder.utils.misc import getcwd_or_home
@@ -101,7 +101,8 @@ class SearchThread(QThread):
         self.rootpath = path
         self.python_path = False
         self.hg_manifest = False
-        self.exclude = re.compile(exclude)
+        if exclude:
+            self.exclude = re.compile(exclude)
         self.texts = texts
         self.text_re = text_re
         self.is_file = is_file
@@ -139,12 +140,19 @@ class SearchThread(QThread):
                     return False
             try:
                 for d in dirs[:]:
+                    with QMutexLocker(self.mutex):
+                        if self.stopped:
+                            return False
                     dirname = os.path.join(path, d)
-                    if re.search(self.exclude, dirname + os.sep):
+                    if self.exclude \
+                       and re.search(self.exclude, dirname + os.sep):
                         dirs.remove(d)
                 for f in files:
+                    with QMutexLocker(self.mutex):
+                        if self.stopped:
+                            return False
                     filename = os.path.join(path, f)
-                    if re.search(self.exclude, filename):
+                    if self.exclude and re.search(self.exclude, filename):
                         continue
                     if is_text_file(filename):
                         self.find_string_in_file(filename)
@@ -159,6 +167,9 @@ class SearchThread(QThread):
         try:
             for lineno, line in enumerate(open(fname, 'rb')):
                 for text, enc in self.texts:
+                    with QMutexLocker(self.mutex):
+                        if self.stopped:
+                            return False
                     line_search = line
                     if not self.case_sensitive:
                         line_search = line_search.lower()
@@ -178,6 +189,9 @@ class SearchThread(QThread):
                     line = line.lower()
                 if self.text_re:
                     for match in re.finditer(text, line):
+                        with QMutexLocker(self.mutex):
+                            if self.stopped:
+                                return False
                         self.total_matches += 1
                         self.sig_file_match.emit((osp.abspath(fname),
                                                   lineno + 1,
@@ -187,6 +201,9 @@ class SearchThread(QThread):
                 else:
                     found = line.find(text)
                     while found > -1:
+                        with QMutexLocker(self.mutex):
+                            if self.stopped:
+                                return False
                         self.total_matches += 1
                         self.sig_file_match.emit((osp.abspath(fname),
                                                   lineno + 1,
@@ -545,16 +562,21 @@ class FindOptions(QWidget):
         file_search = self.path_selection_combo.is_file_search()
         path = self.path_selection_combo.get_current_searchpath()
 
-        # Finding text occurrences
         if not exclude_re:
-            exclude = fnmatch.translate(exclude)
-        else:
-            try:
+            items = [fnmatch.translate(item.strip())
+                     for item in exclude.split(",")
+                     if item.strip() != '']
+            exclude = '|'.join(items)
+
+        # Validate regular expressions:
+
+        try:
+            if exclude:
                 exclude = re.compile(exclude)
-            except Exception:
-                exclude_edit = self.exclude_pattern.lineEdit()
-                exclude_edit.setStyleSheet(self.REGEX_INVALID)
-                return None
+        except Exception:
+            exclude_edit = self.exclude_pattern.lineEdit()
+            exclude_edit.setStyleSheet(self.REGEX_INVALID)
+            return None
 
         if text_re:
             try:
@@ -765,7 +787,7 @@ class ResultsBrowser(OneColumnTree):
         self.set_title(title + text)
 
     def truncate_result(self, line, start, end):
-        ellipsis = '...'
+        ellipsis = u'...'
         max_line_length = 80
         max_num_char_fragment = 40
 
@@ -781,7 +803,8 @@ class ResultsBrowser(OneColumnTree):
             """Produce entities within text."""
             return "".join(html_escape_table.get(c, c) for c in text)
 
-        line = to_text_string(line)
+        if PY2:
+            line = to_text_string(line, encoding='utf8')
         left, match, right = line[:start], line[start:end], line[end:]
 
         if len(line) > max_line_length:

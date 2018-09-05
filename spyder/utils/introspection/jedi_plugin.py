@@ -21,7 +21,6 @@ from spyder.utils.introspection.manager import (
     DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin)
 from spyder.utils.introspection.utils import (default_info_response,
                                               get_parent_until)
-from spyder.utils.introspection.manager import JEDI_REQVER
 
 try:
     import jedi
@@ -41,8 +40,8 @@ class JediPlugin(IntrospectionPlugin):
 
     def load_plugin(self):
         """Load the Jedi introspection plugin"""
-        if not programs.is_module_installed('jedi', JEDI_REQVER):
-            raise ImportError('Requires Jedi %s' % JEDI_REQVER)
+        if not programs.is_module_installed('jedi'):
+            raise ImportError('Requires Jedi')
         jedi.settings.case_insensitive_completion = False
         for lib in ['numpy', 'matplotlib']:
             jedi.preload_module(lib)

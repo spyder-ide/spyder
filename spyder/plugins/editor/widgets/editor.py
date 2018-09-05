@@ -851,7 +851,7 @@ class EditorStack(QWidget):
         # Remove editor references from the outline explorer settings
         if self.outlineexplorer is not None:
             for finfo in self.data:
-                self.outlineexplorer.remove_editor(finfo.editor)
+                self.outlineexplorer.remove_editor(finfo.editor.oe_proxy)
 
         QWidget.closeEvent(self, event)
 
@@ -1296,6 +1296,7 @@ class EditorStack(QWidget):
             return text % (osp.basename(filename), osp.dirname(filename))
 
     def add_to_data(self, finfo, set_current):
+        finfo.editor.oe_proxy = None
         self.data.append(finfo)
         index = self.data.index(finfo)
         editor = finfo.editor
@@ -2070,7 +2071,9 @@ class EditorStack(QWidget):
             if finfo.editor.is_python():
                 enable = True
                 oe.setEnabled(True)
-                finfo.editor.oe_proxy = OutlineExplorerProxyEditor(finfo.editor, finfo.filename)
+                if finfo.editor.oe_proxy is None:
+                    finfo.editor.oe_proxy = OutlineExplorerProxyEditor(
+                        finfo.editor, finfo.filename)
                 oe.set_current_editor(finfo.editor.oe_proxy,
                                       update=update, clear=clear)
         if not enable:
@@ -2651,9 +2654,9 @@ class EditorSplitter(QSplitter):
             print("method 'editorstack_closed':", file=STDOUT)
             print("    self  :", self, file=STDOUT)
 #            print >>STDOUT, "    sender:", self.sender()
-        self.unregister_editorstack_cb(self.editorstack)
-        self.editorstack = None
         try:
+            self.unregister_editorstack_cb(self.editorstack)
+            self.editorstack = None
             close_splitter = self.count() == 1
         except RuntimeError:
             # editorsplitter has been destroyed (happens when closing a

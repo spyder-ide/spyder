@@ -24,6 +24,7 @@ from spyder.plugins.findinfiles.widgets import (FindInFilesWidget, SearchInCombo
                                                 EXTERNAL_PATHS, SELECT_OTHER, CWD,
                                                 CLEAR_LIST, PROJECT, FILE_PATH,
                                                 QMessageBox)
+from spyder.py3compat import PY2
 
 LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
 NONASCII_DIR = osp.join(LOCATION, u"èáïü Øαôå 字分误")
@@ -114,7 +115,7 @@ def test_find_in_files_search(qtbot):
     assert expected_results() == matches
 
 
-def test_exclude_extension(qtbot):
+def test_exclude_extension_regex(qtbot):
     find_in_files = setup_findinfiles(qtbot, exclude="\.py$")
     find_in_files.set_search_text("spam")
     find_in_files.find_options.set_directory(osp.join(LOCATION, "data"))
@@ -129,6 +130,95 @@ def test_exclude_extension(qtbot):
             files_filtered = False
             break
     assert files_filtered
+
+
+def test_exclude_extension_string(qtbot):
+    find_in_files = setup_findinfiles(qtbot, exclude="*.py",
+                                      exclude_regexp=False)
+    find_in_files.set_search_text("spam")
+    find_in_files.find_options.set_directory(osp.join(LOCATION, "data"))
+    find_in_files.find()
+    blocker = qtbot.waitSignal(find_in_files.sig_finished)
+    blocker.wait()
+    matches = process_search_results(find_in_files.result_browser.data)
+    files_filtered = True
+    for file in matches:
+        filename, ext = osp.splitext(file)
+        if ext == '.py':
+            files_filtered = False
+            break
+    assert files_filtered
+
+
+def test_exclude_extension_empty_regex(qtbot):
+    find_in_files = setup_findinfiles(qtbot, exclude="")
+    find_in_files.set_search_text("spam")
+    find_in_files.find_options.set_directory(osp.join(LOCATION, "data"))
+    find_in_files.find()
+    blocker = qtbot.waitSignal(find_in_files.sig_finished)
+    blocker.wait()
+    matches = process_search_results(find_in_files.result_browser.data)
+    assert expected_results() == matches
+
+
+def test_exclude_extension_string(qtbot):
+    find_in_files = setup_findinfiles(qtbot, exclude="",
+                                      exclude_regexp=False)
+    find_in_files.set_search_text("spam")
+    find_in_files.find_options.set_directory(osp.join(LOCATION, "data"))
+    find_in_files.find()
+    blocker = qtbot.waitSignal(find_in_files.sig_finished)
+    blocker.wait()
+    matches = process_search_results(find_in_files.result_browser.data)
+    assert expected_results() == matches
+
+
+def test_exclude_extension_multiple_string(qtbot):
+    find_in_files = setup_findinfiles(qtbot, exclude="*.py, *.cpp",
+                                      exclude_regexp=False)
+    find_in_files.set_search_text("spam")
+    find_in_files.find_options.set_directory(osp.join(LOCATION, "data"))
+    find_in_files.find()
+    blocker = qtbot.waitSignal(find_in_files.sig_finished)
+    blocker.wait()
+    matches = process_search_results(find_in_files.result_browser.data)
+    files_filtered = True
+    for file in matches:
+        filename, ext = osp.splitext(file)
+        if ext in ['.py', '.cpp']:
+            print(ext)
+            files_filtered = False
+            break
+    assert files_filtered
+
+
+@pytest.mark.parametrize("line_input", ['nnnnn', 'ñandú'])
+def test_truncate_result_with_different_input(qtbot, line_input):
+    """
+    Issue: 6218 - checking if truncate_result raise UnicodeDecodeError
+    """
+
+    # with
+    find_in_files = setup_findinfiles(qtbot)
+    slice_start = 1
+    slice_end = 2
+
+    if PY2:
+        line_input_expected = line_input.decode('utf-8')
+    else:
+        line_input_expected = line_input
+
+    expected_result = u'%s<b>%s</b>%s' % (
+        line_input_expected[:slice_start],
+        line_input_expected[slice_start:slice_end],
+        line_input_expected[slice_end:])
+
+    # when
+    truncated_line = find_in_files.result_browser.truncate_result(
+        line_input, slice_start, slice_end)
+
+    # then
+    assert truncated_line == expected_result
 
 
 def test_case_unsensitive_search(qtbot):

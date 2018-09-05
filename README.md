@@ -203,18 +203,16 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 * **Python** 2.7 or 3.4+: The core language Spyder is written in and for.
 * **PyQt5** 5.5+: Python bindings for Qt, used for Spyder's GUI.
 * **qtconsole** 4.2.0+: Enhanced Python interpreter.
-* **Rope** 0.9.4+ and **Jedi** 0.11.0+: Editor code completion, calltips
-  and go-to-definition.
-* **Pyflakes**: Real-time code analysis.
+* **Python-language-server**: Editor code completion, calltips
+  go-to-definition and real-time code analysis
 * **Sphinx**: Rich text mode for the Help pane.
 * **Pygments** 2.0+: Syntax highlighting for all file types it supports.
 * **Pylint**: Static code analysis.
-* **Pycodestyle**: Real-time code style analysis.
 * **Psutil**: CPU and memory usage on the status bar.
 * **Nbconvert**: Manipulation of notebooks in the Editor.
 * **Qtawesome** 0.4.1+: To have an icon theme based on FontAwesome.
 * **Pickleshare**: Show import completions on the Python consoles.
-* **PyZMQ**: Run introspection services asynchronously.
+* **PyZMQ**: Client for the language server protocol (LSP).
 * **QtPy** 1.2.0+: Abstraction layer for Python Qt bindings so that Spyder
   can run on multiple Qt bindings and versions.
 * **Chardet**: Character encoding auto-detection in Python.

@@ -204,14 +204,10 @@ if any(arg == 'bdist_wheel' for arg in sys.argv):
 
 install_requires = [
     'cloudpickle',
-    'rope>=0.10.5',
-    'jedi>=0.11.0',
-    'pyflakes',
     'pygments>=2.0',
     'qtconsole>=4.2.0',
     'nbconvert',
     'sphinx',
-    'pycodestyle',
     'pylint',
     'psutil',
     'qtawesome>=0.4.1',
@@ -226,7 +222,9 @@ install_requires = [
     'keyring;sys_platform!="linux2"',
     # Packages for pyqt5 are only available in
     # Python 3
-    'pyqt5<5.10;python_version>="3"'
+    'pyqt5<5.10;python_version>="3"',
+    # Pyls with all its dependencies
+    'python-language-server[all]'
 ]
 
 extras_require = {
