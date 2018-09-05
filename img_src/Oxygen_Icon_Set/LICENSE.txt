@@ -19,7 +19,7 @@ Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public
 License along with this library. If not, see <https://www.gnu.org/licenses/>.
 
-Please see NOTICES.txt at the root of this repo/package for full details,
+Please see NOTICE.txt at the root of this repo/package for full details,
 which should be included with any distribution that uses these files.
-The NOTICES.txt file can also be viewed online at Spyder's Github repository:
-https://github.com/spyder-ide/spyder/blob/master/NOTICES.txt
+The NOTICE.txt file can also be viewed online at Spyder's Github repository:
+https://github.com/spyder-ide/spyder/blob/master/NOTICE.txt

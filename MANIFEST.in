@@ -16,4 +16,4 @@ include CHANGELOG.md
 include bootstrap.py
 include runtests.py
 include conftest.py
-include NOTICES.txt
+include NOTICE.txt
