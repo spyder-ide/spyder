@@ -870,7 +870,7 @@ def test_stderr_file_is_remove_one_kernel(ipyconsole, qtbot, monkeypatch):
 
     # In a normal situation file should exists
     monkeypatch.setattr(QMessageBox, 'question',
-                        lambda *args, **kwargs: QMessageBox.Yes)
+                        classmethod(lambda *args: QMessageBox.Yes))
     assert osp.exists(client.stderr_file)
     ipyconsole.close_client(client=client)
     assert not osp.exists(client.stderr_file)
@@ -897,7 +897,7 @@ def test_stderr_file_is_remove_two_kernels(ipyconsole, qtbot, monkeypatch):
 
     # In a normal situation file should exists
     monkeypatch.setattr(QMessageBox, 'question',
-                        lambda *args, **kwargs: QMessageBox.Yes)
+                        classmethod(lambda *args: QMessageBox.Yes))
     assert osp.exists(client.stderr_file)
     ipyconsole.close_client(client=client)
     assert not osp.exists(client.stderr_file)
@@ -923,8 +923,8 @@ def test_stderr_file_remains_two_kernels(ipyconsole, qtbot, monkeypatch):
     assert client.stderr_file == other_client.stderr_file
 
     # In a normal situation file should exists
-    monkeypatch.setattr(QMessageBox, 'question',
-                        lambda *args, **kwargs: QMessageBox.No)
+    monkeypatch.setattr(QMessageBox, "question",
+                        classmethod(lambda *args: QMessageBox.No))
     assert osp.exists(client.stderr_file)
     ipyconsole.close_client(client=client)
     assert osp.exists(client.stderr_file)
