@@ -9,14 +9,14 @@ main: &main
       - run:
           name: Install system packages
           command: |
-            sudo apt-get update
+            sudo apt-get -qq update
             sudo apt-get install libegl1-mesa
       - run:
           command: ./continuous_integration/posix/install.sh
       - run:
           command: ./continuous_integration/posix/install-qt.sh
       - run:
-          command: ./continuous_integration/posix/runtests.sh
+          command: ./continuous_integration/posix/runtests.sh || ./continuous_integration/posix/runtests.sh || ./continuous_integration/posix/runtests.sh
 
 jobs:
   python2.7-pytest:
