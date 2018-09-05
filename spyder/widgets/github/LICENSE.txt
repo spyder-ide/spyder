@@ -1,7 +1,7 @@
 The MIT (Expat) License
 
 Copyright (c) 2016 Colin Duquesnoy
-Copyright (c) 2018- Spyder Project Contributors (see AUTHORS in Spyder repo)
+Copyright (c) 2018- Spyder Project Contributors (see AUTHORS.txt in repo root)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

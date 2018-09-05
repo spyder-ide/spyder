@@ -8,7 +8,7 @@ https://github.com/spyder-ide/spyder/graphs/contributors)*
 [NOTICE.txt](https://github.com/spyder-ide/spyder/blob/master/NOTICE.txt).*
 
 
-[![license](https://img.shields.io/pypi/l/spyder.svg)](./LICENSE)
+[![license](https://img.shields.io/pypi/l/spyder.svg)](./LICENSE.txt)
 [![pypi version](https://img.shields.io/pypi/v/spyder.svg)](https://pypi.org/project/spyder/)
 [![conda version](https://img.shields.io/conda/vn/conda-forge/spyder.svg)](https://www.anaconda.com/download/)
 [![download count](https://img.shields.io/conda/dn/conda-forge/spyder.svg)](https://www.anaconda.com/download/)
