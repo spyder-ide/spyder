@@ -3,6 +3,9 @@
 language: python
 dist: trusty
 sudo: false
+env:
+  global:
+    - CI_PYTEST: "true"
 
 matrix:
   fast_finish: true
