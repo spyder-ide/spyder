@@ -17,5 +17,5 @@ if [ "$CI_PYTEST" = "true" ]; then
     python bootstrap.py -- --reset
     python runtests.py
 else
-    ./continuous_integration/modules_test.sh
+    ./continuous_integration/posix/modules_test.sh
 fi

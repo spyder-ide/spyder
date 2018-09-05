@@ -1,63 +1,44 @@
 version: 2
 
+main: &main
+    machine: true
+    steps:
+      - checkout
+      - run:
+          command: docker pull dorowu/ubuntu-desktop-lxde-vnc:trusty
+      - run:
+          name: Install system packages
+          command: |
+            sudo apt-get update
+            sudo apt-get install libegl1-mesa
+      - run:
+          command: ./continuous_integration/posix/install.sh
+      - run:
+          command: ./continuous_integration/posix/install-qt.sh
+      - run:
+          command: ./continuous_integration/posix/runtests.sh
+
 jobs:
   python2.7-pytest:
-    machine: true
+    <<: *main
     environment:
       - PYTHON_VERSION: "2.7"
-    steps:
-      - checkout
-      - run:
-          command: docker pull dorowu/ubuntu-desktop-lxde-vnc:trusty
-      - run:
-          name: Install system packages
-          command: |
-            sudo apt-get update
-            sudo apt-get install libegl1-mesa
-      - run:
-          command: ./continuous_integration/posix/install.sh
-      - run:
-          command: ./continuous_integration/posix/install-qt.sh
-      - run:
-          command: ./continuous_integration/posix/runtests.sh
+      - USE_CONDA: "yes"
+      - CI_PYTEST: "true"
+
   python3.5-pytest:
-    machine: true
+    <<: *main
     environment:
       - PYTHON_VERSION: "3.5"
-    steps:
-      - checkout
-      - run:
-          command: docker pull dorowu/ubuntu-desktop-lxde-vnc:trusty
-      - run:
-          name: Install system packages
-          command: |
-            sudo apt-get update
-            sudo apt-get install libegl1-mesa
-      - run:
-          command: ./continuous_integration/posix/install.sh
-      - run:
-          command: ./continuous_integration/posix/install-qt.sh
-      - run:
-          command: ./continuous_integration/posix/runtests.sh
+      - USE_CONDA: "yes"
+      - CI_PYTEST: "true"
+
   python3.6-modules:
-    machine: true
+    <<: *main
     environment:
       - PYTHON_VERSION: "3.6"
-    steps:
-      - checkout
-      - run:
-          command: docker pull dorowu/ubuntu-desktop-lxde-vnc:trusty
-      - run:
-          name: Install system packages
-          command: |
-            sudo apt-get update
-            sudo apt-get install libegl1-mesa
-      - run:
-          command: ./continuous_integration/posix/install.sh
-      - run:
-          command: ./continuous_integration/posix/install-qt.sh
-      - run:
-          command: ./.circleci/modules_test.sh
+      - USE_CONDA: "yes"
+      - CI_PYTEST: "false"
 
 workflows:
   version: 2
