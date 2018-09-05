@@ -1369,7 +1369,6 @@ class IPythonConsole(SpyderPluginWidget):
         # Check if related clients or kernels are opened
         # and eventually ask before closing them
         if not self.mainwindow_close and not force:
-            should_remove_stderr_file = False
             close_all = True
             if self.get_option('ask_before_closing'):
                 close = QMessageBox.question(self, self.get_plugin_title(),
@@ -1382,17 +1381,14 @@ class IPythonConsole(SpyderPluginWidget):
                          _("Do you want to close all other consoles connected "
                            "to the same kernel as this one?"),
                            QMessageBox.Yes | QMessageBox.No)
-            else:
-                should_remove_stderr_file = True
 
             client.shutdown()
             if close_all == QMessageBox.Yes:
                 self.close_related_clients(client)
-                should_remove_stderr_file = True
-        else:
-            should_remove_stderr_file = True
 
-        if should_remove_stderr_file and osp.exists(client.stderr_file):
+        # if there aren't related clients we need to remove stderr_file
+        related_clients = self.get_related_clients(client)
+        if len(related_clients) == 0 and osp.exists(client.stderr_file):
             os.remove(client.stderr_file)
 
         client.close()
