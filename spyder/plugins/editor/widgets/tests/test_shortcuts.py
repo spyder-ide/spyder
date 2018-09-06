@@ -259,6 +259,37 @@ def test_builtin_shift_del_and_ins(editor_bot):
     assert editor.toPlainText() == '\nLine2\nLine3\nLine4\n'
 
 
+@pytest.mark.skipif(os.name != 'nt', reason='Only valid in Windows system')
+def test_builtin_undo_redo(editor_bot):
+    """
+    Test that the builtin key sequence Alt+Backspace, Ctrl+Y and
+    Alt+Shift+Backspace result in, respectively, an undo, redo and redo action
+    in Windows.
+    """
+    editorstack, qtbot = editor_bot
+    editor = editorstack.get_current_editor()
+    
+    # Write something on a new line.
+    qtbot.keyClicks(editor, 'Something')
+    qtbot.keyClick(editor, Qt.Key_Return)
+    assert editor.toPlainText() == 'Something\nLine1\nLine2\nLine3\nLine4\n'
+    
+    # Undo the last action with Alt+Backspace.
+    qtbot.keyClick(editor, Qt.Key_Backspace, modifier=Qt.AltModifier)
+    assert editor.toPlainText() == 'SomethingLine1\nLine2\nLine3\nLine4\n'
+
+    # Undo the second to last action with Alt+Backspace.
+    qtbot.keyClick(editor, Qt.Key_Backspace, modifier=Qt.AltModifier)
+    assert editor.toPlainText() == 'Line1\nLine2\nLine3\nLine4\n'
+
+    # Redo the second to last action with Alt+Shift+Backspace.
+    qtbot.keyClick(editor, Qt.Key_Backspace, 
+                    modifier=Qt.AltModifier | Qt.ShiftModifier)
+    assert editor.toPlainText() == 'SomethingLine1\nLine2\nLine3\nLine4\n'
+    
+    # Redo the last action with Ctrl+Y.
+    qtbot.keyClick(editor, Qt.Key_Y, modifier=Qt.ControlModifier)
+    assert editor.toPlainText() == 'Something\nLine1\nLine2\nLine3\nLine4\n'
 
 if __name__ == "__main__":
     import os
