@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [ "$CIRCLECI" = "true" ]; then
+    export TRAVIS_OS_NAME="linux"
+fi
+
 if [ "$USE_CONDA" = "no" ]; then
     export PIP_DEPENDENCIES_FLAGS="-q"
     export PIP_DEPENDENCIES="coveralls"
@@ -27,5 +31,5 @@ if [ "$USE_CONDA" = "no" ]; then
     pip install git+https://github.com/jupyter/qtconsole.git
 
     # Install Spyder and its dependencies
-    pip install .[test]
+    pip install -e .[test]
 fi

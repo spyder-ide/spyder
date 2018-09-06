@@ -1,62 +1,57 @@
 version: 2
 
-jobs:
-  python2.7:
+main: &main
     machine: true
+    steps:
+      - checkout
+      - run:
+          command: docker pull dorowu/ubuntu-desktop-lxde-vnc:trusty
+      - run:
+          name: Install system packages
+          command: |
+            sudo apt-get -qq update
+            sudo apt-get install libegl1-mesa
+      - run:
+          command: ./continuous_integration/posix/install.sh
+      - run:
+          command: ./continuous_integration/posix/install-qt.sh
+      - run:
+          command: ./continuous_integration/posix/runtests.sh || ./continuous_integration/posix/runtests.sh || ./continuous_integration/posix/runtests.sh
+
+jobs:
+  python2.7-pytest:
+    <<: *main
     environment:
       - PYTHON_VERSION: "2.7"
-    steps:
-      - checkout
-      - run:
-          command: docker pull dorowu/ubuntu-desktop-lxde-vnc:trusty
-      - run:
-          name: Install system packages
-          command: |
-            sudo apt-get update
-            sudo apt-get install libegl1-mesa
-      - run:
-          command: ./.circleci/install.sh
-      - run:
-          command: ./.circleci/modules_test.sh
-  python3.5:
-    machine: true
+      - USE_CONDA: "yes"
+      - CI_PYTEST: "true"
+
+  python3.5-pytest:
+    <<: *main
     environment:
       - PYTHON_VERSION: "3.5"
-    steps:
-      - checkout
-      - run:
-          command: docker pull dorowu/ubuntu-desktop-lxde-vnc:trusty
-      - run:
-          name: Install system packages
-          command: |
-            sudo apt-get update
-            sudo apt-get install libegl1-mesa
-      - run:
-          command: ./.circleci/install.sh
-      - run:
-          command: ./.circleci/modules_test.sh
-  python3.6:
-    machine: true
+      - USE_CONDA: "yes"
+      - CI_PYTEST: "true"
+
+  python2.7-modules:
+    <<: *main
+    environment:
+      - PYTHON_VERSION: "2.7"
+      - USE_CONDA: "yes"
+      - CI_PYTEST: "false"
+
+  python3.6-modules:
+    <<: *main
     environment:
       - PYTHON_VERSION: "3.6"
-    steps:
-      - checkout
-      - run:
-          command: docker pull dorowu/ubuntu-desktop-lxde-vnc:trusty
-      - run:
-          name: Install system packages
-          command: |
-            sudo apt-get update
-            sudo apt-get install libegl1-mesa
-      - run:
-          command: ./.circleci/install.sh
-      - run:
-          command: ./.circleci/modules_test.sh
+      - USE_CONDA: "yes"
+      - CI_PYTEST: "false"
 
 workflows:
   version: 2
   build_and_test:
     jobs:
-      - python2.7
-      - python3.5
-      - python3.6
+      - python2.7-pytest
+      - python3.5-pytest
+      - python2.7-modules
+      - python3.6-modules
