@@ -229,7 +229,7 @@ def test_builtin_shift_del_and_ins(editor_bot):
     """
     Test that the builtin key sequences Ctrl+Ins, Shit+Del and Shift+Ins result
     in copy, cut and paste actions in Windows and Linux.
-    
+
     Regression test for issue #5035, #4947, and #5973.
     """
     editorstack, qtbot = editor_bot
@@ -239,20 +239,20 @@ def test_builtin_shift_del_and_ins(editor_bot):
     # Select the first line of the editor.
     qtbot.keyClick(editor, Qt.Key_End, modifier=Qt.ShiftModifier)
     assert editor.get_selected_text() == 'Line1'
-    
+
     # Copy the selection with Ctrl+Ins.
     qtbot.keyClick(editor, Qt.Key_Insert, modifier=Qt.ControlModifier)
     assert QApplication.clipboard().text() == 'Line1'
-    
+
     # Paste the copied text at the end of the line with Shift+Ins.
     qtbot.keyClick(editor, Qt.Key_End)
     qtbot.keyClick(editor, Qt.Key_Insert, modifier=Qt.ShiftModifier)
     assert editor.toPlainText() == 'Line1Line1\nLine2\nLine3\nLine4\n'
-    
+
     # Select the second line in the editor again.
     qtbot.keyClick(editor, Qt.Key_Home, modifier=Qt.ShiftModifier)
     assert editor.get_selected_text() == 'Line1Line1'
-    
+
     # Cut the selection with Shift+Del.
     qtbot.keyClick(editor, Qt.Key_Delete, modifier=Qt.ShiftModifier)
     assert QApplication.clipboard().text() == 'Line1Line1'
@@ -268,12 +268,12 @@ def test_builtin_undo_redo(editor_bot):
     """
     editorstack, qtbot = editor_bot
     editor = editorstack.get_current_editor()
-    
+
     # Write something on a new line.
     qtbot.keyClicks(editor, 'Something')
     qtbot.keyClick(editor, Qt.Key_Return)
     assert editor.toPlainText() == 'Something\nLine1\nLine2\nLine3\nLine4\n'
-    
+
     # Undo the last action with Alt+Backspace.
     qtbot.keyClick(editor, Qt.Key_Backspace, modifier=Qt.AltModifier)
     assert editor.toPlainText() == 'SomethingLine1\nLine2\nLine3\nLine4\n'
@@ -283,13 +283,14 @@ def test_builtin_undo_redo(editor_bot):
     assert editor.toPlainText() == 'Line1\nLine2\nLine3\nLine4\n'
 
     # Redo the second to last action with Alt+Shift+Backspace.
-    qtbot.keyClick(editor, Qt.Key_Backspace, 
-                    modifier=Qt.AltModifier | Qt.ShiftModifier)
+    qtbot.keyClick(editor, Qt.Key_Backspace,
+                   modifier=Qt.AltModifier | Qt.ShiftModifier)
     assert editor.toPlainText() == 'SomethingLine1\nLine2\nLine3\nLine4\n'
-    
+
     # Redo the last action with Ctrl+Y.
     qtbot.keyClick(editor, Qt.Key_Y, modifier=Qt.ControlModifier)
     assert editor.toPlainText() == 'Something\nLine1\nLine2\nLine3\nLine4\n'
+
 
 if __name__ == "__main__":
     import os
