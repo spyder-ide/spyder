@@ -4,8 +4,6 @@ set -ex
 
 export TEST_CI_WIDGETS=True
 export PYTHONPATH=.
-export PATH="$HOME/miniconda/bin:$PATH"
-source activate test
 
 # Depth 1
 for f in spyder/*.py; do

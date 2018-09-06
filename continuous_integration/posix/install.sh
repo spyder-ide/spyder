@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [ "$CIRCLECI" = "true" ]; then
+    export TRAVIS_OS_NAME="linux"
+fi
+
 if [ "$USE_CONDA" = "no" ]; then
     export PIP_DEPENDENCIES_FLAGS="-q"
     export PIP_DEPENDENCIES="coveralls coloredlogs python-language-server[all] pydocstyle pexpect"
@@ -20,8 +24,8 @@ fi
 echo -e "PYTHON = $TRAVIS_PYTHON_VERSION \n============"
 git clone git://github.com/astropy/ci-helpers.git > /dev/null
 source ci-helpers/travis/setup_conda_$TRAVIS_OS_NAME.sh
-export PATH="$HOME/miniconda/bin:$PATH"
-source activate test
+source $HOME/miniconda/etc/profile.d/conda.sh
+conda activate test
 
 
 if [ "$USE_CONDA" = "no" ]; then
@@ -29,5 +33,5 @@ if [ "$USE_CONDA" = "no" ]; then
     pip install git+https://github.com/jupyter/qtconsole.git
 
     # Install Spyder and its dependencies
-    pip install -q -e .[test]
+    pip install -e .[test]
 fi

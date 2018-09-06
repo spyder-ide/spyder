@@ -3,6 +3,9 @@
 language: python
 dist: trusty
 sudo: false
+env:
+  global:
+    - CI_PYTEST: "true"
 
 matrix:
   fast_finish: true
@@ -12,11 +15,12 @@ matrix:
       os: osx
       language: generic
     - python: "2.7"
-      env: USE_CONDA=yes
+      env: USE_CONDA=yes PYTHON_VERSION=2.7
+      os: osx
+      language: generic
+    - env: USE_CONDA=yes PYTHON_VERSION=3.7
       os: linux
-    - python: "3.5"
-      env: USE_CONDA=yes
-      os: linux
+      language: generic
     - python: "3.6"
       env: USE_CONDA=yes
       os: linux
@@ -33,13 +37,13 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y matchbox-window-manager; fi
 
 install:
-  - ./continuous_integration/travis/install.sh;
-  - ./continuous_integration/travis/install-qt.sh;
+  - ./continuous_integration/posix/install.sh;
+  - ./continuous_integration/posix/install-qt.sh;
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then DISPLAY=:99 matchbox-window-manager& fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sleep 5; fi
 
 script:
-  - ./continuous_integration/travis/runtests.sh || ./continuous_integration/travis/runtests.sh || ./continuous_integration/travis/runtests.sh;
+  - ./continuous_integration/posix/runtests.sh || ./continuous_integration/posix/runtests.sh || ./continuous_integration/posix/runtests.sh;
 
 after_success:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export PATH="$HOME/miniconda/bin:$PATH" && source activate test && coveralls; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then source $HOME/miniconda/etc/profile.d/conda.sh && conda activate test && coveralls; fi
