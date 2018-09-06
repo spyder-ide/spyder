@@ -33,6 +33,13 @@ jobs:
       - USE_CONDA: "yes"
       - CI_PYTEST: "true"
 
+  python2.7-modules:
+    <<: *main
+    environment:
+      - PYTHON_VERSION: "2.7"
+      - USE_CONDA: "yes"
+      - CI_PYTEST: "false"
+
   python3.6-modules:
     <<: *main
     environment:
@@ -46,4 +53,5 @@ workflows:
     jobs:
       - python2.7-pytest
       - python3.5-pytest
+      - python2.7-modules
       - python3.6-modules
