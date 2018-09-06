@@ -582,7 +582,15 @@ class CodeEditor(TextEditBaseWidget):
         return shortcut_callbacks
 
     def create_shortcuts(self):
-        """Create the local shortcuts for the CodeEditor."""
+        """Create the local shortcuts for the CodeEditor.
+        
+        This method is used by many other widgets in Spyder to configure
+        shortcuts with the QShortcut class. However, this approach is not used
+        in the Editor because of many conflicts with builtin shortcuts that are
+        specific to each OS and prevent the use of certain key sequence
+        correctly. This method is kept here for consistency reasons.
+        See PR #7768.
+        """
         return []
 
     def get_shortcut_data(self):
