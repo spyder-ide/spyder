@@ -61,15 +61,7 @@ VALID_KEYS = [getattr(Qt, 'Key_{0}'.format(k)) for k in KEYSTRINGS+SINGLE_KEYS]
 VALID_ACCENT_CHARS = "ÁÉÍOÚáéíúóàèìòùÀÈÌÒÙâêîôûÂÊÎÔÛäëïöüÄËÏÖÜñÑ"
 VALID_FINDER_CHARS = r"[A-Za-z\s{0}]".format(VALID_ACCENT_CHARS)
 
-BLACKLIST = {
-    'Shift+Del': _('Currently used to delete lines on editor/Cut a word'),
-    'Shift+Ins': _('Currently used to paste a word')
-}
-
-if os.name == 'nt':
-    BLACKLIST['Alt+Backspace'] = _('We cannot support this '
-                                   'shortcut on Windows')
-
+BLACKLIST = {}
 BLACKLIST['Shift'] = _('Shortcuts that use Shift and another key'
                        ' are unsupported')
 
