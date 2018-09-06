@@ -516,7 +516,11 @@ class CodeEditor(TextEditBaseWidget):
         return cursor_move_event
 
     def create_shortcut_callbacks(self):
-        """Make callbacks for the local shortcuts of the editor."""
+        """
+        Make callbacks for the local shortcuts of the editor. The
+        shortcut_callbacks dict needs to be updated when a new shortcut
+        is added to the Editor.
+        """
         shortcut_callbacks = {
             'editor/code completion': self.do_completion,
             'editor/duplicate line': self.duplicate_line,
