@@ -503,7 +503,7 @@ class CodeEditor(TextEditBaseWidget):
         self.editor_extensions = EditorExtensionsManager(self)
 
         self.editor_extensions.add(CloseQuotesExtension())
-        
+
     # ---- Keyboard Shortcuts
 
     def create_cursor_callback(self, attr):
@@ -583,7 +583,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def create_shortcuts(self):
         """Create the local shortcuts for the CodeEditor.
-        
+
         This method is used by many other widgets in Spyder to configure
         shortcuts with the QShortcut class. However, this approach is not used
         in the Editor because of many conflicts with builtin shortcuts that are
