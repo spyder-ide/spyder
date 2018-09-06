@@ -83,10 +83,12 @@ def test_start_and_end_of_document_shortcuts(editor_bot):
 
     # Assert initial state.
     assert editor.get_cursor_line_column() == (0, 0)
-    # End of Document.
+
+    # Go to the end of the document.
     qtbot.keyClick(editor, Qt.Key_End, modifier=Qt.ControlModifier)
     assert editor.get_cursor_line_column() == (4, 0)
-    # Start of Document.
+
+    # Go to the start of the document.
     qtbot.keyClick(editor, Qt.Key_Home, modifier=Qt.ControlModifier)
     assert editor.get_cursor_line_column() == (0, 0)
 
@@ -101,24 +103,22 @@ def test_del_undo_redo_shortcuts(editor_bot):
     editorstack, qtbot = editor_bot
     editor = editorstack.get_current_editor()
 
-    # Delete the first character of the first line, then do the key sequence
-    # for the 'Undo' keyboard shortcut, finally do the key sequence for the
-    # 'Redo' keyboard shortcut.
-
-    cursor_line, cursor_column = editor.get_cursor_line_column()
-    # Delete.
+    # Delete the first character of the first line.
     qtbot.keyClick(editor, Qt.Key_Delete)
-    assert editor.get_text_line(cursor_line) == 'ine1'
-    # Undo.
+    assert editor.toPlainText() == 'ine1\nLine2\nLine3\nLine4\n'
+
+    # Undo the last action with Ctrl+Z.
     qtbot.keyClick(editor, Qt.Key_Z, modifier=Qt.ControlModifier)
-    assert editor.get_text_line(cursor_line) == 'Line1'
-    # Redo.
+    assert editor.toPlainText() == 'Line1\nLine2\nLine3\nLine4\n'
+
+    # Redo the last action with Ctrl+Shift+Z .
     qtbot.keyClick(editor, Qt.Key_Z,
                    modifier=Qt.ControlModifier | Qt.ShiftModifier)
-    assert editor.get_text_line(cursor_line) == 'ine1'
-    # Undo.
+    assert editor.toPlainText() == 'ine1\nLine2\nLine3\nLine4\n'
+
+    # Undo the last action again with Ctrl+Z.
     qtbot.keyClick(editor, Qt.Key_Z, modifier=Qt.ControlModifier)
-    assert editor.get_text_line(cursor_line) == 'Line1'
+    assert editor.toPlainText() == 'Line1\nLine2\nLine3\nLine4\n'
 
 
 def test_copy_cut_paste_shortcuts(editor_bot):
@@ -128,24 +128,28 @@ def test_copy_cut_paste_shortcuts(editor_bot):
     """
     editorstack, qtbot = editor_bot
     editor = editorstack.get_current_editor()
+    QApplication.clipboard().clear()
 
     # Select and Copy the first line in the editor.
     qtbot.keyClick(editor, Qt.Key_End, modifier=Qt.ShiftModifier)
     assert editor.get_selected_text() == 'Line1'
+
     qtbot.keyClick(editor, Qt.Key_C, modifier=Qt.ControlModifier)
     assert QApplication.clipboard().text() == 'Line1'
 
     # Paste the selected text.
     qtbot.keyClick(editor, Qt.Key_Home)
     qtbot.keyClick(editor, Qt.Key_V, modifier=Qt.ControlModifier)
-    assert editor.get_text_line(0) == 'Line1Line1'
+    assert editor.toPlainText() == 'Line1Line1\nLine2\nLine3\nLine4\n'
 
     # Select and Cut the first line in the editor.
     qtbot.keyClick(editor, Qt.Key_Home)
     qtbot.keyClick(editor, Qt.Key_End, modifier=Qt.ShiftModifier)
     assert editor.get_selected_text() == 'Line1Line1'
+
     qtbot.keyClick(editor, Qt.Key_X, modifier=Qt.ControlModifier)
     assert QApplication.clipboard().text() == 'Line1Line1'
+    assert editor.toPlainText() == '\nLine2\nLine3\nLine4\n'
 
 
 def test_select_all_shortcut(editor_bot):
@@ -199,11 +203,10 @@ def test_transform_to_lowercase_shortcut(editor_bot):
     editorstack, qtbot = editor_bot
     editor = editorstack.get_current_editor()
 
-    # Transform the first line to uppercase.
-    qtbot.keyClick(editor, Qt.Key_End, modifier=Qt.ShiftModifier)
-    qtbot.keyClick(editor, Qt.Key_U,
-                   modifier=Qt.ControlModifier | Qt.ShiftModifier)
-    assert editor.get_text_line(0) == 'LINE1'
+    # Transform all the text to lowercase.
+    qtbot.keyClick(editor, Qt.Key_A, modifier=Qt.ControlModifier)
+    qtbot.keyClick(editor, Qt.Key_U, modifier=Qt.ControlModifier)
+    assert editor.toPlainText() == 'line1\nline2\nline3\nline4\n'
 
 
 def test_transform_to_uppercase_shortcut(editor_bot):
@@ -214,12 +217,15 @@ def test_transform_to_uppercase_shortcut(editor_bot):
     editorstack, qtbot = editor_bot
     editor = editorstack.get_current_editor()
 
-    # Transform the first line to lowercase.
-    qtbot.keyClick(editor, Qt.Key_Home)
+    # Transform all the text to uppercase.
+    qtbot.keyClick(editor, Qt.Key_A, modifier=Qt.ControlModifier)
+    qtbot.keyClick(editor, Qt.Key_U,
+                   modifier=Qt.ControlModifier | Qt.ShiftModifier)
+    assert editor.toPlainText() == 'LINE1\nLINE2\nLINE3\nLINE4\n'
+
     qtbot.keyClick(editor, Qt.Key_End, modifier=Qt.ShiftModifier)
-    qtbot.keyClick(editor, Qt.Key_U, modifier=Qt.ControlModifier)
-    assert editor.get_text_line(0) == 'line1'
 
 
 if __name__ == "__main__":
-    pytest.main(['-vv', '-rw'])
+    import os
+    pytest.main(['-x', os.path.basename(__file__), '-vv', '-rw'])
