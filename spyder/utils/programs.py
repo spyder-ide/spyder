@@ -455,7 +455,7 @@ def is_module_installed(module_name, version=None, installed_version=None,
             finally:
                 if not f.closed:
                     f.close()
-                os.remove(f)
+                os.remove(script)
         else:
             # Try to not take a wrong decision if there is no interpreter
             # available (needed for the change_pystartup method of ExtConsole
