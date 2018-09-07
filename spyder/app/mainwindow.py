@@ -2425,8 +2425,7 @@ class MainWindow(QMainWindow):
         msgBox.setIconPixmap(APP_ICON.pixmap(QSize(64, 64)))
         msgBox.setTextInteractionFlags(
             Qt.LinksAccessibleByMouse | Qt.TextSelectableByMouse)
-        msgBox.setModal(False)
-        msgBox.show()
+        msgBox.exec_()
 
     @Slot()
     def show_dependencies(self):
