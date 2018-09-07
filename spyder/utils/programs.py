@@ -424,8 +424,9 @@ def is_module_installed(module_name, version=None, installed_version=None,
             stable_ver = inspect.getsource(is_stable_version)
             ismod_inst = inspect.getsource(is_module_installed)
 
-            with tempfile.NamedTemporaryFile('wt', suffix='.py',
-                                             dir=get_temp_dir()) as f:
+            f = tempfile.NamedTemporaryFile('wt', suffix='.py', 
+                                            dir=get_temp_dir(), delete=False) 
+            try:
                 script = f.name
                 f.write("# -*- coding: utf-8 -*-" + "\n\n")
                 f.write("from distutils.version import LooseVersion" + "\n")
@@ -440,16 +441,21 @@ def is_module_installed(module_name, version=None, installed_version=None,
                 else:
                     f.write("print(is_module_installed('%s'))" % module_name)
 
-                # We need to flush and sync changes to ensure that the content 
+                # We need to flush and sync changes to ensure that the content
                 # of the file is in disk before running the script
                 f.flush()
                 os.fsync(f)
+                f.close()
                 try:
                     proc = run_program(interpreter, [script])
                     output, _err = proc.communicate()
                 except subprocess.CalledProcessError:
                     return True
                 return eval(output.decode())
+            finally:
+                if not f.closed:
+                    f.close()
+                os.remove(f)
         else:
             # Try to not take a wrong decision if there is no interpreter
             # available (needed for the change_pystartup method of ExtConsole
