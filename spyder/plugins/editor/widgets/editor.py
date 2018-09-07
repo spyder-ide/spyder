@@ -2291,11 +2291,12 @@ class EditorStack(QWidget):
                                 self.edit_goto.emit(fname, lineno, name))
         finfo.save_breakpoints.connect(lambda s1, s2:
                                        self.save_breakpoints.emit(s1, s2))
-        editor.run_selection.connect(self.run_selection)
-        editor.run_cell.connect(self.run_cell)
-        editor.run_cell_and_advance.connect(self.run_cell_and_advance)
-        editor.re_run_last_cell.connect(self.re_run_last_cell)
+        editor.sig_run_selection.connect(self.run_selection)
+        editor.sig_run_cell.connect(self.run_cell)
+        editor.sig_run_cell_and_advance.connect(self.run_cell_and_advance)
+        editor.sig_re_run_last_cell.connect(self.re_run_last_cell)
         editor.sig_new_file.connect(self.sig_new_file.emit)
+        editor.sig_go_to_line.connect(self.go_to_line)
         language = get_file_language(fname, txt)
         editor.setup_editor(
                 linenumbers=self.linenumbers_enabled,
