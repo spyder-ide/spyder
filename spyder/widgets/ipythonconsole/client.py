@@ -463,6 +463,18 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         except RuntimeError:
             pass
 
+    def get_stderr_file_handle(self):
+        if self.stderr_file is not None:
+            # Needed to prevent any error that could appear.
+            # See issue 6267
+            try:
+                stderr = codecs.open(self.stderr_file, 'w', encoding='utf-8')
+            except Exception:
+                stderr = None
+        else:
+            stderr = None
+        return stderr
+
     @Slot()
     def restart_kernel(self):
         """
@@ -489,7 +501,11 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                     self.infowidget.hide()
                     sw.show()
                 try:
-                    sw.kernel_manager.restart_kernel()
+                    stderr = self.get_stderr_file_handle()
+                    try:
+                        sw.kernel_manager.restart_kernel(stderr=stderr)
+                    finally:
+                        stderr.close()
                 except RuntimeError as e:
                     sw._append_plain_text(
                         _('Error restarting kernel: %s\n') % e,
@@ -524,6 +540,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                 stderr = None
         except (OSError, IOError):
             stderr = None
+        finally:
+            if stderr is not None and not stderr.closed:
+                stderr.close()
 
         if stderr:
             self.show_kernel_error('<tt>%s</tt>' % stderr)
@@ -641,10 +660,14 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def _read_stderr(self):
         """Read the stderr file of the kernel."""
-        stderr_text = open(self.stderr_file, 'rb').read()
-        encoding = get_coding(stderr_text)
-        stderr = to_text_string(stderr_text, encoding)
-        return stderr
+        f = open(self.stderr_file, 'rb')
+        try:
+            stderr_text = f.read()
+            encoding = get_coding(stderr_text)
+            stderr = to_text_string(stderr_text, encoding)
+            return stderr
+        finally:
+            f.close()
 
     def _show_mpl_backend_errors(self):
         """

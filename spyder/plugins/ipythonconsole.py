@@ -1545,6 +1545,18 @@ class IPythonConsole(SpyderPluginWidget):
                      self.main.get_spyder_pythonpath())
         return SpyderKernelSpec(is_cython=is_cython)
 
+    def get_stderr_file_handle(self, stderr_file):
+        if stderr_file is not None:
+            # Needed to prevent any error that could appear.
+            # See issue 6267
+            try:
+                stderr = codecs.open(stderr_file, 'w', encoding='utf-8')
+            except Exception:
+                stderr = None
+        else:
+            stderr = None
+        return stderr
+
     def create_kernel_manager_and_kernel_client(self, connection_file,
                                                 stderr_file, is_cython=False):
         """Create kernel manager and client."""
@@ -1562,24 +1574,19 @@ class IPythonConsole(SpyderPluginWidget):
         kernel_manager._kernel_spec = kernel_spec
 
         # Save stderr in a file to read it later in case of errors
-        if stderr_file is not None:
-            # Needed to prevent any error that could appear.
-            # See issue 6267
-            try:
-                stderr = codecs.open(stderr_file, 'w', encoding='utf-8')
-            except Exception:
-                stderr = None
-        else:
-            stderr = None
-
-        # Catch any error generated when trying to start the kernel
-        # See issue 7302
+        stderr = self.get_stderr_file_handle(stderr_file)
         try:
-            kernel_manager.start_kernel(stderr=stderr)
-        except Exception:
-            error_msg = _("The error is:<br><br>"
-                          "<tt>{}</tt>").format(traceback.format_exc())
-            return (error_msg, None)
+            # Catch any error generated when trying to start the kernel
+            # See issue 7302
+            try:
+                kernel_manager.start_kernel(stderr=stderr)
+            except Exception:
+                error_msg = _("The error is:<br><br>"
+                              "<tt>{}</tt>").format(traceback.format_exc())
+                return (error_msg, None)
+        finally:
+            if stderr is not None:
+                stderr.close()
 
         # Kernel client
         kernel_client = kernel_manager.client()
@@ -1593,8 +1600,18 @@ class IPythonConsole(SpyderPluginWidget):
     def restart_kernel(self):
         """Restart kernel of current client."""
         client = self.get_current_client()
+        if self.test_no_stderr:
+            stderr_file = None
+        else:
+            stderr_file = client.stderr_file
+
         if client is not None:
-            client.restart_kernel()
+            stderr = self.get_stderr_file_handle(stderr_file)
+            try:
+                client.restart_kernel(stderr=stderr)
+            finally:
+                if stderr is not None:
+                    stderr.close()
 
     #------ Public API (for tabs) ---------------------------------------------
     def add_tab(self, widget, name, filename=''):
