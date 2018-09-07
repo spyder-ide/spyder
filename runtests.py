@@ -31,8 +31,7 @@ def main():
                    '-vv',
                    '-rw',
                    '--durations=10',
-                   '--cov=spyder',
-                   '--cov-report=term-missing']
+                   '--cov=spyder']
 
     if run_slow:
         pytest_args.append('--run-slow')
