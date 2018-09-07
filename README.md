@@ -127,12 +127,12 @@ Thanks!
 ## Contributing and Credits
 
 Spyder was originally created by [Pierre Raybaut](
-https://github.com/PierreRaybaut), and is currently developed maintained by
+https://github.com/PierreRaybaut), and is currently maintained by
 [Carlos Córdoba](https://github.com/ccordoba12) and an international
 community of volunteers.
 
-You can join us! Everyone is welcome to help with Spyder. Please read our
-[contributing instructions](
+You can join us—everyone is welcome to help with Spyder!
+Please read our [contributing instructions](
 https://github.com/spyder-ide/spyder/blob/master/CONTRIBUTING.md)
 to get started!
 

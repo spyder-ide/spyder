@@ -1,7 +1,7 @@
 Help Utilities License Information
 ##################################
 
-Source files in this directory originate from sources other than Spyder itself,
+Many source files in this directory originate from sources other than Spyder,
 and each is covered by its own license and copyright notice.
 These are listed in the headers for all files, and in the LICENSE.txt file
 in the package's subdirectory if multiple are present. Additionally,
