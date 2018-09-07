@@ -440,9 +440,10 @@ def is_module_installed(module_name, version=None, installed_version=None,
                 else:
                     f.write("print(is_module_installed('%s'))" % module_name)
 
-                # We need to flush changes to ensure that the content of the
-                # file is in disk before running the script
+                # We need to flush and sync changes to ensure that the content 
+                # of the file is in disk before running the script
                 f.flush()
+                os.fsync(f)
                 try:
                     proc = run_program(interpreter, [script])
                     output, _err = proc.communicate()
