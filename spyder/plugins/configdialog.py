@@ -868,7 +868,7 @@ class MainConfigPage(GeneralConfigPage):
                                               'interface_language',
                                               restart=True)
 
-        opengl_options = ['Automatic', 'Desktop', 'Software']
+        opengl_options = ['Automatic', 'Desktop', 'Software', 'GLES']
         opengl_choices = list(zip(opengl_options,
                                   [c.lower() for c in opengl_options]))
         opengl_combo = self.create_combobox(_('Rendering engine:'),
