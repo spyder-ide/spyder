@@ -6,11 +6,6 @@ General Information
 ===================
 
 
-
-Overview
---------
-
-
 Spyder incorporates code and image assets from various external sources,
 each of which is covered by its own license and copyright notice.
 These files are listed here with their corresponding authors,
@@ -159,7 +154,6 @@ Files covered:
 # End of template #
 
 
-
 ===============================================================================
 
 
@@ -167,7 +161,6 @@ Files covered:
 
 Source Code
 ===========
-
 
 
 MathJax 2.0
@@ -904,7 +897,6 @@ Files covered:
 spyder/widgets/variableexplorer/dataframeeditor.py
 
 
-
 ===============================================================================
 
 
@@ -912,7 +904,6 @@ spyder/widgets/variableexplorer/dataframeeditor.py
 
 External Fonts Used for Icons
 =============================
-
 
 
 Font Awesome 4.7 (via QtAwesome)
@@ -969,7 +960,6 @@ Assets covered:
 Most icons in the Spyder 3 theme; used via Spyder's own QtAwesome package.
 
 See spyder/utils/icon_manager.py for a complete list.
-
 
 
 ===============================================================================
@@ -1504,7 +1494,6 @@ Files covered:
 spyder/images/winpython.svg
 
 
-
 ===============================================================================
 
 
@@ -1512,7 +1501,6 @@ spyder/images/winpython.svg
 
 Full License Text
 =================
-
 
 
 MIT (Expat) License
