@@ -489,7 +489,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                     else:
                         remove_from_tree_cache(tree_cache, line=line_nb)
                 if data.def_type == data.CELL:
-                    item = CellItem(data.text, line_nb, parent, preceding)
+                    item = CellItem(data.def_name, line_nb, parent, preceding)
                 else:
                     item = CommentItem(data.text, line_nb, parent, preceding)
             elif class_name is not None:

@@ -917,7 +917,9 @@ class IPythonConsole(SpyderPluginWidget):
 
     def run_cell(self, code, cell_name, filename):
         """Run cell in current or dedicated client"""
-        norm = lambda text: remove_backslashes(to_text_string(text))
+
+        def norm(text):
+            remove_backslashes(to_text_string(text))
 
         # Select client to execute code on it
         client = self.get_client_for_file(filename)
@@ -929,10 +931,10 @@ class IPythonConsole(SpyderPluginWidget):
             # Internal kernels, use runcell
             if client.get_kernel() is not None:
                 line = "{}('{}','{}')".format('runcell',
-                                              to_text_string(cell_name).\
-                                                      replace("'", r"\'"),
-                                              norm(filename).\
-                                                      replace("'", r"\'"))
+                                              to_text_string(cell_name).
+                                              replace("'", r"\'"),
+                                              norm(filename).
+                                              replace("'", r"\'"))
                 is_internal_kernal = True
             else:  # External kernels, just execute the code
                 line = code.strip()
@@ -963,9 +965,10 @@ class IPythonConsole(SpyderPluginWidget):
         else:
             # XXX: not sure it can really happen
             QMessageBox.warning(self, _('Warning'),
-                _("No IPython console is currently available to run <b>%s</b>."
-                  "<br><br>Please open a new one and try again."
-                  ) % osp.basename(filename), QMessageBox.Ok)
+                                _("No IPython console is currently available "
+                                  "to run <b>%s</b>.<br><br>Please open a new "
+                                  "one and try again."
+                                  ) % osp.basename(filename), QMessageBox.Ok)
 
     def set_current_client_working_directory(self, directory):
         """Set current client working directory."""

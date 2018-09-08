@@ -2461,7 +2461,8 @@ class EditorStack(QWidget):
             cell_name = ''
         if finfo.editor.is_python() and text:
             if self.run_cell_func:
-                self.run_cell_in_ipyclient.emit(text, cell_name, finfo.filename)
+                self.run_cell_in_ipyclient.emit(text, cell_name,
+                                                finfo.filename)
             else:
                 self.exec_in_extconsole.emit(text.lstrip(),
                                              self.focus_to_editor)

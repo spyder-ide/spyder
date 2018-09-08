@@ -688,10 +688,10 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 lines[-1] += ls
             else:
                 lines.append(ls)
-        
+
         # Adding removed lines back to have correct traceback line numbers
         leading_lines_str = ls * lines_removed
-        
+
         return leading_lines_str + ls.join(lines)
 
     def __exec_cell(self):

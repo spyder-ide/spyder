@@ -384,6 +384,7 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
                      ufstring1, ufstring2, ufstring3, ufstring4, string,
                      number, any("SYNC", [r"\n"])])
 
+
 def get_code_cell_name(text):
     """Returns a code cell name from a code cell comment"""
     name = text.strip().lstrip("#% ")
@@ -395,6 +396,7 @@ def get_code_cell_name(text):
             name = name[:-1]
         name = name.strip()
     return name
+
 
 class PythonSH(BaseSH):
     """Python Syntax Highlighter"""
