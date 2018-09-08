@@ -196,7 +196,7 @@ CWD = getcwd_or_home()
 
 
 #==============================================================================
-# Spyder's main window widgets utilities
+# Utility functions
 #==============================================================================
 def get_python_doc_path():
     """
@@ -217,6 +217,26 @@ def get_python_doc_path():
     python_doc = osp.join(doc_path, "index.html")
     if osp.isfile(python_doc):
         return file_uri(python_doc)
+
+
+def set_opengl_implementation(option):
+    """
+    Set the OpenGL implementation used by Spyder.
+
+    See issue 7447 for the details.
+    """
+    if option == 'software':
+        QCoreApplication.setAttribute(Qt.AA_UseSoftwareOpenGL)
+        if QQuickWindow is not None:
+            QQuickWindow.setSceneGraphBackend(QSGRendererInterface.Software)
+    elif option == 'desktop':
+        QCoreApplication.setAttribute(Qt.AA_UseDesktopOpenGL)
+        if QQuickWindow is not None:
+            QQuickWindow.setSceneGraphBackend(QSGRendererInterface.OpenGL)
+    elif option == 'gles':
+        QCoreApplication.setAttribute(Qt.AA_UseOpenGLES)
+        if QQuickWindow is not None:
+            QQuickWindow.setSceneGraphBackend(QSGRendererInterface.OpenGL)
 
 
 #==============================================================================
@@ -3143,30 +3163,6 @@ def run_spyder(app, options, args):
 #==============================================================================
 def main():
     """Main function"""
-
-    def set_opengl_implementation(option):
-        """
-        Auxiliary function to set the OpenGL implementation used by
-        Spyder.
-
-        See issue 7447 for the details.
-        """
-        if option == 'software':
-            QCoreApplication.setAttribute(Qt.AA_UseSoftwareOpenGL)
-            if QQuickWindow is not None:
-                QQuickWindow.setSceneGraphBackend(
-                        QSGRendererInterface.Software)
-        elif option == 'desktop':
-            QCoreApplication.setAttribute(Qt.AA_UseDesktopOpenGL)
-            if QQuickWindow is not None:
-                QQuickWindow.setSceneGraphBackend(
-                        QSGRendererInterface.OpenGL)
-        elif option == 'gles':
-            QCoreApplication.setAttribute(Qt.AA_UseOpenGLES)
-            if QQuickWindow is not None:
-                QQuickWindow.setSceneGraphBackend(
-                        QSGRendererInterface.OpenGL)
-
     # **** For Pytest ****
     # We need to create MainWindow **here** to avoid passing pytest
     # options to Spyder
