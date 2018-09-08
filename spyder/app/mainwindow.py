@@ -91,6 +91,12 @@ from qtpy import QtSvg  # analysis:ignore
 # Avoid a bug in Qt: https://bugreports.qt.io/browse/QTBUG-46720
 from qtpy import QtWebEngineWidgets  # analysis:ignore
 
+# For issue 7447
+try:
+    from qtpy.QtQuick import QQuickWindow, QSGRendererInterface
+except Exception:
+    QQuickWindow = QSGRendererInterface = None
+
 # To catch font errors in QtAwesome
 from qtawesome.iconic_font import FontError
 
@@ -3155,11 +3161,19 @@ def main():
     if options.opengl_implementation:
         if options.opengl_implementation == 'software':
             QCoreApplication.setAttribute(Qt.AA_UseSoftwareOpenGL)
+            # Fix issue 7447
+            if QQuickWindow is not None:
+                QQuickWindow.setSceneGraphBackend(
+                        QSGRendererInterface.Software)
         elif options.opengl_implementation == 'desktop':
             QCoreApplication.setAttribute(Qt.AA_UseDesktopOpenGL)
     else:
         if CONF.get('main', 'opengl') == 'software':
             QCoreApplication.setAttribute(Qt.AA_UseSoftwareOpenGL)
+            # Fix issue 7447
+            if QQuickWindow is not None:
+                QQuickWindow.setSceneGraphBackend(
+                        QSGRendererInterface.Software)
         elif CONF.get('main', 'opengl') == 'desktop':
             QCoreApplication.setAttribute(Qt.AA_UseDesktopOpenGL)
 
