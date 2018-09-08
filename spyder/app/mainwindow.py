@@ -3013,6 +3013,16 @@ class MainWindow(QMainWindow):
         self.thread_updates.started.connect(self.worker_updates.start)
         self.thread_updates.start()
 
+    # --- For OpenGL
+    def _test_setting_opengl(self, option):
+        """Get the current OpenGL implementation in use"""
+        if option == 'software':
+            return QCoreApplication.testAttribute(Qt.AA_UseSoftwareOpenGL)
+        elif option == 'desktop':
+            return QCoreApplication.testAttribute(Qt.AA_UseDesktopOpenGL)
+        elif option == 'gles':
+            return QCoreApplication.testAttribute(Qt.AA_UseOpenGLES)
+
 
 #==============================================================================
 # Utilities to create the 'main' function
@@ -3133,35 +3143,14 @@ def run_spyder(app, options, args):
 #==============================================================================
 def main():
     """Main function"""
-    # **** For our tests ****
-    if running_under_pytest():
-        try:
-            from unittest.mock import Mock
-        except ImportError:
-            from mock import Mock  # Python 2
 
-        options = Mock()
-        options.working_directory = None
-        options.profile = False
-        options.multithreaded = False
-        options.new_instance = False
-        options.project = None
-        options.window_title = None
-        options.opengl_implementation = None
-
-        app = initialize()
-        window = run_spyder(app, options, None)
-        return window
-
-    # **** Collect command line options ****
-    # Note regarding Options:
-    # It's important to collect options before monkey patching sys.exit,
-    # otherwise, optparse won't be able to exit if --help option is passed
-    options, args = get_options()
-
-    # **** Set OpenGL implementation to use ****
-    # See issue 7447 for how this works
     def set_opengl_implementation(option):
+        """
+        Auxiliary function to set the OpenGL implementation used by
+        Spyder.
+
+        See issue 7447 for the details.
+        """
         if option == 'software':
             QCoreApplication.setAttribute(Qt.AA_UseSoftwareOpenGL)
             if QQuickWindow is not None:
@@ -3178,6 +3167,39 @@ def main():
                 QQuickWindow.setSceneGraphBackend(
                         QSGRendererInterface.OpenGL)
 
+    # **** For Pytest ****
+    # We need to create MainWindow **here** to avoid passing pytest
+    # options to Spyder
+    if running_under_pytest():
+        try:
+            from unittest.mock import Mock
+        except ImportError:
+            from mock import Mock  # Python 2
+
+        options = Mock()
+        options.working_directory = None
+        options.profile = False
+        options.multithreaded = False
+        options.new_instance = False
+        options.project = None
+        options.window_title = None
+        options.opengl_implementation = None
+
+        if CONF.get('main', 'opengl') != 'automatic':
+            option = CONF.get('main', 'opengl')
+            set_opengl_implementation(option)
+
+        app = initialize()
+        window = run_spyder(app, options, None)
+        return window
+
+    # **** Collect command line options ****
+    # Note regarding Options:
+    # It's important to collect options before monkey patching sys.exit,
+    # otherwise, optparse won't be able to exit if --help option is passed
+    options, args = get_options()
+
+    # **** Set OpenGL implementation to use ****
     if options.opengl_implementation:
         option = options.opengl_implementation
         set_opengl_implementation(option)

@@ -224,6 +224,18 @@ def test_calltip(main_window, qtbot):
 
 
 @pytest.mark.slow
+@pytest.mark.parametrize('main_window', [{'spy_config': ('main', 'opengl', 'software')}], indirect=True)
+def test_opengl_implementation(main_window, qtbot):
+    """
+    Test that we are setting the selected OpenGL implementation
+    """
+    assert main_window._test_setting_opengl('software')
+
+    # Restore default config value
+    CONF.set('main', 'opengl', 'automatic')
+
+
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(np.__version__ < '1.14.0', reason="This only happens in Numpy 1.14+")
 @pytest.mark.parametrize('main_window', [{'spy_config': ('variable_explorer', 'minmax', True)}], indirect=True)
