@@ -45,7 +45,7 @@ def get_options():
                       help="Path that contains an Spyder project")
     parser.add_option('--opengl', default=None, type='choice',
                       dest="opengl_implementation",
-                      choices=['software', 'desktop'],
+                      choices=['software', 'desktop', 'gles'],
                       help=("OpenGL implementation to pass to Qt. Possible "
                             "options are 'software' and 'desktop'")
                       )

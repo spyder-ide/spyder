@@ -35,6 +35,7 @@ from qtpy.QtGui import QImage
 from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit, QTabBar
 from qtpy.QtWebEngineWidgets import WEBENGINE
 from matplotlib.testing.compare import compare_images
+import nbconvert
 
 # Local imports
 from spyder import __trouble_url__, __project_url__
@@ -221,6 +222,18 @@ def test_calltip(main_window, qtbot):
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
 
     main_window.editor.close_file()
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize('main_window', [{'spy_config': ('main', 'opengl', 'software')}], indirect=True)
+def test_opengl_implementation(main_window, qtbot):
+    """
+    Test that we are setting the selected OpenGL implementation
+    """
+    assert main_window._test_setting_opengl('software')
+
+    # Restore default config value
+    CONF.set('main', 'opengl', 'automatic')
 
 
 @pytest.mark.slow
@@ -771,7 +784,12 @@ def test_open_notebooks_from_project_explorer(main_window, qtbot, tmpdir):
 
     # Assert its contents are the expected ones
     file_text = editorstack.get_current_editor().toPlainText()
-    assert file_text == '\n# coding: utf-8\n\n# In[1]:\n\n\n1 + 1\n\n\n'
+    if nbconvert.__version__ >= '5.4.0':
+        expected_text = ('#!/usr/bin/env python\n# coding: utf-8\n\n# In[1]:'
+                         '\n\n\n1 + 1\n\n\n# In[ ]:\n\n\n\n\n\n')
+    else:
+        expected_text = '\n# coding: utf-8\n\n# In[1]:\n\n\n1 + 1\n\n\n'
+    assert file_text == expected_text
 
     # Close project
     projects.close_project()
