@@ -92,6 +92,12 @@ from qtpy import QtSvg  # analysis:ignore
 # Avoid a bug in Qt: https://bugreports.qt.io/browse/QTBUG-46720
 from qtpy import QtWebEngineWidgets  # analysis:ignore
 
+# For issue 7447
+try:
+    from qtpy.QtQuick import QQuickWindow, QSGRendererInterface
+except Exception:
+    QQuickWindow = QSGRendererInterface = None
+
 # To catch font errors in QtAwesome
 from qtawesome.iconic_font import FontError
 
@@ -193,7 +199,7 @@ CWD = getcwd_or_home()
 
 
 #==============================================================================
-# Spyder's main window widgets utilities
+# Utility functions
 #==============================================================================
 def get_python_doc_path():
     """
@@ -214,6 +220,26 @@ def get_python_doc_path():
     python_doc = osp.join(doc_path, "index.html")
     if osp.isfile(python_doc):
         return file_uri(python_doc)
+
+
+def set_opengl_implementation(option):
+    """
+    Set the OpenGL implementation used by Spyder.
+
+    See issue 7447 for the details.
+    """
+    if option == 'software':
+        QCoreApplication.setAttribute(Qt.AA_UseSoftwareOpenGL)
+        if QQuickWindow is not None:
+            QQuickWindow.setSceneGraphBackend(QSGRendererInterface.Software)
+    elif option == 'desktop':
+        QCoreApplication.setAttribute(Qt.AA_UseDesktopOpenGL)
+        if QQuickWindow is not None:
+            QQuickWindow.setSceneGraphBackend(QSGRendererInterface.OpenGL)
+    elif option == 'gles':
+        QCoreApplication.setAttribute(Qt.AA_UseOpenGLES)
+        if QQuickWindow is not None:
+            QQuickWindow.setSceneGraphBackend(QSGRendererInterface.OpenGL)
 
 
 #==============================================================================
@@ -3038,6 +3064,16 @@ class MainWindow(QMainWindow):
         self.thread_updates.started.connect(self.worker_updates.start)
         self.thread_updates.start()
 
+    # --- For OpenGL
+    def _test_setting_opengl(self, option):
+        """Get the current OpenGL implementation in use"""
+        if option == 'software':
+            return QCoreApplication.testAttribute(Qt.AA_UseSoftwareOpenGL)
+        elif option == 'desktop':
+            return QCoreApplication.testAttribute(Qt.AA_UseDesktopOpenGL)
+        elif option == 'gles':
+            return QCoreApplication.testAttribute(Qt.AA_UseOpenGLES)
+
 
 #==============================================================================
 # Utilities to create the 'main' function
@@ -3158,6 +3194,9 @@ def run_spyder(app, options, args):
 #==============================================================================
 def main():
     """Main function"""
+    # **** For Pytest ****
+    # We need to create MainWindow **here** to avoid passing pytest
+    # options to Spyder
     if running_under_pytest():
         try:
             from unittest.mock import Mock
@@ -3173,6 +3212,10 @@ def main():
         options.window_title = None
         options.opengl_implementation = None
 
+        if CONF.get('main', 'opengl') != 'automatic':
+            option = CONF.get('main', 'opengl')
+            set_opengl_implementation(option)
+
         app = initialize()
         window = run_spyder(app, options, None)
         return window
@@ -3183,17 +3226,16 @@ def main():
     # otherwise, argparse won't be able to exit if --help option is passed
     options, args = get_options()
 
+    # **** Set OpenGL implementation to use ****
     if options.opengl_implementation:
-        if options.opengl_implementation == 'software':
-            QCoreApplication.setAttribute(Qt.AA_UseSoftwareOpenGL)
-        elif options.opengl_implementation == 'desktop':
-            QCoreApplication.setAttribute(Qt.AA_UseDesktopOpenGL)
+        option = options.opengl_implementation
+        set_opengl_implementation(option)
     else:
-        if CONF.get('main', 'opengl') == 'software':
-            QCoreApplication.setAttribute(Qt.AA_UseSoftwareOpenGL)
-        elif CONF.get('main', 'opengl') == 'desktop':
-            QCoreApplication.setAttribute(Qt.AA_UseDesktopOpenGL)
+        if CONF.get('main', 'opengl') != 'automatic':
+            option = CONF.get('main', 'opengl')
+            set_opengl_implementation(option)
 
+    # **** Handle hide_console option ****
     if options.show_console:
         print("(Deprecated) --show console does nothing, now the default "
               " behavior is to show the console, use --hide-console if you "
@@ -3205,7 +3247,10 @@ def main():
                                      or options.reset_to_defaults
                                      or options.optimize or bool(DEBUG))
 
+    # **** Create the application ****
     app = initialize()
+
+    # **** Handle other options ****
     if options.reset_config_files:
         # <!> Remove all configuration files!
         reset_config_files()
@@ -3221,7 +3266,7 @@ def main():
                                    args=[spyder.__path__[0]], p_args=['-O'])
         return
 
-    # Show crash dialog
+    # **** Show crash dialog ****
     if CONF.get('main', 'crash', False) and not DEV:
         CONF.set('main', 'crash', False)
         if SPLASH is not None:
@@ -3248,7 +3293,7 @@ def main():
             "" % (get_conf_path(), __trouble_url__, __project_url__,
                   __forum_url__, __project_url__))
 
-    # Create main window
+    # **** Create main window ****
     mainwindow = None
     try:
         mainwindow = run_spyder(app, options, args)
