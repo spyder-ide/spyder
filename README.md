@@ -1,10 +1,14 @@
 ![Spyder — The Scientific Python Development Environment](
 ./img_src/spyder_readme_banner.png)
 
-*Copyright © 2009–2018 Spyder Project Contributors*
+*Copyright © 2009–2018 [Spyder Project Contributors](
+https://github.com/spyder-ide/spyder/graphs/contributors)*
+
+*Some source files and icons may be under other authorship/licenses; see
+[NOTICE.txt](https://github.com/spyder-ide/spyder/blob/master/NOTICE.txt).*
 
 
-[![license](https://img.shields.io/pypi/l/spyder.svg)](./LICENSE)
+[![license](https://img.shields.io/pypi/l/spyder.svg)](./LICENSE.txt)
 [![pypi version](https://img.shields.io/pypi/v/spyder.svg)](https://pypi.org/project/spyder/)
 [![conda version](https://img.shields.io/conda/vn/conda-forge/spyder.svg)](https://www.anaconda.com/download/)
 [![download count](https://img.shields.io/conda/dn/conda-forge/spyder.svg)](https://www.anaconda.com/download/)
@@ -142,12 +146,32 @@ are either duplicates, or can be fixed on the user side with a few easy steps.
 Thanks!
 
 
-## Contributing
+## Contributing and Credits
 
-Everyone is welcome to help with Spyder. Please read our
-[contributing instructions](
+Spyder was originally created by [Pierre Raybaut](
+https://github.com/PierreRaybaut), and is currently maintained by
+[Carlos Córdoba](https://github.com/ccordoba12) and an international
+community of volunteers.
+
+You can join us—everyone is welcome to help with Spyder!
+Please read our [contributing instructions](
 https://github.com/spyder-ide/spyder/blob/master/CONTRIBUTING.md)
 to get started!
+
+Certain source files are distributed under other compatible permissive licenses
+and/or originally by other authors.
+The icons for the Spyder 3 theme are derived from [Font Awesome](
+https://fontawesome.com/) 4.7 (© 2016 David Gandy; SIL OFL 1.1).
+Most Spyder 2 theme icons are sourced from the [Crystal Project icon set](
+https://www.everaldo.com) (© 2006-2007 Everaldo Coelho; LGPL 2.1+).
+Other Spyder 2 icons are from [Yusuke Kamiyamane](
+http://p.yusukekamiyamane.com/) (© 2013 Yusuke Kamiyamane; CC-BY 3.0),
+the [FamFamFam Silk icon set](http://www.famfamfam.com/lab/icons/silk/)
+(© 2006 Mark James; CC-BY 2.5), and the [KDE Oxygen icons](
+https://www.kde.org/) (© 2007 KDE Artists; LGPL 3.0+).
+
+See [NOTICE.txt](https://github.com/spyder-ide/spyder/blob/master/NOTICE.txt)
+for full legal information.
 
 
 ## Running from a Github clone
