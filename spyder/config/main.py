@@ -285,7 +285,7 @@ DEFAULTS = [
               'search_text': [''],
               'search_text_samples': [codeanalysis.TASKS_PATTERN],
               'more_options': True,
-              'case_sensitive': True
+              'case_sensitive': False
               }),
             ('workingdir',
              {
