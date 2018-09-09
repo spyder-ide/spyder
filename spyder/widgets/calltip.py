@@ -1,14 +1,19 @@
 # -*- coding: utf-8 -*-
-#-----------------------------------------------------------------------------
-# Copyright (c) IPython Development Team.
+# -----------------------------------------------------------------------------
+# Copyright (c) 2010 IPython Development Team
+# Copyright (c) 2013- Spyder Project Contributors
 #
-# Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with IPython.
-#-----------------------------------------------------------------------------
+# Distributed under the terms of the Modified BSD License
+# (BSD 3-clause; see NOTICE.txt in the Spyder root directory for details).
+# -----------------------------------------------------------------------------
 
 """
-Calltip widget used only to show signatures
+Calltip widget used only to show signatures.
+
+Adapted from IPython/frontend/qt/console/call_tip_widget.py of the
+`IPython Project <https://github.com/ipython/ipython>`_.
+Now located at qtconsole/call_tip_widget.py as part of the
+`Jupyter QtConsole Project <https://github.com/jupyter/qtconsole>`_.
 """
 
 # Standard library imports

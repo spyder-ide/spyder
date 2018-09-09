@@ -148,7 +148,8 @@ else:
 # Local utility imports
 #==============================================================================
 from spyder import (__version__, __project_url__, __forum_url__,
-                    __trouble_url__, __trouble_url_short__, get_versions)
+                    __trouble_url__, __trouble_url_short__, __website_url__,
+                    get_versions)
 from spyder.config.base import (get_conf_path, get_module_source_path, STDERR,
                                 DEBUG, debug_print, MAC_APP_NAME, get_home_dir,
                                 running_in_mac_app, get_module_path,
@@ -731,16 +732,15 @@ class MainWindow(QMainWindow):
                     programs.run_python_script('winpython', 'controlpanel'))
         if os.name == 'nt' and is_module_installed('winpython'):
             self.external_tools_menu_actions.append(self.wp_action)
+
         # Qt-related tools
         additact = []
         for name in ("designer-qt4", "designer"):
-            qtdact = create_program_action(self, _("Qt Designer"),
-                                            name, 'qtdesigner.png')
+            qtdact = create_program_action(self, _("Qt Designer"), name)
             if qtdact:
                 break
         for name in ("linguist-qt4", "linguist"):
-            qtlact = create_program_action(self, _("Qt Linguist"),
-                                            "linguist", 'qtlinguist.png')
+            qtlact = create_program_action(self, _("Qt Linguist"), "linguist")
             if qtlact:
                 break
         args = ['-no-opengl'] if os.name == 'nt' else []
@@ -785,12 +785,6 @@ class MainWindow(QMainWindow):
             pass
         if gdgq_act:
             self.external_tools_menu_actions += [None] + gdgq_act
-
-        # ViTables
-        vitables_act = create_program_action(self, _("ViTables"),
-                                                "vitables", 'vitables.png')
-        if vitables_act:
-            self.external_tools_menu_actions += [None, vitables_act]
 
         # Maximize current plugin
         self.maximize_action = create_action(self, '',
@@ -2378,9 +2372,9 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def about(self):
-        """About Spyder"""
+        """Create About Spyder dialog with general information."""
         versions = get_versions()
-        # Show Mercurial revision for development version
+        # Show Git revision for development version
         revlink = ''
         if versions['revision']:
             rev = versions['revision']
@@ -2388,42 +2382,75 @@ class MainWindow(QMainWindow):
                       "commit/%s'>Commit: %s</a>)" % (rev, rev)
         msgBox = QMessageBox(self)
         msgBox.setText(
-            """<b>Spyder %s</b> %s
-            <br>The Scientific Python Development Environment
-            <br>Copyright &copy; The Spyder Project Contributors
-            <br>Licensed under the terms of the MIT License
-            <p>Created by Pierre Raybaut.
-            <br>Developed and maintained by the
-            <a href="%s/blob/master/AUTHORS">Spyder Project Contributors</a>.
-            <br>Many thanks to all the Spyder beta testers and regular users.
+            """
+            <b>Spyder {spyder_ver}</b> {revision}
+            <br>The Scientific Python Development Environment |
+            <a href="{website_url}">Spyder-IDE.org</a>
+            <br>Copyright &copy; 2009-2018 Spyder Project Contributors
+            <br>Distributed under the terms of the
+            <a href="{github_url}/blob/master/LICENSE.txt">MIT License</a>.
+
+            <p>Created by Pierre Raybaut; current maintainer is Carlos Cordoba.
+            <br>Developed by the
+            <a href="{github_url}/graphs/contributors">international
+            Spyder community</a>.
+            <br>Many thanks to all the Spyder beta testers and dedicated users.
+
             <p>For help with Spyder errors and crashes, please read our
-            <a href="%s">Troubleshooting page</a>, and for bug reports and
-            feature requests, visit our <a href="%s">Github website</a>.
-            For project discussion, see our <a href="%s">Google Group</a>.
+            <a href="{trouble_url}">Troubleshooting Guide</a>, and for bug
+            reports and feature requests, visit our
+            <a href="{github_url}">Github site</a>.
+            For project discussion, see our
+            <a href="{forum_url}">Google Group</a>.
             <p>This project is part of a larger effort to promote and
             facilitate the use of Python for scientific and engineering
-            software development. The popular Python distributions
+            software development.
+            The popular Python distributions
             <a href="https://www.anaconda.com/download/">Anaconda</a> and
             <a href="https://winpython.github.io/">WinPython</a>
             also contribute to this plan.
-            <p>Python %s %dbits, Qt %s, %s %s on %s
-            <p><small>Most of the icons for the Spyder 2 theme come from the
-            Crystal Project (&copy; 2006-2007 Everaldo Coelho).
-            Other icons for that theme come from
-            <a href="http://p.yusukekamiyamane.com/">
-            Yusuke Kamiyamane</a> (all rights reserved) and from
-            <a href="http://www.oxygen-icons.org/">
-            The Oxygen icon theme</a></small>.
+
+            <p>Python {python_ver} {bitness}-bit | Qt {qt_ver} |
+            {qt_api} {qt_api_ver} | {os_name} {os_ver}
+
+            <small><p>Certain source files under other compatible permissive
+            licenses and/or originally by other authors.
+            Spyder 3 theme icons derived from
+            <a href="https://fontawesome.com/">Font Awesome</a> 4.7
+            (&copy; 2016 David Gandy; SIL OFL 1.1).
+            Most Spyder 2 theme icons sourced from the
+            <a href="https://www.everaldo.com">Crystal Project iconset</a>
+            (&copy; 2006-2007 Everaldo Coelho; LGPL 2.1+).
+            Other icons from
+            <a href="http://p.yusukekamiyamane.com/">Yusuke Kamiyamane</a>
+            (&copy; 2013 Yusuke Kamiyamane; CC-BY 3.0),
+            the <a href="http://www.famfamfam.com/lab/icons/silk/">FamFamFam
+            Silk icon set</a> 1.3 (&copy; 2006 Mark James; CC-BY 2.5), and
+            the <a href="https://www.kde.org/">KDE Oxygen icons</a>
+            (&copy; 2007 KDE Artists; LGPL 3.0+).</small>
+
+            <p>See the <a href="{github_url}/blob/master/NOTICE.txt">NOTICE</a>
+            file for full legal information.
             """
-            % (versions['spyder'], revlink, __project_url__, __trouble_url__,
-               __project_url__, __forum_url__, versions['python'],
-               versions['bitness'], versions['qt'], versions['qt_api'],
-               versions['qt_api_ver'], versions['system'])
+            .format(spyder_ver=versions['spyder'],
+                    revision=revlink,
+                    website_url=__website_url__,
+                    github_url=__project_url__,
+                    trouble_url=__trouble_url__,
+                    forum_url=__forum_url__,
+                    python_ver=versions['python'],
+                    bitness=versions['bitness'],
+                    qt_ver=versions['qt'],
+                    qt_api=versions['qt_api'],
+                    qt_api_ver=versions['qt_api_ver'],
+                    os_name=versions['system'],
+                    os_ver=versions['release'])
         )
         msgBox.setWindowTitle(_("About %s") % "Spyder")
         msgBox.setStandardButtons(QMessageBox.Ok)
         msgBox.setIconPixmap(APP_ICON.pixmap(QSize(64, 64)))
-        msgBox.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        msgBox.setTextInteractionFlags(
+            Qt.LinksAccessibleByMouse | Qt.TextSelectableByMouse)
         msgBox.exec_()
 
     @Slot()

@@ -212,6 +212,82 @@ To run the Spyder test suite, please use (from the `spyder` root directory):
 ```
 
 
+## Adding Third-Party Content
+
+All files or groups of files, including source code, images, icons, and other
+assets, that originate from projects outside of the Spyder organization
+(regardless of the license), must be first approved by the Spyder team.
+Always check with us (on Github, Gitter, Google Group, etc) before attempting
+to add content from an external project, and only do so when necessary.
+
+
+### Licenses
+
+Code considered for inclusion must be under a permissive (i.e. non-copyleft)
+license, particularly as the following (in order of preference):
+* MIT (Expat)
+* Public domain (preferably, CC0)
+* ISC license
+* BSD 2-clause ("Simplified BSD")
+* BSD 3-clause ("New" or "Modified BSD")
+* Apache License 2.0
+
+Additionally, external assets (fonts, icons, images, sounds, animations)
+can generally be under one of the following weak-copyleft and content licenses:
+* Creative Commons Attribution 3.0 or 4.0
+* SIL Open Font License 1.1
+* GNU LGPL 2.1 or 3.0
+
+Additional licenses *may* qualify for these lists from time to time, but every
+effort should be made to avoid it. Regardless, all such licenses must be
+OSI, FSF, and DSFG approved as well as GPLv3-compatible to ensure maximum
+free distribution and use of Spyder with minimum ambiguity or fragmentation.
+
+
+### Steps to take
+
+#. Contact the Spyder team to ensure the usage is justified and compatible.
+
+#. Add the files, preserving any original copyright/legal/attribution header
+
+#. If making non-trivial modifications, copy the standard Spyder copyright
+   header from ``.ciocopyright`` to just below the original headers;
+   if the original headers are unformatted and just consist of a copyright
+   statement and perhaps mention of the license, incorporate them verbatim
+   within the Spyder header where appropriate.
+   Always ensure copyright statements are in ascending chronological order,
+   and replace the year in the Spyder copyright statement with the current one.
+   Modify the license location to be the current directory, or NOTICE.txt.
+
+#. Include the following line at the end of each module's docstring,
+   separated by blank lines:
+
+   ```rst
+   Adapted from path/to/file/in/original/repo.py of the
+   `Project Name <url-to-original-github-repo>`_.
+   ```
+
+   For example,
+
+   ```rst
+   Adapted from qcrash/_dialogs/gh_login.py of the
+   `QCrash Project <https://github.com/ColinDuquesnoy/QCrash>`_.
+   ```
+
+#. Convert the files to project standards where needed.
+
+#. If the copied file(s) reside in a directory dedicated to them, place the
+   source project's LICENSE.txt file there, and any other legal files.
+   Also, mention the same in the __init__.py file in that directory.
+
+#. Add an entry in NOTICE.txt with the instructions and template there.
+
+#. If a non-code visible asset (icons, fonts, animations, etc) or otherwise
+   under a Creative Commons license, include a mention in the appropriate
+   section of the README, as well as Spyder's About dialog, in the same form
+   as the others present there.
+
+
 ## More information
 
 [Main Website](https://www.spyder-ide.org/)

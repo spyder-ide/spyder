@@ -1,7 +1,14 @@
 # -*- coding: utf-8 -*-
-# Spyder Profiler's french translation file
-# Copyright (C) 2011 Pierre Raybaut
+# -----------------------------------------------------------------------------
+# Copyright (c) 2009- Spyder Project Contributors
 #
+# Distributed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
+#
+# Spyder's Profiler subpackage French gettext translation file
+#
+
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"

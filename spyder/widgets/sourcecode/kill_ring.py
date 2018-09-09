@@ -1,8 +1,18 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2001-2015 IPython Development Team
+# Copyright (c) 2015 Jupyter Development Team
+# Copyright (c) 2015- Spyder Project Contributors
+#
+# Distributed under the terms of the Modified BSD License
+# (BSD 3-clause; see NOTICE.txt in the Spyder root directory for details).
+# -----------------------------------------------------------------------------
+
 """
 A generic Emacs-style kill ring, as well as a Qt-specific version.
-Copyright (c) 2001-2015, IPython Development Team
-Copyright (c) 2015-, Jupyter Development Team
-All rights reserved.
+
+Adapted from qtconsole/kill_ring.py of the
+`Jupyter QtConsole Project <https://github.com/jupyter/qtconsole>`_.
 """
 
 # Third party imports

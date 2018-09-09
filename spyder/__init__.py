@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Spyder License Agreement (MIT License)
---------------------------------------
+MIT License
+===========
 
-Copyright (c) Spyder Project Contributors
+The spyder/images dir and some source files under other terms (see NOTICE.txt).
+
+Copyright (c) 2009- Spyder Project Contributors and others (see AUTHORS.txt)
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
