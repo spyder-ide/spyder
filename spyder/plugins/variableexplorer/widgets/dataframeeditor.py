@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2011-2012 Lambda Foundry, Inc. and PyData Development Team
+# Copyright (c) 2013 Jev Kuznetsov and contributors
+# Copyright (c) 2014- Spyder Project Contributors
 #
-# Copyright © Spyder Project Contributors
-# Licensed under the terms of the New BSD License
-#
-# DataFrameModel is based on the class ArrayModel from array editor
-# and the class DataFrameModel from the pandas project.
-# Present in pandas.sandbox.qtpandas in v0.13.1
-# Copyright (c) 2011-2012, Lambda Foundry, Inc.
-# and PyData Development Team All rights reserved
-#
+# Distributed under the terms of the New BSD License
+# (BSD 3-clause; see NOTICE.txt in the Spyder root directory for details).
+# -----------------------------------------------------------------------------
+
 # DataFrameHeaderModel and DataFrameLevelModel are based on the classes
 # Header4ExtModel and Level4ExtModel from the gtabview project. The
 # DataFrameModel is based on the classes ExtDataModel and ExtFrameModel from
@@ -17,10 +16,18 @@
 # Copyright(c) 2014-2016: wave++ "Yuri D'Elia" <wavexx@thregr.org>
 # Copyright(c) 2014-2015: Scott Hansen <firecat4153@gmail.com>
 # Licensed under the terms of the MIT License
-#
 
 """
-Pandas DataFrame Editor Dialog
+Pandas DataFrame Editor Dialog.
+
+DataFrameModel is based on the class ArrayModel from array editor
+and the class DataFrameModel from the pandas project.
+Present in pandas.sandbox.qtpandas in v0.13.1.
+
+Originally based on pandas/sandbox/qtpandas.py of the
+`pandas project <https://github.com/pandas-dev/pandas>`_.
+The current version is qtpandas/models/DataFrameModel.py of the
+`QtPandas project <https://github.com/draperjames/qtpandas>`_.
 """
 
 # Standard library imports
@@ -36,7 +43,6 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QGridLayout,
                             QMessageBox, QPushButton, QTableView,
                             QScrollBar, QTableWidget, QFrame,
                             QItemDelegate)
-
 from pandas import DataFrame, Index, Series
 try:
     from pandas._libs.tslib import OutOfBoundsDatetime
