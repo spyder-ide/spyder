@@ -161,7 +161,7 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         self.closing_widget()  # stop search thread and clean-up
-        options = self.find_options.get_options(all=True)
+        options = self.find_options.get_options(to_save=True)
         if options is not None:
             (search_text, text_re, search_path,
              exclude, exclude_idx, exclude_re,

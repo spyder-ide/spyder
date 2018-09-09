@@ -530,14 +530,33 @@ class FindOptions(QWidget):
             self.search_text.lineEdit().selectAll()
         self.search_text.setFocus()
 
-    def get_options(self, all=False):
-        # Getting options
+    def get_options(self, to_save=False):
+        """Get options"""
+        text_re = self.edit_regexp.isChecked()
+        exclude_re = self.exclude_regexp.isChecked()
+        case_sensitive = self.case_button.isChecked()
+
+        # Return current options for them to be saved when closing
+        # Spyder.
+        if to_save:
+            search_text = [to_text_string(self.search_text.itemText(index))
+                           for index in range(self.search_text.count())]
+            exclude = [to_text_string(self.exclude_pattern.itemText(index))
+                       for index in range(self.exclude_pattern.count())]
+            exclude_idx = self.exclude_pattern.currentIndex()
+            path_history = self.path_selection_combo.get_external_paths()
+            more_options = self.more_options.isChecked()
+            return (search_text, text_re, [],
+                    exclude, exclude_idx, exclude_re,
+                    False, more_options, case_sensitive, path_history)
+
         self.search_text.lineEdit().setStyleSheet("")
         self.exclude_pattern.lineEdit().setStyleSheet("")
 
         utext = to_text_string(self.search_text.currentText())
         if not utext:
             return
+
         try:
             texts = [(utext.encode('utf-8'), 'utf-8')]
         except UnicodeEncodeError:
@@ -547,11 +566,8 @@ class FindOptions(QWidget):
                     texts.append((utext.encode(enc), enc))
                 except UnicodeDecodeError:
                     pass
-        text_re = self.edit_regexp.isChecked()
+
         exclude = to_text_string(self.exclude_pattern.currentText())
-        exclude_re = self.exclude_regexp.isChecked()
-        case_sensitive = self.case_button.isChecked()
-        python_path = False
 
         if not case_sensitive:
             texts = [(text[0].lower(), text[1]) for text in texts]
@@ -566,7 +582,6 @@ class FindOptions(QWidget):
             exclude = '|'.join(items)
 
         # Validate regular expressions:
-
         try:
             if exclude:
                 exclude = re.compile(exclude)
@@ -582,19 +597,7 @@ class FindOptions(QWidget):
                 self.search_text.lineEdit().setStyleSheet(self.REGEX_INVALID)
                 return None
 
-        if all:
-            search_text = [to_text_string(self.search_text.itemText(index))
-                           for index in range(self.search_text.count())]
-            exclude = [to_text_string(self.exclude_pattern.itemText(index))
-                       for index in range(self.exclude_pattern.count())]
-            path_history = self.path_selection_combo.get_external_paths()
-            exclude_idx = self.exclude_pattern.currentIndex()
-            more_options = self.more_options.isChecked()
-            return (search_text, text_re, [],
-                    exclude, exclude_idx, exclude_re,
-                    python_path, more_options, case_sensitive, path_history)
-        else:
-            return (path, file_search, exclude, texts, text_re, case_sensitive)
+        return (path, file_search, exclude, texts, text_re, case_sensitive)
 
     @property
     def path(self):
