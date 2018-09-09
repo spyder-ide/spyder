@@ -920,11 +920,13 @@ class FindInFilesWidget(QWidget):
     def __init__(self, parent,
                  search_text=r"# ?TODO|# ?FIXME|# ?XXX",
                  search_text_regexp=True,
-                 exclude=r"\.pyc$|\.orig$|\.hg|\.svn", exclude_idx=None,
+                 exclude="*.json, *.csv, *.js",
+                 exclude_idx=None,
                  exclude_regexp=True,
                  supported_encodings=("utf-8", "iso-8859-1", "cp1252"),
                  more_options=False,
-                 case_sensitive=True, external_path_history=[]):
+                 case_sensitive=True,
+                 external_path_history=[]):
         QWidget.__init__(self, parent)
 
         self.setWindowTitle(_('Find in files'))
