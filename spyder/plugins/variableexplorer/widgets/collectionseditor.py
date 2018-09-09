@@ -591,7 +591,10 @@ class CollectionsDelegate(QItemDelegate):
 
     def free_memory(self):
         """Free memory after closing an editor."""
-        self.sig_free_memory.emit()
+        try:
+            self.sig_free_memory.emit()
+        except RuntimeError:
+            pass
 
     def commitAndCloseEditor(self):
         """Overriding method commitAndCloseEditor"""

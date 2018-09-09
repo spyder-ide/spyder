@@ -84,14 +84,11 @@ class SearchThread(QThread):
         self.total_matches = None
         self.error_flag = None
         self.rootpath = None
-        self.python_path = None
-        self.hg_manifest = None
         self.exclude = None
         self.texts = None
         self.text_re = None
         self.completed = None
         self.case_sensitive = True
-        self.get_pythonpath_callback = None
         self.results = {}
         self.total_matches = 0
         self.is_file = False
@@ -99,8 +96,6 @@ class SearchThread(QThread):
     def initialize(self, path, is_file, exclude,
                    texts, text_re, case_sensitive):
         self.rootpath = path
-        self.python_path = False
-        self.hg_manifest = False
         if exclude:
             self.exclude = re.compile(exclude)
         self.texts = texts
@@ -407,19 +402,14 @@ class FindOptions(QWidget):
     stop = Signal()
     redirect_stdio = Signal(bool)
 
-    def __init__(self, parent, search_text, search_text_regexp, search_path,
+    def __init__(self, parent, search_text, search_text_regexp,
                  exclude, exclude_idx, exclude_regexp,
-                 supported_encodings, in_python_path, more_options,
+                 supported_encodings, more_options,
                  case_sensitive, external_path_history, options_button=None):
         QWidget.__init__(self, parent)
 
-        if search_path is None:
-            search_path = getcwd_or_home()
-
         if not isinstance(search_text, (list, tuple)):
             search_text = [search_text]
-        if not isinstance(search_path, (list, tuple)):
-            search_path = [search_path]
         if not isinstance(exclude, (list, tuple)):
             exclude = [exclude]
         if not isinstance(external_path_history, (list, tuple)):
@@ -533,14 +523,34 @@ class FindOptions(QWidget):
             self.search_text.lineEdit().selectAll()
         self.search_text.setFocus()
 
-    def get_options(self, all=False):
-        # Getting options
+    def get_options(self, to_save=False):
+        """Get options"""
+        text_re = self.edit_regexp.isChecked()
+        exclude_re = self.exclude_regexp.isChecked()
+        case_sensitive = self.case_button.isChecked()
+
+        # Return current options for them to be saved when closing
+        # Spyder.
+        if to_save:
+            search_text = [to_text_string(self.search_text.itemText(index))
+                           for index in range(self.search_text.count())]
+            exclude = [to_text_string(self.exclude_pattern.itemText(index))
+                       for index in range(self.exclude_pattern.count())]
+            exclude_idx = self.exclude_pattern.currentIndex()
+            path_history = self.path_selection_combo.get_external_paths()
+            more_options = self.more_options.isChecked()
+            return (search_text, text_re,
+                    exclude, exclude_idx,
+                    exclude_re, more_options,
+                    case_sensitive, path_history)
+
         self.search_text.lineEdit().setStyleSheet("")
         self.exclude_pattern.lineEdit().setStyleSheet("")
 
         utext = to_text_string(self.search_text.currentText())
         if not utext:
             return
+
         try:
             texts = [(utext.encode('utf-8'), 'utf-8')]
         except UnicodeEncodeError:
@@ -550,11 +560,8 @@ class FindOptions(QWidget):
                     texts.append((utext.encode(enc), enc))
                 except UnicodeDecodeError:
                     pass
-        text_re = self.edit_regexp.isChecked()
+
         exclude = to_text_string(self.exclude_pattern.currentText())
-        exclude_re = self.exclude_regexp.isChecked()
-        case_sensitive = self.case_button.isChecked()
-        python_path = False
 
         if not case_sensitive:
             texts = [(text[0].lower(), text[1]) for text in texts]
@@ -569,7 +576,6 @@ class FindOptions(QWidget):
             exclude = '|'.join(items)
 
         # Validate regular expressions:
-
         try:
             if exclude:
                 exclude = re.compile(exclude)
@@ -585,19 +591,7 @@ class FindOptions(QWidget):
                 self.search_text.lineEdit().setStyleSheet(self.REGEX_INVALID)
                 return None
 
-        if all:
-            search_text = [to_text_string(self.search_text.itemText(index))
-                           for index in range(self.search_text.count())]
-            exclude = [to_text_string(self.exclude_pattern.itemText(index))
-                       for index in range(self.exclude_pattern.count())]
-            path_history = self.path_selection_combo.get_external_paths()
-            exclude_idx = self.exclude_pattern.currentIndex()
-            more_options = self.more_options.isChecked()
-            return (search_text, text_re, [],
-                    exclude, exclude_idx, exclude_re,
-                    python_path, more_options, case_sensitive, path_history)
-        else:
-            return (path, file_search, exclude, texts, text_re, case_sensitive)
+        return (path, file_search, exclude, texts, text_re, case_sensitive)
 
     @property
     def path(self):
@@ -930,11 +924,11 @@ class FindInFilesWidget(QWidget):
 
     def __init__(self, parent,
                  search_text=r"# ?TODO|# ?FIXME|# ?XXX",
-                 search_text_regexp=True, search_path=None,
+                 search_text_regexp=True,
                  exclude=r"\.pyc$|\.orig$|\.hg|\.svn", exclude_idx=None,
                  exclude_regexp=True,
                  supported_encodings=("utf-8", "iso-8859-1", "cp1252"),
-                 in_python_path=False, more_options=False,
+                 more_options=False,
                  case_sensitive=True, external_path_history=[],
                  options_button=None):
         QWidget.__init__(self, parent)
@@ -942,19 +936,14 @@ class FindInFilesWidget(QWidget):
         self.setWindowTitle(_('Find in files'))
 
         self.search_thread = None
-        self.search_path = ''
-        self.get_pythonpath_callback = None
-
         self.status_bar = FileProgressBar(self)
         self.status_bar.hide()
 
         self.find_options = FindOptions(self, search_text,
                                         search_text_regexp,
-                                        search_path,
                                         exclude, exclude_idx,
                                         exclude_regexp,
                                         supported_encodings,
-                                        in_python_path,
                                         more_options,
                                         case_sensitive,
                                         external_path_history,
@@ -986,8 +975,6 @@ class FindInFilesWidget(QWidget):
             return
         self.stop_and_reset_thread(ignore_results=True)
         self.search_thread = SearchThread(self)
-        self.search_thread.get_pythonpath_callback = (
-            self.get_pythonpath_callback)
         self.search_thread.sig_finished.connect(self.search_complete)
         self.search_thread.sig_current_file.connect(
             lambda x: self.status_bar.set_label_path(x, folder=False)

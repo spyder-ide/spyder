@@ -80,10 +80,6 @@ def test_closing_plugin(qtbot, mocker):
         path_selection_combo.setCurrentIndex(SELECT_OTHER)
     assert path_selection_combo.get_external_paths() == expected_results
 
-    # Force the options to be saved to the config file. Something needs to be
-    # set in the search_text combobox first or else the find in files options
-    # won't be save to the config file (see PR #6095).
-    findinfiles_plugin.findinfiles.find_options.search_text.set_current_text("test")
     findinfiles_plugin.closing_plugin()
     assert findinfiles_plugin.get_option('path_history') == expected_results
 
@@ -93,6 +89,7 @@ def test_closing_plugin(qtbot, mocker):
     findinfiles_plugin, qtbot = findinfiles_bot(qtbot)
     path_selection_combo = findinfiles_plugin.findinfiles.find_options.path_selection_combo
     assert path_selection_combo.get_external_paths() == expected_results
+
 
 
 if __name__ == "__main__":
