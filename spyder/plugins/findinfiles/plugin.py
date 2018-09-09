@@ -133,7 +133,7 @@ class FindInFiles(SpyderPluginWidget):
     
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
-        return []
+        return self.findinfiles.result_browser.get_menu_actions()
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""

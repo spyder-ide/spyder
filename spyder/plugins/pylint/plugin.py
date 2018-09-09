@@ -92,7 +92,14 @@ class Pylint(SpyderPluginWidget):
         layout = QVBoxLayout()
         layout.addWidget(self.pylint)
         self.setLayout(layout)
-        
+
+        # Add history_action to treewidget context menu
+        history_action = create_action(self, _("History..."),
+                                       None, ima.icon('history'),
+                                       _("Set history maximum entries"),
+                                       triggered=self.change_history_depth)
+        self.pylint.treewidget.common_actions += (None, history_action)
+
         # Initialize plugin
         self.initialize_plugin()
         
@@ -115,13 +122,7 @@ class Pylint(SpyderPluginWidget):
     
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
-        # Font
-        history_action = create_action(self, _("History..."),
-                                       None, ima.icon('history'),
-                                       _("Set history maximum entries"),
-                                       triggered=self.change_history_depth)
-        self.pylint.treewidget.common_actions += (None, history_action)
-        return []
+        return self.pylint.treewidget.get_menu_actions()
 
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""
