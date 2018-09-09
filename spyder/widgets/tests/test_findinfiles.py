@@ -50,7 +50,9 @@ def process_search_results(results):
 def setup_findinfiles(qtbot, *args, **kwargs):
     """Set up find in files widget."""
     widget = FindInFilesWidget(None, *args, **kwargs)
+    widget.resize(640, 480)
     qtbot.addWidget(widget)
+    widget.show()
     return widget
 
 
@@ -84,14 +86,6 @@ def expected_case_unsensitive_results():
                'ham.txt': [(1, 0), (1, 10), (3, 0), (4, 0),
                            (5, 4), (9, 0), (10, 0)]}
     return results
-
-
-def test_findinfiles(qtbot):
-    """Run find in files widget."""
-    find_in_files = setup_findinfiles(qtbot)
-    find_in_files.resize(640, 480)
-    find_in_files.show()
-    assert find_in_files
 
 
 def test_find_in_files_search(qtbot):
@@ -232,7 +226,7 @@ def test_case_unsensitive_search(qtbot):
 
 
 def test_case_sensitive_search(qtbot):
-    find_in_files = setup_findinfiles(qtbot)
+    find_in_files = setup_findinfiles(qtbot, case_sensitive=True)
     find_in_files.set_search_text('HaM')
     find_in_files.find_options.set_directory(osp.join(LOCATION, "data"))
     find_in_files.find()
@@ -241,6 +235,25 @@ def test_case_sensitive_search(qtbot):
     matches = process_search_results(find_in_files.result_browser.data)
     print(matches)
     assert matches == {'ham.txt': [(9, 0)]}
+
+
+def test_search_regexp_error(qtbot):
+    find_in_files = setup_findinfiles(qtbot, search_text_regexp=True)
+    find_in_files.set_search_text("\\")
+    find_in_files.find_options.set_directory(osp.join(LOCATION, "data"))
+    find_in_files.find()
+    tooltip = find_in_files.find_options.search_text.toolTip()
+    assert find_in_files.find_options.REGEX_ERROR in tooltip
+
+
+def test_exclude_regexp_error(qtbot):
+    find_in_files = setup_findinfiles(qtbot, exclude="\\",
+                                      exclude_regexp=True)
+    find_in_files.set_search_text("foo")
+    find_in_files.find_options.set_directory(osp.join(LOCATION, "data"))
+    find_in_files.find()
+    tooltip = find_in_files.find_options.exclude_pattern.toolTip()
+    assert find_in_files.find_options.REGEX_ERROR in tooltip
 
 
 # ---- Tests for SearchInComboBox
