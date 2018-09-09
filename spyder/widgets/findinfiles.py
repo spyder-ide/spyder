@@ -84,7 +84,6 @@ class SearchThread(QThread):
         self.total_matches = None
         self.error_flag = None
         self.rootpath = None
-        self.python_path = None
         self.hg_manifest = None
         self.exclude = None
         self.texts = None
@@ -99,7 +98,6 @@ class SearchThread(QThread):
     def initialize(self, path, is_file, exclude,
                    texts, text_re, case_sensitive):
         self.rootpath = path
-        self.python_path = False
         self.hg_manifest = False
         if exclude:
             self.exclude = re.compile(exclude)
@@ -408,7 +406,7 @@ class FindOptions(QWidget):
 
     def __init__(self, parent, search_text, search_text_regexp, search_path,
                  exclude, exclude_idx, exclude_regexp,
-                 supported_encodings, in_python_path, more_options,
+                 supported_encodings, more_options,
                  case_sensitive, external_path_history):
         QWidget.__init__(self, parent)
 
@@ -548,7 +546,7 @@ class FindOptions(QWidget):
             more_options = self.more_options.isChecked()
             return (search_text, text_re, [],
                     exclude, exclude_idx, exclude_re,
-                    False, more_options, case_sensitive, path_history)
+                    more_options, case_sensitive, path_history)
 
         self.search_text.lineEdit().setStyleSheet("")
         self.exclude_pattern.lineEdit().setStyleSheet("")
@@ -932,7 +930,7 @@ class FindInFilesWidget(QWidget):
                  exclude=r"\.pyc$|\.orig$|\.hg|\.svn", exclude_idx=None,
                  exclude_regexp=True,
                  supported_encodings=("utf-8", "iso-8859-1", "cp1252"),
-                 in_python_path=False, more_options=False,
+                 more_options=False,
                  case_sensitive=True, external_path_history=[]):
         QWidget.__init__(self, parent)
 
@@ -947,7 +945,7 @@ class FindInFilesWidget(QWidget):
         self.find_options = FindOptions(self, search_text, search_text_regexp,
                                         search_path,
                                         exclude, exclude_idx, exclude_regexp,
-                                        supported_encodings, in_python_path,
+                                        supported_encodings,
                                         more_options, case_sensitive,
                                         external_path_history)
         self.find_options.find.connect(self.find)
