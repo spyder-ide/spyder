@@ -443,7 +443,7 @@ class FindOptions(QWidget):
                                            text_beside_icon=True)
         self.ok_button.clicked.connect(self.update_combos)
         self.stop_button = create_toolbutton(self, text=_("Stop"),
-                                             icon=ima.icon('editclear'),
+                                             icon=ima.icon('stop'),
                                              triggered=lambda:
                                              self.stop.emit(),
                                              tip=_("Stop search"),
