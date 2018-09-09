@@ -39,8 +39,6 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
     
     def __init__(self, parent=None):
         supported_encodings = self.get_option('supported_encodings')
-        
-        search_path = self.get_option('search_path', None)        
         self.search_text_samples = self.get_option('search_text_samples')
         search_text = self.get_option('search_text')
         search_text = [txt for txt in search_text \
@@ -51,15 +49,14 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         exclude = self.get_option('exclude')
         exclude_idx = self.get_option('exclude_idx', None)
         exclude_regexp = self.get_option('exclude_regexp')
-        in_python_path = self.get_option('in_python_path')
         more_options = self.get_option('more_options')
         case_sensitive = self.get_option('case_sensitive')
         path_history = self.get_option('path_history', [])
         FindInFilesWidget.__init__(self, parent,
                                    search_text, search_text_regexp,
-                                   search_path, exclude, exclude_idx,
+                                   exclude, exclude_idx,
                                    exclude_regexp, supported_encodings,
-                                   in_python_path, more_options,
+                                   more_options,
                                    case_sensitive, path_history)
         SpyderPluginMixin.__init__(self, parent)
         
@@ -132,7 +129,6 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.get_pythonpath_callback = self.main.get_spyder_pythonpath
         self.main.add_dockwidget(self)
         self.edit_goto.connect(self.main.editor.load)
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
@@ -161,24 +157,21 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         self.closing_widget()  # stop search thread and clean-up
-        options = self.find_options.get_options(all=True)
+        options = self.find_options.get_options(to_save=True)
         if options is not None:
-            (search_text, text_re, search_path,
+            (search_text, text_re,
              exclude, exclude_idx, exclude_re,
-             in_python_path, more_options, case_sensitive,
+             more_options, case_sensitive,
              path_history) = options
             hist_limit = 15
             search_text = search_text[:hist_limit]
-            search_path = search_path[:hist_limit]
             exclude = exclude[:hist_limit]
             path_history = path_history[-hist_limit:]
             self.set_option('search_text', search_text)
             self.set_option('search_text_regexp', text_re)
-            self.set_option('search_path', search_path)
             self.set_option('exclude', exclude)
             self.set_option('exclude_idx', exclude_idx)
             self.set_option('exclude_regexp', exclude_re)
-            self.set_option('in_python_path', in_python_path)
             self.set_option('more_options', more_options)
             self.set_option('case_sensitive', case_sensitive)
             self.set_option('path_history', path_history)
