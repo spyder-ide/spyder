@@ -39,8 +39,6 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
     
     def __init__(self, parent=None):
         supported_encodings = self.get_option('supported_encodings')
-        
-        search_path = self.get_option('search_path', None)        
         self.search_text_samples = self.get_option('search_text_samples')
         search_text = self.get_option('search_text')
         search_text = [txt for txt in search_text \
@@ -56,7 +54,7 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         path_history = self.get_option('path_history', [])
         FindInFilesWidget.__init__(self, parent,
                                    search_text, search_text_regexp,
-                                   search_path, exclude, exclude_idx,
+                                   exclude, exclude_idx,
                                    exclude_regexp, supported_encodings,
                                    more_options,
                                    case_sensitive, path_history)
@@ -162,18 +160,16 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         self.closing_widget()  # stop search thread and clean-up
         options = self.find_options.get_options(to_save=True)
         if options is not None:
-            (search_text, text_re, search_path,
+            (search_text, text_re,
              exclude, exclude_idx, exclude_re,
              more_options, case_sensitive,
              path_history) = options
             hist_limit = 15
             search_text = search_text[:hist_limit]
-            search_path = search_path[:hist_limit]
             exclude = exclude[:hist_limit]
             path_history = path_history[-hist_limit:]
             self.set_option('search_text', search_text)
             self.set_option('search_text_regexp', text_re)
-            self.set_option('search_path', search_path)
             self.set_option('exclude', exclude)
             self.set_option('exclude_idx', exclude_idx)
             self.set_option('exclude_regexp', exclude_re)

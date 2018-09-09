@@ -404,19 +404,14 @@ class FindOptions(QWidget):
     find = Signal()
     stop = Signal()
 
-    def __init__(self, parent, search_text, search_text_regexp, search_path,
+    def __init__(self, parent, search_text, search_text_regexp,
                  exclude, exclude_idx, exclude_regexp,
                  supported_encodings, more_options,
                  case_sensitive, external_path_history):
         QWidget.__init__(self, parent)
 
-        if search_path is None:
-            search_path = getcwd_or_home()
-
         if not isinstance(search_text, (list, tuple)):
             search_text = [search_text]
-        if not isinstance(search_path, (list, tuple)):
-            search_path = [search_path]
         if not isinstance(exclude, (list, tuple)):
             exclude = [exclude]
         if not isinstance(external_path_history, (list, tuple)):
@@ -544,9 +539,10 @@ class FindOptions(QWidget):
             exclude_idx = self.exclude_pattern.currentIndex()
             path_history = self.path_selection_combo.get_external_paths()
             more_options = self.more_options.isChecked()
-            return (search_text, text_re, [],
-                    exclude, exclude_idx, exclude_re,
-                    more_options, case_sensitive, path_history)
+            return (search_text, text_re,
+                    exclude, exclude_idx,
+                    exclude_re, more_options,
+                    case_sensitive, path_history)
 
         self.search_text.lineEdit().setStyleSheet("")
         self.exclude_pattern.lineEdit().setStyleSheet("")
@@ -926,7 +922,7 @@ class FindInFilesWidget(QWidget):
 
     def __init__(self, parent,
                  search_text=r"# ?TODO|# ?FIXME|# ?XXX",
-                 search_text_regexp=True, search_path=None,
+                 search_text_regexp=True,
                  exclude=r"\.pyc$|\.orig$|\.hg|\.svn", exclude_idx=None,
                  exclude_regexp=True,
                  supported_encodings=("utf-8", "iso-8859-1", "cp1252"),
@@ -937,13 +933,11 @@ class FindInFilesWidget(QWidget):
         self.setWindowTitle(_('Find in files'))
 
         self.search_thread = None
-        self.search_path = ''
         self.get_pythonpath_callback = None
 
         self.status_bar = FileProgressBar(self)
         self.status_bar.hide()
         self.find_options = FindOptions(self, search_text, search_text_regexp,
-                                        search_path,
                                         exclude, exclude_idx, exclude_regexp,
                                         supported_encodings,
                                         more_options, case_sensitive,
