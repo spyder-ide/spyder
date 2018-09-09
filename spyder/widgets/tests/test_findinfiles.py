@@ -113,7 +113,8 @@ def test_find_in_files_search(qtbot):
 
 
 def test_exclude_extension_regex(qtbot):
-    find_in_files = setup_findinfiles(qtbot, exclude="\.py$")
+    find_in_files = setup_findinfiles(qtbot, exclude="\.py$",
+                                      exclude_regexp=True)
     find_in_files.set_search_text("spam")
     find_in_files.find_options.set_directory(osp.join(LOCATION, "data"))
     find_in_files.find()
