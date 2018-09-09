@@ -39,7 +39,8 @@ from spyder.utils.encoding import is_text_file, to_unicode_from_fs
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.comboboxes import PatternComboBox
 from spyder.widgets.onecolumntree import OneColumnTree
-from spyder.utils.qthelpers import create_toolbutton, get_icon
+from spyder.utils.qthelpers import (create_toolbutton, get_icon,
+                                    regexp_error_msg)
 
 from spyder.config.gui import get_font
 from spyder.widgets.waitingspinner import QWaitingSpinner
@@ -399,7 +400,9 @@ class SearchInComboBox(QComboBox):
 
 class FindOptions(QWidget):
     """Find widget with options"""
-    REGEX_INVALID = "background-color:rgb(255, 175, 90);"
+    REGEX_INVALID = "background-color:rgb(255, 80, 80);"
+    REGEX_ERROR = _("Regular expression error")
+
     find = Signal()
     stop = Signal()
 
@@ -543,8 +546,11 @@ class FindOptions(QWidget):
                     exclude_re, more_options,
                     case_sensitive, path_history)
 
+        # Clear fields
         self.search_text.lineEdit().setStyleSheet("")
         self.exclude_pattern.lineEdit().setStyleSheet("")
+        self.search_text.setToolTip("")
+        self.exclude_pattern.setToolTip("")
 
         utext = to_text_string(self.search_text.currentText())
         if not utext:
@@ -574,21 +580,28 @@ class FindOptions(QWidget):
                      if item.strip() != '']
             exclude = '|'.join(items)
 
-        # Validate regular expressions:
-        try:
-            if exclude:
-                exclude = re.compile(exclude)
-        except Exception:
-            exclude_edit = self.exclude_pattern.lineEdit()
-            exclude_edit.setStyleSheet(self.REGEX_INVALID)
-            return None
-
-        if text_re:
-            try:
-                texts = [(re.compile(x[0]), x[1]) for x in texts]
-            except Exception:
-                self.search_text.lineEdit().setStyleSheet(self.REGEX_INVALID)
+        # Validate exclude regular expression
+        if exclude:
+            error_msg = regexp_error_msg(exclude)
+            if error_msg:
+                exclude_edit = self.exclude_pattern.lineEdit()
+                exclude_edit.setStyleSheet(self.REGEX_INVALID)
+                tooltip = self.REGEX_ERROR + u': ' + to_text_string(error_msg)
+                self.exclude_pattern.setToolTip(tooltip)
                 return None
+            else:
+                exclude = re.compile(exclude)
+
+        # Validate text regular expression
+        if text_re:
+            error_msg = regexp_error_msg(texts[0][0])
+            if error_msg:
+                self.search_text.lineEdit().setStyleSheet(self.REGEX_INVALID)
+                tooltip = self.REGEX_ERROR + u': ' + to_text_string(error_msg)
+                self.search_text.setToolTip(tooltip)
+                return None
+            else:
+                texts = [(re.compile(x[0]), x[1]) for x in texts]
 
         return (path, file_search, exclude, texts, text_re, case_sensitive)
 

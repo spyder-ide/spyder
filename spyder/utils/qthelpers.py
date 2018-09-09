@@ -574,5 +574,17 @@ def create_plugin_layout(tools_layout, main_widget=None):
 MENU_SEPARATOR = None
 
 
+def regexp_error_msg(pattern):
+    """
+    Returns None if the pattern is a valid regular expression or
+    a string describing why the pattern is invalid.
+    """
+    try:
+        re.compile(pattern)
+    except re.error as e:
+        return str(e)
+    return None
+
+
 if __name__ == "__main__":
     show_std_icons()
