@@ -281,7 +281,7 @@ DEFAULTS = [
               'supported_encodings': ["utf-8", "iso-8859-1", "cp1252"],
               'exclude': EXCLUDE_PATTERNS,
               'exclude_regexp': False,
-              'search_text_regexp': True,
+              'search_text_regexp': False,
               'search_text': [''],
               'search_text_samples': [codeanalysis.TASKS_PATTERN],
               'more_options': True,
