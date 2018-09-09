@@ -139,8 +139,10 @@ class SearchThread(QThread):
                         if self.stopped:
                             return False
                     dirname = os.path.join(path, d)
-                    if self.exclude \
-                       and re.search(self.exclude, dirname + os.sep):
+                    if (self.exclude and
+                            re.search(self.exclude, dirname + os.sep)):
+                        dirs.remove(d)
+                    elif d == '.git' or d == '.hg':
                         dirs.remove(d)
                 for f in files:
                     with QMutexLocker(self.mutex):
