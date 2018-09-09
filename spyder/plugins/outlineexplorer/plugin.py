@@ -35,8 +35,6 @@ class OutlineExplorer(SpyderPluginWidget):
         group_cells = self.get_option('group_cells')
         show_comments = self.get_option('show_comments')
 
-        # Initialize plugin
-        self.initialize_plugin()
         self.explorer = OutlineExplorerWidget(
                                        self,
                                        show_fullpath=show_fullpath,
@@ -44,15 +42,17 @@ class OutlineExplorer(SpyderPluginWidget):
                                        group_cells=group_cells,
                                        show_comments=show_comments,
                                        options_button=self.options_button)
-
         layout = QVBoxLayout()
         layout.addWidget(self.explorer)
         self.setLayout(layout)
-        
+
         # Menu as corner widget
         self.explorer.treewidget.header().hide()
         self.load_config()
-        
+
+        # Initialize plugin
+        self.initialize_plugin()
+
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
         """Return widget title"""
@@ -71,7 +71,7 @@ class OutlineExplorer(SpyderPluginWidget):
     
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
-        return []
+        return self.explorer.treewidget.get_menu_actions()
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
