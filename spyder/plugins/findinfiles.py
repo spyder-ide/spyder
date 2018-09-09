@@ -129,7 +129,6 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.get_pythonpath_callback = self.main.get_spyder_pythonpath
         self.main.add_dockwidget(self)
         self.edit_goto.connect(self.main.editor.load)
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)

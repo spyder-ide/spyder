@@ -84,13 +84,11 @@ class SearchThread(QThread):
         self.total_matches = None
         self.error_flag = None
         self.rootpath = None
-        self.hg_manifest = None
         self.exclude = None
         self.texts = None
         self.text_re = None
         self.completed = None
         self.case_sensitive = True
-        self.get_pythonpath_callback = None
         self.results = {}
         self.total_matches = 0
         self.is_file = False
@@ -98,7 +96,6 @@ class SearchThread(QThread):
     def initialize(self, path, is_file, exclude,
                    texts, text_re, case_sensitive):
         self.rootpath = path
-        self.hg_manifest = False
         if exclude:
             self.exclude = re.compile(exclude)
         self.texts = texts
@@ -933,8 +930,6 @@ class FindInFilesWidget(QWidget):
         self.setWindowTitle(_('Find in files'))
 
         self.search_thread = None
-        self.get_pythonpath_callback = None
-
         self.status_bar = FileProgressBar(self)
         self.status_bar.hide()
         self.find_options = FindOptions(self, search_text, search_text_regexp,
@@ -969,8 +964,6 @@ class FindInFilesWidget(QWidget):
             return
         self.stop_and_reset_thread(ignore_results=True)
         self.search_thread = SearchThread(self)
-        self.search_thread.get_pythonpath_callback = (
-            self.get_pythonpath_callback)
         self.search_thread.sig_finished.connect(self.search_complete)
         self.search_thread.sig_current_file.connect(
             lambda x: self.status_bar.set_label_path(x, folder=False)
