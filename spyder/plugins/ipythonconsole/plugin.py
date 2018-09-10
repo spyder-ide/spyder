@@ -15,7 +15,6 @@ IPython Console plugin based on QtConsole
 
 # Standard library imports
 import atexit
-import codecs
 import os
 import os.path as osp
 import uuid
@@ -52,8 +51,9 @@ from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, programs, sourcecode
-from spyder.utils.programs import TEMPDIR
-from spyder.utils.misc import get_error_match, remove_backslashes
+from spyder.utils.programs import get_temp_dir
+from spyder.utils.misc import (get_error_match, get_stderr_file_handle, 
+                               remove_backslashes)
 from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.ipythonconsole.widgets import ClientWidget
 from spyder.widgets.tabs import Tabs
@@ -651,7 +651,7 @@ class IPythonConsole(SpyderPluginWidget):
                              "required to create IPython consoles. Please "
                              "make it writable.")
 
-    def __init__(self, parent, testing=False, test_dir=TEMPDIR,
+    def __init__(self, parent, testing=False, test_dir=None,
                  test_no_stderr=False):
         """Ipython Console constructor."""
         SpyderPluginWidget.__init__(self, parent)
@@ -674,11 +674,15 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Attrs for testing
         self.testing = testing
-        self.test_dir = test_dir
+        if test_dir is None:
+            self.test_dir = get_temp_dir()
+        else:
+            self.test_dir = test_dir
+
         self.test_no_stderr = test_no_stderr
 
         # Create temp dir on testing to save kernel errors
-        if self.testing:
+        if self.testing and test_dir is not None:
             if not osp.isdir(osp.join(test_dir)):
                 os.makedirs(osp.join(test_dir))
 
@@ -1396,6 +1400,10 @@ class IPythonConsole(SpyderPluginWidget):
             return
         if client is not None:
             index = self.tabwidget.indexOf(client)
+            # if index is not found in tabwidget it's because this client was
+            # already closed and the call was performed by the exit callback
+            if index == -1:
+                return
         if index is None and client is None:
             index = self.tabwidget.currentIndex()
         if index is not None:
@@ -1429,9 +1437,16 @@ class IPythonConsole(SpyderPluginWidget):
                          _("Do you want to close all other consoles connected "
                            "to the same kernel as this one?"),
                            QMessageBox.Yes | QMessageBox.No)
+
             client.shutdown()
             if close_all == QMessageBox.Yes:
                 self.close_related_clients(client)
+
+        # if there aren't related clients we can remove stderr_file
+        related_clients = self.get_related_clients(client)
+        if len(related_clients) == 0 and osp.exists(client.stderr_file):
+            os.remove(client.stderr_file)
+
         client.close()
 
         # Note: client index may have changed after closing related widgets
@@ -1611,24 +1626,19 @@ class IPythonConsole(SpyderPluginWidget):
         kernel_manager._kernel_spec = kernel_spec
 
         # Save stderr in a file to read it later in case of errors
-        if stderr_file is not None:
-            # Needed to prevent any error that could appear.
-            # See issue 6267
-            try:
-                stderr = codecs.open(stderr_file, 'w', encoding='utf-8')
-            except Exception:
-                stderr = None
-        else:
-            stderr = None
-
-        # Catch any error generated when trying to start the kernel
-        # See issue 7302
+        stderr = get_stderr_file_handle(stderr_file)
         try:
-            kernel_manager.start_kernel(stderr=stderr)
-        except Exception:
-            error_msg = _("The error is:<br><br>"
-                          "<tt>{}</tt>").format(traceback.format_exc())
-            return (error_msg, None)
+            # Catch any error generated when trying to start the kernel
+            # See issue 7302
+            try:
+                kernel_manager.start_kernel(stderr=stderr)
+            except Exception:
+                error_msg = _("The error is:<br><br>"
+                              "<tt>{}</tt>").format(traceback.format_exc())
+                return (error_msg, None)
+        finally:
+            if stderr is not None:
+                stderr.close()
 
         # Kernel client
         kernel_client = kernel_manager.client()
@@ -1642,8 +1652,18 @@ class IPythonConsole(SpyderPluginWidget):
     def restart_kernel(self):
         """Restart kernel of current client."""
         client = self.get_current_client()
+        if self.test_no_stderr:
+            stderr_file = None
+        else:
+            stderr_file = client.stderr_file
+
         if client is not None:
-            client.restart_kernel()
+            stderr = self.get_stderr_file_handle(stderr_file)
+            try:
+                client.restart_kernel(stderr=stderr)
+            finally:
+                if stderr is not None:
+                    stderr.close()
 
     #------ Public API (for tabs) ---------------------------------------------
     def add_tab(self, widget, name, filename=''):
@@ -1870,6 +1890,8 @@ class IPythonConsole(SpyderPluginWidget):
                               show_elapsed_time=show_elapsed_time,
                               reset_warning=reset_warning,
                               ask_before_restart=ask_before_restart)
+        if self.testing:
+            client.stderr_dir = self.test_dir
 
         # Create kernel client
         kernel_client = QtKernelClient(connection_file=connection_file)

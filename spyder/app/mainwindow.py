@@ -328,10 +328,6 @@ class MainWindow(QMainWindow):
             mac_style = mac_style.replace('$IMAGE_PATH', img_path)
             self.setStyleSheet(mac_style)
 
-        # Create our TEMPDIR
-        if not osp.isdir(programs.TEMPDIR):
-            os.mkdir(programs.TEMPDIR)
-
         # Shortcut management data
         self.shortcut_data = []
 
@@ -1216,9 +1212,6 @@ class MainWindow(QMainWindow):
         """Actions to be performed only after the main window's `show` method
         was triggered"""
         self.restore_scrollbar_position.emit()
-
-        # Remove our temporary dir
-        atexit.register(self.remove_tmpdir)
 
         # [Workaround for Issue 880]
         # QDockWidget objects are not painted if restored as floating
@@ -2187,11 +2180,6 @@ class MainWindow(QMainWindow):
         self.splash.showMessage(message, Qt.AlignBottom | Qt.AlignCenter |
                                 Qt.AlignAbsolute, QColor(Qt.white))
         QApplication.processEvents()
-
-    def remove_tmpdir(self):
-        """Remove Spyder temporary directory"""
-        if CONF.get('main', 'single_instance') and not self.new_instance:
-            shutil.rmtree(programs.TEMPDIR, ignore_errors=True)
 
     def closeEvent(self, event):
         """closeEvent reimplementation"""

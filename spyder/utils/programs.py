@@ -30,11 +30,27 @@ class ProgramError(Exception):
     pass
 
 
-if os.name == 'nt':
-    TEMPDIR = tempfile.gettempdir() + osp.sep + 'spyder'
-else:
-    username = encoding.to_unicode_from_fs(getuser())
-    TEMPDIR = tempfile.gettempdir() + osp.sep + 'spyder-' + username
+def get_temp_dir(suffix=None):
+    """
+    Return temporary Spyder directory, checking previously that it exists.
+    """
+    to_join = [tempfile.gettempdir()]
+
+    if os.name == 'nt':
+        to_join.append('spyder')
+    else:
+        username = encoding.to_unicode_from_fs(getuser())
+        to_join.append('spyder-' + username)
+
+    if suffix is not None:
+        to_join.append(suffix)
+
+    tempdir = osp.join(*to_join)
+
+    if not osp.isdir(tempdir):
+        os.mkdir(tempdir)
+
+    return tempdir
 
 
 def is_program_installed(basename):
@@ -407,8 +423,11 @@ def is_module_installed(module_name, version=None, installed_version=None,
             get_modver = inspect.getsource(get_module_version)
             stable_ver = inspect.getsource(is_stable_version)
             ismod_inst = inspect.getsource(is_module_installed)
-            fd, script = tempfile.mkstemp(suffix='.py', dir=TEMPDIR)
-            with os.fdopen(fd, 'w') as f:
+
+            f = tempfile.NamedTemporaryFile('wt', suffix='.py', 
+                                            dir=get_temp_dir(), delete=False) 
+            try:
+                script = f.name
                 f.write("# -*- coding: utf-8 -*-" + "\n\n")
                 f.write("from distutils.version import LooseVersion" + "\n")
                 f.write("import re" + "\n\n")
@@ -421,15 +440,22 @@ def is_module_installed(module_name, version=None, installed_version=None,
                             % (module_name, version))
                 else:
                     f.write("print(is_module_installed('%s'))" % module_name)
-            try:
-                proc = run_program(interpreter, [script])
-                output, _err = proc.communicate()
-            except subprocess.CalledProcessError:
-                return True
-            if output:  # TODO: Check why output could be empty!
+
+                # We need to flush and sync changes to ensure that the content
+                # of the file is in disk before running the script
+                f.flush()
+                os.fsync(f)
+                f.close()
+                try:
+                    proc = run_program(interpreter, [script])
+                    output, _err = proc.communicate()
+                except subprocess.CalledProcessError:
+                    return True
                 return eval(output.decode())
-            else:
-                return False
+            finally:
+                if not f.closed:
+                    f.close()
+                os.remove(script)
         else:
             # Try to not take a wrong decision if there is no interpreter
             # available (needed for the change_pystartup method of ExtConsole
