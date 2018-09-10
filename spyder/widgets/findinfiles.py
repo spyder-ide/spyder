@@ -796,25 +796,27 @@ class ResultsBrowser(OneColumnTree):
         max_num_char_fragment = 40
 
         html_escape_table = {
-            "&": "&amp;",
-            '"': "&quot;",
-            "'": "&apos;",
-            ">": "&gt;",
-            "<": "&lt;",
+            u"&": u"&amp;",
+            u'"': u"&quot;",
+            u"'": u"&apos;",
+            u">": u"&gt;",
+            u"<": u"&lt;",
         }
 
         def html_escape(text):
             """Produce entities within text."""
-            return "".join(html_escape_table.get(c, c) for c in text)
+            return u"".join(html_escape_table.get(c, c) for c in text)
 
         if PY2:
             line = to_text_string(line, encoding='utf8')
+        else:
+            line = to_text_string(line)
         left, match, right = line[:start], line[start:end], line[end:]
 
         if len(line) > max_line_length:
             offset = (len(line) - len(match)) // 2
 
-            left = left.split(' ')
+            left = left.split(u' ')
             num_left_words = len(left)
 
             if num_left_words == 1:
@@ -823,7 +825,7 @@ class ResultsBrowser(OneColumnTree):
                     left = ellipsis + left[-offset:]
                 left = [left]
 
-            right = right.split(' ')
+            right = right.split(u' ')
             num_right_words = len(right)
 
             if num_right_words == 1:
@@ -841,8 +843,8 @@ class ResultsBrowser(OneColumnTree):
             if len(right) < num_right_words:
                 right = right + [ellipsis]
 
-            left = ' '.join(left)
-            right = ' '.join(right)
+            left = u' '.join(left)
+            right = u' '.join(right)
 
             if len(left) > max_num_char_fragment:
                 left = ellipsis + left[-30:]
@@ -850,7 +852,7 @@ class ResultsBrowser(OneColumnTree):
             if len(right) > max_num_char_fragment:
                 right = right[:30] + ellipsis
 
-        line_match_format = to_text_string('{0}<b>{1}</b>{2}')
+        line_match_format = u'{0}<b>{1}</b>{2}'
         left = html_escape(left)
         right = html_escape(right)
         match = html_escape(match)
