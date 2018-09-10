@@ -25,8 +25,8 @@ from spyder.config.base import _
 from spyder.config.gui import config_shortcut
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import (create_toolbutton, get_icon,
-                                    regexp_error_msg)
+from spyder.utils.misc import regexp_error_msg
+from spyder.utils.qthelpers import create_toolbutton, get_icon
 from spyder.widgets.comboboxes import PatternComboBox
 
 

@@ -39,9 +39,8 @@ from spyder.utils.encoding import is_text_file, to_unicode_from_fs
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.comboboxes import PatternComboBox
 from spyder.widgets.onecolumntree import OneColumnTree
-from spyder.utils.qthelpers import (create_toolbutton, get_icon,
-                                    regexp_error_msg)
-
+from spyder.utils.misc import regexp_error_msg
+from spyder.utils.qthelpers import create_toolbutton, get_icon
 from spyder.config.gui import get_font
 from spyder.widgets.waitingspinner import QWaitingSpinner
 
