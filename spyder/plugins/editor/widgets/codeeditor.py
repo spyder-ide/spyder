@@ -543,8 +543,9 @@ class CodeEditor(TextEditBaseWidget):
             'editor/next line': self.create_cursor_callback('Down'),
             'editor/previous char': self.create_cursor_callback('Left'),
             'editor/next char': self.create_cursor_callback('Right'),
-            'editor/previous word': self.create_cursor_callback('StartOfWord'),
-            'editor/next word': self.create_cursor_callback('EndOfWord'),
+            'editor/previous word':
+                self.create_cursor_callback('PreviousWord'),
+            'editor/next word': self.create_cursor_callback('NextWord'),
             'editor/kill to line end': self.kill_line_end,
             'editor/kill to line start': self.kill_line_start,
             'editor/yank': self._kill_ring.yank,
