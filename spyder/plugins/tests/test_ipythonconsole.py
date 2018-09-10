@@ -860,15 +860,15 @@ def test_set_elapsed_time(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-def test_stderr_file_is_remove_one_kernel(ipyconsole, qtbot, monkeypatch):
-    """Test that consoles removes stderr when client is close."""
+def test_stderr_file_is_removed_one_kernel(ipyconsole, qtbot, monkeypatch):
+    """Test that consoles removes stderr when client is closed."""
     # Wait until the window is fully up
     shell = ipyconsole.get_current_shellwidget()
     client = ipyconsole.get_current_client()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
-    # In a normal situation file should exists
+    # In a normal situation file should exist
     monkeypatch.setattr(QMessageBox, 'question',
                         classmethod(lambda *args: QMessageBox.Yes))
     assert osp.exists(client.stderr_file)
@@ -878,9 +878,9 @@ def test_stderr_file_is_remove_one_kernel(ipyconsole, qtbot, monkeypatch):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-def test_stderr_file_is_remove_two_kernels(ipyconsole, qtbot, monkeypatch):
+def test_stderr_file_is_removed_two_kernels(ipyconsole, qtbot, monkeypatch):
     """Test that console removes stderr when client and related clients
-    are close."""
+    are closed."""
     # Wait until the window is fully up
     shell = ipyconsole.get_current_shellwidget()
     client = ipyconsole.get_current_client()
@@ -895,7 +895,7 @@ def test_stderr_file_is_remove_two_kernels(ipyconsole, qtbot, monkeypatch):
     other_client = ipyconsole.get_related_clients(client)[0]
     assert client.stderr_file == other_client.stderr_file
 
-    # In a normal situation file should exists
+    # In a normal situation file should exist
     monkeypatch.setattr(QMessageBox, 'question',
                         classmethod(lambda *args: QMessageBox.Yes))
     assert osp.exists(client.stderr_file)
@@ -907,7 +907,7 @@ def test_stderr_file_is_remove_two_kernels(ipyconsole, qtbot, monkeypatch):
 @flaky(max_runs=3)
 def test_stderr_file_remains_two_kernels(ipyconsole, qtbot, monkeypatch):
     """Test that console doesn't remove stderr when a related client is not
-    close."""
+    closed."""
     # Wait until the window is fully up
     shell = ipyconsole.get_current_shellwidget()
     client = ipyconsole.get_current_client()
@@ -922,7 +922,7 @@ def test_stderr_file_remains_two_kernels(ipyconsole, qtbot, monkeypatch):
     other_client = ipyconsole.get_related_clients(client)[0]
     assert client.stderr_file == other_client.stderr_file
 
-    # In a normal situation file should exists
+    # In a normal situation file should exist
     monkeypatch.setattr(QMessageBox, "question",
                         classmethod(lambda *args: QMessageBox.No))
     assert osp.exists(client.stderr_file)

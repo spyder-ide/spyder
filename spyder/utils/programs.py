@@ -32,7 +32,7 @@ class ProgramError(Exception):
 
 def get_temp_dir(suffix=None):
     """
-    Returns the temporary path, checking previously that this path exists.
+    Return temporary Spyder directory, checking previously that it exists.
     """
     to_join = [tempfile.gettempdir()]
 

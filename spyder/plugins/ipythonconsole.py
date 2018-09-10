@@ -1345,7 +1345,7 @@ class IPythonConsole(SpyderPluginWidget):
         if client is not None:
             index = self.tabwidget.indexOf(client)
             # if index is not found in tabwidget it's because this client was
-            # already close and the call was performed by the exit callback
+            # already closed and the call was performed by the exit callback
             if index == -1:
                 return
         if index is None and client is None:
@@ -1386,7 +1386,7 @@ class IPythonConsole(SpyderPluginWidget):
             if close_all == QMessageBox.Yes:
                 self.close_related_clients(client)
 
-        # if there aren't related clients we need to remove stderr_file
+        # if there aren't related clients we can remove stderr_file
         related_clients = self.get_related_clients(client)
         if len(related_clients) == 0 and osp.exists(client.stderr_file):
             os.remove(client.stderr_file)
