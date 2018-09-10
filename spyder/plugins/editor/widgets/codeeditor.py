@@ -617,7 +617,7 @@ class CodeEditor(TextEditBaseWidget):
         self.eol_chars = editor.eol_chars
         self._apply_highlighter_color_scheme()
 
-    #-----Widget setup and options
+    # ---- Widget setup and options
     def toggle_wrap_mode(self, enable):
         """Enable/disable wrap mode"""
         self.set_wrap_mode('word' if enable else None)
