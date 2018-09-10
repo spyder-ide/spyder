@@ -1501,24 +1501,13 @@ spyder/images/winpython.svg
 OOjs UI MediaWiki lib
 ---------------------
 
+
 Copyright (c) 2011-2018 OOUI Team and other contributors.
 
 
-Principal Authors:
-Bartosz Dziewoński <matma.rex@gmail.com>
-Ed Sanders <esanders@wikimedia.org>
-James D. Forrester <jforrester@wikimedia.org>
-Kirsten Menger-Anderson <kmenger@wikimedia.org>
-Kunal Mehta <legoktm@gmail.com>
-Moriel Schottlender <moriel@gmail.com>
-Prateek Saxena <prtksxna@gmail.com>
-Roan Kattouw <roan@wikimedia.org>
-Rob Moen <rmoen@wikimedia.org>
-Timo Tijhof <krinklemail@gmail.com>
-Trevor Parscal <trevor@wikimedia.org>
-Volker E. <volker.e@wikimedia.org>
-
-Source/Download: https://phabricator.wikimedia.org/diffusion/GVED/browse/master/lib/oojs-ui/themes/mediawiki/images/icons/
+Authors: OOUI Team and other contributors
+https://phabricator.wikimedia.org/diffusion/GOJU/browse/master/AUTHORS.txt
+Source/Download: https://commons.wikimedia.org/wiki/File:OOjs_UI_icon_regular-expression.svg
 License: MIT (Expat) License | https://opensource.org/licenses/MIT
 
 Modifications made: Removed parentheses, make it bigger.

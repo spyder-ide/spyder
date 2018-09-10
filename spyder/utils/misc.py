@@ -284,7 +284,7 @@ def getcwd_or_home():
 
 def regexp_error_msg(pattern):
     """
-    Returns None if the pattern is a valid regular expression or
+    Return None if the pattern is a valid regular expression or
     a string describing why the pattern is invalid.
     """
     try:

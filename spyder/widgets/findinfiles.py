@@ -33,6 +33,7 @@ from qtpy.QtWidgets import (QApplication, QComboBox, QHBoxLayout, QLabel,
 
 # Local imports
 from spyder.config.base import _
+from spyder.config.main import EXCLUDE_PATTERNS
 from spyder.py3compat import to_text_string, PY2
 from spyder.utils import icon_manager as ima
 from spyder.utils.encoding import is_text_file, to_unicode_from_fs
@@ -934,7 +935,7 @@ class FindInFilesWidget(QWidget):
     def __init__(self, parent,
                  search_text="",
                  search_text_regexp=False,
-                 exclude="*.json, *.csv, *.js",
+                 exclude=EXCLUDE_PATTERNS[0],
                  exclude_idx=None,
                  exclude_regexp=False,
                  supported_encodings=("utf-8", "iso-8859-1", "cp1252"),

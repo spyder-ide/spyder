@@ -28,7 +28,7 @@ from spyder.utils import codeanalysis
 # Main constants
 # =============================================================================
 # Find in files exclude patterns
-EXCLUDE_PATTERNS = ['*.json, *.csv, *.js']
+EXCLUDE_PATTERNS = ['*.csv, *.dat, *.log, *.tmp, *.bak, *.orig']
 
 # Extensions that should be visible in Spyder's file/project explorers
 SHOW_EXT = ['.py', '.ipynb', '.txt', '.dat', '.pdf', '.png', '.svg']
