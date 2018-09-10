@@ -596,9 +596,9 @@ class CodeEditor(TextEditBaseWidget):
         next_char = config_shortcut(cb_maker('Right'), context='Editor',
                                     name='Next char', parent=self)
 
-        prev_word = config_shortcut(cb_maker('StartOfWord'), context='Editor',
+        prev_word = config_shortcut(cb_maker('PreviousWord'), context='Editor',
                                     name='Previous word', parent=self)
-        next_word = config_shortcut(cb_maker('EndOfWord'), context='Editor',
+        next_word = config_shortcut(cb_maker('NextWord'), context='Editor',
                                     name='Next word', parent=self)
 
         kill_line_end = config_shortcut(self.kill_line_end, context='Editor',
