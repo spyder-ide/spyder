@@ -460,7 +460,7 @@ class FindOptions(QWidget):
         # Layout 2
         hlayout2 = QHBoxLayout()
         self.exclude_pattern = PatternComboBox(self, exclude,
-                                               _("Excluded filenames pattern"))
+                                               _("Exclude pattern"))
         if exclude_idx is not None and exclude_idx >= 0 \
            and exclude_idx < self.exclude_pattern.count():
             self.exclude_pattern.setCurrentIndex(exclude_idx)
