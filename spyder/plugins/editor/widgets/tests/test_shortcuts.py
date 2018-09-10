@@ -71,6 +71,8 @@ def test_default_keybinding_values():
     assert get_shortcut('editor', 'transform to lowercase') == 'Ctrl+U'
     assert get_shortcut('editor', 'transform to uppercase') == 'Ctrl+Shift+U'
     assert get_shortcut('editor', 'go to line') == 'Ctrl+L'
+    assert get_shortcut('editor', 'next word') == 'Ctrl+Right'
+    assert get_shortcut('editor', 'previous word') == 'Ctrl+Left'
 
 
 def test_start_and_end_of_document_shortcuts(editor_bot):
@@ -222,6 +224,32 @@ def test_transform_to_uppercase_shortcut(editor_bot):
     qtbot.keyClick(editor, Qt.Key_U,
                    modifier=Qt.ControlModifier | Qt.ShiftModifier)
     assert editor.toPlainText() == 'LINE1\nLINE2\nLINE3\nLINE4\n'
+
+
+def test_next_and_previous_word_shortcuts(editor_bot):
+    """
+    Test that the next word and previous word shortcuts are working as
+    expected with the default Spyder keybindings.
+    """
+    editorstack, qtbot = editor_bot
+    editor = editorstack.get_current_editor()
+
+    # Go to the next word 3 times.
+    assert editor.get_cursor_line_column() == (0, 0)
+    qtbot.keyClick(editor, Qt.Key_Right, modifier=Qt.ControlModifier)
+    assert editor.get_cursor_line_column() == (0, 5)
+    qtbot.keyClick(editor, Qt.Key_Right, modifier=Qt.ControlModifier)
+    assert editor.get_cursor_line_column() == (1, 0)
+    qtbot.keyClick(editor, Qt.Key_Right, modifier=Qt.ControlModifier)
+    assert editor.get_cursor_line_column() == (1, 5)
+
+    # Go to the previous word 3 times.
+    qtbot.keyClick(editor, Qt.Key_Left, modifier=Qt.ControlModifier)
+    assert editor.get_cursor_line_column() == (1, 0)
+    qtbot.keyClick(editor, Qt.Key_Left, modifier=Qt.ControlModifier)
+    assert editor.get_cursor_line_column() == (0, 5)
+    qtbot.keyClick(editor, Qt.Key_Left, modifier=Qt.ControlModifier)
+    assert editor.get_cursor_line_column() == (0, 0)
 
 
 @pytest.mark.skipif(sys.platform == 'darwin', reason="Not valid in macOS")
