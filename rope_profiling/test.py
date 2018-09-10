@@ -1,15 +1,21 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Wed Feb 23 15:44:03 2011
+# -----------------------------------------------------------------------------
+# Copyright (c) 2009- Spyder Project Contributors
+#
+# Distributed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
 
-@author: Pierre Raybaut
-"""
 
-import time, os.path as osp
+# Standard library imports
+import os.path as osp
+import time
 
+# Third party imports
 import rope.base.project
 import rope.base.libutils
 import rope.contrib.codeassist
+
 
 ROPE_PREFS = {
                'ignore_syntax_errors': True,
@@ -99,7 +105,8 @@ def other_features():
     print '*** DOCUMENTATION ***' + '*'*60
     print doc_text
     print '*********************' + '*'*60
-    
+
+
 if __name__ == '__main__':
-#    ropetest()
+    # ropetest()
     other_features()

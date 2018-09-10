@@ -1,21 +1,32 @@
 # -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2013-2016 Colin Duquesnoy and others (see pyqode/AUTHORS.rst)
+# Copyright (c) 2016- Spyder Project Contributors (see AUTHORS.txt)
 #
-# Copyright © Spyder Project Contributors
-# Copyright © <2013-2016> <Colin Duquesnoy and others, see pyqode/AUTHORS.rst>
-# Licensed under the terms of the MIT License
-# (see spyder/__init__.py for details)
+# Distributed under the terms of the MIT License
+# (see NOTICE.txt in the Spyder root directory for details)
+# -----------------------------------------------------------------------------
+
 """
 This module contains the marker panel.
-Adapted from https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/panels/folding.py
+
+Adapted from pyqode/core/panels/folding.py of the
+`PyQode project <https://github.com/pyQode/pyQode>`_.
+Original file:
+<https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/panels/folding.py>
 """
+
+# Standard library imports
 import sys
 
+# Third party imports
 from qtpy.QtCore import Signal, QSize, QPointF, QRectF, QRect, Qt
 from qtpy.QtWidgets import QApplication, QStyleOptionViewItem, QStyle
 from qtpy.QtGui import (QTextBlock, QColor, QFontMetricsF, QPainter,
                         QLinearGradient, QPen, QPalette, QResizeEvent,
                         QCursor)
 
+# Local imports
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.utils.folding import FoldScope
 from spyder.api.panel import Panel

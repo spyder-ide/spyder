@@ -1,16 +1,24 @@
 # -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2009- Spyder Project Contributors
 #
-# Copyright © Spyder Project Contributors
-# Licensed under the terms of the MIT License
+# Distributed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
+
 
 """
-Tests for variableexplorer.py
+Tests for Spyder's Variable Explorer.
 """
 
+
+# Standard library imports
 import pytest
 
+# Third party imports
 from spyder.utils.qthelpers import qapplication
 from spyder.plugins.variableexplorer.plugin import VariableExplorer
+
 
 def test_get_settings(monkeypatch):
     def mock_get_option(self, option):
@@ -32,4 +40,3 @@ def test_get_settings(monkeypatch):
 
 if __name__ == "__main__":
     pytest.main()
-    

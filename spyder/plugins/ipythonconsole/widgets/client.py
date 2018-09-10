@@ -1,14 +1,18 @@
-# -*- coding:utf-8 -*-
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2009- Spyder Project Contributors
 #
-# Copyright © Spyder Project Contributors
-# Licensed under the terms of the MIT License
+# Distributed under the terms of the MIT License
 # (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
+
 
 """
-Client widget for the IPython Console
+Client widget for the IPython Console.
 
-This is the widget used on all its tabs
+This is the widget used on all its tabs.
 """
+
 
 # Standard library imports
 from __future__ import absolute_import  # Fix for Issue 1356

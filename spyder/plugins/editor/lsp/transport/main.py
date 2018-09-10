@@ -1,10 +1,18 @@
 # -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2009- Spyder Project Contributors
+#
+# Distributed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
+
 
 """
 Spyder MS Language Server v3.0 transport proxy implementation.
 
 Main point-of-entry to start an LSP ZMQ/TCP transport proxy.
 """
+
 
 import os
 import psutil

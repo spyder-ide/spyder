@@ -199,7 +199,7 @@ https://github.com/mathjax/MathJax/blob/master/LICENSE
 
 Files covered:
 
-spyder/utils/help/js/mathjax/*
+spyder/plugins/help/utils/js/mathjax/*
 
 
 -------------------------------------------------------------------------------
@@ -256,7 +256,7 @@ https://github.com/jquery/jquery/blob/master/LICENSE.txt
 
 Files covered:
 
-spyder/utils/help/js/jquery.js
+spyder/plugins/help/utils/js/jquery.js
 
 
 -------------------------------------------------------------------------------
@@ -311,7 +311,73 @@ https://github.com/jquery/sizzle/blob/master/LICENSE.txt
 
 Files covered:
 
-spyder/utils/help/js/jquery.js
+spyder/plugins/help/utils/js/jquery.js
+
+
+-------------------------------------------------------------------------------
+
+
+
+Modules from PyQode 2.11.0
+--------------------------
+
+
+Copyright (c) 2013-2016 Colin Duquesnoy and others (see pyqode/AUTHORS.rst)
+Copyright (c) 2016- Spyder Project Contributors (see AUTHORS.txt)
+
+
+Author: Colin Duquesnoy and others | colin.duquesnoy@gmail.com
+https://github.com/pyQode/pyqode.core/graphs/contributors
+Site: https://github.com/pyQode/pyQode
+Source: https://github.com/pyQode/pyqode.core
+License: MIT (Expat) License | https://opensource.org/licenses/MIT
+
+Modifications made to adapt each file to Spyder.
+
+
+Most of the pyqode packages are licensed under the MIT license.
+
+Main Authors:
+
+Colin Duquesnoy (@ColinDuquesnoy) <colin.duquesnoy@gmail.com>
+
+Contributors:
+
+Andres Granada (@ogranada) 
+Fynn Mazurkiewicz <FynnMazurkiewicz@'Googles-Email-Service'.com>
+
+
+See below for the full text of the MIT License.
+
+The current PyQode license can be viewed at:
+https://github.com/pyQode/pyqode.core/blob/master/LICENSE
+
+The current versions of the original files can be viewed at:
+https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/api/folding.py
+https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/api/decoration.py
+https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/api/manager.py
+https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/api/mode.py
+https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/api/panel.py
+https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/api/utils.py
+https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/managers/decorations.py
+https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/managers/modes.py
+https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/managers/panels.py
+https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/panels/folding.py
+
+
+Files covered:
+
+spyder/api/editorextension.py
+spyder/api/manager.py
+spyder/api/panel.py
+spyder/plugins/editor/api/decoration.py
+spyder/plugins/editor/api/foldings.py
+spyder/plugins/editor/extensions/manager.py
+spyder/plugins/editor/panels/codefolding.py
+spyder/plugins/editor/panels/manager.py
+spyder/plugins/editor/utils/decorations.py
+spyder/plugins/editor/utils/editor.py
+spyder/plugins/editor/utils/folding.py
 
 
 -------------------------------------------------------------------------------
@@ -417,9 +483,9 @@ https://github.com/sagemath/sagenb/blob/master/sagenb/misc/sphinxify.py
 
 Files covered:
 
-spyder/utils/help/conf.py
-spyder/utils/help/sphinxify.py
-spyder/utils/help/templates/layout.html
+spyder/plugins/help/utils/conf.py
+spyder/plugins/help/utils/sphinxify.py
+spyder/plugins/help/utils/templates/layout.html
 
 
 -------------------------------------------------------------------------------
@@ -476,10 +542,10 @@ IPython frontend components were developed into Jupyter QtConsole; see below.
 In addition to the list below, modified IPython code snippits included in:
 
 create_app.py
-spyder/plugins/ipythonconsole.py
+spyder/plugins/ipythonconsole/plugin.py
 setup.py
 spyder/utils/programs.py
-spyder/widgets/sourcecode/codeeditor.py
+spyder/plugins/editor/extensions/closequotes.py
 
 See below for the full text of the Modified BSD (3-clause) License.
 
@@ -542,8 +608,8 @@ Jupyter QtConsole was originally developed as part of IPython; see above.
 
 In addition to the list below, modified QtConsole code snippits included in:
 
-spyder/widgets/client.py
-spyder/widgets/sourcecode/codeeditor.py
+spyder/plugins/ipythonconsole/widgets/client.py
+spyder/plugins/ipythonconsole/widgets/shell.py
 
 See below for the full text of the Modified BSD (3-clause) License.
 
@@ -553,7 +619,7 @@ https://github.com/jupyter/qtconsole/blob/master/LICENSE
 
 Files covered:
 
-spyder/widgets/sourcecode/kill_ring.py
+spyder/plugins/editor/utils/kill_ring.py
 
 
 -------------------------------------------------------------------------------
@@ -731,7 +797,7 @@ https://bitbucket.org/ecollins/cloud_sptheme/src/default/cloud_sptheme/themes/cl
 
 Files covered:
 
-spyder/utils/help/js/collapse_sections.js
+spyder/plugins/help/utils/js/collapse_sections.js
 
 
 -------------------------------------------------------------------------------
@@ -779,7 +845,7 @@ https://docs.python.org/_static/copybutton.js
 
 Files covered:
 
-spyder/utils/help/js/copy_button.js
+spyder/plugins/help/utils/js/copy_button.js
 
 
 -------------------------------------------------------------------------------
@@ -894,7 +960,50 @@ https://github.com/draperjames/qtpandas/blob/master/qtpandas/models/DataFrameMod
 
 Files covered:
 
-spyder/widgets/variableexplorer/dataframeeditor.py
+spyder/plugins/variableexplorer/widgets/dataframeeditor.py
+
+
+-------------------------------------------------------------------------------
+
+
+
+Classes from Gtabview 0.8
+-------------------------
+
+
+Copyright (c) 2014-2015 Scott Hansen <firecat4153@gmail.com>
+Copyright (c) 2014-2016 Yuri D'Elia "wave++" <wavexx@thregr.org>
+Copyright (c) 2016- Spyder Project Contributors (see AUTHORS.txt)
+
+
+Author: <author-name> | <author-email> | <author-website>
+Site/Source: https://github.com/TabViewer/gtabview
+License: MIT (Expat) License | https://opensource.org/licenses/MIT
+
+Modifications made to each class to adapt them to Spyder's needs.
+
+
+gtabview is distributed under the MIT license.
+
+
+DataFrameHeaderModel and DataFrameLevelModel are based on the classes
+Header4ExtModel and Level4ExtModel from the gtabview project.
+DataFrameModel is based on the classes ExtDataModel and ExtFrameModel, and
+DataFrameEditor is based on gtExtTableView from the same project.
+
+See below for the full text of the MIT (Expat) license.
+
+The current gtabview license can be viewed at:
+https://github.com/TabViewer/gtabview/blob/master/LICENSE.txt
+
+The current version of the original files can be viewed at:
+https://github.com/TabViewer/gtabview/blob/master/gtabview/viewer.py
+https://github.com/TabViewer/gtabview/blob/master/gtabview/models.py
+
+
+Files covered:
+
+spyder/plugins/variableexplorer/widgets/dataframeeditor.py
 
 
 ===============================================================================
@@ -1505,6 +1614,7 @@ Full License Text
 
 MIT (Expat) License
 -------------------
+
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

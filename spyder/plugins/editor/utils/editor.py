@@ -1,23 +1,31 @@
 # -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2013-2016 Colin Duquesnoy and others (see pyqode/AUTHORS.rst)
+# Copyright (c) 2016- Spyder Project Contributors (see AUTHORS.txt)
 #
-# Copyright © Spyder Project Contributors
-# Copyright © <2013-2016> <Colin Duquesnoy and others, see pyqode/AUTHORS.rst>
-# Licensed under the terms of the MIT License
-# (see spyder/__init__.py for details)
+# Distributed under the terms of the MIT License
+# (see NOTICE.txt in the Spyder root directory for details)
+# -----------------------------------------------------------------------------
 
-# -*- coding: utf-8 -*-
 """
-This module contains utility functions/classes.
-Adapted from https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/api/utils.py
+This module contains utility functions/classes for Spyder's Editor.
+
+Adapted from pyqode/core/api/utils.py of the
+`PyQode project <https://github.com/pyQode/pyQode>`_.
+Original file:
+<https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/api/utils.py>
 """
+
+# Standard library imports
 import functools
 import weakref
 
+# Third party imports
 from qtpy.QtCore import QTimer, Qt
 from qtpy.QtGui import QColor, QTextCursor, QTextBlock, QTextDocument, QCursor
-
 from qtpy.QtWidgets import QApplication
 
+# Local imports
 from spyder.config.base import debug_print
 from spyder.py3compat import to_text_string
 
