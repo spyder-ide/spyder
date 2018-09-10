@@ -96,7 +96,7 @@ class FindReplace(QWidget):
         self.next_button.clicked.connect(self.update_search_combo)
         self.previous_button.clicked.connect(self.update_search_combo)
 
-        self.re_button = create_toolbutton(self, icon=ima.icon('advanced'),
+        self.re_button = create_toolbutton(self, icon=get_icon('regexp.svg'),
                                            tip=_("Regular expression"))
         self.re_button.setCheckable(True)
         self.re_button.toggled.connect(lambda state: self.find())

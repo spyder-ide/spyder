@@ -425,7 +425,7 @@ class FindOptions(QWidget):
         self.search_text = PatternComboBox(self, search_text,
                                            _("Search pattern"))
         self.edit_regexp = create_toolbutton(self,
-                                             icon=ima.icon('advanced'),
+                                             icon=get_icon('regexp.svg'),
                                              tip=_('Regular expression'))
         self.case_button = create_toolbutton(self,
                                              icon=get_icon("upper_lower.png"),
@@ -465,7 +465,7 @@ class FindOptions(QWidget):
            and exclude_idx < self.exclude_pattern.count():
             self.exclude_pattern.setCurrentIndex(exclude_idx)
         self.exclude_regexp = create_toolbutton(self,
-                                                icon=ima.icon('advanced'),
+                                                icon=get_icon('regexp.svg'),
                                                 tip=_('Regular expression'))
         self.exclude_regexp.setCheckable(True)
         self.exclude_regexp.setChecked(exclude_regexp)
