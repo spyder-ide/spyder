@@ -34,7 +34,8 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import sourcecode
 from spyder.utils.encoding import get_coding
 from spyder.utils.environ import RemoteEnvDialog
-from spyder.utils.programs import TEMPDIR
+from spyder.utils.misc import get_stderr_file_handle
+from spyder.utils.programs import get_temp_dir
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, DialogManager,
                                     MENU_SEPARATOR)
@@ -188,9 +189,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                 stderr_file = osp.join(self.stderr_dir, stderr_file)
             else:
                 try:
-                    if not osp.isdir(TEMPDIR):
-                        os.makedirs(TEMPDIR)
-                    stderr_file = osp.join(TEMPDIR, stderr_file)
+                    stderr_file = osp.join(get_temp_dir(), stderr_file)
                 except (IOError, OSError):
                     stderr_file = None
         return stderr_file
@@ -491,7 +490,11 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                     self.infowidget.hide()
                     sw.show()
                 try:
-                    sw.kernel_manager.restart_kernel()
+                    stderr = get_stderr_file_handle(self.stderr_file)
+                    try:
+                        sw.kernel_manager.restart_kernel(stderr=stderr)
+                    finally:
+                        stderr.close()
                 except RuntimeError as e:
                     sw._append_plain_text(
                         _('Error restarting kernel: %s\n') % e,
@@ -526,6 +529,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                 stderr = None
         except (OSError, IOError):
             stderr = None
+        finally:
+            if stderr is not None and not stderr.closed:
+                stderr.close()
 
         if stderr:
             self.show_kernel_error('<tt>%s</tt>' % stderr)
@@ -643,10 +649,14 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def _read_stderr(self):
         """Read the stderr file of the kernel."""
-        stderr_text = open(self.stderr_file, 'rb').read()
-        encoding = get_coding(stderr_text)
-        stderr = to_text_string(stderr_text, encoding)
-        return stderr
+        f = open(self.stderr_file, 'rb')
+        try:
+            stderr_text = f.read()
+            encoding = get_coding(stderr_text)
+            stderr = to_text_string(stderr_text, encoding)
+            return stderr
+        finally:
+            f.close()
 
     def _show_mpl_backend_errors(self):
         """
