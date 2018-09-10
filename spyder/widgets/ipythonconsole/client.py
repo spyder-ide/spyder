@@ -34,6 +34,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import sourcecode
 from spyder.utils.encoding import get_coding
 from spyder.utils.environ import RemoteEnvDialog
+from spyder.utils.misc import get_stderr_file_handle
 from spyder.utils.programs import get_temp_dir
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, DialogManager,
@@ -463,18 +464,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         except RuntimeError:
             pass
 
-    def get_stderr_file_handle(self):
-        if self.stderr_file is not None:
-            # Needed to prevent any error that could appear.
-            # See issue 6267
-            try:
-                stderr = codecs.open(self.stderr_file, 'w', encoding='utf-8')
-            except Exception:
-                stderr = None
-        else:
-            stderr = None
-        return stderr
-
     @Slot()
     def restart_kernel(self):
         """
@@ -501,7 +490,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                     self.infowidget.hide()
                     sw.show()
                 try:
-                    stderr = self.get_stderr_file_handle()
+                    stderr = get_stderr_file_handle(self.stderr_file)
                     try:
                         sw.kernel_manager.restart_kernel(stderr=stderr)
                     finally:

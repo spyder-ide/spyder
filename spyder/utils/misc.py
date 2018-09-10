@@ -6,6 +6,7 @@
 
 """Miscellaneous utilities"""
 
+import codecs
 import functools
 import os
 import os.path as osp
@@ -278,3 +279,16 @@ def getcwd_or_home():
         debug_print("WARNING: Current working directory was deleted, "
                     "falling back to home dirertory")
         return get_home_dir()
+
+
+def get_stderr_file_handle(stderr_file):
+    if stderr_file is not None:
+        # Needed to prevent any error that could appear.
+        # See issue 6267
+        try:
+            stderr = codecs.open(stderr_file, 'w', encoding='utf-8')
+        except Exception:
+            stderr = None
+    else:
+        stderr = None
+    return stderr
