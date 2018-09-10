@@ -435,7 +435,7 @@ class ProfilerDataTree(QTreeWidget):
                             _('File:line')]
         self.icon_list = {'module': ima.icon('python'),
                          'function': ima.icon('function'),
-                         'builtin': ima.icon('python_t'),
+                         'builtin': ima.icon('python'),
                          'constructor': ima.icon('class')}
         self.profdata = None   # To be filled by self.load_data()
         self.stats = None      # To be filled by self.load_data()

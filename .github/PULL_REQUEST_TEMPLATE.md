@@ -15,6 +15,22 @@
 * [ ] Included a screenshot, if this PR makes any visible changes to the UI
 
 
+### Affirmation
+
+By submitting this Pull Request, I affirm that:
+* I release the content of this PR under Spyder's MIT (Expat) license.
+* I hold the copyright to all the content in this PR, have not copied any of it
+  directly or indirectly from any source other than the public domain,
+  and no other party owns the rights to this work.
+
+<!--- TYPE YOUR GITHUB USERNAME OR FULL NAME AFTER THE BELOW STATEMENT ---!>
+I affirm all of the above:
+
+<!--- Note that you (not Spyder) retain copyright ownership of your work, --->
+<!--- and may license it to other parties under the terms of your choice. --->
+<!--- Contact us if you would like to include content from other sources. --->
+
+
 ## Description of Changes
 
 <!--- Describe what you've changed and why. --->

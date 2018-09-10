@@ -1,8 +1,14 @@
 # -*- coding: utf-8 -*-
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR ORGANIZATION
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# -----------------------------------------------------------------------------
+# Copyright (c) 2009- Spyder Project Contributors
 #
+# Distributed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
+#
+# Spyder's Breakpoints subpackage Spanish gettext translation file
+#
+
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.2\n"
