@@ -897,6 +897,49 @@ Files covered:
 spyder/plugins/variableexplorer/widgets/dataframeeditor.py
 
 
+-------------------------------------------------------------------------------
+
+
+
+Classes from Gtabview 0.8
+-------------------------
+
+
+Copyright (c) 2014-2015 Scott Hansen <firecat4153@gmail.com>
+Copyright (c) 2014-2016 Yuri D'Elia "wave++" <wavexx@thregr.org>
+Copyright (c) 2016- Spyder Project Contributors (see AUTHORS.txt)
+
+
+Author: <author-name> | <author-email> | <author-website>
+Site/Source: https://github.com/TabViewer/gtabview
+License: MIT (Expat) License | https://opensource.org/licenses/MIT
+
+Modifications made to each class to adapt them to Spyder's needs.
+
+
+gtabview is distributed under the MIT license.
+
+
+DataFrameHeaderModel and DataFrameLevelModel are based on the classes
+Header4ExtModel and Level4ExtModel from the gtabview project.
+DataFrameModel is based on the classes ExtDataModel and ExtFrameModel, and
+DataFrameEditor is based on gtExtTableView from the same project.
+
+See below for the full text of the MIT (Expat) license.
+
+The current gtabview license can be viewed at:
+https://github.com/TabViewer/gtabview/blob/master/LICENSE.txt
+
+The current version of the original files can be viewed at:
+https://github.com/TabViewer/gtabview/blob/master/gtabview/viewer.py
+https://github.com/TabViewer/gtabview/blob/master/gtabview/models.py
+
+
+Files covered:
+
+spyder/plugins/variableexplorer/widgets/dataframeeditor.py
+
+
 ===============================================================================
 
 
