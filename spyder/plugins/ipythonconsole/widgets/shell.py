@@ -11,6 +11,7 @@ Shell Widget for the IPython Console
 import ast
 import os
 import uuid
+from textwrap import dedent
 
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
@@ -238,6 +239,7 @@ the sympy module (e.g. plot)
         reset_str = _("Remove all variables")
         warn_str = _("All user-defined variables will be removed. "
                      "Are you sure you want to proceed?")
+        kernel_env = self.kernel_manager._kernel_spec.env
 
         if warning:
             box = MessageCheckBox(icon=QMessageBox.Warning, parent=self)
@@ -271,6 +273,19 @@ the sympy module (e.g. plot)
                                             "\n<hr>"),
                                           before_prompt=False)
                     self.silent_execute("%reset -f")
+                    if kernel_env.get('SPY_AUTOLOAD_PYLAB_O') == 'True':
+                        self.silent_execute("from pylab import *")
+                    if kernel_env.get('SPY_SYMPY_O') == 'True':
+                        sympy_init = """
+                            from __future__ import division
+                            from sympy import *
+                            x, y, z, t = symbols('x y z t')
+                            k, m, n = symbols('k m n', integer=True)
+                            f, g, h = symbols('f g h', cls=Function)
+                            init_printing()"""
+                        self.silent_execute(dedent(sympy_init))
+                    if kernel_env.get('SPY_RUN_CYTHON') == 'True':
+                        self.silent_execute("%reload_ext Cython")
                     self.refresh_namespacebrowser()
                 else:
                     self.execute("%reset -f")
