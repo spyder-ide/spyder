@@ -16,7 +16,6 @@ import os.path as osp
 import pytest
 
 # Local imports
-from spyder.config.main import EXCLUDE_PATTERNS
 from spyder.plugins.findinfiles.plugin import FindInFiles
 from spyder.plugins.findinfiles.widgets import SELECT_OTHER
 
@@ -32,27 +31,6 @@ def findinfiles_bot(qtbot):
     findinfiles_plugin = FindInFiles()
     qtbot.addWidget(findinfiles_plugin)
     return findinfiles_plugin, qtbot
-
-
-def check_regex(patterns):
-    """
-    Check that regular expression patterns provided by compiling them.
-    Return a list of booleans for each of the provided patterns.
-    """
-    checks = []
-    for pattern in patterns:
-        try:
-            re.compile(pattern)
-            is_valid = True
-        except re.error:
-            is_valid = False
-        checks.append(is_valid)
-    return checks
-
-
-def test_exclude_patterns_are_valid_regex():
-    checks = check_regex(EXCLUDE_PATTERNS)
-    assert all(checks)
 
 
 # ---- Tests for FindInFiles plugin

@@ -1603,6 +1603,40 @@ Files covered:
 spyder/images/winpython.svg
 
 
+-------------------------------------------------------------------------------
+
+
+
+OOjs UI MediaWiki lib
+---------------------
+
+
+Copyright (c) 2011-2018 OOUI Team and other contributors.
+
+
+Authors: OOUI Team and other contributors
+https://phabricator.wikimedia.org/diffusion/GOJU/browse/master/AUTHORS.txt
+Source: https://phabricator.wikimedia.org/diffusion/GVED/browse/master/lib/oojs-ui/themes/mediawiki/images/icons/
+Download: https://commons.wikimedia.org/wiki/File:OOjs_UI_icon_regular-expression.svg
+License: MIT (Expat) License | https://opensource.org/licenses/MIT
+
+Modifications made: Removed parentheses, make it bigger.
+
+
+Licensed under the terms of the MIT License.
+
+
+See below for the full text of the MIT (Expat) License.
+
+The current OOjs UI MediaWiki lib repo license can be viewed at:
+https://phabricator.wikimedia.org/diffusion/GOJU/browse/master/LICENSE-MIT
+
+
+Files covered:
+
+spyder/images/regexp.svg
+
+
 ===============================================================================
 
 

@@ -28,7 +28,7 @@ from spyder.utils import codeanalysis
 # Main constants
 # =============================================================================
 # Find in files exclude patterns
-EXCLUDE_PATTERNS = [r'\.pyc$|\.pyo$|\.git']
+EXCLUDE_PATTERNS = ['*.csv, *.dat, *.log, *.tmp, *.bak, *.orig']
 
 # Extensions that should be visible in Spyder's file/project explorers
 SHOW_EXT = ['.py', '.ipynb', '.txt', '.dat', '.pdf', '.png', '.svg']
@@ -292,12 +292,12 @@ DEFAULTS = [
               'enable': True,
               'supported_encodings': ["utf-8", "iso-8859-1", "cp1252"],
               'exclude': EXCLUDE_PATTERNS,
-              'exclude_regexp': True,
-              'search_text_regexp': True,
+              'exclude_regexp': False,
+              'search_text_regexp': False,
               'search_text': [''],
               'search_text_samples': [codeanalysis.TASKS_PATTERN],
-              'more_options': False,
-              'case_sensitive': True
+              'more_options': True,
+              'case_sensitive': False
               }),
             ('breakpoints',
              {
