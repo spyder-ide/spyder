@@ -742,7 +742,7 @@ def test_restart_kernel(ipyconsole, qtbot):
 
     # Restart kernel and wait until it's up again
     shell._prompt_html = None
-    client.restart_kernel()
+    ipyconsole.restart_kernel()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     assert 'Restarting kernel...' in shell._control.toPlainText()
