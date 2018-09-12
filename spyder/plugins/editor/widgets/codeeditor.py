@@ -2827,6 +2827,11 @@ class CodeEditor(TextEditBaseWidget):
             # The event was handled by one of the editor extension.
             return
 
+        if key in [Qt.Key_Control, Qt.Key_Shift, Qt.Key_Alt,
+                   Qt.Key_Meta, Qt.KeypadModifier]:
+            # The user clicked just and only a modifier key.
+            return
+
         # ---- Handle local shortcuts
         # See Issue #7743 and PR #7768.
         event_modifiers = event.modifiers() & ~Qt.KeypadModifier
