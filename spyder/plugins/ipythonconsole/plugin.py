@@ -1064,9 +1064,9 @@ class IPythonConsole(SpyderPluginWidget):
                         sw.sig_prompt_ready.disconnect()
                     except TypeError:
                         pass
-                    sw.reset_namespace(warning=False, silent=True)
+                    sw.reset_namespace(warning=False)
                 elif current_client and clear_variables:
-                    sw.reset_namespace(warning=False, silent=True)
+                    sw.reset_namespace(warning=False)
                 # Needed to handle an error when kernel_client is none
                 # See issue 6308
                 try:
