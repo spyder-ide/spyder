@@ -25,6 +25,7 @@ from spyder.config.base import _
 from spyder.config.gui import config_shortcut
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
+from spyder.utils.misc import regexp_error_msg
 from spyder.utils.qthelpers import create_toolbutton, get_icon
 from spyder.widgets.comboboxes import PatternComboBox
 
@@ -95,7 +96,7 @@ class FindReplace(QWidget):
         self.next_button.clicked.connect(self.update_search_combo)
         self.previous_button.clicked.connect(self.update_search_combo)
 
-        self.re_button = create_toolbutton(self, icon=ima.icon('advanced'),
+        self.re_button = create_toolbutton(self, icon=get_icon('regexp.svg'),
                                            tip=_("Regular expression"))
         self.re_button.setCheckable(True)
         self.re_button.toggled.connect(lambda state: self.find())
@@ -387,16 +388,6 @@ class FindReplace(QWidget):
         # When several lines are selected in the editor and replace box is activated, 
         # dynamic search is deactivated to prevent changing the selection. Otherwise
         # we show matching items.
-        def regexp_error_msg(pattern):
-            """Returns None if the pattern is a valid regular expression or
-            a string describing why the pattern is invalid.
-            """
-            try:
-                re.compile(pattern)
-            except re.error as e:
-                return str(e)
-            return None
-
         if multiline_replace_check and self.replace_widgets[0].isVisible() and \
            len(to_text_string(self.editor.get_selected_text()).splitlines())>1:
             return None

@@ -33,14 +33,15 @@ from qtpy.QtWidgets import (QApplication, QComboBox, QHBoxLayout, QLabel,
 
 # Local imports
 from spyder.config.base import _
+from spyder.config.main import EXCLUDE_PATTERNS
 from spyder.py3compat import to_text_string, PY2
 from spyder.utils import icon_manager as ima
 from spyder.utils.encoding import is_text_file, to_unicode_from_fs
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.comboboxes import PatternComboBox
 from spyder.widgets.onecolumntree import OneColumnTree
+from spyder.utils.misc import regexp_error_msg
 from spyder.utils.qthelpers import create_toolbutton, get_icon
-
 from spyder.config.gui import get_font
 from spyder.widgets.waitingspinner import QWaitingSpinner
 
@@ -139,8 +140,10 @@ class SearchThread(QThread):
                         if self.stopped:
                             return False
                     dirname = os.path.join(path, d)
-                    if self.exclude \
-                       and re.search(self.exclude, dirname + os.sep):
+                    if (self.exclude and
+                            re.search(self.exclude, dirname + os.sep)):
+                        dirs.remove(d)
+                    elif d == '.git' or d == '.hg':
                         dirs.remove(d)
                 for f in files:
                     with QMutexLocker(self.mutex):
@@ -397,7 +400,9 @@ class SearchInComboBox(QComboBox):
 
 class FindOptions(QWidget):
     """Find widget with options"""
-    REGEX_INVALID = "background-color:rgb(255, 175, 90);"
+    REGEX_INVALID = "background-color:rgb(255, 80, 80);"
+    REGEX_ERROR = _("Regular expression error")
+
     find = Signal()
     stop = Signal()
 
@@ -421,7 +426,7 @@ class FindOptions(QWidget):
         self.search_text = PatternComboBox(self, search_text,
                                            _("Search pattern"))
         self.edit_regexp = create_toolbutton(self,
-                                             icon=ima.icon('advanced'),
+                                             icon=get_icon('regexp.svg'),
                                              tip=_('Regular expression'))
         self.case_button = create_toolbutton(self,
                                              icon=get_icon("upper_lower.png"),
@@ -443,7 +448,7 @@ class FindOptions(QWidget):
                                            text_beside_icon=True)
         self.ok_button.clicked.connect(self.update_combos)
         self.stop_button = create_toolbutton(self, text=_("Stop"),
-                                             icon=ima.icon('editclear'),
+                                             icon=ima.icon('stop'),
                                              triggered=lambda:
                                              self.stop.emit(),
                                              tip=_("Stop search"),
@@ -456,12 +461,12 @@ class FindOptions(QWidget):
         # Layout 2
         hlayout2 = QHBoxLayout()
         self.exclude_pattern = PatternComboBox(self, exclude,
-                                               _("Excluded filenames pattern"))
+                                               _("Exclude pattern"))
         if exclude_idx is not None and exclude_idx >= 0 \
            and exclude_idx < self.exclude_pattern.count():
             self.exclude_pattern.setCurrentIndex(exclude_idx)
         self.exclude_regexp = create_toolbutton(self,
-                                                icon=ima.icon('advanced'),
+                                                icon=get_icon('regexp.svg'),
                                                 tip=_('Regular expression'))
         self.exclude_regexp.setCheckable(True)
         self.exclude_regexp.setChecked(exclude_regexp)
@@ -541,8 +546,11 @@ class FindOptions(QWidget):
                     exclude_re, more_options,
                     case_sensitive, path_history)
 
+        # Clear fields
         self.search_text.lineEdit().setStyleSheet("")
         self.exclude_pattern.lineEdit().setStyleSheet("")
+        self.search_text.setToolTip("")
+        self.exclude_pattern.setToolTip("")
 
         utext = to_text_string(self.search_text.currentText())
         if not utext:
@@ -572,21 +580,28 @@ class FindOptions(QWidget):
                      if item.strip() != '']
             exclude = '|'.join(items)
 
-        # Validate regular expressions:
-        try:
-            if exclude:
-                exclude = re.compile(exclude)
-        except Exception:
-            exclude_edit = self.exclude_pattern.lineEdit()
-            exclude_edit.setStyleSheet(self.REGEX_INVALID)
-            return None
-
-        if text_re:
-            try:
-                texts = [(re.compile(x[0]), x[1]) for x in texts]
-            except Exception:
-                self.search_text.lineEdit().setStyleSheet(self.REGEX_INVALID)
+        # Validate exclude regular expression
+        if exclude:
+            error_msg = regexp_error_msg(exclude)
+            if error_msg:
+                exclude_edit = self.exclude_pattern.lineEdit()
+                exclude_edit.setStyleSheet(self.REGEX_INVALID)
+                tooltip = self.REGEX_ERROR + u': ' + to_text_string(error_msg)
+                self.exclude_pattern.setToolTip(tooltip)
                 return None
+            else:
+                exclude = re.compile(exclude)
+
+        # Validate text regular expression
+        if text_re:
+            error_msg = regexp_error_msg(texts[0][0])
+            if error_msg:
+                self.search_text.lineEdit().setStyleSheet(self.REGEX_INVALID)
+                tooltip = self.REGEX_ERROR + u': ' + to_text_string(error_msg)
+                self.search_text.setToolTip(tooltip)
+                return None
+            else:
+                texts = [(re.compile(x[0]), x[1]) for x in texts]
 
         return (path, file_search, exclude, texts, text_re, case_sensitive)
 
@@ -781,25 +796,27 @@ class ResultsBrowser(OneColumnTree):
         max_num_char_fragment = 40
 
         html_escape_table = {
-            "&": "&amp;",
-            '"': "&quot;",
-            "'": "&apos;",
-            ">": "&gt;",
-            "<": "&lt;",
+            u"&": u"&amp;",
+            u'"': u"&quot;",
+            u"'": u"&apos;",
+            u">": u"&gt;",
+            u"<": u"&lt;",
         }
 
         def html_escape(text):
             """Produce entities within text."""
-            return "".join(html_escape_table.get(c, c) for c in text)
+            return u"".join(html_escape_table.get(c, c) for c in text)
 
         if PY2:
             line = to_text_string(line, encoding='utf8')
+        else:
+            line = to_text_string(line)
         left, match, right = line[:start], line[start:end], line[end:]
 
         if len(line) > max_line_length:
             offset = (len(line) - len(match)) // 2
 
-            left = left.split(' ')
+            left = left.split(u' ')
             num_left_words = len(left)
 
             if num_left_words == 1:
@@ -808,7 +825,7 @@ class ResultsBrowser(OneColumnTree):
                     left = ellipsis + left[-offset:]
                 left = [left]
 
-            right = right.split(' ')
+            right = right.split(u' ')
             num_right_words = len(right)
 
             if num_right_words == 1:
@@ -826,8 +843,8 @@ class ResultsBrowser(OneColumnTree):
             if len(right) < num_right_words:
                 right = right + [ellipsis]
 
-            left = ' '.join(left)
-            right = ' '.join(right)
+            left = u' '.join(left)
+            right = u' '.join(right)
 
             if len(left) > max_num_char_fragment:
                 left = ellipsis + left[-30:]
@@ -835,7 +852,7 @@ class ResultsBrowser(OneColumnTree):
             if len(right) > max_num_char_fragment:
                 right = right[:30] + ellipsis
 
-        line_match_format = to_text_string('{0}<b>{1}</b>{2}')
+        line_match_format = u'{0}<b>{1}</b>{2}'
         left = html_escape(left)
         right = html_escape(right)
         match = html_escape(match)
@@ -918,13 +935,15 @@ class FindInFilesWidget(QWidget):
     sig_finished = Signal()
 
     def __init__(self, parent,
-                 search_text=r"# ?TODO|# ?FIXME|# ?XXX",
-                 search_text_regexp=True,
-                 exclude=r"\.pyc$|\.orig$|\.hg|\.svn", exclude_idx=None,
-                 exclude_regexp=True,
+                 search_text="",
+                 search_text_regexp=False,
+                 exclude=EXCLUDE_PATTERNS[0],
+                 exclude_idx=None,
+                 exclude_regexp=False,
                  supported_encodings=("utf-8", "iso-8859-1", "cp1252"),
-                 more_options=False,
-                 case_sensitive=True, external_path_history=[]):
+                 more_options=True,
+                 case_sensitive=False,
+                 external_path_history=[]):
         QWidget.__init__(self, parent)
 
         self.setWindowTitle(_('Find in files'))
