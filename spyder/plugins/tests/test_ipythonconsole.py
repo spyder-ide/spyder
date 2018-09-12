@@ -733,7 +733,6 @@ def test_restart_kernel(ipyconsole, qtbot):
     Test that kernel is restarted correctly
     """
     shell = ipyconsole.get_current_shellwidget()
-    client = ipyconsole.get_current_client()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     # Do an assignment to verify that it's not there after restarting
