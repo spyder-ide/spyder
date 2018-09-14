@@ -14,8 +14,9 @@ import time
 # Third party imports
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QGridLayout, QLabel,
-                            QMessageBox, QPushButton, QVBoxLayout)
+from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout, QLabel,
+                            QMessageBox, QPushButton, QTableWidget,
+                            QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import _, running_under_pytest
@@ -84,7 +85,7 @@ class RecoveryDialog(QDialog):
         self.files_to_open = []
         self.gather_data()
         self.add_label()
-        self.add_grid()
+        self.add_table()
         self.add_cancel_button()
         self.setWindowTitle(_('Recover from autosave'))
 
@@ -133,35 +134,62 @@ class RecoveryDialog(QDialog):
         label.setWordWrap(True)
         self.layout.addWidget(label)
 
-    def add_grid(self):
-        """Add grid with info about files to be recovered."""
-        grid = QGridLayout()
-        grid.setSpacing(self.layout.spacing() / 3)
-        label = QLabel('<b>{}</b>'.format(_('Original file')))
-        label.setAlignment(Qt.AlignHCenter)
-        grid.addWidget(label, 0, 0)
-        label = QLabel('<b>{}</b>'.format(_('Autosave file')))
-        label.setAlignment(Qt.AlignHCenter)
-        grid.addWidget(label, 0, 1)
+    def add_label_to_table(self, row, col, txt):
+        """Add a label to specified cell in table."""
+        label = QLabel(txt)
+        label.setMargin(5)
+        label.setAlignment(Qt.AlignCenter)
+        self.table.setCellWidget(row, col, label)
+
+    def add_button_to_table(self, row, col, label, slot):
+        """Add a button to specified cell in table."""
+        widget = QWidget()
+        layout = QHBoxLayout()
+        button = QPushButton(label)
+        button.clicked.connect(slot)
+        layout.addWidget(button)
+        widget.setLayout(layout)
+        self.table.setCellWidget(row, col, widget)
+
+    def add_table(self):
+        """Add table with info about files to be recovered."""
+        table = QTableWidget(len(self.data), 5, self)
+        self.table = table
+
+        labels = [_('Original file'), _('Autosave file'), '', '', '']
+        table.setHorizontalHeaderLabels(labels)
+        table.verticalHeader().hide()
+
+        table.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        table.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        table.setSelectionMode(QTableWidget.NoSelection)
+
         for idx, (original, autosave) in enumerate(self.data):
-            label = QLabel(file_data_to_str(original))
-            grid.addWidget(label, idx + 1, 0)
-            label = QLabel(file_data_to_str(autosave))
-            grid.addWidget(label, idx + 1, 1)
-            button = QPushButton(_('Restore'))
-            button.clicked.connect(
+            self.add_label_to_table(idx, 0, file_data_to_str(original))
+            self.add_label_to_table(idx, 1, file_data_to_str(autosave))
+
+            self.add_button_to_table(
+                    idx, 2, _('Restore'),
                     lambda checked, my_idx=idx: self.restore(my_idx))
-            grid.addWidget(button, idx + 1, 2)
-            button = QPushButton(_('Discard'))
-            button.clicked.connect(
+
+            self.add_button_to_table(
+                    idx, 3, _('Discard'),
                     lambda checked, my_idx=idx: self.discard(my_idx))
-            grid.addWidget(button, idx + 1, 3)
-            button = QPushButton(_('Open'))
-            button.clicked.connect(
+
+            self.add_button_to_table(
+                    idx, 4, _('Open'),
                     lambda checked, my_idx=idx: self.open_files(my_idx))
-            grid.addWidget(button, idx + 1, 4)
-        self.layout.addLayout(grid)
-        self.grid = grid
+
+        table.resizeRowsToContents()
+        table.resizeColumnsToContents()
+
+        # Need to add the "+ 2" because otherwise the table scrolls a tiny
+        # amount; no idea why
+        width = table.horizontalHeader().length() + 2
+        height = (table.verticalHeader().length()
+                  + table.horizontalHeader().height() + 2)
+        table.setFixedSize(width, height)
+        self.layout.addWidget(table)
 
     def add_cancel_button(self):
         """Add a cancel button at the bottom of the dialog window."""
@@ -216,8 +244,8 @@ class RecoveryDialog(QDialog):
         msgbox.exec_()
 
     def deactivate(self, idx):
-        for col in range(self.grid.columnCount()):
-            self.grid.itemAtPosition(idx + 1, col).widget().setEnabled(False)
+        for col in range(self.table.columnCount()):
+            self.table.cellWidget(idx, col).setEnabled(False)
         self.num_enabled -= 1
         if self.num_enabled == 0:
             self.accept()

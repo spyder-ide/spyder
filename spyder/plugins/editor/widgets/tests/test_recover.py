@@ -12,7 +12,7 @@ import pytest
 import shutil
 
 # Third party imports
-from qtpy.QtWidgets import QDialogButtonBox, QGridLayout, QPushButton
+from qtpy.QtWidgets import QDialogButtonBox, QPushButton, QTableWidget
 
 # Local imports
 from spyder.py3compat import PY3
@@ -39,29 +39,29 @@ def test_recoverydialog_has_cancel_button(qtbot, tmpdir):
         button.click()
 
 
-def test_recoverydialog_grid_labels(qtbot, recovery_env):
-    """Test that grid in RecoveryDialog has the correct labels ."""
+def test_recoverydialog_table_labels(qtbot, recovery_env):
+    """Test that table in RecoveryDialog has the correct labels ."""
     orig_dir, autosave_dir, autosave_mapping = recovery_env
     dialog = RecoveryDialog(autosave_dir, autosave_mapping)
-    grid = dialog.findChild(QGridLayout)
+    table = dialog.findChild(QTableWidget)
 
     def text(i, j):
-        return grid.itemAtPosition(i, j).widget().text()
+        return table.cellWidget(i, j).text()
 
     # ham.py: Both original and autosave files exist, mentioned in mapping
-    assert osp.join(orig_dir, 'ham.py') in text(1, 0)
-    assert osp.join(autosave_dir, 'ham.py') in text(1, 1)
+    assert osp.join(orig_dir, 'ham.py') in text(0, 0)
+    assert osp.join(autosave_dir, 'ham.py') in text(0, 1)
 
     # spam.py: Only autosave file exists, mentioned in mapping
-    assert osp.join(orig_dir, 'spam.py') in text(2, 0)
-    assert 'no longer exists' in text(2, 0)
-    assert osp.join(autosave_dir, 'spam.py') in text(2, 1)
+    assert osp.join(orig_dir, 'spam.py') in text(1, 0)
+    assert 'no longer exists' in text(1, 0)
+    assert osp.join(autosave_dir, 'spam.py') in text(1, 1)
 
     # eggs.py: Only original files exists, so cannot be recovered
 
     # cheese.py: Only autosave file exists, not mentioned in mapping
-    assert 'not recorded' in text(3, 0)
-    assert osp.join(autosave_dir, 'cheese.py') in text(3, 1)
+    assert 'not recorded' in text(2, 0)
+    assert osp.join(autosave_dir, 'cheese.py') in text(2, 1)
 
 
 def test_recoverydialog_exec_if_nonempty_when_empty(qtbot, tmpdir, mocker):
@@ -110,14 +110,14 @@ def test_recoverydialog_restore_button(qtbot, recovery_env):
     """
     orig_dir, autosave_dir, autosave_mapping = recovery_env
     dialog = RecoveryDialog(autosave_dir, autosave_mapping)
-    grid = dialog.findChild(QGridLayout)
-    button = grid.itemAtPosition(1, 2).widget()
+    table = dialog.findChild(QTableWidget)
+    button = table.cellWidget(0, 2).findChild(QPushButton)
     button.click()
     with open(osp.join(orig_dir, 'ham.py')) as f:
         assert f.read() == 'ham = "autosave"\n'
     assert not osp.isfile(osp.join(autosave_dir, 'ham.py'))
-    for col in range(grid.columnCount()):
-        assert not grid.itemAtPosition(1, col).widget().isEnabled()
+    for col in range(table.columnCount()):
+        assert not table.cellWidget(0, col).isEnabled()
 
 
 def test_recoverydialog_restore_when_original_does_not_exist(
@@ -128,14 +128,14 @@ def test_recoverydialog_restore_when_original_does_not_exist(
     """
     orig_dir, autosave_dir, autosave_mapping = recovery_env
     dialog = RecoveryDialog(autosave_dir, autosave_mapping)
-    grid = dialog.findChild(QGridLayout)
-    button = grid.itemAtPosition(2, 2).widget()
+    table = dialog.findChild(QTableWidget)
+    button = table.cellWidget(1, 2).findChild(QPushButton)
     button.click()
     with open(osp.join(orig_dir, 'spam.py')) as f:
         assert f.read() == 'spam = "autosave"\n'
     assert not osp.isfile(osp.join(autosave_dir, 'spam.py'))
-    for col in range(grid.columnCount()):
-        assert not grid.itemAtPosition(2, col).widget().isEnabled()
+    for col in range(table.columnCount()):
+        assert not table.cellWidget(1, col).isEnabled()
 
 
 def test_recoverydialog_restore_when_original_not_recorded(
@@ -149,14 +149,14 @@ def test_recoverydialog_restore_when_original_not_recorded(
     mocker.patch('spyder.plugins.editor.widgets.recover.getsavefilename',
                  return_value=(new_name, 'ignored'))
     dialog = RecoveryDialog(autosave_dir, autosave_mapping)
-    grid = dialog.findChild(QGridLayout)
-    button = grid.itemAtPosition(3, 2).widget()
+    table = dialog.findChild(QTableWidget)
+    button = table.cellWidget(2, 2).findChild(QPushButton)
     button.click()
     with open(new_name) as f:
         assert f.read() == 'cheese = "autosave"\n'
     assert not osp.isfile(osp.join(autosave_dir, 'cheese.py'))
-    for col in range(grid.columnCount()):
-        assert not grid.itemAtPosition(3, col).widget().isEnabled()
+    for col in range(table.columnCount()):
+        assert not table.cellWidget(2, col).isEnabled()
 
 
 def test_recoverydialog_restore_when_error(qtbot, recovery_env, mocker):
@@ -175,16 +175,16 @@ def test_recoverydialog_restore_when_error(qtbot, recovery_env, mocker):
     mock_QMessageBox = mocker.patch(
                 'spyder.plugins.editor.widgets.recover.QMessageBox')
     dialog = RecoveryDialog(autosave_dir, autosave_mapping)
-    grid = dialog.findChild(QGridLayout)
-    button = grid.itemAtPosition(1, 2).widget()
+    table = dialog.findChild(QTableWidget)
+    button = table.cellWidget(0, 2).findChild(QPushButton)
     button.click()
     with open(osp.join(orig_dir, 'ham.py')) as f:
         assert f.read() == 'ham = "original"\n'
     with open(osp.join(autosave_dir, 'ham.py')) as f:
         assert f.read() == 'ham = "autosave"\n'
     assert mock_QMessageBox.called
-    for col in range(grid.columnCount()):
-        assert grid.itemAtPosition(1, col).widget().isEnabled()
+    for col in range(table.columnCount()):
+        assert table.cellWidget(0, col).isEnabled()
 
 
 def test_recoverydialog_accepted_after_all_restored(
@@ -198,13 +198,13 @@ def test_recoverydialog_accepted_after_all_restored(
     mocker.patch('spyder.plugins.editor.widgets.recover.getsavefilename',
                  return_value=(new_name, 'ignored'))
     dialog = RecoveryDialog(autosave_dir, autosave_mapping)
-    grid = dialog.findChild(QGridLayout)
+    table = dialog.findChild(QTableWidget)
     with qtbot.assertNotEmitted(dialog.accepted):
-        for row in range(1, grid.rowCount() - 1):
-            grid.itemAtPosition(row, 2).widget().click()
+        for row in range(table.rowCount() - 1):
+            table.cellWidget(row, 2).findChild(QPushButton).click()
     with qtbot.waitSignal(dialog.accepted):
-        row = grid.rowCount() - 1
-        grid.itemAtPosition(row, 2).widget().click()
+        row = table.rowCount() - 1
+        table.cellWidget(row, 2).findChild(QPushButton).click()
 
 
 def test_recoverydialog_discard_button(qtbot, recovery_env):
@@ -215,14 +215,14 @@ def test_recoverydialog_discard_button(qtbot, recovery_env):
     """
     orig_dir, autosave_dir, autosave_mapping = recovery_env
     dialog = RecoveryDialog(autosave_dir, autosave_mapping)
-    grid = dialog.findChild(QGridLayout)
-    button = grid.itemAtPosition(1, 3).widget()
+    table = dialog.findChild(QTableWidget)
+    button = table.cellWidget(0, 3).findChild(QPushButton)
     button.click()
     assert not osp.isfile(osp.join(autosave_dir, 'ham.py'))
     with open(osp.join(orig_dir, 'ham.py')) as f:
         assert f.read() == 'ham = "original"\n'
-    for col in range(grid.columnCount()):
-        assert not grid.itemAtPosition(1, col).widget().isEnabled()
+    for col in range(table.columnCount()):
+        assert not table.cellWidget(0, col).isEnabled()
 
 
 def test_recoverydialog_discard_when_error(qtbot, recovery_env, mocker):
@@ -237,16 +237,16 @@ def test_recoverydialog_discard_when_error(qtbot, recovery_env, mocker):
     mock_QMessageBox = mocker.patch(
                 'spyder.plugins.editor.widgets.recover.QMessageBox')
     dialog = RecoveryDialog(autosave_dir, autosave_mapping)
-    grid = dialog.findChild(QGridLayout)
-    button = grid.itemAtPosition(1, 3).widget()
+    table = dialog.findChild(QTableWidget)
+    button = table.cellWidget(0, 3).findChild(QPushButton)
     button.click()
     with open(osp.join(orig_dir, 'ham.py')) as f:
         assert f.read() == 'ham = "original"\n'
     with open(osp.join(autosave_dir, 'ham.py')) as f:
         assert f.read() == 'ham = "autosave"\n'
     assert mock_QMessageBox.called
-    for col in range(grid.columnCount()):
-        assert grid.itemAtPosition(1, col).widget().isEnabled()
+    for col in range(table.columnCount()):
+        assert table.cellWidget(0, col).isEnabled()
 
 
 def test_recoverydialog_open_button(qtbot, recovery_env):
@@ -257,13 +257,13 @@ def test_recoverydialog_open_button(qtbot, recovery_env):
     """
     orig_dir, autosave_dir, autosave_mapping = recovery_env
     dialog = RecoveryDialog(autosave_dir, autosave_mapping)
-    grid = dialog.findChild(QGridLayout)
-    button = grid.itemAtPosition(1, 4).widget()
+    table = dialog.findChild(QTableWidget)
+    button = table.cellWidget(0, 4).findChild(QPushButton)
     button.click()
     assert dialog.files_to_open == [osp.join(orig_dir, 'ham.py'),
                                     osp.join(autosave_dir, 'ham.py')]
-    for col in range(grid.columnCount()):
-        assert not grid.itemAtPosition(1, col).widget().isEnabled()
+    for col in range(table.columnCount()):
+        assert not table.cellWidget(0, col).isEnabled()
 
 
 def test_recoverydialog_open_when_no_original(qtbot, recovery_env):
@@ -274,9 +274,9 @@ def test_recoverydialog_open_when_no_original(qtbot, recovery_env):
     """
     orig_dir, autosave_dir, autosave_mapping = recovery_env
     dialog = RecoveryDialog(autosave_dir, autosave_mapping)
-    grid = dialog.findChild(QGridLayout)
-    button = grid.itemAtPosition(3, 4).widget()
+    table = dialog.findChild(QTableWidget)
+    button = table.cellWidget(2, 4).findChild(QPushButton)
     button.click()
     assert dialog.files_to_open == [osp.join(autosave_dir, 'cheese.py')]
-    for col in range(grid.columnCount()):
-        assert not grid.itemAtPosition(3, col).widget().isEnabled()
+    for col in range(table.columnCount()):
+        assert not table.cellWidget(2, col).isEnabled()
