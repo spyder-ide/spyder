@@ -172,13 +172,14 @@ class KernelConnectionDialog(QDialog):
         super(KernelConnectionDialog, self).__init__(parent)
         self.setWindowTitle(_('Connect to an existing kernel'))
         
-        main_label = QLabel(_("Please enter the connection info of the kernel "
-                              "you want to connect to. For that you can "
-                              "either select its JSON connection file using "
-                              "the <tt>Browse</tt> button, or write directly "
-                              "its id, in case it's a local kernel (for "
-                              "example <tt>kernel-3764.json</tt> or just "
-                              "<tt>3764</tt>)."))
+        main_label = QLabel(_(
+            "Please select the JSON connection file (<i>e.g.</i> "
+            "<tt>kernel-3764.json</tt>) or enter the 4-digit ID (<i>e.g.</i> "
+            "<tt>3764</tt>) of the existing kernel to connect to, "
+            "and enter the SSH host name and credentials if a remote kernel."
+            "<p><b>Note:</b> If connecting to a remote kernel, only the "
+            "SSH keyfile <i>or</i> the Password field need to be completed, "
+            "unless the keyfile is protected with a passphrase.\n"))
         main_label.setWordWrap(True)
         main_label.setAlignment(Qt.AlignJustify)
         
