@@ -167,11 +167,11 @@ def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1',
 
 class KernelConnectionDialog(QDialog):
     """Dialog to connect to existing kernels (either local or remote)."""
-    
+
     def __init__(self, parent=None):
         super(KernelConnectionDialog, self).__init__(parent)
         self.setWindowTitle(_('Connect to an existing kernel'))
-        
+
         main_label = QLabel(_(
             "Please select the JSON connection file (<i>e.g.</i> "
             "<tt>kernel-3764.json</tt>) or enter the 4-digit ID (<i>e.g.</i> "
@@ -182,8 +182,8 @@ class KernelConnectionDialog(QDialog):
             "unless the keyfile is protected with a passphrase.\n"))
         main_label.setWordWrap(True)
         main_label.setAlignment(Qt.AlignJustify)
-        
-        # connection file
+
+        # Connection file
         cf_label = QLabel(_('Kernel ID/Connection file:'))
         self.cf = QLineEdit()
         self.cf.setPlaceholderText(_('ID number or path to connection file'))
@@ -195,14 +195,14 @@ class KernelConnectionDialog(QDialog):
         cf_layout.addWidget(cf_label)
         cf_layout.addWidget(self.cf)
         cf_layout.addWidget(cf_open_btn)
-        
-        # remote kernel checkbox 
+
+        # Remote kernel checkbox
         self.rm_cb = QCheckBox(_('This is a remote kernel (via SSH)'))
-        
-        # ssh connection 
+
+        # SSH connection
         self.hn = QLineEdit()
         self.hn.setPlaceholderText(_('username@hostname:port'))
-        
+
         self.kf = QLineEdit()
         self.kf.setPlaceholderText(_('Path to SSH keyfile'))
         kf_open_btn = QPushButton(_('Browse'))
@@ -211,7 +211,7 @@ class KernelConnectionDialog(QDialog):
         kf_layout = QHBoxLayout()
         kf_layout.addWidget(self.kf)
         kf_layout.addWidget(kf_open_btn)
-        
+
         self.pw = QLineEdit()
         self.pw.setPlaceholderText(_('Remote user password or '
                                      'SSH keyfile passphrase'))
@@ -221,7 +221,7 @@ class KernelConnectionDialog(QDialog):
         ssh_form.addRow(_('Host name:'), self.hn)
         ssh_form.addRow(_('SSH keyfile:'), kf_layout)
         ssh_form.addRow(_('Password:'), self.pw)
-        
+
         # Ok and Cancel buttons
         self.accept_btns = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
