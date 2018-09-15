@@ -2655,7 +2655,8 @@ class AutosaveComponent:
         Do nothing if the `changed_since_autosave` flag is not set or the file
         is newly created (and thus not named by the user). Otherwise, save a
         copy of the file with the name given by `self.get_autosave_filename()`
-        and clear the `changed_since_autosave` flag.
+        and clear the `changed_since_autosave` flag. Errors raised when saving
+        are silently ignored.
 
         Args:
             index (int): index into self.stack.data
@@ -2666,8 +2667,11 @@ class AutosaveComponent:
             return
         autosave_filename = self.get_autosave_filename(finfo.filename)
         logger.debug('Autosaving %s to %s', finfo.filename, autosave_filename)
-        self.stack._write_to_file(finfo, autosave_filename)
-        document.changed_since_autosave = False
+        try:
+            self.stack._write_to_file(finfo, autosave_filename)
+            document.changed_since_autosave = False
+        except (IOError, OSError):
+            pass
 
     def autosave_all(self):
         """Autosave all opened files."""
