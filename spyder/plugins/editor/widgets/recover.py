@@ -52,8 +52,9 @@ def file_data_to_str(data):
     res = data['name']
     try:
         mtime_as_str = time.strftime('%x %X', time.gmtime(data['mtime']))
-        res += '<br>' + _('Last modified: {}').format(mtime_as_str)
-        res += '<br>' + _('Size: {} bytes').format(data['size'])
+        res += '<br><i>{}</i>: {}'.format(_('Last modified'), mtime_as_str)
+        res += '<br><i>{}</i>: {} {}'.format(
+                _('Size'), data['size'], _('bytes'))
     except KeyError:
         res += '<br>' + _('<i>File no longer exists</i>')
     return res
