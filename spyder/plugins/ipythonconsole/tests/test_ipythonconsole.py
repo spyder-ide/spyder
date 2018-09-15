@@ -163,6 +163,18 @@ def test_pylab_client(ipyconsole, qtbot):
     control = ipyconsole.get_focus_widget()
     assert 'Error' not in control.toPlainText()
 
+    # Reset the console namespace
+    shell.reset_namespace(warning=False)
+    qtbot.wait(1000)
+
+    # See that `e` is still defined from numpy after reset
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("e")
+
+    # Assert there are no errors after restting the console
+    control = ipyconsole.get_focus_widget()
+    assert 'Error' not in control.toPlainText()
+
 
 @pytest.mark.slow
 @flaky(max_runs=3)
@@ -184,6 +196,18 @@ def test_sympy_client(ipyconsole, qtbot):
     control = ipyconsole.get_focus_widget()
     assert 'Error' not in control.toPlainText()
 
+    # Reset the console namespace
+    shell.reset_namespace(warning=False)
+    qtbot.wait(1000)
+
+    # See that `e` is still defined from sympy after reset
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("x")
+
+    # Assert there are no errors after restting the console
+    control = ipyconsole.get_focus_widget()
+    assert 'Error' not in control.toPlainText()
+
 
 @pytest.mark.slow
 @flaky(max_runs=3)
@@ -202,6 +226,20 @@ def test_cython_client(ipyconsole, qtbot):
                       "    return x + y")
 
     # Assert there are no errors in the console
+    control = ipyconsole.get_focus_widget()
+    assert 'Error' not in control.toPlainText()
+
+    # Reset the console namespace
+    shell.reset_namespace(warning=False)
+    qtbot.wait(1000)
+
+    # See that cython is still enabled after reset
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%%cython\n"
+                      "cdef int ctest(int x, int y):\n"
+                      "    return x + y")
+
+    # Assert there are no errors after restting the console
     control = ipyconsole.get_focus_widget()
     assert 'Error' not in control.toPlainText()
 
@@ -792,7 +830,7 @@ def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
     qtbot.wait(500)
     assert shell.get_value('bb') == 10
 
-    shell.reset_namespace(warning=False, silent=True)
+    shell.reset_namespace(warning=False)
     qtbot.wait(1000)
 
     qtbot.keyClicks(control, '!bb')
