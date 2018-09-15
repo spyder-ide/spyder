@@ -22,14 +22,16 @@ from spyder.plugins.editor.widgets.recover import (make_temporary_files,
 
 @pytest.fixture
 def recovery_env(tmpdir):
-    """Creates a dir with various autosave files and cleans up afterwards."""
+    """Create a dir with various autosave files and cleans up afterwards."""
     yield make_temporary_files(str(tmpdir))
     shutil.rmtree(str(tmpdir))
 
 
 def test_recoverydialog_has_cancel_button(qtbot, tmpdir):
     """
-    Test that RecoveryDialog has a button in a dialog button box and that
+    Test that RecoveryDialog has a Cancel button.
+
+    Test that a RecoveryDialog has a button in a dialog button box and that
     this button cancels the dialog window.
     """
     dialog = RecoveryDialog(str(tmpdir), {})
@@ -40,7 +42,7 @@ def test_recoverydialog_has_cancel_button(qtbot, tmpdir):
 
 
 def test_recoverydialog_table_labels(qtbot, recovery_env):
-    """Test that table in RecoveryDialog has the correct labels ."""
+    """Test that table in RecoveryDialog has the correct labels."""
     orig_dir, autosave_dir, autosave_mapping = recovery_env
     dialog = RecoveryDialog(autosave_dir, autosave_mapping)
     table = dialog.findChild(QTableWidget)
@@ -66,8 +68,9 @@ def test_recoverydialog_table_labels(qtbot, recovery_env):
 
 def test_recoverydialog_exec_if_nonempty_when_empty(qtbot, tmpdir, mocker):
     """
-    Test that exec_if_nonempty does not execute the dialog if autosave dir
-    is empty.
+    Test that exec_if_nonempty does nothing if autosave dir is empty.
+
+    Specifically, test that it does not `exec_()` the dialog.
     """
     dialog = RecoveryDialog(str(tmpdir), {'ham': 'spam'})
     mocker.patch.object(dialog, 'exec_')
@@ -77,10 +80,7 @@ def test_recoverydialog_exec_if_nonempty_when_empty(qtbot, tmpdir, mocker):
 
 def test_recoverydialog_exec_if_nonempty_when_nonempty(
         qtbot, recovery_env, mocker):
-    """
-    Test that exec_if_nonempty does not execute the dialog if autosave dir
-    is empty.
-    """
+    """Test that exec_if_nonempty executes dialog if autosave dir not empty."""
     orig_dir, autosave_dir, autosave_mapping = recovery_env
     dialog = RecoveryDialog(autosave_dir, autosave_mapping)
     mocker.patch.object(dialog, 'exec_', return_value='eggs')
@@ -91,8 +91,9 @@ def test_recoverydialog_exec_if_nonempty_when_nonempty(
 def test_recoverydialog_exec_if_nonempty_when_no_autosave_dir(
         qtbot, recovery_env, mocker):
     """
-    Test that exec_if_nonempty does not execute the dialog if the autosave
-    dir does not exist.
+    Test that exec_if_nonempty does nothing if autosave dir does not exist.
+
+    Specifically, test that it does not `exec_()` the dialog.
     """
     orig_dir, autosave_dir, autosave_mapping = recovery_env
     shutil.rmtree(autosave_dir)
@@ -104,6 +105,8 @@ def test_recoverydialog_exec_if_nonempty_when_no_autosave_dir(
 
 def test_recoverydialog_restore_button(qtbot, recovery_env):
     """
+    Test the `Restore` button in `RecoveryDialog`.
+
     Test that after pressing the 'Restore' button, the original file is
     replaced by the autosave file, the latter is removed, and the row in the
     grid is deactivated.
@@ -123,8 +126,11 @@ def test_recoverydialog_restore_button(qtbot, recovery_env):
 def test_recoverydialog_restore_when_original_does_not_exist(
         qtbot, recovery_env):
     """
-    Test that restoring an autosave file works when the original file no
-    longer rexists.
+    Test the `Restore` button when the original file does not exist.
+
+    Test that after pressing the 'Restore' button, the autosave file is moved
+    to the location of the original file and the row in the grid is
+    deactivated.
     """
     orig_dir, autosave_dir, autosave_mapping = recovery_env
     dialog = RecoveryDialog(autosave_dir, autosave_mapping)
@@ -141,8 +147,10 @@ def test_recoverydialog_restore_when_original_does_not_exist(
 def test_recoverydialog_restore_when_original_not_recorded(
         qtbot, recovery_env, mocker):
     """
-    Test that restoring an autosave file works when the original file no
-    longer rexists.
+    Test the `Restore` button when the original file name is not known.
+
+    Test that after pressing the 'Restore' button, the autosave file is moved
+    to a location specified by the user and the row in the grid is deactivated.
     """
     orig_dir, autosave_dir, autosave_mapping = recovery_env
     new_name = osp.join(orig_dir, 'monty.py')
@@ -161,6 +169,8 @@ def test_recoverydialog_restore_when_original_not_recorded(
 
 def test_recoverydialog_restore_when_error(qtbot, recovery_env, mocker):
     """
+    Test that errors during a restore action are handled gracefully.
+
     Test that if an error arises when restoring a file, both the original and
     the autosave files are kept unchanged, a dialog is displayed, and the row
     in the grid is not deactivated.
@@ -190,8 +200,10 @@ def test_recoverydialog_restore_when_error(qtbot, recovery_env, mocker):
 def test_recoverydialog_accepted_after_all_restored(
         qtbot, recovery_env, mocker):
     """
-    Test that the recovery dialog is accepted after all Restore buttons are
-    clicked, but not before.
+    Test that the recovery dialog is accepted after all files are restored.
+
+    Click all `Restore` buttons and test that the dialog is accepted
+    afterwards, but not before.
     """
     orig_dir, autosave_dir, autosave_mapping = recovery_env
     new_name = osp.join(orig_dir, 'monty.py')
@@ -209,6 +221,8 @@ def test_recoverydialog_accepted_after_all_restored(
 
 def test_recoverydialog_discard_button(qtbot, recovery_env):
     """
+    Test the `Discard` button in the recovery dialog.
+
     Test that after pressing the 'Discard' button, the autosave file is
     deleted, the original file unchanged, and the row in the grid is
     deactivated.
@@ -227,6 +241,8 @@ def test_recoverydialog_discard_button(qtbot, recovery_env):
 
 def test_recoverydialog_discard_when_error(qtbot, recovery_env, mocker):
     """
+    Test that errors during a discard action are handled gracefully.
+
     Test that if an error arises when discarding a file, both the original and
     the autosave files are kept unchanged, a dialog is displayed, and the row
     in the grid is not deactivated.
@@ -251,6 +267,8 @@ def test_recoverydialog_discard_when_error(qtbot, recovery_env, mocker):
 
 def test_recoverydialog_open_button(qtbot, recovery_env):
     """
+    Test the `Open` button in the recovery dialog.
+
     Test that after pressing the 'Open' button, `files_to_open` contains
     the autosave and the original file, and the row in the grid is
     deactivated.
@@ -268,7 +286,9 @@ def test_recoverydialog_open_button(qtbot, recovery_env):
 
 def test_recoverydialog_open_when_no_original(qtbot, recovery_env):
     """
-    Test that when the user request to open an autosave file for which the
+    Test the `Open` button when the original file is not known.
+
+    Test that when the user requests to open an autosave file for which the
     original file is not known, `files_to_open` contains only the autosave
     file.
     """

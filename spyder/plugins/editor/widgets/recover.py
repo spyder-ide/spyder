@@ -45,7 +45,7 @@ def file_data_to_str(data):
     """
     Convert file data to a string for display.
 
-    This function takes the file data produced by gather_file_data() .
+    This function takes the file data produced by gather_file_data().
     """
     if not data:
         return _('<i>File name not recorded</i>')
@@ -63,10 +63,11 @@ def file_data_to_str(data):
 
 def recovery_data_key_function(item):
     """
-    Function for sorting items in RecoveryDialog.data .
+    Convert item in `RecoveryDialog.data` to tuple so that it can be sorted.
 
-    Sort first by name of the original file, then by name of the autosave file.
-    All items without an original file name will be at the end.
+    Sorting the tuples returned by this function will sort first by name of
+    the original file, then by name of the autosave file. All items without an
+    original file name will be at the end.
     """
     orig_dict, autosave_dict = item
     if orig_dict:
