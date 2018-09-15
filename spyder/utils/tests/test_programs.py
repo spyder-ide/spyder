@@ -15,7 +15,8 @@ from spyder.utils.programs import (run_python_script_in_terminal,
                                    is_python_interpreter,
                                    is_python_interpreter_valid_name,
                                    find_program, shell_split, check_version,
-                                   is_module_installed, get_temp_dir)
+                                   is_module_installed, get_temp_dir,
+                                   is_stable_version)
 
 
 if os.name == 'nt':
@@ -130,6 +131,12 @@ def test_get_temp_dir_ensure_dir_exists():
 
     assert os.path.exists(another_call)
     assert another_call == temp_dir
+
+
+def test_is_stable_version():
+    """Tests for is_stable_version."""
+    assert is_stable_version('3.3.0')
+    assert not is_stable_version('4.0.0b1')
 
 
 if __name__ == '__main__':
