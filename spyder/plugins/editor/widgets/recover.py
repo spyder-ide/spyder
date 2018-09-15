@@ -51,7 +51,8 @@ def file_data_to_str(data):
         return _('<i>File name not recorded</i>')
     res = data['name']
     try:
-        mtime_as_str = time.strftime('%x %X', time.gmtime(data['mtime']))
+        mtime_as_str = time.strftime('%Y-%m-%d %H:%M:%S',
+                                     time.localtime(data['mtime']))
         res += '<br><i>{}</i>: {}'.format(_('Last modified'), mtime_as_str)
         res += '<br><i>{}</i>: {} {}'.format(
                 _('Size'), data['size'], _('bytes'))
