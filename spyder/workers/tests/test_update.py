@@ -22,12 +22,19 @@ def test_update(qtbot):
     assert check_version("1.0.0", worker.latest_release, '<')
 
 
-def test_not_update(qtbot):
+def test_no_update(qtbot):
     """Test the update checking for a version that don't needs an update."""
     worker = WorkerUpdates(None, False, version="1000.0.0")
     worker.start()
     assert not worker.update_available
     assert not check_version("1000.0.0", worker.latest_release, '<')
+
+
+def test_no_update_development(qtbot):
+    """Test we don't offer updates for development versions."""
+    worker = WorkerUpdates(None, False, version="3.3.2.dev0")
+    worker.start()
+    assert not worker.update_available
 
 
 if __name__ == "__main__":

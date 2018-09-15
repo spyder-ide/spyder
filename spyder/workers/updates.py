@@ -52,6 +52,10 @@ class WorkerUpdates(QObject):
         valid cleaned releases in chronological order.
         Example: ['2.3.2', '2.3.3' ...] or with github ['2.3.4', '2.3.3' ...]
         """
+        # Don't perform any check for development versions
+        if 'dev' in version:
+            return (False, latest_release)
+
         if is_stable_version(version):
             # Remove non stable versions from the list
             releases = [r for r in releases if is_stable_version(r)]
@@ -60,9 +64,6 @@ class WorkerUpdates(QObject):
             latest_release = releases[0]
         else:
             latest_release = releases[-1]
-
-        if version.endswith('dev'):
-            return (False, latest_release)
 
         return (check_version(version, latest_release, '<'), latest_release)
 
