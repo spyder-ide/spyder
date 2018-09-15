@@ -176,10 +176,7 @@ class KernelConnectionDialog(QDialog):
             "Please select the JSON connection file (<i>e.g.</i> "
             "<tt>kernel-3764.json</tt>) or enter the 4-digit ID (<i>e.g.</i> "
             "<tt>3764</tt>) of the existing kernel to connect to, "
-            "and enter the SSH host name and credentials if a remote kernel."
-            "<p><b>Note:</b> If connecting to a remote kernel, only the "
-            "SSH keyfile <i>or</i> the Password field need to be completed, "
-            "unless the keyfile is protected with a passphrase.\n"))
+            "and enter the SSH host name and credentials if a remote kernel."))
         main_label.setWordWrap(True)
         main_label.setAlignment(Qt.AlignJustify)
 
@@ -199,12 +196,24 @@ class KernelConnectionDialog(QDialog):
         # Remote kernel checkbox
         self.rm_cb = QCheckBox(_('This is a remote kernel (via SSH)'))
 
+        # Descriptive text explaining SSH credentials
+        credential_label = QLabel(_(
+            "<b>Note:</b> If connecting to a remote kernel, only the "
+            "SSH keyfile <i>or</i> the Password field need to be completed, "
+            "unless the keyfile is protected with a passphrase."))
+        credential_label.setWordWrap(True)
+
         # SSH connection
         self.hn = QLineEdit()
         self.hn.setPlaceholderText(_('username@hostname:port'))
 
+        self.pw = QLineEdit()
+        self.pw.setPlaceholderText(_('Remote user password or '
+                                     'SSH keyfile passphrase'))
+        self.pw.setEchoMode(QLineEdit.Password)
+
         self.kf = QLineEdit()
-        self.kf.setPlaceholderText(_('Path to SSH keyfile'))
+        self.kf.setPlaceholderText(_('Path to SSH keyfile (optional)'))
         kf_open_btn = QPushButton(_('Browse'))
         kf_open_btn.clicked.connect(self.select_ssh_key)
 
@@ -212,15 +221,10 @@ class KernelConnectionDialog(QDialog):
         kf_layout.addWidget(self.kf)
         kf_layout.addWidget(kf_open_btn)
 
-        self.pw = QLineEdit()
-        self.pw.setPlaceholderText(_('Remote user password or '
-                                     'SSH keyfile passphrase'))
-        self.pw.setEchoMode(QLineEdit.Password)
-
         ssh_form = QFormLayout()
         ssh_form.addRow(_('Host name:'), self.hn)
-        ssh_form.addRow(_('SSH keyfile:'), kf_layout)
         ssh_form.addRow(_('Password:'), self.pw)
+        ssh_form.addRow(_('SSH keyfile:'), kf_layout)
 
         # Ok and Cancel buttons
         self.accept_btns = QDialogButtonBox(
@@ -235,16 +239,18 @@ class KernelConnectionDialog(QDialog):
         layout.addWidget(main_label)
         layout.addLayout(cf_layout)
         layout.addWidget(self.rm_cb)
+        layout.addWidget(credential_label)
         layout.addLayout(ssh_form)
         layout.addWidget(self.accept_btns)
-                
-        # remote kernel checkbox enables the ssh_connection_form
+
+        # Remote kernel checkbox enables the ssh_connection_form
         def ssh_set_enabled(state):
-            for wid in [self.hn, self.kf, kf_open_btn, self.pw]:
+            for wid in [credential_label, self.hn, self.pw,
+                        self.kf, kf_open_btn]:
                 wid.setEnabled(state)
             for i in range(ssh_form.rowCount()):
                 ssh_form.itemAt(2 * i).widget().setEnabled(state)
-       
+
         ssh_set_enabled(self.rm_cb.checkState())
         self.rm_cb.stateChanged.connect(ssh_set_enabled)
 
