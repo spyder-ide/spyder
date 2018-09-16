@@ -28,10 +28,11 @@ from qtconsole.client import QtKernelClient
 from qtconsole.manager import QtKernelManager
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt, Signal, Slot
-from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QDialogButtonBox,
-                            QFormLayout, QGridLayout, QGroupBox, QHBoxLayout,
-                            QLabel, QLineEdit, QMessageBox, QPushButton,
-                            QTabWidget, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (QApplication, QButtonGroup, QCheckBox, QDialog,
+                            QDialogButtonBox, QFormLayout, QGridLayout,
+                            QGroupBox, QHBoxLayout, QLabel, QLineEdit,
+                            QMessageBox, QPushButton, QRadioButton, QTabWidget,
+                            QVBoxLayout, QWidget)
 from traitlets.config.loader import Config, load_pyconfig_files
 from zmq.ssh import tunnel as zmqtunnel
 if not os.name == 'nt':
@@ -197,28 +198,71 @@ class KernelConnectionDialog(QDialog):
             "unless the keyfile is protected with a passphrase."))
         credential_label.setWordWrap(True)
 
-        # SSH connection
+        # SSH connection 
+        hn_label = QLabel(_('Host name:'))
         self.hn = QLineEdit()
         self.hn.setPlaceholderText(_('username@hostname:port'))
-
+        hn_layout = QHBoxLayout()
+        hn_layout.addWidget(hn_label)
+        hn_layout.addWidget(self.hn)
+        
+        ssh_auth_group = QGroupBox(_("SSH Authorization"))
+        ssh_auth_bg = QButtonGroup(ssh_auth_group)
+        ssh_auth_label = QLabel(_("Connect to Host with:"))
+        ssh_auth_label.setWordWrap(True)
+        pw_radio = QRadioButton("Password:")
+        pw_radio.setChecked(True)
+        kf_radio = QRadioButton("SSH keyfile::")
+        
         self.pw = QLineEdit()
-        self.pw.setPlaceholderText(_('Remote user password or '
-                                     'SSH keyfile passphrase'))
+        self.pw.setPlaceholderText(_('Remote user password'))
         self.pw.setEchoMode(QLineEdit.Password)
+        pw_radio.toggled.connect(self.pw.setEnabled)
+        kf_radio.toggled.connect(self.pw.setDisabled)
+        pw_layout = QHBoxLayout()
+        pw_layout.addWidget(pw_radio)
+        pw_layout.addWidget(self.pw)
 
         self.kf = QLineEdit()
         self.kf.setPlaceholderText(_('Path to SSH keyfile (optional)'))
         kf_open_btn = QPushButton(_('Browse'))
         kf_open_btn.clicked.connect(self.select_ssh_key)
-
         kf_layout = QHBoxLayout()
+        kf_layout.addWidget(kf_radio)
         kf_layout.addWidget(self.kf)
         kf_layout.addWidget(kf_open_btn)
 
-        ssh_form = QFormLayout()
-        ssh_form.addRow(_('Host name:'), self.hn)
-        ssh_form.addRow(_('Password:'), self.pw)
-        ssh_form.addRow(_('SSH keyfile:'), kf_layout)
+        kfp_label = QLabel(_('       Passphase:'))
+        self.kfp = QLineEdit()
+        self.kfp.setPlaceholderText(_('SSH keyfile passphrase'))
+        kfp_layout = QHBoxLayout()
+        kfp_layout.addWidget(kfp_label)
+        kfp_layout.addWidget(self.kfp)
+        
+        kfv_layout = QVBoxLayout()
+        kfv_layout.addLayout(kf_layout)
+        kfv_layout.addLayout(kfp_layout)
+        
+        kf_radio.toggled.connect(self.kf.setEnabled)
+        kf_radio.toggled.connect(self.kfp.setEnabled)
+        kf_radio.toggled.connect(kf_open_btn.setEnabled)
+        kf_radio.toggled.connect(kfp_label.setEnabled)
+        pw_radio.toggled.connect(self.kf.setDisabled)
+        pw_radio.toggled.connect(self.kfp.setDisabled)
+        pw_radio.toggled.connect(kf_open_btn.setDisabled)
+        pw_radio.toggled.connect(kfp_label.setDisabled)
+
+        ssh_auth_layout = QVBoxLayout()
+        ssh_auth_layout.addWidget(ssh_auth_label)
+        ssh_auth_layout.addLayout(pw_layout)
+        ssh_auth_layout.addLayout(kfv_layout)
+
+        ssh_form = QVBoxLayout()
+#        ssh_form.addRow(_('Host name'), self.hn)
+        ssh_form.addLayout(hn_layout)
+        ssh_form.addLayout(ssh_auth_layout)
+#        ssh_form.addRow(_('Ssh key'), kf_layout)
+#        ssh_form.addRow(_('Password'), self.pw)
 
         # Ok and Cancel buttons
         self.accept_btns = QDialogButtonBox(
@@ -238,15 +282,15 @@ class KernelConnectionDialog(QDialog):
         layout.addWidget(self.accept_btns)
 
         # Remote kernel checkbox enables the ssh_connection_form
-        def ssh_set_enabled(state):
-            for wid in [credential_label, self.hn, self.pw,
-                        self.kf, kf_open_btn]:
-                wid.setEnabled(state)
-            for i in range(ssh_form.rowCount()):
-                ssh_form.itemAt(2 * i).widget().setEnabled(state)
+#        def ssh_set_enabled(state):
+#            for wid in [credential_label, self.hn, self.pw,
+#                        self.kf, kf_open_btn]:
+#                wid.setEnabled(state)
+#            for i in range(ssh_form.rowCount()):
+#                ssh_form.itemAt(2 * i).widget().setEnabled(state)
 
-        ssh_set_enabled(self.rm_cb.checkState())
-        self.rm_cb.stateChanged.connect(ssh_set_enabled)
+#        ssh_set_enabled(self.rm_cb.checkState())
+#        self.rm_cb.stateChanged.connect(ssh_set_enabled)
 
     def select_connection_file(self):
         cf = getopenfilename(self, _('Select kernel connection file'),
