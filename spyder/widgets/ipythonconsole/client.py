@@ -128,6 +128,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.history = []
         self.allow_rename = True
         self.stderr_dir = None
+        self.is_error_shown = False
 
         # --- Widgets
         self.shellwidget = ShellWidget(config=config_options,
@@ -306,6 +307,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.infowidget.setHtml(page, QUrl.fromLocalFile(CSS_PATH))
         self.shellwidget.hide()
         self.infowidget.show()
+
+        # Tell the client we're in error mode
+        self.is_error_shown = True
 
     def get_name(self):
         """Return client name"""
@@ -530,19 +534,19 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     @Slot(str)
     def kernel_restarted_message(self, msg):
         """Show kernel restarted/died messages."""
-        # If there are kernel creation errors, jupyter_client will
-        # try to restart the kernel and qtconsole prints a
-        # message about it.
-        # So we read its stderr_file contents and display them
-        # in the client instead of the usual message shown by
-        # qtconsole.
-        try:
-            stderr = self._read_stderr()
-        except Exception:
-            stderr = None
-
-        if stderr:
-            self.show_kernel_error('<tt>%s</tt>' % stderr)
+        if not self.is_error_shown:
+            # If there are kernel creation errors, jupyter_client will
+            # try to restart the kernel and qtconsole prints a
+            # message about it.
+            # So we read the kernel's stderr_file and display its
+            # contents in the client instead of the usual message shown
+            # by qtconsole.
+            try:
+                stderr = self._read_stderr()
+            except Exception:
+                stderr = None
+            if stderr:
+                self.show_kernel_error('<tt>%s</tt>' % stderr)
         else:
             self.shellwidget._append_html("<br>%s<hr><br>" % msg,
                                           before_prompt=False)
