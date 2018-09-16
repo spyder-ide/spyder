@@ -56,9 +56,12 @@ class WorkerUpdates(QObject):
         if 'dev' in version:
             return (False, latest_release)
 
+        # Filter releases
         if is_stable_version(version):
-            # Remove non stable versions from the list
             releases = [r for r in releases if is_stable_version(r)]
+        else:
+            releases = [r for r in releases
+                        if not is_stable_version(r) or r in version]
 
         if github:
             latest_release = releases[0]
@@ -107,7 +110,7 @@ class WorkerUpdates(QObject):
                 if is_anaconda():
                     releases = []
                     for item in data['packages']:
-                        if 'spyder' in item and 'spyder-kernels' not in item:
+                        if 'spyder' in item and 'spyder-' not in item:
                             releases.append(item.split('-')[1])
                     result = self.check_update_available(self.version,
                                                          releases)
