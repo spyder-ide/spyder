@@ -7,6 +7,7 @@
 # Standard library imports
 import json
 import os
+import re
 import ssl
 import sys
 
@@ -111,7 +112,8 @@ class WorkerUpdates(QObject):
                     if self.releases is None:
                         self.releases = []
                         for item in data['packages']:
-                            if 'spyder' in item and 'spyder-' not in item:
+                            if ('spyder' in item and
+                                    not re.search(r'spyder-[a-zA-Z]', item)):
                                 self.releases.append(item.split('-')[1])
                     result = self.check_update_available()
                 else:
