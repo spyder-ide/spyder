@@ -200,6 +200,17 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         handle = get_stderr_file_handle(self.stderr_file)
         return handle
 
+    def remove_stderr_file(self):
+        """Remove stderr_file associated with the client."""
+        try:
+            # Defer closing the stderr_handle until the client
+            # is closed because jupyter_client needs it open
+            # while it tries to restart the kernel
+            self.stderr_handle.close()
+            os.remove(self.stderr_file)
+        except Exception:
+            pass
+
     def configure_shellwidget(self, give_focus=True):
         """Configure shellwidget after kernel is started"""
         if give_focus:

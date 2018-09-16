@@ -813,6 +813,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.mainwindow_close = True
         for client in self.clients:
             client.shutdown()
+            client.remove_stderr_file()
             client.close()
         return True
 
@@ -1396,14 +1397,7 @@ class IPythonConsole(SpyderPluginWidget):
         # if there aren't related clients we can remove stderr_file
         related_clients = self.get_related_clients(client)
         if len(related_clients) == 0 and osp.exists(client.stderr_file):
-            try:
-                # Defer closing the stderr_handle until this point
-                # because jupyter_client needs it open while it
-                # tries to restart the kernel
-                client.stderr_handle.close()
-                os.remove(client.stderr_file)
-            except Exception:
-                pass
+            client.remove_stderr_file()
 
         client.close()
 
