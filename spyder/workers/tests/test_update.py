@@ -6,6 +6,7 @@
 
 import pytest
 
+from spyder.config.utils import is_anaconda
 from spyder.workers.updates import WorkerUpdates
 
 
@@ -45,6 +46,15 @@ def test_update_pre_to_final(qtbot):
                            releases=['4.0.0'])
     worker.start()
     assert worker.update_available
+
+
+@pytest.mark.skipif(not is_anaconda(),
+                    reason='It only makes sense for Anaconda.')
+def test_releases_anaconda(qtbot):
+    """Test we don't include spyder-kernels releases in detected releases."""
+    worker = WorkerUpdates(None, False, version="3.3.1")
+    worker.start()
+    assert '0.2.4' not in worker.releases
 
 
 if __name__ == "__main__":
