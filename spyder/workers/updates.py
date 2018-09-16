@@ -7,6 +7,7 @@
 # Standard library imports
 import json
 import os
+import re
 import ssl
 import sys
 
@@ -37,34 +38,41 @@ class WorkerUpdates(QObject):
     """
     sig_ready = Signal()
 
-    def __init__(self, parent, startup, version=""):
+    def __init__(self, parent, startup, version="", releases=None):
         QObject.__init__(self)
         self._parent = parent
         self.error = None
         self.latest_release = None
         self.startup = startup
-        self.version = version
+        self.releases = releases
 
-    def check_update_available(self, version, releases, github=False):
+        if not version:
+            self.version = __version__
+        else:
+            self.version = version
+
+    def check_update_available(self):
         """Checks if there is an update available.
 
         It takes as parameters the current version of Spyder and a list of
         valid cleaned releases in chronological order.
         Example: ['2.3.2', '2.3.3' ...] or with github ['2.3.4', '2.3.3' ...]
         """
-        if is_stable_version(version):
-            # Remove non stable versions from the list
-            releases = [r for r in releases if is_stable_version(r)]
-
-        if github:
-            latest_release = releases[0]
-        else:
-            latest_release = releases[-1]
-
-        if version.endswith('dev'):
+        # Don't perform any check for development versions
+        if 'dev' in self.version:
             return (False, latest_release)
 
-        return (check_version(version, latest_release, '<'), latest_release)
+        # Filter releases
+        if is_stable_version(self.version):
+            releases = [r for r in self.releases if is_stable_version(r)]
+        else:
+            releases = [r for r in self.releases
+                        if not is_stable_version(r) or r in self.version]
+
+        latest_release = releases[-1]
+
+        return (check_version(self.version, latest_release, '<'),
+                latest_release)
 
     def start(self):
         """Main method of the WorkerUpdates worker"""
@@ -98,24 +106,23 @@ class WorkerUpdates(QObject):
                 # Needed step for python3 compatibility
                 if not isinstance(data, str):
                     data = data.decode()
-
                 data = json.loads(data)
-                if not self.version:
-                    self.version = __version__
 
                 if is_anaconda():
-                    releases = []
-                    for item in data['packages']:
-                        if 'spyder' in item and 'spyder-kernels' not in item:
-                            releases.append(item.split('-')[1])
-                    result = self.check_update_available(self.version,
-                                                         releases)
+                    if self.releases is None:
+                        self.releases = []
+                        for item in data['packages']:
+                            if ('spyder' in item and
+                                    not re.search(r'spyder-[a-zA-Z]', item)):
+                                self.releases.append(item.split('-')[1])
+                    result = self.check_update_available()
                 else:
-                    releases = [item['tag_name'].replace('v', '')
-                                for item in data]
-                    result = self.check_update_available(self.version,
-                                                         releases,
-                                                         github=True)
+                    if self.releases is None:
+                        self.releases = [item['tag_name'].replace('v', '')
+                                         for item in data]
+                        self.releases = list(reversed(self.releases))
+
+                result = self.check_update_available()
                 self.update_available, self.latest_release = result
             except Exception:
                 error_msg = _('Unable to retrieve information.')
