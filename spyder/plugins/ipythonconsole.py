@@ -53,8 +53,7 @@ from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.programs import get_temp_dir
-from spyder.utils.misc import (get_error_match, get_stderr_file_handle, 
-                               remove_backslashes)
+from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.ipythonconsole import ClientWidget
 from spyder.widgets.tabs import Tabs
@@ -1143,13 +1142,13 @@ class IPythonConsole(SpyderPluginWidget):
         connection_file = client.connection_file
 
         if self.test_no_stderr:
-            stderr_file = None
+            stderr_handle = None
         else:
-            stderr_file = client.stderr_file
+            stderr_handle = client.stderr_handle
 
         km, kc = self.create_kernel_manager_and_kernel_client(
                      connection_file,
-                     stderr_file,
+                     stderr_handle,
                      is_cython=is_cython)
 
         # An error occurred if this is True
@@ -1397,7 +1396,14 @@ class IPythonConsole(SpyderPluginWidget):
         # if there aren't related clients we can remove stderr_file
         related_clients = self.get_related_clients(client)
         if len(related_clients) == 0 and osp.exists(client.stderr_file):
-            os.remove(client.stderr_file)
+            try:
+                # Defer closing the stderr_handle until this point
+                # because jupyter_client needs it open while it
+                # tries to restart the kernel
+                client.stderr_handle.close()
+                os.remove(client.stderr_file)
+            except Exception:
+                pass
 
         client.close()
 
@@ -1554,7 +1560,8 @@ class IPythonConsole(SpyderPluginWidget):
         return SpyderKernelSpec(is_cython=is_cython)
 
     def create_kernel_manager_and_kernel_client(self, connection_file,
-                                                stderr_file, is_cython=False):
+                                                stderr_handle,
+                                                is_cython=False):
         """Create kernel manager and client."""
         # Kernel spec
         kernel_spec = self.create_kernel_spec(is_cython=is_cython)
@@ -1569,20 +1576,14 @@ class IPythonConsole(SpyderPluginWidget):
             return (error_msg, None)
         kernel_manager._kernel_spec = kernel_spec
 
-        # Save stderr in a file to read it later in case of errors
-        stderr = get_stderr_file_handle(stderr_file)
+        # Catch any error generated when trying to start the kernel
+        # See issue 7302
         try:
-            # Catch any error generated when trying to start the kernel
-            # See issue 7302
-            try:
-                kernel_manager.start_kernel(stderr=stderr)
-            except Exception:
-                error_msg = _("The error is:<br><br>"
-                              "<tt>{}</tt>").format(traceback.format_exc())
-                return (error_msg, None)
-        finally:
-            if stderr is not None:
-                stderr.close()
+            kernel_manager.start_kernel(stderr=stderr_handle)
+        except Exception:
+            error_msg = _("The error is:<br><br>"
+                            "<tt>{}</tt>").format(traceback.format_exc())
+            return (error_msg, None)
 
         # Kernel client
         kernel_client = kernel_manager.client()
