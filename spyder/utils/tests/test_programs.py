@@ -134,9 +134,10 @@ def test_get_temp_dir_ensure_dir_exists():
 
 
 def test_is_stable_version():
-    """Tests for is_stable_version."""
+    """Test for is_stable_version."""
     assert is_stable_version('3.3.0')
     assert not is_stable_version('4.0.0b1')
+    assert not is_stable_version('3.3.2.dev0')
 
 
 if __name__ == '__main__':
