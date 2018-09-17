@@ -963,7 +963,6 @@ def test_kernel_crash(ipyconsole, mocker, qtbot):
         webpage = webview.page()
     else:
         webpage = webview.page().mainFrame()
-
     qtbot.waitUntil(lambda: check_text(webpage, "foo"), timeout=6000)
 
 
