@@ -137,7 +137,7 @@ class RecoveryDialog(QDialog):
         """Add a label to specified cell in table."""
         label = QLabel(txt)
         label.setMargin(5)
-        label.setAlignment(Qt.AlignCenter)
+        label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         self.table.setCellWidget(row, col, label)
 
     def add_table(self):
@@ -152,6 +152,10 @@ class RecoveryDialog(QDialog):
         table.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         table.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         table.setSelectionMode(QTableWidget.NoSelection)
+
+        # Show horizontal grid lines
+        table.setShowGrid(False)
+        table.setStyleSheet('::item { border-bottom: 1px solid gray }')
 
         for idx, (original, autosave) in enumerate(self.data):
             self.add_label_to_table(idx, 0, file_data_to_str(original))
