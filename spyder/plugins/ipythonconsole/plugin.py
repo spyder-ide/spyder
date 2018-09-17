@@ -1616,7 +1616,7 @@ class IPythonConsole(SpyderPluginWidget):
 
     def create_kernel_manager_and_kernel_client(self, connection_file,
                                                 stderr_handle,
-                                                is_cython=False):
+                                                is_cython=False,
                                                 is_pylab=False,
                                                 is_sympy=False):
         """Create kernel manager and client."""
