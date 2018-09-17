@@ -15,25 +15,29 @@ import codecs
 import os
 import os.path as osp
 import shutil
+import sys
 import tempfile
 from textwrap import dedent
 
 # Third party imports
 import cloudpickle
 from flaky import flaky
+from jupyter_client.kernelspec import KernelSpec
 from pygments.token import Name
 import pytest
 from qtpy import PYQT5
 from qtpy.QtCore import Qt
+from qtpy.QtWebEngineWidgets import WEBENGINE
 from qtpy.QtWidgets import QMessageBox
-import zmq
 
 # Local imports
 from spyder.config.gui import get_color_scheme
 from spyder.config.main import CONF
 from spyder.py3compat import PY2, to_text_string
+from spyder.plugins.tests.test_help import check_text
 from spyder.plugins.ipythonconsole import IPythonConsole
 from spyder.utils.ipython.style import create_style_class
+from spyder.utils.programs import get_temp_dir
 
 
 # =============================================================================
@@ -58,6 +62,13 @@ def get_console_background_color(style_sheet):
     background_color = style_sheet.split('background-color:')[1]
     background_color = background_color.split(';')[0]
     return background_color
+
+
+class FaultyKernelSpec(KernelSpec):
+    """Kernelspec that generates a kernel crash"""
+
+    argv = [sys.executable, '-m', 'spyder_kernels.foo', '-f',
+            '{connection_file}']
 
 
 # =============================================================================
@@ -859,6 +870,7 @@ def test_set_elapsed_time(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="Doesn't work on Windows")
 def test_stderr_file_is_removed_one_kernel(ipyconsole, qtbot, monkeypatch):
     """Test that consoles removes stderr when client is closed."""
     # Wait until the window is fully up
@@ -877,6 +889,7 @@ def test_stderr_file_is_removed_one_kernel(ipyconsole, qtbot, monkeypatch):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="Doesn't work on Windows")
 def test_stderr_file_is_removed_two_kernels(ipyconsole, qtbot, monkeypatch):
     """Test that console removes stderr when client and related clients
     are closed."""
@@ -904,6 +917,7 @@ def test_stderr_file_is_removed_two_kernels(ipyconsole, qtbot, monkeypatch):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="Doesn't work on Windows")
 def test_stderr_file_remains_two_kernels(ipyconsole, qtbot, monkeypatch):
     """Test that console doesn't remove stderr when a related client is not
     closed."""
@@ -927,6 +941,46 @@ def test_stderr_file_remains_two_kernels(ipyconsole, qtbot, monkeypatch):
     assert osp.exists(client.stderr_file)
     ipyconsole.close_client(client=client)
     assert osp.exists(client.stderr_file)
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_kernel_crash(ipyconsole, mocker, qtbot):
+    """Test that we show kernel error messages when a kernel crash occurs."""
+    # Patch create_kernel_spec method to make it return a faulty
+    # kernel spec
+    mocker.patch.object(ipyconsole, 'create_kernel_spec')
+    ipyconsole.create_kernel_spec.return_value = FaultyKernelSpec()
+
+    # Create a new client, which will use FaultyKernelSpec
+    ipyconsole.create_new_client()
+
+    # Assert that the console is showing an error
+    qtbot.wait(6000)
+    error_client = ipyconsole.get_clients()[-1]
+    assert error_client.is_error_shown
+
+    # Assert the error contains the text we expect
+    webview = error_client.infowidget
+    if WEBENGINE:
+        webpage = webview.page()
+    else:
+        webpage = webview.page().mainFrame()
+    qtbot.waitUntil(lambda: check_text(webpage, "foo"), timeout=6000)
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not os.name == 'nt', reason="Only works on Windows")
+def test_remove_old_stderr_files(ipyconsole, qtbot):
+    """Test that we are removing old stderr files."""
+    # Create empty stderr file in our temp dir to see
+    # if it's removed correctly.
+    tmpdir = get_temp_dir()
+    open(osp.join(tmpdir, 'foo.stderr'), 'a').close()
+
+    # Assert that only that file is removed
+    ipyconsole._remove_old_stderr_files()
+    assert not osp.isfile(osp.join(tmpdir, 'foo.stderr'))
 
 
 if __name__ == "__main__":
