@@ -29,7 +29,6 @@ from qtpy import PYQT5
 from qtpy.QtCore import Qt
 from qtpy.QtWebEngineWidgets import WEBENGINE
 from qtpy.QtWidgets import QMessageBox
-import zmq
 
 # Local imports
 from spyder.config.gui import get_color_scheme
