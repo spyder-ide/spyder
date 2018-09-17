@@ -911,6 +911,8 @@ class IPythonConsole(SpyderPluginWidget):
         self.projects.run.connect(lambda fname: self.run_script(
             fname, osp.dirname(fname), '', False, False, False, True))
 
+        self._remove_old_stderr_files()
+
     #------ Public API (for clients) ------------------------------------------
     def get_clients(self):
         """Return clients list"""
@@ -1859,3 +1861,19 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Register client
         self.register_client(client)
+
+    def _remove_old_stderr_files(self):
+        """
+        Remove stderr files left by previous Spyder instances.
+
+        This is only required on Windows because we can't
+        clean up stderr files while Spyder is running on it.
+        """
+        if os.name == 'nt':
+            tmpdir = get_temp_dir()
+            for fname in os.listdir(tmpdir):
+                if osp.splitext(fname)[1] == '.stderr':
+                    try:
+                        os.remove(osp.join(tmpdir, fname))
+                    except Exception:
+                        pass
