@@ -237,7 +237,7 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 * **Qtawesome** 0.4.1+: To have an icon theme based on FontAwesome.
 * **Pickleshare**: Show import completions on the Python consoles.
 * **PyZMQ**: Client for the language server protocol (LSP).
-* **QtPy** 1.2.0+: Abstraction layer for Python Qt bindings so that Spyder
+* **QtPy** 1.5.0+: Abstraction layer for Python Qt bindings so that Spyder
   can run on multiple Qt bindings and versions.
 * **Chardet**: Character encoding auto-detection in Python.
 * **Numpydoc**: Used by Jedi to get function return types from Numpydocstrings.
@@ -247,7 +247,7 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 
 ### Optional dependencies
 
-* **Matplotlib**: 2D/3D plotting in the Python and IPython consoles.
+* **Matplotlib**: 2D/3D plotting in the IPython console.
 * **Pandas**: View and edit DataFrames and Series in the Variable Explorer.
 * **Numpy**: View and edit 2- or 3-dimensional arrays in the Variable Explorer.
 * **SymPy**: Symbolic mathematics in the IPython console.

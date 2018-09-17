@@ -52,8 +52,7 @@ from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.programs import get_temp_dir
-from spyder.utils.misc import (get_error_match, get_stderr_file_handle, 
-                               remove_backslashes)
+from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.ipythonconsole.widgets import ClientWidget
 from spyder.widgets.tabs import Tabs
@@ -813,6 +812,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.mainwindow_close = True
         for client in self.clients:
             client.shutdown()
+            client.remove_stderr_file()
             client.close()
         return True
 
@@ -938,6 +938,8 @@ class IPythonConsole(SpyderPluginWidget):
                                      self.set_current_client_working_directory)
 
         self.tabwidget.currentChanged.connect(self.update_working_directory)
+
+        self._remove_old_stderr_files()
 
     #------ Public API (for clients) ------------------------------------------
     def get_clients(self):
@@ -1190,13 +1192,13 @@ class IPythonConsole(SpyderPluginWidget):
         connection_file = client.connection_file
 
         if self.test_no_stderr:
-            stderr_file = None
+            stderr_handle = None
         else:
-            stderr_file = client.stderr_file
+            stderr_handle = client.stderr_handle
 
         km, kc = self.create_kernel_manager_and_kernel_client(
                      connection_file,
-                     stderr_file,
+                     stderr_handle,
                      is_cython=is_cython,
                      is_pylab=is_pylab,
                      is_sympy=is_sympy)
@@ -1453,7 +1455,7 @@ class IPythonConsole(SpyderPluginWidget):
         # if there aren't related clients we can remove stderr_file
         related_clients = self.get_related_clients(client)
         if len(related_clients) == 0 and osp.exists(client.stderr_file):
-            os.remove(client.stderr_file)
+            client.remove_stderr_file()
 
         client.close()
 
@@ -1613,8 +1615,8 @@ class IPythonConsole(SpyderPluginWidget):
                                 is_sympy=is_sympy)
 
     def create_kernel_manager_and_kernel_client(self, connection_file,
-                                                stderr_file,
-                                                is_cython=False,
+                                                stderr_handle,
+                                                is_cython=False):
                                                 is_pylab=False,
                                                 is_sympy=False):
         """Create kernel manager and client."""
@@ -1633,20 +1635,14 @@ class IPythonConsole(SpyderPluginWidget):
             return (error_msg, None)
         kernel_manager._kernel_spec = kernel_spec
 
-        # Save stderr in a file to read it later in case of errors
-        stderr = get_stderr_file_handle(stderr_file)
+        # Catch any error generated when trying to start the kernel
+        # See issue 7302
         try:
-            # Catch any error generated when trying to start the kernel
-            # See issue 7302
-            try:
-                kernel_manager.start_kernel(stderr=stderr)
-            except Exception:
-                error_msg = _("The error is:<br><br>"
-                              "<tt>{}</tt>").format(traceback.format_exc())
-                return (error_msg, None)
-        finally:
-            if stderr is not None:
-                stderr.close()
+            kernel_manager.start_kernel(stderr=stderr_handle)
+        except Exception:
+            error_msg = _("The error is:<br><br>"
+                          "<tt>{}</tt>").format(traceback.format_exc())
+            return (error_msg, None)
 
         # Kernel client
         kernel_client = kernel_manager.client()
@@ -1663,6 +1659,22 @@ class IPythonConsole(SpyderPluginWidget):
 
         if client is not None:
             client.restart_kernel()
+
+    def connect_external_kernel(self, shellwidget):
+        """
+        Connect an external kernel to the Variable Explorer and Help, if
+        it is a Spyder kernel.
+        """
+        sw = shellwidget
+        kc = shellwidget.kernel_client
+        if self.help is not None:
+            self.help.set_shell(sw)
+        if self.variableexplorer is not None:
+            self.variableexplorer.add_shellwidget(sw)
+            sw.set_namespace_view_settings()
+            sw.refresh_namespacebrowser()
+            kc.stopped_channels.connect(lambda :
+                self.variableexplorer.remove_shellwidget(id(sw)))
 
     #------ Public API (for tabs) ---------------------------------------------
     def add_tab(self, widget, name, filename=''):
@@ -1807,22 +1819,6 @@ class IPythonConsole(SpyderPluginWidget):
         if self.plots is not None:
             self.plots.remove_shellwidget(id(client.shellwidget))
 
-    def connect_external_kernel(self, shellwidget):
-        """
-        Connect an external kernel to the Variable Explorer and Help, if
-        it is a Spyder kernel.
-        """
-        sw = shellwidget
-        kc = shellwidget.kernel_client
-        if self.help is not None:
-            self.help.set_shell(sw)
-        if self.variableexplorer is not None:
-            self.variableexplorer.add_shellwidget(sw)
-            sw.set_namespace_view_settings()
-            sw.refresh_namespacebrowser()
-            kc.stopped_channels.connect(lambda :
-                self.variableexplorer.remove_shellwidget(id(sw)))
-
     def _create_client_for_kernel(self, connection_file, hostname, sshkey,
                                   password):
         # Verifying if the connection file exists
@@ -1932,3 +1928,19 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Register client
         self.register_client(client)
+
+    def _remove_old_stderr_files(self):
+        """
+        Remove stderr files left by previous Spyder instances.
+
+        This is only required on Windows because we can't
+        clean up stderr files while Spyder is running on it.
+        """
+        if os.name == 'nt':
+            tmpdir = get_temp_dir()
+            for fname in os.listdir(tmpdir):
+                if osp.splitext(fname)[1] == '.stderr':
+                    try:
+                        os.remove(osp.join(tmpdir, fname))
+                    except Exception:
+                        pass
