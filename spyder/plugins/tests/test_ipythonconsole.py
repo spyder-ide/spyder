@@ -15,16 +15,19 @@ import codecs
 import os
 import os.path as osp
 import shutil
+import sys
 import tempfile
 from textwrap import dedent
 
 # Third party imports
 import cloudpickle
 from flaky import flaky
+from jupyter_client.kernelspec import KernelSpec
 from pygments.token import Name
 import pytest
 from qtpy import PYQT5
 from qtpy.QtCore import Qt
+from qtpy.QtWebEngineWidgets import WEBENGINE
 from qtpy.QtWidgets import QMessageBox
 import zmq
 
@@ -32,6 +35,7 @@ import zmq
 from spyder.config.gui import get_color_scheme
 from spyder.config.main import CONF
 from spyder.py3compat import PY2, to_text_string
+from spyder.plugins.tests.test_help import check_text
 from spyder.plugins.ipythonconsole import IPythonConsole
 from spyder.utils.ipython.style import create_style_class
 
@@ -58,6 +62,13 @@ def get_console_background_color(style_sheet):
     background_color = style_sheet.split('background-color:')[1]
     background_color = background_color.split(';')[0]
     return background_color
+
+
+class FaultyKernelSpec(KernelSpec):
+    """Kernelspec that generates a kernel crash"""
+
+    argv = [sys.executable, '-m', 'spyder_kernels.foo', '-f',
+            '{connection_file}']
 
 
 # =============================================================================
@@ -927,6 +938,33 @@ def test_stderr_file_remains_two_kernels(ipyconsole, qtbot, monkeypatch):
     assert osp.exists(client.stderr_file)
     ipyconsole.close_client(client=client)
     assert osp.exists(client.stderr_file)
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_kernel_crash(ipyconsole, mocker, qtbot):
+    """Test that we show kernel error messages when a kernel crash occurs."""
+    # Patch create_kernel_spec method to make it return a faulty
+    # kernel spec
+    mocker.patch.object(ipyconsole, 'create_kernel_spec')
+    ipyconsole.create_kernel_spec.return_value = FaultyKernelSpec()
+
+    # Create a new client, which will use FaultyKernelSpec
+    ipyconsole.create_new_client()
+
+    # Assert that the console is showing an error
+    qtbot.wait(6000)
+    error_client = ipyconsole.get_clients()[-1]
+    assert error_client.is_error_shown
+
+    # Assert the error contains the text we expect
+    webview = error_client.infowidget
+    if WEBENGINE:
+        webpage = webview.page()
+    else:
+        webpage = webview.page().mainFrame()
+
+    qtbot.waitUntil(lambda: check_text(webpage, "foo"), timeout=6000)
 
 
 if __name__ == "__main__":
