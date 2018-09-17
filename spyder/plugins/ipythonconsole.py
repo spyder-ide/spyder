@@ -1595,6 +1595,22 @@ class IPythonConsole(SpyderPluginWidget):
         if client is not None:
             client.restart_kernel()
 
+    def connect_external_kernel(self, shellwidget):
+        """
+        Connect an external kernel to the Variable Explorer and Help, if
+        it is a Spyder kernel.
+        """
+        sw = shellwidget
+        kc = shellwidget.kernel_client
+        if self.help is not None:
+            self.help.set_shell(sw)
+        if self.variableexplorer is not None:
+            self.variableexplorer.add_shellwidget(sw)
+            sw.set_namespace_view_settings()
+            sw.refresh_namespacebrowser()
+            kc.stopped_channels.connect(lambda :
+                self.variableexplorer.remove_shellwidget(id(sw)))
+
     #------ Public API (for tabs) ---------------------------------------------
     def add_tab(self, widget, name, filename=''):
         """Add tab"""
@@ -1733,22 +1749,6 @@ class IPythonConsole(SpyderPluginWidget):
     def process_finished(self, client):
         if self.variableexplorer is not None:
             self.variableexplorer.remove_shellwidget(id(client.shellwidget))
-
-    def connect_external_kernel(self, shellwidget):
-        """
-        Connect an external kernel to the Variable Explorer and Help, if
-        it is a Spyder kernel.
-        """
-        sw = shellwidget
-        kc = shellwidget.kernel_client
-        if self.help is not None:
-            self.help.set_shell(sw)
-        if self.variableexplorer is not None:
-            self.variableexplorer.add_shellwidget(sw)
-            sw.set_namespace_view_settings()
-            sw.refresh_namespacebrowser()
-            kc.stopped_channels.connect(lambda :
-                self.variableexplorer.remove_shellwidget(id(sw)))
 
     def _create_client_for_kernel(self, connection_file, hostname, sshkey,
                                   password):
