@@ -114,7 +114,7 @@ def test_recoverydialog_restore_button(qtbot, recovery_env):
     orig_dir, autosave_dir, autosave_mapping = recovery_env
     dialog = RecoveryDialog(autosave_dir, autosave_mapping)
     table = dialog.findChild(QTableWidget)
-    button = table.cellWidget(0, 2).findChild(QPushButton)
+    button = table.cellWidget(0, 2).findChildren(QPushButton)[0]
     button.click()
     with open(osp.join(orig_dir, 'ham.py')) as f:
         assert f.read() == 'ham = "autosave"\n'
@@ -135,7 +135,7 @@ def test_recoverydialog_restore_when_original_does_not_exist(
     orig_dir, autosave_dir, autosave_mapping = recovery_env
     dialog = RecoveryDialog(autosave_dir, autosave_mapping)
     table = dialog.findChild(QTableWidget)
-    button = table.cellWidget(1, 2).findChild(QPushButton)
+    button = table.cellWidget(1, 2).findChildren(QPushButton)[0]
     button.click()
     with open(osp.join(orig_dir, 'spam.py')) as f:
         assert f.read() == 'spam = "autosave"\n'
@@ -158,7 +158,7 @@ def test_recoverydialog_restore_when_original_not_recorded(
                  return_value=(new_name, 'ignored'))
     dialog = RecoveryDialog(autosave_dir, autosave_mapping)
     table = dialog.findChild(QTableWidget)
-    button = table.cellWidget(2, 2).findChild(QPushButton)
+    button = table.cellWidget(2, 2).findChildren(QPushButton)[0]
     button.click()
     with open(new_name) as f:
         assert f.read() == 'cheese = "autosave"\n'
@@ -186,7 +186,7 @@ def test_recoverydialog_restore_when_error(qtbot, recovery_env, mocker):
                 'spyder.plugins.editor.widgets.recover.QMessageBox')
     dialog = RecoveryDialog(autosave_dir, autosave_mapping)
     table = dialog.findChild(QTableWidget)
-    button = table.cellWidget(0, 2).findChild(QPushButton)
+    button = table.cellWidget(0, 2).findChildren(QPushButton)[0]
     button.click()
     with open(osp.join(orig_dir, 'ham.py')) as f:
         assert f.read() == 'ham = "original"\n'
@@ -213,10 +213,10 @@ def test_recoverydialog_accepted_after_all_restored(
     table = dialog.findChild(QTableWidget)
     with qtbot.assertNotEmitted(dialog.accepted):
         for row in range(table.rowCount() - 1):
-            table.cellWidget(row, 2).findChild(QPushButton).click()
+            table.cellWidget(row, 2).findChildren(QPushButton)[0].click()
     with qtbot.waitSignal(dialog.accepted):
         row = table.rowCount() - 1
-        table.cellWidget(row, 2).findChild(QPushButton).click()
+        table.cellWidget(row, 2).findChildren(QPushButton)[0].click()
 
 
 def test_recoverydialog_discard_button(qtbot, recovery_env):
@@ -230,7 +230,7 @@ def test_recoverydialog_discard_button(qtbot, recovery_env):
     orig_dir, autosave_dir, autosave_mapping = recovery_env
     dialog = RecoveryDialog(autosave_dir, autosave_mapping)
     table = dialog.findChild(QTableWidget)
-    button = table.cellWidget(0, 3).findChild(QPushButton)
+    button = table.cellWidget(0, 2).findChildren(QPushButton)[1]
     button.click()
     assert not osp.isfile(osp.join(autosave_dir, 'ham.py'))
     with open(osp.join(orig_dir, 'ham.py')) as f:
@@ -254,7 +254,7 @@ def test_recoverydialog_discard_when_error(qtbot, recovery_env, mocker):
                 'spyder.plugins.editor.widgets.recover.QMessageBox')
     dialog = RecoveryDialog(autosave_dir, autosave_mapping)
     table = dialog.findChild(QTableWidget)
-    button = table.cellWidget(0, 3).findChild(QPushButton)
+    button = table.cellWidget(0, 2).findChildren(QPushButton)[1]
     button.click()
     with open(osp.join(orig_dir, 'ham.py')) as f:
         assert f.read() == 'ham = "original"\n'
@@ -276,7 +276,7 @@ def test_recoverydialog_open_button(qtbot, recovery_env):
     orig_dir, autosave_dir, autosave_mapping = recovery_env
     dialog = RecoveryDialog(autosave_dir, autosave_mapping)
     table = dialog.findChild(QTableWidget)
-    button = table.cellWidget(0, 4).findChild(QPushButton)
+    button = table.cellWidget(0, 2).findChildren(QPushButton)[2]
     button.click()
     assert dialog.files_to_open == [osp.join(orig_dir, 'ham.py'),
                                     osp.join(autosave_dir, 'ham.py')]
@@ -295,7 +295,7 @@ def test_recoverydialog_open_when_no_original(qtbot, recovery_env):
     orig_dir, autosave_dir, autosave_mapping = recovery_env
     dialog = RecoveryDialog(autosave_dir, autosave_mapping)
     table = dialog.findChild(QTableWidget)
-    button = table.cellWidget(2, 4).findChild(QPushButton)
+    button = table.cellWidget(2, 2).findChildren(QPushButton)[2]
     button.click()
     assert dialog.files_to_open == [osp.join(autosave_dir, 'cheese.py')]
     for col in range(table.columnCount()):

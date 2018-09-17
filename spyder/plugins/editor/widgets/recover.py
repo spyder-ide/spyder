@@ -140,23 +140,12 @@ class RecoveryDialog(QDialog):
         label.setAlignment(Qt.AlignCenter)
         self.table.setCellWidget(row, col, label)
 
-    def add_button_to_table(self, row, col, label, tooltip, slot):
-        """Add a button to specified cell in table."""
-        widget = QWidget()
-        layout = QHBoxLayout()
-        button = QPushButton(label)
-        button.setToolTip(tooltip)
-        button.clicked.connect(slot)
-        layout.addWidget(button)
-        widget.setLayout(layout)
-        self.table.setCellWidget(row, col, widget)
-
     def add_table(self):
         """Add table with info about files to be recovered."""
-        table = QTableWidget(len(self.data), 5, self)
+        table = QTableWidget(len(self.data), 3, self)
         self.table = table
 
-        labels = [_('Original file'), _('Autosave file'), '', '', '']
+        labels = [_('Original file'), _('Autosave file'), _('Actions')]
         table.setHorizontalHeaderLabels(labels)
         table.verticalHeader().hide()
 
@@ -168,23 +157,35 @@ class RecoveryDialog(QDialog):
             self.add_label_to_table(idx, 0, file_data_to_str(original))
             self.add_label_to_table(idx, 1, file_data_to_str(autosave))
 
+            widget = QWidget()
+            layout = QHBoxLayout()
+
             tooltip = _('Recover the autosave file to its original location, '
                         'replacing the original if it exists.')
-            self.add_button_to_table(
-                    idx, 2, _('Restore'), tooltip,
+            button = QPushButton(_('Restore'))
+            button.setToolTip(tooltip)
+            button.clicked.connect(
                     lambda checked, my_idx=idx: self.restore(my_idx))
+            layout.addWidget(button)
 
             tooltip = _('Delete the autosave file.')
-            self.add_button_to_table(
-                    idx, 3, _('Discard'), tooltip,
+            button = QPushButton(_('Discard'))
+            button.setToolTip(tooltip)
+            button.clicked.connect(
                     lambda checked, my_idx=idx: self.discard(my_idx))
+            layout.addWidget(button)
 
             tooltip = _('Display the autosave file (and the original, if it '
                         'exists) in Spyder\'s Editor. You will have to move '
                         'or delete it manually.')
-            self.add_button_to_table(
-                    idx, 4, _('Open'), tooltip,
+            button = QPushButton(_('Open'))
+            button.setToolTip(tooltip)
+            button.clicked.connect(
                     lambda checked, my_idx=idx: self.open_files(my_idx))
+            layout.addWidget(button)
+
+            widget.setLayout(layout)
+            self.table.setCellWidget(idx, 2, widget)
 
         table.resizeRowsToContents()
         table.resizeColumnsToContents()
