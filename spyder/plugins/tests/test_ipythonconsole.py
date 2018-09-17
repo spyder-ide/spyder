@@ -869,6 +869,7 @@ def test_set_elapsed_time(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="Doesn't work on Windows")
 def test_stderr_file_is_removed_one_kernel(ipyconsole, qtbot, monkeypatch):
     """Test that consoles removes stderr when client is closed."""
     # Wait until the window is fully up
@@ -887,6 +888,7 @@ def test_stderr_file_is_removed_one_kernel(ipyconsole, qtbot, monkeypatch):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="Doesn't work on Windows")
 def test_stderr_file_is_removed_two_kernels(ipyconsole, qtbot, monkeypatch):
     """Test that console removes stderr when client and related clients
     are closed."""
@@ -914,6 +916,7 @@ def test_stderr_file_is_removed_two_kernels(ipyconsole, qtbot, monkeypatch):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="Doesn't work on Windows")
 def test_stderr_file_remains_two_kernels(ipyconsole, qtbot, monkeypatch):
     """Test that console doesn't remove stderr when a related client is not
     closed."""
