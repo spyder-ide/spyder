@@ -37,6 +37,7 @@ from spyder.py3compat import PY2, to_text_string
 from spyder.plugins.tests.test_help import check_text
 from spyder.plugins.ipythonconsole import IPythonConsole
 from spyder.utils.ipython.style import create_style_class
+from spyder.utils.programs import get_temp_dir
 
 
 # =============================================================================
@@ -966,6 +967,20 @@ def test_kernel_crash(ipyconsole, mocker, qtbot):
     else:
         webpage = webview.page().mainFrame()
     qtbot.waitUntil(lambda: check_text(webpage, "foo"), timeout=6000)
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not os.name == 'nt', reason="Only works on Windows")
+def test_remove_old_stderr_files(ipyconsole, qtbot):
+    """Test that we are removing old stderr files."""
+    # Create empty stderr file in our temp dir to see
+    # if it's removed correctly.
+    tmpdir = get_temp_dir()
+    open(osp.join(tmpdir, 'foo.stderr'), 'a').close()
+
+    # Assert that only that file is removed
+    ipyconsole._remove_old_stderr_files()
+    assert not osp.isfile(osp.join(tmpdir, 'foo.stderr'))
 
 
 if __name__ == "__main__":
