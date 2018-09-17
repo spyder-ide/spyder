@@ -1576,7 +1576,7 @@ class IPythonConsole(SpyderPluginWidget):
             kernel_manager.start_kernel(stderr=stderr_handle)
         except Exception:
             error_msg = _("The error is:<br><br>"
-                            "<tt>{}</tt>").format(traceback.format_exc())
+                          "<tt>{}</tt>").format(traceback.format_exc())
             return (error_msg, None)
 
         # Kernel client
