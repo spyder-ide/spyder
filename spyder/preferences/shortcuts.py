@@ -84,6 +84,7 @@ class CustomLineEdit(QLineEdit):
 
 class ShortcutFinder(QLineEdit):
     """Textbox for filtering listed shortcuts in the table."""
+
     def __init__(self, parent, callback=None):
         super(ShortcutFinder, self).__init__(parent)
         self._parent = parent
@@ -122,6 +123,7 @@ class ShortcutFinder(QLineEdit):
 
 class ShortcutEditor(QDialog):
     """A dialog for entering key sequences."""
+
     def __init__(self, parent, context, name, sequence, shortcuts):
         super(ShortcutEditor, self).__init__(parent)
         self._parent = parent
@@ -474,6 +476,7 @@ class Shortcut(object):
     """Shortcut convenience class for holding shortcut context, name,
     original ordering index, key sequence for the shortcut and localized text.
     """
+
     def __init__(self, context, name, key=None):
         self.index = 0  # Sorted index. Populated when loading shortcuts
         self.context = context
@@ -627,6 +630,7 @@ class ShortcutsModel(QAbstractTableModel):
 
 class CustomSortFilterProxy(QSortFilterProxyModel):
     """Custom column filter based on regex."""
+
     def __init__(self, parent=None):
         super(CustomSortFilterProxy, self).__init__(parent)
         self._parent = parent
