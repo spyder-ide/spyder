@@ -127,9 +127,9 @@ def config_shortcut(action, context, name, parent):
 
 def iter_shortcuts():
     """Iterate over keyboard shortcuts"""
-    for option in CONF.options('shortcuts'):
-        context, name = option.split("/", 1)
-        yield context, name, get_shortcut(context, name)
+    for context_name, keystr in CONF.items('shortcuts'):
+        context, name = context_name.split("/", 1)
+        yield context, name, keystr
 
 
 def reset_shortcuts():
