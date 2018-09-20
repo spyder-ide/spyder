@@ -66,10 +66,11 @@ BLACKLIST['Shift'] = _('Shortcuts that use Shift and another key'
                        ' are unsupported')
 
 
-class CustomLineEdit(QLineEdit):
+class ShortcutLineEdit(QLineEdit):
     """QLineEdit that filters its key press and release events."""
+
     def __init__(self, parent):
-        super(CustomLineEdit, self).__init__(parent)
+        super(ShortcutLineEdit, self).__init__(parent)
         self.setReadOnly(True)
         self.setFocusPolicy(Qt.NoFocus)
 
@@ -155,7 +156,7 @@ class ShortcutEditor(QDialog):
         self.label_current_sequence = QLabel(_("Current shortcut:"))
         self.text_current_sequence = QLabel(sequence)
         self.label_new_sequence = QLabel(_("New shortcut:"))
-        self.text_new_sequence = CustomLineEdit(self)
+        self.text_new_sequence = ShortcutLineEdit(self)
         self.text_new_sequence.setPlaceholderText(sequence)
         self.helper_button = HelperToolButton()
         self.helper_button.hide()
