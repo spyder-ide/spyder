@@ -81,6 +81,14 @@ class CustomLineEdit(QLineEdit):
         """Qt Override"""
         self.parent().keyReleaseEvent(e)
 
+    def setText(self, sequence):
+        """Qt method extension."""
+        if sys.platform == 'darwin':
+            sequence = sequence.replace('Meta', 'Ctrl')
+            sequence = sequence.replace('Ctrl', 'Cmd')
+        self.setToolTip(sequence)
+        super(ShortcutLineEdit, self).setText(sequence)
+
 
 class ShortcutFinder(QLineEdit):
     """Textbox for filtering listed shortcuts in the table."""
@@ -391,20 +399,6 @@ class ShortcutEditor(QDialog):
             self.button_ok.setEnabled(True)
             different_sequence = True
 
-        if sys.platform == 'darwin':
-            if 'Meta+Ctrl' in sequence:
-                shown_sequence = sequence.replace('Meta+Ctrl', 'Ctrl+Cmd')
-            elif 'Ctrl+Meta' in sequence:
-                shown_sequence = sequence.replace('Ctrl+Meta', 'Cmd+Ctrl')
-            elif 'Ctrl' in sequence:
-                shown_sequence = sequence.replace('Ctrl', 'Cmd')
-            elif 'Meta' in sequence:
-                shown_sequence = sequence.replace('Meta', 'Ctrl')
-            else:
-                shown_sequence = sequence
-        else:
-            shown_sequence = sequence
-        self.text_new_sequence.setText(shown_sequence)
         self.new_sequence = sequence
 
         conflicts = self.check_conflicts()
