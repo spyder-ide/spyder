@@ -16,12 +16,11 @@ import sys
 from qtpy import PYQT5
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QModelIndex, QRegExp,
-                         QSortFilterProxyModel, Qt, Slot)
-from qtpy.QtGui import (QKeySequence, QRegExpValidator)
+from qtpy.QtGui import (QKeySequence, QRegExpValidator, QIcon)
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
-                            QDialogButtonBox, QGridLayout, QHBoxLayout, QLabel,
+                            QGridLayout, QHBoxLayout, QLabel,
                             QLineEdit, QMessageBox, QPushButton, QSpacerItem,
-                            QTableView, QVBoxLayout)
+                            QTableView, QVBoxLayout, QKeySequenceEdit)
 
 # Local imports
 from spyder.config.base import _, debug_print
@@ -64,6 +63,39 @@ VALID_FINDER_CHARS = r"[A-Za-z\s{0}]".format(VALID_ACCENT_CHARS)
 BLACKLIST = {}
 BLACKLIST['Shift'] = _('Shortcuts that use Shift and another key'
                        ' are unsupported')
+
+
+class ShortcutTranslater(QKeySequenceEdit):
+    """
+    A `QKeySequenceEdit` that is not meant to be shown and is used only
+    to convert `QKeyEvent`s into `QKeySequence`s. To our knowledge, this is
+    the only way to do this within the Qt framework because the code that does
+    this in Qt is protected. Porting the code to Python would be nearly
+    impossible because it relies on low level and OS dependent Qt librairies
+    that are not public for the most part.
+    """
+
+    def __init__(self):
+        super(ShortcutTranslater, self).__init__()
+        self.hide()
+
+    def keyevent_to_keyseq(self, event):
+        """Return a QKeySequence representation of the provided QKeyEvent."""
+        self.keyPressEvent(event)
+        event.ignore()
+        return self.keySequence()
+
+    def keyReleaseEvent(self, event):
+        """Qt Override"""
+        return False
+
+    def timerEvent(self, event):
+        """Qt Override"""
+        return False
+
+    def event(self, event):
+        """Qt Override"""
+        return False
 
 
 class ShortcutLineEdit(QLineEdit):
