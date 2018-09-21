@@ -900,5 +900,6 @@ def test():
 
     table.check_shortcuts()
 
+
 if __name__ == '__main__':
     test()
