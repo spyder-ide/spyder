@@ -325,7 +325,7 @@ class ShortcutEditor(QDialog):
         conflicts = []
         if self.new_qsequence.isEmpty():
             return conflicts
-        
+
         for shortcut in self.shortcuts:
             shortcut_qsequence = QKeySequence.fromString(str(shortcut.key))
             if shortcut_qsequence.isEmpty():
@@ -345,7 +345,7 @@ class ShortcutEditor(QDialog):
         else:
             keystr = self.new_subseq[0]
             valid_single_keys = (EDITOR_SINGLE_KEYS if
-                                     self.context == 'editor' else SINGLE_KEYS)
+                                 self.context == 'editor' else SINGLE_KEYS)
             if any((m in keystr for m in ('Ctrl', 'Alt', 'Shift', 'Meta'))):
                 return True
             else:
@@ -357,7 +357,7 @@ class ShortcutEditor(QDialog):
                     return True
                 else:
                     return False
-                
+
     def check_shift_keyseq(self):
         """
         Check if the first sub-sequence of the new key sequence is composed
@@ -446,7 +446,7 @@ class ShortcutEditor(QDialog):
                 warning = SEQUENCE_CONFLICT
             else:
                 warning = NO_WARNING
-        
+
             self.button_ok.setEnabled(warning == NO_WARNING)
             self.update_warning(warning_type=warning, conflicts=conflicts)
 
