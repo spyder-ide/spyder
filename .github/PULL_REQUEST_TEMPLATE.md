@@ -15,20 +15,20 @@
 * [ ] Included a screenshot, if this PR makes any visible changes to the UI
 
 
-### Affirmation
+### Developer Certificate of Origin Affirmation
 
-By submitting this Pull Request, I affirm that:
-* I release the content of this PR under Spyder's MIT (Expat) license.
-* I hold the copyright to all the content in this PR, have not copied any of it
-  directly or indirectly from any source other than the public domain,
-  and no other party owns the rights to this work.
+By submitting this Pull Request or typing my name below, I affirm the
+[Developer Certificate of Origin](https://developercertificate.org/)
+with respect to both the content of the contribution itself and this post,
+and understand I am releasing it under Spyder's MIT (Expat) license.
 
-<!--- TYPE YOUR GITHUB USERNAME OR FULL NAME AFTER THE BELOW STATEMENT ---!>
-I affirm all of the above:
+
+<!--- TYPE YOUR GITHUB USERNAME AFTER THE FOLLOWING STATEMENT ---!>
+I certify the above statement is true and correct:
 
 <!--- Note that you (not Spyder) retain copyright ownership of your work, --->
 <!--- and may license it to other parties under the terms of your choice. --->
-<!--- Contact us if you would like to include content from other sources. --->
+<!--- Contact us before incorporating any content from external projects. --->
 
 
 ## Description of Changes
