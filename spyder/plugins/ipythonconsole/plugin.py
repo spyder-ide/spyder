@@ -52,8 +52,7 @@ from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.programs import get_temp_dir
-from spyder.utils.misc import (get_error_match, get_stderr_file_handle, 
-                               remove_backslashes)
+from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.ipythonconsole.widgets import ClientWidget
 from spyder.widgets.tabs import Tabs
@@ -165,26 +164,24 @@ def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1',
 
 
 class KernelConnectionDialog(QDialog):
-    """Dialog to connect to existing kernels (either local or remote)"""
-    
+    """Dialog to connect to existing kernels (either local or remote)."""
+
     def __init__(self, parent=None):
         super(KernelConnectionDialog, self).__init__(parent)
         self.setWindowTitle(_('Connect to an existing kernel'))
-        
-        main_label = QLabel(_("Please enter the connection info of the kernel "
-                              "you want to connect to. For that you can "
-                              "either select its JSON connection file using "
-                              "the <tt>Browse</tt> button, or write directly "
-                              "its id, in case it's a local kernel (for "
-                              "example <tt>kernel-3764.json</tt> or just "
-                              "<tt>3764</tt>)."))
+
+        main_label = QLabel(_(
+            "Please select the JSON connection file (<i>e.g.</i> "
+            "<tt>kernel-3764.json</tt>) or enter the 4-digit ID (<i>e.g.</i> "
+            "<tt>3764</tt>) of the existing kernel to connect to, "
+            "and enter the SSH host name and credentials if a remote kernel."))
         main_label.setWordWrap(True)
         main_label.setAlignment(Qt.AlignJustify)
-        
-        # connection file
-        cf_label = QLabel(_('Connection info:'))
+
+        # Connection file
+        cf_label = QLabel(_('Kernel ID/Connection file:'))
         self.cf = QLineEdit()
-        self.cf.setPlaceholderText(_('Path to connection file or kernel id'))
+        self.cf.setPlaceholderText(_('ID number or path to connection file'))
         self.cf.setMinimumWidth(250)
         cf_open_btn = QPushButton(_('Browse'))
         cf_open_btn.clicked.connect(self.select_connection_file)
@@ -193,32 +190,40 @@ class KernelConnectionDialog(QDialog):
         cf_layout.addWidget(cf_label)
         cf_layout.addWidget(self.cf)
         cf_layout.addWidget(cf_open_btn)
-        
-        # remote kernel checkbox 
-        self.rm_cb = QCheckBox(_('This is a remote kernel'))
-        
-        # ssh connection 
+
+        # Remote kernel checkbox
+        self.rm_cb = QCheckBox(_('This is a remote kernel (via SSH)'))
+
+        # Descriptive text explaining SSH credentials
+        credential_label = QLabel(_(
+            "<b>Note:</b> If connecting to a remote kernel, only the "
+            "SSH keyfile <i>or</i> the Password field need to be completed, "
+            "unless the keyfile is protected with a passphrase."))
+        credential_label.setWordWrap(True)
+
+        # SSH connection
         self.hn = QLineEdit()
         self.hn.setPlaceholderText(_('username@hostname:port'))
-        
+
+        self.pw = QLineEdit()
+        self.pw.setPlaceholderText(_('Remote user password or '
+                                     'SSH keyfile passphrase'))
+        self.pw.setEchoMode(QLineEdit.Password)
+
         self.kf = QLineEdit()
-        self.kf.setPlaceholderText(_('Path to ssh key file'))
+        self.kf.setPlaceholderText(_('Path to SSH keyfile (optional)'))
         kf_open_btn = QPushButton(_('Browse'))
         kf_open_btn.clicked.connect(self.select_ssh_key)
 
         kf_layout = QHBoxLayout()
         kf_layout.addWidget(self.kf)
         kf_layout.addWidget(kf_open_btn)
-        
-        self.pw = QLineEdit()
-        self.pw.setPlaceholderText(_('Password or ssh key passphrase'))
-        self.pw.setEchoMode(QLineEdit.Password)
 
         ssh_form = QFormLayout()
-        ssh_form.addRow(_('Host name'), self.hn)
-        ssh_form.addRow(_('Ssh key'), kf_layout)
-        ssh_form.addRow(_('Password'), self.pw)
-        
+        ssh_form.addRow(_('Host name:'), self.hn)
+        ssh_form.addRow(_('Password:'), self.pw)
+        ssh_form.addRow(_('SSH keyfile:'), kf_layout)
+
         # Ok and Cancel buttons
         self.accept_btns = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
@@ -232,26 +237,28 @@ class KernelConnectionDialog(QDialog):
         layout.addWidget(main_label)
         layout.addLayout(cf_layout)
         layout.addWidget(self.rm_cb)
+        layout.addWidget(credential_label)
         layout.addLayout(ssh_form)
         layout.addWidget(self.accept_btns)
-                
-        # remote kernel checkbox enables the ssh_connection_form
+
+        # Remote kernel checkbox enables the ssh_connection_form
         def ssh_set_enabled(state):
-            for wid in [self.hn, self.kf, kf_open_btn, self.pw]:
+            for wid in [credential_label, self.hn, self.pw,
+                        self.kf, kf_open_btn]:
                 wid.setEnabled(state)
             for i in range(ssh_form.rowCount()):
                 ssh_form.itemAt(2 * i).widget().setEnabled(state)
-       
+
         ssh_set_enabled(self.rm_cb.checkState())
         self.rm_cb.stateChanged.connect(ssh_set_enabled)
 
     def select_connection_file(self):
-        cf = getopenfilename(self, _('Open connection file'),
+        cf = getopenfilename(self, _('Select kernel connection file'),
                              jupyter_runtime_dir(), '*.json;;*.*')[0]
         self.cf.setText(cf)
 
     def select_ssh_key(self):
-        kf = getopenfilename(self, _('Select ssh key'),
+        kf = getopenfilename(self, _('Select SSH keyfile'),
                              get_home_dir(), '*.pem;;*.*')[0]
         self.kf.setText(kf)
 
@@ -805,6 +812,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.mainwindow_close = True
         for client in self.clients:
             client.shutdown()
+            client.remove_stderr_file()
             client.close()
         return True
 
@@ -930,6 +938,8 @@ class IPythonConsole(SpyderPluginWidget):
                                      self.set_current_client_working_directory)
 
         self.tabwidget.currentChanged.connect(self.update_working_directory)
+
+        self._remove_old_stderr_files()
 
     #------ Public API (for clients) ------------------------------------------
     def get_clients(self):
@@ -1064,9 +1074,9 @@ class IPythonConsole(SpyderPluginWidget):
                         sw.sig_prompt_ready.disconnect()
                     except TypeError:
                         pass
-                    sw.reset_namespace(warning=False, silent=True)
+                    sw.reset_namespace(warning=False)
                 elif current_client and clear_variables:
-                    sw.reset_namespace(warning=False, silent=True)
+                    sw.reset_namespace(warning=False)
                 # Needed to handle an error when kernel_client is none
                 # See issue 6308
                 try:
@@ -1182,13 +1192,13 @@ class IPythonConsole(SpyderPluginWidget):
         connection_file = client.connection_file
 
         if self.test_no_stderr:
-            stderr_file = None
+            stderr_handle = None
         else:
-            stderr_file = client.stderr_file
+            stderr_handle = client.stderr_handle
 
         km, kc = self.create_kernel_manager_and_kernel_client(
                      connection_file,
-                     stderr_file,
+                     stderr_handle,
                      is_cython=is_cython,
                      is_pylab=is_pylab,
                      is_sympy=is_sympy)
@@ -1445,7 +1455,7 @@ class IPythonConsole(SpyderPluginWidget):
         # if there aren't related clients we can remove stderr_file
         related_clients = self.get_related_clients(client)
         if len(related_clients) == 0 and osp.exists(client.stderr_file):
-            os.remove(client.stderr_file)
+            client.remove_stderr_file()
 
         client.close()
 
@@ -1605,7 +1615,7 @@ class IPythonConsole(SpyderPluginWidget):
                                 is_sympy=is_sympy)
 
     def create_kernel_manager_and_kernel_client(self, connection_file,
-                                                stderr_file,
+                                                stderr_handle,
                                                 is_cython=False,
                                                 is_pylab=False,
                                                 is_sympy=False):
@@ -1625,20 +1635,14 @@ class IPythonConsole(SpyderPluginWidget):
             return (error_msg, None)
         kernel_manager._kernel_spec = kernel_spec
 
-        # Save stderr in a file to read it later in case of errors
-        stderr = get_stderr_file_handle(stderr_file)
+        # Catch any error generated when trying to start the kernel
+        # See issue 7302
         try:
-            # Catch any error generated when trying to start the kernel
-            # See issue 7302
-            try:
-                kernel_manager.start_kernel(stderr=stderr)
-            except Exception:
-                error_msg = _("The error is:<br><br>"
-                              "<tt>{}</tt>").format(traceback.format_exc())
-                return (error_msg, None)
-        finally:
-            if stderr is not None:
-                stderr.close()
+            kernel_manager.start_kernel(stderr=stderr_handle)
+        except Exception:
+            error_msg = _("The error is:<br><br>"
+                          "<tt>{}</tt>").format(traceback.format_exc())
+            return (error_msg, None)
 
         # Kernel client
         kernel_client = kernel_manager.client()
@@ -1655,6 +1659,22 @@ class IPythonConsole(SpyderPluginWidget):
 
         if client is not None:
             client.restart_kernel()
+
+    def connect_external_kernel(self, shellwidget):
+        """
+        Connect an external kernel to the Variable Explorer and Help, if
+        it is a Spyder kernel.
+        """
+        sw = shellwidget
+        kc = shellwidget.kernel_client
+        if self.help is not None:
+            self.help.set_shell(sw)
+        if self.variableexplorer is not None:
+            self.variableexplorer.add_shellwidget(sw)
+            sw.set_namespace_view_settings()
+            sw.refresh_namespacebrowser()
+            kc.stopped_channels.connect(lambda :
+                self.variableexplorer.remove_shellwidget(id(sw)))
 
     #------ Public API (for tabs) ---------------------------------------------
     def add_tab(self, widget, name, filename=''):
@@ -1799,22 +1819,6 @@ class IPythonConsole(SpyderPluginWidget):
         if self.plots is not None:
             self.plots.remove_shellwidget(id(client.shellwidget))
 
-    def connect_external_kernel(self, shellwidget):
-        """
-        Connect an external kernel to the Variable Explorer and Help, if
-        it is a Spyder kernel.
-        """
-        sw = shellwidget
-        kc = shellwidget.kernel_client
-        if self.help is not None:
-            self.help.set_shell(sw)
-        if self.variableexplorer is not None:
-            self.variableexplorer.add_shellwidget(sw)
-            sw.set_namespace_view_settings()
-            sw.refresh_namespacebrowser()
-            kc.stopped_channels.connect(lambda :
-                self.variableexplorer.remove_shellwidget(id(sw)))
-
     def _create_client_for_kernel(self, connection_file, hostname, sshkey,
                                   password):
         # Verifying if the connection file exists
@@ -1924,3 +1928,19 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Register client
         self.register_client(client)
+
+    def _remove_old_stderr_files(self):
+        """
+        Remove stderr files left by previous Spyder instances.
+
+        This is only required on Windows because we can't
+        clean up stderr files while Spyder is running on it.
+        """
+        if os.name == 'nt':
+            tmpdir = get_temp_dir()
+            for fname in os.listdir(tmpdir):
+                if osp.splitext(fname)[1] == '.stderr':
+                    try:
+                        os.remove(osp.join(tmpdir, fname))
+                    except Exception:
+                        pass

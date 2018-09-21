@@ -11,6 +11,7 @@ Shell Widget for the IPython Console
 import ast
 import os
 import uuid
+from textwrap import dedent
 
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
@@ -231,13 +232,14 @@ the sympy module (e.g. plot)
 
     def _reset_namespace(self):
         warning = CONF.get('ipython_console', 'show_reset_namespace_warning')
-        self.reset_namespace(silent=True, warning=warning)
+        self.reset_namespace(warning=warning)
 
-    def reset_namespace(self, warning=False, silent=True, message=False):
+    def reset_namespace(self, warning=False, message=False):
         """Reset the namespace by removing all names defined by the user."""
         reset_str = _("Remove all variables")
         warn_str = _("All user-defined variables will be removed. "
                      "Are you sure you want to proceed?")
+        kernel_env = self.kernel_manager._kernel_spec.env
 
         if warning:
             box = MessageCheckBox(icon=QMessageBox.Warning, parent=self)
@@ -264,16 +266,26 @@ the sympy module (e.g. plot)
             if self._reading:
                 self.dbg_exec_magic('reset', '-f')
             else:
-                if silent:
-                    if message:
-                        self.reset()
-                        self._append_html(_("<br><br>Removing all variables..."
-                                            "\n<hr>"),
-                                          before_prompt=False)
-                    self.silent_execute("%reset -f")
-                    self.refresh_namespacebrowser()
-                else:
-                    self.execute("%reset -f")
+                if message:
+                    self.reset()
+                    self._append_html(_("<br><br>Removing all variables..."
+                                        "\n<hr>"),
+                                      before_prompt=False)
+                self.silent_execute("%reset -f")
+                if kernel_env.get('SPY_AUTOLOAD_PYLAB_O') == 'True':
+                    self.silent_execute("from pylab import *")
+                if kernel_env.get('SPY_SYMPY_O') == 'True':
+                    sympy_init = """
+                        from __future__ import division
+                        from sympy import *
+                        x, y, z, t = symbols('x y z t')
+                        k, m, n = symbols('k m n', integer=True)
+                        f, g, h = symbols('f g h', cls=Function)
+                        init_printing()"""
+                    self.silent_execute(dedent(sympy_init))
+                if kernel_env.get('SPY_RUN_CYTHON') == 'True':
+                    self.silent_execute("%reload_ext Cython")
+                self.refresh_namespacebrowser()
 
                 if not self.external_kernel:
                     self.silent_execute(
