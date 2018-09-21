@@ -40,7 +40,6 @@ MODIFIERS = {Qt.Key_Shift: Qt.SHIFT,
              Qt.Key_Meta: Qt.META}
 
 # Valid shortcut keys
-SINGLE_KEYS = ["F{}".format(_i) for _i in range(1, 36)] + ["Delete", "Escape"]
 KEYSTRINGS = ["Tab", "Backtab", "Backspace", "Return", "Enter",
               "Pause", "Print", "Clear", "Home", "End", "Left",
               "Up", "Right", "Down", "PageUp", "PageDown"] + \
@@ -55,6 +54,11 @@ KEYSTRINGS = ["Tab", "Backtab", "Backspace", "Return", "Enter",
               "Control", "Alt", "Shift", "Meta"]
 VALID_SINGLE_KEYS = [getattr(Qt, 'Key_{0}'.format(k)) for k in SINGLE_KEYS]
 VALID_KEYS = [getattr(Qt, 'Key_{0}'.format(k)) for k in KEYSTRINGS+SINGLE_KEYS]
+SINGLE_KEYS = ["F{}".format(_i) for _i in range(1, 36)] + ["Del", "Esc"]
+EDITOR_SINGLE_KEYS = SINGLE_KEYS + ["Home", "End", "Ins", "Enter",
+                                    "Return", "Backspace", "Tab",
+                                    "PageUp", "PageDown", "Clear",  "Pause",
+                                    "Left", "Up", "Right", "Down"]
 
 # Valid finder chars. To be improved
 VALID_ACCENT_CHARS = "ÁÉÍOÚáéíúóàèìòùÀÈÌÒÙâêîôûÂÊÎÔÛäëïöüÄËÏÖÜñÑ"
