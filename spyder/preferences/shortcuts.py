@@ -47,8 +47,8 @@ VALID_ACCENT_CHARS = "ÁÉÍOÚáéíúóàèìòùÀÈÌÒÙâêîôûÂÊÎÔ�
 VALID_FINDER_CHARS = r"[A-Za-z\s{0}]".format(VALID_ACCENT_CHARS)
 
 BLACKLIST = {}
-BLACKLIST['Shift'] = _('Shortcuts that use Shift and another key'
-                       ' are unsupported')
+BLACKLIST['Shift'] = _('Shortcuts using Shift with no other modifier keys '
+                       'are supported in the Editor only.')
 
 
 class ShortcutTranslater(QKeySequenceEdit):
