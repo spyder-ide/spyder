@@ -108,7 +108,13 @@ class ShortcutLineEdit(QLineEdit):
     def __init__(self, parent):
         super(ShortcutLineEdit, self).__init__(parent)
         self.setReadOnly(True)
-        self.setFocusPolicy(Qt.NoFocus)
+
+        tw = self.fontMetrics().width(
+            "Ctrl+Shift+Alt+Backspace, Ctrl+Shift+Alt+Backspace")
+        fw = self.style().pixelMetric(self.style().PM_DefaultFrameWidth)
+        self.setMinimumWidth(tw + (2 * fw) + 4)
+        # We need to add 4 to take into account the horizontalMargin of the
+        # line edit, whose value is hardcoded in qt.
 
     def keyPressEvent(self, e):
         """Qt Override"""
