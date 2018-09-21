@@ -834,11 +834,10 @@ class ShortcutsTable(QTableView):
 
 class ShortcutsConfigPage(GeneralConfigPage):
     CONF_SECTION = "shortcuts"
-
     NAME = _("Keyboard shortcuts")
-    ICON = ima.icon('keyboard')
 
     def setup_page(self):
+        self.ICON = ima.icon('keyboard')
         # Widgets
         self.table = ShortcutsTable(self)
         self.finder = ShortcutFinder(self.table, self.table.set_regex)
