@@ -452,8 +452,8 @@ class ShortcutEditor(QDialog):
 
     def set_sequence_to_default(self):
         """Set the new sequence to the default value defined in the config."""
-        default_keystr = QKeySequence(
-            CONF.get_default('shortcuts', '%s/%s' % (self.context, self.name))
+        default_keystr = QKeySequence(CONF.get_default(
+            'shortcuts', "{}/{}".format(self.context, self.name))
             ).toString()
         self.new_subseq = default_keystr.split(', ')
         self.set_sequence(default_keystr)
