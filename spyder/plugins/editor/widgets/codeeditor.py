@@ -2829,7 +2829,7 @@ class CodeEditor(TextEditBaseWidget):
 
         if key in [Qt.Key_Control, Qt.Key_Shift, Qt.Key_Alt,
                    Qt.Key_Meta, Qt.KeypadModifier]:
-            # The user clicked just and only a modifier key.
+            # The user pressed only a modifier key.
             return
 
         # ---- Handle local shortcuts

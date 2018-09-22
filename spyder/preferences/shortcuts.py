@@ -51,18 +51,18 @@ BLACKLIST['Shift'] = _('Shortcuts using Shift with no other modifier keys '
                        'are supported in the Editor only.')
 
 
-class ShortcutTranslater(QKeySequenceEdit):
+class ShortcutTranslator(QKeySequenceEdit):
     """
-    A `QKeySequenceEdit` that is not meant to be shown and is used only
-    to convert `QKeyEvent`s into `QKeySequence`s. To our knowledge, this is
-    the only way to do this within the Qt framework because the code that does
+    A QKeySequenceEdit that is not meant to be shown and is used only
+    to convert QKeyEvent into QKeySequence. To our knowledge, this is
+    the only way to do this within the Qt framework, because the code that does
     this in Qt is protected. Porting the code to Python would be nearly
-    impossible because it relies on low level and OS dependent Qt librairies
+    impossible because it relies on low level and OS-dependent Qt libraries
     that are not public for the most part.
     """
 
     def __init__(self):
-        super(ShortcutTranslater, self).__init__()
+        super(ShortcutTranslator, self).__init__()
         self.hide()
 
     def keyevent_to_keyseq(self, event):
@@ -177,8 +177,9 @@ class ShortcutEditor(QDialog):
         # Widgets
         self.label_info = QLabel()
         self.label_info.setText(
-            _("Press the new shortcut and select 'Ok' "
-              "or press 'Clear' to unbind the shortcut."))
+            _("Press the new shortcut and select 'Ok' to confirm, "
+              "click 'Cancel' to revert to the previous state, "
+              "or use 'Clear' to unbind the command from a shortcut."))
         self.label_info.setWordWrap(True)
 
         self.label_current_sequence = QLabel(_("Current shortcut:"))
@@ -211,18 +212,18 @@ class ShortcutEditor(QDialog):
         # New Sequence button box
         self.btn_clear_sequence = create_toolbutton(
             self, icon=ima.icon('editclear'),
-            tip=_("Clear"),
+            tip=_("Clear all entered key sequences"),
             triggered=self.clear_new_sequence)
         self.button_back_sequence = create_toolbutton(
             self, icon=ima.icon('ArrowBack'),
-            tip=_("Back"),
+            tip=_("Remove last key sequence entered"),
             triggered=self.back_new_sequence)
 
         newseq_btnbar = QHBoxLayout()
         newseq_btnbar.setSpacing(0)
         newseq_btnbar.setContentsMargins(0, 0, 0, 0)
-        newseq_btnbar.addWidget(self.btn_clear_sequence)
         newseq_btnbar.addWidget(self.button_back_sequence)
+        newseq_btnbar.addWidget(self.btn_clear_sequence)
 
         # Setup widgets
         self.setWindowTitle(_('Shortcut: {0}').format(self.name))
@@ -266,10 +267,10 @@ class ShortcutEditor(QDialog):
 
         # Set all widget to no focus so that we can register <Tab> key
         # press event.
-        widgets = [
+        widgets = (
             self.label_warning, self.helper_button, self.text_new_sequence,
             self.button_clear, self.button_default, self.button_cancel,
-            self.button_ok, self.btn_clear_sequence, self.button_back_sequence]
+            self.button_ok, self.btn_clear_sequence, self.button_back_sequence)
         for w in widgets:
             w.setFocusPolicy(Qt.NoFocus)
             w.clearFocus()
@@ -292,12 +293,12 @@ class ShortcutEditor(QDialog):
         self.button_ok.setFocus()
         super(ShortcutEditor, self).accept()
 
-    def event(self, e):
+    def event(self, event):
         """Qt method override."""
-        if type(e) in [QEvent.Shortcut, QEvent.ShortcutOverride]:
+        if type(event) in (QEvent.Shortcut, QEvent.ShortcutOverride):
             return True
         else:
-            return super(ShortcutEditor, self).event(e)
+            return super(ShortcutEditor, self).event(event)
 
     def keyPressEvent(self, event):
         """Qt method override."""
@@ -313,7 +314,7 @@ class ShortcutEditor(QDialog):
                          Qt.Key_Alt, Qt.Key_Meta]:
             return
 
-        translater = ShortcutTranslater()
+        translater = ShortcutTranslator()
         event_keyseq = translater.keyevent_to_keyseq(event)
         event_keystr = event_keyseq.toString(QKeySequence.NativeText)
 
@@ -361,7 +362,7 @@ class ShortcutEditor(QDialog):
     def check_shift_keyseq(self):
         """
         Check if the first sub-sequence of the new key sequence is composed
-        with the 'Shift' modifier only and another key.
+        with 'Shift' and no other modifier keys.
         """
         if self.new_qsequence.isEmpty():
             return False
@@ -372,7 +373,7 @@ class ShortcutEditor(QDialog):
         """Update warning label to reflect conflict status of new shortcut"""
         if warning_type == NO_WARNING:
             warn = False
-            tip = 'This shortcut is correct!'
+            tip = 'This shortcut is valid.'
         elif warning_type == SEQUENCE_CONFLICT:
             template = '<i>{0}<b>{1}</b></i>'
             tip_title = _('The new shortcut conflicts with:') + '<br>'
