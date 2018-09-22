@@ -109,7 +109,7 @@ class ShortcutLineEdit(QLineEdit):
     def setText(self, sequence):
         """Qt method extension."""
         if sys.platform == 'darwin':
-            sequence = sequence.replace('Meta', 'Ctrl')
+            sequence = sequence.replace('Meta', 'Control')
             sequence = sequence.replace('Ctrl', 'Cmd')
         self.setToolTip(sequence)
         super(ShortcutLineEdit, self).setText(sequence)
