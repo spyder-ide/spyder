@@ -238,11 +238,10 @@ class ShortcutEditor(QDialog):
         self.helper_button.setStyleSheet(style)
 
         # Layout
-        spacing = 5
         layout_sequence = QGridLayout()
         layout_sequence.setContentsMargins(0, 0, 0, 0)
         layout_sequence.addWidget(self.label_info, 0, 0, 1, 3)
-        layout_sequence.addItem(QSpacerItem(spacing, spacing), 1, 0, 1, 3)
+        layout_sequence.addItem(QSpacerItem(25, 25), 1, 0, 1, 3)
         layout_sequence.addWidget(self.label_current_sequence, 2, 0)
         layout_sequence.addWidget(self.text_current_sequence, 2, 2)
         layout_sequence.addWidget(self.label_new_sequence, 3, 0)
@@ -255,7 +254,7 @@ class ShortcutEditor(QDialog):
 
         layout = QVBoxLayout()
         layout.addLayout(layout_sequence)
-        layout.addSpacing(spacing)
+        layout.addSpacing(5)
         layout.addLayout(button_box)
         self.setLayout(layout)
 
