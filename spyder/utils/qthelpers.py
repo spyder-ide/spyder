@@ -17,9 +17,9 @@ from qtpy.compat import to_qvariant, from_qvariant
 from qtpy.QtCore import (QEvent, QLibraryInfo, QLocale, QObject, Qt, QTimer,
                          QTranslator, Signal, Slot)
 from qtpy.QtGui import QIcon, QKeyEvent, QKeySequence, QPixmap
-from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QLabel,
-                            QLineEdit, QMenu, QStyle, QToolBar, QToolButton,
-                            QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout,
+                            QKeySequenceEdit, QLabel, QLineEdit, QMenu, QStyle,
+                            QToolBar, QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import get_image_path, running_in_mac_app
@@ -161,6 +161,39 @@ def mimedata2url(source, extlist=None):
                 pathlist.append(path)
     if pathlist:
         return pathlist
+
+
+class ShortcutTranslator(QKeySequenceEdit):
+    """
+    A QKeySequenceEdit that is not meant to be shown and is used only
+    to convert QKeyEvent into QKeySequence. To our knowledge, this is
+    the only way to do this within the Qt framework, because the code that does
+    this in Qt is protected. Porting the code to Python would be nearly
+    impossible because it relies on low level and OS-dependent Qt libraries
+    that are not public for the most part.
+    """
+
+    def __init__(self):
+        super(ShortcutTranslator, self).__init__()
+        self.hide()
+
+    def keyevent_to_keyseq(self, event):
+        """Return a QKeySequence representation of the provided QKeyEvent."""
+        self.keyPressEvent(event)
+        event.ignore()
+        return self.keySequence()
+
+    def keyReleaseEvent(self, event):
+        """Qt Override"""
+        return False
+
+    def timerEvent(self, event):
+        """Qt Override"""
+        return False
+
+    def event(self, event):
+        """Qt Override"""
+        return False
 
 
 def keyevent2tuple(event):
