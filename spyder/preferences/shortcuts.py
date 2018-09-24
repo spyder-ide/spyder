@@ -177,6 +177,12 @@ class ShortcutEditor(QDialog):
         # Widgets
         icon_info = HelperToolButton()
         icon_info.setIcon(get_std_icon('MessageBoxInformation'))
+        layout_icon_info = QVBoxLayout()
+        layout_icon_info.setContentsMargins(0, 0, 0, 0)
+        layout_icon_info.setSpacing(0)
+        layout_icon_info.addWidget(icon_info)
+        layout_icon_info.addStretch(100)
+        
         self.label_info = QLabel()
         self.label_info.setText(
             _("Press the new shortcut and select 'Ok' to confirm, "
@@ -184,12 +190,11 @@ class ShortcutEditor(QDialog):
               "or use 'Clear' to unbind the command from a shortcut."))
         self.label_info.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         self.label_info.setWordWrap(True)
-        info_layout = QGridLayout()
-        info_layout.setContentsMargins(0, 0, 0, 0)
-        info_layout.addWidget(icon_info, 0, 0)
-        info_layout.addWidget(self.label_info, 0, 1, 2, 1)
-        info_layout.setRowStretch(1, 100)
-        info_layout.setColumnStretch(1, 100)
+        layout_info = QHBoxLayout()
+        layout_info.setContentsMargins(0, 0, 0, 0)
+        layout_info.addLayout(layout_icon_info)
+        layout_info.addWidget(self.label_info)
+        layout_info.setStretch(1, 100)
 
         self.label_current_sequence = QLabel(_("Current shortcut:"))
         self.text_current_sequence = QLabel(self.cur_sequence)
@@ -249,11 +254,10 @@ class ShortcutEditor(QDialog):
         icon_info.setStyleSheet(style)
 
         # Layout
-        spacing = 5
         layout_sequence = QGridLayout()
         layout_sequence.setContentsMargins(0, 0, 0, 0)
-        layout_sequence.addLayout(info_layout, 0, 0, 1, 4)
-        layout_sequence.addItem(QSpacerItem(spacing, spacing), 1, 0, 1, 4)
+        layout_sequence.addLayout(layout_info, 0, 0, 1, 4)
+        layout_sequence.addItem(QSpacerItem(15, 15), 1, 0, 1, 4)
         layout_sequence.addWidget(self.label_current_sequence, 2, 0)
         layout_sequence.addWidget(self.text_current_sequence, 2, 2)
         layout_sequence.addWidget(self.label_new_sequence, 3, 0)
@@ -266,7 +270,7 @@ class ShortcutEditor(QDialog):
 
         layout = QVBoxLayout()
         layout.addLayout(layout_sequence)
-        layout.addSpacing(spacing)
+        layout.addSpacing(5)
         layout.addLayout(button_box)
         self.setLayout(layout)
 
