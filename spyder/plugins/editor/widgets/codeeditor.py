@@ -44,7 +44,7 @@ from spyder_kernels.utils.dochelpers import getobj
 
 # Local imports
 from spyder.config.base import get_conf_path, _, DEBUG
-from spyder.config.gui import get_shortcut, iter_shortcuts
+from spyder.config.gui import get_shortcut, config_shortcut
 from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
                                 RUN_CELL_AND_ADVANCE_SHORTCUT)
 from spyder.py3compat import to_text_string
@@ -465,7 +465,6 @@ class CodeEditor(TextEditBaseWidget):
 
         # Keyboard shortcuts
         self.shortcuts = self.create_shortcuts()
-        self.shortcut_callbacks = self.create_shortcut_callbacks()
 
         # Code editor
         self.__visible_blocks = []  # Visible blocks, update with repaint
@@ -515,84 +514,62 @@ class CodeEditor(TextEditBaseWidget):
             self.setTextCursor(cursor)
         return cursor_move_event
 
-    def create_shortcut_callbacks(self):
-        """
-        Make callbacks for the local shortcuts of the editor. The
-        shortcut_callbacks dict needs to be updated when a new shortcut
-        is added to the Editor.
-        """
-        shortcut_callbacks = {
-            'editor/code completion': self.do_completion,
-            'editor/duplicate line': self.duplicate_line,
-            'editor/copy line': self.copy_line,
-            'editor/delete line': self.delete_line,
-            'editor/move line up': self.move_line_up,
-            'editor/move line down': self.move_line_down,
-            'editor/go to new line': self.go_to_new_line,
-            'editor/go to definition': self.do_go_to_definition,
-            'editor/toggle comment': self.toggle_comment,
-            'editor/blockcomment': self.blockcomment,
-            'editor/unblockcomment': self.unblockcomment,
-            'editor/transform to uppercase': self.transform_to_uppercase,
-            'editor/transform to lowercase': self.transform_to_lowercase,
-            'editor/indent': lambda: self.indent(force=True),
-            'editor/unindent': lambda: self.unindent(force=True),
-            'editor/start of line': self.create_cursor_callback('StartOfLine'),
-            'editor/end of line': self.create_cursor_callback('EndOfLine'),
-            'editor/previous line': self.create_cursor_callback('Up'),
-            'editor/next line': self.create_cursor_callback('Down'),
-            'editor/previous char': self.create_cursor_callback('Left'),
-            'editor/next char': self.create_cursor_callback('Right'),
-            'editor/previous word':
-                self.create_cursor_callback('PreviousWord'),
-            'editor/next word': self.create_cursor_callback('NextWord'),
-            'editor/kill to line end': self.kill_line_end,
-            'editor/kill to line start': self.kill_line_start,
-            'editor/yank': self._kill_ring.yank,
-            'editor/rotate kill ring': self._kill_ring.rotate,
-            'editor/kill previous word': self.kill_prev_word,
-            'editor/kill next word': self.kill_next_word,
-            'editor/start of document': self.create_cursor_callback('Start'),
-            'editor/end of document': self.create_cursor_callback('End'),
-            'editor/undo': self.undo,
-            'editor/redo': self.redo,
-            'editor/cut': self.cut,
-            'editor/copy': self.copy,
-            'editor/paste': self.paste,
-            'editor/delete': self.delete,
-            'editor/select all': self.selectAll,
-            'array_builder/enter array inline': self.enter_array_inline,
-            'array_builder/enter array table': self.enter_array_table
-            }
-
-        # The following actions should normally be handled by shortcuts
-        # configured in the EditorStack. However, if a reserved qt builtin
-        # key sequence is assigned to one of these actions (ex.: Ctrl+C),
-        # the action of the shortcut will never be called and the event
-        # will be handled instead directly in the keyPressEvent of the
-        # CodedEditor. In this case, we need to emit a signal to trigger the
-        # corresponding action in the EditorStack.
-        # See Issue #7743 and PR #7768.
-        shortcut_callbacks.update({
-            'editor/run cell': self.sig_run_cell.emit,
-            'editor/run cell and advance': self.sig_run_cell_and_advance.emit,
-            'editor/run selection': self.sig_run_selection.emit,
-            'editor/go to line': self.sig_go_to_line.emit,
-            'editor/re-run last cell': self.sig_re_run_last_cell.emit
-            })
-        return shortcut_callbacks
-
     def create_shortcuts(self):
-        """Create the local shortcuts for the CodeEditor.
+        """Create the local shortcuts for the CodeEditor."""
+        shortcut_context_name_callbacks = (
+            ('editor', 'code completion', self.do_completion),
+            ('editor', 'duplicate line', self.duplicate_line),
+            ('editor', 'copy line', self.copy_line),
+            ('editor', 'delete line', self.delete_line),
+            ('editor', 'move line up', self.move_line_up),
+            ('editor', 'move line down', self.move_line_down),
+            ('editor', 'go to new line', self.go_to_new_line),
+            ('editor', 'go to definition', self.do_go_to_definition),
+            ('editor', 'toggle comment', self.toggle_comment),
+            ('editor', 'blockcomment', self.blockcomment),
+            ('editor', 'unblockcomment', self.unblockcomment),
+            ('editor', 'transform to uppercase', self.transform_to_uppercase),
+            ('editor', 'transform to lowercase', self.transform_to_lowercase),
+            ('editor', 'indent', lambda: self.indent(force=True)),
+            ('editor', 'unindent', lambda: self.unindent(force=True)),
+            ('editor', 'start of line',
+             self.create_cursor_callback('StartOfLine')),
+            ('editor', 'end of line',
+             self.create_cursor_callback('EndOfLine')),
+            ('editor', 'previous line', self.create_cursor_callback('Up')),
+            ('editor', 'next line', self.create_cursor_callback('Down')),
+            ('editor', 'previous char', self.create_cursor_callback('Left')),
+            ('editor', 'next char', self.create_cursor_callback('Right')),
+            ('editor', 'previous word',
+             self.create_cursor_callback('PreviousWord')),
+            ('editor', 'next word', self.create_cursor_callback('NextWord')),
+            ('editor', 'kill to line end', self.kill_line_end),
+            ('editor', 'kill to line start', self.kill_line_start),
+            ('editor', 'yank', self._kill_ring.yank),
+            ('editor', 'rotate kill ring', self._kill_ring.rotate),
+            ('editor', 'kill previous word', self.kill_prev_word),
+            ('editor', 'kill next word', self.kill_next_word),
+            ('editor', 'start of document',
+             self.create_cursor_callback('Start')),
+            ('editor', 'end of document',
+             self.create_cursor_callback('End')),
+            ('editor', 'undo', self.undo),
+            ('editor', 'redo', self.redo),
+            ('editor', 'cut', self.cut),
+            ('editor', 'copy', self.copy),
+            ('editor', 'paste', self.paste),
+            ('editor', 'delete', self.delete),
+            ('editor', 'select all', self.selectAll),
+            ('array_builder', 'enter array inline', self.enter_array_inline),
+            ('array_builder', 'enter array table', self.enter_array_table)
+            )
 
-        This method is used by many other widgets in Spyder to configure
-        shortcuts with the QShortcut class. However, this approach is not used
-        in the Editor because of many conflicts with builtin shortcuts that are
-        specific to each OS and prevent the use of certain key sequence
-        correctly. This method is kept here for consistency reasons.
-        See PR #7768.
-        """
-        return []
+        shortcuts = []
+        for context, name, callback in shortcut_context_name_callbacks:
+            shortcuts.append(
+                config_shortcut(
+                    callback, context=context, name=name, parent=self))
+        return shortcuts
 
     def get_shortcut_data(self):
         """
@@ -2827,38 +2804,6 @@ class CodeEditor(TextEditBaseWidget):
             # The event was handled by one of the editor extension.
             return
 
-        # ---- Handle local shortcuts
-        # See Issue #7743 and PR #7768.
-        event_modifiers = event.modifiers() & ~Qt.KeypadModifier
-        event_keyseq = QKeySequence(event_modifiers | event.key())
-        event_keystr = event_keyseq.toString()
-
-        # Iterate over all shortcuts to search for a global or a local
-        # shortcut that matches the key sequence of the event.
-        for sc_context, sc_name, sc_keystr in iter_shortcuts():
-            if sc_context == '_' and event_keystr == sc_keystr:
-                # The key sequence of the event corresponds to a
-                # global shortcut, so we let the parent handle it.
-                event.ignore()
-                return
-            elif (sc_context in ['editor', 'array_builder']
-                  and event_keystr == sc_keystr):
-                sc_callback = \
-                    self.shortcut_callbacks.get(sc_context + '/' + sc_name)
-                if sc_callback is None:
-                    # The key sequence of the event corresponds to a
-                    # local shortcut that is handled in the editorstack.
-                    event.ignore()
-                else:
-                    # The key sequence of the event corresponds to a
-                    # local shortcut, so we call our action.
-                    event.accept()
-                    sc_callback()
-                return
-        else:
-            # There is no local or global shortcut matching the key sequence
-            # of the event, so we let the codeeditor handle it.
-            event.ignore()
 
         # ---- Handle hard coded and builtin actions
         has_selection = self.has_selected_text()
