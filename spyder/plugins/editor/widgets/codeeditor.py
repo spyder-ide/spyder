@@ -2803,6 +2803,10 @@ class CodeEditor(TextEditBaseWidget):
             # The event was handled by one of the editor extension.
             return
 
+        if key in [Qt.Key_Control, Qt.Key_Shift, Qt.Key_Alt,
+                   Qt.Key_Meta, Qt.KeypadModifier]:
+            # The user pressed only a modifier key.
+            return
 
         # ---- Handle hard coded and builtin actions
         has_selection = self.has_selected_text()
