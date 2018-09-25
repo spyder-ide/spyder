@@ -28,7 +28,7 @@ import time
 
 # Third party imports
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import QRegExp, Qt, QTimer, Signal, Slot
+from qtpy.QtCore import QRegExp, Qt, QTimer, Signal, Slot, QEvent
 from qtpy.QtGui import (QColor, QCursor, QFont, QIntValidator,
                         QKeySequence, QPaintEvent, QPainter, QMouseEvent,
                         QTextBlockUserData, QTextCharFormat, QTextCursor,
@@ -2785,6 +2785,14 @@ class CodeEditor(TextEditBaseWidget):
         self.timer_syntax_highlight.start()
         super(CodeEditor, self).keyReleaseEvent(event)
         event.ignore()
+
+    def event(self, event):
+        """Qt method override."""
+        if event.type() == QEvent.ShortcutOverride:
+            event.ignore()
+            return False
+        else:
+            return super(CodeEditor, self).event(event)
 
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
