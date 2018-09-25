@@ -51,8 +51,7 @@ from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils import encoding, sourcecode
-from spyder.utils.qthelpers import (add_actions, create_action, mimedata2url,
-                                    ShortcutTranslator)
+from spyder.utils.qthelpers import add_actions, create_action, mimedata2url
 from spyder.plugins.editor.utils.languages import ALL_LANGUAGES, CELL_LANGUAGES
 from spyder.plugins.outlineexplorer.languages import PythonCFM
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
@@ -467,8 +466,6 @@ class CodeEditor(TextEditBaseWidget):
         # Keyboard shortcuts
         self.shortcuts = self.create_shortcuts()
         self.shortcut_callbacks = self.create_shortcut_callbacks()
-        self.shortcut_translator = ShortcutTranslator()
-        self.key_sequences = list()
 
         # Code editor
         self.__visible_blocks = []  # Visible blocks, update with repaint
@@ -2837,42 +2834,36 @@ class CodeEditor(TextEditBaseWidget):
 
         # ---- Handle local shortcuts
         # See Issue #7743 and PR #7768.
-        event_keyseq = self.shortcut_translator.keyevent_to_keyseq(event)
+        event_modifiers = event.modifiers() & ~Qt.KeypadModifier
+        event_keyseq = QKeySequence(event_modifiers | event.key())
+        event_keystr = event_keyseq.toString()
 
         # Iterate over all shortcuts to search for a global or a local
         # shortcut that matches the key sequence of the event.
         for sc_context, sc_name, sc_keystr in iter_shortcuts():
-            matches = event_keyseq.matches(QKeySequence.fromString(sc_keystr))
-            if matches == QKeySequence.PartialMatch:
-                # The user is in the process of pressing a key sequence
-                # composed of multiple sub key sequences.
+            if sc_context == '_' and event_keystr == sc_keystr:
+                # The key sequence of the event corresponds to a
+                # global shortcut, so we let the parent handle it.
+                event.ignore()
                 return
-            elif matches == QKeySequence.ExactMatch:
-                self.shortcut_translator.clear()
-                if sc_context == '_':
+            elif (sc_context in ['editor', 'array_builder']
+                  and event_keystr == sc_keystr):
+                sc_callback = \
+                    self.shortcut_callbacks.get(sc_context + '/' + sc_name)
+                if sc_callback is None:
                     # The key sequence of the event corresponds to a
-                    # global shortcut, so we let the parent handle it.
+                    # local shortcut that is handled in the editorstack.
                     event.ignore()
-                    return
-                elif sc_context in ('editor', 'array_builder'):
-                    sc_callback = self.shortcut_callbacks.get(
-                        '{}/{}'.format(sc_context, sc_name))
-                    if sc_callback is None:
-                        # The key sequence of the event corresponds to a
-                        # local shortcut that is handled in the editorstack.
-                        event.ignore()
-                    else:
-                        # The key sequence of the event corresponds to a
-                        # local shortcut, so we call our action.
-                        event.accept()
-                        sc_callback()
-                    return
+                else:
+                    # The key sequence of the event corresponds to a
+                    # local shortcut, so we call our action.
+                    event.accept()
+                    sc_callback()
+                return
         else:
             # There is no local or global shortcut matching the key sequence
             # of the event, so we let the codeeditor handle it.
             event.ignore()
-            self.shortcut_translator.clear()
-        
 
         # ---- Handle hard coded and builtin actions
         has_selection = self.has_selected_text()
