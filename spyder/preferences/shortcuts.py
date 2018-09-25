@@ -150,7 +150,7 @@ class ShortcutEditor(QDialog):
         layout_icon_info.setSpacing(0)
         layout_icon_info.addWidget(icon_info)
         layout_icon_info.addStretch(100)
-        
+
         self.label_info = QLabel()
         self.label_info.setText(
             _("Press the new shortcut and select 'Ok' to confirm, "
@@ -278,7 +278,7 @@ class ShortcutEditor(QDialog):
 
     def event(self, event):
         """Qt method override."""
-        if type(event) in (QEvent.Shortcut, QEvent.ShortcutOverride):
+        if event.type() in (QEvent.Shortcut, QEvent.ShortcutOverride):
             return True
         else:
             return super(ShortcutEditor, self).event(event)
@@ -291,10 +291,9 @@ class ShortcutEditor(QDialog):
         if len(self.new_subseq) == 4:
             # QKeySequence accepts a maximum of 4 different sequences.
             return
-
-        # Return if the event corresponds to just and only a special keys.
         if event_key in [Qt.Key_Control, Qt.Key_Shift,
                          Qt.Key_Alt, Qt.Key_Meta]:
+            # The event corresponds to just and only a special key.
             return
 
         translater = ShortcutTranslator()
