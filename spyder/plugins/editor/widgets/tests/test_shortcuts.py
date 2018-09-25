@@ -144,14 +144,6 @@ def test_copy_cut_paste_shortcuts(editor_bot):
     qtbot.keyClick(editor, Qt.Key_V, modifier=Qt.ControlModifier)
     assert editor.toPlainText() == 'Line1Line1\nLine2\nLine3\nLine4\n'
 
-    qtbot.wait(10)
-    # We need to wait a little bit between the copy and cut operation or
-    # else the cut sometimes fails with the following error:
-    # QtCriticalMsg: OleSetClipboard: Failed to set mime data (text/plain, 
-    # text/html, application/vnd.oasis.opendocument.text) on clipboard: COM 
-    # error 0xffffffff800401d0  (Unknown error 0x0800401d0)
-    # (The parameter is incorrect.)
-
     # Select and Cut the first line in the editor.
     qtbot.keyClick(editor, Qt.Key_Home)
     qtbot.keyClick(editor, Qt.Key_End, modifier=Qt.ShiftModifier)
@@ -284,14 +276,6 @@ def test_builtin_shift_del_and_ins(editor_bot):
     qtbot.keyClick(editor, Qt.Key_End)
     qtbot.keyClick(editor, Qt.Key_Insert, modifier=Qt.ShiftModifier)
     assert editor.toPlainText() == 'Line1Line1\nLine2\nLine3\nLine4\n'
-
-    qtbot.wait(10)
-    # We need to wait a little bit between the copy and cut operation or
-    # else the cut sometimes fails with the following error:
-    # QtCriticalMsg: OleSetClipboard: Failed to set mime data (text/plain, 
-    # text/html, application/vnd.oasis.opendocument.text) on clipboard: COM 
-    # error 0xffffffff800401d0  (Unknown error 0x0800401d0)
-    # (The parameter is incorrect.)
 
     # Select the second line in the editor again.
     qtbot.keyClick(editor, Qt.Key_Home, modifier=Qt.ShiftModifier)
