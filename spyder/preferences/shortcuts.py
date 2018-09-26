@@ -46,9 +46,16 @@ EDITOR_SINGLE_KEYS = SINGLE_KEYS + ["Home", "End", "Ins", "Enter",
 VALID_ACCENT_CHARS = "ÁÉÍOÚáéíúóàèìòùÀÈÌÒÙâêîôûÂÊÎÔÛäëïöüÄËÏÖÜñÑ"
 VALID_FINDER_CHARS = r"[A-Za-z\s{0}]".format(VALID_ACCENT_CHARS)
 
+
+# Key sequences blacklist for the shortcut editor dialog
 BLACKLIST = {}
-BLACKLIST['Shift'] = _('Shortcuts using Shift with no other modifier keys '
-                       'are only supported in the Editor.')
+
+# Error codes for the shortcut editor dialog
+NO_WARNING = 0
+SEQUENCE_LENGTH = 1
+SEQUENCE_CONFLICT = 2
+INVALID_KEY = 3
+IN_BLACKLIST = 4
 
 
 class ShortcutTranslator(QKeySequenceEdit):
@@ -84,7 +91,7 @@ class ShortcutTranslator(QKeySequenceEdit):
         return False
 
 
-class ShortcutLineEdit(QLineEdit):
+class ShortcutLineEdit(QKeySequenceEdit):
     """QLineEdit that filters its key press and release events."""
 
     def __init__(self, parent):
@@ -149,11 +156,6 @@ class ShortcutFinder(QLineEdit):
             super(ShortcutFinder, self).keyPressEvent(event)
 
 
-# Error codes for the shortcut editor dialog
-(NO_WARNING, SEQUENCE_LENGTH, SEQUENCE_CONFLICT,
- INVALID_KEY, IN_BLACKLIST, SHIFT_BLACKLIST) = [0, 1, 2, 3, 4, 5]
-
-
 class ShortcutEditor(QDialog):
     """A dialog for entering key sequences."""
 
@@ -169,6 +171,8 @@ class ShortcutEditor(QDialog):
         self.new_subseq = list()
         self.new_sequence = ', '.join(self.new_subseq)
         self.new_qsequence = QKeySequence(self.new_sequence)
+        self.warning = NO_WARNING
+        self.conflicts = []
 
         self.setup()
 
@@ -373,16 +377,6 @@ class ShortcutEditor(QDialog):
                 else:
                     return False
 
-    def check_shift_keyseq(self):
-        """
-        Check if the first sub-sequence of the new key sequence is composed
-        with 'Shift' and no other modifier keys.
-        """
-        if self.new_qsequence.isEmpty():
-            return False
-        else:
-            return self.new_subseq[0].startswith('Shift+')
-
     def update_warning(self, warning_type=NO_WARNING, conflicts=[]):
         """Update warning label to reflect conflict status of new shortcut"""
         if warning_type == NO_WARNING:
@@ -402,15 +396,6 @@ class ShortcutEditor(QDialog):
             tip_title = _('Forbidden key sequence!') + '<br>'
             tip_body = ''
             use = BLACKLIST[self.new_sequence]
-            if use is not None:
-                tip_body = use
-            tip = template.format(tip_title, tip_body)
-            warn = True
-        elif warning_type == SHIFT_BLACKLIST:
-            template = '<i>{0}<b>{1}</b></i>'
-            tip_title = _('Forbidden key sequence!') + '<br>'
-            tip_body = ''
-            use = BLACKLIST['Shift']
             if use is not None:
                 tip_body = use
             tip = template.format(tip_title, tip_body)
@@ -453,8 +438,6 @@ class ShortcutEditor(QDialog):
                 warning = SEQUENCE_LENGTH
             elif self.new_sequence in BLACKLIST:
                     warning = IN_BLACKLIST
-            elif self.check_shift_keyseq() and self.context != 'editor':
-                warning = SHIFT_BLACKLIST
             elif self.check_singlekey() is False:
                 warning = INVALID_KEY
             elif conflicts:
