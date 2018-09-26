@@ -21,7 +21,7 @@ from qtpy.QtGui import (QKeySequence, QRegExpValidator, QIcon)
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
                             QGridLayout, QHBoxLayout, QLabel,
                             QLineEdit, QMessageBox, QPushButton, QSpacerItem,
-                            QTableView, QVBoxLayout)
+                            QTableView, QVBoxLayout, QKeySequenceEdit)
 
 # Local imports
 from spyder.config.base import _, debug_print
@@ -30,8 +30,7 @@ from spyder.config.gui import (get_shortcut, iter_shortcuts,
                                reset_shortcuts, set_shortcut)
 from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import (get_std_icon, create_toolbutton,
-                                    ShortcutTranslator)
+from spyder.utils.qthelpers import get_std_icon, create_toolbutton
 from spyder.utils.stringmatching import get_search_scores, get_search_regex
 from spyder.widgets.helperwidgets import HTMLDelegate
 from spyder.widgets.helperwidgets import HelperToolButton
@@ -50,6 +49,39 @@ VALID_FINDER_CHARS = r"[A-Za-z\s{0}]".format(VALID_ACCENT_CHARS)
 BLACKLIST = {}
 BLACKLIST['Shift'] = _('Shortcuts using Shift with no other modifier keys '
                        'are only supported in the Editor.')
+
+
+class ShortcutTranslator(QKeySequenceEdit):
+    """
+    A QKeySequenceEdit that is not meant to be shown and is used only
+    to convert QKeyEvent into QKeySequence. To our knowledge, this is
+    the only way to do this within the Qt framework, because the code that does
+    this in Qt is protected. Porting the code to Python would be nearly
+    impossible because it relies on low level and OS-dependent Qt libraries
+    that are not public for the most part.
+    """
+
+    def __init__(self):
+        super(ShortcutTranslator, self).__init__()
+        self.hide()
+
+    def keyevent_to_keyseq(self, event):
+        """Return a QKeySequence representation of the provided QKeyEvent."""
+        self.keyPressEvent(event)
+        event.ignore()
+        return self.keySequence()
+
+    def keyReleaseEvent(self, event):
+        """Qt Override"""
+        return False
+
+    def timerEvent(self, event):
+        """Qt Override"""
+        return False
+
+    def event(self, event):
+        """Qt Override"""
+        return False
 
 
 class ShortcutLineEdit(QLineEdit):
