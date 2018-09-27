@@ -117,7 +117,7 @@ class ShortcutLineEdit(QLineEdit):
         """Qt method extension."""
         self.setToolTip(sequence)
         super(ShortcutLineEdit, self).setText(sequence)
-        
+
 
 class ShortcutFinder(QLineEdit):
     """Textbox for filtering listed shortcuts in the table."""
@@ -421,7 +421,7 @@ class ShortcutEditor(QDialog):
             warning = NO_WARNING
             tip = 'This shortcut is valid.'
             icon = get_std_icon('DialogApplyButton')
-            
+
         self.warning = warning
         self.conflicts = conflicts
 
@@ -441,7 +441,7 @@ class ShortcutEditor(QDialog):
         """Set the new sequence to the default value defined in the config."""
         sequence = CONF.get_default(
             'shortcuts', "{}/{}".format(self.context, self.name))
-        self._qsequences = [QKeySequence(s) for s in sequence.split(', ')]
+        self._qsequences = sequence.split(', ')
         self.update_warning()
 
     def back_new_sequence(self):
