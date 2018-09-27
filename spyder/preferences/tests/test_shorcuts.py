@@ -174,6 +174,13 @@ def test_sequence_single_key(shortcut_editor_bot):
     assert shortcut_editor.warning == INVALID_KEY
     assert not shortcut_editor.button_ok.isEnabled()
 
+    # Check this is working as expected when a valid single key is pressed.
+    qtbot.mouseClick(shortcut_editor.btn_clear_sequence, Qt.LeftButton)
+    qtbot.keyClick(shortcut_editor, Qt.Key_Home)
+    assert shortcut_editor.new_sequence == 'Home'
+    assert shortcut_editor.warning == NO_WARNING
+    assert shortcut_editor.button_ok.isEnabled()
+
 
 def test_set_sequence_to_default(shortcut_editor_bot):
     """
