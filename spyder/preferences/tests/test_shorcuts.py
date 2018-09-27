@@ -197,5 +197,20 @@ def test_set_sequence_to_default(shortcut_editor_bot):
     assert shortcut_editor.button_ok.isEnabled()
 
 
+def test_invalid_char_in_sequence(shortcut_editor_bot):
+    """
+    Test that the key sequence is rejected and a warning is shown if an
+    invalid character is present in the new key sequence.
+    """
+    shortcut_editor, qtbot = shortcut_editor_bot('editor', 'delete line')
+
+    # Check this is working as expected for a single key sequence.
+    qtbot.keyClick(shortcut_editor, Qt.Key_Odiaeresis,
+                   modifier=Qt.ControlModifier | Qt.AltModifier)
+    assert shortcut_editor.new_sequence == 'Ctrl+Alt+Ö'
+    assert shortcut_editor.warning == INVALID_KEY
+    assert not shortcut_editor.button_ok.isEnabled()
+
+
 if __name__ == "__main__":
     pytest.main(['-x', os.path.basename(__file__), '-vv', '-rw'])

@@ -360,6 +360,18 @@ class ShortcutEditor(QDialog):
                     conflicts.append(shortcut)
         return conflicts
 
+    def check_ascii(self):
+        """
+        Check that all characters in the new sequence are ascii or else the
+        shortcut will not work.
+        """
+        try:
+            self.new_sequence.encode('ascii')
+        except UnicodeEncodeError:
+            return False
+        else:
+            return True
+
     def check_singlekey(self):
         """Check if the first sub-sequence of the new key sequence is valid."""
         if len(self._qsequences) == 0:
@@ -412,7 +424,7 @@ class ShortcutEditor(QDialog):
                 tip_body = use
             tip = template.format(tip_title, tip_body)
             icon = get_std_icon('MessageBoxWarning')
-        elif self.check_singlekey() is False:
+        elif self.check_singlekey() is False or self.check_ascii() is False:
             warning = INVALID_KEY
             template = '<i>{0}</i>'
             tip = _('Invalid key sequence entered') + '<br>'
