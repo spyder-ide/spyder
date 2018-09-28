@@ -207,7 +207,6 @@ def test_invalid_char_in_sequence(shortcut_editor_bot):
     # Check this is working as expected for a single key sequence.
     qtbot.keyClick(shortcut_editor, Qt.Key_Odiaeresis,
                    modifier=Qt.ControlModifier | Qt.AltModifier)
-    assert shortcut_editor.new_sequence == 'Ctrl+Alt+Ö'
     assert shortcut_editor.warning == INVALID_KEY
     assert not shortcut_editor.button_ok.isEnabled()
 
