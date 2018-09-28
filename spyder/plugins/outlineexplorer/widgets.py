@@ -513,16 +513,22 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
     def activated(self, item):
         """Double-click event"""
+        editor_item = self.editor_items.get(
+            self.editor_ids.get(self.current_editor))
         line = 0
-        if isinstance(item, TreeItem):
+        if item == editor_item:
+            line = 1
+        elif isinstance(item, TreeItem):
             line = item.line
-        root_item = self.get_root_item(item)
+
         self.freeze = True
+        root_item = self.get_root_item(item)
         if line:
             self.parent().edit_goto.emit(root_item.path, line, item.text(0))
         else:
             self.parent().edit.emit(root_item.path)
         self.freeze = False
+
         parent = self.current_editor.parent()
         for editor_id, i_item in list(self.editor_items.items()):
             if i_item is root_item:
