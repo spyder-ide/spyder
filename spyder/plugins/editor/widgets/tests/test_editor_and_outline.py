@@ -97,7 +97,7 @@ def test_load_files(empty_editor_bot, python_files):
     editorstack.tabs.currentIndex() == 0
 
     results = [item.text(0) for item in treewidget.get_visible_items()]
-    assert results == ['foo1.py', 'foo']
+    assert results == ['foo1.py']
 
     # Load the second file and assert the content of the outline explorer tree.
     editorstack.load(python_files[1])
@@ -105,7 +105,7 @@ def test_load_files(empty_editor_bot, python_files):
     editorstack.tabs.currentIndex() == 1
 
     results = [item.text(0) for item in treewidget.get_visible_items()]
-    assert results == ['foo1.py', 'foo2.py', '---- a comment']
+    assert results == ['foo1.py', 'foo2.py']
 
 
 def test_close_editor(editor_bot):
@@ -138,7 +138,7 @@ def test_close_a_file(editor_bot):
     # tree has been updated.
     editorstack.close_file(index=1)
     results = [item.text(0) for item in treewidget.get_visible_items()]
-    assert results == ['foo1.py', 'foo']
+    assert results == ['foo1.py']
 
 
 if __name__ == "__main__":
