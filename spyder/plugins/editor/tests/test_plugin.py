@@ -59,7 +59,7 @@ def setup_editor(qtbot, monkeypatch):
 def python_files(tmpdir_factory):
     """Create and save some python codes in temporary files."""
     tmpdir = tmpdir_factory.mktemp("files")
-    tmpdir = osp.normpath(tmpdir.strpath)
+    tmpdir = osp.normcase(tmpdir.strpath)
 
     filenames = [osp.join(tmpdir, f) for f in
                  ('file1.py', 'file2.py', 'file3.py', 'file4.py')]
@@ -109,10 +109,10 @@ def test_setup_open_files(setup_editor, last_focused_filename,
 
     editor.setup_open_files()
     current_filename = editor.get_current_editorstack().get_current_filename()
-    current_filename = osp.normpath(current_filename)
+    current_filename = osp.normcase(current_filename)
     assert current_filename == expected_current_filename
     filenames = editor.get_current_editorstack().get_filenames()
-    filenames = [osp.normpath(f) for f in filenames]
+    filenames = [osp.normcase(f) for f in filenames]
     assert filenames == expected_filenames
 
 
