@@ -93,11 +93,12 @@ def test_setup_open_files(setup_editor, last_focused_filename,
     """
     editor, qtbot = setup_editor
     expected_filenames, tmpdir = python_files
-    expected_current_filename = osp.join(tmpdir, expected_current_filename)
+    expected_current_filename = osp.join(tmpdir.strpath,
+                                         expected_current_filename)
 
     def get_option(option, default=None):
         splitsettings = [(False,
-                          osp.join(tmpdir, last_focused_filename),
+                          osp.join(tmpdir.strpath, last_focused_filename),
                           [1, 1, 1, 1])]
         return {'layout_settings': {'splitsettings': splitsettings},
                 'filenames': expected_filenames,
