@@ -108,10 +108,12 @@ def test_setup_open_files(setup_editor, last_focused_filename,
     editor.get_option = get_option
 
     editor.setup_open_files()
-    assert (editor.get_current_editorstack().get_current_filename() ==
-            expected_current_filename)
-    assert (editor.get_current_editorstack().get_filenames() ==
-            expected_filenames)
+    current_filename = editor.get_current_editorstack().get_current_filename()
+    current_filename = osp.normpath(current_filename)
+    assert current_filename == expected_current_filename
+    filenames = editor.get_current_editorstack().get_filenames()
+    filenames = [osp.normpanormpath(f) for f in filenames]
+    assert filenames == expected_filenames
 
 
 def test_renamed_tree(setup_editor, mocker):
