@@ -112,7 +112,7 @@ def test_setup_open_files(setup_editor, last_focused_filename,
     current_filename = osp.normpath(current_filename)
     assert current_filename == expected_current_filename
     filenames = editor.get_current_editorstack().get_filenames()
-    filenames = [osp.normpanormpath(f) for f in filenames]
+    filenames = [osp.normpath(f) for f in filenames]
     assert filenames == expected_filenames
 
 
