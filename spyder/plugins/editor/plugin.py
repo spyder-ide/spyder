@@ -2063,7 +2063,8 @@ class Editor(SpyderPluginWidget):
     @Slot(str, int, str)
     @Slot(str, int, str, object)
     def load(self, filenames=None, goto=None, word='',
-             editorwindow=None, processevents=True, start_column=None):
+             editorwindow=None, processevents=True, start_column=None,
+             set_focus=True, add_where='end'):
         """
         Load a text file
         editorwindow: load in this editorwindow (useful when clicking on
@@ -2155,10 +2156,7 @@ class Editor(SpyderPluginWidget):
 
         for index, filename in enumerate(filenames):
             # -- Do not open an already opened file
-            if index == 0:  # this is the last file focused in previous session
-                focus = True
-            else:
-                focus = False
+            focus = set_focus and index == 0
             current_editor = self.set_current_filename(filename,
                                                        editorwindow,
                                                        focus=focus)
@@ -2171,7 +2169,8 @@ class Editor(SpyderPluginWidget):
                 # Creating the editor widget in the first editorstack
                 # (the one that can't be destroyed), then cloning this
                 # editor widget in all other editorstacks:
-                finfo = self.editorstacks[0].load(filename, set_current=False)
+                finfo = self.editorstacks[0].load(
+                    filename, set_current=False, add_where=add_where)
                 finfo.path = self.main.get_spyder_pythonpath()
                 self._clone_file_everywhere(finfo)
                 current_editor = current_es.set_current_filename(filename,
@@ -2945,7 +2944,22 @@ class Editor(SpyderPluginWidget):
         if filenames and any([osp.isfile(f) for f in filenames]):
             layout = self.get_option('layout_settings', None)
             is_vertical, cfname, clines = layout.get('splitsettings')[0]
-            self.load(filenames, goto=clines)
+            if cfname in filenames:
+                index = filenames.index(cfname)
+                # First we load the last focused file.
+                self.load(filenames[index], goto=clines[index], set_focus=True)
+                # Then we load the files located before the last focused file
+                # in the tabbar.
+                if index > 0:
+                    self.load(filenames[index::-1], goto=clines[index::-1],
+                              set_focus=False, add_where='start')
+                # Finally we load the files located after the last focused file
+                # in the tabbar.
+                if index < (len(filenames) - 1):
+                    self.load(filenames[index+1:], goto=clines[index:],
+                              set_focus=False, add_where='end')
+            else:
+                self.load(filenames, goto=clines)
             if layout is not None:
                 self.editorsplitter.set_layout_settings(layout,
                                                         dont_goto=filenames[0])
