@@ -2933,7 +2933,7 @@ class Editor(SpyderPluginWidget):
         self.set_create_new_file_if_empty(False)
         active_project_path = None
         if self.projects is not None:
-             active_project_path = self.projects.get_active_project_path()
+            active_project_path = self.projects.get_active_project_path()
 
         if active_project_path:
             filenames = self.projects.get_project_filenames()
