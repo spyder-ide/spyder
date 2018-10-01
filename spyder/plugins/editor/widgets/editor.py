@@ -1295,9 +1295,10 @@ class EditorStack(QWidget):
         else:
             return text % (osp.basename(filename), osp.dirname(filename))
 
-    def add_to_data(self, finfo, set_current):
+    def add_to_data(self, finfo, set_current, add_where='end'):
         finfo.editor.oe_proxy = None
-        self.data.append(finfo)
+        index = 0 if add_where == 'start' else len(self.data)
+        self.data.insert(index, finfo)
         index = self.data.index(finfo)
         editor = finfo.editor
         self.tabs.insertTab(index, editor, self.get_tab_text(index))
@@ -2264,7 +2265,7 @@ class EditorStack(QWidget):
         self.reload(index)
 
     def create_new_editor(self, fname, enc, txt, set_current, new=False,
-                          cloned_from=None):
+                          cloned_from=None, add_where='end'):
         """
         Create a new editor instance
         Returns finfo object (instead of editor as in previous releases)
@@ -2281,7 +2282,7 @@ class EditorStack(QWidget):
         finfo = FileInfo(fname, enc, editor, new, self.threadmanager,
                          self.introspector)
 
-        self.add_to_data(finfo, set_current)
+        self.add_to_data(finfo, set_current, add_where)
         finfo.send_to_help.connect(self.send_to_help)
         finfo.analysis_results_changed.connect(
                                   lambda: self.analysis_results_changed.emit())
@@ -2410,7 +2411,7 @@ class EditorStack(QWidget):
             finfo.editor.document().setModified(False)
         return finfo
 
-    def load(self, filename, set_current=True):
+    def load(self, filename, set_current=True, add_where='end'):
         """
         Load filename, create an editor instance and return it
         *Warning* This is loading file, creating editor but not executing
@@ -2420,7 +2421,8 @@ class EditorStack(QWidget):
         filename = osp.abspath(to_text_string(filename))
         self.starting_long_process.emit(_("Loading %s...") % filename)
         text, enc = encoding.read(filename)
-        finfo = self.create_new_editor(filename, enc, text, set_current)
+        finfo = self.create_new_editor(filename, enc, text, set_current,
+                                       add_where=add_where)
         index = self.data.index(finfo)
         self._refresh_outlineexplorer(index, update=True)
         self.ending_long_process.emit("")
