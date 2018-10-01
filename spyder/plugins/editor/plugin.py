@@ -2948,13 +2948,15 @@ class Editor(SpyderPluginWidget):
                 index = filenames.index(cfname)
                 # First we load the last focused file.
                 self.load(filenames[index], goto=clines[index], set_focus=True)
-                # Then we load the files located before the last focused file
-                # in the tabbar.
+                # Then we load the files located to the left of the last
+                # focused file in the tabbar, while keeping the focus on
+                # the last focused file.
                 if index > 0:
                     self.load(filenames[index::-1], goto=clines[index::-1],
                               set_focus=False, add_where='start')
-                # Finally we load the files located after the last focused file
-                # in the tabbar.
+                # Finally we load the files located to the right of the last
+                # focused file in the tabbar, while keeping the focus on
+                # the last focused file.
                 if index < (len(filenames) - 1):
                     self.load(filenames[index+1:], goto=clines[index:],
                               set_focus=False, add_where='end')
