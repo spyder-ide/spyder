@@ -18,9 +18,11 @@ from spyder.plugins.editor.lsp.decorators import handles, send_request
 if PY2:
     import pathlib2 as pathlib
     from urlparse import urlparse
+    from urllib import url2pathname
 else:
     import pathlib
     from urllib.parse import urlparse
+    from urllib.request import url2pathname
 
 
 def path_as_uri(path):
@@ -179,7 +181,10 @@ class DocumentProvider:
             if len(result) > 0:
                 result = result[0]
                 uri = urlparse(result['uri'])
-                result['file'] = osp.join(uri.netloc, uri.path)
+                netloc, path = uri.netloc, uri.path
+                # Prepend UNC share notation if we have a UNC path.
+                netloc = '\\\\' + netloc if netloc else netloc
+                result['file'] = url2pathname(netloc + path)
             else:
                 result = None
         if req_id in self.req_reply:
