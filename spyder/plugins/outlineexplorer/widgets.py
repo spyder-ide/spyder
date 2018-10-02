@@ -26,10 +26,11 @@ from spyder.widgets.onecolumntree import OneColumnTree
 
 
 class FileRootItem(QTreeWidgetItem):
-    def __init__(self, path, treewidget):
+    def __init__(self, path, treewidget, is_python=True):
         QTreeWidgetItem.__init__(self, treewidget, QTreeWidgetItem.Type)
         self.path = path
-        self.setIcon(0, ima.icon('python'))
+        self.setIcon(
+            0, ima.icon('python') if is_python else ima.icon('TextFileIcon'))
         self.setToolTip(0, path)
         set_item_user_text(self, path)
         
@@ -251,7 +252,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         """Reimplemented Qt method"""
         self.set_title('')
         OneColumnTree.clear(self)
-        
+
     def set_current_editor(self, editor, update):
         """Bind editor instance"""
         editor_id = editor.get_id()
@@ -267,22 +268,19 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 self.populate_branch(editor, item, tree_cache)
                 self.restore_expanded_state()
         else:
-    #        import time
-    #        t0 = time.time()
-            root_item = FileRootItem(editor.fname, self)
+            root_item = FileRootItem(editor.fname, self, editor.is_python())
             root_item.set_text(fullpath=self.show_fullpath)
             tree_cache = self.populate_branch(editor, root_item)
             self.__sort_toplevel_items()
             self.__hide_or_show_root_items(root_item)
             self.root_item_selected(root_item)
-    #        print >>STDOUT, "Elapsed time: %d ms" % round((time.time()-t0)*1000)
             self.editor_items[editor_id] = root_item
             self.editor_tree_cache[editor_id] = tree_cache
             self.resizeColumnToContents(0)
         if editor not in self.editor_ids:
             self.editor_ids[editor] = editor_id
         self.current_editor = editor
-        
+
     def file_renamed(self, editor, new_filename):
         """File was renamed, updating outline explorer tree"""
         editor_id = editor.get_id()
