@@ -252,7 +252,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         """Reimplemented Qt method"""
         self.set_title('')
         OneColumnTree.clear(self)
-        
+
     def set_current_editor(self, editor, update):
         """Bind editor instance"""
         editor_id = editor.get_id()
@@ -283,7 +283,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         if editor not in self.editor_ids:
             self.editor_ids[editor] = editor_id
         self.current_editor = editor
-        
+
     def file_renamed(self, editor, new_filename):
         """File was renamed, updating outline explorer tree"""
         editor_id = editor.get_id()
