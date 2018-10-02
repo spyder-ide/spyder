@@ -14,6 +14,9 @@ class OutlineExplorerProxyEditor(OutlineExplorerProxy):
         self._editor = editor
         self.fname = fname
 
+    def is_python(self):
+        return self._editor.is_python()
+
     def get_id(self):
         return self._editor.get_document_id()
 
