@@ -2066,19 +2066,14 @@ class EditorStack(QWidget):
             return
         if index is None:
             index = self.get_stack_index()
-        enable = False
         if self.data:
             finfo = self.data[index]
-            if finfo.editor.is_python():
-                enable = True
-                oe.setEnabled(True)
-                if finfo.editor.oe_proxy is None:
-                    finfo.editor.oe_proxy = OutlineExplorerProxyEditor(
-                        finfo.editor, finfo.filename)
-                oe.set_current_editor(finfo.editor.oe_proxy,
-                                      update=update, clear=clear)
-        if not enable:
-            oe.setEnabled(False)
+            oe.setEnabled(True)
+            if finfo.editor.oe_proxy is None:
+                finfo.editor.oe_proxy = OutlineExplorerProxyEditor(
+                    finfo.editor, finfo.filename)
+            oe.set_current_editor(finfo.editor.oe_proxy,
+                                  update=update, clear=clear)
 
     def __refresh_statusbar(self, index):
         """Refreshing statusbar widgets"""
