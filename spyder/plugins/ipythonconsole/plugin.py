@@ -919,7 +919,7 @@ class IPythonConsole(SpyderPluginWidget):
         """Run cell in current or dedicated client"""
 
         def norm(text):
-            remove_backslashes(to_text_string(text))
+            return remove_backslashes(to_text_string(text))
 
         # Select client to execute code on it
         client = self.get_client_for_file(filename)
