@@ -268,15 +268,12 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 self.populate_branch(editor, item, tree_cache)
                 self.restore_expanded_state()
         else:
-    #        import time
-    #        t0 = time.time()
             root_item = FileRootItem(editor.fname, self, editor.is_python())
             root_item.set_text(fullpath=self.show_fullpath)
             tree_cache = self.populate_branch(editor, root_item)
             self.__sort_toplevel_items()
             self.__hide_or_show_root_items(root_item)
             self.root_item_selected(root_item)
-    #        print >>STDOUT, "Elapsed time: %d ms" % round((time.time()-t0)*1000)
             self.editor_items[editor_id] = root_item
             self.editor_tree_cache[editor_id] = tree_cache
             self.resizeColumnToContents(0)
