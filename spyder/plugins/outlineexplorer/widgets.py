@@ -26,10 +26,11 @@ from spyder.widgets.onecolumntree import OneColumnTree
 
 
 class FileRootItem(QTreeWidgetItem):
-    def __init__(self, path, treewidget):
+    def __init__(self, path, treewidget, is_python=True):
         QTreeWidgetItem.__init__(self, treewidget, QTreeWidgetItem.Type)
         self.path = path
-        self.setIcon(0, ima.icon('python'))
+        self.setIcon(
+            0, ima.icon('python') if is_python else ima.icon('TextFileIcon'))
         self.setToolTip(0, path)
         set_item_user_text(self, path)
         
@@ -269,7 +270,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         else:
     #        import time
     #        t0 = time.time()
-            root_item = FileRootItem(editor.fname, self)
+            root_item = FileRootItem(editor.fname, self, editor.is_python())
             root_item.set_text(fullpath=self.show_fullpath)
             tree_cache = self.populate_branch(editor, root_item)
             self.__sort_toplevel_items()
