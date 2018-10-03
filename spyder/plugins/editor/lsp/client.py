@@ -281,7 +281,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.server_capabilites.update(server_capabilites)
 
         for sig in self.plugin_registry[LSPEventTypes.DOCUMENT]:
-            sig.handle_response(self.server_capabilites, self.language)
+            sig.emit(self.server_capabilites, self.language)
 
     @send_request(method=LSPRequestTypes.WORKSPACE_CONFIGURATION_CHANGE,
                   requires_response=False)
