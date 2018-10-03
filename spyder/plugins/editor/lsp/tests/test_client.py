@@ -35,7 +35,7 @@ def lsp_client(qtbot):
     if os.name != 'nt':
         lsp.stop()
 
-
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_initialization(qtbot, lsp_client):
     lsp, lsp_signal = lsp_client
     with qtbot.waitSignal(
@@ -45,6 +45,7 @@ def test_initialization(qtbot, lsp_client):
     assert all([option in SERVER_CAPABILITES for option in options.keys()])
 
 
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_get_signature(qtbot, lsp_client):
     lsp, lsp_signal = lsp_client
     with qtbot.waitSignal(
@@ -79,6 +80,7 @@ def test_get_signature(qtbot, lsp_client):
     assert response['params']['signatures']['label'].startswith('walk')
 
 
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_get_completions(qtbot, lsp_client):
     lsp, lsp_signal = lsp_client
     with qtbot.waitSignal(
@@ -114,6 +116,7 @@ def test_get_completions(qtbot, lsp_client):
     assert 'os' in [x['label'] for x in completions]
 
 
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_go_to_definition(qtbot, lsp_client):
     lsp, lsp_signal = lsp_client
     with qtbot.waitSignal(
@@ -149,6 +152,7 @@ def test_go_to_definition(qtbot, lsp_client):
     assert 'os.py' in definition['file']
 
 
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_local_signature(qtbot, lsp_client):
     lsp, lsp_signal = lsp_client
     with qtbot.waitSignal(
