@@ -96,8 +96,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.server_args += server_args.split(' ')
         self.transport_args += transport_args.split(' ')
         self.transport_args += ['--folder', folder]
-        if DEBUG == 3:
-            self.transport_args.append('--transport-debug')
+        self.transport_args += ['--transport-debug', str(DEBUG)]
 
     def start(self):
         self.zmq_out_socket = self.context.socket(zmq.PAIR)
@@ -109,10 +108,12 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                                 '--zmq-out-port', self.zmq_in_port]
 
         self.lsp_server_log = subprocess.PIPE
-        if DEBUG == 3:
+        if DEBUG > 0:
             lsp_server_file = 'lsp_server_logfile.log'
-            self.lsp_server_log = open(osp.join(
-                getcwd(), lsp_server_file), 'w')
+            log_file = get_conf_path(osp.join('lsp_logs', lsp_server_file))
+            if not osp.exists(osp.dirname(log_file)):
+                os.makedirs(osp.dirname(log_file))
+            self.lsp_server_log = open(log_file, 'w')
 
         if not self.external_server:
             debug_print('Starting server: {0}'.format(
@@ -129,7 +130,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
         self.stdout_log = subprocess.PIPE
         self.stderr_log = subprocess.PIPE
-        if DEBUG == 3:
+        if DEBUG > 0:
             stderr_log_file = 'lsp_client_{0}.log'.format(self.language)
             log_file = get_conf_path(osp.join('lsp_logs', stderr_log_file))
             if not osp.exists(osp.dirname(log_file)):
