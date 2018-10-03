@@ -4,15 +4,17 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
+import os
+from textwrap import dedent
+
 import pytest
+from qtpy.QtCore import QObject, Signal
+
 from spyder.config.main import CONF
 from spyder.plugins.editor.lsp.client import LSPClient
-from qtpy.QtCore import QObject, Signal, QSocketNotifier, Slot
-from textwrap import dedent
 from spyder.plugins.editor.lsp import (
-    CLIENT_CAPABILITES, SERVER_CAPABILITES, TRACE,
-    TEXT_DOCUMENT_SYNC_OPTIONS, LSPRequestTypes,
-    LSPEventTypes, ClientConstants)
+    SERVER_CAPABILITES, LSPRequestTypes, LSPEventTypes)
+
 
 
 class LSPSignalCapture(QObject):
@@ -31,7 +33,8 @@ def lsp_client(qtbot):
         LSPEventTypes.DOCUMENT, lsp_signal.sig_lsp_notification)
     # qtbot.addWidget(lsp)
     yield lsp, lsp_signal
-    lsp.stop()
+    if os.name != 'nt':
+        lsp.stop()
 
 
 def test_initialization(qtbot, lsp_client):
