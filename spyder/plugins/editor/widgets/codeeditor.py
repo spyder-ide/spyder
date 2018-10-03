@@ -495,7 +495,6 @@ class CodeEditor(TextEditBaseWidget):
         self.range_formatting_enabled = False
         self.formatting_characters = []
         self.rename_support = False
-        self.lsp_response_signal.connect(self.handle_response)
 
         # Editor Extensions
         self.editor_extensions = EditorExtensionsManager(self)
@@ -706,11 +705,14 @@ class CodeEditor(TextEditBaseWidget):
             handler_name = self.handler_registry[method]
             handler = getattr(self, handler_name)
             handler(params)
+            # This signal is only used on tests.
+            # It could be used to track and profile LSP diagnostics.
+            self.lsp_response_signal.emit(method, params)
 
     def emit_request(self, method, params, requires_response):
         """Send request to LSP manager."""
         params['requires_response'] = requires_response
-        params['response_sig'] = self # self.lsp_response_signal
+        params['response_sig'] = self
         self.sig_perform_lsp_request.emit(
             self.language.lower(), method, params)
 
@@ -930,7 +932,7 @@ class CodeEditor(TextEditBaseWidget):
         if self.lsp_ready:
             params = {
                 'file': self.filename,
-                'signal': self.lsp_response_signal
+                'signal': self
             }
             return params
 

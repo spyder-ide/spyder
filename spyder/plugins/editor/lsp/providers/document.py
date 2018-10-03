@@ -41,6 +41,7 @@ class DocumentProvider:
         uri = response['uri']
         diagnostics = response['diagnostics']
         callbacks = self.watched_files[uri]
+        print(callbacks)
         for callback in callbacks:
             callback.handle_response(
                 LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS,
@@ -64,6 +65,7 @@ class DocumentProvider:
         method=LSPRequestTypes.DOCUMENT_DID_OPEN, requires_response=False)
     def document_open(self, editor_params):
         uri = path_as_uri(editor_params['file'])
+        print(editor_params)
         if uri not in self.watched_files:
             self.register_file(editor_params['file'], editor_params['signal'])
         params = {
