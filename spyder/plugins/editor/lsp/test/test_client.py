@@ -16,7 +16,6 @@ from spyder.plugins.editor.lsp import (
     SERVER_CAPABILITES, LSPRequestTypes, LSPEventTypes)
 
 
-
 class LSPSignalCapture(QObject):
     sig_response_signal = Signal(str, dict)
     sig_lsp_notification = Signal(dict, str)
