@@ -2816,7 +2816,8 @@ class EditorSplitter(QSplitter):
 
 class EditorWidget(QSplitter):
     def __init__(self, parent, plugin, menu_actions, show_fullpath,
-                 show_all_files, group_cells, show_comments):
+                 show_all_files, group_cells, show_comments,
+                 show_files_sorted):
         QSplitter.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
@@ -2838,7 +2839,8 @@ class EditorWidget(QSplitter):
                 show_fullpath=show_fullpath,
                 show_all_files=show_all_files,
                 group_cells=group_cells,
-                show_comments=show_comments)
+                show_comments=show_comments,
+                show_files_sorted=show_files_sorted)
         self.outlineexplorer.edit_goto.connect(
                      lambda filenames, goto, word:
                      plugin.load(filenames=filenames, goto=goto, word=word,
@@ -2906,7 +2908,8 @@ class EditorWidget(QSplitter):
 
 class EditorMainWindow(QMainWindow):
     def __init__(self, plugin, menu_actions, toolbar_list, menu_list,
-                 show_fullpath, show_all_files, group_cells, show_comments):
+                 show_fullpath, show_all_files, group_cells, show_comments,
+                 show_files_sorted):
         QMainWindow.__init__(self)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
@@ -2914,7 +2917,8 @@ class EditorMainWindow(QMainWindow):
 
         self.editorwidget = EditorWidget(self, plugin, menu_actions,
                                          show_fullpath, show_all_files,
-                                         group_cells, show_comments)
+                                         group_cells, show_comments,
+                                         show_files_sorted)
         self.setCentralWidget(self.editorwidget)
 
         # Give focus to current editor to update/show all status bar widgets
@@ -3119,7 +3123,8 @@ class EditorPluginExample(QSplitter):
         window = EditorMainWindow(self, self.menu_actions,
                                   self.toolbar_list, self.menu_list,
                                   show_fullpath=False, show_all_files=False,
-                                  group_cells=True, show_comments=True)
+                                  group_cells=True, show_comments=True,
+                                  show_files_sorted=False)
         window.resize(self.size())
         window.show()
         self.register_editorwindow(window)

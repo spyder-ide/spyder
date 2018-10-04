@@ -168,11 +168,13 @@ def remove_from_tree_cache(tree_cache, line=None, item=None):
 
 class OutlineExplorerTreeWidget(OneColumnTree):
     def __init__(self, parent, show_fullpath=False, show_all_files=True,
-                 group_cells=True, show_comments=True):
+                 group_cells=True, show_comments=True,
+                 show_files_sorted=False):
         self.show_fullpath = show_fullpath
         self.show_all_files = show_all_files
         self.group_cells = group_cells
         self.show_comments = show_comments
+        self.show_files_sorted = show_files_sorted
         OneColumnTree.__init__(self, parent)
         self.freeze = False # Freezing widget to avoid any unwanted update
         self.editor_items = {}
@@ -201,8 +203,12 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         group_cells_act = create_action(self, text=_('Group code cells'),
                                         toggled=self.toggle_group_cells)
         group_cells_act.setChecked(self.group_cells)
+        show_files_sorted_act = create_action(
+            self, text=_('Show files sorted alphabetically'),
+            toggled=self.toggle_show_files_sorted)
+        show_files_sorted_act.setChecked(self.show_files_sorted)
         actions = [fullpath_act, allfiles_act, group_cells_act, comment_act,
-                   fromcursor_act]
+                   show_files_sorted_act, fromcursor_act]
         return actions
 
     @Slot(bool)
@@ -236,6 +242,11 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     @Slot(bool)
     def toggle_group_cells(self, state):
         self.group_cells = state
+        self.update_all()
+
+    @Slot(bool)
+    def toggle_show_files_sorted(self, state):
+        self.show_files_sorted = state
         self.update_all()
 
     @Slot()
@@ -550,7 +561,8 @@ class OutlineExplorerWidget(QWidget):
     is_visible = Signal()
     
     def __init__(self, parent=None, show_fullpath=True, show_all_files=True,
-                 group_cells=True, show_comments=True, options_button=None):
+                 group_cells=True, show_comments=True, show_files_sorted=False,
+                 options_button=None):
         QWidget.__init__(self, parent)
 
         self.treewidget = OutlineExplorerTreeWidget(
@@ -558,7 +570,8 @@ class OutlineExplorerWidget(QWidget):
                 show_fullpath=show_fullpath,
                 show_all_files=show_all_files,
                 group_cells=group_cells,
-                show_comments=show_comments)
+                show_comments=show_comments,
+                show_files_sorted=show_files_sorted)
 
         self.visibility_action = create_action(self,
                                            _("Show/hide outline explorer"),
