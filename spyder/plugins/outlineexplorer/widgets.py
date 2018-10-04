@@ -176,7 +176,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.show_comments = show_comments
         self.show_files_sorted = show_files_sorted
         OneColumnTree.__init__(self, parent)
-        self.freeze = False # Freezing widget to avoid any unwanted update
+        self.freeze = False  # Freezing widget to avoid any unwanted update
         self.editor_items = {}
         self.editor_tree_cache = {}
         self.editor_ids = {}
@@ -189,16 +189,16 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     def get_actions_from_items(self, items):
         """Reimplemented OneColumnTree method"""
         fromcursor_act = create_action(self, text=_('Go to cursor position'),
-                        icon=ima.icon('fromcursor'),
-                        triggered=self.go_to_cursor_position)
-        fullpath_act = create_action(self, text=_( 'Show absolute path'),
-                        toggled=self.toggle_fullpath_mode)
+                                       icon=ima.icon('fromcursor'),
+                                       triggered=self.go_to_cursor_position)
+        fullpath_act = create_action(self, text=_('Show absolute path'),
+                                     toggled=self.toggle_fullpath_mode)
         fullpath_act.setChecked(self.show_fullpath)
-        allfiles_act = create_action(self, text=_( 'Show all files'),
-                        toggled=self.toggle_show_all_files)
+        allfiles_act = create_action(self, text=_('Show all files'),
+                                     toggled=self.toggle_show_all_files)
         allfiles_act.setChecked(self.show_all_files)
         comment_act = create_action(self, text=_('Show special comments'),
-                        toggled=self.toggle_show_comments)
+                                    toggled=self.toggle_show_comments)
         comment_act.setChecked(self.show_comments)
         group_cells_act = create_action(self, text=_('Group code cells'),
                                         toggled=self.toggle_group_cells)
@@ -624,7 +624,7 @@ class OutlineExplorerWidget(QWidget):
         
     def remove_editor(self, editor):
         self.treewidget.remove_editor(editor)
-        
+
     def get_options(self):
         """
         Return outline explorer options
@@ -637,7 +637,7 @@ class OutlineExplorerWidget(QWidget):
                     expanded_state=self.treewidget.get_expanded_state(),
                     scrollbar_position=self.treewidget.get_scrollbar_position(),
                     visibility=self.isVisible())
-    
+
     def update(self):
         self.treewidget.update_all()
 
