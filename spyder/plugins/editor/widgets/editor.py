@@ -116,14 +116,13 @@ class ThreadManager(QObject):
 
     def add_thread(self, checker, end_callback, source_code, parent):
         """Add thread to queue"""
-        pass
-        # parent_id = id(parent)
-        # thread = AnalysisThread(self, checker, source_code)
-        # self.end_callbacks[id(thread)] = end_callback
-        # self.pending_threads.append((thread, parent_id))
-        # if DEBUG_EDITOR:
-        #     print("Added thread %r to queue" % thread, file=STDOUT)
-        # QTimer.singleShot(50, self.update_queue)
+        parent_id = id(parent)
+        thread = AnalysisThread(self, checker, source_code)
+        self.end_callbacks[id(thread)] = end_callback
+        self.pending_threads.append((thread, parent_id))
+        if DEBUG_EDITOR:
+            print("Added thread %r to queue" % thread, file=STDOUT)
+        QTimer.singleShot(50, self.update_queue)
 
     def update_queue(self):
         """Update queue"""
@@ -162,15 +161,13 @@ class ThreadManager(QObject):
 
 class FileInfo(QObject):
     """File properties"""
-    analysis_results_changed = Signal()
     todo_results_changed = Signal()
     save_breakpoints = Signal(str, str)
     text_changed_at = Signal(str, int)
     edit_goto = Signal(str, int, str)
     send_to_help = Signal(str, str, str, str, bool)
 
-    def __init__(self, filename, encoding, editor, new, threadmanager,
-                 introspection_plugin):
+    def __init__(self, filename, encoding, editor, new, threadmanager):
         QObject.__init__(self)
         self.threadmanager = threadmanager
         self.filename = filename
@@ -181,15 +178,11 @@ class FileInfo(QObject):
         self.path = []
 
         self.classes = (filename, None, None)
-        self.analysis_results = []
         self.todo_results = []
         self.lastmodified = QFileInfo(filename).lastModified()
 
         self.editor.textChanged.connect(self.text_changed)
         self.editor.breakpoints_changed.connect(self.breakpoints_changed)
-
-        self.pyflakes_results = None
-        self.pep8_results = None
 
     def text_changed(self):
         """Editor's text has changed"""
@@ -200,58 +193,6 @@ class FileInfo(QObject):
     def get_source_code(self):
         """Return associated editor source code"""
         return to_text_string(self.editor.toPlainText())
-
-    def run_code_analysis(self, run_pyflakes, run_pep8):
-        """Run code analysis"""
-        run_pyflakes = False
-        run_pep8 = False
-        run_pyflakes = run_pyflakes and codeanalysis.is_pyflakes_installed()
-        run_pep8 = run_pep8 and\
-                   codeanalysis.get_checker_executable('pycodestyle') is not None
-        self.pyflakes_results = []
-        self.pep8_results = []
-        if self.editor.is_python():
-            enc = self.encoding.replace('-guessed', '').replace('-bom', '')
-            source_code, enc = encoding.encode(self.get_source_code(), enc)
-            if run_pyflakes:
-                self.pyflakes_results = None
-            if run_pep8:
-                self.pep8_results = None
-            if run_pyflakes:
-                self.threadmanager.add_thread(codeanalysis.check_with_pyflakes,
-                                              self.pyflakes_analysis_finished,
-                                              source_code, self)
-            if run_pep8:
-                self.threadmanager.add_thread(codeanalysis.check_with_pep8,
-                                              self.pep8_analysis_finished,
-                                              source_code, self)
-
-    def pyflakes_analysis_finished(self, results):
-        """Pyflakes code analysis thread has finished"""
-        self.pyflakes_results = results
-        if self.pep8_results is not None:
-            self.code_analysis_finished()
-
-    def pep8_analysis_finished(self, results):
-        """Pep8 code analysis thread has finished"""
-        self.pep8_results = results
-        if self.pyflakes_results is not None:
-            self.code_analysis_finished()
-
-    def code_analysis_finished(self):
-        """Code analysis thread has finished"""
-        self.set_analysis_results(self.pyflakes_results+self.pep8_results)
-        self.analysis_results_changed.emit()
-
-    def set_analysis_results(self, results):
-        """Set analysis results and update warning markers in editor"""
-        self.analysis_results = results
-        self.editor.process_code_analysis(results)
-
-    def cleanup_analysis_results(self):
-        """Clean-up analysis results"""
-        self.analysis_results = []
-        self.editor.cleanup_code_analysis()
 
     def run_todo_finder(self):
         """Run TODO finder"""
@@ -470,7 +411,6 @@ class EditorStack(QWidget):
     sig_undock_window = Signal()
     opened_files_list_changed = Signal()
     active_languages_stats = Signal(set)
-    analysis_results_changed = Signal()
     todo_results_changed = Signal()
     update_code_analysis_actions = Signal()
     refresh_file_dependent_actions = Signal()
@@ -604,7 +544,6 @@ class EditorStack(QWidget):
         if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
             ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
         self.color_scheme = ccs
-        self.introspector = None
         self.__file_status_flag = False
 
         # Real-time code analysis
@@ -862,7 +801,6 @@ class EditorStack(QWidget):
         finfo = self.create_new_editor(fname, enc, "",
                                        set_current=set_current, new=new,
                                        cloned_from=other_finfo.editor)
-        finfo.set_analysis_results(other_finfo.analysis_results)
         finfo.set_todo_results(other_finfo.todo_results)
         return finfo.editor
 
@@ -921,19 +859,10 @@ class EditorStack(QWidget):
 
     def inspect_current_object(self):
         """Inspect current object in the Help plugin"""
-        # if self.introspector:
         editor = self.get_current_editor()
         editor.sig_display_signature.connect(self.display_signature_help)
         line, col = editor.get_cursor_line_column()
         editor.request_hover(line, col)
-        # editor.request_signature()
-        # position = editor.get_position('cursor')
-        # self.help.switch_to_editor_source()
-        # self.introspector.show_object_info(position, auto=False)
-        # else:
-        #     text = self.get_current_editor().get_current_object()
-        #     if text:
-        #         self.send_to_help(text, force=True)
 
     def display_signature_help(self, signature):
         editor = self.get_current_editor()
@@ -995,13 +924,8 @@ class EditorStack(QWidget):
 
     def __codeanalysis_settings_changed(self, current_finfo):
         if self.data:
-            run_pyflakes, run_pep8 = self.pyflakes_enabled, self.pep8_enabled
             for finfo in self.data:
                 self.__update_editor_margins(finfo.editor)
-                finfo.cleanup_analysis_results()
-                if (run_pyflakes or run_pep8) and current_finfo is not None:
-                    if current_finfo is not finfo:
-                        finfo.run_code_analysis(run_pyflakes, run_pep8)
 
     def set_pyflakes_enabled(self, state, current_finfo=None):
         # CONF.get(self.CONF_SECTION, 'code_analysis/pyflakes')
@@ -1236,9 +1160,6 @@ class EditorStack(QWidget):
 
     def set_focus_to_editor(self, state):
         self.focus_to_editor = state
-
-    def set_introspector(self, introspector):
-        self.introspector = introspector
 
     #------ Stacked widget management
     def get_stack_index(self):
@@ -1753,7 +1674,6 @@ class EditorStack(QWidget):
             finfo.editor.document().setModified(False)
             self.modification_changed(index=index)
             self.analyze_script(index)
-            self.introspector.validate()
 
             #XXX CodeEditor-only: re-scan the whole text to rebuild outline
             # explorer data from scratch (could be optimized because
@@ -1957,30 +1877,16 @@ class EditorStack(QWidget):
             self.analysis_timer.start()
 
     def analyze_script(self, index=None):
-        """Analyze current script with pyflakes + find todos"""
+        """Analyze current script with todos"""
         if self.is_analysis_done:
             return
         if index is None:
             index = self.get_stack_index()
         if self.data:
             finfo = self.data[index]
-            run_pyflakes, run_pep8 = self.pyflakes_enabled, self.pep8_enabled
-            if run_pyflakes or run_pep8:
-                finfo.run_code_analysis(run_pyflakes, run_pep8)
             if self.todolist_enabled:
                 finfo.run_todo_finder()
         self.is_analysis_done = True
-
-    def set_analysis_results(self, filename, analysis_results):
-        """Synchronize analysis results between editorstacks"""
-        index = self.has_filename(filename)
-        if index is None:
-            return
-        self.data[index].set_analysis_results(analysis_results)
-
-    def get_analysis_results(self):
-        if self.data:
-            return self.data[self.get_stack_index()].analysis_results
 
     def set_todo_results(self, filename, todo_results):
         """Synchronize todo results between editorstacks"""
@@ -2229,7 +2135,6 @@ class EditorStack(QWidget):
         finfo.editor.set_text(txt)
         finfo.editor.document().setModified(False)
         finfo.editor.set_cursor_position(position)
-        self.introspector.validate()
 
         #XXX CodeEditor-only: re-scan the whole text to rebuild outline
         # explorer data from scratch (could be optimized because
@@ -2266,21 +2171,14 @@ class EditorStack(QWidget):
         Returns finfo object (instead of editor as in previous releases)
         """
         editor = codeeditor.CodeEditor(self)
-        introspector = self.introspector
-        editor.get_completions.connect(introspector.get_completions)
-        editor.sig_show_object_info.connect(introspector.show_object_info)
-        # editor.go_to_definition.connect(introspector.go_to_definition)
         editor.go_to_definition.connect(
             lambda fname, line, column: self.sig_go_to_definition.emit(
                 fname, line, column))
 
-        finfo = FileInfo(fname, enc, editor, new, self.threadmanager,
-                         self.introspector)
+        finfo = FileInfo(fname, enc, editor, new, self.threadmanager)
 
         self.add_to_data(finfo, set_current, add_where)
         finfo.send_to_help.connect(self.send_to_help)
-        finfo.analysis_results_changed.connect(
-                                  lambda: self.analysis_results_changed.emit())
         finfo.todo_results_changed.connect(
                                       lambda: self.todo_results_changed.emit())
         finfo.edit_goto.connect(lambda fname, lineno, name:
@@ -3176,19 +3074,13 @@ class EditorPluginExample(QSplitter):
 def test():
     from spyder.utils.qthelpers import qapplication
     from spyder.config.base import get_module_path
-    from spyder.utils.introspection.manager import IntrospectionManager
 
     spyder_dir = get_module_path('spyder')
     app = qapplication(test_time=8)
-    introspector = IntrospectionManager()
 
     test = EditorPluginExample()
     test.resize(900, 700)
     test.show()
-
-    editorstack = test.editor_splitter.editorstack
-    editorstack.set_introspector(introspector)
-    introspector.set_editor_widget(editorstack)
 
     import time
     t0 = time.time()
