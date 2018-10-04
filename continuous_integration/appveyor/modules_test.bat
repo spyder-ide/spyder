@@ -65,7 +65,7 @@ for /r "%SPYDER%" %%f in (*.py) do (
         :: This is failing randomly
         echo --- NOT testing %%f ---
         echo.
-    ) else if "%%f"=="%SPYDER%\utils\introspection\plugin_client.py" (
+    ) else if "%%f"=="%SPYDER%\utils\introspection\fallback_plugin.py" (
         :: We have to investigate this failure!
         echo --- NOT testing %%f ---
         echo.
