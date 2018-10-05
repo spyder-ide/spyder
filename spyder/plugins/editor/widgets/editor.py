@@ -2075,6 +2075,14 @@ class EditorStack(QWidget):
             oe.set_current_editor(finfo.editor.oe_proxy,
                                   update=update, clear=clear)
 
+    def _sync_outlineexplorer_file_order(self):
+        """
+        Order the root file items of the outline explorer as in the tabbar
+        of the current EditorStack.
+        """
+        self.outlineexplorer.treewidget.set_toplevel_items_order(
+            [finfo.editor.get_document_id() for finfo in self.data])
+
     def __refresh_statusbar(self, index):
         """Refreshing statusbar widgets"""
         finfo = self.data[index]
@@ -2171,6 +2179,7 @@ class EditorStack(QWidget):
             editor = finfo.editor
             editor.setFocus()
             self._refresh_outlineexplorer(index, update=False)
+            self._sync_outlineexplorer_file_order()
             self.update_code_analysis_actions.emit()
             self.__refresh_statusbar(index)
             self.__refresh_readonly(index)
