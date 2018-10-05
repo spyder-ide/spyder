@@ -180,6 +180,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.editor_items = {}
         self.editor_tree_cache = {}
         self.editor_ids = {}
+        self.ordered_editor_ids = []
         self.current_editor = None
         title = _("Outline")
         self.set_title(title)
@@ -248,6 +249,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     def toggle_show_files_sorted(self, state):
         self.show_files_sorted = state
         self.update_all()
+        self.__sort_toplevel_items()
 
     @Slot()
     def go_to_cursor_position(self):
@@ -282,7 +284,6 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             root_item = FileRootItem(editor.fname, self, editor.is_python())
             root_item.set_text(fullpath=self.show_fullpath)
             tree_cache = self.populate_branch(editor, root_item)
-            self.__sort_toplevel_items()
             self.__hide_or_show_root_items(root_item)
             self.root_item_selected(root_item)
             self.editor_items[editor_id] = root_item
@@ -290,6 +291,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             self.resizeColumnToContents(0)
         if editor not in self.editor_ids:
             self.editor_ids[editor] = editor_id
+            self.ordered_editor_ids.append(editor_id)
+            self.__sort_toplevel_items()
         self.current_editor = editor
 
     def file_renamed(self, editor, new_filename):
@@ -307,12 +310,13 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             tree_cache = self.editor_tree_cache[editor_id]
             self.populate_branch(editor, item, tree_cache)
         self.restore_expanded_state()
-        
+
     def remove_editor(self, editor):
         if editor in self.editor_ids:
             if self.current_editor is editor:
                 self.current_editor = None
             editor_id = self.editor_ids.pop(editor)
+            self.ordered_editor_ids.remove(editor_id)
             if editor_id not in list(self.editor_ids.values()):
                 root_item = self.editor_items.pop(editor_id)
                 self.editor_tree_cache.pop(editor_id)
@@ -321,11 +325,47 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 except RuntimeError:
                     # item has already been removed
                     pass
-        
+
+    def set_toplevel_items_order(self, ordered_editor_ids):
+        """
+        Store a list of editor ids, whose order is used to sort the root
+        file items when 'show_file_sorted' is False.
+        """
+        if self.ordered_editor_ids != ordered_editor_ids:
+            self.ordered_editor_ids = ordered_editor_ids
+            if self.show_all_files and self.show_files_sorted is False:
+                self.__sort_toplevel_items()
+
     def __sort_toplevel_items(self):
-        sort_func = lambda item: osp.basename(item.path.lower())
-        self.sort_top_level_items(key=sort_func)
-            
+        """
+        Sort the root file items in alphabetical order if 'show_file_sorted'
+        is True, else set the items in the same order as in the tabbar of the
+        current EditorStack.
+        """
+        current_ordered_items = [self.topLevelItem(index) for index in
+                                 range(self.topLevelItemCount())]
+        if self.show_files_sorted:
+            new_ordered_items = sorted(
+                current_ordered_items,
+                key=lambda item: osp.basename(item.path.lower()))
+        else:
+            new_ordered_items = [
+                self.editor_items.get(e_id) for e_id in
+                self.ordered_editor_ids if
+                self.editor_items.get(e_id) is not None]
+
+        if current_ordered_items != new_ordered_items:
+            selected_items = self.selectedItems()
+            self.save_expanded_state()
+            for index in range(self.topLevelItemCount()):
+                self.takeTopLevelItem(0)
+            for index, item in enumerate(new_ordered_items):
+                self.insertTopLevelItem(index, item)
+            self.restore_expanded_state()
+            self.clearSelection()
+            if selected_items:
+                selected_items[-1].setSelected(True)
+
     def populate_branch(self, editor, root_item, tree_cache=None):
         """
         Generates an outline of the editor's content and stores the result
