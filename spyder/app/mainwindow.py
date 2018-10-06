@@ -557,7 +557,7 @@ class MainWindow(QMainWindow):
         self.debug_print("  ..theme configuration")
         color_theme = CONF.get('main', 'color_theme')
         if color_theme == 'dark':
-            self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+            self.setStyleSheet(qdarkstyle.load_stylesheet_from_environment())
 
         self.debug_print("  ..core actions")
         self.close_dockwidget_action = create_action(self,
