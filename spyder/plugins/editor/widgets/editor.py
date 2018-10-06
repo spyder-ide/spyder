@@ -2080,8 +2080,9 @@ class EditorStack(QWidget):
         Order the root file items of the outline explorer as in the tabbar
         of the current EditorStack.
         """
-        self.outlineexplorer.treewidget.set_toplevel_items_order(
-            [finfo.editor.get_document_id() for finfo in self.data])
+        if self.outlineexplorer is not None:
+            self.outlineexplorer.treewidget.set_toplevel_items_order(
+                [finfo.editor.get_document_id() for finfo in self.data])
 
     def __refresh_statusbar(self, index):
         """Refreshing statusbar widgets"""
