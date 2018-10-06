@@ -167,7 +167,7 @@ from spyder.utils.misc import select_port, getcwd_or_home, get_python_executable
 from spyder.widgets.fileswitcher import FileSwitcher
 from spyder.plugins.lspmanager import LSPManager
 
-
+import qdarkstyle
 
 #==============================================================================
 # Local gui imports
@@ -554,6 +554,11 @@ class MainWindow(QMainWindow):
     def setup(self):
         """Setup main window"""
         self.debug_print("*** Start of MainWindow setup ***")
+        self.debug_print("  ..theme configuration")
+        color_theme = CONF.get('main', 'color_theme')
+        if color_theme == 'dark':
+            self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+
         self.debug_print("  ..core actions")
         self.close_dockwidget_action = create_action(self,
                                     icon=ima.icon('DialogCloseButton'),

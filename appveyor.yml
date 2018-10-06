@@ -16,7 +16,7 @@ environment:
       sympy cython keyring
     PIP_DEPENDENCIES: >
       pytest-qt pytest-mock pytest-timeout flaky codecov
-      coloredlogs python-language-server[all] pydocstyle pexpect
+      coloredlogs python-language-server[all] pydocstyle pexpect qdarkstyle
     APPVEYOR_RDP_PASSWORD: "dcca4c4863E30d56c2e0dda6327370b3#"
 
   matrix:

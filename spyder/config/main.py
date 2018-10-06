@@ -68,6 +68,7 @@ RUN_CELL_AND_ADVANCE_SHORTCUT = 'Shift+Return'
 DEFAULTS = [
             ('main',
              {
+              'color_theme': 'light',
               'icon_theme': 'spyder 3',
               'opengl': 'automatic',
               'single_instance': True,
