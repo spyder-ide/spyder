@@ -712,7 +712,7 @@ class CodeEditor(TextEditBaseWidget):
     def emit_request(self, method, params, requires_response):
         """Send request to LSP manager."""
         params['requires_response'] = requires_response
-        params['response_sig'] = self
+        params['response_codeeditor'] = self
         self.sig_perform_lsp_request.emit(
             self.language.lower(), method, params)
 
@@ -761,7 +761,7 @@ class CodeEditor(TextEditBaseWidget):
             'language': self.language,
             'version': self.text_version,
             'text': self.toPlainText(),
-            'signal': self
+            'codeeditor': self
         }
         return params
 
@@ -932,7 +932,7 @@ class CodeEditor(TextEditBaseWidget):
         if self.lsp_ready:
             params = {
                 'file': self.filename,
-                'signal': self
+                'codeeditor': self
             }
             return params
 

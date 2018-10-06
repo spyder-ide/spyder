@@ -226,9 +226,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             handler_name = self.sender_registry[method]
             handler = getattr(self, handler_name)
             _id = handler(params)
-            if 'response_sig' in params:
+            if 'response_codeeditor' in params:
                 if params['requires_response']:
-                    self.req_reply[_id] = params['response_sig']
+                    self.req_reply[_id] = params['response_codeeditor']
             return _id
 
     # ------ Spyder plugin registration --------------------------------

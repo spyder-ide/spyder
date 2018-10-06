@@ -30,11 +30,11 @@ def path_as_uri(path):
 
 
 class DocumentProvider:
-    def register_file(self, filename, signal):
+    def register_file(self, filename, codeeditor):
         filename = path_as_uri(filename)
         if filename not in self.watched_files:
             self.watched_files[filename] = []
-        self.watched_files[filename].append(signal)
+        self.watched_files[filename].append(codeeditor)
 
     @handles(LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
     def process_document_diagnostics(self, response, *args):
@@ -65,7 +65,8 @@ class DocumentProvider:
     def document_open(self, editor_params):
         uri = path_as_uri(editor_params['file'])
         if uri not in self.watched_files:
-            self.register_file(editor_params['file'], editor_params['signal'])
+            self.register_file(
+                editor_params['file'], editor_params['codeeditor'])
         params = {
             'textDocument': {
                 'uri': uri,
@@ -219,15 +220,15 @@ class DocumentProvider:
         if filename not in self.watched_files:
             params[ClientConstants.CANCEL] = True
         else:
-            signals = self.watched_files[filename]
+            editors = self.watched_files[filename]
             idx = -1
-            for i, signal in enumerate(signals):
+            for i, signal in enumerate(editors):
                 if id(file_signal) == id(signal):
                     idx = i
                     break
             if idx > 0:
-                signals.pop(idx)
+                editors.pop(idx)
 
-            if len(signals) == 0:
+            if len(editors) == 0:
                 self.watched_files.pop(filename)
         return params
