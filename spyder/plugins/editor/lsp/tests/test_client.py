@@ -28,21 +28,21 @@ class LSPSignalCapture(QObject):
 @pytest.fixture
 def lsp_client(qtbot):
     config = CONF.get('lsp-server', 'python')
-    lsp_signal = LSPSignalCapture()
+    lsp_editor = LSPSignalCapture()
     lsp = LSPClient(None, config['args'], config, config['external'],
                     plugin_configurations=config.get('configurations', {}),
                     language='python')
     lsp.register_plugin_type(
-        LSPEventTypes.DOCUMENT, lsp_signal.sig_lsp_notification)
+        LSPEventTypes.DOCUMENT, lsp_editor.sig_lsp_notification)
     # qtbot.addWidget(lsp)
-    yield lsp, lsp_signal
+    yield lsp, lsp_editor
     if os.name != 'nt':
         lsp.stop()
 
 @pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_initialization(qtbot, lsp_client):
-    lsp, lsp_signal = lsp_client
-    with qtbot.waitSignal(lsp_signal.sig_lsp_notification, timeout=10000) as blocker:
+    lsp, lsp_editor = lsp_client
+    with qtbot.waitSignal(lsp_editor.sig_lsp_notification, timeout=10000) as blocker:
         lsp.start()
     options, _ = blocker.args
     assert all([option in SERVER_CAPABILITES for option in options.keys()])
@@ -50,19 +50,19 @@ def test_initialization(qtbot, lsp_client):
 
 @pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_get_signature(qtbot, lsp_client):
-    lsp, lsp_signal = lsp_client
-    with qtbot.waitSignal(lsp_signal.sig_lsp_notification, timeout=10000):
+    lsp, lsp_editor = lsp_client
+    with qtbot.waitSignal(lsp_editor.sig_lsp_notification, timeout=10000):
         lsp.start()
     open_params = {
         'file': 'test.py',
         'language': 'python',
         'version': 1,
         'text': "import os\nos.walk(\n",
-        'signal': lsp_signal,
+        'codeeditor': lsp_editor,
         'requires_response': False
     }
 
-    with qtbot.waitSignal(lsp_signal.sig_response_signal, timeout=10000) as blocker:
+    with qtbot.waitSignal(lsp_editor.sig_response_signal, timeout=10000) as blocker:
         lsp.perform_request(LSPRequestTypes.DOCUMENT_DID_OPEN, open_params)
 
     signature_params = {
@@ -70,10 +70,10 @@ def test_get_signature(qtbot, lsp_client):
         'line': 1,
         'column': 10,
         'requires_response': True,
-        'response_sig': lsp_signal
+        'response_codeeditor': lsp_editor
     }
 
-    with qtbot.waitSignal(lsp_signal.sig_response_signal, timeout=10000) as blocker:
+    with qtbot.waitSignal(lsp_editor.sig_response_signal, timeout=10000) as blocker:
         lsp.perform_request(
             LSPRequestTypes.DOCUMENT_SIGNATURE, signature_params)
     _, response = blocker.args
@@ -82,19 +82,19 @@ def test_get_signature(qtbot, lsp_client):
 
 @pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_get_completions(qtbot, lsp_client):
-    lsp, lsp_signal = lsp_client
-    with qtbot.waitSignal(lsp_signal.sig_lsp_notification, timeout=10000):
+    lsp, lsp_editor = lsp_client
+    with qtbot.waitSignal(lsp_editor.sig_lsp_notification, timeout=10000):
         lsp.start()
     open_params = {
         'file': 'test.py',
         'language': 'python',
         'version': 1,
         'text': "import o",
-        'signal': lsp_signal,
+        'codeeditor': lsp_editor,
         'requires_response': False
     }
 
-    with qtbot.waitSignal(lsp_signal.sig_response_signal, timeout=10000) as blocker:
+    with qtbot.waitSignal(lsp_editor.sig_response_signal, timeout=10000) as blocker:
         lsp.perform_request(LSPRequestTypes.DOCUMENT_DID_OPEN, open_params)
 
     completion_params = {
@@ -102,10 +102,10 @@ def test_get_completions(qtbot, lsp_client):
         'line': 0,
         'column': 8,
         'requires_response': True,
-        'response_sig': lsp_signal
+        'response_codeeditor': lsp_editor
     }
 
-    with qtbot.waitSignal(lsp_signal.sig_response_signal, timeout=10000) as blocker:
+    with qtbot.waitSignal(lsp_editor.sig_response_signal, timeout=10000) as blocker:
         lsp.perform_request(
             LSPRequestTypes.DOCUMENT_COMPLETION, completion_params)
     _, response = blocker.args
@@ -115,19 +115,19 @@ def test_get_completions(qtbot, lsp_client):
 
 @pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_go_to_definition(qtbot, lsp_client):
-    lsp, lsp_signal = lsp_client
-    with qtbot.waitSignal(lsp_signal.sig_lsp_notification, timeout=10000):
+    lsp, lsp_editor = lsp_client
+    with qtbot.waitSignal(lsp_editor.sig_lsp_notification, timeout=10000):
         lsp.start()
     open_params = {
         'file': 'test.py',
         'language': 'python',
         'version': 1,
         'text': "import os\nos.walk\n",
-        'signal': lsp_signal,
+        'codeeditor': lsp_editor,
         'requires_response': False
     }
 
-    with qtbot.waitSignal(lsp_signal.sig_response_signal, timeout=10000) as blocker:
+    with qtbot.waitSignal(lsp_editor.sig_response_signal, timeout=10000) as blocker:
         lsp.perform_request(LSPRequestTypes.DOCUMENT_DID_OPEN, open_params)
 
     go_to_definition_params = {
@@ -135,10 +135,10 @@ def test_go_to_definition(qtbot, lsp_client):
         'line': 0,
         'column': 19,
         'requires_response': True,
-        'response_sig': lsp_signal
+        'response_codeeditor': lsp_editor
     }
 
-    with qtbot.waitSignal(lsp_signal.sig_response_signal, timeout=10000) as blocker:
+    with qtbot.waitSignal(lsp_editor.sig_response_signal, timeout=10000) as blocker:
         lsp.perform_request(
             LSPRequestTypes.DOCUMENT_DEFINITION, go_to_definition_params)
     _, response = blocker.args
@@ -148,8 +148,8 @@ def test_go_to_definition(qtbot, lsp_client):
 
 @pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_local_signature(qtbot, lsp_client):
-    lsp, lsp_signal = lsp_client
-    with qtbot.waitSignal(lsp_signal.sig_lsp_notification, timeout=10000):
+    lsp, lsp_editor = lsp_client
+    with qtbot.waitSignal(lsp_editor.sig_lsp_notification, timeout=10000):
         lsp.start()
     text = dedent('''
     def test(a, b):
@@ -161,11 +161,11 @@ def test_local_signature(qtbot, lsp_client):
         'language': 'python',
         'version': 1,
         'text': text,
-        'signal': lsp_signal,
+        'codeeditor': lsp_editor,
         'requires_response': False
     }
 
-    with qtbot.waitSignal(lsp_signal.sig_response_signal, timeout=10000) as blocker:
+    with qtbot.waitSignal(lsp_editor.sig_response_signal, timeout=10000) as blocker:
         lsp.perform_request(LSPRequestTypes.DOCUMENT_DID_OPEN, open_params)
 
     signature_params = {
@@ -173,10 +173,10 @@ def test_local_signature(qtbot, lsp_client):
         'line': 4,
         'column': 0,
         'requires_response': True,
-        'response_sig': lsp_signal
+        'response_codeeditor': lsp_editor
     }
 
-    with qtbot.waitSignal(lsp_signal.sig_response_signal, timeout=10000) as blocker:
+    with qtbot.waitSignal(lsp_editor.sig_response_signal, timeout=10000) as blocker:
         lsp.perform_request(
             LSPRequestTypes.DOCUMENT_HOVER, signature_params)
     _, response = blocker.args
