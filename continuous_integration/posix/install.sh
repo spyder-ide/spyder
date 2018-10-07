@@ -13,8 +13,7 @@ else
     export CONDA_DEPENDENCIES="rope pyflakes sphinx pygments pylint psutil nbconvert \
                                qtawesome cloudpickle pickleshare qtpy pyzmq chardet mock nomkl pandas \
                                pytest pytest-cov numpydoc scipy cython pillow jedi pycodestyle sympy \
-                               keyring testpath"
-    export TESTPATH_VERSION="0.3.1"
+                               keyring"
     export PIP_DEPENDENCIES="coveralls pytest-qt pytest-mock pytest-timeout flaky \
                              coloredlogs python-language-server[all] pydocstyle pexpect"
 fi
