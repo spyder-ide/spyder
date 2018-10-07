@@ -16,7 +16,7 @@ from spyder.plugins.editor.lsp import (
     SERVER_CAPABILITES, LSPRequestTypes, LSPEventTypes)
 
 
-class LSPSignalCapture(QObject):
+class LSPEditor(QObject):
     sig_response_signal = Signal(str, dict)
     sig_lsp_notification = Signal(dict, str)
 
@@ -28,7 +28,7 @@ class LSPSignalCapture(QObject):
 @pytest.fixture
 def lsp_client(qtbot):
     config = CONF.get('lsp-server', 'python')
-    lsp_editor = LSPSignalCapture()
+    lsp_editor = LSPEditor()
     lsp = LSPClient(None, config['args'], config, config['external'],
                     plugin_configurations=config.get('configurations', {}),
                     language='python')
