@@ -2357,7 +2357,7 @@ class EditorStack(QWidget):
             options = {
                 'language': editor.language,
                 'filename': editor.filename,
-                'signal': editor.lsp_response_signal
+                'codeeditor': editor
             }
             self.sig_open_file.emit(options)
             if self.get_stack_index() == 0:
