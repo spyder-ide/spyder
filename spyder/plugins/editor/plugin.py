@@ -2450,14 +2450,13 @@ class Editor(SpyderPluginWidget):
     @Slot()
     def insert_filepath(self):
         """
-        Open a window for selecting a file,
-        then returns the file's path and inserts it in the cursor position
+        Inserts the selected file's path into the current cursor position.
+
+        When selected, a File Explorer window is opened,
+        then, when a file is selected, it returns to the code,
+        with the file's path inserted in the cursor position.
         """
-        editorstack = self.get_current_editorstack()
-        # editorstack.insert_filepath()
-        consoleBaseWidget = ConsoleBaseWidget()
-        filepath = getopenfilename(self, '', '', '')
-        editorstack.insert_text(filepath[0])
+        self.get_current_editor().insert_filepath()
 
     #------ Cursor position history management
     def update_cursorpos_actions(self):

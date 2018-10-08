@@ -3212,10 +3212,11 @@ class CodeEditor(TextEditBaseWidget):
     @Slot()
     def insert_filepath(self):
         """
-        Opens a File explorer window for selecting a file.
+        Inserts the selected file's path into the current cursor position.
 
-        When selected, returns the file's path,
-        and inserts it in the current cursor position
+        When selected, a File Explorer window is opened,
+        then, when a file is selected, it returns to the code,
+        with the file's path inserted in the cursor position.
         """
         filepath = getopenfilename(self, '', '', '')
         self.insert_text(filepath[0])
