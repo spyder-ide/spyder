@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
-# Copyright © QCrash - Colin Duquesnoy
-# Copyright © Spyder Project Contributors
+# -----------------------------------------------------------------------------
+# Copyright (c) 2016 Colin Duquesnoy (QCrash project)
+# Copyright (c) 2018- Spyder Project Contributors
+#
 # Licensed under the terms of the MIT License
-# (see spyder/__init__.py for details)
+# (see LICENSE.txt in this directory for details)
+# -----------------------------------------------------------------------------
 
 """
 Login dialog to authenticate on Github.
 
-Taken from the QCrash Project:
-https://github.com/ColinDuquesnoy/QCrash
+Adapted from qcrash/_dialogs/gh_login.py of the
+`QCrash Project <https://github.com/ColinDuquesnoy/QCrash>`_.
 """
 
 import sys
@@ -19,12 +22,9 @@ from qtpy.QtWidgets import (QCheckBox, QDialog, QFormLayout, QLabel, QLineEdit,
                             QVBoxLayout, QWidget)
 
 from spyder.config.base import _
-from spyder.config.base import get_image_path
 from spyder.py3compat import PY2, to_text_string
 
 
-GH_MARK_NORMAL = get_image_path('GitHub-Mark.png')
-GH_MARK_LIGHT = get_image_path('GitHub-Mark-Light.png')
 TOKEN_URL = "https://github.com/settings/tokens/new?scopes=public_repo"
 
 
@@ -42,12 +42,10 @@ class DlgGitHubLogin(QDialog):
             self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
 
         # Header
-        html = ('<html><head/><body><p align="center"><img src="{mark}"/></p>'
-                '<p align="center">{title}</p></body></html>')
-        mark = GH_MARK_NORMAL
-        if self.palette().base().color().lightness() < 128:
-            mark = GH_MARK_LIGHT
-        lbl_html = QLabel(html.format(mark=mark, title=title))
+        html = ('<html><head/><body><p align="center">'
+                '{title}</p></body></html>')
+        lbl_html = QLabel(html.format(title=title))
+        lbl_html.setStyleSheet('font-size: 16px;')
 
         # Tabs
         self.tabs = QTabWidget()
@@ -132,7 +130,6 @@ class DlgGitHubLogin(QDialog):
             self.cb_remember_token.setChecked(remember_token)
             token_form_layout.setWidget(3, QFormLayout.FieldRole,
                                         self.cb_remember_token)
-
 
         # Token auth tab
         token_auth = QWidget()

@@ -591,7 +591,10 @@ class CollectionsDelegate(QItemDelegate):
 
     def free_memory(self):
         """Free memory after closing an editor."""
-        self.sig_free_memory.emit()
+        try:
+            self.sig_free_memory.emit()
+        except RuntimeError:
+            pass
 
     def commitAndCloseEditor(self):
         """Overriding method commitAndCloseEditor"""
@@ -1138,7 +1141,13 @@ class BaseTableView(QTableView):
             elif isinstance(obj, (DataFrame, Series)) \
               and DataFrame is not FakeObject:
                 output = io.StringIO()
-                obj.to_csv(output, sep='\t', index=True, header=True)
+                try:
+                    obj.to_csv(output, sep='\t', index=True, header=True)
+                except Exception:
+                    QMessageBox.warning(self, _("Warning"),
+                                        _("It was not possible to copy "
+                                          "this dataframe"))
+                    return
                 if PY3:
                     obj = output.getvalue()
                 else:
@@ -1154,6 +1163,9 @@ class BaseTableView(QTableView):
     def import_from_string(self, text, title=None):
         """Import data from string"""
         data = self.model.get_data()
+        # Check if data is a dict
+        if not hasattr(data, "keys"):
+            return
         editor = ImportWizard(self, text, title=title,
                               contents_title=_("Clipboard contents"),
                               varname=fix_reference_name("data",

@@ -1,4 +1,11 @@
 # -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2009- Spyder Project Contributors
+#
+# Distributed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
+
 
 """
 Spyder MS Language Server v3.0 transport proxy implementation.
@@ -6,12 +13,12 @@ Spyder MS Language Server v3.0 transport proxy implementation.
 Main point-of-entry to start an LSP ZMQ/TCP transport proxy.
 """
 
+
 import os
 import psutil
 import signal
 import logging
 import argparse
-import coloredlogs
 from spyder.py3compat import getcwd
 from producer import LanguageServerClient
 
@@ -45,26 +52,25 @@ parser.add_argument('--external-server',
                     action="store_true",
                     help="Do not start a local server")
 parser.add_argument('--transport-debug',
-                    action='store_true',
-                    help='Display debug level log messages')
+                    default=0,
+                    type=int,
+                    help='Verbosity level for log messages')
 
 args, unknownargs = parser.parse_known_args()
 
 LOG_FORMAT = ('%(levelname) -10s %(asctime)s %(name) -30s %(funcName) '
               '-35s %(lineno) -5d: %(message)s')
 
+
+LEVELS = ['ERROR', 'WARNING', 'INFO', 'DEBUG']
+LEVEL = logging.getLevelName(LEVELS[args.transport_debug])
+
 logging.basicConfig(level=logging.INFO, format=LOG_FORMAT)
 logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT)
 logging.basicConfig(level=logging.ERROR, format=LOG_FORMAT)
 
 LOGGER = logging.getLogger(__name__)
-
-LEVEL = 'info'
-if args.transport_debug:
-    LEVEL = 'debug'
-
-coloredlogs.install(level=LEVEL)
-
+LOGGER.setLevel(LEVEL)
 
 class TerminateSignal(Exception):
     """Terminal exception descriptor."""

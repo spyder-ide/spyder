@@ -1,26 +1,35 @@
 # -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2011-2012 Lambda Foundry, Inc. and PyData Development Team
+# Copyright (c) 2013 Jev Kuznetsov and contributors
+# Copyright (c) 2014-2015 Scott Hansen <firecat4153@gmail.com>
+# Copyright (c) 2014-2016 Yuri D'Elia "wave++" <wavexx@thregr.org>
+# Copyright (c) 2014- Spyder Project Contributors
 #
-# Copyright © Spyder Project Contributors
-# Licensed under the terms of the New BSD License
-#
-# DataFrameModel is based on the class ArrayModel from array editor
-# and the class DataFrameModel from the pandas project.
-# Present in pandas.sandbox.qtpandas in v0.13.1
-# Copyright (c) 2011-2012, Lambda Foundry, Inc.
-# and PyData Development Team All rights reserved
-#
-# DataFrameHeaderModel and DataFrameLevelModel are based on the classes
-# Header4ExtModel and Level4ExtModel from the gtabview project. The
-# DataFrameModel is based on the classes ExtDataModel and ExtFrameModel from
-# the same project. Also the DataFrameEditor is based in the ExtTableView.
-# https://github.com/TabViewer/gtabview
-# Copyright(c) 2014-2016: wave++ "Yuri D'Elia" <wavexx@thregr.org>
-# Copyright(c) 2014-2015: Scott Hansen <firecat4153@gmail.com>
-# Licensed under the terms of the MIT License
-#
+# Components of gtabview originally distributed under the MIT (Expat) license.
+# This file as a whole distributed under the terms of the New BSD License
+# (BSD 3-clause; see NOTICE.txt in the Spyder root directory for details).
+# -----------------------------------------------------------------------------
 
 """
-Pandas DataFrame Editor Dialog
+Pandas DataFrame Editor Dialog.
+
+DataFrameModel is based on the class ArrayModel from array editor
+and the class DataFrameModel from the pandas project.
+Present in pandas.sandbox.qtpandas in v0.13.1.
+
+DataFrameHeaderModel and DataFrameLevelModel are based on the classes
+Header4ExtModel and Level4ExtModel from the gtabview project.
+DataFrameModel is based on the classes ExtDataModel and ExtFrameModel, and
+DataFrameEditor is based on gtExtTableView from the same project.
+
+DataFrameModel originally based on pandas/sandbox/qtpandas.py of the
+`pandas project <https://github.com/pandas-dev/pandas>`_.
+The current version is qtpandas/models/DataFrameModel.py of the
+`QtPandas project <https://github.com/draperjames/qtpandas>`_.
+
+Components of gtabview from gtabview/viewer.py and gtabview/models.py of the
+`gtabview project <https://github.com/TabViewer/gtabview>`_.
 """
 
 # Standard library imports
@@ -36,7 +45,6 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QGridLayout,
                             QMessageBox, QPushButton, QTableView,
                             QScrollBar, QTableWidget, QFrame,
                             QItemDelegate)
-
 from pandas import DataFrame, Index, Series
 try:
     from pandas._libs.tslib import OutOfBoundsDatetime

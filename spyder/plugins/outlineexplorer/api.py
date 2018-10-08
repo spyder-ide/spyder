@@ -32,6 +32,10 @@ class OutlineExplorerProxy(object):
     def __init__(self):
         self.fname = None
 
+    def is_python(self):
+        """Return whether the editor is a python file or not."""
+        raise NotImplementedError
+
     def get_id(self):
         """Return an unique id, used for identify objects in a dict"""
         raise NotImplementedError

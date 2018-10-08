@@ -15,7 +15,8 @@ from spyder.utils.programs import (run_python_script_in_terminal,
                                    is_python_interpreter,
                                    is_python_interpreter_valid_name,
                                    find_program, shell_split, check_version,
-                                   is_module_installed)
+                                   is_module_installed, get_temp_dir,
+                                   is_stable_version)
 
 
 if os.name == 'nt':
@@ -109,6 +110,35 @@ def test_is_module_installed():
     assert not is_module_installed('IPython', '>=1.0;<3.0')
     assert is_module_installed('jedi', '>=0.7.0')
 
+
+def test_is_module_installed_with_custom_interpreter():
+    """Test if a module with the proper version is installed"""
+    current = sys.executable
+    assert is_module_installed('qtconsole', '>=4.0', interpreter=current)
+    assert not is_module_installed('IPython', '>=1.0;<3.0', interpreter=current)
+    assert is_module_installed('jedi', '>=0.7.0', interpreter=current)
+
+
+def test_get_temp_dir_ensure_dir_exists():
+    """Test that the call to get_temp_dir creates the dir when it doesn't exists
+    """
+    temp_dir = get_temp_dir(suffix='test')
+    assert os.path.exists(temp_dir)
+
+    os.rmdir(temp_dir)
+
+    another_call = get_temp_dir(suffix='test')
+
+    assert os.path.exists(another_call)
+    assert another_call == temp_dir
+
+
+def test_is_stable_version():
+    """Test for is_stable_version."""
+    assert is_stable_version('3.3.0')
+    assert not is_stable_version('4.0.0b1')
+    assert not is_stable_version('3.3.2.dev0')
+
+
 if __name__ == '__main__':
     pytest.main()
-    

@@ -60,6 +60,12 @@ from spyder.plugins.editor.lsp import (
 
 
 # Dependencies
+PYLS_REQVER = '>=0.19.0'
+dependencies.add('pyls',
+                 _("Editor's code completion, go-to-definition, help and "
+                   "real-time code analysis"),
+                 required_version=PYLS_REQVER)
+
 NBCONVERT_REQVER = ">=4.0"
 dependencies.add("nbconvert", _("Manipulate Jupyter notebooks on the Editor"),
                  required_version=NBCONVERT_REQVER)
@@ -618,7 +624,7 @@ class Editor(SpyderPluginWidget):
         filename = options['filename']
         debug_print(filename)
         language = options['language']
-        callback = options['signal']
+        callback = options['codeeditor']
         stat = self.main.lspmanager.start_lsp_client(language.lower())
         self.main.lspmanager.register_file(
             language.lower(), filename, callback)
@@ -1651,6 +1657,7 @@ class Editor(SpyderPluginWidget):
                                   self.toolbar_list, self.menu_list,
                                   show_fullpath=oe_options['show_fullpath'],
                                   show_all_files=oe_options['show_all_files'],
+                                  group_cells=oe_options['group_cells'],
                                   show_comments=oe_options['show_comments'])
         window.add_toolbars_to_menu("&View", window.get_toolbars())
         window.load_toolbars()
@@ -2062,7 +2069,8 @@ class Editor(SpyderPluginWidget):
     @Slot(str, int, str)
     @Slot(str, int, str, object)
     def load(self, filenames=None, goto=None, word='',
-             editorwindow=None, processevents=True, start_column=None):
+             editorwindow=None, processevents=True, start_column=None,
+             set_focus=True, add_where='end'):
         """
         Load a text file
         editorwindow: load in this editorwindow (useful when clicking on
@@ -2154,10 +2162,7 @@ class Editor(SpyderPluginWidget):
 
         for index, filename in enumerate(filenames):
             # -- Do not open an already opened file
-            if index == 0:  # this is the last file focused in previous session
-                focus = True
-            else:
-                focus = False
+            focus = set_focus and index == 0
             current_editor = self.set_current_filename(filename,
                                                        editorwindow,
                                                        focus=focus)
@@ -2170,7 +2175,8 @@ class Editor(SpyderPluginWidget):
                 # Creating the editor widget in the first editorstack
                 # (the one that can't be destroyed), then cloning this
                 # editor widget in all other editorstacks:
-                finfo = self.editorstacks[0].load(filename, set_current=False)
+                finfo = self.editorstacks[0].load(
+                    filename, set_current=False, add_where=add_where)
                 finfo.path = self.main.get_spyder_pythonpath()
                 self._clone_file_everywhere(finfo)
                 current_editor = current_es.set_current_filename(filename,
@@ -2944,7 +2950,7 @@ class Editor(SpyderPluginWidget):
         self.set_create_new_file_if_empty(False)
         active_project_path = None
         if self.projects is not None:
-             active_project_path = self.projects.get_active_project_path()
+            active_project_path = self.projects.get_active_project_path()
 
         if active_project_path:
             filenames = self.projects.get_project_filenames()
@@ -2953,10 +2959,27 @@ class Editor(SpyderPluginWidget):
         self.close_all_files()
 
         if filenames and any([osp.isfile(f) for f in filenames]):
-            filenames = self.reorder_filenames(filenames)
             layout = self.get_option('layout_settings', None)
             is_vertical, cfname, clines = layout.get('splitsettings')[0]
-            self.load(filenames, goto=clines)
+            if cfname in filenames:
+                index = filenames.index(cfname)
+                # First we load the last focused file.
+                self.load(filenames[index], goto=clines[index], set_focus=True)
+                # Then we load the files located to the left of the last
+                # focused file in the tabbar, while keeping the focus on
+                # the last focused file.
+                if index > 0:
+                    self.load(filenames[index::-1], goto=clines[index::-1],
+                              set_focus=False, add_where='start')
+                # Finally we load the files located to the right of the last
+                # focused file in the tabbar, while keeping the focus on
+                # the last focused file.
+                if index < (len(filenames) - 1):
+                    self.load(filenames[index+1:], goto=clines[index:],
+                              set_focus=False, add_where='end')
+            else:
+                self.load(filenames, goto=clines)
+            self.get_current_editorstack()._refresh_outlineexplorer()
             if layout is not None:
                 self.editorsplitter.set_layout_settings(layout,
                                                         dont_goto=filenames[0])
@@ -2968,39 +2991,6 @@ class Editor(SpyderPluginWidget):
         else:
             self.__load_temp_file()
         self.set_create_new_file_if_empty(True)
-
-    def reorder_filenames(self, filenames):
-        """Take the last session filenames and put the last open on first.
-
-        It takes a list of filenames and using the current filename from the
-        layout settings, sets the one that had focused last in the position 0.
-        It also reorders the current lines for each file (supposing that they
-        are in the same order as the filenames) and sets them back in the
-        layout settings.
-        """
-        layout = self.get_option('layout_settings', None)
-        if layout is None:
-            return filenames
-        splitsettings = layout.get('splitsettings')
-        index_first_file = 0
-        reordered_splitsettings = []
-        for index, (is_vertical, cfname, clines) in enumerate(splitsettings):
-            #the first element of filenames is now the one that last had focus
-            if index == 0:
-                if cfname in filenames:
-                    index_first_file = filenames.index(cfname)
-                    filenames.pop(index_first_file)
-                    filenames.insert(0, cfname)
-                    clines_first_file = clines[index_first_file]
-                    clines.pop(index_first_file)
-                    clines.insert(0, clines_first_file)
-                else:
-                    cfname = filenames[0]
-                    index_first_file = 0
-            reordered_splitsettings.append((is_vertical, cfname, clines))
-        layout['splitsettings'] = reordered_splitsettings
-        self.set_option('layout_settings', layout)
-        return filenames
 
     def save_open_files(self):
         """Save the list of open files"""

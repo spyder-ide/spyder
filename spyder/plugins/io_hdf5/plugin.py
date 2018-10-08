@@ -1,10 +1,14 @@
-# -*- coding:utf-8 -*-
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2009- Spyder Project Contributors
 #
-# Copyright © Spyder Project Contributors
-# Licensed under the terms of the MIT License
+# Distributed under the terms of the MIT License
 # (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
 
-"""I/O plugin for loading/saving HDF5 files
+
+"""
+I/O plugin for loading/saving HDF5 files.
 
 Note that this is a fairly dumb implementation which reads the whole HDF5 file into
 Spyder's variable explorer.  Since HDF5 files are designed for storing very large

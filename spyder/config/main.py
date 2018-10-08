@@ -28,7 +28,7 @@ from spyder.utils import codeanalysis
 # Main constants
 # =============================================================================
 # Find in files exclude patterns
-EXCLUDE_PATTERNS = [r'\.pyc$|\.pyo$|\.git']
+EXCLUDE_PATTERNS = ['*.csv, *.dat, *.log, *.tmp, *.bak, *.orig']
 
 # Extensions that should be visible in Spyder's file/project explorers
 SHOW_EXT = ['.py', '.ipynb', '.txt', '.dat', '.pdf', '.png', '.svg']
@@ -268,6 +268,7 @@ DEFAULTS = [
               'enable': True,
               'show_fullpath': False,
               'show_all_files': False,
+              'group_cells': True,
               'show_comments': True,
               }),
             ('project_explorer',
@@ -291,13 +292,12 @@ DEFAULTS = [
               'enable': True,
               'supported_encodings': ["utf-8", "iso-8859-1", "cp1252"],
               'exclude': EXCLUDE_PATTERNS,
-              'exclude_regexp': True,
-              'search_text_regexp': True,
+              'exclude_regexp': False,
+              'search_text_regexp': False,
               'search_text': [''],
               'search_text_samples': [codeanalysis.TASKS_PATTERN],
-              'in_python_path': False,
-              'more_options': False,
-              'case_sensitive': True
+              'more_options': True,
+              'case_sensitive': False
               }),
             ('breakpoints',
              {
@@ -390,8 +390,8 @@ DEFAULTS = [
               'editor/next line': "Meta+N",
               'editor/previous char': "Meta+B",
               'editor/next char': "Meta+F",
-              'editor/previous word': "Meta+Left",
-              'editor/next word': "Meta+Right",
+              'editor/previous word': "Ctrl+Left",
+              'editor/next word': "Ctrl+Right",
               'editor/kill to line end': "Meta+K",
               'editor/kill to line start': "Meta+U",
               'editor/yank': 'Meta+Y',
@@ -405,7 +405,7 @@ DEFAULTS = [
               'editor/cut': 'Ctrl+X',
               'editor/copy': 'Ctrl+C',
               'editor/paste': 'Ctrl+V',
-              'editor/delete': 'Delete',
+              'editor/delete': 'Del',
               'editor/select all': "Ctrl+A",
               # -- In widgets/editor.py
               'editor/inspect current object': 'Ctrl+I',
@@ -748,7 +748,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '45.0.0'
+CONF_VERSION = '46.1.0'
 
 # Main configuration instance
 try:

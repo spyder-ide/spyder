@@ -1,11 +1,20 @@
 //----------------------------------------------------------------------------
 //  Copy Button
 //
-//  Add a [>>>] button on the top-right corner of code samples to hide
-//  the >>> and ... prompts and the output and thus make the code
-//  copyable.
+//  Copyright (c) 2012 Python Software Foundation
+//  Copyright (c) 2012- Spyder Project Contributors
 //
-//  Taken from http://docs.python.org/_static/copybutton.js
+//  Distributed under the terms of the Python Software Foundation License Ver 2
+//  (see NOTICE.txt in the Spyder repo's root directory for more details)
+//
+//----------------------------------------------------------------------------
+//
+//  Add a [>>>] button on the top-right corner of code samples to hide
+//  the >>> and ... prompts and the output and thus make the code copyable.
+//
+//  Adapted from python_docs_theme/static/copybutton.js of the
+//  Python Docs Theme: https://github.com/python/python-docs-theme
+//  Also availible at: https://docs.python.org/_static/copybutton.js
 //----------------------------------------------------------------------------
 
 //============================================================================

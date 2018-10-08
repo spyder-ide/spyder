@@ -1,17 +1,25 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
 # Copyright (c) 2005 Divmod, Inc.
-# Copyright (c) Twisted Matrix Laboratories.
-# Copyright (c) Spyder Project Contributors
-# Twisted is distributed under the MIT license.
+# Copyright (c) 2008-2011 Twisted Matrix Laboratories
+# Copyright (c) 2012- Spyder Project Contributors
+#
+# Distributed under the terms of the MIT (Expat) License
+# (see LICENSE.txt in this directory and NOTICE.txt in the root for details)
+# -----------------------------------------------------------------------------
 
 """
 Filesystem-based interprocess mutex.
 
 Taken from the Twisted project.
-Distributed under the MIT license.
+Distributed under the MIT (Expat) license.
 
 Changes by the Spyder Team to the original module:
   * Rewrite kill Windows function to make it more reliable.
   * Detect if the process that owns the lock is an Spyder one.
+
+Adapted from src/twisted/python/lockfile.py of the
+`Twisted project <https://github.com/twisted/twisted>`_.
 """
 
 __metaclass__ = type

@@ -1,12 +1,19 @@
 //----------------------------------------------------------------------------
 //  Toggleable sections
 //
-//  Added expand/collapse functionality to RST sections.
-//  Code from the Cloud Sphinx theme
-//
 //  Copyright 2011-2012 by Assurance Technologies
+//  Copyright 2014- Spyder Project Contributors
 //
-//  Distributed under the terms of the BSD License
+//  Distributed under the terms of the 3-Clause BSD License
+//  (see NOTICE.txt in the Spyder repo's root directory for more details)
+//
+//----------------------------------------------------------------------------
+//
+//  Added expand/collapse functionality to RST sections.
+//
+//  Adapted from portions of cloud_sptheme/themes/cloud/static/cloud.js_t
+//  from the Cloud Sphinx theme:
+//  https://bitbucket.org/ecollins/cloud_sptheme/
 //----------------------------------------------------------------------------
 
 //============================================================================

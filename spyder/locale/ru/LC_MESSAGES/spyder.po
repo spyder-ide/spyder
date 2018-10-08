@@ -1,9 +1,16 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR ORGANIZATION
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# FULL NAME <EMAIL@ADDRESS>, 2014.
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2009- Spyder Project Contributors
+#
+# Distributed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
+#
+# Spyder's Russian gettext translation file
+#
 # Zgarbul Andrey <zgarbul.andrey@gmaail.com>, 2014.
 #
+
 msgid ""
 msgstr ""
 "Project-Id-Version: 3.0\n"

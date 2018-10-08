@@ -1,19 +1,12 @@
 #!/usr/bin/env python
 # -*-coding: utf8 -*-
-# Copyright © githubpy Michael Liao
-# Copyright © QCrash Colin Duquesnoy
-# Copyright © Spyder Project Contributors
-# Licensed under the terms of the MIT License
-# (see spyder/__init__.py for details)
 
-
-'''
+"""
 GitHub API Python SDK. (Python >= 2.6)
 
 Apache License
 
-Michael Liao (askxuefeng@gmail.com)
-https://github.com/michaelliao/githubpy
+Michael Liao (askxuefeng@gmail.com) https://github.com/michaelliao/githubpy
 
 Usage:
 
@@ -51,7 +44,7 @@ ApiNotFoundError: https://api.github.com/repos/thisisabadurl
 Traceback (most recent call last):
     ...
 ApiNotFoundError: https://api.github.com/users/github-not-exist-user/followers
-'''
+"""
 
 try:
     # Python 2

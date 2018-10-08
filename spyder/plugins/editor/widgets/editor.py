@@ -851,7 +851,7 @@ class EditorStack(QWidget):
         # Remove editor references from the outline explorer settings
         if self.outlineexplorer is not None:
             for finfo in self.data:
-                self.outlineexplorer.remove_editor(finfo.editor)
+                self.outlineexplorer.remove_editor(finfo.editor.oe_proxy)
 
         QWidget.closeEvent(self, event)
 
@@ -1295,8 +1295,10 @@ class EditorStack(QWidget):
         else:
             return text % (osp.basename(filename), osp.dirname(filename))
 
-    def add_to_data(self, finfo, set_current):
-        self.data.append(finfo)
+    def add_to_data(self, finfo, set_current, add_where='end'):
+        finfo.editor.oe_proxy = None
+        index = 0 if add_where == 'start' else len(self.data)
+        self.data.insert(index, finfo)
         index = self.data.index(finfo)
         editor = finfo.editor
         self.tabs.insertTab(index, editor, self.get_tab_text(index))
@@ -1342,7 +1344,8 @@ class EditorStack(QWidget):
             # Fixes Issue 1287
             self.set_current_filename(current_fname)
         if self.outlineexplorer is not None:
-            self.outlineexplorer.file_renamed(finfo.editor, finfo.filename)
+            self.outlineexplorer.file_renamed(
+                finfo.editor.oe_proxy, finfo.filename)
         return new_index
 
     def set_stack_title(self, index, is_modified):
@@ -1424,6 +1427,13 @@ class EditorStack(QWidget):
     def get_current_filename(self):
         if self.data:
             return self.data[self.get_stack_index()].filename
+
+    def get_filenames(self):
+        """
+        Return a list with the names of all the files currently opened in
+        the editorstack.
+        """
+        return [finfo.filename for finfo in self.data]
 
     def has_filename(self, filename):
         """Return the self.data index position for the filename.
@@ -2056,17 +2066,14 @@ class EditorStack(QWidget):
             return
         if index is None:
             index = self.get_stack_index()
-        enable = False
         if self.data:
             finfo = self.data[index]
-            if finfo.editor.is_python():
-                enable = True
-                oe.setEnabled(True)
-                finfo.editor.oe_proxy = OutlineExplorerProxyEditor(finfo.editor, finfo.filename)
-                oe.set_current_editor(finfo.editor.oe_proxy,
-                                      update=update, clear=clear)
-        if not enable:
-            oe.setEnabled(False)
+            oe.setEnabled(True)
+            if finfo.editor.oe_proxy is None:
+                finfo.editor.oe_proxy = OutlineExplorerProxyEditor(
+                    finfo.editor, finfo.filename)
+            oe.set_current_editor(finfo.editor.oe_proxy,
+                                  update=update, clear=clear)
 
     def __refresh_statusbar(self, index):
         """Refreshing statusbar widgets"""
@@ -2253,7 +2260,7 @@ class EditorStack(QWidget):
         self.reload(index)
 
     def create_new_editor(self, fname, enc, txt, set_current, new=False,
-                          cloned_from=None):
+                          cloned_from=None, add_where='end'):
         """
         Create a new editor instance
         Returns finfo object (instead of editor as in previous releases)
@@ -2270,7 +2277,7 @@ class EditorStack(QWidget):
         finfo = FileInfo(fname, enc, editor, new, self.threadmanager,
                          self.introspector)
 
-        self.add_to_data(finfo, set_current)
+        self.add_to_data(finfo, set_current, add_where)
         finfo.send_to_help.connect(self.send_to_help)
         finfo.analysis_results_changed.connect(
                                   lambda: self.analysis_results_changed.emit())
@@ -2280,10 +2287,10 @@ class EditorStack(QWidget):
                                 self.edit_goto.emit(fname, lineno, name))
         finfo.save_breakpoints.connect(lambda s1, s2:
                                        self.save_breakpoints.emit(s1, s2))
-        editor.run_selection.connect(self.run_selection)
-        editor.run_cell.connect(self.run_cell)
-        editor.run_cell_and_advance.connect(self.run_cell_and_advance)
-        editor.re_run_last_cell.connect(self.re_run_last_cell)
+        editor.sig_run_selection.connect(self.run_selection)
+        editor.sig_run_cell.connect(self.run_cell)
+        editor.sig_run_cell_and_advance.connect(self.run_cell_and_advance)
+        editor.sig_re_run_last_cell.connect(self.re_run_last_cell)
         editor.sig_new_file.connect(self.sig_new_file.emit)
         language = get_file_language(fname, txt)
         editor.setup_editor(
@@ -2350,7 +2357,7 @@ class EditorStack(QWidget):
             options = {
                 'language': editor.language,
                 'filename': editor.filename,
-                'signal': editor.lsp_response_signal
+                'codeeditor': editor
             }
             self.sig_open_file.emit(options)
             if self.get_stack_index() == 0:
@@ -2399,7 +2406,7 @@ class EditorStack(QWidget):
             finfo.editor.document().setModified(False)
         return finfo
 
-    def load(self, filename, set_current=True):
+    def load(self, filename, set_current=True, add_where='end'):
         """
         Load filename, create an editor instance and return it
         *Warning* This is loading file, creating editor but not executing
@@ -2409,7 +2416,8 @@ class EditorStack(QWidget):
         filename = osp.abspath(to_text_string(filename))
         self.starting_long_process.emit(_("Loading %s...") % filename)
         text, enc = encoding.read(filename)
-        finfo = self.create_new_editor(filename, enc, text, set_current)
+        finfo = self.create_new_editor(filename, enc, text, set_current,
+                                       add_where=add_where)
         index = self.data.index(finfo)
         self._refresh_outlineexplorer(index, update=True)
         self.ending_long_process.emit("")
@@ -2557,7 +2565,10 @@ class EditorStack(QWidget):
         """Reimplement Qt method
         Unpack dropped data and handle it"""
         source = event.mimeData()
-        if source.hasUrls():
+        # The second check is necessary when mimedata2url(source)
+        # returns None.
+        # Fixes issue 7742
+        if source.hasUrls() and mimedata2url(source):
             files = mimedata2url(source)
             files = [f for f in files if encoding.is_text_file(f)]
             files = set(files or [])
@@ -2566,7 +2577,9 @@ class EditorStack(QWidget):
         elif source.hasText():
             editor = self.get_current_editor()
             if editor is not None:
-                editor.insert_text( source.text() )
+                editor.insert_text(source.text())
+        else:
+            event.ignore()
         event.acceptProposedAction()
 
 
@@ -2638,9 +2651,9 @@ class EditorSplitter(QSplitter):
             print("method 'editorstack_closed':", file=STDOUT)
             print("    self  :", self, file=STDOUT)
 #            print >>STDOUT, "    sender:", self.sender()
-        self.unregister_editorstack_cb(self.editorstack)
-        self.editorstack = None
         try:
+            self.unregister_editorstack_cb(self.editorstack)
+            self.editorstack = None
             close_splitter = self.count() == 1
         except RuntimeError:
             # editorsplitter has been destroyed (happens when closing a
@@ -2803,7 +2816,7 @@ class EditorSplitter(QSplitter):
 
 class EditorWidget(QSplitter):
     def __init__(self, parent, plugin, menu_actions, show_fullpath,
-                 show_all_files, show_comments):
+                 show_all_files, group_cells, show_comments):
         QSplitter.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
@@ -2820,10 +2833,12 @@ class EditorWidget(QSplitter):
         self.find_widget = FindReplace(self, enable_replace=True)
         self.plugin.register_widget_shortcuts(self.find_widget)
         self.find_widget.hide()
-        self.outlineexplorer = OutlineExplorerWidget(self,
-                                            show_fullpath=show_fullpath,
-                                            show_all_files=show_all_files,
-                                            show_comments=show_comments)
+        self.outlineexplorer = OutlineExplorerWidget(
+                self,
+                show_fullpath=show_fullpath,
+                show_all_files=show_all_files,
+                group_cells=group_cells,
+                show_comments=show_comments)
         self.outlineexplorer.edit_goto.connect(
                      lambda filenames, goto, word:
                      plugin.load(filenames=filenames, goto=goto, word=word,
@@ -2891,7 +2906,7 @@ class EditorWidget(QSplitter):
 
 class EditorMainWindow(QMainWindow):
     def __init__(self, plugin, menu_actions, toolbar_list, menu_list,
-                 show_fullpath, show_all_files, show_comments):
+                 show_fullpath, show_all_files, group_cells, show_comments):
         QMainWindow.__init__(self)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
@@ -2899,7 +2914,7 @@ class EditorMainWindow(QMainWindow):
 
         self.editorwidget = EditorWidget(self, plugin, menu_actions,
                                          show_fullpath, show_all_files,
-                                         show_comments)
+                                         group_cells, show_comments)
         self.setCentralWidget(self.editorwidget)
 
         # Give focus to current editor to update/show all status bar widgets
@@ -3104,7 +3119,7 @@ class EditorPluginExample(QSplitter):
         window = EditorMainWindow(self, self.menu_actions,
                                   self.toolbar_list, self.menu_list,
                                   show_fullpath=False, show_all_files=False,
-                                  show_comments=True)
+                                  group_cells=True, show_comments=True)
         window.resize(self.size())
         window.show()
         self.register_editorwindow(window)

@@ -36,6 +36,9 @@ class OutlineExplorerProxyTest(OutlineExplorerProxy):
         self.fname = fname
         self.oe_data = oe_data
 
+    def is_python(self):
+        return True
+
     def get_id(self):
         return id(self)
 

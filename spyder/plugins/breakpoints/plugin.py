@@ -1,10 +1,14 @@
-# -*- coding:utf-8 -*-
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2009- Spyder Project Contributors
 #
-# Copyright © Spyder Project Contributors
-# Licensed under the terms of the MIT License
+# Distributed under the terms of the MIT License
 # (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
 
-"""Breakpoint Plugin"""
+
+"""Breakpoint Plugin."""
+
 
 # pylint: disable=C0103
 # pylint: disable=R0903

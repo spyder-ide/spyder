@@ -34,7 +34,7 @@ class LSPEditorWrapper(QObject):
 
     def initialize_callback(self, settings, language):
         self.lsp_manager.register_file(
-            'python', 'test.py', self.editor.lsp_response_signal)
+            'python', 'test.py', self.editor)
         self.editor.start_lsp_services(settings)
 
     def perform_request(self, language, request, params):
@@ -75,8 +75,8 @@ def construct_editor(qtbot, *args, **kwargs):
     lsp_manager.closing_plugin()
 
 
-@pytest.mark.skipif(os.name == 'nt' and not PY2,
-                    reason="Times out on AppVeyor and fails on PY3/PyQt 5.6")
+@pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
+                    reason="Times out on AppVeyor")
 def test_adding_warnings(qtbot, construct_editor):
     """Test that warning are saved in the blocks of the editor."""
     editor, lsp_manager = construct_editor
@@ -102,6 +102,8 @@ def test_adding_warnings(qtbot, construct_editor):
             # assert expected in warning
 
 
+@pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
+                    reason="Times out on AppVeyor")
 def test_move_warnings(qtbot, construct_editor):
     editor, lsp_manager = construct_editor
 

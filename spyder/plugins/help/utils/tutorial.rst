@@ -21,7 +21,7 @@ If you find it too simple, please continue to the `next one <python-beginners-re
 Execute a given program
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-We are going to use run program as a first example:
+We are going to run this program as a first example:
 
 .. code-block:: python
 
@@ -40,7 +40,7 @@ We are going to use run program as a first example:
 
 #. To execute the program, select :menuselection:`Run --> Run` from the menu (or press :kbd:`F5`), and confirm the ``Run settings`` if required.
 
-#. If this is your first running something, you should see an output like this:
+#. If this is your first time running something, you should see an output like this:
 
    .. code-block:: python
 
@@ -130,7 +130,7 @@ Typing ``help(hello)`` at the :guilabel:`Console` prompt, you should see an outp
     Help on function hello in module __main__:
 
     hello()
-        Print "Hello World" and return None
+        Print "Hello World" and return None.
 
 Where does Python get that information from?
 Some of it (like the number of input arguments and names of those variables; here we have none) Python can find through inspecting its objects.
@@ -207,7 +207,7 @@ To update the console's namespace with modified function, we have two options:
   .. code-block:: python
 
         In [ ]: def hello():
-           ...:     """Print "Hello World" and return None"""
+           ...:     """Print "Hello World" and return None."""
            ...:     print("Later world")
            ...:
 
@@ -370,8 +370,7 @@ Shortcuts for useful functions
 
 * :kbd:`Shift-Enter`\* executes the current cell and advances the cursor to the next cell (menu entry :menuselection:`Run --> Run cell and advance`).
 
-  Cells are useful to execute a large file/code segment in smaller units.
-  (It is a little bit like a cell in an IPython notebook, in that chunks of code can be run independently).
+  Cells are useful for breaking large files or long blocks of code into more manageable chunks. Like those in an IPython notebook, each cell can be run independently.
 
 * :kbd:`Alt-Up`\* moves the current line up.
   If multiple lines are highlighted, they are moved up together.
@@ -673,7 +672,7 @@ If we execute this (:menuselection:`Run --> Run`), we should see the output:
 Now run this using the debugger (:menuselection:`Debug --> Debug`), press the ``Step`` button until the highlighted line reaches the ``demo(0)`` function call, then press the ``Step into`` to inspect this function.
 Keep pressing the ``Step`` button to execute the next lines.
 Then, modify ``x`` by typing ``x = 10`` in the debugger prompt.
-You should see x changing in the :guilabel:`Variable Explorer` and when its value is printed as part of the ``demo()`` function.
+You should see ``x`` changing in the :guilabel:`Variable Explorer` and when its value is printed as part of the ``demo()`` function.
 (The printed output appears between your debugger commands and responses).
 
 This debugging ability to execute code line by line, to inspect variables as they change, and to modify them manually is a powerful tool to understand what a piece of code is doing (and to correct it if desired).
@@ -734,4 +733,4 @@ Here are two lines you can use to quickly create a plot and test this:
 Historical note
 ===============
 
-This tutorial was originally based on `notes <https://fangohr.github.io/blog/spyder-the-python-ide-spyder-23.html>`__ by `Hans Fangohr <https://fangohr.github.io/>`__, that are used at the `University of Southampton <https://www.southampton.ac.uk/>`__ to `teach Python for computational modelling <https://www.southampton.ac.uk/~fangohr/teaching/python.html>`__ to undergraduate engineers and postgraduate PhD students for the `Next Generation Computational Modelling <http://www.ngcm.soton.ac.uk/>`__ doctoral training centre.
+This tutorial was originally based on `notes <https://fangohr.github.io/blog/spyder-the-python-ide-spyder-23.html>`__ by `Hans Fangohr <https://fangohr.github.io/>`__, that are used at the `University of Southampton <https://www.southampton.ac.uk/>`__ to `teach Python for computational modelling <https://fangohr.github.io/teaching/python.html>`__ to undergraduate engineers and postgraduate PhD students for the `Next Generation Computational Modelling <http://www.ngcm.soton.ac.uk/>`__ doctoral training centre.

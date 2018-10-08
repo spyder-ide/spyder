@@ -23,6 +23,7 @@ from qtpy.QtWidgets import QWidget
 from spyder.utils.qthelpers import qapplication
 
 
+# ---- Qt Test Fixtures
 @pytest.fixture
 def setup_editor(qtbot, monkeypatch):
     """Set up the Editor plugin."""
@@ -54,6 +55,22 @@ def setup_editor(qtbot, monkeypatch):
     yield editor, qtbot
 
 
+@pytest.fixture(scope="module")
+def python_files(tmpdir_factory):
+    """Create and save some python codes in temporary files."""
+    tmpdir = tmpdir_factory.mktemp("files")
+    tmpdir = osp.normcase(tmpdir.strpath)
+
+    filenames = [osp.join(tmpdir, f) for f in
+                 ('file1.py', 'file2.py', 'file3.py', 'file4.py')]
+    for filename in filenames:
+        with open(filename, 'w') as f:
+            f.write("# -*- coding: utf-8 -*-\n"
+                    "print(Hello World!)\n")
+
+    return filenames, tmpdir
+
+
 def test_basic_initialization(setup_editor):
     """Test Editor plugin initialization."""
     editor, qtbot = setup_editor
@@ -63,36 +80,40 @@ def test_basic_initialization(setup_editor):
 
 
 @pytest.mark.parametrize(
-    'filenames, expected_filenames, splitsettings, expected_splitsettings', [
-        (['/file1.py', '/file2.py', '/file3.py', '/file4.py'],
-         ['/file1.py', '/file2.py', '/file3.py', '/file4.py'],
-         [(False, '/other_file.py', [2, 4, 8, 12])],
-         [(False, '/file1.py', [2, 4, 8, 12])]),
-        (['/file1.py', '/file2.py', '/file3.py', '/file4.py'],
-         ['/file2.py', '/file1.py', '/file3.py', '/file4.py'],
-         [(False, '/file2.py', [2, 4, 8, 12])],
-         [(False, '/file2.py', [4, 2, 8, 12])]),
-        (['/file1.py', '/file2.py', '/file3.py', '/file4.py'],
-         ['/file1.py', '/file2.py', '/file3.py', '/file4.py'],
-         None,
-         None, )
-    ])
-def test_reorder_filenames(setup_editor, expected_filenames, filenames,
-                           splitsettings, expected_splitsettings):
+    'last_focused_filename, expected_current_filename',
+    [('other_file.py', 'file1.py'),
+     ('file1.py', 'file1.py'),
+     ('file2.py', 'file2.py'),
+     ('file4.py', 'file4.py')
+     ])
+def test_setup_open_files(setup_editor, last_focused_filename,
+                          expected_current_filename, python_files):
+    """Test Editor plugin open files setup.
+
+    Test that the file order is preserved during the Editor plugin setup and
+    that the current file correspond to the last focused file.
+    """
     editor, qtbot = setup_editor
+    expected_filenames, tmpdir = python_files
+    expected_current_filename = osp.join(tmpdir, expected_current_filename)
 
-    def get_option(*args):
-        if splitsettings is None:
-            return None
-        return {'splitsettings': splitsettings}
-
-    def set_option(name, layout_settings):
-        assert layout_settings['splitsettings'] == expected_splitsettings
-
+    def get_option(option, default=None):
+        splitsettings = [(False,
+                          osp.join(tmpdir, last_focused_filename),
+                          [1, 1, 1, 1])]
+        return {'layout_settings': {'splitsettings': splitsettings},
+                'filenames': expected_filenames,
+                'max_recent_files': 20
+                }.get(option)
     editor.get_option = get_option
-    editor.set_option = set_option
 
-    assert expected_filenames == editor.reorder_filenames(filenames)
+    editor.setup_open_files()
+    current_filename = editor.get_current_editorstack().get_current_filename()
+    current_filename = osp.normcase(current_filename)
+    assert current_filename == expected_current_filename
+    filenames = editor.get_current_editorstack().get_filenames()
+    filenames = [osp.normcase(f) for f in filenames]
+    assert filenames == expected_filenames
 
 
 def test_renamed_tree(setup_editor, mocker):
@@ -142,3 +163,8 @@ def test_no_template(setup_editor):
 
     # Revert template back
     shutil.move(osp.join(osp.dirname(template), 'template.py.old'), template)
+
+
+if __name__ == "__main__":
+    import os
+    pytest.main(['-x', os.path.basename(__file__), '-vv', '-rw'])

@@ -1,14 +1,18 @@
-# -*- coding:utf-8 -*-
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2009- Spyder Project Contributors
 #
-# Copyright © Spyder Project Contributors
-# Licensed under the terms of the MIT License
+# Distributed under the terms of the MIT License
 # (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
+
 
 """
-Client widget for the IPython Console
+Client widget for the IPython Console.
 
-This is the widget used on all its tabs
+This is the widget used on all its tabs.
 """
+
 
 # Standard library imports
 from __future__ import absolute_import  # Fix for Issue 1356
@@ -34,7 +38,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import sourcecode
 from spyder.utils.encoding import get_coding
 from spyder.utils.environ import RemoteEnvDialog
-from spyder.utils.programs import TEMPDIR
+from spyder.utils.programs import get_temp_dir
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, DialogManager,
                                     MENU_SEPARATOR)
@@ -130,6 +134,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.history = []
         self.allow_rename = True
         self.stderr_dir = None
+        self.is_error_shown = False
 
         # --- Widgets
         self.shellwidget = ShellWidget(config=config_options,
@@ -191,12 +196,36 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                 stderr_file = osp.join(self.stderr_dir, stderr_file)
             else:
                 try:
-                    if not osp.isdir(TEMPDIR):
-                        os.makedirs(TEMPDIR)
-                    stderr_file = osp.join(TEMPDIR, stderr_file)
+                    stderr_file = osp.join(get_temp_dir(), stderr_file)
                 except (IOError, OSError):
                     stderr_file = None
         return stderr_file
+
+    @property
+    def stderr_handle(self):
+        """Get handle to stderr_file."""
+        if self.stderr_file is not None:
+            # Needed to prevent any error that could appear.
+            # See issue 6267
+            try:
+                handle = codecs.open(self.stderr_file, 'w', encoding='utf-8')
+            except Exception:
+                handle = None
+        else:
+            handle = None
+
+        return handle
+
+    def remove_stderr_file(self):
+        """Remove stderr_file associated with the client."""
+        try:
+            # Defer closing the stderr_handle until the client
+            # is closed because jupyter_client needs it open
+            # while it tries to restart the kernel
+            self.stderr_handle.close()
+            os.remove(self.stderr_file)
+        except Exception:
+            pass
 
     def configure_shellwidget(self, give_focus=True):
         """Configure shellwidget after kernel is started"""
@@ -293,6 +322,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.infowidget.setHtml(page, QUrl.fromLocalFile(CSS_PATH))
         self.shellwidget.hide()
         self.infowidget.show()
+
+        # Tell the client we're in error mode
+        self.is_error_shown = True
 
     def get_name(self):
         """Return client name"""
@@ -490,14 +522,15 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             result = None
 
         if (result == QMessageBox.Yes or
-           running_under_pytest() or
-           not self.ask_before_restart):
+                running_under_pytest() or
+                not self.ask_before_restart):
             if sw.kernel_manager:
                 if self.infowidget.isVisible():
                     self.infowidget.hide()
                     sw.show()
                 try:
-                    sw.kernel_manager.restart_kernel()
+                    sw.kernel_manager.restart_kernel(
+                        stderr=self.stderr_handle)
                 except RuntimeError as e:
                     sw._append_plain_text(
                         _('Error restarting kernel: %s\n') % e,
@@ -519,26 +552,22 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     @Slot(str)
     def kernel_restarted_message(self, msg):
         """Show kernel restarted/died messages."""
-        try:
-            stderr = codecs.open(self.stderr_file, 'r',
-                                 encoding='utf-8').read()
-        except UnicodeDecodeError:
-            # This is needed since the stderr file could be encoded
-            # in something different to utf-8.
-            # See issue 4191
+        if not self.is_error_shown:
+            # If there are kernel creation errors, jupyter_client will
+            # try to restart the kernel and qtconsole prints a
+            # message about it.
+            # So we read the kernel's stderr_file and display its
+            # contents in the client instead of the usual message shown
+            # by qtconsole.
             try:
                 stderr = self._read_stderr()
-            except:
+            except Exception:
                 stderr = None
-        except (OSError, IOError):
-            stderr = None
-
-        if stderr:
-            self.show_kernel_error('<tt>%s</tt>' % stderr)
+            if stderr:
+                self.show_kernel_error('<tt>%s</tt>' % stderr)
         else:
             self.shellwidget._append_html("<br>%s<hr><br>" % msg,
                                           before_prompt=False)
-
 
     @Slot()
     def inspect_object(self):
@@ -649,10 +678,17 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def _read_stderr(self):
         """Read the stderr file of the kernel."""
-        stderr_text = open(self.stderr_file, 'rb').read()
-        encoding = get_coding(stderr_text)
-        stderr = to_text_string(stderr_text, encoding)
-        return stderr
+        f = open(self.stderr_file, 'rb')
+        try:
+            stderr_text = f.read()
+            # This is needed since the stderr file could be encoded
+            # in something different to utf-8.
+            # See issue 4191
+            encoding = get_coding(stderr_text)
+            stderr_text = to_text_string(stderr_text, encoding)
+            return stderr_text
+        finally:
+            f.close()
 
     def _show_mpl_backend_errors(self):
         """

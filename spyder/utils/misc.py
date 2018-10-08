@@ -6,9 +6,11 @@
 
 """Miscellaneous utilities"""
 
+import codecs
 import functools
 import os
 import os.path as osp
+import re
 import sys
 import stat
 
@@ -278,3 +280,15 @@ def getcwd_or_home():
         debug_print("WARNING: Current working directory was deleted, "
                     "falling back to home dirertory")
         return get_home_dir()
+
+
+def regexp_error_msg(pattern):
+    """
+    Return None if the pattern is a valid regular expression or
+    a string describing why the pattern is invalid.
+    """
+    try:
+        re.compile(pattern)
+    except re.error as e:
+        return str(e)
+    return None
