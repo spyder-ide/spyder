@@ -19,7 +19,8 @@ import time
 
 # Third party imports
 from qtpy import API
-from qtpy.compat import from_qvariant, getopenfilenames, to_qvariant
+from qtpy.compat import (from_qvariant, getopenfilenames, getopenfilename,
+                        to_qvariant)
 from qtpy.QtCore import QByteArray, Qt, Signal, Slot
 from qtpy.QtGui import QKeySequence
 from qtpy.QtPrintSupport import QAbstractPrintDialog, QPrintDialog, QPrinter
@@ -46,6 +47,7 @@ from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.editor.widgets.editor import (EditorMainWindow, Printer,
                                                   EditorSplitter, EditorStack,)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+from spyder.plugins.editor.widgets.base import ConsoleBaseWidget
 from spyder.widgets.status import (CursorPositionStatus, EncodingStatus,
                                    EOLStatus, ReadWriteStatus)
 from spyder.api.plugins import SpyderPluginWidget
@@ -1106,6 +1108,9 @@ class Editor(SpyderPluginWidget):
         fixindentation_action = create_action(self, _("Fix indentation"),
                       tip=_("Replace tab characters by space characters"),
                       triggered=self.fix_indentation)
+        insert_filepath_action = create_action(
+            self, _("Insert file path"), tip=_("Select file from File Explorer to insert path"),
+            triggered=self.insert_filepath)
 
         gotoline_action = create_action(self, _("Go to line..."),
                                         icon=ima.icon('gotoline'),
@@ -1228,6 +1233,7 @@ class Editor(SpyderPluginWidget):
                                showcode_analysis_pep8_action,
                                trailingspaces_action,
                                fixindentation_action,
+                               insert_filepath_action,
                                MENU_SEPARATOR,
                                self.todo_list_action,
                                self.warning_list_action,
@@ -2435,6 +2441,17 @@ class Editor(SpyderPluginWidget):
     def fix_indentation(self):
         editorstack = self.get_current_editorstack()
         editorstack.fix_indentation()
+    @Slot()
+    def insert_filepath(self):
+        """
+        Open a window for selecting a file,
+        then returns the file's path and inserts it in the cursor position
+        """
+        editorstack = self.get_current_editorstack()
+        # editorstack.insert_filepath()
+        consoleBaseWidget = ConsoleBaseWidget()
+        filepath = getopenfilename(self, '', '', '')
+        editorstack.insert_text(filepath[0])
 
     #------ Cursor position history management
     def update_cursorpos_actions(self):

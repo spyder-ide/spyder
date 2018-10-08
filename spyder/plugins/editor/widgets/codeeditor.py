@@ -2771,6 +2771,9 @@ class CodeEditor(TextEditBaseWidget):
             self, _("Comment")+"/"+_("Uncomment"), icon=ima.icon('comment'),
             shortcut=get_shortcut('editor', 'toggle comment'),
             triggered=self.toggle_comment)
+        insert_filepath_action = create_action(
+            self, _("Insert file path"), shortcut=QKeySequence(""),
+            triggered=self.insert_filepath)
         self.clear_all_output_action = create_action(
             self, _("Clear all ouput"), icon=ima.icon('ipython_console'),
             triggered=self.clear_all_output)
@@ -2813,9 +2816,6 @@ class CodeEditor(TextEditBaseWidget):
         zoom_reset_action = create_action(
             self, _("Zoom reset"), shortcut=QKeySequence("Ctrl+0"),
             triggered=self.zoom_reset.emit)
-        insert_filepath = create_action(
-            self, _("Insert file path"), shortcut=QKeySequence(""),
-            triggered=self.insert_filepath)
 
         # Build menu
         self.menu = QMenu(self)
@@ -2825,7 +2825,7 @@ class CodeEditor(TextEditBaseWidget):
                      self.redo_action, None, self.cut_action,
                      self.copy_action, self.paste_action, selectall_action]
         actions_2 = [None, zoom_in_action, zoom_out_action, zoom_reset_action,
-                     insert_filepath, None, toggle_comment_action]
+                     None, toggle_comment_action, insert_filepath_action]
         if nbformat is not None:
             nb_actions = [self.clear_all_output_action,
                           self.ipynb_convert_action, None]
