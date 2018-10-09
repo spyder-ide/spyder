@@ -25,8 +25,8 @@ from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
 
 # ---- Qt Test Fixtures
 @pytest.fixture(scope="module")
-def python_files(tmpdir_factory):
-    """Create and save some python codes in temporary files."""
+def test_files(tmpdir_factory):
+    """Create and save some python codes and text in temporary files."""
     tmpdir = tmpdir_factory.mktemp("files")
 
     filename1 = osp.join(tmpdir.strpath, 'foo1.py')
@@ -40,12 +40,17 @@ def python_files(tmpdir_factory):
         f.write("# -*- coding: utf-8 -*-\n"
                 "# ---- a comment\n")
 
-    return [filename1, filename2]
+    filename3 = osp.join(tmpdir.strpath, 'text1.txt')
+    with open(filename3, 'w') as f:
+        f.write("This is a simple text file for\n"
+                "testing the Outline Explorer.\n")
+
+    return [filename1, filename2, filename3]
 
 
 @pytest.fixture
-def empty_editor_bot(qtbot):
-    """Set up an empty EditorStack with an OutlineExplorerWidget."""
+def outlineexplorer(qtbot):
+    """Set up an OutlineExplorerWidget."""
     outlineexplorer = OutlineExplorerWidget(
         show_fullpath=False, show_all_files=True, group_cells=False,
         show_comments=True)
@@ -56,66 +61,61 @@ def empty_editor_bot(qtbot):
     qtbot.addWidget(outlineexplorer)
     outlineexplorer.show()
 
-    editorstack = editor.EditorStack(None, [])
-    editorstack.set_introspector(Mock())
-    editorstack.set_find_widget(Mock())
-    editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
-    editorstack.analysis_timer = Mock()
-    editorstack.save_dialog_on_tests = True
-    editorstack.set_outlineexplorer(outlineexplorer)
-
-    qtbot.addWidget(editorstack)
-    editorstack.show()
-
-    return editorstack, outlineexplorer, qtbot
+    return outlineexplorer
 
 
 @pytest.fixture
-def editor_bot(empty_editor_bot, python_files):
-    """
-    Set up an EditorStack with an OutlineExplorerWidget and load some files.
-    """
-    editorstack, outlineexplorer, qtbot = empty_editor_bot
-    for file in python_files:
-        editorstack.load(file)
+def editorstack(qtbot, outlineexplorer):
+    def _create_editorstack(files):
+        editorstack = editor.EditorStack(None, [])
+        editorstack.set_introspector(Mock())
+        editorstack.set_find_widget(Mock())
+        editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
+        editorstack.analysis_timer = Mock()
+        editorstack.save_dialog_on_tests = True
+        editorstack.set_outlineexplorer(outlineexplorer)
 
-    return editorstack, outlineexplorer, qtbot
+        qtbot.addWidget(editorstack)
+        editorstack.show()
+
+        for file in files:
+            editorstack.load(file)
+
+        return editorstack
+    return _create_editorstack
 
 
 # ---- Tests
-def test_load_files(empty_editor_bot, python_files):
+def test_load_files(editorstack, outlineexplorer, test_files):
     """
     Test that the content of the outline explorer is updated correctly
     after a file is loaded in the editor.
     """
-    editorstack, outlineexplorer, qtbot = empty_editor_bot
+    editorstack = editorstack([])
     treewidget = outlineexplorer.treewidget
 
-    # Load the first file and assert the content of the outline explorer.
-    editorstack.load(python_files[0])
-    assert editorstack.get_current_filename() == python_files[0]
-    editorstack.tabs.currentIndex() == 0
+    # Load the test files one by one and assert the content of the
+    # outline explorer.
+    expected_result = [['foo1.py'],
+                       ['foo1.py', 'foo2.py'],
+                       ['foo1.py', 'foo2.py', 'text1.txt']]
+    for index, file in enumerate(test_files):
+        editorstack.load(file)
+        assert editorstack.get_current_filename() == file
+        editorstack.tabs.currentIndex() == index
 
-    results = [item.text(0) for item in treewidget.get_visible_items()]
-    assert results == ['foo1.py', 'foo']
-
-    # Load the second file and assert the content of the outline explorer tree.
-    editorstack.load(python_files[1])
-    assert editorstack.get_current_filename() == python_files[1]
-    editorstack.tabs.currentIndex() == 1
-
-    results = [item.text(0) for item in treewidget.get_visible_items()]
-    assert results == ['foo1.py', 'foo2.py', '---- a comment']
+        results = [item.text(0) for item in treewidget.get_visible_items()]
+        assert results == expected_result[index]
 
 
-def test_close_editor(editor_bot):
+def test_close_editor(editorstack, outlineexplorer, test_files):
     """
     Test that the content of the outline explorer is empty after the
     editorstack has been closed.
 
     Regression test for issue #7798.
     """
-    editorstack, outlineexplorer, qtbot = editor_bot
+    editorstack = editorstack(test_files)
     treewidget = outlineexplorer.treewidget
     assert treewidget.get_visible_items()
 
@@ -124,21 +124,21 @@ def test_close_editor(editor_bot):
     assert not treewidget.get_visible_items()
 
 
-def test_close_a_file(editor_bot):
+def test_close_a_file(editorstack, outlineexplorer, test_files):
     """
     Test that the content of the outline explorer is updated corrrectly
     after a file has been closed in the editorstack.
 
     Regression test for issue #7798.
     """
-    editorstack, outlineexplorer, qtbot = editor_bot
+    editorstack = editorstack(test_files)
     treewidget = outlineexplorer.treewidget
 
     # Close 'foo2.py' and assert that the content of the outline explorer
     # tree has been updated.
     editorstack.close_file(index=1)
     results = [item.text(0) for item in treewidget.get_visible_items()]
-    assert results == ['foo1.py', 'foo']
+    assert results == ['foo1.py', 'text1.txt']
 
 
 if __name__ == "__main__":

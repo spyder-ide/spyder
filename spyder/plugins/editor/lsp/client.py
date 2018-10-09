@@ -15,12 +15,11 @@ import os
 import sys
 import zmq
 import signal
-import datetime
 import subprocess
 import os.path as osp
-# from spyder.config.base import DEV
+
 from spyder.py3compat import PY2, getcwd
-from spyder.config.base import debug_print, get_conf_path
+from spyder.config.base import debug_print, get_conf_path, DEBUG
 from spyder.plugins.editor.lsp import (
     CLIENT_CAPABILITES, SERVER_CAPABILITES, TRACE,
     TEXT_DOCUMENT_SYNC_OPTIONS, LSPRequestTypes,
@@ -36,8 +35,6 @@ if PY2:
 else:
     import pathlib
 
-
-DEV = True
 
 LOCATION = osp.realpath(osp.join(os.getcwd(),
                                  osp.dirname(__file__)))
@@ -99,8 +96,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.server_args += server_args.split(' ')
         self.transport_args += transport_args.split(' ')
         self.transport_args += ['--folder', folder]
-        if DEV:
-            self.transport_args.append('--transport-debug')
+        self.transport_args += ['--transport-debug', str(DEBUG)]
 
     def start(self):
         self.zmq_out_socket = self.context.socket(zmq.PAIR)
@@ -112,10 +108,12 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                                 '--zmq-out-port', self.zmq_in_port]
 
         self.lsp_server_log = subprocess.PIPE
-        if DEV:
+        if DEBUG > 0:
             lsp_server_file = 'lsp_server_logfile.log'
-            self.lsp_server_log = open(osp.join(
-                getcwd(), lsp_server_file), 'w')
+            log_file = get_conf_path(osp.join('lsp_logs', lsp_server_file))
+            if not osp.exists(osp.dirname(log_file)):
+                os.makedirs(osp.dirname(log_file))
+            self.lsp_server_log = open(log_file, 'w')
 
         if not self.external_server:
             debug_print('Starting server: {0}'.format(
@@ -132,7 +130,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
         self.stdout_log = subprocess.PIPE
         self.stderr_log = subprocess.PIPE
-        if DEV:
+        if DEBUG > 0:
             stderr_log_file = 'lsp_client_{0}.log'.format(self.language)
             log_file = get_conf_path(osp.join('lsp_logs', stderr_log_file))
             if not osp.exists(osp.dirname(log_file)):
@@ -228,9 +226,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             handler_name = self.sender_registry[method]
             handler = getattr(self, handler_name)
             _id = handler(params)
-            if 'response_sig' in params:
+            if 'response_codeeditor' in params:
                 if params['requires_response']:
-                    self.req_reply[_id] = params['response_sig']
+                    self.req_reply[_id] = params['response_codeeditor']
             return _id
 
     # ------ Spyder plugin registration --------------------------------
