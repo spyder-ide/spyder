@@ -61,10 +61,6 @@ for /r "%SPYDER%" %%f in (*.py) do (
         :: It can't be tested outside of a Python console
         echo --- NOT testing %%f ---
         echo.
-    ) else if "%%f"=="%SPYDER%\utils\introspection\module_completion.py" (
-        :: This is failing randomly
-        echo --- NOT testing %%f ---
-        echo.
     ) else if "%%f"=="%SPYDER%\utils\introspection\fallback_plugin.py" (
         :: We have to investigate this failure!
         echo --- NOT testing %%f ---
