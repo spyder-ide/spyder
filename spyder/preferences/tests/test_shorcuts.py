@@ -24,16 +24,15 @@ from spyder.preferences.shortcuts import (
 
 # ---- Qt Test Fixtures
 @pytest.fixture
-def shorcut_table_bot(qtbot):
+def shorcut_table(qtbot):
     """Set up shortcuts."""
     shorcut_table = ShortcutsTable()
     qtbot.addWidget(shorcut_table)
-    return shorcut_table, qtbot
+    return shorcut_table
 
 
 @pytest.fixture
-def shortcut_editor_bot(shorcut_table_bot):
-    shorcut_table, qtbot = shorcut_table_bot
+def create_shortcut_editor(shorcut_table, qtbot):
     shortcuts = shorcut_table.source_model.shortcuts
 
     def _create_bot(context, name):
@@ -42,7 +41,7 @@ def shortcut_editor_bot(shorcut_table_bot):
             shorcut_table, context, name, sequence, shortcuts)
         qtbot.addWidget(shortcut_editor)
         shortcut_editor.show()
-        return shortcut_editor, qtbot
+        return shortcut_editor
     return _create_bot
 
 
@@ -50,33 +49,30 @@ def shortcut_editor_bot(shorcut_table_bot):
 @pytest.mark.skipif(
     sys.platform.startswith('linux') and os.environ.get('CI') is not None,
     reason="It fails on Linux due to the lack of a proper X server.")
-def test_shortcuts(shorcut_table_bot):
+def test_shortcuts(shorcut_table):
     """Run shortcuts table."""
-    shorcut_table, qtbot = shorcut_table_bot
     shorcut_table.show()
     shorcut_table.check_shortcuts()
     assert shorcut_table
 
 
 # ---- Tests ShortcutEditor
-def test_clear_shortcut(shortcut_editor_bot):
+def test_clear_shortcut(create_shortcut_editor, qtbot):
     """
     Test that pressing on the 'Clear' button to unbind the command from a
     shortcut is working as expected.
     """
-    shortcut_editor, qtbot = shortcut_editor_bot('editor', 'delete line')
-
+    shortcut_editor = create_shortcut_editor('editor', 'delete line')
     qtbot.mouseClick(shortcut_editor.button_clear, Qt.LeftButton)
     assert shortcut_editor.new_sequence == ''
 
 
-def test_press_new_sequence(shortcut_editor_bot):
+def test_press_new_sequence(create_shortcut_editor, qtbot):
     """
     Test that pressing a key sequence with modifier keys is registered as
     expected by the Shortcut Editor.
     """
-    shortcut_editor, qtbot = shortcut_editor_bot('editor', 'delete line')
-
+    shortcut_editor = create_shortcut_editor('editor', 'delete line')
     modifiers = Qt.ControlModifier | Qt.ShiftModifier | Qt.AltModifier
     qtbot.keyClick(shortcut_editor, Qt.Key_D, modifier=modifiers)
     assert shortcut_editor.new_sequence == 'Ctrl+Alt+Shift+D'
@@ -84,13 +80,12 @@ def test_press_new_sequence(shortcut_editor_bot):
     assert shortcut_editor.button_ok.isEnabled()
 
 
-def test_press_new_compound_sequence(shortcut_editor_bot):
+def test_press_new_compound_sequence(create_shortcut_editor, qtbot):
     """
     Test that pressing a compund of key sequences is registered as
     expected by the Shortcut Editor.
     """
-    shortcut_editor, qtbot = shortcut_editor_bot('editor', 'delete line')
-
+    shortcut_editor = create_shortcut_editor('editor', 'delete line')
     qtbot.keyClick(shortcut_editor, Qt.Key_D, modifier=Qt.ControlModifier)
     qtbot.keyClick(shortcut_editor, Qt.Key_A)
     qtbot.keyClick(shortcut_editor, Qt.Key_B, modifier=Qt.ControlModifier)
@@ -103,12 +98,12 @@ def test_press_new_compound_sequence(shortcut_editor_bot):
     assert shortcut_editor.button_ok.isEnabled()
 
 
-def test_clear_back_new_sequence(shortcut_editor_bot):
+def test_clear_back_new_sequence(create_shortcut_editor, qtbot):
     """
     Test that removing the last key sequence entered and clearing all entered
     key sequence from the Shortcut Editor is working as expected.
     """
-    shortcut_editor, qtbot = shortcut_editor_bot('editor', 'delete line')
+    shortcut_editor = create_shortcut_editor('editor', 'delete line')
     qtbot.keyClick(shortcut_editor, Qt.Key_X, modifier=Qt.ControlModifier)
     qtbot.keyClick(shortcut_editor, Qt.Key_A)
     qtbot.keyClick(shortcut_editor, Qt.Key_B, modifier=Qt.ControlModifier)
@@ -134,12 +129,12 @@ def test_clear_back_new_sequence(shortcut_editor_bot):
     assert not shortcut_editor.button_ok.isEnabled()
 
 
-def test_sequence_conflict(shortcut_editor_bot):
+def test_sequence_conflict(create_shortcut_editor, qtbot):
     """
     Test that the Shortcut Editor is able to detect key sequence conflict
     with other shortcuts.
     """
-    shortcut_editor, qtbot = shortcut_editor_bot('editor', 'delete line')
+    shortcut_editor = create_shortcut_editor('editor', 'delete line')
 
     # Check that the conflict is detected for a single key sequence.
     qtbot.keyClick(shortcut_editor, Qt.Key_X, modifier=Qt.ControlModifier)
@@ -154,13 +149,13 @@ def test_sequence_conflict(shortcut_editor_bot):
     assert not shortcut_editor.button_ok.isEnabled()
 
 
-def test_sequence_single_key(shortcut_editor_bot):
+def test_sequence_single_key(create_shortcut_editor, qtbot):
     """
     Test that the Shortcut Editor raise a warning when the first key
     sequence entered is composed of a single key with no modifier and this
     single key is not in the list of supported single key sequence.
     """
-    shortcut_editor, qtbot = shortcut_editor_bot('editor', 'delete line')
+    shortcut_editor = create_shortcut_editor('editor', 'delete line')
 
     # Check this is working as expected for a single key sequence.
     qtbot.keyClick(shortcut_editor, Qt.Key_D)
@@ -182,12 +177,12 @@ def test_sequence_single_key(shortcut_editor_bot):
     assert shortcut_editor.button_ok.isEnabled()
 
 
-def test_set_sequence_to_default(shortcut_editor_bot):
+def test_set_sequence_to_default(create_shortcut_editor, qtbot):
     """
     Test that clicking on the button 'Default' set the sequence in the
     Shortcut Editor to the default value as espected.
     """
-    shortcut_editor, qtbot = shortcut_editor_bot('editor', 'delete line')
+    shortcut_editor = create_shortcut_editor('editor', 'delete line')
     default_sequence = CONF.get(
         'shortcuts', "{}/{}".format('editor', 'delete line'))
 
@@ -197,12 +192,12 @@ def test_set_sequence_to_default(shortcut_editor_bot):
     assert shortcut_editor.button_ok.isEnabled()
 
 
-def test_invalid_char_in_sequence(shortcut_editor_bot):
+def test_invalid_char_in_sequence(create_shortcut_editor, qtbot):
     """
     Test that the key sequence is rejected and a warning is shown if an
     invalid character is present in the new key sequence.
     """
-    shortcut_editor, qtbot = shortcut_editor_bot('editor', 'delete line')
+    shortcut_editor = create_shortcut_editor('editor', 'delete line')
 
     # Check this is working as expected for a single key sequence.
     qtbot.keyClick(shortcut_editor, Qt.Key_Odiaeresis,
