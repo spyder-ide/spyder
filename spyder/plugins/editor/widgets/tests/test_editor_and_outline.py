@@ -160,6 +160,23 @@ def test_sort_file_alphabetically(editorstack, outlineexplorer, test_files):
     assert results == ['foo1.py', 'foo2.py', 'text1.txt']
 
 
+def test_sync_file_order(editorstack, outlineexplorer, test_files):
+    """
+    Test that the order of the files in the Outline Explorer is updated when
+    tabs are moved in the EditorStack.
+
+    This feature was introduced in PR #8015
+    """
+    editorstack = editorstack(test_files)
+    treewidget = outlineexplorer.treewidget
+    results = [item.text(0) for item in treewidget.get_visible_items()]
+    assert results == ['foo1.py', 'text1.txt', 'foo2.py']
+
+    # Invert tab 1 with tab 2 and assert the results.
+    editorstack.tabs.tabBar().moveTab(0, 1)
+    results = [item.text(0) for item in treewidget.get_visible_items()]
+    assert results == ['text1.txt', 'foo1.py', 'foo2.py']
+
 
 if __name__ == "__main__":
     import os
