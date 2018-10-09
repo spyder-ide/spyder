@@ -35,15 +35,15 @@ def test_files(tmpdir_factory):
                 "def foo:\n"
                 "    print(Hello World!)\n")
 
-    filename2 = osp.join(tmpdir.strpath, 'foo2.py')
+    filename2 = osp.join(tmpdir.strpath, 'text1.txt')
     with open(filename2, 'w') as f:
-        f.write("# -*- coding: utf-8 -*-\n"
-                "# ---- a comment\n")
-
-    filename3 = osp.join(tmpdir.strpath, 'text1.txt')
-    with open(filename3, 'w') as f:
         f.write("This is a simple text file for\n"
                 "testing the Outline Explorer.\n")
+
+    filename3 = osp.join(tmpdir.strpath, 'foo2.py')
+    with open(filename3, 'w') as f:
+        f.write("# -*- coding: utf-8 -*-\n"
+                "# ---- a comment\n")
 
     return [filename1, filename2, filename3]
 
@@ -53,7 +53,7 @@ def outlineexplorer(qtbot):
     """Set up an OutlineExplorerWidget."""
     outlineexplorer = OutlineExplorerWidget(
         show_fullpath=False, show_all_files=True, group_cells=False,
-        show_comments=True)
+        show_comments=True, show_files_sorted=False)
     # Fix the size of the outline explorer to prevent an
     # 'Unable to set geometry ' warning if the test fails.
     outlineexplorer.setFixedSize(400, 350)
@@ -97,8 +97,8 @@ def test_load_files(editorstack, outlineexplorer, test_files):
     # Load the test files one by one and assert the content of the
     # outline explorer.
     expected_result = [['foo1.py'],
-                       ['foo1.py', 'foo2.py'],
-                       ['foo1.py', 'foo2.py', 'text1.txt']]
+                       ['foo1.py', 'text1.txt'],
+                       ['foo1.py', 'text1.txt', 'foo2.py']]
     for index, file in enumerate(test_files):
         editorstack.load(file)
         assert editorstack.get_current_filename() == file
@@ -138,7 +138,8 @@ def test_close_a_file(editorstack, outlineexplorer, test_files):
     # tree has been updated.
     editorstack.close_file(index=1)
     results = [item.text(0) for item in treewidget.get_visible_items()]
-    assert results == ['foo1.py', 'text1.txt']
+    assert results == ['foo1.py', 'foo2.py']
+
 
 
 if __name__ == "__main__":
