@@ -622,7 +622,7 @@ class Editor(SpyderPluginWidget):
         filename = options['filename']
         debug_print(filename)
         language = options['language']
-        callback = options['signal']
+        callback = options['codeeditor']
         stat = self.main.lspmanager.start_lsp_client(language.lower())
         self.main.lspmanager.register_file(
             language.lower(), filename, callback)
