@@ -16,62 +16,94 @@ import sys
 from qtpy import PYQT5
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QModelIndex, QRegExp,
-                         QSortFilterProxyModel, Qt, Slot)
-from qtpy.QtGui import (QKeySequence, QRegExpValidator)
+                         QSortFilterProxyModel, Qt, Slot, QEvent)
+from qtpy.QtGui import (QKeySequence, QRegExpValidator, QIcon)
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
-                            QDialogButtonBox, QGridLayout, QHBoxLayout, QLabel,
+                            QGridLayout, QHBoxLayout, QLabel,
                             QLineEdit, QMessageBox, QPushButton, QSpacerItem,
-                            QTableView, QVBoxLayout)
+                            QTableView, QVBoxLayout, QKeySequenceEdit)
 
 # Local imports
 from spyder.config.base import _, debug_print
+from spyder.config.main import CONF
 from spyder.config.gui import (get_shortcut, iter_shortcuts,
                                reset_shortcuts, set_shortcut)
 from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import get_std_icon
+from spyder.utils.qthelpers import get_std_icon, create_toolbutton
 from spyder.utils.stringmatching import get_search_scores, get_search_regex
 from spyder.widgets.helperwidgets import HTMLDelegate
 from spyder.widgets.helperwidgets import HelperToolButton
 
-
-MODIFIERS = {Qt.Key_Shift: Qt.SHIFT,
-             Qt.Key_Control: Qt.CTRL,
-             Qt.Key_Alt: Qt.ALT,
-             Qt.Key_Meta: Qt.META}
-
 # Valid shortcut keys
-SINGLE_KEYS = ["F{}".format(_i) for _i in range(1, 36)] + ["Delete", "Escape"]
-KEYSTRINGS = ["Tab", "Backtab", "Backspace", "Return", "Enter",
-              "Pause", "Print", "Clear", "Home", "End", "Left",
-              "Up", "Right", "Down", "PageUp", "PageDown"] + \
-             ["Space", "Exclam", "QuoteDbl", "NumberSign", "Dollar",
-              "Percent", "Ampersand", "Apostrophe", "ParenLeft",
-              "ParenRight", "Asterisk", "Plus", "Comma", "Minus",
-              "Period", "Slash"] + \
-             [str(_i) for _i in range(10)] + \
-             ["Colon", "Semicolon", "Less", "Equal", "Greater",
-              "Question", "At"] + [chr(_i) for _i in range(65, 91)] + \
-             ["BracketLeft", "Backslash", "BracketRight", "Underscore",
-              "Control", "Alt", "Shift", "Meta"]
-VALID_SINGLE_KEYS = [getattr(Qt, 'Key_{0}'.format(k)) for k in SINGLE_KEYS]
-VALID_KEYS = [getattr(Qt, 'Key_{0}'.format(k)) for k in KEYSTRINGS+SINGLE_KEYS]
+SINGLE_KEYS = ["F{}".format(_i) for _i in range(1, 36)] + ["Del", "Esc"]
+EDITOR_SINGLE_KEYS = SINGLE_KEYS + ["Home", "End", "Ins", "Enter",
+                                    "Return", "Backspace", "Tab",
+                                    "PageUp", "PageDown", "Clear",  "Pause",
+                                    "Left", "Up", "Right", "Down"]
 
 # Valid finder chars. To be improved
 VALID_ACCENT_CHARS = "ÁÉÍOÚáéíúóàèìòùÀÈÌÒÙâêîôûÂÊÎÔÛäëïöüÄËÏÖÜñÑ"
 VALID_FINDER_CHARS = r"[A-Za-z\s{0}]".format(VALID_ACCENT_CHARS)
 
+
+# Key sequences blacklist for the shortcut editor dialog
 BLACKLIST = {}
-BLACKLIST['Shift'] = _('Shortcuts that use Shift and another key'
-                       ' are unsupported')
+
+# Error codes for the shortcut editor dialog
+NO_WARNING = 0
+SEQUENCE_EMPTY = 1
+SEQUENCE_CONFLICT = 2
+INVALID_KEY = 3
+IN_BLACKLIST = 4
 
 
-class CustomLineEdit(QLineEdit):
+class ShortcutTranslator(QKeySequenceEdit):
+    """
+    A QKeySequenceEdit that is not meant to be shown and is used only
+    to convert QKeyEvent into QKeySequence. To our knowledge, this is
+    the only way to do this within the Qt framework, because the code that does
+    this in Qt is protected. Porting the code to Python would be nearly
+    impossible because it relies on low level and OS-dependent Qt libraries
+    that are not public for the most part.
+    """
+
+    def __init__(self):
+        super(ShortcutTranslator, self).__init__()
+        self.hide()
+
+    def keyevent_to_keyseq(self, event):
+        """Return a QKeySequence representation of the provided QKeyEvent."""
+        self.keyPressEvent(event)
+        event.accept()
+        return self.keySequence()
+
+    def keyReleaseEvent(self, event):
+        """Qt Override"""
+        return False
+
+    def timerEvent(self, event):
+        """Qt Override"""
+        return False
+
+    def event(self, event):
+        """Qt Override"""
+        return False
+
+
+class ShortcutLineEdit(QLineEdit):
     """QLineEdit that filters its key press and release events."""
+
     def __init__(self, parent):
-        super(CustomLineEdit, self).__init__(parent)
+        super(ShortcutLineEdit, self).__init__(parent)
         self.setReadOnly(True)
-        self.setFocusPolicy(Qt.NoFocus)
+
+        tw = self.fontMetrics().width(
+            "Ctrl+Shift+Alt+Backspace, Ctrl+Shift+Alt+Backspace")
+        fw = self.style().pixelMetric(self.style().PM_DefaultFrameWidth)
+        self.setMinimumWidth(tw + (2 * fw) + 4)
+        # We need to add 4 to take into account the horizontalMargin of the
+        # line edit, whose value is hardcoded in qt.
 
     def keyPressEvent(self, e):
         """Qt Override"""
@@ -81,9 +113,15 @@ class CustomLineEdit(QLineEdit):
         """Qt Override"""
         self.parent().keyReleaseEvent(e)
 
+    def setText(self, sequence):
+        """Qt method extension."""
+        self.setToolTip(sequence)
+        super(ShortcutLineEdit, self).setText(sequence)
+
 
 class ShortcutFinder(QLineEdit):
     """Textbox for filtering listed shortcuts in the table."""
+
     def __init__(self, parent, callback=None):
         super(ShortcutFinder, self).__init__(parent)
         self._parent = parent
@@ -115,54 +153,102 @@ class ShortcutFinder(QLineEdit):
             super(ShortcutFinder, self).keyPressEvent(event)
 
 
-# Error codes for the shortcut editor dialog
-(NO_WARNING, SEQUENCE_LENGTH, SEQUENCE_CONFLICT,
- INVALID_KEY, IN_BLACKLIST, SHIFT_BLACKLIST) = [0, 1, 2, 3, 4, 5]
-
-
 class ShortcutEditor(QDialog):
     """A dialog for entering key sequences."""
+
     def __init__(self, parent, context, name, sequence, shortcuts):
         super(ShortcutEditor, self).__init__(parent)
         self._parent = parent
 
         self.context = context
-        self.npressed = 0
-        self.keys = set()
-        self.key_modifiers = set()
-        self.key_non_modifiers = list()
-        self.key_text = list()
-        self.sequence = sequence
-        self.new_sequence = None
-        self.edit_state = True
+        self.name = name
         self.shortcuts = shortcuts
+        self.current_sequence = sequence
+        self._qsequences = list()
 
+        self.setup()
+        self.update_warning()
+
+    @property
+    def new_sequence(self):
+        """Return a string representation of the new key sequence."""
+        return ', '.join(self._qsequences)
+
+    @property
+    def new_qsequence(self):
+        """Return the QKeySequence object of the new key sequence."""
+        return QKeySequence(self.new_sequence)
+
+    def setup(self):
+        """Setup the ShortcutEditor with the provided arguments."""
         # Widgets
-        self.label_info = QLabel()
-        self.label_info.setText(_("Press the new shortcut and select 'Ok': \n"
-             "(Press 'Tab' once to switch focus between the shortcut entry \n"
-             "and the buttons below it)"))
-        self.label_current_sequence = QLabel(_("Current shortcut:"))
-        self.text_current_sequence = QLabel(sequence)
-        self.label_new_sequence = QLabel(_("New shortcut:"))
-        self.text_new_sequence = CustomLineEdit(self)
-        self.text_new_sequence.setPlaceholderText(sequence)
-        self.helper_button = HelperToolButton()
-        self.helper_button.hide()
-        self.label_warning = QLabel()
-        self.label_warning.hide()
+        icon_info = HelperToolButton()
+        icon_info.setIcon(get_std_icon('MessageBoxInformation'))
+        layout_icon_info = QVBoxLayout()
+        layout_icon_info.setContentsMargins(0, 0, 0, 0)
+        layout_icon_info.setSpacing(0)
+        layout_icon_info.addWidget(icon_info)
+        layout_icon_info.addStretch(100)
 
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        self.button_ok = bbox.button(QDialogButtonBox.Ok)
-        self.button_cancel = bbox.button(QDialogButtonBox.Cancel)
+        self.label_info = QLabel()
+        self.label_info.setText(
+            _("Press the new shortcut and select 'Ok' to confirm, "
+              "click 'Cancel' to revert to the previous state, "
+              "or use 'Clear' to unbind the command from a shortcut."))
+        self.label_info.setAlignment(Qt.AlignTop | Qt.AlignLeft)
+        self.label_info.setWordWrap(True)
+        layout_info = QHBoxLayout()
+        layout_info.setContentsMargins(0, 0, 0, 0)
+        layout_info.addLayout(layout_icon_info)
+        layout_info.addWidget(self.label_info)
+        layout_info.setStretch(1, 100)
+
+        self.label_current_sequence = QLabel(_("Current shortcut:"))
+        self.text_current_sequence = QLabel(self.current_sequence)
+
+        self.label_new_sequence = QLabel(_("New shortcut:"))
+        self.text_new_sequence = ShortcutLineEdit(self)
+        self.text_new_sequence.setPlaceholderText(_("Press shortcut."))
+
+        self.helper_button = HelperToolButton()
+        self.helper_button.setIcon(QIcon())
+        self.label_warning = QLabel()
+        self.label_warning.setWordWrap(True)
+        self.label_warning.setAlignment(Qt.AlignTop | Qt.AlignLeft)
+        self.label_warning.setMinimumHeight(
+            3 * self.label_warning.sizeHint().height())
+
+        self.button_default = QPushButton(_('Default'))
+        self.button_ok = QPushButton(_('Ok'))
+        self.button_ok.setEnabled(False)
+        self.button_clear = QPushButton(_('Clear'))
+        self.button_cancel = QPushButton(_('Cancel'))
+        button_box = QHBoxLayout()
+        button_box.addWidget(self.button_default)
+        button_box.addStretch(100)
+        button_box.addWidget(self.button_ok)
+        button_box.addWidget(self.button_clear)
+        button_box.addWidget(self.button_cancel)
+
+        # New Sequence button box
+        self.btn_clear_sequence = create_toolbutton(
+            self, icon=ima.icon('editclear'),
+            tip=_("Clear all entered key sequences"),
+            triggered=self.clear_new_sequence)
+        self.button_back_sequence = create_toolbutton(
+            self, icon=ima.icon('ArrowBack'),
+            tip=_("Remove last key sequence entered"),
+            triggered=self.back_new_sequence)
+
+        newseq_btnbar = QHBoxLayout()
+        newseq_btnbar.setSpacing(0)
+        newseq_btnbar.setContentsMargins(0, 0, 0, 0)
+        newseq_btnbar.addWidget(self.button_back_sequence)
+        newseq_btnbar.addWidget(self.btn_clear_sequence)
 
         # Setup widgets
-        self.setWindowTitle(_('Shortcut: {0}').format(name))
-        self.button_ok.setFocusPolicy(Qt.NoFocus)
-        self.button_ok.setEnabled(False)
-        self.button_cancel.setFocusPolicy(Qt.NoFocus)
+        self.setWindowTitle(_('Shortcut: {0}').format(self.name))
         self.helper_button.setToolTip('')
-        self.helper_button.setFocusPolicy(Qt.NoFocus)
         style = """
             QToolButton {
               margin:1px;
@@ -171,30 +257,45 @@ class ShortcutEditor(QDialog):
               border-radius: 0px;
             }"""
         self.helper_button.setStyleSheet(style)
-        self.text_new_sequence.setFocusPolicy(Qt.NoFocus)
-        self.label_warning.setFocusPolicy(Qt.NoFocus)
+        icon_info.setToolTip('')
+        icon_info.setStyleSheet(style)
 
         # Layout
-        spacing = 5
         layout_sequence = QGridLayout()
-        layout_sequence.addWidget(self.label_info, 0, 0, 1, 3)
-        layout_sequence.addItem(QSpacerItem(spacing, spacing), 1, 0, 1, 2)
+        layout_sequence.setContentsMargins(0, 0, 0, 0)
+        layout_sequence.addLayout(layout_info, 0, 0, 1, 4)
+        layout_sequence.addItem(QSpacerItem(15, 15), 1, 0, 1, 4)
         layout_sequence.addWidget(self.label_current_sequence, 2, 0)
         layout_sequence.addWidget(self.text_current_sequence, 2, 2)
         layout_sequence.addWidget(self.label_new_sequence, 3, 0)
         layout_sequence.addWidget(self.helper_button, 3, 1)
         layout_sequence.addWidget(self.text_new_sequence, 3, 2)
+        layout_sequence.addLayout(newseq_btnbar, 3, 3)
         layout_sequence.addWidget(self.label_warning, 4, 2, 1, 2)
+        layout_sequence.setColumnStretch(2, 100)
+        layout_sequence.setRowStretch(4, 100)
 
         layout = QVBoxLayout()
         layout.addLayout(layout_sequence)
-        layout.addSpacing(spacing)
-        layout.addWidget(bbox)
+        layout.addSpacing(5)
+        layout.addLayout(button_box)
         self.setLayout(layout)
 
         # Signals
-        bbox.accepted.connect(self.accept)
-        bbox.rejected.connect(self.reject)
+        self.button_ok.clicked.connect(self.accept)
+        self.button_clear.clicked.connect(self.unbind_shortcut)
+        self.button_cancel.clicked.connect(self.reject)
+        self.button_default.clicked.connect(self.set_sequence_to_default)
+
+        # Set all widget to no focus so that we can register <Tab> key
+        # press event.
+        widgets = (
+            self.label_warning, self.helper_button, self.text_new_sequence,
+            self.button_clear, self.button_default, self.button_cancel,
+            self.button_ok, self.btn_clear_sequence, self.button_back_sequence)
+        for w in widgets:
+            w.setFocusPolicy(Qt.NoFocus)
+            w.clearFocus()
 
     @Slot()
     def reject(self):
@@ -214,124 +315,97 @@ class ShortcutEditor(QDialog):
         self.button_ok.setFocus()
         super(ShortcutEditor, self).accept()
 
-    def keyPressEvent(self, e):
-        """Qt override."""
-        key = e.key()
-        # Check if valid keys
-        if key not in VALID_KEYS:
-            self.invalid_key_flag = True
-            return
-
-        self.npressed += 1
-        self.key_non_modifiers.append(key)
-        self.key_modifiers.add(key)
-        self.key_text.append(e.text())
-        self.invalid_key_flag = False
-
-        debug_print('key {0}, npressed: {1}'.format(key, self.npressed))
-
-        if key == Qt.Key_unknown:
-            return
-
-        # The user clicked just and only the special keys
-        # Ctrl, Shift, Alt, Meta.
-        if (key == Qt.Key_Control or
-                key == Qt.Key_Shift or
-                key == Qt.Key_Alt or
-                key == Qt.Key_Meta):
-            return
-
-        modifiers = e.modifiers()
-        if modifiers & Qt.ShiftModifier:
-            key += Qt.SHIFT
-        if modifiers & Qt.ControlModifier:
-            key += Qt.CTRL
-            if sys.platform == 'darwin':
-                self.npressed -= 1
-            debug_print('decrementing')
-        if modifiers & Qt.AltModifier:
-            key += Qt.ALT
-        if modifiers & Qt.MetaModifier:
-            key += Qt.META
-
-        self.keys.add(key)
-
-    def toggle_state(self):
-        """Switch between shortcut entry and Accept/Cancel shortcut mode."""
-        self.edit_state = not self.edit_state
-
-        if not self.edit_state:
-            self.text_new_sequence.setEnabled(False)
-            if self.button_ok.isEnabled():
-                self.button_ok.setFocus()
-            else:
-                self.button_cancel.setFocus()
+    def event(self, event):
+        """Qt method override."""
+        if event.type() in (QEvent.Shortcut, QEvent.ShortcutOverride):
+            return True
         else:
-            self.text_new_sequence.setEnabled(True)
-            self.text_new_sequence.setFocus()
+            return super(ShortcutEditor, self).event(event)
 
-    def nonedit_keyrelease(self, e):
-        """Key release event for non-edit state."""
-        key = e.key()
-        if key in [Qt.Key_Escape]:
-            self.close()
+    def keyPressEvent(self, event):
+        """Qt method override."""
+        event_key = event.key()
+        if not event_key or event_key == Qt.Key_unknown:
+            return
+        if len(self._qsequences) == 4:
+            # QKeySequence accepts a maximum of 4 different sequences.
+            return
+        if event_key in [Qt.Key_Control, Qt.Key_Shift,
+                         Qt.Key_Alt, Qt.Key_Meta]:
+            # The event corresponds to just and only a special key.
             return
 
-        if key in [Qt.Key_Left, Qt.Key_Right, Qt.Key_Up,
-                   Qt.Key_Down]:
-            if self.button_ok.hasFocus():
-                self.button_cancel.setFocus()
-            else:
-                self.button_ok.setFocus()
-
-    def keyReleaseEvent(self, e):
-        """Qt override."""
-        self.npressed -= 1
-        if self.npressed <= 0:
-            key = e.key()
-
-            if len(self.keys) == 1 and key == Qt.Key_Tab:
-                self.toggle_state()
-                return
-
-            if len(self.keys) == 1 and key == Qt.Key_Escape:
-                self.set_sequence('')
-                self.label_warning.setText(_("Please introduce a different "
-                                             "shortcut"))
-
-            if len(self.keys) == 1 and key in [Qt.Key_Return, Qt.Key_Enter]:
-                self.toggle_state()
-                return
-
-            if not self.edit_state:
-                self.nonedit_keyrelease(e)
-            else:
-                debug_print('keys: {}'.format(self.keys))
-                if self.keys and key != Qt.Key_Escape:
-                    self.validate_sequence()
-                self.keys = set()
-                self.key_modifiers = set()
-                self.key_non_modifiers = list()
-                self.key_text = list()
-                self.npressed = 0
+        translator = ShortcutTranslator()
+        event_keyseq = translator.keyevent_to_keyseq(event)
+        event_keystr = event_keyseq.toString(QKeySequence.PortableText)
+        self._qsequences.append(event_keystr)
+        self.update_warning()
 
     def check_conflicts(self):
         """Check shortcuts for conflicts."""
         conflicts = []
-        for index, shortcut in enumerate(self.shortcuts):
-            sequence = str(shortcut.key)
-            if sequence == self.new_sequence and \
-                (shortcut.context == self.context or shortcut.context == '_' or
-                 self.context == '_'):
-                conflicts.append(shortcut)
+        if len(self._qsequences) == 0:
+            return conflicts
+
+        new_qsequence = self.new_qsequence
+        for shortcut in self.shortcuts:
+            shortcut_qsequence = QKeySequence.fromString(str(shortcut.key))
+            if shortcut_qsequence.isEmpty():
+                continue
+            if (shortcut.context, shortcut.name) == (self.context, self.name):
+                continue
+            if shortcut.context in [self.context, '_'] or self.context == '_':
+                if (shortcut_qsequence.matches(new_qsequence) or
+                        new_qsequence.matches(shortcut_qsequence)):
+                    conflicts.append(shortcut)
         return conflicts
 
-    def update_warning(self, warning_type=NO_WARNING, conflicts=[]):
-        """Update warning label to reflect conflict status of new shortcut"""
-        if warning_type == NO_WARNING:
-            warn = False
-            tip = 'This shortcut is correct!'
-        elif warning_type == SEQUENCE_CONFLICT:
+    def check_ascii(self):
+        """
+        Check that all characters in the new sequence are ascii or else the
+        shortcut will not work.
+        """
+        try:
+            self.new_sequence.encode('ascii')
+        except UnicodeEncodeError:
+            return False
+        else:
+            return True
+
+    def check_singlekey(self):
+        """Check if the first sub-sequence of the new key sequence is valid."""
+        if len(self._qsequences) == 0:
+            return True
+        else:
+            keystr = self._qsequences[0]
+            valid_single_keys = (EDITOR_SINGLE_KEYS if
+                                 self.context == 'editor' else SINGLE_KEYS)
+            if any((m in keystr for m in ('Ctrl', 'Alt', 'Shift', 'Meta'))):
+                return True
+            else:
+                # This means that the the first subsequence is composed of
+                # a single key with no modifier.
+                valid_single_keys = (EDITOR_SINGLE_KEYS if
+                                     self.context == 'editor' else SINGLE_KEYS)
+                if any((k == keystr for k in valid_single_keys)):
+                    return True
+                else:
+                    return False
+
+    def update_warning(self):
+        """Update the warning label, buttons state and sequence text."""
+        new_qsequence = self.new_qsequence
+        new_sequence = self.new_sequence
+        self.text_new_sequence.setText(
+            new_qsequence.toString(QKeySequence.NativeText))
+
+        conflicts = self.check_conflicts()
+        if len(self._qsequences) == 0:
+            warning = SEQUENCE_EMPTY
+            tip = ''
+            icon = QIcon()
+        elif conflicts:
+            warning = SEQUENCE_CONFLICT
             template = '<i>{0}<b>{1}</b></i>'
             tip_title = _('The new shortcut conflicts with:') + '<br>'
             tip_body = ''
@@ -339,141 +413,70 @@ class ShortcutEditor(QDialog):
                 tip_body += ' - {0}: {1}<br>'.format(s.context, s.name)
             tip_body = tip_body[:-4]  # Removing last <br>
             tip = template.format(tip_title, tip_body)
-            warn = True
-        elif warning_type == IN_BLACKLIST:
+            icon = get_std_icon('MessageBoxWarning')
+        elif new_sequence in BLACKLIST:
+            warning = IN_BLACKLIST
             template = '<i>{0}<b>{1}</b></i>'
             tip_title = _('Forbidden key sequence!') + '<br>'
             tip_body = ''
-            use = BLACKLIST[self.new_sequence]
+            use = BLACKLIST[new_sequence]
             if use is not None:
                 tip_body = use
             tip = template.format(tip_title, tip_body)
-            warn = True
-        elif warning_type == SHIFT_BLACKLIST:
-            template = '<i>{0}<b>{1}</b></i>'
-            tip_title = _('Forbidden key sequence!') + '<br>'
-            tip_body = ''
-            use = BLACKLIST['Shift']
-            if use is not None:
-                tip_body = use
-            tip = template.format(tip_title, tip_body)
-            warn = True
-        elif warning_type == SEQUENCE_LENGTH:
-            # Sequences with 5 keysequences (i.e. Ctrl+1, Ctrl+2, Ctrl+3,
-            # Ctrl+4, Ctrl+5) are invalid
+            icon = get_std_icon('MessageBoxWarning')
+        elif self.check_singlekey() is False or self.check_ascii() is False:
+            warning = INVALID_KEY
             template = '<i>{0}</i>'
-            tip = _('A compound sequence can have {break} a maximum of '
-                    '4 subsequences.{break}').format(**{'break': '<br>'})
-            warn = True
-        elif warning_type == INVALID_KEY:
-            template = '<i>{0}</i>'
-            tip = _('Invalid key entered') + '<br>'
-            warn = True
-
-        self.helper_button.show()
-        if warn:
-            self.label_warning.show()
-            self.helper_button.setIcon(get_std_icon('MessageBoxWarning'))
-            self.button_ok.setEnabled(False)
+            tip = _('Invalid key sequence entered') + '<br>'
+            icon = get_std_icon('MessageBoxWarning')
         else:
-            self.helper_button.setIcon(get_std_icon('DialogApplyButton'))
+            warning = NO_WARNING
+            tip = 'This shortcut is valid.'
+            icon = get_std_icon('DialogApplyButton')
 
+        self.warning = warning
+        self.conflicts = conflicts
+
+        self.helper_button.setIcon(icon)
+        self.button_ok.setEnabled(self.warning == NO_WARNING)
         self.label_warning.setText(tip)
 
-    def set_sequence(self, sequence):
-        """Set the new shortcut and update buttons."""
-        if not sequence or self.sequence == sequence:
-            self.button_ok.setEnabled(False)
-            different_sequence = False
-        else:
-            self.button_ok.setEnabled(True)
-            different_sequence = True
+    def set_sequence_from_str(self, sequence):
+        """
+        This is a convenience method to set the new QKeySequence of the
+        shortcut editor from a string.
+        """
+        self._qsequences = [QKeySequence(s) for s in sequence.split(', ')]
+        self.update_warning()
 
-        if sys.platform == 'darwin':
-            if 'Meta+Ctrl' in sequence:
-                shown_sequence = sequence.replace('Meta+Ctrl', 'Ctrl+Cmd')
-            elif 'Ctrl+Meta' in sequence:
-                shown_sequence = sequence.replace('Ctrl+Meta', 'Cmd+Ctrl')
-            elif 'Ctrl' in sequence:
-                shown_sequence = sequence.replace('Ctrl', 'Cmd')
-            elif 'Meta' in sequence:
-                shown_sequence = sequence.replace('Meta', 'Ctrl')
-            else:
-                shown_sequence = sequence
-        else:
-            shown_sequence = sequence
-        self.text_new_sequence.setText(shown_sequence)
-        self.new_sequence = sequence
+    def set_sequence_to_default(self):
+        """Set the new sequence to the default value defined in the config."""
+        sequence = CONF.get_default(
+            'shortcuts', "{}/{}".format(self.context, self.name))
+        self._qsequences = sequence.split(', ')
+        self.update_warning()
 
-        conflicts = self.check_conflicts()
-        blacklist = self.new_sequence in BLACKLIST
-        individual_keys = self.new_sequence.split('+')
-        if conflicts and different_sequence:
-            warning_type = SEQUENCE_CONFLICT
-        elif blacklist:
-            warning_type = IN_BLACKLIST
-        elif len(individual_keys) == 2 and individual_keys[0] == 'Shift':
-            warning_type = SHIFT_BLACKLIST
-        else:
-            warning_type = NO_WARNING
+    def back_new_sequence(self):
+        """Remove the last subsequence from the sequence compound."""
+        self._qsequences = self._qsequences[:-1]
+        self.update_warning()
 
-        self.update_warning(warning_type=warning_type, conflicts=conflicts)
+    def clear_new_sequence(self):
+        """Clear the new sequence."""
+        self._qsequences = []
+        self.update_warning()
 
-    def validate_sequence(self):
-        """Provide additional checks for accepting or rejecting shortcuts."""
-        if self.invalid_key_flag:
-            self.update_warning(warning_type=INVALID_KEY)
-            return
-
-        for mod in MODIFIERS:
-            non_mod = set(self.key_non_modifiers)
-            non_mod.discard(mod)
-            if mod in self.key_non_modifiers:
-                self.key_non_modifiers.remove(mod)
-
-        self.key_modifiers = self.key_modifiers - non_mod
-
-        while u'' in self.key_text:
-            self.key_text.remove(u'')
-
-        self.key_text = [k.upper() for k in self.key_text]
-
-        # Fix Backtab, Tab issue
-        if Qt.Key_Backtab in self.key_non_modifiers:
-            idx = self.key_non_modifiers.index(Qt.Key_Backtab)
-            self.key_non_modifiers[idx] = Qt.Key_Tab
-
-        if len(self.key_modifiers) == 0:
-            # Filter single key allowed
-            if self.key_non_modifiers[0] not in VALID_SINGLE_KEYS:
-                return
-            # Filter
-            elif len(self.key_non_modifiers) > 1:
-                return
-
-        # QKeySequence accepts a maximum of 4 different sequences
-        if len(self.keys) > 4:
-            # Update warning
-            self.update_warning(warning_type=SEQUENCE_LENGTH)
-            return
-
-        keys = []
-        for i in range(len(self.keys)):
-            key_seq = 0
-            for m in self.key_modifiers:
-                key_seq += MODIFIERS[m]
-            key_seq += self.key_non_modifiers[i]
-            keys.append(key_seq)
-
-        sequence = QKeySequence(*keys)
-
-        self.set_sequence(sequence.toString())
+    def unbind_shortcut(self):
+        """Unbind the shortcut."""
+        self._qsequences = []
+        self.accept()
 
 
 class Shortcut(object):
     """Shortcut convenience class for holding shortcut context, name,
     original ordering index, key sequence for the shortcut and localized text.
     """
+
     def __init__(self, context, name, key=None):
         self.index = 0  # Sorted index. Populated when loading shortcuts
         self.context = context
@@ -627,6 +630,7 @@ class ShortcutsModel(QAbstractTableModel):
 
 class CustomSortFilterProxy(QSortFilterProxyModel):
     """Custom column filter based on regex."""
+
     def __init__(self, parent=None):
         super(CustomSortFilterProxy, self).__init__(parent)
         self._parent = parent
@@ -730,6 +734,8 @@ class ShortcutsTable(QTableView):
         for index, sh1 in enumerate(self.source_model.shortcuts):
             if index == len(self.source_model.shortcuts)-1:
                 break
+            if str(sh1.key) == '':
+                continue
             for sh2 in self.source_model.shortcuts[index+1:]:
                 if sh2 is sh1:
                     continue
@@ -826,11 +832,10 @@ class ShortcutsTable(QTableView):
 
 class ShortcutsConfigPage(GeneralConfigPage):
     CONF_SECTION = "shortcuts"
-
     NAME = _("Keyboard shortcuts")
-    ICON = ima.icon('keyboard')
 
     def setup_page(self):
+        self.ICON = ima.icon('keyboard')
         # Widgets
         self.table = ShortcutsTable(self)
         self.finder = ShortcutFinder(self.table, self.table.set_regex)
@@ -889,8 +894,9 @@ def test():
     table = ShortcutsTable()
     table.show()
     app.exec_()
-    print([str(s) for s in table.source_model.shortcuts])  # spyder: test-skip
+
     table.check_shortcuts()
+
 
 if __name__ == '__main__':
     test()
