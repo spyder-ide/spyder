@@ -335,8 +335,8 @@ class ShortcutEditor(QDialog):
             # The event corresponds to just and only a special key.
             return
 
-        translater = ShortcutTranslator()
-        event_keyseq = translater.keyevent_to_keyseq(event)
+        translator = ShortcutTranslator()
+        event_keyseq = translator.keyevent_to_keyseq(event)
         event_keystr = event_keyseq.toString(QKeySequence.PortableText)
         self._qsequences.append(event_keystr)
         self.update_warning()
