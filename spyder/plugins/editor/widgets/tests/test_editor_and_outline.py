@@ -141,6 +141,25 @@ def test_close_a_file(editorstack, outlineexplorer, test_files):
     assert results == ['foo1.py', 'foo2.py']
 
 
+def test_sort_file_alphabetically(editorstack, outlineexplorer, test_files):
+    """
+    Test that the option to sort the files in alphabetical order in the
+    outline explorer is working as expected.
+
+    This feature was introduced in PR #8015
+    """
+    editorstack = editorstack(test_files)
+    treewidget = outlineexplorer.treewidget
+    results = [item.text(0) for item in treewidget.get_visible_items()]
+    assert results == ['foo1.py', 'text1.txt', 'foo2.py']
+
+    # Set the option to sort files alphabetically to True and assert the
+    # results.
+    treewidget.toggle_show_files_sorted(True)
+    results = [item.text(0) for item in treewidget.get_visible_items()]
+    assert results == ['foo1.py', 'foo2.py', 'text1.txt']
+
+
 
 if __name__ == "__main__":
     import os
