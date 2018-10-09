@@ -31,7 +31,6 @@ def setup_editor(qtbot, monkeypatch):
     # monkeypatch.setattr('spyder.dependencies', Mock())
     from spyder.plugins.editor.plugin import Editor
 
-    monkeypatch.setattr('spyder.plugins.editor.plugin.IntrospectionManager', Mock())
     monkeypatch.setattr('spyder.plugins.editor.plugin.add_actions', Mock())
 
     class MainMock(QWidget):
