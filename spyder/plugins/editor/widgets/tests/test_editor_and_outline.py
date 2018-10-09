@@ -68,7 +68,6 @@ def outlineexplorer(qtbot):
 def editorstack(qtbot, outlineexplorer):
     def _create_editorstack(files):
         editorstack = editor.EditorStack(None, [])
-        editorstack.set_introspector(Mock())
         editorstack.set_find_widget(Mock())
         editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
         editorstack.analysis_timer = Mock()

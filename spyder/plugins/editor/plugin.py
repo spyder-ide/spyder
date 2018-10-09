@@ -1811,9 +1811,10 @@ class Editor(SpyderPluginWidget):
     def update_todo_actions(self):
         editorstack = self.get_current_editorstack()
         results = editorstack.get_todo_results()
-        state = self.get_option('todo_list') \
-                and results is not None and len(results)
-        self.todo_list_action.setEnabled(state)
+        state = (self.get_option('todo_list') and
+                 results is not None and len(results))
+        if state is not None:
+            self.todo_list_action.setEnabled(state)
 
     def rehighlight_cells(self):
         """Rehighlight cells of current editor"""
