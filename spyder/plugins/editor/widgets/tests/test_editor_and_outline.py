@@ -178,7 +178,7 @@ def test_sync_file_order(editorstack, outlineexplorer, test_files):
     assert results == ['text1.txt', 'foo1.py', 'foo2.py']
 
 
-def test_show_single_file(editorstack, outlineexplorer, test_files):
+def test_show_single_file(editorstack, outlineexplorer, test_files, qtbot):
     """
     Test that toggling off the option to show all files in the Outline Explorer
     hide all root file items but the one corresponding to the currently
@@ -201,7 +201,8 @@ def test_show_single_file(editorstack, outlineexplorer, test_files):
     assert results == ['foo2.py', '---- a comment']
 
     # Select the first file in the Editorstack.
-    editorstack.tabs.setCurrentIndex(0)
+    with qtbot.waitSignal(editorstack.editor_focus_changed):
+        editorstack.tabs.setCurrentIndex(0)
     results = [item.text(0) for item in treewidget.get_visible_items()]
     assert results == ['foo1.py', 'foo']
 
