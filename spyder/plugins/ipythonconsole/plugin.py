@@ -34,10 +34,8 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QDialogButtonBox,
                             QTabWidget, QVBoxLayout, QWidget)
 from traitlets.config.loader import Config, load_pyconfig_files
 from zmq.ssh import tunnel as zmqtunnel
-try:
+if not os.name == 'nt':
     import pexpect
-except ImportError:
-    pexpect = None
 
 # Local imports
 from spyder import dependencies
@@ -90,8 +88,6 @@ def _stop_tunnel(cmd):
 
 def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1',
                    keyfile=None, password=None, timeout=0.4):
-    if pexpect is None:
-        raise ImportError("pexpect unavailable, use paramiko_tunnel")
     ssh="ssh "
     if keyfile:
         ssh += "-i " + keyfile
