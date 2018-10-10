@@ -338,7 +338,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         """
         if self.ordered_editor_ids != ordered_editor_ids:
             self.ordered_editor_ids = ordered_editor_ids
-            if self.show_all_files and self.sort_files_alphabetically is False:
+            if self.sort_files_alphabetically is False:
                 self.__sort_toplevel_items()
 
     def __sort_toplevel_items(self):
@@ -347,6 +347,9 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         'sort_files_alphabetically' is True, else order the items as
         specified in the 'self.ordered_editor_ids' list.
         """
+        if self.show_all_files is False:
+            return
+
         current_ordered_items = [self.topLevelItem(index) for index in
                                  range(self.topLevelItemCount())]
         if self.sort_files_alphabetically:
