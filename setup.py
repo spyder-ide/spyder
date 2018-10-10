@@ -225,9 +225,9 @@ install_requires = [
     'pyqt5<5.10;python_version>="3"',
     # Pyls with all its dependencies
     'python-language-server[all]',
-    # Required to get SSH connections to remote
-    # kernels on Posix systems
-    'pexpect;platform_system!="Windows""'
+    # Required to get SSH connections to remote kernels
+    'pexpect;platform_system!="Windows"',
+    'paramiko;platform_system=="Windows"'
 ]
 
 extras_require = {

@@ -244,7 +244,7 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 * **Cloudpickle**: Serialize variables in the IPython kernel to send to Spyder.
 * **spyder-kernels** 1.0+: Jupyter kernels for the Spyder console.
 * **keyring**: Save Github credentials to report errors securely.
-* **pexpect**: Connect to remote kernels through SSH on Linux and macOS.
+* **pexpect**/**paramiko**: Connect to remote kernels through SSH.
 
 ### Optional dependencies
 
