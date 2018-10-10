@@ -556,11 +556,12 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         iterator = QTreeWidgetItemIterator(self)
         while iterator.value():
             item = iterator.value()
-            if item.parent():
-                if item.parent().isExpanded():
+            if not item.isHidden():
+                if item.parent():
+                    if item.parent().isExpanded():
+                        items.append(item)
+                else:
                     items.append(item)
-            else:
-                items.append(item)
             iterator += 1
         return items
 
