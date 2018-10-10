@@ -684,8 +684,8 @@ class OutlineExplorerWidget(QWidget):
             show_all_files=self.treewidget.show_all_files,
             group_cells=self.treewidget.group_cells,
             show_comments=self.treewidget.show_comments,
-            sort_files_alphabetically=
-                self.treewidget.sort_files_alphabetically,
+            sort_files_alphabetically=(
+                self.treewidget.sort_files_alphabetically),
             expanded_state=self.treewidget.get_expanded_state(),
             scrollbar_position=self.treewidget.get_scrollbar_position(),
             visibility=self.isVisible()
