@@ -178,6 +178,41 @@ def test_sync_file_order(editorstack, outlineexplorer, test_files):
     assert results == ['text1.txt', 'foo1.py', 'foo2.py']
 
 
+def test_show_single_file(editorstack, outlineexplorer, test_files):
+    """
+    Test that toggling off the option to show all files in the Outline Explorer
+    hide all root file items but the one corresponding to the currently
+    selected Editor and assert that the remaning root file item is
+    expanded correctly.
+
+    Test that the content of the Outline Explorer is updated correctly
+    when the current Editor in the Editorstack changes.
+
+    Test that toggling back the option to show all files, after the
+    order of the files in the Editorstack was changed, show all the root
+    file items in the correct order.
+    """
+    editorstack = editorstack(test_files)
+    treewidget = outlineexplorer.treewidget
+
+    # Untoggle show all files option and assert the results.
+    treewidget.toggle_show_all_files(False)
+    results = [item.text(0) for item in treewidget.get_visible_items()]
+    assert results == ['foo2.py', '---- a comment']
+
+    # Select the first file in the Editorstack.
+    editorstack.tabs.setCurrentIndex(0)
+    results = [item.text(0) for item in treewidget.get_visible_items()]
+    assert results == ['foo1.py', 'foo']
+
+    # Move the first file to the second position in the tabbar of the
+    # Editorstack and toggle back the show all files option.
+    editorstack.tabs.tabBar().moveTab(0, 1)
+    treewidget.toggle_show_all_files(True)
+    results = [item.text(0) for item in treewidget.get_visible_items()]
+    assert results == ['text1.txt', 'foo1.py', 'foo', 'foo2.py']
+
+
 if __name__ == "__main__":
     import os
     pytest.main([os.path.basename(__file__), '-vv', '-rw'])
