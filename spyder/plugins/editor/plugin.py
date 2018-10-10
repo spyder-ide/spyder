@@ -1648,8 +1648,7 @@ class Editor(SpyderPluginWidget):
     def create_new_window(self):
         oe_options = self.outlineexplorer.explorer.get_options()
         window = EditorMainWindow(
-            self, self.stack_menu_actions,
-            self.toolbar_list, self.menu_list,
+            self, self.stack_menu_actions, self.toolbar_list, self.menu_list,
             show_fullpath=oe_options['show_fullpath'],
             show_all_files=oe_options['show_all_files'],
             group_cells=oe_options['group_cells'],
