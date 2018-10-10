@@ -30,18 +30,18 @@ def test_files(tmpdir_factory):
     tmpdir = tmpdir_factory.mktemp("files")
 
     filename1 = osp.join(tmpdir.strpath, 'foo1.py')
-    with open(filename1, 'w') as f:
+    with open(filename1, 'w', encoding='utf-8') as f:
         f.write("# -*- coding: utf-8 -*-\n"
                 "def foo:\n"
                 "    print(Hello World!)\n")
 
     filename2 = osp.join(tmpdir.strpath, 'text1.txt')
-    with open(filename2, 'w') as f:
+    with open(filename2, 'w', encoding='utf-8') as f:
         f.write("This is a simple text file for\n"
                 "testing the Outline Explorer.\n")
 
     filename3 = osp.join(tmpdir.strpath, 'foo2.py')
-    with open(filename3, 'w') as f:
+    with open(filename3, 'w', encoding='utf-8') as f:
         f.write("# -*- coding: utf-8 -*-\n"
                 "# ---- a comment\n")
 
