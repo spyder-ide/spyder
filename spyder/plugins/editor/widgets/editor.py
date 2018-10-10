@@ -2429,7 +2429,7 @@ class EditorStack(QWidget):
         finfo = self.create_new_editor(filename, enc, text, set_current,
                                        add_where=add_where)
         index = self.data.index(finfo)
-        self._refresh_outlineexplorer(update=True)
+        self._refresh_outlineexplorer(index, update=True)
         self.ending_long_process.emit("")
         if self.isVisible() and self.checkeolchars_enabled \
            and sourcecode.has_mixed_eol_chars(text):
