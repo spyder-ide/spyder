@@ -321,7 +321,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             if self.current_editor is editor:
                 self.current_editor = None
             editor_id = self.editor_ids.pop(editor)
-            self.ordered_editor_ids.remove(editor_id)
+            if editor_id in self.ordered_editor_ids:
+                self.ordered_editor_ids.remove(editor_id)
             if editor_id not in list(self.editor_ids.values()):
                 root_item = self.editor_items.pop(editor_id)
                 self.editor_tree_cache.pop(editor_id)
