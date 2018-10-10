@@ -153,8 +153,7 @@ def test_sort_file_alphabetically(editorstack, outlineexplorer, test_files):
     results = [item.text(0) for item in treewidget.get_visible_items()]
     assert results == ['foo1.py', 'text1.txt', 'foo2.py']
 
-    # Set the option to sort files alphabetically to True and assert the
-    # results.
+    # Set the option to sort files alphabetically to True.
     treewidget.toggle_sort_files_alphabetically(True)
     results = [item.text(0) for item in treewidget.get_visible_items()]
     assert results == ['foo1.py', 'foo2.py', 'text1.txt']
@@ -172,7 +171,7 @@ def test_sync_file_order(editorstack, outlineexplorer, test_files):
     results = [item.text(0) for item in treewidget.get_visible_items()]
     assert results == ['foo1.py', 'text1.txt', 'foo2.py']
 
-    # Invert tab 1 with tab 2 and assert the results.
+    # Invert tab 1 with tab 2.
     editorstack.tabs.tabBar().moveTab(0, 1)
     results = [item.text(0) for item in treewidget.get_visible_items()]
     assert results == ['text1.txt', 'foo1.py', 'foo2.py']
@@ -195,7 +194,7 @@ def test_show_single_file(editorstack, outlineexplorer, test_files, qtbot):
     editorstack = editorstack(test_files)
     treewidget = outlineexplorer.treewidget
 
-    # Untoggle show all files option and assert the results.
+    # Untoggle show all files option.
     treewidget.toggle_show_all_files(False)
     results = [item.text(0) for item in treewidget.get_visible_items()]
     assert results == ['foo2.py', '---- a comment']
