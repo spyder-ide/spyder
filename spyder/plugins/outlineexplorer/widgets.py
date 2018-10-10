@@ -235,6 +235,9 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             item = self.editor_items[editor_id]
             self.__hide_or_show_root_items(item)
             self.__sort_toplevel_items()
+            if self.show_all_files is False:
+                self.root_item_selected(
+                    self.editor_items[self.editor_ids[self.current_editor]])
 
     @Slot(bool)
     def toggle_show_comments(self, state):
