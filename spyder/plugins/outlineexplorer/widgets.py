@@ -333,7 +333,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
     def set_editor_ids_order(self, ordered_editor_ids):
         """
-        Order the root files items in the Outline Explorer following the 
+        Order the root file items in the Outline Explorer following the
         provided list of editor ids.
         """
         if self.ordered_editor_ids != ordered_editor_ids:
@@ -344,7 +344,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     def __sort_toplevel_items(self):
         """
         Sort the root file items in alphabetical order if
-        'sort_files_alphabetically' is True, else order the items as 
+        'sort_files_alphabetically' is True, else order the items as
         specified in the 'self.ordered_editor_ids' list.
         """
         current_ordered_items = [self.topLevelItem(index) for index in
@@ -676,16 +676,17 @@ class OutlineExplorerWidget(QWidget):
         """
         Return outline explorer options
         """
-        return dict(show_fullpath=self.treewidget.show_fullpath,
-                    show_all_files=self.treewidget.show_all_files,
-                    group_cells=self.treewidget.group_cells,
-                    show_comments=self.treewidget.show_comments,
-                    sort_files_alphabetically=\
-                        self.treewidget.sort_files_alphabetically,
-                    expanded_state=self.treewidget.get_expanded_state(),
-                    scrollbar_position=\
-                        self.treewidget.get_scrollbar_position(),
-                    visibility=self.isVisible())
+        return dict(
+            show_fullpath=self.treewidget.show_fullpath,
+            show_all_files=self.treewidget.show_all_files,
+            group_cells=self.treewidget.group_cells,
+            show_comments=self.treewidget.show_comments,
+            sort_files_alphabetically=
+                self.treewidget.sort_files_alphabetically,
+            expanded_state=self.treewidget.get_expanded_state(),
+            scrollbar_position=self.treewidget.get_scrollbar_position(),
+            visibility=self.isVisible()
+            )
 
     def update(self):
         self.treewidget.update_all()
