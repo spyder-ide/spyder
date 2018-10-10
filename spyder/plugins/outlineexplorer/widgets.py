@@ -169,12 +169,12 @@ def remove_from_tree_cache(tree_cache, line=None, item=None):
 class OutlineExplorerTreeWidget(OneColumnTree):
     def __init__(self, parent, show_fullpath=False, show_all_files=True,
                  group_cells=True, show_comments=True,
-                 show_files_sorted=False):
+                 sort_files_alphabetically=False):
         self.show_fullpath = show_fullpath
         self.show_all_files = show_all_files
         self.group_cells = group_cells
         self.show_comments = show_comments
-        self.show_files_sorted = show_files_sorted
+        self.sort_files_alphabetically = sort_files_alphabetically
         OneColumnTree.__init__(self, parent)
         self.freeze = False  # Freezing widget to avoid any unwanted update
         self.editor_items = {}
@@ -204,12 +204,13 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         group_cells_act = create_action(self, text=_('Group code cells'),
                                         toggled=self.toggle_group_cells)
         group_cells_act.setChecked(self.group_cells)
-        show_files_sorted_act = create_action(
-            self, text=_('Show files sorted alphabetically'),
-            toggled=self.toggle_show_files_sorted)
-        show_files_sorted_act.setChecked(self.show_files_sorted)
+        sort_files_alphabetically_act = create_action(
+            self, text=_('Sort files alphabetically'),
+            toggled=self.toggle_sort_files_alphabetically)
+        sort_files_alphabetically_act.setChecked(
+            self.sort_files_alphabetically)
         actions = [fullpath_act, allfiles_act, group_cells_act, comment_act,
-                   show_files_sorted_act, fromcursor_act]
+                   sort_files_alphabetically_act, fromcursor_act]
         return actions
 
     @Slot(bool)
@@ -250,8 +251,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.update_all()
 
     @Slot(bool)
-    def toggle_show_files_sorted(self, state):
-        self.show_files_sorted = state
+    def toggle_sort_files_alphabetically(self, state):
+        self.sort_files_alphabetically = state
         self.update_all()
         self.__sort_toplevel_items()
 
@@ -330,25 +331,25 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                     # item has already been removed
                     pass
 
-    def set_toplevel_items_order(self, ordered_editor_ids):
+    def set_editor_ids_order(self, ordered_editor_ids):
         """
-        Store a list of editor ids, whose order is used to sort the root
-        file items when 'show_file_sorted' is False.
+        Order the root files items in the Outline Explorer following the 
+        provided list of editor ids.
         """
         if self.ordered_editor_ids != ordered_editor_ids:
             self.ordered_editor_ids = ordered_editor_ids
-            if self.show_all_files and self.show_files_sorted is False:
+            if self.show_all_files and self.sort_files_alphabetically is False:
                 self.__sort_toplevel_items()
 
     def __sort_toplevel_items(self):
         """
-        Sort the root file items in alphabetical order if 'show_file_sorted'
-        is True, else set the items in the same order as in the tabbar of the
-        current EditorStack.
+        Sort the root file items in alphabetical order if
+        'sort_files_alphabetically' is True, else order the items as 
+        specified in the 'self.ordered_editor_ids' list.
         """
         current_ordered_items = [self.topLevelItem(index) for index in
                                  range(self.topLevelItemCount())]
-        if self.show_files_sorted:
+        if self.sort_files_alphabetically:
             new_ordered_items = sorted(
                 current_ordered_items,
                 key=lambda item: osp.basename(item.path.lower()))
@@ -606,7 +607,8 @@ class OutlineExplorerWidget(QWidget):
     is_visible = Signal()
     
     def __init__(self, parent=None, show_fullpath=True, show_all_files=True,
-                 group_cells=True, show_comments=True, show_files_sorted=False,
+                 group_cells=True, show_comments=True,
+                 sort_files_alphabetically=False,
                  options_button=None):
         QWidget.__init__(self, parent)
 
@@ -616,7 +618,7 @@ class OutlineExplorerWidget(QWidget):
                 show_all_files=show_all_files,
                 group_cells=group_cells,
                 show_comments=show_comments,
-                show_files_sorted=show_files_sorted)
+                sort_files_alphabetically=sort_files_alphabetically)
 
         self.visibility_action = create_action(self,
                                            _("Show/hide outline explorer"),
@@ -678,9 +680,11 @@ class OutlineExplorerWidget(QWidget):
                     show_all_files=self.treewidget.show_all_files,
                     group_cells=self.treewidget.group_cells,
                     show_comments=self.treewidget.show_comments,
-                    show_files_sorted=self.treewidget.show_files_sorted,
+                    sort_files_alphabetically=\
+                        self.treewidget.sort_files_alphabetically,
                     expanded_state=self.treewidget.get_expanded_state(),
-                    scrollbar_position=self.treewidget.get_scrollbar_position(),
+                    scrollbar_position=\
+                        self.treewidget.get_scrollbar_position(),
                     visibility=self.isVisible())
 
     def update(self):

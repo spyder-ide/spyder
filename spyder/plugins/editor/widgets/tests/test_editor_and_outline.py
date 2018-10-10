@@ -53,7 +53,7 @@ def outlineexplorer(qtbot):
     """Set up an OutlineExplorerWidget."""
     outlineexplorer = OutlineExplorerWidget(
         show_fullpath=False, show_all_files=True, group_cells=False,
-        show_comments=True, show_files_sorted=False)
+        show_comments=True, sort_files_alphabetically=False)
     # Fix the size of the outline explorer to prevent an
     # 'Unable to set geometry ' warning if the test fails.
     outlineexplorer.setFixedSize(400, 350)
@@ -155,7 +155,7 @@ def test_sort_file_alphabetically(editorstack, outlineexplorer, test_files):
 
     # Set the option to sort files alphabetically to True and assert the
     # results.
-    treewidget.toggle_show_files_sorted(True)
+    treewidget.toggle_sort_files_alphabetically(True)
     results = [item.text(0) for item in treewidget.get_visible_items()]
     assert results == ['foo1.py', 'foo2.py', 'text1.txt']
 

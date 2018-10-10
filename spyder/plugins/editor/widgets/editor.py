@@ -2081,7 +2081,7 @@ class EditorStack(QWidget):
         of the current EditorStack.
         """
         if self.outlineexplorer is not None:
-            self.outlineexplorer.treewidget.set_toplevel_items_order(
+            self.outlineexplorer.treewidget.set_editor_ids_order(
                 [finfo.editor.get_document_id() for finfo in self.data])
 
     def __refresh_statusbar(self, index):
@@ -2827,7 +2827,7 @@ class EditorSplitter(QSplitter):
 class EditorWidget(QSplitter):
     def __init__(self, parent, plugin, menu_actions, show_fullpath,
                  show_all_files, group_cells, show_comments,
-                 show_files_sorted):
+                 sort_files_alphabetically):
         QSplitter.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
@@ -2850,7 +2850,7 @@ class EditorWidget(QSplitter):
                 show_all_files=show_all_files,
                 group_cells=group_cells,
                 show_comments=show_comments,
-                show_files_sorted=show_files_sorted)
+                sort_files_alphabetically=sort_files_alphabetically)
         self.outlineexplorer.edit_goto.connect(
                      lambda filenames, goto, word:
                      plugin.load(filenames=filenames, goto=goto, word=word,
@@ -2919,7 +2919,7 @@ class EditorWidget(QSplitter):
 class EditorMainWindow(QMainWindow):
     def __init__(self, plugin, menu_actions, toolbar_list, menu_list,
                  show_fullpath, show_all_files, group_cells, show_comments,
-                 show_files_sorted):
+                 sort_files_alphabetically):
         QMainWindow.__init__(self)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
@@ -2928,7 +2928,7 @@ class EditorMainWindow(QMainWindow):
         self.editorwidget = EditorWidget(self, plugin, menu_actions,
                                          show_fullpath, show_all_files,
                                          group_cells, show_comments,
-                                         show_files_sorted)
+                                         sort_files_alphabetically)
         self.setCentralWidget(self.editorwidget)
 
         # Give focus to current editor to update/show all status bar widgets
@@ -3134,7 +3134,7 @@ class EditorPluginExample(QSplitter):
                                   self.toolbar_list, self.menu_list,
                                   show_fullpath=False, show_all_files=False,
                                   group_cells=True, show_comments=True,
-                                  show_files_sorted=False)
+                                  sort_files_alphabetically=False)
         window.resize(self.size())
         window.show()
         self.register_editorwindow(window)

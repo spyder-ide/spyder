@@ -1653,7 +1653,7 @@ class Editor(SpyderPluginWidget):
             show_all_files=oe_options['show_all_files'],
             group_cells=oe_options['group_cells'],
             show_comments=oe_options['show_comments'],
-            show_files_sorted=oe_options['show_files_sorted'])
+            sort_files_alphabetically=oe_options['sort_files_alphabetically'])
         window.add_toolbars_to_menu("&View", window.get_toolbars())
         window.load_toolbars()
         window.resize(self.size())
