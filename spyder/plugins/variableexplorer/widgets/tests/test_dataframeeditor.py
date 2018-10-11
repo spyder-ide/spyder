@@ -276,6 +276,27 @@ def test_dataframemodel_get_bgcolor_with_object():
     a = dataframeeditor.BACKGROUND_MISC_ALPHA
     assert colorclose(bgcolor(dfm, 0, 0), (h, s, v, a))
 
+
+def test_dataframemodel_get_bgcolor_with_missings():
+    """
+    Test that df bg colors are correct for missing values of various types.
+
+    The types `bool`, `object`, `datetime`, and `timedelta` are omitted,
+    because missings have no different background there yet.
+    """
+    df = DataFrame({'int': [1, None], 'float': [.1, None],
+                    'complex': [1j, None], 'string': ['a', None]})
+    df['category'] = df['string'].astype('category')
+    dfm = DataFrameModel(df)
+    h, s, v, __ = QColor(dataframeeditor.BACKGROUND_NONNUMBER_COLOR).getHsvF()
+    alpha = dataframeeditor.BACKGROUND_MISC_ALPHA
+    for idx, column in enumerate(df.columns):
+        assert not colorclose(bgcolor(dfm, 0, idx), (h, s, v, alpha)), \
+            'Wrong bg color for value of type ' + column
+        assert colorclose(bgcolor(dfm, 1, idx), (h, s, v, alpha)), \
+            'Wrong bg color for missing of type ' + column
+
+
 def test_dataframemodel_with_format_percent_d_and_nan():
     """
     Test DataFrameModel with format `%d` and dataframe containing NaN
