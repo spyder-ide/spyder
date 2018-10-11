@@ -98,7 +98,7 @@ _qtaargs = {
     'gotoline':                [('fa.sort-numeric-asc',), {'color': MAIN_FG_COLOR}],
     'error':                   [('fa.times-circle',), {'color': 'darkred'}],
     'warning':                 [('fa.warning',), {'color': 'orange'}],
-    'todo':                    [('fa.check',), {'color': '#3775a9'}],
+    'todo':                    [('fa.exclamation',), {'color': '#3775a9'}],
     'ipython_console':         [('spyder.ipython-logo-alt',), {'color': MAIN_FG_COLOR}],
     'ipython_console_t':       [('spyder.ipython-logo-alt',), {'color':'gray'}],
     'python':                  [('spyder.python-logo-up', 'spyder.python-logo-down'), {'options': [{'color': '#3775a9'}, {'color': '#ffd444'}]}],
