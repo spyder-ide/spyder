@@ -108,16 +108,16 @@ class DefaultsConfig(cp.ConfigParser):
 
         try:  # the "easy" way
             _write_file(fname)
-        except IOError:
+        except EnvironmentError:
             try:  # the "delete and sleep" way
                 if osp.isfile(fname):
                     os.remove(fname)
                 time.sleep(0.05)
                 _write_file(fname)
             except Exception as e:
-                print("Failed to write user configuration file.")  # spyder: test-skip
-                print("Please submit a bug report.")  # spyder: test-skip
-                raise(e)
+                print("Failed to write user configuration file to disk, with "
+                      "the exception shown below")  # spyder: test-skip
+                print(e)  # spyder: test-skip
 
     def filename(self):
         """Defines the name of the configuration file to use."""
