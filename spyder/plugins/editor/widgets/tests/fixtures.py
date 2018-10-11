@@ -33,7 +33,6 @@ def setup_editor(qtbot):
             '\n'
             'x = 2')  # a newline is added at end
     editorStack = EditorStack(None, [])
-    editorStack.set_introspector(Mock())
     editorStack.set_find_widget(FindReplace(editorStack))
     editorStack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     finfo = editorStack.new('foo.py', 'utf-8', text)

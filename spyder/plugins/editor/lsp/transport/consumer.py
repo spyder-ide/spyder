@@ -20,13 +20,13 @@ import json
 import socket
 import logging
 from threading import Thread, Lock
-from pexpect.fdpexpect import fdspawn
+
+if not os.name == 'nt':
+    from pexpect.fdpexpect import fdspawn
 
 
 TIMEOUT = 5000
 PID = os.getpid()
-WINDOWS = os.name == 'nt'
-
 LOGGER = logging.getLogger(__name__)
 
 
@@ -45,7 +45,7 @@ class IncomingMessageThread(Thread):
         self.socket = sock
         self.expect = None
         self.read_sock = self.expect_windows
-        if not WINDOWS:
+        if not os.name == 'nt':
             self.read_sock = self.read_posix
             self.expect = fdspawn(self.socket)
         self.zmq_sock = zmq_sock
