@@ -36,10 +36,10 @@ class KernelConnectionDialog(QDialog):
         self.setWindowTitle(_('Connect to an existing kernel'))
 
         main_label = QLabel(_(
-            "<p>Please select the JSON connection file (e.g. kernel-1234.json) "
-            "of the existing kernel to connect to. If the kernel is "
-            "on a remote machine, enter the SSH connection information.</p>"
-            "<p>To learn more about starting external kernels and connecting "
+            "<p>Please select the JSON connection file (<i>e.g.</i> "
+            "<tt>kernel-1234.json</tt>) of the existing kernel, and enter "
+            "the SSH information if connecting to a remote machine. "
+            "To learn more about starting external kernels and connecting "
             "to them, see <a href=\"https://docs.spyder-ide.org/"
             "ipythonconsole.html#connect-to-an-external-kernel\">"
             "our documentation</a>.</p>"))
@@ -196,3 +196,4 @@ class KernelConnectionDialog(QDialog):
             if _dir == '' and not filename.endswith('.json'):
                 path = osp.join(jupyter_runtime_dir(), 'kernel-'+path+'.json')
             return (path, None, None, None, accepted)
+

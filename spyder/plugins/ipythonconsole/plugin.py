@@ -172,7 +172,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 
     def setup_page(self):
         newcb = self.create_checkbox
-        
+
         # Interface Group
         interface_group = QGroupBox(_("Interface"))
         banner_box = newcb(_("Display initial banner"), 'show_banner',
@@ -181,7 +181,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         pager_box = newcb(_("Use a pager to display additional text inside "
                             "the console"), 'use_pager',
                             tip=_("Useful if you don't want to fill the "
-                                  "console with long help or completion texts.\n"
+                                  "console with long help or completion "
+                                  "texts.\n"
                                   "Note: Use the Q key to get out of the "
                                   "pager."))
         calltips_box = newcb(_("Display balloon tips"), 'show_calltips')
@@ -232,7 +233,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         source_code_layout = QVBoxLayout()
         source_code_layout.addWidget(buffer_spin)
         source_code_group.setLayout(source_code_layout)
-        
+
         # --- Graphics ---
         # Pylab Group
         pylab_group = QGroupBox(_("Support for graphics (Matplotlib)"))
@@ -248,12 +249,12 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                      "Spyder."))
         autoload_pylab_box.setEnabled(self.get_option('pylab'))
         pylab_box.toggled.connect(autoload_pylab_box.setEnabled)
-        
+
         pylab_layout = QVBoxLayout()
         pylab_layout.addWidget(pylab_box)
         pylab_layout.addWidget(autoload_pylab_box)
         pylab_group.setLayout(pylab_layout)
-        
+
         # Pylab backend Group
         inline = _("Inline")
         automatic = _("Automatic")
@@ -282,7 +283,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                        'pylab/backend', default=0,
                                        tip=_("This option will be applied the "
                                              "next time a console is opened."))
-        
+
         backend_layout = QVBoxLayout()
         backend_layout.addWidget(bend_label)
         backend_layout.addWidget(backend_box)
