@@ -207,7 +207,7 @@ class DocumentProvider:
     @send_request(method=LSPRequestTypes.DOCUMENT_DID_CLOSE,
                   requires_response=False)
     def document_did_close(self, params):
-        file_signal = params['signal']
+        codeeditor = params['codeeditor']
         debug_print('[{0}] File: {1}'.format(
             LSPRequestTypes.DOCUMENT_DID_CLOSE, params['file']))
         filename = path_as_uri(params['file'])
@@ -222,8 +222,8 @@ class DocumentProvider:
         else:
             editors = self.watched_files[filename]
             idx = -1
-            for i, signal in enumerate(editors):
-                if id(file_signal) == id(signal):
+            for i, editor in enumerate(editors):
+                if id(codeeditor) == id(editor):
                     idx = i
                     break
             if idx > 0:
