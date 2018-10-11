@@ -15,11 +15,9 @@ import os.path as osp
 from jupyter_core.paths import jupyter_runtime_dir
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import (QDialog,
-                            QDialogButtonBox, QGridLayout,
-                            QGroupBox, QHBoxLayout, QLabel, QLineEdit,
-                            QPushButton, QRadioButton,
-                            QSpacerItem, QVBoxLayout)
+from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QGridLayout, QGroupBox,
+                            QHBoxLayout, QLabel, QLineEdit, QPushButton,
+                            QRadioButton, QSpacerItem, QVBoxLayout)
 
 # Local imports
 from spyder.config.base import _, get_home_dir
