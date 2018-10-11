@@ -9,23 +9,20 @@ External Kernel connection widget
 """
 
 # Standard library imports
-import os
 import os.path as osp
-import traceback
 
 # Third party imports
 from jupyter_core.paths import jupyter_runtime_dir
 from qtpy.compat import getopenfilename
-from qtpy.QtCore import QEvent, Qt
-from qtpy.QtWidgets import (QApplication, QButtonGroup, QCheckBox, QDialog,
-                            QDialogButtonBox, QFormLayout, QGridLayout,
+from qtpy.QtCore import Qt
+from qtpy.QtWidgets import (QDialog,
+                            QDialogButtonBox, QGridLayout,
                             QGroupBox, QHBoxLayout, QLabel, QLineEdit,
-                            QMessageBox, QPushButton, QRadioButton,
-                            QSpacerItem, QTabWidget, QVBoxLayout, QWidget)
+                            QPushButton, QRadioButton,
+                            QSpacerItem, QVBoxLayout)
 
 # Local imports
-from spyder.config.base import _
-from spyder.py3compat import to_text_string
+from spyder.config.base import _, get_home_dir
 
 
 class KernelConnectionDialog(QDialog):
@@ -161,7 +158,7 @@ class KernelConnectionDialog(QDialog):
 
     def select_ssh_key(self):
         kf = getopenfilename(self, _('Select SSH keyfile'),
-                             get_home_dir(), '*.pem;;*.*')[0]
+                             get_home_dir(), '*.pem;;*')[0]
         self.kf.setText(kf)
 
     @staticmethod
@@ -172,7 +169,8 @@ class KernelConnectionDialog(QDialog):
         is_remote = bool(dialog.rm_group.isChecked())
         accepted = result == QDialog.Accepted
         if is_remote:
-            falsy_to_none = lambda arg: arg if arg else None
+            def falsy_to_none(arg):
+                return arg if arg else None
             if dialog.hn.text() and dialog.un.text():
                 port = dialog.pn.text() if dialog.pn.text() else '22'
                 hostname = "{0}@{1}:{2}".format(dialog.un.text(),
@@ -196,4 +194,3 @@ class KernelConnectionDialog(QDialog):
             if _dir == '' and not filename.endswith('.json'):
                 path = osp.join(jupyter_runtime_dir(), 'kernel-'+path+'.json')
             return (path, None, None, None, accepted)
-
