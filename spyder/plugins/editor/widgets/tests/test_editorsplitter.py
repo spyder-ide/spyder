@@ -27,7 +27,6 @@ from spyder.plugins.editor.widgets.editor import EditorStack, EditorSplitter
 @pytest.fixture
 def base_editor_bot(qtbot):
     editor_stack = EditorStack(None, [])
-    editor_stack.set_introspector(Mock())
     editor_stack.set_find_widget(Mock())
     editor_stack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     return editor_stack, qtbot
@@ -50,7 +49,6 @@ def editor_splitter_layout_bot(editor_splitter_bot):
     # Allow the split() to duplicate editor stacks.
     def clone(editorstack):
         editorstack.close_action.setEnabled(False)
-        editorstack.set_introspector(Mock())
         editorstack.set_find_widget(Mock())
         editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
         editorstack.new('foo.py', 'utf-8', 'a = 1\nprint(a)\n\nx = 2')

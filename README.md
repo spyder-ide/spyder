@@ -245,6 +245,7 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 * **spyder-kernels** 1.0+: Jupyter kernels for the Spyder console.
 * **keyring**: Save Github credentials to report errors securely.
 * **QDarkStyle**: A dark stylesheet for Qt applications, used for Spyder's dark theme.
+* **pexpect**/**paramiko**: Connect to remote kernels through SSH.
 
 ### Optional dependencies
 

@@ -28,10 +28,8 @@ from spyder.utils.qthelpers import qapplication
 def setup_editor(qtbot, monkeypatch):
     """Set up the Editor plugin."""
     qapplication()
-    # monkeypatch.setattr('spyder.dependencies', Mock())
     from spyder.plugins.editor.plugin import Editor
 
-    monkeypatch.setattr('spyder.plugins.editor.plugin.IntrospectionManager', Mock())
     monkeypatch.setattr('spyder.plugins.editor.plugin.add_actions', Mock())
 
     class MainMock(QWidget):

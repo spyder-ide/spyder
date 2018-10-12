@@ -35,7 +35,6 @@ def editor_bot(qtbot):
     The cursor is at the empty line below the code.
     """
     editorstack = EditorStack(None, [])
-    editorstack.set_introspector(Mock())
     editorstack.set_find_widget(Mock())
     editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     editorstack.close_action.setEnabled(False)
@@ -182,6 +181,7 @@ def test_select_all_shortcut(editor_bot):
 @pytest.mark.skipif(
     sys.platform.startswith('linux') and os.environ.get('CI') is not None,
     reason="It fails on Linux due to the lack of a proper X server.")
+@pytest.mark.no_xvfb
 def test_delete_line_shortcut(editor_bot):
     """
     Test that the delete line keyboard shortcut is working as
@@ -199,6 +199,7 @@ def test_delete_line_shortcut(editor_bot):
 @pytest.mark.skipif(
     sys.platform.startswith('linux') and os.environ.get('CI') is not None,
     reason="It fails on Linux due to the lack of a proper X server.")
+@pytest.mark.no_xvfb
 def test_go_to_line_shortcut(editor_bot, mocker):
     """
     Test that the go to line keyboard shortcut is working
@@ -218,6 +219,7 @@ def test_go_to_line_shortcut(editor_bot, mocker):
 @pytest.mark.skipif(
     sys.platform.startswith('linux') and os.environ.get('CI') is not None,
     reason="It fails on Linux due to the lack of a proper X server.")
+@pytest.mark.no_xvfb
 def test_transform_to_lowercase_shortcut(editor_bot):
     """
     Test that the transform to lowercase shorcut is working as expected with
@@ -235,6 +237,7 @@ def test_transform_to_lowercase_shortcut(editor_bot):
 @pytest.mark.skipif(
     sys.platform.startswith('linux') and os.environ.get('CI') is not None,
     reason="It fails on Linux due to the lack of a proper X server.")
+@pytest.mark.no_xvfb
 def test_transform_to_uppercase_shortcut(editor_bot):
     """
     Test that the transform to uppercase shorcuts is working as expected with
@@ -253,6 +256,7 @@ def test_transform_to_uppercase_shortcut(editor_bot):
 @pytest.mark.skipif(
     sys.platform.startswith('linux') and os.environ.get('CI') is not None,
     reason="It fails on Linux due to the lack of a proper X server.")
+@pytest.mark.no_xvfb
 def test_next_and_previous_word_shortcuts(editor_bot):
     """
     Test that the next word and previous word shortcuts are working as

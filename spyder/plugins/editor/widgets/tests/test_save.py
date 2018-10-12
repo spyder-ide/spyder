@@ -26,7 +26,6 @@ from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
 # ---- Helpers
 def add_files(editorstack):
     editorstack.close_action.setEnabled(False)
-    editorstack.set_introspector(Mock())
     editorstack.set_find_widget(Mock())
     editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     editorstack.new('foo.py', 'utf-8', 'a = 1\n'
@@ -43,7 +42,6 @@ def add_files(editorstack):
 @pytest.fixture
 def base_editor_bot(qtbot):
     editor_stack = editor.EditorStack(None, [])
-    editor_stack.set_introspector(Mock())
     editor_stack.set_find_widget(Mock())
     editor_stack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     return editor_stack, qtbot

@@ -34,7 +34,7 @@ class LSPEditorWrapper(QObject):
 
     def initialize_callback(self, settings, language):
         self.lsp_manager.register_file(
-            'python', 'test.py', self.editor.lsp_response_signal)
+            'python', 'test.py', self.editor)
         self.editor.start_lsp_services(settings)
 
     def perform_request(self, language, request, params):

@@ -161,7 +161,6 @@ from spyder.py3compat import (is_text_string, to_text_string,
                               PY3, qbytearray_to_str, configparser as cp)
 from spyder.utils import encoding, programs
 from spyder.utils import icon_manager as ima
-from spyder.utils.introspection import module_completion
 from spyder.utils.programs import is_module_installed
 from spyder.utils.misc import select_port, getcwd_or_home, get_python_executable
 from spyder.widgets.fileswitcher import FileSwitcher
@@ -702,12 +701,6 @@ class MainWindow(QMainWindow):
                                 triggered=self.path_manager_callback,
                                 tip=_("Python Path Manager"),
                                 menurole=QAction.ApplicationSpecificRole)
-        update_modules_action = create_action(self,
-                                    _("Update module names list"),
-                                    triggered=lambda:
-                                                module_completion.reset(),
-                                    tip=_("Refresh list of module names "
-                                            "available in PYTHONPATH"))
         reset_spyder_action = create_action(
             self, _("Reset Spyder to factory defaults"),
             triggered=self.reset_spyder)
@@ -721,8 +714,7 @@ class MainWindow(QMainWindow):
                             "(i.e. for all sessions)"),
                     triggered=self.win_env)
             self.tools_menu_actions.append(winenv_action)
-        self.tools_menu_actions += [reset_spyder_action, MENU_SEPARATOR,
-                                    update_modules_action]
+        self.tools_menu_actions += [MENU_SEPARATOR, reset_spyder_action]
 
         # External Tools submenu
         self.external_tools_menu = QMenu(_("External Tools"))
