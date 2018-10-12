@@ -26,13 +26,10 @@ from jupyter_client.connect import find_connection_file
 from jupyter_core.paths import jupyter_config_dir, jupyter_runtime_dir
 from qtconsole.client import QtKernelClient
 from qtconsole.manager import QtKernelManager
-from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt, Signal, Slot
-from qtpy.QtWidgets import (QApplication, QButtonGroup, QCheckBox, QDialog,
-                            QDialogButtonBox, QFormLayout, QGridLayout,
-                            QGroupBox, QHBoxLayout, QLabel, QLineEdit,
-                            QMessageBox, QPushButton, QRadioButton,
-                            QSpacerItem, QTabWidget, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (QApplication, QGridLayout, QGroupBox, QHBoxLayout,
+                            QLabel, QMessageBox, QTabWidget, QVBoxLayout,
+                            QWidget)
 from traitlets.config.loader import Config, load_pyconfig_files
 from zmq.ssh import tunnel as zmqtunnel
 if not os.name == 'nt':
@@ -51,7 +48,12 @@ from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.programs import get_temp_dir
+<<<<<<< 2de32c2420e26523187bed608c7aa5d0af94cd3d
 from spyder.utils.misc import get_error_match, remove_backslashes
+=======
+from spyder.utils.misc import (get_error_match, get_stderr_file_handle,
+                               remove_backslashes)
+>>>>>>> clean up imports in plugin
 from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.ipythonconsole.widgets import ClientWidget
 from spyder.plugins.ipythonconsole.widgets import KernelConnectionDialog
