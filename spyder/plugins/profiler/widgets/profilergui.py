@@ -21,6 +21,7 @@ from itertools import islice
 import sys
 import time
 import re
+import logging
 
 # Third party imports
 from qtpy.compat import getopenfilename, getsavefilename
@@ -31,7 +32,7 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QLabel, QMessageBox,
                             QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.config.base import get_conf_path, get_translation, debug_print
+from spyder.config.base import get_conf_path, get_translation
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (create_toolbutton, get_item_user_text,
@@ -50,6 +51,7 @@ except KeyError as error:
 
 
 locale_codec = QTextCodec.codecForLocale()
+logger = logging.getLogger(__name__)
 
 
 def is_profiler_installed():
@@ -492,7 +494,7 @@ class ProfilerDataTree(QTreeWidget):
                 QMessageBox.critical(
                     self, _("Error"),
                     _("Error when trying to load profiler results"))
-                debug_print("Error when calling pstats, {}".format(e))
+                logger.debug("Error when calling pstats, {}".format(e))
                 self.compare_file = None
         map(lambda x: x.calc_callees(), stats_indi)
         self.profdata.calc_callees()

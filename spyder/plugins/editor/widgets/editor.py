@@ -13,6 +13,7 @@
 
 # Local imports
 from __future__ import print_function
+import logging
 import os
 import os.path as osp
 import sys
@@ -29,8 +30,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
                             QVBoxLayout, QWidget, QListWidget, QListWidgetItem)
 
 # Local imports
-from spyder.config.base import (_, debug_print, DEBUG, STDERR,
-                                STDOUT, running_under_pytest)
+from spyder.config.base import _, DEBUG, STDERR, STDOUT, running_under_pytest
 from spyder.config.gui import config_shortcut, get_shortcut
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
@@ -55,12 +55,16 @@ from spyder.widgets.tabs import BaseTabs
 from spyder.config.main import CONF
 from spyder.plugins.explorer.widgets import show_in_external_file_explorer
 
+
 DEBUG_EDITOR = DEBUG >= 3
+logger = logging.getLogger(__name__)
 
 
 class AnalysisThread(QThread):
     """Analysis thread"""
+
     def __init__(self, parent, checker, source_code):
+
         super(AnalysisThread, self).__init__(parent)
         self.checker = checker
         self.results = None
@@ -1513,7 +1517,7 @@ class EditorStack(QWidget):
         """Notify language server availability to code editors."""
         for index in range(self.get_stack_count()):
             editor = self.tabs.widget(index)
-            debug_print(editor.language.lower(), language)
+            logger.debug(editor.language.lower(), language)
             if editor.language.lower() == language:
                 editor.start_lsp_services(config)
 
@@ -2229,7 +2233,7 @@ class EditorStack(QWidget):
         editor.sig_cursor_position_changed.connect(
                                            self.editor_cursor_position_changed)
         editor.textChanged.connect(self.start_stop_analysis_timer)
-        debug_print("Connecting signal...")
+        logger.debug("Connecting signal...")
         editor.sig_perform_lsp_request.connect(
             lambda lang, method, params: self.perform_lsp_request.emit(
                 lang, method, params))
