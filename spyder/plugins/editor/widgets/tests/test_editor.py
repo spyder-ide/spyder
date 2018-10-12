@@ -33,7 +33,6 @@ from spyder.py3compat import PY2
 @pytest.fixture
 def base_editor_bot(qtbot):
     editor_stack = EditorStack(None, [])
-    editor_stack.set_introspector(Mock())
     editor_stack.set_find_widget(Mock())
     editor_stack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     return editor_stack, qtbot
@@ -65,6 +64,7 @@ def editor_find_replace_bot(base_editor_bot):
     editor_stack.set_find_widget(find_replace)
     find_replace.set_editor(finfo.editor)
     qtbot.addWidget(editor_stack)
+    qtbot.addWidget(find_replace)
     return editor_stack, finfo.editor, find_replace, qtbot
 
 @pytest.fixture
@@ -103,6 +103,7 @@ def editor_folding_bot(base_editor_bot):
     editor_stack.set_find_widget(find_replace)
     find_replace.set_editor(finfo.editor)
     qtbot.addWidget(editor_stack)
+    qtbot.addWidget(find_replace)
     return editor_stack, finfo.editor, find_replace, qtbot
 
 

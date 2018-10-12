@@ -9,6 +9,7 @@ Tests for EditorStack save methods.
 """
 
 # Standard library imports
+import os.path as osp
 try:
     from unittest.mock import Mock
 except ImportError:
@@ -19,13 +20,12 @@ import pytest
 
 # Local imports
 from spyder.plugins.editor.widgets import editor
+from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
 
 
-# Helpers
-# --------------------------------
+# ---- Helpers
 def add_files(editorstack):
     editorstack.close_action.setEnabled(False)
-    editorstack.set_introspector(Mock())
     editorstack.set_find_widget(Mock())
     editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     editorstack.new('foo.py', 'utf-8', 'a = 1\n'
@@ -38,12 +38,10 @@ def add_files(editorstack):
     editorstack.new(__file__, 'utf-8', text)
 
 
-# Qt Test Fixtures
-# --------------------------------
+# ---- Qt Test Fixtures
 @pytest.fixture
 def base_editor_bot(qtbot):
     editor_stack = editor.EditorStack(None, [])
-    editor_stack.set_introspector(Mock())
     editor_stack.set_find_widget(Mock())
     editor_stack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     return editor_stack, qtbot
@@ -87,8 +85,7 @@ def editor_splitter_layout_bot(editor_splitter_bot):
     return es
 
 
-# Tests
-# -------------------------------
+# ---- Tests
 @pytest.mark.show_save_dialog
 def test_save_if_changed(editor_bot, mocker):
     """Test EditorStack.save_if_changed()."""
@@ -280,6 +277,38 @@ def test_save_as(editor_bot, mocker):
 
     # Restore.
     editor_stack.file_renamed_in_data = save_file_renamed_in_data
+
+
+@pytest.mark.show_save_dialog
+def test_save_as_with_outline(editor_bot, mocker, tmpdir):
+    """
+    Test EditorStack.save_as() when the outline explorer is not None.
+
+    Regression test for issue #7754.
+    """
+    editorstack, qtbot = editor_bot
+
+    # Set and assert the initial state.
+    editorstack.tabs.setCurrentIndex(1)
+    assert editorstack.get_current_filename() == 'secondtab.py'
+
+    # Add an outline explorer to the editor stack and refresh it.
+    editorstack.set_outlineexplorer(OutlineExplorerWidget())
+    qtbot.addWidget(editorstack.outlineexplorer)
+    editorstack.refresh()
+
+    # No save name.
+    mocker.patch.object(editorstack, 'select_savename', return_value=None)
+    assert editorstack.save_as() is False
+    assert editorstack.get_filenames() == ['foo.py', 'secondtab.py', __file__]
+
+    # Save secondtab.py as foo2.py in a tmpdir
+    new_filename = osp.join(tmpdir.strpath, 'foo2.py')
+    editorstack.select_savename.return_value = new_filename
+    assert not osp.exists(new_filename)
+    assert editorstack.save_as() is True
+    assert editorstack.get_filenames() == ['foo.py', new_filename, __file__]
+    assert osp.exists(new_filename)
 
 
 def test_save_copy_as(editor_bot, mocker):

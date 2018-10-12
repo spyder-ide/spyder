@@ -1,10 +1,12 @@
-# -*- coding:utf-8 -*-
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2009- Spyder Project Contributors
+# Based on p_pylint.py by Pierre Raybaut
 #
-# Copyright © Spyder Project Contributors
-# based on p_pylint.py by Pierre Raybaut
-#
-# Licensed under the terms of the MIT License
+# Distributed under the terms of the MIT License
 # (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
+
 
 """Profiler Plugin."""
 

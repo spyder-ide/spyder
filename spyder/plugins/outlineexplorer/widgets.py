@@ -13,7 +13,8 @@ import os.path as osp
 # Third party imports
 from qtpy.compat import from_qvariant
 from qtpy.QtCore import QSize, Qt, Signal, Slot
-from qtpy.QtWidgets import QHBoxLayout, QTreeWidgetItem, QVBoxLayout, QWidget
+from qtpy.QtWidgets import (QHBoxLayout, QTreeWidgetItem, QVBoxLayout, QWidget,
+                            QTreeWidgetItemIterator)
 
 # Local imports
 from spyder.config.base import _, STDOUT
@@ -25,10 +26,11 @@ from spyder.widgets.onecolumntree import OneColumnTree
 
 
 class FileRootItem(QTreeWidgetItem):
-    def __init__(self, path, treewidget):
+    def __init__(self, path, treewidget, is_python=True):
         QTreeWidgetItem.__init__(self, treewidget, QTreeWidgetItem.Type)
         self.path = path
-        self.setIcon(0, ima.icon('python'))
+        self.setIcon(
+            0, ima.icon('python') if is_python else ima.icon('TextFileIcon'))
         self.setToolTip(0, path)
         set_item_user_text(self, path)
         
@@ -125,6 +127,7 @@ class CellItem(TreeItem):
         self.setToolTip(0, _("Cell starts at line %s") % str(self.line))
 
 def get_item_children(item):
+    """Return a sorted list of all the children items of 'item'."""
     children = [item.child(index) for index in range(item.childCount())]
     for child in children[:]:
         others = get_item_children(child)
@@ -132,12 +135,19 @@ def get_item_children(item):
             children += others
     return sorted(children, key=lambda child: child.line)
 
+
 def item_at_line(root_item, line):
+    """
+    Find and return the item of the outline explorer under which is located
+    the specified 'line' of the editor.
+    """
     previous_item = root_item
     for item in get_item_children(root_item):
         if item.line > line:
             return previous_item
         previous_item = item
+    else:
+        return item
 
 
 def remove_from_tree_cache(tree_cache, line=None, item=None):
@@ -157,12 +167,12 @@ def remove_from_tree_cache(tree_cache, line=None, item=None):
 
 
 class OutlineExplorerTreeWidget(OneColumnTree):
-    def __init__(self, parent, show_fullpath=False,
-                 show_all_files=True, show_comments=True, group_cells=True):
+    def __init__(self, parent, show_fullpath=False, show_all_files=True,
+                 group_cells=True, show_comments=True):
         self.show_fullpath = show_fullpath
         self.show_all_files = show_all_files
-        self.show_comments = show_comments
         self.group_cells = group_cells
+        self.show_comments = show_comments
         OneColumnTree.__init__(self, parent)
         self.freeze = False # Freezing widget to avoid any unwanted update
         self.editor_items = {}
@@ -242,7 +252,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         """Reimplemented Qt method"""
         self.set_title('')
         OneColumnTree.clear(self)
-        
+
     def set_current_editor(self, editor, update):
         """Bind editor instance"""
         editor_id = editor.get_id()
@@ -258,22 +268,19 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 self.populate_branch(editor, item, tree_cache)
                 self.restore_expanded_state()
         else:
-    #        import time
-    #        t0 = time.time()
-            root_item = FileRootItem(editor.fname, self)
+            root_item = FileRootItem(editor.fname, self, editor.is_python())
             root_item.set_text(fullpath=self.show_fullpath)
             tree_cache = self.populate_branch(editor, root_item)
             self.__sort_toplevel_items()
             self.__hide_or_show_root_items(root_item)
             self.root_item_selected(root_item)
-    #        print >>STDOUT, "Elapsed time: %d ms" % round((time.time()-t0)*1000)
             self.editor_items[editor_id] = root_item
             self.editor_tree_cache[editor_id] = tree_cache
             self.resizeColumnToContents(0)
         if editor not in self.editor_ids:
             self.editor_ids[editor] = editor_id
         self.current_editor = editor
-        
+
     def file_renamed(self, editor, new_filename):
         """File was renamed, updating outline explorer tree"""
         editor_id = editor.get_id()
@@ -466,13 +473,14 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
     def root_item_selected(self, item):
         """Root item has been selected: expanding it and collapsing others"""
-        for index in range(self.topLevelItemCount()):
-            root_item = self.topLevelItem(index)
+        if self.show_all_files:
+            return
+        for root_item in self.get_top_level_items():
             if root_item is item:
                 self.expandItem(root_item)
             else:
                 self.collapseItem(root_item)
-                
+
     def restore(self):
         """Reimplemented OneColumnTree method"""
         if self.current_editor is not None:
@@ -481,23 +489,44 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             self.root_item_selected(self.editor_items[editor_id])
 
     def get_root_item(self, item):
+        """Return the root item of the specified item."""
         root_item = item
         while isinstance(root_item.parent(), QTreeWidgetItem):
             root_item = root_item.parent()
         return root_item
-                
+
+    def get_visible_items(self):
+        """Return a list of all visible items in the treewidget."""
+        items = []
+        iterator = QTreeWidgetItemIterator(self)
+        while iterator.value():
+            item = iterator.value()
+            if item.parent():
+                if item.parent().isExpanded():
+                    items.append(item)
+            else:
+                items.append(item)
+            iterator += 1
+        return items
+
     def activated(self, item):
         """Double-click event"""
+        editor_item = self.editor_items.get(
+            self.editor_ids.get(self.current_editor))
         line = 0
-        if isinstance(item, TreeItem):
+        if item == editor_item:
+            line = 1
+        elif isinstance(item, TreeItem):
             line = item.line
-        root_item = self.get_root_item(item)
+
         self.freeze = True
+        root_item = self.get_root_item(item)
         if line:
             self.parent().edit_goto.emit(root_item.path, line, item.text(0))
         else:
             self.parent().edit.emit(root_item.path)
         self.freeze = False
+
         parent = self.current_editor.parent()
         for editor_id, i_item in list(self.editor_items.items()):
             if i_item is root_item:
@@ -520,14 +549,16 @@ class OutlineExplorerWidget(QWidget):
     edit = Signal(str)
     is_visible = Signal()
     
-    def __init__(self, parent=None, show_fullpath=True,
-                 show_all_files=True, show_comments=True, options_button=None):
+    def __init__(self, parent=None, show_fullpath=True, show_all_files=True,
+                 group_cells=True, show_comments=True, options_button=None):
         QWidget.__init__(self, parent)
 
-        self.treewidget = OutlineExplorerTreeWidget(self,
-                                            show_fullpath=show_fullpath,
-                                            show_all_files=show_all_files,
-                                            show_comments=show_comments)
+        self.treewidget = OutlineExplorerTreeWidget(
+                self,
+                show_fullpath=show_fullpath,
+                show_all_files=show_all_files,
+                group_cells=group_cells,
+                show_comments=show_comments)
 
         self.visibility_action = create_action(self,
                                            _("Show/hide outline explorer"),
@@ -558,12 +589,11 @@ class OutlineExplorerWidget(QWidget):
 
     def setup_buttons(self):
         """Setup the buttons of the outline explorer widget toolbar."""
-        fromcursor_btn = create_toolbutton(
-                             self, icon=ima.icon('fromcursor'),
-                             tip=_('Go to cursor position'),
-                             triggered=self.treewidget.go_to_cursor_position)
+        self.fromcursor_btn = create_toolbutton(
+            self, icon=ima.icon('fromcursor'), tip=_('Go to cursor position'),
+            triggered=self.treewidget.go_to_cursor_position)
 
-        buttons = [fromcursor_btn]
+        buttons = [self.fromcursor_btn]
         for action in [self.treewidget.collapse_all_action,
                        self.treewidget.expand_all_action,
                        self.treewidget.restore_action,
@@ -588,6 +618,7 @@ class OutlineExplorerWidget(QWidget):
         """
         return dict(show_fullpath=self.treewidget.show_fullpath,
                     show_all_files=self.treewidget.show_all_files,
+                    group_cells=self.treewidget.group_cells,
                     show_comments=self.treewidget.show_comments,
                     expanded_state=self.treewidget.get_expanded_state(),
                     scrollbar_position=self.treewidget.get_scrollbar_position(),

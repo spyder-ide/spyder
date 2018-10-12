@@ -1,22 +1,26 @@
-# -*- coding: utf-8 -*
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (C) 2009 Tim Dumol <tim@timdumol.com>
+# Copyright (C) 2010- Spyder Project Contributors
+#
+# Distributed under the terms of the Modified BSD License
+# (BSD 3-clause; see NOTICE.txt in the Spyder root directory for details).
+# -----------------------------------------------------------------------------
 
 """
-Process docstrings with Sphinx
+Process docstrings with Sphinx.
 
-AUTHORS:
-- Tim Joseph Dumol (2009-09-29): initial version
-- The Spyder Project Contributors: Several changes to make it work with Spyder
+**AUTHORS**:
 
-Copyright (C) 2009 Tim Dumol <tim@timdumol.com>
-Copyright (C) Spyder Project Contributors
-Distributed under the terms of the BSD License
+* Tim Joseph Dumol (2009-09-29): Initial version.
+* The Spyder Project Contributors: Several changes to make it work with Spyder.
 
-Taken from the Sage project (www.sagemath.org).
-See here for the original version:
-www.sagemath.org/doc/reference/sagenb/misc/sphinxify.html
+Originally based on sagenb/misc/sphinxify.py from the
+`Sage Notebook project <https://github.com/sagemath/sagenb>`_,
+part of the `SageMath <https://www.sagemath.org/>`_ system.
 """
 
-# Stdlib imports
+# Standard library imports
 import codecs
 import os
 import os.path as osp
@@ -25,7 +29,7 @@ import sys
 from tempfile import mkdtemp
 from xml.sax.saxutils import escape
 
-# 3rd party imports
+# Third party imports
 from docutils.utils import SystemMessage as SystemMessage
 from jinja2 import Environment, FileSystemLoader
 import sphinx

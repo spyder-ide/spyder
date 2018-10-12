@@ -22,6 +22,14 @@ run_slow = False
 if os.environ.get('CI', None) is not None or '--run-slow' in sys.argv:
     run_slow = True
 
+
+# Skip slow tests for macOS and Python 3 in our CIs because they
+# don't run correctly
+if (sys.platform == 'darwin' and sys.version_info[0] == 3 and
+        os.environ.get('CI', None) is not None):
+    run_slow = False
+
+
 def main():
     """
     Run pytest tests.
@@ -31,8 +39,7 @@ def main():
                    '-vv',
                    '-rw',
                    '--durations=10',
-                   '--cov=spyder',
-                   '--cov-report=term-missing']
+                   '--cov=spyder']
 
     if run_slow:
         pytest_args.append('--run-slow')

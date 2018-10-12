@@ -406,11 +406,8 @@ class DirView(QTreeView):
         # related actions only when a single file/folder is selected:
         dirname = fnames[0] if osp.isdir(fnames[0]) else osp.dirname(fnames[0])
         if len(fnames) == 1 and vcs.is_vcs_repository(dirname):
-            # QAction.triggered works differently for PySide and PyQt
-            commit_slot = lambda fnames=[dirname]:\
-                                self.vcs_command(fnames, 'commit')
-            browse_slot = lambda fnames=[dirname]:\
-                                self.vcs_command(fnames, 'browse')
+            commit_slot = lambda : self.vcs_command([dirname], 'commit')
+            browse_slot = lambda : self.vcs_command([dirname], 'browse')
             vcs_ci = create_action(self, _("Commit"),
                                    icon=ima.icon('vcs_commit'),
                                    triggered=commit_slot)

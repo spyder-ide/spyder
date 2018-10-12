@@ -1,14 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2009- Spyder Project Contributors
 #
-# Licensed under the terms of the MIT License
+# Distributed under the terms of the MIT License
 # (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
+
 
 """
-Bootstrapping Spyder
+Bootstrap Spyder.
 
-Detect environment and execute Spyder from source checkout
-See Issue 741
+Detect environment and execute Spyder from source checkout.
+See Issue #741.
 """
 
 # pylint: disable=C0103

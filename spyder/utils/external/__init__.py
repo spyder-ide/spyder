@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2009- Spyder Project Contributors and others (see LICENSE.txt)
 #
-# Copyright © Spyder Project Contributors
-# Licensed under the terms of the MIT License
-# (see spyder/__init__.py for details)
+# Licensed under the terms of the MIT and other licenses where noted
+# (see LICENSE.txt in this directory and NOTICE.txt in the root for details)
+# -----------------------------------------------------------------------------
 
 """
 spyder.utils.external
@@ -13,4 +15,10 @@ spyder.utils.external
   better for the project. So there's no guarantee that we will
   maintain compatibility with the upstream project the code
   was taken from.
+
+See LICENSE.txt in this directory or NOTICE.txt in the Spyder root
+for more information on each file and project added here.
+
+If adding or modifying a file or directory in this module,
+please see README.rst in this directory for important information. Thanks!
 """

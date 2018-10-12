@@ -1,0 +1,25 @@
+The Spyder Project Contributors is composed of:
+
+* Pierre Raybaut <pierre.raybaut@gmail.com> (Main Spyder author)
+* Carlos Cordoba <ccordoba12@gmail.com> (Current maintainer)
+* All other developers that have contributed to the spyder repository:
+  <https://github.com/spyder-ide/spyder/graphs/contributors>
+
+Additionally, some assets and code were originally sourced from third-party
+authors or projects, including:
+
+* The icons for the Spyder 3 theme are derived from Font Awesome, by
+  David Gandy <https://fontawesome.com/>
+* Most Spyder 2 theme icons are sourced from the Crystal Project icon set, by
+  Everaldo Coelho <https://www.everaldo.com>
+* Other Spyder 2 icons are from Yusuke Kamiyamane's icon sets, by
+  Yusuke Kamiyamane <http://p.yusukekamiyamane.com/>
+* As well as the FamFamFam Silk icon set, by
+  Mark James <http://www.famfamfam.com/lab/icons/silk/>
+* And the KDE Oxygen icons, by
+  The KDE Artists <https://www.kde.org/>
+
+For information about the sources and authors of other third-party code
+and other resources used, please see the NOTICE.txt file, located in the
+root of the spyder repository or online at:
+<https://github.com/spyder-ide/spyder/blob/master/NOTICE.txt>

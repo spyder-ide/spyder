@@ -39,7 +39,6 @@ from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
 from spyder.py3compat import PY2, qbytearray_to_str, to_text_string
 from spyder.utils import codeanalysis, encoding, programs, sourcecode
 from spyder.utils import icon_manager as ima
-from spyder.utils.introspection.manager import IntrospectionManager
 from spyder.utils.qthelpers import create_action, add_actions, MENU_SEPARATOR
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.findreplace import FindReplace
@@ -58,6 +57,12 @@ from spyder.plugins.editor.lsp import (
 
 
 # Dependencies
+PYLS_REQVER = '>=0.19.0'
+dependencies.add('pyls',
+                 _("Editor's code completion, go-to-definition, help and "
+                   "real-time code analysis"),
+                 required_version=PYLS_REQVER)
+
 NBCONVERT_REQVER = ">=4.0"
 dependencies.add("nbconvert", _("Manipulate Jupyter notebooks on the Editor"),
                  required_version=NBCONVERT_REQVER)
@@ -420,7 +425,6 @@ class Editor(SpyderPluginWidget):
     run_in_current_extconsole = Signal(str, str, str, bool, bool)
     open_file_update = Signal(str)
     sig_lsp_notification = Signal(dict, str)
-    sig_introspection_ready = Signal(str)
 
     def __init__(self, parent, ignore_last_opened_files=False):
         SpyderPluginWidget.__init__(self, parent)
@@ -493,19 +497,6 @@ class Editor(SpyderPluginWidget):
         # LSP setup
         self.sig_lsp_notification.connect(self.document_server_settings)
         self.lsp_editor_settings = {}
-
-        # Don't start IntrospectionManager when running tests because
-        # it consumes a lot of memory
-        if (running_under_pytest()
-                and not os.environ.get('SPY_TEST_USE_INTROSPECTION')):
-            try:
-                from unittest.mock import Mock
-            except ImportError:
-                from mock import Mock # Python 2
-            self.introspector = Mock()
-        else:
-            self.introspector = IntrospectionManager(
-                    extra_path=self.main.get_spyder_pythonpath())
 
         # Setup new windows:
         self.main.all_actions_defined.connect(self.setup_other_windows)
@@ -616,7 +607,7 @@ class Editor(SpyderPluginWidget):
         filename = options['filename']
         debug_print(filename)
         language = options['language']
-        callback = options['signal']
+        callback = options['codeeditor']
         stat = self.main.lspmanager.start_lsp_client(language.lower())
         self.main.lspmanager.register_file(
             language.lower(), filename, callback)
@@ -1348,10 +1339,12 @@ class Editor(SpyderPluginWidget):
                     debug_print("Error {}".format(str))
                 # Run code analysis when `set_pep8_enabled` is toggled
                 if editorstack_method == 'set_pep8_enabled':
-                    for finfo in editorstack.data:
-                        finfo.run_code_analysis(
-                                self.get_option('code_analysis/pyflakes'),
-                                checked)
+                    # TODO: Connect this to the LSP
+                    #for finfo in editorstack.data:
+                    #    finfo.run_code_analysis(
+                    #            self.get_option('code_analysis/pyflakes'),
+                    #            checked)
+                    pass
         CONF.set('editor', conf_name, checked)
 
     #------ Focus tabwidget
@@ -1417,7 +1410,6 @@ class Editor(SpyderPluginWidget):
         editorstack.set_io_actions(self.new_action, self.open_action,
                                    self.save_action, self.revert_action)
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
-        editorstack.set_introspector(self.introspector)
 
         settings = (
             ('set_pyflakes_enabled',                'code_analysis/pyflakes'),
@@ -1475,7 +1467,6 @@ class Editor(SpyderPluginWidget):
         editorstack.update_plugin_title.connect(
                                    lambda: self.sig_update_plugin_title.emit())
         editorstack.editor_focus_changed.connect(self.save_focus_editorstack)
-        editorstack.editor_focus_changed.connect(self.set_editorstack_for_introspection)
         editorstack.editor_focus_changed.connect(self.main.plugin_focus_changed)
         editorstack.zoom_in.connect(lambda: self.zoom(1))
         editorstack.zoom_out.connect(lambda: self.zoom(-1))
@@ -1496,8 +1487,6 @@ class Editor(SpyderPluginWidget):
             lambda fname, line, col: self.load(
                 fname, line, start_column=col))
         editorstack.perform_lsp_request.connect(self.send_lsp_request)
-        editorstack.analysis_results_changed.connect(
-                                                 self.analysis_results_changed)
         editorstack.todo_results_changed.connect(self.todo_results_changed)
         editorstack.update_code_analysis_actions.connect(
                                              self.update_code_analysis_actions)
@@ -1562,28 +1551,6 @@ class Editor(SpyderPluginWidget):
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.rename_in_data(original_filename, filename)
 
-    def set_editorstack_for_introspection(self):
-        """
-        Set the current editorstack to be used by the IntrospectionManager
-        instance
-        """
-        editorstack = self.__get_focus_editorstack()
-        if editorstack is not None:
-            self.introspector.set_editor_widget(editorstack)
-
-            # Disconnect active signals
-            try:
-                self.introspector.sig_send_to_help.disconnect()
-                self.introspector.sig_edit_goto.disconnect()
-            except TypeError:
-                pass
-
-            # Reconnect signals again
-            self.introspector.sig_send_to_help.connect(editorstack.send_to_help)
-            self.introspector.sig_edit_goto.connect(
-                lambda fname, lineno, name:
-                editorstack.edit_goto.emit(fname, lineno, name))
-
     #------ Handling editor windows
     def setup_other_windows(self):
         """Setup toolbars and menus for 'New window' instances"""
@@ -1645,6 +1612,7 @@ class Editor(SpyderPluginWidget):
                                   self.toolbar_list, self.menu_list,
                                   show_fullpath=oe_options['show_fullpath'],
                                   show_all_files=oe_options['show_all_files'],
+                                  group_cells=oe_options['group_cells'],
                                   show_comments=oe_options['show_comments'])
         window.add_toolbars_to_menu("&View", window.get_toolbars())
         window.load_toolbars()
@@ -1710,11 +1678,12 @@ class Editor(SpyderPluginWidget):
         return editorstack.set_current_filename(filename, focus)
 
     def set_path(self):
+        # TODO: Fix this
         for finfo in self.editorstacks[0].data:
             finfo.path = self.main.get_spyder_pythonpath()
-        if self.introspector:
-            self.introspector.change_extra_path(
-                    self.main.get_spyder_pythonpath())
+        #if self.introspector:
+        #    self.introspector.change_extra_path(
+        #            self.main.get_spyder_pythonpath())
 
     #------ FileSwitcher API
     def get_current_tab_manager(self):
@@ -1740,8 +1709,9 @@ class Editor(SpyderPluginWidget):
 
     def update_warning_menu(self):
         """Update warning list menu"""
+        # TODO: COnnect this to the LSP!
         editorstack = self.get_current_editorstack()
-        check_results = editorstack.get_analysis_results()
+        check_results = [] #editorstack.get_analysis_results()
         self.warning_menu.clear()
         filename = self.get_current_filename()
         for message, line_number in check_results:
@@ -1755,21 +1725,6 @@ class Editor(SpyderPluginWidget):
                 slot = lambda _l=line_number: self.load(filename, goto=_l)
             action = create_action(self, text=text, icon=icon, triggered=slot)
             self.warning_menu.addAction(action)
-
-    def analysis_results_changed(self):
-        """
-        Synchronize analysis results between editorstacks
-        Refresh analysis navigation buttons
-        """
-        editorstack = self.get_current_editorstack()
-        results = editorstack.get_analysis_results()
-        index = editorstack.get_stack_index()
-        if index != -1:
-            filename = editorstack.data[index].filename
-            for other_editorstack in self.editorstacks:
-                if other_editorstack is not editorstack:
-                    other_editorstack.set_analysis_results(filename, results)
-        self.update_code_analysis_actions()
 
     def update_todo_menu(self):
         """Update todo list menu"""
@@ -1841,8 +1796,9 @@ class Editor(SpyderPluginWidget):
             self.open_file_update.emit(self.get_current_filename())
 
     def update_code_analysis_actions(self):
+        # TODO: Connect this to the LSP!
         editorstack = self.get_current_editorstack()
-        results = editorstack.get_analysis_results()
+        results = None #editorstack.get_analysis_results()
 
         # Update code analysis buttons
         state = (self.get_option('code_analysis/pyflakes') \
@@ -1855,9 +1811,10 @@ class Editor(SpyderPluginWidget):
     def update_todo_actions(self):
         editorstack = self.get_current_editorstack()
         results = editorstack.get_todo_results()
-        state = self.get_option('todo_list') \
-                and results is not None and len(results)
-        self.todo_list_action.setEnabled(state)
+        state = (self.get_option('todo_list') and
+                 results is not None and len(results))
+        if state is not None:
+            self.todo_list_action.setEnabled(state)
 
     def rehighlight_cells(self):
         """Rehighlight cells of current editor"""
@@ -2056,7 +2013,8 @@ class Editor(SpyderPluginWidget):
     @Slot(str, int, str)
     @Slot(str, int, str, object)
     def load(self, filenames=None, goto=None, word='',
-             editorwindow=None, processevents=True, start_column=None):
+             editorwindow=None, processevents=True, start_column=None,
+             set_focus=True, add_where='end'):
         """
         Load a text file
         editorwindow: load in this editorwindow (useful when clicking on
@@ -2148,10 +2106,7 @@ class Editor(SpyderPluginWidget):
 
         for index, filename in enumerate(filenames):
             # -- Do not open an already opened file
-            if index == 0:  # this is the last file focused in previous session
-                focus = True
-            else:
-                focus = False
+            focus = set_focus and index == 0
             current_editor = self.set_current_filename(filename,
                                                        editorwindow,
                                                        focus=focus)
@@ -2164,7 +2119,8 @@ class Editor(SpyderPluginWidget):
                 # Creating the editor widget in the first editorstack
                 # (the one that can't be destroyed), then cloning this
                 # editor widget in all other editorstacks:
-                finfo = self.editorstacks[0].load(filename, set_current=False)
+                finfo = self.editorstacks[0].load(
+                    filename, set_current=False, add_where=add_where)
                 finfo.path = self.main.get_spyder_pythonpath()
                 self._clone_file_everywhere(finfo)
                 current_editor = current_es.set_current_filename(filename,
@@ -2900,7 +2856,9 @@ class Editor(SpyderPluginWidget):
                 if todo_n in options and todo_o:
                     finfo.run_todo_finder()
                 if pyflakes_n in options or pep8_n in options:
-                    finfo.run_code_analysis(pyflakes_o, pep8_o)
+                    # TODO: Connect this to the LSP
+                    #finfo.run_code_analysis(pyflakes_o, pep8_o)
+                    pass
 
     # --- Open files
     def get_open_filenames(self):
@@ -2927,7 +2885,7 @@ class Editor(SpyderPluginWidget):
         self.set_create_new_file_if_empty(False)
         active_project_path = None
         if self.projects is not None:
-             active_project_path = self.projects.get_active_project_path()
+            active_project_path = self.projects.get_active_project_path()
 
         if active_project_path:
             filenames = self.projects.get_project_filenames()
@@ -2936,10 +2894,27 @@ class Editor(SpyderPluginWidget):
         self.close_all_files()
 
         if filenames and any([osp.isfile(f) for f in filenames]):
-            filenames = self.reorder_filenames(filenames)
             layout = self.get_option('layout_settings', None)
             is_vertical, cfname, clines = layout.get('splitsettings')[0]
-            self.load(filenames, goto=clines)
+            if cfname in filenames:
+                index = filenames.index(cfname)
+                # First we load the last focused file.
+                self.load(filenames[index], goto=clines[index], set_focus=True)
+                # Then we load the files located to the left of the last
+                # focused file in the tabbar, while keeping the focus on
+                # the last focused file.
+                if index > 0:
+                    self.load(filenames[index::-1], goto=clines[index::-1],
+                              set_focus=False, add_where='start')
+                # Finally we load the files located to the right of the last
+                # focused file in the tabbar, while keeping the focus on
+                # the last focused file.
+                if index < (len(filenames) - 1):
+                    self.load(filenames[index+1:], goto=clines[index:],
+                              set_focus=False, add_where='end')
+            else:
+                self.load(filenames, goto=clines)
+            self.get_current_editorstack()._refresh_outlineexplorer()
             if layout is not None:
                 self.editorsplitter.set_layout_settings(layout,
                                                         dont_goto=filenames[0])
@@ -2951,39 +2926,6 @@ class Editor(SpyderPluginWidget):
         else:
             self.__load_temp_file()
         self.set_create_new_file_if_empty(True)
-
-    def reorder_filenames(self, filenames):
-        """Take the last session filenames and put the last open on first.
-
-        It takes a list of filenames and using the current filename from the
-        layout settings, sets the one that had focused last in the position 0.
-        It also reorders the current lines for each file (supposing that they
-        are in the same order as the filenames) and sets them back in the
-        layout settings.
-        """
-        layout = self.get_option('layout_settings', None)
-        if layout is None:
-            return filenames
-        splitsettings = layout.get('splitsettings')
-        index_first_file = 0
-        reordered_splitsettings = []
-        for index, (is_vertical, cfname, clines) in enumerate(splitsettings):
-            #the first element of filenames is now the one that last had focus
-            if index == 0:
-                if cfname in filenames:
-                    index_first_file = filenames.index(cfname)
-                    filenames.pop(index_first_file)
-                    filenames.insert(0, cfname)
-                    clines_first_file = clines[index_first_file]
-                    clines.pop(index_first_file)
-                    clines.insert(0, clines_first_file)
-                else:
-                    cfname = filenames[0]
-                    index_first_file = 0
-            reordered_splitsettings.append((is_vertical, cfname, clines))
-        layout['splitsettings'] = reordered_splitsettings
-        self.set_option('layout_settings', layout)
-        return filenames
 
     def save_open_files(self):
         """Save the list of open files"""

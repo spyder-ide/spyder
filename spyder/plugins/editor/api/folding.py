@@ -1,16 +1,28 @@
 # -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2013-2016 Colin Duquesnoy and others (see pyqode/AUTHORS.rst)
+# Copyright (c) 2016- Spyder Project Contributors (see AUTHORS.txt)
 #
-# Copyright © Spyder Project Contributors
-# Copyright © <2013-2016> <Colin Duquesnoy and others, see pyqode/AUTHORS.rst>
-# Licensed under the terms of the MIT License
-# (see spyder/__init__.py for details)
+# Distributed under the terms of the MIT License
+# (see NOTICE.txt in the Spyder root directory for details)
+# -----------------------------------------------------------------------------
 
 """
 This module contains the code folding API.
-Adapted from https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/api/folding.py
+
+Adapted from pyqode/core/api/folding.py of the
+`PyQode project <https://github.com/pyQode/pyQode>`_.
+Original file:
+<https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/api/folding.py>
 """
+
+# Future imports
 from __future__ import print_function
+
+# Standard library imports
 import sys
+
+# Local imports
 from spyder.plugins.editor.utils.editor import TextBlockHelper
 
 

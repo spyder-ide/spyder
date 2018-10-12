@@ -41,7 +41,6 @@ class FindInFiles(SpyderPluginWidget):
         SpyderPluginWidget.__init__(self, parent)
 
         supported_encodings = self.get_option('supported_encodings')
-        search_path = self.get_option('search_path', None)
         self.search_text_samples = self.get_option('search_text_samples')
         search_text = self.get_option('search_text')
         search_text = [txt for txt in search_text \
@@ -51,17 +50,16 @@ class FindInFiles(SpyderPluginWidget):
         exclude = self.get_option('exclude')
         exclude_idx = self.get_option('exclude_idx', None)
         exclude_regexp = self.get_option('exclude_regexp')
-        in_python_path = self.get_option('in_python_path')
         more_options = self.get_option('more_options')
         case_sensitive = self.get_option('case_sensitive')
         path_history = self.get_option('path_history', [])
 
         self.findinfiles = FindInFilesWidget(
                                    self,
-                                   search_text, search_text_regexp, search_path,
+                                   search_text, search_text_regexp,
                                    exclude, exclude_idx, exclude_regexp,
                                    supported_encodings,
-                                   in_python_path, more_options,
+                                   more_options,
                                    case_sensitive, path_history,
                                    options_button=self.options_button)
 
@@ -135,12 +133,10 @@ class FindInFiles(SpyderPluginWidget):
     
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
-        return []
+        return self.findinfiles.result_browser.get_menu_actions()
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.findinfiles.get_pythonpath_callback = \
-            self.main.get_spyder_pythonpath
         self.main.add_dockwidget(self)
         self.findinfiles.result_browser.sig_edit_goto.connect(
                                                          self.main.editor.load)
@@ -171,24 +167,21 @@ class FindInFiles(SpyderPluginWidget):
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         self.findinfiles.closing_widget()  # stop search thread and clean-up
-        options = self.findinfiles.find_options.get_options(all=True)
+        options = self.findinfiles.find_options.get_options(to_save=True)
         if options is not None:
-            (search_text, text_re, search_path,
+            (search_text, text_re,
              exclude, exclude_idx, exclude_re,
-             in_python_path, more_options, case_sensitive,
+             more_options, case_sensitive,
              path_history) = options
             hist_limit = 15
             search_text = search_text[:hist_limit]
-            search_path = search_path[:hist_limit]
             exclude = exclude[:hist_limit]
             path_history = path_history[-hist_limit:]
             self.set_option('search_text', search_text)
             self.set_option('search_text_regexp', text_re)
-            self.set_option('search_path', search_path)
             self.set_option('exclude', exclude)
             self.set_option('exclude_idx', exclude_idx)
             self.set_option('exclude_regexp', exclude_re)
-            self.set_option('in_python_path', in_python_path)
             self.set_option('more_options', more_options)
             self.set_option('case_sensitive', case_sensitive)
             self.set_option('path_history', path_history)

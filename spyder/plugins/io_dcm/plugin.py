@@ -1,7 +1,18 @@
-# -*- coding:utf-8 -*-
-"""Example of I/O plugin for loading DICOM files"""
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2009- Spyder Project Contributors
+#
+# Distributed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
 
+
+"""Example of I/O plugin for loading DICOM files."""
+
+
+# Standard library imports
 import os.path as osp
+
 
 try:
     try:
@@ -23,4 +34,3 @@ try:
             return None, str(error)
 except ImportError:
     load_dicom = None
-

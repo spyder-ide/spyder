@@ -12,15 +12,17 @@ from textwrap import dedent
 
 # Third party imports
 import pytest
+from qtpy.QtCore import Qt
 
 # Local imports
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
-from spyder.plugins.outlineexplorer.widgets import (OutlineExplorerWidget,
-    FileRootItem, FunctionItem, CommentItem, CellItem, ClassItem)
+from spyder.plugins.outlineexplorer.widgets import (
+    OutlineExplorerWidget, FileRootItem, FunctionItem, CommentItem,
+    CellItem, ClassItem)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 
 
-text = ("# -*- coding: utf-8 -*-\n"
+TEXT = ("# -*- coding: utf-8 -*-\n"
         "\n"
         "# %% functions\n"
         "\n"
@@ -60,7 +62,7 @@ text = ("# -*- coding: utf-8 -*-\n"
         "        except AssertionError:\n"
         "            pass")
 
-code = """# -*- coding: utf-8 -*-
+CODE = """# -*- coding: utf-8 -*-
 
     def function0(x):
         return x
@@ -126,42 +128,40 @@ code = """# -*- coding: utf-8 -*-
         x = 'test'
 """
 
-# Qt Test Fixtures
-# --------------------------------
 
+# ---- Qt Test Fixtures
 @pytest.fixture
-def outline_explorer_bot(qtbot):
-    code_editor = CodeEditor(None)
-    code_editor.set_language('py', 'test_outline_explorer.py')
-    code_editor.set_text(text)
+def outlineexplorer_bot(qtbot):
+    def _create_bot(code, filename):
+        code_editor = CodeEditor(None)
+        code_editor.set_language('py', filename)
+        code_editor.set_text(code)
 
-    editor = OutlineExplorerProxyEditor(code_editor,
-                                        'test_outline_explorer.py')
+        editor = OutlineExplorerProxyEditor(code_editor, filename)
 
-    outline_explorer = OutlineExplorerWidget()
-    outline_explorer.set_current_editor(editor, False, False)
+        outlineexplorer = OutlineExplorerWidget()
+        outlineexplorer.set_current_editor(editor, False, False)
+        outlineexplorer.show()
+        outlineexplorer.setFixedSize(400, 350)
 
-    qtbot.addWidget(outline_explorer)
+        qtbot.addWidget(outlineexplorer)
+        return outlineexplorer, qtbot
+    return _create_bot
 
-    return outline_explorer, qtbot
 
-
-# Test OutlineExplorerWidget
-# -------------------------------
-
-def test_outline_explorer(outline_explorer_bot):
+# ---- Test OutlineExplorerWidget
+def test_outline_explorer(outlineexplorer_bot):
     """
     Test to assert the outline explorer is initializing correctly and
     is showing the expected number of items, the expected type of items, and
     the expected text for each item.
     """
-    outline_explorer, qtbot = outline_explorer_bot
-    outline_explorer.show()
-    outline_explorer.setFixedSize(400, 350)
-    assert outline_explorer
+    outlineexplorer, qtbot = outlineexplorer_bot(
+        TEXT, 'test_outline_explorer.py')
+    assert outlineexplorer
 
-    outline_explorer.treewidget.expandAll()
-    tree_widget = outline_explorer.treewidget
+    outlineexplorer.treewidget.expandAll()
+    tree_widget = outlineexplorer.treewidget
     all_items = tree_widget.get_top_level_items() + tree_widget.get_items()
 
     # Assert that the expected number, text and type of items is displayed in
@@ -187,39 +187,59 @@ def test_outline_explorer(outline_explorer_bot):
             assert item.is_method() == expected_result[2]
 
 
-# Qt Test Fixtures
-# --------------------------------
-@pytest.fixture
-def outline_explorer_bot2(qtbot):
-    code_editor = CodeEditor()
-    code_editor = CodeEditor(None)
-    code_editor.set_language('py', 'test_file.py')
-    code_editor.set_text(dedent(code))
+def test_go_to_cursor_position(outlineexplorer_bot):
+    """
+    Test that clicking on the 'Go to cursor position' button located in the
+    toolbar of the outline explorer is working as expected.
 
-    editor = OutlineExplorerProxyEditor(code_editor,
-                                        'test_file.py')
+    Regression test for issue #7729.
+    """
+    outlineexplorer, qtbot = outlineexplorer_bot(TEXT, 'test.py')
 
-    outline_explorer = OutlineExplorerWidget()
-    outline_explorer.set_current_editor(editor, False, False)
+    # Move the mouse cursor in the editor to line 31 :
+    editor = outlineexplorer.treewidget.current_editor
+    editor._editor.go_to_line(31)
+    assert editor._editor.get_text_line(31) == "        if False:"
 
-    qtbot.addWidget(outline_explorer)
+    # Click on the 'Go to cursor position' button of the outline explorer's
+    # toolbar :
+    assert outlineexplorer.treewidget.currentItem() is None
+    qtbot.mouseClick(outlineexplorer.fromcursor_btn, Qt.LeftButton)
+    assert outlineexplorer.treewidget.currentItem().text(0) == 'method1'
 
-    return outline_explorer, qtbot
+
+def test_go_to_last_item(outlineexplorer_bot):
+    """
+    Test that clicking on the 'Go to cursor position' button located in the
+    toolbar of the outline explorer is working as expected when the cursor
+    is located in the editor under the last item of the outline tree widget.
+
+    Regression test for issue #7744.
+    """
+    outlineexplorer, qtbot = outlineexplorer_bot(TEXT, 'test.py')
+
+    # Move the mouse cursor in the editor to the last line :
+    editor = outlineexplorer.treewidget.current_editor
+    line_count = editor._editor.document().blockCount() - 1
+    editor._editor.go_to_line(line_count)
+    assert editor._editor.get_text_line(line_count) == "            pass"
+
+    # Click on the 'Go to cursor position' button of the outline explorer's
+    # toolbar :
+    assert outlineexplorer.treewidget.currentItem() is None
+    qtbot.mouseClick(outlineexplorer.fromcursor_btn, Qt.LeftButton)
+    assert outlineexplorer.treewidget.currentItem().text(0) == 'method2'
 
 
-# Test OutlineExplorerWidget
-# -------------------------------
-def test_code_cell_grouping(outline_explorer_bot2):
+def test_code_cell_grouping(outlineexplorer_bot):
     """
     Test to assert the outline explorer is initializing correctly and
     is showing the expected number of items, the expected type of items, and
     the expected text for each item. In addition this tests ancestry, code
     cells comments, code cell grouping and disabling this feature.
     """
-    outline_explorer, qtbot = outline_explorer_bot2
-    outline_explorer.show()
-    outline_explorer.setFixedSize(400, 350)
-    assert outline_explorer
+    outlineexplorer, qtbot = outlineexplorer_bot(dedent(CODE), 'test_file.py')
+    assert outlineexplorer
 
     expected_results = [
         ('test_file.py', FileRootItem),
@@ -251,8 +271,8 @@ def test_code_cell_grouping(outline_explorer_bot2):
         ('MGroup4', CellItem, 'MGroup3', 'test_file.py')
         ]
 
-    outline_explorer.treewidget.expandAll()
-    tree_widget = outline_explorer.treewidget
+    outlineexplorer.treewidget.expandAll()
+    tree_widget = outlineexplorer.treewidget
     cell_items = tree_widget.get_top_level_items() + tree_widget.get_items()
 
     # Assert that the expected number, text, ancestry and type of cell items is

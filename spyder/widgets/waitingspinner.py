@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 The MIT License (MIT)
 
@@ -5,6 +7,7 @@ Copyright (c) 2012-2014 Alexander Turkin
 Copyright (c) 2014 William Hallatt
 Copyright (c) 2015 Jacob Dawid
 Copyright (c) 2016 Luca Weiss
+Copyright (c) 2017- Spyder Project Contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +26,12 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+See NOTICE.txt in the Spyder repository root for more detailed information.
+
+Minimally adapted from waitingspinnerwidget.py of the
+`QtWaitingSpinner Python Fork <https://github.com/z3ntu/QtWaitingSpinner>`_.
+A port of `QtWaitingSpinner <https://github.com/snowwlex/QtWaitingSpinner>`_.
 """
 
 import math

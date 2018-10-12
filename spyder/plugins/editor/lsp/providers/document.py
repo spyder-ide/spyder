@@ -18,9 +18,11 @@ from spyder.plugins.editor.lsp.decorators import handles, send_request
 if PY2:
     import pathlib2 as pathlib
     from urlparse import urlparse
+    from urllib import url2pathname
 else:
     import pathlib
     from urllib.parse import urlparse
+    from urllib.request import url2pathname
 
 
 def path_as_uri(path):
@@ -28,11 +30,11 @@ def path_as_uri(path):
 
 
 class DocumentProvider:
-    def register_file(self, filename, signal):
+    def register_file(self, filename, codeeditor):
         filename = path_as_uri(filename)
         if filename not in self.watched_files:
             self.watched_files[filename] = []
-        self.watched_files[filename].append(signal)
+        self.watched_files[filename].append(codeeditor)
 
     @handles(LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
     def process_document_diagnostics(self, response, *args):
@@ -40,7 +42,7 @@ class DocumentProvider:
         diagnostics = response['diagnostics']
         callbacks = self.watched_files[uri]
         for callback in callbacks:
-            callback.emit(
+            callback.handle_response(
                 LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS,
                 {'params': diagnostics})
 
@@ -63,7 +65,8 @@ class DocumentProvider:
     def document_open(self, editor_params):
         uri = path_as_uri(editor_params['file'])
         if uri not in self.watched_files:
-            self.register_file(editor_params['file'], editor_params['signal'])
+            self.register_file(
+                editor_params['file'], editor_params['codeeditor'])
         params = {
             'textDocument': {
                 'uri': uri,
@@ -104,7 +107,7 @@ class DocumentProvider:
             item['insertText'] = item.get('insertText', item['label'])
 
         if req_id in self.req_reply:
-            self.req_reply[req_id].emit(
+            self.req_reply[req_id].handle_response(
                 LSPRequestTypes.DOCUMENT_COMPLETION, {'params': response})
 
     @send_request(method=LSPRequestTypes.DOCUMENT_SIGNATURE)
@@ -129,7 +132,7 @@ class DocumentProvider:
         else:
             response = None
         if req_id in self.req_reply:
-            self.req_reply[req_id].emit(
+            self.req_reply[req_id].handle_response(
                 LSPRequestTypes.DOCUMENT_SIGNATURE,
                 {'params': response})
 
@@ -155,7 +158,7 @@ class DocumentProvider:
         if isinstance(contents, dict):
             contents = contents['value']
         if req_id in self.req_reply:
-            self.req_reply[req_id].emit(
+            self.req_reply[req_id].handle_response(
                 LSPRequestTypes.DOCUMENT_HOVER,
                 {'params': contents})
 
@@ -179,11 +182,14 @@ class DocumentProvider:
             if len(result) > 0:
                 result = result[0]
                 uri = urlparse(result['uri'])
-                result['file'] = osp.join(uri.netloc, uri.path)
+                netloc, path = uri.netloc, uri.path
+                # Prepend UNC share notation if we have a UNC path.
+                netloc = '\\\\' + netloc if netloc else netloc
+                result['file'] = url2pathname(netloc + path)
             else:
                 result = None
         if req_id in self.req_reply:
-            self.req_reply[req_id].emit(
+            self.req_reply[req_id].handle_response(
                 LSPRequestTypes.DOCUMENT_DEFINITION,
                 {'params': result})
 
@@ -201,7 +207,7 @@ class DocumentProvider:
     @send_request(method=LSPRequestTypes.DOCUMENT_DID_CLOSE,
                   requires_response=False)
     def document_did_close(self, params):
-        file_signal = params['signal']
+        codeeditor = params['codeeditor']
         debug_print('[{0}] File: {1}'.format(
             LSPRequestTypes.DOCUMENT_DID_CLOSE, params['file']))
         filename = path_as_uri(params['file'])
@@ -214,15 +220,15 @@ class DocumentProvider:
         if filename not in self.watched_files:
             params[ClientConstants.CANCEL] = True
         else:
-            signals = self.watched_files[filename]
+            editors = self.watched_files[filename]
             idx = -1
-            for i, signal in enumerate(signals):
-                if id(file_signal) == id(signal):
+            for i, editor in enumerate(editors):
+                if id(codeeditor) == id(editor):
                     idx = i
                     break
             if idx > 0:
-                signals.pop(idx)
+                editors.pop(idx)
 
-            if len(signals) == 0:
+            if len(editors) == 0:
                 self.watched_files.pop(filename)
         return params

@@ -1,21 +1,31 @@
 # -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2013-2016 Colin Duquesnoy and others (see pyqode/AUTHORS.rst)
+# Copyright (c) 2016- Spyder Project Contributors (see AUTHORS.txt)
 #
-# Copyright © Spyder Project Contributors
-# Copyright © <2013-2016> <Colin Duquesnoy and others, see pyqode/AUTHORS.rst>
-# Licensed under the terms of the MIT License
-# (see spyder/__init__.py for details)
+# Distributed under the terms of the MIT License
+# (see NOTICE.txt in the Spyder root directory for details)
+# -----------------------------------------------------------------------------
 
 """
-This module contains the panels controller, responsible of drawing panel
-inside CodeEditor's margins
+Contains the panels controller, drawing the panel inside CodeEditor's margins.
+
 Not all panels are using PanelsManager, but future panels should use it.
-Adapted from https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/managers/panels.py
+
+Adapted from pyqode/core/managers/panels.py of the
+`PyQode project <https://github.com/pyQode/pyQode>`_.
+Original file:
+<https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/managers/panels.py>
 """
+
 import logging
 
+
+# Local imports
 from spyder.api.manager import Manager
 from spyder.api.panel import Panel
 from spyder.py3compat import is_text_string
+
 
 logger = logging.getLogger(__name__)
 

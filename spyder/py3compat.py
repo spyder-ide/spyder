@@ -130,6 +130,8 @@ def is_unicode(obj):
 def to_text_string(obj, encoding=None):
     """Convert `obj` to (unicode) text string"""
     if PY2:
+        if isinstance(obj, unicode):
+            return obj
         # Python 2
         if encoding is None:
             return unicode(obj)
