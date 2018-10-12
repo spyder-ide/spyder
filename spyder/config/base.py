@@ -67,7 +67,7 @@ DEBUG = _get_debug_env()
 
 def debug_print(*message):
     """Output debug messages to stdout"""
-    warnings.warn("Debug_print is deprecated use logging module instead.")
+    warnings.warn("debug_print is deprecated; use the logging module instead.")
     if DEBUG:
         ss = STDOUT
         if PY3:
