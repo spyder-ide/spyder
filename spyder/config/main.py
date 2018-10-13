@@ -465,7 +465,7 @@ DEFAULTS = [
               }),
             ('color_schemes',
              {
-              'color_theme': 'light',
+              'color_theme': 'automatic',
               'names': ['emacs', 'idle', 'monokai', 'pydev', 'scintilla',
                         'spyder', 'spyder/dark', 'zenburn', 'solarized/light',
                         'solarized/dark'],

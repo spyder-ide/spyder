@@ -1175,7 +1175,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         color_theme_choices = list(zip(color_themes,
                                        [color_theme.lower()
                                         for color_theme in color_themes]))
-        color_theme_combo = self.create_combobox(_('Spyder theme'),
+        color_theme_combo = self.create_combobox(_('User interface theme'),
                                                  color_theme_choices,
                                                  'color_theme',
                                                  restart=True)
@@ -1248,12 +1248,16 @@ class ColorSchemeConfigPage(GeneralConfigPage):
             self.main.editor.apply_plugin_settings(['color_scheme_name'])
             if self.main.ipyconsole is not None:
                 self.main.ipyconsole.apply_plugin_settings(
-                                                        ['color_scheme_name'])
+                    ['color_scheme_name'])
             if self.main.historylog is not None:
                 self.main.historylog.apply_plugin_settings(
-                                                        ['color_scheme_name'])
+                    ['color_scheme_name'])
             if self.main.help is not None:
                 self.main.help.apply_plugin_settings(['color_scheme_name'])
+            if 'color_theme' in self.changed_options:
+                if ((is_dark_font_color(color_scheme) and not style_sheet) or
+                        (not is_dark_font_color(color_scheme) and style_sheet)):
+                    self.changed_options.remove('color_theme')
 
         self.update_combobox()
         self.update_preview()

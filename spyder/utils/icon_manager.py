@@ -17,7 +17,6 @@ from spyder.config.main import CONF
 from spyder.config.gui import is_dark_font_color
 import qtawesome as qta
 
-# Main color for a dark theme
 MAIN_LIGHT_COLOR = 'white'
 
 _resource = {
