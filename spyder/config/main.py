@@ -68,7 +68,6 @@ RUN_CELL_AND_ADVANCE_SHORTCUT = 'Shift+Return'
 DEFAULTS = [
             ('main',
              {
-              'color_theme': 'light',
               'icon_theme': 'spyder 3',
               'opengl': 'automatic',
               'single_instance': True,
@@ -466,6 +465,7 @@ DEFAULTS = [
               }),
             ('color_schemes',
              {
+              'color_theme': 'light',
               'names': ['emacs', 'idle', 'monokai', 'pydev', 'scintilla',
                         'spyder', 'spyder/dark', 'zenburn', 'solarized/light',
                         'solarized/dark'],

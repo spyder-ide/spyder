@@ -40,6 +40,10 @@ from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.colors import ColorLayout
 from spyder.widgets.comboboxes import FileComboBox
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+from spyder.config.gui import get_color_scheme
+
+# Third-party imports
+from qtconsole.styles import dark_color
 
 
 HDPI_QT_PAGE = "https://doc.qt.io/qt-5/highdpi.html"
@@ -910,14 +914,6 @@ class MainConfigPage(GeneralConfigPage):
         icon_choices = list(zip(themes, [theme.lower() for theme in themes]))
         icons_combo = self.create_combobox(_('Icon theme'), icon_choices,
                                            'icon_theme', restart=True)
-        color_themes = ['Light', 'Dark']
-        color_theme_choices = list(zip(color_themes,
-                                       [color_theme.lower()
-                                        for color_theme in color_themes]))
-        color_theme_combo = self.create_combobox(_('Color theme'),
-                                                 color_theme_choices,
-                                                 'color_theme',
-                                                 restart=True)
 
         vertdock_box = newcb(_("Vertical title bars in panes"),
                              'vertical_dockwidget_titlebars')
@@ -965,8 +961,6 @@ class MainConfigPage(GeneralConfigPage):
         cbs_layout.addWidget(style_combo.combobox, 0, 1)
         cbs_layout.addWidget(icons_combo.label, 1, 0)
         cbs_layout.addWidget(icons_combo.combobox, 1, 1)
-        cbs_layout.addWidget(color_theme_combo.label, 2, 0)
-        cbs_layout.addWidget(color_theme_combo.combobox, 2, 1)
         comboboxes_layout.addLayout(cbs_layout)
         comboboxes_layout.addStretch(1)
         
@@ -1180,6 +1174,16 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                                                        'selected')
         self.schemes_combobox = schemes_combobox_widget.combobox
 
+
+        color_themes = ['Automatic', 'Light', 'Dark']
+        color_theme_choices = list(zip(color_themes,
+                                       [color_theme.lower()
+                                        for color_theme in color_themes]))
+        color_theme_combo = self.create_combobox(_('Color theme'),
+                                                 color_theme_choices,
+                                                 'color_theme',
+                                                 restart=True)
+
         # Layouts
         vlayout = QVBoxLayout()
 
@@ -1190,8 +1194,13 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         combo_layout.addWidget(schemes_combobox_widget.label)
         combo_layout.addWidget(schemes_combobox_widget.combobox)
 
+        color_theme_combo_layout = QHBoxLayout()
+        color_theme_combo_layout.addWidget(color_theme_combo.label)
+        color_theme_combo_layout.addWidget(color_theme_combo.combobox)
+
         buttons_layout = QVBoxLayout()
         buttons_layout.addLayout(combo_layout)
+        buttons_layout.addLayout(color_theme_combo_layout)
         buttons_layout.addWidget(edit_button)
         buttons_layout.addWidget(self.reset_button)
         buttons_layout.addWidget(self.delete_button)
@@ -1232,13 +1241,26 @@ class ColorSchemeConfigPage(GeneralConfigPage):
 
     def apply_settings(self, options):
         self.set_option('selected', self.current_scheme)
-        self.main.editor.apply_plugin_settings(['color_scheme_name'])
-        if self.main.ipyconsole is not None:
-            self.main.ipyconsole.apply_plugin_settings(['color_scheme_name'])
-        if self.main.historylog is not None:
-            self.main.historylog.apply_plugin_settings(['color_scheme_name'])
-        if self.main.help is not None:
-            self.main.help.apply_plugin_settings(['color_scheme_name'])
+        color_scheme = self.get_option('selected')
+        color_theme = CONF.get('color_schemes', 'color_theme')
+        color_scheme = get_color_scheme(color_scheme)
+        font_color, fon_fw, fon_fs = color_scheme['normal']
+        style_sheet = self.main.styleSheet()
+        if ((not dark_color(font_color) and not style_sheet)
+                or (dark_color(font_color) and style_sheet)
+                and color_theme == 'automatic'):
+            self.changed_options.add('color_theme')
+        else:
+            self.main.editor.apply_plugin_settings(['color_scheme_name'])
+            if self.main.ipyconsole is not None:
+                self.main.ipyconsole.apply_plugin_settings(
+                                                        ['color_scheme_name'])
+            if self.main.historylog is not None:
+                self.main.historylog.apply_plugin_settings(
+                                                        ['color_scheme_name'])
+            if self.main.help is not None:
+                self.main.help.apply_plugin_settings(['color_scheme_name'])
+
         self.update_combobox()
         self.update_preview()
 

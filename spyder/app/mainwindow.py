@@ -165,8 +165,7 @@ from spyder.utils.programs import is_module_installed
 from spyder.utils.misc import select_port, getcwd_or_home, get_python_executable
 from spyder.widgets.fileswitcher import FileSwitcher
 from spyder.plugins.lspmanager import LSPManager
-
-import qdarkstyle
+from spyder.config.gui import get_color_scheme
 
 #==============================================================================
 # Local gui imports
@@ -188,6 +187,11 @@ from spyder.config.gui import get_shortcut
 from spyder.otherplugins import get_spyderplugins_mods
 from spyder.app import tour
 
+#==============================================================================
+# Third-party library imports
+#==============================================================================
+import qdarkstyle
+from qtconsole.styles import dark_color
 
 #==============================================================================
 # Get the cwd before initializing WorkingDirectory, which sets it to the one
@@ -554,9 +558,17 @@ class MainWindow(QMainWindow):
         """Setup main window"""
         self.debug_print("*** Start of MainWindow setup ***")
         self.debug_print("  ..theme configuration")
-        color_theme = CONF.get('main', 'color_theme')
+        color_theme = CONF.get('color_schemes', 'color_theme')
+        color_scheme = CONF.get('color_schemes', 'selected')
         if color_theme == 'dark':
             self.setStyleSheet(qdarkstyle.load_stylesheet_from_environment())
+        elif color_theme == 'automatic':
+            color_scheme = get_color_scheme(color_scheme)
+            fon_c, fon_fw, fon_fs = color_scheme['normal']
+            font_color = fon_c
+            if not dark_color(font_color):
+                self.setStyleSheet(
+                        qdarkstyle.load_stylesheet_from_environment())
 
         self.debug_print("  ..core actions")
         self.close_dockwidget_action = create_action(self,
