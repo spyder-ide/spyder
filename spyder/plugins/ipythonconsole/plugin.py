@@ -553,6 +553,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.filenames = []
         self.mainwindow_close = False
         self.create_new_client_if_empty = True
+        self.run_cell_filename = None
 
         # Attrs for testing
         self.testing = testing
@@ -920,6 +921,8 @@ class IPythonConsole(SpyderPluginWidget):
 
         def norm(text):
             return remove_backslashes(to_text_string(text))
+
+        self.run_cell_filename = filename
 
         # Select client to execute code on it
         client = self.get_client_for_file(filename)
@@ -1695,6 +1698,9 @@ class IPythonConsole(SpyderPluginWidget):
         match = get_error_match(to_text_string(text))
         if match:
             fname, lnb = match.groups()
+            if ("<ipython-input-" in fname and 
+                self.run_cell_filename is not None):
+                fname = self.run_cell_filename
             self.edit_goto.emit(osp.abspath(fname), int(lnb), '')
 
     @Slot()
