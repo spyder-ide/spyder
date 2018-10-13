@@ -10,12 +10,11 @@ import os.path as osp
 # Third party imports
 from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QStyle, QWidget
-from qtconsole.styles import dark_color
 
 # Local imports
 from spyder.config.base import get_image_path
 from spyder.config.main import CONF
-from spyder.config.gui import get_color_scheme
+from spyder.config.gui import is_dark_font_color
 import qtawesome as qta
 
 # Main color for a dark theme
@@ -510,10 +509,7 @@ def icon(name, resample=False, icon_path=None):
         if color_theme == 'dark':
             args, kwargs = _qtaargsdark[name]
         elif color_theme == 'automatic':
-            color_scheme = get_color_scheme(color_scheme)
-            fon_c, fon_fw, fon_fs = color_scheme['normal']
-            font_color = fon_c
-            if not dark_color(font_color):
+            if not is_dark_font_color(color_scheme):
                 args, kwargs = _qtaargsdark[name]
             else:
                 args, kwargs = _qtaargs[name]

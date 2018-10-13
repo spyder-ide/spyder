@@ -40,10 +40,7 @@ from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.colors import ColorLayout
 from spyder.widgets.comboboxes import FileComboBox
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
-from spyder.config.gui import get_color_scheme
-
-# Third-party imports
-from qtconsole.styles import dark_color
+from spyder.config.gui import is_dark_font_color
 
 
 HDPI_QT_PAGE = "https://doc.qt.io/qt-5/highdpi.html"
@@ -1174,12 +1171,11 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                                                        'selected')
         self.schemes_combobox = schemes_combobox_widget.combobox
 
-
         color_themes = ['Automatic', 'Light', 'Dark']
         color_theme_choices = list(zip(color_themes,
                                        [color_theme.lower()
                                         for color_theme in color_themes]))
-        color_theme_combo = self.create_combobox(_('Color theme'),
+        color_theme_combo = self.create_combobox(_('Spyder theme'),
                                                  color_theme_choices,
                                                  'color_theme',
                                                  restart=True)
@@ -1243,11 +1239,9 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         self.set_option('selected', self.current_scheme)
         color_scheme = self.get_option('selected')
         color_theme = CONF.get('color_schemes', 'color_theme')
-        color_scheme = get_color_scheme(color_scheme)
-        font_color, fon_fw, fon_fs = color_scheme['normal']
         style_sheet = self.main.styleSheet()
-        if ((not dark_color(font_color) and not style_sheet)
-                or (dark_color(font_color) and style_sheet)
+        if ((not is_dark_font_color(color_scheme) and not style_sheet)
+                or (is_dark_font_color(color_scheme) and style_sheet)
                 and color_theme == 'automatic'):
             self.changed_options.add('color_theme')
         else:
