@@ -85,11 +85,6 @@ except:
     nbformat = None  # analysis:ignore
 
 # %% This line is for cell execution testing
-# For debugging purpose:
-LOG_FILENAME = get_conf_path('codeeditor.log')
-DEBUG_EDITOR = DEBUG >= 3
-
-
 def is_letter_or_number(char):
     """ Returns whether the specified unicode character is a letter or a number.
     """
