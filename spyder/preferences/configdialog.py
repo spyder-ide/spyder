@@ -1183,17 +1183,15 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         manage_layout = QVBoxLayout()
         manage_layout.addWidget(about_label)
 
-        combo_layout = QHBoxLayout()
-        combo_layout.addWidget(schemes_combobox_widget.label)
-        combo_layout.addWidget(schemes_combobox_widget.combobox)
+        comboboxes_layout = QGridLayout()
+        comboboxes_layout.addWidget(ui_theme_combo.label, 0, 0)
+        comboboxes_layout.addWidget(ui_theme_combo.combobox, 0, 1)
 
-        ui_theme_combo_layout = QHBoxLayout()
-        ui_theme_combo_layout.addWidget(ui_theme_combo.label)
-        ui_theme_combo_layout.addWidget(ui_theme_combo.combobox)
+        comboboxes_layout.addWidget(schemes_combobox_widget.label, 1, 0)
+        comboboxes_layout.addWidget(schemes_combobox_widget.combobox, 1, 1)
 
         buttons_layout = QVBoxLayout()
-        buttons_layout.addLayout(ui_theme_combo_layout)
-        buttons_layout.addLayout(combo_layout)
+        buttons_layout.addLayout(comboboxes_layout)
         buttons_layout.addWidget(edit_button)
         buttons_layout.addWidget(self.reset_button)
         buttons_layout.addWidget(self.delete_button)
