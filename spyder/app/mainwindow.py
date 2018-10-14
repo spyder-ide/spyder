@@ -557,11 +557,11 @@ class MainWindow(QMainWindow):
         """Setup main window"""
         self.debug_print("*** Start of MainWindow setup ***")
         self.debug_print("  ..theme configuration")
-        color_theme = CONF.get('color_schemes', 'color_theme')
+        ui_theme = CONF.get('color_schemes', 'ui_theme')
         color_scheme = CONF.get('color_schemes', 'selected')
-        if color_theme == 'dark':
+        if ui_theme == 'dark':
             self.setStyleSheet(qdarkstyle.load_stylesheet_from_environment())
-        elif color_theme == 'automatic':
+        elif ui_theme == 'automatic':
             if not is_dark_font_color(color_scheme):
                 self.setStyleSheet(
                         qdarkstyle.load_stylesheet_from_environment())

@@ -1166,19 +1166,18 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         # Widget setup
         self.scheme_choices_dict = {}
         about_label.setWordWrap(True)
-        schemes_combobox_widget = self.create_combobox(_('Scheme:'),
+        schemes_combobox_widget = self.create_combobox(_('Syntax scheme:'),
                                                        [('', '')],
                                                        'selected')
         self.schemes_combobox = schemes_combobox_widget.combobox
 
-        color_themes = ['Automatic', 'Light', 'Dark']
-        color_theme_choices = list(zip(color_themes,
-                                       [color_theme.lower()
-                                        for color_theme in color_themes]))
-        color_theme_combo = self.create_combobox(_('User interface theme:'),
-                                                 color_theme_choices,
-                                                 'color_theme',
-                                                 restart=True)
+        ui_themes = ['Automatic', 'Light', 'Dark']
+        ui_theme_choices = list(zip(ui_themes, [ui_theme.lower()
+                                                for ui_theme in ui_themes]))
+        ui_theme_combo = self.create_combobox(_('Interface theme:'),
+                                              ui_theme_choices,
+                                              'ui_theme',
+                                              restart=True)
 
         # Layouts
         manage_layout = QVBoxLayout()
@@ -1188,12 +1187,12 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         combo_layout.addWidget(schemes_combobox_widget.label)
         combo_layout.addWidget(schemes_combobox_widget.combobox)
 
-        color_theme_combo_layout = QHBoxLayout()
-        color_theme_combo_layout.addWidget(color_theme_combo.label)
-        color_theme_combo_layout.addWidget(color_theme_combo.combobox)
+        ui_theme_combo_layout = QHBoxLayout()
+        ui_theme_combo_layout.addWidget(ui_theme_combo.label)
+        ui_theme_combo_layout.addWidget(ui_theme_combo.combobox)
 
         buttons_layout = QVBoxLayout()
-        buttons_layout.addLayout(color_theme_combo_layout)
+        buttons_layout.addLayout(ui_theme_combo_layout)
         buttons_layout.addLayout(combo_layout)
         buttons_layout.addWidget(edit_button)
         buttons_layout.addWidget(self.reset_button)
@@ -1237,16 +1236,16 @@ class ColorSchemeConfigPage(GeneralConfigPage):
     def apply_settings(self, options):
         self.set_option('selected', self.current_scheme)
         color_scheme = self.get_option('selected')
-        color_theme = self.get_option('color_theme')
+        ui_theme = self.get_option('ui_theme')
         style_sheet = self.main.styleSheet()
-        if color_theme == 'automatic':
+        if ui_theme == 'automatic':
             if ((not is_dark_font_color(color_scheme) and not style_sheet)
                     or (is_dark_font_color(color_scheme) and style_sheet)):
-                self.changed_options.add('color_theme')
-            elif 'color_theme' in self.changed_options:
-                self.changed_options.remove('color_theme')
+                self.changed_options.add('ui_theme')
+            elif 'ui_theme' in self.changed_options:
+                self.changed_options.remove('ui_theme')
 
-            if 'color_theme' not in self.changed_options:
+            if 'ui_theme' not in self.changed_options:
                 self.main.editor.apply_plugin_settings(['color_scheme_name'])
                 if self.main.ipyconsole is not None:
                     self.main.ipyconsole.apply_plugin_settings(
@@ -1259,12 +1258,12 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                 self.update_combobox()
                 self.update_preview()
         else:
-            if 'color_theme' in self.changed_options:
-                if (style_sheet and color_theme == 'dark' or
-                        not style_sheet and color_theme == 'light'):
-                    self.changed_options.remove('color_theme')
+            if 'ui_theme' in self.changed_options:
+                if (style_sheet and ui_theme == 'dark' or
+                        not style_sheet and ui_theme == 'light'):
+                    self.changed_options.remove('ui_theme')
 
-            if 'color_theme' not in self.changed_options:
+            if 'ui_theme' not in self.changed_options:
                 self.main.editor.apply_plugin_settings(['color_scheme_name'])
                 if self.main.ipyconsole is not None:
                     self.main.ipyconsole.apply_plugin_settings(
