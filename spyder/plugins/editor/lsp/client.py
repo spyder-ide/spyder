@@ -119,7 +119,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             self.lsp_server_log = open(log_file, 'w')
 
         if not self.external_server:
-            logger.debug('Starting server: {0}'.format(
+            logger.info('Starting server: {0}'.format(
                 ' '.join(self.server_args)))
             creation_flags = 0
             if WINDOWS:
@@ -158,7 +158,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     def stop(self):
         # self.shutdown()
         # self.exit()
-        logger.debug('LSP Client ==> Stopping...')
+        logger.info('LSP Client ==> Stopping...')
         if self.notifier is not None:
             self.notifier.activated.disconnect(self.on_msg_received)
             self.notifier.setEnabled(False)
@@ -182,9 +182,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         if requires_response:
             self.req_status[self.request_seq] = method
 
-        logger.debug('\n[{0}] LSP-Client ===>'.format(self.language))
-        logger.debug(method)
-        # debug_print('')
+        logger.debug('{} request: {}'.format(self.language, method))
         self.zmq_out_socket.send_pyobj(msg)
         self.request_seq += 1
         return int(msg['id'])
@@ -196,9 +194,14 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             try:
                 # events = self.zmq_in_socket.poll(1500)
                 resp = self.zmq_in_socket.recv_pyobj(flags=zmq.NOBLOCK)
-                logger.debug('\n[{0}] LSP-Client <==='.format(self.language))
-                logger.debug(resp)
-                logger.debug('')
+
+                try:
+                    method = resp['method']
+                    logger.debug(
+                        '{} response: {}'.format(self.language, method))
+                except KeyError:
+                    pass
+
                 if 'method' in resp:
                     if resp['method'][0] != '$':
                         if resp['method'] in self.handler_registry:

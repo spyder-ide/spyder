@@ -17,7 +17,6 @@ Original file:
 """
 
 # Standard library imports
-import logging
 import functools
 import weakref
 
@@ -28,9 +27,6 @@ from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyder.py3compat import to_text_string
-
-
-logger = logging.getLogger(__name__)
 
 
 def drift_color(base_color, factor=110):
@@ -145,7 +141,6 @@ class TextHelper(object):
         """
         line = min(line, self.line_count())
         text_cursor = self._move_cursor_to(line)
-        logger.debug(end_column)
         if column:
             text_cursor.movePosition(text_cursor.Right, text_cursor.MoveAnchor,
                                      column)

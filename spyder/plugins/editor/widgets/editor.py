@@ -88,7 +88,7 @@ class ThreadManager(QObject):
 
     def close_threads(self, parent):
         """Close threads associated to parent_id"""
-        logger.debug("Call to 'close_threads'")
+        logger.debug("Call ThreadManager's 'close_threads'")
         if parent is None:
             # Closing all threads
             self.pending_threads = []
@@ -109,7 +109,7 @@ class ThreadManager(QObject):
 
     def close_all_threads(self):
         """Close all threads"""
-        logger.debug("Call to 'close_all_threads'")
+        logger.debug("Call ThreadManager's 'close_all_threads'")
         self.close_threads(None)
 
     def add_thread(self, checker, end_callback, source_code, parent):
@@ -1508,7 +1508,6 @@ class EditorStack(QWidget):
         """Notify language server availability to code editors."""
         for index in range(self.get_stack_count()):
             editor = self.tabs.widget(index)
-            logger.debug(editor.language.lower() + language)
             if editor.language.lower() == language:
                 editor.start_lsp_services(config)
 
@@ -1905,7 +1904,7 @@ class EditorStack(QWidget):
             editor.document_did_open()
         if index != -1:
             editor.setFocus()
-            logger.debug("setfocusto: %r" % editor)
+            logger.debug("Set focus to: %s" % editor.filename)
         else:
             self.reset_statusbar.emit()
         self.opened_files_list_changed.emit()
@@ -1913,8 +1912,8 @@ class EditorStack(QWidget):
         self.stack_history.refresh()
         self.stack_history.remove_and_append(index)
 
-        logger.debug("current_changed: %d %r" %
-                     (index, self.data[index].editor))
+        logger.debug("Current changed: %d - %s" %
+                     (index, self.data[index].editor.filename))
         logger.debug(self.data[index].editor.get_document_id())
 
         self.update_plugin_title.emit()
@@ -2223,7 +2222,6 @@ class EditorStack(QWidget):
         editor.sig_cursor_position_changed.connect(
                                            self.editor_cursor_position_changed)
         editor.textChanged.connect(self.start_stop_analysis_timer)
-        logger.debug("Connecting signal...")
         editor.sig_perform_lsp_request.connect(
             lambda lang, method, params: self.perform_lsp_request.emit(
                 lang, method, params))
@@ -2951,9 +2949,8 @@ class EditorPluginExample(QSplitter):
     def closeEvent(self, event):
         for win in self.editorwindows[:]:
             win.close()
-        logger.debug(str(len(self.editorwindows)) + ": %r" % self.editorwindows)
-        logger.debug(str(len(self.editorstacks)) + ": %r" % self.editorstacks)
-
+        logger.debug("%d: %r" % (len(self.editorwindows), self.editorwindows))
+        logger.debug("%d: %r" % (len(self.editorstacks), self.editorstacks))
         event.accept()
 
     def load(self, fname):

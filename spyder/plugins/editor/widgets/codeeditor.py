@@ -19,12 +19,13 @@ Editor widget based on QtGui.QPlainTextEdit
 
 # Standard library imports
 from __future__ import division
-from unicodedata import category
 import os.path as osp
 import re
 import sre_constants
 import sys
 import time
+import logging
+from unicodedata import category
 
 # Third party imports
 from qtpy.compat import to_qvariant
@@ -43,7 +44,7 @@ from spyder_kernels.utils.dochelpers import getobj
 # %% This line is for cell execution testing
 
 # Local imports
-from spyder.config.base import get_conf_path, _, DEBUG
+from spyder.config.base import _
 from spyder.config.gui import get_shortcut, config_shortcut
 from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
                                 RUN_CELL_AND_ADVANCE_SHORTCUT)
@@ -63,9 +64,9 @@ from spyder.plugins.editor.panels.indentationguides import IndentationGuide
 from spyder.plugins.editor.panels.scrollflag import ScrollFlagArea
 from spyder.plugins.editor.panels.manager import PanelsManager
 from spyder.plugins.editor.panels.codefolding import FoldingPanel
-from spyder.plugins.editor.panels.classfunctiondropdown import ClassFunctionDropdown
+from spyder.plugins.editor.panels.classfunctiondropdown import (
+    ClassFunctionDropdown)
 from spyder.plugins.editor.utils.folding import IndentFoldDetector
-from spyder.plugins.editor.utils.decoration import TextDecorationsManager
 from spyder.plugins.editor.extensions.manager import (
     EditorExtensionsManager)
 from spyder.plugins.editor.extensions.closequotes import (
@@ -84,9 +85,13 @@ try:
 except:
     nbformat = None  # analysis:ignore
 
+
+logger = logging.getLogger(__name__)
+
+
 # %% This line is for cell execution testing
 def is_letter_or_number(char):
-    """ Returns whether the specified unicode character is a letter or a number.
+    """Returns whether the specified unicode character is a letter or a number.
     """
     cat = category(char)
     return cat.startswith('L') or cat.startswith('N')
@@ -716,6 +721,7 @@ class CodeEditor(TextEditBaseWidget):
     def start_lsp_services(self, config):
         """Start LSP integration if it wasn't done before."""
         if not self.lsp_ready:
+            logger.debug("LSP available for: %s" % self.filename)
             self.parse_lsp_config(config)
             self.lsp_ready = True
             self.document_did_open()

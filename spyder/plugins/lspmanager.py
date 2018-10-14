@@ -766,7 +766,7 @@ class LSPManager(SpyderPluginWidget):
         if language in self.clients:
             language_client = self.clients[language]
             if language_client['status'] == self.RUNNING:
-                logger.debug("Closing LSP")
+                logger.info("Closing LSP")
                 # language_client['instance'].shutdown()
                 # language_client['instance'].exit()
                 language_client['instance'].stop()

@@ -56,7 +56,7 @@ class Console(SpyderPluginWidget):
                  exitfunc=None, profile=False, multithreaded=False):
         SpyderPluginWidget.__init__(self, parent)
 
-        logger.debug("    ..internal console: initializing")
+        logger.info("    ..internal console: initializing")
         self.dialog_manager = DialogManager()
 
         # Shell

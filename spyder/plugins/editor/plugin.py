@@ -605,9 +605,8 @@ class Editor(SpyderPluginWidget):
     @Slot(dict)
     def report_open_file(self, options):
         """Request to start a LSP server to attend a language."""
-        logger.debug("Call")
         filename = options['filename']
-        logger.debug(filename)
+        logger.debug('Call LSP for %s' % filename)
         language = options['language']
         callback = options['codeeditor']
         stat = self.main.lspmanager.start_lsp_client(language.lower())
@@ -626,7 +625,7 @@ class Editor(SpyderPluginWidget):
     def document_server_settings(self, settings, language):
         """Update LSP server settings for textDocument requests."""
         self.lsp_editor_settings[language] = settings
-        logger.debug(self.lsp_editor_settings)
+        logger.debug('LSP Language Settings: %r' % self.lsp_editor_settings)
         self.lsp_server_ready(language, self.lsp_editor_settings[language])
 
     def lsp_server_ready(self, language, configuration):
@@ -635,7 +634,7 @@ class Editor(SpyderPluginWidget):
             editorstack.notify_server_ready(language, configuration)
 
     def send_lsp_request(self, language, request, params):
-        logger.debug(request)
+        logger.debug("LSP request: %r" %request)
         self.main.lspmanager.send_request(language, request, params)
 
 
@@ -1338,7 +1337,7 @@ class Editor(SpyderPluginWidget):
                 try:
                     editorstack.__getattribute__(editorstack_method)(checked)
                 except AttributeError as e:
-                    logger.debug("Error {}".format(str))
+                    logger.error(e, exc_info=True)
                 # Run code analysis when `set_pep8_enabled` is toggled
                 if editorstack_method == 'set_pep8_enabled':
                     # TODO: Connect this to the LSP

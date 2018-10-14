@@ -8,10 +8,7 @@
 
 # Standard library imports
 from __future__ import print_function
-import os
 import re
-import sys
-import logging
 
 # Third party imports
 from qtpy import PYQT5
@@ -36,7 +33,7 @@ from spyder.utils.stringmatching import get_search_scores, get_search_regex
 from spyder.widgets.helperwidgets import HTMLDelegate
 from spyder.widgets.helperwidgets import HelperToolButton
 
-logger = logging.getLogger(__name__)
+
 # Valid shortcut keys
 SINGLE_KEYS = ["F{}".format(_i) for _i in range(1, 36)] + ["Del", "Esc"]
 EDITOR_SINGLE_KEYS = SINGLE_KEYS + ["Home", "End", "Ins", "Enter",
