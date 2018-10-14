@@ -1175,14 +1175,12 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         color_theme_choices = list(zip(color_themes,
                                        [color_theme.lower()
                                         for color_theme in color_themes]))
-        color_theme_combo = self.create_combobox(_('User interface theme'),
+        color_theme_combo = self.create_combobox(_('User interface theme:'),
                                                  color_theme_choices,
                                                  'color_theme',
                                                  restart=True)
 
         # Layouts
-        vlayout = QVBoxLayout()
-
         manage_layout = QVBoxLayout()
         manage_layout.addWidget(about_label)
 
@@ -1195,8 +1193,8 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         color_theme_combo_layout.addWidget(color_theme_combo.combobox)
 
         buttons_layout = QVBoxLayout()
-        buttons_layout.addLayout(combo_layout)
         buttons_layout.addLayout(color_theme_combo_layout)
+        buttons_layout.addLayout(combo_layout)
         buttons_layout.addWidget(edit_button)
         buttons_layout.addWidget(self.reset_button)
         buttons_layout.addWidget(self.delete_button)
@@ -1214,6 +1212,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         manage_group = QGroupBox(_("Manage color schemes"))
         manage_group.setLayout(manage_layout)
 
+        vlayout = QVBoxLayout()
         vlayout.addWidget(manage_group)
         self.setLayout(vlayout)
 
@@ -1238,29 +1237,45 @@ class ColorSchemeConfigPage(GeneralConfigPage):
     def apply_settings(self, options):
         self.set_option('selected', self.current_scheme)
         color_scheme = self.get_option('selected')
-        color_theme = CONF.get('color_schemes', 'color_theme')
+        color_theme = self.get_option('color_theme')
         style_sheet = self.main.styleSheet()
-        if ((not is_dark_font_color(color_scheme) and not style_sheet)
-                or (is_dark_font_color(color_scheme) and style_sheet)
-                and color_theme == 'automatic'):
-            self.changed_options.add('color_theme')
+        if color_theme == 'automatic':
+            if ((not is_dark_font_color(color_scheme) and not style_sheet)
+                    or (is_dark_font_color(color_scheme) and style_sheet)):
+                self.changed_options.add('color_theme')
+            elif 'color_theme' in self.changed_options:
+                self.changed_options.remove('color_theme')
+
+            if 'color_theme' not in self.changed_options:
+                self.main.editor.apply_plugin_settings(['color_scheme_name'])
+                if self.main.ipyconsole is not None:
+                    self.main.ipyconsole.apply_plugin_settings(
+                        ['color_scheme_name'])
+                if self.main.historylog is not None:
+                    self.main.historylog.apply_plugin_settings(
+                        ['color_scheme_name'])
+                if self.main.help is not None:
+                    self.main.help.apply_plugin_settings(['color_scheme_name'])
+                self.update_combobox()
+                self.update_preview()
         else:
-            self.main.editor.apply_plugin_settings(['color_scheme_name'])
-            if self.main.ipyconsole is not None:
-                self.main.ipyconsole.apply_plugin_settings(
-                    ['color_scheme_name'])
-            if self.main.historylog is not None:
-                self.main.historylog.apply_plugin_settings(
-                    ['color_scheme_name'])
-            if self.main.help is not None:
-                self.main.help.apply_plugin_settings(['color_scheme_name'])
             if 'color_theme' in self.changed_options:
-                if ((is_dark_font_color(color_scheme) and not style_sheet) or
-                        (not is_dark_font_color(color_scheme) and style_sheet)):
+                if (style_sheet and color_theme == 'dark' or
+                        not style_sheet and color_theme == 'light'):
                     self.changed_options.remove('color_theme')
 
-        self.update_combobox()
-        self.update_preview()
+            if 'color_theme' not in self.changed_options:
+                self.main.editor.apply_plugin_settings(['color_scheme_name'])
+                if self.main.ipyconsole is not None:
+                    self.main.ipyconsole.apply_plugin_settings(
+                        ['color_scheme_name'])
+                if self.main.historylog is not None:
+                    self.main.historylog.apply_plugin_settings(
+                        ['color_scheme_name'])
+                if self.main.help is not None:
+                    self.main.help.apply_plugin_settings(['color_scheme_name'])
+                self.update_combobox()
+                self.update_preview()
 
     # Helpers
     # -------------------------------------------------------------------------
@@ -1561,6 +1576,8 @@ class SchemeEditor(QDialog):
 
         if not custom:
             line_edit.textbox.setDisabled(True)
+        if not self.isVisible():
+            line_edit.setVisible(False)
 
         cs_layout = QVBoxLayout()
         cs_layout.addLayout(name_layout)

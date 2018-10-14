@@ -33,7 +33,7 @@ def get_main_color():
         else:
             main_color = 'black'
     else:
-        main_color = 'white'
+        main_color = 'black'
     return main_color
 
 
