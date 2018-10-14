@@ -23,6 +23,7 @@ from __future__ import print_function
 
 import errno
 import gc
+import logging
 import os
 import os.path as osp
 import re
@@ -33,9 +34,9 @@ import sys
 import threading
 import traceback
 import importlib
-import logging
 
 logger = logging.getLogger(__name__)
+
 #==============================================================================
 # Keeping a reference to the original sys.exit before patching it
 #==============================================================================
@@ -151,7 +152,7 @@ from spyder import (__version__, __project_url__, __forum_url__,
                     __trouble_url__, __trouble_url_short__, __website_url__,
                     get_versions)
 from spyder.config.base import (get_conf_path, get_module_source_path, STDERR,
-                                DEBUG, MAC_APP_NAME, get_home_dir,
+                                _get_debug_env, MAC_APP_NAME, get_home_dir,
                                 running_in_mac_app, get_module_path,
                                 reset_config_files)
 from spyder.config.main import OPEN_FILES_PORT
@@ -241,6 +242,24 @@ def set_opengl_implementation(option):
             QQuickWindow.setSceneGraphBackend(QSGRendererInterface.OpenGL)
 
 
+def setup_logging(cli_options):
+    """Setup logging with cli options defined by the user."""
+    if cli_options.debug_info:
+        levels = {'minimal': logging.INFO, 'verbose': logging.DEBUG}
+        log_level = levels[cli_options.debug_info]
+        log_format = '%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s'
+
+        if cli_options.debug_output == 'file':
+            log_file = 'spyder-debug.log'
+        else:
+            log_file = None
+
+        logging.basicConfig(level=log_level,
+                            format=log_format,
+                            filename=log_file,
+                            filemode='w+')
+
+
 #==============================================================================
 # Main Window
 #==============================================================================
@@ -296,7 +315,7 @@ class MainWindow(QMainWindow):
         self.open_project = options.project
         self.window_title = options.window_title
 
-        logger.debug("Start of MainWindow constructor")
+        logger.info("Start of MainWindow constructor")
 
         def signal_handler(signum, frame=None):
             """Handler for signals."""
@@ -467,7 +486,7 @@ class MainWindow(QMainWindow):
 
         if set_windows_appusermodelid != None:
             res = set_windows_appusermodelid()
-            logger.debug("appusermodelid: %s", res)
+            logger.info("appusermodelid: %s", res)
 
         # Setting QTimer if running in travis
         test_travis = os.environ.get('TEST_CI_APP', None)
@@ -536,7 +555,7 @@ class MainWindow(QMainWindow):
                                                    socket.SOCK_STREAM,
                                                    socket.IPPROTO_TCP)
         self.apply_settings()
-        logger.debug("End of MainWindow constructor")
+        logger.info("End of MainWindow constructor")
 
     #---- Window setup
     def create_toolbar(self, title, object_name, iconsize=24):
@@ -549,8 +568,8 @@ class MainWindow(QMainWindow):
 
     def setup(self):
         """Setup main window"""
-        logger.debug("*** Start of MainWindow setup ***")
-        logger.debug("  ..core actions")
+        logger.info("*** Start of MainWindow setup ***")
+        logger.info("  ..core actions")
         self.close_dockwidget_action = create_action(self,
                                     icon=ima.icon('DialogCloseButton'),
                                     text=_("Close current pane"),
@@ -627,7 +646,7 @@ class MainWindow(QMainWindow):
                                   self.paste_action, self.selectall_action]
 
         namespace = None
-        logger.debug("  ..toolbars")
+        logger.info("  ..toolbars")
         # File menu/toolbar
         self.file_menu = self.menuBar().addMenu(_("&File"))
         self.file_toolbar = self.create_toolbar(_("File toolbar"),
@@ -678,8 +697,7 @@ class MainWindow(QMainWindow):
         status.setObjectName("StatusBar")
         status.showMessage(_("Welcome to Spyder!"), 5000)
 
-
-        logger.debug("  ..tools")
+        logger.info("  ..tools")
         # Tools + External Tools
         prefs_action = create_action(self, _("Pre&ferences"),
                                         icon=ima.icon('configure'),
@@ -737,7 +755,7 @@ class MainWindow(QMainWindow):
             self.external_tools_menu_actions += [None] + additact
 
         # Guidata and Sift
-        logger.debug("  ..sift?")
+        logger.info("  ..sift?")
         gdgq_act = []
         # Guidata and Guiqwt don't support PyQt5 yet and they fail
         # with an AssertionError when imported using those bindings
@@ -797,7 +815,7 @@ class MainWindow(QMainWindow):
                                                 "main_toolbar")
 
         # Internal console plugin
-        logger.debug("  ..plugin: internal console")
+        logger.info("  ..plugin: internal console")
         from spyder.plugins.console.plugin import Console
         self.console = Console(self, namespace, exitfunc=self.closing,
                             profile=self.profile,
@@ -815,7 +833,7 @@ class MainWindow(QMainWindow):
         self.lspmanager = LSPManager(self)
 
         # Working directory plugin
-        logger.debug("  ..plugin: working directory")
+        logger.info("  ..plugin: working directory")
         from spyder.plugins.workingdirectory.plugin import WorkingDirectory
         self.workingdirectory = WorkingDirectory(self, self.init_workdir, main=self)
         self.workingdirectory.register_plugin()
@@ -864,7 +882,7 @@ class MainWindow(QMainWindow):
                                    restart_action, quit_action]
         self.set_splash("")
 
-        logger.debug("  ..widgets")
+        logger.info("  ..widgets")
 
 
         # Namespace browser
@@ -1160,7 +1178,7 @@ class MainWindow(QMainWindow):
         self.all_actions_defined.emit()
 
         # Window set-up
-        logger.debug("Setting up window...")
+        logger.info("Setting up window...")
         self.setup_layout(default=False)
 
         # Show and hide shortcuts in menus for Mac.
@@ -1192,7 +1210,7 @@ class MainWindow(QMainWindow):
                 except TypeError:
                     pass
 
-        logger.debug("*** End of MainWindow setup ***")
+        logger.info("*** End of MainWindow setup ***")
         self.is_starting_up = False
 
     def post_visible_setup(self):
@@ -1292,8 +1310,8 @@ class MainWindow(QMainWindow):
             title = u"Spyder (Python %s.%s)" % (sys.version_info[0],
                                                 sys.version_info[1])
 
-        if DEBUG:
-            title += u" [DEBUG MODE %d]" % DEBUG
+        if _get_debug_env():
+            title += u" [DEBUG MODE %d]" % _get_debug_env()
 
         if self.window_title is not None:
             title += u' -- ' + to_text_string(self.window_title)
@@ -2162,7 +2180,7 @@ class MainWindow(QMainWindow):
         if self.splash is None:
             return
         if message:
-            logger.debug(message)
+            logger.info(message)
         self.splash.show()
         self.splash.showMessage(message, Qt.AlignBottom | Qt.AlignCenter |
                                 Qt.AlignAbsolute, QColor(Qt.white))
@@ -3213,6 +3231,8 @@ def main():
         options.project = None
         options.window_title = None
         options.opengl_implementation = None
+        options.debug_info = None
+        options.debug_output = None
 
         if CONF.get('main', 'opengl') != 'automatic':
             option = CONF.get('main', 'opengl')
@@ -3247,7 +3267,11 @@ def main():
         set_attached_console_visible(not options.hide_console
                                      or options.reset_config_files
                                      or options.reset_to_defaults
-                                     or options.optimize or bool(DEBUG))
+                                     or options.optimize
+                                     or bool(_get_debug_env()))
+
+    # **** Set debugging info ****
+    setup_logging(options)
 
     # **** Create the application ****
     app = initialize()
