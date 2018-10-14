@@ -949,6 +949,7 @@ def test_run_code(main_window, qtbot, tmpdir):
     # ---- Re-run last cell ----
     # Run the first two cells in file
     qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    qtbot.wait(100)
     qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
 
     # Wait until objects have appeared in the variable explorer
