@@ -40,6 +40,7 @@ from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.colors import ColorLayout
 from spyder.widgets.comboboxes import FileComboBox
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+from spyder.config.gui import is_dark_font_color
 
 
 HDPI_QT_PAGE = "https://doc.qt.io/qt-5/highdpi.html"
@@ -911,7 +912,6 @@ class MainConfigPage(GeneralConfigPage):
         icons_combo = self.create_combobox(_('Icon theme'), icon_choices,
                                            'icon_theme', restart=True)
 
-
         vertdock_box = newcb(_("Vertical title bars in panes"),
                              'vertical_dockwidget_titlebars')
         verttabs_box = newcb(_("Vertical tabs in panes"),
@@ -1166,23 +1166,32 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         # Widget setup
         self.scheme_choices_dict = {}
         about_label.setWordWrap(True)
-        schemes_combobox_widget = self.create_combobox(_('Scheme:'),
+        schemes_combobox_widget = self.create_combobox(_('Syntax scheme:'),
                                                        [('', '')],
                                                        'selected')
         self.schemes_combobox = schemes_combobox_widget.combobox
 
-        # Layouts
-        vlayout = QVBoxLayout()
+        ui_themes = ['Automatic', 'Light', 'Dark']
+        ui_theme_choices = list(zip(ui_themes, [ui_theme.lower()
+                                                for ui_theme in ui_themes]))
+        ui_theme_combo = self.create_combobox(_('Interface theme:'),
+                                              ui_theme_choices,
+                                              'ui_theme',
+                                              restart=True)
 
+        # Layouts
         manage_layout = QVBoxLayout()
         manage_layout.addWidget(about_label)
 
-        combo_layout = QHBoxLayout()
-        combo_layout.addWidget(schemes_combobox_widget.label)
-        combo_layout.addWidget(schemes_combobox_widget.combobox)
+        comboboxes_layout = QGridLayout()
+        comboboxes_layout.addWidget(ui_theme_combo.label, 0, 0)
+        comboboxes_layout.addWidget(ui_theme_combo.combobox, 0, 1)
+
+        comboboxes_layout.addWidget(schemes_combobox_widget.label, 1, 0)
+        comboboxes_layout.addWidget(schemes_combobox_widget.combobox, 1, 1)
 
         buttons_layout = QVBoxLayout()
-        buttons_layout.addLayout(combo_layout)
+        buttons_layout.addLayout(comboboxes_layout)
         buttons_layout.addWidget(edit_button)
         buttons_layout.addWidget(self.reset_button)
         buttons_layout.addWidget(self.delete_button)
@@ -1200,6 +1209,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         manage_group = QGroupBox(_("Manage color schemes"))
         manage_group.setLayout(manage_layout)
 
+        vlayout = QVBoxLayout()
         vlayout.addWidget(manage_group)
         self.setLayout(vlayout)
 
@@ -1223,15 +1233,46 @@ class ColorSchemeConfigPage(GeneralConfigPage):
 
     def apply_settings(self, options):
         self.set_option('selected', self.current_scheme)
-        self.main.editor.apply_plugin_settings(['color_scheme_name'])
-        if self.main.ipyconsole is not None:
-            self.main.ipyconsole.apply_plugin_settings(['color_scheme_name'])
-        if self.main.historylog is not None:
-            self.main.historylog.apply_plugin_settings(['color_scheme_name'])
-        if self.main.help is not None:
-            self.main.help.apply_plugin_settings(['color_scheme_name'])
-        self.update_combobox()
-        self.update_preview()
+        color_scheme = self.get_option('selected')
+        ui_theme = self.get_option('ui_theme')
+        style_sheet = self.main.styleSheet()
+        if ui_theme == 'automatic':
+            if ((not is_dark_font_color(color_scheme) and not style_sheet)
+                    or (is_dark_font_color(color_scheme) and style_sheet)):
+                self.changed_options.add('ui_theme')
+            elif 'ui_theme' in self.changed_options:
+                self.changed_options.remove('ui_theme')
+
+            if 'ui_theme' not in self.changed_options:
+                self.main.editor.apply_plugin_settings(['color_scheme_name'])
+                if self.main.ipyconsole is not None:
+                    self.main.ipyconsole.apply_plugin_settings(
+                        ['color_scheme_name'])
+                if self.main.historylog is not None:
+                    self.main.historylog.apply_plugin_settings(
+                        ['color_scheme_name'])
+                if self.main.help is not None:
+                    self.main.help.apply_plugin_settings(['color_scheme_name'])
+                self.update_combobox()
+                self.update_preview()
+        else:
+            if 'ui_theme' in self.changed_options:
+                if (style_sheet and ui_theme == 'dark' or
+                        not style_sheet and ui_theme == 'light'):
+                    self.changed_options.remove('ui_theme')
+
+            if 'ui_theme' not in self.changed_options:
+                self.main.editor.apply_plugin_settings(['color_scheme_name'])
+                if self.main.ipyconsole is not None:
+                    self.main.ipyconsole.apply_plugin_settings(
+                        ['color_scheme_name'])
+                if self.main.historylog is not None:
+                    self.main.historylog.apply_plugin_settings(
+                        ['color_scheme_name'])
+                if self.main.help is not None:
+                    self.main.help.apply_plugin_settings(['color_scheme_name'])
+                self.update_combobox()
+                self.update_preview()
 
     # Helpers
     # -------------------------------------------------------------------------
@@ -1532,6 +1573,8 @@ class SchemeEditor(QDialog):
 
         if not custom:
             line_edit.textbox.setDisabled(True)
+        if not self.isVisible():
+            line_edit.setVisible(False)
 
         cs_layout = QVBoxLayout()
         cs_layout.addLayout(name_layout)
