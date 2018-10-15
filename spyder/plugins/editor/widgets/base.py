@@ -345,12 +345,11 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         # Set the right background color when changing color schemes
         # or creating new Editor windows. This seems to be a Qt bug.
-        # Fixes Issue 2028
-        if sys.platform == 'darwin':
-            if self.objectName():
-                style = "QPlainTextEdit#%s {background: %s; color: %s;}" % \
-                        (self.objectName(), background.name(), foreground.name())
-                self.setStyleSheet(style)
+        # Fixes Issue 2028 and 8069
+        if self.objectName():
+            style = "QPlainTextEdit#%s {background: %s; color: %s;}" % \
+                    (self.objectName(), background.name(), foreground.name())
+            self.setStyleSheet(style)
 
 
     #------Extra selections
