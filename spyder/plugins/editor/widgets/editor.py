@@ -1980,6 +1980,7 @@ class EditorStack(QWidget):
                     finfo.editor, finfo.filename)
             oe.set_current_editor(finfo.editor.oe_proxy,
                                   update=update, clear=clear)
+        self._sync_outlineexplorer_file_order()
 
     def _sync_outlineexplorer_file_order(self):
         """
