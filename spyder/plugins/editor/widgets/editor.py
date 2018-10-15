@@ -2086,7 +2086,6 @@ class EditorStack(QWidget):
             editor = finfo.editor
             editor.setFocus()
             self._refresh_outlineexplorer(index, update=False)
-            self._sync_outlineexplorer_file_order()
             self.update_code_analysis_actions.emit()
             self.__refresh_statusbar(index)
             self.__refresh_readonly(index)
