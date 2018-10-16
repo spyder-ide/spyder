@@ -49,6 +49,7 @@ from spyder.utils import encoding
 # version of Spyder (i.e. the py2exe or cx_Freeze build)
 CONFDIR_PATH = get_module_source_path('spyder.plugins.help.utils')
 CSS_PATH = osp.join(CONFDIR_PATH, 'static', 'css')
+DARK_CSS_PATH = osp.join(CONFDIR_PATH, 'static', 'dark_css')
 JS_PATH = osp.join(CONFDIR_PATH, 'js')
 
 # To let Debian packagers redefine the MathJax and JQuery locations so they can
@@ -91,7 +92,7 @@ def usage(title, message, tutorial_message, tutorial):
 
 
 def generate_context(name='', argspec='', note='', math=False, collapse=False,
-                     img_path=''):
+                     img_path='', theme='dark'):
     """
     Generate the html_context dictionary for our Sphinx conf file.
     
@@ -124,6 +125,11 @@ def generate_context(name='', argspec='', note='', math=False, collapse=False,
     if img_path and os.name == 'nt':
         img_path = img_path.replace('\\', '/')
 
+    if theme == 'dark':
+        css_path = DARK_CSS_PATH
+    else:
+        css_path = CSS_PATH
+
     context = \
     {
       # Arg dependent variables
@@ -135,7 +141,7 @@ def generate_context(name='', argspec='', note='', math=False, collapse=False,
       'img_path': img_path,
       
       # Static variables
-      'css_path': CSS_PATH,
+      'css_path': css_path,
       'js_path': JS_PATH,
       'jquery_path': JQUERY_PATH,
       'mathjax_path': MATHJAX_PATH,
