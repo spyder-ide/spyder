@@ -386,7 +386,7 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
 
 
 def get_code_cell_name(text):
-    """Returns a code cell name from a code cell comment"""
+    """Returns a code cell name from a code cell comment."""
     name = text.strip().lstrip("#% ")
     if name.startswith("<codecell>"):
         name = name[10:].lstrip()

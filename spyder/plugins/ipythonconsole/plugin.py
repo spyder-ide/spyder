@@ -917,7 +917,7 @@ class IPythonConsole(SpyderPluginWidget):
                   ) % osp.basename(filename), QMessageBox.Ok)
 
     def run_cell(self, code, cell_name, filename):
-        """Run cell in current or dedicated client"""
+        """Run cell in current or dedicated client."""
 
         def norm(text):
             return remove_backslashes(to_text_string(text))
@@ -929,7 +929,7 @@ class IPythonConsole(SpyderPluginWidget):
         if client is None:
             client = self.get_current_client()
 
-        is_internal_kernal = False
+        is_internal_kernel = False
         if client is not None:
             # Internal kernels, use runcell
             if client.get_kernel() is not None:
@@ -938,7 +938,7 @@ class IPythonConsole(SpyderPluginWidget):
                                               replace("'", r"\'"),
                                               norm(filename).
                                               replace("'", r"\'"))
-                is_internal_kernal = True
+                is_internal_kernel = True
             else:  # External kernels, just execute the code
                 line = code.strip()
 
@@ -950,12 +950,12 @@ class IPythonConsole(SpyderPluginWidget):
                     pass
                 elif client.shellwidget._reading:
                     client.shellwidget._append_html(
-                        _("<br><b>Please exit from debugging before trying to "
+                        _("<br><b>Exit the debugger before trying to "
                           "run a cell in this console.</b>\n<hr><br>"),
                         before_prompt=True)
                     return
                 else:
-                    if is_internal_kernal:
+                    if is_internal_kernel:
                         client.shellwidget.silent_execute(
                             'get_ipython().cell_code = """{}"""'.format(
                                 to_text_string(code).replace(
@@ -969,9 +969,10 @@ class IPythonConsole(SpyderPluginWidget):
             # XXX: not sure it can really happen
             QMessageBox.warning(self, _('Warning'),
                                 _("No IPython console is currently available "
-                                  "to run <b>%s</b>.<br><br>Please open a new "
+                                  "to run <b>{}</b>.<br><br>Please open a new "
                                   "one and try again."
-                                  ) % osp.basename(filename), QMessageBox.Ok)
+                                  ).format(osp.basename(filename)),
+                                QMessageBox.Ok)
 
     def set_current_client_working_directory(self, directory):
         """Set current client working directory."""

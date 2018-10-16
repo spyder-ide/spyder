@@ -195,8 +195,8 @@ class EditorConfigPage(PluginConfigPage):
         run_selection_group = QGroupBox(_("Run selection"))
         focus_box = newcb(_("Maintain focus in the Editor after running cells "
                             "or selections"), 'focus_to_editor')
-        run_cell_box = newcb(_("Use the run cell function to execute code "
-                               "cells"), 'run_cell_func')
+        run_cell_box = newcb(_("Copy full cell contents to the console when "
+                                "running code cells"), 'run_cell_copy')
 
         introspection_group = QGroupBox(_("Introspection"))
         rope_is_installed = programs.is_module_installed('rope')
@@ -1434,7 +1434,7 @@ class Editor(SpyderPluginWidget):
             ('set_calltips_enabled',                'calltips'),
             ('set_go_to_definition_enabled',        'go_to_definition'),
             ('set_focus_to_editor',                 'focus_to_editor'),
-            ('set_run_cell_func',                   'run_cell_func'),
+            ('set_run_cell_copy',                   'run_cell_copy'),
             ('set_close_parentheses_enabled',       'close_parentheses'),
             ('set_close_quotes_enabled',            'close_quotes'),
             ('set_add_colons_enabled',              'add_colons'),
@@ -1471,8 +1471,8 @@ class Editor(SpyderPluginWidget):
                                     lambda text, option:
                                     self.exec_in_extconsole.emit(text, option))
         editorstack.run_cell_in_ipyclient.connect(
-                lambda code, cell_name, filename:
-                self.run_cell_in_ipyclient.emit(code, cell_name, filename))
+            lambda code, cell_name, filename:
+            self.run_cell_in_ipyclient.emit(code, cell_name, filename))
         editorstack.update_plugin_title.connect(
                                    lambda: self.sig_update_plugin_title.emit())
         editorstack.editor_focus_changed.connect(self.save_focus_editorstack)
@@ -2756,8 +2756,8 @@ class Editor(SpyderPluginWidget):
             converteol_o = self.get_option(converteol_n)
             converteolto_n = 'convert_eol_on_save_to'
             converteolto_o = self.get_option(converteolto_n)
-            runcellfunc_n = 'run_cell_func'
-            runcellfunc_o = self.get_option(runcellfunc_n)
+            runcellcopy_n = 'run_cell_copy'
+            runcellcopy_o = self.get_option(runcellcopy_n)
             autocomp_n = 'codecompletion/auto'
             autocomp_o = self.get_option(autocomp_n)
             case_comp_n = 'codecompletion/case_sensitive'
@@ -2818,8 +2818,8 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_convert_eol_on_save(converteol_o)
                 if converteolto_n in options:
                     editorstack.set_convert_eol_on_save_to(converteolto_o)
-                if runcellfunc_n in options:
-                    editorstack.set_run_cell_func(runcellfunc_o)
+                if runcellcopy_n in options:
+                    editorstack.set_run_cell_copy(runcellcopy_o)
                 if autocomp_n in options:
                     editorstack.set_codecompletion_auto_enabled(autocomp_o)
                 if case_comp_n in options:

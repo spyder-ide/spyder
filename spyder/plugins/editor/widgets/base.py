@@ -689,7 +689,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             else:
                 lines.append(ls)
 
-        # Adding removed lines back to have correct traceback line numbers
+        # Add removed lines back to have correct traceback line numbers
         leading_lines_str = ls * lines_removed
 
         return leading_lines_str + ls.join(lines)
