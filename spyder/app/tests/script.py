@@ -9,5 +9,5 @@ li = [1, 2, 3]
 import numpy as np
 arr = np.array(li)
 
-#%% Forth Code/ Cell's name\ èáïü Øαôå% 字分误
+#%% Fourth Code/ Cell's name\ èáïü Øαôå% 字分误
 a

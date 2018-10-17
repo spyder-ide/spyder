@@ -865,13 +865,15 @@ def test_set_new_breakpoints(main_window, qtbot):
 def test_run_code(main_window, qtbot, tmpdir):
     """Test all the different ways we have to run code"""
     # ---- Setup ----
-    p = tmpdir.mkdir(u"runtest's folder èáïü Øαôå 字分误").join(u"runtest's file èáïü Øαôå 字分误.py")
+    p = (tmpdir.mkdir(u"runtest's folder èáïü Øαôå 字分误")
+        .join(u"runtest's file èáïü Øαôå 字分误.py"))
     filepath = to_text_string(p)
     shutil.copyfile(osp.join(LOCATION, 'script.py'), filepath)
 
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
 
     # Load test file
     main_window.editor.load(filepath)
@@ -888,7 +890,8 @@ def test_run_code(main_window, qtbot, tmpdir):
     qtbot.keyClick(code_editor, Qt.Key_F5)
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 3, timeout=EVAL_TIMEOUT)
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 3,
+                    timeout=EVAL_TIMEOUT)
 
     # Verify result
     assert shell.get_value('a') == 10
@@ -904,7 +907,8 @@ def test_run_code(main_window, qtbot, tmpdir):
         qtbot.wait(100)
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 3, timeout=EVAL_TIMEOUT)
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 3,
+                    timeout=EVAL_TIMEOUT)
 
     # Verify result
     assert shell.get_value('a') == 10
@@ -920,7 +924,8 @@ def test_run_code(main_window, qtbot, tmpdir):
         qtbot.wait(100)
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 3, timeout=EVAL_TIMEOUT)
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 3,
+                    timeout=EVAL_TIMEOUT)
 
     # Verify result
     assert shell.get_value('a') == 10
@@ -936,7 +941,8 @@ def test_run_code(main_window, qtbot, tmpdir):
     qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ControlModifier)
 
     # Wait until the object has appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 1, timeout=EVAL_TIMEOUT)
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 1,
+                    timeout=EVAL_TIMEOUT)
 
     # Verify result
     assert shell.get_value('a') == 10
@@ -955,20 +961,23 @@ def test_run_code(main_window, qtbot, tmpdir):
     qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
 
     # Wait until objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 2, timeout=EVAL_TIMEOUT)
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 2,
+                    timeout=EVAL_TIMEOUT)
 
     # Clean namespace
     with qtbot.waitSignal(shell.executed):
         shell.execute('%reset -f')
 
     # Wait until there are no objects in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 0, timeout=EVAL_TIMEOUT)
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 0,
+                    timeout=EVAL_TIMEOUT)
 
     # Re-run last cell
     qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.AltModifier)
 
     # Wait until the object has appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 1, timeout=EVAL_TIMEOUT)
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 1,
+                    timeout=EVAL_TIMEOUT)
     assert shell.get_value('li') == [1, 2, 3]
 
     # ---- Closing test file ----
@@ -979,7 +988,7 @@ def test_run_code(main_window, qtbot, tmpdir):
 @flaky(max_runs=3)
 @pytest.mark.skipif(sys.platform == 'darwin', reason="It fails on macOS")
 @pytest.mark.parametrize('main_window',
-                         [{'spy_config': ('editor','run_cell_copy', True)}],
+                         [{'spy_config': ('editor', 'run_cell_copy', True)}],
                          indirect=True)
 def test_run_cell_copy(main_window, qtbot, tmpdir):
     """Test all the different ways we have to run code"""
@@ -991,7 +1000,8 @@ def test_run_cell_copy(main_window, qtbot, tmpdir):
 
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
 
     # Load test file
     main_window.editor.load(filepath)
@@ -1011,7 +1021,8 @@ def test_run_cell_copy(main_window, qtbot, tmpdir):
         qtbot.wait(100)
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 3, timeout=EVAL_TIMEOUT)
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 3,
+                    timeout=EVAL_TIMEOUT)
 
     # Verify result
     assert shell.get_value('a') == 10
@@ -1219,6 +1230,10 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
     qtbot.wait(500)
 
     assert nsb.editor.model.rowCount() == 3
+
+    qtbot.keyClicks(control, 'n')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.wait(500)
 
     qtbot.keyClicks(control, 'n')
     qtbot.keyClick(control, Qt.Key_Enter)
