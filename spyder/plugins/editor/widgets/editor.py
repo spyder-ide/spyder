@@ -394,7 +394,7 @@ class EditorStack(QWidget):
     ending_long_process = Signal(str)
     redirect_stdio = Signal(bool)
     exec_in_extconsole = Signal(str, bool)
-    run_cell_in_ipyclient = Signal(str, str, str)
+    run_cell_in_ipyclient = Signal(str, str, str, bool)
     update_plugin_title = Signal()
     editor_focus_changed = Signal()
     zoom_in = Signal()
@@ -2466,12 +2466,9 @@ class EditorStack(QWidget):
         except AttributeError:
             cell_name = ''
         if finfo.editor.is_python() and text:
-            if self.run_cell_copy:
-                self.exec_in_extconsole.emit(text.lstrip(),
-                                             self.focus_to_editor)
-            else:
-                self.run_cell_in_ipyclient.emit(text, cell_name,
-                                                finfo.filename)
+            self.run_cell_in_ipyclient.emit(text, cell_name,
+                                            finfo.filename,
+                                            self.run_cell_copy)
         editor.setFocus()
 
     #------ Drag and drop

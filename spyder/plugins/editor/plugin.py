@@ -423,7 +423,7 @@ class Editor(SpyderPluginWidget):
 
     # Signals
     run_in_current_ipyclient = Signal(str, str, str, bool, bool, bool, bool)
-    run_cell_in_ipyclient = Signal(str, str, str)
+    run_cell_in_ipyclient = Signal(str, str, str, bool)
     exec_in_extconsole = Signal(str, bool)
     redirect_stdio = Signal(bool)
     open_dir = Signal(str)
@@ -1471,8 +1471,9 @@ class Editor(SpyderPluginWidget):
                                     lambda text, option:
                                     self.exec_in_extconsole.emit(text, option))
         editorstack.run_cell_in_ipyclient.connect(
-            lambda code, cell_name, filename:
-            self.run_cell_in_ipyclient.emit(code, cell_name, filename))
+            lambda code, cell_name, filename, run_cell_copy:
+            self.run_cell_in_ipyclient.emit(code, cell_name, filename,
+                                            run_cell_copy))
         editorstack.update_plugin_title.connect(
                                    lambda: self.sig_update_plugin_title.emit())
         editorstack.editor_focus_changed.connect(self.save_focus_editorstack)

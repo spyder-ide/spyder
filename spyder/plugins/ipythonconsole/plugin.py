@@ -916,7 +916,7 @@ class IPythonConsole(SpyderPluginWidget):
                   "<br><br>Please open a new one and try again."
                   ) % osp.basename(filename), QMessageBox.Ok)
 
-    def run_cell(self, code, cell_name, filename):
+    def run_cell(self, code, cell_name, filename, run_cell_copy):
         """Run cell in current or dedicated client."""
 
         def norm(text):
@@ -932,14 +932,16 @@ class IPythonConsole(SpyderPluginWidget):
         is_internal_kernel = False
         if client is not None:
             # Internal kernels, use runcell
-            if client.get_kernel() is not None:
+            if client.get_kernel() is not None and not run_cell_copy:
                 line = "{}('{}','{}')".format('runcell',
                                               to_text_string(cell_name).
                                               replace("'", r"\'"),
                                               norm(filename).
                                               replace("'", r"\'"))
                 is_internal_kernel = True
-            else:  # External kernels, just execute the code
+
+            # External kernels and run_cell_copy, just execute the code
+            else:
                 line = code.strip()
 
             try:

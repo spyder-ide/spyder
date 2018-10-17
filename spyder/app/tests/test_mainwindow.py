@@ -915,7 +915,7 @@ def test_run_code(main_window, qtbot, tmpdir):
 
     # ---- Run cell and advance ----
     # Run the three cells present in file
-    for _ in range(3):
+    for _ in range(4):
         qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
         qtbot.wait(100)
 
@@ -926,6 +926,8 @@ def test_run_code(main_window, qtbot, tmpdir):
     assert shell.get_value('a') == 10
     assert shell.get_value('li') == [1, 2, 3]
     assert_array_equal(shell.get_value('arr'), np.array([1, 2, 3]))
+    assert 'runcell' in shell._control.toPlainText()
+    assert ']: 10\n' in shell._control.toPlainText()
 
     reset_run_code(qtbot, shell, code_editor, nsb)
 
@@ -971,6 +973,56 @@ def test_run_code(main_window, qtbot, tmpdir):
 
     # ---- Closing test file ----
     main_window.editor.close_file()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform == 'darwin', reason="It fails on macOS")
+@pytest.mark.parametrize('main_window',
+                         [{'spy_config': ('editor','run_cell_copy', True)}],
+                         indirect=True)
+def test_run_cell_copy(main_window, qtbot, tmpdir):
+    """Test all the different ways we have to run code"""
+    # ---- Setup ----
+    p = (tmpdir.mkdir(u"runtest's folder èáïü Øαôå 字分误")
+         .join(u"runtest's file èáïü Øαôå 字分误.py"))
+    filepath = to_text_string(p)
+    shutil.copyfile(osp.join(LOCATION, 'script.py'), filepath)
+
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Load test file
+    main_window.editor.load(filepath)
+
+    # Move to the editor's first line
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.setFocus()
+    qtbot.keyClick(code_editor, Qt.Key_Home, modifier=Qt.ControlModifier)
+
+    # Get a reference to the namespace browser widget
+    nsb = main_window.variableexplorer.get_focus_widget()
+
+    # ---- Run cell and advance ----
+    # Run the three cells present in file
+    for _ in range(4):
+        qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+        qtbot.wait(100)
+
+    # Wait until all objects have appeared in the variable explorer
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 3, timeout=EVAL_TIMEOUT)
+
+    # Verify result
+    assert shell.get_value('a') == 10
+    assert shell.get_value('li') == [1, 2, 3]
+    assert_array_equal(shell.get_value('arr'), np.array([1, 2, 3]))
+    assert 'runcell' not in shell._control.toPlainText()
+    assert 'a = 10' in shell._control.toPlainText()
+
+    # ---- Closing test file and reset config ----
+    main_window.editor.close_file()
+    CONF.set('editor', 'run_cell_copy', False)
 
 
 @pytest.mark.slow
