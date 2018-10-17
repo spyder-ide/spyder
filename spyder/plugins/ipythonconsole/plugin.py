@@ -26,12 +26,10 @@ from jupyter_client.connect import find_connection_file
 from jupyter_core.paths import jupyter_config_dir, jupyter_runtime_dir
 from qtconsole.client import QtKernelClient
 from qtconsole.manager import QtKernelManager
-from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt, Signal, Slot
-from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QDialogButtonBox,
-                            QFormLayout, QGridLayout, QGroupBox, QHBoxLayout,
-                            QLabel, QLineEdit, QMessageBox, QPushButton,
-                            QTabWidget, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (QApplication, QGridLayout, QGroupBox, QHBoxLayout,
+                            QLabel, QMessageBox, QTabWidget, QVBoxLayout,
+                            QWidget)
 from traitlets.config.loader import Config, load_pyconfig_files
 from zmq.ssh import tunnel as zmqtunnel
 if not os.name == 'nt':
@@ -53,6 +51,7 @@ from spyder.utils.programs import get_temp_dir
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.ipythonconsole.widgets import ClientWidget
+from spyder.plugins.ipythonconsole.widgets import KernelConnectionDialog
 from spyder.widgets.tabs import Tabs
 
 
@@ -159,127 +158,6 @@ def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1',
             failed = True
 
 
-class KernelConnectionDialog(QDialog):
-    """Dialog to connect to existing kernels (either local or remote)."""
-
-    def __init__(self, parent=None):
-        super(KernelConnectionDialog, self).__init__(parent)
-        self.setWindowTitle(_('Connect to an existing kernel'))
-
-        main_label = QLabel(_(
-            "Please select the JSON connection file (<i>e.g.</i> "
-            "<tt>kernel-3764.json</tt>) or enter the 4-digit ID (<i>e.g.</i> "
-            "<tt>3764</tt>) of the existing kernel to connect to, "
-            "and enter the SSH host name and credentials if a remote kernel."))
-        main_label.setWordWrap(True)
-        main_label.setAlignment(Qt.AlignJustify)
-
-        # Connection file
-        cf_label = QLabel(_('Kernel ID/Connection file:'))
-        self.cf = QLineEdit()
-        self.cf.setPlaceholderText(_('ID number or path to connection file'))
-        self.cf.setMinimumWidth(250)
-        cf_open_btn = QPushButton(_('Browse'))
-        cf_open_btn.clicked.connect(self.select_connection_file)
-
-        cf_layout = QHBoxLayout()
-        cf_layout.addWidget(cf_label)
-        cf_layout.addWidget(self.cf)
-        cf_layout.addWidget(cf_open_btn)
-
-        # Remote kernel checkbox
-        self.rm_cb = QCheckBox(_('This is a remote kernel (via SSH)'))
-
-        # Descriptive text explaining SSH credentials
-        credential_label = QLabel(_(
-            "<b>Note:</b> If connecting to a remote kernel, only the "
-            "SSH keyfile <i>or</i> the Password field need to be completed, "
-            "unless the keyfile is protected with a passphrase."))
-        credential_label.setWordWrap(True)
-
-        # SSH connection
-        self.hn = QLineEdit()
-        self.hn.setPlaceholderText(_('username@hostname:port'))
-
-        self.pw = QLineEdit()
-        self.pw.setPlaceholderText(_('Remote user password or '
-                                     'SSH keyfile passphrase'))
-        self.pw.setEchoMode(QLineEdit.Password)
-
-        self.kf = QLineEdit()
-        self.kf.setPlaceholderText(_('Path to SSH keyfile (optional)'))
-        kf_open_btn = QPushButton(_('Browse'))
-        kf_open_btn.clicked.connect(self.select_ssh_key)
-
-        kf_layout = QHBoxLayout()
-        kf_layout.addWidget(self.kf)
-        kf_layout.addWidget(kf_open_btn)
-
-        ssh_form = QFormLayout()
-        ssh_form.addRow(_('Host name:'), self.hn)
-        ssh_form.addRow(_('Password:'), self.pw)
-        ssh_form.addRow(_('SSH keyfile:'), kf_layout)
-
-        # Ok and Cancel buttons
-        self.accept_btns = QDialogButtonBox(
-            QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
-            Qt.Horizontal, self)
-
-        self.accept_btns.accepted.connect(self.accept)
-        self.accept_btns.rejected.connect(self.reject)
-
-        # Dialog layout
-        layout = QVBoxLayout(self)
-        layout.addWidget(main_label)
-        layout.addLayout(cf_layout)
-        layout.addWidget(self.rm_cb)
-        layout.addWidget(credential_label)
-        layout.addLayout(ssh_form)
-        layout.addWidget(self.accept_btns)
-
-        # Remote kernel checkbox enables the ssh_connection_form
-        def ssh_set_enabled(state):
-            for wid in [credential_label, self.hn, self.pw,
-                        self.kf, kf_open_btn]:
-                wid.setEnabled(state)
-            for i in range(ssh_form.rowCount()):
-                ssh_form.itemAt(2 * i).widget().setEnabled(state)
-
-        ssh_set_enabled(self.rm_cb.checkState())
-        self.rm_cb.stateChanged.connect(ssh_set_enabled)
-
-    def select_connection_file(self):
-        cf = getopenfilename(self, _('Select kernel connection file'),
-                             jupyter_runtime_dir(), '*.json;;*.*')[0]
-        self.cf.setText(cf)
-
-    def select_ssh_key(self):
-        kf = getopenfilename(self, _('Select SSH keyfile'),
-                             get_home_dir(), '*.pem;;*.*')[0]
-        self.kf.setText(kf)
-
-    @staticmethod
-    def get_connection_parameters(parent=None, dialog=None):
-        if not dialog:
-            dialog = KernelConnectionDialog(parent)
-        result = dialog.exec_()
-        is_remote = bool(dialog.rm_cb.checkState())
-        accepted = result == QDialog.Accepted
-        if is_remote:
-            falsy_to_none = lambda arg: arg if arg else None
-            return (dialog.cf.text(),            # connection file
-                falsy_to_none(dialog.hn.text()), # host name
-                falsy_to_none(dialog.kf.text()), # ssh key file
-                falsy_to_none(dialog.pw.text()), # ssh password
-                accepted)                        # ok
-        else:
-            path = dialog.cf.text()
-            _dir, filename = osp.dirname(path), osp.basename(path)
-            if _dir == '' and not filename.endswith('.json'):
-                path = osp.join(jupyter_runtime_dir(), 'kernel-'+path+'.json')
-            return (path, None, None, None, accepted)
-
-
 #------------------------------------------------------------------------------
 # Config page
 #------------------------------------------------------------------------------
@@ -291,7 +169,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 
     def setup_page(self):
         newcb = self.create_checkbox
-        
+
         # Interface Group
         interface_group = QGroupBox(_("Interface"))
         banner_box = newcb(_("Display initial banner"), 'show_banner',
@@ -300,7 +178,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         pager_box = newcb(_("Use a pager to display additional text inside "
                             "the console"), 'use_pager',
                             tip=_("Useful if you don't want to fill the "
-                                  "console with long help or completion texts.\n"
+                                  "console with long help or completion "
+                                  "texts.\n"
                                   "Note: Use the Q key to get out of the "
                                   "pager."))
         calltips_box = newcb(_("Display balloon tips"), 'show_calltips')
@@ -351,7 +230,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         source_code_layout = QVBoxLayout()
         source_code_layout.addWidget(buffer_spin)
         source_code_group.setLayout(source_code_layout)
-        
+
         # --- Graphics ---
         # Pylab Group
         pylab_group = QGroupBox(_("Support for graphics (Matplotlib)"))
@@ -367,12 +246,12 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                      "Spyder."))
         autoload_pylab_box.setEnabled(self.get_option('pylab'))
         pylab_box.toggled.connect(autoload_pylab_box.setEnabled)
-        
+
         pylab_layout = QVBoxLayout()
         pylab_layout.addWidget(pylab_box)
         pylab_layout.addWidget(autoload_pylab_box)
         pylab_group.setLayout(pylab_layout)
-        
+
         # Pylab backend Group
         inline = _("Inline")
         automatic = _("Automatic")
@@ -401,7 +280,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                        'pylab/backend', default=0,
                                        tip=_("This option will be applied the "
                                              "next time a console is opened."))
-        
+
         backend_layout = QVBoxLayout()
         backend_layout.addWidget(bend_label)
         backend_layout.addWidget(backend_box)

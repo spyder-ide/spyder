@@ -21,6 +21,7 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QFormLayout,
 from spyder import __project_url__, __trouble_url__
 from spyder.config.base import _
 from spyder.config.gui import get_font
+from spyder.config.gui import CONF
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import restore_keyevent
 from spyder.widgets.github.backend import GithubBackend
@@ -46,7 +47,8 @@ class DescriptionWidget(CodeEditor):
         # Editor options
         self.setup_editor(
             language='md',
-            color_scheme='Scintilla',
+            color_scheme=CONF.get('color_schemes',
+                                  'selected'),
             linenumbers=False,
             scrollflagarea=False,
             wrap=True,
