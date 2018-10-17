@@ -933,11 +933,10 @@ class IPythonConsole(SpyderPluginWidget):
         if client is not None:
             # Internal kernels, use runcell
             if client.get_kernel() is not None and not run_cell_copy:
-                line = "{}('{}','{}')".format('runcell',
-                                              to_text_string(cell_name).
-                                              replace("'", r"\'"),
-                                              norm(filename).
-                                              replace("'", r"\'"))
+                line = (to_text_string("{}('{}','{}')")
+                            .format(to_text_string('runcell'),
+                                to_text_string(cell_name).replace("'", r"\'"),
+                                norm(filename).replace("'", r"\'")))
                 is_internal_kernel = True
 
             # External kernels and run_cell_copy, just execute the code
@@ -959,9 +958,10 @@ class IPythonConsole(SpyderPluginWidget):
                 else:
                     if is_internal_kernel:
                         client.shellwidget.silent_execute(
-                            'get_ipython().cell_code = """{}"""'.format(
-                                to_text_string(code).replace(
-                                    '"""', r'\"\"\"')))
+                            to_text_string('get_ipython().cell_code = '
+                                           '"""{}"""')
+                                .format(to_text_string(code)
+                                .replace('"""', r'\"\"\"')))
                     self.execute_code(line)
             except AttributeError:
                 pass
