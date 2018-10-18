@@ -158,7 +158,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     def stop(self):
         # self.shutdown()
         # self.exit()
-        logger.info('LSP Client ==> Stopping...')
+        logger.info('Stopping client...')
         if self.notifier is not None:
             self.notifier.activated.disconnect(self.on_msg_received)
             self.notifier.setEnabled(False)

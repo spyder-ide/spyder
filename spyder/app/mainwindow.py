@@ -569,7 +569,7 @@ class MainWindow(QMainWindow):
     def setup(self):
         """Setup main window"""
         logger.info("*** Start of MainWindow setup ***")
-        logger.info("  ..core actions")
+        logger.info("Creating core actions...")
         self.close_dockwidget_action = create_action(self,
                                     icon=ima.icon('DialogCloseButton'),
                                     text=_("Close current pane"),
@@ -646,7 +646,7 @@ class MainWindow(QMainWindow):
                                   self.paste_action, self.selectall_action]
 
         namespace = None
-        logger.info("  ..toolbars")
+        logger.info("Creating toolbars...")
         # File menu/toolbar
         self.file_menu = self.menuBar().addMenu(_("&File"))
         self.file_toolbar = self.create_toolbar(_("File toolbar"),
@@ -697,7 +697,7 @@ class MainWindow(QMainWindow):
         status.setObjectName("StatusBar")
         status.showMessage(_("Welcome to Spyder!"), 5000)
 
-        logger.info("  ..tools")
+        logger.info("Creating Tools menu...")
         # Tools + External Tools
         prefs_action = create_action(self, _("Pre&ferences"),
                                         icon=ima.icon('configure'),
@@ -755,7 +755,7 @@ class MainWindow(QMainWindow):
             self.external_tools_menu_actions += [None] + additact
 
         # Guidata and Sift
-        logger.info("  ..sift?")
+        logger.info("Creating guidata and sift entries...")
         gdgq_act = []
         # Guidata and Guiqwt don't support PyQt5 yet and they fail
         # with an AssertionError when imported using those bindings
@@ -815,7 +815,7 @@ class MainWindow(QMainWindow):
                                                 "main_toolbar")
 
         # Internal console plugin
-        logger.info("  ..plugin: internal console")
+        logger.info("Loading internal console...")
         from spyder.plugins.console.plugin import Console
         self.console = Console(self, namespace, exitfunc=self.closing,
                             profile=self.profile,
@@ -833,7 +833,7 @@ class MainWindow(QMainWindow):
         self.lspmanager = LSPManager(self)
 
         # Working directory plugin
-        logger.info("  ..plugin: working directory")
+        logger.info("Loading working directory...")
         from spyder.plugins.workingdirectory.plugin import WorkingDirectory
         self.workingdirectory = WorkingDirectory(self, self.init_workdir, main=self)
         self.workingdirectory.register_plugin()
@@ -881,9 +881,6 @@ class MainWindow(QMainWindow):
                                    self.symbol_finder_action, None,
                                    restart_action, quit_action]
         self.set_splash("")
-
-        logger.info("  ..widgets")
-
 
         # Namespace browser
         self.set_splash(_("Loading namespace browser..."))

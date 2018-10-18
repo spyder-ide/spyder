@@ -1914,7 +1914,6 @@ class EditorStack(QWidget):
 
         logger.debug("Current changed: %d - %s" %
                      (index, self.data[index].editor.filename))
-        logger.debug(self.data[index].editor.get_document_id())
 
         self.update_plugin_title.emit()
         if editor is not None:
