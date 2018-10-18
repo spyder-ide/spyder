@@ -15,7 +15,7 @@ else
                                pytest pytest-cov numpydoc scipy cython pillow jedi pycodestyle sympy \
                                keyring pexpect"
     export PIP_DEPENDENCIES="coveralls pytest-qt pytest-mock pytest-timeout flaky \
-                             python-language-server[all]"
+                             python-language-server[all] qdarkstyle"
 fi
 
 

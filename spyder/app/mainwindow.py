@@ -167,8 +167,7 @@ from spyder.utils.programs import is_module_installed
 from spyder.utils.misc import select_port, getcwd_or_home, get_python_executable
 from spyder.widgets.fileswitcher import FileSwitcher
 from spyder.plugins.lspmanager import LSPManager
-
-
+from spyder.config.gui import is_dark_font_color
 
 #==============================================================================
 # Local gui imports
@@ -190,6 +189,10 @@ from spyder.config.gui import get_shortcut
 from spyder.otherplugins import get_spyderplugins_mods
 from spyder.app import tour
 
+#==============================================================================
+# Third-party library imports
+#==============================================================================
+import qdarkstyle
 
 #==============================================================================
 # Get the cwd before initializing WorkingDirectory, which sets it to the one
@@ -569,6 +572,17 @@ class MainWindow(QMainWindow):
     def setup(self):
         """Setup main window"""
         logger.info("*** Start of MainWindow setup ***")
+
+        logger.info("Applying theme configuration...")
+        ui_theme = CONF.get('color_schemes', 'ui_theme')
+        color_scheme = CONF.get('color_schemes', 'selected')
+        if ui_theme == 'dark':
+            self.setStyleSheet(qdarkstyle.load_stylesheet_from_environment())
+        elif ui_theme == 'automatic':
+            if not is_dark_font_color(color_scheme):
+                self.setStyleSheet(
+                        qdarkstyle.load_stylesheet_from_environment())
+
         logger.info("Creating core actions...")
         self.close_dockwidget_action = create_action(self,
                                     icon=ima.icon('DialogCloseButton'),

@@ -297,17 +297,18 @@ class CodeEditor(TextEditBaseWidget):
         # We use these object names to set the right background
         # color when changing color schemes or creating new
         # Editor windows. This seems to be a Qt bug.
-        # Fixes Issue 2028
-        if sys.platform == 'darwin':
-            plugin_name = repr(parent)
-            if 'editor' in plugin_name.lower():
-                self.setObjectName('editor')
-            elif 'help' in plugin_name.lower():
-                self.setObjectName('help')
-            elif 'historylog' in plugin_name.lower():
-                self.setObjectName('historylog')
-            elif 'configdialog' in plugin_name.lower():
-                self.setObjectName('configdialog')
+        # Fixes issues 2028 and 8069
+        plugin_name = repr(parent)
+        if 'editor' in plugin_name.lower():
+            self.setObjectName('editor')
+        elif 'help' in plugin_name.lower():
+            self.setObjectName('help')
+        elif 'historylog' in plugin_name.lower():
+            self.setObjectName('historylog')
+        elif 'configdialog' in plugin_name.lower():
+            self.setObjectName('configdialog')
+        elif 'errordialog' in plugin_name.lower():
+            self.setObjectName('errordialog')
 
         # Caret (text cursor)
         self.setCursorWidth( CONF.get('main', 'cursor/width') )
@@ -2977,6 +2978,7 @@ class CodeEditor(TextEditBaseWidget):
             else:
                 # indent the selected text
                 self.unindent()
+            event.accept()
         elif not event.isAccepted():
             TextEditBaseWidget.keyPressEvent(self, event)
             if self.is_completion_widget_visible() and text:

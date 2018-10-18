@@ -17,6 +17,7 @@ from .debugging import DebuggingWidget
 from .help import HelpWidget
 from .namespacebrowser import NamepaceBrowserWidget
 from .figurebrowser import FigureBrowserWidget
+from .kernelconnect import KernelConnectionDialog
 
 # ShellWidget contains the other widgets and ClientWidget
 # contains it

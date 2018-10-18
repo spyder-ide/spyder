@@ -152,6 +152,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.time_label = None
         self.t0 = time.monotonic()
         self.timer = QTimer(self)
+        self.show_time_action = create_action(self, _("Show elapsed time"),
+                                         toggled=self.set_elapsed_time_visible)
 
         # --- Layout
         vlayout = QVBoxLayout()
@@ -362,9 +364,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         reset_action = create_action(self, _("Remove all variables"),
                                      icon=ima.icon('editdelete'),
                                      triggered=self.reset_namespace)
-
-        self.show_time_action = create_action(self, _("Show elapsed time"),
-                                         toggled=self.set_elapsed_time_visible)
 
         env_action = create_action(
                         self,
