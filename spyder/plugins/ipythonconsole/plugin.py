@@ -935,7 +935,8 @@ class IPythonConsole(SpyderPluginWidget):
             if client.get_kernel() is not None and not run_cell_copy:
                 line = (to_text_string("{}('{}','{}')")
                             .format(to_text_string('runcell'),
-                                to_text_string(cell_name).replace("'", r"\'"),
+                                (to_text_string(cell_name).replace("\\","\\\\")
+                                    .replace("'", r"\'")),
                                 norm(filename).replace("'", r"\'")))
                 is_internal_kernel = True
 
