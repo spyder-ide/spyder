@@ -247,9 +247,9 @@ def set_opengl_implementation(option):
 
 def setup_logging(cli_options):
     """Setup logging with cli options defined by the user."""
-    if cli_options.debug_info:
-        levels = {'minimal': logging.INFO, 'verbose': logging.DEBUG}
-        log_level = levels[cli_options.debug_info]
+    if cli_options.debug_info or get_debug_level() > 0:
+        levels = {2: logging.INFO, 3: logging.DEBUG}
+        log_level = levels[get_debug_level()]
         log_format = '%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s'
 
         if cli_options.debug_output == 'file':
