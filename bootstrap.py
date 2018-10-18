@@ -114,7 +114,7 @@ if args.debug:
     if "spyder.config.base" in sys.modules:
         sys.exit("ERROR: Can't enable debug mode - Spyder is already imported")
     print("0x. Switching debug mode on")
-    os.environ["SPYDER_DEBUG"] = "True"
+    os.environ["SPYDER_DEBUG"] = "3"
     # this way of interaction suxx, because there is no feedback
     # if operation is successful
 

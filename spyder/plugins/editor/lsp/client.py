@@ -11,15 +11,18 @@ This client implements the calls and procedures required to
 communicate with a v3.0 Language Server Protocol server.
 """
 
+import logging
 import os
+import os.path as osp
 import sys
-import zmq
 import signal
 import subprocess
-import os.path as osp
+
+from qtpy.QtCore import QObject, Signal, QSocketNotifier, Slot
+import zmq
 
 from spyder.py3compat import PY2, getcwd
-from spyder.config.base import debug_print, get_conf_path, DEBUG
+from spyder.config.base import get_conf_path, get_debug_level
 from spyder.plugins.editor.lsp import (
     CLIENT_CAPABILITES, SERVER_CAPABILITES, TRACE,
     TEXT_DOCUMENT_SYNC_OPTIONS, LSPRequestTypes,
@@ -27,8 +30,6 @@ from spyder.plugins.editor.lsp import (
 from spyder.plugins.editor.lsp.decorators import (
     send_request, class_register, handles)
 from spyder.plugins.editor.lsp.providers import LSPMethodProviderMixIn
-
-from qtpy.QtCore import QObject, Signal, QSocketNotifier, Slot
 
 if PY2:
     import pathlib2 as pathlib
@@ -38,11 +39,13 @@ else:
 
 LOCATION = osp.realpath(osp.join(os.getcwd(),
                                  osp.dirname(__file__)))
-
 PENDING = 'pending'
 SERVER_READY = 'server_ready'
-
 WINDOWS = os.name == 'nt'
+
+
+logger = logging.getLogger(__name__)
+
 
 @class_register
 class LSPClient(QObject, LSPMethodProviderMixIn):
@@ -96,7 +99,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.server_args += server_args.split(' ')
         self.transport_args += transport_args.split(' ')
         self.transport_args += ['--folder', folder]
-        self.transport_args += ['--transport-debug', str(DEBUG)]
+        self.transport_args += ['--transport-debug', str(get_debug_level())]
 
     def start(self):
         self.zmq_out_socket = self.context.socket(zmq.PAIR)
@@ -108,7 +111,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                                 '--zmq-out-port', self.zmq_in_port]
 
         self.lsp_server_log = subprocess.PIPE
-        if DEBUG > 0:
+        if get_debug_level() > 0:
             lsp_server_file = 'lsp_server_logfile.log'
             log_file = get_conf_path(osp.join('lsp_logs', lsp_server_file))
             if not osp.exists(osp.dirname(log_file)):
@@ -116,7 +119,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             self.lsp_server_log = open(log_file, 'w')
 
         if not self.external_server:
-            debug_print('Starting server: {0}'.format(
+            logger.info('Starting server: {0}'.format(
                 ' '.join(self.server_args)))
             creation_flags = 0
             if WINDOWS:
@@ -130,7 +133,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
         self.stdout_log = subprocess.PIPE
         self.stderr_log = subprocess.PIPE
-        if DEBUG > 0:
+        if get_debug_level() > 0:
             stderr_log_file = 'lsp_client_{0}.log'.format(self.language)
             log_file = get_conf_path(osp.join('lsp_logs', stderr_log_file))
             if not osp.exists(osp.dirname(log_file)):
@@ -155,7 +158,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     def stop(self):
         # self.shutdown()
         # self.exit()
-        debug_print('LSP Client ==> Stopping...')
+        logger.info('Stopping client...')
         if self.notifier is not None:
             self.notifier.activated.disconnect(self.on_msg_received)
             self.notifier.setEnabled(False)
@@ -179,9 +182,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         if requires_response:
             self.req_status[self.request_seq] = method
 
-        debug_print('\n[{0}] LSP-Client ===>'.format(self.language))
-        debug_print(method)
-        # debug_print('')
+        logger.debug('{} request: {}'.format(self.language, method))
         self.zmq_out_socket.send_pyobj(msg)
         self.request_seq += 1
         return int(msg['id'])
@@ -193,9 +194,14 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             try:
                 # events = self.zmq_in_socket.poll(1500)
                 resp = self.zmq_in_socket.recv_pyobj(flags=zmq.NOBLOCK)
-                debug_print('\n[{0}] LSP-Client <==='.format(self.language))
-                debug_print(resp)
-                debug_print('')
+
+                try:
+                    method = resp['method']
+                    logger.debug(
+                        '{} response: {}'.format(self.language, method))
+                except KeyError:
+                    pass
+
                 if 'method' in resp:
                     if resp['method'][0] != '$':
                         if resp['method'] in self.handler_registry:
@@ -289,6 +295,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             'settings': configurations
         }
         return params
+
 
 def test():
     """Test LSP client."""
