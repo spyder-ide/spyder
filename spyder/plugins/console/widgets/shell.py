@@ -27,7 +27,7 @@ from qtpy.QtGui import QKeySequence, QTextCharFormat, QTextCursor
 from qtpy.QtWidgets import QApplication, QMenu, QToolTip
 
 # Local import
-from spyder.config.base import _, DEBUG, get_conf_path, STDERR
+from spyder.config.base import _, get_conf_path, get_debug_level, STDERR
 from spyder.config.gui import config_shortcut, get_shortcut
 from spyder.config.main import CONF
 from spyder.py3compat import (builtins, is_string, is_text_string,
@@ -519,7 +519,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
         """Simulate stderr"""
         self.flush()
         self.write(text, flush=True, error=True)
-        if DEBUG:
+        if get_debug_level():
             STDERR.write(text)
 
     def write(self, text, flush=False, error=False, prompt=False):

@@ -23,7 +23,7 @@ from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import QInputDialog, QLineEdit, QMenu, QHBoxLayout
 
 # Local imports
-from spyder.config.base import _, DEV, DEBUG
+from spyder.config.base import _, DEV, get_debug_level
 from spyder.config.main import CONF
 from spyder.utils import icon_manager as ima
 from spyder.utils.environ import EnvDialog
@@ -225,7 +225,7 @@ class Console(SpyderPluginWidget):
                 self.error_dlg.details.go_to_error.connect(self.go_to_error)
                 self.error_dlg.show()
             self.error_dlg.append_traceback(text)
-        elif DEV or DEBUG:
+        elif DEV or get_debug_level():
             self.dockwidget.show()
             self.dockwidget.raise_()
 

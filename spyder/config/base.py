@@ -58,17 +58,19 @@ def running_under_pytest():
 # This is needed after restarting and using debug_print
 STDOUT = sys.stdout if PY3 else codecs.getwriter('utf-8')(sys.stdout)
 STDERR = sys.stderr
-def _get_debug_env():
+
+
+def get_debug_level():
     debug_env = os.environ.get('SPYDER_DEBUG', '')
     if not debug_env.isdigit():
         debug_env = bool(debug_env)
-    return int(debug_env)    
-DEBUG = _get_debug_env()
+    return int(debug_env)
+
 
 def debug_print(*message):
     """Output debug messages to stdout"""
     warnings.warn("debug_print is deprecated; use the logging module instead.")
-    if DEBUG:
+    if get_debug_level():
         ss = STDOUT
         if PY3:
             # This is needed after restarting and using debug_print

@@ -22,7 +22,7 @@ from qtpy.QtCore import QObject, Signal, QSocketNotifier, Slot
 import zmq
 
 from spyder.py3compat import PY2, getcwd
-from spyder.config.base import get_conf_path, DEBUG
+from spyder.config.base import get_conf_path, get_debug_level
 from spyder.plugins.editor.lsp import (
     CLIENT_CAPABILITES, SERVER_CAPABILITES, TRACE,
     TEXT_DOCUMENT_SYNC_OPTIONS, LSPRequestTypes,
@@ -99,7 +99,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.server_args += server_args.split(' ')
         self.transport_args += transport_args.split(' ')
         self.transport_args += ['--folder', folder]
-        self.transport_args += ['--transport-debug', str(DEBUG)]
+        self.transport_args += ['--transport-debug', str(get_debug_level())]
 
     def start(self):
         self.zmq_out_socket = self.context.socket(zmq.PAIR)
@@ -111,7 +111,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                                 '--zmq-out-port', self.zmq_in_port]
 
         self.lsp_server_log = subprocess.PIPE
-        if DEBUG > 0:
+        if get_debug_level() > 0:
             lsp_server_file = 'lsp_server_logfile.log'
             log_file = get_conf_path(osp.join('lsp_logs', lsp_server_file))
             if not osp.exists(osp.dirname(log_file)):
@@ -133,7 +133,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
         self.stdout_log = subprocess.PIPE
         self.stderr_log = subprocess.PIPE
-        if DEBUG > 0:
+        if get_debug_level() > 0:
             stderr_log_file = 'lsp_client_{0}.log'.format(self.language)
             log_file = get_conf_path(osp.join('lsp_logs', stderr_log_file))
             if not osp.exists(osp.dirname(log_file)):

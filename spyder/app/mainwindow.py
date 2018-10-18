@@ -152,7 +152,7 @@ from spyder import (__version__, __project_url__, __forum_url__,
                     __trouble_url__, __trouble_url_short__, __website_url__,
                     get_versions)
 from spyder.config.base import (get_conf_path, get_module_source_path, STDERR,
-                                _get_debug_env, MAC_APP_NAME, get_home_dir,
+                                get_debug_level, MAC_APP_NAME, get_home_dir,
                                 running_in_mac_app, get_module_path,
                                 reset_config_files)
 from spyder.config.main import OPEN_FILES_PORT
@@ -1307,8 +1307,8 @@ class MainWindow(QMainWindow):
             title = u"Spyder (Python %s.%s)" % (sys.version_info[0],
                                                 sys.version_info[1])
 
-        if _get_debug_env():
-            title += u" [DEBUG MODE %d]" % _get_debug_env()
+        if get_debug_level():
+            title += u" [DEBUG MODE %d]" % get_debug_level()
 
         if self.window_title is not None:
             title += u' -- ' + to_text_string(self.window_title)
@@ -3265,7 +3265,7 @@ def main():
                                      or options.reset_config_files
                                      or options.reset_to_defaults
                                      or options.optimize
-                                     or bool(_get_debug_env()))
+                                     or bool(get_debug_level()))
 
     # **** Set debugging info ****
     setup_logging(options)
