@@ -82,6 +82,7 @@ def main():
         options = Mock()
         options.new_instance = False
         options.reset_config_files = False
+        options.debug_info = None
         args = None
     else:
         options, args = get_options()
@@ -136,6 +137,10 @@ def main():
                 os.environ['LC_ALL'] = 'C'
             except Exception:
                 pass
+
+    if options.debug_info:
+        levels = {'minimal': '2', 'verbose': '3'}
+        os.environ['SPYDER_DEBUG'] = levels[options.debug_info]
 
     if CONF.get('main', 'single_instance') and not options.new_instance \
       and not options.reset_config_files and not running_in_mac_app():

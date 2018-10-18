@@ -15,10 +15,10 @@ import tempfile
 import traceback
 
 # Local import
-from spyder.config.base import _, DEBUG
+from spyder.config.base import _, get_debug_level
 from spyder.utils import programs, encoding
 from spyder.py3compat import to_text_string, to_binary_string, PY3
-DEBUG_EDITOR = DEBUG >= 3
+DEBUG_EDITOR = get_debug_level() >= 3
 
 #==============================================================================
 # Pyflakes/pep8 code analysis

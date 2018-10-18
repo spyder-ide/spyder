@@ -38,7 +38,7 @@ from spyder.plugins.variableexplorer.widgets.objecteditor import oedit
 # TODO: remove the CONF object and make it work anyway
 # In fact, this 'CONF' object has nothing to do in package spyder/widgets
 # which should not contain anything directly related to Spyder's main app
-from spyder.config.base import _, DEBUG, get_conf_path
+from spyder.config.base import _, get_conf_path, get_debug_level
 from spyder.config.main import CONF
 
 
@@ -187,7 +187,8 @@ class InternalShell(PythonShellWidget):
         if self.interpreter is not None:
             self.interpreter.closing()
         self.interpreter = Interpreter(namespace, self.exitfunc,
-                                       SysOutput, WidgetProxy, DEBUG)
+                                       SysOutput, WidgetProxy,
+                                       get_debug_level())
         self.interpreter.stdout_write.data_avail.connect(self.stdout_avail)
         self.interpreter.stderr_write.data_avail.connect(self.stderr_avail)
         self.interpreter.widget_proxy.sig_set_readonly.connect(self.setReadOnly)

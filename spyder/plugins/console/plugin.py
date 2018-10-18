@@ -15,6 +15,7 @@
 import os
 import os.path as osp
 import sys
+import logging
 
 # Third party imports
 from qtpy.compat import getopenfilename
@@ -22,7 +23,7 @@ from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import QInputDialog, QLineEdit, QMenu, QHBoxLayout
 
 # Local imports
-from spyder.config.base import _, DEV, DEBUG, debug_print
+from spyder.config.base import _, DEV, get_debug_level
 from spyder.config.main import CONF
 from spyder.utils import icon_manager as ima
 from spyder.utils.environ import EnvDialog
@@ -39,6 +40,8 @@ from spyder.widgets.reporterror import SpyderErrorDialog
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import to_text_string
 
+logger = logging.getLogger(__name__)
+
 
 class Console(SpyderPluginWidget):
     """
@@ -53,7 +56,7 @@ class Console(SpyderPluginWidget):
                  exitfunc=None, profile=False, multithreaded=False):
         SpyderPluginWidget.__init__(self, parent)
 
-        debug_print("    ..internal console: initializing")
+        logger.info("Initializing...")
         self.dialog_manager = DialogManager()
 
         # Shell
@@ -222,7 +225,7 @@ class Console(SpyderPluginWidget):
                 self.error_dlg.details.go_to_error.connect(self.go_to_error)
                 self.error_dlg.show()
             self.error_dlg.append_traceback(text)
-        elif DEV or DEBUG:
+        elif DEV or get_debug_level():
             self.dockwidget.show()
             self.dockwidget.raise_()
 
@@ -270,7 +273,7 @@ class Console(SpyderPluginWidget):
                 filename = osp.basename(filename)
             else:
                 return
-        debug_print(args)
+        logger.debug("Running script with %s", args)
         filename = osp.abspath(filename)
         rbs = remove_backslashes
         command = "runfile('%s', args='%s')" % (rbs(filename), rbs(args))

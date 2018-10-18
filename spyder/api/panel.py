@@ -16,14 +16,17 @@ Original file:
 <https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/api/panel.py>
 """
 
+
 # Third party imports
+import logging
 from qtpy.QtWidgets import QWidget, QApplication
 from qtpy.QtGui import QBrush, QColor, QPen, QPainter
 from qtpy.QtCore import Qt, QPoint, QRect
 
 # Local imports
 from spyder.api.editorextension import EditorExtension
-from spyder.config.base import debug_print
+
+logger = logging.getLogger(__name__)
 
 
 class Panel(QWidget, EditorExtension):
@@ -129,7 +132,7 @@ class Panel(QWidget, EditorExtension):
 
         :param visible: Visible state
         """
-        debug_print('{} visibility changed'.format(self.name))
+        logger.debug('%s visibility changed', self.name)
         super(Panel, self).setVisible(visible)
         if self.editor:
             self.editor.panels.refresh()

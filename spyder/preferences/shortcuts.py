@@ -8,9 +8,7 @@
 
 # Standard library imports
 from __future__ import print_function
-import os
 import re
-import sys
 
 # Third party imports
 from qtpy import PYQT5
@@ -24,7 +22,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
                             QTableView, QVBoxLayout, QKeySequenceEdit)
 
 # Local imports
-from spyder.config.base import _, debug_print
+from spyder.config.base import _
 from spyder.config.main import CONF
 from spyder.config.gui import (get_shortcut, iter_shortcuts,
                                reset_shortcuts, set_shortcut)
@@ -34,6 +32,7 @@ from spyder.utils.qthelpers import get_std_icon, create_toolbutton
 from spyder.utils.stringmatching import get_search_scores, get_search_regex
 from spyder.widgets.helperwidgets import HTMLDelegate
 from spyder.widgets.helperwidgets import HelperToolButton
+
 
 # Valid shortcut keys
 SINGLE_KEYS = ["F{}".format(_i) for _i in range(1, 36)] + ["Del", "Esc"]
