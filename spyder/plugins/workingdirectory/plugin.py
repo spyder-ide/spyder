@@ -49,6 +49,7 @@ class WorkingDirectory(SpyderPluginWidget):
     
     def __init__(self, parent, workdir=None, **kwds):
         SpyderPluginWidget.__init__(self, parent)
+        self.hide()
 
         self.toolbar = QToolBar(self)
 

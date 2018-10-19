@@ -669,6 +669,7 @@ class LSPManager(SpyderPluginWidget):
     def __init__(self, parent):
         SpyderPluginWidget.__init__(self, parent)
         self.options_button.hide()
+        self.hide()
 
         self.lsp_plugins = {}
         self.clients = {}
