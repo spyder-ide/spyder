@@ -69,7 +69,7 @@ DEFAULTS = [
             ('main',
              {
               'icon_theme': 'spyder 3',
-              'opengl': 'automatic',
+              'opengl': 'software',
               'single_instance': True,
               'open_files_port': OPEN_FILES_PORT,
               'tear_off_menus': False,
@@ -644,7 +644,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '46.1.0'
+CONF_VERSION = '46.2.0'
 
 # Main configuration instance
 try:
