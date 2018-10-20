@@ -77,14 +77,14 @@ def editorstack(qtbot, outlineexplorer):
         qtbot.addWidget(editorstack)
         editorstack.show()
 
-        for file in files:
-            editorstack.load(file)
-
+        for index, file in enumerate(files):
+            focus = index == 0
+            editorstack.load(file, set_current=focus)
         return editorstack
     return _create_editorstack
 
 
-# ---- Tests
+# ---- Test all files mode
 def test_load_files(editorstack, outlineexplorer, test_files):
     """
     Test that the content of the outline explorer is updated correctly
@@ -101,10 +101,11 @@ def test_load_files(editorstack, outlineexplorer, test_files):
     for index, file in enumerate(test_files):
         editorstack.load(file)
         assert editorstack.get_current_filename() == file
-        editorstack.tabs.currentIndex() == index
+        editorstack.get_stack_index() == index
 
         results = [item.text(0) for item in treewidget.get_visible_items()]
         assert results == expected_result[index]
+        assert editorstack.get_stack_index() == index
 
 
 def test_close_editor(editorstack, outlineexplorer, test_files):
@@ -170,7 +171,7 @@ def test_sync_file_order(editorstack, outlineexplorer, test_files):
     results = [item.text(0) for item in treewidget.get_visible_items()]
     assert results == ['foo1.py', 'text1.txt', 'foo2.py']
 
-    # Invert tab 1 with tab 2.
+    # Switch tab 1 with tab 2.
     editorstack.tabs.tabBar().moveTab(0, 1)
     results = [item.text(0) for item in treewidget.get_visible_items()]
     assert results == ['text1.txt', 'foo1.py', 'foo2.py']
