@@ -47,7 +47,7 @@ def get_options():
                       dest="opengl_implementation",
                       choices=['software', 'desktop', 'gles'],
                       help=("OpenGL implementation to pass to Qt. Possible "
-                            "options are 'software' and 'desktop'")
+                            "options are 'software', 'desktop' and 'gles'.")
                       )
     options, args = parser.parse_args()
     return options, args
