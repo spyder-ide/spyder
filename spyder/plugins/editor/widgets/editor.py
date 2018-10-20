@@ -1972,6 +1972,13 @@ class EditorStack(QWidget):
                     finfo.editor, finfo.filename)
             oe.set_current_editor(finfo.editor.oe_proxy,
                                   update=update, clear=clear)
+            if index != self.get_stack_index():
+                # The last file added to the outline explorer is not the
+                # currently focused one in the the editor stack. Therefore,
+                # we need to force a refresh of the outline explorer to set
+                # its current editor to the currently focused one in the
+                # editor stack. See PR #8015.
+                self._refresh_outlineexplorer(update=False)
         self._sync_outlineexplorer_file_order()
 
     def _sync_outlineexplorer_file_order(self):

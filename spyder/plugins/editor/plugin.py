@@ -2181,7 +2181,6 @@ class Editor(SpyderPluginWidget):
         """Close current file"""
         editorstack = self.get_current_editorstack()
         editorstack.close_file()
-
     @Slot()
     def close_all_files(self):
         """Close all opened scripts"""
@@ -2916,7 +2915,6 @@ class Editor(SpyderPluginWidget):
                               set_focus=False, add_where='end')
             else:
                 self.load(filenames, goto=clines)
-            self.get_current_editorstack()._refresh_outlineexplorer()
             if layout is not None:
                 self.editorsplitter.set_layout_settings(layout,
                                                         dont_goto=filenames[0])
