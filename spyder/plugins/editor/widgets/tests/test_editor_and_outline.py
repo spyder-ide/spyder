@@ -178,8 +178,7 @@ def test_sync_file_order(editorstack, outlineexplorer, test_files):
 
 
 # ---- Test single file mode
-def test_toggle_off_show_all_files(editorstack, outlineexplorer,
-                                   test_files, qtbot):
+def test_toggle_off_show_all_files(editorstack, outlineexplorer, test_files):
     """
     Test that toggling off the option to show all files in the Outline Explorer
     hide all root file items but the one corresponding to the currently
@@ -213,8 +212,7 @@ def test_single_file_sync(editorstack, outlineexplorer, test_files, qtbot):
     assert results == ['foo2.py', '---- a comment']
 
 
-def test_toggle_on_show_all_files(editorstack, outlineexplorer,
-                                  test_files, qtbot):
+def test_toggle_on_show_all_files(editorstack, outlineexplorer, test_files):
     """
     Test that toggling back the option to show all files, after the
     order of the files in the Editorstack was changed while it was in single
