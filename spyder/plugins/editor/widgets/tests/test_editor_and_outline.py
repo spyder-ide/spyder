@@ -175,34 +175,52 @@ def test_sync_file_order(editorstack, outlineexplorer, test_files):
     results = [item.text(0) for item in treewidget.get_visible_items()]
     assert results == ['text1.txt', 'foo1.py', 'foo2.py']
 
-
-def test_show_single_file(editorstack, outlineexplorer, test_files, qtbot):
+# ---- Test single file mode
+def test_toggle_off_show_all_files(editorstack, outlineexplorer,
+                                   test_files, qtbot):
     """
     Test that toggling off the option to show all files in the Outline Explorer
     hide all root file items but the one corresponding to the currently
     selected Editor and assert that the remaning root file item is
     expanded correctly.
-
-    Test that the content of the Outline Explorer is updated correctly
-    when the current Editor in the Editorstack changes.
-
-    Test that toggling back the option to show all files, after the
-    order of the files in the Editorstack was changed, show all the root
-    file items in the correct order.
     """
     editorstack = editorstack(test_files)
     treewidget = outlineexplorer.treewidget
+    assert editorstack.get_stack_index() == 0
 
     # Untoggle show all files option.
     treewidget.toggle_show_all_files(False)
     results = [item.text(0) for item in treewidget.get_visible_items()]
+    assert results == ['foo1.py', 'foo']
+
+
+def test_single_file_sync(editorstack, outlineexplorer, test_files, qtbot):
+    """
+    Test that the content of the Outline Explorer is updated correctly
+    when the current Editor in the Editorstack changes.
+    """
+    editorstack = editorstack(test_files)
+    treewidget = outlineexplorer.treewidget
+    treewidget.toggle_show_all_files(False)
+    assert editorstack.get_stack_index() == 0
+
+    # Select the last file in the Editorstack.
+    with qtbot.waitSignal(editorstack.editor_focus_changed):
+        editorstack.tabs.setCurrentIndex(2)
+    results = [item.text(0) for item in treewidget.get_visible_items()]
     assert results == ['foo2.py', '---- a comment']
 
-    # Select the first file in the Editorstack.
-    with qtbot.waitSignal(editorstack.editor_focus_changed):
-        editorstack.tabs.setCurrentIndex(0)
-    results = [item.text(0) for item in treewidget.get_visible_items()]
-    assert results == ['foo1.py', 'foo']
+
+def test_toggle_on_show_all_files(editorstack, outlineexplorer,
+                                  test_files, qtbot):
+    """
+    Test that toggling back the option to show all files, after the
+    order of the files in the Editorstack was changed while it was in single
+    file mode, show all the root file items in the correct order.
+    """
+    editorstack = editorstack(test_files)
+    treewidget = outlineexplorer.treewidget
+    treewidget.toggle_show_all_files(False)
 
     # Move the first file to the second position in the tabbar of the
     # Editorstack and toggle back the show all files option.
@@ -214,4 +232,4 @@ def test_show_single_file(editorstack, outlineexplorer, test_files, qtbot):
 
 if __name__ == "__main__":
     import os
-    pytest.main([os.path.basename(__file__), '-vv', '-rw'])
+    pytest.main(['-x', os.path.basename(__file__), '-vv', '-rw'])
