@@ -1609,12 +1609,13 @@ class Editor(SpyderPluginWidget):
 
     def create_new_window(self):
         oe_options = self.outlineexplorer.explorer.get_options()
-        window = EditorMainWindow(self, self.stack_menu_actions,
-                                  self.toolbar_list, self.menu_list,
-                                  show_fullpath=oe_options['show_fullpath'],
-                                  show_all_files=oe_options['show_all_files'],
-                                  group_cells=oe_options['group_cells'],
-                                  show_comments=oe_options['show_comments'])
+        window = EditorMainWindow(
+            self, self.stack_menu_actions, self.toolbar_list, self.menu_list,
+            show_fullpath=oe_options['show_fullpath'],
+            show_all_files=oe_options['show_all_files'],
+            group_cells=oe_options['group_cells'],
+            show_comments=oe_options['show_comments'],
+            sort_files_alphabetically=oe_options['sort_files_alphabetically'])
         window.add_toolbars_to_menu("&View", window.get_toolbars())
         window.load_toolbars()
         window.resize(self.size())
@@ -2180,7 +2181,6 @@ class Editor(SpyderPluginWidget):
         """Close current file"""
         editorstack = self.get_current_editorstack()
         editorstack.close_file()
-
     @Slot()
     def close_all_files(self):
         """Close all opened scripts"""
@@ -2915,7 +2915,6 @@ class Editor(SpyderPluginWidget):
                               set_focus=False, add_where='end')
             else:
                 self.load(filenames, goto=clines)
-            self.get_current_editorstack()._refresh_outlineexplorer()
             if layout is not None:
                 self.editorsplitter.set_layout_settings(layout,
                                                         dont_goto=filenames[0])

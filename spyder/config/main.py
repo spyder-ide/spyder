@@ -269,6 +269,7 @@ DEFAULTS = [
               'show_fullpath': False,
               'show_all_files': False,
               'group_cells': True,
+              'sort_files_alphabetically': False,
               'show_comments': True,
               }),
             ('project_explorer',
