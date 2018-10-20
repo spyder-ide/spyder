@@ -24,6 +24,7 @@ from spyder.config.base import _
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_toolbutton
+from spyder.py3compat import PY2
 
 
 class PathManager(QDialog):
@@ -259,16 +260,30 @@ class PathManager(QDialog):
                                          self.last_path)
         self.redirect_stdio.emit(True)
         if directory:
+            is_unicode = False
+            if PY2:
+                try:
+                    directory.decode('ascii')
+                except UnicodeEncodeError:
+                    is_unicode = True
+                if is_unicode:
+                    QMessageBox.warning(self, _("Add path"),
+                                        _("You are using Python 2 and the path"
+                                          " selected has Unicode characters. "
+                                          "The new path will not be added."),
+                                        QMessageBox.Ok)
+                    return
             directory = osp.abspath(directory)
             self.last_path = directory
             if directory in self.pathlist:
                 item = self.listwidget.findItems(directory, Qt.MatchExactly)[0]
                 item.setCheckState(Qt.Checked)
-                answer = QMessageBox.question(self, _("Add path"),
-                    _("This directory is already included in Spyder path "
-                            "list.<br>Do you want to move it to the top of "
-                            "the list?"),
-                    QMessageBox.Yes | QMessageBox.No)
+                answer = QMessageBox.question(
+                            self, _("Add path"),
+                            _("This directory is already included in Spyder "
+                              "path list.<br>Do you want to move it to the "
+                              "top of the list?"),
+                            QMessageBox.Yes | QMessageBox.No)
                 if answer == QMessageBox.Yes:
                     self.pathlist.remove(directory)
                 else:
