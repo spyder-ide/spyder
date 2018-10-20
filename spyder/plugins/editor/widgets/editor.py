@@ -1979,6 +1979,7 @@ class EditorStack(QWidget):
                 # the current editor to the currently focused one in the
                 # editor stack. See PR #8015.
                 self._refresh_outlineexplorer(update=False)
+                return
         self._sync_outlineexplorer_file_order()
 
     def _sync_outlineexplorer_file_order(self):
