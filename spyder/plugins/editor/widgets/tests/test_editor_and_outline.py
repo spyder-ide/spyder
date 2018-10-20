@@ -176,6 +176,7 @@ def test_sync_file_order(editorstack, outlineexplorer, test_files):
     results = [item.text(0) for item in treewidget.get_visible_items()]
     assert results == ['text1.txt', 'foo1.py', 'foo2.py']
 
+
 # ---- Test single file mode
 def test_toggle_off_show_all_files(editorstack, outlineexplorer,
                                    test_files, qtbot):
