@@ -234,4 +234,4 @@ def test_toggle_on_show_all_files(editorstack, outlineexplorer,
 
 if __name__ == "__main__":
     import os
-    pytest.main(['-x', os.path.basename(__file__), '-vv', '-rw'])
+    pytest.main([os.path.basename(__file__), '-vv', '-rw'])
