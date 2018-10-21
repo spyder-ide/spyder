@@ -342,10 +342,25 @@ def test_replace_invalid_regex(editor_find_replace_bot):
     old_text = editor.toPlainText()
     finder.show()
     finder.show_replace()
+
+    # Test with invalid search_text and valid replace_text
     qtbot.keyClicks(finder.search_text, '\\')
     qtbot.keyClicks(finder.replace_text, 'anything')
+
     if not finder.re_button.isChecked():
         qtbot.mouseClick(finder.re_button, Qt.LeftButton)
+
+    qtbot.mouseClick(finder.replace_button, Qt.LeftButton)
+    assert editor.toPlainText() == old_text
+    qtbot.mouseClick(finder.replace_sel_button, Qt.LeftButton)
+    assert editor.toPlainText() == old_text
+    qtbot.mouseClick(finder.replace_all_button, Qt.LeftButton)
+    assert editor.toPlainText() == old_text
+
+    # Test with valid search_text and invalid replace_text
+    qtbot.keyClicks(finder.search_text, 'anything')
+    qtbot.keyClicks(finder.replace_text, '\\')
+
     qtbot.mouseClick(finder.replace_button, Qt.LeftButton)
     assert editor.toPlainText() == old_text
     qtbot.mouseClick(finder.replace_sel_button, Qt.LeftButton)
