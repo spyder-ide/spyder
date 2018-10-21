@@ -374,6 +374,8 @@ class DataFrameModel(QAbstractTableModel):
         column = index.column()
         row = index.row()
 
+        if index in self.display_error_idxs:
+            return False
         if change_type is not None:
             try:
                 value = self.data(index, role=Qt.DisplayRole)
