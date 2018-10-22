@@ -2686,20 +2686,20 @@ class Editor(SpyderPluginWidget):
             if not self.projects.get_active_project():
                 filenames = self.get_open_filenames()
                 self.set_option('filenames', filenames)
- 
+
     def setup_open_files(self):
         """Open the list of saved files per project"""
         self.set_create_new_file_if_empty(False)
         active_project_path = None
         if self.projects is not None:
-             active_project_path = self.projects.get_active_project_path()
+            active_project_path = self.projects.get_active_project_path()
 
         if active_project_path:
             filenames = self.projects.get_project_filenames()
         else:
             filenames = self.get_option('filenames', default=[])
         self.close_all_files()
- 
+
         if filenames and any([osp.isfile(f) for f in filenames]):
             self.load(filenames)
             layout = self.get_option('layout_settings', None)
