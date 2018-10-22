@@ -442,7 +442,8 @@ class Editor(SpyderPluginWidget):
         self.cursor_pos_history = []
         self.cursor_pos_index = None
         self.__ignore_cursor_position = True
-        
+
+        self.__first_open_files_setup = True
         self.editorstacks = []
         self.last_focus_editorstack = {}
         self.editorwindows = []
@@ -2702,14 +2703,15 @@ class Editor(SpyderPluginWidget):
 
         if filenames and any([osp.isfile(f) for f in filenames]):
             self.load(filenames)
-            layout = self.get_option('layout_settings', None)
-            if layout is not None:
-                self.editorsplitter.set_layout_settings(layout)
-            win_layout = self.get_option('windows_layout_settings', None)
-            if win_layout:
+            if self.__first_open_files_setup:
+                self.__first_open_files_setup = False
+                layout = self.get_option('layout_settings', None)
+                if layout is not None:
+                    self.editorsplitter.set_layout_settings(layout)
+                win_layout = self.get_option('windows_layout_settings', [])
                 for layout_settings in win_layout:
                     self.editorwindows_to_be_created.append(layout_settings)
-            self.set_last_focus_editorstack(self, self.editorstacks[0])
+                self.set_last_focus_editorstack(self, self.editorstacks[0])
         else:
             self.__load_temp_file()
         self.set_create_new_file_if_empty(True)
