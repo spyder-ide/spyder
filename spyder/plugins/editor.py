@@ -413,10 +413,6 @@ class Editor(SpyderPluginWidget):
         self.outlineexplorer = None
         self.help = None
 
-        self.editorstacks = None
-        self.editorwindows = None
-        self.editorwindows_to_be_created = None
-
         self.file_dependent_actions = []
         self.pythonfile_dependent_actions = []
         self.dock_toolbar_actions = None
