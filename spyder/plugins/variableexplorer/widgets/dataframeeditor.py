@@ -127,6 +127,7 @@ class DataFrameModel(QAbstractTableModel):
         self.df_header = dataFrame.columns.tolist()
         self._format = format
         self.complex_intran = None
+        self.display_error_idxs = []
         
         self.total_rows = self.df.shape[0]
         self.total_cols = self.df.shape[1]
@@ -331,11 +332,19 @@ class DataFrameModel(QAbstractTableModel):
                 # what is shown by Spyder
                 return value
             else:
-                return to_qvariant(to_text_string(value))
+                try:
+                    return to_qvariant(to_text_string(value))
+                except Exception:
+                    self.display_error_idxs.append(index)
+                    return u'Display Error!'
         elif role == Qt.BackgroundColorRole:
             return to_qvariant(self.get_bgcolor(index))
         elif role == Qt.FontRole:
             return to_qvariant(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+        elif role == Qt.ToolTipRole:
+            if index in self.display_error_idxs:
+                return _("It is not possible to display this value because\n"
+                         "an error ocurred while trying to do it")
         return to_qvariant()
 
     def sort(self, column, order=Qt.AscendingOrder):
@@ -389,6 +398,8 @@ class DataFrameModel(QAbstractTableModel):
         column = index.column()
         row = index.row()
 
+        if index in self.display_error_idxs:
+            return False
         if change_type is not None:
             try:
                 value = self.data(index, role=Qt.DisplayRole)

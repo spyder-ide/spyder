@@ -34,14 +34,17 @@ class OutlineExplorer(SpyderPluginWidget):
         show_all_files = self.get_option('show_all_files')
         group_cells = self.get_option('group_cells')
         show_comments = self.get_option('show_comments')
+        sort_files_alphabetically = self.get_option(
+            'sort_files_alphabetically')
 
         self.explorer = OutlineExplorerWidget(
-                                       self,
-                                       show_fullpath=show_fullpath,
-                                       show_all_files=show_all_files,
-                                       group_cells=group_cells,
-                                       show_comments=show_comments,
-                                       options_button=self.options_button)
+           self,
+           show_fullpath=show_fullpath,
+           show_all_files=show_all_files,
+           group_cells=group_cells,
+           show_comments=show_comments,
+           sort_files_alphabetically=sort_files_alphabetically,
+           options_button=self.options_button)
         layout = QVBoxLayout()
         layout.addWidget(self.explorer)
         self.setLayout(layout)

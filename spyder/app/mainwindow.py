@@ -23,6 +23,7 @@ from __future__ import print_function
 
 import errno
 import gc
+import logging
 import os
 import os.path as osp
 import re
@@ -34,6 +35,7 @@ import threading
 import traceback
 import importlib
 
+logger = logging.getLogger(__name__)
 
 #==============================================================================
 # Keeping a reference to the original sys.exit before patching it
@@ -150,7 +152,7 @@ from spyder import (__version__, __project_url__, __forum_url__,
                     __trouble_url__, __trouble_url_short__, __website_url__,
                     get_versions)
 from spyder.config.base import (get_conf_path, get_module_source_path, STDERR,
-                                DEBUG, debug_print, MAC_APP_NAME, get_home_dir,
+                                get_debug_level, MAC_APP_NAME, get_home_dir,
                                 running_in_mac_app, get_module_path,
                                 reset_config_files)
 from spyder.config.main import OPEN_FILES_PORT
@@ -243,6 +245,24 @@ def set_opengl_implementation(option):
             QQuickWindow.setSceneGraphBackend(QSGRendererInterface.OpenGL)
 
 
+def setup_logging(cli_options):
+    """Setup logging with cli options defined by the user."""
+    if cli_options.debug_info or get_debug_level() > 0:
+        levels = {2: logging.INFO, 3: logging.DEBUG}
+        log_level = levels[get_debug_level()]
+        log_format = '%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s'
+
+        if cli_options.debug_output == 'file':
+            log_file = 'spyder-debug.log'
+        else:
+            log_file = None
+
+        logging.basicConfig(level=log_level,
+                            format=log_format,
+                            filename=log_file,
+                            filemode='w+')
+
+
 #==============================================================================
 # Main Window
 #==============================================================================
@@ -298,7 +318,7 @@ class MainWindow(QMainWindow):
         self.open_project = options.project
         self.window_title = options.window_title
 
-        self.debug_print("Start of MainWindow constructor")
+        logger.info("Start of MainWindow constructor")
 
         def signal_handler(signum, frame=None):
             """Handler for signals."""
@@ -469,7 +489,7 @@ class MainWindow(QMainWindow):
 
         if set_windows_appusermodelid != None:
             res = set_windows_appusermodelid()
-            debug_print("appusermodelid: " + str(res))
+            logger.info("appusermodelid: %s", res)
 
         # Setting QTimer if running in travis
         test_travis = os.environ.get('TEST_CI_APP', None)
@@ -538,11 +558,7 @@ class MainWindow(QMainWindow):
                                                    socket.SOCK_STREAM,
                                                    socket.IPPROTO_TCP)
         self.apply_settings()
-        self.debug_print("End of MainWindow constructor")
-
-    def debug_print(self, message):
-        """Debug prints"""
-        debug_print(message)
+        logger.info("End of MainWindow constructor")
 
     #---- Window setup
     def create_toolbar(self, title, object_name, iconsize=24):
@@ -555,8 +571,9 @@ class MainWindow(QMainWindow):
 
     def setup(self):
         """Setup main window"""
-        self.debug_print("*** Start of MainWindow setup ***")
-        self.debug_print("  ..theme configuration")
+        logger.info("*** Start of MainWindow setup ***")
+
+        logger.info("Applying theme configuration...")
         ui_theme = CONF.get('color_schemes', 'ui_theme')
         color_scheme = CONF.get('color_schemes', 'selected')
         if ui_theme == 'dark':
@@ -566,7 +583,7 @@ class MainWindow(QMainWindow):
                 self.setStyleSheet(
                         qdarkstyle.load_stylesheet_from_environment())
 
-        self.debug_print("  ..core actions")
+        logger.info("Creating core actions...")
         self.close_dockwidget_action = create_action(self,
                                     icon=ima.icon('DialogCloseButton'),
                                     text=_("Close current pane"),
@@ -643,7 +660,7 @@ class MainWindow(QMainWindow):
                                   self.paste_action, self.selectall_action]
 
         namespace = None
-        self.debug_print("  ..toolbars")
+        logger.info("Creating toolbars...")
         # File menu/toolbar
         self.file_menu = self.menuBar().addMenu(_("&File"))
         self.file_toolbar = self.create_toolbar(_("File toolbar"),
@@ -694,8 +711,7 @@ class MainWindow(QMainWindow):
         status.setObjectName("StatusBar")
         status.showMessage(_("Welcome to Spyder!"), 5000)
 
-
-        self.debug_print("  ..tools")
+        logger.info("Creating Tools menu...")
         # Tools + External Tools
         prefs_action = create_action(self, _("Pre&ferences"),
                                         icon=ima.icon('configure'),
@@ -753,7 +769,7 @@ class MainWindow(QMainWindow):
             self.external_tools_menu_actions += [None] + additact
 
         # Guidata and Sift
-        self.debug_print("  ..sift?")
+        logger.info("Creating guidata and sift entries...")
         gdgq_act = []
         # Guidata and Guiqwt don't support PyQt5 yet and they fail
         # with an AssertionError when imported using those bindings
@@ -813,7 +829,7 @@ class MainWindow(QMainWindow):
                                                 "main_toolbar")
 
         # Internal console plugin
-        self.debug_print("  ..plugin: internal console")
+        logger.info("Loading internal console...")
         from spyder.plugins.console.plugin import Console
         self.console = Console(self, namespace, exitfunc=self.closing,
                             profile=self.profile,
@@ -831,7 +847,7 @@ class MainWindow(QMainWindow):
         self.lspmanager = LSPManager(self)
 
         # Working directory plugin
-        self.debug_print("  ..plugin: working directory")
+        logger.info("Loading working directory...")
         from spyder.plugins.workingdirectory.plugin import WorkingDirectory
         self.workingdirectory = WorkingDirectory(self, self.init_workdir, main=self)
         self.workingdirectory.register_plugin()
@@ -879,9 +895,6 @@ class MainWindow(QMainWindow):
                                    self.symbol_finder_action, None,
                                    restart_action, quit_action]
         self.set_splash("")
-
-        self.debug_print("  ..widgets")
-
 
         # Namespace browser
         self.set_splash(_("Loading namespace browser..."))
@@ -1176,7 +1189,7 @@ class MainWindow(QMainWindow):
         self.all_actions_defined.emit()
 
         # Window set-up
-        self.debug_print("Setting up window...")
+        logger.info("Setting up window...")
         self.setup_layout(default=False)
 
         # Show and hide shortcuts in menus for Mac.
@@ -1208,7 +1221,7 @@ class MainWindow(QMainWindow):
                 except TypeError:
                     pass
 
-        self.debug_print("*** End of MainWindow setup ***")
+        logger.info("*** End of MainWindow setup ***")
         self.is_starting_up = False
 
     def post_visible_setup(self):
@@ -1308,8 +1321,8 @@ class MainWindow(QMainWindow):
             title = u"Spyder (Python %s.%s)" % (sys.version_info[0],
                                                 sys.version_info[1])
 
-        if DEBUG:
-            title += u" [DEBUG MODE %d]" % DEBUG
+        if get_debug_level():
+            title += u" [DEBUG MODE %d]" % get_debug_level()
 
         if self.window_title is not None:
             title += u' -- ' + to_text_string(self.window_title)
@@ -2178,7 +2191,7 @@ class MainWindow(QMainWindow):
         if self.splash is None:
             return
         if message:
-            self.debug_print(message)
+            logger.info(message)
         self.splash.show()
         self.splash.showMessage(message, Qt.AlignBottom | Qt.AlignCenter |
                                 Qt.AlignAbsolute, QColor(Qt.white))
@@ -3229,6 +3242,8 @@ def main():
         options.project = None
         options.window_title = None
         options.opengl_implementation = None
+        options.debug_info = None
+        options.debug_output = None
 
         if CONF.get('main', 'opengl') != 'automatic':
             option = CONF.get('main', 'opengl')
@@ -3263,7 +3278,11 @@ def main():
         set_attached_console_visible(not options.hide_console
                                      or options.reset_config_files
                                      or options.reset_to_defaults
-                                     or options.optimize or bool(DEBUG))
+                                     or options.optimize
+                                     or bool(get_debug_level()))
+
+    # **** Set debugging info ****
+    setup_logging(options)
 
     # **** Create the application ****
     app = initialize()

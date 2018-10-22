@@ -13,6 +13,7 @@
 
 # Local imports
 from __future__ import print_function
+import logging
 import os
 import os.path as osp
 import sys
@@ -29,8 +30,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
                             QVBoxLayout, QWidget, QListWidget, QListWidgetItem)
 
 # Local imports
-from spyder.config.base import (_, debug_print, DEBUG, STDERR,
-                                STDOUT, running_under_pytest)
+from spyder.config.base import _, running_under_pytest
 from spyder.config.gui import config_shortcut, get_shortcut
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
@@ -55,12 +55,15 @@ from spyder.widgets.tabs import BaseTabs
 from spyder.config.main import CONF
 from spyder.plugins.explorer.widgets import show_in_external_file_explorer
 
-DEBUG_EDITOR = DEBUG >= 3
+
+logger = logging.getLogger(__name__)
 
 
 class AnalysisThread(QThread):
     """Analysis thread"""
+
     def __init__(self, parent, checker, source_code):
+
         super(AnalysisThread, self).__init__(parent)
         self.checker = checker
         self.results = None
@@ -70,10 +73,8 @@ class AnalysisThread(QThread):
         """Run analysis"""
         try:
             self.results = self.checker(self.source_code)
-        except Exception:
-            if DEBUG_EDITOR:
-                import traceback
-                traceback.print_exc(file=STDERR)
+        except Exception as e:
+            logger.error(e, exc_info=True)
 
 
 class ThreadManager(QObject):
@@ -87,8 +88,7 @@ class ThreadManager(QObject):
 
     def close_threads(self, parent):
         """Close threads associated to parent_id"""
-        if DEBUG_EDITOR:
-            print("Call to 'close_threads'", file=STDOUT)
+        logger.debug("Call ThreadManager's 'close_threads'")
         if parent is None:
             # Closing all threads
             self.pending_threads = []
@@ -102,16 +102,14 @@ class ThreadManager(QObject):
                                     if _id != parent_id]
             threadlist = self.started_threads.get(parent_id, [])
         for thread in threadlist:
-            if DEBUG_EDITOR:
-                print("Waiting for thread %r to finish" % thread, file=STDOUT)
+            logger.debug("Waiting for thread %r to finish" % thread)
             while thread.isRunning():
                 # We can't terminate thread safely, so we simply wait...
                 QApplication.processEvents()
 
     def close_all_threads(self):
         """Close all threads"""
-        if DEBUG_EDITOR:
-            print("Call to 'close_all_threads'", file=STDOUT)
+        logger.debug("Call ThreadManager's 'close_all_threads'")
         self.close_threads(None)
 
     def add_thread(self, checker, end_callback, source_code, parent):
@@ -120,8 +118,7 @@ class ThreadManager(QObject):
         thread = AnalysisThread(self, checker, source_code)
         self.end_callbacks[id(thread)] = end_callback
         self.pending_threads.append((thread, parent_id))
-        if DEBUG_EDITOR:
-            print("Added thread %r to queue" % thread, file=STDOUT)
+        logger.debug("Added thread %r to queue" % thread)
         QTimer.singleShot(50, self.update_queue)
 
     def update_queue(self):
@@ -145,17 +142,15 @@ class ThreadManager(QObject):
                 self.started_threads[parent_id] = still_running
             else:
                 self.started_threads.pop(parent_id)
-        if DEBUG_EDITOR:
-            print("Updating queue:", file=STDOUT)
-            print("    started:", started, file=STDOUT)
-            print("    pending:", len(self.pending_threads), file=STDOUT)
+        logger.debug("Updating queue:")
+        logger.debug("    started: %d" % started)
+        logger.debug("    pending: %d" % len(self.pending_threads))
         if self.pending_threads and started < self.max_simultaneous_threads:
             thread, parent_id = self.pending_threads.pop(0)
             thread.finished.connect(self.update_queue)
             threadlist = self.started_threads.get(parent_id, [])
             self.started_threads[parent_id] = threadlist+[thread]
-            if DEBUG_EDITOR:
-                print("===>starting:", thread, file=STDOUT)
+            logger.debug("===>starting: %r" % thread)
             thread.start()
 
 
@@ -1513,7 +1508,6 @@ class EditorStack(QWidget):
         """Notify language server availability to code editors."""
         for index in range(self.get_stack_count()):
             editor = self.tabs.widget(index)
-            debug_print(editor.language.lower(), language)
             if editor.language.lower() == language:
                 editor.start_lsp_services(config)
 
@@ -1910,8 +1904,7 @@ class EditorStack(QWidget):
             editor.document_did_open()
         if index != -1:
             editor.setFocus()
-            if DEBUG_EDITOR:
-                print("setfocusto:", editor, file=STDOUT)
+            logger.debug("Set focus to: %s" % editor.filename)
         else:
             self.reset_statusbar.emit()
         self.opened_files_list_changed.emit()
@@ -1919,9 +1912,8 @@ class EditorStack(QWidget):
         self.stack_history.refresh()
         self.stack_history.remove_and_append(index)
 
-        if DEBUG_EDITOR:
-            print("current_changed:", index, self.data[index].editor, end=' ', file=STDOUT)
-            print(self.data[index].editor.get_document_id(), file=STDOUT)
+        logger.debug("Current changed: %d - %s" %
+                     (index, self.data[index].editor.filename))
 
         self.update_plugin_title.emit()
         if editor is not None:
@@ -1929,7 +1921,7 @@ class EditorStack(QWidget):
             # that has been renamed. See issue 5157
             try:
                 self.current_file_changed.emit(self.data[index].filename,
-                                           editor.get_position('cursor'))
+                                               editor.get_position('cursor'))
             except IndexError:
                 pass
 
@@ -1980,6 +1972,24 @@ class EditorStack(QWidget):
                     finfo.editor, finfo.filename)
             oe.set_current_editor(finfo.editor.oe_proxy,
                                   update=update, clear=clear)
+            if index != self.get_stack_index():
+                # The last file added to the outline explorer is not the
+                # currently focused one in the editor stack. Therefore,
+                # we need to force a refresh of the outline explorer to set
+                # the current editor to the currently focused one in the
+                # editor stack. See PR #8015.
+                self._refresh_outlineexplorer(update=False)
+                return
+        self._sync_outlineexplorer_file_order()
+
+    def _sync_outlineexplorer_file_order(self):
+        """
+        Order the root file items of the outline explorer as in the tabbar
+        of the current EditorStack.
+        """
+        if self.outlineexplorer is not None:
+            self.outlineexplorer.treewidget.set_editor_ids_order(
+                [finfo.editor.get_document_id() for finfo in self.data])
 
     def __refresh_statusbar(self, index):
         """Refreshing statusbar widgets"""
@@ -2229,7 +2239,6 @@ class EditorStack(QWidget):
         editor.sig_cursor_position_changed.connect(
                                            self.editor_cursor_position_changed)
         editor.textChanged.connect(self.start_stop_analysis_timer)
-        debug_print("Connecting signal...")
         editor.sig_perform_lsp_request.connect(
             lambda lang, method, params: self.perform_lsp_request.emit(
                 lang, method, params))
@@ -2545,10 +2554,8 @@ class EditorSplitter(QSplitter):
             focus_widget.setFocus()
 
     def editorstack_closed(self):
-        if DEBUG_EDITOR:
-            print("method 'editorstack_closed':", file=STDOUT)
-            print("    self  :", self, file=STDOUT)
-#            print >>STDOUT, "    sender:", self.sender()
+        logger.debug("method 'editorstack_closed':")
+        logger.debug("    self  : %r" % self)
         try:
             self.unregister_editorstack_cb(self.editorstack)
             self.editorstack = None
@@ -2564,10 +2571,8 @@ class EditorSplitter(QSplitter):
         self.__give_focus_to_remaining_editor()
 
     def editorsplitter_closed(self):
-        if DEBUG_EDITOR:
-            print("method 'editorsplitter_closed':", file=STDOUT)
-            print("    self  :", self, file=STDOUT)
-#            print >>STDOUT, "    sender:", self.sender()
+        logger.debug("method 'editorsplitter_closed':")
+        logger.debug("    self  : %r" % self)
         try:
             close_splitter = self.count() == 1 and self.editorstack is None
         except RuntimeError:
@@ -2714,7 +2719,8 @@ class EditorSplitter(QSplitter):
 
 class EditorWidget(QSplitter):
     def __init__(self, parent, plugin, menu_actions, show_fullpath,
-                 show_all_files, group_cells, show_comments):
+                 show_all_files, group_cells, show_comments,
+                 sort_files_alphabetically):
         QSplitter.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
@@ -2736,7 +2742,8 @@ class EditorWidget(QSplitter):
                 show_fullpath=show_fullpath,
                 show_all_files=show_all_files,
                 group_cells=group_cells,
-                show_comments=show_comments)
+                show_comments=show_comments,
+                sort_files_alphabetically=sort_files_alphabetically)
         self.outlineexplorer.edit_goto.connect(
                      lambda filenames, goto, word:
                      plugin.load(filenames=filenames, goto=goto, word=word,
@@ -2765,9 +2772,8 @@ class EditorWidget(QSplitter):
 
     def register_editorstack(self, editorstack):
         self.editorstacks.append(editorstack)
-        if DEBUG_EDITOR:
-            print("EditorWidget.register_editorstack:", editorstack, file=STDOUT)
-            self.__print_editorstacks()
+        logger.debug("EditorWidget.register_editorstack: %r" % editorstack)
+        self.__print_editorstacks()
         self.plugin.last_focus_editorstack[self.parent()] = editorstack
         editorstack.set_closable( len(self.editorstacks) > 1 )
         editorstack.set_outlineexplorer(self.outlineexplorer)
@@ -2788,23 +2794,22 @@ class EditorWidget(QSplitter):
         editorstack.add_corner_widgets_to_tabbar([5, oe_btn])
 
     def __print_editorstacks(self):
-        print("%d editorstack(s) in editorwidget:" \
-                        % len(self.editorstacks), file=STDOUT)
+        logger.debug("%d editorstack(s) in editorwidget:" %
+                     len(self.editorstacks))
         for edst in self.editorstacks:
-            print("    ", edst, file=STDOUT)
+            logger.debug("    %r" % edst)
 
     def unregister_editorstack(self, editorstack):
-        if DEBUG_EDITOR:
-            print("EditorWidget.unregister_editorstack:", editorstack, file=STDOUT)
+        logger.debug("EditorWidget.unregister_editorstack: %r" % editorstack)
         self.plugin.unregister_editorstack(editorstack)
         self.editorstacks.pop(self.editorstacks.index(editorstack))
-        if DEBUG_EDITOR:
-            self.__print_editorstacks()
+        self.__print_editorstacks()
 
 
 class EditorMainWindow(QMainWindow):
     def __init__(self, plugin, menu_actions, toolbar_list, menu_list,
-                 show_fullpath, show_all_files, group_cells, show_comments):
+                 show_fullpath, show_all_files, group_cells, show_comments,
+                 sort_files_alphabetically):
         QMainWindow.__init__(self)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
@@ -2812,7 +2817,8 @@ class EditorMainWindow(QMainWindow):
 
         self.editorwidget = EditorWidget(self, plugin, menu_actions,
                                          show_fullpath, show_all_files,
-                                         group_cells, show_comments)
+                                         group_cells, show_comments,
+                                         sort_files_alphabetically)
         self.setCentralWidget(self.editorwidget)
 
         # Give focus to current editor to update/show all status bar widgets
@@ -2964,10 +2970,8 @@ class EditorPluginExample(QSplitter):
     def closeEvent(self, event):
         for win in self.editorwindows[:]:
             win.close()
-        if DEBUG_EDITOR:
-            print(len(self.editorwindows), ":", self.editorwindows, file=STDOUT)
-            print(len(self.editorstacks), ":", self.editorstacks, file=STDOUT)
-
+        logger.debug("%d: %r" % (len(self.editorwindows), self.editorwindows))
+        logger.debug("%d: %r" % (len(self.editorstacks), self.editorstacks))
         event.accept()
 
     def load(self, fname):
@@ -2977,12 +2981,11 @@ class EditorPluginExample(QSplitter):
         editorstack.analyze_script()
 
     def register_editorstack(self, editorstack):
-        if DEBUG_EDITOR:
-            print("FakePlugin.register_editorstack:", editorstack, file=STDOUT)
+        logger.debug("FakePlugin.register_editorstack: %r" % editorstack)
         self.editorstacks.append(editorstack)
         if self.isAncestorOf(editorstack):
             # editorstack is a child of the Editor plugin
-            editorstack.set_closable( len(self.editorstacks) > 1 )
+            editorstack.set_closable(len(self.editorstacks) > 1)
             editorstack.set_outlineexplorer(self.outlineexplorer)
             editorstack.set_find_widget(self.find_widget)
             oe_btn = create_toolbutton(self)
@@ -3002,8 +3005,7 @@ class EditorPluginExample(QSplitter):
         editorstack.plugin_load.connect(self.load)
 
     def unregister_editorstack(self, editorstack):
-        if DEBUG_EDITOR:
-            print("FakePlugin.unregister_editorstack:", editorstack, file=STDOUT)
+        logger.debug("FakePlugin.unregister_editorstack: %r" % editorstack)
         self.editorstacks.pop(self.editorstacks.index(editorstack))
 
     def clone_editorstack(self, editorstack):
@@ -3017,20 +3019,19 @@ class EditorPluginExample(QSplitter):
         window = EditorMainWindow(self, self.menu_actions,
                                   self.toolbar_list, self.menu_list,
                                   show_fullpath=False, show_all_files=False,
-                                  group_cells=True, show_comments=True)
+                                  group_cells=True, show_comments=True,
+                                  sort_files_alphabetically=False)
         window.resize(self.size())
         window.show()
         self.register_editorwindow(window)
         window.destroyed.connect(lambda: self.unregister_editorwindow(window))
 
     def register_editorwindow(self, window):
-        if DEBUG_EDITOR:
-            print("register_editorwindowQObject*:", window, file=STDOUT)
+        logger.debug("register_editorwindowQObject*: %r" % window)
         self.editorwindows.append(window)
 
     def unregister_editorwindow(self, window):
-        if DEBUG_EDITOR:
-            print("unregister_editorwindow:", window, file=STDOUT)
+        logger.debug("unregister_editorwindow: %r" % window)
         self.editorwindows.pop(self.editorwindows.index(window))
 
     def get_focus_widget(self):

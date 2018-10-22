@@ -12,9 +12,10 @@
 # pylint: disable=R0201
 
 # Standard library imports
+import json
+import logging
 import os
 import re
-import json
 
 # Third party imports
 from qtpy.compat import to_qvariant
@@ -29,12 +30,12 @@ from qtpy.QtWidgets import (QDialog,
 from spyder.config.main import CONF
 from spyder.utils.misc import select_port
 from spyder.utils import icon_manager as ima
-from spyder.config.base import _, debug_print
+from spyder.config.base import _
 from spyder.utils.programs import find_program
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
 from spyder.widgets.helperwidgets import ItemDelegate
-from spyder.config.gui import get_font, get_color_scheme
+from spyder.config.gui import get_font
 from spyder.plugins.editor.lsp.client import LSPClient
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 
@@ -44,8 +45,10 @@ LSP_LANGUAGES = [
     'Java', 'JavaScript', 'JSON', 'Julia', 'OCaml', 'PHP',
     'Python', 'Rust', 'Scala', 'Swift', 'TypeScript', 'Erlang'
 ]
-
 LSP_LANGUAGE_NAME = {x.lower(): x for x in LSP_LANGUAGES}
+
+
+logger = logging.getLogger(__name__)
 
 
 def iter_servers():
@@ -666,6 +669,7 @@ class LSPManager(SpyderPluginWidget):
     def __init__(self, parent):
         SpyderPluginWidget.__init__(self, parent)
         self.options_button.hide()
+        self.hide()
 
         self.lsp_plugins = {}
         self.clients = {}
@@ -731,12 +735,12 @@ class LSPManager(SpyderPluginWidget):
                 self.clients[language] = config
                 self.register_queue[language] = []
             else:
-                debug_print(
+                logger.debug(
                         self.clients[language]['config'] != config['config'])
                 current_config = self.clients[language]['config']
                 new_config = config['config']
                 configuration_diff = (current_config['configurations'] !=
-                    new_config['configurations'])
+                                      new_config['configurations'])
                 restart_diff = ['cmd', 'args', 'host', 'port', 'external']
                 restart = any([current_config[x] != new_config[x]
                                for x in restart_diff])
@@ -763,7 +767,7 @@ class LSPManager(SpyderPluginWidget):
         if language in self.clients:
             language_client = self.clients[language]
             if language_client['status'] == self.RUNNING:
-                debug_print("Closing LSP")
+                logger.info("Closing LSP")
                 # language_client['instance'].shutdown()
                 # language_client['instance'].exit()
                 language_client['instance'].stop()

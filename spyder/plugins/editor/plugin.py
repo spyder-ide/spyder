@@ -12,6 +12,7 @@
 # pylint: disable=R0201
 
 # Standard library imports
+import logging
 import os
 import os.path as osp
 import re
@@ -30,8 +31,7 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
 
 # Local imports
 from spyder import dependencies
-from spyder.config.base import (_, debug_print, get_conf_path,
-                                running_under_pytest)
+from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
                                 RUN_CELL_AND_ADVANCE_SHORTCUT)
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
@@ -50,10 +50,12 @@ from spyder.widgets.status import (CursorPositionStatus, EncodingStatus,
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
 from spyder.preferences.runconfig import (ALWAYS_OPEN_FIRST_RUN_OPTION,
-                                      get_run_configuration,
-                                      RunConfigDialog, RunConfigOneDialog)
-from spyder.plugins.editor.lsp import (
-    LSPRequestTypes, LSPEventTypes, TextDocumentSyncKind)
+                                          get_run_configuration,
+                                          RunConfigDialog, RunConfigOneDialog)
+from spyder.plugins.editor.lsp import LSPEventTypes
+
+
+logger = logging.getLogger(__name__)
 
 
 # Dependencies
@@ -603,9 +605,8 @@ class Editor(SpyderPluginWidget):
     @Slot(dict)
     def report_open_file(self, options):
         """Request to start a LSP server to attend a language."""
-        debug_print("Call")
         filename = options['filename']
-        debug_print(filename)
+        logger.debug('Call LSP for %s' % filename)
         language = options['language']
         callback = options['codeeditor']
         stat = self.main.lspmanager.start_lsp_client(language.lower())
@@ -624,7 +625,7 @@ class Editor(SpyderPluginWidget):
     def document_server_settings(self, settings, language):
         """Update LSP server settings for textDocument requests."""
         self.lsp_editor_settings[language] = settings
-        debug_print(self.lsp_editor_settings)
+        logger.debug('LSP Language Settings: %r' % self.lsp_editor_settings)
         self.lsp_server_ready(language, self.lsp_editor_settings[language])
 
     def lsp_server_ready(self, language, configuration):
@@ -633,7 +634,7 @@ class Editor(SpyderPluginWidget):
             editorstack.notify_server_ready(language, configuration)
 
     def send_lsp_request(self, language, request, params):
-        debug_print(request)
+        logger.debug("LSP request: %r" %request)
         self.main.lspmanager.send_request(language, request, params)
 
 
@@ -1336,7 +1337,7 @@ class Editor(SpyderPluginWidget):
                 try:
                     editorstack.__getattribute__(editorstack_method)(checked)
                 except AttributeError as e:
-                    debug_print("Error {}".format(str))
+                    logger.error(e, exc_info=True)
                 # Run code analysis when `set_pep8_enabled` is toggled
                 if editorstack_method == 'set_pep8_enabled':
                     # TODO: Connect this to the LSP
@@ -1608,12 +1609,13 @@ class Editor(SpyderPluginWidget):
 
     def create_new_window(self):
         oe_options = self.outlineexplorer.explorer.get_options()
-        window = EditorMainWindow(self, self.stack_menu_actions,
-                                  self.toolbar_list, self.menu_list,
-                                  show_fullpath=oe_options['show_fullpath'],
-                                  show_all_files=oe_options['show_all_files'],
-                                  group_cells=oe_options['group_cells'],
-                                  show_comments=oe_options['show_comments'])
+        window = EditorMainWindow(
+            self, self.stack_menu_actions, self.toolbar_list, self.menu_list,
+            show_fullpath=oe_options['show_fullpath'],
+            show_all_files=oe_options['show_all_files'],
+            group_cells=oe_options['group_cells'],
+            show_comments=oe_options['show_comments'],
+            sort_files_alphabetically=oe_options['sort_files_alphabetically'])
         window.add_toolbars_to_menu("&View", window.get_toolbars())
         window.load_toolbars()
         window.resize(self.size())
@@ -2179,7 +2181,6 @@ class Editor(SpyderPluginWidget):
         """Close current file"""
         editorstack = self.get_current_editorstack()
         editorstack.close_file()
-
     @Slot()
     def close_all_files(self):
         """Close all opened scripts"""
@@ -2914,7 +2915,6 @@ class Editor(SpyderPluginWidget):
                               set_focus=False, add_where='end')
             else:
                 self.load(filenames, goto=clines)
-            self.get_current_editorstack()._refresh_outlineexplorer()
             if layout is not None:
                 self.editorsplitter.set_layout_settings(layout,
                                                         dont_goto=filenames[0])

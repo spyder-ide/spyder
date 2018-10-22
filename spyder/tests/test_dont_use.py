@@ -20,12 +20,12 @@ root_path = os.path.realpath(os.path.join(os.getcwd(), 'spyder'))
 
     (r"^[\s\#]*\bprint\(((?!file=).)*\)", ['.*test.*', 'example.py',
                                            'example_latin1.py', 'binaryornot'],
-     ("Don't use print() functions, ",
-      "for debuging you could use debug_print instead")),
+     ("Don't use the print() function; ",
+      "for debugging, use logging module instead")),
 
     (r"^[\s\#]*\bprint\s+(?!>>)((?!#).)*", ['.*test.*', 'example_latin1.py'],
-     ("Don't use print __builtin__, ",
-      "for debuging you could use debug_print instead")),
+     ("Don't use print statements; ",
+      "for debugging, use the logging module instead.")),
 ])
 def test_dont_use(pattern, exclude_patterns, message):
     """
