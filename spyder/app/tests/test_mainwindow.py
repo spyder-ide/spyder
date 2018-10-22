@@ -928,11 +928,12 @@ def test_run_code(main_window, qtbot, tmpdir):
                     timeout=EVAL_TIMEOUT)
 
     # Verify result
+    assert 'runcell' in shell._control.toPlainText()
+    assert 'Error:' not in shell._control.toPlainText()
+    assert ']: 10\n' in shell._control.toPlainText()
     assert shell.get_value('a') == 10
     assert shell.get_value('li') == [1, 2, 3]
     assert_array_equal(shell.get_value('arr'), np.array([1, 2, 3]))
-    assert 'runcell' in shell._control.toPlainText()
-    assert ']: 10\n' in shell._control.toPlainText()
 
     reset_run_code(qtbot, shell, code_editor, nsb)
 
@@ -1025,11 +1026,12 @@ def test_run_cell_copy(main_window, qtbot, tmpdir):
                     timeout=EVAL_TIMEOUT)
 
     # Verify result
+    assert 'runcell' not in shell._control.toPlainText()
+    assert 'a = 10' in shell._control.toPlainText()
+    assert 'Error:' not in shell._control.toPlainText()
     assert shell.get_value('a') == 10
     assert shell.get_value('li') == [1, 2, 3]
     assert_array_equal(shell.get_value('arr'), np.array([1, 2, 3]))
-    assert 'runcell' not in shell._control.toPlainText()
-    assert 'a = 10' in shell._control.toPlainText()
 
     # ---- Closing test file and reset config ----
     main_window.editor.close_file()
