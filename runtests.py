@@ -5,7 +5,7 @@
 #
 
 """
-File for running tests programmatically.
+Script for running Spyder tests programmatically.
 """
 
 # Standard library imports
@@ -13,7 +13,6 @@ import os
 import sys
 
 # Third party imports
-import qtpy  # to ensure that Qt4 uses API v2
 import pytest
 
 
@@ -22,9 +21,10 @@ run_slow = False
 if os.environ.get('CI', None) is not None or '--run-slow' in sys.argv:
     run_slow = True
 
+
 def main():
     """
-    Run pytest tests.
+    Run pytest tests for Spyder.
     """
     pytest_args = ['spyder',
                    'spyder_profiler',
@@ -38,10 +38,9 @@ def main():
 
     errno = pytest.main(pytest_args)
 
-    # sys.exit doesn't work here because some things could be running
-    # in the background (e.g. closing the main window) when this point
-    # is reached. And if that's the case, sys.exit does't stop the
-    # script (as you would expected).
+    # sys.exit doesn't work here because some things could be running in the
+    # background (e.g. closing the main window) when this point is reached.
+    # If that's the case, sys.exit doesn't stop the script as you would expect.
     if errno != 0:
         raise SystemExit(errno)
 
