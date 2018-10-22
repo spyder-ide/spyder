@@ -17,9 +17,8 @@ import pytest
 
 
 # To run our slow tests only in our CIs
-run_slow = False
-if os.environ.get('CI', None) is not None or '--run-slow' in sys.argv:
-    run_slow = True
+RUN_CI = os.environ.get('CI', None) is not None
+run_slow = RUN_CI or '--run-slow' in sys.argv
 
 
 def main():
@@ -28,11 +27,12 @@ def main():
     """
     pytest_args = ['spyder',
                    'spyder_profiler',
-                   '-x',
                    '-vv',
                    '-rw',
                    '--durations=10']
 
+    if RUN_CI:
+        pytest_args.append('-x')
     if run_slow:
         pytest_args.append('--run-slow')
 
