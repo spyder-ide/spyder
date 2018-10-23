@@ -323,6 +323,7 @@ def test_replace_enter_press(editor_find_replace_bot):
     qtbot.keyPress(finder.search_text, Qt.Key_Return, modifier=Qt.ShiftModifier)
     assert editor.get_cursor_line_column() == (3,4)
 
+
 def test_replace_plain_regex(editor_find_replace_bot):
     """Test that regex reserved characters are displayed as plain text."""
     editor_stack, editor, finder, qtbot = editor_find_replace_bot
@@ -332,9 +333,10 @@ def test_replace_plain_regex(editor_find_replace_bot):
     finder.show()
     finder.show_replace()
     qtbot.keyClicks(finder.search_text, 'spam')
-    qtbot.keyClicks(finder.replace_text, '.\[()]*test')
+    qtbot.keyClicks(finder.replace_text, r'.\[()]*test')
     qtbot.keyPress(finder.replace_text, Qt.Key_Return)
     assert editor.toPlainText()[0:-1] == expected_new_text
+
 
 def test_replace_invalid_regex(editor_find_replace_bot):
     """Assert that replacing an invalid regexp does nothing."""
