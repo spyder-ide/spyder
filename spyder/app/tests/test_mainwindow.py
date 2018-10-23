@@ -923,13 +923,15 @@ def test_run_code(main_window, qtbot, tmpdir):
         qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
         qtbot.wait(100)
 
+    # Check for errors and the runcell function
+    assert 'runcell' in shell._control.toPlainText()
+    assert 'Error:' not in shell._control.toPlainText()
+
     # Wait until all objects have appeared in the variable explorer
     qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 3,
                     timeout=EVAL_TIMEOUT)
 
     # Verify result
-    assert 'runcell' in shell._control.toPlainText()
-    assert 'Error:' not in shell._control.toPlainText()
     assert ']: 10\n' in shell._control.toPlainText()
     assert shell.get_value('a') == 10
     assert shell.get_value('li') == [1, 2, 3]
@@ -1021,14 +1023,17 @@ def test_run_cell_copy(main_window, qtbot, tmpdir):
         qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
         qtbot.wait(100)
 
+    # Check for errors and the copied code
+    assert 'runcell' not in shell._control.toPlainText()
+    assert 'a = 10' in shell._control.toPlainText()
+    assert 'Error:' not in shell._control.toPlainText()
+
     # Wait until all objects have appeared in the variable explorer
     qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 3,
                     timeout=EVAL_TIMEOUT)
 
     # Verify result
-    assert 'runcell' not in shell._control.toPlainText()
-    assert 'a = 10' in shell._control.toPlainText()
-    assert 'Error:' not in shell._control.toPlainText()
+    assert ']: 10\n' in shell._control.toPlainText()
     assert shell.get_value('a') == 10
     assert shell.get_value('li') == [1, 2, 3]
     assert_array_equal(shell.get_value('arr'), np.array([1, 2, 3]))
