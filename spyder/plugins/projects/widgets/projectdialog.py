@@ -152,8 +152,10 @@ class ProjectDialog(QDialog):
 
     def select_location(self):
         """Select directory."""
-        location = getexistingdirectory(self, _("Select directory"),
-                                        self.location)
+        location = osp.normpath(getexistingdirectory(self,
+                                                     _("Select directory"),
+                                                     self.location))
+
         if location:
             if is_writable(location):
                 self.location = location
