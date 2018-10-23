@@ -142,8 +142,8 @@ class GithubBackend(BaseBackend):
             repo = gh.repos(self.gh_owner)(self.gh_repo)
             ret = repo.issues.post(title=title, body=body)
         except github.ApiError as e:
-            _logger().warn('failed to send bug report on github. response=%r' %
-                           e.response)
+            _logger().warning('Failed to send bug report on Github. '
+                              'response=%r', e.response)
             # invalid credentials
             if e.response.code == 401:
                 if self._show_msgbox:
@@ -287,7 +287,7 @@ class GithubBackend(BaseBackend):
                 files={'SpyderIDE.log': {"content": log_content}})
             qApp.restoreOverrideCursor()
         except github.ApiError:
-            _logger().warn('failed to upload log report as a gist')
-            return '"failed to upload log file as a gist"'
+            _logger().warning('Failed to upload log report as a gist')
+            return '"Failed to upload log file as a gist"'
         else:
             return ret['html_url']
