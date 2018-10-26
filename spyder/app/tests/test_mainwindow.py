@@ -904,7 +904,7 @@ def test_run_code(main_window, qtbot, tmpdir):
     # Run the whole file line by line
     for _ in range(code_editor.blockCount()):
         qtbot.keyClick(code_editor, Qt.Key_F9)
-        qtbot.wait(100)
+        qtbot.wait(200)
 
     # Wait until all objects have appeared in the variable explorer
     qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 3,
@@ -921,7 +921,7 @@ def test_run_code(main_window, qtbot, tmpdir):
     # Run the three cells present in file
     for _ in range(4):
         qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
-        qtbot.wait(100)
+        qtbot.wait(200)
 
     # Check for errors and the runcell function
     assert 'runcell' in shell._control.toPlainText()
@@ -960,7 +960,7 @@ def test_run_code(main_window, qtbot, tmpdir):
     # ---- Re-run last cell ----
     # Run the first two cells in file
     qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
-    qtbot.wait(100)
+    qtbot.wait(200)
     qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
 
     # Wait until objects have appeared in the variable explorer
