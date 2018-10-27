@@ -421,3 +421,7 @@ div.admonition p.admonition-title {
     border-color: #E74C3C;
     background-color: #444;
 }
+
+.panel-danger > .panel-body {    
+    background-color: #E74C3C;
+}
