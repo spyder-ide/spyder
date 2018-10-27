@@ -576,12 +576,19 @@ class MainWindow(QMainWindow):
         logger.info("Applying theme configuration...")
         ui_theme = CONF.get('color_schemes', 'ui_theme')
         color_scheme = CONF.get('color_schemes', 'selected')
+        from spyder.plugins.help.utils.sphinxify import CSS_PATH, DARK_CSS_PATH
         if ui_theme == 'dark':
             self.setStyleSheet(qdarkstyle.load_stylesheet_from_environment())
+            css_path = DARK_CSS_PATH
         elif ui_theme == 'automatic':
             if not is_dark_font_color(color_scheme):
                 self.setStyleSheet(
                         qdarkstyle.load_stylesheet_from_environment())
+                css_path = DARK_CSS_PATH
+            else:
+                css_path = CSS_PATH
+        else:
+            css_path = CSS_PATH
 
         logger.info("Creating core actions...")
         self.close_dockwidget_action = create_action(self,
@@ -857,7 +864,7 @@ class MainWindow(QMainWindow):
         if CONF.get('help', 'enable'):
             self.set_splash(_("Loading help..."))
             from spyder.plugins.help.plugin import Help
-            self.help = Help(self)
+            self.help = Help(self, css_path=css_path)
             self.help.register_plugin()
 
         # Outline explorer widget
@@ -918,7 +925,7 @@ class MainWindow(QMainWindow):
         # IPython console
         self.set_splash(_("Loading IPython console..."))
         from spyder.plugins.ipythonconsole.plugin import IPythonConsole
-        self.ipyconsole = IPythonConsole(self)
+        self.ipyconsole = IPythonConsole(self, css_path=css_path)
         self.ipyconsole.register_plugin()
 
         # Explorer

@@ -25,7 +25,7 @@ from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import get_meth_class_inst, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs
-from spyder.plugins.help.utils.sphinxify import (CSS_PATH, DARK_CSS_PATH,
+from spyder.plugins.help.utils.sphinxify import (CSS_PATH,
                                                  generate_context,
                                                  usage, warning)
 from spyder.utils.qthelpers import (add_actions, create_action,
@@ -54,11 +54,12 @@ class Help(SpyderPluginWidget):
     # Signals
     focus_changed = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, css_path=CSS_PATH):
         SpyderPluginWidget.__init__(self, parent)
 
         self.internal_shell = None
         self.console = None
+        self.css_path = css_path
 
         # Initialize plugin
         self.initialize_plugin()
@@ -178,7 +179,9 @@ class Help(SpyderPluginWidget):
 
         # Add worker thread for handling rich text rendering
         self._sphinx_thread = SphinxThread(
-                                  html_text_no_doc=warning(self.no_doc_string))
+                              html_text_no_doc=warning(self.no_doc_string,
+                                                       css_path=self.css_path),
+                              css_path=self.css_path)
         self._sphinx_thread.html_ready.connect(
                                              self._on_sphinx_thread_html_ready)
         self._sphinx_thread.error_msg.connect(self._on_sphinx_thread_error_msg)
@@ -426,13 +429,10 @@ class Help(SpyderPluginWidget):
             tutorial = _("tutorial")
             intro_message = intro_message % ("<b>"+shortcut+"</b>", "<br><br>",
                                              "<i>"+prefs+"</i>")
-            if self.main.styleSheet():
-                css = DARK_CSS_PATH
-            else:
-                css = CSS_PATH
             self.set_rich_text_html(usage(title, intro_message,
-                                          tutorial_message, tutorial),
-                                    QUrl.fromLocalFile(css))
+                                          tutorial_message, tutorial,
+                                          css_path=self.css_path),
+                                    QUrl.fromLocalFile(self.css_path))
         else:
             install_sphinx = "\n\n%s" % _("Please consider installing Sphinx "
                                           "to get documentation rendered in "
@@ -446,12 +446,8 @@ class Help(SpyderPluginWidget):
         self.visibility_changed(True)
         self.raise_()
         self.switch_to_rich_text()
-        if self.main.styleSheet():
-            theme = 'dark'
-        else:
-            theme = 'light'
         context = generate_context(collapse=collapse, img_path=img_path,
-                                   theme=theme)
+                                   css_path=self.css_path)
         self.render_sphinx_doc(text, context)
 
     def show_plain_text(self, text):
@@ -639,7 +635,7 @@ class Help(SpyderPluginWidget):
                 self.shell = self.internal_shell
         return self.shell
 
-    def render_sphinx_doc(self, doc, context=None):
+    def render_sphinx_doc(self, doc, context=None, css_path=CSS_PATH):
         """Transform doc string dictionary to HTML and show it"""
         # Math rendering option could have changed
         if self.main.editor is not None:
@@ -648,16 +644,12 @@ class Help(SpyderPluginWidget):
         else:
             dname = ''
         self._sphinx_thread.render(doc, context, self.get_option('math'),
-                                   dname)
+                                   dname, css_path=self.css_path)
 
     def _on_sphinx_thread_html_ready(self, html_text):
         """Set our sphinx documentation based on thread result"""
         self._sphinx_thread.wait()
-        if self.main.styleSheet():
-            css = DARK_CSS_PATH
-        else:
-            css = CSS_PATH
-        self.set_rich_text_html(html_text, QUrl.fromLocalFile(css))
+        self.set_rich_text_html(html_text, QUrl.fromLocalFile(self.css_path))
 
     def _on_sphinx_thread_error_msg(self, error_msg):
         """ Display error message on Sphinx rich text failure"""
@@ -695,7 +687,7 @@ class Help(SpyderPluginWidget):
         is_code = False
 
         if self.rich_help:
-            self.render_sphinx_doc(doc)
+            self.render_sphinx_doc(doc, css_path=self.css_path)
             return doc is not None
         elif self.docstring:
             hlp_text = doc

@@ -37,7 +37,8 @@ if not os.name == 'nt':
 
 # Local imports
 from spyder import dependencies
-from spyder.config.base import _, get_conf_path, get_home_dir
+from spyder.config.base import (_, get_conf_path, get_home_dir,
+                                get_module_source_path)
 from spyder.config.main import CONF
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
@@ -75,6 +76,10 @@ dependencies.add("IPython", _("IPython interactive python environment"),
 MATPLOTLIB_REQVER = '>=2.0.0'
 dependencies.add("matplotlib", _("Display 2D graphics in the IPython Console"),
                  required_version=MATPLOTLIB_REQVER, optional=True)
+
+# CSS style
+PLUGINS_PATH = get_module_source_path('spyder', 'plugins')
+CSS_PATH = osp.join(PLUGINS_PATH, 'help', 'utils', 'static', 'css')
 
 #------------------------------------------------------------------------------
 # Existing kernels
@@ -534,7 +539,7 @@ class IPythonConsole(SpyderPluginWidget):
                              "make it writable.")
 
     def __init__(self, parent, testing=False, test_dir=None,
-                 test_no_stderr=False):
+                 test_no_stderr=False, css_path=CSS_PATH):
         """Ipython Console constructor."""
         SpyderPluginWidget.__init__(self, parent)
 
@@ -553,6 +558,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.filenames = []
         self.mainwindow_close = False
         self.create_new_client_if_empty = True
+        self.css_path = css_path
 
         # Attrs for testing
         self.testing = testing
@@ -1000,7 +1006,8 @@ class IPythonConsole(SpyderPluginWidget):
                               show_elapsed_time=show_elapsed_time,
                               reset_warning=reset_warning,
                               given_name=given_name,
-                              ask_before_restart=ask_before_restart)
+                              ask_before_restart=ask_before_restart,
+                              css_path=self.css_path)
         if self.testing:
             client.stderr_dir = self.test_dir
         self.add_tab(client, name=client.get_name(), filename=filename)

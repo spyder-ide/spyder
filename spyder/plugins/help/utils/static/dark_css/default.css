@@ -326,7 +326,7 @@ div.admonition p.admonition-title {
 
 .panel {
     margin-top: 15px;
-    background-color: #ffffff;
+    background-color: #232629;
     border: 1px solid transparent;
     border-radius: 4px;
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
@@ -359,7 +359,7 @@ div.admonition p.admonition-title {
 }
 
 .panel-usage > .panel-heading {
-    color: #ffffff;
+    color: #232629;
     background-color: #2fa4e7;
     border-color: #2fa4e7;
 }

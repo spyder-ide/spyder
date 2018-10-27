@@ -74,25 +74,25 @@ def is_sphinx_markup(docstring):
     return ("`" in docstring or "::" in docstring)
 
 
-def warning(message):
+def warning(message, css_path=CSS_PATH):
     """Print a warning message on the rich text view"""
     env = Environment()
     env.loader = FileSystemLoader(osp.join(CONFDIR_PATH, 'templates'))
     warning = env.get_template("warning.html")
-    return warning.render(css_path=CSS_PATH, text=message)
+    return warning.render(css_path=css_path, text=message)
 
 
-def usage(title, message, tutorial_message, tutorial):
+def usage(title, message, tutorial_message, tutorial, css_path=CSS_PATH):
     """Print a usage message on the rich text view"""
     env = Environment()
     env.loader = FileSystemLoader(osp.join(CONFDIR_PATH, 'templates'))
     usage = env.get_template("usage.html")
-    return usage.render(css_path=CSS_PATH, title=title, intro_message=message,
+    return usage.render(css_path=css_path, title=title, intro_message=message,
                         tutorial_message=tutorial_message, tutorial=tutorial)
 
 
 def generate_context(name='', argspec='', note='', math=False, collapse=False,
-                     img_path='', theme='dark'):
+                     img_path='', css_path=CSS_PATH):
     """
     Generate the html_context dictionary for our Sphinx conf file.
     
@@ -125,11 +125,6 @@ def generate_context(name='', argspec='', note='', math=False, collapse=False,
     if img_path and os.name == 'nt':
         img_path = img_path.replace('\\', '/')
 
-    if theme == 'dark':
-        css_path = DARK_CSS_PATH
-    else:
-        css_path = CSS_PATH
-
     context = \
     {
       # Arg dependent variables
@@ -139,7 +134,6 @@ def generate_context(name='', argspec='', note='', math=False, collapse=False,
       'note': note,
       'collapse': collapse,
       'img_path': img_path,
-      
       # Static variables
       'css_path': css_path,
       'js_path': JS_PATH,
