@@ -652,9 +652,11 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         # Remove any leading whitespace or comment lines
         # since they confuse the reserved word detector that follows below
+        lines_removed = 0
         while lines:
             first_line = lines[0].lstrip()
             if first_line == '' or first_line[0] == '#':
+                lines_removed += 1
                 lines.pop(0)
             else:
                 break
@@ -687,20 +689,25 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             else:
                 lines.append(ls)
 
-        return ls.join(lines)
+        # Add removed lines back to have correct traceback line numbers
+        leading_lines_str = ls * lines_removed
+
+        return leading_lines_str + ls.join(lines)
 
     def __exec_cell(self):
+        ls = self.get_line_separator()
         init_cursor = QTextCursor(self.textCursor())
         start_pos, end_pos = self.__save_selection()
         cursor, whole_file_selected = self.select_current_cell()
-        if not whole_file_selected:
-            self.setTextCursor(cursor)
+        self.setTextCursor(cursor)
+        line_from, line_to = self.get_selection_bounds()
         text = self.get_selection_as_executable_code()
         self.last_cursor_cell = init_cursor
         self.__restore_selection(start_pos, end_pos)
         if text is not None:
             text = text.rstrip()
-        return text
+            text = ls * line_from + text
+        return text, line_from
 
     def get_cell_as_executable_code(self):
         """Return cell contents as executable code"""
@@ -711,8 +718,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if self.last_cursor_cell:
             self.setTextCursor(self.last_cursor_cell)
             self.highlight_current_cell()
-            text = self.__exec_cell()
-        return text
+            text, line = self.__exec_cell()
+        return text, line
 
     def is_cell_separator(self, cursor=None, block=None):
         """Return True if cursor (or text block) is on a block separator"""
