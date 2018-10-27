@@ -279,7 +279,7 @@ table.docutils.field-list th {
 /* --- Spacing around example code --- */
 div.highlight pre {
     padding: 9px 14px;
-    background-color: rgb(247, 247, 249);
+    background-color: #bbbbbf;
     border-radius: 4px 4px 4px 4px;
     border: 1px solid rgb(225, 225, 232);
 }
