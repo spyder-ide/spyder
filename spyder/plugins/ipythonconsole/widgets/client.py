@@ -674,7 +674,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """Hide animation shown while the kernel is loading."""
         self.infowidget.hide()
         self.shellwidget.show()
-        self.infowidget.setHtml(BLANK)
+        self.infowidget.setHtml(BLANK,
+                                QUrl.fromLocalFile(self.css_path))
         self.shellwidget.sig_prompt_ready.disconnect(self._hide_loading_page)
 
     def _read_stderr(self):
