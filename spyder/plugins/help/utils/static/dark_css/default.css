@@ -112,7 +112,7 @@ h2.html-toggle-button, h3.html-toggle-button, h4.html-toggle-button {
 
 .collapsed > h2, .collapsed > h3, .collapsed > h4, .expanded > h2, .expanded > h3, .expanded > h4 {
     background-color: transparent;
-    background-image: url(../images/collapse_expand.png);
+    background-image: url(../images/collapse_expand_dark.png);
     background-repeat: no-repeat;
     background-attachment: scroll;
     cursor: pointer;
