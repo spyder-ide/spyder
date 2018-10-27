@@ -394,6 +394,7 @@ class EditorStack(QWidget):
     ending_long_process = Signal(str)
     redirect_stdio = Signal(bool)
     exec_in_extconsole = Signal(str, bool)
+    run_cell_in_ipyclient = Signal(str, str, str, bool)
     update_plugin_title = Signal()
     editor_focus_changed = Signal()
     zoom_in = Signal()
@@ -533,6 +534,7 @@ class EditorStack(QWidget):
         self.convert_eol_on_save = False
         self.convert_eol_on_save_to = 'LF'
         self.focus_to_editor = True
+        self.run_cell_copy = False
         self.create_new_file_if_empty = True
         self.indent_guides = False
         ccs = 'Spyder'
@@ -1155,6 +1157,10 @@ class EditorStack(QWidget):
 
     def set_focus_to_editor(self, state):
         self.focus_to_editor = state
+
+    def set_run_cell_copy(self, state):
+        """If `state` is ``True``, code cells will be copied to the console."""
+        self.run_cell_copy = state
 
     #------ Stacked widget management
     def get_stack_index(self):
@@ -2403,11 +2409,9 @@ class EditorStack(QWidget):
         editor.move_cursor_to_next('line', 'down')
 
     def run_cell(self):
-        """Run current cell"""
-        text = self.get_current_editor().get_cell_as_executable_code()
-        finfo = self.get_current_finfo()
-        if finfo.editor.is_python() and text:
-            self.exec_in_extconsole.emit(text, self.focus_to_editor)
+        """Run current cell."""
+        text, line = self.get_current_editor().get_cell_as_executable_code()
+        self._run_cell_text(text, line)
 
     def run_cell_and_advance(self):
         """Run current cell and advance to the next one"""
@@ -2435,10 +2439,37 @@ class EditorStack(QWidget):
             term.setFocus()
 
     def re_run_last_cell(self):
-        text = self.get_current_editor().get_last_cell_as_executable_code()
+        """Run the previous cell again."""
+        text, line = (self.get_current_editor()
+                      .get_last_cell_as_executable_code())
+        self._run_cell_text(text, line)
+
+    def _run_cell_text(self, text, line):
+        """Run cell code in the console.
+
+        Cell code is run in the console by copying it to the console if
+        `self.run_cell_copy` is ``True`` otherwise by using the `run_cell`
+        function.
+
+        Parameters
+        ----------
+        text : str
+            The code in the cell as a string.
+        line : int
+            The starting line number of the cell in the file.
+        """
         finfo = self.get_current_finfo()
+        editor = self.get_current_editor()
+        oe_data = editor.highlighter.get_outlineexplorer_data()
+        try:
+            cell_name = oe_data.get(line-1).def_name
+        except AttributeError:
+            cell_name = ''
         if finfo.editor.is_python() and text:
-            self.exec_in_extconsole.emit(text, self.focus_to_editor)
+            self.run_cell_in_ipyclient.emit(text, cell_name,
+                                            finfo.filename,
+                                            self.run_cell_copy)
+        editor.setFocus()
 
     #------ Drag and drop
     def dragEnterEvent(self, event):
