@@ -14,9 +14,9 @@ div.title h1 {
         linear,
         0 0,
         0 100%,
-        from(#54b4eb),
-        color-stop(60%, #2fa4e7),
-        to(#1d9ce5)
+        from(#3e6691),
+        color-stop(60%, #375a7f),
+        to(#2b4866)
     );
     text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.2);
     font-weight: normal;
@@ -53,7 +53,6 @@ div.metadata {
     color: rgb(51, 51, 51);
     border: 1px solid #C9C9C9;
     border-radius: 6px 6px 6px 6px;
-    box-shadow: 1px 1px 7px #CACACA;
 }
 
 div.metadata p {
@@ -85,7 +84,7 @@ div.docstring p {
 /* --- Headers style --- */
 h2, h3, h4 {
     font-family: 'Helvetica', sans-serif;
-    color: rgb(49, 126, 172);
+    color: white;
     margin-top: 20px;
     margin-bottom: 10px;
 }
@@ -153,8 +152,8 @@ div.section p {
 
 #warning {
     margin-top: 5px;
-    background-color: #FFE4E4;
-    border: 1px solid #F66;
+    background-color:  #E74C3C;
+    border: 1px solid  #E74C3C;
     padding: 4px 8px 4px 8px;
     text-align: center;
 }
@@ -164,9 +163,9 @@ div.section p {
     width: 45%;
     margin-left: auto;
     margin-right: auto;
-    color: rgb(185, 74, 72);
-    background-color: rgb(242, 222, 222);
-    border: 1px solid rgb(238, 211, 215);
+    color: white;
+    background-color:  #E74C3C;
+    border: 1px solid  #E74C3C;
     border-radius: 4px 4px 4px 4px;
     padding: 15px;
     text-align: center;
@@ -178,7 +177,7 @@ div.section p {
 /* --- Links --- */
 a {
     text-decoration: none;
-    color: rgba(40, 130, 180, 1);
+    color: #00bc8c;
 }
 
 a:hover {
@@ -279,14 +278,14 @@ table.docutils.field-list th {
 /* --- Spacing around example code --- */
 div.highlight pre {
     padding: 9px 14px;
-    background-color: #bbbbbf;
+    background-color: #272822;
     border-radius: 4px 4px 4px 4px;
-    border: 1px solid rgb(225, 225, 232);
+    border: 1px solid #ffffff;
 }
 
 div.highlight {
     padding: 0px 10px 0px;
-    color: black;
+    color: #f8f8f2;
 }
 
 dt {
@@ -349,6 +348,7 @@ div.admonition p.admonition-title {
 
 .panel-body {
     padding: 15px;
+    background-color: #3498DB;
 }
 
 .panel-usage {
@@ -361,14 +361,19 @@ div.admonition p.admonition-title {
 
 .panel-usage > .panel-heading {
     color: #232629;
-    background-color: #2fa4e7;
-    border-color: #2fa4e7;
+    background-color: #444;
+    border-color: #3498DB;
+}
+
+.panel-usage > .panel-body > center > a {
+    color: white;
 }
 
 .panel-usage > .panel-body > br {
     display: block;
     margin: 12px 0;
     content: "";
+    background-color: #3498DB;
 }
 
 .hr {
@@ -387,10 +392,10 @@ div.admonition p.admonition-title {
     height: auto;
     left: 50%;
     top: 50%;
-    background-color: #EEEEEE;
+    color: black;
+    background-color: #99999c;
     border: 1px solid #C9C9C9;
     border-radius: 6px;
-    box-shadow: 0px 0px 7px #CACACA;
     color: #333333;
     padding: 12px;
     text-align: center;
@@ -406,12 +411,13 @@ div.admonition p.admonition-title {
 
 /* --- Kernel error messages --- */
 .panel-danger {
-    border-color: #eed3d7;
+    border-color: #E74C3C;
+    background-color: #E74C3C;
+    color: white;
 }
 
 .panel-danger > .panel-heading {
-    color: #b94a48;
-    background-color: #f2dede;
-    border-color: #eed3d7;
-    background-color: rgb(199, 28, 34);
+    color: white;
+    border-color: #E74C3C;
+    background-color: #444;
 }
