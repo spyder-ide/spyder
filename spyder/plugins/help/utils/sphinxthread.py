@@ -12,7 +12,8 @@ from qtpy.QtCore import QThread, Signal
 # Local Imports
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
-from spyder.plugins.help.utils.sphinxify import generate_context, sphinxify
+from spyder.plugins.help.utils.sphinxify import (CSS_PATH, generate_context,
+                                                 sphinxify)
 
 
 class SphinxThread(QThread):
@@ -36,14 +37,16 @@ class SphinxThread(QThread):
     error_msg = Signal(str)
     html_ready = Signal(str)
 
-    def __init__(self, html_text_no_doc=''):
+    def __init__(self, html_text_no_doc='', css_path=CSS_PATH):
         super(SphinxThread, self).__init__()
         self.doc = None
         self.context = None
         self.html_text_no_doc = html_text_no_doc
         self.math_option = False
+        self.css_path = css_path
 
-    def render(self, doc, context=None, math_option=False, img_path=''):
+    def render(self, doc, context=None, math_option=False, img_path='',
+               css_path=CSS_PATH):
         """Start thread to render a given documentation"""
         # If the thread is already running wait for it to finish before
         # starting it again.
@@ -52,6 +55,7 @@ class SphinxThread(QThread):
             self.context = context
             self.math_option = math_option
             self.img_path = img_path
+            self.css_path = css_path
             # This causes run() to be executed in separate thread
             self.start()
 
@@ -65,7 +69,8 @@ class SphinxThread(QThread):
                                                argspec=doc['argspec'],
                                                note=doc['note'],
                                                math=self.math_option,
-                                               img_path=self.img_path)
+                                               img_path=self.img_path,
+                                               css_path=self.css_path)
                     html_text = sphinxify(doc['docstring'], context)
                     if doc['docstring'] == '':
                         if any([doc['name'], doc['argspec'], doc['note']]):

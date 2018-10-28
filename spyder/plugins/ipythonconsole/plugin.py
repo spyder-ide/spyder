@@ -534,7 +534,7 @@ class IPythonConsole(SpyderPluginWidget):
                              "make it writable.")
 
     def __init__(self, parent, testing=False, test_dir=None,
-                 test_no_stderr=False):
+                 test_no_stderr=False, css_path=None):
         """Ipython Console constructor."""
         SpyderPluginWidget.__init__(self, parent)
 
@@ -553,6 +553,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.filenames = []
         self.mainwindow_close = False
         self.create_new_client_if_empty = True
+        self.css_path = css_path
         self.run_cell_filename = None
 
         # Attrs for testing
@@ -1063,7 +1064,8 @@ class IPythonConsole(SpyderPluginWidget):
                               show_elapsed_time=show_elapsed_time,
                               reset_warning=reset_warning,
                               given_name=given_name,
-                              ask_before_restart=ask_before_restart)
+                              ask_before_restart=ask_before_restart,
+                              css_path=self.css_path)
         if self.testing:
             client.stderr_dir = self.test_dir
         self.add_tab(client, name=client.get_name(), filename=filename)
@@ -1825,7 +1827,8 @@ class IPythonConsole(SpyderPluginWidget):
                               slave=True,
                               show_elapsed_time=show_elapsed_time,
                               reset_warning=reset_warning,
-                              ask_before_restart=ask_before_restart)
+                              ask_before_restart=ask_before_restart,
+                              css_path=self.css_path)
         if self.testing:
             client.stderr_dir = self.test_dir
 

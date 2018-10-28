@@ -110,7 +110,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                  options_button=None,
                  show_elapsed_time=False,
                  reset_warning=True,
-                 ask_before_restart=True):
+                 ask_before_restart=True,
+                 css_path=None):
         super(ClientWidget, self).__init__(plugin)
         SaveHistoryMixin.__init__(self, history_filename)
 
@@ -135,6 +136,11 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.allow_rename = True
         self.stderr_dir = None
         self.is_error_shown = False
+
+        if css_path is None:
+            self.css_path = CSS_PATH
+        else:
+            self.css_path = css_path
 
         # --- Widgets
         self.shellwidget = ShellWidget(config=config_options,
@@ -316,12 +322,12 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # Create error page
         message = _("An error ocurred while starting the kernel")
         kernel_error_template = Template(KERNEL_ERROR)
-        page = kernel_error_template.substitute(css_path=CSS_PATH,
+        page = kernel_error_template.substitute(css_path=self.css_path,
                                                 message=message,
                                                 error=error)
 
         # Show error
-        self.infowidget.setHtml(page, QUrl.fromLocalFile(CSS_PATH))
+        self.infowidget.setHtml(page, QUrl.fromLocalFile(self.css_path))
         self.shellwidget.hide()
         self.infowidget.show()
 
@@ -656,7 +662,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         if os.name == 'nt':
             loading_img = loading_img.replace('\\', '/')
         message = _("Connecting to kernel...")
-        page = loading_template.substitute(css_path=CSS_PATH,
+        page = loading_template.substitute(css_path=self.css_path,
                                            loading_img=loading_img,
                                            message=message)
         return page
@@ -666,13 +672,14 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.shellwidget.hide()
         self.infowidget.show()
         self.infowidget.setHtml(self.loading_page,
-                                QUrl.fromLocalFile(CSS_PATH))
+                                QUrl.fromLocalFile(self.css_path))
 
     def _hide_loading_page(self):
         """Hide animation shown while the kernel is loading."""
         self.infowidget.hide()
         self.shellwidget.show()
-        self.infowidget.setHtml(BLANK)
+        self.infowidget.setHtml(BLANK,
+                                QUrl.fromLocalFile(self.css_path))
         self.shellwidget.sig_prompt_ready.disconnect(self._hide_loading_page)
 
     def _read_stderr(self):
