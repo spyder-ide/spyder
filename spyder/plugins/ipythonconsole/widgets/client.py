@@ -111,7 +111,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                  show_elapsed_time=False,
                  reset_warning=True,
                  ask_before_restart=True,
-                 css_path=CSS_PATH):
+                 css_path=None):
         super(ClientWidget, self).__init__(plugin)
         SaveHistoryMixin.__init__(self, history_filename)
 
@@ -136,7 +136,11 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.allow_rename = True
         self.stderr_dir = None
         self.is_error_shown = False
-        self.css_path = css_path
+
+        if css_path is None:
+            self.css_path = CSS_PATH
+        else:
+            self.css_path = css_path
 
         # --- Widgets
         self.shellwidget = ShellWidget(config=config_options,

@@ -166,6 +166,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.programs import is_module_installed
 from spyder.utils.misc import select_port, getcwd_or_home, get_python_executable
 from spyder.widgets.fileswitcher import FileSwitcher
+from spyder.plugins.help.utils.sphinxify import CSS_PATH, DARK_CSS_PATH
 from spyder.plugins.lspmanager import LSPManager
 from spyder.config.gui import is_dark_font_color
 
@@ -576,7 +577,7 @@ class MainWindow(QMainWindow):
         logger.info("Applying theme configuration...")
         ui_theme = CONF.get('color_schemes', 'ui_theme')
         color_scheme = CONF.get('color_schemes', 'selected')
-        from spyder.plugins.help.utils.sphinxify import CSS_PATH, DARK_CSS_PATH
+
         if ui_theme == 'dark':
             self.setStyleSheet(qdarkstyle.load_stylesheet_from_environment())
             css_path = DARK_CSS_PATH
