@@ -291,5 +291,12 @@ def test_editor_calls_recoverydialog_exec_if_nonempty(qtbot, monkeypatch):
     assert mock_RecoveryDialog.return_value.exec_if_nonempty.called
 
 
+def test_closing_editor_plugin_stops_autosave_timer(setup_editor):
+    editor, qtbot = setup_editor
+    assert editor.autosave.timer.isActive()
+    editor.closing_plugin()
+    assert not editor.autosave.timer.isActive()
+
+
 if __name__ == "__main__":
     pytest.main(['-x', os.path.basename(__file__), '-vv', '-rw'])

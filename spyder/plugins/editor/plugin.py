@@ -715,6 +715,10 @@ class Editor(SpyderPluginWidget):
                     [win.get_layout_settings() for win in self.editorwindows])
 #        self.set_option('filenames', filenames)
         self.set_option('recent_files', self.recent_files)
+
+        # Stop autosave timer before closing windows
+        self.autosave.stop_autosave_timer()
+
         try:
             if not editorstack.save_if_changed(cancelable) and cancelable:
                 return False
@@ -3009,11 +3013,18 @@ class AutosaveComponent:
             editor (Editor): editor plugin.
         """
         self.editor = editor
+        self.timer = QTimer(self.editor)
+        self.timer.timeout.connect(self.do_autosave)
         self.start_autosave_timer()
 
     def start_autosave_timer(self):
         """Start a timer which calls do_autosave() after AUTOSAVE_DELAY."""
-        QTimer.singleShot(self.AUTOSAVE_DELAY, self.do_autosave)
+        self.timer.setSingleShot(True)
+        self.timer.start(self.AUTOSAVE_DELAY)
+
+    def stop_autosave_timer(self):
+        """Stop the autosave timer."""
+        self.timer.stop()
 
     def do_autosave(self):
         """Instruct current editorstack to autosave files where necessary."""
