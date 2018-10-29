@@ -45,7 +45,7 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QGridLayout,
                             QMessageBox, QPushButton, QTableView,
                             QScrollBar, QTableWidget, QFrame,
                             QItemDelegate)
-from pandas import DataFrame, Index, Series
+from pandas import DataFrame, Index, Series, isna
 try:
     from pandas._libs.tslib import OutOfBoundsDatetime
 except ImportError:  # For pandas version < 0.20
@@ -272,7 +272,7 @@ class DataFrameModel(QAbstractTableModel):
         if not self.bgcolor_enabled:
             return
         value = self.get_value(index.row(), column)
-        if self.max_min_col[column] is None:
+        if self.max_min_col[column] is None or isna(value):
             color = QColor(BACKGROUND_NONNUMBER_COLOR)
             if is_text_string(value):
                 color.setAlphaF(BACKGROUND_STRING_ALPHA)
