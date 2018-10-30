@@ -413,10 +413,6 @@ class Editor(SpyderPluginWidget):
         self.outlineexplorer = None
         self.help = None
 
-        self.editorstacks = None
-        self.editorwindows = None
-        self.editorwindows_to_be_created = None
-
         self.file_dependent_actions = []
         self.pythonfile_dependent_actions = []
         self.dock_toolbar_actions = None
@@ -446,7 +442,8 @@ class Editor(SpyderPluginWidget):
         self.cursor_pos_history = []
         self.cursor_pos_index = None
         self.__ignore_cursor_position = True
-        
+
+        self.__first_open_files_setup = True
         self.editorstacks = []
         self.last_focus_editorstack = {}
         self.editorwindows = []
@@ -2690,30 +2687,31 @@ class Editor(SpyderPluginWidget):
             if not self.projects.get_active_project():
                 filenames = self.get_open_filenames()
                 self.set_option('filenames', filenames)
- 
+
     def setup_open_files(self):
         """Open the list of saved files per project"""
         self.set_create_new_file_if_empty(False)
         active_project_path = None
         if self.projects is not None:
-             active_project_path = self.projects.get_active_project_path()
+            active_project_path = self.projects.get_active_project_path()
 
         if active_project_path:
             filenames = self.projects.get_project_filenames()
         else:
             filenames = self.get_option('filenames', default=[])
         self.close_all_files()
- 
+
         if filenames and any([osp.isfile(f) for f in filenames]):
             self.load(filenames)
-            layout = self.get_option('layout_settings', None)
-            if layout is not None:
-                self.editorsplitter.set_layout_settings(layout)
-            win_layout = self.get_option('windows_layout_settings', None)
-            if win_layout:
+            if self.__first_open_files_setup:
+                self.__first_open_files_setup = False
+                layout = self.get_option('layout_settings', None)
+                if layout is not None:
+                    self.editorsplitter.set_layout_settings(layout)
+                win_layout = self.get_option('windows_layout_settings', [])
                 for layout_settings in win_layout:
                     self.editorwindows_to_be_created.append(layout_settings)
-            self.set_last_focus_editorstack(self, self.editorstacks[0])
+                self.set_last_focus_editorstack(self, self.editorstacks[0])
         else:
             self.__load_temp_file()
         self.set_create_new_file_if_empty(True)
