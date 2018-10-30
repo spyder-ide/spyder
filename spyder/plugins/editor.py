@@ -417,8 +417,6 @@ class Editor(SpyderPluginWidget):
         self.pythonfile_dependent_actions = []
         self.dock_toolbar_actions = None
         self.edit_menu_actions = None #XXX: find another way to notify Spyder
-        # (see spyder.py: 'update_edit_menu' method)
-        self.search_menu_actions = None #XXX: same thing ('update_search_menu')
         self.stack_menu_actions = None
         
         # Initialize plugin
@@ -1063,8 +1061,7 @@ class Editor(SpyderPluginWidget):
         self.main.edit_toolbar_actions += edit_toolbar_actions
 
         # ---- Search menu/toolbar construction ----
-        self.search_menu_actions = [gotoline_action]
-        self.main.search_menu_actions += self.search_menu_actions
+        self.main.search_menu_actions += [gotoline_action]
         self.main.search_toolbar_actions += [gotoline_action]
           
         # ---- Run menu/toolbar construction ----
