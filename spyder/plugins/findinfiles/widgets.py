@@ -646,20 +646,22 @@ class FindOptions(QWidget):
 
 
 class LineMatchItem(QTreeWidgetItem):
-    def __init__(self, parent, lineno, colno, match):
+    def __init__(self, parent, lineno, colno, match, text_color=None):
         self.lineno = lineno
         self.colno = colno
         self.match = match
+        self.text_color = text_color
         QTreeWidgetItem.__init__(self, parent, [self.__repr__()],
                                  QTreeWidgetItem.Type)
 
     def __repr__(self):
         match = to_text_string(self.match).rstrip()
         font = get_font()
-        _str = to_text_string("<b>{1}</b> ({2}): "
+        _str = to_text_string("<p style=color:'{4}'><b>{1}</b> ({2}): "
                               "<span style='font-family:{0};"
-                              "font-size:75%;'>{3}</span>")
-        return _str.format(font.family(), self.lineno, self.colno, match)
+                              "font-size:75%;'>{3}</span></p>")
+        return _str.format(font.family(), self.lineno, self.colno, match,
+                           self.text_color)
 
     def __unicode__(self):
         return self.__repr__()
@@ -675,16 +677,17 @@ class LineMatchItem(QTreeWidgetItem):
 
 
 class FileMatchItem(QTreeWidgetItem):
-    def __init__(self, parent, filename, sorting):
+    def __init__(self, parent, filename, sorting, text_color=None):
 
         self.sorting = sorting
         self.filename = osp.basename(filename)
 
-        title_format = to_text_string('<b>{0}</b><br>'
-                                      '<small><em>{1}</em>'
+        title_format = to_text_string('<b style="color:{2}">{0}</b><br>'
+                                      '<small style="color:{2}"><em>{1}</em>'
                                       '</small>')
         title = (title_format.format(osp.basename(filename),
-                                     osp.dirname(filename)))
+                                     osp.dirname(filename),
+                                     text_color))
         QTreeWidgetItem.__init__(self, parent, [title], QTreeWidgetItem.Type)
 
         self.setToolTip(0, filename)
@@ -744,7 +747,7 @@ class ItemDelegate(QStyledItemDelegate):
 class ResultsBrowser(OneColumnTree):
     sig_edit_goto = Signal(str, int, str)
 
-    def __init__(self, parent):
+    def __init__(self, parent, text_color=None):
         OneColumnTree.__init__(self, parent)
         self.search_text = None
         self.results = None
@@ -758,6 +761,7 @@ class ResultsBrowser(OneColumnTree):
         self.set_sorting(OFF)
         self.setSortingEnabled(False)
         self.root_items = None
+        self.text_color = text_color
         self.sortByColumn(0, Qt.AscendingOrder)
         self.setItemDelegate(ItemDelegate(self))
         self.setUniformRowHeights(False)
@@ -857,7 +861,9 @@ class ResultsBrowser(OneColumnTree):
             if len(right) > max_num_char_fragment:
                 right = right[:30] + ellipsis
 
-        line_match_format = u'{0}<b>{1}</b>{2}'
+        line_match_format = u'<span style="color:{0}">{{0}}<b>{{1}}</b>{{2}}'
+        line_match_format = line_match_format.format(self.text_color)
+
         left = html_escape(left)
         right = html_escape(right)
         match = html_escape(match)
@@ -870,7 +876,8 @@ class ResultsBrowser(OneColumnTree):
         filename, lineno, colno, match_end, line = results
 
         if filename not in self.files:
-            file_item = FileMatchItem(self, filename, self.sorting)
+            file_item = FileMatchItem(self, filename, self.sorting,
+                                      self.text_color)
             file_item.setExpanded(True)
             self.files[filename] = file_item
             self.num_files += 1
@@ -891,7 +898,7 @@ class ResultsBrowser(OneColumnTree):
 
         file_item = self.files[filename]
         line = self.truncate_result(line, colno, match_end)
-        item = LineMatchItem(file_item, lineno, colno, line)
+        item = LineMatchItem(file_item, lineno, colno, line, self.text_color)
         self.data[id(item)] = (filename, lineno, colno)
 
 
@@ -949,7 +956,8 @@ class FindInFilesWidget(QWidget):
                  more_options=True,
                  case_sensitive=False,
                  external_path_history=[],
-                 options_button=None):
+                 options_button=None,
+                 text_color=None):
         QWidget.__init__(self, parent)
 
         self.setWindowTitle(_('Find in files'))
@@ -970,7 +978,7 @@ class FindInFilesWidget(QWidget):
         self.find_options.find.connect(self.find)
         self.find_options.stop.connect(self.stop_and_reset_thread)
 
-        self.result_browser = ResultsBrowser(self)
+        self.result_browser = ResultsBrowser(self, text_color=text_color)
 
         hlayout = QHBoxLayout()
         hlayout.addWidget(self.result_browser)
