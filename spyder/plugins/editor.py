@@ -1535,11 +1535,9 @@ class Editor(SpyderPluginWidget):
             error = 'syntax' in message
             text = message[:1].upper()+message[1:]
             icon = ima.icon('error') if error else ima.icon('warning')
-            # QAction.triggered works differently for PySide and PyQt
-            if not API == 'pyside':
-                slot = lambda _checked, _l=line_number: self.load(filename, goto=_l)
-            else:
-                slot = lambda _l=line_number: self.load(filename, goto=_l)
+            def slot():
+                self.switch_to_plugin()
+                self.load(filename, goto=line_number)
             action = create_action(self, text=text, icon=icon, triggered=slot)
             self.warning_menu.addAction(action)
             
@@ -1566,11 +1564,9 @@ class Editor(SpyderPluginWidget):
         filename = self.get_current_filename()
         for text, line0 in results:
             icon = ima.icon('todo')
-            # QAction.triggered works differently for PySide and PyQt
-            if not API == 'pyside':
-                slot = lambda _checked, _l=line0: self.load(filename, goto=_l)
-            else:
-                slot = lambda _l=line0: self.load(filename, goto=_l)
+            def slot():
+                self.switch_to_plugin()
+                self.load(filename, goto=line0)
             action = create_action(self, text=text, icon=icon, triggered=slot)
             self.todo_menu.addAction(action)
         self.update_todo_actions()
@@ -2159,6 +2155,7 @@ class Editor(SpyderPluginWidget):
             editor.unblockcomment()
     @Slot()
     def go_to_next_todo(self):
+        self.switch_to_plugin()
         editor = self.get_current_editor()
         position = editor.go_to_next_todo()
         filename = self.get_current_filename()
@@ -2166,6 +2163,7 @@ class Editor(SpyderPluginWidget):
 
     @Slot()
     def go_to_next_warning(self):
+        self.switch_to_plugin()
         editor = self.get_current_editor()
         position = editor.go_to_next_warning()
         filename = self.get_current_filename()
@@ -2173,6 +2171,7 @@ class Editor(SpyderPluginWidget):
 
     @Slot()
     def go_to_previous_warning(self):
+        self.switch_to_plugin()
         editor = self.get_current_editor()
         position = editor.go_to_previous_warning()
         filename = self.get_current_filename()
@@ -2200,20 +2199,24 @@ class Editor(SpyderPluginWidget):
         if checked:
             editor = self.get_current_editor()
             if self.__set_eol_chars:
+                self.switch_to_plugin()
                 editor.set_eol_chars(sourcecode.get_eol_chars_from_os_name(os_name))
 
     @Slot(bool)
     def toggle_show_blanks(self, checked):
+        self.switch_to_plugin()
         editor = self.get_current_editor()
         editor.set_blanks_enabled(checked)
 
     @Slot()
     def remove_trailing_spaces(self):
+        self.switch_to_plugin()
         editorstack = self.get_current_editorstack()
         editorstack.remove_trailing_spaces()
 
     @Slot()
     def fix_indentation(self):
+        self.switch_to_plugin()
         editorstack = self.get_current_editorstack()
         editorstack.fix_indentation()
                     
@@ -2303,10 +2306,12 @@ class Editor(SpyderPluginWidget):
 
     @Slot()
     def go_to_previous_cursor_position(self):
+        self.switch_to_plugin()
         self.__move_cursor_position(-1)
 
     @Slot()
     def go_to_next_cursor_position(self):
+        self.switch_to_plugin()
         self.__move_cursor_position(1)
 
     @Slot()
