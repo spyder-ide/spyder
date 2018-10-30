@@ -861,7 +861,8 @@ class ResultsBrowser(OneColumnTree):
             if len(right) > max_num_char_fragment:
                 right = right[:30] + ellipsis
 
-        line_match_format = u'<span style="color:{0}">{{0}}<b>{{1}}</b>{{2}}'
+        line_match_format = (u'<span style="color:{0}">{{0}}'
+                             '<b>{{1}}</b>{{2}}</span>')
         line_match_format = line_match_format.format(self.text_color)
 
         left = html_escape(left)

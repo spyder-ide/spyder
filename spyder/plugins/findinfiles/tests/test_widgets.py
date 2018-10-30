@@ -203,7 +203,7 @@ def test_truncate_result_with_different_input(qtbot, line_input):
     else:
         line_input_expected = line_input
 
-    expected_result = u'%s<b>%s</b>%s' % (
+    expected_result = u'<span style="color:None">%s<b>%s</b>%s</span>' % (
         line_input_expected[:slice_start],
         line_input_expected[slice_start:slice_end],
         line_input_expected[slice_end:])
