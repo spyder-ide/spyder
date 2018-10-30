@@ -2905,6 +2905,7 @@ class Editor(SpyderPluginWidget):
         self.close_all_files()
 
         if filenames and any([osp.isfile(f) for f in filenames]):
+            layout = self.get_option('layout_settings', None)
             is_vertical, cfname, clines = layout.get('splitsettings')[0]
             if cfname in filenames:
                 index = filenames.index(cfname)
@@ -2927,7 +2928,6 @@ class Editor(SpyderPluginWidget):
 
             if self.__first_open_files_setup:
                 self.__first_open_files_setup = False
-                layout = self.get_option('layout_settings', None)
                 if layout is not None:
                     self.editorsplitter.set_layout_settings(
                         layout,
