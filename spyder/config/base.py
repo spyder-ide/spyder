@@ -266,6 +266,7 @@ DEFAULT_LANGUAGE = 'en'
 LANGUAGE_CODES = {'en': u'English',
                   'fr': u'Français',
                   'es': u'Español',
+                  'hu': u'Magyar',
                   'pt_BR': u'Português',
                   'ru': u'Русский',
                   'ja': u'日本語'
@@ -308,10 +309,10 @@ def get_interface_language():
     otherwise it will return DEFAULT_LANGUAGE.
 
     Example:
-    1.) Spyder provides ('en',  'fr', 'es' and 'pt_BR'), if the locale is
+    1.) Spyder provides ('en',  'fr', 'es' 'hu' and 'pt_BR'), if the locale is
     either 'en_US' or 'en' or 'en_UK', this function will return 'en'
 
-    2.) Spyder provides ('en',  'fr', 'es' and 'pt_BR'), if the locale is
+    2.) Spyder provides ('en',  'fr', 'es' 'hu' and 'pt_BR'), if the locale is
     either 'pt' or 'pt_BR', this function will return 'pt_BR'
     """
 

@@ -1,0 +1,158 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2017-04-05 12:25+0200\n"
+"PO-Revision-Date: 2017-04-05 12:31+0200\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 1.8.12\n"
+"Last-Translator: Martin Durant <martin.durant@utoronto.ca>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: hu_HU\n"
+
+#: spyder_pylint/pylint.py:35
+msgid "Settings"
+msgstr "Beállítások"
+
+#: spyder_pylint/pylint.py:36
+msgid "Save file before analyzing it"
+msgstr "Menteni elemzés előtt"
+
+#: spyder_pylint/pylint.py:39 spyder_pylint/pylint.py:160
+msgid "History"
+msgstr "Előzmények"
+
+#: spyder_pylint/pylint.py:40
+msgid "The following option will be applied at next startup."
+msgstr "Következő "
+
+#: spyder_pylint/pylint.py:43
+msgid "History: "
+msgstr "Előzmények:"
+
+#: spyder_pylint/pylint.py:44
+msgid " results"
+msgstr " eredmények"
+
+#: spyder_pylint/pylint.py:47
+msgid "Results"
+msgstr "Eredmények"
+
+#: spyder_pylint/pylint.py:48
+msgid "Results are stored here:"
+msgstr "Az eredmények itt tárolva:"
+
+#: spyder_pylint/pylint.py:98 spyder_pylint/widgets/pylintgui.py:83
+msgid "Static code analysis"
+msgstr "Statkikus kód elemzés"
+
+#: spyder_pylint/pylint.py:115
+msgid "History..."
+msgstr "Előzmények..."
+
+#: spyder_pylint/pylint.py:117
+msgid "Set history maximum entries"
+msgstr "Maximális előzményelemek beállítása"
+
+#: spyder_pylint/pylint.py:133
+msgid "Run static code analysis"
+msgstr "Statikus kód elemzés futtatása"
+
+#: spyder_pylint/pylint.py:161
+msgid "Maximum entries"
+msgstr "Elemek maximuma"
+
+#: spyder_pylint/widgets/pylintgui.py:117
+msgid "Results for "
+msgstr "Eredmények ehhez:"
+
+#: spyder_pylint/widgets/pylintgui.py:122
+#, fuzzy
+msgid "Convention"
+msgstr "Egy, két vagy három betűs nemzetközi rövidítés egy elem nevére."
+
+#: spyder_pylint/widgets/pylintgui.py:124
+msgid "Refactor"
+msgstr "Újrafaktorizálás"
+
+#: spyder_pylint/widgets/pylintgui.py:126
+msgid "Warning"
+msgstr "Figyelem"
+
+#: spyder_pylint/widgets/pylintgui.py:128
+#: spyder_pylint/widgets/pylintgui.py:363
+#: spyder_pylint/widgets/pylintgui.py:391
+msgid "Error"
+msgstr "Hiba"
+
+#: spyder_pylint/widgets/pylintgui.py:206
+msgid "Analyze"
+msgstr "Elemzés"
+
+#: spyder_pylint/widgets/pylintgui.py:207
+msgid "Run analysis"
+msgstr "Elemzés futtatása"
+
+#: spyder_pylint/widgets/pylintgui.py:211
+msgid "Stop"
+msgstr "Megállítás"
+
+#: spyder_pylint/widgets/pylintgui.py:212
+msgid "Stop current analysis"
+msgstr "A jelenlegi elemzés megállítása"
+
+#: spyder_pylint/widgets/pylintgui.py:218
+#: spyder_pylint/widgets/pylintgui.py:288
+msgid "Select Python file"
+msgstr "Python fájl választás"
+
+#: spyder_pylint/widgets/pylintgui.py:224
+msgid "Output"
+msgstr "Kimenet"
+
+#: spyder_pylint/widgets/pylintgui.py:226
+msgid "Complete output"
+msgstr "Teljes kimenet"
+
+#: spyder_pylint/widgets/pylintgui.py:260
+msgid "Pylint script was not found. Please add \"%s\" to PATH."
+msgstr "Pylint script nem találva. Kérem hozzáadni \"%s\"-ot a PATH-hoz"
+
+#: spyder_pylint/widgets/pylintgui.py:263
+msgid "Please install <b>pylint</b>:"
+msgstr "Kérjük telepítse a <b>pylint</b>-et:"
+
+#: spyder_pylint/widgets/pylintgui.py:289
+msgid "Python files"
+msgstr "Python-fájlok"
+
+#: spyder_pylint/widgets/pylintgui.py:326
+msgid "Pylint output"
+msgstr "Pylint kimenet"
+
+#: spyder_pylint/widgets/pylintgui.py:364
+msgid "Process failed to start"
+msgstr "A folyamat indítása nem sikerült"
+
+#: spyder_pylint/widgets/pylintgui.py:465
+msgid "Source code has not been rated yet."
+msgstr "Forráskód még nem becsülve"
+
+#: spyder_pylint/widgets/pylintgui.py:471
+msgid "Analysis did not succeed (see output for more details)."
+msgstr "Elemzés nem sikerült (részletekért lássa a kimenetet)"
+
+#: spyder_pylint/widgets/pylintgui.py:484
+msgid "Global evaluation:"
+msgstr "Általános értékalés"
+
+#: spyder_pylint/widgets/pylintgui.py:488
+msgid "previous run:"
+msgstr "Előző futtatás:"
