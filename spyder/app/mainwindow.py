@@ -2017,19 +2017,16 @@ class MainWindow(QMainWindow):
         Returns tuple (widget, properties) where properties is a tuple of
         booleans: (is_console, not_readonly, readwrite_editor)"""
         widget = QApplication.focusWidget()
-        from spyder.widgets.shell import ShellBaseWidget
         from spyder.widgets.editor import TextEditBaseWidget
         from spyder.widgets.ipythonconsole import ControlWidget
 
         # if focused widget isn't valid try the last focused
-        if not isinstance(widget, (ShellBaseWidget, TextEditBaseWidget,
-                                   ControlWidget)):
+        if not isinstance(widget, (TextEditBaseWidget, ControlWidget)):
             widget = self.previous_focused_widget
 
         textedit_properties = None
-        if isinstance(widget, (ShellBaseWidget, TextEditBaseWidget,
-                               ControlWidget)):
-            console = isinstance(widget, (ShellBaseWidget, ControlWidget))
+        if isinstance(widget, (TextEditBaseWidget, ControlWidget)):
+            console = isinstance(widget, ControlWidget)
             not_readonly = not widget.isReadOnly()
             readwrite_editor = not_readonly and not console
             textedit_properties = (console, not_readonly, readwrite_editor)
@@ -2545,13 +2542,12 @@ class MainWindow(QMainWindow):
         action = self.sender()
         callback = from_qvariant(action.data(), to_text_string)
         from spyder.widgets.editor import TextEditBaseWidget
+        from spyder.widgets.ipythonconsole import ControlWidget
 
-        # If focused widget isn't valid try the last focused
-        if not isinstance(widget, TextEditBaseWidget):
-            widget = self.previous_focused_widget
-
-        if isinstance(widget, TextEditBaseWidget):
+        if isinstance(widget, (TextEditBaseWidget, ControlWidget)):
             getattr(widget, callback)()
+        else:
+            return
 
     def redirect_internalshell_stdio(self, state):
         if state:
