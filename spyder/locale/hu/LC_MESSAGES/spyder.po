@@ -5611,3 +5611,342 @@ msgstr ""
 #, fuzzy
 msgid "Unable to check for updates."
 msgstr "Frissítések ellenőrzése"
+
+#: spyder/plugins/breakpoints/plugin.py:55
+msgid "Breakpoints"
+msgstr "Töréspontok"
+
+#: spyder/plugins/breakpoints/plugin.py:91
+msgid "List breakpoints"
+msgstr "Töréspontok listája"
+
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:98
+msgid "Condition"
+msgstr "Feltétel"
+
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:98
+msgid "File"
+msgstr "Fájl"
+
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:98
+msgid "Line"
+msgstr "Vonal"
+
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:181
+msgid "Clear breakpoints in all files"
+msgstr "Töröl töréspontot minden fájlban"
+
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:202
+msgid "Clear this breakpoint"
+msgstr "Törölje ezt a töréspontot"
+
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:207
+msgid "Edit this breakpoint"
+msgstr "Szekeszti ezt a töréspontot"
+
+#: spyder/plugins/profiler/plugin.py:33
+msgid "Results"
+msgstr "Eredmények"
+
+#: spyder/plugins/profiler/plugin.py:34
+msgid ""
+"Profiler plugin results (the output of python's profile/cProfile)\n"
+"are stored here:"
+msgstr "Profilozó (python profile/cProfile kimenetei) eredményeket"
+"ide tárolni"
+
+#: spyder/plugins/profiler/plugin.py:75
+msgid "Profiler"
+msgstr "Profilozó"
+
+#: spyder/plugins/profiler/plugin.py:104 spyder/plugins/profiler/widgets/profilergui.py:81
+msgid "Profile"
+msgstr "Profilozni"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:82
+msgid "Run profiler"
+msgstr "A profilozó futtatása"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:87
+msgid "Stop"
+msgstr "Megáll"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:88
+msgid "Stop current profiling"
+msgstr "A jelenlegi profilozó leállítása"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:96
+#: spyder/plugins/profiler/widgets/profilergui.py:219
+msgid "Select Python script"
+msgstr "Python script kiválasztása"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:102
+msgid "Output"
+msgstr "Kimenet"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:104
+msgid "Show program's output"
+msgstr "A program kimenetét mutatni"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:113
+msgid "Collapse one level up"
+msgstr "Egy szintet felfelé összeomlít"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:118
+msgid "Expand one level down"
+msgstr "Egy szintet lefelé terjeszt"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:121
+msgid "Save data"
+msgstr "Adat mentése"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:124
+msgid "Save profiling data"
+msgstr "Profilozó adatok mentése"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:126
+msgid "Load data"
+msgstr "Adatbetöltés"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:129
+msgid "Load profiling data for comparison"
+msgstr "Profilozó adatok betöltése összehasonlításhoz"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:131
+msgid "Clear comparison"
+msgstr "Összehasonlítás törlése"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:171
+msgid "Please install"
+msgstr "Kérjük telepítse"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:172
+msgid "the Python profiler modules"
+msgstr "python profilozó modulok"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:179
+msgid "Save profiler result"
+msgstr "A profilozó eredmények mentése"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:182
+#: spyder/plugins/profiler/widgets/profilergui.py:188
+msgid "Profiler result"
+msgstr "Profilozó eredmények"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:187
+msgid "Select script to compare"
+msgstr "Script kiválasztása összehasonlításhoz"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:220
+msgid "Python scripts"
+msgstr "Python scriptek"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:227
+#: spyder/plugins/profiler/widgets/profilergui.py:232
+msgid "Profiler output"
+msgstr "Profilozó kimenete"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:251
+msgid "Profiling, please wait..."
+msgstr "Profilozás, kérlek várj..."
+
+#: spyder/plugins/profiler/widgets/profilergui.py:295
+msgid "Error"
+msgstr "Hiba"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:296
+msgid "Process failed to start"
+msgstr "Folyamat inditás nem sikerült"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:343
+msgid "Sorting data, please wait..."
+msgstr "Adat rendezés, kérem várjon"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:389
+msgid "Function/Module"
+msgstr "Funkció/Modul"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:389
+msgid "Total Time"
+msgstr "Teljes idő"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:389
+#: spyder/plugins/profiler/widgets/profilergui.py:390
+msgid "Diff"
+msgstr "Diff"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:390
+msgid "Calls"
+msgstr "Hívások"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:390
+msgid "Local Time"
+msgstr "Helyi idő"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:391
+msgid "File:line"
+msgstr "Fájl:vonal"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:565
+msgid "Function or module name"
+msgstr "Funkció vagy modul neve"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:569
+msgid "Time in function (including sub-functions)"
+msgstr "Idő funkcióban (alfunckiókat beleszámítva)"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:578
+msgid "Local time in function (not in sub-functions)"
+msgstr "Helyi idő funckióban (nem alfuncióban)"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:588
+msgid "Total number of calls (including recursion)"
+msgstr "Teljes hívás száma (rekurzió beleszámítva)"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:598
+msgid "File:line where function is defined"
+msgstr "Fájl:vonal ahol megértelmez funkciót"
+
+#: spyder/plugins/profiler/widgets/profilergui.py:603
+msgid "recursion"
+msgstr "rekurzió"
+
+#: spyder/plugins/pylint/plugin.py:35
+msgid "Settings"
+msgstr "Beállítások"
+
+#: spyder/plugins/pylint/plugin.py:36
+msgid "Save file before analyzing it"
+msgstr "Menteni elemzés előtt"
+
+#: spyder/plugins/pylint/plugin.py:39 spyder/plugins/pylint/plugin.py:160
+msgid "History"
+msgstr "Előzmények"
+
+#: spyder/plugins/pylint/plugin.py:40
+msgid "The following option will be applied at next startup."
+msgstr "Következő "
+
+#: spyder/plugins/pylint/plugin.py:43
+msgid "History: "
+msgstr "Előzmények:"
+
+#: spyder/plugins/pylint/plugin.py:44
+msgid " results"
+msgstr " eredmények"
+
+#: spyder/plugins/pylint/plugin.py:47
+msgid "Results"
+msgstr "Eredmények"
+
+#: spyder/plugins/pylint/plugin.py:48
+msgid "Results are stored here:"
+msgstr "Az eredmények itt tárolva:"
+
+#: spyder/plugins/pylint/plugin.py:98 spyder/plugins/pylint/widgets/pylintgui.py:83
+msgid "Static code analysis"
+msgstr "Statkikus kód elemzés"
+
+#: spyder/plugins/pylint/plugin.py:115
+msgid "History..."
+msgstr "Előzmények..."
+
+#: spyder/plugins/pylint/plugin.py:117
+msgid "Set history maximum entries"
+msgstr "Maximális előzményelemek beállítása"
+
+#: spyder/plugins/pylint/plugin.py:133
+msgid "Run static code analysis"
+msgstr "Statikus kód elemzés futtatása"
+
+#: spyder/plugins/pylint/plugin.py:161
+msgid "Maximum entries"
+msgstr "Elemek maximuma"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:117
+msgid "Results for "
+msgstr "Eredmények ehhez:"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:122
+#, fuzzy
+msgid "Convention"
+msgstr "Egy, két vagy három betűs nemzetközi rövidítés egy elem nevére."
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:124
+msgid "Refactor"
+msgstr "Újrafaktorizálás"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:126
+msgid "Warning"
+msgstr "Figyelem"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:128
+#: spyder/plugins/pylint/widgets/pylintgui.py:363
+#: spyder/plugins/pylint/widgets/pylintgui.py:391
+msgid "Error"
+msgstr "Hiba"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:206
+msgid "Analyze"
+msgstr "Elemzés"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:207
+msgid "Run analysis"
+msgstr "Elemzés futtatása"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:211
+msgid "Stop"
+msgstr "Megállítás"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:212
+msgid "Stop current analysis"
+msgstr "A jelenlegi elemzés megállítása"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:218
+#: spyder/plugins/pylint/widgets/pylintgui.py:288
+msgid "Select Python file"
+msgstr "Python fájl választás"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:224
+msgid "Output"
+msgstr "Kimenet"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:226
+msgid "Complete output"
+msgstr "Teljes kimenet"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:260
+msgid "Pylint script was not found. Please add \"%s\" to PATH."
+msgstr "Pylint script nem találva. Kérem hozzáadni \"%s\"-ot a PATH-hoz"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:263
+msgid "Please install <b>pylint</b>:"
+msgstr "Kérjük telepítse a <b>pylint</b>-et:"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:289
+msgid "Python files"
+msgstr "Python-fájlok"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:326
+msgid "Pylint output"
+msgstr "Pylint kimenet"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:364
+msgid "Process failed to start"
+msgstr "A folyamat indítása nem sikerült"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:465
+msgid "Source code has not been rated yet."
+msgstr "Forráskód még nem becsülve"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:471
+msgid "Analysis did not succeed (see output for more details)."
+msgstr "Elemzés nem sikerült (részletekért lássa a kimenetet)"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:484
+msgid "Global evaluation:"
+msgstr "Általános értékalés"
+
+#: spyder/plugins/pylint/widgets/pylintgui.py:488
+msgid "previous run:"
+msgstr "Előző futtatás:"
