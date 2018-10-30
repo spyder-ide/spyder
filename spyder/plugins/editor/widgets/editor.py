@@ -1474,11 +1474,6 @@ class EditorStack(QWidget):
             # (see Issue 1094, Issue 1098)
             self.sig_close_file.emit(str(id(self)), filename)
 
-            if not self.data and self.is_closable:
-                # editortabwidget is empty: removing it
-                # (if it's not the first editortabwidget)
-                self.close()
-
             self.opened_files_list_changed.emit()
             self.update_code_analysis_actions.emit()
             self._refresh_outlineexplorer()
