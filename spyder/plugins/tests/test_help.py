@@ -107,21 +107,14 @@ def test_help_opens_when_show_tutorial_unit(help_plugin, qtbot):
     MockDockwidget = MagicMock()
     MockDockwidget.return_value.isVisible.return_value = False
     mockDockwidget_instance = MockDockwidget()
-
-    MockAction = Mock()
-    mock_toggle_view_action = MockAction()
     mock_show_rich_text = Mock()
 
     help_plugin.dockwidget = mockDockwidget_instance
-    help_plugin.toggle_view_action = mock_toggle_view_action
     help_plugin.show_rich_text = mock_show_rich_text
 
     help_plugin.show_tutorial()
     qtbot.wait(100)
 
-    assert mockDockwidget_instance.show.call_count == 1
-    assert mock_toggle_view_action.setChecked.call_count == 1
-    mock_toggle_view_action.setChecked.assert_called_once_with(True)
     assert mock_show_rich_text.call_count == 1
 
     MockDockwidget.return_value.isVisible.return_value = True
@@ -130,8 +123,6 @@ def test_help_opens_when_show_tutorial_unit(help_plugin, qtbot):
 
     help_plugin.show_tutorial()
     qtbot.wait(100)
-    assert mockDockwidget_instance.show.call_count == 1
-    assert mock_toggle_view_action.setChecked.call_count == 1
     assert mock_show_rich_text.call_count == 2
 
 
