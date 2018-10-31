@@ -2034,8 +2034,8 @@ class MainWindow(QMainWindow):
         widget, textedit_properties = self.get_focus_widget_properties()
         if textedit_properties is None: # widget is not an editor/console
             return
-        #!!! Below this line, widget is expected to be a QPlainTextEdit
-        #    instance
+        # !!! Below this line, widget is expected to be a QPlainTextEdit
+        #     instance
         console, not_readonly, readwrite_editor = textedit_properties
 
         # Editor has focus and there is no file opened in it
@@ -2077,8 +2077,8 @@ class MainWindow(QMainWindow):
         if textedit_properties is None: # widget is not an editor/console
             return
 
-        #!!! Below this line, widget is expected to be a QPlainTextEdit
-        #    instance
+        # !!! Below this line, widget is expected to be a QPlainTextEdit
+        #     instance
         console, not_readonly, readwrite_editor = textedit_properties
 
         # Find actions only trigger an effect in the Editor
