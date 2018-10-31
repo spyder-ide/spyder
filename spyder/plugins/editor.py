@@ -2326,6 +2326,7 @@ class Editor(SpyderPluginWidget):
         """Set/Clear breakpoint"""
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
+            self.switch_to_plugin()
             editorstack.set_or_clear_breakpoint()
 
     @Slot()
@@ -2333,11 +2334,13 @@ class Editor(SpyderPluginWidget):
         """Set/Edit conditional breakpoint"""
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
+            self.switch_to_plugin()
             editorstack.set_or_edit_conditional_breakpoint()
 
     @Slot()
     def clear_all_breakpoints(self):
         """Clear breakpoints in all files"""
+        self.switch_to_plugin()
         clear_all_breakpoints()
         self.breakpoints_saved.emit()
         editorstack = self.get_current_editorstack()
@@ -2358,6 +2361,7 @@ class Editor(SpyderPluginWidget):
                 
     def debug_command(self, command):
         """Debug actions"""
+        self.switch_to_plugin()
         self.main.ipyconsole.write_to_stdin(command)
         focus_widget = self.main.ipyconsole.get_focus_widget()
         if focus_widget:
@@ -2453,6 +2457,7 @@ class Editor(SpyderPluginWidget):
     @Slot()
     def debug_file(self):
         """Debug current script"""
+        self.switch_to_plugin()
         self.run_file(debug=True)
 
     @Slot()
