@@ -31,7 +31,8 @@ def main(extra_args=None):
                    '--durations=10']
 
     if RUN_CI:
-        pytest_args += ['-x', '--run-slow']
+        pytest_args += ['-x', '--run-slow', '--cov=spyder',
+                        '--cov=spyder_profiler', '--no-cov-on-fail']
     elif extra_args:
         pytest_args += extra_args
 
