@@ -192,17 +192,23 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             fetch_more = False
         else:
             fetch_more = True
-        
-        if self.remote:
-            sizes = [ data[self.keys[index]]['size'] 
-                      for index in range(start, stop) ]
-            types = [ data[self.keys[index]]['type']
-                      for index in range(start, stop) ]
-        else:
-            sizes = [ get_size(data[self.keys[index]])
-                      for index in range(start, stop) ]
-            types = [ get_human_readable_type(data[self.keys[index]])
-                      for index in range(start, stop) ]
+
+        # Ignore pandas warnings that certain attributes are deprecated
+        # and will be removed, since they will only be accessed if they exist.
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore", message=(r"^\w+\.\w+ is deprecated and "
+                                   "will be removed in a future version"))
+            if self.remote:
+                sizes = [data[self.keys[index]]['size']
+                         for index in range(start, stop)]
+                types = [data[self.keys[index]]['type']
+                         for index in range(start, stop)]
+            else:
+                sizes = [get_size(data[self.keys[index]])
+                         for index in range(start, stop)]
+                types = [get_human_readable_type(data[self.keys[index]])
+                         for index in range(start, stop)]
 
         if fetch_more:
             self.sizes = self.sizes + sizes
