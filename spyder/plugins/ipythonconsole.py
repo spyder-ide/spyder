@@ -1592,8 +1592,8 @@ class IPythonConsole(SpyderPluginWidget):
     def restart_kernel(self):
         """Restart kernel of current client."""
         client = self.get_current_client()
-
         if client is not None:
+            self.switch_to_plugin()
             client.restart_kernel()
 
     def connect_external_kernel(self, shellwidget):

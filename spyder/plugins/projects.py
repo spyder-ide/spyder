@@ -103,7 +103,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
                                     triggered=self.close_project)
         self.delete_project_action = create_action(self,
                                     _("Delete Project"),
-                                    triggered=self.delete_project)
+                                    triggered=self._delete_project)
         self.clear_recent_projects_action =\
             create_action(self, _("Clear this list"),
                           triggered=self.clear_recent_projects)
@@ -182,10 +182,13 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
             for project in self.recent_projects:
                 if self.is_valid_project(project):
                     name = project.replace(get_home_dir(), '~')
+                    def slot():
+                        self.switch_to_plugin()
+                        self.open_project(path=project)
                     action = create_action(self,
                         name,
                         icon = ima.icon('project'),
-                        triggered=lambda v, path=project: self.open_project(path=path))
+                        triggered=slot)
                     self.recent_projects_actions.append(action)
                 else:
                     self.recent_projects.remove(project)
@@ -225,6 +228,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
     @Slot()
     def create_new_project(self):
         """Create new project"""
+        self.switch_to_plugin()
         active_project = self.current_active_project
         dlg = ProjectDialog(self)
         dlg.sig_project_creation_requested.connect(self._create_project)
@@ -245,6 +249,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
     def open_project(self, path=None, restart_consoles=True,
                      save_previous_files=True):
         """Open the project located in `path`"""
+        self.switch_to_plugin()
         if path is None:
             basedir = get_home_dir()
             path = getexistingdirectory(parent=self,
@@ -292,6 +297,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         project
         """
         if self.current_active_project:
+            self.switch_to_plugin()
             path = self.current_active_project.root_path
             self.current_active_project = None
             self.set_option('current_project_path', None)
@@ -312,6 +318,12 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
 
             if self.editor is not None:
                 self.set_project_filenames(self.editor.get_open_filenames())
+
+    def _delete_project(self):
+        """Delete current project."""
+        if self.current_active_project:
+            self.switch_to_plugin()
+            self.delete_project()
 
     def clear_recent_projects(self):
         """Clear the list of recent projects"""
