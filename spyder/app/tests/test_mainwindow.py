@@ -375,12 +375,12 @@ def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
 
     spy_dir = osp.dirname(get_module_path('spyder'))
     lock_code = ("import sys\n"
-                 "sys.path.append('{}')\n"
+                 "sys.path.append(r'{spy_dir_str}')\n"
                  "from spyder.config.base import get_conf_path\n"
                  "from spyder.utils.external import lockfile\n"
                  "lock_file = get_conf_path('spyder.lock')\n"
                  "lock = lockfile.FilesystemLock(lock_file)\n"
-                 "lock_created = lock.lock()".format(spy_dir))
+                 "lock_created = lock.lock()".format(spy_dir_str=spy_dir))
 
     # Test single instance
     with qtbot.waitSignal(shell.executed):
