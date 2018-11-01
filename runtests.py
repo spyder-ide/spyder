@@ -5,54 +5,55 @@
 #
 
 """
-File for running tests programmatically.
+Script for running Spyder tests programmatically.
 """
 
 # Standard library imports
 import os
 import sys
+import argparse
 
 # Third party imports
-import qtpy  # to ensure that Qt4 uses API v2
 import pytest
 
 
 # To run our slow tests only in our CIs
-run_slow = False
-if os.environ.get('CI', None) is not None or '--run-slow' in sys.argv:
-    run_slow = True
+RUN_CI = os.environ.get('CI', None) is not None
 
 
-# Skip slow tests for macOS and Python 3 in our CIs because they
-# don't run correctly
-if (sys.platform == 'darwin' and sys.version_info[0] == 3 and
-        os.environ.get('CI', None) is not None):
-    run_slow = False
-
-
-def main():
+def main(extra_args=None):
     """
-    Run pytest tests.
+    Run pytest tests for Spyder.
     """
     pytest_args = ['spyder',
-                   '-x',
                    '-vv',
                    '-rw',
-                   '--durations=10',
-                   '--cov=spyder']
+                   '--durations=10']
 
-    if run_slow:
-        pytest_args.append('--run-slow')
+    if RUN_CI:
+        pytest_args += ['-x', '--cov=spyder', '--cov=spyder_profiler',
+                        '--no-cov-on-fail']
+        # Skip slow tests for macOS and Python 3 because they
+        # don't run correctly
+        if not (sys.platform == 'darwin' and sys.version_info[0] == 3):
+            pytest_args += ['--run-slow']
+    elif extra_args:
+        pytest_args += extra_args
 
+    print("Pytest Arguments: " + str(pytest_args))
     errno = pytest.main(pytest_args)
 
-    # sys.exit doesn't work here because some things could be running
-    # in the background (e.g. closing the main window) when this point
-    # is reached. And if that's the case, sys.exit does't stop the
-    # script (as you would expected).
+    # sys.exit doesn't work here because some things could be running in the
+    # background (e.g. closing the main window) when this point is reached.
+    # If that's the case, sys.exit doesn't stop the script as you would expect.
     if errno != 0:
         raise SystemExit(errno)
 
 
 if __name__ == '__main__':
-    main()
+    test_parser = argparse.ArgumentParser(
+        usage='python runtests.py [--run-slow] [-- pytest_args]')
+    test_parser.add_argument('pytest_args', nargs='*',
+                             help="Args to pass to pytest")
+    test_args = test_parser.parse_args()
+    main(extra_args=test_args.pytest_args)
