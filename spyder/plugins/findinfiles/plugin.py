@@ -61,7 +61,8 @@ class FindInFiles(SpyderPluginWidget):
                                    supported_encodings,
                                    more_options,
                                    case_sensitive, path_history,
-                                   options_button=self.options_button)
+                                   options_button=self.options_button,
+                                   text_color=ima.MAIN_FG_COLOR)
 
         layout = QVBoxLayout()
         layout.addWidget(self.findinfiles)

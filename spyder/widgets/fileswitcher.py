@@ -657,14 +657,17 @@ class FileSwitcher(QDialog):
         for index, score in enumerate(scores):
             text, rich_text, score_value = score
             if score_value != -1:
-                text_item = '<big>' + rich_text.replace('&', '') + '</big>'
+                text_item = "<big style='color:{0:}'>{1:}</big>".format(
+                        ima.MAIN_FG_COLOR, rich_text.replace('&', ''))
                 if trying_for_line_number:
                     text_item += " [{0:} {1:}]".format(self.line_count[index],
                                                        _("lines"))
                 if max_width > self.list.width():
-                    text_item += u"<br><i>{0:}</i>".format(short_paths[index])
+                    text_item += u"<br><i style='color:{0:}'>{1:}</i>".format(
+                            ima.MAIN_FG_COLOR, short_paths[index])
                 else:
-                    text_item += u"<br><i>{0:}</i>".format(paths[index])
+                    text_item += u"<br><i style='color:{0:}'>{1:}</i>".format(
+                            ima.MAIN_FG_COLOR, paths[index])
                 if (trying_for_line_number and self.line_count[index] != 0 or
                         not trying_for_line_number):
                     results.append((score_value, index, text_item))
@@ -681,7 +684,9 @@ class FileSwitcher(QDialog):
                 title = self.widgets[index][1].get_plugin_title().split(' - ')
                 if plugin != title[0]:
                     plugin = title[0]
-                    text += '<br><big><b>' + plugin + '</b></big><br>'
+                    text += ("<br><big style='color:{0:}'>"
+                             "<b>{1:}</b></big><br>").format(ima.MAIN_FG_COLOR,
+                                                             plugin)
                     item = QListWidgetItem(text)
                     item.setToolTip(path)
                     item.setSizeHint(QSize(0, 25))
@@ -745,7 +750,8 @@ class FileSwitcher(QDialog):
                 results.append((score_value, line, text, rich_text,
                                 fold_level, icons[index], token))
 
-        template = '{0}{1}'
+        template = '{{0}}<span style="color:{0}">{{1}}</span>'.format(
+                ima.MAIN_FG_COLOR)
 
         for (score, line, text, rich_text, fold_level, icon,
              token) in sorted(results):

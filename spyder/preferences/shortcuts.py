@@ -496,7 +496,7 @@ CONTEXT, NAME, SEQUENCE, SEARCH_SCORE = [0, 1, 2, 3]
 
 
 class ShortcutsModel(QAbstractTableModel):
-    def __init__(self, parent):
+    def __init__(self, parent, text_color=None, text_color_highlight=None):
         QAbstractTableModel.__init__(self)
         self._parent = parent
 
@@ -510,8 +510,16 @@ class ShortcutsModel(QAbstractTableModel):
 
         # Needed to compensate for the HTMLDelegate color selection unawarness
         palette = parent.palette()
-        self.text_color = palette.text().color().name()
-        self.text_color_highlight = palette.highlightedText().color().name()
+        if text_color is None:
+            self.text_color = palette.text().color().name()
+        else:
+            self.text_color = text_color
+
+        if text_color_highlight is None:
+            self.text_color_highlight = \
+                palette.highlightedText().color().name()
+        else:
+            self.text_color_highlight = text_color_highlight
 
     def current_index(self):
         """Get the currently selected index in the parent table view."""
@@ -660,12 +668,16 @@ class CustomSortFilterProxy(QSortFilterProxyModel):
 
 
 class ShortcutsTable(QTableView):
-    def __init__(self, parent=None):
+    def __init__(self,
+                 parent=None, text_color=None, text_color_highlight=None):
         QTableView.__init__(self, parent)
         self._parent = parent
         self.finder = None
 
-        self.source_model = ShortcutsModel(self)
+        self.source_model = ShortcutsModel(
+                                    self,
+                                    text_color=text_color,
+                                    text_color_highlight=text_color_highlight)
         self.proxy_model = CustomSortFilterProxy(self)
         self.last_regex = ''
 
@@ -836,7 +848,7 @@ class ShortcutsConfigPage(GeneralConfigPage):
     def setup_page(self):
         self.ICON = ima.icon('keyboard')
         # Widgets
-        self.table = ShortcutsTable(self)
+        self.table = ShortcutsTable(self, text_color=ima.MAIN_FG_COLOR)
         self.finder = ShortcutFinder(self.table, self.table.set_regex)
         self.table.finder = self.finder
         self.label_finder = QLabel(_('Search: '))
