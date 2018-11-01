@@ -40,10 +40,8 @@ install:
   - "powershell ci-helpers/appveyor/install-miniconda.ps1"
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
   - "activate test"
-  # Install qtpy and qtconsole from Github
+  # Install qtpy from Github
   - "pip install git+https://github.com/spyder-ide/qtpy.git"
-  - "conda remove -q -y qtconsole"
-  - "pip install git+https://github.com/jupyter/qtconsole.git"
   # Fix problems with latest pyqt
   - "conda install pyqt=5.6*"
   # Reinstall Matplotlib in case it had been removed
