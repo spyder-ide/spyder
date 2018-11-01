@@ -56,7 +56,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
     sig_project_closed = Signal(object)
     sig_new_file = Signal(str)
 
-    def __init__(self, parent=None, testing=False):
+    def __init__(self, parent=None):
         ProjectExplorerWidget.__init__(self, parent=parent,
                     name_filters=self.get_option('name_filters'),
                     show_all=self.get_option('show_all'),
@@ -67,15 +67,8 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         self.current_active_project = None
         self.latest_project = None
 
-        self.editor = None
-        self.workingdirectory = None
-
-        # For testing
-        self.testing = testing
-
         # Initialize plugin
-        if not self.testing:
-            self.initialize_plugin()
+        self.initialize_plugin()
         self.setup_project(self.get_active_project_path())
 
     #------ SpyderPluginWidget API ---------------------------------------------
@@ -113,54 +106,52 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         self.recent_project_menu = QMenu(_("Recent Projects"), self)
         explorer_action = self.toggle_view_action
 
-        self.main.projects_menu_actions += [self.new_project_action,
-                                            MENU_SEPARATOR,
-                                            self.open_project_action,
-                                            self.close_project_action,
-                                            self.delete_project_action,
-                                            MENU_SEPARATOR,
-                                            self.recent_project_menu,
-                                            explorer_action]
+        if self.main is not None:
+            self.main.projects_menu_actions += [self.new_project_action,
+                                                MENU_SEPARATOR,
+                                                self.open_project_action,
+                                                self.close_project_action,
+                                                self.delete_project_action,
+                                                MENU_SEPARATOR,
+                                                self.recent_project_menu,
+                                                explorer_action]
 
         self.setup_menu_actions()
         return []
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.editor = self.main.editor
-        self.workingdirectory = self.main.workingdirectory
-
         self.main.pythonpath_changed()
         self.main.restore_scrollbar_position.connect(
                                                self.restore_scrollbar_position)
         self.sig_pythonpath_changed.connect(self.main.pythonpath_changed)
-        self.create_module.connect(self.editor.new)
-        self.edit.connect(self.editor.load)
-        self.removed.connect(self.editor.removed)
-        self.removed_tree.connect(self.editor.removed_tree)
-        self.renamed.connect(self.editor.renamed)
-        self.renamed_tree.connect(self.editor.renamed_tree)
-        self.editor.set_projects(self)
+        self.create_module.connect(self.main.editor.new)
+        self.edit.connect(self.main.editor.load)
+        self.removed.connect(self.main.editor.removed)
+        self.removed_tree.connect(self.main.editor.removed_tree)
+        self.renamed.connect(self.main.editor.renamed)
+        self.renamed_tree.connect(self.main.editor.renamed_tree)
+        self.main.editor.set_projects(self)
         self.main.add_dockwidget(self)
 
         self.sig_open_file.connect(self.main.open_file)
 
-        self.sig_new_file.connect(lambda x: self.editor.new(text=x))
+        self.sig_new_file.connect(lambda x: self.main.editor.new(text=x))
 
         # New project connections. Order matters!
         self.sig_project_loaded.connect(
-            lambda v: self.workingdirectory.chdir(v))
+            lambda v: self.main.workingdirectory.chdir(v))
         self.sig_project_loaded.connect(
             lambda v: self.main.set_window_title())
         self.sig_project_loaded.connect(
-            lambda v: self.editor.setup_open_files())
+            lambda v: self.main.editor.setup_open_files())
         self.sig_project_loaded.connect(self.update_explorer)
         self.sig_project_closed[object].connect(
-            lambda v: self.workingdirectory.chdir(self.get_last_working_dir()))
+            lambda v: self.main.workingdirectory.chdir(self.get_last_working_dir()))
         self.sig_project_closed.connect(
             lambda v: self.main.set_window_title())
         self.sig_project_closed.connect(
-            lambda v: self.editor.setup_open_files())
+            lambda v: self.main.editor.setup_open_files())
         self.recent_project_menu.aboutToShow.connect(self.setup_menu_actions)
 
     def refresh_plugin(self):
@@ -268,23 +259,22 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
 
         # A project was not open before
         if self.current_active_project is None:
-            if save_previous_files and self.editor is not None:
-                self.editor.save_open_files()
-            if self.editor is not None:
-                self.editor.set_option('last_working_dir', getcwd_or_home())
+            if save_previous_files and self.main.editor is not None:
+                self.main.editor.save_open_files()
+            if self.main.editor is not None:
+                self.main.editor.set_option('last_working_dir', getcwd_or_home())
             if self.get_option('visible_if_project_open'):
                 self.show_explorer()
         else:
             # We are switching projects
-            if self.editor is not None:
-                self.set_project_filenames(self.editor.get_open_filenames())
+            if self.main.editor is not None:
+                self.set_project_filenames(self.main.editor.get_open_filenames())
 
         self.current_active_project = EmptyProject(path)
         self.latest_project = EmptyProject(path)
         self.set_option('current_project_path', self.get_active_project_path())
 
-        if not self.testing:
-            self.setup_menu_actions()
+        self.setup_menu_actions()
         self.sig_project_loaded.emit(path)
         self.sig_pythonpath_changed.emit()
 
@@ -301,9 +291,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
             path = self.current_active_project.root_path
             self.current_active_project = None
             self.set_option('current_project_path', None)
-
-            if not self.testing:
-                self.setup_menu_actions()
+            self.setup_menu_actions()
 
             self.sig_project_closed.emit(path)
             self.sig_pythonpath_changed.emit()
@@ -316,8 +304,9 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
             self.clear()
             self.restart_consoles()
 
-            if self.editor is not None:
-                self.set_project_filenames(self.editor.get_open_filenames())
+            if self.main.editor is not None:
+                self.set_project_filenames(
+                    self.main.editor.get_open_filenames())
 
     def _delete_project(self):
         """Delete current project."""
@@ -386,8 +375,8 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
 
     def get_last_working_dir(self):
         """Get the path of the last working directory"""
-        return self.editor.get_option('last_working_dir',
-                                      default=getcwd_or_home())
+        return self.main.editor.get_option('last_working_dir',
+                                           default=getcwd_or_home())
 
     def save_config(self):
         """
@@ -434,7 +423,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
 
     def restart_consoles(self):
         """Restart consoles when closing, opening and switching projects"""
-        if not self.testing and self.main.ipyconsole is not None:
+        if self.main.ipyconsole is not None:
             self.main.ipyconsole.restart()
 
     def is_valid_project(self, path):
