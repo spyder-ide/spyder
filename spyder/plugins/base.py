@@ -103,7 +103,7 @@ class BasePluginWidget(QWidget):
         dock.setWidget(self)
         self.update_margins()
         dock.visibilityChanged.connect(self.visibility_changed)
-        dock.topLevelChanged.connect(self.create_window)
+        dock.topLevelChanged.connect(self.undock_plugin)
         dock.plugin_closed.connect(self.plugin_closed)
         self.dockwidget = dock
         self.undocked = False
@@ -193,8 +193,7 @@ class BasePluginWidget(QWidget):
     @Slot()
     def create_window(self):
         """Open a window of the plugin instead of undocking it."""
-        if (self.dockwidget.isFloating() and not self.undocked and
-                self.dockwidget.main.dockwidgets_locked):
+        if not self.undocked:
             self.dockwidget.setFloating(False)
             self.dockwidget.setVisible(False)
             self.undock_action.setDisabled(True)
@@ -218,10 +217,9 @@ class BasePluginWidget(QWidget):
                                            _("Undock"),
                                            icon=ima.icon('newwindow'),
                                            tip=_("Undock the plugin"),
-                                           triggered=self.undock_plugin)
+                                           triggered=self.create_window)
 
     def undock_plugin(self):
         """Undocks the plugin from the MainWindow."""
-        self.undocked = True
         self.dockwidget.setFloating(True)
         self.undock_action.setDisabled(True)
