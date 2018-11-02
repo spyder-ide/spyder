@@ -84,7 +84,7 @@ from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
 from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QDockWidget, QMainWindow,
                             QMenu, QMessageBox, QShortcut, QSplashScreen,
-                            QStyleFactory)
+                            QStyleFactory, QWidget)
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -2764,7 +2764,15 @@ class MainWindow(QMainWindow):
             if CONF.get('main', 'vertical_dockwidget_titlebars'):
                 features = features | QDockWidget.DockWidgetVerticalTitleBar
             if not self.dockwidgets_locked:
+                child.dockwidget.setTitleBarWidget(None)
                 features = features | QDockWidget.DockWidgetMovable
+            else:
+                # We don't hide the Editor's title bar because people like
+                # to see the full path of the current file on it.
+                if child.dockwidget.title == 'Editor':
+                    features = QDockWidget.NoDockWidgetFeatures
+                else:
+                    child.dockwidget.setTitleBarWidget(QWidget())
             child.dockwidget.setFeatures(features)
             child.update_margins()
 
