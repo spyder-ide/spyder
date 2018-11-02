@@ -25,7 +25,7 @@ from spyder.config.gui import get_color_scheme
 from spyder.config.main import CONF
 from spyder.config.user import NoDefault
 from spyder.plugins.base import _, BasePluginWidget
-from spyder.py3compat import configparser, is_text_string
+from spyder.py3compat import configparser
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_toolbutton,
                                     MENU_SEPARATOR, toggle_actions)
@@ -97,12 +97,8 @@ class PluginWidget(BasePluginWidget):
         """
         self.create_toggle_view_action()
 
-        # Undock action
-        self.create_undock_action()
         self.plugin_actions = self.get_plugin_actions() + [MENU_SEPARATOR,
                                                            self.undock_action]
-
-        # Options button and menu
         add_actions(self.options_menu, self.plugin_actions)
         self.options_button.setMenu(self.options_menu)
         self.options_menu.aboutToShow.connect(self.refresh_actions)
@@ -111,23 +107,6 @@ class PluginWidget(BasePluginWidget):
         self.sig_update_plugin_title.connect(self.update_plugin_title)
         self.sig_option_changed.connect(self.set_option)
         self.setWindowTitle(self.get_plugin_title())
-
-    def create_mainwindow(self):
-        """
-        Create a QMainWindow instance containing this plugin.
-
-        Note: this method is currently not used in Spyder core plugins
-        """
-        self.mainwindow = mainwindow = PluginMainWindow(self)
-        mainwindow.setAttribute(Qt.WA_DeleteOnClose)
-        icon = self.get_plugin_icon()
-        if is_text_string(icon):
-            icon = self.get_icon(icon)
-        mainwindow.setWindowIcon(icon)
-        mainwindow.setWindowTitle(self.get_plugin_title())
-        mainwindow.setCentralWidget(self)
-        self.refresh_plugin()
-        return mainwindow
 
     def register_shortcut(self, qaction_or_qshortcut, context, name,
                           add_sc_to_tip=False):
@@ -207,10 +186,20 @@ class PluginWidget(BasePluginWidget):
         messageBox.show()
 
     def refresh_actions(self):
-        """Clear the menu of the plugin and add the actions."""
+        """Create options menu."""
         self.options_menu.clear()
+
+        # Decide what dock action to show
+        if self.mainwindow is None:
+            # Plugin is docked, we can undock it
+            dock_action = self.undock_action
+        else:
+            # Plugin is undocked, we can dock it
+            dock_action = self.dock_action
+
+        # Create actions list
         self.plugin_actions = self.get_plugin_actions() + [MENU_SEPARATOR,
-                                                           self.undock_action]
+                                                           dock_action]
         add_actions(self.options_menu, self.plugin_actions)
 
 
