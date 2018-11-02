@@ -84,7 +84,7 @@ from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
 from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QDockWidget, QMainWindow,
                             QMenu, QMessageBox, QShortcut, QSplashScreen,
-                            QStyleFactory, QWidget)
+                            QStyleFactory, QTabWidget, QWidget)
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -558,7 +558,13 @@ class MainWindow(QMainWindow):
             self.open_files_server = socket.socket(socket.AF_INET,
                                                    socket.SOCK_STREAM,
                                                    socket.IPPROTO_TCP)
+
+        # Apply preferences
         self.apply_settings()
+
+        # Set all dockwidgets tabs to be on top
+        self.setTabPosition(Qt.AllDockWidgetAreas, QTabWidget.North)
+
         logger.info("End of MainWindow constructor")
 
     #---- Window setup
