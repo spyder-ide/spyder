@@ -225,7 +225,7 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 ### Runtime dependencies
 
 * **Python** 2.7 or 3.4+: The core language Spyder is written in and for.
-* **PyQt5** 5.5+: Python bindings for Qt, used for Spyder's GUI.
+* **PyQt5** 5.6+: Python bindings for Qt, used for Spyder's GUI.
 * **qtconsole** 4.2.0+: Enhanced Python interpreter.
 * **Python-language-server**: Editor code completion, calltips
   go-to-definition and real-time code analysis
