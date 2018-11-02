@@ -416,7 +416,7 @@ class MainWindow(QMainWindow):
         self.dialog_layout_settings = LayoutSettingsDialog
 
         # Actions
-        self.lock_dockwidgets_action = None
+        self.lock_interface_action = None
         self.show_toolbars_action = None
         self.close_dockwidget_action = None
         self.undo_action = None
@@ -517,7 +517,7 @@ class MainWindow(QMainWindow):
         self.is_starting_up = True
         self.is_setting_up = True
 
-        self.dockwidgets_locked = CONF.get('main', 'panes_locked')
+        self.interface_locked = CONF.get('main', 'panes_locked')
         self.floating_dockwidgets = []
         self.window_size = None
         self.window_position = None
@@ -599,10 +599,12 @@ class MainWindow(QMainWindow):
                                     context=Qt.ApplicationShortcut)
         self.register_shortcut(self.close_dockwidget_action, "_",
                                "Close pane")
-        self.lock_dockwidgets_action = create_action(self, _("Lock panes"),
-                                        toggled=self.toggle_lock_dockwidgets,
-                                        context=Qt.ApplicationShortcut)
-        self.register_shortcut(self.lock_dockwidgets_action, "_",
+        self.lock_interface_action = create_action(
+            self,
+            _("Lock panes and toolbars"),
+            toggled=self.toggle_lock,
+            context=Qt.ApplicationShortcut)
+        self.register_shortcut(self.lock_interface_action, "_",
                                "Lock unlock panes")
         # custom layouts shortcuts
         self.toggle_next_layout_action = create_action(self,
@@ -1136,7 +1138,7 @@ class MainWindow(QMainWindow):
         self.quick_layout_set_menu()
 
         self.view_menu.addMenu(self.plugins_menu)  # Panes
-        add_actions(self.view_menu, (self.lock_dockwidgets_action,
+        add_actions(self.view_menu, (self.lock_interface_action,
                                      self.close_dockwidget_action,
                                      self.maximize_action,
                                      MENU_SEPARATOR))
@@ -1274,7 +1276,7 @@ class MainWindow(QMainWindow):
         self.load_last_visible_toolbars()
 
         # Update lock status of dockidgets (panes)
-        self.lock_dockwidgets_action.setChecked(self.dockwidgets_locked)
+        self.lock_interface_action.setChecked(self.interface_locked)
         self.apply_panes_settings()
 
         # Hide Internal Console so that people don't use it instead of
@@ -2294,10 +2296,11 @@ class MainWindow(QMainWindow):
                 plugin.dockwidget.hide()
                 break
 
-    def toggle_lock_dockwidgets(self, value):
-        """Lock/Unlock dockwidgets"""
-        self.dockwidgets_locked = value
+    def toggle_lock(self, value):
+        """Lock/Unlock dockwidgets and toolbars"""
+        self.interface_locked = value
         self.apply_panes_settings()
+        self.apply_toolbar_settings()
         CONF.set('main', 'panes_locked', value)
 
     def __update_maximize_action(self):
@@ -2763,7 +2766,7 @@ class MainWindow(QMainWindow):
             features = child.FEATURES
             if CONF.get('main', 'vertical_dockwidget_titlebars'):
                 features = features | QDockWidget.DockWidgetVerticalTitleBar
-            if not self.dockwidgets_locked:
+            if not self.interface_locked:
                 child.dockwidget.setTitleBarWidget(None)
                 features = features | QDockWidget.DockWidgetMovable
             else:
@@ -2775,6 +2778,14 @@ class MainWindow(QMainWindow):
                     child.dockwidget.setTitleBarWidget(QWidget())
             child.dockwidget.setFeatures(features)
             child.update_margins()
+
+    def apply_toolbar_settings(self):
+        """Update toolbars settings"""
+        for toolbar in self.toolbarslist:
+            if self.interface_locked:
+                toolbar.setMovable(False)
+            else:
+                toolbar.setMovable(True)
 
     def apply_statusbar_settings(self):
         """Update status bar widgets settings"""
