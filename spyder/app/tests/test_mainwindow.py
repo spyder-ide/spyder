@@ -1594,24 +1594,6 @@ def test_troubleshooting_menu_item_and_url(monkeypatch):
 
 @flaky(max_runs=3)
 @pytest.mark.slow
-def test_tabfilter_typeerror_full(main_window):
-    """Test for #5813 ; event filter handles None indicies when moving tabs."""
-    MockEvent = MagicMock()
-    MockEvent.return_value.type.return_value = QEvent.MouseMove
-    MockEvent.return_value.pos.return_value = 0
-    mockEvent_instance = MockEvent()
-
-    test_tabbar = main_window.findChildren(QTabBar)[0]
-    test_tabfilter = TabFilter(test_tabbar, main_window)
-    test_tabfilter.from_index = None
-    test_tabfilter.moving = True
-
-    assert test_tabfilter.eventFilter(None, mockEvent_instance)
-    assert mockEvent_instance.pos.call_count == 1
-
-
-@flaky(max_runs=3)
-@pytest.mark.slow
 @pytest.mark.xfail
 def test_help_opens_when_show_tutorial_full(main_window, qtbot):
     """Test fix for #6317 : 'Show tutorial' opens the help plugin if closed."""
