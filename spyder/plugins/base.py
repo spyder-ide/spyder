@@ -56,13 +56,13 @@ class BasePluginWidget(QWidget):
         # Additional actions
         self.dock_action = create_action(self,
                                          _("Dock"),
-                                         icon=ima.icon('newwindow'),
+                                         icon=ima.icon('dock'),
                                          tip=_("Dock the pane"),
                                          triggered=self.close_window)
 
         self.undock_action = create_action(self,
                                            _("Undock"),
-                                           icon=ima.icon('newwindow'),
+                                           icon=ima.icon('undock'),
                                            tip=_("Undock the pane"),
                                            triggered=self.create_mainwindow)
 
