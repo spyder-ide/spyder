@@ -1485,7 +1485,6 @@ class Editor(SpyderPluginWidget):
         editorstack.file_saved.connect(self.file_saved_in_editorstack)
         editorstack.file_renamed_in_data.connect(
                                       self.file_renamed_in_data_in_editorstack)
-        editorstack.sig_undock_window.connect(self.undock_plugin)
         editorstack.opened_files_list_changed.connect(
                                                 self.opened_files_list_changed)
         editorstack.active_languages_stats.connect(
@@ -1588,22 +1587,14 @@ class Editor(SpyderPluginWidget):
             win.set_layout_settings(layout_settings)
 
     @Slot()
-    def create_window(self):
-        """Open a new window instance of the Editor instead of undocking it."""
-        if (self.dockwidget.isFloating() and not self.undocked and
-                self.dockwidget.main.dockwidgets_locked):
-            self.dockwidget.setVisible(False)
-            self.create_new_window()
-            self.toggle_view_action.setChecked(False)
-            self.dockwidget.setFloating(False)
-        self.undocked = False
+    def create_mainwindow(self):
+        """Create a QMainWindow instance containing this plugin."""
+        self.dockwidget.setVisible(False)
+        self.mainwindow = self.create_new_window()
+        self.toggle_view_action.setChecked(False)
+        self.dockwidget.setFloating(False)
         if self.get_current_editorstack():
             self.get_current_editorstack().new_window = False
-
-    def undock_plugin(self):
-        """Undocks the Editor window."""
-        super(Editor, self).undock_plugin()
-        self.get_current_editorstack().new_window = True
 
     def switch_to_plugin(self):
         """

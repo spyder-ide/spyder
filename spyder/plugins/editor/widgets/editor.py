@@ -404,7 +404,6 @@ class EditorStack(QWidget):
     sig_close_file = Signal(str, str)
     file_saved = Signal(str, str, str)
     file_renamed_in_data = Signal(str, str, str)
-    sig_undock_window = Signal()
     opened_files_list_changed = Signal()
     active_languages_stats = Signal(set)
     todo_results_changed = Signal()
@@ -435,7 +434,6 @@ class EditorStack(QWidget):
 
         self.threadmanager = ThreadManager(self)
         self.new_window = False
-        self.undock_action = None
         self.horsplit_action = None
         self.versplit_action = None
         self.close_action = None
@@ -1304,12 +1302,8 @@ class EditorStack(QWidget):
 
     #------ Hor/Ver splitting
     def __get_split_actions(self):
-        # Undock Editor window
-        self.undock_action = create_action(self, _("Undock Editor window"),
-                                           icon=ima.icon('newwindow'),
-                                           tip=_("Undock the editor window"),
-                                           triggered=lambda:
-                                               self.sig_undock_window.emit())
+        plugin = self.parent().plugin
+
         # Splitting
         self.versplit_action = create_action(self, _("Split vertically"),
                 icon=ima.icon('versplit'),
@@ -1328,12 +1322,14 @@ class EditorStack(QWidget):
                 triggered=self.close_split,
                 shortcut=get_shortcut(context='Editor', name='close split panel'),
                 context=Qt.WidgetShortcut)
-        actions = [MENU_SEPARATOR, self.undock_action,
-                   MENU_SEPARATOR, self.versplit_action,
-                   self.horsplit_action, self.close_action]
+        actions = [MENU_SEPARATOR, self.versplit_action,
+                   self.horsplit_action, self.close_action,
+                   MENU_SEPARATOR, plugin.undock_action,
+                   plugin.close_plugin_action]
         if self.new_window:
             actions = [MENU_SEPARATOR, self.versplit_action,
-                       self.horsplit_action, self.close_action]
+                       self.horsplit_action, self.close_action,
+                       MENU_SEPARATOR, plugin.dock_action]
         return actions
 
     def reset_orientation(self):
