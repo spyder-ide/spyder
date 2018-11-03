@@ -223,6 +223,7 @@ _qtaargs = {
     '1downarrow':              [('fa.angle-down',), {'color': MAIN_FG_COLOR}],
     'undock':                  [('fa.external-link',), {'color': MAIN_FG_COLOR}],
     'dock':                    [('fa.caret-square-o-down',), {'color': MAIN_FG_COLOR}],
+    'close_pane':              [('fa.window-close-o',), {'color': MAIN_FG_COLOR}],
     # --- Autocompletion type icons --------------
     'attribute':               [('spyder.circle-letter-a',), {'color': 'magenta'}],
     'module':                  [('spyder.circle-letter-m',), {'color': '#daa520'}],

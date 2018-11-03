@@ -68,6 +68,7 @@ class BasePluginWidget(QWidget):
 
         self.close_plugin_action = create_action(self,
                                                  _("Close"),
+                                                 icon=ima.icon('close_pane'),
                                                  tip=_("Close the pane"),
                                                  triggered=self.plugin_closed)
 
