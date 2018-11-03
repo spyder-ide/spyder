@@ -121,7 +121,7 @@ class BasePluginWidget(QWidget):
         dock.setWidget(self)
         self.update_margins()
         dock.visibilityChanged.connect(self.visibility_changed)
-        dock.topLevelChanged.connect(self.undock_plugin)
+        dock.topLevelChanged.connect(self.disable_undock_action)
         dock.plugin_closed.connect(self.plugin_closed)
         self.dockwidget = dock
         if self.shortcut is not None:
@@ -235,11 +235,9 @@ class BasePluginWidget(QWidget):
         mainwindow.show()
 
     @Slot(bool)
-    def undock_plugin(self, top_level):
-        """Undocks the plugin to be rearranged in the main window."""
+    def disable_undock_action(self, top_level):
+        """Disable undock action."""
         if top_level:
-            self.dockwidget.setFloating(True)
             self.undock_action.setDisabled(True)
         else:
-            self.dockwidget.setFloating(False)
             self.undock_action.setDisabled(False)
