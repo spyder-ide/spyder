@@ -187,6 +187,10 @@ class FindInFiles(SpyderPluginWidget):
             self.set_option('path_history', path_history)
         return True
 
+    def on_first_registration(self):
+        """Action to be performed on first plugin registration"""
+        self.main.tabify_plugins(self.main.variableexplorer, self)
+
 
 def test():
     from spyder.utils.qthelpers import qapplication
