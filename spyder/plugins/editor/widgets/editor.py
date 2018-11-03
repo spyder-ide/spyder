@@ -718,6 +718,10 @@ class EditorStack(QWidget):
         """Setup editorstack's layout"""
         menu_btn = create_toolbutton(self, icon=ima.icon('tooloptions'),
                                      tip=_('Options'))
+        # Don't show menu arrow and remove padding
+        menu_btn.setStyleSheet(
+            ("QToolButton::menu-indicator{image: none;}\n"
+             "QToolButton{padding: 0px;}"))
         self.menu = QMenu(self)
         menu_btn.setMenu(self.menu)
         menu_btn.setPopupMode(menu_btn.InstantPopup)

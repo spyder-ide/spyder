@@ -57,7 +57,7 @@ _qtaargs = {
     'font':                    [('fa.font',), {'color': MAIN_FG_COLOR}],
     'keyboard':                [('fa.keyboard-o',), {'color': MAIN_FG_COLOR}],
     'eyedropper':              [('fa.eyedropper',), {'color': MAIN_FG_COLOR}],
-    'tooloptions':             [('fa.cog',), {'color': '#333333'}],
+    'tooloptions':             [('fa.bars',), {'color': MAIN_FG_COLOR}],
     'edit24':                  [('fa.edit',), {'color': MAIN_FG_COLOR}],
     'edit':                    [('fa.edit',), {'color': MAIN_FG_COLOR}],
     'filenew':                 [('fa.file-o',), {'color': MAIN_FG_COLOR}],
