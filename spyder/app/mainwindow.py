@@ -2500,7 +2500,7 @@ class MainWindow(QMainWindow):
     def show_dependencies(self):
         """Show Spyder's Dependencies dialog box"""
         from spyder.widgets.dependencies import DependenciesDialog
-        dlg = DependenciesDialog(None)
+        dlg = DependenciesDialog(self)
         dlg.set_data(dependencies.DEPENDENCIES)
         dlg.exec_()
 

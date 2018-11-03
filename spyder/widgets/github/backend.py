@@ -49,7 +49,7 @@ class BaseBackend(object):
     associated :attr:`formatter`.
     """
     def __init__(self, formatter, button_text, button_tooltip,
-                 button_icon=None, need_review=True):
+                 button_icon=None, need_review=True, parent_widget=None):
         """
         :param formatter: the associated formatter (see :meth:`set_formatter`)
         :param button_text: Text of the associated button in the report dialog
@@ -66,7 +66,7 @@ class BaseBackend(object):
         self.button_tooltip = button_tooltip
         self.button_icon = button_icon
         self.need_review = need_review
-        self.parent_widget = None
+        self.parent_widget = parent_widget
 
     def set_formatter(self, formatter):
         """
@@ -102,14 +102,15 @@ class GithubBackend(BaseBackend):
         github_backend = spyder.widgets.github.backend.GithubBackend(
             'spyder-ide', 'spyder')
     """
-    def __init__(self, gh_owner, gh_repo, formatter=None):
+    def __init__(self, gh_owner, gh_repo, formatter=None, parent_widget=None):
         """
         :param gh_owner: Name of the owner of the github repository.
         :param gh_repo: Name of the repository on github.
         """
         super(GithubBackend, self).__init__(
             formatter, "Submit on github",
-            "Submit the issue on our issue tracker on github", None)
+            "Submit the issue on our issue tracker on github", None,
+            parent_widget=parent_widget)
         self.gh_owner = gh_owner
         self.gh_repo = gh_repo
         self._show_msgbox = True  # False when running the test suite

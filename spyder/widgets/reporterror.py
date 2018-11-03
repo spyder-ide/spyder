@@ -279,7 +279,7 @@ class SpyderErrorDialog(QDialog):
                 org = 'ccordoba12'
             else:
                 org = 'spyder-ide'
-            github_backend = GithubBackend(org, 'spyder')
+            github_backend = GithubBackend(org, 'spyder', parent_widget=main)
             github_report = github_backend.send_report(title, issue_text)
             if github_report:
                 self.close()
