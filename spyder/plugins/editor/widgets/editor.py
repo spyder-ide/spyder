@@ -1304,6 +1304,12 @@ class EditorStack(QWidget):
     def __get_split_actions(self):
         plugin = self.parent().plugin
 
+        # New window
+        self.new_window_action = create_action(self, _("New window"),
+                icon=ima.icon('newwindow'),
+                tip=_("Create a new editor window"),
+                triggered=plugin.create_new_window)
+
         # Splitting
         self.versplit_action = create_action(self, _("Split vertically"),
                 icon=ima.icon('versplit'),
@@ -1324,12 +1330,15 @@ class EditorStack(QWidget):
                 context=Qt.WidgetShortcut)
         actions = [MENU_SEPARATOR, self.versplit_action,
                    self.horsplit_action, self.close_action,
-                   MENU_SEPARATOR, plugin.undock_action,
-                   plugin.close_plugin_action]
+                   MENU_SEPARATOR, self.new_window_action,
+                   plugin.undock_action, plugin.close_plugin_action]
         if self.new_window:
             actions = [MENU_SEPARATOR, self.versplit_action,
-                       self.horsplit_action, self.close_action,
-                       MENU_SEPARATOR, plugin.dock_action]
+                       self.horsplit_action, self.close_action]
+            if plugin.mainwindow:
+                actions += [MENU_SEPARATOR, plugin.dock_action]
+            else:
+                actions += [MENU_SEPARATOR, self.new_window_action]
         return actions
 
     def reset_orientation(self):
