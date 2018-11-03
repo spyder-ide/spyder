@@ -189,17 +189,17 @@ class PluginWidget(BasePluginWidget):
         """Create options menu."""
         self.options_menu.clear()
 
-        # Decide what dock action to show
+        # Decide what additional actions to show
         if self.mainwindow is None:
-            # Plugin is docked, we can undock it
-            dock_action = self.undock_action
+            additional_actions = [MENU_SEPARATOR,
+                                  self.undock_action,
+                                  self.close_plugin_action]
         else:
-            # Plugin is undocked, we can dock it
-            dock_action = self.dock_action
+            additional_actions = [MENU_SEPARATOR,
+                                  self.dock_action]
 
         # Create actions list
-        self.plugin_actions = self.get_plugin_actions() + [MENU_SEPARATOR,
-                                                           dock_action]
+        self.plugin_actions = self.get_plugin_actions() + additional_actions
         add_actions(self.options_menu, self.plugin_actions)
 
 

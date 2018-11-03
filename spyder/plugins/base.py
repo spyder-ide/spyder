@@ -53,7 +53,7 @@ class BasePluginWidget(QWidget):
         QWidget.__init__(self, parent)
         self.mainwindow = None
 
-        # Dock/undock actions
+        # Additional actions
         self.dock_action = create_action(self,
                                          _("Dock"),
                                          icon=ima.icon('newwindow'),
@@ -65,6 +65,11 @@ class BasePluginWidget(QWidget):
                                            icon=ima.icon('newwindow'),
                                            tip=_("Undock the pane"),
                                            triggered=self.create_mainwindow)
+
+        self.close_plugin_action = create_action(self,
+                                                 _("Close"),
+                                                 tip=_("Close the pane"),
+                                                 triggered=self.plugin_closed)
 
     def initialize_plugin_in_mainwindow_layout(self):
         """
@@ -122,7 +127,7 @@ class BasePluginWidget(QWidget):
         self.update_margins()
         dock.visibilityChanged.connect(self.visibility_changed)
         dock.topLevelChanged.connect(self.disable_undock_action)
-        dock.plugin_closed.connect(self.plugin_closed)
+        dock.sig_plugin_closed.connect(self.plugin_closed)
         self.dockwidget = dock
         if self.shortcut is not None:
             sc = QShortcut(QKeySequence(self.shortcut), self.main,
@@ -146,6 +151,7 @@ class BasePluginWidget(QWidget):
             self.toggle_view_action.setChecked(True)
         self.visibility_changed(True)
 
+    @Slot()
     def plugin_closed(self):
         """DockWidget was closed"""
         self.toggle_view_action.setChecked(False)
