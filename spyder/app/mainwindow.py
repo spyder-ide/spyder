@@ -1281,7 +1281,7 @@ class MainWindow(QMainWindow):
         self.toolbars_visible = CONF.get('main', 'toolbars_visible')
         self.load_last_visible_toolbars()
 
-        # Update lock status of dockidgets (panes)
+        # Update lock status
         self.lock_interface_action.setChecked(self.interface_locked)
         self.apply_panes_settings()
 

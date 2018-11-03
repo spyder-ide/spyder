@@ -111,6 +111,10 @@ class Explorer(SpyderPluginWidget):
         """Perform actions before parent main window is closed"""
         return True
 
+    def on_first_registration(self):
+        """Action to be performed on first plugin registration"""
+        self.main.tabify_plugins(self.main.variableexplorer, self)
+
     #------ Public API ---------------------------------------------------------
     def chdir(self, directory):
         """Set working directory"""

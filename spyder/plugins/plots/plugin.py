@@ -150,3 +150,7 @@ class Plots(SpyderPluginWidget):
         """Apply configuration file's plugin settings"""
         for fig_browser in list(self.shellwidgets.values()):
             fig_browser.setup(**self.get_settings())
+
+    def on_first_registration(self):
+        """Action to be performed on first plugin registration"""
+        self.main.tabify_plugins(self.main.variableexplorer, self)
