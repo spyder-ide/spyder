@@ -246,6 +246,7 @@ class BasePluginWidget(QWidget):
         mainwindow.setWindowIcon(icon)
         mainwindow.setWindowTitle(self.get_plugin_title())
         mainwindow.setCentralWidget(self)
+        mainwindow.resize(self.size())
         self.refresh_plugin()
 
         self.dockwidget.setFloating(False)
