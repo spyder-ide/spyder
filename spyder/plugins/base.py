@@ -238,9 +238,6 @@ class BasePluginWidget(QWidget):
         """
         Create a QMainWindow instance containing this plugin.
         """
-        self.dockwidget.setFloating(False)
-        self.dockwidget.setVisible(False)
-
         self.mainwindow = mainwindow = PluginMainWindow(self)
         mainwindow.setAttribute(Qt.WA_DeleteOnClose)
         icon = self.get_plugin_icon()
@@ -250,6 +247,9 @@ class BasePluginWidget(QWidget):
         mainwindow.setWindowTitle(self.get_plugin_title())
         mainwindow.setCentralWidget(self)
         self.refresh_plugin()
+
+        self.dockwidget.setFloating(False)
+        self.dockwidget.setVisible(False)
 
         mainwindow.show()
 

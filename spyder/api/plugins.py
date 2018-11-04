@@ -137,7 +137,7 @@ class PluginWidget(BasePluginWidget):
         if enable:
             self.dockwidget.raise_()
             widget = self.get_focus_widget()
-            if widget is not None:
+            if widget is not None and self.mainwindow is not None:
                 widget.setFocus()
         visible = self.dockwidget.isVisible() or self.ismaximized
         if self.DISABLE_ACTIONS_WHEN_HIDDEN:
