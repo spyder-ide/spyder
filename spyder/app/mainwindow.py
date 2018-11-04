@@ -2154,8 +2154,8 @@ class MainWindow(QMainWindow):
         self.search_menu_actions[3].setEnabled(readwrite_editor)
 
     def create_plugins_menu(self):
-        order = ['editor', 'console', 'ipython_console', 'variable_explorer',
-                 'help', None, 'explorer', 'outline_explorer',
+        order = ['editor', 'ipython_console', 'variable_explorer',
+                 'help', 'plots', None, 'explorer', 'outline_explorer',
                  'project_explorer', 'find_in_files', None, 'historylog',
                  'profiler', 'breakpoints', 'pylint', None,
                  'onlinehelp', 'internal_console']
