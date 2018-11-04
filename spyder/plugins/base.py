@@ -9,13 +9,14 @@ Base plugin class
 """
 
 # Third party imports
+import qdarkstyle
 from qtpy.QtCore import Qt, Slot
 from qtpy.QtGui import QKeySequence
 from qtpy.QtWidgets import QDockWidget, QMainWindow, QShortcut, QWidget
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import get_font
+from spyder.config.gui import is_dark_font_color, get_font
 from spyder.config.main import CONF
 from spyder.py3compat import is_text_string
 from spyder.utils import icon_manager as ima
@@ -29,6 +30,17 @@ class PluginMainWindow(QMainWindow):
     def __init__(self, plugin):
         QMainWindow.__init__(self)
         self.plugin = plugin
+
+        # Setting interface theme
+        ui_theme = CONF.get('color_schemes', 'ui_theme')
+        color_scheme = CONF.get('color_schemes', 'selected')
+
+        if ui_theme == 'dark':
+            self.setStyleSheet(qdarkstyle.load_stylesheet_from_environment())
+        elif ui_theme == 'automatic':
+            if not is_dark_font_color(color_scheme):
+                self.setStyleSheet(
+                        qdarkstyle.load_stylesheet_from_environment())
 
     def closeEvent(self, event):
         """Reimplement Qt method."""
