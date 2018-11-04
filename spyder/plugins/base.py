@@ -233,6 +233,11 @@ class BasePluginWidget(QWidget):
             self.mainwindow.close()
             self.mainwindow = None
 
+            # Oddly, these actions can appear disabled after the Dock
+            # action is pressed
+            self.undock_action.setDisabled(False)
+            self.close_plugin_action.setDisabled(False)
+
     @Slot()
     def create_mainwindow(self):
         """
