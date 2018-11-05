@@ -53,20 +53,15 @@ class PluginWindow(QMainWindow):
 
 
 
-class BasePluginWidget(QWidget):
-    """
-    Basic functionality for Spyder plugin widgets
-    """
+class BasePluginMixin(object):
+    """Basic functionality for Spyder plugin widgets."""
 
     ALLOWED_AREAS = Qt.AllDockWidgetAreas
     LOCATION = Qt.LeftDockWidgetArea
     FEATURES = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetFloatable
 
-    def __init__(self, parent=None):
-        QWidget.__init__(self, parent)
-
-        self.dockwidget = None
-        self.undocked_window = None
+    def __init__(self):
+        super().__init__()
 
         # Additional actions
         self.dock_action = create_action(self,
@@ -262,7 +257,7 @@ class BasePluginWidget(QWidget):
 
     @Slot(bool)
     def disable_undock_action(self, top_level):
-        """Disable undock action."""
+        """Disable undock action when plugin is undocked to be moved."""
         if top_level:
             self.undock_action.setDisabled(True)
         else:

@@ -18,20 +18,22 @@ import os
 # Third party imports
 from qtpy.QtCore import Qt, Signal
 from qtpy.QtGui import QCursor
-from qtpy.QtWidgets import QApplication, QMenu, QMessageBox, QToolButton
+from qtpy.QtWidgets import (QApplication, QMenu, QMessageBox, QToolButton,
+                            QWidget)
 
 # Local imports
+from spyder.config.base import _
 from spyder.config.gui import get_color_scheme
 from spyder.config.main import CONF
 from spyder.config.user import NoDefault
-from spyder.plugins.base import _, BasePluginWidget
+from spyder.plugins.base import BasePluginMixin
 from spyder.py3compat import configparser
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_toolbutton,
                                     MENU_SEPARATOR, toggle_actions)
 
 
-class PluginWidget(BasePluginWidget):
+class PluginWidget(QWidget, BasePluginMixin):
     """
     Public interface for Spyder plugins.
 
@@ -51,8 +53,11 @@ class PluginWidget(BasePluginWidget):
 
     def __init__(self, main=None):
         """Bind widget to a QMainWindow instance."""
-        BasePluginWidget.__init__(self, main)
+        super().__init__()
         assert self.CONF_SECTION is not None
+
+        self.dockwidget = None
+        self.undocked_window = None
 
         # Check compatibility
         check_compatibility, message = self.check_compatibility()
