@@ -30,7 +30,7 @@ jobs:
     <<: *main
     environment:
       - PYTHON_VERSION: "3.5"
-      - USE_CONDA: "yes"
+      - USE_CONDA: "no"
       - CI_PYTEST: "true"
 
   python2.7-modules:
