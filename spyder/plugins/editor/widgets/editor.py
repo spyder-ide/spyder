@@ -2849,6 +2849,7 @@ class EditorMainWindow(QMainWindow):
         QMainWindow.__init__(self)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
+        self.plugin = plugin
         self.window_size = None
 
         self.editorwidget = EditorWidget(self, plugin, menu_actions,
@@ -2937,7 +2938,13 @@ class EditorMainWindow(QMainWindow):
 
     def closeEvent(self, event):
         """Reimplement Qt method"""
+        if self.plugin.undocked_window is not None:
+            self.plugin.dockwidget.setWidget(self.plugin)
+            self.plugin.dockwidget.setVisible(True)
+        self.plugin.switch_to_plugin()
         QMainWindow.closeEvent(self, event)
+        if self.plugin.undocked_window is not None:
+            self.plugin.undocked_window = None
 
     def get_layout_settings(self):
         """Return layout state"""

@@ -1591,7 +1591,6 @@ class Editor(SpyderPluginWidget):
         """Create a QMainWindow instance containing this plugin."""
         self.dockwidget.setVisible(False)
         self.undocked_window = self.create_new_window()
-        self.toggle_view_action.setChecked(False)
         self.dockwidget.setFloating(False)
         if self.get_current_editorstack():
             self.get_current_editorstack().new_window = False
@@ -1626,8 +1625,6 @@ class Editor(SpyderPluginWidget):
         self.editorwindows.append(window)
 
     def unregister_editorwindow(self, window):
-        if len(self.editorwindows) == 1:
-            self.toggle_view_action.setChecked(True)
         self.editorwindows.pop(self.editorwindows.index(window))
 
 
