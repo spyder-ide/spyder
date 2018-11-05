@@ -135,7 +135,9 @@ class PluginWidget(QWidget, BasePluginMixin):
             self.register_shortcut(qshortcut, context, name)
 
     def visibility_changed(self, enable):
-        """Dock widget visibility has changed."""
+        """
+        Dock widget visibility has changed.
+        """
         if enable:
             self.dockwidget.raise_()
             widget = self.get_focus_widget()
@@ -152,13 +154,15 @@ class PluginWidget(QWidget, BasePluginMixin):
         """
         Set a plugin option in configuration file.
 
-        Use a SIGNAL to call it, e.g.:
-        plugin.sig_option_changed.emit('show_all', checked)
+        Note: Use sig_option_changed to call it from widgets of the
+              same or another plugin.
         """
         CONF.set(self.CONF_SECTION, str(option), value)
 
     def get_option(self, option, default=NoDefault):
-        """Get a plugin option from configuration file."""
+        """
+        Get a plugin's option from configuration file.
+        """
         return CONF.get(self.CONF_SECTION, option, default)
 
     def starting_long_process(self, message):
@@ -172,17 +176,23 @@ class PluginWidget(QWidget, BasePluginMixin):
         QApplication.processEvents()
 
     def ending_long_process(self, message=""):
-        """Clear main window's status bar and restore mouse cursor."""
+        """
+        Clear main window's status bar and restore mouse cursor.
+        """
         QApplication.restoreOverrideCursor()
         self.show_message(message, timeout=2000)
         QApplication.processEvents()
 
     def get_color_scheme(self):
-        """Get current color scheme."""
+        """
+        Get current color scheme.
+        """
         return get_color_scheme(CONF.get('color_schemes', 'selected'))
 
     def show_compatibility_message(self, message):
-        """Show compatibility message."""
+        """
+        Show compatibility message.
+        """
         messageBox = QMessageBox(self)
         messageBox.setWindowModality(Qt.NonModal)
         messageBox.setAttribute(Qt.WA_DeleteOnClose)
@@ -192,7 +202,9 @@ class PluginWidget(QWidget, BasePluginMixin):
         messageBox.show()
 
     def refresh_actions(self):
-        """Create options menu."""
+        """
+        Create options menu.
+        """
         self.options_menu.clear()
 
         # Decide what additional actions to show
@@ -255,9 +267,6 @@ class SpyderPluginWidget(PluginWidget):
     def get_plugin_title(self):
         """
         Return plugin title.
-
-        Note: after some thinking, it appears that using a method
-        is more flexible here than using a class attribute
         """
         raise NotImplementedError
 
@@ -280,7 +289,7 @@ class SpyderPluginWidget(PluginWidget):
         Perform actions before parent main window is closed.
 
         Return True or False whether the plugin may be closed immediately or
-        not
+        not.
         Note: returned value is ignored if *cancelable* is False
         """
         return True
@@ -291,23 +300,33 @@ class SpyderPluginWidget(PluginWidget):
 
     def get_plugin_actions(self):
         """
-        Return a list of actions related to plugin.
+        Return a list of QAction's related to plugin.
 
-        Note: these actions will be enabled when plugin's dockwidget is visible
-              and they will be disabled when it's hidden
+        Note: These actions will be shown in the plugins Options menu.
         """
         raise NotImplementedError
 
     def register_plugin(self):
-        """Register plugin in Spyder's main window."""
+        """
+        Register plugin in Spyder's main window.
+        """
         raise NotImplementedError
 
     def on_first_registration(self):
-        """Action to be performed on first plugin registration."""
+        """
+        Action to be performed on first plugin registration.
+
+        Note: This is most usually used to tabify the plugin next to one
+              of the core plugins, like this:
+
+              self.main.tabify_plugins(self.main.variableexplorer, self)
+        """
         raise NotImplementedError
 
     def apply_plugin_settings(self, options):
-        """Apply configuration file's plugin settings."""
+        """
+        What to do to apply configuration plugin settings.
+        """
         raise NotImplementedError
 
     def update_font(self):

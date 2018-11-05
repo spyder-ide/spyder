@@ -12,7 +12,7 @@ Base plugin class
 import qdarkstyle
 from qtpy.QtCore import Qt, Slot
 from qtpy.QtGui import QKeySequence
-from qtpy.QtWidgets import QDockWidget, QMainWindow, QShortcut, QWidget
+from qtpy.QtWidgets import QDockWidget, QMainWindow, QShortcut
 
 # Local imports
 from spyder.config.base import _
