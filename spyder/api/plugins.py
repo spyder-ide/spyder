@@ -53,7 +53,7 @@ class PluginWidget(QWidget, BasePluginMixin):
 
     def __init__(self, main=None):
         """Bind widget to a QMainWindow instance."""
-        super().__init__()
+        super(PluginWidget, self).__init__(main)
         assert self.CONF_SECTION is not None
 
         self.dockwidget = None
