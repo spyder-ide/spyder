@@ -25,8 +25,9 @@ from spyder.widgets.dock import SpyderDockWidget
 
 
 
-class PluginMainWindow(QMainWindow):
-    """Spyder Plugin MainWindow class."""
+class PluginWindow(QMainWindow):
+    """MainWindow subclass that contains a Spyder Plugin."""
+
     def __init__(self, plugin):
         QMainWindow.__init__(self)
         self.plugin = plugin
@@ -48,7 +49,7 @@ class PluginMainWindow(QMainWindow):
         self.plugin.dockwidget.setVisible(True)
         self.plugin.switch_to_plugin()
         QMainWindow.closeEvent(self, event)
-        self.plugin.mainwindow = None
+        self.plugin.undocked_window = None
 
 
 
@@ -63,7 +64,9 @@ class BasePluginWidget(QWidget):
 
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
-        self.mainwindow = None
+
+        self.dockwidget = None
+        self.undocked_window = None
 
         # Additional actions
         self.dock_action = create_action(self,
@@ -76,7 +79,7 @@ class BasePluginWidget(QWidget):
                                            _("Undock"),
                                            icon=ima.icon('undock'),
                                            tip=_("Undock the pane"),
-                                           triggered=self.create_mainwindow)
+                                           triggered=self.create_window)
 
         self.close_plugin_action = create_action(self,
                                                  _("Close"),
@@ -111,11 +114,11 @@ class BasePluginWidget(QWidget):
             layout.setContentsMargins(*self.default_margins)
 
     def update_plugin_title(self):
-        """Update plugin title, i.e. dockwidget or mainwindow title"""
+        """Update plugin title, i.e. dockwidget or window title"""
         if self.dockwidget is not None:
             win = self.dockwidget
-        elif self.mainwindow is not None:
-            win = self.mainwindow
+        elif self.undocked_window is not None:
+            win = self.undocked_window
         else:
             return
         win.setWindowTitle(self.get_plugin_title())
@@ -229,9 +232,9 @@ class BasePluginWidget(QWidget):
     @Slot()
     def close_window(self):
         """Close QMainWindow instance that contains this plugin."""
-        if self.mainwindow is not None:
-            self.mainwindow.close()
-            self.mainwindow = None
+        if self.undocked_window is not None:
+            self.undocked_window.close()
+            self.undocked_window = None
 
             # Oddly, these actions can appear disabled after the Dock
             # action is pressed
@@ -239,25 +242,23 @@ class BasePluginWidget(QWidget):
             self.close_plugin_action.setDisabled(False)
 
     @Slot()
-    def create_mainwindow(self):
-        """
-        Create a QMainWindow instance containing this plugin.
-        """
-        self.mainwindow = mainwindow = PluginMainWindow(self)
-        mainwindow.setAttribute(Qt.WA_DeleteOnClose)
+    def create_window(self):
+        """Create a QMainWindow instance containing this plugin."""
+        self.undocked_window = window = PluginWindow(self)
+        window.setAttribute(Qt.WA_DeleteOnClose)
         icon = self.get_plugin_icon()
         if is_text_string(icon):
             icon = self.get_icon(icon)
-        mainwindow.setWindowIcon(icon)
-        mainwindow.setWindowTitle(self.get_plugin_title())
-        mainwindow.setCentralWidget(self)
-        mainwindow.resize(self.size())
+        window.setWindowIcon(icon)
+        window.setWindowTitle(self.get_plugin_title())
+        window.setCentralWidget(self)
+        window.resize(self.size())
         self.refresh_plugin()
 
         self.dockwidget.setFloating(False)
         self.dockwidget.setVisible(False)
 
-        mainwindow.show()
+        window.show()
 
     @Slot(bool)
     def disable_undock_action(self, top_level):

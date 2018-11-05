@@ -29,7 +29,6 @@ from spyder.py3compat import configparser
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_toolbutton,
                                     MENU_SEPARATOR, toggle_actions)
-from spyder.plugins.base import PluginMainWindow
 
 
 class PluginWidget(BasePluginWidget):
@@ -64,8 +63,6 @@ class PluginWidget(BasePluginWidget):
         self.main = main
         self.default_margins = None
         self.plugin_actions = None
-        self.dockwidget = None
-        self.mainwindow = None
         self.ismaximized = False
         self.isvisible = False
 
@@ -137,7 +134,7 @@ class PluginWidget(BasePluginWidget):
         if enable:
             self.dockwidget.raise_()
             widget = self.get_focus_widget()
-            if widget is not None and self.mainwindow is not None:
+            if widget is not None and self.undocked_window is not None:
                 widget.setFocus()
         visible = self.dockwidget.isVisible() or self.ismaximized
         if self.DISABLE_ACTIONS_WHEN_HIDDEN:
@@ -194,7 +191,7 @@ class PluginWidget(BasePluginWidget):
         self.options_menu.clear()
 
         # Decide what additional actions to show
-        if self.mainwindow is None:
+        if self.undocked_window is None:
             additional_actions = [MENU_SEPARATOR,
                                   self.undock_action,
                                   self.close_plugin_action]
@@ -262,10 +259,6 @@ class SpyderPluginWidget(PluginWidget):
     def get_plugin_icon(self):
         """
         Return plugin icon (QIcon instance).
-
-        Note: this is required for plugins creating a main window
-              (see SpyderPluginMixin.create_mainwindow)
-              and for configuration dialog widgets creation
         """
         return ima.icon('outline_explorer')
 

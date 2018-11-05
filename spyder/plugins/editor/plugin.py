@@ -1587,10 +1587,10 @@ class Editor(SpyderPluginWidget):
             win.set_layout_settings(layout_settings)
 
     @Slot()
-    def create_mainwindow(self):
+    def create_window(self):
         """Create a QMainWindow instance containing this plugin."""
         self.dockwidget.setVisible(False)
-        self.mainwindow = self.create_new_window()
+        self.undocked_window = self.create_new_window()
         self.toggle_view_action.setChecked(False)
         self.dockwidget.setFloating(False)
         if self.get_current_editorstack():

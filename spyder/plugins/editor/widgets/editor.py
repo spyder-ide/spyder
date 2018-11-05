@@ -1336,7 +1336,7 @@ class EditorStack(QWidget):
         if self.new_window:
             actions = [MENU_SEPARATOR, self.versplit_action,
                        self.horsplit_action, self.close_action]
-            if plugin.mainwindow:
+            if plugin.undocked_window:
                 actions += [MENU_SEPARATOR, plugin.dock_action]
             else:
                 actions += [MENU_SEPARATOR, self.new_window_action]
