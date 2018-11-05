@@ -1303,10 +1303,14 @@ class EditorStack(QWidget):
 
     #------ Hor/Ver splitting
     def __get_split_actions(self):
-        plugin = self.parent().plugin
+        if self.parent() is not None:
+            plugin = self.parent().plugin
+        else:
+            plugin = None
 
         # New window
-        self.new_window_action = create_action(self, _("New window"),
+        if plugin is not None:
+            self.new_window_action = create_action(self, _("New window"),
                 icon=ima.icon('newwindow'),
                 tip=_("Create a new editor window"),
                 triggered=plugin.create_new_window)
@@ -1329,17 +1333,23 @@ class EditorStack(QWidget):
                 triggered=self.close_split,
                 shortcut=get_shortcut(context='Editor', name='close split panel'),
                 context=Qt.WidgetShortcut)
+
+        # Regular actions
         actions = [MENU_SEPARATOR, self.versplit_action,
-                   self.horsplit_action, self.close_action,
-                   MENU_SEPARATOR, self.new_window_action,
-                   plugin.undock_action, plugin.close_plugin_action]
+                   self.horsplit_action, self.close_action]
+        if plugin is not None:
+            actions += [MENU_SEPARATOR, self.new_window_action,
+                        plugin.undock_action, plugin.close_plugin_action]
+
+        # Actions when the stack is part of an undocked window
         if self.new_window:
             actions = [MENU_SEPARATOR, self.versplit_action,
                        self.horsplit_action, self.close_action]
-            if plugin.undocked_window:
-                actions += [MENU_SEPARATOR, plugin.dock_action]
-            else:
-                actions += [MENU_SEPARATOR, self.new_window_action]
+            if plugin is not None:
+                if plugin.undocked_window:
+                    actions += [MENU_SEPARATOR, plugin.dock_action]
+                else:
+                    actions += [MENU_SEPARATOR, self.new_window_action]
         return actions
 
     def reset_orientation(self):
@@ -2982,6 +2992,9 @@ class EditorPluginExample(QSplitter):
     def __init__(self):
         QSplitter.__init__(self)
 
+        self.dock_action = None
+        self.undock_action = None
+        self.close_plugin_action = None
         menu_actions = []
 
         self.editorstacks = []
