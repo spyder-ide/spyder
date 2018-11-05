@@ -39,7 +39,6 @@ class WorkingDirectory(SpyderPluginWidget):
     CONFIGWIDGET_CLASS = WorkingDirectoryConfigPage
     LOG_PATH = get_conf_path(CONF_SECTION)
 
-    sig_option_changed = Signal(str, object)
     set_previous_enabled = Signal(bool)
     set_next_enabled = Signal(bool)
     redirect_stdio = Signal(bool)

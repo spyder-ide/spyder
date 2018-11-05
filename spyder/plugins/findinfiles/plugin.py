@@ -33,7 +33,6 @@ class FindInFiles(SpyderPluginWidget):
     """Find in files DockWidget."""
 
     CONF_SECTION = 'find_in_files'
-    sig_option_changed = Signal(str, object)
     toggle_visibility = Signal(bool)
 
     def __init__(self, parent=None):

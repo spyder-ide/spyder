@@ -31,7 +31,6 @@ class Plots(SpyderPluginWidget):
     CONF_SECTION = 'plots'
     CONFIGWIDGET_CLASS = PlotsConfigPage
     DISABLE_ACTIONS_WHEN_HIDDEN = False
-    sig_option_changed = Signal(str, object)
 
     def __init__(self, parent):
         SpyderPluginWidget.__init__(self, parent)
