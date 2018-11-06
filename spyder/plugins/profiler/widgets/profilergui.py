@@ -68,7 +68,7 @@ class ProfilerWidget(QWidget):
     redirect_stdio = Signal(bool)
     
     def __init__(self, parent, max_entries=100, options_button=None,
-                 text_color="#444444"):
+                 text_color=None):
         QWidget.__init__(self, parent)
         
         self.setWindowTitle("Profiler")

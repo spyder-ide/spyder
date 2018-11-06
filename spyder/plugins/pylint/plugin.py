@@ -23,12 +23,40 @@ from qtpy.QtWidgets import QGroupBox, QInputDialog, QLabel, QVBoxLayout
 
 # Local imports
 from spyder.config.base import _
+from spyder.config.main import CONF
+from spyder.config.gui import is_dark_font_color
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
 from spyder.utils import icon_manager as ima
 from spyder.utils.programs import is_module_installed
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from .widgets.pylintgui import PylintWidget
+
+                
+def get_colors():
+    """
+    Get text and previous rate color for the pylint plugin based on
+    the color theme and color scheme currently selected.
+    """
+    ui_theme = CONF.get('color_schemes', 'ui_theme')
+    color_scheme = CONF.get('color_schemes', 'selected')
+    if ui_theme == 'dark':
+        text_color = 'white'
+        prevrate_color = 'white'
+    elif ui_theme == 'automatic':
+        if not is_dark_font_color(color_scheme):
+            text_color = 'white'
+            prevrate_color = 'white'
+        else:
+            text_color = '#444444'
+            prevrate_color = '#666666'
+    else:
+        text_color = '#444444'
+        prevrate_color = '#666666'
+    return text_color, prevrate_color
+
+
+MAIN_TEXT_COLOR, MAIN_PREVRATE_COLOR = get_colors()            
 
 
 class PylintConfigPage(PluginConfigPage):
@@ -88,18 +116,11 @@ class Pylint(SpyderPluginWidget):
     def __init__(self, parent=None):
         SpyderPluginWidget.__init__(self, parent)
 
-        text_color = '#444444'
-        prevrate_color = '#666666'
-
-        if parent:
-            if parent.styleSheet():
-                text_color = 'white'
-                prevrate_color = 'white'
         max_entries = self.get_option('max_entries', 50)
         self.pylint = PylintWidget(self, max_entries=max_entries,
                                    options_button=self.options_button,
-                                   text_color=text_color,
-                                   prevrate_color=prevrate_color)
+                                   text_color=MAIN_TEXT_COLOR,
+                                   prevrate_color=MAIN_PREVRATE_COLOR)
 
         layout = QVBoxLayout()
         layout.addWidget(self.pylint)

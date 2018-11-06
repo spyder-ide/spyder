@@ -151,7 +151,7 @@ class PylintWidget(QWidget):
     redirect_stdio = Signal(bool)
     
     def __init__(self, parent, max_entries=100, options_button=None,
-                 text_color="#444444", prevrate_color="#666666"):
+                 text_color=None, prevrate_color=None):
         QWidget.__init__(self, parent)
         
         self.setWindowTitle("Pylint")

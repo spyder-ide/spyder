@@ -28,9 +28,37 @@ from qtpy.QtWidgets import (QAction, QApplication, QComboBox, QDialog,
 
 # Local imports
 from spyder.config.base import _, get_image_path
+from spyder.config.main import CONF
+from spyder.config.gui import is_dark_font_color
 from spyder.py3compat import to_binary_string
 from spyder.utils.qthelpers import add_actions, create_action
 from spyder.utils import icon_manager as ima
+
+
+def get_colors():
+    """
+    Get top and background colors for the tour based on the color theme
+    and color scheme currently selected.
+    """
+    ui_theme = CONF.get('color_schemes', 'ui_theme')
+    color_scheme = CONF.get('color_schemes', 'selected')
+    if ui_theme == 'dark':
+        top_color = QColor.fromRgb(35, 38, 41)
+        back_color = QColor.fromRgb(35, 38, 41)
+    elif ui_theme == 'automatic':
+        if not is_dark_font_color(color_scheme):
+            top_color = QColor.fromRgb(35, 38, 41)
+            back_color = QColor.fromRgb(35, 38, 41)
+        else:
+            top_color = QColor.fromRgb(230, 230, 230)
+            back_color = QColor.fromRgb(255, 255, 255)
+    else:
+        top_color = QColor.fromRgb(230, 230, 230)
+        back_color = QColor.fromRgb(255, 255, 255)
+    return top_color, back_color
+
+
+MAIN_TOP_COLOR, MAIN_BG_COLOR = get_colors()
 
 # FIXME: Known issues
 # How to handle if an specific dockwidget does not exists/load, like ipython
@@ -527,7 +555,8 @@ class FadingCanvas(FadingDialog):
 
 class FadingTipBox(FadingDialog):
     """ """
-    def __init__(self, parent, opacity, duration, easing_curve, tour=None):
+    def __init__(self, parent, opacity, duration, easing_curve, tour=None,
+                 color_top=None, color_back=None, combobox_background=None):
         super(FadingTipBox, self).__init__(parent, opacity, duration,
                                            easing_curve)
         self.holder = self.anim  # needed for qt to work
@@ -582,17 +611,14 @@ class FadingTipBox(FadingDialog):
 
         arrow = get_image_path('hide.png')
 
-        if self.parent.styleSheet():
-            self.color_top = QColor.fromRgb(35, 38, 41)
-            self.color_back = QColor.fromRgb(35, 38, 41)
-            light_background = ''
-        else:
-            self.color_top = QColor.fromRgb(230, 230, 230)
-            self.color_back = QColor.fromRgb(255, 255, 255)
-            light_background = 'background-color: rgbs(230,230,230,100%);'
+
+        self.color_top = color_top
+        self.color_back = color_back
+        self.combobox_background = combobox_background
         self.stylesheet = '''QComboBox {
                              padding-left: 5px;
-                             ''' + light_background + '''
+                             background-color: 
+                          ''' + self.combobox_background.name() + '''
                              border-width: 0px;
                              border-radius: 0px;
                              min-height:20px;
@@ -875,7 +901,9 @@ class AnimatedTour(QWidget):
                                    self.color, tour=self)
         self.tips = FadingTipBox(self.parent, self.opacity_tips,
                                  self.duration_tips, self.easing_curve,
-                                 tour=self)
+                                 tour=self, color_top=MAIN_TOP_COLOR,
+                                 color_back=MAIN_BG_COLOR,
+                                 combobox_background=MAIN_TOP_COLOR)
 
         # Widgets setup
         # Needed to fix issue #2204
