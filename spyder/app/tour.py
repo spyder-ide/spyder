@@ -611,13 +611,12 @@ class FadingTipBox(FadingDialog):
 
         arrow = get_image_path('hide.png')
 
-
         self.color_top = color_top
         self.color_back = color_back
         self.combobox_background = combobox_background
         self.stylesheet = '''QComboBox {
                              padding-left: 5px;
-                             background-color: 
+                             background-color:
                           ''' + self.combobox_background.name() + '''
                              border-width: 0px;
                              border-radius: 0px;

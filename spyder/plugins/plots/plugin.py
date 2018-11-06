@@ -13,10 +13,34 @@ from qtpy.QtWidgets import QStackedWidget, QGridLayout
 
 # Local imports
 from spyder.config.base import _
+from spyder.config.main import CONF
+from spyder.config.gui import is_dark_font_color
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
 from spyder.utils import icon_manager as ima
 from spyder.plugins.plots.widgets.figurebrowser import FigureBrowser
+
+
+def get_background_color():
+    """
+    Get background color for the plots plugin based on the color theme
+    and color scheme currently selected.
+    """
+    ui_theme = CONF.get('color_schemes', 'ui_theme')
+    color_scheme = CONF.get('color_schemes', 'selected')
+    if ui_theme == 'dark':
+        background_color = '#232629'
+    elif ui_theme == 'automatic':
+        if not is_dark_font_color(color_scheme):
+            background_color = '#232629'
+        else:
+            background_color = 'white'
+    else:
+        background_color = 'white'
+    return background_color
+
+
+MAIN_BG_COLOR = get_background_color()
 
 
 class PlotsConfigPage(PluginConfigPage):
@@ -89,7 +113,8 @@ class Plots(SpyderPluginWidget):
         if shellwidget_id not in self.shellwidgets:
             self.options_button.setVisible(True)
             fig_browser = FigureBrowser(
-                self, options_button=self.options_button)
+                self, options_button=self.options_button,
+                background_color=MAIN_BG_COLOR)
             fig_browser.set_shellwidget(shellwidget)
             fig_browser.setup(**self.get_settings())
             fig_browser.sig_option_changed.connect(

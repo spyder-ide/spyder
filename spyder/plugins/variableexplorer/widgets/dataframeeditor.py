@@ -705,10 +705,6 @@ class DataFrameHeaderModel(QAbstractTableModel):
             return None
         row, col = ((index.row(), index.column()) if self.axis == 0
                     else (index.column(), index.row()))
-        if role == Qt.BackgroundRole:
-            prev = self.model.header(self.axis, col - 1, row) if col else None
-            cur = self.model.header(self.axis, col, row)
-            return self._palette.midlight() if prev != cur else None
         if role != Qt.DisplayRole:
             return None
         if self.axis == 0 and self._shape[0] <= 1:

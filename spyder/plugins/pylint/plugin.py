@@ -32,7 +32,7 @@ from spyder.utils.programs import is_module_installed
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from .widgets.pylintgui import PylintWidget
 
-                
+
 def get_colors():
     """
     Get text and previous rate color for the pylint plugin based on
@@ -56,7 +56,7 @@ def get_colors():
     return text_color, prevrate_color
 
 
-MAIN_TEXT_COLOR, MAIN_PREVRATE_COLOR = get_colors()            
+MAIN_TEXT_COLOR, MAIN_PREVRATE_COLOR = get_colors()
 
 
 class PylintConfigPage(PluginConfigPage):
