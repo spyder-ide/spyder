@@ -88,9 +88,18 @@ class Pylint(SpyderPluginWidget):
     def __init__(self, parent=None):
         SpyderPluginWidget.__init__(self, parent)
 
+        text_color = '#444444'
+        prevrate_color = '#666666'
+
+        if parent:
+            if parent.styleSheet():
+                text_color = 'white'
+                prevrate_color = 'white'
         max_entries = self.get_option('max_entries', 50)
         self.pylint = PylintWidget(self, max_entries=max_entries,
-                                   options_button=self.options_button)
+                                   options_button=self.options_button,
+                                   text_color=text_color,
+                                   prevrate_color=prevrate_color)
 
         layout = QVBoxLayout()
         layout.addWidget(self.pylint)

@@ -535,8 +535,6 @@ class FadingTipBox(FadingDialog):
         self.tour = tour
 
         self.frames = None
-        self.color_top = QColor.fromRgb(230, 230, 230)
-        self.color_back = QColor.fromRgb(255, 255, 255)
         self.offset_shadow = 0
         self.fixed_width = 300
 
@@ -584,9 +582,17 @@ class FadingTipBox(FadingDialog):
 
         arrow = get_image_path('hide.png')
 
+        if self.parent.styleSheet():
+            self.color_top = QColor.fromRgb(35, 38, 41)
+            self.color_back = QColor.fromRgb(35, 38, 41)
+            light_background = ''
+        else:
+            self.color_top = QColor.fromRgb(230, 230, 230)
+            self.color_back = QColor.fromRgb(255, 255, 255)
+            light_background = 'background-color: rgbs(230,230,230,100%);'
         self.stylesheet = '''QComboBox {
                              padding-left: 5px;
-                             background-color: rgbs(230,230,230,100%);
+                             ''' + light_background + '''
                              border-width: 0px;
                              border-radius: 0px;
                              min-height:20px;

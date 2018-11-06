@@ -63,9 +63,16 @@ class Profiler(SpyderPluginWidget):
     def __init__(self, parent=None):
         SpyderPluginWidget.__init__(self, parent)
 
+        text_color = '#444444'
+
+        if parent:
+            if parent.styleSheet():
+                text_color = 'white'
+
         max_entries = self.get_option('max_entries', 50)
         self.profiler = ProfilerWidget(self, max_entries,
-                                       options_button=self.options_button)
+                                       options_button=self.options_button,
+                                       text_color=text_color)
 
         layout = QVBoxLayout()
         layout.addWidget(self.profiler)
