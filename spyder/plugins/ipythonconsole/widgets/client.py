@@ -411,6 +411,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             self.disable_stop_button()
             # set click event handler
             self.stop_button.clicked.connect(self.stop_button_click_handler)
+            self.stop_button.setStyleSheet("QToolButton{padding: 3px;}")
         if self.stop_button is not None:
             buttons.append(self.stop_button)
 
@@ -422,6 +423,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                                     icon=ima.icon('editdelete'),
                                     tip=_("Remove all variables"),
                                     triggered=self.reset_namespace)
+            self.reset_button.setStyleSheet("QToolButton{padding: 3px;}")
         if self.reset_button is not None:
             buttons.append(self.reset_button)
 
