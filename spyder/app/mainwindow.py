@@ -599,7 +599,7 @@ class MainWindow(QMainWindow):
 
         logger.info("Creating core actions...")
         self.close_dockwidget_action = create_action(self,
-                                    icon=ima.icon('DialogCloseButton'),
+                                    icon=ima.icon('close_pane'),
                                     text=_("Close current pane"),
                                     triggered=self.close_current_dockwidget,
                                     context=Qt.ApplicationShortcut)
