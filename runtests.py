@@ -31,7 +31,7 @@ def main(extra_args=None):
                    '--durations=10']
 
     if RUN_CI:
-        pytest_args += ['-x', '--cov=spyder', '--cov=spyder_profiler',
+        pytest_args += ['--cov=spyder', '--cov=spyder_profiler',
                         '--no-cov-on-fail']
         # Skip slow tests for macOS and Python 3 because they
         # don't run correctly
