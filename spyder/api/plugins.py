@@ -78,7 +78,7 @@ class PluginWidget(QWidget, BasePluginMixin):
         # Don't show menu arrow and remove padding
         self.options_button.setStyleSheet(
             ("QToolButton::menu-indicator{image: none;}\n"
-             "QToolButton{padding: 0px;}"))
+             "QToolButton{padding: 3px;}"))
         self.options_menu = QMenu(self)
 
         # NOTE: Don't use the default option of CONF.get to assign a
