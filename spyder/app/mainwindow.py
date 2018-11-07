@@ -598,11 +598,12 @@ class MainWindow(QMainWindow):
             css_path = CSS_PATH
 
         logger.info("Creating core actions...")
-        self.close_dockwidget_action = create_action(self,
-                                    icon=ima.icon('close_pane'),
-                                    text=_("Close current pane"),
-                                    triggered=self.close_current_dockwidget,
-                                    context=Qt.ApplicationShortcut)
+        self.close_dockwidget_action = create_action(
+            self, icon=ima.icon('close_pane'),
+            text=_("Close current pane"),
+            triggered=self.close_current_dockwidget,
+            context=Qt.ApplicationShortcut
+        )
         self.register_shortcut(self.close_dockwidget_action, "_",
                                "Close pane")
         self.lock_interface_action = create_action(

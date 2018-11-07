@@ -1308,7 +1308,8 @@ class EditorStack(QWidget):
 
         # New window
         if plugin is not None:
-            self.new_window_action = create_action(self, _("New window"),
+            self.new_window_action = create_action(
+                self, _("New window"),
                 icon=ima.icon('newwindow'),
                 tip=_("Create a new editor window"),
                 triggered=plugin.create_new_window)

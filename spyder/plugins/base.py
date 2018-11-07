@@ -24,7 +24,6 @@ from spyder.utils.qthelpers import create_action
 from spyder.widgets.dock import SpyderDockWidget
 
 
-
 class PluginWindow(QMainWindow):
     """MainWindow subclass that contains a Spyder Plugin."""
 
@@ -50,7 +49,6 @@ class PluginWindow(QMainWindow):
         self.plugin.switch_to_plugin()
         QMainWindow.closeEvent(self, event)
         self.plugin.undocked_window = None
-
 
 
 class BasePluginMixin(object):
