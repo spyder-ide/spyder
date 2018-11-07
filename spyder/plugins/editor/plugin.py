@@ -521,6 +521,11 @@ class Editor(SpyderPluginWidget):
         editor_widgets.setLayout(editor_layout)
         self.editorsplitter = EditorSplitter(self, self,
                                          self.stack_menu_actions, first=True)
+        self.fname_label = QLabel()
+        self.fname_label.setMaximumHeight(self.fontMetrics().height() + 5)
+        self.fname_label.setStyleSheet(
+            "QLabel {margin-top: 3px; margin-left: 2px}")
+        editor_layout.addWidget(self.fname_label)
         editor_layout.addWidget(self.editorsplitter)
         editor_layout.addWidget(self.find_widget)
 
@@ -643,13 +648,6 @@ class Editor(SpyderPluginWidget):
     def get_plugin_title(self):
         """Return widget title"""
         title = _('Editor')
-        if self.dockwidget:
-            filename = self.get_current_filename()
-            if self.dockwidget.dock_tabbar:
-                if filename and self.dockwidget.dock_tabbar.count() < 2:
-                    title += ' - ' + to_text_string(filename)
-            else:
-                 title += ' - ' + to_text_string(filename)
         return title
 
     def get_plugin_icon(self):
@@ -1378,6 +1376,19 @@ class Editor(SpyderPluginWidget):
                 if win.isAncestorOf(editorstack):
                     self.set_last_focus_editorstack(win, editorstack)
 
+    @Slot()
+    def update_fname_label(self):
+        """Upadte file name label."""
+        plugin_name = _("Editor")
+        filename = to_text_string(self.get_current_filename())
+        if self.dockwidget:
+            if self.dockwidget.dock_tabbar:
+                text = filename
+            else:
+                text = plugin_name + u' - ' + filename
+
+        self.fname_label.setText(text)
+
     # ------ Handling editorstacks
     def register_editorstack(self, editorstack):
         self.editorstacks.append(editorstack)
@@ -1475,6 +1486,7 @@ class Editor(SpyderPluginWidget):
                                    lambda: self.sig_update_plugin_title.emit())
         editorstack.editor_focus_changed.connect(self.save_focus_editorstack)
         editorstack.editor_focus_changed.connect(self.main.plugin_focus_changed)
+        editorstack.editor_focus_changed.connect(self.update_fname_label)
         editorstack.zoom_in.connect(lambda: self.zoom(1))
         editorstack.zoom_out.connect(lambda: self.zoom(-1))
         editorstack.zoom_reset.connect(lambda: self.zoom(0))

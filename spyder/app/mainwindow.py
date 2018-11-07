@@ -2776,12 +2776,7 @@ class MainWindow(QMainWindow):
                 child.dockwidget.setTitleBarWidget(None)
                 features = features | QDockWidget.DockWidgetMovable
             else:
-                # We don't hide the Editor's title bar because people like
-                # to see the full path of the current file on it.
-                if child.dockwidget.title == 'Editor':
-                    features = QDockWidget.NoDockWidgetFeatures
-                else:
-                    child.dockwidget.setTitleBarWidget(QWidget())
+                child.dockwidget.setTitleBarWidget(QWidget())
             child.dockwidget.setFeatures(features)
             child.update_margins()
 
