@@ -27,8 +27,9 @@ from qtpy.QtCore import (QByteArray, QFileInfo, QObject, QPoint, QSize, Qt,
                          QThread, QTimer, Signal, Slot)
 from qtpy.QtGui import QFont
 from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
-                            QMainWindow, QMessageBox, QMenu, QSplitter,
-                            QVBoxLayout, QWidget, QListWidget, QListWidgetItem)
+                            QLabel, QMainWindow, QMessageBox, QMenu,
+                            QSplitter, QVBoxLayout, QWidget, QListWidget,
+                            QListWidgetItem)
 
 # Local imports
 from spyder.config.base import _, running_under_pytest
@@ -548,6 +549,9 @@ class EditorStack(QWidget):
         self.analysis_timer.setInterval(2000)
         self.analysis_timer.timeout.connect(self.analyze_script)
 
+        # Update filename label
+        self.editor_focus_changed.connect(self.update_fname_label)
+
         # Accepting drops
         self.setAcceptDrops(True)
 
@@ -715,6 +719,13 @@ class EditorStack(QWidget):
 
     def setup_editorstack(self, parent, layout):
         """Setup editorstack's layout"""
+        layout.setSpacing(1)
+
+        self.fname_label = QLabel()
+        self.fname_label.setStyleSheet(
+            "QLabel {margin: 0px; padding: 3px;}")
+        layout.addWidget(self.fname_label)
+
         menu_btn = create_toolbutton(self, icon=ima.icon('tooloptions'),
                                      tip=_('Options'))
         # Don't show menu arrow and remove padding
@@ -726,25 +737,6 @@ class EditorStack(QWidget):
         menu_btn.setPopupMode(menu_btn.InstantPopup)
         self.menu.aboutToShow.connect(self.__setup_menu)
 
-#        self.filelist_btn = create_toolbutton(self,
-#                             icon=ima.icon('filelist'),
-#                             tip=_("File list management"),
-#                             triggered=self.open_fileswitcher_dlg)
-#
-#        self.previous_btn = create_toolbutton(self,
-#                             icon=ima.icon('previous'),
-#                             tip=_("Previous file"),
-#                             triggered=self.go_to_previous_file)
-#
-#        self.next_btn = create_toolbutton(self,
-#                             icon=ima.icon('next'),
-#                             tip=_("Next file"),
-#                             triggered=self.go_to_next_file)
-
-        # Optional tabs
-#        corner_widgets = {Qt.TopRightCorner: [self.previous_btn,
-#                                              self.filelist_btn, self.next_btn,
-#                                              5, menu_btn]}
         corner_widgets = {Qt.TopRightCorner: [menu_btn]}
         self.tabs = BaseTabs(self, menu=self.menu, menu_use_tooltips=True,
                              corner_widgets=corner_widgets)
@@ -772,6 +764,12 @@ class EditorStack(QWidget):
             layout.addWidget(tab_container)
         else:
             layout.addWidget(self.tabs)
+
+    @Slot()
+    def update_fname_label(self):
+        """Upadte file name label."""
+        filename = to_text_string(self.get_current_filename())
+        self.fname_label.setText(filename)
 
     def add_corner_widgets_to_tabbar(self, widgets):
         self.tabs.add_corner_widgets(widgets)
