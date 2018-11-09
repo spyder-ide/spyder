@@ -658,6 +658,27 @@ def test_autosave_does_not_save_after_open(base_editor_bot, mocker):
     editor_stack._write_to_file.assert_not_called()
 
 
+def test_autosave_does_not_save_after_reload(base_editor_bot, mocker):
+    """
+    Test that autosave() does not save files immediately after reloading.
+
+    Spyder reload the file if it has changed on disk. In that case, there is
+    no need to autosave because the contents in Spyder are identical to the
+    contents on disk.
+    """
+    editor_stack, qtbot = base_editor_bot
+    txt = 'spam\n'
+    editor_stack.create_new_editor('ham.py', 'ascii', txt, set_current=True)
+    mocker.patch.object(editor_stack, '_write_to_file')
+    mocker.patch('spyder.plugins.editor.widgets.editor.encoding.read',
+                 return_value=(txt, 'ascii'))
+    print(editor_stack.data[0].editor.document().changed_since_autosave)
+    editor_stack.reload(0)
+    print(editor_stack.data[0].editor.document().changed_since_autosave)
+    editor_stack.autosave.autosave(0)
+    editor_stack._write_to_file.assert_not_called()
+
+
 def test_autosave_updates_name_mapping(editor_bot, mocker):
     """Test that autosave() updates name_mapping."""
     editor_stack, editor, qtbot = editor_bot

@@ -2205,6 +2205,10 @@ class EditorStack(QWidget):
         # would be sufficient for outline explorer data.
         finfo.editor.rehighlight()
 
+        # rehighlight() calls textChanged(), so the change_since_autosave
+        # flag should be cleared after rehighlight()
+        finfo.editor.document().changed_since_autosave = False
+
         self._refresh_outlineexplorer(index)
 
     def revert(self):
