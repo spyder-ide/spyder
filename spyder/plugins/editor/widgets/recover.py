@@ -127,8 +127,8 @@ class RecoveryDialog(QDialog):
     def add_label(self):
         """Add label with explanation at top of dialog window."""
         txt = _('Autosave files found. What would you like to do?\n\n'
-                'This will be shown each startup if autosave files are not '
-                'restored, moved or deleted.')
+                'This dialog will be shown again on next startup if any '
+                'autosave files are not restored, moved or deleted.')
         label = QLabel(txt, self)
         label.setWordWrap(True)
         self.layout.addWidget(label)
