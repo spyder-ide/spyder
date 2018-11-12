@@ -228,7 +228,8 @@ DEFAULTS = [
               'save_all_before_run': True,
               'focus_to_editor': True,
               'run_cell_copy': False,
-              'onsave_analysis': False
+              'onsave_analysis': False,
+              'autosave_enabled': True,
               }),
             ('historylog',
              {

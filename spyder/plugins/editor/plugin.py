@@ -409,14 +409,22 @@ class EditorConfigPage(PluginConfigPage):
         eol_layout.addLayout(eol_on_save_layout)
         eol_group.setLayout(eol_layout)
 
+        autosave_group = QGroupBox(_('Autosave'))
+        autosave_checkbox = newcb(_('Automatically save a copy of files with '
+                                    'unsaved changes'),
+                                  'autosave_enabled', default=True)
+        autosave_layout = QVBoxLayout()
+        autosave_layout.addWidget(autosave_checkbox)
+        autosave_group.setLayout(autosave_layout)
+
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(interface_group, display_group),
                     _("Display"))
         tabs.addTab(self.create_tab(introspection_group, analysis_group),
                     _("Code Introspection/Analysis"))
         tabs.addTab(self.create_tab(template_btn, run_group,
-                                    run_selection_group,
-                                    sourcecode_group, eol_group),
+                                    run_selection_group, sourcecode_group,
+                                    eol_group, autosave_group),
                     _("Advanced settings"))
 
         vlayout = QVBoxLayout()
@@ -525,9 +533,6 @@ class Editor(SpyderPluginWidget):
                                           lambda vs: self.rehighlight_cells())
         self.register_widget_shortcuts(self.find_widget)
 
-        # Start autosave component
-        self.autosave = AutosaveComponent(self)
-
         # Tabbed editor widget + Find/Replace widget
         editor_widgets = QWidget(self)
         editor_layout = QVBoxLayout()
@@ -538,8 +543,10 @@ class Editor(SpyderPluginWidget):
         editor_layout.addWidget(self.editorsplitter)
         editor_layout.addWidget(self.find_widget)
 
-        # Recover files from autosave if applicable
+        # Start autosave component
+        self.autosave = AutosaveComponent(self)
         self.autosave.try_recover_from_autosave()
+        self.autosave.enabled = self.get_option('autosave_enabled')
 
         # Splitter: editor widgets (see above) + outline explorer
         self.splitter = QSplitter(self)
@@ -2886,6 +2893,9 @@ class Editor(SpyderPluginWidget):
                     state = self.get_option(name)
                     action.setChecked(state)
                     action.trigger()
+
+            self.autosave.enabled = self.get_option('autosave_enabled')
+
             # We must update the current editor after the others:
             # (otherwise, code analysis buttons state would correspond to the
             #  last editor instead of showing the one of the current editor)
@@ -3009,18 +3019,43 @@ class AutosaveComponent:
         """
         Constructor.
 
+        Autosave is disabled after construction and needs to be enabled
+        explicitly if required.
+
         Args:
             editor (Editor): editor plugin.
         """
         self.editor = editor
         self.timer = QTimer(self.editor)
+        self.timer.setSingleShot(True)
         self.timer.timeout.connect(self.do_autosave)
+        self._enabled = False  # Can't use setter here
+
+    @property
+    def enabled(self):
+        """
+        Get or set whether autosave component is enabled.
+
+        The setter will start or stop the autosave component if appropriate.
+        """
+        return self._enabled
+
+    @enabled.setter
+    def enabled(self, new_enabled):
+        if new_enabled == self.enabled:
+            return
+        self.stop_autosave_timer()
+        self._enabled = new_enabled
         self.start_autosave_timer()
 
     def start_autosave_timer(self):
-        """Start a timer which calls do_autosave() after AUTOSAVE_DELAY."""
-        self.timer.setSingleShot(True)
-        self.timer.start(self.AUTOSAVE_DELAY)
+        """
+        Start a timer which calls do_autosave() after AUTOSAVE_DELAY.
+
+        The autosave timer is only started if autosave is enabled.
+        """
+        if self.enabled:
+            self.timer.start(self.AUTOSAVE_DELAY)
 
     def stop_autosave_timer(self):
         """Stop the autosave timer."""

@@ -226,14 +226,19 @@ def test_editor_has_autosave_component(setup_editor):
     assert isinstance(editor.autosave, AutosaveComponent)
 
 
-def test_autosave_component_timer(qtbot, mocker):
-    """Test that AutosaveCompenent calls do_autosave() on timer."""
+@pytest.mark.parametrize('enabled', [False, True])
+def test_autosave_component_timer_if_enabled(qtbot, mocker, enabled):
+    """Test that AutosaveCompenent calls do_autosave() on timer if enabled."""
     mocker.patch.object(AutosaveComponent, 'AUTOSAVE_DELAY', 100)
     mocker.patch.object(AutosaveComponent, 'do_autosave')
     addon = AutosaveComponent(None)
     addon.do_autosave.assert_not_called()
+    addon.enabled = enabled
     qtbot.wait(500)
-    assert addon.do_autosave.called
+    if enabled:
+        assert addon.do_autosave.called
+    else:
+        addon.do_autosave.assert_not_called()
 
 
 def test_autosave_component_do_autosave(setup_editor, mocker):
