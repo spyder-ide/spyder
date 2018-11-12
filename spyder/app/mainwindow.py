@@ -1470,6 +1470,7 @@ class MainWindow(QMainWindow):
        
     def setup_default_layouts(self, index, settings):
         """Setup default layouts when run for the first time"""
+        self.maximize_dockwidget(restore=True)
         self.set_window_settings(*settings)
         self.setUpdatesEnabled(False)
 
@@ -2912,7 +2913,8 @@ class MainWindow(QMainWindow):
 
     # ---- Interactive Tours
     def show_tour(self, index):
-        """ """
+        """Show interactive tour."""
+        self.maximize_dockwidget(restore=True)
         frames = self.tours_available[index]
         self.tour.set_tour(index, frames, self)
         self.tour.start_tour()
