@@ -872,8 +872,8 @@ class IPythonConsole(SpyderPluginWidget):
         self.edit_goto.connect(self.main.editor.load)
         self.edit_goto[str, int, str, bool].connect(
                          lambda fname, lineno, word, processevents:
-                             self.main.editor.load(fname, lineno, word,
-                                                   processevents=processevents))
+                         self.main.editor.load(fname, lineno, word,
+                                               processevents=processevents))
         self.main.editor.breakpoints_saved.connect(self.set_spyder_breakpoints)
         self.main.editor.run_in_current_ipyclient.connect(self.run_script)
         self.main.workingdirectory.set_current_console_wd.connect(
@@ -1725,7 +1725,8 @@ class IPythonConsole(SpyderPluginWidget):
 
     def process_finished(self, client):
         if self.main.variableexplorer is not None:
-            self.main.variableexplorer.remove_shellwidget(id(client.shellwidget))
+            self.main.variableexplorer.remove_shellwidget(
+                id(client.shellwidget))
 
     def _create_client_for_kernel(self, connection_file, hostname, sshkey,
                                   password):

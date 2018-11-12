@@ -1533,11 +1533,13 @@ class Editor(SpyderPluginWidget):
         filename = self.get_current_filename()
         for message, line_number in check_results:
             error = 'syntax' in message
-            text = message[:1].upper()+message[1:]
+            text = message[:1].upper() + message[1:]
             icon = ima.icon('error') if error else ima.icon('warning')
+
             def slot():
                 self.switch_to_plugin()
                 self.load(filename, goto=line_number)
+
             action = create_action(self, text=text, icon=icon, triggered=slot)
             self.warning_menu.addAction(action)
             
@@ -1564,9 +1566,11 @@ class Editor(SpyderPluginWidget):
         filename = self.get_current_filename()
         for text, line0 in results:
             icon = ima.icon('todo')
+
             def slot():
                 self.switch_to_plugin()
                 self.load(filename, goto=line0)
+
             action = create_action(self, text=text, icon=icon, triggered=slot)
             self.todo_menu.addAction(action)
         self.update_todo_actions()

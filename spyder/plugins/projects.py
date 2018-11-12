@@ -147,7 +147,8 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
             lambda v: self.main.editor.setup_open_files())
         self.sig_project_loaded.connect(self.update_explorer)
         self.sig_project_closed[object].connect(
-            lambda v: self.main.workingdirectory.chdir(self.get_last_working_dir()))
+            lambda v: self.main.workingdirectory.chdir(
+                self.get_last_working_dir()))
         self.sig_project_closed.connect(
             lambda v: self.main.set_window_title())
         self.sig_project_closed.connect(
@@ -187,9 +188,11 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
             for project in self.recent_projects:
                 if self.is_valid_project(project):
                     name = project.replace(get_home_dir(), '~')
+
                     def slot():
                         self.switch_to_plugin()
                         self.open_project(path=project)
+
                     action = create_action(self,
                         name,
                         icon = ima.icon('project'),
@@ -276,13 +279,15 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
             if save_previous_files and self.main.editor is not None:
                 self.main.editor.save_open_files()
             if self.main.editor is not None:
-                self.main.editor.set_option('last_working_dir', getcwd_or_home())
+                self.main.editor.set_option('last_working_dir',
+                                            getcwd_or_home())
             if self.get_option('visible_if_project_open'):
                 self.show_explorer()
         else:
             # We are switching projects
             if self.main.editor is not None:
-                self.set_project_filenames(self.main.editor.get_open_filenames())
+                self.set_project_filenames(
+                    self.main.editor.get_open_filenames())
 
         self.current_active_project = EmptyProject(path)
         self.latest_project = EmptyProject(path)
