@@ -3009,7 +3009,7 @@ class Editor(SpyderPluginWidget):
             editorstack.create_new_file_if_empty = value
 
 
-class AutosaveComponent:
+class AutosaveComponent(object):
     """Component of editor plugin implementing autosave functionality."""
 
     # Delay (in ms) before autosave
