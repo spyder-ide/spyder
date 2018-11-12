@@ -70,9 +70,12 @@ class NamepaceBrowserWidget(RichJupyterWidget):
 
     def set_namespace_view_settings(self):
         """Set the namespace view settings"""
-        settings = to_text_string(self.namespacebrowser.get_view_settings())
-        code = u"get_ipython().kernel.namespace_view_settings = %s" % settings
-        self.silent_execute(code)
+        if self.namespacebrowser:
+            settings = to_text_string(
+                self.namespacebrowser.get_view_settings())
+            code =(u"get_ipython().kernel.namespace_view_settings = %s" %
+                   settings)
+            self.silent_execute(code)
 
     def get_value(self, name):
         """Ask kernel for a value"""

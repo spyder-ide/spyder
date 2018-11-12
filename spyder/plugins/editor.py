@@ -417,8 +417,6 @@ class Editor(SpyderPluginWidget):
         self.pythonfile_dependent_actions = []
         self.dock_toolbar_actions = None
         self.edit_menu_actions = None #XXX: find another way to notify Spyder
-        # (see spyder.py: 'update_edit_menu' method)
-        self.search_menu_actions = None #XXX: same thing ('update_search_menu')
         self.stack_menu_actions = None
         
         # Initialize plugin
@@ -1063,8 +1061,7 @@ class Editor(SpyderPluginWidget):
         self.main.edit_toolbar_actions += edit_toolbar_actions
 
         # ---- Search menu/toolbar construction ----
-        self.search_menu_actions = [gotoline_action]
-        self.main.search_menu_actions += self.search_menu_actions
+        self.main.search_menu_actions += [gotoline_action]
         self.main.search_toolbar_actions += [gotoline_action]
           
         # ---- Run menu/toolbar construction ----
@@ -1536,13 +1533,13 @@ class Editor(SpyderPluginWidget):
         filename = self.get_current_filename()
         for message, line_number in check_results:
             error = 'syntax' in message
-            text = message[:1].upper()+message[1:]
+            text = message[:1].upper() + message[1:]
             icon = ima.icon('error') if error else ima.icon('warning')
-            # QAction.triggered works differently for PySide and PyQt
-            if not API == 'pyside':
-                slot = lambda _checked, _l=line_number: self.load(filename, goto=_l)
-            else:
-                slot = lambda _l=line_number: self.load(filename, goto=_l)
+
+            def slot():
+                self.switch_to_plugin()
+                self.load(filename, goto=line_number)
+
             action = create_action(self, text=text, icon=icon, triggered=slot)
             self.warning_menu.addAction(action)
             
@@ -1569,11 +1566,11 @@ class Editor(SpyderPluginWidget):
         filename = self.get_current_filename()
         for text, line0 in results:
             icon = ima.icon('todo')
-            # QAction.triggered works differently for PySide and PyQt
-            if not API == 'pyside':
-                slot = lambda _checked, _l=line0: self.load(filename, goto=_l)
-            else:
-                slot = lambda _l=line0: self.load(filename, goto=_l)
+
+            def slot():
+                self.switch_to_plugin()
+                self.load(filename, goto=line0)
+
             action = create_action(self, text=text, icon=icon, triggered=slot)
             self.todo_menu.addAction(action)
         self.update_todo_actions()
@@ -2162,6 +2159,7 @@ class Editor(SpyderPluginWidget):
             editor.unblockcomment()
     @Slot()
     def go_to_next_todo(self):
+        self.switch_to_plugin()
         editor = self.get_current_editor()
         position = editor.go_to_next_todo()
         filename = self.get_current_filename()
@@ -2169,6 +2167,7 @@ class Editor(SpyderPluginWidget):
 
     @Slot()
     def go_to_next_warning(self):
+        self.switch_to_plugin()
         editor = self.get_current_editor()
         position = editor.go_to_next_warning()
         filename = self.get_current_filename()
@@ -2176,6 +2175,7 @@ class Editor(SpyderPluginWidget):
 
     @Slot()
     def go_to_previous_warning(self):
+        self.switch_to_plugin()
         editor = self.get_current_editor()
         position = editor.go_to_previous_warning()
         filename = self.get_current_filename()
@@ -2203,20 +2203,24 @@ class Editor(SpyderPluginWidget):
         if checked:
             editor = self.get_current_editor()
             if self.__set_eol_chars:
+                self.switch_to_plugin()
                 editor.set_eol_chars(sourcecode.get_eol_chars_from_os_name(os_name))
 
     @Slot(bool)
     def toggle_show_blanks(self, checked):
+        self.switch_to_plugin()
         editor = self.get_current_editor()
         editor.set_blanks_enabled(checked)
 
     @Slot()
     def remove_trailing_spaces(self):
+        self.switch_to_plugin()
         editorstack = self.get_current_editorstack()
         editorstack.remove_trailing_spaces()
 
     @Slot()
     def fix_indentation(self):
+        self.switch_to_plugin()
         editorstack = self.get_current_editorstack()
         editorstack.fix_indentation()
                     
@@ -2306,10 +2310,12 @@ class Editor(SpyderPluginWidget):
 
     @Slot()
     def go_to_previous_cursor_position(self):
+        self.switch_to_plugin()
         self.__move_cursor_position(-1)
 
     @Slot()
     def go_to_next_cursor_position(self):
+        self.switch_to_plugin()
         self.__move_cursor_position(1)
 
     @Slot()
@@ -2324,6 +2330,7 @@ class Editor(SpyderPluginWidget):
         """Set/Clear breakpoint"""
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
+            self.switch_to_plugin()
             editorstack.set_or_clear_breakpoint()
 
     @Slot()
@@ -2331,11 +2338,13 @@ class Editor(SpyderPluginWidget):
         """Set/Edit conditional breakpoint"""
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
+            self.switch_to_plugin()
             editorstack.set_or_edit_conditional_breakpoint()
 
     @Slot()
     def clear_all_breakpoints(self):
         """Clear breakpoints in all files"""
+        self.switch_to_plugin()
         clear_all_breakpoints()
         self.breakpoints_saved.emit()
         editorstack = self.get_current_editorstack()
@@ -2356,6 +2365,7 @@ class Editor(SpyderPluginWidget):
                 
     def debug_command(self, command):
         """Debug actions"""
+        self.switch_to_plugin()
         self.main.ipyconsole.write_to_stdin(command)
         focus_widget = self.main.ipyconsole.get_focus_widget()
         if focus_widget:
@@ -2451,6 +2461,7 @@ class Editor(SpyderPluginWidget):
     @Slot()
     def debug_file(self):
         """Debug current script"""
+        self.switch_to_plugin()
         self.run_file(debug=True)
 
     @Slot()
