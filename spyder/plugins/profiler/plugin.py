@@ -135,6 +135,7 @@ class Profiler(SpyderPluginWidget):
     def run_profiler(self):
         """Run profiler"""
         if self.main.editor.save():
+            self.switch_to_plugin()
             self.analyze(self.main.editor.get_current_filename())
 
     def analyze(self, filename):

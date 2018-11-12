@@ -443,8 +443,7 @@ class Help(SpyderPluginWidget):
 
     def show_rich_text(self, text, collapse=False, img_path=''):
         """Show text in rich mode"""
-        self.visibility_changed(True)
-        self.raise_()
+        self.switch_to_plugin()
         self.switch_to_rich_text()
         context = generate_context(collapse=collapse, img_path=img_path,
                                    css_path=self.css_path)
@@ -452,17 +451,14 @@ class Help(SpyderPluginWidget):
 
     def show_plain_text(self, text):
         """Show text in plain mode"""
-        self.visibility_changed(True)
-        self.raise_()
+        self.switch_to_plugin()
         self.switch_to_plain_text()
         self.set_plain_text(text, is_code=False)
 
     @Slot()
     def show_tutorial(self):
         """Show the Spyder tutorial in the Help plugin, opening it if needed"""
-        if not self.dockwidget.isVisible():
-            self.dockwidget.show()
-            self.toggle_view_action.setChecked(True)
+        self.switch_to_plugin()
         tutorial_path = get_module_source_path('spyder.plugins.help.utils')
         tutorial = osp.join(tutorial_path, 'tutorial.rst')
         text = open(tutorial).read()
@@ -543,8 +539,7 @@ class Help(SpyderPluginWidget):
                 if (self.console.dockwidget not in dockwidgets and
                         self.main.ipyconsole is not None and
                         self.main.ipyconsole.dockwidget not in dockwidgets):
-                    self.dockwidget.show()
-                    self.dockwidget.raise_()
+                    self.switch_to_plugin()
         self._last_texts[index] = text
 
     def load_history(self, obj=None):

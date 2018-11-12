@@ -176,10 +176,11 @@ class Pylint(SpyderPluginWidget):
     @Slot()
     def run_pylint(self):
         """Run pylint code analysis"""
-        if self.get_option('save_before', True)\
-           and not self.main.editor.save():
+        if (self.get_option('save_before', True)
+                and not self.main.editor.save()):
             return
-        self.analyze( self.main.editor.get_current_filename() )
+        self.switch_to_plugin()
+        self.analyze(self.main.editor.get_current_filename())
         
     def analyze(self, filename):
         """Reimplement analyze method"""

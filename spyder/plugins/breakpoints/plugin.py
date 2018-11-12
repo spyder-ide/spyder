@@ -109,7 +109,4 @@ class Breakpoints(SpyderPluginWidget):
         
     def show(self):
         """Show the breakpoints dockwidget"""
-        if self.dockwidget and not self.ismaximized:
-            self.dockwidget.setVisible(True)
-            self.dockwidget.setFocus()
-            self.dockwidget.raise_()
+        self.switch_to_plugin()
