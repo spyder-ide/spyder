@@ -405,8 +405,7 @@ class SpyderPluginMixin(object):
             self.register_shortcut(qshortcut, context, name)
 
     def switch_to_plugin(self):
-        """Switch to plugin
-        This method is called when pressing plugin's shortcut key"""
+        """Switch to plugin."""
         if (self.main.last_plugin is not None and
                 self.main.last_plugin.ismaximized and
                 self.main.last_plugin is not self):
