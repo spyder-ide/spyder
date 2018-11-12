@@ -10,6 +10,12 @@
 Tests for the Projects plugin.
 """
 
+# Standard library imports
+try:
+    from unittest.mock import Mock
+except ImportError:
+    from mock import Mock  # Python 2
+
 # Third party imports
 import pytest
 
@@ -23,21 +29,31 @@ from spyder.py3compat import to_text_string
 # Fixtures
 # =============================================================================
 @pytest.fixture
-def projects(qtbot):
-    """Projects plugin fixture"""
-    projects = Projects(parent=None, testing=True)
-    qtbot.addWidget(projects)
-    return projects
+def projects(qtbot, mocker):
+    """Projects plugin fixture."""
 
+    class MainWindowMock(object):
+        def __getattr__(self, attr):
+            if attr == 'ipyconsole' or attr == 'editor':
+                return None
+            else:
+                return Mock()
 
-@pytest.fixture
-def projects_with_dockwindow(projects, mocker):
-    """Fixture for Projects plugin with a dockwindow"""
+    # Create plugin
+    projects = Projects(parent=None)
+
+    # Patching necessary to test visible_if_project_open
     projects.shortcut = None
     mocker.patch.object(spyder.plugins.SpyderDockWidget,
                         'install_tab_event_filter')
     mocker.patch.object(projects, 'toggle_view_action')
     projects.create_dockwidget()
+
+    # This can only be done at this point
+    projects.main = MainWindowMock()
+
+    qtbot.addWidget(projects)
+    projects.show()
     return projects
 
 
@@ -61,12 +77,9 @@ def test_open_project(projects, tmpdir, test_directory):
 
 
 @pytest.mark.parametrize('value', [True, False])
-def test_close_project_sets_visible_config(projects_with_dockwindow, tmpdir,
-                                           value):
+def test_close_project_sets_visible_config(projects, tmpdir, value):
     """Test that when project is closed, the config option
     visible_if_project_open is set to the correct value."""
-    projects = projects_with_dockwindow
-
     # Set config to opposite value so that we can check that it's set correctly
     projects.set_option('visible_if_project_open', not value)
 
@@ -80,11 +93,9 @@ def test_close_project_sets_visible_config(projects_with_dockwindow, tmpdir,
 
 
 @pytest.mark.parametrize('value', [True, False])
-def test_closing_plugin_sets_visible_config(
-        projects_with_dockwindow, tmpdir, value):
+def test_closing_plugin_sets_visible_config(projects, tmpdir, value):
     """Test that closing_plugin() sets config option visible_if_project_open
     if a project is open."""
-    projects = projects_with_dockwindow
     projects.set_option('visible_if_project_open', not value)
     projects.closing_plugin()
 
@@ -101,11 +112,9 @@ def test_closing_plugin_sets_visible_config(
 
 
 @pytest.mark.parametrize('value', [True, False])
-def test_open_project_uses_visible_config(
-        projects_with_dockwindow, tmpdir, value):
+def test_open_project_uses_visible_config(projects, tmpdir, value):
     """Test that when a project is opened, the project explorer is only opened
     if the config option visible_if_project_open is set."""
-    projects = projects_with_dockwindow
     projects.set_option('visible_if_project_open', value)
     projects.open_project(path=to_text_string(tmpdir))
     assert projects.dockwidget.isVisible() == value

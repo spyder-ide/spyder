@@ -164,6 +164,20 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         self.closing_widget()
         return True
 
+    def switch_to_plugin(self):
+        """Switch to plugin."""
+        # Unmaxizime currently maximized plugin
+        if (self.main.last_plugin is not None and
+                self.main.last_plugin.ismaximized and
+                self.main.last_plugin is not self):
+            self.main.maximize_dockwidget()
+
+        # Show plugin only if it was already visible
+        if self.get_option('visible_if_project_open'):
+            if not self.toggle_view_action.isChecked():
+                self.toggle_view_action.setChecked(True)
+            self.visibility_changed(True)
+
     #------ Public API ---------------------------------------------------------
     def setup_menu_actions(self):
         """Setup and update the menu actions."""
