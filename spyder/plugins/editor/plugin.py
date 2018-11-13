@@ -21,7 +21,7 @@ import time
 # Third party imports
 from qtpy import API
 from qtpy.compat import from_qvariant, getopenfilenames, to_qvariant
-from qtpy.QtCore import QByteArray, Qt, QTimer, Signal, Slot
+from qtpy.QtCore import QByteArray, Qt, Signal, Slot
 from qtpy.QtGui import QKeySequence
 from qtpy.QtPrintSupport import QAbstractPrintDialog, QPrintDialog, QPrinter
 from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
@@ -42,10 +42,10 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action, add_actions, MENU_SEPARATOR
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.findreplace import FindReplace
+from spyder.plugins.editor.autosave import AutosaveComponentForEditorPlugin
 from spyder.plugins.editor.widgets.editor import (EditorMainWindow, Printer,
                                                   EditorSplitter, EditorStack,)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
-from spyder.plugins.editor.widgets.recover import RecoveryDialog
 from spyder.widgets.status import (CursorPositionStatus, EncodingStatus,
                                    EOLStatus, ReadWriteStatus)
 from spyder.api.plugins import SpyderPluginWidget
@@ -550,7 +550,7 @@ class Editor(SpyderPluginWidget):
         editor_layout.addWidget(self.find_widget)
 
         # Start autosave component
-        self.autosave = AutosaveComponent(self)
+        self.autosave = AutosaveComponentForEditorPlugin(self)
         self.autosave.try_recover_from_autosave()
         # Multiply by 1000 to convert seconds to milliseconds
         self.autosave.interval = self.get_option('autosave_interval') * 1000
@@ -3018,161 +3018,3 @@ class Editor(SpyderPluginWidget):
         """Change the value of create_new_file_if_empty"""
         for editorstack in self.editorstacks:
             editorstack.create_new_file_if_empty = value
-
-
-class AutosaveComponent(object):
-    """Component of editor plugin implementing autosave functionality."""
-
-    # Delay (in ms) before autosave
-    AUTOSAVE_DELAY = 60 * 1000
-
-    def __init__(self, editor):
-        """
-        Constructor.
-
-        Autosave is disabled after construction and needs to be enabled
-        explicitly if required.
-
-        Args:
-            editor (Editor): editor plugin.
-        """
-        self.editor = editor
-        self.timer = QTimer(self.editor)
-        self.timer.setSingleShot(True)
-        self.timer.timeout.connect(self.do_autosave)
-        self._enabled = False  # Can't use setter here
-
-    @property
-    def enabled(self):
-        """
-        Get or set whether autosave component is enabled.
-
-        The setter will start or stop the autosave component if appropriate.
-        """
-        return self._enabled
-
-    @enabled.setter
-    def enabled(self, new_enabled):
-        if new_enabled == self.enabled:
-            return
-        self.stop_autosave_timer()
-        self._enabled = new_enabled
-        self.start_autosave_timer()
-
-    def start_autosave_timer(self):
-        """
-        Start a timer which calls do_autosave() after AUTOSAVE_DELAY.
-
-        The autosave timer is only started if autosave is enabled.
-        """
-        if self.enabled:
-            self.timer.start(self.AUTOSAVE_DELAY)
-
-    def stop_autosave_timer(self):
-        """Stop the autosave timer."""
-        self.timer.stop()
-
-    def do_autosave(self):
-        """Instruct current editorstack to autosave files where necessary."""
-        logger.debug('Autosave triggered')
-        stack = self.editor.get_current_editorstack()
-        stack.autosave.autosave_all()
-        self.start_autosave_timer()
-
-    def try_recover_from_autosave(self):
-        """Offer to recover files from autosave."""
-        autosave_dir = get_conf_path('autosave')
-        autosave_mapping = CONF.get('editor', 'autosave_mapping', {})
-        dialog = RecoveryDialog(autosave_dir, autosave_mapping,
-                                parent=self.editor)
-        dialog.exec_if_nonempty()
-        self.recover_files_to_open = dialog.files_to_open[:]
-
-
-class AutosaveComponent(object):
-    """Component of editor plugin implementing autosave functionality."""
-
-    # Interval (in ms) between two autosaves
-    DEFAULT_AUTOSAVE_INTERVAL = 60 * 1000
-
-    def __init__(self, editor):
-        """
-        Constructor.
-
-        Autosave is disabled after construction and needs to be enabled
-        explicitly if required.
-
-        Args:
-            editor (Editor): editor plugin.
-        """
-        self.editor = editor
-        self.timer = QTimer(self.editor)
-        self.timer.setSingleShot(True)
-        self.timer.timeout.connect(self.do_autosave)
-        self._enabled = False  # Can't use setter here
-        self._interval = self.DEFAULT_AUTOSAVE_INTERVAL
-
-    @property
-    def enabled(self):
-        """
-        Get or set whether autosave component is enabled.
-
-        The setter will start or stop the autosave component if appropriate.
-        """
-        return self._enabled
-
-    @enabled.setter
-    def enabled(self, new_enabled):
-        if new_enabled == self.enabled:
-            return
-        self.stop_autosave_timer()
-        self._enabled = new_enabled
-        self.start_autosave_timer()
-
-    @property
-    def interval(self):
-        """
-        Interval between two autosaves, in milliseconds.
-
-        The setter will perform an autosave if the interval is changed and
-        autosave is enabled.
-        """
-        return self._interval
-
-    @interval.setter
-    def interval(self, new_interval):
-        if new_interval == self.interval:
-            return
-        self.stop_autosave_timer()
-        self._interval = new_interval
-        if self.enabled:
-            self.do_autosave()
-
-    def start_autosave_timer(self):
-        """
-        Start a timer which calls do_autosave() after `self.interval`.
-
-        The autosave timer is only started if autosave is enabled.
-        """
-        if self.enabled:
-            self.timer.start(self.interval)
-
-    def stop_autosave_timer(self):
-        """Stop the autosave timer."""
-        self.timer.stop()
-
-    def do_autosave(self):
-        """Instruct current editorstack to autosave files where necessary."""
-        logger.debug('Autosave triggered')
-        stack = self.editor.get_current_editorstack()
-        stack.autosave.autosave_all()
-        self.start_autosave_timer()
-
-    def try_recover_from_autosave(self):
-        """Offer to recover files from autosave."""
-        autosave_dir = get_conf_path('autosave')
-        autosave_mapping = CONF.get('editor', 'autosave_mapping', {})
-        dialog = RecoveryDialog(autosave_dir, autosave_mapping,
-                                parent=self.editor)
-        dialog.exec_if_nonempty()
-        self.recover_files_to_open = dialog.files_to_open[:]

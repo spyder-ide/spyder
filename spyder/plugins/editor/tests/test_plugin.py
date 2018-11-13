@@ -25,7 +25,8 @@ from qtpy.QtWidgets import QMainWindow
 from spyder.config.main import CONF
 from spyder.utils.qthelpers import qapplication
 app = qapplication()
-from spyder.plugins.editor.plugin import AutosaveComponent, Editor
+from spyder.plugins.editor.autosave import AutosaveComponentForEditorPlugin
+from spyder.plugins.editor.plugin import Editor
 
 
 # =============================================================================
@@ -221,38 +222,9 @@ def test_no_template(setup_editor):
 
 
 def test_editor_has_autosave_component(setup_editor):
-    """Test that Editor includes an AutosaveComponent."""
+    """Test that Editor includes an AutosaveComponentForEditorPlugin."""
     editor, qtbot = setup_editor
-    assert isinstance(editor.autosave, AutosaveComponent)
-
-
-def test_autosave_component_set_interval(qtbot, mocker):
-    """Test that setting the interval does indeed change it and calls
-    do_autosave if enabled."""
-    mocker.patch.object(AutosaveComponent, 'do_autosave')
-    addon = AutosaveComponent(None)
-    addon.do_autosave.assert_not_called()
-    addon.interval = 10000
-    assert addon.interval == 10000
-    addon.do_autosave.assert_not_called()
-    addon.enabled = True
-    addon.interval = 20000
-    assert addon.do_autosave.called
-
-
-@pytest.mark.parametrize('enabled', [False, True])
-def test_autosave_component_timer_if_enabled(qtbot, mocker, enabled):
-    """Test that AutosaveCompenent calls do_autosave() on timer if enabled."""
-    mocker.patch.object(AutosaveComponent, 'do_autosave')
-    addon = AutosaveComponent(None)
-    addon.do_autosave.assert_not_called()
-    addon.interval = 100
-    addon.enabled = enabled
-    qtbot.wait(500)
-    if enabled:
-        assert addon.do_autosave.called
-    else:
-        addon.do_autosave.assert_not_called()
+    assert isinstance(editor.autosave, AutosaveComponentForEditorPlugin)
 
 
 def test_autosave_component_do_autosave(setup_editor, mocker):
@@ -303,7 +275,7 @@ def test_editor_syncs_autosave_mapping_among_editorstacks(setup_editor):
 def test_editor_calls_recoverydialog_exec_if_nonempty(qtbot, monkeypatch):
     """Check that editor tries to exec a recovery dialog on construction."""
     mock_RecoveryDialog = MagicMock()
-    monkeypatch.setattr('spyder.plugins.editor.plugin.RecoveryDialog',
+    monkeypatch.setattr('spyder.plugins.editor.autosave.RecoveryDialog',
                         mock_RecoveryDialog)
     setup_editor_iter = setup_editor(qtbot, monkeypatch)
     editor, qtbot = next(setup_editor_iter)
