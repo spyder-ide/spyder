@@ -36,15 +36,17 @@ def get_text_color():
     """
     ui_theme = CONF.get('color_schemes', 'ui_theme')
     color_scheme = CONF.get('color_schemes', 'selected')
+    dark_color = '#444444'
+    light_color = 'white'
     if ui_theme == 'dark':
-        text_color = 'white'
+        text_color = light_color
     elif ui_theme == 'automatic':
         if not is_dark_font_color(color_scheme):
-            text_color = 'white'
+            text_color = light_color
         else:
-            text_color = '#444444'
+            text_color = dark_color
     else:
-        text_color = '#444444'
+        text_color = dark_color
     return text_color
 
 

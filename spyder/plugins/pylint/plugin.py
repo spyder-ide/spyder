@@ -40,19 +40,22 @@ def get_colors():
     """
     ui_theme = CONF.get('color_schemes', 'ui_theme')
     color_scheme = CONF.get('color_schemes', 'selected')
+    light_color = 'white'
+    dark_color = '#444444'
+    grey_color = '#666666'
     if ui_theme == 'dark':
-        text_color = 'white'
-        prevrate_color = 'white'
+        text_color = light_color
+        prevrate_color = light_color
     elif ui_theme == 'automatic':
         if not is_dark_font_color(color_scheme):
-            text_color = 'white'
-            prevrate_color = 'white'
+            text_color = light_color
+            prevrate_color = light_color
         else:
-            text_color = '#444444'
-            prevrate_color = '#666666'
+            text_color = dark_color
+            prevrate_color = grey_color
     else:
-        text_color = '#444444'
-        prevrate_color = '#666666'
+        text_color = dark_color
+        prevrate_color = grey_color
     return text_color, prevrate_color
 
 

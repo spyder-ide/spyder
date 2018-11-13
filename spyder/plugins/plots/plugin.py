@@ -28,15 +28,17 @@ def get_background_color():
     """
     ui_theme = CONF.get('color_schemes', 'ui_theme')
     color_scheme = CONF.get('color_schemes', 'selected')
+    dark_color = '#232629'
+    light_color = 'white'
     if ui_theme == 'dark':
-        background_color = '#232629'
+        background_color = dark_color
     elif ui_theme == 'automatic':
         if not is_dark_font_color(color_scheme):
-            background_color = '#232629'
+            background_color = dark_color
         else:
-            background_color = 'white'
+            background_color = light_color
     else:
-        background_color = 'white'
+        background_color = light_color
     return background_color
 
 

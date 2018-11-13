@@ -42,19 +42,20 @@ def get_colors():
     """
     ui_theme = CONF.get('color_schemes', 'ui_theme')
     color_scheme = CONF.get('color_schemes', 'selected')
+    dark_color = QColor.fromRgb(35, 38, 41)
+    white = QColor.fromRgb(255, 255, 255)
+    grey = QColor.fromRgb(230, 230, 230)
     if ui_theme == 'dark':
-        top_color = QColor.fromRgb(35, 38, 41)
-        back_color = QColor.fromRgb(35, 38, 41)
+        top_color = back_color = dark_color
     elif ui_theme == 'automatic':
         if not is_dark_font_color(color_scheme):
-            top_color = QColor.fromRgb(35, 38, 41)
-            back_color = QColor.fromRgb(35, 38, 41)
+            top_color = back_color = dark_color
         else:
-            top_color = QColor.fromRgb(230, 230, 230)
-            back_color = QColor.fromRgb(255, 255, 255)
+            top_color = grey
+            back_color = white
     else:
-        top_color = QColor.fromRgb(230, 230, 230)
-        back_color = QColor.fromRgb(255, 255, 255)
+        top_color = grey
+        back_color = white
     return top_color, back_color
 
 
@@ -614,27 +615,26 @@ class FadingTipBox(FadingDialog):
         self.color_top = color_top
         self.color_back = color_back
         self.combobox_background = combobox_background
-        self.stylesheet = '''QComboBox {
+        self.stylesheet = '''QComboBox {{
                              padding-left: 5px;
-                             background-color:
-                          ''' + self.combobox_background.name() + '''
+                             background-color: {}
                              border-width: 0px;
                              border-radius: 0px;
                              min-height:20px;
                              max-height:20px;
-                             }
+                             }}
 
-                             QComboBox::drop-down  {
+                             QComboBox::drop-down  {{
                              subcontrol-origin: padding;
                              subcontrol-position: top left;
                              border-width: 0px;
-                             }
+                             }}
                              
-                             QComboBox::down-arrow {
-                             image: url(''' + arrow + ''');
-                             }
+                             QComboBox::down-arrow {{
+                             image: url({});
+                             }}
                              
-                             '''
+                             '''.format(self.combobox_background.name(), arrow)
         # Windows fix, slashes should be always in unix-style
         self.stylesheet = self.stylesheet.replace('\\', '/')
 
