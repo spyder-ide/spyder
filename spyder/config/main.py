@@ -230,6 +230,7 @@ DEFAULTS = [
               'run_cell_copy': False,
               'onsave_analysis': False,
               'autosave_enabled': True,
+              'autosave_interval': 60,
               }),
             ('historylog',
              {
