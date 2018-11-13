@@ -17,7 +17,7 @@ from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QGridLayout, QGroupBox,
                             QHBoxLayout, QLabel, QLineEdit, QPushButton,
-                            QRadioButton, QSpacerItem, QVBoxLayout)
+                            QRadioButton, QSpacerItem, QVBoxLayout, QCheckBox)
 
 # Local imports
 from spyder.config.base import _, get_home_dir
@@ -30,14 +30,6 @@ class KernelConnectionDialog(QDialog):
     def __init__(self, parent=None):
         super(KernelConnectionDialog, self).__init__(parent)
         self.setWindowTitle(_('Connect to an existing kernel'))
-
-        cfp = CONF.get("existing-kernel", "json_file_path", "")
-        is_remote = CONF.get("existing-kernel", "is_remote", False)
-        username = CONF.get("existing-kernel", "username", "")
-        hostname = CONF.get("existing-kernel", "hostname", "")
-        port = str(CONF.get("existing-kernel", "port", 22))
-        is_ssh_kf = CONF.get("existing-kernel", "is_ssh_keyfile", False)
-        ssh_kf = CONF.get("existing-kernel", "ssh_key_file_path", "")
 
         main_label = QLabel(_(
             "<p>Please select the JSON connection file (<i>e.g.</i> "
@@ -56,8 +48,6 @@ class KernelConnectionDialog(QDialog):
         self.cf = QLineEdit()
         self.cf.setPlaceholderText(_('Kernel connection file path'))
         self.cf.setMinimumWidth(350)
-        if cfp != "":
-            self.cf.setText(cfp)
         cf_open_btn = QPushButton(_('Browse'))
         cf_open_btn.clicked.connect(self.select_connection_file)
 
@@ -72,17 +62,12 @@ class KernelConnectionDialog(QDialog):
         # SSH connection
         hn_label = QLabel(_('Hostname:'))
         self.hn = QLineEdit()
-        if hostname != "":
-            self.hn.setText(hostname)
         pn_label = QLabel(_('Port:'))
         self.pn = QLineEdit()
         self.pn.setMaximumWidth(75)
-        self.pn.setText(port)
 
         un_label = QLabel(_('Username:'))
         self.un = QLineEdit()
-        if username != "":
-            self.un.setText(username)
 
         # SSH authentication
         auth_group = QGroupBox(_("Authentication method:"))
@@ -102,8 +87,6 @@ class KernelConnectionDialog(QDialog):
         kf_layout = QHBoxLayout()
         kf_layout.addWidget(self.kf)
         kf_layout.addWidget(kf_open_btn)
-        if ssh_kf != "":
-            self.kf.setText(ssh_kf)
 
         kfp_label = QLabel(_('Passphase:'))
         self.kfp = QLineEdit()
@@ -147,10 +130,7 @@ class KernelConnectionDialog(QDialog):
         rm_layout.addWidget(auth_group)
         self.rm_group.setLayout(rm_layout)
         self.rm_group.setCheckable(True)
-        self.rm_group.setChecked(is_remote)
         self.rm_group.toggled.connect(self.pw_radio.setChecked)
-
-        self.kf_radio.setChecked(is_ssh_kf)
 
         # Ok and Cancel buttons
         self.accept_btns = QDialogButtonBox(
@@ -160,6 +140,10 @@ class KernelConnectionDialog(QDialog):
         self.accept_btns.accepted.connect(self.accept)
         self.accept_btns.rejected.connect(self.reject)
 
+        # save kernel checkbox
+        self.save_kernel_layout = QCheckBox(self)
+        self.save_kernel_layout.setText(_("Save kernel settings"))
+
         # Dialog layout
         layout = QVBoxLayout(self)
         layout.addWidget(main_label)
@@ -167,7 +151,33 @@ class KernelConnectionDialog(QDialog):
         layout.addLayout(cf_layout)
         layout.addSpacerItem(QSpacerItem(QSpacerItem(0, 12)))
         layout.addWidget(self.rm_group)
+        layout.addWidget(self.save_kernel_layout)
         layout.addWidget(self.accept_btns)
+
+        self.load_existing_kernel()
+
+    def load_existing_kernel(self):
+        existing_kernel = CONF.get("existing-kernel", "settings", {})
+
+        cfp = existing_kernel.get("json_file_path", "")
+        is_remote = existing_kernel.get("is_remote", False)
+        username = existing_kernel.get("username", "")
+        hostname = existing_kernel.get("hostname", "")
+        port = str(existing_kernel.get("port", 22))
+        is_ssh_kf = existing_kernel.get("is_ssh_keyfile", False)
+        ssh_kf = existing_kernel.get("ssh_key_file_path", "")
+
+        if cfp != "":
+            self.cf.setText(cfp)
+        if username != "":
+            self.un.setText(username)
+        if hostname != "":
+            self.hn.setText(hostname)
+        if ssh_kf != "":
+            self.kf.setText(ssh_kf)
+        self.rm_group.setChecked(is_remote)
+        self.pn.setText(port)
+        self.kf_radio.setChecked(is_ssh_kf)
 
     def select_connection_file(self):
         cf = getopenfilename(self, _('Select kernel connection file'),
@@ -186,16 +196,17 @@ class KernelConnectionDialog(QDialog):
         result = dialog.exec_()
         is_remote = bool(dialog.rm_group.isChecked())
         accepted = result == QDialog.Accepted
-        if accepted:
-            CONF.set("existing-kernel", "json_file_path", dialog.cf.text())
-            CONF.set("existing-kernel", "is_remote",
-                     bool(dialog.rm_group.isChecked()))
-            CONF.set("existing-kernel", "username", dialog.un.text())
-            CONF.set("existing-kernel", "hostname", dialog.hn.text())
-            CONF.set("existing-kernel", "port", dialog.pn.text())
-            CONF.set("existing-kernel", "is_ssh_keyfile",
-                     bool(dialog.kf_radio.isChecked()))
-            CONF.set("existing-kernel", "ssh_key_file_path", dialog.kf.text())
+        if accepted and dialog.save_kernel_layout.isChecked():
+            existing_kernel = {
+              "json_file_path": dialog.cf.text(),
+              "is_remote": is_remote,
+              "username": dialog.un.text(),
+              "hostname": dialog.hn.text(),
+              "port": dialog.pn.text(),
+              "is_ssh_keyfile": bool(dialog.kf_radio.isChecked()),
+              "ssh_key_file_path": dialog.kf.text()
+            }
+            CONF.set("existing-kernel", "settings", existing_kernel)
 
         if is_remote:
             def falsy_to_none(arg):
