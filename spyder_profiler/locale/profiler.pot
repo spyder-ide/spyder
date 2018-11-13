@@ -6,13 +6,13 @@
 # (see spyder/__init__.py for details)
 # -----------------------------------------------------------------------------
 #
-# Spyder's Profiler subpackage gettext translation template file
+# Spyder's gettext translation template file
 #
 
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2018-06-26 19:16+-05\n"
+"POT-Creation-Date: 2018-11-13 11:49+-05\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"

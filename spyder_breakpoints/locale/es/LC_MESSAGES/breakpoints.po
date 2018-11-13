@@ -8,11 +8,10 @@
 #
 # Spyder's Breakpoints subpackage Spanish gettext translation file
 #
-
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.2\n"
-"POT-Creation-Date: 2018-06-26 19:16+-05\n"
+"POT-Creation-Date: 2018-11-13 11:49+-05\n"
 "PO-Revision-Date: 2013-05-07 17:37-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"

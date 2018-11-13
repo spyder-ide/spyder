@@ -8,11 +8,10 @@
 #
 # Spyder's Profiler subpackage Spanish gettext translation file
 #
-
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
-"POT-Creation-Date: 2018-06-26 19:16+-05\n"
+"POT-Creation-Date: 2018-11-13 11:49+-05\n"
 "PO-Revision-Date: 2012-06-25 21:59-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"

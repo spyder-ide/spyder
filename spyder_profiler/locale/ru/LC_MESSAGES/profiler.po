@@ -8,11 +8,10 @@
 #
 # Spyder's Profiler subpackage Russian gettext translation file
 #
-
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2018-06-26 19:16+-05\n"
+"POT-Creation-Date: 2018-11-13 11:49+-05\n"
 "PO-Revision-Date: 2017-07-21 00:09+0300\n"
 "Last-Translator: Zgarbul Andrey <zgarbul.andrey@gmail.com>\n"
 "Language-Team: \n"
