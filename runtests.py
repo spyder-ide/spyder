@@ -20,7 +20,7 @@ import pytest
 RUN_CI = os.environ.get('CI', None) is not None
 
 
-def main(extra_args=None):
+def main(run_slow=False, extra_args=None):
     """
     Run pytest tests for Spyder.
     """
@@ -33,6 +33,8 @@ def main(extra_args=None):
     if RUN_CI:
         pytest_args += ['-x', '--run-slow', '--cov=spyder',
                         '--cov=spyder_profiler', '--no-cov-on-fail']
+    elif run_slow:
+        pytest_args += ['--run-slow']
     elif extra_args:
         pytest_args += extra_args
 
@@ -49,7 +51,10 @@ def main(extra_args=None):
 if __name__ == '__main__':
     test_parser = argparse.ArgumentParser(
         usage='python runtests.py [--run-slow] [-- pytest_args]')
+    test_parser.add_argument('--run-slow', action='store_true',
+                             default=False,
+                             help='Run the slow tests')
     test_parser.add_argument('pytest_args', nargs='*',
                              help="Args to pass to pytest")
     test_args = test_parser.parse_args()
-    main(extra_args=test_args.pytest_args)
+    main(run_slow=test_args.run_slow, extra_args=test_args.pytest_args)
