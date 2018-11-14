@@ -140,9 +140,13 @@ class KernelConnectionDialog(QDialog):
         self.accept_btns.accepted.connect(self.accept)
         self.accept_btns.rejected.connect(self.reject)
 
-        # save kernel checkbox
-        self.save_kernel_layout = QCheckBox(self)
-        self.save_kernel_layout.setText(_("Save kernel settings"))
+        # Save connection settings checkbox
+        self.save_layout = QCheckBox(self)
+        self.save_layout.setText(_("Save connection settings"))
+
+        btns_layout = QHBoxLayout()
+        btns_layout.addWidget(self.save_layout)
+        btns_layout.addWidget(self.accept_btns)
 
         # Dialog layout
         layout = QVBoxLayout(self)
@@ -151,12 +155,11 @@ class KernelConnectionDialog(QDialog):
         layout.addLayout(cf_layout)
         layout.addSpacerItem(QSpacerItem(QSpacerItem(0, 12)))
         layout.addWidget(self.rm_group)
-        layout.addWidget(self.save_kernel_layout)
-        layout.addWidget(self.accept_btns)
+        layout.addLayout(btns_layout)
 
-        self.load_existing_kernel()
+        self.load_connection_settings()
 
-    def load_existing_kernel(self):
+    def load_connection_settings(self):
         existing_kernel = CONF.get("existing-kernel", "settings", {})
 
         cfp = existing_kernel.get("json_file_path", "")
@@ -178,6 +181,41 @@ class KernelConnectionDialog(QDialog):
         self.rm_group.setChecked(is_remote)
         self.pn.setText(port)
         self.kf_radio.setChecked(is_ssh_kf)
+        self.pw_radio.setChecked(not is_ssh_kf)
+
+        try:
+            import keyring
+            ssh_passphrase = keyring.get_password("existing_kernel", "ssh_key_passphrase")
+            ssh_password = keyring.get_password("existing_kernel", "ssh_password")
+            if ssh_passphrase != "":
+               self.kfp.setText(ssh_passphrase)
+            if ssh_password != "":
+               self.pw.setText(ssh_password)
+        except Exception:
+            pass
+
+    def save_connection_settings(self):
+        is_ssh_key = bool(self.kf_radio.isChecked())
+        connection_settings = {
+            "json_file_path": self.cf.text(),
+            "is_remote": self.rm_group.isChecked(),
+            "username": self.un.text(),
+            "hostname": self.hn.text(),
+            "port": self.pn.text(),
+            "is_ssh_keyfile": is_ssh_key,
+            "ssh_key_file_path": self.kf.text()
+        }
+        CONF.set("existing-kernel", "settings", connection_settings)
+
+        try:
+          import keyring
+          if is_ssh_key:
+              keyring.set_password("existing_kernel", "ssh_key_passphrase", self.kfp.text())
+          else:
+              keyring.set_password("existing_kernel", "ssh_password", self.pw.text())
+        except Exception:
+            pass
+
 
     def select_connection_file(self):
         cf = getopenfilename(self, _('Select kernel connection file'),
@@ -196,17 +234,8 @@ class KernelConnectionDialog(QDialog):
         result = dialog.exec_()
         is_remote = bool(dialog.rm_group.isChecked())
         accepted = result == QDialog.Accepted
-        if accepted and dialog.save_kernel_layout.isChecked():
-            existing_kernel = {
-              "json_file_path": dialog.cf.text(),
-              "is_remote": is_remote,
-              "username": dialog.un.text(),
-              "hostname": dialog.hn.text(),
-              "port": dialog.pn.text(),
-              "is_ssh_keyfile": bool(dialog.kf_radio.isChecked()),
-              "ssh_key_file_path": dialog.kf.text()
-            }
-            CONF.set("existing-kernel", "settings", existing_kernel)
+        if accepted and dialog.save_layout.isChecked():
+            dialog.save_connection_settings()
 
         if is_remote:
             def falsy_to_none(arg):
