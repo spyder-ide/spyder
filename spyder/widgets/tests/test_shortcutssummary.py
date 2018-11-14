@@ -8,12 +8,12 @@
 Tests for the Shortcut Summary Widget.
 """
 import sys
+from random import sample
 
 import pytest
 from qtpy.QtCore import Qt
 
 from spyder.widgets.shortcutssummary import ShortcutsSummaryDialog
-from .helpers import SHORTCUTS
 
 
 @pytest.fixture
@@ -26,7 +26,7 @@ def dlg_shortcuts(qtbot):
     dlg_shortcuts.close()
 
 
-def test_shortcutssummary_exists(dlg_shortcuts, qtbot):
+def test_shortcutssummary(dlg_shortcuts, qtbot):
     """Test that shortcut summary is visible and is not empty"""
     # Test that the dialog exists and is shown
     assert dlg_shortcuts.isVisible()
@@ -41,9 +41,8 @@ def test_shortcutssummary_exists(dlg_shortcuts, qtbot):
 
 def test_shortcutssummary_texts(dlg_shortcuts, qtbot):
     """Test that each shortcut has platform-specific key names."""
-    expected_shortcuts = 124
-    found_shortcuts = 0
-    for column_layout in dlg_shortcuts.scroll_widget.layout().children():
+    children = dlg_shortcuts.scroll_widget.layout().children()
+    for column_layout in sample(children, 3):
         for group_idx in range(column_layout.count()):
             try:
                 group_layout = (column_layout.itemAt(group_idx)
@@ -52,21 +51,15 @@ def test_shortcutssummary_texts(dlg_shortcuts, qtbot):
                 continue
             for shortcut_idx in range(group_layout.rowCount()):
                 try:
-                    shortcut_name = (
-                        group_layout.itemAtPosition(shortcut_idx, 0)
-                        .widget().text())
                     shortcut_keystr = (
                         group_layout.itemAtPosition(shortcut_idx, 1)
                         .widget().text())
                 except AttributeError:  # Since some items are not present
                     continue
 
-                print(found_shortcuts, shortcut_name, shortcut_keystr)
-                expected = SHORTCUTS[shortcut_name]
                 if sys.platform.startswith('darwin'):
-                    assert shortcut_keystr == expected[1]
+                    keywords = [u'⇧', u'⌃', u'⌘', u'⌥', u'⌦',  u'⎋', 'F']
                 else:
-                    assert shortcut_keystr == expected[0]
-                found_shortcuts += 1
-
-    assert found_shortcuts == expected_shortcuts
+                    keywords = ['Alt', 'Ctrl', 'Del', 'Escape', 'F', 'Meta',
+                                'Shift']
+                assert any([key in shortcut_keystr for key in keywords])
