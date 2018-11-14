@@ -10,7 +10,7 @@ Helpers used in widget tests
 
 
 SHORTCUTS = {
-    'Close pane': ('Shift+Ctrl+F4' ,'⇧⌘F4'),
+    'Close pane': ('Ctrl+Shift+F4' ,'⇧⌘F4'),
     'Configure': ('Ctrl+F6', '⌘F6'),
     'Debug': ('Ctrl+F5', '⌘F5'),
     'Debug continue': ('Ctrl+F12', '⌘F12'),
@@ -25,7 +25,7 @@ SHORTCUTS = {
     'Fullscreen mode': ('F11', 'F11'),
     'Hide find and replace': ('Escape', '⎋'),
     'Layout preferences': ('Shift+Alt+P', '⌥⇧P'),
-    'Lock unlock panes': ('Shift+Ctrl+F5', '⇧⌘F5'),
+    'Lock unlock panes': ('Ctrl+Shift+F5', '⇧⌘F5'),
     'Maximize pane': ('Ctrl+Alt+Shift+M', '⌥⇧⌘M'),
     'Preferences': ('Ctrl+Alt+Shift+P', '⌥⇧⌘P'),
     'Quit': ('Ctrl+Q', '⌘Q'),
