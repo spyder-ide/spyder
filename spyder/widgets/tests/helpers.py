@@ -1,3 +1,14 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright © Spyder Project Contributors
+# Licensed under the terms of the MIT License
+#
+
+"""
+Helpers used in widget tests
+"""
+
+
 SHORTCUTS = {
     'Close pane': ('Shift+Ctrl+F4' ,'⇧⌘F4'),
     'Configure': ('Ctrl+F6', '⌘F6'),
