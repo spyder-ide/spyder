@@ -316,7 +316,8 @@ class FigureViewer(QScrollArea):
     def __init__(self, parent=None, background_color=None):
         super(FigureViewer, self).__init__(parent)
         self.setAlignment(Qt.AlignCenter)
-        self.viewport().setStyleSheet("background-color: " + background_color)
+        self.viewport().setStyleSheet(
+                "background-color: {}".format(background_color))
         self.setFrameStyle(0)
 
         self._scalefactor = 0

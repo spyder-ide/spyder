@@ -23,8 +23,7 @@ from qtpy.QtWidgets import QGroupBox, QInputDialog, QLabel, QVBoxLayout
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.main import CONF
-from spyder.config.gui import is_dark_font_color
+from spyder.config.gui import is_dark_interface
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
 from spyder.utils import icon_manager as ima
@@ -33,33 +32,12 @@ from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from .widgets.pylintgui import PylintWidget
 
 
-def get_colors():
-    """
-    Get text and previous rate color for the pylint plugin based on
-    the color theme and color scheme currently selected.
-    """
-    ui_theme = CONF.get('color_schemes', 'ui_theme')
-    color_scheme = CONF.get('color_schemes', 'selected')
-    light_color = 'white'
-    dark_color = '#444444'
-    grey_color = '#666666'
-    if ui_theme == 'dark':
-        text_color = light_color
-        prevrate_color = light_color
-    elif ui_theme == 'automatic':
-        if not is_dark_font_color(color_scheme):
-            text_color = light_color
-            prevrate_color = light_color
-        else:
-            text_color = dark_color
-            prevrate_color = grey_color
-    else:
-        text_color = dark_color
-        prevrate_color = grey_color
-    return text_color, prevrate_color
-
-
-MAIN_TEXT_COLOR, MAIN_PREVRATE_COLOR = get_colors()
+if is_dark_interface():
+    MAIN_TEXT_COLOR = 'white'
+    MAIN_PREVRATE_COLOR = 'white'
+else:
+    MAIN_TEXT_COLOR = '#444444'
+    MAIN_PREVRATE_COLOR = '#666666'
 
 
 class PylintConfigPage(PluginConfigPage):

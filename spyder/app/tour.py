@@ -28,38 +28,17 @@ from qtpy.QtWidgets import (QAction, QApplication, QComboBox, QDialog,
 
 # Local imports
 from spyder.config.base import _, get_image_path
-from spyder.config.main import CONF
-from spyder.config.gui import is_dark_font_color
+from spyder.config.gui import is_dark_interface
 from spyder.py3compat import to_binary_string
 from spyder.utils.qthelpers import add_actions, create_action
 from spyder.utils import icon_manager as ima
 
 
-def get_colors():
-    """
-    Get top and background colors for the tour based on the color theme
-    and color scheme currently selected.
-    """
-    ui_theme = CONF.get('color_schemes', 'ui_theme')
-    color_scheme = CONF.get('color_schemes', 'selected')
-    dark_color = QColor.fromRgb(35, 38, 41)
-    white = QColor.fromRgb(255, 255, 255)
-    grey = QColor.fromRgb(230, 230, 230)
-    if ui_theme == 'dark':
-        top_color = back_color = dark_color
-    elif ui_theme == 'automatic':
-        if not is_dark_font_color(color_scheme):
-            top_color = back_color = dark_color
-        else:
-            top_color = grey
-            back_color = white
-    else:
-        top_color = grey
-        back_color = white
-    return top_color, back_color
-
-
-MAIN_TOP_COLOR, MAIN_BG_COLOR = get_colors()
+if is_dark_interface():
+    MAIN_TOP_COLOR = MAIN_BG_COLOR = QColor.fromRgb(35, 38, 41)
+else:
+    MAIN_TOP_COLOR = QColor.fromRgb(230, 230, 230)
+    MAIN_BG_COLOR = QColor.fromRgb(255, 255, 255)
 
 # FIXME: Known issues
 # How to handle if an specific dockwidget does not exists/load, like ipython

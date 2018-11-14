@@ -19,8 +19,7 @@ from qtpy.QtWidgets import QGroupBox, QLabel, QVBoxLayout
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.main import CONF
-from spyder.config.gui import is_dark_font_color
+from spyder.config.gui import is_dark_interface
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
 from spyder.preferences.runconfig import get_run_configuration
@@ -29,28 +28,10 @@ from spyder.utils.qthelpers import create_action
 from .widgets.profilergui import (ProfilerWidget, is_profiler_installed)
 
 
-def get_text_color():
-    """
-    Get text color for the profiler plugin based on the color theme
-    and color scheme currently selected.
-    """
-    ui_theme = CONF.get('color_schemes', 'ui_theme')
-    color_scheme = CONF.get('color_schemes', 'selected')
-    dark_color = '#444444'
-    light_color = 'white'
-    if ui_theme == 'dark':
-        text_color = light_color
-    elif ui_theme == 'automatic':
-        if not is_dark_font_color(color_scheme):
-            text_color = light_color
-        else:
-            text_color = dark_color
-    else:
-        text_color = dark_color
-    return text_color
-
-
-MAIN_TEXT_COLOR = get_text_color()
+if is_dark_interface():
+    MAIN_TEXT_COLOR = 'white'
+else:
+    MAIN_TEXT_COLOR = '#444444'
 
 
 class ProfilerConfigPage(PluginConfigPage):

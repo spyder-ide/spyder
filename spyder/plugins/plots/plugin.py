@@ -13,36 +13,17 @@ from qtpy.QtWidgets import QStackedWidget, QGridLayout
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.main import CONF
-from spyder.config.gui import is_dark_font_color
+from spyder.config.gui import is_dark_interface
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
 from spyder.utils import icon_manager as ima
 from spyder.plugins.plots.widgets.figurebrowser import FigureBrowser
 
 
-def get_background_color():
-    """
-    Get background color for the plots plugin based on the color theme
-    and color scheme currently selected.
-    """
-    ui_theme = CONF.get('color_schemes', 'ui_theme')
-    color_scheme = CONF.get('color_schemes', 'selected')
-    dark_color = '#232629'
-    light_color = 'white'
-    if ui_theme == 'dark':
-        background_color = dark_color
-    elif ui_theme == 'automatic':
-        if not is_dark_font_color(color_scheme):
-            background_color = dark_color
-        else:
-            background_color = light_color
-    else:
-        background_color = light_color
-    return background_color
-
-
-MAIN_BG_COLOR = get_background_color()
+if is_dark_interface():
+    MAIN_BG_COLOR = '#232629'
+else:
+    MAIN_BG_COLOR = 'white'
 
 
 class PlotsConfigPage(PluginConfigPage):
