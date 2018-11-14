@@ -8,13 +8,12 @@
 
 
 # Standard library imports
-import sys
 from operator import itemgetter
 from itertools import groupby
 
 # Third party imports
 from qtpy.QtCore import Qt
-from qtpy.QtGui import QFont
+from qtpy.QtGui import QFont, QKeySequence
 from qtpy.QtWidgets import (QDialog, QLabel, QGridLayout, QGroupBox,
                             QVBoxLayout, QHBoxLayout, QDesktopWidget,
                             QScrollArea, QWidget)
@@ -108,10 +107,7 @@ class ShortcutsSummaryDialog(QDialog):
                 label_name = QLabel(name.capitalize().replace('_', ' '))
                 label_name.setFont(font_names)
 
-                if sys.platform.startswith('darwin'):
-                    keystr = keystr.replace('Ctrl',
-                                            'Cmd').replace('Alt', 'Option')
-
+                keystr = QKeySequence(keystr).toString(QKeySequence.NativeText)
                 label_keystr = QLabel(keystr)
                 label_keystr.setFont(font_keystr)
 
