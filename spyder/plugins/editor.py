@@ -418,6 +418,14 @@ class Editor(SpyderPluginWidget):
         self.dock_toolbar_actions = None
         self.edit_menu_actions = None #XXX: find another way to notify Spyder
         self.stack_menu_actions = None
+
+        self.__first_open_files_setup = True
+        self.editorstacks = []
+        self.last_focus_editorstack = {}
+        self.editorwindows = []
+        self.editorwindows_to_be_created = []
+        self.toolbar_list = None
+        self.menu_list = None
         
         # Initialize plugin
         self.initialize_plugin()
@@ -440,14 +448,6 @@ class Editor(SpyderPluginWidget):
         self.cursor_pos_history = []
         self.cursor_pos_index = None
         self.__ignore_cursor_position = True
-
-        self.__first_open_files_setup = True
-        self.editorstacks = []
-        self.last_focus_editorstack = {}
-        self.editorwindows = []
-        self.editorwindows_to_be_created = []
-        self.toolbar_list = None
-        self.menu_list = None
 
         # Don't start IntrospectionManager when running tests because
         # it consumes a lot of memory
