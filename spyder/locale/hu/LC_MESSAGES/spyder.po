@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2017-04-05 12:05+0200\n"
-"PO-Revision-Date: 2018-11-15 12:29-0500\n"
+"PO-Revision-Date: 2018-11-15 12:54-0500\n"
 "Last-Translator: Barcza Károly <kbarcza@blackpanther.hu>\n"
 "Language-Team: \n"
 "Language: hu\n"
@@ -3643,7 +3643,7 @@ msgstr "Töltés %s..."
 
 #: spyder/widgets/editor.py:1858
 msgid "<b>%s</b> contains mixed end-of-line characters.<br>Spyder will fix this automatically."
-msgstr ""
+msgstr "<b>%s</b> kevert vonalvég betüket tartalmaz.<br>Spyder ezt magjavítja."
 
 #: spyder/widgets/editor.py:2240
 #, fuzzy
@@ -3842,11 +3842,11 @@ msgstr "Név:"
 
 #: spyder/widgets/explorer.py:593
 msgid "Do you really want to rename <b>%s</b> and overwrite the existing file <b>%s</b>?"
-msgstr ""
+msgstr "Fájlt újranevezni <b>%s</b> és létező fájt átírni <b>%s</b>?"
 
 #: spyder/widgets/explorer.py:604
 msgid "<b>Unable to rename file <i>%s</i></b><br><br>Error message:<br>%s"
-msgstr ""
+msgstr "<b>Fájl nevesése nem sikerült <i>%s</i></b><br><br>Hiba:<br>%s"
 
 #: spyder/widgets/explorer.py:640
 msgid "<b>Unable to move <i>%s</i></b><br><br>Error message:<br>%s"
@@ -3957,7 +3957,9 @@ msgid "Attempts to stop the process. The process\n"
 "may not exit as a result of clicking this\n"
 "button (it is given the chance to prompt\n"
 "the user for any unsaved files, etc)."
-msgstr ""
+msgstr "Procesz magállítast proóbál. Ha\n"
+"például kérdezne valamit, lehet hogy\n"
+"kattintás nem zárja le a proceszt"
 
 #: spyder/widgets/externalshell/pythonshell.py:296
 #, fuzzy
@@ -4099,7 +4101,7 @@ msgstr "PYTHONPATH manager"
 
 #: spyder/widgets/findinfiles.py:379
 msgid "Search in all directories listed in sys.path which are outside the Python installation directory"
-msgstr ""
+msgstr "Minder directory-ban keresni ami sys.path-ban van és python berendezésen kívűl"
 
 #: spyder/widgets/findinfiles.py:382
 #, fuzzy
@@ -4294,7 +4296,7 @@ msgstr "<br>Mag újraindít…\n"
 
 #: spyder/widgets/ipythonconsole/client.py:350
 msgid "Cannot restart a kernel not started by Spyder\n"
-msgstr ""
+msgstr "Spyder nem újraindít magot amit nem teremptett\n"
 
 #: spyder/widgets/ipythonconsole/client.py:402
 msgid "Changing backend to Qt for Mayavi"
@@ -4307,7 +4309,7 @@ msgstr "Rendszermag"
 
 #: spyder/widgets/ipythonconsole/namespacebrowser.py:76
 msgid "Inspecting and setting values while debugging in IPython consoles is not supported yet by Spyder."
-msgstr ""
+msgstr "ipython debug közben nem lehet értéket viszgánli vagy határozni"
 
 #: spyder/widgets/ipythonconsole/shell.py:144
 #, fuzzy
@@ -4316,7 +4318,7 @@ msgstr "Névtér"
 
 #: spyder/widgets/ipythonconsole/shell.py:145
 msgid "All user-defined variables will be removed.<br>Are you sure you want to reset the namespace?"
-msgstr ""
+msgstr "Minden használói vátlozók törölné. <br> Tovább?"
 
 #: spyder/widgets/ipythonconsole/shell.py:285
 #, fuzzy
@@ -4407,7 +4409,7 @@ msgstr "Biztosan törölni szeretné a kijelölt %1 címet?"
 
 #: spyder/widgets/pathmanager.py:232
 msgid "This directory is already included in Spyder path list.<br>Do you want to move it to the top of the list?"
-msgstr ""
+msgstr "Ez a mappa más been a Spyder listájában.<br> Mozduljon a lista tetejéhez?"
 
 #: spyder/widgets/projects/configdialog.py:30
 #, fuzzy
@@ -4863,7 +4865,7 @@ msgstr "Ezt a vátozót kinyitni lassú lehet\n"
 
 #: spyder/widgets/variableexplorer/collectionseditor.py:434
 msgid "Spyder was unable to retrieve the value of this variable from the console.<br><br>The error mesage was:<br><i>%s</i>"
-msgstr ""
+msgstr "Ennek a változónak az értékt nem sikerült felfedezni a konzólból. <br><br>Hiba:<br><i>%s</i>"
 
 #: spyder/widgets/variableexplorer/collectionseditor.py:608
 msgid "Edit item"
