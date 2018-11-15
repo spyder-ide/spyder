@@ -15,7 +15,7 @@ msgstr ""
 "Project-Id-Version: 3.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2018-11-13 11:49+-05\n"
-"PO-Revision-Date: 2018-02-20 20:55+0300\n"
+"PO-Revision-Date: 2018-11-15 12:37+0300\n"
 "Last-Translator: Andrey Zgarbul <zgarbul.andrey@gmail.com>\n"
 "Language-Team: русский <LL@li.org>\n"
 "Language: ru_RU\n"
@@ -23,7 +23,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
-"X-Generator: Poedit 1.8.7.1\n"
+"X-Generator: Poedit 2.0.6\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Poedit-Basepath: ../../..\n"
@@ -252,7 +252,7 @@ msgstr "Внешние инструменты"
 
 #: spyder/app/mainwindow.py:723
 msgid "WinPython control panel"
-msgstr "контрольная панель WinPython"
+msgstr "Контрольная панель WinPython"
 
 #: spyder/app/mainwindow.py:733
 msgid "Qt Designer"
@@ -560,6 +560,8 @@ msgid ""
 "<b>{}</b> is no longer a valid Spyder project! Since it is the current "
 "active project, it will be closed automatically."
 msgstr ""
+"<b>{}</b> - больше не корректный проект Spyder! Так как это текущий активный "
+"проект, он будет закрыт автоматически."
 
 #: spyder/app/mainwindow.py:2252 spyder/app/mainwindow.py:2253
 msgid "Maximize current pane"
@@ -835,7 +837,7 @@ msgstr "Выполнить код"
 
 #: spyder/app/tour.py:830
 msgid "Go to step: "
-msgstr "Перейти к шагу:"
+msgstr "Перейти к шагу: "
 
 #: spyder/config/utils.py:25
 msgid "Python files"
@@ -1024,13 +1026,12 @@ msgid "General"
 msgstr "Основные"
 
 #: spyder/plugins/configdialog.py:866
-#, fuzzy
 msgid "Language:"
-msgstr "Язык"
+msgstr "Язык:"
 
 #: spyder/plugins/configdialog.py:874
 msgid "Rendering engine:"
-msgstr ""
+msgstr "Движок рендеринга:"
 
 #: spyder/plugins/configdialog.py:879
 msgid "Use a single instance"
@@ -1189,6 +1190,8 @@ msgid ""
 "We're sorry but the following error occurred while trying to set your "
 "selected language:<br><br><tt>{}</tt>"
 msgstr ""
+"Во время попытки установить выбранный Вами язык произошла следующая ошибка:"
+"<br><br><tt>{}</tt>"
 
 #: spyder/plugins/configdialog.py:1164
 msgid "Syntax coloring"
@@ -1202,7 +1205,7 @@ msgid ""
 msgstr ""
 "Здесь можно выбрать цветовую схему, используемую в Редакторе и всех других "
 "модулях Spyder.<br><br>Вы можете редактировать цветовые схемы, предлагаемые "
-"Spyder, или создать новую с помощью опций, приведённых ниже."
+"Spyder, или создать новую с помощью опций, приведённых ниже.<br>"
 
 #: spyder/plugins/configdialog.py:1182
 msgid "Edit selected"
@@ -1223,7 +1226,7 @@ msgstr "Восстановить"
 
 #: spyder/plugins/configdialog.py:1194
 msgid "Scheme:"
-msgstr "Схема: "
+msgstr "Схема:"
 
 #: spyder/plugins/configdialog.py:1225
 msgid "Manage color schemes"
@@ -1613,7 +1616,7 @@ msgstr "Дополнительные настройки"
 
 #: spyder/plugins/editor.py:644
 msgid "&New file..."
-msgstr "&Новый файл"
+msgstr "&Новый файл..."
 
 #: spyder/plugins/editor.py:645 spyder/widgets/explorer.py:788
 #: spyder/widgets/explorer.py:795
@@ -1630,7 +1633,7 @@ msgstr "Открыть последний закрытый"
 
 #: spyder/plugins/editor.py:661
 msgid "&Open..."
-msgstr "&Открыть"
+msgstr "&Открыть..."
 
 #: spyder/plugins/editor.py:662 spyder/plugins/editor.py:1881
 #: spyder/plugins/editor.py:1887
@@ -1683,11 +1686,11 @@ msgstr "Предварительный просмотр..."
 
 #: spyder/plugins/editor.py:698
 msgid "&Print..."
-msgstr "&Печать"
+msgstr "&Печать..."
 
 #: spyder/plugins/editor.py:699
 msgid "Print current file..."
-msgstr "Печатать текущий файл"
+msgstr "Печать текущего файла..."
 
 #: spyder/plugins/editor.py:702
 msgid "&Close"
@@ -1836,7 +1839,7 @@ msgstr "Перезапустить последний блок"
 
 #: spyder/plugins/editor.py:855
 msgid "Re run last cell "
-msgstr "Перезапустить последний блок"
+msgstr "Перезапустить последний блок "
 
 #: spyder/plugins/editor.py:865
 msgid "Show todo list"
@@ -1999,7 +2002,7 @@ msgid ""
 "directory"
 msgstr ""
 "Установить каталог текущего скрипта как рабочий для текущей консоли (и "
-"файлового менеджера) "
+"файлового менеджера)"
 
 #: spyder/plugins/editor.py:1006
 msgid "Maximum number of recent files..."
@@ -2254,9 +2257,8 @@ msgid "IPython interactive python environment"
 msgstr "IPython, интерактивная оболочка для python"
 
 #: spyder/plugins/ipythonconsole.py:80
-#, fuzzy
 msgid "Display 2D graphics in the IPython Console"
-msgstr "Символьная математика в консоли Python"
+msgstr "Отображать 2-мерную графику в консоли Python"
 
 #: spyder/plugins/ipythonconsole.py:131
 msgid ""
@@ -2289,25 +2291,26 @@ msgid ""
 "kernel to connect to, and enter the SSH host name and credentials if a "
 "remote kernel."
 msgstr ""
+"Пожалуйста выберите JSON-файл соединения (<i>например</i> <tt>kernel-3764."
+"json</tt>) или введите ID из 4 цифр (<i>например</i> <tt>3764</tt>) "
+"существующего ядра для подключения к нему, а также введите имя SSH-хоста и "
+"учетные данные в случае если ядро удаленное."
 
 #: spyder/plugins/ipythonconsole.py:183
-#, fuzzy
 msgid "Kernel ID/Connection file:"
-msgstr "Открыть файл соединения IPython"
+msgstr "ID ядра/файл соединения:"
 
 #: spyder/plugins/ipythonconsole.py:185
-#, fuzzy
 msgid "ID number or path to connection file"
-msgstr "Путь к файлу соединения или id ядра"
+msgstr "ID-номер или путь к файлу соединения"
 
 #: spyder/plugins/ipythonconsole.py:187 spyder/plugins/ipythonconsole.py:216
 msgid "Browse"
 msgstr "Обзор"
 
 #: spyder/plugins/ipythonconsole.py:196
-#, fuzzy
 msgid "This is a remote kernel (via SSH)"
-msgstr "Это удалённо-управляемое ядро"
+msgstr "Это удалённо-управляемое ядро (через SSH)"
 
 #: spyder/plugins/ipythonconsole.py:199
 msgid ""
@@ -2315,45 +2318,41 @@ msgid ""
 "i> the Password field need to be completed, unless the keyfile is protected "
 "with a passphrase."
 msgstr ""
+"<b>Примечание:</b> Если Вы подключаетесь к удаленному ядру, нужно заполнить "
+"только файл ключа SSH <i>или</i> поле Пароль, в случае если файл ключа не "
+"защищен паролем."
 
 #: spyder/plugins/ipythonconsole.py:207
 msgid "username@hostname:port"
 msgstr "username@hostname:port"
 
 #: spyder/plugins/ipythonconsole.py:210
-#, fuzzy
 msgid "Remote user password or SSH keyfile passphrase"
-msgstr "Пароль или кодовая фраза ключа ssh"
+msgstr "Пароль удаленного пользователя или кодовая фраза ключа SSH"
 
 #: spyder/plugins/ipythonconsole.py:215
-#, fuzzy
 msgid "Path to SSH keyfile (optional)"
-msgstr "Путь к ключу ssh"
+msgstr "Путь к файлу ключа SSH (опционально)"
 
 #: spyder/plugins/ipythonconsole.py:224
-#, fuzzy
 msgid "Host name:"
-msgstr "Имя хоста"
+msgstr "Имя хоста:"
 
 #: spyder/plugins/ipythonconsole.py:225
-#, fuzzy
 msgid "Password:"
-msgstr "Пароль"
+msgstr "Пароль:"
 
 #: spyder/plugins/ipythonconsole.py:226
-#, fuzzy
 msgid "SSH keyfile:"
-msgstr "Файлы NSIS"
+msgstr "Файл ключа SSH:"
 
 #: spyder/plugins/ipythonconsole.py:257
-#, fuzzy
 msgid "Select kernel connection file"
-msgstr "Открыть файл соединения IPython"
+msgstr "Открыть файл соединения ядра"
 
 #: spyder/plugins/ipythonconsole.py:262
-#, fuzzy
 msgid "Select SSH keyfile"
-msgstr "Выберите файл"
+msgstr "Выберите файл ключа SSH"
 
 #: spyder/plugins/ipythonconsole.py:295 spyder/plugins/ipythonconsole.py:780
 msgid "IPython console"
@@ -2409,18 +2408,16 @@ msgid "Show elapsed time"
 msgstr "Показывать прошедшее время"
 
 #: spyder/plugins/ipythonconsole.py:322
-#, fuzzy
 msgid "Ask for confirmation before restarting"
-msgstr "Спрашивать подтверждение перед закрытием"
+msgstr "Спрашивать подтверждение перед перезапуском"
 
 #: spyder/plugins/ipythonconsole.py:324
-#, fuzzy
 msgid ""
 "This option lets you hide the warning message shown\n"
 "when restarting the kernel."
 msgstr ""
 "Эта опция позволяет Вам спрятать сообщение,\n"
-"показываемое при перезапуске окружения Spyder."
+"показываемое при перезапуске ядра."
 
 #: spyder/plugins/ipythonconsole.py:337
 msgid "Completion Type"
@@ -2565,7 +2562,7 @@ msgstr "4 по умолчанию"
 
 #: spyder/plugins/ipythonconsole.py:440
 msgid "Use a tight layout for inline plots"
-msgstr ""
+msgstr "Использовать размещение tight для встраиваемых графиков"
 
 #: spyder/plugins/ipythonconsole.py:442
 msgid ""
@@ -2575,6 +2572,12 @@ msgid ""
 "between the image displayed inline and\n"
 "that created using savefig."
 msgstr ""
+"Устанавливает bbox_inches в\n"
+"\"tight\" при построении встроенного\n"
+"графика в matplotlib.\n"
+"Когда включен, может вызвать\n"
+"неполадки, если изображение\n"
+"встроенное и создано savefig."
 
 #: spyder/plugins/ipythonconsole.py:475
 msgid ""
@@ -2606,9 +2609,8 @@ msgid "Use the following file:"
 msgstr "Использовать следующий файл:"
 
 #: spyder/plugins/ipythonconsole.py:509
-#, fuzzy
 msgid "Jedi completion"
-msgstr "Скупое автодополнение"
+msgstr "Автодополнение Jedi"
 
 #: spyder/plugins/ipythonconsole.py:510
 msgid ""
@@ -2616,18 +2618,20 @@ msgid ""
 "the greedy completer, but without evaluating the code.<br><b>Warning:</b> "
 "Slows down your console when working with large dataframes!"
 msgstr ""
+"Включить автодополнение в консоли IPython по <tt>Tab</tt> на основе Jedi; "
+"оно похоже на скупое автодополнение, но без выполнения кода."
+"<br><b>Предупреждение:</b> Замедлится прокрутка консоли при работе с "
+"большими массивами данных!"
 
 #: spyder/plugins/ipythonconsole.py:517
-#, fuzzy
 msgid "Use Jedi completion in the IPython console"
-msgstr "Символьная математика в консоли Python"
+msgstr "Использовать автодополнение Jedi в консоли IPython"
 
 #: spyder/plugins/ipythonconsole.py:530
 msgid "Greedy completion"
 msgstr "Скупое автодополнение"
 
 #: spyder/plugins/ipythonconsole.py:531
-#, fuzzy
 msgid ""
 "Enable <tt>Tab</tt> completion on elements of lists, results of function "
 "calls, etc, <i>without</i> assigning them to a variable, like <tt>li[0].&lt;"
@@ -2637,14 +2641,16 @@ msgid ""
 "works while <tt>np.sin(np.&lt;Tab&gt; </tt> doesn't."
 msgstr ""
 "Включает автодополнение по <tt>Tab</tt> для элементов списков, результатов "
-"вызова функций, и т.п. <i>без</i> присвоения их переменной.<br>Например, Вы "
-"можете сделать автодополнение для таких вещей, как <tt>li[0].&lt;Tab&gt;</"
-"tt> или <tt>ins.meth().&lt;Tab&gt;</tt>"
+"вызова функций, и т.п. <i>без</i> присвоения их переменной, например "
+"<tt>li[0].&lt;Tab&gt;</tt> или <tt>ins.meth().&lt;Tab&gt;</tt> "
+"<br><b>Предупреждение:</b> Из-за ошибки, скупое автодополнение в IPython "
+"требует ввод <tt>&lt;Space&gt;</tt> для некоторых автодополнений; например  "
+"<tt>np.sin(&lt;Space&gt;np.&lt;Tab&gt;</tt> работает, в то время как <tt>np."
+"sin(np.&lt;Tab&gt; </tt> - нет."
 
 #: spyder/plugins/ipythonconsole.py:543
-#, fuzzy
 msgid "Use greedy completion in the IPython console"
-msgstr "Интегрирует консоли IPython"
+msgstr "Использовать скупое автодополнение в консоли IPython"
 
 #: spyder/plugins/ipythonconsole.py:555
 msgid "Autocall"
@@ -2780,6 +2786,8 @@ msgid ""
 "console.</b>\n"
 "<hr><br>"
 msgstr ""
+"<br><b>Пожалуйста, выйдите из отладки пред запуском файла в консоли.</b>\n"
+"<hr><br>"
 
 #: spyder/plugins/ipythonconsole.py:988
 msgid ""
@@ -2790,7 +2798,6 @@ msgstr ""
 "<br><br>Пожалуйста, откройте новую и попытайтесь снова."
 
 #: spyder/plugins/ipythonconsole.py:1096
-#, fuzzy
 msgid ""
 "Your Python environment or installation doesn't have the <tt>spyder-kernels</"
 "tt> module or the right version of it installed. Without this module is not "
@@ -2798,11 +2805,11 @@ msgid ""
 "by running in a system terminal:<br><br><tt>conda install spyder-kernels=0."
 "*</tt><br><br>or<br><br><tt>pip install spyder-kernels==0.*</tt>"
 msgstr ""
-"В вашем Python окружении или инсталяции не установлены модули <tt>ipykernel</"
-"tt> и <tt>cloudpickle</tt>. Без этих модулей Spyder не может создать консоль "
-"для Вас.<br><br>Вы можете установить их, запустив в терминале команду: "
-"<br><br><tt>pip install ipykernel cloudpickle</"
-"tt><br><br>или<br><br><tt>conda install ipykernel cloudpickle</tt>"
+"В вашем Python окружении или инсталяции отсутствует модуль <tt>spyder-"
+"kernels</tt> или установлена неправильная версия. Без этого модуля Spyder не "
+"может создать консоль для Вас.<br><br>Вы можете установить его, введя в "
+"системном терминале:<br><br><tt>conda install spyder-kernels=0.*</"
+"tt><br><br>or<br><br><tt>pip install spyder-kernels==0.*</tt>"
 
 #: spyder/plugins/ipythonconsole.py:1362
 msgid "Do you want to close this console?"
@@ -2815,17 +2822,16 @@ msgid ""
 msgstr "Хотите закрыть все другие консоли, подключённые к тому же ядру?"
 
 #: spyder/plugins/ipythonconsole.py:1440
-#, fuzzy
 msgid ""
 "It was not possible to restart the IPython console when switching to this "
 "project. The error was<br><br><tt>{0}</tt>"
 msgstr ""
-"Не удалось перезапустить консоль IPython при переключении в этот проект. "
-"Ошибка: {0}"
+"Не удалось перезапустить консоль IPython при переключении на этот проект. "
+"Ошибка: <br><br><tt>{0}</tt>"
 
 #: spyder/plugins/ipythonconsole.py:1546 spyder/plugins/ipythonconsole.py:1556
 msgid "The error is:<br><br><tt>{}</tt>"
-msgstr ""
+msgstr "Ошибка:<br><br><tt>{}</tt>"
 
 #: spyder/plugins/ipythonconsole.py:1742
 msgid "IPython"
@@ -3141,7 +3147,7 @@ msgstr "Рабочий каталог по умолчанию:"
 
 #: spyder/plugins/runconfig.py:556
 msgid "Run Settings dialog"
-msgstr "диалог Настроек Запуска"
+msgstr "Диалог Настроек Запуска"
 
 #: spyder/plugins/shortcuts.py:65
 msgid "Currently used to delete lines on editor/Cut a word"
@@ -3234,7 +3240,7 @@ msgstr "Комбинации клавиш"
 
 #: spyder/plugins/shortcuts.py:846
 msgid "Search: "
-msgstr "Поиск:"
+msgstr "Поиск: "
 
 #: spyder/plugins/shortcuts.py:847
 msgid "Reset to default values"
@@ -3376,6 +3382,8 @@ msgid ""
 "An error occurred while trying to show your environment variables. The error "
 "was<br><br><tt>{0}</tt>"
 msgstr ""
+"Во время попытки показа переменных среды произошла ошибка. А именно:"
+"<br><br><tt>{0}</tt>"
 
 #: spyder/utils/environ.py:108
 msgid ""
@@ -3579,7 +3587,7 @@ msgstr "Нажмите Enter для подтверждения этого пут
 
 #: spyder/widgets/dependencies.py:63
 msgid " Required "
-msgstr " требуется"
+msgstr " Требуется "
 
 #: spyder/widgets/dependencies.py:63
 msgid "Module"
@@ -3587,7 +3595,7 @@ msgstr "Модуль"
 
 #: spyder/widgets/dependencies.py:64
 msgid " Installed "
-msgstr " установлен"
+msgstr " Установлено "
 
 #: spyder/widgets/dependencies.py:64
 msgid "Provided features"
@@ -3680,9 +3688,8 @@ msgstr "<b>%s</b> был изменён.<br>Хотите сохранить из
 
 #: spyder/widgets/editor.py:1620 spyder/widgets/editor.py:1783
 #: spyder/widgets/explorer.py:82
-#, fuzzy
 msgid "Save Error"
-msgstr "Сохранить массив"
+msgstr "Сохранить ошибку"
 
 #: spyder/widgets/editor.py:1621 spyder/widgets/editor.py:1784
 #: spyder/widgets/explorer.py:83
@@ -4005,16 +4012,15 @@ msgid ""
 "g. <b><code>@init</code></b><br><br> Press <b>Ctrl+W</b> to close current "
 "tab.<br>"
 msgstr ""
-"Нажмите <b>Enter</b> для перехода к файлу или <b>Esc</b> для отмены."
-"<br><br>Введите текст для фильтрации имен файлов.<br><br>Используйте <b>:"
-"номер</b> для перехода к строке, напр. <b><code>main:42</code></"
-"b><br>Используйте <b>@имя</b> для перехода к идентификатору, напр. "
-"<b><code>@init</code></b><br><br> Нажмите <b>Ctrl+W</b> для закрытия текущей "
-"вкладки."
+"Нажмите <b>Enter</b>, чтобы изменить файлы или <b>Esc</b> для отмены."
+"<br><br>Введите имена файлов для фильтрации.<br><br>Используйте <b>:номер</"
+"b> для перехода к строке, напр. <b><code>main:42</code></b><br>Используйте "
+"<b>@symbol_text</b> для перехода к символу, напр. <b><code>@init</code></"
+"b><br><br> Нажмите <b>Ctrl+W</b> для закрытия текущей вкладки.<br>"
 
 #: spyder/widgets/fileswitcher.py:663
 msgid "lines"
-msgstr " строк"
+msgstr "строк"
 
 #: spyder/widgets/findinfiles.py:121
 msgid "Unexpected error: see internal console"
@@ -4100,9 +4106,8 @@ msgid "Stop search"
 msgstr "Остановить поиск"
 
 #: spyder/widgets/findinfiles.py:464
-#, fuzzy
 msgid "Exclude pattern"
-msgstr "Шаблон имён исключаемых файлов"
+msgstr "Шаблон исключений"
 
 #: spyder/widgets/findinfiles.py:473
 msgid "Exclude:"
@@ -4194,36 +4199,36 @@ msgid "no matches"
 msgstr "нет совпадений"
 
 #: spyder/widgets/github/backend.py:151
-#, fuzzy
 msgid "Invalid credentials"
-msgstr "Введен неверный ключ"
+msgstr "Неверные учетные данные"
 
 #: spyder/widgets/github/backend.py:152
 msgid "Failed to create Github issue, invalid credentials..."
 msgstr ""
+"Не удалось создать сообщение о проблеме на Github, неверные учетные данные..."
 
 #: spyder/widgets/github/backend.py:159
-#, fuzzy
 msgid "Failed to create issue"
-msgstr "Файлы создаются в:"
+msgstr "Не удалось создать сообщение о проблеме"
 
 #: spyder/widgets/github/backend.py:160
 msgid "Failed to create Github issue. Error %d"
-msgstr ""
+msgstr "Не удалось создать сообщение о проблеме на Github. Ошибка %d"
 
 #: spyder/widgets/github/backend.py:167
 msgid "Issue created on Github"
-msgstr ""
+msgstr "Проблема создана на Github"
 
 #: spyder/widgets/github/backend.py:168
 msgid ""
 "Issue successfully created. Would you like to open the issue in your web "
 "browser?"
 msgstr ""
+"Сообщение о проблеме успешно создано. Хотите открыть его в  Вашем браузере?"
 
 #: spyder/widgets/github/backend.py:195
 msgid "Failed to store password"
-msgstr ""
+msgstr "Не удалось сохранить пароль"
 
 #: spyder/widgets/github/backend.py:196
 msgid ""
@@ -4233,7 +4238,7 @@ msgstr ""
 
 #: spyder/widgets/github/backend.py:212
 msgid "Failed to store token"
-msgstr ""
+msgstr "Не удалось сохранить токен"
 
 #: spyder/widgets/github/backend.py:213
 msgid ""
@@ -4242,63 +4247,53 @@ msgid ""
 msgstr ""
 
 #: spyder/widgets/github/backend.py:237
-#, fuzzy
 msgid "Failed to retrieve password"
-msgstr "Невозможно получить информацию."
+msgstr "Не удалось получить пароль"
 
 #: spyder/widgets/github/backend.py:238
-#, fuzzy
 msgid ""
 "It was not possible to retrieve your password. Please introduce it again."
-msgstr ""
-"Невозможно создать форматированную текстовую справку по объекту.</"
-"br>Пожалуйста, просмотрите в виде обычного текста."
+msgstr "Не удалось получить Ваш пароль. Пожалуйста, введите его снова."
 
 #: spyder/widgets/github/backend.py:249
-#, fuzzy
 msgid "Failed to retrieve token"
-msgstr "Невозможно получить информацию."
+msgstr "Не удалось получить токен"
 
 #: spyder/widgets/github/backend.py:250
-#, fuzzy
 msgid "It was not possible to retrieve your token. Please introduce it again."
-msgstr ""
-"Невозможно создать форматированную текстовую справку по объекту.</"
-"br>Пожалуйста, просмотрите в виде обычного текста."
+msgstr "Не удалось получить Ваш токен. Пожалуйста, введите его снова."
 
 #: spyder/widgets/github/gh_login.py:38
-#, fuzzy
 msgid "Sign in to Github"
-msgstr "Отправить на Github"
+msgstr "Войти на Github"
 
 #: spyder/widgets/github/gh_login.py:57
 msgid ""
 "For regular users, i.e. users <b>without</b> two-factor authentication "
 "enabled"
 msgstr ""
+"Для обычных пользователей, например пользователей <b>без</b> включенной "
+"двуфакторной авторизации"
 
 #: spyder/widgets/github/gh_login.py:62
-#, fuzzy
 msgid "Username:"
-msgstr "Новое имя:"
+msgstr "Имя пользователя:"
 
 #: spyder/widgets/github/gh_login.py:69
-#, fuzzy
 msgid "Password: "
-msgstr "Пароль"
+msgstr "Пароль: "
 
 #: spyder/widgets/github/gh_login.py:81
 msgid "Remember me"
-msgstr ""
+msgstr "Запомнить меня"
 
 #: spyder/widgets/github/gh_login.py:82
 msgid "Spyder will save your credentials safely"
-msgstr ""
+msgstr "Spyder сохранит Ваши учетные данные безопасно"
 
 #: spyder/widgets/github/gh_login.py:99
-#, fuzzy
 msgid "Password Only"
-msgstr "Пароль"
+msgstr "Только пароль"
 
 #: spyder/widgets/github/gh_login.py:105
 msgid ""
@@ -4310,20 +4305,19 @@ msgstr ""
 
 #: spyder/widgets/github/gh_login.py:127
 msgid "Remember token"
-msgstr ""
+msgstr "Запомнить токен"
 
 #: spyder/widgets/github/gh_login.py:128
-#, fuzzy
 msgid "Spyder will save your token safely"
-msgstr "Spyder обновлён."
+msgstr "Spyder сохранит Ваш токен безопасно"
 
 #: spyder/widgets/github/gh_login.py:145
 msgid "Access Token"
-msgstr ""
+msgstr "Токен доступа"
 
 #: spyder/widgets/github/gh_login.py:148
 msgid "Sign in"
-msgstr ""
+msgstr "Войти"
 
 #: spyder/widgets/internalshell.py:263
 msgid "Help..."
@@ -4469,9 +4463,8 @@ msgstr ""
 "<hr>"
 
 #: spyder/widgets/ipythonconsole/shell.py:432
-#, fuzzy
 msgid "Changing backend to Qt4 for Mayavi"
-msgstr "Изменить бэкенд для Mayavi на Qt"
+msgstr "Смена бэкенда для Mayavi на Qt4"
 
 #: spyder/widgets/ipythonconsole/shell.py:477
 msgid "Kernel died, restarting"
@@ -4563,6 +4556,8 @@ msgid ""
 "You are using Python 2 and the path selected has Unicode characters. The new "
 "path will not be added."
 msgstr ""
+"Вы используете Python 2, а в выбранном путь есть символы Unicode. Новый путь "
+"не будет добавлен."
 
 #: spyder/widgets/pathmanager.py:283
 msgid ""
@@ -4710,16 +4705,15 @@ msgstr "Модуль или пакет:"
 
 #: spyder/widgets/reporterror.py:128
 msgid "Issue reporter"
-msgstr ""
+msgstr "Мастер сообщений о проблеме"
 
 #: spyder/widgets/reporterror.py:136
-#, fuzzy
 msgid "Please fill the following information"
-msgstr "Использовать следующий файл:"
+msgstr "Пожалуйста, заполните следующую информацию"
 
 #: spyder/widgets/reporterror.py:138
 msgid "Spyder has encountered an internal problem!"
-msgstr ""
+msgstr "В Spyder произошла внутренняя ошибка!"
 
 #: spyder/widgets/reporterror.py:140
 msgid ""
@@ -4729,19 +4723,23 @@ msgid ""
 "\"{project_url}\">known bugs</a></b> matching your error message or problem "
 "description for a quicker solution."
 msgstr ""
+"<h3>{title}</h3>Перед тем как создать сообщение о проблеме, <i>пожалуйста</"
+"i> ознакомьтесь со всеобъемлющим <b><a href="
+"\"{trouble_url}\">Troubleshooting Guide</a></b>, который должен помочь с "
+"большинством ошибок, и произведите поиск <b><a href=\"{project_url}\"> по "
+"известным ошибкам</a></b> сравнив со своим для быстрого решения."
 
 #: spyder/widgets/reporterror.py:158 spyder/widgets/reporterror.py:190
-#, fuzzy
 msgid "{} more characters to go..."
-msgstr "символов ещё для начала..."
+msgstr "ещё {} символов для начала..."
 
 #: spyder/widgets/reporterror.py:162
 msgid "<b>Title</b>: {}"
-msgstr ""
+msgstr "<b>Заголовок</b>: {}"
 
 #: spyder/widgets/reporterror.py:168
 msgid "<b>Steps to reproduce:</b> {}"
-msgstr ""
+msgstr "<b>Как воспроизвести:</b> {}"
 
 #: spyder/widgets/reporterror.py:169
 msgid ""
@@ -4749,9 +4747,11 @@ msgid ""
 "to the problem below. Issue reports without a clear way to reproduce them "
 "will be closed."
 msgstr ""
+"Пожалуйста введите ниже детальное пошаговое описание (на английском), что "
+"привело к проблеме. Сообщение о проблеме без точного пути воспроизводства "
+"будет закрыто."
 
 #: spyder/widgets/reporterror.py:194
-#, fuzzy
 msgid "Hide all future errors during this session"
 msgstr "Спрятать будущие ошибки в этой сессии"
 
@@ -4778,6 +4778,11 @@ msgid ""
 "your clipboard into the issue report box that will appear in a new browser "
 "tab before clicking <i>Submit</i> on that page."
 msgstr ""
+"Во время автоматической попытки отправить сообщение о проблеме на Github "
+"произошла ошибка. Можете ли Вы создать его вручную?<br><br>Если это так, "
+"убедитесь, что вставили содержимое буфера обмена в поле сообщения, которое "
+"откроется в новой вкладке браузера, перед тем как нажать <i>Submit</i> на "
+"этой странице."
 
 #: spyder/widgets/reporterror.py:320
 msgid "Hide details"
@@ -4789,11 +4794,11 @@ msgstr "символов ещё для начала..."
 
 #: spyder/widgets/reporterror.py:331
 msgid "Description complete; thanks!"
-msgstr ""
+msgstr "Описание заполнена; спасибо!"
 
 #: spyder/widgets/reporterror.py:339
 msgid "Title complete; thanks!"
-msgstr ""
+msgstr "Заголовок заполнен; спасибо!"
 
 #: spyder/widgets/shell.py:131
 msgid "Save history log..."
@@ -5035,9 +5040,8 @@ msgstr ""
 #: spyder/widgets/variableexplorer/collectionseditor.py:1392
 #: spyder/widgets/variableexplorer/dataframeeditor.py:751
 #: spyder/widgets/variableexplorer/texteditor.py:67
-#, fuzzy
 msgid "Save and Close"
-msgstr "Сохранить все файлы"
+msgstr "Сохранить и закрыть"
 
 #: spyder/widgets/variableexplorer/collectionseditor.py:151
 msgid "Index"
@@ -5197,9 +5201,8 @@ msgid "It was not possible to copy this array"
 msgstr "Не удалось скопировать этот массив"
 
 #: spyder/widgets/variableexplorer/collectionseditor.py:1144
-#, fuzzy
 msgid "It was not possible to copy this dataframe"
-msgstr "Не удалось скопировать этот массив"
+msgstr "Не удалось скопировать этот массив данных"
 
 #: spyder/widgets/variableexplorer/collectionseditor.py:1166
 msgid "Clipboard contents"
@@ -5222,6 +5225,8 @@ msgid ""
 "It is not possible to display this value because\n"
 "an error ocurred while trying to do it"
 msgstr ""
+"Невозможно отобразить это значения\n"
+"потому что в процессе произошла ошибка"
 
 #: spyder/widgets/variableexplorer/dataframeeditor.py:621
 msgid "To bool"
@@ -5283,11 +5288,11 @@ msgstr "Разделитель столбцов:"
 
 #: spyder/widgets/variableexplorer/importwizard.py:144
 msgid "Tab"
-msgstr "табуляция"
+msgstr "Табуляция"
 
 #: spyder/widgets/variableexplorer/importwizard.py:147
 msgid "Whitespace"
-msgstr "пробельный символ"
+msgstr "Пробельный символ"
 
 #: spyder/widgets/variableexplorer/importwizard.py:150
 #: spyder/widgets/variableexplorer/importwizard.py:168
@@ -5408,6 +5413,8 @@ msgid ""
 "The object you are trying to modify is too big to be sent back to the "
 "kernel. Therefore, your modifications won't take place."
 msgstr ""
+"Объект, который Вы пытаетесь изменить слишком велик, чтобы отправить его "
+"обратно в ядро. Поэтому Ваши изменения не могут быть приняты."
 
 #: spyder/widgets/variableexplorer/namespacebrowser.py:417
 msgid ""
