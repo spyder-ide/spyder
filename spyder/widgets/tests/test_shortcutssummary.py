@@ -10,6 +10,7 @@ Tests for the Shortcut Summary Widget.
 import sys
 from random import sample
 
+from flaky import flaky
 import pytest
 from qtpy.QtCore import Qt
 
@@ -39,6 +40,7 @@ def test_shortcutssummary(dlg_shortcuts, qtbot):
     assert not dlg_shortcuts.isVisible()
 
 
+@flaky(max_runs=10)
 def test_shortcutssummary_texts(dlg_shortcuts, qtbot):
     """Test that each shortcut has platform-specific key names."""
     children = dlg_shortcuts.scroll_widget.layout().children()
