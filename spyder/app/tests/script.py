@@ -1,6 +1,6 @@
 # %% first Code Cell's name
 a = 10
-
+"Hello"
 
 # In[23]
 li = [1, 2, 3]
