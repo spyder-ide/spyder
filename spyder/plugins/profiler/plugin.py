@@ -19,12 +19,19 @@ from qtpy.QtWidgets import QGroupBox, QLabel, QVBoxLayout
 
 # Local imports
 from spyder.config.base import _
+from spyder.config.gui import is_dark_interface
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
 from spyder.preferences.runconfig import get_run_configuration
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action
 from .widgets.profilergui import (ProfilerWidget, is_profiler_installed)
+
+
+if is_dark_interface():
+    MAIN_TEXT_COLOR = 'white'
+else:
+    MAIN_TEXT_COLOR = '#444444'
 
 
 class ProfilerConfigPage(PluginConfigPage):
@@ -65,7 +72,8 @@ class Profiler(SpyderPluginWidget):
 
         max_entries = self.get_option('max_entries', 50)
         self.profiler = ProfilerWidget(self, max_entries,
-                                       options_button=self.options_button)
+                                       options_button=self.options_button,
+                                       text_color=MAIN_TEXT_COLOR)
 
         layout = QVBoxLayout()
         layout.addWidget(self.profiler)

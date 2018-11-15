@@ -173,5 +173,19 @@ def is_dark_font_color(color_scheme):
     return dark_color(font_color)
 
 
+def is_dark_interface():
+    ui_theme = CONF.get('color_schemes', 'ui_theme')
+    color_scheme = CONF.get('color_schemes', 'selected')
+    if ui_theme == 'dark':
+        return True
+    elif ui_theme == 'automatic':
+        if not is_dark_font_color(color_scheme):
+            return True
+        else:
+            return False
+    else:
+        return False
+
+
 for _name in sh.COLOR_SCHEME_NAMES:
     set_default_color_scheme(_name, replace=False)

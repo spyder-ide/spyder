@@ -70,13 +70,15 @@ class FigureBrowser(QWidget):
     sig_option_changed = Signal(str, object)
     sig_collapse = Signal()
 
-    def __init__(self, parent, options_button=None, plugin_actions=[]):
+    def __init__(self, parent, options_button=None, plugin_actions=[],
+                 background_color=None):
         super(FigureBrowser, self).__init__(parent)
 
         self.shellwidget = None
         self.is_visible = True
         self.figviewer = None
         self.setup_in_progress = False
+        self.background_color = background_color
 
         # Options :
         self.mute_inline_plotting = None
@@ -101,7 +103,7 @@ class FigureBrowser(QWidget):
             self.show_plot_outline_action.setChecked(show_plot_outline)
             return
 
-        self.figviewer = FigureViewer()
+        self.figviewer = FigureViewer(background_color=self.background_color)
         self.figviewer.setStyleSheet("FigureViewer{"
                                      "border: 1px solid lightgrey;"
                                      "border-top-width: 0px;"
@@ -311,10 +313,11 @@ class FigureViewer(QScrollArea):
 
     sig_zoom_changed = Signal(float)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, background_color=None):
         super(FigureViewer, self).__init__(parent)
         self.setAlignment(Qt.AlignCenter)
-        self.viewport().setStyleSheet("background-color: white")
+        self.viewport().setStyleSheet(
+                "background-color: {}".format(background_color))
         self.setFrameStyle(0)
 
         self._scalefactor = 0

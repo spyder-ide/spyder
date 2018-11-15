@@ -1025,7 +1025,7 @@ class MainWindow(QMainWindow):
 
         #----- Tours
         self.tour = tour.AnimatedTour(self)
-        self.tours_menu = QMenu(_("Interactive tours"))
+        self.tours_menu = QMenu(_("Interactive tours"), self)
         self.tour_menu_actions = []
         # TODO: Only show intro tour for now. When we are close to finish
         # 3.0, we will finish and show the other tour
@@ -1097,7 +1097,7 @@ class MainWindow(QMainWindow):
             add_actions(pymods_menu, ipm_actions)
             self.help_menu_actions.append(pymods_menu)
         # Online documentation
-        web_resources = QMenu(_("Online documentation"))
+        web_resources = QMenu(_("Online documentation"), self)
         webres_actions = create_module_bookmark_actions(self,
                                                         self.BOOKMARKS)
         webres_actions.insert(2, None)

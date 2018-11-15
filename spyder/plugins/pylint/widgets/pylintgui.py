@@ -150,14 +150,18 @@ class PylintWidget(QWidget):
     VERSION = '1.1.0'
     redirect_stdio = Signal(bool)
     
-    def __init__(self, parent, max_entries=100, options_button=None):
+    def __init__(self, parent, max_entries=100, options_button=None,
+                 text_color=None, prevrate_color=None):
         QWidget.__init__(self, parent)
         
         self.setWindowTitle("Pylint")
         
         self.output = None
         self.error_output = None
-        
+
+        self.text_color = text_color
+        self.prevrate_color = prevrate_color
+
         self.max_entries = max_entries
         self.rdata = []
         if osp.isfile(self.DATAPATH):
@@ -432,26 +436,26 @@ class PylintWidget(QWidget):
                 self.treewidget.clear_results()
                 date_text = ''
             else:
-                text_style = "<span style=\'color: #444444\'><b>%s </b></span>"
+                text_style = "<span style=\'color: %s\'><b>%s </b></span>"
                 rate_style = "<span style=\'color: %s\'><b>%s</b></span>"
-                prevrate_style = "<span style=\'color: #666666\'>%s</span>"
+                prevrate_style = "<span style=\'color: %s\'>%s</span>"
                 color = "#FF0000"
                 if float(rate) > 5.:
                     color = "#22AA22"
                 elif float(rate) > 3.:
                     color = "#EE5500"
                 text = _('Global evaluation:')
-                text = (text_style % text)+(rate_style % (color,
-                                                          ('%s/10' % rate)))
+                text = ((text_style % (self.text_color, text))
+                        + (rate_style % (color, ('%s/10' % rate))))
                 if previous_rate:
                     text_prun = _('previous run:')
                     text_prun = ' (%s %s/10)' % (text_prun, previous_rate)
-                    text += prevrate_style % text_prun
+                    text += prevrate_style % (self.prevrate_color, text_prun)
                 self.treewidget.set_results(filename, results)
                 date = to_text_string(time.strftime("%Y-%m-%d %H:%M:%S",
                                                     datetime),
                                       encoding='utf8')
-                date_text = text_style % date
+                date_text = text_style % (self.text_color, date)
 
         self.ratelabel.setText(text)
         self.datelabel.setText(date_text)
