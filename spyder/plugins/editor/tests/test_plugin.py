@@ -25,8 +25,8 @@ from qtpy.QtWidgets import QMainWindow
 from spyder.config.main import CONF
 from spyder.utils.qthelpers import qapplication
 app = qapplication()
-from spyder.plugins.editor.autosave import AutosaveComponentForEditorPlugin
 from spyder.plugins.editor.plugin import Editor
+from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
 
 
 # =============================================================================
@@ -222,13 +222,13 @@ def test_no_template(setup_editor):
 
 
 def test_editor_has_autosave_component(setup_editor):
-    """Test that Editor includes an AutosaveComponentForEditorPlugin."""
+    """Test that Editor includes an AutosaveForPlugin."""
     editor, qtbot = setup_editor
-    assert isinstance(editor.autosave, AutosaveComponentForEditorPlugin)
+    assert isinstance(editor.autosave, AutosaveForPlugin)
 
 
 def test_autosave_component_do_autosave(setup_editor, mocker):
-    """Test that AutosaveComponent's do_autosave() calls the current editor
+    """Test that AutosaveForPlugin's do_autosave() calls the current editor
     stack's autosave_all()."""
     editor, qtbot = setup_editor
     editorStack = editor.get_current_editorstack()
@@ -275,7 +275,7 @@ def test_editor_syncs_autosave_mapping_among_editorstacks(setup_editor):
 def test_editor_calls_recoverydialog_exec_if_nonempty(qtbot, monkeypatch):
     """Check that editor tries to exec a recovery dialog on construction."""
     mock_RecoveryDialog = MagicMock()
-    monkeypatch.setattr('spyder.plugins.editor.autosave.RecoveryDialog',
+    monkeypatch.setattr('spyder.plugins.editor.utils.autosave.RecoveryDialog',
                         mock_RecoveryDialog)
     setup_editor_iter = setup_editor(qtbot, monkeypatch)
     editor, qtbot = next(setup_editor_iter)

@@ -47,9 +47,8 @@ from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.widgets.fileswitcher import FileSwitcher
 from spyder.widgets.findreplace import FindReplace
+from spyder.plugins.editor.utils.autosave import AutosaveForStack
 from spyder.plugins.editor.widgets import codeeditor
-from spyder.plugins.editor.widgets.autosave import (
-                                    AutosaveComponentForEditorStack)
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget  # analysis:ignore
 from spyder.plugins.editor.widgets.codeeditor import Printer       # analysis:ignore
 from spyder.plugins.editor.widgets.codeeditor import get_file_language
@@ -576,7 +575,7 @@ class EditorStack(QWidget):
         self.save_dialog_on_tests = not running_under_pytest()
 
         # Autusave component
-        self.autosave = AutosaveComponentForEditorStack(self)
+        self.autosave = AutosaveForStack(self)
 
     @Slot()
     def show_in_external_file_explorer(self, fnames=None):

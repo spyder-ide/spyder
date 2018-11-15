@@ -42,7 +42,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action, add_actions, MENU_SEPARATOR
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.findreplace import FindReplace
-from spyder.plugins.editor.autosave import AutosaveComponentForEditorPlugin
+from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
 from spyder.plugins.editor.widgets.editor import (EditorMainWindow, Printer,
                                                   EditorSplitter, EditorStack,)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
@@ -550,7 +550,7 @@ class Editor(SpyderPluginWidget):
         editor_layout.addWidget(self.find_widget)
 
         # Start autosave component
-        self.autosave = AutosaveComponentForEditorPlugin(self)
+        self.autosave = AutosaveForPlugin(self)
         self.autosave.try_recover_from_autosave()
         # Multiply by 1000 to convert seconds to milliseconds
         self.autosave.interval = self.get_option('autosave_interval') * 1000
