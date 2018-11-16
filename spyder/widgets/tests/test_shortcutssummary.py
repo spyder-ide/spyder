@@ -10,7 +10,6 @@ Tests for the Shortcut Summary Widget.
 import sys
 from random import sample
 
-from flaky import flaky
 import pytest
 from qtpy.QtCore import Qt
 
@@ -40,7 +39,6 @@ def test_shortcutssummary(dlg_shortcuts, qtbot):
     assert not dlg_shortcuts.isVisible()
 
 
-@flaky(max_runs=10)
 def test_shortcutssummary_texts(dlg_shortcuts, qtbot):
     """Test that each shortcut has platform-specific key names."""
     children = dlg_shortcuts.scroll_widget.layout().children()
@@ -62,6 +60,6 @@ def test_shortcutssummary_texts(dlg_shortcuts, qtbot):
                 if sys.platform.startswith('darwin'):
                     keywords = [u'⇧', u'⌃', u'⌘', u'⌥', u'⌦',  u'⎋', 'F']
                 else:
-                    keywords = ['Alt', 'Ctrl', 'Del', 'Escape', 'F', 'Meta',
+                    keywords = ['Alt', 'Ctrl', 'Del', 'Esc', 'F', 'Meta',
                                 'Shift']
                 assert any([key in shortcut_keystr for key in keywords])
