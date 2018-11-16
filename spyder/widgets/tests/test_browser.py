@@ -14,16 +14,17 @@ import pytest
 # Local imports
 from spyder.widgets.browser import WebBrowser
 
+
 @pytest.fixture
-def setup_browser(qtbot):
+def browser(qtbot):
     """Set up WebBrowser."""
     widget = WebBrowser()
     qtbot.addWidget(widget)
     return widget
 
-def test_browser(qtbot):
+
+def test_browser(browser):
     """Run web browser."""
-    browser = setup_browser(qtbot)
     browser.set_home_url('https://www.google.com/')
     browser.go_home()
     browser.show()

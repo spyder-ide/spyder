@@ -19,8 +19,9 @@ from spyder.widgets.status import (ReadWriteStatus, EOLStatus, EncodingStatus,
                                    CursorPositionStatus, MemoryStatus,
                                    CPUStatus)
 
+
 @pytest.fixture
-def setup_status_bar(qtbot):
+def status_bar(qtbot):
     """Set up StatusBarWidget."""
     win = QMainWindow()
     win.setWindowTitle("Status widgets test")
@@ -29,9 +30,10 @@ def setup_status_bar(qtbot):
     qtbot.addWidget(win)
     return (win, statusbar)
 
-def test_status_bar(qtbot):
+
+def test_status_bar(status_bar, qtbot):
     """Run StatusBarWidget."""
-    win, statusbar = setup_status_bar(qtbot)
+    win, statusbar = status_bar
     swidgets = []
     for klass in (ReadWriteStatus, EOLStatus, EncodingStatus,
                   CursorPositionStatus, MemoryStatus, CPUStatus):

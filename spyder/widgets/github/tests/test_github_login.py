@@ -20,7 +20,7 @@ from spyder.widgets.github.gh_login import DlgGitHubLogin
 # Fixtures
 # =============================================================================
 @pytest.fixture
-def setup_dialog(qtbot):
+def github_dialog(qtbot):
     """Set up error report dialog."""
     widget = DlgGitHubLogin(None, None, None, None)
     qtbot.addWidget(widget)
@@ -30,9 +30,9 @@ def setup_dialog(qtbot):
 # =============================================================================
 # Tests
 # =============================================================================
-def test_dialog(qtbot):
+def test_dialog(github_dialog, qtbot):
     """Test that error report dialog UI behaves properly."""
-    dlg = setup_dialog(qtbot)
+    dlg = github_dialog
 
     # Assert Sign in button is disabled at first
     assert not dlg.bt_sign_in.isEnabled()

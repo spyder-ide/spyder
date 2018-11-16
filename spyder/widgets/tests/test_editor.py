@@ -97,9 +97,9 @@ def editor_splitter_bot(qtbot):
 
 # Tests
 #-------------------------------
-def test_find_number_matches(qtbot):
+def test_find_number_matches(setup_editor):
     """Test for number matches in find/replace."""
-    editor_stack, editor = setup_editor(qtbot)
+    editor_stack, editor = setup_editor
     editor_stack.find_widget.case_button.setChecked(True)
     text = ' test \nTEST \nTest \ntesT '
     editor.set_text(text)
@@ -267,8 +267,8 @@ def test_run_last_line_when_nonempty(editor_bot):
     assert editor.toPlainText() == expected_new_text
     assert editor.get_cursor_line_column() == (4, 0) # check cursor moves down
 
-def test_find_replace_case_sensitive(qtbot):
-    editor_stack, editor = setup_editor(qtbot)
+def test_find_replace_case_sensitive(setup_editor):
+    editor_stack, editor = setup_editor
     editor_stack.find_widget.case_button.setChecked(True)
     text = ' test \nTEST \nTest \ntesT '
     editor.set_text(text)
