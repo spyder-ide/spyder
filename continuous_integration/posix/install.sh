@@ -13,7 +13,7 @@ else
     export CONDA_DEPENDENCIES="rope pyflakes sphinx pygments pylint psutil nbconvert \
                                qtawesome cloudpickle pickleshare qtpy pyzmq chardet mock nomkl pandas \
                                pytest pytest-cov numpydoc scipy cython pillow jedi pycodestyle keyring"
-    export PIP_DEPENDENCIES="coveralls pytest-qt pytest-mock pytest-timeout flaky"
+    export PIP_DEPENDENCIES="coveralls pytest-qt pytest-mock flaky"
 fi
 
 
