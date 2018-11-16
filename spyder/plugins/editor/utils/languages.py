@@ -13,7 +13,7 @@ ALL_LANGUAGES = {
                  'Cython': ('pyx', 'pxi', 'pxd'),
                  'Enaml': ('enaml',),
                  'Fortran77': ('f', 'for', 'f77'),
-                 'Fortran': ('f90', 'f95', 'f2k'),
+                 'Fortran': ('f90', 'f95', 'f2k', 'f03', 'f08'),
                  'Idl': ('pro',),
                  'Diff': ('diff', 'patch', 'rej'),
                  'GetText': ('po', 'pot'),

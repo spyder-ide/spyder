@@ -28,7 +28,7 @@ from qtpy.QtWidgets import (QDialog,
 
 # Local imports
 from spyder.config.main import CONF
-from spyder.utils.misc import select_port
+from spyder.utils.misc import select_port, getcwd_or_home
 from spyder.utils import icon_manager as ima
 from spyder.config.base import _
 from spyder.utils.programs import find_program
@@ -43,7 +43,8 @@ from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 LSP_LANGUAGES = [
     'C#', 'CSS/LESS/SASS', 'Go', 'GraphQL', 'Groovy', 'Haxe', 'HTML',
     'Java', 'JavaScript', 'JSON', 'Julia', 'OCaml', 'PHP',
-    'Python', 'Rust', 'Scala', 'Swift', 'TypeScript', 'Erlang'
+    'Python', 'Rust', 'Scala', 'Swift', 'TypeScript', 'Erlang',
+    'Fortran'
 ]
 LSP_LANGUAGE_NAME = {x.lower(): x for x in LSP_LANGUAGES}
 
@@ -701,6 +702,23 @@ class LSPManager(SpyderPluginWidget):
             else:
                 language_client.register_file(filename, signal)
 
+    def get_root_path(self):
+        path = None
+        if self.main.projects:
+            path = self.main.projects.get_active_project_path()
+        if not path:
+            path = getcwd_or_home()
+        return path
+
+    @Slot()
+    def reinit_all_lsp_clients(self):
+        for language_client in self.clients.values():
+            if language_client['status'] == self.RUNNING:
+                folder = self.get_root_path()
+                inst = language_client['instance']
+                inst.folder = folder
+                inst.initialize()
+
     def start_lsp_client(self, language):
         started = False
         if language in self.clients:
@@ -717,6 +735,7 @@ class LSPManager(SpyderPluginWidget):
                     config['port'] = port
                 language_client['instance'] = LSPClient(
                     self, config['args'], config, config['external'],
+                    folder=self.get_root_path(),
                     plugin_configurations=config.get('configurations', {}),
                     language=language)
 

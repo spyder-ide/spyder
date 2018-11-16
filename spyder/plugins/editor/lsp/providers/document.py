@@ -43,11 +43,14 @@ class DocumentProvider:
     def process_document_diagnostics(self, response, *args):
         uri = response['uri']
         diagnostics = response['diagnostics']
-        callbacks = self.watched_files[uri]
-        for callback in callbacks:
-            callback.handle_response(
-                LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS,
-                {'params': diagnostics})
+        if uri in self.watched_files:
+            callbacks = self.watched_files[uri]
+            for callback in callbacks:
+                callback.handle_response(
+                    LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS,
+                    {'params': diagnostics})
+        else:
+            logger.debug("received diags for file not open: " + uri)
 
     @send_request(
         method=LSPRequestTypes.DOCUMENT_DID_CHANGE, requires_response=False)
@@ -205,6 +208,21 @@ class DocumentProvider:
             },
             'reason': params['reason']
         }
+        return params
+
+    @send_request(method=LSPRequestTypes.DOCUMENT_DID_SAVE,
+                  requires_response=False)
+    def document_did_save_notification(self, params):
+        text = None
+        if 'text' in params:
+            text = params['text']
+        params = {
+            'textDocument': {
+                'uri': path_as_uri(params['file'])
+            }
+        }
+        if text is not None:
+            params['text'] = text
         return params
 
     @send_request(method=LSPRequestTypes.DOCUMENT_DID_CLOSE,

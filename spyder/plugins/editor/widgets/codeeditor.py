@@ -76,13 +76,14 @@ from spyder.plugins.editor.utils.lsp import (
     request, handles, class_register)
 from spyder.plugins.editor.lsp import (
     LSPRequestTypes, TextDocumentSyncKind, DiagnosticSeverity,
-    TextDocumentSaveReason)
+    # TextDocumentSaveReason
+    )
 from spyder.api.panel import Panel
 
 try:
     import nbformat as nbformat
     from nbconvert import PythonExporter as nbexporter
-except:
+except Exception:
     nbformat = None  # analysis:ignore
 
 
@@ -778,10 +779,12 @@ class CodeEditor(TextEditBaseWidget):
             'version': self.text_version,
             'text': self.toPlainText()
         }
+        # logger.debug("sent changes: %r" % params)
         return params
 
     @handles(LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
     def linting_diagnostics(self, params):
+        # logger.debug("returned diagnotics: %r" % params['params'])
         self.process_code_analysis(params['params'])
 
     # ------------- LSP: Completion ---------------------------------------
@@ -918,15 +921,14 @@ class CodeEditor(TextEditBaseWidget):
 
     # ------------- LSP: Save/close file -----------------------------------
 
-    @request(method=LSPRequestTypes.DOCUMENT_WILL_SAVE,
+    @request(method=LSPRequestTypes.DOCUMENT_DID_SAVE,
              requires_response=False)
     def notify_save(self):
-        if self.will_save_notify:
-            params = {
-                'file': self.filename,
-                'reason': TextDocumentSaveReason.MANUAL
-            }
-            return params
+        # self.document_did_change()
+        params = {'file': self.filename}
+        if self.save_include_text:
+            params['text'] = self.toPlainText()
+        return params
 
     @request(method=LSPRequestTypes.DOCUMENT_DID_CLOSE,
              requires_response=False)
@@ -1140,6 +1142,7 @@ class CodeEditor(TextEditBaseWidget):
                 break
             cursor.movePosition(QTextCursor.NextBlock)
         cursor.endEditBlock()
+        self.document_did_change()
 
     def fix_indentation(self):
         """Replace tabs by spaces."""
@@ -1150,6 +1153,7 @@ class CodeEditor(TextEditBaseWidget):
             # to benefit from QTextEdit's undo/redo feature.
             self.selectAll()
             self.insertPlainText(text_after)
+            self.document_did_change()
 
     def get_current_object(self):
         """Return current object (string) """
@@ -1167,6 +1171,7 @@ class CodeEditor(TextEditBaseWidget):
                 cursor.setPosition(position + 1, QTextCursor.KeepAnchor)
             self.setTextCursor(cursor)
         self.remove_selected_text()
+        self.document_did_change()
 
     #------Find occurrences
     def __find_first(self, text):
@@ -1567,6 +1572,7 @@ class CodeEditor(TextEditBaseWidget):
         cursor = self.textCursor()
         cursor.movePosition(QTextCursor.End)
         cursor.insertText(text)
+        self.document_did_change()
 
     @Slot()
     def paste(self):
@@ -1590,16 +1596,16 @@ class CodeEditor(TextEditBaseWidget):
         """Reimplement undo to decrease text version number."""
         if self.document().isUndoAvailable():
             self.text_version -= 1
+            TextEditBaseWidget.undo(self)
             self.document_did_change('')
-        TextEditBaseWidget.undo(self)
 
     @Slot()
     def redo(self):
         """Reimplement redo to increase text version number."""
         if self.document().isRedoAvailable():
-            self.document_did_change('text')
             self.text_version += 1
-        TextEditBaseWidget.redo(self)
+            TextEditBaseWidget.redo(self)
+            self.document_did_change('text')
 
     def get_block_data(self, block):
         """Return block data (from syntax highlighter)"""
@@ -1612,10 +1618,9 @@ class CodeEditor(TextEditBaseWidget):
         block = self.document().findBlockByNumber(block_nb)
         return self.get_block_data(block).fold_level
 
-
-#===============================================================================
+# =============================================================================
 #    High-level editor features
-#===============================================================================
+# =============================================================================
     @Slot()
     def center_cursor_on_next_focus(self):
         """QPlainTextEdit's "centerCursor" requires the widget to be visible"""
@@ -1659,7 +1664,7 @@ class CodeEditor(TextEditBaseWidget):
         cursor = self.textCursor()
         document = self.document()
         for diagnostic in check_results:
-            source = diagnostic['source']
+            source = diagnostic.get('source', '')
             msg_range = diagnostic['range']
             start = msg_range['start']
             end = msg_range['end']
@@ -1838,6 +1843,7 @@ class CodeEditor(TextEditBaseWidget):
                 cursor.movePosition(QTextCursor.NextWord)
             cursor.insertText(prefix)
             cursor.endEditBlock()
+        self.document_did_change()
 
     def __spaces_for_prefix(self):
         """Find the less indented level of text."""
@@ -1930,6 +1936,7 @@ class CodeEditor(TextEditBaseWidget):
             cursor.movePosition(QTextCursor.StartOfBlock)
             line_text = to_text_string(cursor.block().text())
             self.__remove_prefix(prefix, cursor, line_text)
+        self.document_did_change()
 
     def __remove_prefix(self, prefix, cursor, line_text):
         """Handle the removal of the prefix for a single line."""
@@ -1970,6 +1977,7 @@ class CodeEditor(TextEditBaseWidget):
             cursor.movePosition(QTextCursor.Right,
                                 QTextCursor.KeepAnchor, len(prefix))
             cursor.removeSelectedText()
+        self.document_did_change()
 
     def __even_number_of_spaces(self, line_text, group=0):
         """
@@ -1985,14 +1993,13 @@ class CodeEditor(TextEditBaseWidget):
         if len(spaces) - 1 >= group:
             return len(spaces[group])
 
-
     def fix_indent(self, *args, **kwargs):
         """Indent line according to the preferences"""
         if self.is_python_like():
             return self.fix_indent_smart(*args, **kwargs)
         else:
             return self.simple_indentation(*args, **kwargs)
-
+        self.document_did_change()
 
     def simple_indentation(self, forward=True, **kwargs):
         """
@@ -2010,7 +2017,6 @@ class CodeEditor(TextEditBaseWidget):
 
         cursor.insertText(indentation)
         return False  # simple indentation don't fix indentation
-
 
     def fix_indent_smart(self, forward=True, comment_or_string=False):
         """
@@ -2251,6 +2257,7 @@ class CodeEditor(TextEditBaseWidget):
                 self.insert_text(" "*(length-(len(leading_text) % length)))
             else:
                 self.insert_text(self.indent_chars)
+        self.document_did_change()
 
     def indent_or_replace(self):
         """Indent or replace by 4 spaces depending on selection and tab mode"""
@@ -2365,6 +2372,7 @@ class CodeEditor(TextEditBaseWidget):
         s = selected_text.upper()
         cursor.insertText(s)
         self.set_cursor_position(prev_pos)
+        self.document_did_change()
 
     def transform_to_lowercase(self):
         """Change to lowercase current line or selection."""
@@ -2380,6 +2388,7 @@ class CodeEditor(TextEditBaseWidget):
         s = selected_text.lower()
         cursor.insertText(s)
         self.set_cursor_position(prev_pos)
+        self.document_did_change()
 
     def blockcomment(self):
         """Block comment current line or selection."""
@@ -2411,6 +2420,7 @@ class CodeEditor(TextEditBaseWidget):
         cursor.movePosition(QTextCursor.StartOfBlock)
         cursor.insertText(comline)
         cursor.endEditBlock()
+        self.document_did_change()
 
     def unblockcomment(self):
         """Un-block comment current line or selection."""
@@ -2421,6 +2431,7 @@ class CodeEditor(TextEditBaseWidget):
             unblockcomment =  self.__unblockcomment(compatibility=True)
         else:
             return unblockcomment
+        self.document_did_change()
 
     def __unblockcomment(self, compatibility=False):
         """Un-block comment current line or selection helper."""
@@ -2488,6 +2499,7 @@ class CodeEditor(TextEditBaseWidget):
                                 QTextCursor.KeepAnchor)
         self._kill_ring.kill_cursor(cursor)
         self.setTextCursor(cursor)
+        self.document_did_change()
 
     def kill_line_start(self):
         """Kill the text on the current line from the cursor backward"""
@@ -2497,6 +2509,7 @@ class CodeEditor(TextEditBaseWidget):
                             QTextCursor.KeepAnchor)
         self._kill_ring.kill_cursor(cursor)
         self.setTextCursor(cursor)
+        self.document_did_change()
 
     def _get_word_start_cursor(self, position):
         """Find the start of the word to the left of the given position. If a
@@ -2540,6 +2553,7 @@ class CodeEditor(TextEditBaseWidget):
         cursor.setPosition(position, QTextCursor.KeepAnchor)
         self._kill_ring.kill_cursor(cursor)
         self.setTextCursor(cursor)
+        self.document_did_change()
 
     def kill_next_word(self):
         """Kill the next word"""
@@ -2548,6 +2562,7 @@ class CodeEditor(TextEditBaseWidget):
         cursor.setPosition(position, QTextCursor.KeepAnchor)
         self._kill_ring.kill_cursor(cursor)
         self.setTextCursor(cursor)
+        self.document_did_change()
 
     #------Autoinsertion of quotes/colons
     def __get_current_color(self, cursor=None):
@@ -3030,8 +3045,8 @@ class CodeEditor(TextEditBaseWidget):
         if self.go_to_definition_enabled and \
            event.modifiers() & Qt.ControlModifier:
             text = self.get_word_at(event.pos())
-            if text and (self.is_python_like())\
-               and not sourcecode.is_keyword(to_text_string(text)):
+            if (text  # and (self.is_python_like())\
+                    and not sourcecode.is_keyword(to_text_string(text))):
                 if not self.__cursor_changed:
                     QApplication.setOverrideCursor(
                                                 QCursor(Qt.PointingHandCursor))
@@ -3113,8 +3128,9 @@ class CodeEditor(TextEditBaseWidget):
         self.run_cell_and_advance_action.setVisible(self.is_python())
         self.run_selection_action.setVisible(self.is_python())
         self.re_run_last_cell_action.setVisible(self.is_python())
-        self.gotodef_action.setVisible(self.go_to_definition_enabled \
-                                       and self.is_python_like())
+        self.gotodef_action.setVisible(self.go_to_definition_enabled
+                                       # and self.is_python_like()
+                                       )
 
         # Code duplication go_to_definition_from_cursor and mouse_move_event
         cursor = self.textCursor()

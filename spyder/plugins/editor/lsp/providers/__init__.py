@@ -7,7 +7,8 @@
 """Spyder Language Server Protocol Client method providers."""
 
 from .document import DocumentProvider
+from .window import WindowProvider
 
 
-class LSPMethodProviderMixIn(DocumentProvider):
+class LSPMethodProviderMixIn(DocumentProvider, WindowProvider):
     pass
