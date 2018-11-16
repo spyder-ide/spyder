@@ -16,7 +16,7 @@ msgstr ""
 "Project-Id-Version: Spyder3\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2018-11-13 11:49+-05\n"
-"PO-Revision-Date: 2018-06-30 00:25+0900\n"
+"PO-Revision-Date: 2018-11-16 20:14+0900\n"
 "Last-Translator: \n"
 "Language-Team: Japanese <s.ohnishi77+github@gmail.com>\n"
 "Language: ja\n"
@@ -999,11 +999,11 @@ msgstr "フォントスタイル"
 
 #: spyder/plugins/configdialog.py:830
 msgid "Spyder needs to restart to change the following setting:"
-msgstr "Spyderは以下の設定を適用するために再起動が必要となります:"
+msgstr "以下の設定を適用するために再起動が必要となります:"
 
 #: spyder/plugins/configdialog.py:833
 msgid "Spyder needs to restart to change the following settings:"
-msgstr "Spyderは以下の設定を適用するために再起動が必要となります:"
+msgstr "以下の設定を適用するために再起動が必要となります:"
 
 #: spyder/plugins/configdialog.py:835
 msgid "Do you wish to restart now?"
@@ -1019,13 +1019,12 @@ msgid "General"
 msgstr "一般"
 
 #: spyder/plugins/configdialog.py:866
-#, fuzzy
 msgid "Language:"
-msgstr "言語"
+msgstr "言語:"
 
 #: spyder/plugins/configdialog.py:874
 msgid "Rendering engine:"
-msgstr ""
+msgstr "レンダリングエンジン："
 
 #: spyder/plugins/configdialog.py:879
 msgid "Use a single instance"
@@ -1183,6 +1182,8 @@ msgid ""
 "We're sorry but the following error occurred while trying to set your "
 "selected language:<br><br><tt>{}</tt>"
 msgstr ""
+"申し訳ありません。言語を設定中に以下のエラーが発生しました：<br><br><tt>{}</"
+"tt>"
 
 #: spyder/plugins/configdialog.py:1164
 msgid "Syntax coloring"
@@ -1378,11 +1379,11 @@ msgstr "現在行を強調"
 
 #: spyder/plugins/editor.py:135
 msgid "Highlight current cell"
-msgstr "現在セルを強調"
+msgstr "現在cellを強調"
 
 #: spyder/plugins/editor.py:137
 msgid "Highlight occurrences after"
-msgstr "以下の事象を強調"
+msgstr "変更後に構文を強調するまでの時間"
 
 #: spyder/plugins/editor.py:169
 msgid "Save all files before running script"
@@ -1394,7 +1395,7 @@ msgstr "選択を実行"
 
 #: spyder/plugins/editor.py:173
 msgid "Maintain focus in the Editor after running cells or selections"
-msgstr "エディタ内で実行後、選択後もセルのフォーカスを維持する"
+msgstr "エディタ内で実行後、選択後もcellのフォーカスを維持する"
 
 #: spyder/plugins/editor.py:176
 msgid "Introspection"
@@ -1809,16 +1810,16 @@ msgid ""
 "Run current cell (Ctrl+Enter)\n"
 "[Use #%% to create cells]"
 msgstr ""
-"現在のセルを実行する (Ctrl+Enter)\n"
+"現在のcellを実行する (Ctrl+Enter)\n"
 "[Use #%% to create cells]"
 
 #: spyder/plugins/editor.py:845 spyder/widgets/sourcecode/codeeditor.py:2719
 msgid "Run cell and advance"
-msgstr "cellを実行し進む"
+msgstr "cellを実行して進む"
 
 #: spyder/plugins/editor.py:848
 msgid "Run current cell and go to the next one (Shift+Enter)"
-msgstr "現在のセルを実行し次のセルへ(Shift+Enter)"
+msgstr "現在のcellを実行し次のcellへ(Shift+Enter)"
 
 #: spyder/plugins/editor.py:854 spyder/widgets/sourcecode/codeeditor.py:2723
 msgid "Re-run last cell"
@@ -2057,8 +2058,8 @@ msgid ""
 "parenthesis is written next to it. Below you can decide to which plugin you "
 "want to connect it to turn on this feature."
 msgstr ""
-"このペインは括弧の左側が入力されるとそのオブジェクトのヘルプ情報を自動的に表"
-"示します。この機能を有効にするために接続したいプラグインを選べます。"
+"以下のペインでは左側括弧が入力されると、そのオブジェクトのヘルプ情報を自動的"
+"に表示することができます。この機能を有効にする場合選択して下さい。"
 
 #: spyder/plugins/help.py:122
 msgid ""
@@ -2197,7 +2198,7 @@ msgstr " エントリ"
 
 #: spyder/plugins/history.py:43
 msgid "History depth: "
-msgstr "ヒストリー階層:"
+msgstr "最大ヒストリー数:"
 
 #: spyder/plugins/history.py:50
 msgid "Scroll automatically to last entry"
@@ -2272,25 +2273,26 @@ msgid ""
 "kernel to connect to, and enter the SSH host name and credentials if a "
 "remote kernel."
 msgstr ""
+"既存のカーネルに接続するために、接続設定JSONファイルを選択するか(<i>例</i> "
+"<tt>kernel-3764.json</tt>) 4桁のIDを入力(<i>例</i> <tt>3764</tt>)してくださ"
+"い。 リモートカーネルを選択する場合はさらにSSHホスト名と認証情報を入力してく"
+"ださい。"
 
 #: spyder/plugins/ipythonconsole.py:183
-#, fuzzy
 msgid "Kernel ID/Connection file:"
-msgstr "IPython接続ファイルを開く"
+msgstr "カーネルID/接続設定ファイル："
 
 #: spyder/plugins/ipythonconsole.py:185
-#, fuzzy
 msgid "ID number or path to connection file"
-msgstr "接続ファイルへのパスあるいはカーネルID"
+msgstr "ID番号あるいは接続設定ファイルへのパス"
 
 #: spyder/plugins/ipythonconsole.py:187 spyder/plugins/ipythonconsole.py:216
 msgid "Browse"
 msgstr "表示"
 
 #: spyder/plugins/ipythonconsole.py:196
-#, fuzzy
 msgid "This is a remote kernel (via SSH)"
-msgstr "これはリモートカーネルです"
+msgstr "これはリモートカーネルです(SSH経由)"
 
 #: spyder/plugins/ipythonconsole.py:199
 msgid ""
@@ -2298,45 +2300,41 @@ msgid ""
 "i> the Password field need to be completed, unless the keyfile is protected "
 "with a passphrase."
 msgstr ""
+"<b>注：</b> リモートカーネル接続では、キーファイルがパスフレーズで保護されて"
+"いない場合、SSHキーファイルのみ <i>あるいは</i> パスワード欄への記入が必要と"
+"なります。"
 
 #: spyder/plugins/ipythonconsole.py:207
 msgid "username@hostname:port"
 msgstr "username@hostname:port"
 
 #: spyder/plugins/ipythonconsole.py:210
-#, fuzzy
 msgid "Remote user password or SSH keyfile passphrase"
-msgstr "パスワードあるいはsshキーのパスフレーズ"
+msgstr "パスワードあるいはSSHキーパスフレーズ"
 
 #: spyder/plugins/ipythonconsole.py:215
-#, fuzzy
 msgid "Path to SSH keyfile (optional)"
-msgstr "sshキーファイルへのパス"
+msgstr "SSHキーファイルへのパス(optional)"
 
 #: spyder/plugins/ipythonconsole.py:224
-#, fuzzy
 msgid "Host name:"
-msgstr "ホスト名"
+msgstr "ホスト名："
 
 #: spyder/plugins/ipythonconsole.py:225
-#, fuzzy
 msgid "Password:"
 msgstr "パスワード："
 
 #: spyder/plugins/ipythonconsole.py:226
-#, fuzzy
 msgid "SSH keyfile:"
-msgstr "NSISファイル"
+msgstr "SSHキーファイル："
 
 #: spyder/plugins/ipythonconsole.py:257
-#, fuzzy
 msgid "Select kernel connection file"
-msgstr "IPython接続ファイルを開く"
+msgstr "カーネル接続設定ファイルを選択"
 
 #: spyder/plugins/ipythonconsole.py:262
-#, fuzzy
 msgid "Select SSH keyfile"
-msgstr "ファイル選択"
+msgstr "SSHキーファイルを選択"
 
 #: spyder/plugins/ipythonconsole.py:295 spyder/plugins/ipythonconsole.py:780
 msgid "IPython console"
@@ -2369,11 +2367,11 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole.py:312
 msgid "Ask for confirmation before closing"
-msgstr "閉じる前に確認するようにする"
+msgstr "閉じる前に確認する"
 
 #: spyder/plugins/ipythonconsole.py:315
 msgid "Ask for confirmation before removing all user-defined variables"
-msgstr "全ユーザー定義変数を削除する前に確認する"
+msgstr "全てのユーザー定義変数を削除する前に確認する"
 
 #: spyder/plugins/ipythonconsole.py:318
 msgid ""
@@ -2389,17 +2387,15 @@ msgid "Show elapsed time"
 msgstr "実行時間を表示"
 
 #: spyder/plugins/ipythonconsole.py:322
-#, fuzzy
 msgid "Ask for confirmation before restarting"
-msgstr "閉じる前に確認するようにする"
+msgstr "再起動前に確認メッセージを出す"
 
 #: spyder/plugins/ipythonconsole.py:324
-#, fuzzy
 msgid ""
 "This option lets you hide the warning message shown\n"
 "when restarting the kernel."
 msgstr ""
-"このオプションによりSpyderから名前空間をリセットするときの\n"
+"このオプションによりカーネル再起動時の\n"
 "警告メッセージを隠すことができます。"
 
 #: spyder/plugins/ipythonconsole.py:337
@@ -2776,7 +2772,6 @@ msgstr ""
 "試行してください。"
 
 #: spyder/plugins/ipythonconsole.py:1096
-#, fuzzy
 msgid ""
 "Your Python environment or installation doesn't have the <tt>spyder-kernels</"
 "tt> module or the right version of it installed. Without this module is not "
@@ -2784,11 +2779,12 @@ msgid ""
 "by running in a system terminal:<br><br><tt>conda install spyder-kernels=0."
 "*</tt><br><br>or<br><br><tt>pip install spyder-kernels==0.*</tt>"
 msgstr ""
-"Python環境に<tt>spyder-kernels</tt>モジュールがインストールされておりません。"
-"これらのモジュールがない場合Spyderでコンソールを開くことができない場合があり"
-"ます。<br><br>システムのターミナルで以下のコマンドでインストールすることが可"
-"能です。:<br><br><tt>conda install spyder-kernels</tt><br><br>あるいは"
-"<br><br><tt>pip install spyder-kernels</tt>"
+"Python環境に<tt>spyder-kernels</tt>モジュールあるいは正しいバージョンのものが"
+"インストールされておりません。このモジュールがない場合Spyderでコンソールを開"
+"くことができない場合があります。<br><br>システムのターミナルで以下のコマンド"
+"を入力することによってインストールできます:<br><br><tt>conda install spyder-"
+"kernels=0.*</tt><br><br>あるいは<br><br><tt>pip install spyder-kernels==0.*</"
+"tt>"
 
 #: spyder/plugins/ipythonconsole.py:1362
 msgid "Do you want to close this console?"
@@ -2801,12 +2797,12 @@ msgid ""
 msgstr "同じカーネルに接続している他の全てのコンソールを閉じますか？"
 
 #: spyder/plugins/ipythonconsole.py:1440
-#, fuzzy
 msgid ""
 "It was not possible to restart the IPython console when switching to this "
 "project. The error was<br><br><tt>{0}</tt>"
 msgstr ""
-"プロジェクト切替時にIPythonコンソールの再起動に失敗しました。エラー {0}"
+"プロジェクト切替時にIPythonコンソールの再起動に失敗しました。エラー "
+"<br><br><tt>{0}</tt>"
 
 #: spyder/plugins/ipythonconsole.py:1546 spyder/plugins/ipythonconsole.py:1556
 msgid "The error is:<br><br><tt>{}</tt>"
@@ -2869,9 +2865,8 @@ msgid "Executables"
 msgstr "実行可能ファイル"
 
 #: spyder/plugins/maininterpreter.py:92
-#, fuzzy
 msgid "Recent custom interpreters"
-msgstr "Pythonインタープリター"
+msgstr "最近使ったPythonインタープリター"
 
 #: spyder/plugins/maininterpreter.py:107
 msgid "User Module Reloader (UMR)"
@@ -3049,7 +3044,7 @@ msgstr "エラーが発生した場合直接デバッグモードに入る"
 
 #: spyder/plugins/runconfig.py:47
 msgid "Interact with the Python console after execution"
-msgstr "実行後Pythonコンソールと相互作用する"
+msgstr "実行後Pythonコンソールと対話する"
 
 #: spyder/plugins/runconfig.py:49
 msgid "The directory of the file being executed"
@@ -3057,7 +3052,7 @@ msgstr "現在実行しているファイルのディレクトリ\t"
 
 #: spyder/plugins/runconfig.py:50 spyder/plugins/workingdirectory.py:56
 msgid "The current working directory"
-msgstr "現在の作業ディレクトリ設定"
+msgstr "現在の作業ディレクトリ"
 
 #: spyder/plugins/runconfig.py:51
 msgid "The following directory:"
@@ -3354,7 +3349,7 @@ msgstr "環境変数"
 msgid ""
 "An error occurred while trying to show your environment variables. The error "
 "was<br><br><tt>{0}</tt>"
-msgstr ""
+msgstr "環境変数の表示中にエラーが発生しました。エラーは<br><br><tt>{0}</tt>"
 
 #: spyder/utils/environ.py:108
 msgid ""
@@ -3413,7 +3408,7 @@ msgstr "現在行:"
 
 #: spyder/utils/syntaxhighlighters.py:46
 msgid "Current cell:"
-msgstr "現在セル:"
+msgstr "現在cell:"
 
 #: spyder/utils/syntaxhighlighters.py:47
 msgid "Occurrence:"
@@ -3507,7 +3502,7 @@ msgstr ""
 "\n"
 "           <b>Numpy 配列/行列 ヘルパー</b><br>\n"
 "           テーブルに配列を入力してください。 <br>\n"
-"           セル間の移動にはタブを使います。\n"
+"           cell間の移動にはタブを使います。\n"
 "           <br><br>\n"
 "           配列入力には'Enter'を、行列入力には 'Ctrl+Enter'を。\n"
 "           <br><br>\n"
@@ -3569,7 +3564,7 @@ msgstr "インストール済み"
 
 #: spyder/widgets/dependencies.py:64
 msgid "Provided features"
-msgstr "利用できる機能"
+msgstr "提供される機能"
 
 #: spyder/widgets/dependencies.py:134
 msgid "Dependencies"
@@ -3586,9 +3581,9 @@ msgid ""
 msgstr ""
 "全てのペインが正しく機能するために、Spyderは複数のPythonモジュールに依存して"
 "います。 下記のテーブルには必要なモジュールとインストール済みモジュールのバー"
-"ジョンを示します。<br><br><b>注</b>: 以下のモジュールはインストールしなくても"
-"Spyderを安全に使用できます。:<b>%s</b> 、<b>%s</b>.<br><br>新たに発生した依存"
-"関係及び解決された依存関係はSpyderを再起動するまで正しく認識されません"
+"ジョンを表示しています。<br><br><b>注</b>: 以下のモジュールはインストールしな"
+"くてもSpyderを安全に使用できます。:<b>%s</b> ,<b>%s</b>.<br><br>新たに発生し"
+"た依存関係及び解決された依存関係はSpyderを再起動するまで正しく認識されません"
 
 #: spyder/widgets/dependencies.py:157
 msgid "Copy to clipboard"
@@ -3725,7 +3720,7 @@ msgstr "%s 行で定義されている関数"
 
 #: spyder/widgets/editortools.py:149
 msgid "Cell starts at line %s"
-msgstr "%s 行から始まるセル"
+msgstr "%s 行から始まるcell"
 
 #: spyder/widgets/editortools.py:201 spyder/widgets/editortools.py:527
 msgid "Go to cursor position"
@@ -4069,9 +4064,8 @@ msgid "Stop search"
 msgstr "検索終了"
 
 #: spyder/widgets/findinfiles.py:464
-#, fuzzy
 msgid "Exclude pattern"
-msgstr "除外されるファイル名パターン"
+msgstr "除外パターン"
 
 #: spyder/widgets/findinfiles.py:473
 msgid "Exclude:"
@@ -4329,6 +4323,8 @@ msgid ""
 "In order to use commands like \"raw_input\" or \"input\" run Spyder with the "
 "multithread option (--multithread) from a system terminal"
 msgstr ""
+"\"raw_input\"や\"input\"コマンドを使うには、Spyder実行時に端末でマルチスレッ"
+"ドオプション(--multithread)を付与して下さい。"
 
 #: spyder/widgets/ipythonconsole/client.py:308
 msgid "An error ocurred while starting the kernel"
@@ -4522,6 +4518,8 @@ msgid ""
 "You are using Python 2 and the path selected has Unicode characters. The new "
 "path will not be added."
 msgstr ""
+"Python2が使われており、選択されたパスにユニコード文字が含まれています。新しい"
+"パスは追加されません。"
 
 #: spyder/widgets/pathmanager.py:283
 msgid ""
@@ -5156,9 +5154,8 @@ msgid "It was not possible to copy this array"
 msgstr "配列をコピーできませんでした"
 
 #: spyder/widgets/variableexplorer/collectionseditor.py:1144
-#, fuzzy
 msgid "It was not possible to copy this dataframe"
-msgstr "配列をコピーできませんでした"
+msgstr "このデータフレムはコピーできませんでした"
 
 #: spyder/widgets/variableexplorer/collectionseditor.py:1166
 msgid "Clipboard contents"
@@ -5181,6 +5178,8 @@ msgid ""
 "It is not possible to display this value because\n"
 "an error ocurred while trying to do it"
 msgstr ""
+"実行中にエラーが発生したため\n"
+"値を表示することが出来ません"
 
 #: spyder/widgets/variableexplorer/dataframeeditor.py:621
 msgid "To bool"
