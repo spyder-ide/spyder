@@ -60,6 +60,6 @@ def test_shortcutssummary_texts(dlg_shortcuts, qtbot):
                 if sys.platform.startswith('darwin'):
                     keywords = [u'⇧', u'⌃', u'⌘', u'⌥', u'⌦',  u'⎋', 'F']
                 else:
-                    keywords = ['Alt', 'Ctrl', 'Del', 'Escape', 'F', 'Meta',
+                    keywords = ['Alt', 'Ctrl', 'Del', 'Esc', 'F', 'Meta',
                                 'Shift']
                 assert any([key in shortcut_keystr for key in keywords])
