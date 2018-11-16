@@ -23,12 +23,21 @@ from qtpy.QtWidgets import QGroupBox, QInputDialog, QLabel, QVBoxLayout
 
 # Local imports
 from spyder.config.base import _
+from spyder.config.gui import is_dark_interface
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
 from spyder.utils import icon_manager as ima
 from spyder.utils.programs import is_module_installed
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from .widgets.pylintgui import PylintWidget
+
+
+if is_dark_interface():
+    MAIN_TEXT_COLOR = 'white'
+    MAIN_PREVRATE_COLOR = 'white'
+else:
+    MAIN_TEXT_COLOR = '#444444'
+    MAIN_PREVRATE_COLOR = '#666666'
 
 
 class PylintConfigPage(PluginConfigPage):
@@ -90,7 +99,9 @@ class Pylint(SpyderPluginWidget):
 
         max_entries = self.get_option('max_entries', 50)
         self.pylint = PylintWidget(self, max_entries=max_entries,
-                                   options_button=self.options_button)
+                                   options_button=self.options_button,
+                                   text_color=MAIN_TEXT_COLOR,
+                                   prevrate_color=MAIN_PREVRATE_COLOR)
 
         layout = QVBoxLayout()
         layout.addWidget(self.pylint)
@@ -176,10 +187,11 @@ class Pylint(SpyderPluginWidget):
     @Slot()
     def run_pylint(self):
         """Run pylint code analysis"""
-        if self.get_option('save_before', True)\
-           and not self.main.editor.save():
+        if (self.get_option('save_before', True)
+                and not self.main.editor.save()):
             return
-        self.analyze( self.main.editor.get_current_filename() )
+        self.switch_to_plugin()
+        self.analyze(self.main.editor.get_current_filename())
         
     def analyze(self, filename):
         """Reimplement analyze method"""

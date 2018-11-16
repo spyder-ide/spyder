@@ -41,7 +41,7 @@ class Projects(SpyderPluginWidget):
     sig_project_loaded = Signal(object)
     sig_project_closed = Signal(object)
 
-    def __init__(self, parent=None, testing=False):
+    def __init__(self, parent=None):
         """Initialization."""
         SpyderPluginWidget.__init__(self, parent)
 
@@ -60,15 +60,8 @@ class Projects(SpyderPluginWidget):
         self.current_active_project = None
         self.latest_project = None
 
-        self.editor = None
-        self.workingdirectory = None
-
-        # For testing
-        self.testing = testing
-
         # Initialize plugin
-        if not self.testing:
-            self.initialize_plugin()
+        self.initialize_plugin()
         self.explorer.setup_project(self.get_active_project_path())
 
     #------ SpyderPluginWidget API ---------------------------------------------
@@ -96,7 +89,7 @@ class Projects(SpyderPluginWidget):
                                     triggered=self.close_project)
         self.delete_project_action = create_action(self,
                                     _("Delete Project"),
-                                    triggered=self.explorer.delete_project)
+                                    triggered=self._delete_project)
         self.clear_recent_projects_action =\
             create_action(self, _("Clear this list"),
                           triggered=self.clear_recent_projects)
@@ -105,22 +98,21 @@ class Projects(SpyderPluginWidget):
                           triggered=self.edit_project_preferences)
         self.recent_project_menu = QMenu(_("Recent Projects"), self)
 
-        self.main.projects_menu_actions += [self.new_project_action,
-                                            MENU_SEPARATOR,
-                                            self.open_project_action,
-                                            self.close_project_action,
-                                            self.delete_project_action,
-                                            MENU_SEPARATOR,
-                                            self.recent_project_menu,
-                                            self.toggle_view_action]
+        if self.main is not None:
+            self.main.projects_menu_actions += [self.new_project_action,
+                                                MENU_SEPARATOR,
+                                                self.open_project_action,
+                                                self.close_project_action,
+                                                self.delete_project_action,
+                                                MENU_SEPARATOR,
+                                                self.recent_project_menu,
+                                                self.toggle_view_action]
 
         self.setup_menu_actions()
         return []
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.editor = self.main.editor
-        self.workingdirectory = self.main.workingdirectory
         ipyconsole = self.main.ipyconsole
         treewidget = self.explorer.treewidget
         lspmgr = self.main.lspmanager
@@ -128,12 +120,12 @@ class Projects(SpyderPluginWidget):
         self.main.add_dockwidget(self)
         self.explorer.sig_open_file.connect(self.main.open_file)
 
-        treewidget.sig_edit.connect(self.editor.load)
-        treewidget.sig_removed.connect(self.editor.removed)
-        treewidget.sig_removed_tree.connect(self.editor.removed_tree)
-        treewidget.sig_renamed.connect(self.editor.renamed)
-        treewidget.sig_renamed_tree.connect(self.editor.renamed_tree)
-        treewidget.sig_create_module.connect(self.editor.new)
+        treewidget.sig_edit.connect(self.main.editor.load)
+        treewidget.sig_removed.connect(self.main.editor.removed)
+        treewidget.sig_removed_tree.connect(self.main.editor.removed_tree)
+        treewidget.sig_renamed.connect(self.main.editor.renamed)
+        treewidget.sig_renamed_tree.connect(self.main.editor.renamed_tree)
+        treewidget.sig_create_module.connect(self.main.editor.new)
         treewidget.sig_new_file.connect(
             lambda t: self.main.editor.new(text=t))
         treewidget.sig_open_interpreter.connect(
@@ -147,27 +139,28 @@ class Projects(SpyderPluginWidget):
 
         # New project connections. Order matters!
         self.sig_project_loaded.connect(
-            lambda v: self.workingdirectory.chdir(v))
+            lambda v: self.main.workingdirectory.chdir(v))
         self.sig_project_loaded.connect(
             lambda v: self.main.set_window_title())
         self.sig_project_loaded.connect(lspmgr.reinit_all_lsp_clients)
         self.sig_project_loaded.connect(
-            lambda v: self.editor.setup_open_files())
+            lambda v: self.main.editor.setup_open_files())
         self.sig_project_loaded.connect(self.update_explorer)
         self.sig_project_closed[object].connect(
-            lambda v: self.workingdirectory.chdir(self.get_last_working_dir()))
+            lambda v: self.main.workingdirectory.chdir(
+                self.get_last_working_dir()))
         self.sig_project_closed.connect(
             lambda v: self.main.set_window_title())
         self.sig_project_closed.connect(lspmgr.reinit_all_lsp_clients)
         self.sig_project_closed.connect(
-            lambda v: self.editor.setup_open_files())
+            lambda v: self.main.editor.setup_open_files())
         self.recent_project_menu.aboutToShow.connect(self.setup_menu_actions)
 
         self.main.pythonpath_changed()
         self.main.restore_scrollbar_position.connect(
                                                self.restore_scrollbar_position)
         self.sig_pythonpath_changed.connect(self.main.pythonpath_changed)
-        self.editor.set_projects(self)
+        self.main.editor.set_projects(self)
 
     def refresh_plugin(self):
         """Refresh project explorer widget"""
@@ -179,6 +172,20 @@ class Projects(SpyderPluginWidget):
         self.explorer.closing_widget()
         return True
 
+    def switch_to_plugin(self):
+        """Switch to plugin."""
+        # Unmaxizime currently maximized plugin
+        if (self.main.last_plugin is not None and
+                self.main.last_plugin.ismaximized and
+                self.main.last_plugin is not self):
+            self.main.maximize_dockwidget()
+
+        # Show plugin only if it was already visible
+        if self.get_option('visible_if_project_open'):
+            if not self.toggle_view_action.isChecked():
+                self.toggle_view_action.setChecked(True)
+            self.visibility_changed(True)
+
     #------ Public API ---------------------------------------------------------
     def setup_menu_actions(self):
         """Setup and update the menu actions."""
@@ -188,10 +195,15 @@ class Projects(SpyderPluginWidget):
             for project in self.recent_projects:
                 if self.is_valid_project(project):
                     name = project.replace(get_home_dir(), '~')
+
+                    def slot():
+                        self.switch_to_plugin()
+                        self.open_project(path=project)
+
                     action = create_action(self,
                         name,
                         icon = ima.icon('project'),
-                        triggered=lambda v, path=project: self.open_project(path=path))
+                        triggered=slot)
                     self.recent_projects_actions.append(action)
                 else:
                     self.recent_projects.remove(project)
@@ -231,6 +243,7 @@ class Projects(SpyderPluginWidget):
     @Slot()
     def create_new_project(self):
         """Create new project"""
+        self.switch_to_plugin()
         active_project = self.current_active_project
         dlg = ProjectDialog(self)
         dlg.sig_project_creation_requested.connect(self._create_project)
@@ -251,6 +264,7 @@ class Projects(SpyderPluginWidget):
     def open_project(self, path=None, restart_consoles=True,
                      save_previous_files=True):
         """Open the project located in `path`"""
+        self.switch_to_plugin()
         if path is None:
             basedir = get_home_dir()
             path = getexistingdirectory(parent=self,
@@ -269,23 +283,24 @@ class Projects(SpyderPluginWidget):
 
         # A project was not open before
         if self.current_active_project is None:
-            if save_previous_files and self.editor is not None:
-                self.editor.save_open_files()
-            if self.editor is not None:
-                self.editor.set_option('last_working_dir', getcwd_or_home())
+            if save_previous_files and self.main.editor is not None:
+                self.main.editor.save_open_files()
+            if self.main.editor is not None:
+                self.main.editor.set_option('last_working_dir',
+                                            getcwd_or_home())
             if self.get_option('visible_if_project_open'):
                 self.show_explorer()
         else:
             # We are switching projects
-            if self.editor is not None:
-                self.set_project_filenames(self.editor.get_open_filenames())
+            if self.main.editor is not None:
+                self.set_project_filenames(
+                    self.main.editor.get_open_filenames())
 
         self.current_active_project = EmptyProject(path)
         self.latest_project = EmptyProject(path)
         self.set_option('current_project_path', self.get_active_project_path())
 
-        if not self.testing:
-            self.setup_menu_actions()
+        self.setup_menu_actions()
         self.sig_project_loaded.emit(path)
         self.sig_pythonpath_changed.emit()
 
@@ -298,12 +313,11 @@ class Projects(SpyderPluginWidget):
         project
         """
         if self.current_active_project:
+            self.switch_to_plugin()
             path = self.current_active_project.root_path
             self.current_active_project = None
             self.set_option('current_project_path', None)
-
-            if not self.testing:
-                self.setup_menu_actions()
+            self.setup_menu_actions()
 
             self.sig_project_closed.emit(path)
             self.sig_pythonpath_changed.emit()
@@ -316,8 +330,15 @@ class Projects(SpyderPluginWidget):
             self.explorer.clear()
             self.restart_consoles()
 
-            if self.editor is not None:
-                self.set_project_filenames(self.editor.get_open_filenames())
+            if self.main.editor is not None:
+                self.set_project_filenames(
+                    self.main.editor.get_open_filenames())
+
+    def _delete_project(self):
+        """Delete current project."""
+        if self.current_active_project:
+            self.switch_to_plugin()
+            self.explorer.delete_project()
 
     def clear_recent_projects(self):
         """Clear the list of recent projects"""
@@ -380,8 +401,8 @@ class Projects(SpyderPluginWidget):
 
     def get_last_working_dir(self):
         """Get the path of the last working directory"""
-        return self.editor.get_option('last_working_dir',
-                                      default=getcwd_or_home())
+        return self.main.editor.get_option('last_working_dir',
+                                           default=getcwd_or_home())
 
     def save_config(self):
         """
@@ -429,7 +450,7 @@ class Projects(SpyderPluginWidget):
 
     def restart_consoles(self):
         """Restart consoles when closing, opening and switching projects"""
-        if not self.testing and self.main.ipyconsole is not None:
+        if self.main.ipyconsole is not None:
             self.main.ipyconsole.restart()
 
     def is_valid_project(self, path):

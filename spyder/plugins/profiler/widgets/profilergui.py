@@ -67,14 +67,17 @@ class ProfilerWidget(QWidget):
     VERSION = '0.0.1'
     redirect_stdio = Signal(bool)
     
-    def __init__(self, parent, max_entries=100, options_button=None):
+    def __init__(self, parent, max_entries=100, options_button=None,
+                 text_color=None):
         QWidget.__init__(self, parent)
         
         self.setWindowTitle("Profiler")
         
         self.output = None
         self.error_output = None
-        
+
+        self.text_color = text_color
+
         self._last_wdir = None
         self._last_args = None
         self._last_pythonpath = None
@@ -365,9 +368,10 @@ class ProfilerWidget(QWidget):
         self.datatree.load_data(self.DATAPATH)
         self.datatree.show_tree()
 
-        text_style = "<span style=\'color: #444444\'><b>%s </b></span>"
-        date_text = text_style % time.strftime("%Y-%m-%d %H:%M:%S",
-                                               time.localtime())
+        text_style = "<span style=\'color: %s\'><b>%s </b></span>"
+        date_text = text_style % (self.text_color,
+                                  time.strftime("%Y-%m-%d %H:%M:%S",
+                                                time.localtime()))
         self.datelabel.setText(date_text)
 
 

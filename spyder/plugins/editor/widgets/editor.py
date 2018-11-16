@@ -2393,7 +2393,7 @@ class EditorStack(QWidget):
         """
         text = self.get_current_editor().get_selection_as_executable_code()
         if text:
-            self.exec_in_extconsole.emit(text, self.focus_to_editor)
+            self.exec_in_extconsole.emit(text.rstrip(), self.focus_to_editor)
             return
         editor = self.get_current_editor()
         line = editor.get_current_line()

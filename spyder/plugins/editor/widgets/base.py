@@ -661,33 +661,10 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             else:
                 break
 
-        # Add an EOL character after indentation blocks that start with some
-        # Python reserved words, so that it gets evaluated automatically
-        # by the console
-        varname = re.compile(r'[a-zA-Z0-9_]*')  # Matches valid variable names.
-        maybe = False
-        nextexcept = ()
-        for n, line in enumerate(lines):
-            if not _indent(line):
-                word = varname.match(line).group()
-                if maybe and word not in nextexcept:
-                    lines[n-1] += ls
-                    maybe = False
-                if word:
-                    if word in ('def', 'for', 'while', 'with', 'class'):
-                        maybe = True
-                        nextexcept = ()
-                    elif word == 'if':
-                        maybe = True
-                        nextexcept = ('elif', 'else')
-                    elif word == 'try':
-                        maybe = True
-                        nextexcept = ('except', 'finally')
-        if maybe:
-            if lines[-1].strip() == '':
-                lines[-1] += ls
-            else:
-                lines.append(ls)
+        # Add an EOL character after the last line of code so that it gets
+        # evaluated automatically by the console and any quote characters
+        # are separated from the triple quotes of runcell
+        lines.append(ls)
 
         # Add removed lines back to have correct traceback line numbers
         leading_lines_str = ls * lines_removed
@@ -705,7 +682,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.last_cursor_cell = init_cursor
         self.__restore_selection(start_pos, end_pos)
         if text is not None:
-            text = text.rstrip()
             text = ls * line_from + text
         return text, line_from
 
