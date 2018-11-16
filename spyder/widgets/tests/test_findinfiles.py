@@ -142,7 +142,6 @@ def test_exclude_extension_regex(findinfiles, qtbot):
     assert files_filtered
 
 
-
 @pytest.mark.parametrize('findinfiles',
                          [{'exclude': "*.py", 'exclude_regexp': False}],
                          indirect=True)
@@ -186,7 +185,6 @@ def test_exclude_extension_string_no_regexp(findinfiles, qtbot):
     blocker.wait()
     matches = process_search_results(findinfiles.result_browser.data)
     assert expected_results() == matches
-
 
 
 @pytest.mark.parametrize('findinfiles',
@@ -484,8 +482,7 @@ def test_set_project_path(findinfiles, qtbot):
                          [{'external_path_history': [LOCATION,
                                                      osp.dirname(LOCATION),
                                                      osp.dirname(osp.dirname(LOCATION)),
-                                                     NONASCII_DIR]
-                          }],
+                                                     NONASCII_DIR]}],
                          indirect=True)
 def test_current_search_path(findinfiles, qtbot):
     """
