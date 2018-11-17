@@ -14,36 +14,43 @@ import pytest
 # Local imports
 from spyder.preferences.layoutdialog import LayoutSettingsDialog, LayoutSaveDialog
 
+
 @pytest.fixture
-def setup_layout_settings_dialog(qtbot, parent, names, order, active):
+def layout_settings_dialog(qtbot, request):
     """Set up LayoutSettingsDialog."""
-    widget = LayoutSettingsDialog(parent, names, order, active)
+    names, order, active = request.param
+    widget = LayoutSettingsDialog(None, names, order, active)
     qtbot.addWidget(widget)
     return widget
+
 
 @pytest.fixture
-def setup_layout_save_dialog(qtbot, parent, order):
+def layout_save_dialog(qtbot, request):
     """Set up LayoutSaveDialog."""
-    widget = LayoutSaveDialog(parent, order)
+    order = request.param
+    widget = LayoutSaveDialog(None, order)
     qtbot.addWidget(widget)
     return widget
 
-def test_layout_settings_dialog(qtbot):
-    """Run layout settings dialog."""
-    names = ['test', 'tester', '20', '30', '40']
-    order = ['test', 'tester', '20', '30', '40']
-    active = ['test', 'tester']
-    layout_settings_dlg = setup_layout_settings_dialog(qtbot, None, names,
-                                                 order, active)
-    layout_settings_dlg.show()
-    assert layout_settings_dlg
 
-def test_layout_save_dialog(qtbot):
+@pytest.mark.parametrize('layout_settings_dialog',
+                         [(['test', 'tester', '20', '30', '40'],
+                           ['test', 'tester', '20', '30', '40'],
+                           ['test', 'tester'])],
+                         indirect=True)
+def test_layout_settings_dialog(layout_settings_dialog):
+    """Run layout settings dialog."""
+    layout_settings_dialog.show()
+    assert layout_settings_dialog
+
+
+@pytest.mark.parametrize('layout_save_dialog',
+                         [['test', 'tester', '20', '30', '40']],
+                         indirect=True)
+def test_layout_save_dialog(layout_save_dialog):
     """Run layout save dialog."""
-    order = ['test', 'tester', '20', '30', '40']
-    layout_save_dlg = setup_layout_save_dialog(qtbot, None, order)
-    layout_save_dlg.show()
-    assert layout_save_dlg
+    layout_save_dialog.show()
+    assert layout_save_dialog
 
 
 if __name__ == "__main__":

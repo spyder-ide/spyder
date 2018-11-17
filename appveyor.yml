@@ -15,7 +15,7 @@ environment:
       pytest-cov numpydoc scipy pillow qtconsole matplotlib jedi pywin32
       sympy cython keyring
     PIP_DEPENDENCIES: >
-      pytest-qt pytest-mock pytest-timeout flaky codecov
+      pytest-qt pytest-mock flaky codecov
       python-language-server[all] qdarkstyle
     APPVEYOR_RDP_PASSWORD: "dcca4c4863E30d56c2e0dda6327370b3#"
 

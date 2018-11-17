@@ -14,17 +14,18 @@ import pytest
 # Local imports
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 
+
 @pytest.fixture
-def setup_importwizard(qtbot, text):
+def importwizard(qtbot):
     """Set up ImportWizard."""
+    text = u"17/11/1976\t1.34\n14/05/09\t3.14"
     importwizard = ImportWizard(None, text)
     qtbot.addWidget(importwizard)
     return importwizard
 
-def test_importwizard(qtbot):
+
+def test_importwizard(importwizard):
     """Run ImportWizard dialog."""
-    text = u"17/11/1976\t1.34\n14/05/09\t3.14"
-    importwizard = setup_importwizard(qtbot, text)
     importwizard.show()
     assert importwizard
 

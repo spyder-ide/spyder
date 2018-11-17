@@ -24,18 +24,17 @@ from spyder.plugins.editor.widgets.editor import EditorStack, EditorSplitter
 
 # ---- Qt Test Fixtures
 
-@pytest.fixture
-def base_editor_bot(qtbot):
+def editor_stack():
     editor_stack = EditorStack(None, [])
     editor_stack.set_find_widget(Mock())
     editor_stack.set_io_actions(Mock(), Mock(), Mock(), Mock())
-    return editor_stack, qtbot
+    return editor_stack
 
 
 @pytest.fixture
 def editor_splitter_bot(qtbot):
     """Create editor splitter."""
-    es = editor_splitter = EditorSplitter(None, Mock(), [], first=True)
+    es = EditorSplitter(None, Mock(), [], first=True)
     qtbot.addWidget(es)
     es.show()
     return es
@@ -91,11 +90,11 @@ def test_init(editor_splitter_bot):
     assert es.widget(0) == es.editorstack
 
 
-def test_close(qtbot):
+def test_close(editor_splitter_bot, qtbot):
     """Test the inteface for closing the editor splitters."""
     # Split the main editorspliter once, than split the second editorsplitter
     # twice.
-    es = editor_splitter_bot(qtbot)
+    es = editor_splitter_bot
 
     es.split()
     esw1 = es.widget(1)
@@ -247,11 +246,11 @@ def test_get_layout_settings(editor_splitter_bot, qtbot, mocker):
     assert setting['splitsettings'] == [(False, None, [])]
 
     # Add some editors to patch output of iter_editorstacks.
-    stack1 = base_editor_bot(qtbot)[0]
+    stack1 = editor_stack()
     stack1.new('foo.py', 'utf-8', 'a = 1\nprint(a)\n\nx = 2')
     stack1.new('layout_test.py', 'utf-8', 'spam egg\n')
 
-    stack2 = base_editor_bot(qtbot)[0]
+    stack2 = editor_stack()
     stack2.new('test.py', 'utf-8', 'test text')
 
     mocker.patch.object(EditorSplitter, "iter_editorstacks")

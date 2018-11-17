@@ -2,7 +2,6 @@ mock
 pytest
 pytest-mock
 pytest-cov
-pytest-timeout
 pandas
 scipy
 sympy

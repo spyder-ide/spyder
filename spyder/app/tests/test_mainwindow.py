@@ -197,7 +197,6 @@ def main_window(request):
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or not PY2,
                     reason="Times out on AppVeyor and fails on PY3/PyQt 5.6")
-@pytest.mark.timeout(timeout=120, method='thread')
 def test_calltip(main_window, qtbot):
     """Test that the calltip in editor is hidden when matching ')' is found."""
     # Load test file

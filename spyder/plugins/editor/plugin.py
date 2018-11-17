@@ -464,6 +464,14 @@ class Editor(SpyderPluginWidget):
         self.stack_menu_actions = None
         self.checkable_actions = {}
 
+        self.__first_open_files_setup = True
+        self.editorstacks = []
+        self.last_focus_editorstack = {}
+        self.editorwindows = []
+        self.editorwindows_to_be_created = []
+        self.toolbar_list = None
+        self.menu_list = None
+        
         # Initialize plugin
         self.initialize_plugin()
         self.options_button.hide()
@@ -486,14 +494,6 @@ class Editor(SpyderPluginWidget):
         self.cursor_pos_history = []
         self.cursor_pos_index = None
         self.__ignore_cursor_position = True
-
-        self.__first_open_files_setup = True
-        self.editorstacks = []
-        self.last_focus_editorstack = {}
-        self.editorwindows = []
-        self.editorwindows_to_be_created = []
-        self.toolbar_list = None
-        self.menu_list = None
 
         # LSP setup
         self.sig_lsp_notification.connect(self.document_server_settings)

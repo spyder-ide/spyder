@@ -651,7 +651,6 @@ def test_read_stderr(ipyconsole, qtbot):
 @pytest.mark.skipif(os.environ.get('CI', None) is not None and os.name == 'nt',
                     reason="It times out on AppVeyor.")
 @pytest.mark.skipif(PY2, reason="It times out in Python 2.")
-@pytest.mark.timeout(timeout=20, method='thread')
 def test_values_dbg(ipyconsole, qtbot):
     """
     Test that getting, setting, copying and removing values is working while
