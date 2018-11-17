@@ -14,7 +14,7 @@ environment:
       qtawesome cloudpickle pickleshare pyzmq chardet mock pandas pytest
       pytest-cov numpydoc scipy pillow qtconsole matplotlib jedi pywin32
       keyring
-    PIP_DEPENDENCIES: "pytest-qt pytest-mock pytest-timeout flaky codecov"
+    PIP_DEPENDENCIES: "pytest-qt pytest-mock flaky codecov"
 
   matrix:
     - PYTHON_VERSION: "2.7"

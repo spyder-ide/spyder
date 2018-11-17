@@ -14,18 +14,19 @@ import pytest
 # Local imports
 from spyder.widgets.projects.projectdialog import ProjectDialog
 
+
 @pytest.fixture
-def setup_projects_dialog(qtbot):
+def projects_dialog(qtbot):
     """Set up ProjectDialog."""
     dlg = ProjectDialog(None)
     qtbot.addWidget(dlg)
     return dlg
 
-def test_project_dialog(qtbot):
+
+def test_project_dialog(projects_dialog):
     """Run project dialog."""
-    dlg = setup_projects_dialog(qtbot)
-    dlg.show()
-    assert dlg
+    projects_dialog.show()
+    assert projects_dialog
 
 
 if __name__ == "__main__":

@@ -17,7 +17,7 @@ import pytest
 from spyder.plugins.shortcuts import ShortcutsTable
 
 @pytest.fixture
-def setup_shorcuts(qtbot):
+def shortcuts(qtbot):
     """Set up shortcuts."""
     widget = ShortcutsTable()
     qtbot.addWidget(widget)
@@ -25,9 +25,8 @@ def setup_shorcuts(qtbot):
 
 
 @pytest.mark.skipif(not os.name == 'nt', reason="It segfaults too much on Linux")
-def test_shortcuts(qtbot):
+def test_shortcuts(shortcuts):
     """Run shortcuts table."""
-    shortcuts = setup_shorcuts(qtbot)
     shortcuts.show()
     shortcuts.check_shortcuts()
     assert shortcuts

@@ -14,17 +14,19 @@ import pytest
 # Local imports
 from spyder.widgets.pydocgui import PydocBrowser
 
+
 @pytest.fixture
-def setup_pydocbrowser(qtbot):
+def pydocbrowser(qtbot):
     """Set up pydocbrowser."""
     widget = PydocBrowser(None)
+    widget.start_server()
     qtbot.addWidget(widget)
     return widget
 
-def test_pydocbrowser(qtbot):
+
+def test_pydocbrowser(pydocbrowser):
     """Run Pydoc Browser."""
-    browser = setup_pydocbrowser(qtbot)
-    assert browser
+    assert pydocbrowser
 
 
 if __name__ == "__main__":
