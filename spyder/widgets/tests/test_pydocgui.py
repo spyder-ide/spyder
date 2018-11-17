@@ -19,7 +19,6 @@ from spyder.widgets.pydocgui import PydocBrowser
 def pydocbrowser(qtbot):
     """Set up pydocbrowser."""
     widget = PydocBrowser(None)
-    widget.start_server()
     qtbot.addWidget(widget)
     return widget
 
