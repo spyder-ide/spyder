@@ -62,7 +62,8 @@ class PydocServer(QThread):
                 self.server.stop()
         else:
             # Python 2
-            self.server.quit = 1
+            if self.server:
+                self.server.quit = 1
 
 
 class PydocBrowser(WebBrowser):
