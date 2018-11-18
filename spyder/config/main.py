@@ -467,11 +467,21 @@ DEFAULTS = [
               }),
             ('color_schemes',
              {
-              'ui_theme': 'automatic',
+              'icon_theme': 'spyder 3',
+              # Global Spyder fonts
+              'font/family': MONOSPACE,
+              'font/size': MEDIUM,
+              'font/italic': False,
+              'font/bold': False,
+              'rich_font/family': SANS_SERIF,
+              'rich_font/size': BIG,
+              'rich_font/italic': False,
+              'rich_font/bold': False,
+              'ui_theme': 'dark',
               'names': ['emacs', 'idle', 'monokai', 'pydev', 'scintilla',
                         'spyder', 'spyder/dark', 'zenburn', 'solarized/light',
                         'solarized/dark'],
-              'selected': 'spyder',
+              'selected': 'spyder/dark',
               # ---- Emacs ----
               'emacs/name':        "Emacs",
               #      Name            Color     Bold  Italic
