@@ -310,7 +310,7 @@ def get_interface_language():
     otherwise it will return DEFAULT_LANGUAGE.
 
     Example:
-    1.) Spyder provides ('en',  'de', 'fr', 'es' 'hu' and 'pt_BR'), if the 
+    1.) Spyder provides ('en',  'de', 'fr', 'es' 'hu' and 'pt_BR'), if the
     locale is either 'en_US' or 'en' or 'en_UK', this function will return 'en'
 
     2.) Spyder provides ('en',  'de', 'fr', 'es' 'hu' and 'pt_BR'), if the
