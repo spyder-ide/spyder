@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2018-11-13 11:49+-05\n"
-"PO-Revision-Date: 2018-06-30 18:48+0200\n"
+"PO-Revision-Date: 2018-11-17 23:21+0100\n"
 "Last-Translator: Melaine Euzenat <melaine.euzenat@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: fr\n"
@@ -20,7 +20,7 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
-"X-Generator: Poedit 2.0.8\n"
+"X-Generator: Poedit 2.2\n"
 
 #: spyder/app/mainwindow.py:139
 msgid "Initializing..."
@@ -1034,13 +1034,12 @@ msgid "General"
 msgstr "Général"
 
 #: spyder/plugins/configdialog.py:866
-#, fuzzy
 msgid "Language:"
-msgstr "Langue"
+msgstr "Langue :"
 
 #: spyder/plugins/configdialog.py:874
 msgid "Rendering engine:"
-msgstr ""
+msgstr "Moteur de rendu :"
 
 #: spyder/plugins/configdialog.py:879
 msgid "Use a single instance"
@@ -1203,6 +1202,8 @@ msgid ""
 "We're sorry but the following error occurred while trying to set your "
 "selected language:<br><br><tt>{}</tt>"
 msgstr ""
+"Désolé mais l'erreur suivantes est survenue lors du changement de langue : "
+"<br><br><tt>{}</tt>"
 
 #: spyder/plugins/configdialog.py:1164
 msgid "Syntax coloring"
@@ -2321,25 +2322,26 @@ msgid ""
 "kernel to connect to, and enter the SSH host name and credentials if a "
 "remote kernel."
 msgstr ""
+"Sélectionner le fichier de connection JSON (<i>ex.</i> <tt>kernel-3764.json</"
+"tt>) ou entrer l'identifiant à 4 chiffres (<i>ex.</i> <tt>3764</tt>) du "
+"noyau existant à connecter, et entrer le nom de domaine SSH et les "
+"identifiants s'il s'agit d'un noyau distant."
 
 #: spyder/plugins/ipythonconsole.py:183
-#, fuzzy
 msgid "Kernel ID/Connection file:"
-msgstr "Ouvrir un fichier de connexion IPython"
+msgstr "Identifiant du noyau / Fichier de connection :"
 
 #: spyder/plugins/ipythonconsole.py:185
-#, fuzzy
 msgid "ID number or path to connection file"
-msgstr "Chemin vers un fichier de connexion ou identifiant de noyau"
+msgstr "Identifiant ou chemin vers le ficher de connection"
 
 #: spyder/plugins/ipythonconsole.py:187 spyder/plugins/ipythonconsole.py:216
 msgid "Browse"
 msgstr "Parcourir"
 
 #: spyder/plugins/ipythonconsole.py:196
-#, fuzzy
 msgid "This is a remote kernel (via SSH)"
-msgstr "Noyau distant"
+msgstr "Il s'agit d'un noyau distant (via SSH)"
 
 #: spyder/plugins/ipythonconsole.py:199
 msgid ""
@@ -2347,45 +2349,41 @@ msgid ""
 "i> the Password field need to be completed, unless the keyfile is protected "
 "with a passphrase."
 msgstr ""
+"<b>Note :</b> lors de la connection à un noyau distant, seul le fichier clé "
+"SSH <i>ou</i> le champ du mot de passe doit être complété, sauf si le "
+"fichier est protégé par une phrase secrète."
 
 #: spyder/plugins/ipythonconsole.py:207
 msgid "username@hostname:port"
 msgstr "utilisateur@hôte:port"
 
 #: spyder/plugins/ipythonconsole.py:210
-#, fuzzy
 msgid "Remote user password or SSH keyfile passphrase"
-msgstr "Mot de passe ou passphrase de clé ssh"
+msgstr "Mot de passe utilisateur distant ou phrase secrète du fichier clé SSH"
 
 #: spyder/plugins/ipythonconsole.py:215
-#, fuzzy
 msgid "Path to SSH keyfile (optional)"
-msgstr "Chemin vers la clé ssh"
+msgstr "Chemin vers le fichier clé SSH (optionnel)"
 
 #: spyder/plugins/ipythonconsole.py:224
-#, fuzzy
 msgid "Host name:"
-msgstr "Nom d'hôte"
+msgstr "Nom d'hôte :"
 
 #: spyder/plugins/ipythonconsole.py:225
-#, fuzzy
 msgid "Password:"
-msgstr "Mot de passe : "
+msgstr "Mot de passe :"
 
 #: spyder/plugins/ipythonconsole.py:226
-#, fuzzy
 msgid "SSH keyfile:"
-msgstr "Fichiers NSIS"
+msgstr "Fichier clé SSH :"
 
 #: spyder/plugins/ipythonconsole.py:257
-#, fuzzy
 msgid "Select kernel connection file"
-msgstr "Ouvrir un fichier de connexion IPython"
+msgstr "Sélectionner un fichier de connection au noyau"
 
 #: spyder/plugins/ipythonconsole.py:262
-#, fuzzy
 msgid "Select SSH keyfile"
-msgstr "Sélectionner un fichier"
+msgstr "Sélectionner le fichier clé SSH"
 
 #: spyder/plugins/ipythonconsole.py:295 spyder/plugins/ipythonconsole.py:780
 msgid "IPython console"
@@ -2440,18 +2438,16 @@ msgid "Show elapsed time"
 msgstr "Afficher le temps écoulé"
 
 #: spyder/plugins/ipythonconsole.py:322
-#, fuzzy
 msgid "Ask for confirmation before restarting"
-msgstr "Demander confirmation avant de fermer une console"
+msgstr "Demander confirmation avant de redémarrer"
 
 #: spyder/plugins/ipythonconsole.py:324
-#, fuzzy
 msgid ""
 "This option lets you hide the warning message shown\n"
 "when restarting the kernel."
 msgstr ""
-"Cette option permet de masquer le message de confirmation\n"
-"lors de la suppression des variables de Spyder."
+"Cette option permet de masquer le message d'alerte affiché\n"
+"lors du redémarrage du noyau."
 
 #: spyder/plugins/ipythonconsole.py:337
 msgid "Completion Type"
@@ -2831,7 +2827,6 @@ msgstr ""
 "<br><br>Merci d'ouvrir un nouveau client IPython et de réessayer."
 
 #: spyder/plugins/ipythonconsole.py:1096
-#, fuzzy
 msgid ""
 "Your Python environment or installation doesn't have the <tt>spyder-kernels</"
 "tt> module or the right version of it installed. Without this module is not "
@@ -2839,11 +2834,11 @@ msgid ""
 "by running in a system terminal:<br><br><tt>conda install spyder-kernels=0."
 "*</tt><br><br>or<br><br><tt>pip install spyder-kernels==0.*</tt>"
 msgstr ""
-"Votre environnement Python ou l'installation ne dispose pas des modules "
-"<tt>spyder-kernels</tt> installés sur celui-ci. Sans ces modules, Spyder ne "
-"peut pas créer une console pour vous. <br><br>Vous pouvez les installer en "
+"Votre environnement Python ou l'installation ne dispose pas du module "
+"<tt>spyder-kernels</tt> ou de sa bonne version. Sans ce module, Spyder ne "
+"peut pas créer une console. <br><br>Ce module peut être installé en "
 "exécutant dans un terminal de commande : <br><br><tt>conda install spyder-"
-"kernels</tt><br><br>ou<br><br><tt>pip install spyder-kernels</tt>"
+"kernels=0.*</tt><br><br>ou<br><br><tt>pip install spyder-kernels==0.*</tt>"
 
 #: spyder/plugins/ipythonconsole.py:1362
 msgid "Do you want to close this console?"
@@ -2858,13 +2853,12 @@ msgstr ""
 "que celle-ci ?"
 
 #: spyder/plugins/ipythonconsole.py:1440
-#, fuzzy
 msgid ""
 "It was not possible to restart the IPython console when switching to this "
 "project. The error was<br><br><tt>{0}</tt>"
 msgstr ""
 "Il n’a pas été possible de redémarrer la console IPython lors du passage à "
-"ce projet. L’erreur était la suivante : {0}"
+"ce projet. L'erreur était <br><br><tt>{0}</tt>"
 
 #: spyder/plugins/ipythonconsole.py:1546 spyder/plugins/ipythonconsole.py:1556
 msgid "The error is:<br><br><tt>{}</tt>"
@@ -2928,9 +2922,8 @@ msgid "Executables"
 msgstr "Exécutables"
 
 #: spyder/plugins/maininterpreter.py:92
-#, fuzzy
 msgid "Recent custom interpreters"
-msgstr "Interpréteur Python dédié"
+msgstr "Interpréteurs personnalisés récents"
 
 #: spyder/plugins/maininterpreter.py:107
 msgid "User Module Reloader (UMR)"
@@ -3430,6 +3423,8 @@ msgid ""
 "An error occurred while trying to show your environment variables. The error "
 "was<br><br><tt>{0}</tt>"
 msgstr ""
+"Une erreur est survenue lors de l'affichage des variables d'environnement. "
+"L'erreur est la suivante : <br><br><tt>{0}</tt>"
 
 #: spyder/utils/environ.py:108
 msgid ""
@@ -4166,9 +4161,8 @@ msgid "Stop search"
 msgstr "Arrêter la recherche"
 
 #: spyder/widgets/findinfiles.py:464
-#, fuzzy
 msgid "Exclude pattern"
-msgstr "Expression des noms de fichier à exclure"
+msgstr "Pattern à exclure"
 
 #: spyder/widgets/findinfiles.py:473
 msgid "Exclude:"
@@ -4433,6 +4427,8 @@ msgid ""
 "In order to use commands like \"raw_input\" or \"input\" run Spyder with the "
 "multithread option (--multithread) from a system terminal"
 msgstr ""
+"Pour utiliser des commandes telles que \"raw_input\" ou \"input\" utiliser "
+"Spyder avec l'option (--multithread) depuis un terminal de commande"
 
 #: spyder/widgets/ipythonconsole/client.py:308
 msgid "An error ocurred while starting the kernel"
@@ -4634,6 +4630,8 @@ msgid ""
 "You are using Python 2 and the path selected has Unicode characters. The new "
 "path will not be added."
 msgstr ""
+"Vous utilisez Python 2 et le chemin sélectionné possède des caractères "
+"unicodes. Le nouveau chemin ne sera pas ajouté."
 
 #: spyder/widgets/pathmanager.py:283
 msgid ""
@@ -5280,9 +5278,8 @@ msgid "It was not possible to copy this array"
 msgstr "Impossible de copier cet tableaux"
 
 #: spyder/widgets/variableexplorer/collectionseditor.py:1144
-#, fuzzy
 msgid "It was not possible to copy this dataframe"
-msgstr "Impossible de copier cet tableaux"
+msgstr "Impossible de copier ce dataframe"
 
 #: spyder/widgets/variableexplorer/collectionseditor.py:1166
 msgid "Clipboard contents"
@@ -5305,6 +5302,8 @@ msgid ""
 "It is not possible to display this value because\n"
 "an error ocurred while trying to do it"
 msgstr ""
+"Il n'est pas possible d'afficher cette valeur car\n"
+"une erreur est survenue en essayant de le faire"
 
 #: spyder/widgets/variableexplorer/dataframeeditor.py:621
 msgid "To bool"
