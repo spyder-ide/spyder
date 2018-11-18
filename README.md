@@ -234,7 +234,7 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 * **Pylint**: Static code analysis.
 * **Psutil**: CPU and memory usage on the status bar.
 * **Nbconvert**: Manipulation of notebooks in the Editor.
-* **Qtawesome** 0.4.1+: To have an icon theme based on FontAwesome.
+* **Qtawesome** 0.5.0+: To have an icon theme based on FontAwesome.
 * **Pickleshare**: Show import completions on the Python consoles.
 * **PyZMQ**: Client for the language server protocol (LSP).
 * **QtPy** 1.5.0+: Abstraction layer for Python Qt bindings so that Spyder
