@@ -31,8 +31,8 @@ def editor_bot(qtbot):
                         font=QFont("Courier New", 10),
                         color_scheme='Zenburn',
                         language='Python')
-    # qtbot.addWidget(widget)
-    return qtbot, widget
+    qtbot.addWidget(widget)
+    return widget
 
 
 # ---------------------------------------------------------------------------
@@ -76,7 +76,7 @@ line6: Found Results
 def test_enabled(editor_bot):
     """"Test that enabling and disabling the srollflagarea panel make
     it visible or invisible depending on the case."""
-    qtbot, editor = editor_bot
+    editor = editor_bot
     sfa = editor.scrollflagarea
     editor.show()
     editor.set_text(short_code)
@@ -87,12 +87,12 @@ def test_enabled(editor_bot):
 
 
 @pytest.mark.skipif(not os.name == 'nt', reason="It fails on Travis")
-def test_flag_painting(editor_bot):
+def test_flag_painting(editor_bot, qtbot):
     """"Test that there is no error when painting all flag types on the
     scrollbar area when the editor vertical scrollbar is visible and not
     visible. There is seven different flags: breakpoints, todos, warnings,
     errors, found_results, and occurences"""
-    qtbot, editor = editor_bot
+    editor = editor_bot
     sfa = editor.scrollflagarea
 
     editor.resize(450, 300)
@@ -148,12 +148,12 @@ def test_flag_painting(editor_bot):
 
 
 @pytest.mark.skipif(not os.name == 'nt', reason="It fails on Travis")
-def test_range_indicator_visible_on_hover_only(editor_bot):
+def test_range_indicator_visible_on_hover_only(editor_bot, qtbot):
     """Test that the slider range indicator is visible only when hovering
     over the scrollflag area when the editor vertical scrollbar is visible.
     The scrollflag area should remain hidden at all times when the editor
     vertical scrollbar is not visible."""
-    qtbot, editor = editor_bot
+    editor = editor_bot
     sfa = editor.scrollflagarea
 
     editor.resize(450, 300)
@@ -196,13 +196,13 @@ def test_range_indicator_visible_on_hover_only(editor_bot):
 
 
 @pytest.mark.skipif(not os.name == 'nt', reason="It fails on Travis")
-def test_range_indicator_alt_modifier_response(editor_bot):
+def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     """Test that the slider range indicator is visible while the alt key is
     held down while the cursor is over the editor, but outside of the
     scrollflag area. In addition, while the alt key is held down, mouse
     click events in the editor should be forwarded to the scrollfag area and
     should set the value of the editor vertical scrollbar."""
-    qtbot, editor = editor_bot
+    editor = editor_bot
     sfa = editor.scrollflagarea
     sfa._unit_testing = True
     vsb = editor.verticalScrollBar()
