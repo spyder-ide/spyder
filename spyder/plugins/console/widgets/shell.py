@@ -53,11 +53,19 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
     append_to_history = Signal(str, str)
     
     def __init__(self, parent, history_filename, profile=False,
-                 initial_message=None):
+                 initial_message=None, default_foreground_color=None,
+                 error_foreground_color=None, traceback_foreground_color=None,
+                 prompt_foreground_color=None, background_color=None):
         """
         parent : specifies the parent widget
         """
-        ConsoleBaseWidget.__init__(self, parent)
+        ConsoleBaseWidget.__init__(
+                        self, parent,
+                        default_foreground_color=default_foreground_color,
+                        error_foreground_color=error_foreground_color,
+                        traceback_foreground_color=traceback_foreground_color,
+                        prompt_foreground_color=prompt_foreground_color,
+                        background_color=background_color)
         SaveHistoryMixin.__init__(self, history_filename)
         BrowseHistoryMixin.__init__(self)
                 
@@ -631,9 +639,18 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
     SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
     go_to_error = Signal(str)
     
-    def __init__(self, parent, history_filename, profile=False, initial_message=None):
-        ShellBaseWidget.__init__(self, parent, history_filename, profile,
-                                 initial_message)
+    def __init__(self, parent, history_filename, profile=False,
+                 initial_message=None, default_foreground_color=None,
+                 error_foreground_color=None, traceback_foreground_color=None,
+                 prompt_foreground_color=None, background_color=None):
+        ShellBaseWidget.__init__(
+                        self, parent, history_filename, profile=profile,
+                        initial_message=initial_message,
+                        default_foreground_color=default_foreground_color,
+                        error_foreground_color=error_foreground_color,
+                        traceback_foreground_color=traceback_foreground_color,
+                        prompt_foreground_color=prompt_foreground_color,
+                        background_color=background_color)
         TracebackLinksMixin.__init__(self)
         GetHelpMixin.__init__(self)
 

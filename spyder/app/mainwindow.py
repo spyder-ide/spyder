@@ -2568,8 +2568,17 @@ class MainWindow(QMainWindow):
     def report_issue(self, body=None, title=None, open_webpage=False):
         """Report a Spyder issue to github, generating body text if needed."""
         if body is None:
+            from spyder.plugins.console import (
+                    MAIN_BG_COLOR, MAIN_DEFAULT_FG_COLOR, MAIN_ERROR_FG_COLOR,
+                    MAIN_TB_FG_COLOR, MAIN_PROMPT_FG_COLOR)
             from spyder.widgets.reporterror import SpyderErrorDialog
-            report_dlg = SpyderErrorDialog(self, is_report=True)
+            report_dlg = SpyderErrorDialog(
+                    self, is_report=True,
+                    default_foreground_color=MAIN_DEFAULT_FG_COLOR,
+                    error_foreground_color=MAIN_ERROR_FG_COLOR,
+                    traceback_foreground_color=MAIN_TB_FG_COLOR,
+                    prompt_foreground_color=MAIN_PROMPT_FG_COLOR,
+                    background_color=MAIN_BG_COLOR)
             report_dlg.show()
         else:
             if open_webpage:
