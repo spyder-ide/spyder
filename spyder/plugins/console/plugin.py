@@ -47,7 +47,7 @@ logger = logging.getLogger(__name__)
 
 if is_dark_interface():
     MAIN_BG_COLOR = '#232629'
-    MAIN_DEFAULT_FG_COLOR = '#000000'
+    MAIN_DEFAULT_FG_COLOR = '#ffffff'
     MAIN_ERROR_FG_COLOR = '#FF0000'
     MAIN_TB_FG_COLOR = '#0000FF'
     MAIN_PROMPT_FG_COLOR = '#00AA00'

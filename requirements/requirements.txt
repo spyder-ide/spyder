@@ -5,7 +5,7 @@ nbconvert
 sphinx
 pylint
 psutil
-qtawesome>=0.4.1
+qtawesome>=0.5.0
 qtpy>=1.2.0
 pickleshare
 pyzmq
@@ -15,4 +15,4 @@ pyqt5
 keyring
 spyder-kernels>=1.0
 python-language-server
-qdarkstyle
+qdarkstyle>=2.6.0
