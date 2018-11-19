@@ -15,24 +15,25 @@ import pytest
 from spyder.widgets.dependencies import DependenciesDialog
 from spyder import dependencies
 
+
 @pytest.fixture
-def setup_dependencies(qtbot):
+def dependencies_dialog(qtbot):
     """Set up dependency widget test."""
     widget = DependenciesDialog(None)
     qtbot.addWidget(widget)
     return widget
 
-def test_dependencies(qtbot):
+
+def test_dependencies(dependencies_dialog):
     """Run dependency widget test."""
     # Test sample
     dependencies.add("zmq", "Run introspection services", ">=10.0")
     dependencies.add("foo", "Non-existent module", ">=1.0")
     dependencies.add("bar", "Non-existing optional module", ">=10.0", optional=True)
 
-    dlg = setup_dependencies(qtbot)
-    dlg.set_data(dependencies.DEPENDENCIES)
-    dlg.show()
-    assert dlg
+    dependencies_dialog.set_data(dependencies.DEPENDENCIES)
+    dependencies_dialog.show()
+    assert dependencies_dialog
 
 
 if __name__ == "__main__":

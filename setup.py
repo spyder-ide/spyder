@@ -238,7 +238,6 @@ extras_require = {
              'pytest-mock',
              'pytest-cov',
              'pytest-xvfb',
-             'pytest-timeout',
              'mock',
              'flaky',
              'pandas',

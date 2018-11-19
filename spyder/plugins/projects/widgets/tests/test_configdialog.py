@@ -20,7 +20,7 @@ from spyder.plugins.projects.confpage import (EmptyProject,
                                                   ProjectPreferences)
 
 @pytest.fixture
-def setup_projects_preferences(qtbot):
+def projects_preferences(qtbot):
     """Set up ProjectPreferences."""
     project_dir = tempfile.mkdtemp() + osp.sep + '.spyproject'
     project = EmptyProject(project_dir)
@@ -28,9 +28,10 @@ def setup_projects_preferences(qtbot):
     qtbot.addWidget(project_preferences)
     return (project, project_preferences)
 
-def test_projects_preferences(qtbot):
+
+def test_projects_preferences(projects_preferences):
     """Run Project Preferences."""
-    project, preferences = setup_projects_preferences(qtbot)
+    project, preferences = projects_preferences
     preferences.resize(250, 480)
     preferences.show()
     assert preferences

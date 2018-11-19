@@ -21,7 +21,7 @@ from spyder.widgets.reporterror import (DESC_MIN_CHARS, TITLE_MIN_CHARS,
 # Fixtures
 # =============================================================================
 @pytest.fixture
-def setup_dialog(qtbot):
+def error_dialog(qtbot):
     """Set up error report dialog."""
     widget = SpyderErrorDialog(None)
     qtbot.addWidget(widget)
@@ -31,9 +31,9 @@ def setup_dialog(qtbot):
 # =============================================================================
 # Tests
 # =============================================================================
-def test_dialog(qtbot):
+def test_dialog(error_dialog, qtbot):
     """Test that error report dialog UI behaves properly."""
-    dlg = setup_dialog(qtbot)
+    dlg = error_dialog
     desc_text = "1" * DESC_MIN_CHARS
     title_text = "1" * TITLE_MIN_CHARS
 

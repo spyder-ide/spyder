@@ -15,7 +15,7 @@ from spyder.plugins.help.widgets import RichText, PlainText
 
 
 @pytest.fixture
-def setup_richtext(qtbot):
+def richtext(qtbot):
     """Set up richtext widget."""
     widget = RichText(None)
     qtbot.addWidget(widget)
@@ -23,22 +23,20 @@ def setup_richtext(qtbot):
 
 
 @pytest.fixture
-def setup_plaintext(qtbot):
+def plaintext(qtbot):
     """Set up plaintext widget."""
     widget = PlainText(None)
     qtbot.addWidget(widget)
     return widget
 
 
-def test_richtext(qtbot):
+def test_richtext(richtext):
     """Run RichText."""
-    richtext = setup_richtext(qtbot)
     assert richtext
 
 
-def test_plaintext(qtbot):
+def test_plaintext(plaintext):
     """Run PlainText."""
-    plaintext = setup_plaintext(qtbot)
     assert plaintext
 
 

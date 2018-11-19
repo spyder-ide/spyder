@@ -26,22 +26,21 @@ if not osp.exists(NONASCII_DIR):
 
 
 @pytest.fixture
-def findinfiles_bot(qtbot):
+def findinfiles(qtbot):
     """Set up SearchInComboBox combobox."""
     findinfiles_plugin = FindInFiles()
     qtbot.addWidget(findinfiles_plugin)
-    return findinfiles_plugin, qtbot
+    return findinfiles_plugin
 
 
 # ---- Tests for FindInFiles plugin
 
-def test_closing_plugin(qtbot, mocker):
+def test_closing_plugin(findinfiles, qtbot, mocker):
     """
     Test that the external paths listed in the combobox are saved and loaded
     correctly from the spyder config file.
     """
-    findinfiles_plugin, qtbot = findinfiles_bot(qtbot)
-    path_selection_combo = findinfiles_plugin.findinfiles.find_options.path_selection_combo
+    path_selection_combo = findinfiles.findinfiles.find_options.path_selection_combo
     path_selection_combo.clear_external_paths()
     assert path_selection_combo.get_external_paths() == []
 
@@ -58,14 +57,13 @@ def test_closing_plugin(qtbot, mocker):
         path_selection_combo.setCurrentIndex(SELECT_OTHER)
     assert path_selection_combo.get_external_paths() == expected_results
 
-    findinfiles_plugin.closing_plugin()
-    assert findinfiles_plugin.get_option('path_history') == expected_results
+    findinfiles.closing_plugin()
+    assert findinfiles.get_option('path_history') == expected_results
 
-    # Close and restart the plugin and assert that the external_path_history
+    # Close the plugin and assert that the external_path_history
     # has been saved and loaded as expected.
-    findinfiles_plugin.close()
-    findinfiles_plugin, qtbot = findinfiles_bot(qtbot)
-    path_selection_combo = findinfiles_plugin.findinfiles.find_options.path_selection_combo
+    findinfiles.close()
+    path_selection_combo = findinfiles.findinfiles.find_options.path_selection_combo
     assert path_selection_combo.get_external_paths() == expected_results
 
 

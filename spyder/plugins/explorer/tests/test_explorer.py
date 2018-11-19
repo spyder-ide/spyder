@@ -15,33 +15,35 @@ import pytest
 from spyder.plugins.explorer.widgets import (FileExplorerTest,
                                              ProjectExplorerTest)
 
+
 @pytest.fixture
-def setup_file_explorer(qtbot):
+def file_explorer(qtbot):
     """Set up FileExplorerTest."""
     widget = FileExplorerTest()
     qtbot.addWidget(widget)
     return widget
 
+
 @pytest.fixture
-def setup_project_explorer(qtbot):
+def project_explorer(qtbot):
     """Set up FileExplorerTest."""
     widget = ProjectExplorerTest()
     qtbot.addWidget(widget)
     return widget
 
-def test_file_explorer(qtbot):
-    """Run FileExplorerTest."""
-    fe = setup_file_explorer(qtbot)
-    fe.resize(640, 480)
-    fe.show()
-    assert fe
 
-def test_project_explorer(qtbot):
+def test_file_explorer(file_explorer):
+    """Run FileExplorerTest."""
+    file_explorer.resize(640, 480)
+    file_explorer.show()
+    assert file_explorer
+
+
+def test_project_explorer(project_explorer):
     """Run ProjectExplorerTest."""
-    pe = setup_project_explorer(qtbot)
-    pe.resize(640, 480)
-    pe.show()
-    assert pe
+    project_explorer.resize(640, 480)
+    project_explorer.show()
+    assert project_explorer
 
 
 if __name__ == "__main__":

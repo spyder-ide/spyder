@@ -16,23 +16,24 @@ from spyder.py3compat import PY3
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 
 
+TEXT = """01234567890123456789012345678901234567890123456789012345678901234567890123456789
+dedekdh elkd ezd ekjd lekdj elkdfjelfjk e"""
+
+
 @pytest.fixture
-def setup_texteditor(qtbot, text):
+def texteditor(qtbot):
     """Set up TextEditor."""
-    texteditor = TextEditor(text)
+    texteditor = TextEditor(TEXT)
     qtbot.addWidget(texteditor)
     return texteditor
 
 
-def test_texteditor(qtbot):
+def test_texteditor(texteditor):
     """Run TextEditor dialog."""
-    text = """01234567890123456789012345678901234567890123456789012345678901234567890123456789
-dedekdh elkd ezd ekjd lekdj elkdfjelfjk e"""
-    texteditor = setup_texteditor(qtbot, text)
     texteditor.show()
     assert texteditor
     dlg_text = texteditor.get_value()
-    assert text == dlg_text
+    assert TEXT == dlg_text
 
 
 @pytest.mark.skipif(PY3, reason="It makes no sense in Python 3")
