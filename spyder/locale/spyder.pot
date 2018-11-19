@@ -3435,11 +3435,6 @@ msgstr ""
 msgid "Previous"
 msgstr ""
 
-#: spyder/widgets/explorer.py:1202
-#: spyder/plugins/profiler/widgets/profilergui.py:296
-#: spyder/plugins/pylint/widgets/pylintgui.py:364
-msgstr ""
-
 #: spyder/widgets/fileswitcher.py:110
 msgid "unsaved file"
 msgstr ""
@@ -3477,6 +3472,7 @@ msgid "Search in all files and directories present on the current project path (
 msgstr ""
 
 #: spyder/widgets/findinfiles.py:251
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:97
 msgid "File"
 msgstr ""
 
@@ -4774,10 +4770,6 @@ msgstr ""
 
 #: spyder/plugins/breakpoints/widgets/breakpointsgui.py:97
 msgid "Condition"
-msgstr ""
-
-#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:97
-msgid "File"
 msgstr ""
 
 #: spyder/plugins/breakpoints/widgets/breakpointsgui.py:97
