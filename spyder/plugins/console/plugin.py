@@ -21,7 +21,6 @@ import logging
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import QInputDialog, QLineEdit, QMenu, QHBoxLayout
-from qtpy.QtGui import QColor
 
 # Local imports
 from spyder.config.base import _, DEV, get_debug_level
@@ -240,12 +239,12 @@ class Console(SpyderPluginWidget):
         if CONF.get('main', 'show_internal_errors'):
             if self.error_dlg is None:
                 self.error_dlg = SpyderErrorDialog(
-                        self,
-                        default_foreground_color=MAIN_DEFAULT_FG_COLOR,
-                        error_foreground_color=MAIN_ERROR_FG_COLOR,
-                        traceback_foreground_color=MAIN_TB_FG_COLOR,
-                        prompt_foreground_color=MAIN_PROMPT_FG_COLOR,
-                        background_color=MAIN_BG_COLOR)
+                    self,
+                    default_foreground_color=MAIN_DEFAULT_FG_COLOR,
+                    error_foreground_color=MAIN_ERROR_FG_COLOR,
+                    traceback_foreground_color=MAIN_TB_FG_COLOR,
+                    prompt_foreground_color=MAIN_PROMPT_FG_COLOR,
+                    background_color=MAIN_BG_COLOR)
                 self.error_dlg.close_btn.clicked.connect(self.close_error_dlg)
                 self.error_dlg.rejected.connect(self.remove_error_dlg)
                 self.error_dlg.details.go_to_error.connect(self.go_to_error)

@@ -117,12 +117,12 @@ class ShowErrorWidget(TracebackLinksMixin, ConsoleBaseWidget, BaseEditMixin):
                  error_foreground_color=None, traceback_foreground_color=None,
                  prompt_foreground_color=None, background_color=None):
         ConsoleBaseWidget.__init__(
-                self, parent,
-                default_foreground_color=default_foreground_color,
-                error_foreground_color=error_foreground_color,
-                traceback_foreground_color=traceback_foreground_color,
-                prompt_foreground_color=prompt_foreground_color,
-                background_color=background_color)
+            self, parent,
+            default_foreground_color=default_foreground_color,
+            error_foreground_color=error_foreground_color,
+            traceback_foreground_color=traceback_foreground_color,
+            prompt_foreground_color=prompt_foreground_color,
+            background_color=background_color)
         BaseEditMixin.__init__(self)
         TracebackLinksMixin.__init__(self)
         self.setReadOnly(True)
@@ -195,12 +195,12 @@ class SpyderErrorDialog(QDialog):
 
         # Widget to show errors
         self.details = ShowErrorWidget(
-                self,
-                default_foreground_color=default_foreground_color,
-                error_foreground_color=error_foreground_color,
-                traceback_foreground_color=traceback_foreground_color,
-                prompt_foreground_color=prompt_foreground_color,
-                background_color=background_color)
+            self,
+            default_foreground_color=default_foreground_color,
+            error_foreground_color=error_foreground_color,
+            traceback_foreground_color=traceback_foreground_color,
+            prompt_foreground_color=prompt_foreground_color,
+            background_color=background_color)
         self.details.set_pythonshell_font(get_font())
         self.details.hide()
 

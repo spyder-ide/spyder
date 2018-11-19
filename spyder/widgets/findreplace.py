@@ -104,7 +104,7 @@ class FindReplace(QWidget):
         
         self.case_button = create_toolbutton(self,
                                              icon=ima.icon(
-                                                     "format_letter_case"),
+                                                 "format_letter_case"),
                                              tip=_("Case Sensitive"))
         self.case_button.setCheckable(True)
         self.case_button.toggled.connect(lambda state: self.find())
