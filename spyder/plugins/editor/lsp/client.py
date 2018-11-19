@@ -114,7 +114,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.lsp_server_log = subprocess.PIPE
         if get_debug_level() > 0:
             lsp_server_file = 'lsp_server_{0}.log'.format(self.language)
-            # 'lsp_server_logfile.log'
             log_file = get_conf_path(osp.join('lsp_logs', lsp_server_file))
             if not osp.exists(osp.dirname(log_file)):
                 os.makedirs(osp.dirname(log_file))
@@ -233,7 +232,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                                 self.req_status.pop(req_id)
                                 if req_id in self.req_reply:
                                     self.req_reply.pop(req_id)
-            except zmq.ZMQError:  # as e:
+            except zmq.ZMQError:
                 self.notifier.setEnabled(True)
                 return
 

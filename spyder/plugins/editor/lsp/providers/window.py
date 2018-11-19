@@ -17,4 +17,5 @@ logger = logging.getLogger(__name__)
 class WindowProvider:
     @handles(LSPRequestTypes.WINDOW_SHOW_MESSAGE)
     def process_show_message(self, response, *args):
-        logger.debug("received showMessage: %r" % response)
+        """Handles window/showMessage notifications from LSP server"""
+        logger.debug("Received showMessage: %r" % response)

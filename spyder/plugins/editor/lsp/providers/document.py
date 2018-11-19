@@ -50,7 +50,7 @@ class DocumentProvider:
                     LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS,
                     {'params': diagnostics})
         else:
-            logger.debug("received diags for file not open: " + uri)
+            logger.debug("Received diagnotics for file not open: " + uri)
 
     @send_request(
         method=LSPRequestTypes.DOCUMENT_DID_CHANGE, requires_response=False)
@@ -213,6 +213,9 @@ class DocumentProvider:
     @send_request(method=LSPRequestTypes.DOCUMENT_DID_SAVE,
                   requires_response=False)
     def document_did_save_notification(self, params):
+        """
+        Handles the textDocument/didSave message received from an LSP server
+        """
         text = None
         if 'text' in params:
             text = params['text']

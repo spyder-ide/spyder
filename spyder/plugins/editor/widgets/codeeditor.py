@@ -76,7 +76,6 @@ from spyder.plugins.editor.utils.lsp import (
     request, handles, class_register)
 from spyder.plugins.editor.lsp import (
     LSPRequestTypes, TextDocumentSyncKind, DiagnosticSeverity,
-    # TextDocumentSaveReason
     )
 from spyder.api.panel import Panel
 
@@ -779,12 +778,10 @@ class CodeEditor(TextEditBaseWidget):
             'version': self.text_version,
             'text': self.toPlainText()
         }
-        # logger.debug("sent changes: %r" % params)
         return params
 
     @handles(LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
     def linting_diagnostics(self, params):
-        # logger.debug("returned diagnotics: %r" % params['params'])
         self.process_code_analysis(params['params'])
 
     # ------------- LSP: Completion ---------------------------------------
@@ -3045,8 +3042,7 @@ class CodeEditor(TextEditBaseWidget):
         if self.go_to_definition_enabled and \
            event.modifiers() & Qt.ControlModifier:
             text = self.get_word_at(event.pos())
-            if (text  # and (self.is_python_like())\
-                    and not sourcecode.is_keyword(to_text_string(text))):
+            if (text and not sourcecode.is_keyword(to_text_string(text))):
                 if not self.__cursor_changed:
                     QApplication.setOverrideCursor(
                                                 QCursor(Qt.PointingHandCursor))
@@ -3054,10 +3050,11 @@ class CodeEditor(TextEditBaseWidget):
                 cursor = self.cursorForPosition(event.pos())
                 cursor.select(QTextCursor.WordUnderCursor)
                 self.clear_extra_selections('ctrl_click')
-                self.__highlight_selection('ctrl_click', cursor, update=True,
-                                foreground_color=self.ctrl_click_color,
-                                underline_color=self.ctrl_click_color,
-                                underline_style=QTextCharFormat.SingleUnderline)
+                self.__highlight_selection(
+                    'ctrl_click', cursor, update=True,
+                    foreground_color=self.ctrl_click_color,
+                    underline_color=self.ctrl_click_color,
+                    underline_style=QTextCharFormat.SingleUnderline)
                 event.accept()
                 return
         if self.__cursor_changed:
@@ -3120,17 +3117,15 @@ class CodeEditor(TextEditBaseWidget):
         nonempty_selection = self.has_selected_text()
         self.copy_action.setEnabled(nonempty_selection)
         self.cut_action.setEnabled(nonempty_selection)
-        self.clear_all_output_action.setVisible(self.is_json() and \
+        self.clear_all_output_action.setVisible(self.is_json() and
                                                 nbformat is not None)
-        self.ipynb_convert_action.setVisible(self.is_json() and \
+        self.ipynb_convert_action.setVisible(self.is_json() and
                                              nbformat is not None)
         self.run_cell_action.setVisible(self.is_python())
         self.run_cell_and_advance_action.setVisible(self.is_python())
         self.run_selection_action.setVisible(self.is_python())
         self.re_run_last_cell_action.setVisible(self.is_python())
-        self.gotodef_action.setVisible(self.go_to_definition_enabled
-                                       # and self.is_python_like()
-                                       )
+        self.gotodef_action.setVisible(self.go_to_definition_enabled)
 
         # Code duplication go_to_definition_from_cursor and mouse_move_event
         cursor = self.textCursor()
@@ -3139,8 +3134,8 @@ class CodeEditor(TextEditBaseWidget):
             cursor.select(QTextCursor.WordUnderCursor)
             text = to_text_string(cursor.selectedText())
 
-        self.undo_action.setEnabled( self.document().isUndoAvailable())
-        self.redo_action.setEnabled( self.document().isRedoAvailable())
+        self.undo_action.setEnabled(self.document().isUndoAvailable())
+        self.redo_action.setEnabled(self.document().isRedoAvailable())
         menu = self.menu
         if self.isReadOnly():
             menu = self.readonly_menu

@@ -312,13 +312,13 @@ class LSPServerEditor(QDialog):
             json.loads(self.conf_input.toPlainText())
             try:
                 self.json_label.setText(self.JSON_VALID)
-            except:
+            except Exception:
                 pass
         except (ValueError, json.decoder.JSONDecodeError):
             try:
                 self.json_label.setText(self.JSON_INVALID)
                 self.button_ok.setEnabled(False)
-            except:
+            except Exception:
                 pass
 
     def form_status(self, status):
@@ -375,7 +375,7 @@ class LSPServerEditor(QDialog):
             self.args_input.setEnabled(False)
         try:
             self.validate()
-        except:
+        except Exception:
             pass
 
     def get_options(self):
@@ -703,8 +703,12 @@ class LSPManager(SpyderPluginWidget):
                 language_client.register_file(filename, signal)
 
     def get_root_path(self):
+        """
+        Gets the root path to pass to the LSP servers, i.e. project path
+        or cwd
+        """
         path = None
-        if self.main.projects:
+        if self.main and self.main.projects:
             path = self.main.projects.get_active_project_path()
         if not path:
             path = getcwd_or_home()
