@@ -716,6 +716,10 @@ class LSPManager(SpyderPluginWidget):
 
     @Slot()
     def reinit_all_lsp_clients(self):
+        """
+        Sends a new initialize message to each LSP server when the project
+        path has changed so they can update the respective server root paths.
+        """
         for language_client in self.clients.values():
             if language_client['status'] == self.RUNNING:
                 folder = self.get_root_path()
