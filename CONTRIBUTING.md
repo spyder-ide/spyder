@@ -83,6 +83,9 @@ Spyder's necessary dependencies. The easiest way to do so (with Anaconda) is
 This installs all of Spyder's dependencies into the environment along with
 the stable/packaged version of Spyder itself, and then removes the latter.
 
+If still having troubles with dependencies after the steps above, please also 
+install the libraries by using the `requirements` file as shown below. 
+
 If using `pip` and `virtualenv` (not recommended), you need to `cd` to
 the directory where your git clone is stored and run:
 
