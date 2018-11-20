@@ -936,8 +936,9 @@ class IPythonConsole(SpyderPluginWidget):
                     if is_internal_kernel:
                         client.shellwidget.silent_execute(
                             to_text_string('get_ipython().cell_code = '
-                                           'r"""{}"""')
+                                           '"""{}"""')
                                 .format(to_text_string(code)
+                                .replace('\\', r'\\')
                                 .replace('"""', r'\"\"\"')))
                     self.execute_code(line)
             except AttributeError:
