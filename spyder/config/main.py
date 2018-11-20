@@ -68,7 +68,6 @@ RUN_CELL_AND_ADVANCE_SHORTCUT = 'Shift+Return'
 DEFAULTS = [
             ('main',
              {
-              'icon_theme': 'spyder 3',
               'opengl': 'software',
               'single_instance': True,
               'open_files_port': OPEN_FILES_PORT,
@@ -98,15 +97,6 @@ DEFAULTS = [
               'show_internal_errors': True,
               'check_updates_on_startup': True,
               'toolbars_visible': True,
-              # Global Spyder fonts
-              'font/family': MONOSPACE,
-              'font/size': MEDIUM,
-              'font/italic': False,
-              'font/bold': False,
-              'rich_font/family': SANS_SERIF,
-              'rich_font/size': BIG,
-              'rich_font/italic': False,
-              'rich_font/bold': False,
               'cursor/width': 2,
               'completion/size': (300, 180),
               'report_error/remember_me': False,
@@ -465,7 +455,7 @@ DEFAULTS = [
               # ---- In widgets/variableexplorer/aarayeditor.py ----
               'variable_explorer/copy': 'Ctrl+C',
               }),
-            ('color_schemes',
+            ('appearance',
              {
               'icon_theme': 'spyder 3',
               # Global Spyder fonts
@@ -477,11 +467,11 @@ DEFAULTS = [
               'rich_font/size': BIG,
               'rich_font/italic': False,
               'rich_font/bold': False,
-              'ui_theme': 'dark',
+              'ui_theme': 'automatic',
               'names': ['emacs', 'idle', 'monokai', 'pydev', 'scintilla',
                         'spyder', 'spyder/dark', 'zenburn', 'solarized/light',
                         'solarized/dark'],
-              'selected': 'spyder/dark',
+              'selected': 'zenburn',
               # ---- Emacs ----
               'emacs/name':        "Emacs",
               #      Name            Color     Bold  Italic
@@ -761,7 +751,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '46.2.0'
+CONF_VERSION = '47.2.0'
 
 # Main configuration instance
 try:

@@ -446,7 +446,7 @@ def test_console_coloring(ipyconsole, qtbot):
     console_font_color = get_console_font_color(syntax_style)
     console_background_color = get_console_background_color(style_sheet)
 
-    selected_color_scheme = CONF.get('color_schemes', 'selected')
+    selected_color_scheme = CONF.get('appearance', 'selected')
     color_scheme = get_color_scheme(selected_color_scheme)
     editor_background_color = color_scheme['background']
     editor_font_color = color_scheme['normal'][0]

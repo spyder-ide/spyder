@@ -613,7 +613,7 @@ class IPythonConsole(SpyderPluginWidget):
         help_n = 'connect_to_oi'
         help_o = CONF.get('help', 'connect/ipython_console')
         color_scheme_n = 'color_scheme_name'
-        color_scheme_o = CONF.get('color_schemes', 'selected')
+        color_scheme_o = CONF.get('appearance', 'selected')
         show_time_n = 'show_elapsed_time'
         show_time_o = self.get_option(show_time_n)
         reset_namespace_n = 'show_reset_namespace_warning'
@@ -1191,7 +1191,7 @@ class IPythonConsole(SpyderPluginWidget):
             spy_cfg.JupyterWidget.out_prompt = out_prompt_o
 
         # Style
-        color_scheme = CONF.get('color_schemes', 'selected')
+        color_scheme = CONF.get('appearance', 'selected')
         style_sheet = create_qss_style(color_scheme)[0]
         spy_cfg.JupyterWidget.style_sheet = style_sheet
         spy_cfg.JupyterWidget.syntax_style = color_scheme

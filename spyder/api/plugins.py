@@ -194,7 +194,7 @@ class PluginWidget(BasePluginWidget):
 
     def get_color_scheme(self):
         """Get current color scheme."""
-        return get_color_scheme(CONF.get('color_schemes', 'selected'))
+        return get_color_scheme(CONF.get('appearance', 'selected'))
 
     def show_compatibility_message(self, message):
         """Show compatibility message."""

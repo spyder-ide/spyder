@@ -60,7 +60,7 @@ COLOR_SCHEME_KEYS = {
                       "number":         _("Number:"),
                       "instance":       _("Instance:"),
                       }
-COLOR_SCHEME_NAMES = CONF.get('color_schemes', 'names')
+COLOR_SCHEME_NAMES = CONF.get('appearance', 'names')
 # Mapping for file extensions that use Pygments highlighting but should use
 # different lexers than Pygments' autodetection suggests.  Keys are file
 # extensions or tuples of extensions, values are Pygments lexer names.
@@ -91,9 +91,9 @@ def get_color_scheme(name):
     scheme = {}
     for key in COLOR_SCHEME_KEYS:
         try:
-            scheme[key] = CONF.get('color_schemes', name+'/'+key)
+            scheme[key] = CONF.get('appearance', name+'/'+key)
         except:
-            scheme[key] = CONF.get('color_schemes', 'spyder/'+key)
+            scheme[key] = CONF.get('appearance', 'spyder/'+key)
     return scheme
 
 

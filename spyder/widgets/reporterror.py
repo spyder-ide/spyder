@@ -47,7 +47,7 @@ class DescriptionWidget(CodeEditor):
         # Editor options
         self.setup_editor(
             language='md',
-            color_scheme=CONF.get('color_schemes',
+            color_scheme=CONF.get('appearance',
                                   'selected'),
             linenumbers=False,
             scrollflagarea=False,
