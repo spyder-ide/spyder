@@ -185,12 +185,14 @@ class KernelConnectionDialog(QDialog):
 
         try:
             import keyring
-            ssh_passphrase = keyring.get_password("existing_kernel", "ssh_key_passphrase")
-            ssh_password = keyring.get_password("existing_kernel", "ssh_password")
+            ssh_passphrase = keyring.get_password("existing_kernel",
+                                                  "ssh_key_passphrase")
+            ssh_password = keyring.get_password("existing_kernel",
+                                                "ssh_password")
             if ssh_passphrase != "":
-               self.kfp.setText(ssh_passphrase)
+                self.kfp.setText(ssh_passphrase)
             if ssh_password != "":
-               self.pw.setText(ssh_password)
+                self.pw.setText(ssh_password)
         except Exception:
             pass
 
@@ -208,11 +210,15 @@ class KernelConnectionDialog(QDialog):
         CONF.set("existing-kernel", "settings", connection_settings)
 
         try:
-          import keyring
-          if is_ssh_key:
-              keyring.set_password("existing_kernel", "ssh_key_passphrase", self.kfp.text())
-          else:
-              keyring.set_password("existing_kernel", "ssh_password", self.pw.text())
+            import keyring
+            if is_ssh_key:
+                keyring.set_password("existing_kernel",
+                                     "ssh_key_passphrase",
+                                     self.kfp.text())
+            else:
+                keyring.set_password("existing_kernel",
+                                     "ssh_password",
+                                     self.pw.text())
         except Exception:
             pass
 
