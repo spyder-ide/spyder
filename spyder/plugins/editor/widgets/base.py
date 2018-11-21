@@ -29,6 +29,7 @@ from qtconsole.styles import dark_color
 # Local imports
 from spyder.config.gui import get_font
 from spyder.config.main import CONF
+from spyder.config.gui import is_dark_interface
 from spyder.py3compat import PY3, str_lower, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.widgets.calltip import CallTipWidget
@@ -38,6 +39,18 @@ from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
 from spyder.plugins.editor.lsp import CompletionItemKind
 
+if is_dark_interface():
+    MAIN_BG_COLOR = '#232629'
+    MAIN_DEFAULT_FG_COLOR = '#ffffff'
+    MAIN_ERROR_FG_COLOR = '#FF0000'
+    MAIN_TB_FG_COLOR = '#0000FF'
+    MAIN_PROMPT_FG_COLOR = '#00AA00'
+else:
+    MAIN_BG_COLOR = 'white'
+    MAIN_DEFAULT_FG_COLOR = '#000000'
+    MAIN_ERROR_FG_COLOR = '#FF0000'
+    MAIN_TB_FG_COLOR = '#0000FF'
+    MAIN_PROMPT_FG_COLOR = '#00AA00'
 
 def insert_text_to(cursor, text, fmt):
     """Helper to print text, taking into account backspaces"""
@@ -1363,9 +1376,7 @@ class ConsoleBaseWidget(TextEditBaseWidget):
     userListActivated = Signal(int, str)
     completion_widget_activated = Signal(str)
 
-    def __init__(self, parent=None, default_foreground_color=None,
-                 error_foreground_color=None, traceback_foreground_color=None,
-                 prompt_foreground_color=None, background_color=None):
+    def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
 
         self.setMaximumBlockCount(300)
@@ -1378,6 +1389,12 @@ class ConsoleBaseWidget(TextEditBaseWidget):
 
         self.userListActivated.connect(lambda user_id, text:
                                    self.completion_widget_activated.emit(text))
+
+        background_color = MAIN_BG_COLOR
+        default_foreground_color = MAIN_DEFAULT_FG_COLOR
+        error_foreground_color = MAIN_ERROR_FG_COLOR
+        traceback_foreground_color = MAIN_TB_FG_COLOR
+        prompt_foreground_color = MAIN_PROMPT_FG_COLOR
 
         self.default_style = ConsoleFontStyle(
                             foregroundcolor=default_foreground_color,
@@ -1397,7 +1414,8 @@ class ConsoleBaseWidget(TextEditBaseWidget):
                             bold=True, italic=False, underline=False)
         self.font_styles = (self.default_style, self.error_style,
                             self.traceback_link_style, self.prompt_style)
-        self.set_pythonshell_font()
+
+        self.set_color_scheme(default_foreground_color, background_color)
         self.setMouseTracking(True)
 
     def set_color_scheme(self, foreground_color, background_color):

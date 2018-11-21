@@ -113,16 +113,8 @@ class ShowErrorWidget(TracebackLinksMixin, ConsoleBaseWidget, BaseEditMixin):
     QT_CLASS = QPlainTextEdit
     go_to_error = Signal(str)
 
-    def __init__(self, parent=None, default_foreground_color=None,
-                 error_foreground_color=None, traceback_foreground_color=None,
-                 prompt_foreground_color=None, background_color=None):
-        ConsoleBaseWidget.__init__(
-            self, parent,
-            default_foreground_color=default_foreground_color,
-            error_foreground_color=error_foreground_color,
-            traceback_foreground_color=traceback_foreground_color,
-            prompt_foreground_color=prompt_foreground_color,
-            background_color=background_color)
+    def __init__(self, parent=None):
+        ConsoleBaseWidget.__init__(self, parent)
         BaseEditMixin.__init__(self)
         TracebackLinksMixin.__init__(self)
         self.setReadOnly(True)
@@ -131,10 +123,7 @@ class ShowErrorWidget(TracebackLinksMixin, ConsoleBaseWidget, BaseEditMixin):
 class SpyderErrorDialog(QDialog):
     """Custom error dialog for error reporting."""
 
-    def __init__(self, parent=None, is_report=False,
-                 default_foreground_color=None,
-                 error_foreground_color=None, traceback_foreground_color=None,
-                 prompt_foreground_color=None, background_color=None):
+    def __init__(self, parent=None, is_report=False):
         QDialog.__init__(self, parent)
         self.is_report = is_report
 
@@ -194,13 +183,7 @@ class SpyderErrorDialog(QDialog):
         self.input_description.textChanged.connect(self._contents_changed)
 
         # Widget to show errors
-        self.details = ShowErrorWidget(
-            self,
-            default_foreground_color=default_foreground_color,
-            error_foreground_color=error_foreground_color,
-            traceback_foreground_color=traceback_foreground_color,
-            prompt_foreground_color=prompt_foreground_color,
-            background_color=background_color)
+        self.details = ShowErrorWidget(self)
         self.details.set_pythonshell_font(get_font())
         self.details.hide()
 

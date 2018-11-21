@@ -136,20 +136,11 @@ class InternalShell(PythonShellWidget):
     
     def __init__(self, parent=None, namespace=None, commands=[], message=None,
                  max_line_count=300, font=None, exitfunc=None, profile=False,
-                 multithreaded=True, default_foreground_color=None,
-                 error_foreground_color=None, traceback_foreground_color=None,
-                 prompt_foreground_color=None, background_color=None):
-        PythonShellWidget.__init__(
-            self, parent,
-            get_conf_path('history_internal.py'),
-            profile=profile,
-            default_foreground_color=default_foreground_color,
-            error_foreground_color=error_foreground_color,
-            traceback_foreground_color=traceback_foreground_color,
-            prompt_foreground_color=prompt_foreground_color,
-            background_color=background_color)
-        
-        self.set_color_scheme(default_foreground_color, background_color)
+                 multithreaded=True):
+        PythonShellWidget.__init__(self, parent,
+                                   get_conf_path('history_internal.py'),
+                                   profile=profile)
+
         self.multithreaded = multithreaded
         self.setMaximumBlockCount(max_line_count)
 

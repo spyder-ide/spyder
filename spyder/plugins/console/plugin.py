@@ -24,7 +24,6 @@ from qtpy.QtWidgets import QInputDialog, QLineEdit, QMenu, QHBoxLayout
 
 # Local imports
 from spyder.config.base import _, DEV, get_debug_level
-from spyder.config.gui import is_dark_interface
 from spyder.config.main import CONF
 from spyder.utils import icon_manager as ima
 from spyder.utils.environ import EnvDialog
@@ -44,20 +43,6 @@ from spyder.py3compat import to_text_string
 logger = logging.getLogger(__name__)
 
 
-if is_dark_interface():
-    MAIN_BG_COLOR = '#232629'
-    MAIN_DEFAULT_FG_COLOR = '#ffffff'
-    MAIN_ERROR_FG_COLOR = '#FF0000'
-    MAIN_TB_FG_COLOR = '#0000FF'
-    MAIN_PROMPT_FG_COLOR = '#00AA00'
-else:
-    MAIN_BG_COLOR = 'white'
-    MAIN_DEFAULT_FG_COLOR = '#000000'
-    MAIN_ERROR_FG_COLOR = '#FF0000'
-    MAIN_TB_FG_COLOR = '#0000FF'
-    MAIN_PROMPT_FG_COLOR = '#00AA00'
-
-
 class Console(SpyderPluginWidget):
     """
     Console widget
@@ -75,16 +60,10 @@ class Console(SpyderPluginWidget):
         self.dialog_manager = DialogManager()
 
         # Shell
-        self.shell = InternalShell(
-                parent, namespace, commands, message,
-                self.get_option('max_line_count'),
-                self.get_plugin_font(), exitfunc, profile,
-                multithreaded,
-                default_foreground_color=MAIN_DEFAULT_FG_COLOR,
-                error_foreground_color=MAIN_ERROR_FG_COLOR,
-                traceback_foreground_color=MAIN_TB_FG_COLOR,
-                prompt_foreground_color=MAIN_PROMPT_FG_COLOR,
-                background_color=MAIN_BG_COLOR)
+        self.shell = InternalShell(parent, namespace, commands, message,
+                                   self.get_option('max_line_count'),
+                                   self.get_plugin_font(), exitfunc, profile,
+                                   multithreaded)
         self.shell.status.connect(lambda msg: self.show_message.emit(msg, 0))
         self.shell.go_to_error.connect(self.go_to_error)
         self.shell.focus_changed.connect(lambda: self.focus_changed.emit())
@@ -238,13 +217,7 @@ class Console(SpyderPluginWidget):
 
         if CONF.get('main', 'show_internal_errors'):
             if self.error_dlg is None:
-                self.error_dlg = SpyderErrorDialog(
-                    self,
-                    default_foreground_color=MAIN_DEFAULT_FG_COLOR,
-                    error_foreground_color=MAIN_ERROR_FG_COLOR,
-                    traceback_foreground_color=MAIN_TB_FG_COLOR,
-                    prompt_foreground_color=MAIN_PROMPT_FG_COLOR,
-                    background_color=MAIN_BG_COLOR)
+                self.error_dlg = SpyderErrorDialog(self)
                 self.error_dlg.close_btn.clicked.connect(self.close_error_dlg)
                 self.error_dlg.rejected.connect(self.remove_error_dlg)
                 self.error_dlg.details.go_to_error.connect(self.go_to_error)
