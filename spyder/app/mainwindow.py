@@ -2738,7 +2738,6 @@ class MainWindow(QMainWindow):
         else:
             style_name = CONF.get('appearance', 'windows_style',
                                   self.default_style)
-            print(style_name)
             style = QStyleFactory.create(style_name)
             if style is not None:
                 style.setProperty('name', style_name)

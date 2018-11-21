@@ -166,6 +166,8 @@ class ConfigDialog(QDialog):
         hsplitter = QSplitter()
         hsplitter.addWidget(self.contents_widget)
         hsplitter.addWidget(self.pages_widget)
+        hsplitter.setStretchFactor(0, 1)
+        hsplitter.setStretchFactor(1, 2)
 
         btnlayout = QHBoxLayout()
         btnlayout.addWidget(self.button_reset)
@@ -1168,9 +1170,9 @@ class ColorSchemeConfigPage(GeneralConfigPage):
 
         # Syntax Layouts
         syntax_comboboxes_layout = QGridLayout()
-        syntax_comboboxes_layout.addWidget(schemes_combobox_widget.label, 1, 0)
+        syntax_comboboxes_layout.addWidget(schemes_combobox_widget.label, 0, 0)
         syntax_comboboxes_layout.addWidget(schemes_combobox_widget.combobox,
-                                           1, 1)
+                                           0, 1)
 
         buttons_layout = QVBoxLayout()
         buttons_layout.addLayout(syntax_comboboxes_layout)
@@ -1221,11 +1223,11 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         preview_group.setLayout(preview_layout)
 
         buttons_preview_layout = QGridLayout()
+        buttons_preview_layout.setRowStretch(0, 1)
+        buttons_preview_layout.setColumnStretch(0, 1)
+        buttons_preview_layout.setColumnStretch(1, 1)
         buttons_preview_layout.addLayout(options_layout, 0, 0)
         buttons_preview_layout.addWidget(preview_group, 0, 1)
-        buttons_preview_layout.setRowStretch( 0, 1)
-        buttons_preview_layout.setColumnStretch( 0, 1)
-        buttons_preview_layout.setColumnStretch( 1, 1)
 
         # Groupbox for the section
         manage_layout.addLayout(buttons_preview_layout)
