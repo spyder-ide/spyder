@@ -471,7 +471,7 @@ DEFAULTS = [
               'names': ['emacs', 'idle', 'monokai', 'pydev', 'scintilla',
                         'spyder', 'spyder/dark', 'zenburn', 'solarized/light',
                         'solarized/dark'],
-              'selected': 'zenburn',
+              'selected': 'solarized/dark',
               # ---- Emacs ----
               'emacs/name':        "Emacs",
               #      Name            Color     Bold  Italic
@@ -751,7 +751,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '47.2.0'
+CONF_VERSION = '47.0.0'
 
 # Main configuration instance
 try:

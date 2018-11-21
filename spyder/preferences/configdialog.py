@@ -1101,11 +1101,8 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         manage_layout = QVBoxLayout()
 
         # Description of the section
-        about_label = QLabel(_("Here you can select the color scheme used in "
-                               "the Editor and all other Spyder plugins.<br><br>"
-                               "You can also edit the color schemes provided "
-                               "by Spyder or create your own ones by using "
-                               "the options provided below.<br>"))
+        about_label = QLabel(_("Customize the look and feel of "
+                               "Spyder and its plugins.<br>"))
         about_label.setWordWrap(True)
         manage_layout.addWidget(about_label)
 
