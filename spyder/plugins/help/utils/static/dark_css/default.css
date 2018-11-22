@@ -1,5 +1,5 @@
 body {
-    background-color: #232629;
+    background-color: #19232D;
     color: white;
     margin: 0px 25px 15px 25px;
 }
@@ -326,7 +326,7 @@ div.admonition p.admonition-title {
 
 .panel {
     margin-top: 15px;
-    background-color: #232629;
+    background-color: #19232D;
     border: 1px solid transparent;
     border-radius: 4px;
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
@@ -360,7 +360,7 @@ div.admonition p.admonition-title {
 }
 
 .panel-usage > .panel-heading {
-    color: #232629;
+    color: #19232D;
     background-color: #444;
     border-color: #3498DB;
 }

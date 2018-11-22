@@ -30,6 +30,8 @@ _resource = {
 }
 
 _qtaargs = {
+    'format_letter_case':      [('mdi.format-letter-case',), {'color': MAIN_FG_COLOR}],
+    'regex':                   [('mdi.regex',), {'color': MAIN_FG_COLOR}],
     'log':                     [('fa.file-text-o',), {'color': MAIN_FG_COLOR}],
     'configure':               [('fa.wrench',), {'color': MAIN_FG_COLOR}],
     'bold':                    [('fa.bold',), {'color': MAIN_FG_COLOR}],
@@ -176,7 +178,7 @@ _qtaargs = {
     'DialogCloseButton':       [('fa.close',), {'color': MAIN_FG_COLOR}],
     'DirClosedIcon':           [('fa.folder-o',), {'color': MAIN_FG_COLOR}],
     'DialogHelpButton':        [('fa.life-ring',), {'color': 'darkred'}],
-    'MessageBoxInformation':   [('fa.info',), {'color': '3775a9'}],
+    'MessageBoxInformation':   [('fa.info',), {'color': MAIN_FG_COLOR}],
     'DirOpenIcon':             [('fa.folder-open',), {'color': MAIN_FG_COLOR}],
     'FileIcon':                [('fa.file-o',), {'color': MAIN_FG_COLOR}],
     'ExcelFileIcon':           [('fa.file-excel-o',), {'color': MAIN_FG_COLOR}],

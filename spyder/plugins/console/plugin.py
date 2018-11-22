@@ -60,12 +60,10 @@ class Console(SpyderPluginWidget):
         self.dialog_manager = DialogManager()
 
         # Shell
-        light_background = self.get_option('light_background')
         self.shell = InternalShell(parent, namespace, commands, message,
                                    self.get_option('max_line_count'),
                                    self.get_plugin_font(), exitfunc, profile,
-                                   multithreaded,
-                                   light_background=light_background)
+                                   multithreaded)
         self.shell.status.connect(lambda msg: self.show_message.emit(msg, 0))
         self.shell.go_to_error.connect(self.go_to_error)
         self.shell.focus_changed.connect(lambda: self.focus_changed.emit())
