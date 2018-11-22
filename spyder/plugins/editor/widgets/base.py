@@ -40,7 +40,7 @@ from spyder.plugins.editor.utils.decoration import TextDecorationsManager
 from spyder.plugins.editor.lsp import CompletionItemKind
 
 if is_dark_interface():
-    MAIN_BG_COLOR = '#232629'
+    MAIN_BG_COLOR = '#19232D'
     MAIN_DEFAULT_FG_COLOR = '#ffffff'
     MAIN_ERROR_FG_COLOR = '#FF0000'
     MAIN_TB_FG_COLOR = '#0000FF'

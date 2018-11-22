@@ -21,7 +21,7 @@ from spyder.plugins.plots.widgets.figurebrowser import FigureBrowser
 
 
 if is_dark_interface():
-    MAIN_BG_COLOR = '#232629'
+    MAIN_BG_COLOR = '#19232D'
 else:
     MAIN_BG_COLOR = 'white'
 
