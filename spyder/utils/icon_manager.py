@@ -288,7 +288,7 @@ def get_icon(name, default=None, resample=False):
 
 
 def icon(name, resample=False, icon_path=None):
-    theme = CONF.get('main', 'icon_theme')
+    theme = CONF.get('appearance', 'icon_theme')
     if theme == 'spyder 3':
         if not _resource['loaded']:
             qta.load_font('spyder', 'spyder.ttf', 'spyder-charmap.json',
