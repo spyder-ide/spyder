@@ -13,3 +13,4 @@ Categories=Development;Science;IDE;Qt;
 Keywords=Development;Science;IDE;Qt;
 StartupNotify=true
 X-AppStream-Ignore=True
+StartupWMClass=Spyder
