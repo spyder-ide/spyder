@@ -14,16 +14,17 @@ import pytest
 # Local imports
 from spyder.app.tour import TourTestWindow
 
+
 @pytest.fixture
-def setup_tour(qtbot):
+def tour(qtbot):
     "Setup the QMainWindow for the tour."
     tour = TourTestWindow()
     qtbot.addWidget(tour)
     return tour
 
-def test_tour(qtbot):
+
+def test_tour(tour, qtbot):
     """Test tour."""
-    tour = setup_tour(qtbot)
     tour.show()
     assert tour
 

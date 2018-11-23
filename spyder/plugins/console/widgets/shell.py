@@ -53,7 +53,9 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
     append_to_history = Signal(str, str)
     
     def __init__(self, parent, history_filename, profile=False,
-                 initial_message=None):
+                 initial_message=None, default_foreground_color=None,
+                 error_foreground_color=None, traceback_foreground_color=None,
+                 prompt_foreground_color=None, background_color=None):
         """
         parent : specifies the parent widget
         """
@@ -632,8 +634,9 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
     go_to_error = Signal(str)
     
     def __init__(self, parent, history_filename, profile=False, initial_message=None):
-        ShellBaseWidget.__init__(self, parent, history_filename, profile,
-                                 initial_message)
+        ShellBaseWidget.__init__(self, parent, history_filename,
+                                 profile=profile,
+                                 initial_message=initial_message)
         TracebackLinksMixin.__init__(self)
         GetHelpMixin.__init__(self)
 

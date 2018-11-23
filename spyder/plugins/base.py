@@ -152,10 +152,11 @@ class BasePluginMixin(object):
             return configwidget
 
     def switch_to_plugin(self):
-        """Switch to plugin
-        This method is called when pressing plugin's shortcut key"""
-        if not self.ismaximized:
-            self.dockwidget.show()
+        """Switch to plugin."""
+        if (self.main.last_plugin is not None and
+                self.main.last_plugin.ismaximized and
+                self.main.last_plugin is not self):
+            self.main.maximize_dockwidget()
         if not self.toggle_view_action.isChecked():
             self.toggle_view_action.setChecked(True)
         self.visibility_changed(True)

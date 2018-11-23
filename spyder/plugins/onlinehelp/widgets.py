@@ -58,11 +58,12 @@ class PydocServer(QThread):
     def quit_server(self):
         if PY3:
             # Python 3
-            if self.server.serving:
+            if self.is_server_running() and self.server.serving:
                 self.server.stop()
         else:
             # Python 2
-            self.server.quit = 1
+            if self.is_server_running():
+                self.server.quit = 1
 
 
 class PydocBrowser(WebBrowser):
@@ -93,7 +94,8 @@ class PydocBrowser(WebBrowser):
         return self.server is not None
         
     def closeEvent(self, event):
-        self.server.quit_server()
+        if self.is_server_running():
+            self.server.quit_server()
 #        while not self.server.complete: #XXX Is it really necessary?
 #            pass
         event.accept()

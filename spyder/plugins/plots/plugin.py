@@ -13,10 +13,17 @@ from qtpy.QtWidgets import QStackedWidget, QGridLayout
 
 # Local imports
 from spyder.config.base import _
+from spyder.config.gui import is_dark_interface
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
 from spyder.utils import icon_manager as ima
 from spyder.plugins.plots.widgets.figurebrowser import FigureBrowser
+
+
+if is_dark_interface():
+    MAIN_BG_COLOR = '#19232D'
+else:
+    MAIN_BG_COLOR = 'white'
 
 
 class PlotsConfigPage(PluginConfigPage):
@@ -88,7 +95,8 @@ class Plots(SpyderPluginWidget):
         if shellwidget_id not in self.shellwidgets:
             self.options_button.setVisible(True)
             fig_browser = FigureBrowser(
-                self, options_button=self.options_button)
+                self, options_button=self.options_button,
+                background_color=MAIN_BG_COLOR)
             fig_browser.set_shellwidget(shellwidget)
             fig_browser.setup(**self.get_settings())
             fig_browser.sig_option_changed.connect(

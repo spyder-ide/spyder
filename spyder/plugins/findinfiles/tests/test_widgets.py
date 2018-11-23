@@ -18,7 +18,6 @@ import pytest
 from qtpy.QtCore import Qt
 
 # Local imports
-from spyder.plugins.findinfiles.widgets import FindInFilesWidget
 from spyder.plugins.findinfiles import widgets
 from spyder.plugins.findinfiles.widgets import (FindInFilesWidget, SearchInComboBox,
                                                 EXTERNAL_PATHS, SELECT_OTHER, CWD,
@@ -49,9 +48,18 @@ def process_search_results(results):
 
 
 @pytest.fixture
-def setup_findinfiles(qtbot, *args, **kwargs):
+def findinfiles(qtbot, request):
     """Set up find in files widget."""
-    widget = FindInFilesWidget(None, *args, **kwargs)
+    if getattr(request, 'param', False):
+        param = request.param
+    else:
+        param = None
+
+    if param:
+        widget = FindInFilesWidget(None, **param)
+    else:
+        widget = FindInFilesWidget(None)
+
     widget.resize(640, 480)
     qtbot.addWidget(widget)
     widget.show()
@@ -59,8 +67,18 @@ def setup_findinfiles(qtbot, *args, **kwargs):
 
 
 @pytest.fixture
-def searchin_combobox_bot(qtbot):
+def searchin_combobox(qtbot, request):
     """Set up SearchInComboBox combobox."""
+    from spyder.plugins.findinfiles import widgets
+
+    if getattr(request, 'param', False):
+        param = request.param
+    else:
+        param = None
+
+    if param and param.get('max_history_path'):
+        widgets.MAX_PATH_HISTORY = param.get('max_history_path')
+
     external_path_history = [
             LOCATION,
             osp.dirname(LOCATION),
@@ -68,10 +86,10 @@ def searchin_combobox_bot(qtbot):
             osp.dirname(osp.dirname(osp.dirname(LOCATION))),
             osp.dirname(LOCATION),
             osp.join(LOCATION, 'path_that_does_not_exist')
-            ]
+    ]
     searchin_combobox = SearchInComboBox(external_path_history)
     qtbot.addWidget(searchin_combobox)
-    return searchin_combobox, qtbot
+    return searchin_combobox
 
 
 def expected_results():
@@ -91,7 +109,7 @@ def expected_case_unsensitive_results():
 
 
 @flaky(max_runs=5)
-def test_find_in_files_search(qtbot):
+def test_find_in_files_search(findinfiles, qtbot):
     """
     Test the find in files utility by searching a string located on a set of
     known files.
@@ -99,25 +117,25 @@ def test_find_in_files_search(qtbot):
     The results of the test should be equal to the expected search result
     values.
     """
-    find_in_files = setup_findinfiles(qtbot)
-    find_in_files.set_search_text("spam")
-    find_in_files.find_options.set_directory(osp.join(LOCATION, "data"))
-    find_in_files.find()
-    blocker = qtbot.waitSignal(find_in_files.sig_finished, timeout=3000)
+    findinfiles.set_search_text("spam")
+    findinfiles.find_options.set_directory(osp.join(LOCATION, "data"))
+    findinfiles.find()
+    blocker = qtbot.waitSignal(findinfiles.sig_finished)
     blocker.wait()
-    matches = process_search_results(find_in_files.result_browser.data)
+    matches = process_search_results(findinfiles.result_browser.data)
     assert expected_results() == matches
 
 
-def test_exclude_extension_regex(qtbot):
-    find_in_files = setup_findinfiles(qtbot, exclude=r"\.py$",
-                                      exclude_regexp=True)
-    find_in_files.set_search_text("spam")
-    find_in_files.find_options.set_directory(osp.join(LOCATION, "data"))
-    find_in_files.find()
-    blocker = qtbot.waitSignal(find_in_files.sig_finished)
+@pytest.mark.parametrize('findinfiles',
+                         [{'exclude': r"\.py$", 'exclude_regexp': True}],
+                         indirect=True)
+def test_exclude_extension_regex(findinfiles, qtbot):
+    findinfiles.set_search_text("spam")
+    findinfiles.find_options.set_directory(osp.join(LOCATION, "data"))
+    findinfiles.find()
+    blocker = qtbot.waitSignal(findinfiles.sig_finished)
     blocker.wait()
-    matches = process_search_results(find_in_files.result_browser.data)
+    matches = process_search_results(findinfiles.result_browser.data)
     files_filtered = True
     for file in matches:
         filename, ext = osp.splitext(file)
@@ -127,15 +145,16 @@ def test_exclude_extension_regex(qtbot):
     assert files_filtered
 
 
-def test_exclude_extension_string(qtbot):
-    find_in_files = setup_findinfiles(qtbot, exclude="*.py",
-                                      exclude_regexp=False)
-    find_in_files.set_search_text("spam")
-    find_in_files.find_options.set_directory(osp.join(LOCATION, "data"))
-    find_in_files.find()
-    blocker = qtbot.waitSignal(find_in_files.sig_finished)
+@pytest.mark.parametrize('findinfiles',
+                         [{'exclude': "*.py", 'exclude_regexp': False}],
+                         indirect=True)
+def test_exclude_extension_string(findinfiles, qtbot):
+    findinfiles.set_search_text("spam")
+    findinfiles.find_options.set_directory(osp.join(LOCATION, "data"))
+    findinfiles.find()
+    blocker = qtbot.waitSignal(findinfiles.sig_finished)
     blocker.wait()
-    matches = process_search_results(find_in_files.result_browser.data)
+    matches = process_search_results(findinfiles.result_browser.data)
     files_filtered = True
     for file in matches:
         filename, ext = osp.splitext(file)
@@ -145,56 +164,58 @@ def test_exclude_extension_string(qtbot):
     assert files_filtered
 
 
-def test_exclude_extension_empty_regex(qtbot):
-    find_in_files = setup_findinfiles(qtbot, exclude="")
-    find_in_files.set_search_text("spam")
-    find_in_files.find_options.set_directory(osp.join(LOCATION, "data"))
-    find_in_files.find()
-    blocker = qtbot.waitSignal(find_in_files.sig_finished)
+@pytest.mark.parametrize('findinfiles',
+                         [{'exclude': "", 'exclude_regexp': True}],
+                         indirect=True)
+def test_exclude_extension_empty_regex(findinfiles, qtbot):
+    findinfiles.set_search_text("spam")
+    findinfiles.find_options.set_directory(osp.join(LOCATION, "data"))
+    findinfiles.find()
+    blocker = qtbot.waitSignal(findinfiles.sig_finished)
     blocker.wait()
-    matches = process_search_results(find_in_files.result_browser.data)
+    matches = process_search_results(findinfiles.result_browser.data)
     assert expected_results() == matches
 
 
-def test_exclude_extension_string(qtbot):
-    find_in_files = setup_findinfiles(qtbot, exclude="",
-                                      exclude_regexp=False)
-    find_in_files.set_search_text("spam")
-    find_in_files.find_options.set_directory(osp.join(LOCATION, "data"))
-    find_in_files.find()
-    blocker = qtbot.waitSignal(find_in_files.sig_finished)
+@pytest.mark.parametrize('findinfiles',
+                         [{'exclude': "", 'exclude_regexp': False}],
+                         indirect=True)
+def test_exclude_extension_string_no_regexp(findinfiles, qtbot):
+    findinfiles.set_search_text("spam")
+    findinfiles.find_options.set_directory(osp.join(LOCATION, "data"))
+    findinfiles.find()
+    blocker = qtbot.waitSignal(findinfiles.sig_finished)
     blocker.wait()
-    matches = process_search_results(find_in_files.result_browser.data)
+    matches = process_search_results(findinfiles.result_browser.data)
     assert expected_results() == matches
 
 
-def test_exclude_extension_multiple_string(qtbot):
-    find_in_files = setup_findinfiles(qtbot, exclude="*.py, *.cpp",
-                                      exclude_regexp=False)
-    find_in_files.set_search_text("spam")
-    find_in_files.find_options.set_directory(osp.join(LOCATION, "data"))
-    find_in_files.find()
-    blocker = qtbot.waitSignal(find_in_files.sig_finished)
+@pytest.mark.parametrize('findinfiles',
+                         [{'exclude': "*.py, *.cpp", 'exclude_regexp': False}],
+                         indirect=True)
+def test_exclude_extension_multiple_string(findinfiles, qtbot):
+    findinfiles.set_search_text("spam")
+    findinfiles.find_options.set_directory(osp.join(LOCATION, "data"))
+    findinfiles.find()
+    blocker = qtbot.waitSignal(findinfiles.sig_finished)
     blocker.wait()
-    matches = process_search_results(find_in_files.result_browser.data)
+    matches = process_search_results(findinfiles.result_browser.data)
     files_filtered = True
     for file in matches:
         filename, ext = osp.splitext(file)
         if ext in ['.py', '.cpp']:
-            print(ext)
             files_filtered = False
             break
     assert files_filtered
 
 
 @pytest.mark.parametrize("line_input", ['nnnnn', 'ñandú'])
-def test_truncate_result_with_different_input(qtbot, line_input):
+def test_truncate_result_with_different_input(findinfiles, qtbot, line_input):
     """
     Issue: 6218 - checking if truncate_result raise UnicodeDecodeError
     """
 
     # with
-    find_in_files = setup_findinfiles(qtbot)
     slice_start = 1
     slice_end = 2
 
@@ -203,71 +224,77 @@ def test_truncate_result_with_different_input(qtbot, line_input):
     else:
         line_input_expected = line_input
 
-    expected_result = u'%s<b>%s</b>%s' % (
+    expected_result = u'<span style="color:None">%s<b>%s</b>%s</span>' % (
         line_input_expected[:slice_start],
         line_input_expected[slice_start:slice_end],
         line_input_expected[slice_end:])
 
     # when
-    truncated_line = find_in_files.result_browser.truncate_result(
+    truncated_line = findinfiles.result_browser.truncate_result(
         line_input, slice_start, slice_end)
 
     # then
     assert truncated_line == expected_result
 
 
-def test_case_unsensitive_search(qtbot):
-    find_in_files = setup_findinfiles(qtbot, case_sensitive=False)
-    find_in_files.set_search_text('ham')
-    find_in_files.find_options.set_directory(osp.join(LOCATION, "data"))
-    find_in_files.find()
-    blocker = qtbot.waitSignal(find_in_files.sig_finished)
+@pytest.mark.parametrize('findinfiles',
+                         [{'case_sensitive': False}],
+                         indirect=True)
+def test_case_unsensitive_search(findinfiles, qtbot):
+    findinfiles.set_search_text('ham')
+    findinfiles.find_options.set_directory(osp.join(LOCATION, "data"))
+    findinfiles.find()
+    blocker = qtbot.waitSignal(findinfiles.sig_finished)
     blocker.wait()
-    matches = process_search_results(find_in_files.result_browser.data)
+    matches = process_search_results(findinfiles.result_browser.data)
     print(matches)
     assert expected_case_unsensitive_results() == matches
 
 
-def test_case_sensitive_search(qtbot):
-    find_in_files = setup_findinfiles(qtbot, case_sensitive=True)
-    find_in_files.set_search_text('HaM')
-    find_in_files.find_options.set_directory(osp.join(LOCATION, "data"))
-    find_in_files.find()
-    blocker = qtbot.waitSignal(find_in_files.sig_finished)
+@pytest.mark.parametrize('findinfiles',
+                         [{'case_sensitive': True}],
+                         indirect=True)
+def test_case_sensitive_search(findinfiles, qtbot):
+    findinfiles.set_search_text('HaM')
+    findinfiles.find_options.set_directory(osp.join(LOCATION, "data"))
+    findinfiles.find()
+    blocker = qtbot.waitSignal(findinfiles.sig_finished)
     blocker.wait()
-    matches = process_search_results(find_in_files.result_browser.data)
+    matches = process_search_results(findinfiles.result_browser.data)
     print(matches)
     assert matches == {'ham.txt': [(9, 0)]}
 
 
-def test_search_regexp_error(qtbot):
-    find_in_files = setup_findinfiles(qtbot, search_text_regexp=True)
-    find_in_files.set_search_text("\\")
-    find_in_files.find_options.set_directory(osp.join(LOCATION, "data"))
-    find_in_files.find()
-    tooltip = find_in_files.find_options.search_text.toolTip()
-    assert find_in_files.find_options.REGEX_ERROR in tooltip
+@pytest.mark.parametrize('findinfiles',
+                         [{'search_text_regexp': True}],
+                         indirect=True)
+def test_search_regexp_error(findinfiles, qtbot):
+    findinfiles.set_search_text("\\")
+    findinfiles.find_options.set_directory(osp.join(LOCATION, "data"))
+    findinfiles.find()
+    tooltip = findinfiles.find_options.search_text.toolTip()
+    assert findinfiles.find_options.REGEX_ERROR in tooltip
 
 
-def test_exclude_regexp_error(qtbot):
-    find_in_files = setup_findinfiles(qtbot, exclude="\\",
-                                      exclude_regexp=True)
-    find_in_files.set_search_text("foo")
-    find_in_files.find_options.set_directory(osp.join(LOCATION, "data"))
-    find_in_files.find()
-    tooltip = find_in_files.find_options.exclude_pattern.toolTip()
-    assert find_in_files.find_options.REGEX_ERROR in tooltip
+@pytest.mark.parametrize('findinfiles',
+                         [{'exclude': "\\", 'exclude_regexp': True}],
+                         indirect=True)
+def test_exclude_regexp_error(findinfiles, qtbot):
+    findinfiles.set_search_text("foo")
+    findinfiles.find_options.set_directory(osp.join(LOCATION, "data"))
+    findinfiles.find()
+    tooltip = findinfiles.find_options.exclude_pattern.toolTip()
+    assert findinfiles.find_options.REGEX_ERROR in tooltip
 
 
 # ---- Tests for SearchInComboBox
 
-def test_add_external_paths(searchin_combobox_bot, mocker):
+def test_add_external_paths(searchin_combobox, mocker):
     """
     Test that the external_path_history is added correctly to the
     combobox and test that adding new external path to the combobox
     with the QFileDialog is working as expected.
     """
-    searchin_combobox, qtbot = searchin_combobox_bot
     searchin_combobox.show()
 
     # Assert that the external_path_history was added correctly to the
@@ -319,12 +346,11 @@ def test_add_external_paths(searchin_combobox_bot, mocker):
     assert searchin_combobox.currentIndex() == CWD
 
 
-def test_clear_this_list(searchin_combobox_bot, mocker):
+def test_clear_this_list(searchin_combobox, mocker):
     """
     Test the option in the searchin combobox to clear the list of
     external paths.
     """
-    searchin_combobox, qtbot = searchin_combobox_bot
     searchin_combobox.show()
 
     # Cancel the Clear the list action and assert the result.
@@ -351,12 +377,11 @@ def test_clear_this_list(searchin_combobox_bot, mocker):
     assert searchin_combobox.currentIndex() == CWD
 
 
-def test_delete_path(searchin_combobox_bot, mocker):
+def test_delete_path(searchin_combobox, qtbot, mocker):
     """
     Test that the selected external path in the combobox view is removed
     correctly when the Delete key is pressed.
     """
-    searchin_combobox, qtbot = searchin_combobox_bot
     searchin_combobox.show()
 
     expected_results = [
@@ -426,15 +451,14 @@ def test_delete_path(searchin_combobox_bot, mocker):
     assert searchin_combobox.view().currentIndex().row() == CWD
 
 
-def test_set_project_path(qtbot):
+def test_set_project_path(findinfiles, qtbot):
     """
     Test setting the project path of the SearchInComboBox from the
     FindInFilesWidget.
     """
-    findinfiles_widget = setup_findinfiles(qtbot)
-    find_options = findinfiles_widget.find_options
+    find_options = findinfiles.find_options
     path_selection_combo = find_options.path_selection_combo
-    findinfiles_widget.show()
+    findinfiles.show()
 
     assert path_selection_combo.model().item(PROJECT, 0).isEnabled() is False
     assert find_options.project_path is None
@@ -457,24 +481,28 @@ def test_set_project_path(qtbot):
     assert path_selection_combo.currentIndex() == CWD
 
 
-def test_current_search_path(qtbot):
+@pytest.mark.parametrize('findinfiles',
+                         [{'external_path_history': [LOCATION,
+                                                     osp.dirname(LOCATION),
+                                                     osp.dirname(osp.dirname(LOCATION)),
+                                                     NONASCII_DIR]}],
+                         indirect=True)
+def test_current_search_path(findinfiles, qtbot):
     """
     Test that the expected search path is returned for the corresponding
     option selected in the SearchInComboBox. This test is done using the
     FindInFilesWidget.
     """
     external_paths = [
-            LOCATION,
-            osp.dirname(LOCATION),
-            osp.dirname(osp.dirname(LOCATION)),
-            NONASCII_DIR
-            ]
+        LOCATION,
+        osp.dirname(LOCATION),
+        osp.dirname(osp.dirname(LOCATION)),
+        NONASCII_DIR
+    ]
 
-    findinfiles_widget = setup_findinfiles(
-            qtbot, external_path_history=external_paths)
-    find_options = findinfiles_widget.find_options
+    find_options = findinfiles.find_options
     path_selection_combo = find_options.path_selection_combo
-    findinfiles_widget.show()
+    findinfiles.show()
 
     # Set the project, file, and spyder path of the SearchInComboBox.
     # For the purpose of this test, the project path doesn't need to be a
@@ -517,12 +545,13 @@ def test_current_search_path(qtbot):
         assert path_selection_combo.is_file_search() is False
 
 
-def test_max_history(qtbot, mocker):
+@pytest.mark.parametrize('searchin_combobox',
+                         [{'max_history_path': 3}],
+                         indirect=True)
+def test_max_history(searchin_combobox, mocker):
     """
     Test that the specified maximum number of external path is observed.
     """
-    widgets.MAX_PATH_HISTORY = 3
-    searchin_combobox, qtbot = searchin_combobox_bot(qtbot)
     searchin_combobox.show()
 
     # In this case, the first path of the external_path_history was removed to
@@ -531,8 +560,8 @@ def test_max_history(qtbot, mocker):
             osp.dirname(osp.dirname(LOCATION)),
             osp.dirname(osp.dirname(osp.dirname(LOCATION))),
             osp.dirname(LOCATION)
-            ]
-    assert searchin_combobox.count() == len(expected_results)+EXTERNAL_PATHS
+    ]
+    assert searchin_combobox.count() == len(expected_results) + EXTERNAL_PATHS
     assert searchin_combobox.get_external_paths() == expected_results
 
 

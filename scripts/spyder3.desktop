@@ -12,3 +12,4 @@ MimeType=text/x-python;
 Categories=Development;Science;IDE;Qt;
 Keywords=Development;Science;IDE;Qt;
 StartupNotify=true
+StartupWMClass=Spyder

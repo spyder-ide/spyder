@@ -28,9 +28,17 @@ from qtpy.QtWidgets import (QAction, QApplication, QComboBox, QDialog,
 
 # Local imports
 from spyder.config.base import _, get_image_path
+from spyder.config.gui import is_dark_interface
 from spyder.py3compat import to_binary_string
 from spyder.utils.qthelpers import add_actions, create_action
 from spyder.utils import icon_manager as ima
+
+
+if is_dark_interface():
+    MAIN_TOP_COLOR = MAIN_BG_COLOR = QColor.fromRgb(35, 38, 41)
+else:
+    MAIN_TOP_COLOR = QColor.fromRgb(230, 230, 230)
+    MAIN_BG_COLOR = QColor.fromRgb(255, 255, 255)
 
 # FIXME: Known issues
 # How to handle if an specific dockwidget does not exists/load, like ipython
@@ -527,7 +535,8 @@ class FadingCanvas(FadingDialog):
 
 class FadingTipBox(FadingDialog):
     """ """
-    def __init__(self, parent, opacity, duration, easing_curve, tour=None):
+    def __init__(self, parent, opacity, duration, easing_curve, tour=None,
+                 color_top=None, color_back=None, combobox_background=None):
         super(FadingTipBox, self).__init__(parent, opacity, duration,
                                            easing_curve)
         self.holder = self.anim  # needed for qt to work
@@ -535,8 +544,6 @@ class FadingTipBox(FadingDialog):
         self.tour = tour
 
         self.frames = None
-        self.color_top = QColor.fromRgb(230, 230, 230)
-        self.color_back = QColor.fromRgb(255, 255, 255)
         self.offset_shadow = 0
         self.fixed_width = 300
 
@@ -584,26 +591,29 @@ class FadingTipBox(FadingDialog):
 
         arrow = get_image_path('hide.png')
 
-        self.stylesheet = '''QComboBox {
+        self.color_top = color_top
+        self.color_back = color_back
+        self.combobox_background = combobox_background
+        self.stylesheet = '''QComboBox {{
                              padding-left: 5px;
-                             background-color: rgbs(230,230,230,100%);
+                             background-color: {}
                              border-width: 0px;
                              border-radius: 0px;
                              min-height:20px;
                              max-height:20px;
-                             }
+                             }}
 
-                             QComboBox::drop-down  {
+                             QComboBox::drop-down  {{
                              subcontrol-origin: padding;
                              subcontrol-position: top left;
                              border-width: 0px;
-                             }
+                             }}
                              
-                             QComboBox::down-arrow {
-                             image: url(''' + arrow + ''');
-                             }
+                             QComboBox::down-arrow {{
+                             image: url({});
+                             }}
                              
-                             '''
+                             '''.format(self.combobox_background.name(), arrow)
         # Windows fix, slashes should be always in unix-style
         self.stylesheet = self.stylesheet.replace('\\', '/')
 
@@ -869,7 +879,9 @@ class AnimatedTour(QWidget):
                                    self.color, tour=self)
         self.tips = FadingTipBox(self.parent, self.opacity_tips,
                                  self.duration_tips, self.easing_curve,
-                                 tour=self)
+                                 tour=self, color_top=MAIN_TOP_COLOR,
+                                 color_back=MAIN_BG_COLOR,
+                                 combobox_background=MAIN_TOP_COLOR)
 
         # Widgets setup
         # Needed to fix issue #2204

@@ -581,8 +581,8 @@ class MainWindow(QMainWindow):
         logger.info("*** Start of MainWindow setup ***")
 
         logger.info("Applying theme configuration...")
-        ui_theme = CONF.get('color_schemes', 'ui_theme')
-        color_scheme = CONF.get('color_schemes', 'selected')
+        ui_theme = CONF.get('appearance', 'ui_theme')
+        color_scheme = CONF.get('appearance', 'selected')
 
         if ui_theme == 'dark':
             self.setStyleSheet(qdarkstyle.load_stylesheet_from_environment())
@@ -1034,7 +1034,7 @@ class MainWindow(QMainWindow):
 
         #----- Tours
         self.tour = tour.AnimatedTour(self)
-        self.tours_menu = QMenu(_("Interactive tours"))
+        self.tours_menu = QMenu(_("Interactive tours"), self)
         self.tour_menu_actions = []
         # TODO: Only show intro tour for now. When we are close to finish
         # 3.0, we will finish and show the other tour
@@ -1106,7 +1106,7 @@ class MainWindow(QMainWindow):
             add_actions(pymods_menu, ipm_actions)
             self.help_menu_actions.append(pymods_menu)
         # Online documentation
-        web_resources = QMenu(_("Online documentation"))
+        web_resources = QMenu(_("Online documentation"), self)
         webres_actions = create_module_bookmark_actions(self,
                                                         self.BOOKMARKS)
         webres_actions.insert(2, None)
@@ -1235,6 +1235,7 @@ class MainWindow(QMainWindow):
             if isinstance(child, QMenu):
                 try:
                     child.aboutToShow.connect(self.update_edit_menu)
+                    child.aboutToShow.connect(self.update_search_menu)
                 except TypeError:
                     pass
 
@@ -1532,6 +1533,7 @@ class MainWindow(QMainWindow):
 
     def setup_default_layouts(self, index, settings):
         """Setup default layouts when run for the first time"""
+        self.maximize_dockwidget(restore=True)
         self.set_window_settings(*settings)
         self.setUpdatesEnabled(False)
 
@@ -2081,20 +2083,13 @@ class MainWindow(QMainWindow):
         """Get properties of focus widget
         Returns tuple (widget, properties) where properties is a tuple of
         booleans: (is_console, not_readonly, readwrite_editor)"""
-        widget = QApplication.focusWidget()
-        from spyder.plugins.console.widgets.shell import ShellBaseWidget
         from spyder.plugins.editor.widgets.editor import TextEditBaseWidget
         from spyder.plugins.ipythonconsole.widgets import ControlWidget
-
-        # if focused widget isn't valid try the last focused
-        if not isinstance(widget, (ShellBaseWidget, TextEditBaseWidget,
-                                   ControlWidget)):
-            widget = self.previous_focused_widget
+        widget = QApplication.focusWidget()
 
         textedit_properties = None
-        if isinstance(widget, (ShellBaseWidget, TextEditBaseWidget,
-                               ControlWidget)):
-            console = isinstance(widget, (ShellBaseWidget, ControlWidget))
+        if isinstance(widget, (TextEditBaseWidget, ControlWidget)):
+            console = isinstance(widget, ControlWidget)
             not_readonly = not widget.isReadOnly()
             readwrite_editor = not_readonly and not console
             textedit_properties = (console, not_readonly, readwrite_editor)
@@ -2105,7 +2100,8 @@ class MainWindow(QMainWindow):
         widget, textedit_properties = self.get_focus_widget_properties()
         if textedit_properties is None: # widget is not an editor/console
             return
-        #!!! Below this line, widget is expected to be a QPlainTextEdit instance
+        # !!! Below this line, widget is expected to be a QPlainTextEdit
+        #     instance
         console, not_readonly, readwrite_editor = textedit_properties
 
         # Editor has focus and there is no file opened in it
@@ -2138,19 +2134,27 @@ class MainWindow(QMainWindow):
 
     def update_search_menu(self):
         """Update search menu"""
-        if self.menuBar().hasFocus():
-            return
+        # Disabling all actions except the last one
+        # (which is Find in files) to begin with
+        for child in self.search_menu.actions()[:-1]:
+            child.setEnabled(False)
 
         widget, textedit_properties = self.get_focus_widget_properties()
-        for action in self.editor.search_menu_actions:
-            try:
-                action.setEnabled(self.editor.isAncestorOf(widget))
-            except RuntimeError:
-                pass
         if textedit_properties is None: # widget is not an editor/console
             return
-        #!!! Below this line, widget is expected to be a QPlainTextEdit instance
-        _x, _y, readwrite_editor = textedit_properties
+
+        # !!! Below this line, widget is expected to be a QPlainTextEdit
+        #     instance
+        console, not_readonly, readwrite_editor = textedit_properties
+
+        # Find actions only trigger an effect in the Editor
+        if not console:
+            for action in self.search_menu.actions():
+                try:
+                    action.setEnabled(True)
+                except RuntimeError:
+                    pass
+
         # Disable the replace action for read-only files
         self.search_menu_actions[3].setEnabled(readwrite_editor)
 
@@ -2510,7 +2514,7 @@ class MainWindow(QMainWindow):
     def show_dependencies(self):
         """Show Spyder's Dependencies dialog box"""
         from spyder.widgets.dependencies import DependenciesDialog
-        dlg = DependenciesDialog(None)
+        dlg = DependenciesDialog(self)
         dlg.set_data(dependencies.DEPENDENCIES)
         dlg.exec_()
 
@@ -2612,13 +2616,12 @@ class MainWindow(QMainWindow):
         action = self.sender()
         callback = from_qvariant(action.data(), to_text_string)
         from spyder.plugins.editor.widgets.editor import TextEditBaseWidget
+        from spyder.plugins.ipythonconsole.widgets import ControlWidget
 
-        # If focused widget isn't valid try the last focused
-        if not isinstance(widget, TextEditBaseWidget):
-            widget = self.previous_focused_widget
-
-        if isinstance(widget, TextEditBaseWidget):
+        if isinstance(widget, (TextEditBaseWidget, ControlWidget)):
             getattr(widget, callback)()
+        else:
+            return
 
     def redirect_internalshell_stdio(self, state):
         if state:
@@ -2651,11 +2654,10 @@ class MainWindow(QMainWindow):
         to the Editor.
         """
         console = self.ipyconsole
-        console.visibility_changed(True)
-        console.raise_()
+        console.switch_to_plugin()
         console.execute_code(lines)
         if focus_to_editor:
-            self.editor.visibility_changed(True)
+            self.editor.switch_to_plugin()
 
     def open_file(self, fname, external=False):
         """
@@ -2744,7 +2746,7 @@ class MainWindow(QMainWindow):
             except:
                 pass
         else:
-            style_name = CONF.get('main', 'windows_style',
+            style_name = CONF.get('appearance', 'windows_style',
                                   self.default_style)
             style = QStyleFactory.create(style_name)
             if style is not None:
@@ -2989,7 +2991,8 @@ class MainWindow(QMainWindow):
 
     # ---- Interactive Tours
     def show_tour(self, index):
-        """ """
+        """Show interactive tour."""
+        self.maximize_dockwidget(restore=True)
         frames = self.tours_available[index]
         self.tour.set_tour(index, frames, self)
         self.tour.start_tour()
@@ -3369,7 +3372,7 @@ def main():
                 "icon theme. That's why it's going to fallback to the "
                 "theme used in Spyder 2.<br><br>"
                 "For that, please close this window and start Spyder again.")
-        CONF.set('main', 'icon_theme', 'spyder 2')
+        CONF.set('appearance', 'icon_theme', 'spyder 2')
     except BaseException:
         CONF.set('main', 'crash', True)
         import traceback

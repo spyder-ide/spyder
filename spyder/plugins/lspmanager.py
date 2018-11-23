@@ -187,7 +187,7 @@ class LSPServerEditor(QDialog):
         conf_label = QLabel(_('LSP Server Configurations:'))
         self.conf_input = CodeEditor(None)
         self.conf_input.textChanged.connect(self.validate)
-        color_scheme = CONF.get('color_schemes', 'selected')
+        color_scheme = CONF.get('appearance', 'selected')
         self.conf_input.setup_editor(
             language='JSON',
             color_scheme=color_scheme,
@@ -396,7 +396,7 @@ LANGUAGE, ADDR, CMD = [0, 1, 2]
 
 
 class LSPServersModel(QAbstractTableModel):
-    def __init__(self, parent):
+    def __init__(self, parent, text_color=None, text_color_highlight=None):
         QAbstractTableModel.__init__(self)
         self._parent = parent
 
@@ -411,8 +411,16 @@ class LSPServersModel(QAbstractTableModel):
 
         # Needed to compensate for the HTMLDelegate color selection unawarness
         palette = parent.palette()
-        self.text_color = palette.text().color().name()
-        self.text_color_highlight = palette.highlightedText().color().name()
+        if text_color is None:
+            self.text_color = palette.text().color().name()
+        else:
+            self.text_color = text_color
+
+        if text_color_highlight is None:
+            self.text_color_highlight = \
+                palette.highlightedText().color().name()
+        else:
+            self.text_color_highlight = text_color_highlight
 
     def sortByName(self):
         """Qt Override."""
@@ -441,7 +449,8 @@ class LSPServersModel(QAbstractTableModel):
                 text = '{0}:{1}'.format(server.host, server.port)
                 return to_qvariant(text)
             elif column == CMD:
-                text = '&nbsp;<tt>{0} {1}</tt>'
+                text = '&nbsp;<tt style="color:{0}">{{0}} {{1}}</tt>'
+                text = text.format(self.text_color)
                 if server.external:
                     text = '&nbsp;<tt>External server</tt>'
                 return to_qvariant(text.format(server.cmd, server.args))
@@ -485,11 +494,11 @@ class LSPServersModel(QAbstractTableModel):
 
 
 class LSPServerTable(QTableView):
-    def __init__(self, parent):
+    def __init__(self, parent, text_color=None):
         QTableView.__init__(self, parent)
         self._parent = parent
         self.delete_queue = []
-        self.source_model = LSPServersModel(self)
+        self.source_model = LSPServersModel(self, text_color=text_color)
         self.setModel(self.source_model)
         self.setItemDelegateForColumn(CMD, ItemDelegate(self))
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
@@ -616,7 +625,7 @@ class LSPManagerConfigPage(PluginConfigPage):
         return ima.icon('lspserver')
 
     def setup_page(self):
-        self.table = LSPServerTable(self)
+        self.table = LSPServerTable(self, text_color=ima.MAIN_FG_COLOR)
         self.reset_btn = QPushButton(_("Reset to default values"))
         self.new_btn = QPushButton(_("Setup a new server"))
         self.delete_btn = QPushButton(_("Delete currently selected server"))

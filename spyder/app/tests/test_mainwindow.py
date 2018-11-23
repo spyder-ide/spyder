@@ -197,7 +197,6 @@ def main_window(request):
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or not PY2,
                     reason="Times out on AppVeyor and fails on PY3/PyQt 5.6")
-@pytest.mark.timeout(timeout=120, method='thread')
 def test_calltip(main_window, qtbot):
     """Test that the calltip in editor is hidden when matching ')' is found."""
     # Load test file
@@ -545,7 +544,7 @@ def test_dedicated_consoles(main_window, qtbot):
     assert main_window.ipyconsole.filenames == ['', test_file]
     assert main_window.ipyconsole.tabwidget.tabText(1) == 'script.py/A'
     qtbot.wait(500)
-    assert nsb.editor.model.rowCount() == 3
+    assert nsb.editor.model.rowCount() == 4
 
     # --- Assert only runfile text is present and there's no banner text ---
     # See PR #5301
@@ -890,11 +889,12 @@ def test_run_code(main_window, qtbot, tmpdir):
     qtbot.keyClick(code_editor, Qt.Key_F5)
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 3,
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 4,
                     timeout=EVAL_TIMEOUT)
 
     # Verify result
     assert shell.get_value('a') == 10
+    assert shell.get_value('s') == "Z:\\escape\\test\\string\n"
     assert shell.get_value('li') == [1, 2, 3]
     assert_array_equal(shell.get_value('arr'), np.array([1, 2, 3]))
 
@@ -907,11 +907,12 @@ def test_run_code(main_window, qtbot, tmpdir):
         qtbot.wait(200)
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 3,
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 4,
                     timeout=EVAL_TIMEOUT)
 
     # Verify result
     assert shell.get_value('a') == 10
+    assert shell.get_value('s') == "Z:\\escape\\test\\string\n"
     assert shell.get_value('li') == [1, 2, 3]
     assert_array_equal(shell.get_value('arr'), np.array([1, 2, 3]))
 
@@ -928,12 +929,13 @@ def test_run_code(main_window, qtbot, tmpdir):
     assert 'Error:' not in shell._control.toPlainText()
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 3,
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 4,
                     timeout=EVAL_TIMEOUT)
 
     # Verify result
     assert ']: 10\n' in shell._control.toPlainText()
     assert shell.get_value('a') == 10
+    assert shell.get_value('s') == "Z:\\escape\\test\\string\n"
     assert shell.get_value('li') == [1, 2, 3]
     assert_array_equal(shell.get_value('arr'), np.array([1, 2, 3]))
 
@@ -1029,12 +1031,13 @@ def test_run_cell_copy(main_window, qtbot, tmpdir):
     assert 'Error:' not in shell._control.toPlainText()
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 3,
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 4,
                     timeout=EVAL_TIMEOUT)
 
     # Verify result
     assert ']: 10\n' in shell._control.toPlainText()
     assert shell.get_value('a') == 10
+    assert shell.get_value('s') == "Z:\\escape\\test\\string\n"
     assert shell.get_value('li') == [1, 2, 3]
     assert_array_equal(shell.get_value('arr'), np.array([1, 2, 3]))
 
@@ -1237,6 +1240,10 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
     qtbot.wait(500)
 
     assert nsb.editor.model.rowCount() == 3
+
+    qtbot.keyClicks(control, 'n')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.wait(500)
 
     qtbot.keyClicks(control, 'n')
     qtbot.keyClick(control, Qt.Key_Enter)

@@ -18,6 +18,10 @@ import shutil
 import sys
 import tempfile
 from textwrap import dedent
+try:
+    from unittest.mock import Mock
+except ImportError:
+    from mock import Mock  # Python 2
 
 # Third party imports
 import cloudpickle
@@ -28,7 +32,7 @@ import pytest
 from qtpy import PYQT5
 from qtpy.QtCore import Qt
 from qtpy.QtWebEngineWidgets import WEBENGINE
-from qtpy.QtWidgets import QMessageBox
+from qtpy.QtWidgets import QMessageBox, QWidget
 import sympy
 
 # Local imports
@@ -47,7 +51,6 @@ from spyder.utils.programs import get_temp_dir
 SHELL_TIMEOUT = 20000
 TEMP_DIRECTORY = tempfile.gettempdir()
 NON_ASCII_DIR = osp.join(TEMP_DIRECTORY, u'測試', u'اختبار')
-ASCII_DIR = osp.join(TEMP_DIRECTORY, 'username')
 
 
 # =============================================================================
@@ -78,6 +81,14 @@ class FaultyKernelSpec(KernelSpec):
 @pytest.fixture
 def ipyconsole(qtbot, request):
     """IPython console fixture."""
+
+    class MainWindowMock(QWidget):
+        def __getattr__(self, attr):
+            if attr == 'consoles_menu_actions':
+                return []
+            else:
+                return Mock()
+
     # Tests assume inline backend
     CONF.set('ipython_console', 'pylab/backend', 0)
 
@@ -86,7 +97,7 @@ def ipyconsole(qtbot, request):
     if non_ascii_dir:
         test_dir = NON_ASCII_DIR
     else:
-        test_dir = ASCII_DIR
+        test_dir = None
 
     # Instruct the console to not use a stderr file
     no_stderr_file = request.node.get_marker('no_stderr_file')
@@ -113,10 +124,10 @@ def ipyconsole(qtbot, request):
     is_cython = True if cython_client else False
 
     # Create the console and a new client
-    console = IPythonConsole(parent=None,
-                             testing=True,
+    console = IPythonConsole(parent=MainWindowMock(),
                              test_dir=test_dir,
                              test_no_stderr=test_no_stderr)
+    console.dockwidget = Mock()
     console.create_new_client(is_pylab=is_pylab,
                               is_sympy=is_sympy,
                               is_cython=is_cython)
@@ -435,7 +446,7 @@ def test_console_coloring(ipyconsole, qtbot):
     console_font_color = get_console_font_color(syntax_style)
     console_background_color = get_console_background_color(style_sheet)
 
-    selected_color_scheme = CONF.get('color_schemes', 'selected')
+    selected_color_scheme = CONF.get('appearance', 'selected')
     color_scheme = get_color_scheme(selected_color_scheme)
     editor_background_color = color_scheme['background']
     editor_font_color = color_scheme['normal'][0]
@@ -640,7 +651,6 @@ def test_read_stderr(ipyconsole, qtbot):
 @pytest.mark.skipif(os.environ.get('CI', None) is not None and os.name == 'nt',
                     reason="It times out on AppVeyor.")
 @pytest.mark.skipif(PY2, reason="It times out in Python 2.")
-@pytest.mark.timeout(timeout=20, method='thread')
 def test_values_dbg(ipyconsole, qtbot):
     """
     Test that getting, setting, copying and removing values is working while

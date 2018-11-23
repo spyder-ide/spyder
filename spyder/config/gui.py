@@ -56,7 +56,7 @@ def get_family(families):
 
 FONT_CACHE = {}
 
-def get_font(section='main', option='font', font_size_delta=0):
+def get_font(section='appearance', option='font', font_size_delta=0):
     """Get console font properties depending on OS and user options"""
     font = FONT_CACHE.get((section, option))
 
@@ -83,7 +83,7 @@ def get_font(section='main', option='font', font_size_delta=0):
     return font
 
 
-def set_font(font, section='main', option='font'):
+def set_font(font, section='appearance', option='font'):
     """Set font"""
     CONF.set(section, option+'/family', to_text_string(font.family()))
     CONF.set(section, option+'/size', float(font.pointSize()))
@@ -143,14 +143,14 @@ def get_color_scheme(name):
     """Get syntax color scheme"""
     color_scheme = {}
     for key in sh.COLOR_SCHEME_KEYS:
-        color_scheme[key] = CONF.get("color_schemes", "%s/%s" % (name, key))
+        color_scheme[key] = CONF.get("appearance", "%s/%s" % (name, key))
     return color_scheme
 
 
 def set_color_scheme(name, color_scheme, replace=True):
     """Set syntax color scheme"""
-    section = "color_schemes"
-    names = CONF.get("color_schemes", "names", [])
+    section = "appearance"
+    names = CONF.get("appearance", "names", [])
     for key in sh.COLOR_SCHEME_KEYS:
         option = "%s/%s" % (name, key)
         value = CONF.get(section, option, default=None)
@@ -171,6 +171,20 @@ def is_dark_font_color(color_scheme):
     color_scheme = get_color_scheme(color_scheme)
     font_color, fon_fw, fon_fs = color_scheme['normal']
     return dark_color(font_color)
+
+
+def is_dark_interface():
+    ui_theme = CONF.get('appearance', 'ui_theme')
+    color_scheme = CONF.get('appearance', 'selected')
+    if ui_theme == 'dark':
+        return True
+    elif ui_theme == 'automatic':
+        if not is_dark_font_color(color_scheme):
+            return True
+        else:
+            return False
+    else:
+        return False
 
 
 for _name in sh.COLOR_SCHEME_NAMES:

@@ -23,17 +23,16 @@ from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
 
 
 @pytest.fixture
-def setup_projects_dialog(qtbot):
+def projects_dialog(qtbot):
     """Set up ProjectDialog."""
     dlg = ProjectDialog(None)
     qtbot.addWidget(dlg)
     return dlg
 
-def test_project_dialog(qtbot):
+def test_project_dialog(projects_dialog):
     """Run project dialog."""
-    dlg = setup_projects_dialog(qtbot)
-    dlg.show()
-    assert dlg
+    projects_dialog.show()
+    assert projects_dialog
 
 
 @pytest.mark.skipif(os.name != 'nt', reason="Specific to Windows platform")
