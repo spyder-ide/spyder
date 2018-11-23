@@ -547,6 +547,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.create_new_client_if_empty = True
         self.css_path = css_path
         self.run_cell_filename = None
+        self._kernelSpec = SpyderKernelSpec
 
         # Attrs for testing
         self.test_dir = test_dir
@@ -1524,7 +1525,7 @@ class IPythonConsole(SpyderPluginWidget):
         # set this value in spyder.ini
         CONF.set('main', 'spyder_pythonpath',
                  self.main.get_spyder_pythonpath())
-        return SpyderKernelSpec(is_cython=is_cython,
+        return self._kernelSpec(is_cython=is_cython,
                                 is_pylab=is_pylab,
                                 is_sympy=is_sympy)
 

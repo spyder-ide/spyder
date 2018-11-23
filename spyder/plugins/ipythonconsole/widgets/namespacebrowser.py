@@ -29,7 +29,7 @@ from spyder.py3compat import PY2, to_text_string
 logger = logging.getLogger(__name__)
 
 
-class NamepaceBrowserWidget(RichJupyterWidget):
+class NamespaceBrowserWidget(RichJupyterWidget):
     """
     Widget with the necessary attributes and methods to handle communications
     between the IPython Console and the Variable Explorer
@@ -45,6 +45,43 @@ class NamepaceBrowserWidget(RichJupyterWidget):
     # To save values and messages returned by the kernel
     _kernel_value = None
     _kernel_is_starting = True
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Message handlers
+        def handle_data(msg):
+            # Deserialize data
+            try:
+                if PY2:
+                    value = cloudpickle.loads(msg['buffers'][0])
+                else:
+                    value = cloudpickle.loads(bytes(msg['buffers'][0]))
+            except Exception as msg:
+                self._kernel_value = None
+                self._kernel_reply = repr(msg)
+            else:
+                self._kernel_value = value
+            self.sig_got_reply.emit()
+        self._messageHandler.addHandler('data', handle_data)
+
+        def handle_pdb_state(msg):
+            pdb_state = msg['content']['pdb_state']
+            if pdb_state is not None and isinstance(pdb_state, dict):
+                self.refresh_from_pdb(pdb_state)
+        self._messageHandler.addHandler('pdb_state', handle_pdb_state)
+
+        def handle_pdb_continue(msg):
+            # Run Pdb continue to get to the first breakpoint
+            # Fixes 2034
+            self.write_to_stdin('continue')
+        self._messageHandler.addHandler('pdb_continue', handle_pdb_continue)
+
+        def handle_set_breakpoints(msg):
+            self.set_spyder_breakpoints(force=True)
+        self._messageHandler.addHandler('set_breakpoints', handle_set_breakpoints)
+
+
 
     # --- Public API --------------------------------------------------
     def set_namespacebrowser(self, namespacebrowser):
@@ -177,33 +214,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         """
         Handle internal spyder messages
         """
-        spyder_msg_type = msg['content'].get('spyder_msg_type')
-        if spyder_msg_type == 'data':
-            # Deserialize data
-            try:
-                if PY2:
-                    value = cloudpickle.loads(msg['buffers'][0])
-                else:
-                    value = cloudpickle.loads(bytes(msg['buffers'][0]))
-            except Exception as msg:
-                self._kernel_value = None
-                self._kernel_reply = repr(msg)
-            else:
-                self._kernel_value = value
-            self.sig_got_reply.emit()
-            return
-        elif spyder_msg_type == 'pdb_state':
-            pdb_state = msg['content']['pdb_state']
-            if pdb_state is not None and isinstance(pdb_state, dict):
-                self.refresh_from_pdb(pdb_state)
-        elif spyder_msg_type == 'pdb_continue':
-            # Run Pdb continue to get to the first breakpoint
-            # Fixes 2034
-            self.write_to_stdin('continue')
-        elif spyder_msg_type == 'set_breakpoints':
-            self.set_spyder_breakpoints(force=True)
-        else:
-            logger.debug("No such spyder message type: %s" % spyder_msg_type)
+        self._messageHandler.handleMessage(msg)
 
     # ---- Private API (overrode by us) ----------------------------
     def _handle_execute_reply(self, msg):
@@ -231,7 +242,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             self.handle_exec_method(msg)
             self._request_info['execute'].pop(msg_id)
         else:
-            super(NamepaceBrowserWidget, self)._handle_execute_reply(msg)
+            super(NamespaceBrowserWidget, self)._handle_execute_reply(msg)
 
     def _handle_status(self, msg):
         """
@@ -258,4 +269,4 @@ class NamepaceBrowserWidget(RichJupyterWidget):
                 self.refresh_namespacebrowser()
             self.ipyclient.t0 = time.monotonic()
         else:
-            super(NamepaceBrowserWidget, self)._handle_status(msg)
+            super(NamespaceBrowserWidget, self)._handle_status(msg)

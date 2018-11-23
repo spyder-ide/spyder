@@ -15,7 +15,7 @@ Widgets for the IPython Console.
 from .control import ControlWidget, PageControlWidget
 from .debugging import DebuggingWidget
 from .help import HelpWidget
-from .namespacebrowser import NamepaceBrowserWidget
+from .namespacebrowser import NamespaceBrowserWidget
 from .figurebrowser import FigureBrowserWidget
 from .kernelconnect import KernelConnectionDialog
 

@@ -22,14 +22,15 @@ from spyder.py3compat import PY2, to_text_string
 from spyder.utils import encoding
 from spyder.utils import programs
 from spyder.utils import syntaxhighlighters as sh
+from spyder.plugins.ipythonconsole.utils.messagehandler import SpyderMessageHandler
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style, create_style_class
 from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.plugins.ipythonconsole.widgets import (
         ControlWidget, DebuggingWidget, FigureBrowserWidget,
-        HelpWidget, NamepaceBrowserWidget, PageControlWidget)
+        HelpWidget, NamespaceBrowserWidget, PageControlWidget)
 
 
-class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
+class ShellWidget(NamespaceBrowserWidget, HelpWidget, DebuggingWidget,
                   FigureBrowserWidget):
     """
     Shell widget for the IPython Console
@@ -39,7 +40,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     # NOTE: Signals can't be assigned separately to each widget
     #       That's why we define all needed signals here.
 
-    # For NamepaceBrowserWidget
+    # For NamespaceBrowserWidget
     sig_namespace_view = Signal(object)
     sig_var_properties = Signal(object)
     sig_show_syspath = Signal(object)
@@ -68,6 +69,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
         self.custom_edit = True
+        # Kernel message handler
+        self._messageHandler = SpyderMessageHandler()
         super(ShellWidget, self).__init__(*args, **kw)
 
         self.ipyclient = ipyclient
