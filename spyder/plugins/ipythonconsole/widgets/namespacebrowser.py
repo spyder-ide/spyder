@@ -47,7 +47,7 @@ class NamespaceBrowserWidget(RichJupyterWidget):
     _kernel_is_starting = True
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(NamespaceBrowserWidget,self).__init__(*args, **kwargs)
 
         # Message handlers
         def handle_data(msg):
