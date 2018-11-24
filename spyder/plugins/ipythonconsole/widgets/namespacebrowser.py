@@ -63,23 +63,23 @@ class NamespaceBrowserWidget(RichJupyterWidget):
             else:
                 self._kernel_value = value
             self.sig_got_reply.emit()
-        self._messageHandler.addHandler('data', handle_data)
+        self._messageHandler.add_handler('data', handle_data)
 
         def handle_pdb_state(msg):
             pdb_state = msg['content']['pdb_state']
             if pdb_state is not None and isinstance(pdb_state, dict):
                 self.refresh_from_pdb(pdb_state)
-        self._messageHandler.addHandler('pdb_state', handle_pdb_state)
+        self._messageHandler.add_handler('pdb_state', handle_pdb_state)
 
         def handle_pdb_continue(msg):
             # Run Pdb continue to get to the first breakpoint
             # Fixes 2034
             self.write_to_stdin('continue')
-        self._messageHandler.addHandler('pdb_continue', handle_pdb_continue)
+        self._messageHandler.add_handler('pdb_continue', handle_pdb_continue)
 
         def handle_set_breakpoints(msg):
             self.set_spyder_breakpoints(force=True)
-        self._messageHandler.addHandler('set_breakpoints',
+        self._messageHandler.add_handler('set_breakpoints',
                                         handle_set_breakpoints)
 
 
@@ -215,7 +215,7 @@ class NamespaceBrowserWidget(RichJupyterWidget):
         """
         Handle internal spyder messages
         """
-        self._messageHandler.handleMessage(msg)
+        self._messageHandler.handle_message(msg)
 
     # ---- Private API (overrode by us) ----------------------------
     def _handle_execute_reply(self, msg):
