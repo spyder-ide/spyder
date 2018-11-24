@@ -1,29 +1,41 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 3.3.1 is released!
+**Subject**: [ANN] Spyder 3.3.2 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **3.3.1** has been released and is available for
+I'm pleased to announce that Spyder **3.3.2** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes one month after version 3.3.0 and it adds the following new
-features:
+This release comes three months and a half after version 3.3.1 and it adds the
+following new features:
+
+- Main Window
+    * Add new German and Hungarian translations.
 
 - Preferences
-    * Save the list of custom interpreters introduced in
-      `Preferences > Python interpreter`.
+    * Give users the ability to select the OpenGL implementation
+      used by Qt. This option can be changed in
+      `General > Advanced Settings > Rendering engine`.
 
-- IPython console
-    * Do not save pdb commands in debugging history.
+- Find in files
+    * Simplify the way to exclude files from search.
+    * Fix error that prevented to stop a search when it was in
+      progress.
+    * Save its options when Spyder is closed.
 
-In this release we fixed 19 issues and merged 31 pull requests that amount
-to more than 120 commits. For a full list of fixes, please see our
+- Under the hood
+    * Don't remove Spyder's temporary directory when Spyder is
+      closed. This avoids conflicts when multiple Spyder
+      instances are running.
+
+In this release we fixed 45 issues and merged 69 pull requests that amount
+to more than 340 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/3.x/CHANGELOG.md).
 
-Don't forget to follow Spyder updates/news on the project
+Don't forget to follow Spyder updates/news on the project's
 [website](https://www.spyder-ide.org).
 
 Last, but not least, we welcome any contribution that helps making Spyder an
