@@ -80,7 +80,7 @@ class NamespaceBrowserWidget(RichJupyterWidget):
         def handle_set_breakpoints(msg):
             self.set_spyder_breakpoints(force=True)
         self._messageHandler.add_handler('set_breakpoints',
-                                        handle_set_breakpoints)
+                                         handle_set_breakpoints)
 
 
 
