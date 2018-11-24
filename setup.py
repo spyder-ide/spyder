@@ -155,12 +155,12 @@ and designed by and for scientists, engineers and data analysts.
 It features a unique combination of the advanced editing, analysis, debugging
 and profiling functionality of a comprehensive development tool with the data
 exploration, interactive execution, deep inspection and beautiful visualization
-capabilities of a scientific package.
+capabilities of a scientific package.\n
 Furthermore, Spyder offers built-in integration with many popular
 scientific packages, including NumPy, SciPy, Pandas, IPython, QtConsole,
-Matplotlib, SymPy, and more.
+Matplotlib, SymPy, and more.\n
 Beyond its many built-in features, Spyder's abilities can be extended even
-further via first- and third-party plugins.
+further via first- and third-party plugins.\n
 Spyder can also be used as a PyQt5 extension library, allowing you to build
 upon its functionality and embed its components, such as the interactive
 console or advanced editor, in your own software.
