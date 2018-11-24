@@ -14,11 +14,13 @@ To release a new version of Spyder you need to follow these steps:
 
 * git add and git commit with `Release X.X.X`
 
-* python setup.py sdist upload
+* python setup.py sdist
 
-* activate py2env-with-latest-setuptools && python2 setup.py bdist_wheel upload
+* activate py2env-with-latest-setuptools && python2 setup.py bdist_wheel
 
-* activate py3env-with-latest-setuptools && python3 setup.py bdist_wheel upload
+* activate py3env-with-latest-setuptools && python3 setup.py bdist_wheel
+
+* twine upload dist/*
 
 * git tag -a vX.X.X -m 'Release X.X.X'
 
@@ -38,13 +40,6 @@ To release a new version of Spyder you need to follow these steps:
 
 * git push upstream --tags
 
-* Optional: Create conda packages
-    - conda build conda.recipe
-    - anaconda upload spyder-*.tar.bz2 -u spyder-ide
-
 * Publish release announcements to our list and the SciPy list
 
-* Publish list of bugs and merged pull requests to our Github Releases page
-
-* Create DMGs, upload them to our Bitbucket Downloads page and link them
-  in our Github Releases page.
+* Publish release in our Github Releases page
