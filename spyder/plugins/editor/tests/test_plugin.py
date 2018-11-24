@@ -33,6 +33,15 @@ from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
 # ---- Fixtures
 # =============================================================================
 @pytest.fixture
+def mock_RecoveryDialog(monkeypatch):
+    """Mock the RecoveryDialog in the editor plugin."""
+    mock = MagicMock()
+    monkeypatch.setattr('spyder.plugins.editor.utils.autosave.RecoveryDialog',
+                        mock)
+    return mock
+
+
+@pytest.fixture
 def setup_editor(qtbot, monkeypatch):
     """Set up the Editor plugin."""
     # monkeypatch.setattr('spyder.dependencies', Mock())
@@ -272,13 +281,12 @@ def test_editor_syncs_autosave_mapping_among_editorstacks(setup_editor):
             assert editorstack.autosave_mapping == new_mapping
 
 
-def test_editor_calls_recoverydialog_exec_if_nonempty(qtbot, monkeypatch):
+# The mock_RecoveryDialog fixture needs to be called before setup_editor, so
+# it needs to be mentioned first
+def test_editor_calls_recoverydialog_exec_if_nonempty(
+        mock_RecoveryDialog, setup_editor):
     """Check that editor tries to exec a recovery dialog on construction."""
-    mock_RecoveryDialog = MagicMock()
-    monkeypatch.setattr('spyder.plugins.editor.utils.autosave.RecoveryDialog',
-                        mock_RecoveryDialog)
-    setup_editor_iter = setup_editor(qtbot, monkeypatch)
-    editor, qtbot = next(setup_editor_iter)
+    editor, qtbot = setup_editor
     assert mock_RecoveryDialog.return_value.exec_if_nonempty.called
 
 
