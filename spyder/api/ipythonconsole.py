@@ -4,35 +4,27 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""
-This module contains the ipython console API
-"""
+"""The API for Spyder's IPython Console."""
 
 from spyder.plugins.ipythonconsole.utils.messagehandler import SpyderMessageHandler
 
-class IPythonAPIMixin:
-    """
-    Mixin class for SpyderPluginWidget to support communication
-    between the widget and the ipython kernels
-    """
+class IPythonAPIMixin(object):
+    """Support communication between SpyderPluginWidget and the IPython kernels."""
 
     def __init__(self, main=None):
-        """
-        Mixin class for SpyderPluginWidget to support communication
-        between the widget and the ipython kernels
-        """
         super(IPythonAPIMixin, self).__init__(main)
         self.main = main
         self.ipyconsole = main.ipyconsole
 
-    def registerMessageHandler(self, name, func):
+    def register_message_handler(self, name, func):
         """
-        Register a message handler for communication between the ipython kernel and
-        the spyder app. All spyder messages with spyder_msg_type=name will be handled
-        by the given function
+        Register a message handler for Spyder-IPython kernel communication.
+
+        All Spyder messages with ``spyder_msg_type==name``
+        will be handled by the given function.
         """
         SpyderMessageHandler.registered_handlers[name] = func
 
-    def setKernelSpec(self, kernelSpec):
+    def set_kernelSpec(self, kernelSpec):
         """Use a different kernel spec for the spyder kernels."""
         self.ipyconsole._kernelSpec = kernelSpec
