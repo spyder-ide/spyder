@@ -7,6 +7,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
+
 class SpyderMessageHandler(object):
     """
     Message handler for Spyder messages.

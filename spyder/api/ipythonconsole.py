@@ -8,8 +8,12 @@
 
 from spyder.plugins.ipythonconsole.utils.messagehandler import SpyderMessageHandler
 
+
 class IPythonAPIMixin(object):
-    """Support communication between SpyderPluginWidget and the IPython kernels."""
+    """
+    Support communication between SpyderPluginWidget and the
+    IPython kernels.
+    """
 
     def __init__(self, main=None):
         super(IPythonAPIMixin, self).__init__(main)

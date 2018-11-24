@@ -47,7 +47,7 @@ class NamespaceBrowserWidget(RichJupyterWidget):
     _kernel_is_starting = True
 
     def __init__(self, *args, **kwargs):
-        super(NamespaceBrowserWidget,self).__init__(*args, **kwargs)
+        super(NamespaceBrowserWidget, self).__init__(*args, **kwargs)
 
         # Message handlers
         def handle_data(msg):
@@ -79,7 +79,8 @@ class NamespaceBrowserWidget(RichJupyterWidget):
 
         def handle_set_breakpoints(msg):
             self.set_spyder_breakpoints(force=True)
-        self._messageHandler.addHandler('set_breakpoints', handle_set_breakpoints)
+        self._messageHandler.addHandler('set_breakpoints',
+                                        handle_set_breakpoints)
 
 
 
