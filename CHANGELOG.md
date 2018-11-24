@@ -1,5 +1,7 @@
 # History of changes
 
+## Version 3.3.2 (2018-11-24)
+
 ### New features
 
 #### Main Window
