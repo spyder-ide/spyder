@@ -16,7 +16,7 @@ from qtpy.QtWidgets import QDockWidget, QMainWindow, QShortcut
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import is_dark_font_color, get_font
+from spyder.config.gui import is_dark_interface, get_font
 from spyder.config.main import CONF
 from spyder.py3compat import is_text_string
 from spyder.utils import icon_manager as ima
@@ -32,15 +32,8 @@ class PluginWindow(QMainWindow):
         self.plugin = plugin
 
         # Setting interface theme
-        ui_theme = CONF.get('color_schemes', 'ui_theme')
-        color_scheme = CONF.get('color_schemes', 'selected')
-
-        if ui_theme == 'dark':
+        if is_dark_interface():
             self.setStyleSheet(qdarkstyle.load_stylesheet_from_environment())
-        elif ui_theme == 'automatic':
-            if not is_dark_font_color(color_scheme):
-                self.setStyleSheet(
-                        qdarkstyle.load_stylesheet_from_environment())
 
     def closeEvent(self, event):
         """Reimplement Qt method."""
