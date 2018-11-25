@@ -562,8 +562,9 @@ class MainWindow(QMainWindow):
         # Apply preferences
         self.apply_settings()
 
-        # Set all dockwidgets tabs to be on top
-        self.setTabPosition(Qt.AllDockWidgetAreas, QTabWidget.North)
+        # To set all dockwidgets tabs to be on top (in case we want to do it
+        # in the future)
+        # self.setTabPosition(Qt.AllDockWidgetAreas, QTabWidget.North)
 
         logger.info("End of MainWindow constructor")
 
