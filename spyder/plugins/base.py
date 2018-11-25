@@ -135,7 +135,7 @@ class BasePluginMixin(object):
         dock.setWidget(self)
         self.update_margins()
         dock.visibilityChanged.connect(self.visibility_changed)
-        dock.topLevelChanged.connect(self.disable_undock_action)
+        dock.topLevelChanged.connect(self.on_top_level_changed)
         dock.sig_plugin_closed.connect(self.plugin_closed)
         self.dockwidget = dock
         if self.shortcut is not None:
@@ -255,8 +255,8 @@ class BasePluginMixin(object):
         window.show()
 
     @Slot(bool)
-    def disable_undock_action(self, top_level):
-        """Disable undock action when plugin is undocked to be moved."""
+    def on_top_level_changed(self, top_level):
+        """Actions to perform when a plugin is undocked to be moved."""
         if top_level:
             self.undock_action.setDisabled(True)
         else:

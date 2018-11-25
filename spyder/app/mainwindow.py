@@ -2780,6 +2780,8 @@ class MainWindow(QMainWindow):
                 child.dockwidget.setTitleBarWidget(None)
                 features = features | QDockWidget.DockWidgetMovable
             else:
+                if child.dockwidget.isFloating():
+                    child.dockwidget.setFloating(False)
                 child.dockwidget.setTitleBarWidget(QWidget())
             child.dockwidget.setFeatures(features)
             child.update_margins()
