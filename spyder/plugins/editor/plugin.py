@@ -1577,15 +1577,6 @@ class Editor(SpyderPluginWidget):
             win = self.create_new_window()
             win.set_layout_settings(layout_settings)
 
-    @Slot()
-    def create_window(self):
-        """Create a QMainWindow instance containing this plugin."""
-        self.dockwidget.setVisible(False)
-        self.undocked_window = self.create_new_window()
-        self.dockwidget.setFloating(False)
-        if self.get_current_editorstack():
-            self.get_current_editorstack().new_window = False
-
     def switch_to_plugin(self):
         """
         Reimplemented method to desactivate shortcut when
