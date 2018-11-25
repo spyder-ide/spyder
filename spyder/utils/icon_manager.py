@@ -30,6 +30,7 @@ _resource = {
 }
 
 _qtaargs = {
+    'drag-horizontal':         [('mdi.drag-horizontal',), {'color': MAIN_FG_COLOR}],
     'format_letter_case':      [('mdi.format-letter-case',), {'color': MAIN_FG_COLOR}],
     'regex':                   [('mdi.regex',), {'color': MAIN_FG_COLOR}],
     'log':                     [('fa.file-text-o',), {'color': MAIN_FG_COLOR}],

@@ -8,9 +8,12 @@
 Dock widgets for plugins
 """
 
-from qtpy.QtCore import QEvent, QObject, QPoint, Qt, Signal
+from qtpy.QtCore import QEvent, QObject, QPoint, Qt, QSize, Signal
 from qtpy.QtGui import QCursor
-from qtpy.QtWidgets import QApplication, QDockWidget, QTabBar
+from qtpy.QtWidgets import (QApplication, QDockWidget, QHBoxLayout, QStyle,
+                            QTabBar, QToolButton, QWidget)
+
+from spyder.utils import icon_manager as ima
 
 
 class TabFilter(QObject):
@@ -54,12 +57,72 @@ class TabFilter(QObject):
         menu.exec_(self.dock_tabbar.mapToGlobal(event.pos()))
 
 
+class DockTitleBar(QWidget):
+    """
+    Custom title bar for our dock widgets.
+
+    Inspired from
+    https://stackoverflow.com/a/40894225/438386
+    """
+
+    def __init__(self, parent):
+        super(DockTitleBar, self).__init__(parent)
+
+        icon_size = QApplication.style().standardIcon(
+            QStyle.SP_TitleBarNormalButton).actualSize(QSize(100, 100))
+        button_size = icon_size + QSize(4, 4)
+
+        self.drag_button = QToolButton(self)
+        self.drag_button.setMaximumSize(button_size)
+        self.drag_button.setAutoRaise(True)
+        self.drag_button.setIcon(ima.icon('drag-horizontal'))
+
+        self.close_button = QToolButton(self)
+        self.close_button.setMaximumSize(button_size)
+        self.close_button.setAutoRaise(True)
+        self.close_button.setIcon(QApplication.style().standardIcon(
+            QStyle.SP_DockWidgetCloseButton))
+        self.close_button.setCursor(Qt.ArrowCursor)
+        self.close_button.clicked.connect(self.close_parent)
+
+        hlayout = QHBoxLayout(self)
+        hlayout.setSpacing(1)
+        hlayout.addStretch()
+        hlayout.addWidget(self.drag_button)
+        hlayout.addStretch()
+        hlayout.addSpacing(5)
+        hlayout.addWidget(self.close_button)
+
+        # To signal that dock widgets can be dragged from here
+        self.setCursor(Qt.OpenHandCursor)
+
+    def close_parent(self):
+        """Close dockwidget."""
+        self.parent().toggleViewAction().setChecked(False)
+        self.parent().hide()
+
+    def mouseReleaseEvent(self, event):
+        self.setCursor(Qt.OpenHandCursor)
+        QWidget.mouseReleaseEvent(self, event)
+
+    def mousePressEvent(self, event):
+        self.setCursor(Qt.ClosedHandCursor)
+        QWidget.mousePressEvent(self, event)
+
+    def mouseMoveEvent(self, event):
+        QWidget.mouseMoveEvent(self, event)
+        self.setCursor(Qt.OpenHandCursor)
+
+
 class SpyderDockWidget(QDockWidget):
     """Subclass to override needed methods"""
     sig_plugin_closed = Signal()
 
     def __init__(self, title, parent):
         super(SpyderDockWidget, self).__init__(title, parent)
+
+        # Our custom title bar
+        self.titlebar = DockTitleBar(self)
 
         # Needed for the installation of the event filter
         self.title = title
@@ -98,3 +161,7 @@ class SpyderDockWidget(QDockWidget):
                 self.dock_tabbar.filter = TabFilter(self.dock_tabbar,
                                                     self.main)
                 self.dock_tabbar.installEventFilter(self.dock_tabbar.filter)
+
+    def set_title_bar(self):
+        """Set custom title bar."""
+        self.setTitleBarWidget(self.titlebar)

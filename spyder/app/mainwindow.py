@@ -2777,8 +2777,7 @@ class MainWindow(QMainWindow):
             if CONF.get('main', 'vertical_dockwidget_titlebars'):
                 features = features | QDockWidget.DockWidgetVerticalTitleBar
             if not self.interface_locked:
-                child.dockwidget.setTitleBarWidget(None)
-                features = features | QDockWidget.DockWidgetMovable
+                child.dockwidget.set_title_bar()
             else:
                 if child.dockwidget.isFloating():
                     child.dockwidget.setFloating(False)
