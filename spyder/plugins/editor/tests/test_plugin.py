@@ -232,22 +232,22 @@ def test_no_template(setup_editor):
 
 def test_editor_has_autosave_component(setup_editor):
     """Test that Editor includes an AutosaveForPlugin."""
-    editor, qtbot = setup_editor
+    editor = setup_editor
     assert isinstance(editor.autosave, AutosaveForPlugin)
 
 
 def test_autosave_component_do_autosave(setup_editor, mocker):
     """Test that AutosaveForPlugin's do_autosave() calls the current editor
     stack's autosave_all()."""
-    editor, qtbot = setup_editor
+    editor = setup_editor
     editorStack = editor.get_current_editorstack()
     mocker.patch.object(editorStack.autosave, 'autosave_all')
     editor.autosave.do_autosave()
     assert editorStack.autosave.autosave_all.called
 
 
-def test_editor_transmits_sig_option_changed(setup_editor):
-    editor, qtbot = setup_editor
+def test_editor_transmits_sig_option_changed(setup_editor, qtbot):
+    editor = setup_editor
     editorStack = editor.get_current_editorstack()
     with qtbot.waitSignal(editor.sig_option_changed) as blocker:
         editorStack.sig_option_changed.emit('autosave_mapping', {1: 2})
@@ -256,16 +256,16 @@ def test_editor_transmits_sig_option_changed(setup_editor):
 
 def test_editor_sets_autosave_mapping_on_first_editorstack(setup_editor):
     """Check that first editor stack gets autosave mapping from config."""
-    editor, qtbot = setup_editor
+    editor = setup_editor
     editorStack = editor.get_current_editorstack()
     assert editorStack.autosave_mapping == {}
 
 
-def test_editor_syncs_autosave_mapping_among_editorstacks(setup_editor):
+def test_editor_syncs_autosave_mapping_among_editorstacks(setup_editor, qtbot):
     """Check that when an editorstack emits a sig_option_changed for
     autosave_mapping, the autosave mapping of all other editorstacks is
     updated."""
-    editor, qtbot = setup_editor
+    editor = setup_editor
     editor.editorsplitter.split()
     assert len(editor.editorstacks) == 2
     old_mapping = {}
@@ -286,12 +286,12 @@ def test_editor_syncs_autosave_mapping_among_editorstacks(setup_editor):
 def test_editor_calls_recoverydialog_exec_if_nonempty(
         mock_RecoveryDialog, setup_editor):
     """Check that editor tries to exec a recovery dialog on construction."""
-    editor, qtbot = setup_editor
+    editor = setup_editor
     assert mock_RecoveryDialog.return_value.exec_if_nonempty.called
 
 
 def test_closing_editor_plugin_stops_autosave_timer(setup_editor):
-    editor, qtbot = setup_editor
+    editor = setup_editor
     assert editor.autosave.timer.isActive()
     editor.closing_plugin()
     assert not editor.autosave.timer.isActive()

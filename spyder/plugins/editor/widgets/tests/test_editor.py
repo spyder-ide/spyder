@@ -582,7 +582,7 @@ def test_get_autosave_filename(editor_bot):
 
     Test a consistent and unique name for the autosave file is returned.
     """
-    editor_stack, editor, qtbot = editor_bot
+    editor_stack, editor = editor_bot
     autosave = editor_stack.autosave
     expected = os.path.join(get_conf_path('autosave'), 'foo.py')
     assert autosave.get_autosave_filename('foo.py') == expected
@@ -599,7 +599,7 @@ def test_autosave_all(editor_bot, mocker):
     The `editor_bot` fixture is constructed with one open file and the test
     opens another one with `new()`, so autosave should be called twice.
     """
-    editor_stack, editor, qtbot = editor_bot
+    editor_stack, editor = editor_bot
     editor_stack.new('ham.py', 'utf-8', '')
     mocker.patch.object(editor_stack.autosave, 'autosave')
     editor_stack.autosave.autosave_all()
@@ -609,7 +609,7 @@ def test_autosave_all(editor_bot, mocker):
 
 def test_autosave(editor_bot):
     """Test that autosave() saves text to correct file."""
-    editor_stack, editor, qtbot = editor_bot
+    editor_stack, editor = editor_bot
     editor_stack.autosave.autosave(0)
     contents = open(os.path.join(get_conf_path('autosave'), 'foo.py')).read()
     assert contents.startswith('a = 1')
@@ -624,7 +624,7 @@ def test_autosave_saves_only_if_changed(editor_bot, mocker):
     so call #2 should not autosave. After call #2 we change the text, so call
     #3 should again autosave.
     """
-    editor_stack, editor, qtbot = editor_bot
+    editor_stack, editor = editor_bot
     mocker.patch.object(editor_stack, '_write_to_file')
     editor_stack.autosave.autosave(0)  # call #1, should write
     assert editor_stack._write_to_file.call_count == 1
@@ -637,7 +637,7 @@ def test_autosave_saves_only_if_changed(editor_bot, mocker):
 
 def test_autosave_does_not_save_new_files(editor_bot, mocker):
     """Test that autosave() does not save newly created files."""
-    editor_stack, editor, qtbot = editor_bot
+    editor_stack, editor = editor_bot
     editor_stack.data[0].newly_created = True
     mocker.patch.object(editor_stack, '_write_to_file')
     editor_stack.autosave.autosave(0)
@@ -650,7 +650,7 @@ def test_autosave_does_not_save_after_open(base_editor_bot, mocker):
 
     Files should only be autosaved after the user made changes.
     """
-    editor_stack, qtbot = base_editor_bot
+    editor_stack = base_editor_bot
     txt = 'spam\n'
     editor_stack.create_new_editor('ham.py', 'ascii', txt, set_current=True)
     mocker.patch.object(editor_stack, '_write_to_file')
@@ -666,7 +666,7 @@ def test_autosave_does_not_save_after_reload(base_editor_bot, mocker):
     no need to autosave because the contents in Spyder are identical to the
     contents on disk.
     """
-    editor_stack, qtbot = base_editor_bot
+    editor_stack = base_editor_bot
     txt = 'spam\n'
     editor_stack.create_new_editor('ham.py', 'ascii', txt, set_current=True)
     mocker.patch.object(editor_stack, '_write_to_file')
@@ -679,9 +679,9 @@ def test_autosave_does_not_save_after_reload(base_editor_bot, mocker):
     editor_stack._write_to_file.assert_not_called()
 
 
-def test_autosave_updates_name_mapping(editor_bot, mocker):
+def test_autosave_updates_name_mapping(editor_bot, mocker, qtbot):
     """Test that autosave() updates name_mapping."""
-    editor_stack, editor, qtbot = editor_bot
+    editor_stack, editor = editor_bot
     assert editor_stack.autosave.name_mapping == {}
     mocker.patch.object(editor_stack, '_write_to_file')
     with qtbot.wait_signal(editor_stack.sig_option_changed) as blocker:
@@ -693,7 +693,7 @@ def test_autosave_updates_name_mapping(editor_bot, mocker):
 
 def test_autosave_ignores_error(editor_bot, mocker):
     """Test that autosave() ignores errors when writing to file."""
-    editor_stack, editor, qtbot = editor_bot
+    editor_stack, editor = editor_bot
     mock_write = mocker.patch.object(editor_stack, '_write_to_file')
     try:
         mock_write.side_effect = PermissionError
@@ -702,13 +702,13 @@ def test_autosave_ignores_error(editor_bot, mocker):
     editor_stack.autosave.autosave(0)
 
 
-def test_remove_autosave_file(editor_bot, mocker):
+def test_remove_autosave_file(editor_bot, mocker, qtbot):
     """
     Test that remove_autosave_file() removes the autosave file
 
     Also, test that it updates `name_mapping`.
     """
-    editor_stack, editor, qtbot = editor_bot
+    editor_stack, editor = editor_bot
     autosave = editor_stack.autosave
     with qtbot.wait_signal(editor_stack.sig_option_changed) as blocker:
         autosave.autosave(0)
