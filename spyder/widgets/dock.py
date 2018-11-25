@@ -10,9 +10,11 @@ Dock widgets for plugins
 
 from qtpy.QtCore import QEvent, QObject, QPoint, Qt, QSize, Signal
 from qtpy.QtGui import QCursor
-from qtpy.QtWidgets import (QApplication, QDockWidget, QHBoxLayout, QStyle,
-                            QTabBar, QToolButton, QWidget)
+from qtpy.QtWidgets import (QApplication, QDockWidget, QHBoxLayout,
+                            QSizePolicy, QStyle, QTabBar, QToolButton,
+                            QWidget)
 
+from spyder.config.gui import is_dark_interface
 from spyder.utils import icon_manager as ima
 
 
@@ -70,31 +72,54 @@ class DockTitleBar(QWidget):
 
         icon_size = QApplication.style().standardIcon(
             QStyle.SP_TitleBarNormalButton).actualSize(QSize(100, 100))
-        button_size = icon_size + QSize(4, 4)
+        button_size = icon_size + QSize(9, 9)
 
-        self.drag_button = QToolButton(self)
-        self.drag_button.setMaximumSize(button_size)
-        self.drag_button.setAutoRaise(True)
-        self.drag_button.setIcon(ima.icon('drag-horizontal'))
+        left_spacer = QWidget()
+        left_spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        if is_dark_interface():
+            left_spacer.setStyleSheet("background-color: #31363B")
 
-        self.close_button = QToolButton(self)
-        self.close_button.setMaximumSize(button_size)
-        self.close_button.setAutoRaise(True)
-        self.close_button.setIcon(QApplication.style().standardIcon(
-            QStyle.SP_DockWidgetCloseButton))
-        self.close_button.setCursor(Qt.ArrowCursor)
-        self.close_button.clicked.connect(self.close_parent)
+        drag_button = QToolButton(self)
+        drag_button.setMaximumSize(button_size)
+        drag_button.setAutoRaise(True)
+        drag_button.setIcon(ima.icon('drag-horizontal'))
+        if is_dark_interface():
+            drag_button.setStyleSheet(
+                "QToolButton {"
+                "border-radius: 0px;"
+                "border: 0px;"
+                "background-color: #31363B;}")
+
+        right_spacer = QWidget()
+        right_spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        if is_dark_interface():
+            right_spacer.setStyleSheet("background-color: #31363B")
+
+        close_button = QToolButton(self)
+        close_button.setMaximumSize(button_size)
+        close_button.setAutoRaise(True)
+        close_button.setCursor(Qt.ArrowCursor)
+        close_button.clicked.connect(self.close_parent)
+        if is_dark_interface():
+            close_button.setStyleSheet(
+                "QToolButton {"
+                "border-radius: 0px;"
+                "border: 0px;"
+                "image: url(:/qss_icons/rc/close.png);"
+                "background-color: #31363B;}"
+                "QToolButton:hover {"
+                "image: url(:/qss_icons/rc/close-hover.png);}")
 
         hlayout = QHBoxLayout(self)
-        hlayout.setSpacing(1)
-        hlayout.addStretch()
-        hlayout.addWidget(self.drag_button)
-        hlayout.addStretch()
-        hlayout.addSpacing(5)
-        hlayout.addWidget(self.close_button)
+        hlayout.setSpacing(0)
+        hlayout.setContentsMargins(0, 0, 0, 0)
+        hlayout.addWidget(left_spacer)
+        hlayout.addWidget(drag_button)
+        hlayout.addWidget(right_spacer)
+        hlayout.addWidget(close_button)
 
         # To signal that dock widgets can be dragged from here
-        self.setCursor(Qt.OpenHandCursor)
+        self.setCursor(Qt.SizeAllCursor)
 
     def close_parent(self):
         """Close dockwidget."""
@@ -102,7 +127,7 @@ class DockTitleBar(QWidget):
         self.parent().hide()
 
     def mouseReleaseEvent(self, event):
-        self.setCursor(Qt.OpenHandCursor)
+        self.setCursor(Qt.SizeAllCursor)
         QWidget.mouseReleaseEvent(self, event)
 
     def mousePressEvent(self, event):
@@ -111,7 +136,7 @@ class DockTitleBar(QWidget):
 
     def mouseMoveEvent(self, event):
         QWidget.mouseMoveEvent(self, event)
-        self.setCursor(Qt.OpenHandCursor)
+        self.setCursor(Qt.SizeAllCursor)
 
 
 class SpyderDockWidget(QDockWidget):
