@@ -72,7 +72,7 @@ class DockTitleBar(QWidget):
 
         icon_size = QApplication.style().standardIcon(
             QStyle.SP_TitleBarNormalButton).actualSize(QSize(100, 100))
-        button_size = icon_size + QSize(9, 9)
+        button_size = icon_size + QSize(8, 8)
 
         left_spacer = QWidget()
         left_spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
@@ -99,7 +99,7 @@ class DockTitleBar(QWidget):
         close_button.setMaximumSize(button_size)
         close_button.setAutoRaise(True)
         close_button.setCursor(Qt.ArrowCursor)
-        close_button.clicked.connect(self.close_parent)
+        close_button.clicked.connect(parent.sig_plugin_closed.emit)
         if is_dark_interface():
             close_button.setStyleSheet(
                 "QToolButton {"
@@ -120,11 +120,6 @@ class DockTitleBar(QWidget):
 
         # To signal that dock widgets can be dragged from here
         self.setCursor(Qt.SizeAllCursor)
-
-    def close_parent(self):
-        """Close dockwidget."""
-        self.parent().toggleViewAction().setChecked(False)
-        self.parent().hide()
 
     def mouseReleaseEvent(self, event):
         self.setCursor(Qt.SizeAllCursor)
