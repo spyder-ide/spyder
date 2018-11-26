@@ -10,5 +10,5 @@ import numpy as np
 arr = np.array(li)
 
 #%% Fourth Code/ Cell's % name\
-s = "Z:\\escape\\test\\string\n"
+s = """Z:\\escape\\test\\string\n"""
 a

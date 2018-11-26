@@ -30,6 +30,8 @@ _resource = {
 }
 
 _qtaargs = {
+    'format_letter_case':      [('mdi.format-letter-case',), {'color': MAIN_FG_COLOR}],
+    'regex':                   [('mdi.regex',), {'color': MAIN_FG_COLOR}],
     'log':                     [('fa.file-text-o',), {'color': MAIN_FG_COLOR}],
     'configure':               [('fa.wrench',), {'color': MAIN_FG_COLOR}],
     'bold':                    [('fa.bold',), {'color': MAIN_FG_COLOR}],
@@ -176,7 +178,7 @@ _qtaargs = {
     'DialogCloseButton':       [('fa.close',), {'color': MAIN_FG_COLOR}],
     'DirClosedIcon':           [('fa.folder-o',), {'color': MAIN_FG_COLOR}],
     'DialogHelpButton':        [('fa.life-ring',), {'color': 'darkred'}],
-    'MessageBoxInformation':   [('fa.info',), {'color': '3775a9'}],
+    'MessageBoxInformation':   [('fa.info',), {'color': MAIN_FG_COLOR}],
     'DirOpenIcon':             [('fa.folder-open',), {'color': MAIN_FG_COLOR}],
     'FileIcon':                [('fa.file-o',), {'color': MAIN_FG_COLOR}],
     'ExcelFileIcon':           [('fa.file-excel-o',), {'color': MAIN_FG_COLOR}],
@@ -288,7 +290,7 @@ def get_icon(name, default=None, resample=False):
 
 
 def icon(name, resample=False, icon_path=None):
-    theme = CONF.get('main', 'icon_theme')
+    theme = CONF.get('appearance', 'icon_theme')
     if theme == 'spyder 3':
         if not _resource['loaded']:
             qta.load_font('spyder', 'spyder.ttf', 'spyder-charmap.json',

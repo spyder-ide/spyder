@@ -24,10 +24,12 @@ from qtpy.QtGui import (QClipboard, QColor, QFont, QMouseEvent, QPalette,
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QListWidget,
                             QListWidgetItem, QMainWindow, QPlainTextEdit,
                             QToolTip)
+from qtconsole.styles import dark_color
 
 # Local imports
 from spyder.config.gui import get_font
 from spyder.config.main import CONF
+from spyder.config.gui import is_dark_interface
 from spyder.py3compat import PY3, str_lower, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.widgets.calltip import CallTipWidget
@@ -37,6 +39,18 @@ from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
 from spyder.plugins.editor.lsp import CompletionItemKind
 
+if is_dark_interface():
+    MAIN_BG_COLOR = '#19232D'
+    MAIN_DEFAULT_FG_COLOR = '#ffffff'
+    MAIN_ERROR_FG_COLOR = '#FF0000'
+    MAIN_TB_FG_COLOR = '#2980b9'
+    MAIN_PROMPT_FG_COLOR = '#00AA00'
+else:
+    MAIN_BG_COLOR = 'white'
+    MAIN_DEFAULT_FG_COLOR = '#000000'
+    MAIN_ERROR_FG_COLOR = '#FF0000'
+    MAIN_TB_FG_COLOR = '#0000FF'
+    MAIN_PROMPT_FG_COLOR = '#00AA00'
 
 def insert_text_to(cursor, text, fmt):
     """Helper to print text, taking into account backspaces"""
@@ -1262,12 +1276,16 @@ class QtANSIEscapeCodeHandler(ANSIEscapeCodeHandler):
         self.base_format = None
         self.current_format = None
 
-    def set_light_background(self, state):
-        if state:
+    def set_color_scheme(self, foreground_color, background_color):
+        """Set color scheme (foreground and background)."""
+        if dark_color(foreground_color):
             self.default_foreground_color = 30
-            self.default_background_color = 47
         else:
             self.default_foreground_color = 37
+
+        if dark_color(background_color):
+            self.default_background_color = 47
+        else:
             self.default_background_color = 40
 
     def set_base_format(self, base_format):
@@ -1336,16 +1354,12 @@ class ConsoleFontStyle(object):
         self.underline = underline
         self.format = None
 
-    def apply_style(self, font, light_background, is_default):
+    def apply_style(self, font, is_default):
         self.format = QTextCharFormat()
         self.format.setFont(font)
         foreground = QColor(self.foregroundcolor)
-        if not light_background and is_default:
-            inverse_color(foreground)
         self.format.setForeground(foreground)
         background = QColor(self.backgroundcolor)
-        if not light_background:
-            inverse_color(background)
         self.format.setBackground(background)
         font = self.format.font()
         font.setBold(self.bold)
@@ -1365,7 +1379,11 @@ class ConsoleBaseWidget(TextEditBaseWidget):
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
 
-        self.light_background = True
+        # We use an object name to set the right background
+        # color when changing interface theme. This seems to
+        # be a Qt bug.
+        # Fixes issue 8072
+        self.setObjectName('console')
 
         self.setMaximumBlockCount(300)
 
@@ -1378,32 +1396,44 @@ class ConsoleBaseWidget(TextEditBaseWidget):
         self.userListActivated.connect(lambda user_id, text:
                                    self.completion_widget_activated.emit(text))
 
+        background_color = MAIN_BG_COLOR
+        default_foreground_color = MAIN_DEFAULT_FG_COLOR
+        error_foreground_color = MAIN_ERROR_FG_COLOR
+        traceback_foreground_color = MAIN_TB_FG_COLOR
+        prompt_foreground_color = MAIN_PROMPT_FG_COLOR
+
         self.default_style = ConsoleFontStyle(
-                            foregroundcolor=0x000000, backgroundcolor=0xFFFFFF,
+                            foregroundcolor=default_foreground_color,
+                            backgroundcolor=background_color,
                             bold=False, italic=False, underline=False)
         self.error_style  = ConsoleFontStyle(
-                            foregroundcolor=0xFF0000, backgroundcolor=0xFFFFFF,
+                            foregroundcolor=error_foreground_color,
+                            backgroundcolor=background_color,
                             bold=False, italic=False, underline=False)
         self.traceback_link_style  = ConsoleFontStyle(
-                            foregroundcolor=0x0000FF, backgroundcolor=0xFFFFFF,
+                            foregroundcolor=traceback_foreground_color,
+                            backgroundcolor=background_color,
                             bold=True, italic=False, underline=True)
         self.prompt_style  = ConsoleFontStyle(
-                            foregroundcolor=0x00AA00, backgroundcolor=0xFFFFFF,
+                            foregroundcolor=prompt_foreground_color,
+                            backgroundcolor=background_color,
                             bold=True, italic=False, underline=False)
         self.font_styles = (self.default_style, self.error_style,
                             self.traceback_link_style, self.prompt_style)
-        self.set_pythonshell_font()
+
+        self.set_color_scheme(default_foreground_color, background_color)
         self.setMouseTracking(True)
 
-    def set_light_background(self, state):
-        self.light_background = state
-        if state:
-            self.set_palette(background=QColor(Qt.white),
-                             foreground=QColor(Qt.darkGray))
-        else:
-            self.set_palette(background=QColor(Qt.black),
-                             foreground=QColor(Qt.lightGray))
-        self.ansi_handler.set_light_background(state)
+    def set_color_scheme(self, foreground_color, background_color):
+        """Set color scheme of the console (foreground and background)."""
+        self.ansi_handler.set_color_scheme(foreground_color, background_color)
+
+        background_color = QColor(background_color)
+        foreground_color = QColor(foreground_color)
+
+        self.set_palette(background=background_color,
+                         foreground=foreground_color)
+
         self.set_pythonshell_font()
 
     #------Python shell
@@ -1489,6 +1519,5 @@ class ConsoleBaseWidget(TextEditBaseWidget):
             font = QFont()
         for style in self.font_styles:
             style.apply_style(font=font,
-                              light_background=self.light_background,
                               is_default=style is self.default_style)
         self.ansi_handler.set_base_format(self.default_style.format)

@@ -188,7 +188,7 @@ class LSPServerEditor(QDialog):
         conf_label = QLabel(_('LSP Server Configurations:'))
         self.conf_input = CodeEditor(None)
         self.conf_input.textChanged.connect(self.validate)
-        color_scheme = CONF.get('color_schemes', 'selected')
+        color_scheme = CONF.get('appearance', 'selected')
         self.conf_input.setup_editor(
             language='JSON',
             color_scheme=color_scheme,

@@ -575,8 +575,8 @@ class MainWindow(QMainWindow):
         logger.info("*** Start of MainWindow setup ***")
 
         logger.info("Applying theme configuration...")
-        ui_theme = CONF.get('color_schemes', 'ui_theme')
-        color_scheme = CONF.get('color_schemes', 'selected')
+        ui_theme = CONF.get('appearance', 'ui_theme')
+        color_scheme = CONF.get('appearance', 'selected')
 
         if ui_theme == 'dark':
             self.setStyleSheet(qdarkstyle.load_stylesheet_from_environment())
@@ -2736,7 +2736,7 @@ class MainWindow(QMainWindow):
             except:
                 pass
         else:
-            style_name = CONF.get('main', 'windows_style',
+            style_name = CONF.get('appearance', 'windows_style',
                                   self.default_style)
             style = QStyleFactory.create(style_name)
             if style is not None:
@@ -3351,7 +3351,7 @@ def main():
                 "icon theme. That's why it's going to fallback to the "
                 "theme used in Spyder 2.<br><br>"
                 "For that, please close this window and start Spyder again.")
-        CONF.set('main', 'icon_theme', 'spyder 2')
+        CONF.set('appearance', 'icon_theme', 'spyder 2')
     except BaseException:
         CONF.set('main', 'crash', True)
         import traceback

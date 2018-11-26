@@ -155,12 +155,12 @@ and designed by and for scientists, engineers and data analysts.
 It features a unique combination of the advanced editing, analysis, debugging
 and profiling functionality of a comprehensive development tool with the data
 exploration, interactive execution, deep inspection and beautiful visualization
-capabilities of a scientific package.
+capabilities of a scientific package.\n
 Furthermore, Spyder offers built-in integration with many popular
 scientific packages, including NumPy, SciPy, Pandas, IPython, QtConsole,
-Matplotlib, SymPy, and more.
+Matplotlib, SymPy, and more.\n
 Beyond its many built-in features, Spyder's abilities can be extended even
-further via first- and third-party plugins.
+further via first- and third-party plugins.\n
 Spyder can also be used as a PyQt5 extension library, allowing you to build
 upon its functionality and embed its components, such as the interactive
 console or advanced editor, in your own software.
@@ -210,13 +210,14 @@ install_requires = [
     'sphinx',
     'pylint',
     'psutil',
-    'qtawesome>=0.4.1',
+    'qtawesome>=0.5.0',
     'qtpy>=1.5.0',
     'pickleshare',
     'pyzmq',
     'chardet>=2.0.0',
     'numpydoc',
     'spyder-kernels>=1.0',
+    'qdarkstyle>=2.6.4',
     # Don't require keyring for Python 2 and Linux
     # because it depends on system packages
     'keyring;sys_platform!="linux2"',
@@ -224,8 +225,7 @@ install_requires = [
     # Python 3
     'pyqt5<5.10;python_version>="3"',
     # Pyls with all its dependencies
-    'python-language-server[all]',
-    'qdarkstyle',
+    'python-language-server[all]==0.19.0',
     # Required to get SSH connections to remote kernels
     'pexpect;platform_system!="Windows"',
     'paramiko;platform_system=="Windows"'

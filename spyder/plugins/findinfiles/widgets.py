@@ -41,7 +41,7 @@ from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.comboboxes import PatternComboBox
 from spyder.widgets.onecolumntree import OneColumnTree
 from spyder.utils.misc import regexp_error_msg
-from spyder.utils.qthelpers import create_toolbutton, get_icon
+from spyder.utils.qthelpers import create_toolbutton
 from spyder.config.gui import get_font
 from spyder.widgets.waitingspinner import QWaitingSpinner
 
@@ -427,10 +427,11 @@ class FindOptions(QWidget):
         self.search_text = PatternComboBox(self, search_text,
                                            _("Search pattern"))
         self.edit_regexp = create_toolbutton(self,
-                                             icon=get_icon('regexp.svg'),
+                                             icon=ima.icon('regex'),
                                              tip=_('Regular expression'))
         self.case_button = create_toolbutton(self,
-                                             icon=get_icon("upper_lower.png"),
+                                             icon=ima.icon(
+                                                     "format_letter_case"),
                                              tip=_("Case Sensitive"))
         self.case_button.setCheckable(True)
         self.case_button.setChecked(case_sensitive)
@@ -469,7 +470,7 @@ class FindOptions(QWidget):
            and exclude_idx < self.exclude_pattern.count():
             self.exclude_pattern.setCurrentIndex(exclude_idx)
         self.exclude_regexp = create_toolbutton(self,
-                                                icon=get_icon('regexp.svg'),
+                                                icon=ima.icon('regex'),
                                                 tip=_('Regular expression'))
         self.exclude_regexp.setCheckable(True)
         self.exclude_regexp.setChecked(exclude_regexp)

@@ -28,7 +28,6 @@ from spyder.widgets.github.backend import GithubBackend
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.widgets.mixins import BaseEditMixin, TracebackLinksMixin
 from spyder.plugins.editor.widgets.base import ConsoleBaseWidget
-from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 
 
 # Minimum number of characters to introduce in the title and
@@ -47,7 +46,7 @@ class DescriptionWidget(CodeEditor):
         # Editor options
         self.setup_editor(
             language='md',
-            color_scheme=CONF.get('color_schemes',
+            color_scheme=CONF.get('appearance',
                                   'selected'),
             linenumbers=False,
             scrollflagarea=False,

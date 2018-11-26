@@ -166,6 +166,8 @@ class ConfigDialog(QDialog):
         hsplitter = QSplitter()
         hsplitter.addWidget(self.contents_widget)
         hsplitter.addWidget(self.pages_widget)
+        hsplitter.setStretchFactor(0, 1)
+        hsplitter.setStretchFactor(1, 2)
 
         btnlayout = QHBoxLayout()
         btnlayout.addWidget(self.button_reset)
@@ -896,21 +898,6 @@ class MainConfigPage(GeneralConfigPage):
 
         # --- Theme
         interface_group = QGroupBox(_("Interface"))
-        styles = [str(txt) for txt in list(QStyleFactory.keys())]
-        # Don't offer users the possibility to change to a different
-        # style in Gtk-based desktops
-        # Fixes Issue 2036
-        if is_gtk_desktop() and ('GTK+' in styles):
-            styles = ['GTK+']
-        choices = list(zip(styles, [style.lower() for style in styles]))
-        style_combo = self.create_combobox(_('Qt windows style'), choices,
-                                           'windows_style',
-                                           default=self.main.default_style)
-
-        themes = ['Spyder 2', 'Spyder 3']
-        icon_choices = list(zip(themes, [theme.lower() for theme in themes]))
-        icons_combo = self.create_combobox(_('Icon theme'), icon_choices,
-                                           'icon_theme', restart=True)
 
         vertdock_box = newcb(_("Vertical title bars in panes"),
                              'vertical_dockwidget_titlebars')
@@ -952,17 +939,7 @@ class MainConfigPage(GeneralConfigPage):
         margins_cursor_layout.setColumnStretch(2, 100)
 
         # Layout interface
-        comboboxes_layout = QHBoxLayout()
-        cbs_layout = QGridLayout()
-        cbs_layout.addWidget(style_combo.label, 0, 0)
-        cbs_layout.addWidget(style_combo.combobox, 0, 1)
-        cbs_layout.addWidget(icons_combo.label, 1, 0)
-        cbs_layout.addWidget(icons_combo.combobox, 1, 1)
-        comboboxes_layout.addLayout(cbs_layout)
-        comboboxes_layout.addStretch(1)
-        
         interface_layout = QVBoxLayout()
-        interface_layout.addLayout(comboboxes_layout)
         interface_layout.addWidget(vertdock_box)
         interface_layout.addWidget(verttabs_box)
         interface_layout.addWidget(animated_box)
@@ -1072,51 +1049,15 @@ class MainConfigPage(GeneralConfigPage):
         screen_resolution_layout.addLayout(screen_resolution_inner_layout)
         screen_resolution_group.setLayout(screen_resolution_layout)
 
-        # --- Theme and fonts
-        plain_text_font = self.create_fontgroup(
-            option='font',
-            title=_("Plain text font"),
-            fontfilters=QFontComboBox.MonospacedFonts,
-            without_group=True)
-
-        rich_text_font = self.create_fontgroup(
-            option='rich_font',
-            title=_("Rich text font"),
-            without_group=True)
-
-        fonts_group = QGroupBox(_("Fonts"))
-        fonts_layout = QGridLayout()
-        fonts_layout.addWidget(plain_text_font.fontlabel, 0, 0)
-        fonts_layout.addWidget(plain_text_font.fontbox, 0, 1)
-        fonts_layout.addWidget(plain_text_font.sizelabel, 0, 2)
-        fonts_layout.addWidget(plain_text_font.sizebox, 0, 3)
-        fonts_layout.addWidget(rich_text_font.fontlabel, 1, 0)
-        fonts_layout.addWidget(rich_text_font.fontbox, 1, 1)
-        fonts_layout.addWidget(rich_text_font.sizelabel, 1, 2)
-        fonts_layout.addWidget(rich_text_font.sizebox, 1, 3)
-        fonts_group.setLayout(fonts_layout)
-
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(fonts_group, screen_resolution_group,
-                    interface_group), _("Appearance"))
+        tabs.addTab(self.create_tab(screen_resolution_group, interface_group),
+                    _("Interface"))
         tabs.addTab(self.create_tab(general_group, sbar_group),
                     _("Advanced Settings"))
 
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)
         self.setLayout(vlayout)
-
-    def get_font(self, option):
-        """Return global font used in Spyder."""
-        return get_font(option=option)
-
-    def set_font(self, font, option):
-        """Set global font used in Spyder."""
-        # Update fonts in all plugins
-        set_font(font, option=option)
-        plugins = self.main.widgetlist + self.main.thirdparty_plugins
-        for plugin in plugins:
-            plugin.update_font()
 
     def apply_settings(self, options):
         self.main.apply_settings()
@@ -1143,8 +1084,8 @@ class MainConfigPage(GeneralConfigPage):
 
 
 class ColorSchemeConfigPage(GeneralConfigPage):
-    CONF_SECTION = "color_schemes"
-    NAME = _("Syntax coloring")
+    CONF_SECTION = "appearance"
+    NAME = _("Appearance")
 
     def setup_page(self):
         self.ICON = ima.icon('eyedropper')
@@ -1156,12 +1097,59 @@ class ColorSchemeConfigPage(GeneralConfigPage):
             pass
         custom_names = self.get_option("custom_names", [])
 
-        # Widgets
-        about_label = QLabel(_("Here you can select the color scheme used in "
-                               "the Editor and all other Spyder plugins.<br><br>"
-                               "You can also edit the color schemes provided "
-                               "by Spyder or create your own ones by using "
-                               "the options provided below.<br>"))
+        # Layouts
+        manage_layout = QVBoxLayout()
+
+        # Description of the section
+        about_label = QLabel(_("Customize the look and feel of "
+                               "Spyder and its plugins.<br>"))
+        about_label.setWordWrap(True)
+        manage_layout.addWidget(about_label)
+
+        # Interface options
+        theme_group = QGroupBox(_("Interface"))
+
+        # Interface Widgets
+        ui_themes = ['Automatic', 'Light', 'Dark']
+        ui_theme_choices = list(zip(ui_themes, [ui_theme.lower()
+                                                for ui_theme in ui_themes]))
+        ui_theme_combo = self.create_combobox(_('Interface theme:'),
+                                              ui_theme_choices,
+                                              'ui_theme',
+                                              restart=True)
+
+        styles = [str(txt) for txt in list(QStyleFactory.keys())]
+        # Don't offer users the possibility to change to a different
+        # style in Gtk-based desktops
+        # Fixes Issue 2036
+        if is_gtk_desktop() and ('GTK+' in styles):
+            styles = ['GTK+']
+        choices = list(zip(styles, [style.lower() for style in styles]))
+        style_combo = self.create_combobox(_('Qt windows style'), choices,
+                                           'windows_style',
+                                           default=self.main.default_style)
+
+        themes = ['Spyder 2', 'Spyder 3']
+        icon_choices = list(zip(themes, [theme.lower() for theme in themes]))
+        icons_combo = self.create_combobox(_('Icon theme'), icon_choices,
+                                           'icon_theme', restart=True)
+
+        theme_comboboxes_layout = QGridLayout()
+        theme_comboboxes_layout.addWidget(ui_theme_combo.label, 0, 0)
+        theme_comboboxes_layout.addWidget(ui_theme_combo.combobox, 0, 1)
+        theme_comboboxes_layout.addWidget(style_combo.label, 1, 0)
+        theme_comboboxes_layout.addWidget(style_combo.combobox, 1, 1)
+        theme_comboboxes_layout.addWidget(icons_combo.label, 2, 0)
+        theme_comboboxes_layout.addWidget(icons_combo.combobox, 2, 1)
+
+        theme_layout = QVBoxLayout()
+        theme_layout.addLayout(theme_comboboxes_layout)
+        theme_group.setLayout(theme_layout)
+
+        # Syntax coloring options
+        syntax_group = QGroupBox(_("Syntax highlighting"))
+
+        # Syntax Widgets
         edit_button = QPushButton(_("Edit selected"))
         create_button = QPushButton(_("Create new scheme"))
         self.delete_button = QPushButton(_("Delete"))
@@ -1171,50 +1159,76 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         self.scheme_editor_dialog = SchemeEditor(parent=self,
                                                  stack=self.stacked_widget)
 
-        # Widget setup
         self.scheme_choices_dict = {}
-        about_label.setWordWrap(True)
         schemes_combobox_widget = self.create_combobox(_('Syntax scheme:'),
                                                        [('', '')],
                                                        'selected')
         self.schemes_combobox = schemes_combobox_widget.combobox
 
-        ui_themes = ['Automatic', 'Light', 'Dark']
-        ui_theme_choices = list(zip(ui_themes, [ui_theme.lower()
-                                                for ui_theme in ui_themes]))
-        ui_theme_combo = self.create_combobox(_('Interface theme:'),
-                                              ui_theme_choices,
-                                              'ui_theme',
-                                              restart=True)
-
-        # Layouts
-        manage_layout = QVBoxLayout()
-        manage_layout.addWidget(about_label)
-
-        comboboxes_layout = QGridLayout()
-        comboboxes_layout.addWidget(ui_theme_combo.label, 0, 0)
-        comboboxes_layout.addWidget(ui_theme_combo.combobox, 0, 1)
-
-        comboboxes_layout.addWidget(schemes_combobox_widget.label, 1, 0)
-        comboboxes_layout.addWidget(schemes_combobox_widget.combobox, 1, 1)
+        # Syntax Layouts
+        syntax_comboboxes_layout = QGridLayout()
+        syntax_comboboxes_layout.addWidget(schemes_combobox_widget.label, 0, 0)
+        syntax_comboboxes_layout.addWidget(schemes_combobox_widget.combobox,
+                                           0, 1)
 
         buttons_layout = QVBoxLayout()
-        buttons_layout.addLayout(comboboxes_layout)
+        buttons_layout.addLayout(syntax_comboboxes_layout)
         buttons_layout.addWidget(edit_button)
         buttons_layout.addWidget(self.reset_button)
         buttons_layout.addWidget(self.delete_button)
         buttons_layout.addStretch(1)
         buttons_layout.addWidget(create_button)
+        syntax_group.setLayout(buttons_layout)
 
+        # Fonts options
+        fonts_group = QGroupBox(_("Fonts"))
+
+        # Fonts widgets
+        plain_text_font = self.create_fontgroup(
+            option='font',
+            title=_("Plain text font"),
+            fontfilters=QFontComboBox.MonospacedFonts,
+            without_group=True)
+
+        rich_text_font = self.create_fontgroup(
+            option='rich_font',
+            title=_("Rich text font"),
+            without_group=True)
+
+        # Fonts layouts
+        fonts_layout = QGridLayout()
+        fonts_layout.addWidget(plain_text_font.fontlabel, 0, 0)
+        fonts_layout.addWidget(plain_text_font.fontbox, 0, 1)
+        fonts_layout.addWidget(plain_text_font.sizelabel, 0, 2)
+        fonts_layout.addWidget(plain_text_font.sizebox, 0, 3)
+        fonts_layout.addWidget(rich_text_font.fontlabel, 1, 0)
+        fonts_layout.addWidget(rich_text_font.fontbox, 1, 1)
+        fonts_layout.addWidget(rich_text_font.sizelabel, 1, 2)
+        fonts_layout.addWidget(rich_text_font.sizebox, 1, 3)
+        fonts_group.setLayout(fonts_layout)
+
+        # Left options layout
+        options_layout = QVBoxLayout()
+        options_layout.addWidget(theme_group)
+        options_layout.addWidget(syntax_group)
+        options_layout.addWidget(fonts_group)
+
+        # Right preview layout
+        preview_group = QGroupBox(_("Preview"))
         preview_layout = QVBoxLayout()
         preview_layout.addWidget(self.preview_editor)
+        preview_group.setLayout(preview_layout)
 
-        buttons_preview_layout = QHBoxLayout()
-        buttons_preview_layout.addLayout(buttons_layout)
-        buttons_preview_layout.addLayout(preview_layout)
+        buttons_preview_layout = QGridLayout()
+        buttons_preview_layout.setRowStretch(0, 1)
+        buttons_preview_layout.setColumnStretch(0, 1)
+        buttons_preview_layout.setColumnStretch(1, 1)
+        buttons_preview_layout.addLayout(options_layout, 0, 0)
+        buttons_preview_layout.addWidget(preview_group, 0, 1)
 
+        # Groupbox for the section
         manage_layout.addLayout(buttons_preview_layout)
-        manage_group = QGroupBox(_("Manage color schemes"))
+        manage_group = QGroupBox(_("Appearance"))
         manage_group.setLayout(manage_layout)
 
         vlayout = QVBoxLayout()
@@ -1238,6 +1252,18 @@ class ColorSchemeConfigPage(GeneralConfigPage):
 
         self.update_combobox()
         self.update_preview()
+
+    def get_font(self, option):
+        """Return global font used in Spyder."""
+        return get_font(option=option)
+
+    def set_font(self, font, option):
+        """Set global font used in Spyder."""
+        # Update fonts in all plugins
+        set_font(font, option=option)
+        plugins = self.main.widgetlist + self.main.thirdparty_plugins
+        for plugin in plugins:
+            plugin.update_font()
 
     def apply_settings(self, options):
         self.set_option('selected', self.current_scheme)
@@ -1281,6 +1307,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                     self.main.help.apply_plugin_settings(['color_scheme_name'])
                 self.update_combobox()
                 self.update_preview()
+        self.main.apply_settings()
 
     # Helpers
     # -------------------------------------------------------------------------
