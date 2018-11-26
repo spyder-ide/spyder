@@ -769,7 +769,11 @@ class EditorStack(QWidget):
     def update_fname_label(self):
         """Upadte file name label."""
         filename = to_text_string(self.get_current_filename())
-        self.fname_label.setText(filename)
+        if len(filename) > 100:
+            shorten_filename = u'...' + filename[-100:]
+        else:
+            shorten_filename = filename
+        self.fname_label.setText(shorten_filename)
 
     def add_corner_widgets_to_tabbar(self, widgets):
         self.tabs.add_corner_widgets(widgets)
