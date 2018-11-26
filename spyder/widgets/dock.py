@@ -102,7 +102,6 @@ class CloseButton(QToolButton):
 
     def __init__(self, parent, button_size):
         super(QToolButton, self).__init__(parent)
-        self.parent = parent
 
         # Style
         self.setMaximumSize(button_size)
