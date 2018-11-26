@@ -116,6 +116,9 @@ class CloseButton(QToolButton):
                 "background-color: #31363B;}"
                 "QToolButton:hover {"
                 "image: url(:/qss_icons/rc/close-hover.png);}")
+        else:
+            self.setIcon(QApplication.style().standardIcon(
+                QStyle.SP_DockWidgetCloseButton))
 
 
 class DockTitleBar(QWidget):
