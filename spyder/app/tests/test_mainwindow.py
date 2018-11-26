@@ -21,6 +21,7 @@ except ImportError:
     from mock import Mock, MagicMock  # Python 2
 import re
 import sys
+import uuid
 
 # Third party imports
 from flaky import flaky
@@ -77,9 +78,6 @@ COMPILE_AND_EVAL_TIMEOUT = 30000
 # Time to wait for the IPython console to evaluate something (in
 # miliseconds)
 EVAL_TIMEOUT = 3000
-
-# Temporary directory
-TEMP_DIRECTORY = tempfile.gettempdir()
 
 
 # =============================================================================
@@ -1486,57 +1484,31 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot):
 
 
 @pytest.mark.slow
-@flaky(max_runs=3)
-@pytest.mark.skipif(os.environ.get('CI', None) is None or sys.platform == 'darwin',
-                    reason="It's not meant to be run outside of a CI and fails in macOS")
-def test_fileswitcher(main_window, qtbot):
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="Doesn't run correctly on Windows and macOS")
+def test_fileswitcher(main_window, qtbot, tmpdir):
     """Test the use of shorten paths when necessary in the fileswitcher."""
-    # Load tests files
-    dir_b = osp.join(TEMP_DIRECTORY, 'temp_dir_a', 'temporal_b')
-    filename_b =  osp.join(dir_b, 'c.py')
-    if not osp.isdir(dir_b):
-        os.makedirs(dir_b)
-    if not osp.isfile(filename_b):
-        file_c = open(filename_b, 'w+')
-        file_c.close()
-    if PYQT5:
-        if os.name == 'nt':
-            dir_d = osp.join(TEMP_DIRECTORY, 'temp_dir_a', 'temp_c',
-                             'temp_d', 'temp_e')
-        else:
-            dir_d = osp.join(TEMP_DIRECTORY, 'temp_dir_a', 'temporal_c',
-                             'temporal_d', 'temporal_e')
-    else:
-        dir_d = osp.join(TEMP_DIRECTORY, 'temp_dir_a', 'temp_c', 'temp_d')
-    filename_d =  osp.join(dir_d, 'c.py')
-    if not osp.isdir(dir_d):
-        os.makedirs(dir_d)
-    if not osp.isfile(filename_d):
-        file_d = open(filename_d, 'w+')
-        file_d.close()
-    main_window.editor.load(filename_b)
-    main_window.editor.load(filename_d)
+    # Assert that the full path of a file is shown in the fileswitcher
+    file_a = tmpdir.join("a.py")
+    file_a.write('foo')
+    main_window.editor.load(str(file_a))
 
-    # Assert that all the path of the file is shown
     main_window.open_fileswitcher()
-    if os.name == 'nt':
-        item_text = main_window.fileswitcher.list.currentItem().text().replace('\\', '/').lower()
-        dir_d = dir_d.replace('\\', '/').lower()
-    else:
-        item_text = main_window.fileswitcher.list.currentItem().text()
-    assert dir_d in item_text
+    item_text = main_window.fileswitcher.list.currentItem().text()
+    assert str(file_a) in item_text
 
-    # Resize Main Window to a third of its width
-    size = main_window.window_size
-    main_window.resize(size.width() / 3, size.height())
+    # Assert that long paths are shortened in the fileswitcher
+    dir_b = tmpdir
+    for _ in range(3):
+        dir_b = dir_b.mkdir(str(uuid.uuid4()))
+    file_b = dir_b.join("b.py")
+    file_b.write('bar')
+    main_window.editor.load(str(file_b))
+
+    main_window.fileswitcher.close()
     main_window.open_fileswitcher()
-
-    # Assert that the path shown in the fileswitcher is shorter
-    if PYQT5:
-        main_window.open_fileswitcher()
-        for i in range(main_window.fileswitcher.list.count()):
-            item_text += main_window.fileswitcher.list.item(i).text()
-        assert '...' in item_text
+    item_text = main_window.fileswitcher.list.currentItem().text()
+    assert '...' in item_text
 
 
 @pytest.mark.slow
