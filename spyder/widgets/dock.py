@@ -18,6 +18,9 @@ from spyder.config.gui import is_dark_interface
 from spyder.utils import icon_manager as ima
 
 
+# =============================================================================
+# Tab filter
+# =============================================================================
 class TabFilter(QObject):
     """Filter event attached to each DockWidget QTabBar."""
     def __init__(self, dock_tabbar, main):
@@ -59,6 +62,63 @@ class TabFilter(QObject):
         menu.exec_(self.dock_tabbar.mapToGlobal(event.pos()))
 
 
+# =============================================================================
+# Title bar
+# =============================================================================
+class DragButton(QToolButton):
+    """
+    Drag button for the title bar.
+
+    This button pass all its mouse events to its parent.
+    """
+
+    def __init__(self, parent, button_size):
+        super(QToolButton, self).__init__(parent)
+        self.parent = parent
+
+        # Style
+        self.setMaximumSize(button_size)
+        self.setAutoRaise(True)
+        self.setIcon(ima.icon('drag-horizontal'))
+        if is_dark_interface():
+            self.setStyleSheet(
+                "QToolButton {"
+                "border-radius: 0px;"
+                "border: 0px;"
+                "background-color: #31363B;}")
+
+    def mouseReleaseEvent(self, event):
+        self.parent.mouseReleaseEvent(event)
+
+    def mousePressEvent(self, event):
+        self.parent.mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        self.parent.mouseMoveEvent(event)
+
+
+class CloseButton(QToolButton):
+    """Close button for the title bar."""
+
+    def __init__(self, parent, button_size):
+        super(QToolButton, self).__init__(parent)
+        self.parent = parent
+
+        # Style
+        self.setMaximumSize(button_size)
+        self.setAutoRaise(True)
+        self.setCursor(Qt.ArrowCursor)
+        if is_dark_interface():
+            self.setStyleSheet(
+                "QToolButton {"
+                "border-radius: 0px;"
+                "border: 0px;"
+                "image: url(:/qss_icons/rc/close.png);"
+                "background-color: #31363B;}"
+                "QToolButton:hover {"
+                "image: url(:/qss_icons/rc/close-hover.png);}")
+
+
 class DockTitleBar(QWidget):
     """
     Custom title bar for our dock widgets.
@@ -74,41 +134,20 @@ class DockTitleBar(QWidget):
             QStyle.SP_TitleBarNormalButton).actualSize(QSize(100, 100))
         button_size = icon_size + QSize(8, 8)
 
-        left_spacer = QWidget()
+        left_spacer = QWidget(self)
         left_spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
         if is_dark_interface():
             left_spacer.setStyleSheet("background-color: #31363B")
 
-        drag_button = QToolButton(self)
-        drag_button.setMaximumSize(button_size)
-        drag_button.setAutoRaise(True)
-        drag_button.setIcon(ima.icon('drag-horizontal'))
-        if is_dark_interface():
-            drag_button.setStyleSheet(
-                "QToolButton {"
-                "border-radius: 0px;"
-                "border: 0px;"
-                "background-color: #31363B;}")
+        drag_button = DragButton(self, button_size)
 
-        right_spacer = QWidget()
+        right_spacer = QWidget(self)
         right_spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
         if is_dark_interface():
             right_spacer.setStyleSheet("background-color: #31363B")
 
-        close_button = QToolButton(self)
-        close_button.setMaximumSize(button_size)
-        close_button.setAutoRaise(True)
-        close_button.setCursor(Qt.ArrowCursor)
+        close_button = CloseButton(self, button_size)
         close_button.clicked.connect(parent.sig_plugin_closed.emit)
-        if is_dark_interface():
-            close_button.setStyleSheet(
-                "QToolButton {"
-                "border-radius: 0px;"
-                "border: 0px;"
-                "image: url(:/qss_icons/rc/close.png);"
-                "background-color: #31363B;}"
-                "QToolButton:hover {"
-                "image: url(:/qss_icons/rc/close-hover.png);}")
 
         hlayout = QHBoxLayout(self)
         hlayout.setSpacing(0)
