@@ -15,9 +15,10 @@ import os.path as osp
 from jupyter_core.paths import jupyter_runtime_dir
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QGridLayout, QGroupBox,
-                            QHBoxLayout, QLabel, QLineEdit, QPushButton,
-                            QRadioButton, QSpacerItem, QVBoxLayout, QCheckBox)
+from qtpy.QtWidgets import (QCheckBox, QDialog, QDialogButtonBox, QGridLayout,
+                            QGroupBox, QHBoxLayout, QLabel, QLineEdit,
+                            QPushButton, QRadioButton, QSpacerItem,
+                            QVBoxLayout)
 
 # Local imports
 from spyder.config.base import _, get_home_dir
@@ -137,6 +138,7 @@ class KernelConnectionDialog(QDialog):
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
             Qt.Horizontal, self)
 
+        self.accept_btns.accepted.connect(self.save_connection_settings)
         self.accept_btns.accepted.connect(self.accept)
         self.accept_btns.rejected.connect(self.reject)
 
@@ -159,6 +161,7 @@ class KernelConnectionDialog(QDialog):
 
         self.load_connection_settings()
 
+    """Loads the user's previously-saved remote kernel connection settings."""
     def load_connection_settings(self):
         existing_kernel = CONF.get("existing-kernel", "settings", {})
 
@@ -197,6 +200,11 @@ class KernelConnectionDialog(QDialog):
             pass
 
     def save_connection_settings(self):
+        """Saves user's remote kernel connection settings."""
+
+        if not self.save_layout.isChecked():
+            return
+
         is_ssh_key = bool(self.kf_radio.isChecked())
         connection_settings = {
             "json_file_path": self.cf.text(),
@@ -222,7 +230,6 @@ class KernelConnectionDialog(QDialog):
         except Exception:
             pass
 
-
     def select_connection_file(self):
         cf = getopenfilename(self, _('Select kernel connection file'),
                              jupyter_runtime_dir(), '*.json;;*.*')[0]
@@ -240,8 +247,6 @@ class KernelConnectionDialog(QDialog):
         result = dialog.exec_()
         is_remote = bool(dialog.rm_group.isChecked())
         accepted = result == QDialog.Accepted
-        if accepted and dialog.save_layout.isChecked():
-            dialog.save_connection_settings()
 
         if is_remote:
             def falsy_to_none(arg):
