@@ -27,13 +27,61 @@ from spyder.config.main import CONF
 # Fixtures
 # =============================================================================
 @pytest.fixture
-def connection_dialog_factory(request):
+def connection_dialog_factory(qtbot, request):
     """Set up kernel connection dialog."""
     class DialogFactory(object):
-        def get(self):
+        def get_default_dialog(self):
             dialog = KernelConnectionDialog()
             request.addfinalizer(dialog.close)
             return dialog
+
+        def submit_filled_dialog(self, use_keyfile, save_settings):
+            dlg = self.get_default_dialog()
+
+            # fill out cf path
+            dlg.cf.clear()
+            qtbot.keyClicks(dlg.cf, cf_path)
+            # check the remote kernel box
+            dlg.rm_group.setChecked(True)
+            # fill out hostname
+            dlg.hn.clear()
+            qtbot.keyClicks(dlg.hn, hn)
+            # fill out port
+            dlg.pn.clear()
+            qtbot.keyClicks(dlg.pn, str(pn))
+            # fill out username
+            dlg.un.clear()
+            qtbot.keyClicks(dlg.un, un)
+
+            if use_keyfile:
+                # select ssh keyfile radio
+                dlg.kf_radio.setChecked(True)
+                assert dlg.kf.isEnabled()
+
+                # fill out ssh keyfile
+                dlg.kf.clear()
+                qtbot.keyClicks(dlg.kf, kf)
+
+                # fill out passphrase
+                dlg.kfp.clear()
+                qtbot.keyClicks(dlg.kfp, kfp)
+            else:
+                # select password radio
+                dlg.pw_radio.setChecked(True)
+                assert dlg.pw.isEnabled()
+
+                # fill out password
+                dlg.pw.clear()
+                qtbot.keyClicks(dlg.pw, pw)
+
+            # check save connection settings
+            dlg.save_layout.setChecked(save_settings)
+
+            # Press ok and save connection settings
+            qtbot.mouseClick(dlg.accept_btns.button(QDialogButtonBox.Ok),
+                             Qt.LeftButton)
+
+            return dlg
 
     def teardown():
         """Clear existing-kernel config and keyring passwords"""
@@ -52,6 +100,15 @@ def connection_dialog_factory(request):
     return DialogFactory()
 
 
+cf_path = "test_cf_path"
+un = "test_username"
+hn = "test_hostname"
+pn = 123
+kf = "test_kf"
+kfp = "test_kfp"
+pw = "test_pw"
+
+
 # =============================================================================
 # Tests
 # =============================================================================
@@ -61,51 +118,11 @@ def test_kernel_connection_dialog_remember_input_ssh_passphrase(
        settings and ssh key passphrase when the user checks the
        save checkbox."""
 
-    dlg = connection_dialog_factory.get()
-
-    cf_path = "test_cf_path"
-    un = "test_username"
-    hn = "test_hostname"
-    pn = 123
-    kf = "test_kf"
-    kfp = "test_kfp"
-
-    # fill out cf path
-    dlg.cf.clear()
-    qtbot.keyClicks(dlg.cf, cf_path)
-    # check the remote kernel box
-    dlg.rm_group.setChecked(True)
-    # fill out hostname
-    dlg.hn.clear()
-    qtbot.keyClicks(dlg.hn, hn)
-    # fill out port
-    dlg.pn.clear()
-    qtbot.keyClicks(dlg.pn, str(pn))
-    # fill out username
-    dlg.un.clear()
-    qtbot.keyClicks(dlg.un, un)
-
-    # select ssh keyfile radio
-    dlg.kf_radio.setChecked(True)
-    assert dlg.kf.isEnabled()
-
-    # fill out ssh keyfile
-    dlg.kf.clear()
-    qtbot.keyClicks(dlg.kf, kf)
-
-    # fill out passphrase
-    dlg.kfp.clear()
-    qtbot.keyClicks(dlg.kfp, kfp)
-
-    # check save connection settings
-    dlg.save_layout.setChecked(True)
-
-    # Press ok and save connection settings
-    qtbot.mouseClick(dlg.accept_btns.button(QDialogButtonBox.Ok),
-                     Qt.LeftButton)
+    connection_dialog_factory.submit_filled_dialog(use_keyfile=True,
+                                                 save_settings=True)
 
     # create new dialog and check fields
-    new_dlg = connection_dialog_factory.get()
+    new_dlg = connection_dialog_factory.get_default_dialog()
     assert new_dlg.cf.text() == cf_path
     assert new_dlg.rm_group.isChecked()
     assert new_dlg.hn.text() == hn
@@ -123,51 +140,11 @@ def test_kernel_connection_dialog_doesnt_remember_input_ssh_passphrase(
        connection settings and ssh key passphrase when the user doesn't
        check the save checkbox."""
 
-    dlg = connection_dialog_factory.get()
-
-    cf_path = "test_cf_path"
-    un = "test_username"
-    hn = "test_hostname"
-    pn = 123
-    kf = "test_kf"
-    kfp = "test_kfp"
-
-    # fill out cf path
-    dlg.cf.clear()
-    qtbot.keyClicks(dlg.cf, cf_path)
-    # check the remote kernel box
-    dlg.rm_group.setChecked(True)
-    # fill out hostname
-    dlg.hn.clear()
-    qtbot.keyClicks(dlg.hn, hn)
-    # fill out port
-    dlg.pn.clear()
-    qtbot.keyClicks(dlg.pn, str(pn))
-    # fill out username
-    dlg.un.clear()
-    qtbot.keyClicks(dlg.un, un)
-
-    # select ssh keyfile radio
-    dlg.kf_radio.setChecked(True)
-    assert dlg.kf.isEnabled()
-
-    # fill out ssh keyfile
-    dlg.kf.clear()
-    qtbot.keyClicks(dlg.kf, kf)
-
-    # fill out passphrase
-    dlg.kfp.clear()
-    qtbot.keyClicks(dlg.kfp, kfp)
-
-    # check save connection settings
-    dlg.save_layout.setChecked(False)
-
-    # Press ok and save connection settings
-    qtbot.mouseClick(dlg.accept_btns.button(QDialogButtonBox.Ok),
-                     Qt.LeftButton)
+    connection_dialog_factory.submit_filled_dialog(use_keyfile=True,
+                                                 save_settings=False)
 
     # create new dialog and check fields
-    new_dlg = connection_dialog_factory.get()
+    new_dlg = connection_dialog_factory.get_default_dialog()
     assert new_dlg.cf.text() == ""
     assert not new_dlg.rm_group.isChecked()
     assert new_dlg.hn.text() == ""
@@ -184,46 +161,11 @@ def test_kernel_connection_dialog_remember_input_password(
     """Test that the dialog remember user's kernel connection
        settings and ssh password when the user checks the save checkbox."""
 
-    dlg = connection_dialog_factory.get()
-
-    cf_path = "test_cf_path"
-    un = "test_username"
-    hn = "test_hostname"
-    pn = 123
-    pw = "test_pw"
-
-    # fill out cf path
-    # dlg.cf.clear()
-    qtbot.keyClicks(dlg.cf, cf_path)
-    # check the remote kernel box
-    dlg.rm_group.setChecked(True)
-    # fill out hostname
-    # dlg.hn.clear()
-    qtbot.keyClicks(dlg.hn, hn)
-    # fill out port
-    dlg.pn.clear()
-    qtbot.keyClicks(dlg.pn, str(pn))
-    # fill out username
-    dlg.un.clear()
-    qtbot.keyClicks(dlg.un, un)
-
-    # select password radio
-    dlg.pw_radio.setChecked(True)
-    assert dlg.pw.isEnabled()
-
-    # fill out password
-    dlg.pw.clear()
-    qtbot.keyClicks(dlg.pw, pw)
-
-    # check save connection settings
-    dlg.save_layout.setChecked(True)
-
-    # Press ok and save connection settings
-    qtbot.mouseClick(dlg.accept_btns.button(QDialogButtonBox.Ok),
-                     Qt.LeftButton)
+    connection_dialog_factory.submit_filled_dialog(use_keyfile=False,
+                                                 save_settings=True)
 
     # create new dialog and check fields
-    new_dlg = connection_dialog_factory.get()
+    new_dlg = connection_dialog_factory.get_default_dialog()
     assert new_dlg.cf.text() == cf_path
     assert new_dlg.rm_group.isChecked()
     assert new_dlg.hn.text() == hn
@@ -240,46 +182,11 @@ def test_kernel_connection_dialog_doesnt_remember_input_password(
        connection settings and ssh password when the user doesn't
        check the save checkbox."""
 
-    dlg = connection_dialog_factory.get()
-
-    cf_path = "test_cf_path"
-    un = "test_username"
-    hn = "test_hostname"
-    pn = 123
-    pw = "testpw"
-
-    # fill out cf path
-    dlg.cf.clear()
-    qtbot.keyClicks(dlg.cf, cf_path)
-    # check the remote kernel box
-    dlg.rm_group.setChecked(True)
-    # fill out hostname
-    dlg.hn.clear()
-    qtbot.keyClicks(dlg.hn, hn)
-    # fill out port
-    dlg.pn.clear()
-    qtbot.keyClicks(dlg.pn, str(pn))
-    # fill out username
-    dlg.un.clear()
-    qtbot.keyClicks(dlg.un, un)
-
-    # select password radio
-    dlg.pw_radio.setChecked(True)
-    assert dlg.pw.isEnabled()
-
-    # fill out password
-    dlg.pw.clear()
-    qtbot.keyClicks(dlg.pw, pw)
-
-    # check save connection settings
-    dlg.save_layout.setChecked(False)
-
-    # Press ok and save connection settings
-    qtbot.mouseClick(dlg.accept_btns.button(QDialogButtonBox.Ok),
-                     Qt.LeftButton)
+    connection_dialog_factory.submit_filled_dialog(use_keyfile=False,
+                                                 save_settings=False)
 
     # create new dialog and check fields
-    new_dlg = connection_dialog_factory.get()
+    new_dlg = connection_dialog_factory.get_default_dialog()
     assert new_dlg.cf.text() == ""
     assert not new_dlg.rm_group.isChecked()
     assert new_dlg.hn.text() == ""
