@@ -119,7 +119,7 @@ def test_kernel_connection_dialog_remember_input_ssh_passphrase(
        save checkbox."""
 
     connection_dialog_factory.submit_filled_dialog(use_keyfile=True,
-                                                 save_settings=True)
+                                                   save_settings=True)
 
     # create new dialog and check fields
     new_dlg = connection_dialog_factory.get_default_dialog()
@@ -141,7 +141,7 @@ def test_kernel_connection_dialog_doesnt_remember_input_ssh_passphrase(
        check the save checkbox."""
 
     connection_dialog_factory.submit_filled_dialog(use_keyfile=True,
-                                                 save_settings=False)
+                                                   save_settings=False)
 
     # create new dialog and check fields
     new_dlg = connection_dialog_factory.get_default_dialog()
@@ -162,7 +162,7 @@ def test_kernel_connection_dialog_remember_input_password(
        settings and ssh password when the user checks the save checkbox."""
 
     connection_dialog_factory.submit_filled_dialog(use_keyfile=False,
-                                                 save_settings=True)
+                                                   save_settings=True)
 
     # create new dialog and check fields
     new_dlg = connection_dialog_factory.get_default_dialog()
@@ -183,7 +183,7 @@ def test_kernel_connection_dialog_doesnt_remember_input_password(
        check the save checkbox."""
 
     connection_dialog_factory.submit_filled_dialog(use_keyfile=False,
-                                                 save_settings=False)
+                                                   save_settings=False)
 
     # create new dialog and check fields
     new_dlg = connection_dialog_factory.get_default_dialog()

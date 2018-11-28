@@ -162,7 +162,7 @@ class KernelConnectionDialog(QDialog):
         self.load_connection_settings()
 
     def load_connection_settings(self):
-        """Load the user's previously-saved remote kernel connection settings."""
+        """Load the user's previously-saved kernel connection settings."""
         existing_kernel = CONF.get("existing-kernel", "settings", {})
 
         connection_file_path = existing_kernel.get("json_file_path", "")
@@ -200,7 +200,7 @@ class KernelConnectionDialog(QDialog):
             pass
 
     def save_connection_settings(self):
-        """Save user's remote kernel connection settings."""
+        """Save user's kernel connection settings."""
 
         if not self.save_layout.isChecked():
             return
