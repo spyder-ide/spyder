@@ -161,11 +161,11 @@ class KernelConnectionDialog(QDialog):
 
         self.load_connection_settings()
 
-    """Loads the user's previously-saved remote kernel connection settings."""
     def load_connection_settings(self):
+        """Load the user's previously-saved remote kernel connection settings."""
         existing_kernel = CONF.get("existing-kernel", "settings", {})
 
-        cfp = existing_kernel.get("json_file_path", "")
+        connection_file_path = existing_kernel.get("json_file_path", "")
         is_remote = existing_kernel.get("is_remote", False)
         username = existing_kernel.get("username", "")
         hostname = existing_kernel.get("hostname", "")
@@ -173,8 +173,8 @@ class KernelConnectionDialog(QDialog):
         is_ssh_kf = existing_kernel.get("is_ssh_keyfile", False)
         ssh_kf = existing_kernel.get("ssh_key_file_path", "")
 
-        if cfp != "":
-            self.cf.setText(cfp)
+        if connection_file_path != "":
+            self.cf.setText(connection_file_path)
         if username != "":
             self.un.setText(username)
         if hostname != "":
@@ -192,15 +192,15 @@ class KernelConnectionDialog(QDialog):
                                                   "ssh_key_passphrase")
             ssh_password = keyring.get_password("existing_kernel",
                                                 "ssh_password")
-            if ssh_passphrase != "":
+            if ssh_passphrase:
                 self.kfp.setText(ssh_passphrase)
-            if ssh_password != "":
+            if ssh_password:
                 self.pw.setText(ssh_password)
         except Exception:
             pass
 
     def save_connection_settings(self):
-        """Saves user's remote kernel connection settings."""
+        """Save user's remote kernel connection settings."""
 
         if not self.save_layout.isChecked():
             return

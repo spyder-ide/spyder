@@ -55,12 +55,11 @@ def connection_dialog_factory(request):
 # =============================================================================
 # Tests
 # =============================================================================
-def test_kernel_connection_dialog_remembers_input_ssh_passphrase(
-    qtbot, connection_dialog_factory
-):
-    """Test to ensure that the dialog remembers user's kernel connection
+def test_kernel_connection_dialog_remember_input_ssh_passphrase(
+        qtbot, connection_dialog_factory):
+    """Test that the dialog remember user's kernel connection
        settings and ssh key passphrase when the user checks the
-       save checkbox"""
+       save checkbox."""
 
     dlg = connection_dialog_factory.get()
 
@@ -118,12 +117,11 @@ def test_kernel_connection_dialog_remembers_input_ssh_passphrase(
         assert new_dlg.kfp.text() == kfp
 
 
-def test_kernel_connection_dialog_doesnt_remembers_input_ssh_passphrase(
-    qtbot, connection_dialog_factory
-):
-    """Test to ensure that the dialog doesn't remembers user's kernel
+def test_kernel_connection_dialog_doesnt_remember_input_ssh_passphrase(
+        qtbot, connection_dialog_factory):
+    """Test that the dialog doesn't remember user's kernel
        connection settings and ssh key passphrase when the user doesn't
-       check the save checkbox"""
+       check the save checkbox."""
 
     dlg = connection_dialog_factory.get()
 
@@ -181,11 +179,10 @@ def test_kernel_connection_dialog_doesnt_remembers_input_ssh_passphrase(
         assert new_dlg.kfp.text() == ""
 
 
-def test_kernel_connection_dialog_remembers_input_password(
-    qtbot, connection_dialog_factory
-):
-    """Test to ensure that the dialog remembers user's kernel connection
-       settings and ssh password when the user checks the save checkbox"""
+def test_kernel_connection_dialog_remember_input_password(
+        qtbot, connection_dialog_factory):
+    """Test that the dialog remember user's kernel connection
+       settings and ssh password when the user checks the save checkbox."""
 
     dlg = connection_dialog_factory.get()
 
@@ -238,11 +235,10 @@ def test_kernel_connection_dialog_remembers_input_password(
 
 
 def test_kernel_connection_dialog_doesnt_remember_input_password(
-    qtbot, connection_dialog_factory
-):
-    """Test to ensure that the dialog doesn't remembers user's kernel
+        qtbot, connection_dialog_factory):
+    """Test that the dialog doesn't remember user's kernel
        connection settings and ssh password when the user doesn't
-       check the save checkbox"""
+       check the save checkbox."""
 
     dlg = connection_dialog_factory.get()
 
