@@ -84,9 +84,9 @@ def connection_dialog_factory(qtbot, request):
 
         try:
             import keyring
-            keyring.set_password("existing_kernel",
+            keyring.set_password("spyder_remote_kernel",
                                  "ssh_key_passphrase", "")
-            keyring.set_password("existing_kernel",
+            keyring.set_password("spyder_remote_kernel",
                                  "ssh_password", "")
         except Exception:
             pass

@@ -188,9 +188,9 @@ class KernelConnectionDialog(QDialog):
 
         try:
             import keyring
-            ssh_passphrase = keyring.get_password("existing_kernel",
+            ssh_passphrase = keyring.get_password("spyder_remote_kernel",
                                                   "ssh_key_passphrase")
-            ssh_password = keyring.get_password("existing_kernel",
+            ssh_password = keyring.get_password("spyder_remote_kernel",
                                                 "ssh_password")
             if ssh_passphrase:
                 self.kfp.setText(ssh_passphrase)
@@ -220,11 +220,11 @@ class KernelConnectionDialog(QDialog):
         try:
             import keyring
             if is_ssh_key:
-                keyring.set_password("existing_kernel",
+                keyring.set_password("spyder_remote_kernel",
                                      "ssh_key_passphrase",
                                      self.kfp.text())
             else:
-                keyring.set_password("existing_kernel",
+                keyring.set_password("spyder_remote_kernel",
                                      "ssh_password",
                                      self.pw.text())
         except Exception:
