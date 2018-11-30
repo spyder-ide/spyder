@@ -9,7 +9,7 @@
 import logging
 
 from spyder.plugins.editor.lsp import LSPRequestTypes
-from spyder.plugins.editor.lsp.decorators import handles  # , send_request
+from spyder.plugins.editor.lsp.decorators import handles
 
 logger = logging.getLogger(__name__)
 
@@ -17,5 +17,5 @@ logger = logging.getLogger(__name__)
 class WindowProvider:
     @handles(LSPRequestTypes.WINDOW_SHOW_MESSAGE)
     def process_show_message(self, response, *args):
-        """Handles window/showMessage notifications from LSP server"""
+        """Handle window/showMessage notifications from LSP server."""
         logger.debug("Received showMessage: %r" % response)

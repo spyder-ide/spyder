@@ -145,8 +145,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         python_path = os.pathsep.join(sys.path)[1:]
         new_env['PYTHONPATH'] = python_path
         self.transport_args = list(map(str, self.transport_args))
-        logger.info('Starting transport: {0}'.format(
-            ' '.join(self.transport_args)))
+        logger.info('Starting transport: {0}'
+                    .format(' '.join(self.transport_args)))
         self.transport_client = subprocess.Popen(self.transport_args,
                                                  stdout=self.stdout_log,
                                                  stderr=self.stderr_log,
@@ -206,10 +206,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                     pass
 
                 if 'error' in resp:
-                    logger.debug(
-                        '{} response error: {}'.format(self.language,
-                                                       repr(resp['error'])
-                                                       ))
+                    logger.debug('{} Response error: {}'
+                                 .format(self.language, repr(resp['error'])))
 
                 if 'method' in resp:
                     if resp['method'][0] != '$':

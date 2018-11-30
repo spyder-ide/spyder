@@ -214,7 +214,7 @@ class DocumentProvider:
                   requires_response=False)
     def document_did_save_notification(self, params):
         """
-        Handles the textDocument/didSave message received from an LSP server
+        Handle the textDocument/didSave message received from an LSP server.
         """
         text = None
         if 'text' in params:

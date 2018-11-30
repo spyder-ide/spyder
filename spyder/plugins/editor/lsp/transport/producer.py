@@ -67,8 +67,8 @@ class LanguageServerClient:
 
         initial_time = time.time()
         while not connected:
-            LOGGER.info('Attempting LSP server connection {0}:{1}'.format(
-                        self.host, self.port))
+            LOGGER.info('Attempting LSP server connection {0}:{1}'.
+                        format(self.host, self.port))
             try:
                 self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.socket.connect((self.host, int(self.port)))

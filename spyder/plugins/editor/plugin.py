@@ -157,10 +157,10 @@ class EditorConfigPage(PluginConfigPage):
                                 'highlight_current_cell')
         occurrence_box = newcb(_("Highlight occurrences after"),
                                'occurrence_highlighting')
-        occurrence_spin = self.create_spinbox("", _(" ms"),
-                                              ('occurrence_highlighting'
-                                               '/timeout'),
-                                              min_=100, max_=1000000, step=100)
+        occurrence_spin = self.create_spinbox(
+            "", _(" ms"),
+            'occurrence_highlighting/timeout',
+            min_=100, max_=1000000, step=100)
         occurrence_box.toggled.connect(occurrence_spin.spinbox.setEnabled)
         occurrence_box.toggled.connect(occurrence_spin.slabel.setEnabled)
         occurrence_spin.spinbox.setEnabled(
@@ -210,13 +210,12 @@ class EditorConfigPage(PluginConfigPage):
             comp_enter_box = newcb(_("Enter key selects completion"),
                                    'codecompletion/enter_key')
             calltips_box = newcb(_("Display balloon tips"), 'calltips')
-            gotodef_box = newcb(_("Link to object definition"),
-                                'go_to_definition',
-                                tip=_("If this option is enabled, clicking on "
-                                      "an object\n"
-                                      "name (left-click + Ctrl key) will go "
-                                      "this object\n"
-                                      "definition (if resolved)."))
+            gotodef_box = newcb(
+                _("Link to object definition"),
+                'go_to_definition',
+                tip=_("If this option is enabled, clicking on an object\n"
+                      "name (left-click + Ctrl key) will go to this object\n"
+                      "definition (if resolved)."))
         else:
             rope_label = QLabel(_("<b>Warning:</b><br>"
                                   "The Python module <i>rope</i> is not "
@@ -247,8 +246,8 @@ class EditorConfigPage(PluginConfigPage):
                                                  (_("Tabulations"), '*\t*')),
                                                 'indent_chars')
         tabwidth_spin = self.create_spinbox(_("Tab stop width:"), _("spaces"),
-                                            'tab_stop_width_spaces', 4, 1, 8,
-                                            1)
+                                            'tab_stop_width_spaces',
+                                            4, 1, 8, 1)
 
         def enable_tabwidth_spin(index):
             if index == 7:  # Tabulations
@@ -261,17 +260,14 @@ class EditorConfigPage(PluginConfigPage):
         indent_chars_box.combobox.currentIndexChanged.connect(
             enable_tabwidth_spin)
 
-        tab_mode_box = newcb(_("Tab always indent"),
-                             'tab_always_indent', default=False,
-                             tip=_("If enabled, pressing Tab will always "
-                                   "indent,\n"
-                                   "even when the cursor is not at the "
-                                   "beginning\n"
-                                   "of a line (when this option is enabled, "
-                                   "code\n"
-                                   "completion may be triggered using the "
-                                   "alternate\n"
-                                   "shortcut: Ctrl+Space)"))
+        tab_mode_box = newcb(
+            _("Tab always indent"),
+            'tab_always_indent', default=False,
+            tip=_("If enabled, pressing Tab will always indent,\n"
+                  "even when the cursor is not at the beginning\n"
+                  "of a line (when this option is enabled, code\n"
+                  "completion may be triggered using the alternate\n"
+                  "shortcut: Ctrl+Space)"))
         ibackspace_box = newcb(_("Intelligent backspace"),
                                'intelligent_backspace', default=True)
         removetrail_box = newcb(_("Automatically remove trailing spaces "
@@ -285,42 +281,38 @@ class EditorConfigPage(PluginConfigPage):
         is_pyflakes = codeanalysis.is_pyflakes_installed()
         is_pep8 = codeanalysis.get_checker_executable(
                 'pycodestyle') is not None
-        pyflakes_box = newcb(_("Real-time code analysis"),
-                             'code_analysis/pyflakes', default=True,
-                             tip=_("<p>If enabled, Python source code will be "
-                                   "analyzed "
-                                   "using pyflakes, lines containing errors "
-                                   "or warnings will be highlighted.</p>"
-                                   "<p><u>Note</u>: "
-                                   "add <b>analysis:ignore</b> in "
-                                   "a comment to ignore code analysis "
-                                   "warnings.</p>"))
+        pyflakes_box = newcb(
+            _("Real-time code analysis"),
+            'code_analysis/pyflakes', default=True,
+            tip=_("<p>If enabled, Python source code will be analyzed "
+                  "using pyflakes, and lines containing errors or "
+                  "warnings will be highlighted.</p>"
+                  "<p><u>Note</u>: Add <b>analysis:ignore</b> in a "
+                  "comment to ignore code analysis warnings.</p>"))
         pyflakes_box.setEnabled(is_pyflakes)
         if not is_pyflakes:
             pyflakes_box.setToolTip(_("Code analysis requires pyflakes %s+") %
                                     codeanalysis.PYFLAKES_REQVER)
-        pep8_box = newcb(_("Real-time code style analysis"),
-                         'code_analysis/pep8', default=False,
-                         tip=_("<p>If enabled, Python source code will be "
-                               "analyzed "
-                               "using pycodestyle, lines that are not "
-                               "following PEP8 "
-                               "style guide will be highlighted.</p>"
-                               "<p><u>Note</u>: add <b>analysis:ignore</b> in "
-                               "a comment to ignore style analysis "
-                               "warnings.</p>"))
+        pep8_box = newcb(
+            _("Real-time code style analysis"),
+            'code_analysis/pep8', default=False,
+            tip=_("<p>If enabled, Python source code will be analyzed "
+                  "using pycodestyle, and lines that are not following "
+                  "the PEP 8 style guide will be highlighted.</p>"
+                  "<p><u>Note</u>: Add <b>analysis:ignore</b> in a "
+                  "comment to ignore style analysis warnings.</p>"))
         pep8_box.setEnabled(is_pep8)
         todolist_box = newcb(_("Code annotations (TODO, FIXME, XXX, HINT, TIP,"
                                " @todo, HACK, BUG, OPTIMIZE, !!!, ???)"),
                              'todo_list', default=True)
         realtime_radio = self.create_radiobutton(
-                                            _("Perform analysis when "
-                                              "saving file and every"),
-                                            'realtime_analysis', True)
+            _("Perform analysis when "
+            "saving file and every"),
+            'realtime_analysis', True)
         saveonly_radio = self.create_radiobutton(
-                                            _("Perform analysis only "
-                                              "when saving file"),
-                                            'onsave_analysis')
+            _("Perform analysis only "
+            "when saving file"),
+            'onsave_analysis')
         af_spin = self.create_spinbox("", _(" ms"),
                                       'realtime_analysis/timeout',
                                       min_=100, max_=1000000, step=100)

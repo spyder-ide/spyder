@@ -58,8 +58,10 @@ args, unknownargs = parser.parse_known_args()
 
 def logger_init(level):
     """
-    Initialize the logger for this thread.  Sets the log level to ERROR (0),
-    WARNING (1), INFO (2), or DEBUG (3), depending on the argument `level`.
+    Initialize the logger for this thread.
+
+    Sets the log level to ERROR (0), WARNING (1), INFO (2), or DEBUG (3),
+    depending on the argument `level`.
     """
     levellist = [logging.ERROR, logging.WARNING, logging.INFO, logging.DEBUG]
     handler = logging.StreamHandler()
