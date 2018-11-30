@@ -307,11 +307,11 @@ class EditorConfigPage(PluginConfigPage):
                              'todo_list', default=True)
         realtime_radio = self.create_radiobutton(
             _("Perform analysis when "
-            "saving file and every"),
+              "saving file and every"),
             'realtime_analysis', True)
         saveonly_radio = self.create_radiobutton(
             _("Perform analysis only "
-            "when saving file"),
+              "when saving file"),
             'onsave_analysis')
         af_spin = self.create_spinbox("", _(" ms"),
                                       'realtime_analysis/timeout',
