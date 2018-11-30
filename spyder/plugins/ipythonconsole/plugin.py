@@ -1553,7 +1553,7 @@ class IPythonConsole(SpyderPluginWidget):
         if os.name == 'nt':
             # avoid closing fds on win+Python 3.7
             # which prevents interrupts
-            # this should be fixed in a jupyter_client release (later than 5.2.3)
+            # jupyter_client > 5.2.3 will do this by default
             kwargs['close_fds'] = False
         # Catch any error generated when trying to start the kernel
         # See issue 7302
