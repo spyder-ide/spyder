@@ -100,7 +100,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.server_args += server_args.split(' ')
         self.transport_args += transport_args.split(' ')
         self.transport_args += ['--folder', folder]
-        self.transport_args += ['--transport-debug', get_debug_level()]
+        self.transport_args += ['--transport-debug', str(get_debug_level())]
 
     def start(self):
         self.zmq_out_socket = self.context.socket(zmq.PAIR)
