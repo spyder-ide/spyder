@@ -20,7 +20,7 @@ from qtpy.QtWidgets import (QDialog, QHBoxLayout, QPushButton, QTextEdit,
 from spyder.config.base import _
 from spyder.config.gui import get_font
 from spyder.py3compat import (is_binary_string, to_binary_string,
-                              to_text_string)
+                              to_text_string, PY3, PY2)
 from spyder.utils import icon_manager as ima
 
 
@@ -81,8 +81,21 @@ class TextEditor(QDialog):
         self.setWindowFlags(Qt.Window)
         
         self.setWindowIcon(ima.icon('edit'))
+        
+        if PY3:
+
+            if (title):
+                try:
+                    unicode_title=to_text_string(title)
+                except:
+                    title=u''
+            else:
+                unicode_title=''
+
+
+
         self.setWindowTitle(_("Text editor") + \
-                            "%s" % (" - "+str(title) if str(title) else ""))
+                            "%s" % (" - "+str(unicode_title) if str(unicode_title) else ""))
         self.resize(size[0], size[1])
 
     @Slot()
