@@ -20,7 +20,7 @@ from qtpy.QtWidgets import (QDialog, QHBoxLayout, QPushButton, QTextEdit,
 from spyder.config.base import _
 from spyder.config.gui import get_font
 from spyder.py3compat import (is_binary_string, to_binary_string,
-                              to_text_string)
+                              to_text_string, PY2, PY3)
 from spyder.utils import icon_manager as ima
 
 
@@ -84,7 +84,7 @@ class TextEditor(QDialog):
         self.setWindowTitle(_("Text editor") + \
                             "%s" % (" - "+str(title) if str(title) else ""))
         self.resize(size[0], size[1])
-
+        
     @Slot()
     def text_changed(self):
         """Text has changed"""

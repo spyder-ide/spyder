@@ -210,7 +210,7 @@ install_requires = [
     'sphinx',
     'pylint',
     'psutil',
-    'qtawesome>=0.5.0',
+    'qtawesome>=0.5.2',
     'qtpy>=1.5.0',
     'pickleshare',
     'pyzmq',
