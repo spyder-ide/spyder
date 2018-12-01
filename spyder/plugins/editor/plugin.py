@@ -119,7 +119,7 @@ class EditorConfigPage(PluginConfigPage):
 
     def setup_page(self):
         template_btn = self.create_button(_("Edit template for new modules"),
-                                    self.plugin.edit_template)
+                                          self.plugin.edit_template)
 
         interface_group = QGroupBox(_("Interface"))
         newcb = self.create_checkbox
@@ -128,7 +128,7 @@ class EditorConfigPage(PluginConfigPage):
                 _("Show selector for classes and functions"),
                 'show_class_func_dropdown')
         showindentguides_box = newcb(_("Show Indent Guides"),
-                                      'indent_guides')
+                                     'indent_guides')
 
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(showtabbar_box)
@@ -141,7 +141,8 @@ class EditorConfigPage(PluginConfigPage):
         blanks_box = newcb(_("Show blank spaces"), 'blank_spaces')
         edgeline_box = newcb(_("Show vertical lines after"), 'edge_line')
         edgeline_edit = self.create_lineedit("", 'edge_line_columns',
-                                             tip="Enter values separated by commas ','",
+                                             tip=("Enter values separated by "
+                                                  "commas ','"),
                                              alignment=Qt.Horizontal,
                                              regex="[0-9]+(,[0-9]+)*")
         edgeline_edit_label = QLabel(_("characters"))
@@ -155,10 +156,11 @@ class EditorConfigPage(PluginConfigPage):
         currentcell_box = newcb(_("Highlight current cell"),
                                 'highlight_current_cell')
         occurrence_box = newcb(_("Highlight occurrences after"),
-                              'occurrence_highlighting')
-        occurrence_spin = self.create_spinbox("", _(" ms"),
-                                             'occurrence_highlighting/timeout',
-                                             min_=100, max_=1000000, step=100)
+                               'occurrence_highlighting')
+        occurrence_spin = self.create_spinbox(
+            "", _(" ms"),
+            'occurrence_highlighting/timeout',
+            min_=100, max_=1000000, step=100)
         occurrence_box.toggled.connect(occurrence_spin.spinbox.setEnabled)
         occurrence_box.toggled.connect(occurrence_spin.slabel.setEnabled)
         occurrence_spin.spinbox.setEnabled(
@@ -208,11 +210,12 @@ class EditorConfigPage(PluginConfigPage):
             comp_enter_box = newcb(_("Enter key selects completion"),
                                    'codecompletion/enter_key')
             calltips_box = newcb(_("Display balloon tips"), 'calltips')
-            gotodef_box = newcb(_("Link to object definition"),
-                  'go_to_definition',
-                  tip=_("If this option is enabled, clicking on an object\n"
-                        "name (left-click + Ctrl key) will go this object\n"
-                        "definition (if resolved)."))
+            gotodef_box = newcb(
+                _("Link to object definition"),
+                'go_to_definition',
+                tip=_("If this option is enabled, clicking on an object\n"
+                      "name (left-click + Ctrl key) will go to this object\n"
+                      "definition (if resolved)."))
         else:
             rope_label = QLabel(_("<b>Warning:</b><br>"
                                   "The Python module <i>rope</i> is not "
@@ -223,26 +226,29 @@ class EditorConfigPage(PluginConfigPage):
 
         sourcecode_group = QGroupBox(_("Source code"))
         closepar_box = newcb(_("Automatic insertion of parentheses, braces "
-                                                               "and brackets"),
+                               "and brackets"),
                              'close_parentheses')
         close_quotes_box = newcb(_("Automatic insertion of closing quotes"),
-                             'close_quotes')
+                                 'close_quotes')
         add_colons_box = newcb(_("Automatic insertion of colons after 'for', "
-                                                          "'if', 'def', etc"),
+                                 "'if', 'def', etc"),
                                'add_colons')
         autounindent_box = newcb(_("Automatic indentation after 'else', "
                                    "'elif', etc."), 'auto_unindent')
         indent_chars_box = self.create_combobox(_("Indentation characters: "),
-                                        ((_("2 spaces"), '*  *'),
-                                         (_("3 spaces"), '*   *'),
-                                         (_("4 spaces"), '*    *'),
-                                         (_("5 spaces"), '*     *'),
-                                         (_("6 spaces"), '*      *'),
-                                         (_("7 spaces"), '*       *'),
-                                         (_("8 spaces"), '*        *'),
-                                         (_("Tabulations"), '*\t*')), 'indent_chars')
+                                                ((_("2 spaces"), '*  *'),
+                                                 (_("3 spaces"), '*   *'),
+                                                 (_("4 spaces"), '*    *'),
+                                                 (_("5 spaces"), '*     *'),
+                                                 (_("6 spaces"), '*      *'),
+                                                 (_("7 spaces"), '*       *'),
+                                                 (_("8 spaces"), '*        *'),
+                                                 (_("Tabulations"), '*\t*')),
+                                                'indent_chars')
         tabwidth_spin = self.create_spinbox(_("Tab stop width:"), _("spaces"),
-                                            'tab_stop_width_spaces', 4, 1, 8, 1)
+                                            'tab_stop_width_spaces',
+                                            4, 1, 8, 1)
+
         def enable_tabwidth_spin(index):
             if index == 7:  # Tabulations
                 tabwidth_spin.plabel.setEnabled(True)
@@ -251,20 +257,22 @@ class EditorConfigPage(PluginConfigPage):
                 tabwidth_spin.plabel.setEnabled(False)
                 tabwidth_spin.spinbox.setEnabled(False)
 
-        indent_chars_box.combobox.currentIndexChanged.connect(enable_tabwidth_spin)
+        indent_chars_box.combobox.currentIndexChanged.connect(
+            enable_tabwidth_spin)
 
-        tab_mode_box = newcb(_("Tab always indent"),
-                      'tab_always_indent', default=False,
-                      tip=_("If enabled, pressing Tab will always indent,\n"
-                            "even when the cursor is not at the beginning\n"
-                            "of a line (when this option is enabled, code\n"
-                            "completion may be triggered using the alternate\n"
-                            "shortcut: Ctrl+Space)"))
+        tab_mode_box = newcb(
+            _("Tab always indent"),
+            'tab_always_indent', default=False,
+            tip=_("If enabled, pressing Tab will always indent,\n"
+                  "even when the cursor is not at the beginning\n"
+                  "of a line (when this option is enabled, code\n"
+                  "completion may be triggered using the alternate\n"
+                  "shortcut: Ctrl+Space)"))
         ibackspace_box = newcb(_("Intelligent backspace"),
                                'intelligent_backspace', default=True)
         removetrail_box = newcb(_("Automatically remove trailing spaces "
                                   "when saving files"),
-                               'always_remove_trailing_spaces', default=False)
+                                'always_remove_trailing_spaces', default=False)
 
         analysis_group = QGroupBox(_("Analysis"))
         pep_url = '<a href="https://www.python.org/dev/peps/pep-0008">PEP8</a>'
@@ -273,39 +281,40 @@ class EditorConfigPage(PluginConfigPage):
         is_pyflakes = codeanalysis.is_pyflakes_installed()
         is_pep8 = codeanalysis.get_checker_executable(
                 'pycodestyle') is not None
-        pyflakes_box = newcb(_("Real-time code analysis"),
-                      'code_analysis/pyflakes', default=True,
-                      tip=_("<p>If enabled, Python source code will be analyzed "
-                            "using pyflakes, lines containing errors or "
-                            "warnings will be highlighted.</p>"
-                            "<p><u>Note</u>: add <b>analysis:ignore</b> in "
-                            "a comment to ignore code analysis "
-                            "warnings.</p>"))
+        pyflakes_box = newcb(
+            _("Real-time code analysis"),
+            'code_analysis/pyflakes', default=True,
+            tip=_("<p>If enabled, Python source code will be analyzed "
+                  "using pyflakes, and lines containing errors or "
+                  "warnings will be highlighted.</p>"
+                  "<p><u>Note</u>: Add <b>analysis:ignore</b> in a "
+                  "comment to ignore code analysis warnings.</p>"))
         pyflakes_box.setEnabled(is_pyflakes)
         if not is_pyflakes:
             pyflakes_box.setToolTip(_("Code analysis requires pyflakes %s+") %
                                     codeanalysis.PYFLAKES_REQVER)
-        pep8_box = newcb(_("Real-time code style analysis"),
-                      'code_analysis/pep8', default=False,
-                      tip=_("<p>If enabled, Python source code will be analyzed "
-                            "using pycodestyle, lines that are not following PEP8 "
-                            "style guide will be highlighted.</p>"
-                            "<p><u>Note</u>: add <b>analysis:ignore</b> in "
-                            "a comment to ignore style analysis "
-                            "warnings.</p>"))
+        pep8_box = newcb(
+            _("Real-time code style analysis"),
+            'code_analysis/pep8', default=False,
+            tip=_("<p>If enabled, Python source code will be analyzed "
+                  "using pycodestyle, and lines that are not following "
+                  "the PEP 8 style guide will be highlighted.</p>"
+                  "<p><u>Note</u>: Add <b>analysis:ignore</b> in a "
+                  "comment to ignore style analysis warnings.</p>"))
         pep8_box.setEnabled(is_pep8)
         todolist_box = newcb(_("Code annotations (TODO, FIXME, XXX, HINT, TIP,"
                                " @todo, HACK, BUG, OPTIMIZE, !!!, ???)"),
                              'todo_list', default=True)
         realtime_radio = self.create_radiobutton(
-                                            _("Perform analysis when "
-                                                    "saving file and every"),
-                                            'realtime_analysis', True)
+            _("Perform analysis when "
+              "saving file and every"),
+            'realtime_analysis', True)
         saveonly_radio = self.create_radiobutton(
-                                            _("Perform analysis only "
-                                                    "when saving file"),
-                                            'onsave_analysis')
-        af_spin = self.create_spinbox("", _(" ms"), 'realtime_analysis/timeout',
+            _("Perform analysis only "
+              "when saving file"),
+            'onsave_analysis')
+        af_spin = self.create_spinbox("", _(" ms"),
+                                      'realtime_analysis/timeout',
                                       min_=100, max_=1000000, step=100)
         af_layout = QHBoxLayout()
         af_layout.addWidget(realtime_radio)
@@ -381,9 +390,11 @@ class EditorConfigPage(PluginConfigPage):
                              )
         convert_eol_on_save_combo = self.create_combobox("",
                                                          eol_combo_choices,
-                                                         'convert_eol_on_save_to',
+                                                         ('convert_eol_on_'
+                                                          'save_to'),
                                                          )
-        convert_eol_on_save_box.toggled.connect(convert_eol_on_save_combo.setEnabled)
+        convert_eol_on_save_box.toggled.connect(
+                convert_eol_on_save_combo.setEnabled)
         convert_eol_on_save_combo.setEnabled(
                 self.get_option('convert_eol_on_save'))
 
@@ -402,7 +413,8 @@ class EditorConfigPage(PluginConfigPage):
                     _("Display"))
         tabs.addTab(self.create_tab(introspection_group, analysis_group),
                     _("Code Introspection/Analysis"))
-        tabs.addTab(self.create_tab(template_btn, run_group, run_selection_group,
+        tabs.addTab(self.create_tab(template_btn, run_group,
+                                    run_selection_group,
                                     sourcecode_group, eol_group),
                     _("Advanced settings"))
 
@@ -419,7 +431,7 @@ class Editor(SpyderPluginWidget):
     CONFIGWIDGET_CLASS = EditorConfigPage
     TEMPFILE_PATH = get_conf_path('temp.py')
     TEMPLATE_PATH = get_conf_path('template.py')
-    DISABLE_ACTIONS_WHEN_HIDDEN = False # SpyderPluginWidget class attribute
+    DISABLE_ACTIONS_WHEN_HIDDEN = False  # SpyderPluginWidget class attribute
 
     # Signals
     run_in_current_ipyclient = Signal(str, str, str, bool, bool, bool, bool)

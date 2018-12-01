@@ -15,12 +15,14 @@ import os.path as osp
 from jupyter_core.paths import jupyter_runtime_dir
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QGridLayout, QGroupBox,
-                            QHBoxLayout, QLabel, QLineEdit, QPushButton,
-                            QRadioButton, QSpacerItem, QVBoxLayout)
+from qtpy.QtWidgets import (QCheckBox, QDialog, QDialogButtonBox, QGridLayout,
+                            QGroupBox, QHBoxLayout, QLabel, QLineEdit,
+                            QPushButton, QRadioButton, QSpacerItem,
+                            QVBoxLayout)
 
 # Local imports
 from spyder.config.base import _, get_home_dir
+from spyder.config.main import CONF
 
 
 class KernelConnectionDialog(QDialog):
@@ -64,7 +66,7 @@ class KernelConnectionDialog(QDialog):
         pn_label = QLabel(_('Port:'))
         self.pn = QLineEdit()
         self.pn.setMaximumWidth(75)
-        self.pn.setText('22')
+
         un_label = QLabel(_('Username:'))
         self.un = QLineEdit()
 
@@ -129,7 +131,6 @@ class KernelConnectionDialog(QDialog):
         rm_layout.addWidget(auth_group)
         self.rm_group.setLayout(rm_layout)
         self.rm_group.setCheckable(True)
-        self.rm_group.setChecked(False)
         self.rm_group.toggled.connect(self.pw_radio.setChecked)
 
         # Ok and Cancel buttons
@@ -137,8 +138,17 @@ class KernelConnectionDialog(QDialog):
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
             Qt.Horizontal, self)
 
+        self.accept_btns.accepted.connect(self.save_connection_settings)
         self.accept_btns.accepted.connect(self.accept)
         self.accept_btns.rejected.connect(self.reject)
+
+        # Save connection settings checkbox
+        self.save_layout = QCheckBox(self)
+        self.save_layout.setText(_("Save connection settings"))
+
+        btns_layout = QHBoxLayout()
+        btns_layout.addWidget(self.save_layout)
+        btns_layout.addWidget(self.accept_btns)
 
         # Dialog layout
         layout = QVBoxLayout(self)
@@ -147,7 +157,78 @@ class KernelConnectionDialog(QDialog):
         layout.addLayout(cf_layout)
         layout.addSpacerItem(QSpacerItem(QSpacerItem(0, 12)))
         layout.addWidget(self.rm_group)
-        layout.addWidget(self.accept_btns)
+        layout.addLayout(btns_layout)
+
+        self.load_connection_settings()
+
+    def load_connection_settings(self):
+        """Load the user's previously-saved kernel connection settings."""
+        existing_kernel = CONF.get("existing-kernel", "settings", {})
+
+        connection_file_path = existing_kernel.get("json_file_path", "")
+        is_remote = existing_kernel.get("is_remote", False)
+        username = existing_kernel.get("username", "")
+        hostname = existing_kernel.get("hostname", "")
+        port = str(existing_kernel.get("port", 22))
+        is_ssh_kf = existing_kernel.get("is_ssh_keyfile", False)
+        ssh_kf = existing_kernel.get("ssh_key_file_path", "")
+
+        if connection_file_path != "":
+            self.cf.setText(connection_file_path)
+        if username != "":
+            self.un.setText(username)
+        if hostname != "":
+            self.hn.setText(hostname)
+        if ssh_kf != "":
+            self.kf.setText(ssh_kf)
+        self.rm_group.setChecked(is_remote)
+        self.pn.setText(port)
+        self.kf_radio.setChecked(is_ssh_kf)
+        self.pw_radio.setChecked(not is_ssh_kf)
+
+        try:
+            import keyring
+            ssh_passphrase = keyring.get_password("spyder_remote_kernel",
+                                                  "ssh_key_passphrase")
+            ssh_password = keyring.get_password("spyder_remote_kernel",
+                                                "ssh_password")
+            if ssh_passphrase:
+                self.kfp.setText(ssh_passphrase)
+            if ssh_password:
+                self.pw.setText(ssh_password)
+        except Exception:
+            pass
+
+    def save_connection_settings(self):
+        """Save user's kernel connection settings."""
+
+        if not self.save_layout.isChecked():
+            return
+
+        is_ssh_key = bool(self.kf_radio.isChecked())
+        connection_settings = {
+            "json_file_path": self.cf.text(),
+            "is_remote": self.rm_group.isChecked(),
+            "username": self.un.text(),
+            "hostname": self.hn.text(),
+            "port": self.pn.text(),
+            "is_ssh_keyfile": is_ssh_key,
+            "ssh_key_file_path": self.kf.text()
+        }
+        CONF.set("existing-kernel", "settings", connection_settings)
+
+        try:
+            import keyring
+            if is_ssh_key:
+                keyring.set_password("spyder_remote_kernel",
+                                     "ssh_key_passphrase",
+                                     self.kfp.text())
+            else:
+                keyring.set_password("spyder_remote_kernel",
+                                     "ssh_password",
+                                     self.pw.text())
+        except Exception:
+            pass
 
     def select_connection_file(self):
         cf = getopenfilename(self, _('Select kernel connection file'),
@@ -166,6 +247,7 @@ class KernelConnectionDialog(QDialog):
         result = dialog.exec_()
         is_remote = bool(dialog.rm_group.isChecked())
         accepted = result == QDialog.Accepted
+
         if is_remote:
             def falsy_to_none(arg):
                 return arg if arg else None

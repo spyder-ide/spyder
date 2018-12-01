@@ -22,6 +22,8 @@ from qtpy.QtCore import Qt
 from spyder.utils.qthelpers import qapplication
 from spyder.py3compat import PY2
 from spyder.plugins.lspmanager import LSPManager
+from spyder.utils.misc import getcwd_or_home
+
 
 # Location of this file
 LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
@@ -41,6 +43,7 @@ def setup_editor(qtbot, monkeypatch):
         def __init__(self, parent):
             QWidget.__init__(self, parent)
             self.lspmanager = LSPManager(parent=self)
+            self.projects = None
 
         def __getattr__(self, attr):
             if attr.endswith('actions'):

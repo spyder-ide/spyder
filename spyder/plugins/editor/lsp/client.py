@@ -21,7 +21,7 @@ import subprocess
 from qtpy.QtCore import QObject, Signal, QSocketNotifier, Slot
 import zmq
 
-from spyder.py3compat import PY2, getcwd
+from spyder.py3compat import PY2
 from spyder.config.base import get_conf_path, get_debug_level
 from spyder.plugins.editor.lsp import (
     CLIENT_CAPABILITES, SERVER_CAPABILITES, TRACE,
@@ -30,6 +30,7 @@ from spyder.plugins.editor.lsp import (
 from spyder.plugins.editor.lsp.decorators import (
     send_request, class_register, handles)
 from spyder.plugins.editor.lsp.providers import LSPMethodProviderMixIn
+from spyder.utils.misc import getcwd_or_home
 
 if PY2:
     import pathlib2 as pathlib
@@ -60,7 +61,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
     def __init__(self, parent, server_args_fmt='',
                  server_settings={}, external_server=False,
-                 folder=getcwd(), language='python',
+                 folder=getcwd_or_home(), language='python',
                  plugin_configurations={}):
         QObject.__init__(self)
         # LSPMethodProviderMixIn.__init__(self)
@@ -112,7 +113,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
         self.lsp_server_log = subprocess.PIPE
         if get_debug_level() > 0:
-            lsp_server_file = 'lsp_server_logfile.log'
+            lsp_server_file = 'lsp_server_{0}.log'.format(self.language)
             log_file = get_conf_path(osp.join('lsp_logs', lsp_server_file))
             if not osp.exists(osp.dirname(log_file)):
                 os.makedirs(osp.dirname(log_file))
@@ -134,7 +135,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.stdout_log = subprocess.PIPE
         self.stderr_log = subprocess.PIPE
         if get_debug_level() > 0:
-            stderr_log_file = 'lsp_client_{0}.log'.format(self.language)
+            stderr_log_file = 'lsp_transport_{0}_err.log'.format(self.language)
             log_file = get_conf_path(osp.join('lsp_logs', stderr_log_file))
             if not osp.exists(osp.dirname(log_file)):
                 os.makedirs(osp.dirname(log_file))
@@ -143,7 +144,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         new_env = dict(os.environ)
         python_path = os.pathsep.join(sys.path)[1:]
         new_env['PYTHONPATH'] = python_path
-        self.transport_args = map(str, self.transport_args)
+        self.transport_args = list(map(str, self.transport_args))
+        logger.info('Starting transport: {0}'
+                    .format(' '.join(self.transport_args)))
         self.transport_client = subprocess.Popen(self.transport_args,
                                                  stdout=self.stdout_log,
                                                  stderr=self.stderr_log,
@@ -202,6 +205,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 except KeyError:
                     pass
 
+                if 'error' in resp:
+                    logger.debug('{} Response error: {}'
+                                 .format(self.language, repr(resp['error'])))
+
                 if 'method' in resp:
                     if resp['method'][0] != '$':
                         if resp['method'] in self.handler_registry:
@@ -223,7 +230,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                                 self.req_status.pop(req_id)
                                 if req_id in self.req_reply:
                                     self.req_reply.pop(req_id)
-            except zmq.ZMQError as e:
+            except zmq.ZMQError:
                 self.notifier.setEnabled(True)
                 return
 
