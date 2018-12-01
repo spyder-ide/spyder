@@ -22,13 +22,11 @@ import argparse
 from spyder.py3compat import getcwd
 from producer import LanguageServerClient
 
-
+LOGGER = logging.getLogger(__name__)
 WINDOWS = os.name == 'nt'
-
 
 parser = argparse.ArgumentParser(
     description='ZMQ Python-based MS Language-Server v3.0 client for Spyder')
-
 parser.add_argument('--zmq-in-port',
                     default=7000,
                     help="ZMQ (in) port to be contacted")
@@ -55,22 +53,25 @@ parser.add_argument('--transport-debug',
                     default=0,
                     type=int,
                     help='Verbosity level for log messages')
-
 args, unknownargs = parser.parse_known_args()
 
-LOG_FORMAT = ('%(levelname) -10s %(asctime)s %(name) -30s %(funcName) '
-              '-35s %(lineno) -5d: %(message)s')
 
+def logger_init(level):
+    """
+    Initialize the logger for this thread.
 
-LEVELS = ['ERROR', 'WARNING', 'INFO', 'DEBUG']
-LEVEL = logging.getLevelName(LEVELS[args.transport_debug])
+    Sets the log level to ERROR (0), WARNING (1), INFO (2), or DEBUG (3),
+    depending on the argument `level`.
+    """
+    levellist = [logging.ERROR, logging.WARNING, logging.INFO, logging.DEBUG]
+    handler = logging.StreamHandler()
+    fmt = ('%(levelname) -10s %(asctime)s %(name) -30s %(funcName) '
+           '-35s %(lineno) -5d: %(message)s')
+    handler.setFormatter(logging.Formatter(fmt))
+    logger = logging.root
+    logger.addHandler(handler)
+    logger.setLevel(levellist[level])
 
-logging.basicConfig(level=logging.INFO, format=LOG_FORMAT)
-logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT)
-logging.basicConfig(level=logging.ERROR, format=LOG_FORMAT)
-
-LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(LEVEL)
 
 class TerminateSignal(Exception):
     """Terminal exception descriptor."""
@@ -104,6 +105,7 @@ class SignalManager:
 
 
 if __name__ == '__main__':
+    logger_init(args.transport_debug)
     process = psutil.Process()
     sig_manager = SignalManager()
     client = LanguageServerClient(host=args.server_host,
