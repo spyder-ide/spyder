@@ -49,5 +49,14 @@ def test_texteditor_setup_and_check(texteditor):
     assert not editor.setup_and_check(translate_digits)
 
 
+@pytest.mark.parametrize("title", [u"ñ", u"r"])
+def test_title(texteditor, title):
+    editor = texteditor(TEXT, title=title)
+    editor.show()
+    dlg_title = editor.windowTitle()
+    assert title in dlg_title
+
+
 if __name__ == "__main__":
     pytest.main()
+
