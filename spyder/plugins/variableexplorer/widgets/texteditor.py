@@ -82,20 +82,16 @@ class TextEditor(QDialog):
         
         self.setWindowIcon(ima.icon('edit'))
         
-        if PY3:
-
-            if (title):
-                try:
-                    unicode_title=to_text_string(title)
-                except:
-                    title=u''
-            else:
-                unicode_title=''
-
-
+        if title:
+            try:
+                unicode_title = to_text_string(title)
+            except:
+                unicode_title = u''
+        else:
+            unicode_title = u''
 
         self.setWindowTitle(_("Text editor") + \
-                            "%s" % (" - "+str(unicode_title) if str(unicode_title) else ""))
+                            u"%s" % (u" - " + unicode_title if unicode_title else u""))
         self.resize(size[0], size[1])
 
     @Slot()
