@@ -14,8 +14,6 @@ main: &main
       - run:
           command: ./continuous_integration/posix/install.sh
       - run:
-          command: ./continuous_integration/posix/install-qt.sh
-      - run:
           command: ./continuous_integration/posix/runtests.sh || ./continuous_integration/posix/runtests.sh || ./continuous_integration/posix/runtests.sh
 
 jobs:

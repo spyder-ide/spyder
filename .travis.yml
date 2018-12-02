@@ -10,22 +10,18 @@ env:
 matrix:
   fast_finish: true
   include:
-    - python: "3.6"
-      env: USE_CONDA=yes PYTHON_VERSION=3.6
+    - env: PYTHON_VERSION=3.6 USE_CONDA=yes
       os: osx
       language: generic
-    - python: "2.7"
-      env: USE_CONDA=yes PYTHON_VERSION=2.7
+    - env: PYTHON_VERSION=2.7 USE_CONDA=yes
       os: osx
       language: generic
-    - env: USE_CONDA=yes PYTHON_VERSION=3.7
+    - env: PYTHON_VERSION=3.7 USE_CONDA=yes
       os: linux
       language: generic
-    - python: "3.6"
-      env: USE_CONDA=yes
+    - env: PYTHON_VERSION=3.6 USE_CONDA=yes
       os: linux
-    - python: "3.6"
-      env: USE_CONDA=no
+    - env: PYTHON_VERSION=3.6 USE_CONDA=no
       os: linux
 
 before_install:
@@ -38,7 +34,6 @@ before_install:
 
 install:
   - ./continuous_integration/posix/install.sh;
-  - ./continuous_integration/posix/install-qt.sh;
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then DISPLAY=:99 matchbox-window-manager& fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sleep 5; fi
 
