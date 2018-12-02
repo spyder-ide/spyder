@@ -26,7 +26,7 @@ if [ "$USE_CONDA" = "yes" ]; then
     conda install -q -y -c spyder-ide --file requirements/tests.txt
 
     # Install coveralls
-    conda install -q -y coveralls
+    pip install -q coveralls
 
     # Install spyder-kernels from Github with no deps
     pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels
