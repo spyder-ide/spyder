@@ -29,7 +29,7 @@ install:
   - "conda install -q -y -c spyder-ide --file requirements/conda.txt"
   - "conda install -q -y -c spyder-ide --file requirements/tests.txt"
   # Pin to pyqt 5.6 until we figure it out how to fix our tests with 5.9
-  - "if %PYTHON_VERSION%==3.6 conda -y -q install pyqt=5.6*"
+  - "if %PYTHON_VERSION%==3.6 conda install -y -q pyqt=5.6*"
   # Reinstall Matplotlib in case it had been removed
   - "if %PYTHON_VERSION%==3.6 conda install -y -q --no-deps matplotlib"
   # Install spyder-kernels from Github
