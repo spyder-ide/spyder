@@ -16,3 +16,4 @@ keyring
 spyder-kernels>=1.0
 python-language-server=0.19
 qdarkstyle>=2.6.4
+atomicwrites
