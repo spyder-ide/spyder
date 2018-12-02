@@ -34,6 +34,8 @@ install:
   - "if %PYTHON_VERSION%==3.6 conda install -y -q --no-deps matplotlib"
   # Install spyder-kernels from Github
   - "pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels"
+  # Install codecov
+  - "pip install -q codecov"
 
 build: false
 
