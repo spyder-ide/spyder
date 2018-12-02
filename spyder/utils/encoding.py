@@ -225,7 +225,7 @@ def to_unicode(string):
     return string
     
 
-def write(text, filename, encoding='utf-8', mode='wb', overwrite=True):
+def write(text, filename, encoding='utf-8', mode='wb'):
     """
     Write 'text' to file ('filename') assuming 'encoding' in an atomic way
     Return (eventually new) encoding
@@ -236,7 +236,7 @@ def write(text, filename, encoding='utf-8', mode='wb', overwrite=True):
             textfile.write(text)
     else:
         with atomic_write(filename,
-                          overwrite=overwrite,
+                          overwrite=True,
                           mode=mode) as textfile:
             textfile.write(text)
     return encoding
