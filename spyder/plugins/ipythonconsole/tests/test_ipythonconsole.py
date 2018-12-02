@@ -234,6 +234,7 @@ def test_sympy_client(ipyconsole, qtbot):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.cython_client
+@pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
 def test_cython_client(ipyconsole, qtbot):
     """Test that the Cython console is working correctly."""
     # Wait until the window is fully up

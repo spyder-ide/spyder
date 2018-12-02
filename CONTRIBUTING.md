@@ -85,7 +85,7 @@ If using `pip` and `virtualenv` (not recommended), you need to `cd` to
 the directory where your git clone is stored and run:
 
 ```bash
-  $ pip install -r requirements/pip.txt
+  $ pip install -e .
 ```
 
 ### Using the correct version of spyder-kernels
@@ -153,7 +153,7 @@ To install our test dependencies under Anaconda:
 If using `pip` (for experts only), run the following from the directory
 where your git clone is stored:
 ```bash
-  $ pip install -r requirements/tests.txt
+  $ pip install -e .[test]
 ```
 
 To run the Spyder test suite, please use (from the `spyder` root directory):
