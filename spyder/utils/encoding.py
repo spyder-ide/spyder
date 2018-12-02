@@ -235,7 +235,9 @@ def write(text, filename, encoding='utf-8', mode='wb', overwrite=True):
         with open(filename, mode) as textfile:
             textfile.write(text)
     else:
-        with atomic_write(filename, overwrite=overwrite, mode=mode) as textfile:
+        with atomic_write(filename,
+                          overwrite=overwrite,
+                          mode=mode) as textfile:
             textfile.write(text)
     return encoding
 
