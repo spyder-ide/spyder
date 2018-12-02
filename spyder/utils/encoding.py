@@ -20,6 +20,7 @@ import sys
 
 # Third-party imports
 from chardet.universaldetector import UniversalDetector
+from atomicwrites import atomic_write
 
 # Local imports
 from spyder.py3compat import (is_string, to_text_string, is_binary_string,
@@ -224,15 +225,16 @@ def to_unicode(string):
     return string
     
 
-def write(text, filename, encoding='utf-8', mode='wb'):
+def write(text, filename, encoding='utf-8', mode='wb', overwrite=True):
     """
-    Write 'text' to file ('filename') assuming 'encoding'
+    Write 'text' to file ('filename') assuming 'encoding' in an atomic way
     Return (eventually new) encoding
     """
     text, encoding = encode(text, encoding)
-    with open(filename, mode) as textfile:
+    with atomic_write(filename, overwrite=overwrite, mode=mode) as textfile:
         textfile.write(text)
     return encoding
+
 
 def writelines(lines, filename, encoding='utf-8', mode='wb'):
     """

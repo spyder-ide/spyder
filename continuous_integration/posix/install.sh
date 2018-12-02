@@ -13,7 +13,7 @@ else
     export CONDA_DEPENDENCIES="rope pyflakes sphinx pygments pylint psutil nbconvert \
                                qtawesome cloudpickle pickleshare qtpy pyzmq chardet mock nomkl pandas \
                                pytest pytest-cov numpydoc scipy cython pillow jedi pycodestyle sympy \
-                               keyring pexpect"
+                               keyring pexpect atomicwrites"
     export PIP_DEPENDENCIES="coveralls pytest-qt pytest-mock flaky \
                              python-language-server[all] qdarkstyle"
 fi

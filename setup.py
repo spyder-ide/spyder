@@ -218,6 +218,7 @@ install_requires = [
     'numpydoc',
     'spyder-kernels>=1.0',
     'qdarkstyle>=2.6.4',
+    'atomicwrites',
     # Don't require keyring for Python 2 and Linux
     # because it depends on system packages
     'keyring;sys_platform!="linux2"',
