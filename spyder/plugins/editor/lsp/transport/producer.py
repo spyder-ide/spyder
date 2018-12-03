@@ -21,6 +21,7 @@ import zmq
 import json
 import time
 import socket
+import sys
 import logging
 import subprocess
 from spyder.py3compat import getcwd
@@ -53,7 +54,7 @@ class LanguageServerClient:
         if not use_external_server:
             LOGGER.info('Starting server: {0} {1} on {2}:{3}'.format(
                 server, ' '.join(server_args), self.host, self.port))
-            exec_line = [server] + server_args
+            exec_line = [sys.executable, '-m', server] + server_args
             LOGGER.info(' '.join(exec_line))
 
             self.server = subprocess.Popen(

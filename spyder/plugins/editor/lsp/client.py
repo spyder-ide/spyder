@@ -96,7 +96,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         # if self.external_server:
         transport_args = self.external_server_fmt % (server_settings)
 
-        self.server_args = [server_settings['cmd']]
+        self.server_args = [sys.executable, '-m', server_settings['cmd']]
         self.server_args += server_args.split(' ')
         self.transport_args += transport_args.split(' ')
         self.transport_args += ['--folder', folder]
