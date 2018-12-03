@@ -151,6 +151,8 @@ class PluginWidget(BasePluginWidget):
 
     def visibility_changed(self, enable):
         """Dock widget visibility has changed."""
+        if self.dockwidget is None:
+            return
         if enable:
             self.dockwidget.raise_()
             widget = self.get_focus_widget()
