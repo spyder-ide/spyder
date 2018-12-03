@@ -471,7 +471,7 @@ DEFAULTS = [
               'names': ['emacs', 'idle', 'monokai', 'pydev', 'scintilla',
                         'spyder', 'spyder/dark', 'zenburn', 'solarized/light',
                         'solarized/dark'],
-              'selected': 'solarized/dark',
+              'selected': 'spyder/dark',
               # ---- Emacs ----
               'emacs/name':        "Emacs",
               #      Name            Color     Bold  Italic
@@ -602,7 +602,7 @@ DEFAULTS = [
               'spyder/dark/builtin':    ('#d19a66', False, False),
               'spyder/dark/definition': ('#56b6c2', True, False),
               'spyder/dark/comment':    ('#7F848E', False, False),
-              'spyder/dark/string':     ('#bbbbbb', False, True),
+              'spyder/dark/string':     ('#98c379', False, True),
               'spyder/dark/number':     ('#d19a66', False, False),
               'spyder/dark/instance':   ('#e06c75', False, True),
               # ---- Zenburn ----
@@ -751,7 +751,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '47.0.0'
+CONF_VERSION = '47.1.0'
 
 # Main configuration instance
 try:
