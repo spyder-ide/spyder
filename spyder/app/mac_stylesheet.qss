@@ -115,6 +115,17 @@ QTabBar#plugin-tab QToolButton::right-arrow {
     image: url($IMAGE_PATH/chevron-right.png);
 }
 
+QTabBar::close-button{
+    background-image: url($IMAGE_PATH/CloseButton.png);
+}
+
+
+
+QTabBar::close-button:hover{
+    background-image: url($IMAGE_PATH/CloseButtonHover.png);
+}
+
+
 
 /* ------------------ Dock widgets ------------------- */
 
