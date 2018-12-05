@@ -21,6 +21,10 @@ QToolButton {
     border: none;
 }
 
+QToolButton:checked{
+    background-color: darkgrey;
+}
+
 QSplitter::handle:horizontal {
     border: 1px solid darkgrey;
     width: 2px;
