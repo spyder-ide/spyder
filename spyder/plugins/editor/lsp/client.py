@@ -124,7 +124,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 ' '.join(self.server_args)))
             creation_flags = 0
             if WINDOWS:
-                creation_flags = subprocess.CREATE_NEW_PROCESS_GROUP
+                creation_flags = (subprocess.CREATE_NEW_PROCESS_GROUP
+                                  | 0x08000000)  # CREATE_NO_WINDOW
             self.lsp_server = subprocess.Popen(
                 self.server_args,
                 stdout=self.lsp_server_log,
