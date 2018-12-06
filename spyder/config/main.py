@@ -475,7 +475,7 @@ DEFAULTS = [
                         'minimal', 'mr', 'nightlion/aptana/theme',
                         'notepad++/like', 'oblivion', 'obsidian', 'pastel',
                         'recogneyes', 'retta', 'roboticket', 'schuss',
-                        'sublime/text/2', 'sublime/text/monokai/extended',
+                        'sublime/text/2', 'sublime/text/monokai/ext',
                         'sunburst', 'tango', 'vibrant/ink', 'wombat'],
               'selected': 'solarized/dark',
               # ---- Emacs ----
@@ -670,7 +670,7 @@ DEFAULTS = [
               'solarized/dark/instance':   ('#b58900', False, True),
               # ---- Black Pastel (converted Eclipse color theme) ----
               'black/pastel/name':        "Black Pastel",
-              #      Name                    Color     Bold  Italic
+              #      Name                   Color     Bold  Italic
               'black/pastel/background':  "#000000",
               'black/pastel/currentline': "#2f393c",
               'black/pastel/occurence':   "#616161",
@@ -688,7 +688,7 @@ DEFAULTS = [
               'black/pastel/instance':   ('#c0c0c0', False, False),
               # ---- frontenddev (converted Eclipse color theme) ----
               'frontenddev/name':        "frontenddev",
-              #      Name                   Color     Bold  Italic
+              #      Name                  Color     Bold  Italic
               'frontenddev/background':  "#000000",
               'frontenddev/currentline': "#222220",
               'frontenddev/occurence':   "#222220",
@@ -706,7 +706,7 @@ DEFAULTS = [
               'frontenddev/instance':   ('#ffffff', False, False),
               # ---- Gedit Original Oblivion (converted Eclipse color theme) ----
               'gedit/original/oblivion/name':        "Gedit Original Oblivion",
-              #      Name                               Color     Bold  Italic
+              #      Name                              Color     Bold  Italic
               'gedit/original/oblivion/background':  "#2e3436",
               'gedit/original/oblivion/currentline': "#555753",
               'gedit/original/oblivion/occurence':   "#eeeeec",
@@ -724,7 +724,7 @@ DEFAULTS = [
               'gedit/original/oblivion/instance':   ('#d3d7cf', False, False),
               # ---- Havenjark (converted Eclipse color theme) ----
               'havenjark/name':        "Havenjark",
-              #      Name                 Color     Bold  Italic
+              #      Name                Color     Bold  Italic
               'havenjark/background':  "#2d3639",
               'havenjark/currentline': "#00001f",
               'havenjark/occurence':   "#464467",
@@ -742,7 +742,7 @@ DEFAULTS = [
               'havenjark/instance':   ('#c0b6a8', False, False),
               # ---- Inkpot (converted Eclipse color theme) ----
               'inkpot/name':        "Inkpot",
-              #      Name              Color     Bold  Italic
+              #      Name             Color     Bold  Italic
               'inkpot/background':  "#1f1f27",
               'inkpot/currentline': "#2d2d44",
               'inkpot/occurence':   "#2d2d44",
@@ -760,7 +760,7 @@ DEFAULTS = [
               'inkpot/instance':   ('#cfbfad', False, False),
               # ---- minimal (converted Eclipse color theme) ----
               'minimal/name':        "minimal",
-              #      Name               Color     Bold  Italic
+              #      Name              Color     Bold  Italic
               'minimal/background':  "#ffffff",
               'minimal/currentline': "#aaccff",
               'minimal/occurence':   "#efefef",
@@ -778,7 +778,7 @@ DEFAULTS = [
               'minimal/instance':   ('#000000', False, False),
               # ---- Mr (converted Eclipse color theme) ----
               'mr/name':        "Mr",
-              #      Name          Color     Bold  Italic
+              #      Name         Color     Bold  Italic
               'mr/background':  "#ffffff",
               'mr/currentline': "#d8d8d8",
               'mr/occurence':   "#d8d8d8",
@@ -796,7 +796,7 @@ DEFAULTS = [
               'mr/instance':   ('#333333', False, False),
               # ---- NightLion Aptana Theme (converted Eclipse color theme) ----
               'nightlion/aptana/theme/name':        "NightLion Aptana Theme",
-              #      Name                              Color     Bold  Italic
+              #      Name                             Color     Bold  Italic
               'nightlion/aptana/theme/background':  "#1e1e1e",
               'nightlion/aptana/theme/currentline': "#505050",
               'nightlion/aptana/theme/occurence':   "#464467",
@@ -814,7 +814,7 @@ DEFAULTS = [
               'nightlion/aptana/theme/instance':   ('#e2e2e2', False, False),
               # ---- Notepad++ Like (converted Eclipse color theme) ----
               'notepad++/like/name':        "Notepad++ Like",
-              #      Name                      Color     Bold  Italic
+              #      Name                     Color     Bold  Italic
               'notepad++/like/background':  "#ffffff",
               'notepad++/like/currentline': "#eeeeee",
               'notepad++/like/occurence':   "#efefef",
@@ -832,7 +832,7 @@ DEFAULTS = [
               'notepad++/like/instance':   ('#8000ff', False, False),
               # ---- Oblivion (converted Eclipse color theme) ----
               'oblivion/name':        "Oblivion",
-              #      Name                Color     Bold  Italic
+              #      Name               Color     Bold  Italic
               'oblivion/background':  "#1e1e1e",
               'oblivion/currentline': "#2a2a2a",
               'oblivion/occurence':   "#000000",
@@ -850,7 +850,7 @@ DEFAULTS = [
               'oblivion/instance':   ('#d8d8d8', False, False),
               # ---- Obsidian (converted Eclipse color theme) ----
               'obsidian/name':        "Obsidian",
-              #      Name                Color     Bold  Italic
+              #      Name               Color     Bold  Italic
               'obsidian/background':  "#293134",
               'obsidian/currentline': "#2f393c",
               'obsidian/occurence':   "#616161",
@@ -868,7 +868,7 @@ DEFAULTS = [
               'obsidian/instance':   ('#e0e2e4', False, False),
               # ---- Pastel (converted Eclipse color theme) ----
               'pastel/name':        "Pastel",
-              #      Name              Color     Bold  Italic
+              #      Name             Color     Bold  Italic
               'pastel/background':  "#1f2223",
               'pastel/currentline': "#2f393c",
               'pastel/occurence':   "#616161",
@@ -886,7 +886,7 @@ DEFAULTS = [
               'pastel/instance':   ('#e0e2e4', False, False),
               # ---- RecognEyes (converted Eclipse color theme) ----
               'recogneyes/name':        "RecognEyes",
-              #      Name                  Color     Bold  Italic
+              #      Name                 Color     Bold  Italic
               'recogneyes/background':  "#101020",
               'recogneyes/currentline': "#202030",
               'recogneyes/occurence':   "#006080",
@@ -904,7 +904,7 @@ DEFAULTS = [
               'recogneyes/instance':   ('#d0d0d0', False, False),
               # ---- Retta (converted Eclipse color theme) ----
               'retta/name':        "Retta",
-              #      Name             Color     Bold  Italic
+              #      Name            Color     Bold  Italic
               'retta/background':  "#000000",
               'retta/currentline': "#2a2a2a",
               'retta/occurence':   "#395eb1",
@@ -922,7 +922,7 @@ DEFAULTS = [
               'retta/instance':   ('#f8e1aa', False, False),
               # ---- Roboticket (converted Eclipse color theme) ----
               'roboticket/name':        "Roboticket",
-              #      Name                  Color     Bold  Italic
+              #      Name                 Color     Bold  Italic
               'roboticket/background':  "#f5f5f5",
               'roboticket/currentline': "#e0e0ff",
               'roboticket/occurence':   "#ffdf99",
@@ -940,7 +940,7 @@ DEFAULTS = [
               'roboticket/instance':   ('#585858', False, False),
               # ---- Schuss (converted Eclipse color theme) ----
               'schuss/name':        "Schuss",
-              #      Name              Color     Bold  Italic
+              #      Name             Color     Bold  Italic
               'schuss/background':  "#ffffff",
               'schuss/currentline': "#fff7cd",
               'schuss/occurence':   "#cc6633",
@@ -958,7 +958,7 @@ DEFAULTS = [
               'schuss/instance':   ('#430400', False, False),
               # ---- Sublime Text 2 (converted Eclipse color theme) ----
               'sublime/text/2/name':        "Sublime Text 2",
-              #      Name                      Color     Bold  Italic
+              #      Name                     Color     Bold  Italic
               'sublime/text/2/background':  "#272822",
               'sublime/text/2/currentline': "#5b5a4e",
               'sublime/text/2/occurence':   "#d8d8d8",
@@ -975,26 +975,26 @@ DEFAULTS = [
               'sublime/text/2/number':     ('#c48cff', False, False),
               'sublime/text/2/instance':   ('#cfbfad', False, False),
               # ---- Sublime Text Monokai Extended (converted Eclipse color theme) ----
-              'sublime/text/monokai/extended/name':        "Sublime Text Monokai Extended",
-              #      Name                                     Color     Bold  Italic
-              'sublime/text/monokai/extended/background':  "#222222",
-              'sublime/text/monokai/extended/currentline': "#2f2f2f",
-              'sublime/text/monokai/extended/occurence':   "#d8d8d8",
-              'sublime/text/monokai/extended/ctrlclick':   "#cfbfad",
-              'sublime/text/monokai/extended/sideareas':   "#222222",
-              'sublime/text/monokai/extended/matched_p':   "#000000",
-              'sublime/text/monokai/extended/unmatched_p': "#cc9900",
-              'sublime/text/monokai/extended/normal':     ('#cfbfad', False, False),
-              'sublime/text/monokai/extended/keyword':    ('#ff007f', False, False),
-              'sublime/text/monokai/extended/builtin':    ('#2f2f2f', False, False),
-              'sublime/text/monokai/extended/definition': ('#a7ec21', False, False),
-              'sublime/text/monokai/extended/comment':    ('#ffffff', False, False),
-              'sublime/text/monokai/extended/string':     ('#ece47e', False, False),
-              'sublime/text/monokai/extended/number':     ('#c48cff', False, False),
-              'sublime/text/monokai/extended/instance':   ('#cfbfad', False, False),
+              'sublime/text/monokai/ext/name':        "Sublime Text Monokai Extended",
+              #      Name                               Color     Bold  Italic
+              'sublime/text/monokai/ext/background':  "#222222",
+              'sublime/text/monokai/ext/currentline': "#2f2f2f",
+              'sublime/text/monokai/ext/occurence':   "#d8d8d8",
+              'sublime/text/monokai/ext/ctrlclick':   "#cfbfad",
+              'sublime/text/monokai/ext/sideareas':   "#222222",
+              'sublime/text/monokai/ext/matched_p':   "#000000",
+              'sublime/text/monokai/ext/unmatched_p': "#cc9900",
+              'sublime/text/monokai/ext/normal':     ('#cfbfad', False, False),
+              'sublime/text/monokai/ext/keyword':    ('#ff007f', False, False),
+              'sublime/text/monokai/ext/builtin':    ('#2f2f2f', False, False),
+              'sublime/text/monokai/ext/definition': ('#a7ec21', False, False),
+              'sublime/text/monokai/ext/comment':    ('#ffffff', False, False),
+              'sublime/text/monokai/ext/string':     ('#ece47e', False, False),
+              'sublime/text/monokai/ext/number':     ('#c48cff', False, False),
+              'sublime/text/monokai/ext/instance':   ('#cfbfad', False, False),
               # ---- Sunburst (converted Eclipse color theme) ----
               'sunburst/name':        "Sunburst",
-              #      Name                Color     Bold  Italic
+              #      Name               Color     Bold  Italic
               'sunburst/background':  "#000000",
               'sunburst/currentline': "#2f2f2f",
               'sunburst/occurence':   "#5a5a5a",
@@ -1012,7 +1012,7 @@ DEFAULTS = [
               'sunburst/instance':   ('#f9f9f9', False, False),
               # ---- Tango (converted Eclipse color theme) ----
               'tango/name':        "Tango",
-              #      Name             Color     Bold  Italic
+              #      Name            Color     Bold  Italic
               'tango/background':  "#ffffff",
               'tango/currentline': "#eeeeee",
               'tango/occurence':   "#efefef",
@@ -1030,7 +1030,7 @@ DEFAULTS = [
               'tango/instance':   ('#000000', False, False),
               # ---- Vibrant Ink (converted Eclipse color theme) ----
               'vibrant/ink/name':        "Vibrant Ink",
-              #      Name                   Color     Bold  Italic
+              #      Name                  Color     Bold  Italic
               'vibrant/ink/background':  "#191919",
               'vibrant/ink/currentline': "#222220",
               'vibrant/ink/occurence':   "#222220",
@@ -1048,7 +1048,7 @@ DEFAULTS = [
               'vibrant/ink/instance':   ('#ffffff', False, False),
               # ---- Wombat (converted Eclipse color theme) ----
               'wombat/name':        "Wombat",
-              #      Name              Color     Bold  Italic
+              #      Name             Color     Bold  Italic
               'wombat/background':  "#242424",
               'wombat/currentline': "#656565",
               'wombat/occurence':   "#464467",
