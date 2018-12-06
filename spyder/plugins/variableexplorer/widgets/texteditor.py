@@ -90,8 +90,8 @@ class TextEditor(QDialog):
             unicode_title = u''
 
         self.setWindowTitle(_("Text editor") + \
-                            u"%s" % (u" - " + unicode_title 
-                                if unicode_title else u""))
+                            u"%s" % (u" - " + unicode_title
+                                     if unicode_title else u""))
         self.resize(size[0], size[1])
 
     @Slot()
