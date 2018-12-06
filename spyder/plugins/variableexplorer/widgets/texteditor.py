@@ -81,17 +81,17 @@ class TextEditor(QDialog):
         self.setWindowFlags(Qt.Window)
         
         self.setWindowIcon(ima.icon('edit'))
-        
         if title:
             try:
                 unicode_title = to_text_string(title)
-            except:
+            except UnicodeEncodeError:
                 unicode_title = u''
         else:
             unicode_title = u''
 
         self.setWindowTitle(_("Text editor") + \
-                            u"%s" % (u" - " + unicode_title if unicode_title else u""))
+                            u"%s" % (u" - " + unicode_title 
+                                if unicode_title else u""))
         self.resize(size[0], size[1])
 
     @Slot()

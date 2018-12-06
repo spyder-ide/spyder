@@ -59,4 +59,3 @@ def test_title(texteditor, title):
 
 if __name__ == "__main__":
     pytest.main()
-
