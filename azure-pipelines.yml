@@ -1,22 +1,23 @@
-# Python package
-# Create and test a Python package on multiple Python versions.
-# Add steps that analyze code, save the dist with the build record, publish to a PyPI-compatible index, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/python
-
-trigger:
-- master
+# https://dev.azure.com/spyder-ide/spyder/
 
 jobs:
 
-- job: 'Test'
+################################################################################
+# macOS
+################################################################################
+- job: 'macOS_Conda'
+
   pool:
-    vmImage: 'Ubuntu-16.04'
+    vmImage: 'macOS-10.13'
+
+  variables:
+    USE_CONDA: "yes"
+
+  # Run the pipeline with multiple Python versions
   strategy:
     matrix:
       Python27:
         python.version: '2.7'
-      Python35:
-        python.version: '3.5'
       Python36:
         python.version: '3.6'
       Python37:
@@ -24,35 +25,38 @@ jobs:
     maxParallel: 4
 
   steps:
+    # Set the UsePythonVersion task to reference the matrix variable for its Python version
   - task: UsePythonVersion@0
     inputs:
       versionSpec: '$(python.version)'
       architecture: 'x64'
 
-  - script: python -m pip install --upgrade pip && pip install -r requirements.txt
-    displayName: 'Install dependencies'
+  - script: sudo install -d -m 0777 /usr/local/miniconda/envs/
+    displayName: Fix Conda permissions
 
+    # Conda setup environment.
+    # https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/package/conda-environment?view=vsts
+    #
+  - task: CondaEnvironment@0
+    inputs:
+      environmentName: 'test'
+      packageSpecs: 'python=$(python.version)'
+
+    # Install dependencies
   - script: |
-      pip install pytest
-      pytest tests --doctest-modules --junitxml=junit/test-results.xml
-    displayName: 'pytest'
+      ./continuous_integration/azure/install.sh
+    displayName: 'Install dependencies'
+    continueOnError: false
 
-  - task: PublishTestResults@2
-    inputs:
-      testResultsFiles: '**/test-results.xml'
-      testRunTitle: 'Python $(python.version)'
-    condition: succeededOrFailed()
+    # Show Conda Build Env
+  - script: |
+      echo "cwd:" `pwd`
+      conda list | egrep -v '^#' | perl -ne 's/_/-/g; @x=split /\s+/, lc $_; print "$x[0]==$x[1]\n"' | sort | uniq
+    displayName: 'Show build environment'
+    continueOnError: true
 
-- job: 'Publish'
-  dependsOn: 'Test'
-  pool:
-    vmImage: 'Ubuntu-16.04'
-
-  steps:
-  - task: UsePythonVersion@0
-    inputs:
-      versionSpec: '3.x'
-      architecture: 'x64'
-
-  - script: python setup.py sdist
-    displayName: 'Build sdist'
+    # Run Tests
+  - script: |
+      ./continuous_integration/azure/runtests.sh || ./continuous_integration/azure/runtests.sh || ./continuous_integration/azure/runtests.sh
+    displayName: 'Run tests'
+    continueOnError: false

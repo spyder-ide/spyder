@@ -1,6 +1,6 @@
 # https://travis-ci.org/spyder-ide/spyder
 
-language: python
+language: generic
 dist: trusty
 sudo: false
 env:
@@ -10,35 +10,27 @@ env:
 matrix:
   fast_finish: true
   include:
-    - env: PYTHON_VERSION=3.6 USE_CONDA=yes
-      os: osx
-      language: generic
     - env: PYTHON_VERSION=2.7 USE_CONDA=yes
-      os: osx
-      language: generic
-    - env: PYTHON_VERSION=3.7 USE_CONDA=yes
-      os: linux
-      language: generic
     - env: PYTHON_VERSION=3.6 USE_CONDA=yes
-      os: linux
+    - env: PYTHON_VERSION=3.7 USE_CONDA=yes
     - env: PYTHON_VERSION=3.6 USE_CONDA=no
-      os: linux
+    - env: PYTHON_VERSION=3.7 USE_CONDA=no
 
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export DISPLAY=:99.0; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sh -e /etc/init.d/xvfb start; fi
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
   # Avoid annoying focus problems when running tests
   # See discussion in e.g. https://github.com/spyder-ide/spyder/pull/6132
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get -qq update; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y matchbox-window-manager; fi
+  - sudo apt-get -qq update
+  - sudo apt-get install -y matchbox-window-manager
+  - matchbox-window-manager&
+  - sleep 5
 
 install:
-  - ./continuous_integration/posix/install.sh;
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then DISPLAY=:99 matchbox-window-manager& fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sleep 5; fi
+  - ./continuous_integration/posix/install.sh
 
 script:
-  - ./continuous_integration/posix/runtests.sh || ./continuous_integration/posix/runtests.sh || ./continuous_integration/posix/runtests.sh;
+  - ./continuous_integration/posix/runtests.sh || ./continuous_integration/posix/runtests.sh || ./continuous_integration/posix/runtests.sh
 
 after_success:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then source $HOME/miniconda/etc/profile.d/conda.sh && conda activate test && coveralls; fi
+  - source $HOME/miniconda/etc/profile.d/conda.sh && conda activate test && coveralls
