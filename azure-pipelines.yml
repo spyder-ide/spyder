@@ -12,6 +12,8 @@ jobs:
 
   variables:
     USE_CONDA: "yes"
+    CI: True
+    AZURE: True
 
   # Run the pipeline with multiple Python versions
   strategy:
