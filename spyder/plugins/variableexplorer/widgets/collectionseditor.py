@@ -49,7 +49,7 @@ from spyder.config.base import _, PICKLE_PROTOCOL
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
 from spyder.py3compat import (io, is_binary_string, is_text_string,
-                              PY3, to_text_string)
+                              PY3, to_text_string, is_type_text_string)
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import (add_actions, create_action,
@@ -332,7 +332,10 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         if index.column() == 3:
             display = value_to_display(value, minmax=self.minmax)
         else:
-             display = to_text_string(value)
+            if is_type_text_string(value):
+                display = to_text_string(value, encoding="utf-8")
+            else:
+                display = to_text_string(value)
         if role == Qt.DisplayRole:
             return to_qvariant(display)
         elif role == Qt.EditRole:
