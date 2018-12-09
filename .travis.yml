@@ -27,10 +27,10 @@ before_install:
   - sleep 5
 
 install:
-  - ./continuous_integration/posix/install.sh
+  - ./continuous_integration/travis/install.sh
 
 script:
-  - ./continuous_integration/posix/runtests.sh || ./continuous_integration/posix/runtests.sh || ./continuous_integration/posix/runtests.sh
+  - ./continuous_integration/travis/runtests.sh || ./continuous_integration/travis/runtests.sh || ./continuous_integration/travis/runtests.sh
 
 after_success:
   - source $HOME/miniconda/etc/profile.d/conda.sh && conda activate test && coveralls
