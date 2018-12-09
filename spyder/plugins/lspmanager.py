@@ -138,8 +138,8 @@ class LSPServerEditor(QDialog):
                         'and the host and port. Finally, '
                         'you need to provide the '
                         'arguments that the server accepts. '
-                        'The placeholders <tt>%(host)s</tt> and '
-                        '<tt>%(port)s</tt> refer to the host '
+                        'The placeholders <tt>{host}</tt> and '
+                        '<tt>{port}</tt> refer to the host '
                         'and the port, respectively.')
         server_settings_description = QLabel(description)
         server_settings_description.setWordWrap(True)

@@ -91,7 +91,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.server_capabilites = SERVER_CAPABILITES
         self.context = zmq.Context()
 
-        server_args = server_args_fmt % (server_settings)
+        server_args = server_args_fmt.format(**server_settings)
         # transport_args = self.local_server_fmt % (server_settings)
         # if self.external_server:
         transport_args = self.external_server_fmt % (server_settings)
