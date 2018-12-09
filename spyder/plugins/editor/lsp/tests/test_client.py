@@ -7,6 +7,7 @@
 import os
 from textwrap import dedent
 
+from flaky import flaky
 import pytest
 from qtpy.QtCore import QObject, Signal, Slot
 
@@ -41,6 +42,7 @@ def lsp_client(qtbot):
 
 
 @pytest.mark.slow
+@flaky(max_runs=5)
 @pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_initialization(qtbot, lsp_client):
     lsp, lsp_editor = lsp_client
@@ -51,6 +53,7 @@ def test_initialization(qtbot, lsp_client):
 
 
 @pytest.mark.slow
+@flaky(max_runs=5)
 @pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_get_signature(qtbot, lsp_client):
     lsp, lsp_editor = lsp_client
@@ -84,6 +87,7 @@ def test_get_signature(qtbot, lsp_client):
 
 
 @pytest.mark.slow
+@flaky(max_runs=5)
 @pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_get_completions(qtbot, lsp_client):
     lsp, lsp_editor = lsp_client
@@ -118,6 +122,7 @@ def test_get_completions(qtbot, lsp_client):
 
 
 @pytest.mark.slow
+@flaky(max_runs=5)
 @pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_go_to_definition(qtbot, lsp_client):
     lsp, lsp_editor = lsp_client
@@ -152,6 +157,7 @@ def test_go_to_definition(qtbot, lsp_client):
 
 
 @pytest.mark.slow
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_local_signature(qtbot, lsp_client):
     lsp, lsp_editor = lsp_client
