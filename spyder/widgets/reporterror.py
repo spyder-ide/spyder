@@ -160,6 +160,7 @@ class SpyderErrorDialog(QDialog):
         self.title_chars_label = QLabel(_("{} more characters "
                                           "to go...").format(TITLE_MIN_CHARS))
         form_layout = QFormLayout()
+        form_layout.setFieldGrowthPolicy(QFormLayout.ExpandingFieldsGrow)
         red_asterisk = '<font color="Red">*</font>'
         title_label = QLabel(_("<b>Title</b>: {}").format(red_asterisk))
         form_layout.setWidget(0, QFormLayout.LabelRole, title_label)

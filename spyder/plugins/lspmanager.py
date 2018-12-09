@@ -28,7 +28,7 @@ from qtpy.QtWidgets import (QDialog,
 
 # Local imports
 from spyder.config.main import CONF
-from spyder.utils.misc import select_port
+from spyder.utils.misc import select_port, getcwd_or_home
 from spyder.utils import icon_manager as ima
 from spyder.config.base import _
 from spyder.utils.programs import find_program
@@ -43,7 +43,8 @@ from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 LSP_LANGUAGES = [
     'C#', 'CSS/LESS/SASS', 'Go', 'GraphQL', 'Groovy', 'Haxe', 'HTML',
     'Java', 'JavaScript', 'JSON', 'Julia', 'OCaml', 'PHP',
-    'Python', 'Rust', 'Scala', 'Swift', 'TypeScript', 'Erlang'
+    'Python', 'Rust', 'Scala', 'Swift', 'TypeScript', 'Erlang',
+    'Fortran'
 ]
 LSP_LANGUAGE_NAME = {x.lower(): x for x in LSP_LANGUAGES}
 
@@ -137,8 +138,8 @@ class LSPServerEditor(QDialog):
                         'and the host and port. Finally, '
                         'you need to provide the '
                         'arguments that the server accepts. '
-                        'The placeholders <tt>%(host)s</tt> and '
-                        '<tt>%(port)s</tt> refer to the host '
+                        'The placeholders <tt>{host}</tt> and '
+                        '<tt>{port}</tt> refer to the host '
                         'and the port, respectively.')
         server_settings_description = QLabel(description)
         server_settings_description.setWordWrap(True)
@@ -311,13 +312,13 @@ class LSPServerEditor(QDialog):
             json.loads(self.conf_input.toPlainText())
             try:
                 self.json_label.setText(self.JSON_VALID)
-            except:
+            except Exception:
                 pass
         except (ValueError, json.decoder.JSONDecodeError):
             try:
                 self.json_label.setText(self.JSON_INVALID)
                 self.button_ok.setEnabled(False)
-            except:
+            except Exception:
                 pass
 
     def form_status(self, status):
@@ -374,7 +375,7 @@ class LSPServerEditor(QDialog):
             self.args_input.setEnabled(False)
         try:
             self.validate()
-        except:
+        except Exception:
             pass
 
     def get_options(self):
@@ -701,6 +702,30 @@ class LSPManager(SpyderPluginWidget):
             else:
                 language_client.register_file(filename, signal)
 
+    def get_root_path(self):
+        """
+        Get root path to pass to the LSP servers, i.e. project path or cwd.
+        """
+        path = None
+        if self.main and self.main.projects:
+            path = self.main.projects.get_active_project_path()
+        if not path:
+            path = getcwd_or_home()
+        return path
+
+    @Slot()
+    def reinit_all_lsp_clients(self):
+        """
+        Send a new initialize message to each LSP server when the project
+        path has changed so they can update the respective server root paths.
+        """
+        for language_client in self.clients.values():
+            if language_client['status'] == self.RUNNING:
+                folder = self.get_root_path()
+                inst = language_client['instance']
+                inst.folder = folder
+                inst.initialize()
+
     def start_lsp_client(self, language):
         started = False
         if language in self.clients:
@@ -717,6 +742,7 @@ class LSPManager(SpyderPluginWidget):
                     config['port'] = port
                 language_client['instance'] = LSPClient(
                     self, config['args'], config, config['external'],
+                    folder=self.get_root_path(),
                     plugin_configurations=config.get('configurations', {}),
                     language=language)
 

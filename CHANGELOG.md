@@ -193,6 +193,161 @@ In this release 104 pull requests were closed.
 
 ----
 
+## Version 3.3.2 (2018-11-24)
+
+#### Main Window
+
+### New features
+
+
+* Add new German and Hungarian translations.
+
+#### Preferences
+
+* Give users the ability to select the OpenGL implementation
+  used by Qt. This option can be changed in
+  `General > Advanced Settings > Rendering engine`.
+
+#### Find in files
+
+* Simplify the way to exclude files from search.
+* Fix error that prevented to stop a search when it was in
+  progress.
+* Save its options when Spyder is closed.
+
+#### Under the hood
+
+* Don't remove Spyder's temporary directory when Spyder is
+  closed. This avoids conflicts when multiple Spyder
+  instances are running.
+
+### Issues Closed
+
+* [Issue 8290](https://github.com/spyder-ide/spyder/issues/8290) - spyder.desktop doesn't contain  WMClass variable for grouping windows ([PR 8292](https://github.com/spyder-ide/spyder/pull/8292))
+* [Issue 8236](https://github.com/spyder-ide/spyder/issues/8236) - Update translations for 3.3.2
+* [Issue 8216](https://github.com/spyder-ide/spyder/issues/8216) - Error on startup with non-clean config file (from previous files/projects open?) and recent master builds ([PR 8249](https://github.com/spyder-ide/spyder/pull/8249))
+* [Issue 8179](https://github.com/spyder-ide/spyder/issues/8179) - Error when changing language from French to English ([PR 8188](https://github.com/spyder-ide/spyder/pull/8188))
+* [Issue 8128](https://github.com/spyder-ide/spyder/issues/8128) - Error raises when use multiprocessing
+* [Issue 8103](https://github.com/spyder-ide/spyder/issues/8103) - DeprecationWarning with iPython during executing certain commands in the console.
+* [Issue 8046](https://github.com/spyder-ide/spyder/issues/8046) - PermissionError while launching Spyder ([PR 8048](https://github.com/spyder-ide/spyder/pull/8048))
+* [Issue 8025](https://github.com/spyder-ide/spyder/issues/8025) - Custom interpreters are not shown in "Preferences > Python interpreter" ([PR 8231](https://github.com/spyder-ide/spyder/pull/8231))
+* [Issue 8007](https://github.com/spyder-ide/spyder/issues/8007) - Kernel crash due to file with the same name of a stdlib Python module present in current working directory
+* [Issue 7882](https://github.com/spyder-ide/spyder/issues/7882) - Error while restarting kernel ([PR 7887](https://github.com/spyder-ide/spyder/pull/7887))
+* [Issue 7868](https://github.com/spyder-ide/spyder/issues/7868) - Connect to kernel dialog needs to be clearer that either the SSH keyfile *or* the password is required ([PR 7898](https://github.com/spyder-ide/spyder/pull/7898))
+* [Issue 7862](https://github.com/spyder-ide/spyder/issues/7862) - 4.0beta1 is offered as an update when using a development version and a virtualenv ([PR 7902](https://github.com/spyder-ide/spyder/pull/7902))
+* [Issue 7856](https://github.com/spyder-ide/spyder/issues/7856) - Nbconvert 5.4.0 breaking mainwindow notebook test due to change in output file text ([PR 7860](https://github.com/spyder-ide/spyder/pull/7860))
+* [Issue 7811](https://github.com/spyder-ide/spyder/issues/7811) - Find In Files: empty "Exclude" field makes all files be excluded ([PR 7816](https://github.com/spyder-ide/spyder/pull/7816))
+* [Issue 7810](https://github.com/spyder-ide/spyder/issues/7810) - Find In Files: regexp icon ([PR 7864](https://github.com/spyder-ide/spyder/pull/7864))
+* [Issue 7809](https://github.com/spyder-ide/spyder/issues/7809) - Make visible by default the widget to exclude file types in Find in Files ([PR 7864](https://github.com/spyder-ide/spyder/pull/7864))
+* [Issue 7804](https://github.com/spyder-ide/spyder/issues/7804) - Stopping a search using FindInFiles freezes the app ([PR 7806](https://github.com/spyder-ide/spyder/pull/7806))
+* [Issue 7803](https://github.com/spyder-ide/spyder/issues/7803) - Change the way to exclude file types in Find in files ([PR 7806](https://github.com/spyder-ide/spyder/pull/7806))
+* [Issue 7800](https://github.com/spyder-ide/spyder/issues/7800) - FileNotFoundError when using custom interpreter ([PR 7829](https://github.com/spyder-ide/spyder/pull/7829))
+* [Issue 7753](https://github.com/spyder-ide/spyder/issues/7753) - Error when copying data from a dataframe ([PR 7759](https://github.com/spyder-ide/spyder/pull/7759))
+* [Issue 7748](https://github.com/spyder-ide/spyder/issues/7748) - Cannot import notebook variables ([PR 7761](https://github.com/spyder-ide/spyder/pull/7761))
+* [Issue 7742](https://github.com/spyder-ide/spyder/issues/7742) - Error when dropping files in the Editor ([PR 7764](https://github.com/spyder-ide/spyder/pull/7764))
+* [Issue 7733](https://github.com/spyder-ide/spyder/issues/7733) - Error when browsing git repository ([PR 7766](https://github.com/spyder-ide/spyder/pull/7766))
+* [Issue 7721](https://github.com/spyder-ide/spyder/issues/7721) - Error after upgrading to Python 3.7 ([PR 7807](https://github.com/spyder-ide/spyder/pull/7807))
+* [Issue 7705](https://github.com/spyder-ide/spyder/issues/7705) - Error on saving generated by Pygments lexers ([PR 7712](https://github.com/spyder-ide/spyder/pull/7712))
+* [Issue 7674](https://github.com/spyder-ide/spyder/issues/7674) - New Python interpreter selection combobox displays previous, not actual executable path if selected from file browser ([PR 7715](https://github.com/spyder-ide/spyder/pull/7715))
+* [Issue 7619](https://github.com/spyder-ide/spyder/issues/7619) - Error when trying to display Latex through Matplotlib
+* [Issue 7578](https://github.com/spyder-ide/spyder/issues/7578) - AttributeError: 'NoneType' object has no attribute 'input' ([PR 7716](https://github.com/spyder-ide/spyder/pull/7716))
+* [Issue 7561](https://github.com/spyder-ide/spyder/issues/7561) - Annoying "Are you sure you want to restart the kernel?" ([PR 7694](https://github.com/spyder-ide/spyder/pull/7694))
+* [Issue 7552](https://github.com/spyder-ide/spyder/issues/7552) - TypeError: scaledToWidth in the IPython console
+* [Issue 7447](https://github.com/spyder-ide/spyder/issues/7447) - Main window is black when starting Spyder over ssh/X11 ([PR 7859](https://github.com/spyder-ide/spyder/pull/7859))
+* [Issue 7302](https://github.com/spyder-ide/spyder/issues/7302) - PermissionError when launching kernel ([PR 7717](https://github.com/spyder-ide/spyder/pull/7717))
+* [Issue 7244](https://github.com/spyder-ide/spyder/issues/7244) - AttributeError when pasting list in collectionseditor.py ([PR 7817](https://github.com/spyder-ide/spyder/pull/7817))
+* [Issue 7236](https://github.com/spyder-ide/spyder/issues/7236) - UnicodeDecodeError when changing PYTHONPATH in Python 2 ([PR 7655](https://github.com/spyder-ide/spyder/pull/7655))
+* [Issue 7195](https://github.com/spyder-ide/spyder/issues/7195) - Crash when displaying a pandas data frame with a column containing a data frame ([PR 8114](https://github.com/spyder-ide/spyder/pull/8114))
+* [Issue 7177](https://github.com/spyder-ide/spyder/issues/7177) - Error when passing a regexp to the findreplace widget ([PR 8115](https://github.com/spyder-ide/spyder/pull/8115))
+* [Issue 6936](https://github.com/spyder-ide/spyder/issues/6936) - Data Type of customized class is changed to base class when viewed in the Variable Explorer ([PR 7679](https://github.com/spyder-ide/spyder/pull/7679))
+* [Issue 6535](https://github.com/spyder-ide/spyder/issues/6535) - Text in "About Spyder" menu is not selectable ([PR 7727](https://github.com/spyder-ide/spyder/pull/7727))
+* [Issue 6218](https://github.com/spyder-ide/spyder/issues/6218) - UnicodeDecodeError when truncating results in Find in files ([PR 7812](https://github.com/spyder-ide/spyder/pull/7812))
+* [Issue 6176](https://github.com/spyder-ide/spyder/issues/6176) - Find in Files options not saved to spyder.ini ([PR 7863](https://github.com/spyder-ide/spyder/pull/7863))
+* [Issue 5898](https://github.com/spyder-ide/spyder/issues/5898) - Closing all files in split pane view with at least 2 open then clicking any menu triggers RuntimeError
+* [Issue 4474](https://github.com/spyder-ide/spyder/issues/4474) - Find in files exclude as a textbox is very limited (not very UX friendly either) ([PR 7864](https://github.com/spyder-ide/spyder/pull/7864))
+* [Issue 4291](https://github.com/spyder-ide/spyder/issues/4291) - Menu items don't show in full-screen mode ([PR 7720](https://github.com/spyder-ide/spyder/pull/7720))
+* [Issue 3777](https://github.com/spyder-ide/spyder/issues/3777) - Output of C extensions is not shown in IPython console
+* [Issue 937](https://github.com/spyder-ide/spyder/issues/937) - Editor maximized - Run script - console takes most of screen ([PR 7205](https://github.com/spyder-ide/spyder/pull/7205))
+
+In this release 45 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 8292](https://github.com/spyder-ide/spyder/pull/8292) - PR: Add StartupWMClass to Linux desktop files ([8290](https://github.com/spyder-ide/spyder/issues/8290))
+* [PR 8278](https://github.com/spyder-ide/spyder/pull/8278) - PR: Update Spanish translation for 3.3.2
+* [PR 8264](https://github.com/spyder-ide/spyder/pull/8264) - PR: French Translation for 3.3.2
+* [PR 8263](https://github.com/spyder-ide/spyder/pull/8263) - PR: Fix tests in Appveyor/Python 2
+* [PR 8261](https://github.com/spyder-ide/spyder/pull/8261) - PR: Fix error in Pydoc widget when quitting server in Python 2
+* [PR 8259](https://github.com/spyder-ide/spyder/pull/8259) - PR: Fixes due to the new Pytest 4
+* [PR 8256](https://github.com/spyder-ide/spyder/pull/8256) - PR: Add German translation
+* [PR 8255](https://github.com/spyder-ide/spyder/pull/8255) - PR: Update Japanese translation for 3.3.2
+* [PR 8250](https://github.com/spyder-ide/spyder/pull/8250) - PR: Update Hungarian translation for 3.3.2
+* [PR 8249](https://github.com/spyder-ide/spyder/pull/8249) - PR: Prevent an error during the initialization of the Editor plugin ([8216](https://github.com/spyder-ide/spyder/issues/8216))
+* [PR 8248](https://github.com/spyder-ide/spyder/pull/8248) - PR: Update Russian translation
+* [PR 8232](https://github.com/spyder-ide/spyder/pull/8232) - PR: Fix passing --run-slow to runtests.py
+* [PR 8231](https://github.com/spyder-ide/spyder/pull/8231) - PR: Don't associate the combobox of FileComboBox to the same option as its lineedit ([8025](https://github.com/spyder-ide/spyder/issues/8025))
+* [PR 8188](https://github.com/spyder-ide/spyder/pull/8188) - PR: Catch errors when trying to change the interface language ([8179](https://github.com/spyder-ide/spyder/issues/8179))
+* [PR 8187](https://github.com/spyder-ide/spyder/pull/8187) - PR: Don't install qtconsole from git on Appveyor because it's generating errors
+* [PR 8173](https://github.com/spyder-ide/spyder/pull/8173) - PR: Fix various DeprecationWarnings and FutureWarnings
+* [PR 8152](https://github.com/spyder-ide/spyder/pull/8152) - PR: Make test_codeanalysis more robust to changes in Pyflakes and Pycodestyle
+* [PR 8133](https://github.com/spyder-ide/spyder/pull/8133) - PR: Skip test_values_dbg in Python 2 because it's timing out too much
+* [PR 8123](https://github.com/spyder-ide/spyder/pull/8123) - PR: Improve usability of runtests locally and test output on the CIs
+* [PR 8116](https://github.com/spyder-ide/spyder/pull/8116) - PR: Do not close split editor when empty or when switching project
+* [PR 8115](https://github.com/spyder-ide/spyder/pull/8115) - PR: Catch errors when trying to replace text in the Editor with a regexp ([7177](https://github.com/spyder-ide/spyder/issues/7177))
+* [PR 8114](https://github.com/spyder-ide/spyder/pull/8114) - PR: Catch errors when trying to display dataframe values as strings ([7195](https://github.com/spyder-ide/spyder/issues/7195))
+* [PR 8111](https://github.com/spyder-ide/spyder/pull/8111) - PR: Remove several old files
+* [PR 8110](https://github.com/spyder-ide/spyder/pull/8110) - PR: Use software OpenGL implementation by default
+* [PR 8048](https://github.com/spyder-ide/spyder/pull/8048) - PR: Don't raise exceptions when writing config to disk fails ([8046](https://github.com/spyder-ide/spyder/issues/8046))
+* [PR 8024](https://github.com/spyder-ide/spyder/pull/8024) - PR: Remove testpath condition now that its conda packages are in good shape
+* [PR 8021](https://github.com/spyder-ide/spyder/pull/8021) - PR: Fix tests by pinning testpath and switching to Python 3.5 on Windows
+* [PR 7928](https://github.com/spyder-ide/spyder/pull/7928) - PR: Update PR template to link to developer COI and clarify other text
+* [PR 7926](https://github.com/spyder-ide/spyder/pull/7926) - PR: Convert and optimize needed PNGs in img_src directory
+* [PR 7908](https://github.com/spyder-ide/spyder/pull/7908) - PR: Fix showing kernel creation error messages
+* [PR 7902](https://github.com/spyder-ide/spyder/pull/7902) - PR: Improve detection of new Spyder versions to be offered for updates ([7862](https://github.com/spyder-ide/spyder/issues/7862))
+* [PR 7898](https://github.com/spyder-ide/spyder/pull/7898) - PR: Clarify and improve Connect to kernel dialog text ([7868](https://github.com/spyder-ide/spyder/issues/7868))
+* [PR 7888](https://github.com/spyder-ide/spyder/pull/7888) - PR: Remove old pdn image source files that are no longer needed
+* [PR 7887](https://github.com/spyder-ide/spyder/pull/7887) - PR: Remove unnecessary code to restart kernels ([7882](https://github.com/spyder-ide/spyder/issues/7882))
+* [PR 7873](https://github.com/spyder-ide/spyder/pull/7873) - PR: Correct next/previous word shortcut callback ([7872](https://github.com/spyder-ide/spyder/issues/7872))
+* [PR 7864](https://github.com/spyder-ide/spyder/pull/7864) - PR: More improvements to Find in Files ([7810](https://github.com/spyder-ide/spyder/issues/7810), [7809](https://github.com/spyder-ide/spyder/issues/7809), [4474](https://github.com/spyder-ide/spyder/issues/4474))
+* [PR 7863](https://github.com/spyder-ide/spyder/pull/7863) - PR: Correctly save Find in Files options when closing Spyder ([6176](https://github.com/spyder-ide/spyder/issues/6176))
+* [PR 7860](https://github.com/spyder-ide/spyder/pull/7860) - PR: Fix failing test due to a new version of nbconvert ([7856](https://github.com/spyder-ide/spyder/issues/7856))
+* [PR 7859](https://github.com/spyder-ide/spyder/pull/7859) - PR: Set selected OpenGL implementation for QtQuick too ([7447](https://github.com/spyder-ide/spyder/issues/7447))
+* [PR 7838](https://github.com/spyder-ide/spyder/pull/7838) - PR: Start testing with Python 3.7 on Linux
+* [PR 7837](https://github.com/spyder-ide/spyder/pull/7837) - PR: Fix tests after ci-helpers updated conda version
+* [PR 7829](https://github.com/spyder-ide/spyder/pull/7829) - PR: Use a function to create and get our temporary directory ([7800](https://github.com/spyder-ide/spyder/issues/7800))
+* [PR 7817](https://github.com/spyder-ide/spyder/pull/7817) - PR: Don't import objects in collectionseditor that are not dicts ([7244](https://github.com/spyder-ide/spyder/issues/7244))
+* [PR 7816](https://github.com/spyder-ide/spyder/pull/7816) - PR: Don't ignore all files when exclude pattern is empty ([7811](https://github.com/spyder-ide/spyder/issues/7811))
+* [PR 7812](https://github.com/spyder-ide/spyder/pull/7812) - PR: Truncate results correctly in Find in Files for Python 2 ([6218](https://github.com/spyder-ide/spyder/issues/6218))
+* [PR 7807](https://github.com/spyder-ide/spyder/pull/7807) - PR: Correctly handling pydoc._start_server on Python 3.7 ([7721](https://github.com/spyder-ide/spyder/issues/7721))
+* [PR 7806](https://github.com/spyder-ide/spyder/pull/7806) - PR: Stop searches in Find in Files correctly and improve how to exclude file types ([7804](https://github.com/spyder-ide/spyder/issues/7804), [7803](https://github.com/spyder-ide/spyder/issues/7803))
+* [PR 7791](https://github.com/spyder-ide/spyder/pull/7791) - PR: Remove gettext scripts separated into their own repo
+* [PR 7790](https://github.com/spyder-ide/spyder/pull/7790) - PR: Protect calls to unregister_editorstack_cb and pin sip in our tests
+* [PR 7785](https://github.com/spyder-ide/spyder/pull/7785) - PR: House cleaning
+* [PR 7769](https://github.com/spyder-ide/spyder/pull/7769) - PR: Exclude non-runnable code from coverage reports
+* [PR 7766](https://github.com/spyder-ide/spyder/pull/7766) - PR: Fix Browse and Commit vcs actions in file and project explorers ([7733](https://github.com/spyder-ide/spyder/issues/7733))
+* [PR 7765](https://github.com/spyder-ide/spyder/pull/7765) - PR: Fix minor issues with the tutorial as pointed out by Dr. Fangohr himself
+* [PR 7764](https://github.com/spyder-ide/spyder/pull/7764) - PR: Catch error when dropping a file on the Editor doesn't have an associated url ([7742](https://github.com/spyder-ide/spyder/issues/7742))
+* [PR 7761](https://github.com/spyder-ide/spyder/pull/7761) - PR: Catch errors generated when creating the env vars dialog  ([7748](https://github.com/spyder-ide/spyder/issues/7748))
+* [PR 7759](https://github.com/spyder-ide/spyder/pull/7759) - PR: Catch any error when trying to copy the contents of a dataframe ([7753](https://github.com/spyder-ide/spyder/issues/7753))
+* [PR 7727](https://github.com/spyder-ide/spyder/pull/7727) - PR: Make the text of the About Spyder message box selectable ([6535](https://github.com/spyder-ide/spyder/issues/6535))
+* [PR 7720](https://github.com/spyder-ide/spyder/pull/7720) - PR: Implement a workaround to toggle on/off fullscreen mode for Windows systems ([4291](https://github.com/spyder-ide/spyder/issues/4291))
+* [PR 7717](https://github.com/spyder-ide/spyder/pull/7717) - PR: Catch any error generated when trying to start kernels ([7302](https://github.com/spyder-ide/spyder/issues/7302))
+* [PR 7716](https://github.com/spyder-ide/spyder/pull/7716) - PR: Catch error when writing to stdin and there's no kernel client available ([7578](https://github.com/spyder-ide/spyder/issues/7578))
+* [PR 7715](https://github.com/spyder-ide/spyder/pull/7715) - PR: Simplify how custom interpreters are loaded/saved ([7674](https://github.com/spyder-ide/spyder/issues/7674))
+* [PR 7712](https://github.com/spyder-ide/spyder/pull/7712) - PR: Catch errors when getting file type extensions supported by Pygments ([7705](https://github.com/spyder-ide/spyder/issues/7705))
+* [PR 7700](https://github.com/spyder-ide/spyder/pull/7700) - PR: Add option to select OpenGL implementation used by Qt
+* [PR 7694](https://github.com/spyder-ide/spyder/pull/7694) - PR: Make "Are you sure you want to restart the kernel?" warning optional ([7561](https://github.com/spyder-ide/spyder/issues/7561))
+* [PR 7691](https://github.com/spyder-ide/spyder/pull/7691) - PR: Load css when showing kernel errors in the IPython console
+* [PR 7679](https://github.com/spyder-ide/spyder/pull/7679) - PR: Make editor for collection types which copy incorrectly read-only ([6936](https://github.com/spyder-ide/spyder/issues/6936))
+* [PR 7655](https://github.com/spyder-ide/spyder/pull/7655) - PR: Add validation in Python 2 to prevent the addition of paths with unicode characters to the PYTHONPATH ([7236](https://github.com/spyder-ide/spyder/issues/7236))
+* [PR 7205](https://github.com/spyder-ide/spyder/pull/7205) - PR: Unmaximize plugins when an action or menu calls another plugin ([937](https://github.com/spyder-ide/spyder/issues/937))
+* [PR 4473](https://github.com/spyder-ide/spyder/pull/4473) - PR: Add Hungarian translation
+
+In this release 69 pull requests were closed.
+
+
+----
+
 
 ## Version 3.3.1 (2018-08-11)
 
@@ -204,6 +359,7 @@ In this release 104 pull requests were closed.
   `Preferences > Python interpreter`.
 
 #### IPython console
+
 * Do not save pdb commands in debugging history
 
 ### Issues Closed

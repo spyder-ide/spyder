@@ -54,7 +54,7 @@ If you use Anaconda you can create a conda environment with
 the following commands:
 
 ```bash
-  $ conda create -n spyder-dev -c conda-forge python=3
+  $ conda create -n spyder-dev python=3.6
   $ source activate spyder-dev
 ```
 
@@ -75,9 +75,7 @@ After you have created your development environment, you need to install
 Spyder's necessary dependencies. The easiest way to do so (with Anaconda) is
 
 ```bash
-  $ conda install -c conda-forge/label/beta spyder=4.0.0b1
-  $ conda install -c conda-forge python-language-server
-  $ conda remove spyder
+  $ conda install -c spyder-ide --file requirements/conda.txt
 ```
 
 This installs all of Spyder's dependencies into the environment along with
@@ -87,14 +85,7 @@ If using `pip` and `virtualenv` (not recommended), you need to `cd` to
 the directory where your git clone is stored and run:
 
 ```bash
-  $ pip install -r requirements/requirements.txt
-```
-
-If you are using `pip` and Python 3, you also need to install a Qt binding
-package (PyQt5). This can be achieved by running:
-
-```bash
-  $ pip install pyqt5
+  $ pip install -e .
 ```
 
 ### Using the correct version of spyder-kernels
@@ -156,13 +147,13 @@ copies simultaneously by unchecking the Preferences option
 To install our test dependencies under Anaconda:
 
 ```bash
-  $ conda install --file requirements/test_requirements.txt -c conda-forge
+  $ conda install -c spyder-ide --file requirements/tests.txt
 ```
 
 If using `pip` (for experts only), run the following from the directory
 where your git clone is stored:
 ```bash
-  $ pip install -r requirements/test_requirements.txt
+  $ pip install -e .[test]
 ```
 
 To run the Spyder test suite, please use (from the `spyder` root directory):

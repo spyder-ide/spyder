@@ -115,6 +115,8 @@ class Projects(SpyderPluginWidget):
         """Register plugin in Spyder's main window"""
         ipyconsole = self.main.ipyconsole
         treewidget = self.explorer.treewidget
+        lspmgr = self.main.lspmanager
+
         self.main.add_dockwidget(self)
         self.explorer.sig_open_file.connect(self.main.open_file)
 
@@ -140,6 +142,7 @@ class Projects(SpyderPluginWidget):
             lambda v: self.main.workingdirectory.chdir(v))
         self.sig_project_loaded.connect(
             lambda v: self.main.set_window_title())
+        self.sig_project_loaded.connect(lspmgr.reinit_all_lsp_clients)
         self.sig_project_loaded.connect(
             lambda v: self.main.editor.setup_open_files())
         self.sig_project_loaded.connect(self.update_explorer)
@@ -148,6 +151,7 @@ class Projects(SpyderPluginWidget):
                 self.get_last_working_dir()))
         self.sig_project_closed.connect(
             lambda v: self.main.set_window_title())
+        self.sig_project_closed.connect(lspmgr.reinit_all_lsp_clients)
         self.sig_project_closed.connect(
             lambda v: self.main.editor.setup_open_files())
         self.recent_project_menu.aboutToShow.connect(self.setup_menu_actions)

@@ -21,6 +21,7 @@ import zmq
 import json
 import time
 import socket
+import sys
 import logging
 import subprocess
 from spyder.py3compat import getcwd
@@ -53,7 +54,7 @@ class LanguageServerClient:
         if not use_external_server:
             LOGGER.info('Starting server: {0} {1} on {2}:{3}'.format(
                 server, ' '.join(server_args), self.host, self.port))
-            exec_line = [server] + server_args
+            exec_line = [sys.executable, '-m', server] + server_args
             LOGGER.info(' '.join(exec_line))
 
             self.server = subprocess.Popen(
@@ -67,12 +68,14 @@ class LanguageServerClient:
 
         initial_time = time.time()
         while not connected:
+            LOGGER.info('Attempting LSP server connection {0}:{1}'.
+                        format(self.host, self.port))
             try:
                 self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.socket.connect((self.host, int(self.port)))
                 connected = True
-            except Exception:
-                pass
+            except Exception as e:
+                LOGGER.info('Connection error: {}'.format(e))
 
             if time.time() - initial_time > self.MAX_TIMEOUT_TIME:
                 break
@@ -93,6 +96,7 @@ class LanguageServerClient:
         self.zmq_in_socket.connect("tcp://localhost:{0}".format(zmq_in_port))
         self.zmq_out_socket = self.context.socket(zmq.PAIR)
         self.zmq_out_socket.connect("tcp://localhost:{0}".format(zmq_out_port))
+        LOGGER.info('Sending server_ready...')
         self.zmq_out_socket.send_pyobj({'id': -1, 'method': 'server_ready',
                                         'params': {}})
 
@@ -102,8 +106,8 @@ class LanguageServerClient:
                                        self.req_status)
 
     def start(self):
-        LOGGER.info('Ready to recieve/attend requests and responses!')
         self.reading_thread.start()
+        LOGGER.info('Ready to receive/attend requests and responses!')
 
     def stop(self):
         # LOGGER.info('Sending shutdown instruction to server')

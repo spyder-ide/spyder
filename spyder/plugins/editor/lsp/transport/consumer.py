@@ -51,7 +51,6 @@ class IncomingMessageThread(Thread):
         self.zmq_sock = zmq_sock
         self.req_status = req_status
 
-
     def read_posix(self):
         self.expect.expect('\r\n\r\n', timeout=None)
         headers = self.expect.before
@@ -88,6 +87,7 @@ class IncomingMessageThread(Thread):
         content_length = int(headers[b'Content-Length'])
         pending_bytes = content_length - len(buffer)
         while pending_bytes > 0:
+            LOGGER.debug('Pending bytes...' + str(pending_bytes))
             recv = self.socket.recv(min(1024, pending_bytes))
             buffer += recv
             pending_bytes -= len(recv)
@@ -111,8 +111,8 @@ class IncomingMessageThread(Thread):
                     LOGGER.debug(body)
                     self.zmq_sock.send_pyobj(body)
                     LOGGER.debug('Message sent')
-            except socket.error:
-                pass
+            except socket.error as e:
+                LOGGER.error(e)
         LOGGER.debug('Thread stopped.')
 
     def parse_headers(self, headers):

@@ -138,6 +138,8 @@ class PluginWidget(QWidget, BasePluginMixin):
         """
         Dock widget visibility has changed.
         """
+        if self.dockwidget is None:
+            return
         if enable:
             self.dockwidget.raise_()
             widget = self.get_focus_widget()

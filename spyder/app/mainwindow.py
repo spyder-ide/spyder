@@ -263,6 +263,14 @@ def setup_logging(cli_options):
                             filename=log_file,
                             filemode='w+')
 
+# =============================================================================
+# Dependencies
+# =============================================================================
+
+QDARKSTYLE_REQVER = '>=2.6.4'
+dependencies.add("qdarkstyle", _("Dark style for the entire interface"),
+                 required_version=QDARKSTYLE_REQVER)
+
 
 #==============================================================================
 # Main Window

@@ -12,46 +12,40 @@ main: &main
             sudo apt-get -qq update
             sudo apt-get install libegl1-mesa
       - run:
-          command: ./continuous_integration/posix/install.sh
+          command: ./continuous_integration/travis/install.sh
       - run:
-          command: ./continuous_integration/posix/install-qt.sh
-      - run:
-          command: ./continuous_integration/posix/runtests.sh || ./continuous_integration/posix/runtests.sh || ./continuous_integration/posix/runtests.sh
+          command: ./continuous_integration/circle/modules_test.sh || ./continuous_integration/circle/modules_test.sh
 
 jobs:
-  python2.7-pytest:
+  python2.7:
     <<: *main
     environment:
       - PYTHON_VERSION: "2.7"
       - USE_CONDA: "yes"
-      - CI_PYTEST: "true"
 
-  python3.5-pytest:
+  python3.5:
     <<: *main
     environment:
       - PYTHON_VERSION: "3.5"
       - USE_CONDA: "no"
-      - CI_PYTEST: "true"
 
-  python2.7-modules:
-    <<: *main
-    environment:
-      - PYTHON_VERSION: "2.7"
-      - USE_CONDA: "yes"
-      - CI_PYTEST: "false"
-
-  python3.6-modules:
+  python3.6:
     <<: *main
     environment:
       - PYTHON_VERSION: "3.6"
       - USE_CONDA: "yes"
-      - CI_PYTEST: "false"
+
+  python3.7:
+    <<: *main
+    environment:
+      - PYTHON_VERSION: "3.7"
+      - USE_CONDA: "yes"
 
 workflows:
   version: 2
   build_and_test:
     jobs:
-      - python2.7-pytest
-      - python3.5-pytest
-      - python2.7-modules
-      - python3.6-modules
+      - python2.7
+      - python3.5
+      - python3.6
+      - python3.7

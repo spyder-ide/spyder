@@ -19,6 +19,7 @@ https://github.com/spyder-ide/spyder/graphs/contributors)*
 [![Travis status](https://travis-ci.org/spyder-ide/spyder.svg?branch=master)](https://travis-ci.org/spyder-ide/spyder)
 [![AppVeyor status](https://ci.appveyor.com/api/projects/status/tvjcqa4kf53br8s0/branch/master?svg=true)](https://ci.appveyor.com/project/spyder-ide/spyder/branch/master)
 [![CircleCI](https://circleci.com/gh/spyder-ide/spyder.svg?style=shield)](https://circleci.com/gh/spyder-ide/spyder)
+[![Azure](https://dev.azure.com/spyder-ide/spyder/_apis/build/status/spyder-ide.spyder?branchName=master)](https://dev.azure.com/spyder-ide/spyder/_build/latest?definitionId=1?branchName=master)
 [![Coverage Status](https://coveralls.io/repos/github/spyder-ide/spyder/badge.svg?branch=master)](https://coveralls.io/github/spyder-ide/spyder?branch=master)
 [![codecov](https://codecov.io/gh/spyder-ide/spyder/branch/master/graph/badge.svg)](https://codecov.io/gh/spyder-ide/spyder)
 
@@ -234,7 +235,7 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 * **Pylint**: Static code analysis.
 * **Psutil**: CPU and memory usage on the status bar.
 * **Nbconvert**: Manipulation of notebooks in the Editor.
-* **Qtawesome** 0.5.0+: To have an icon theme based on FontAwesome.
+* **Qtawesome** 0.5.2+: To have an icon theme based on FontAwesome.
 * **Pickleshare**: Show import completions on the Python consoles.
 * **PyZMQ**: Client for the language server protocol (LSP).
 * **QtPy** 1.5.0+: Abstraction layer for Python Qt bindings so that Spyder
@@ -244,7 +245,8 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 * **Cloudpickle**: Serialize variables in the IPython kernel to send to Spyder.
 * **spyder-kernels** 1.0+: Jupyter kernels for the Spyder console.
 * **keyring**: Save Github credentials to report errors securely.
-* **QDarkStyle** 2.6.3+: A dark stylesheet for Qt applications, used for Spyder's dark theme.
+* **QDarkStyle** 2.6.4+: A dark stylesheet for Qt applications, used for Spyder's dark theme.
+* **atomicwrites**: Atomic file writes.
 * **pexpect**/**paramiko**: Connect to remote kernels through SSH.
 
 ### Optional dependencies
