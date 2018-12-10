@@ -471,7 +471,7 @@ DEFAULTS = [
               'names': ['emacs', 'idle', 'monokai', 'pydev', 'scintilla',
                         'spyder', 'spyder/dark', 'zenburn', 'solarized/light',
                         'solarized/dark'],
-              'selected': 'solarized/dark',
+              'selected': 'spyder/dark',
               # ---- Emacs ----
               'emacs/name':        "Emacs",
               #      Name            Color     Bold  Italic
@@ -589,22 +589,22 @@ DEFAULTS = [
               # ---- Spyder/Dark ----
               'spyder/dark/name':        "Spyder Dark",
               #           Name             Color     Bold  Italic
-              'spyder/dark/background':  "#131926",
-              'spyder/dark/currentline': "#2b2b43",
-              'spyder/dark/currentcell': "#31314e",
-              'spyder/dark/occurrence':   "#abab67",
-              'spyder/dark/ctrlclick':   "#0000ff",
-              'spyder/dark/sideareas':   "#282828",
-              'spyder/dark/matched_p':   "#009800",
-              'spyder/dark/unmatched_p': "#c80000",
+              'spyder/dark/background':  "#19232D",
+              'spyder/dark/currentline': "#3a424a",
+              'spyder/dark/currentcell': "#17172d",
+              'spyder/dark/occurrence':  "#509ea5",
+              'spyder/dark/ctrlclick':   "#179ae0",
+              'spyder/dark/sideareas':   "#222b35",
+              'spyder/dark/matched_p':   "#0bbe0b",
+              'spyder/dark/unmatched_p': "#ff4340",
               'spyder/dark/normal':     ('#ffffff', False, False),
-              'spyder/dark/keyword':    ('#558eff', False, False),
-              'spyder/dark/builtin':    ('#aa00aa', False, False),
-              'spyder/dark/definition': ('#ffffff', True, False),
-              'spyder/dark/comment':    ('#7f7f7f', False, False),
-              'spyder/dark/string':     ('#11a642', False, True),
-              'spyder/dark/number':     ('#c80000', False, False),
-              'spyder/dark/instance':   ('#be5f00', False, True),
+              'spyder/dark/keyword':    ('#c670e0', False, False),
+              'spyder/dark/builtin':    ('#fab16c', False, False),
+              'spyder/dark/definition': ('#57d6e4', True, False),
+              'spyder/dark/comment':    ('#999999', False, False),
+              'spyder/dark/string':     ('#b0e686', False, True),
+              'spyder/dark/number':     ('#faed5c', False, False),
+              'spyder/dark/instance':   ('#ee6772', False, True),
               # ---- Zenburn ----
               'zenburn/name':        "Zenburn",
               #        Name            Color     Bold  Italic
@@ -751,7 +751,8 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '47.1.0'
+CONF_VERSION = '47.2.0'
+
 
 # Main configuration instance
 try:
