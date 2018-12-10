@@ -30,7 +30,7 @@ from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
 # Local imports
 from spyder.config.base import (_, LANGUAGE_CODES, load_lang_conf,
                                 running_in_mac_app, save_lang_conf)
-from spyder.config.gui import get_font, set_font
+from spyder.config.gui import get_font, set_font, is_dark_interface
 from spyder.config.main import CONF
 from spyder.config.user import NoDefault
 from spyder.config.utils import is_gtk_desktop
@@ -1327,8 +1327,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
 
     def update_qt_style_combobox(self):
         """Enable/disable the Qt style combobox."""
-        style_sheet = self.main.styleSheet()
-        if style_sheet:
+        if is_dark_interface():
             self.style_combobox.setEnabled(False)
         else:
             self.style_combobox.setEnabled(True)
