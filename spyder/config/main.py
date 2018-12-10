@@ -590,21 +590,21 @@ DEFAULTS = [
               'spyder/dark/name':        "Spyder Dark",
               #           Name             Color     Bold  Italic
               'spyder/dark/background':  "#19232D",
-              'spyder/dark/currentline': "#67769660",
-              'spyder/dark/currentcell': "#67769660",
-              'spyder/dark/occurrence':   "#42557b",
-              'spyder/dark/ctrlclick':   "#c678dd",
-              'spyder/dark/sideareas':   "#19232D",
-              'spyder/dark/matched_p':   "#314365",
-              'spyder/dark/unmatched_p': "#42557b",
-              'spyder/dark/normal':     ('#bbbbbb', False, False),
-              'spyder/dark/keyword':    ('#c678dd', False, False),
-              'spyder/dark/builtin':    ('#d19a66', False, False),
-              'spyder/dark/definition': ('#56b6c2', True, False),
-              'spyder/dark/comment':    ('#7F848E', False, False),
-              'spyder/dark/string':     ('#98c379', False, True),
-              'spyder/dark/number':     ('#d19a66', False, False),
-              'spyder/dark/instance':   ('#e06c75', False, True),
+              'spyder/dark/currentline': "#3a424a",
+              'spyder/dark/currentcell': "#17172d",
+              'spyder/dark/occurrence':  "#509ea5",
+              'spyder/dark/ctrlclick':   "#179ae0",
+              'spyder/dark/sideareas':   "#222b35",
+              'spyder/dark/matched_p':   "#0bbe0b",
+              'spyder/dark/unmatched_p': "#ff4340",
+              'spyder/dark/normal':     ('#ffffff', False, False),
+              'spyder/dark/keyword':    ('#c670e0', False, False),
+              'spyder/dark/builtin':    ('#fab16c', False, False),
+              'spyder/dark/definition': ('#57d6e4', True, False),
+              'spyder/dark/comment':    ('#bbbbbb', False, False),
+              'spyder/dark/string':     ('#b0e686', False, True),
+              'spyder/dark/number':     ('#faed5c', False, False),
+              'spyder/dark/instance':   ('#ee6772', False, True),
               # ---- Zenburn ----
               'zenburn/name':        "Zenburn",
               #        Name            Color     Bold  Italic
@@ -751,7 +751,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '47.1.0'
+CONF_VERSION = '47.2.0'
 
 # Main configuration instance
 try:
