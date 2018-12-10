@@ -601,7 +601,7 @@ DEFAULTS = [
               'spyder/dark/keyword':    ('#c670e0', False, False),
               'spyder/dark/builtin':    ('#fab16c', False, False),
               'spyder/dark/definition': ('#57d6e4', True, False),
-              'spyder/dark/comment':    ('#bbbbbb', False, False),
+              'spyder/dark/comment':    ('#999999', False, False),
               'spyder/dark/string':     ('#b0e686', False, True),
               'spyder/dark/number':     ('#faed5c', False, False),
               'spyder/dark/instance':   ('#ee6772', False, True),
