@@ -82,6 +82,7 @@ jobs:
     CI: True
     AZURE: True
     PYTHON: "C:\\Miniconda"
+    CODECOV_TOKEN: "56731c25-9b1f-4340-8b58-35739bfbc52d"
 
   # Run the pipeline with multiple Python versions
   strategy:
@@ -90,6 +91,8 @@ jobs:
         python.version: '2.7'
       Python36:
         python.version: '3.6'
+      Python37:
+        python.version: '3.7'
     maxParallel: 4
 
   steps:
