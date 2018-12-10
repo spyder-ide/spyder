@@ -667,7 +667,7 @@ DEFAULTS = [
                 'python': {
                     'index': 0,
                     'cmd': 'pyls',
-                    'args': '--host %(host)s --port %(port)s --tcp',
+                    'args': '--host {host} --port {port} --tcp',
                     'host': '127.0.0.1',
                     'port': 2087,
                     'external': False,
@@ -752,6 +752,7 @@ DEFAULTS = [
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
 CONF_VERSION = '47.2.0'
+
 
 # Main configuration instance
 try:

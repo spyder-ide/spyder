@@ -91,12 +91,12 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.server_capabilites = SERVER_CAPABILITES
         self.context = zmq.Context()
 
-        server_args = server_args_fmt % (server_settings)
+        server_args = server_args_fmt.format(**server_settings)
         # transport_args = self.local_server_fmt % (server_settings)
         # if self.external_server:
         transport_args = self.external_server_fmt % (server_settings)
 
-        self.server_args = [server_settings['cmd']]
+        self.server_args = [sys.executable, '-m', server_settings['cmd']]
         self.server_args += server_args.split(' ')
         self.transport_args += transport_args.split(' ')
         self.transport_args += ['--folder', folder]
@@ -124,7 +124,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 ' '.join(self.server_args)))
             creation_flags = 0
             if WINDOWS:
-                creation_flags = subprocess.CREATE_NEW_PROCESS_GROUP
+                creation_flags = (subprocess.CREATE_NEW_PROCESS_GROUP
+                                  | 0x08000000)  # CREATE_NO_WINDOW
             self.lsp_server = subprocess.Popen(
                 self.server_args,
                 stdout=self.lsp_server_log,
