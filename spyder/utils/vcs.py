@@ -21,21 +21,25 @@ from spyder.py3compat import PY3
 
 
 SUPPORTED = [
-{
-    'name': 'Mercurial',
-    'rootdir': '.hg',
-    'actions': dict(
-        commit=( ('thg', ['commit']),
-                 ('hgtk', ['commit']) ),
-        browse=( ('thg', ['log']),
-                 ('hgtk', ['log']) ))
-}, {
-    'name': 'Git',
-    'rootdir': '.git',
-    'actions': dict(
-        commit=( ('git', ['gui' if os.name == 'nt' else 'cola']), ),
-        browse=( ('gitk', []), ))
-}]
+    {
+        'name': 'Mercurial',
+        'rootdir': '.hg',
+        'actions': dict(
+            commit=(('thg', ['commit']),
+                    ('hgtk', ['commit'])),
+            browse=(('thg', ['log']),
+                    ('hgtk', ['log'])),
+            cstate=(('thg', ['status']))
+        )
+    }, {
+        'name': 'Git',
+        'rootdir': '.git',
+        'actions': dict(
+            commit=(('git', ['gui' if os.name == 'nt' else 'cola']), ),
+            browse=(('gitk', []), ),
+            cstate=(('git status --ignored --porcelain', []), ),
+        )
+    }]
 
 
 class ActionToolNotFound(RuntimeError):
@@ -92,6 +96,37 @@ def run_vcs_tool(path, action):
         cmdnames = [name for name, args in tools]
         raise ActionToolNotFound(info['name'], action, cmdnames)
 
+
+def get_vcs_status(path):
+    """Return the commit status."""
+    rootPath = get_vcs_root(path)
+    if not rootPath:
+        return None
+    info = get_vcs_info(rootPath)
+    # Status list (in Order): untracked, ignored, modified, added
+    if info['name'] == 'Git':
+        stat = ["??", "!!", "M", "A"]
+    elif info['name'] == 'Mercurial':
+        stat = ["?", "I", "M", "A"]
+
+    tool = info['actions']['cstate']
+    if tool is not None:
+        if programs.find_program('git'):
+            if not running_under_pytest():
+                proc = programs.run_shell_command(tool[0][0], cwd=path)
+                out, err = proc.communicate()
+                if proc.returncode >= 0:
+                    vcsst = {}
+                    for fString in (x for x in out[:-1].split("\n") if x):
+                        vcsst[fString[3:]] = stat.index(fString[:2].strip())
+                    return vcsst
+                else:
+                    return None
+            else:
+                return True
+            return
+
+
 def is_hg_installed():
     """Return True if Mercurial is installed"""
     return programs.find_program('hg') is not None
@@ -119,7 +154,6 @@ def get_hg_revision(repopath):
 def get_git_revision(repopath):
     """
     Return Git revision for the repository located at repopath
-    
     Result is a tuple (latest commit hash, branch), with None values on
     error
     """
