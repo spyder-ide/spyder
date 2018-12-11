@@ -29,7 +29,7 @@ SUPPORTED = [
                     ('hgtk', ['commit'])),
             browse=(('thg', ['log']),
                     ('hgtk', ['log'])),
-            cstate=(('thg', ['status']))
+            cstate=(('hg', 'status -A'), )
         )
     }, {
         'name': 'Git',
@@ -37,7 +37,7 @@ SUPPORTED = [
         'actions': dict(
             commit=(('git', ['gui' if os.name == 'nt' else 'cola']), ),
             browse=(('gitk', []), ),
-            cstate=(('git status --ignored --porcelain', []), ),
+            cstate=(('git', 'status --ignored --porcelain'), )
         )
     }]
 
@@ -106,19 +106,24 @@ def get_vcs_status(path):
     # Status list (in Order): untracked, ignored, modified, added
     if info['name'] == 'Git':
         stat = ["??", "!!", "M", "A"]
+        o = 3 # position at which the filename starts
     elif info['name'] == 'Mercurial':
         stat = ["?", "I", "M", "A"]
+        o = 2
 
-    tool = info['actions']['cstate']
-    if tool is not None:
-        if programs.find_program('git'):
+    for tool, args in info['actions']['cstate']:
+        if programs.find_program(tool):
             if not running_under_pytest():
-                proc = programs.run_shell_command(tool[0][0], cwd=path)
-                out, err = proc.communicate()
+                proc = programs.run_shell_command(tool + " " + args, cwd=path)
+                out, _ = proc.communicate()
                 if proc.returncode >= 0:
                     vcsst = {}
                     for fString in (x for x in out[:-1].split("\n") if x):
-                        vcsst[fString[3:]] = stat.index(fString[:2].strip())
+                        try:
+                            index = stat.index(fString[:o-1].strip())
+                        except ValueError:
+                            continue
+                        vcsst[fString[o:]] = index
                     return vcsst
                 else:
                     return None
