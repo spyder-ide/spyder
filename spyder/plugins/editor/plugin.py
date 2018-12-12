@@ -1082,6 +1082,17 @@ class Editor(SpyderPluginWidget):
                                       _("Remove trailing spaces"),
                                       triggered=self.remove_trailing_spaces)
 
+        darkscheme_action = create_action(self,
+                                      _("Change scheme to dark mode"),
+                                      tip=_("Set editor scheme to "
+                                      "'Spyder Dark'"),
+                                      triggered=self.change_scheme_todark)
+
+        whitescheme_action = create_action(self,
+                                      _("Change scheme to white mode"),
+                                      tip=_("Set editor scheme to 'Spyder'"),
+                                      triggered=self.change_scheme_towhite)
+
         # Checkable actions
         showblanks_action = self._create_checkable_action(
                 _("Show blank spaces"), 'blank_spaces', 'set_blanks_enabled')
@@ -1231,6 +1242,8 @@ class Editor(SpyderPluginWidget):
                                show_classfunc_dropdown_action,
                                showcode_analysis_pep8_action,
                                trailingspaces_action,
+                               darkscheme_action,
+                               whitescheme_action,
                                fixindentation_action,
                                MENU_SEPARATOR,
                                self.todo_list_action,
@@ -2416,6 +2429,18 @@ class Editor(SpyderPluginWidget):
         self.switch_to_plugin()
         editorstack = self.get_current_editorstack()
         editorstack.fix_indentation()
+
+    @Slot()
+    def change_scheme_todark(self):
+        "Changes current editors to 'Spyder Dark' scheme"
+        for editorstack in self.editorstacks:
+                editorstack.set_color_scheme('spyder/dark')
+
+    @Slot()
+    def change_scheme_towhite(self):
+        "Changes current editors to 'Spyder' scheme"
+        for editorstack in self.editorstacks:
+                editorstack.set_color_scheme('spyder')
 
     #------ Cursor position history management
     def update_cursorpos_actions(self):
