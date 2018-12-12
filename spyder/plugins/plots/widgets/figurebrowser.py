@@ -456,7 +456,7 @@ class ThumbnailScrollBar(QFrame):
         scrollarea = self.setup_scrollarea()
         up_btn, down_btn = self.setup_arrow_buttons()
 
-        self.setFixedWidth(135)
+        self.setFixedWidth(150)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
