@@ -49,8 +49,8 @@ div.metadata {
     margin-bottom: 15px;
     margin-right: 1px;
     padding: 1px;
-    background-color: #EEEEEE;
-    color: rgb(51, 51, 51);
+    background-color: #304F71;
+    color: #FFFFFF;
     border: 1px solid #C9C9C9;
     border-radius: 6px 6px 6px 6px;
 }
@@ -237,7 +237,7 @@ table.docutils tr.row-odd {
 
 /* --- Docutils table headers --- */
 table.docutils th {
-    background-color: #EEEEEE;
+    background-color: #304F71;
     border-bottom-color: #DDDDDD;
     border-bottom-style: solid;
     border-bottom-width: 1px;
@@ -247,7 +247,7 @@ table.docutils th {
     font-weight: bold;
     text-align: center;
     padding: 6px 0px 6px 8px;
-    color: rgb(65, 65, 65);
+    color: #FFFFFF;
 }
 
 
@@ -299,7 +299,7 @@ dt {
 }
 
 tt {
-    background-color: #ECF0F3;
+    background-color: #475F71;
     /*font-size: 95%;*/
     padding: 0px 1px;
 }
@@ -452,25 +452,25 @@ div.admonition p.admonition-title {
     width: 1px;
 }
 
-::-webkit-scrollbar-button:increment{
+::-webkit-scrollbar-button:increment {
     background-repeat: no-repeat;
     background-image: url(../images/down_arrow_disabled.png);
     background-position: center center;
 }
 
-::-webkit-scrollbar-button:decrement{
+::-webkit-scrollbar-button:decrement {
     background-repeat: no-repeat;
     background-image: url(../images/up_arrow_disabled.png);
     background-position: center center;
 }
 
-::-webkit-scrollbar-button:increment:hover{
+::-webkit-scrollbar-button:increment:hover {
     background-repeat: no-repeat;
     background-image: url(../images/down_arrow.png);
     background-position: center center;
 }
 
-::-webkit-scrollbar-button:decrement:hover{
+::-webkit-scrollbar-button:decrement:hover {
     background-repeat: no-repeat;
     background-image: url(../images/up_arrow.png);
     background-position: center center;
