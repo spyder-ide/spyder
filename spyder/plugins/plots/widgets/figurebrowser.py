@@ -11,6 +11,7 @@ This is the main widget used in the Plots plugin
 """
 
 # ---- Standard library imports
+from __future__ import division
 import os.path as osp
 
 # ---- Third library imports
