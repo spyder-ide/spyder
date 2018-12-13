@@ -32,9 +32,20 @@ from spyder.py3compat import to_text_string
 def projects(qtbot, mocker):
     """Projects plugin fixture."""
 
-    class MainWindowMock(object):
+    class EditorMock(object):
+        def get_open_filenames(self):
+            # Patch this with mocker to return a different value.
+            # See test_set_project_filenames_in_close_project.
+            return []
+
         def __getattr__(self, attr):
-            if attr == 'ipyconsole' or attr == 'editor':
+            return Mock()
+
+    class MainWindowMock(object):
+        editor = EditorMock()
+
+        def __getattr__(self, attr):
+            if attr == 'ipyconsole':
                 return None
             else:
                 return Mock()
@@ -118,6 +129,34 @@ def test_open_project_uses_visible_config(projects, tmpdir, value):
     projects.set_option('visible_if_project_open', value)
     projects.open_project(path=to_text_string(tmpdir))
     assert projects.dockwidget.isVisible() == value
+
+
+def test_set_get_project_filenames(projects, tmpdir, mocker):
+    """
+    Test that the currently opened files in the Editor are saved and loaded
+    correctly to and from the project config when the project is closed and
+    then reopened.
+
+    Regression test for Issue #8375
+    """
+    opened_files = ['file1', 'file2', 'file3']
+    mocker.patch.object(
+        projects.main.editor, 'get_open_filenames', return_value=opened_files)
+
+    # We mock os.path.isfile so that we do not have to
+    # actually create the files on the disk.
+    mocker.patch('spyder.plugins.projects.api.os.path.isfile',
+                 return_value=True)
+
+    # Create the project.
+    path = to_text_string(tmpdir.mkdir('project1'))
+    projects.open_project(path=path)
+    assert projects.get_project_filenames() == []
+
+    # Close and reopen the project.
+    projects.close_project()
+    projects.open_project(path=path)
+    assert projects.get_project_filenames() == opened_files
 
 
 if __name__ == "__main__":
