@@ -1610,27 +1610,23 @@ spyder/images/winpython.svg
 
 
 
-Images of the Help plugin
-=========================
+Plugin Assets
+=============
 
 
--------------------------------------------------------------------------------
-
-
-
-QDarkStyle
-----------
+Images from QDarkStyle
+----------------------
 
 
 Copyright (c) 2013-2018 Colin Duquesnoy <colin.duquesnoy@gmail.com> - original author.
 Copyright (c) 2018 Daniel Pizetta <daniel.pizetta@usp.br> - improvements and bug fixes.
 
 
-
 Author: QDarkStyle Contributors | See AUTHORS.md
 https://github.com/ColinDuquesnoy/QDarkStyleSheet/blob/master/AUTHORS.md
 Source: https://github.com/ColinDuquesnoy/QDarkStyleSheet
-License: Creative Commons Attribution International 4.0 | https://creativecommons.org/licenses/by/4.0/
+License: Creative Commons Attribution International 4.0
+https://creativecommons.org/licenses/by/4.0/
 
 
 Licensed under the terms of the Creative Commons Attribution International 4.0.
@@ -1648,9 +1644,6 @@ spyder/plugins/help/utils/static/images/down_arrow.png
 spyder/plugins/help/utils/static/images/up_arrow.png
 spyder/plugins/help/utils/static/images/down_arrow_disabled.png
 spyder/plugins/help/utils/static/images/up_arrow_disabled.png
-
-
--------------------------------------------------------------------------------
 
 
 ===============================================================================

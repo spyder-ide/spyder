@@ -49,7 +49,7 @@ div.metadata {
     margin-bottom: 15px;
     margin-right: 1px;
     padding: 1px;
-    background-color: #304F71;
+    background-color: #3a424a;
     color: #FFFFFF;
     border: 1px solid #C9C9C9;
     border-radius: 6px 6px 6px 6px;
@@ -237,7 +237,7 @@ table.docutils tr.row-odd {
 
 /* --- Docutils table headers --- */
 table.docutils th {
-    background-color: #304F71;
+    background-color: #3a424a;
     border-bottom-color: #DDDDDD;
     border-bottom-style: solid;
     border-bottom-width: 1px;
