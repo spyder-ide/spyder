@@ -10,6 +10,11 @@ if [ "$USE_CONDA" = "yes" ]; then
 
     # Install spyder-kernels from Github with no deps
     pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels
+
+    # macOS tests are failing with Qt 5.9.7
+    if [ $(uname) == Darwin ]; then
+        conda install -q -y qt=5.9.6
+    fi
 else
     # Update pip and setuptools
     pip install -U pip setuptools
