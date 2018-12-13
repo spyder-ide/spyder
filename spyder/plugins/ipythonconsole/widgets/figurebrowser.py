@@ -61,9 +61,10 @@ class FigureBrowserWidget(RichJupyterWidget):
                     self.figurebrowser.mute_inline_plotting):
                 if not self.sended_render_message:
                     msg['content']['data']['text/plain'] = _(
-                        'Plots are now render with the Plots Plugin. '
-                        'To get the previous behavior uncheck the option '
-                        '"Mute inline plotting" of the Plots Plugin.')
+                        'Figures now render in the Plots pane by default. '
+                        'To make them also appear inline in the Console, '
+                        'uncheck "Mute Inline Plotting" under the Plots '
+                        'pane options menu.')
                     self.sended_render_message = True
                 else:
                     msg['content']['data']['text/plain'] = ''
