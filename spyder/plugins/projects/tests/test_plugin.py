@@ -70,11 +70,13 @@ def projects(qtbot, mocker):
 
 @pytest.fixture
 def create_projects(projects, mocker):
-    """
-    Create a Projects plugin fixture, open a project at the specified path,
-    and mock the opening of the specified files in the Editor.
-    """
+    """Create a Projects plugin fixture"""
     def _create_projects(path, files):
+        """
+        Using the Projects plugin fixture, open a project at the
+        specified path, and mock the opening of the specified files
+        in the Editor.
+        """
         # Open a project.
         projects.open_project(path=path)
 
