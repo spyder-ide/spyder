@@ -1604,6 +1604,38 @@ spyder/images/winpython.svg
 
 -------------------------------------------------------------------------------
 
+Notebook Logo
+-------------
+
+
+Copyright (c) 2015 Project Jupyter Contributors
+
+
+Author: Project Jupyter Contributors | https://github.com/jupyterlab/jupyterlab
+Site: https://github.com/jupyterlab/jupyterlab  
+Source: https://github.com/jupyterlab/jupyterlab
+License: 3-Clause ("Modified") BSD License
+https://opensource.org/licenses/BSD-3-Clause
+
+The icon color was changed to black.
+
+
+Distributed under the terms of the BSD License.
+
+
+See below for the full text of the BSD (3-clause) License.
+
+The current version of the original file can be viewed at:
+https://github.com/jupyterlab/jupyterlab/blob/0.35.x/packages/theme-light-extension/style/icons/jupyter/book_selected.svg
+
+
+Files covered:
+
+spyder/images/notebook_light.svg
+spyder/images/notebook_dark.svg
+
+-------------------------------------------------------------------------------
+
 
 ===============================================================================
 
