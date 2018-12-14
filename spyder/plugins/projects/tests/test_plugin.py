@@ -131,7 +131,7 @@ def test_open_project_uses_visible_config(projects, tmpdir, value):
     assert projects.dockwidget.isVisible() == value
 
 
-def test_set_get_project_filenames(projects, tmpdir, mocker):
+def test_set_get_project_filenames_when_closing(projects, tmpdir, mocker):
     """
     Test that the currently opened files in the Editor are saved and loaded
     correctly to and from the project config when the project is closed and
@@ -139,23 +139,55 @@ def test_set_get_project_filenames(projects, tmpdir, mocker):
 
     Regression test for Issue #8375
     """
-    opened_files = ['file1', 'file2', 'file3']
-    mocker.patch.object(
-        projects.main.editor, 'get_open_filenames', return_value=opened_files)
-
-    # We mock os.path.isfile so that we do not have to
-    # actually create the files on the disk.
-    mocker.patch('spyder.plugins.projects.api.os.path.isfile',
-                 return_value=True)
-
-    # Create the project.
+    # Create a project.
     path = to_text_string(tmpdir.mkdir('project1'))
     projects.open_project(path=path)
     assert projects.get_project_filenames() == []
 
+    # Then we do some mocking to simulate the case where files were
+    # opened in the Editor while the project was open.
+    opened_files = ['file1', 'file2', 'file3']
+    mocker.patch.object(
+        projects.main.editor, 'get_open_filenames', return_value=opened_files)
+    # We mock os.path.isfile so that we do not have to
+    # actually create the files on the disk.
+    mocker.patch(
+        'spyder.plugins.projects.api.os.path.isfile', return_value=True)
+
     # Close and reopen the project.
     projects.close_project()
     projects.open_project(path=path)
+    assert projects.get_project_filenames() == opened_files
+
+
+def test_set_get_project_filenames_when_switching(projects, tmpdir, mocker):
+    """
+    Test that files in the Editor are loaded and saved correctly when
+    switching projects.
+    """
+    # Create a project.
+    path1 = to_text_string(tmpdir.mkdir('project1'))
+    projects.open_project(path=path1)
+    assert projects.get_project_filenames() == []
+
+    # Then we do some mocking to simulate the case where files were
+    # opened in the Editor while the project was open.
+    opened_files = ['file1', 'file2', 'file3']
+    mocker.patch.object(
+        projects.main.editor, 'get_open_filenames', return_value=opened_files)
+    # Mock os.path.isfile so that we do not have to actually save the files
+    # and save them to on the disk.
+    mocker.patch(
+        'spyder.plugins.projects.api.os.path.isfile', return_value=True)
+
+    # Switch to another project.
+    path2 = to_text_string(tmpdir.mkdir('project2'))
+    projects.open_project(path=path2)
+    assert projects.get_project_filenames() == []
+
+    # Switch back to the first project.
+    projects.close_project()
+    projects.open_project(path=path1)
     assert projects.get_project_filenames() == opened_files
 
 
