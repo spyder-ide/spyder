@@ -340,7 +340,7 @@ class BaseEditMixin(object):
         cursor = self.__select_text(position_from, position_to)
         cursor.removeSelectedText()
 
-    def get_current_word(self):
+    def get_current_word(self, completion=False):
         """Return current word, i.e. word at cursor position"""
         cursor = self.textCursor()
 
@@ -358,14 +358,24 @@ class BaseEditMixin(object):
             # (see below), the word to the left of the cursor won't be
             # selected), but only if the first character to the left is not a
             # white space too.
-            def is_space(move):
-                curs = self.textCursor()
-                curs.movePosition(move, QTextCursor.KeepAnchor)
-                return not to_text_string(curs.selectedText()).strip()
-            if is_space(QTextCursor.NextCharacter):
-                if is_space(QTextCursor.PreviousCharacter):
-                    return
-                cursor.movePosition(QTextCursor.WordLeft)
+            if not completion:
+                def is_space(move):
+                    curs = self.textCursor()
+                    curs.movePosition(move, QTextCursor.KeepAnchor)
+                    return not to_text_string(curs.selectedText()).strip()
+                if is_space(QTextCursor.NextCharacter):
+                    if is_space(QTextCursor.PreviousCharacter):
+                        return
+                    cursor.movePosition(QTextCursor.WordLeft)
+            else:
+                def is_special_character(move):
+                    curs = self.textCursor()
+                    curs.movePosition(move, QTextCursor.KeepAnchor)
+                    text_cursor = to_text_string(curs.selectedText()).strip()
+                    return len(re.findall(r'([^\d\W]\w*)',
+                                          text_cursor, re.UNICODE)) == 0
+                if is_special_character(QTextCursor.NextCharacter):
+                    cursor.movePosition(QTextCursor.WordLeft)
 
         cursor.select(QTextCursor.WordUnderCursor)
         text = to_text_string(cursor.selectedText())
