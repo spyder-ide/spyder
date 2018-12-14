@@ -189,7 +189,7 @@ def test_set_get_project_filenames_when_switching(create_projects, tmpdir):
     # Create the projects plugin.
     projects = create_projects(path1, opened_files)
     assert projects.get_project_filenames() == []
-    
+
     # Switch to another project.
     projects.open_project(path=path2)
     assert projects.get_project_filenames() == []
