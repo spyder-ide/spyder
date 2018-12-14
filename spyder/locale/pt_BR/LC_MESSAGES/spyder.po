@@ -4450,7 +4450,7 @@ msgid ""
 "All user-defined variables will be removed. Are you sure you want to proceed?"
 msgstr ""
 "Todas as variáveis definidas pelo usuário serão removidas.<br>Você tem "
-"certeza diisso?"
+"certeza disso?"
 
 #: spyder/widgets/ipythonconsole/shell.py:241
 msgid "Don't show again."
