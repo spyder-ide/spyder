@@ -26,7 +26,7 @@ from spyder.py3compat import to_text_string
 
 
 # =============================================================================
-# Fixtures
+# ---- Fixtures
 # =============================================================================
 @pytest.fixture
 def projects(qtbot, mocker):
@@ -69,7 +69,7 @@ def projects(qtbot, mocker):
 
 
 # =============================================================================
-# Tests
+# ---- Tests
 # =============================================================================
 @pytest.mark.parametrize("test_directory", [u'測試', u'اختبار', u"test_dir"])
 def test_open_project(projects, tmpdir, test_directory):
