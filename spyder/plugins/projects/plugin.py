@@ -314,6 +314,9 @@ class Projects(SpyderPluginWidget):
         """
         if self.current_active_project:
             self.switch_to_plugin()
+            if self.main.editor is not None:
+                self.set_project_filenames(
+                    self.main.editor.get_open_filenames())
             path = self.current_active_project.root_path
             self.current_active_project = None
             self.set_option('current_project_path', None)
@@ -329,10 +332,6 @@ class Projects(SpyderPluginWidget):
 
             self.explorer.clear()
             self.restart_consoles()
-
-            if self.main.editor is not None:
-                self.set_project_filenames(
-                    self.main.editor.get_open_filenames())
 
     def _delete_project(self):
         """Delete current project."""
