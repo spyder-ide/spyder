@@ -200,5 +200,36 @@ def test_set_get_project_filenames_when_switching(create_projects, tmpdir):
     assert projects.get_project_filenames() == opened_files
 
 
+def test_recent_projects_menu_action(projects, tmpdir):
+    """
+    Test that the actions of the submenu 'Recent Projects' in the 'Projects'
+    main menu are working as expected.
+
+    Regression test for Issue #8450.
+    """
+    recent_projects_len = len(projects.recent_projects)
+
+    # Create the directories.
+    path0 = to_text_string(tmpdir.mkdir('project0'))
+    path1 = to_text_string(tmpdir.mkdir('project1'))
+    path2 = to_text_string(tmpdir.mkdir('project2'))
+
+    # Open projects in path0, path1, and path2.
+    projects.open_project(path=path0)
+    projects.open_project(path=path1)
+    projects.open_project(path=path2)
+    assert (len(projects.recent_projects_actions) ==
+            recent_projects_len + 3 + 2)
+    assert projects.get_active_project().root_path == path2
+
+    # Trigger project1 in the list of Recent Projects actions.
+    projects.recent_projects_actions[1].trigger()
+    assert projects.get_active_project().root_path == path1
+
+    # Trigger project0 in the list of Recent Projects actions.
+    projects.recent_projects_actions[2].trigger()
+    assert projects.get_active_project().root_path == path0
+
+
 if __name__ == "__main__":
     pytest.main()
