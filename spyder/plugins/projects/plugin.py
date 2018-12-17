@@ -186,7 +186,7 @@ class Projects(SpyderPluginWidget):
                 self.toggle_view_action.setChecked(True)
             self.visibility_changed(True)
 
-    #------ Public API ---------------------------------------------------------
+    # ------ Public API -------------------------------------------------------
     def setup_menu_actions(self):
         """Setup and update the menu actions."""
         self.recent_project_menu.clear()
