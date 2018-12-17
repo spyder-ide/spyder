@@ -150,7 +150,7 @@ class IconProvider(QFileIconProvider):
                 return ima.icon('DirOpenIcon')
             else:
                 basename = osp.basename(fname)
-                _, extension = osp.splitext(basename)
+                _, extension = osp.splitext(basename.lower())
                 mime_type, _ = mime.guess_type(basename)
                 icon = ima.icon('FileIcon')
 
@@ -159,21 +159,29 @@ class IconProvider(QFileIconProvider):
                         
                 language = { 
                     '.c': 'CFileIcon',
-                    '.cc': 'CFileIcon',
+                    '.h': 'CFileIcon',
+                    '.cc': 'CppFileIcon',
+                    '.hh': 'CppFileIcon',
                     '.cpp': 'CppFileIcon',
                     '.cxx': 'CppFileIcon',
+                    '.c++': 'CppFileIcon',
+                    '.hpp': 'CppFileIcon',
+                    '.hxx': 'CppFileIcon',
+                    '.h++': 'CppFileIcon',
                     '.cs': 'CsharpFileIcon',
                     '.asmx': 'CsharpFileIcon',
                     '.py': 'PythonFileIcon',
                     '.py3': 'PythonFileIcon',
                     '.pyc': 'PythonFileIcon',
-                    '.pyo': 'PythonFileIcon',
+                    '.pyx': 'PythonFileIcon',
                     '.pyw': 'PythonFileIcon',
                     '.java': 'JavaFileIcon',
                     '.jav': 'JavaFileIcon',
                     '.j': 'JavaFileIcon',
                     '.js': 'JavascriptFileIcon',
                     '.r': 'RFileIcon',
+                    '.rnw': 'RFileIcon',
+                    '.rmd': 'RFileIcon',
                     '.swift': 'SwiftFileIcon',
                     '.csv': 'GridFileIcon',
                     '.tsv': 'GridFileIcon',
@@ -187,7 +195,6 @@ class IconProvider(QFileIconProvider):
                     '.yml': 'ExclamationFileIcon',
                     '.yaml': 'ExclamationFileIcon',
                     '.xml': 'CodeFileIcon'
-
                 }
 
                 if extension in language:
