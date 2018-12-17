@@ -1214,6 +1214,7 @@ class Editor(SpyderPluginWidget):
         editorstack.sig_new_file[()].connect(self.new)
         editorstack.sig_close_file.connect(self.close_file_in_all_editorstacks)
         editorstack.file_saved.connect(self.file_saved_in_editorstack)
+        editorstack.file_saved.connect(self.update_vcs_status)
         editorstack.file_renamed_in_data.connect(
                                       self.file_renamed_in_data_in_editorstack)
         editorstack.opened_files_list_changed.connect(
@@ -1290,6 +1291,11 @@ class Editor(SpyderPluginWidget):
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.rename_in_data(original_filename, filename)
+                
+    @Slot(str, str)
+    def update_vcs_status(self, _, file):
+        path = osp.dirname(file)
+        self.projects.explorer.treewidget.fsmodel.setVCSState(path)
 
     #------ Handling editor windows
     def setup_other_windows(self):

@@ -134,26 +134,26 @@ class IconProvider(QFileIconProvider):
 class ColorModel(QFileSystemModel):
     """FileSystemModel providing a color-code for different commit-status."""
     def __init__(self, *args, **kwargs):
-        super(ColorModel, self).__init__(*args, **kwargs)
         self.vcs_state = None
         self.color_array = [QColor("#ff0000"), QColor("#555555"),
                             QColor("#0099ff"), QColor("#00ff00"),
                             QColor("#ffffff")]
-        self.root_path = None
+        self.root_path = ''
+        super(ColorModel, self).__init__(*args, **kwargs)
 
-    def setVCSState(self, state, root_path):
+    def setVCSState(self, root_path):
         """Set the vcs state dictionary."""
-        self.vcs_state = state
-        self.dataChanged.emit(QModelIndex(), QModelIndex())
         self.root_path = root_path
+        self.vcs_state = vcs.get_vcs_status(self.root_path)
+        self.dataChanged.emit(QModelIndex(), QModelIndex())
 
     def relativePath(self, index):
         """Return the project-relative path of a file with a given index."""
         return str(re.sub('^' + self.root_path + '/', '',
                           self.filePath(index)))
 
-    def data(self, index, role=Qt.DisplayRole):
-        """Set the colors of the elements in the Treeview"""
+    def data(self, index, role):
+        """Set the colors of the elements in the Treeview."""
         if self.vcs_state and role == Qt.TextColorRole:
             filename = self.relativePath(index)
             if filename in self.vcs_state and self.vcs_state[filename] <= 3:
@@ -1248,8 +1248,7 @@ class FilteredDirView(DirView):
 
     def set_vcs_state(self, folderPath):
         """Color the explorer output based on commit states"""
-        status_dict = vcs.get_vcs_status(folderPath)
-        self.fsmodel.setVCSState(status_dict, folderPath)
+        self.fsmodel.setVCSState(folderPath)
 
     def set_folder_names(self, folder_names):
         """Set folder names"""
