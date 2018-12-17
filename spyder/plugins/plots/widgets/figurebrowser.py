@@ -111,7 +111,8 @@ class FigureBrowser(QWidget):
                                      "border-bottom-width: 0px;"
                                      "border-left-width: 0px;"
                                      "}")
-        self.thumbnails_sb = ThumbnailScrollBar(self.figviewer)
+        self.thumbnails_sb = ThumbnailScrollBar(
+            self.figviewer, background_color=self.background_color)
 
         # Option actions :
         self.setup_option_actions(mute_inline_plotting, show_plot_outline)
@@ -321,6 +322,7 @@ class FigureViewer(QScrollArea):
                 "background-color: {}".format(background_color))
         self.setFrameStyle(0)
 
+        self.background_color = background_color
         self._scalefactor = 0
         self._scalestep = 1.2
         self._sfmax = 10
@@ -333,7 +335,7 @@ class FigureViewer(QScrollArea):
 
     def setup_figcanvas(self):
         """Setup the FigureCanvas."""
-        self.figcanvas = FigureCanvas()
+        self.figcanvas = FigureCanvas(background_color=self.background_color)
         self.figcanvas.installEventFilter(self)
         self.setWidget(self.figcanvas)
 
@@ -445,9 +447,10 @@ class ThumbnailScrollBar(QFrame):
     """
     redirect_stdio = Signal(bool)
 
-    def __init__(self, figure_viewer, parent=None):
+    def __init__(self, figure_viewer, parent=None, background_color=None):
         super(ThumbnailScrollBar, self).__init__(parent)
         self._thumbnails = []
+        self.background_color = background_color
         self.current_thumbnail = None
         self.set_figureviewer(figure_viewer)
         self.setup_gui()
@@ -571,7 +574,7 @@ class ThumbnailScrollBar(QFrame):
 
     # ---- Thumbails Handlers
     def add_thumbnail(self, fig, fmt):
-        thumbnail = FigureThumbnail()
+        thumbnail = FigureThumbnail(background_color=self.background_color)
         thumbnail.canvas.load_figure(fig, fmt)
 
         # Scale the thumbnail size, while respecting the figure
@@ -675,9 +678,9 @@ class FigureThumbnail(QWidget):
     sig_remove_figure = Signal(object)
     sig_save_figure = Signal(object, str)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, background_color=None):
         super(FigureThumbnail, self).__init__(parent)
-        self.canvas = FigureCanvas(self)
+        self.canvas = FigureCanvas(self, background_color=background_color)
         self.canvas.installEventFilter(self)
         self.setup_gui()
 
@@ -751,11 +754,11 @@ class FigureCanvas(QFrame):
     A basic widget on which can be painted a custom png, jpg, or svg image.
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, background_color=None):
         super(FigureCanvas, self).__init__(parent)
         self.setLineWidth(2)
         self.setMidLineWidth(1)
-        self.setStyleSheet("background-color: white")
+        self.setStyleSheet("background-color: {}".format(background_color))
 
         self.fig = None
         self.fmt = None
