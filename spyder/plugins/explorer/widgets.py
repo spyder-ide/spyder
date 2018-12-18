@@ -156,8 +156,8 @@ class IconProvider(QFileIconProvider):
 
                 if extension in self.OFFICE_FILES:
                     icon = ima.icon(self.OFFICE_FILES[extension])
-                        
-                language = { 
+
+                language = {
                     '.c': 'CFileIcon',
                     '.h': 'CFileIcon',
                     '.cc': 'CppFileIcon',
@@ -198,19 +198,20 @@ class IconProvider(QFileIconProvider):
                 }
 
                 if extension in language:
-                        icon = ima.icon(language[extension]) 
-                else :
+                    icon = ima.icon(language[extension])
+                else:
                     if extension == '.ipynb':
                         if is_dark_interface():
-                            icon= QIcon(get_image_path("notebook_dark.svg"))
+                            icon = QIcon(get_image_path("notebook_dark.svg"))
                         else:
-                            icon= QIcon(get_image_path("notebook_light.svg"))
+                            icon = QIcon(get_image_path("notebook_light.svg"))
                     elif mime_type is not None:
                         try:
-                            # Fix for issue 5080.  Even though mimetypes.guess_type
-                            # documentation states that the return value will be
-                            # None or a tuple of the form type/subtype, in the
-                            # Windows registry, .sql has a mimetype of text\plain
+                            # Fix for issue 5080. Even though
+                            # mimetypes.guess_type documentation states that
+                            # the return value will be None or a tuple of
+                            # the form type/subtype, in the Windows registry,
+                            # .sql has a mimetype of text\plain
                             # instead of text/plain therefore mimetypes is
                             # returning it incorrectly.
                             file_type, bin_name = mime_type.split('/')
@@ -226,7 +227,8 @@ class IconProvider(QFileIconProvider):
                             icon = ima.icon('ImageFileIcon')
                         elif file_type == 'application':
                             if bin_name in self.application_icons:
-                                icon = ima.icon(self.application_icons[bin_name])
+                                icon = ima.icon(
+                                    self.application_icons[bin_name])
         return icon
 
 
