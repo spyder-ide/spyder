@@ -39,7 +39,6 @@ LANGUAGE_ICONS = {
     '.asmx': 'CsharpFileIcon',
     '.py': 'PythonFileIcon',
     '.py3': 'PythonFileIcon',
-    '.pyc': 'PythonFileIcon',
     '.pyx': 'PythonFileIcon',
     '.pyw': 'PythonFileIcon',
     '.java': 'JavaFileIcon',
