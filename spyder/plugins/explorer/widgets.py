@@ -157,48 +157,8 @@ class IconProvider(QFileIconProvider):
                 if extension in self.OFFICE_FILES:
                     icon = ima.icon(self.OFFICE_FILES[extension])
 
-                language = {
-                    '.c': 'CFileIcon',
-                    '.h': 'CFileIcon',
-                    '.cc': 'CppFileIcon',
-                    '.hh': 'CppFileIcon',
-                    '.cpp': 'CppFileIcon',
-                    '.cxx': 'CppFileIcon',
-                    '.c++': 'CppFileIcon',
-                    '.hpp': 'CppFileIcon',
-                    '.hxx': 'CppFileIcon',
-                    '.h++': 'CppFileIcon',
-                    '.cs': 'CsharpFileIcon',
-                    '.asmx': 'CsharpFileIcon',
-                    '.py': 'PythonFileIcon',
-                    '.py3': 'PythonFileIcon',
-                    '.pyc': 'PythonFileIcon',
-                    '.pyx': 'PythonFileIcon',
-                    '.pyw': 'PythonFileIcon',
-                    '.java': 'JavaFileIcon',
-                    '.jav': 'JavaFileIcon',
-                    '.j': 'JavaFileIcon',
-                    '.js': 'JavascriptFileIcon',
-                    '.r': 'RFileIcon',
-                    '.rnw': 'RFileIcon',
-                    '.rmd': 'RFileIcon',
-                    '.swift': 'SwiftFileIcon',
-                    '.csv': 'GridFileIcon',
-                    '.tsv': 'GridFileIcon',
-                    '.bat': 'WindowsFileIcon',
-                    '.psl': 'PowershellFileIcon',
-                    '.sh': 'DollarFileIcon',
-                    '.md': 'MarkdownFileIcon',
-                    '.json': 'JsonFileIcon',
-                    '.html': 'CodeFileIcon',
-                    '.css': 'CodeFileIcon',
-                    '.yml': 'ExclamationFileIcon',
-                    '.yaml': 'ExclamationFileIcon',
-                    '.xml': 'CodeFileIcon'
-                }
-
-                if extension in language:
-                    icon = ima.icon(language[extension])
+                if extension in ima.LANGUAGE_ICONS:
+                    icon = ima.icon(ima.LANGUAGE_ICONS[extension])
                 else:
                     if extension == '.ipynb':
                         if is_dark_interface():

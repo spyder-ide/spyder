@@ -24,6 +24,46 @@ else:
     MAIN_FG_COLOR = 'black'
 
 
+LANGUAGE_ICONS = {
+    '.c': 'CFileIcon',
+    '.h': 'CFileIcon',
+    '.cc': 'CppFileIcon',
+    '.hh': 'CppFileIcon',
+    '.cpp': 'CppFileIcon',
+    '.cxx': 'CppFileIcon',
+    '.c++': 'CppFileIcon',
+    '.hpp': 'CppFileIcon',
+    '.hxx': 'CppFileIcon',
+    '.h++': 'CppFileIcon',
+    '.cs': 'CsharpFileIcon',
+    '.asmx': 'CsharpFileIcon',
+    '.py': 'PythonFileIcon',
+    '.py3': 'PythonFileIcon',
+    '.pyc': 'PythonFileIcon',
+    '.pyx': 'PythonFileIcon',
+    '.pyw': 'PythonFileIcon',
+    '.java': 'JavaFileIcon',
+    '.jav': 'JavaFileIcon',
+    '.j': 'JavaFileIcon',
+    '.js': 'JavascriptFileIcon',
+    '.r': 'RFileIcon',
+    '.rnw': 'RFileIcon',
+    '.rmd': 'RFileIcon',
+    '.swift': 'SwiftFileIcon',
+    '.csv': 'GridFileIcon',
+    '.tsv': 'GridFileIcon',
+    '.bat': 'WindowsFileIcon',
+    '.psl': 'PowershellFileIcon',
+    '.sh': 'DollarFileIcon',
+    '.md': 'MarkdownFileIcon',
+    '.json': 'JsonFileIcon',
+    '.html': 'CodeFileIcon',
+    '.css': 'CodeFileIcon',
+    '.yml': 'ExclamationFileIcon',
+    '.yaml': 'ExclamationFileIcon',
+    '.xml': 'CodeFileIcon'
+}
+
 _resource = {
     'directory': osp.join(osp.dirname(osp.realpath(__file__)), '../fonts'),
     'loaded': False,
