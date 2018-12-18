@@ -126,10 +126,9 @@ def get_vcs_status(path):
                         vcsst[fString[o:]] = index
                     return vcsst
                 else:
-                    return None
+                    return []
             else:
-                return True
-            return
+                return []
 
 
 def is_hg_installed():

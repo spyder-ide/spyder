@@ -34,6 +34,7 @@ from qtpy.QtWidgets import (QFileSystemModel, QHBoxLayout, QFileIconProvider,
 # Local imports
 from spyder.config.base import _, get_home_dir, get_image_path
 from spyder.config.gui import is_dark_interface, config_shortcut, get_shortcut
+from spyder.config.main import CONF
 from spyder.py3compat import (str_lower, to_binary_string,
                               to_text_string)
 from spyder.utils import icon_manager as ima
@@ -134,10 +135,13 @@ class IconProvider(QFileIconProvider):
 class ColorModel(QFileSystemModel):
     """FileSystemModel providing a color-code for different commit-status."""
     def __init__(self, *args, **kwargs):
-        self.vcs_state = None
-        self.color_array = [QColor("#ff0000"), QColor("#555555"),
-                            QColor("#0099ff"), QColor("#00ff00"),
-                            QColor("#ffffff")]
+        self.vcs_state = []
+        normalstyle = CONF.get('appearance', 'selected') + '/normal'
+        self.color_array = [QColor(CONF.get('vcs', 'color/untracked')),
+                            QColor(CONF.get('vcs', 'color/ignored')),
+                            QColor(CONF.get('vcs', 'color/modified')),
+                            QColor(CONF.get('vcs', 'color/added')),
+                            QColor(CONF.get('appearance', normalstyle)[0])]
         self.root_path = ''
         super(ColorModel, self).__init__(*args, **kwargs)
 
@@ -623,7 +627,6 @@ class DirView(QTreeView):
     def remove_tree(self, dirname):
         """Remove whole directory tree
         Reimplemented in project explorer widget"""
-<<<<<<< 0612bc36bc5de436f831774508fef6b850d532b0
         while osp.exists(dirname):
             try:
                 shutil.rmtree(dirname, onerror=misc.onerror)
@@ -633,9 +636,6 @@ class DirView(QTreeView):
                 if type(e).__name__ == "OSError":
                     error_path = to_text_string(e.filename)
                     shutil.rmtree(error_path, ignore_errors=True)
-=======
-        shutil.rmtree(dirname, onerror=misc.onerror)
->>>>>>> Revert whitespace removals
     
     def delete_file(self, fname, multiple, yes_to_all):
         """Delete file"""
@@ -883,8 +883,6 @@ class DirView(QTreeView):
 
     def go_to_parent_directory(self):
         pass
-<<<<<<< 0612bc36bc5de436f831774508fef6b850d532b0
-
     def copy_path(self, fnames=None, method="absolute"):
         """Copy absolute or relative path to given file(s)/folders(s)."""
         cb = QApplication.clipboard()
@@ -1066,9 +1064,6 @@ class DirView(QTreeView):
         """
         return [sc.data for sc in self.shortcuts]
 
-=======
-        
->>>>>>> Revert whitespace removals
     #----- VCS actions
     def vcs_command(self, fnames, action):
         """VCS action (commit, browse)"""

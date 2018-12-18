@@ -1291,11 +1291,12 @@ class Editor(SpyderPluginWidget):
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.rename_in_data(original_filename, filename)
-                
+
     @Slot(str, str)
     def update_vcs_status(self, _, file):
-        path = osp.dirname(file)
-        self.projects.explorer.treewidget.fsmodel.setVCSState(path)
+        if self.projects is not None:
+            path = osp.dirname(file)
+            self.projects.explorer.treewidget.fsmodel.setVCSState(path)
 
     #------ Handling editor windows
     def setup_other_windows(self):
