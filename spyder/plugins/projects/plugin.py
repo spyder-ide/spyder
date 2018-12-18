@@ -186,7 +186,7 @@ class Projects(SpyderPluginWidget):
                 self.toggle_view_action.setChecked(True)
             self.visibility_changed(True)
 
-    #------ Public API ---------------------------------------------------------
+    # ------ Public API -------------------------------------------------------
     def setup_menu_actions(self):
         """Setup and update the menu actions."""
         self.recent_project_menu.clear()
@@ -195,15 +195,13 @@ class Projects(SpyderPluginWidget):
             for project in self.recent_projects:
                 if self.is_valid_project(project):
                     name = project.replace(get_home_dir(), '~')
-
-                    def slot():
-                        self.switch_to_plugin()
-                        self.open_project(path=project)
-
-                    action = create_action(self,
+                    action = create_action(
+                        self,
                         name,
-                        icon = ima.icon('project'),
-                        triggered=slot)
+                        icon=ima.icon('project'),
+                        triggered=(
+                            lambda _, p=project: self.open_project(path=p))
+                        )
                     self.recent_projects_actions.append(action)
                 else:
                     self.recent_projects.remove(project)
