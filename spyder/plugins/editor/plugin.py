@@ -1353,12 +1353,15 @@ class Editor(SpyderPluginWidget):
                     logger.error(e, exc_info=True)
                 # Run code analysis when `set_pep8_enabled` is toggled
                 if editorstack_method == 'set_pep8_enabled':
-                    # TODO: Connect this to the LSP
                     #for finfo in editorstack.data:
                     #    finfo.run_code_analysis(
                     #            self.get_option('code_analysis/pyflakes'),
                     #            checked)
-                    pass
+                    for finfo in editorstack.data:
+                        if conf_name == 'code_analysis/pep8':
+                            if not checked:
+                                finfo.editor.cleanup_code_analysis()
+                            finfo.editor.document_did_change()
         CONF.set('editor', conf_name, checked)
 
     #------ Focus tabwidget

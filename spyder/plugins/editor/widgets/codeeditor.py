@@ -782,7 +782,9 @@ class CodeEditor(TextEditBaseWidget):
 
     @handles(LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
     def linting_diagnostics(self, params):
-        self.process_code_analysis(params['params'])
+        enabled = CONF.get('editor', 'code_analysis/pep8')
+        if enabled:
+            self.process_code_analysis(params['params'])
 
     # ------------- LSP: Completion ---------------------------------------
 
