@@ -13,6 +13,7 @@ import pytest
 from qtpy.QtCore import Signal, QObject
 
 # Local imports
+from spyder.config.main import CONF
 from spyder.utils.qthelpers import qapplication
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.py3compat import to_binary_string
@@ -45,6 +46,9 @@ class LSPEditorWrapper(QObject):
 @pytest.fixture
 def construct_editor(qtbot, *args, **kwargs):
     os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
+    # Tests assume show warnings as True
+    CONF.set('editor', 'code_analysis/pep8', True)
+
     app = qapplication()
     lsp_manager = LSPManager(parent=None)
     editor = CodeEditor(parent=None)
