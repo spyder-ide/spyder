@@ -1,29 +1,33 @@
 # -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2009- Spyder Project Contributors
 #
-# Copyright © Spyder Project Contributors
-# Licensed under the terms of the MIT License
-#
+# Distributed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
+
 """Tests for the Editor plugin."""
 
 # Standard library imports
+import os
 import os.path as osp
 import shutil
-
-# Third party imports
-import pytest
-
 try:
     from unittest.mock import Mock
 except ImportError:
     from mock import Mock  # Python 2
 
+# Third party imports
+import pytest
 from qtpy.QtWidgets import QMainWindow
 
 # Local imports
 from spyder.utils.qthelpers import qapplication
 
 
-# ---- Qt Test Fixtures
+# =============================================================================
+# ---- Fixtures
+# =============================================================================
 @pytest.fixture
 def setup_editor(qtbot, monkeypatch):
     """Set up the Editor plugin."""
@@ -110,6 +114,9 @@ def editor_open_files(request, setup_editor, python_files):
     return _get_editor_open_files
 
 
+# =============================================================================
+# ---- Tests
+# =============================================================================
 def test_basic_initialization(setup_editor):
     """Test Editor plugin initialization."""
     editor = setup_editor
@@ -211,5 +218,4 @@ def test_no_template(setup_editor):
 
 
 if __name__ == "__main__":
-    import os
     pytest.main(['-x', os.path.basename(__file__), '-vv', '-rw'])
