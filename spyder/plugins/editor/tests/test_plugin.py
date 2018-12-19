@@ -54,6 +54,7 @@ def setup_editor(qtbot, monkeypatch):
     window.show()
 
     yield editor
+    editor.close()
 
 
 @pytest.fixture(scope="module")
@@ -72,6 +73,43 @@ def python_files(tmpdir_factory):
     return filenames, tmpdir
 
 
+@pytest.fixture
+def editor_open_files(request, setup_editor, python_files):
+    """
+    Setup an Editor with a set of open files, given a past file in focus.
+
+    If no/None ``last_focused_filename`` is passed, the ``"layout_settings"``
+    key is not included in the options dict.
+    If no/None ``expected_current_filename``, is assumed to be the first file.
+    """
+    def _get_editor_open_files(last_focused_filename,
+                               expected_current_filename):
+        editor, qtbot = setup_editor
+        expected_filenames, tmpdir = python_files
+        if expected_current_filename is None:
+            expected_current_filename = expected_filenames[0]
+        expected_current_filename = osp.join(tmpdir, expected_current_filename)
+        options_dict = {
+            'filenames': expected_filenames,
+            'max_recent_files': 20,
+            }
+        if last_focused_filename is not None:
+            splitsettings = [(False,
+                              osp.join(tmpdir, last_focused_filename),
+                              [1] * len(expected_filenames))]
+            layout_dict = {'layout_settings': {'splitsettings': splitsettings}}
+            options_dict.update(layout_dict)
+
+        def get_option(option, default=None):
+            return options_dict.get(option)
+        editor.get_option = get_option
+
+        editor.setup_open_files()
+        return editor, qtbot, expected_filenames, expected_current_filename
+
+    return _get_editor_open_files
+
+
 def test_basic_initialization(setup_editor):
     """Test Editor plugin initialization."""
     editor = setup_editor
@@ -87,34 +125,40 @@ def test_basic_initialization(setup_editor):
      ('file2.py', 'file2.py'),
      ('file4.py', 'file4.py')
      ])
-def test_setup_open_files(setup_editor, last_focused_filename,
-                          expected_current_filename, python_files):
+def test_setup_open_files(editor_open_files, last_focused_filename,
+                          expected_current_filename):
     """Test Editor plugin open files setup.
 
     Test that the file order is preserved during the Editor plugin setup and
     that the current file correspond to the last focused file.
     """
-    editor = setup_editor
-    expected_filenames, tmpdir = python_files
-    expected_current_filename = osp.join(tmpdir, expected_current_filename)
+    editor_factory = editor_open_files
+    editor, qtbot, expected_filenames, expected_current_filename = (
+        editor_factory(last_focused_filename, expected_current_filename))
 
-    def get_option(option, default=None):
-        splitsettings = [(False,
-                          osp.join(tmpdir, last_focused_filename),
-                          [1, 1, 1, 1])]
-        return {'layout_settings': {'splitsettings': splitsettings},
-                'filenames': expected_filenames,
-                'max_recent_files': 20
-                }.get(option)
-    editor.get_option = get_option
-
-    editor.setup_open_files()
     current_filename = editor.get_current_editorstack().get_current_filename()
     current_filename = osp.normcase(current_filename)
     assert current_filename == expected_current_filename
     filenames = editor.get_current_editorstack().get_filenames()
     filenames = [osp.normcase(f) for f in filenames]
     assert filenames == expected_filenames
+
+
+def test_setup_open_files_cleanprefs(editor_open_files):
+    """Test that Editor successfully opens files if layout is not defined.
+
+    Regression test for #8458 .
+    """
+    editor_factory = editor_open_files
+    editor, qtbot, expected_filenames, expected_current_filename = (
+        editor_factory(None, None))
+
+    filenames = editor.get_current_editorstack().get_filenames()
+    filenames = [osp.normcase(f) for f in filenames]
+    assert filenames == expected_filenames
+    current_filename = editor.get_current_editorstack().get_current_filename()
+    current_filename = osp.normcase(current_filename)
+    assert current_filename == expected_current_filename
 
 
 def test_renamed_tree(setup_editor, mocker):
