@@ -26,13 +26,14 @@ from qtpy.compat import getsavefilename, getexistingdirectory
 from qtpy.QtCore import (QDir, QFileInfo, QMimeData, QSize,
                          QSortFilterProxyModel, Qt, QTimer, QUrl,
                          Signal, Slot)
-from qtpy.QtGui import QDrag
+from qtpy.QtGui import QDrag, QIcon
 from qtpy.QtWidgets import (QFileSystemModel, QHBoxLayout, QFileIconProvider,
                             QInputDialog, QLabel, QLineEdit, QMenu,
                             QMessageBox, QToolButton, QTreeView, QVBoxLayout,
                             QWidget)
 # Local imports
-from spyder.config.base import _, get_home_dir
+from spyder.config.base import _, get_home_dir, get_image_path
+from spyder.config.gui import is_dark_interface
 from spyder.py3compat import (str_lower, to_binary_string,
                               to_text_string)
 from spyder.utils import icon_manager as ima
@@ -149,36 +150,46 @@ class IconProvider(QFileIconProvider):
                 return ima.icon('DirOpenIcon')
             else:
                 basename = osp.basename(fname)
-                _, extension = osp.splitext(basename)
+                _, extension = osp.splitext(basename.lower())
                 mime_type, _ = mime.guess_type(basename)
                 icon = ima.icon('FileIcon')
 
                 if extension in self.OFFICE_FILES:
                     icon = ima.icon(self.OFFICE_FILES[extension])
 
-                if mime_type is not None:
-                    try:
-                        # Fix for issue 5080.  Even though mimetypes.guess_type
-                        # documentation states that the return value will be
-                        # None or a tuple of the form type/subtype, in the
-                        # Windows registry, .sql has a mimetype of text\plain
-                        # instead of text/plain therefore mimetypes is
-                        # returning it incorrectly.
-                        file_type, bin_name = mime_type.split('/')
-                    except ValueError:
-                        file_type = 'text'
-                    if file_type == 'text':
-                        icon = ima.icon('TextFileIcon')
-                    elif file_type == 'audio':
-                        icon = ima.icon('AudioFileIcon')
-                    elif file_type == 'video':
-                        icon = ima.icon('VideoFileIcon')
-                    elif file_type == 'image':
-                        icon = ima.icon('ImageFileIcon')
-                    elif file_type == 'application':
-                        if bin_name in self.application_icons:
-                            icon = ima.icon(self.application_icons[bin_name])
-                return icon
+                if extension in ima.LANGUAGE_ICONS:
+                    icon = ima.icon(ima.LANGUAGE_ICONS[extension])
+                else:
+                    if extension == '.ipynb':
+                        if is_dark_interface():
+                            icon = QIcon(get_image_path("notebook_dark.svg"))
+                        else:
+                            icon = QIcon(get_image_path("notebook_light.svg"))
+                    elif mime_type is not None:
+                        try:
+                            # Fix for issue 5080. Even though
+                            # mimetypes.guess_type documentation states that
+                            # the return value will be None or a tuple of
+                            # the form type/subtype, in the Windows registry,
+                            # .sql has a mimetype of text\plain
+                            # instead of text/plain therefore mimetypes is
+                            # returning it incorrectly.
+                            file_type, bin_name = mime_type.split('/')
+                        except ValueError:
+                            file_type = 'text'
+                        if file_type == 'text':
+                            icon = ima.icon('TextFileIcon')
+                        elif file_type == 'audio':
+                            icon = ima.icon('AudioFileIcon')
+                        elif file_type == 'video':
+                            icon = ima.icon('VideoFileIcon')
+                        elif file_type == 'image':
+                            icon = ima.icon('ImageFileIcon')
+                        elif file_type == 'application':
+                            if bin_name in self.application_icons:
+                                icon = ima.icon(
+                                    self.application_icons[bin_name])
+        return icon
 
 
 class DirView(QTreeView):

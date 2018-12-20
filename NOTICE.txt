@@ -1071,6 +1071,44 @@ Most icons in the Spyder 3 theme; used via Spyder's own QtAwesome package.
 See spyder/utils/icon_manager.py for a complete list.
 
 
+-------------------------------------------------------------------------------
+
+
+Material Design (via QtAwesome)
+--------------------------------
+
+
+Copyright (c) 2014, Austin Andrews (http://materialdesignicons.com/),
+with Reserved Font Name Material Design Icons.
+Copyright (c) 2014, Google (http://www.google.com/design/)
+uses the license at https://github.com/google/material-design-icons/blob/master/LICENSE
+
+
+Author: Austin Andrews/MaterialDesign
+Site: http://materialdesignicons.com/
+Source: https://github.com/Templarian/MaterialDesign
+License: SIL Open Font License 1.1 | https://scripts.sil.org/OFL
+
+No modifications made.
+
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is copied below, and is also available with a FAQ at:
+http://scripts.sil.org/OFL
+
+See below for the full text of the SIL Open Font License 1.1.
+
+The current MaterialDesign license summary can be viewed at:
+https://github.com/Templarian/MaterialDesign/blob/master/LICENSE
+
+
+Assets covered:
+
+Some icons in the Spyder 3 theme; used via Spyder's own QtAwesome package.
+
+See spyder/utils/icon_manager.py for a complete list.
+
+
 ===============================================================================
 
 
@@ -1603,6 +1641,38 @@ spyder/images/winpython.svg
 
 
 -------------------------------------------------------------------------------
+
+
+
+Notebook Logo
+-------------
+
+
+Copyright (c) 2015 Project Jupyter Contributors
+
+
+Author: Project Jupyter Contributors | https://github.com/jupyterlab/jupyterlab
+Site: https://github.com/jupyterlab/jupyterlab  
+Source: https://github.com/jupyterlab/jupyterlab
+License: 3-Clause ("Modified") BSD License
+https://opensource.org/licenses/BSD-3-Clause
+
+The icon color was changed to black.
+
+
+Distributed under the terms of the BSD License.
+
+
+See below for the full text of the BSD (3-clause) License.
+
+The current version of the original file can be viewed at:
+https://github.com/jupyterlab/jupyterlab/blob/0.35.x/packages/theme-light-extension/style/icons/jupyter/book_selected.svg
+
+
+Files covered:
+
+spyder/images/notebook_light.svg
+spyder/images/notebook_dark.svg
 
 
 ===============================================================================
