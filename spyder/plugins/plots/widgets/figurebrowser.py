@@ -15,14 +15,15 @@ from __future__ import division
 import os.path as osp
 
 # ---- Third library imports
-from qtconsole.svg import svg_to_image
+from qtconsole.svg import svg_to_image, svg_to_clipboard
 from qtpy.compat import getsavefilename, getexistingdirectory
-from qtpy.QtCore import Qt, Signal, QRect, QEvent
-from qtpy.QtGui import QPixmap, QPainter
+from qtpy.QtCore import Qt, Signal, QRect, QEvent, QPoint, Slot
+from qtpy.QtGui import QPixmap, QPainter, QKeySequence
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu,
                             QVBoxLayout, QWidget, QGridLayout, QFrame,
                             QScrollArea, QPushButton, QScrollBar, QSizePolicy,
-                            QSpinBox, QSplitter, QStyleOptionSlider, QStyle)
+                            QSpinBox, QSplitter, QStyleOptionSlider, QStyle,
+                            QMessageBox)
 
 # ---- Local library imports
 from spyder.config.base import _
@@ -61,6 +62,21 @@ def get_unique_figname(dirname, root, ext):
             figname = root + '_%d' % i + ext
         else:
             return osp.join(dirname, figname)
+
+
+@Slot()
+def copy_figure(fig, fmt):
+    """Copy figure to clipboard."""
+    if fmt in ['image/png', 'image/jpeg']:
+        qpixmap = QPixmap()
+        qpixmap.loadFromData(fig, fmt.upper())
+        QApplication.clipboard().setImage(qpixmap.toImage())
+    elif fmt == 'image/svg+xml':
+        svg_to_clipboard(fig)
+    else:
+        return False
+
+    return True
 
 
 class FigureBrowser(QWidget):
@@ -145,6 +161,11 @@ class FigureBrowser(QWidget):
                 tip=_("Save All Images..."),
                 triggered=self.thumbnails_sb.save_all_figures_as)
 
+        copyfig_btn = create_toolbutton(
+            self, icon=ima.icon('editcopy'),
+            tip=_("Copy Image..."),
+            triggered=self.thumbnails_sb.copy_current_figure)
+
         closefig_btn = create_toolbutton(
                 self, icon=ima.icon('editclear'),
                 tip=_("Remove image"),
@@ -198,8 +219,8 @@ class FigureBrowser(QWidget):
         layout.addWidget(zoom_in_btn)
         layout.addWidget(self.zoom_disp)
 
-        return [savefig_btn, saveall_btn, closefig_btn, closeall_btn, vsep1,
-                goback_btn, gonext_btn, vsep2, zoom_pan]
+        return [savefig_btn, saveall_btn, copyfig_btn, closefig_btn,
+                closeall_btn, vsep1, goback_btn, gonext_btn, vsep2, zoom_pan]
 
     def setup_option_actions(self, mute_inline_plotting, show_plot_outline):
         """Setup the actions to show in the cog menu."""
@@ -305,6 +326,13 @@ class FigureBrowser(QWidget):
     def close_all_figures(self):
         """Close all the figures in the thumbnail scrollbar."""
         self.thumbnails_sb.remove_all_thumbnails()
+
+    def keyPressEvent(self, event):
+        """Define Shortcut."""
+        if (event.key() == Qt.Key_C) and (
+                event.modifiers() & Qt.ControlModifier):
+            self.thumbnails_sb.copy_current_figure()
+        self.parent().keyPressEvent(event)
 
 
 class FigureViewer(QScrollArea):
@@ -572,6 +600,17 @@ class ThumbnailScrollBar(QFrame):
         if fname:
             save_figure_tofile(fig, fmt, fname)
 
+    def copy_current_figure(self):
+        """Copy the currently selected figure."""
+        if self.current_thumbnail is None:
+            return
+
+        b_succeed = copy_figure(self.current_thumbnail.canvas.fig,
+                                self.current_thumbnail.canvas.fmt)
+
+        if b_succeed:
+            QMessageBox.information(self, "Information", "copy completed")
+
     # ---- Thumbails Handlers
     def add_thumbnail(self, fig, fmt):
         thumbnail = FigureThumbnail(background_color=self.background_color)
@@ -763,6 +802,18 @@ class FigureCanvas(QFrame):
         self.fig = None
         self.fmt = None
         self.fwidth, self.fheight = 200, 200
+
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.context_menu_requested)
+
+    def context_menu_requested(self, event):
+        """Popup context menu."""
+        pos = QPoint(event.x(), event.y())
+        context_menu = QMenu(self)
+        context_menu.addAction(ima.icon('editcopy'), "Copy Image",
+                               lambda: copy_figure(self.fig, self.fmt),
+                               QKeySequence("Ctrl+C"))
+        context_menu.popup(self.mapToGlobal(pos))
 
     def clear_canvas(self):
         """Clear the figure that was painted on the widget."""
