@@ -17,7 +17,7 @@ import os.path as osp
 # ---- Third library imports
 from qtconsole.svg import svg_to_image, svg_to_clipboard
 from qtpy.compat import getsavefilename, getexistingdirectory
-from qtpy.QtCore import Qt, Signal, QRect, QEvent, QPoint
+from qtpy.QtCore import Qt, Signal, QRect, QEvent, QPoint, Slot
 from qtpy.QtGui import QPixmap, QPainter, QKeySequence
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu,
                             QVBoxLayout, QWidget, QGridLayout, QFrame,
@@ -64,6 +64,7 @@ def get_unique_figname(dirname, root, ext):
             return osp.join(dirname, figname)
 
 
+@Slot(object, str)
 def copy_figure(fig, fmt):
     """Copy figure to clipboard."""
     if fmt in ['image/png', 'image/jpeg']:
