@@ -57,7 +57,8 @@ class IndentationGuide(Panel):
             end_of_sub_fold = block
             if last_line:
                 block = block.document().findBlockByNumber(last_line)
-                while block.blockNumber() and block.text().strip() == '':
+                while block.blockNumber() and block.text().strip() == '' or
+                    block.text().strip().startswith('#')):
                     block = block.previous()
                     last_line = block.blockNumber()
 
