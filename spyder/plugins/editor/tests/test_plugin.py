@@ -17,7 +17,7 @@ try:
 except ImportError:
     from mock import Mock  # Python 2
 
-from qtpy.QtWidgets import QWidget
+from qtpy.QtWidgets import QMainWindow
 
 # Local imports
 from spyder.utils.qthelpers import qapplication
@@ -32,7 +32,7 @@ def setup_editor(qtbot, monkeypatch):
 
     monkeypatch.setattr('spyder.plugins.editor.plugin.add_actions', Mock())
 
-    class MainMock(QWidget):
+    class MainMock(QMainWindow):
         def __getattr__(self, attr):
             if attr.endswith('actions'):
                 return []
@@ -46,11 +46,14 @@ def setup_editor(qtbot, monkeypatch):
         def get_spyder_pythonpath(*args):
             return []
 
-    editor = Editor(MainMock())
-    qtbot.addWidget(editor)
-    editor.show()
+    window = MainMock()
+    editor = Editor(window)
+    window.setCentralWidget(editor)
+    window.resize(640, 480)
+    qtbot.addWidget(window)
+    window.show()
 
-    yield editor, qtbot
+    yield editor
 
 
 @pytest.fixture(scope="module")
@@ -71,7 +74,7 @@ def python_files(tmpdir_factory):
 
 def test_basic_initialization(setup_editor):
     """Test Editor plugin initialization."""
-    editor, qtbot = setup_editor
+    editor = setup_editor
 
     # Assert that editor exists
     assert editor is not None
@@ -91,7 +94,7 @@ def test_setup_open_files(setup_editor, last_focused_filename,
     Test that the file order is preserved during the Editor plugin setup and
     that the current file correspond to the last focused file.
     """
-    editor, qtbot = setup_editor
+    editor = setup_editor
     expected_filenames, tmpdir = python_files
     expected_current_filename = osp.join(tmpdir, expected_current_filename)
 
@@ -121,7 +124,7 @@ def test_renamed_tree(setup_editor, mocker):
     but does not test that all the renaming happens in File Explorer,
     Project Explorer, and Editor widget as those aren't part of the plugin.
     """
-    editor, qtbot = setup_editor
+    editor = setup_editor
     mocker.patch.object(editor, 'get_filenames')
     mocker.patch.object(editor, 'renamed')
     editor.get_filenames.return_value = ['/test/directory/file1.py',
@@ -143,7 +146,7 @@ def test_no_template(setup_editor):
     """
     Test that new files can be opened when no template is found.
     """
-    editor, qtbot = setup_editor
+    editor = setup_editor
 
     # Move template to another file to simulate the lack of it
     template = editor.TEMPLATE_PATH
