@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 #
 # Copyright © Spyder Project Contributors
@@ -22,13 +23,11 @@ class IndentationGuide(Panel):
     # -----------------------------------------------------------------
     def __init__(self, editor):
         """Initialize IndentationGuide panel.
-
         i_width(int): identation width in characters.
         """
         Panel.__init__(self, editor)
         self.color = Qt.darkGray
         self.i_width = 4
-
 
     def paintEvent(self, event):
         """Override Qt method."""
@@ -37,7 +36,9 @@ class IndentationGuide(Panel):
         color = QColor(self.color)
         color.setAlphaF(.5)
         painter.setPen(color)
-        
+        # offset = self.editor.document().documentMargin() + \
+        #     self.editor.contentOffset().x()
+
         for _, line_number, block in self.editor.visible_blocks:
 
             indentation = TextBlockHelper.get_fold_lvl(block)
@@ -57,8 +58,8 @@ class IndentationGuide(Panel):
             end_of_sub_fold = block
             if last_line:
                 block = block.document().findBlockByNumber(last_line)
-                while block.blockNumber() and block.text().strip() == '' or
-                       block.text().strip().startswith('#')):
+                while ((block.blockNumber()) and (block.text().strip() == ''
+                       or block.text().strip().startswith('#'))):
                     block = block.previous()
                     last_line = block.blockNumber()
 
@@ -66,18 +67,18 @@ class IndentationGuide(Panel):
             top = int(self.editor.blockBoundingGeometry(block).translated(
                 self.editor.contentOffset()).top())
             bottom = top + int(self.editor.blockBoundingRect(block).height())
+
             indentation = TextBlockHelper.get_fold_lvl(block)
 
             for i in range(1, indentation):
 
                 if (line_number > last_line and
                         TextBlockHelper.get_fold_lvl(end_of_sub_fold.next())
-                         <= i + 1):
+                        <= i + 1):
                     continue
 
                 else:
-                    x = self.editor.fontMetrics().width(i * self.i_width *
-                                                        '9')
+                    x = self.editor.fontMetrics().width(i * self.i_width * '9')
                     painter.drawLine(x, top, x, bottom)
 
     # --- Other methods
