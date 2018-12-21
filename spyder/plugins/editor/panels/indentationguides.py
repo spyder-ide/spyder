@@ -36,8 +36,6 @@ class IndentationGuide(Panel):
         color = QColor(self.color)
         color.setAlphaF(.5)
         painter.setPen(color)
-        # offset = self.editor.document().documentMargin() + \
-        #     self.editor.contentOffset().x()
 
         for _, line_number, block in self.editor.visible_blocks:
 
