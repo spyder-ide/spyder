@@ -148,6 +148,9 @@ def main_window(request):
     # Tests assume inline backend
     CONF.set('ipython_console', 'pylab/backend', 0)
 
+    # Test assume the plots are rendered in the console
+    CONF.set('plots', 'mute_inline_plotting', False)
+
     # Check if we need to use introspection in a given test
     # (it's faster and less memory consuming not to use it!)
     use_introspection = request.node.get_marker('use_introspection')

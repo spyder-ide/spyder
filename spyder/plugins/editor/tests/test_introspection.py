@@ -86,19 +86,19 @@ def test_introspection(setup_editor):
     # Set cursor to start
     code_editor.go_to_line(1)
 
-    # Complete fr --> from
-    qtbot.keyClicks(code_editor, 'fr')
+    # Complete import mat--> import math
+    qtbot.keyClicks(code_editor, 'import mat')
     qtbot.wait(20000)
 
     # press tab and get completions
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
-    assert "from" in [x['label'] for x in sig.args[0]]
+    assert "math" in [x['label'] for x in sig.args[0]]
 
     # enter should accept first completion
     qtbot.keyPress(completion, Qt.Key_Enter, delay=1000)
-    assert code_editor.toPlainText() == 'from\n'
+    assert code_editor.toPlainText() == 'import math\n'
 
     # Modify PYTHONPATH
     # editor.introspector.change_extra_path([LOCATION])

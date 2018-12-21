@@ -26,15 +26,26 @@ from spyder.py3compat import to_text_string
 
 
 # =============================================================================
-# Fixtures
+# ---- Fixtures
 # =============================================================================
 @pytest.fixture
 def projects(qtbot, mocker):
     """Projects plugin fixture."""
 
-    class MainWindowMock(object):
+    class EditorMock(object):
+        def get_open_filenames(self):
+            # Patch this with mocker to return a different value.
+            # See test_set_project_filenames_in_close_project.
+            return []
+
         def __getattr__(self, attr):
-            if attr == 'ipyconsole' or attr == 'editor':
+            return Mock()
+
+    class MainWindowMock(object):
+        editor = EditorMock()
+
+        def __getattr__(self, attr):
+            if attr == 'ipyconsole':
                 return None
             else:
                 return Mock()
@@ -57,8 +68,33 @@ def projects(qtbot, mocker):
     return projects
 
 
+@pytest.fixture
+def create_projects(projects, mocker):
+    """Create a Projects plugin fixture"""
+    def _create_projects(path, files):
+        """
+        Using the Projects plugin fixture, open a project at the
+        specified path, and mock the opening of the specified files
+        in the Editor.
+        """
+        # Open a project.
+        projects.open_project(path=path)
+
+        # Mock the opening of files in the Editor while the project is open.
+        mocker.patch.object(
+            projects.main.editor, 'get_open_filenames', return_value=files)
+
+        # We mock os.path.isfile so that we do not have to
+        # actually create the files on the disk.
+        mocker.patch(
+            'spyder.plugins.projects.api.os.path.isfile', return_value=True)
+
+        return projects
+    return _create_projects
+
+
 # =============================================================================
-# Tests
+# ---- Tests
 # =============================================================================
 @pytest.mark.parametrize("test_directory", [u'測試', u'اختبار', u"test_dir"])
 def test_open_project(projects, tmpdir, test_directory):
@@ -118,6 +154,81 @@ def test_open_project_uses_visible_config(projects, tmpdir, value):
     projects.set_option('visible_if_project_open', value)
     projects.open_project(path=to_text_string(tmpdir))
     assert projects.dockwidget.isVisible() == value
+
+
+def test_set_get_project_filenames_when_closing(create_projects, tmpdir):
+    """
+    Test that the currently opened files in the Editor are saved and loaded
+    correctly to and from the project config when the project is closed and
+    then reopened.
+
+    Regression test for Issue #8375
+    """
+    opened_files = ['file1', 'file2', 'file3']
+    path = to_text_string(tmpdir.mkdir('project1'))
+
+    # Create the projects plugin.
+    projects = create_projects(path, opened_files)
+    assert projects.get_project_filenames() == []
+
+    # Close and reopen the project.
+    projects.close_project()
+    projects.open_project(path=path)
+    assert projects.get_project_filenames() == opened_files
+
+
+def test_set_get_project_filenames_when_switching(create_projects, tmpdir):
+    """
+    Test that files in the Editor are loaded and saved correctly when
+    switching projects.
+    """
+    opened_files = ['file1', 'file2', 'file3']
+    path1 = to_text_string(tmpdir.mkdir('project1'))
+    path2 = to_text_string(tmpdir.mkdir('project2'))
+
+    # Create the projects plugin.
+    projects = create_projects(path1, opened_files)
+    assert projects.get_project_filenames() == []
+
+    # Switch to another project.
+    projects.open_project(path=path2)
+    assert projects.get_project_filenames() == []
+
+    # Switch back to the first project.
+    projects.close_project()
+    projects.open_project(path=path1)
+    assert projects.get_project_filenames() == opened_files
+
+
+def test_recent_projects_menu_action(projects, tmpdir):
+    """
+    Test that the actions of the submenu 'Recent Projects' in the 'Projects'
+    main menu are working as expected.
+
+    Regression test for Issue #8450.
+    """
+    recent_projects_len = len(projects.recent_projects)
+
+    # Create the directories.
+    path0 = to_text_string(tmpdir.mkdir('project0'))
+    path1 = to_text_string(tmpdir.mkdir('project1'))
+    path2 = to_text_string(tmpdir.mkdir('project2'))
+
+    # Open projects in path0, path1, and path2.
+    projects.open_project(path=path0)
+    projects.open_project(path=path1)
+    projects.open_project(path=path2)
+    assert (len(projects.recent_projects_actions) ==
+            recent_projects_len + 3 + 2)
+    assert projects.get_active_project().root_path == path2
+
+    # Trigger project1 in the list of Recent Projects actions.
+    projects.recent_projects_actions[1].trigger()
+    assert projects.get_active_project().root_path == path1
+
+    # Trigger project0 in the list of Recent Projects actions.
+    projects.recent_projects_actions[2].trigger()
+    assert projects.get_active_project().root_path == path0
 
 
 if __name__ == "__main__":

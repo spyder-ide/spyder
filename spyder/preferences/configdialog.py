@@ -30,7 +30,7 @@ from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
 # Local imports
 from spyder.config.base import (_, LANGUAGE_CODES, load_lang_conf,
                                 running_in_mac_app, save_lang_conf)
-from spyder.config.gui import get_font, set_font
+from spyder.config.gui import get_font, set_font, is_dark_interface
 from spyder.config.main import CONF
 from spyder.config.user import NoDefault
 from spyder.config.utils import is_gtk_desktop
@@ -1128,6 +1128,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         style_combo = self.create_combobox(_('Qt windows style'), choices,
                                            'windows_style',
                                            default=self.main.default_style)
+        self.style_combobox = style_combo.combobox
 
         themes = ['Spyder 2', 'Spyder 3']
         icon_choices = list(zip(themes, [theme.lower() for theme in themes]))
@@ -1138,7 +1139,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         theme_comboboxes_layout.addWidget(ui_theme_combo.label, 0, 0)
         theme_comboboxes_layout.addWidget(ui_theme_combo.combobox, 0, 1)
         theme_comboboxes_layout.addWidget(style_combo.label, 1, 0)
-        theme_comboboxes_layout.addWidget(style_combo.combobox, 1, 1)
+        theme_comboboxes_layout.addWidget(self.style_combobox, 1, 1)
         theme_comboboxes_layout.addWidget(icons_combo.label, 2, 0)
         theme_comboboxes_layout.addWidget(icons_combo.combobox, 2, 1)
 
@@ -1252,6 +1253,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
 
         self.update_combobox()
         self.update_preview()
+        self.update_qt_style_combobox()
 
     def get_font(self, option):
         """Return global font used in Spyder."""
@@ -1322,6 +1324,13 @@ class ColorSchemeConfigPage(GeneralConfigPage):
     @property
     def current_scheme_index(self):
         return self.schemes_combobox.currentIndex()
+
+    def update_qt_style_combobox(self):
+        """Enable/disable the Qt style combobox."""
+        if is_dark_interface():
+            self.style_combobox.setEnabled(False)
+        else:
+            self.style_combobox.setEnabled(True)
 
     def update_combobox(self):
         """Recreates the combobox contents."""

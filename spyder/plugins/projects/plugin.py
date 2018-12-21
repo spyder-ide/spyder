@@ -186,7 +186,7 @@ class Projects(SpyderPluginWidget):
                 self.toggle_view_action.setChecked(True)
             self.visibility_changed(True)
 
-    #------ Public API ---------------------------------------------------------
+    # ------ Public API -------------------------------------------------------
     def setup_menu_actions(self):
         """Setup and update the menu actions."""
         self.recent_project_menu.clear()
@@ -195,15 +195,13 @@ class Projects(SpyderPluginWidget):
             for project in self.recent_projects:
                 if self.is_valid_project(project):
                     name = project.replace(get_home_dir(), '~')
-
-                    def slot():
-                        self.switch_to_plugin()
-                        self.open_project(path=project)
-
-                    action = create_action(self,
+                    action = create_action(
+                        self,
                         name,
-                        icon = ima.icon('project'),
-                        triggered=slot)
+                        icon=ima.icon('project'),
+                        triggered=(
+                            lambda _, p=project: self.open_project(path=p))
+                        )
                     self.recent_projects_actions.append(action)
                 else:
                     self.recent_projects.remove(project)
@@ -314,6 +312,9 @@ class Projects(SpyderPluginWidget):
         """
         if self.current_active_project:
             self.switch_to_plugin()
+            if self.main.editor is not None:
+                self.set_project_filenames(
+                    self.main.editor.get_open_filenames())
             path = self.current_active_project.root_path
             self.current_active_project = None
             self.set_option('current_project_path', None)
@@ -329,10 +330,6 @@ class Projects(SpyderPluginWidget):
 
             self.explorer.clear()
             self.restart_consoles()
-
-            if self.main.editor is not None:
-                self.set_project_filenames(
-                    self.main.editor.get_open_filenames())
 
     def _delete_project(self):
         """Delete current project."""

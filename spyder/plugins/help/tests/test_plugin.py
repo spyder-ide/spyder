@@ -17,7 +17,7 @@ except ImportError:
     from mock import Mock, MagicMock  # Python 2
 
 # Third party imports
-from qtpy.QtWidgets import QWidget
+from qtpy.QtWidgets import QMainWindow
 from qtpy.QtWebEngineWidgets import WEBENGINE
 import pytest
 from flaky import flaky
@@ -34,14 +34,16 @@ from spyder.utils.introspection.utils import default_info_response
 def help_plugin(qtbot):
     """Help plugin fixture"""
 
-    class MainMock(QWidget):
+    class MainMock(QMainWindow):
         def __getattr__(self, attr):
             if attr == 'ipyconsole' or attr == 'editor':
                 return None
             else:
                 return Mock()
 
-    help_plugin = Help(parent=MainMock())
+    window = MainMock()
+    help_plugin = Help(parent=window)
+    window.setCentralWidget(help_plugin)
 
     webview = help_plugin.rich_text.webview._webview
     if WEBENGINE:
@@ -49,7 +51,8 @@ def help_plugin(qtbot):
     else:
         help_plugin._webpage = webview.page().mainFrame()
 
-    qtbot.addWidget(help_plugin)
+    qtbot.addWidget(window)
+    window.show()
     return help_plugin
 
 

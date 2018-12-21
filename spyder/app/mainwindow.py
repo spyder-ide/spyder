@@ -2483,7 +2483,9 @@ class MainWindow(QMainWindow):
             licenses and/or originally by other authors.
             Spyder 3 theme icons derived from
             <a href="https://fontawesome.com/">Font Awesome</a> 4.7
-            (&copy; 2016 David Gandy; SIL OFL 1.1).
+            (&copy; 2016 David Gandy; SIL OFL 1.1) and
+            <a href="http://materialdesignicons.com/">Material Design</a>
+            (&copy; 2014 Austin Andrews; SIL OFL 1.1).
             Most Spyder 2 theme icons sourced from the
             <a href="https://www.everaldo.com">Crystal Project iconset</a>
             (&copy; 2006-2007 Everaldo Coelho; LGPL 2.1+).

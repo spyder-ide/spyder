@@ -115,6 +115,8 @@ def test_is_module_installed():
     assert is_module_installed('jedi', '>=0.7.0')
 
 
+@pytest.mark.skipif(os.name == 'nt' and os.environ.get('AZURE') is not None,
+                    reason="Fails on Windows/Azure")
 def test_is_module_installed_with_custom_interpreter():
     """Test if a module with the proper version is installed"""
     current = sys.executable

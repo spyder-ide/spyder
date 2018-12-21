@@ -670,6 +670,8 @@ class Editor(SpyderPluginWidget):
     def visibility_changed(self, enable):
         """DockWidget visibility has changed"""
         SpyderPluginWidget.visibility_changed(self, enable)
+        if self.dockwidget is None:
+            return
         if self.dockwidget.isWindow():
             self.dock_toolbar.show()
         else:
@@ -1796,10 +1798,8 @@ class Editor(SpyderPluginWidget):
                  and results is not None and len(results)
         for action in (self.warning_list_action, self.previous_warning_action,
                        self.next_warning_action):
-            try:
+            if state is not None:
                 action.setEnabled(state)
-            except TypeError:
-                pass
 
     def update_todo_actions(self):
         editorstack = self.get_current_editorstack()
