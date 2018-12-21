@@ -36,6 +36,8 @@ class IndentationGuide(Panel):
         color = QColor(self.color)
         color.setAlphaF(.5)
         painter.setPen(color)
+        offset = self.editor.document().documentMargin() + \
+            self.editor.contentOffset().x()
 
         for _, line_number, block in self.editor.visible_blocks:
 
@@ -69,14 +71,13 @@ class IndentationGuide(Panel):
             indentation = TextBlockHelper.get_fold_lvl(block)
 
             for i in range(1, indentation):
-
                 if (line_number > last_line and
                         TextBlockHelper.get_fold_lvl(end_of_sub_fold.next())
                         <= i + 1):
                     continue
-
                 else:
-                    x = self.editor.fontMetrics().width(i * self.i_width * '9')
+                    x = self.editor.fontMetrics().width(i * self.i_width *
+                                                        '9') + offset
                     painter.drawLine(x, top, x, bottom)
 
     # --- Other methods
