@@ -38,11 +38,6 @@ class IndentationGuide(Panel):
         color.setAlphaF(.5)
         painter.setPen(color)
         
-        # offset taken from :https://github.com/ninja-ide/ninja-ide/blob/
-        # master/ninja_ide/gui/editor/extensions/indentation_guides.py
-        offset = self.editor.document().documentMargin() + \
-                 self.editor.contentOffset().x()
-
         for _, line_number, block in self.editor.visible_blocks:
 
             indentation = TextBlockHelper.get_fold_lvl(block)
@@ -81,7 +76,7 @@ class IndentationGuide(Panel):
 
                 else:
                     x = self.editor.fontMetrics().width(i * self.i_width *
-                                                        '9') + offset
+                                                        '9')
                     painter.drawLine(x, top, x, bottom)
 
     # --- Other methods
