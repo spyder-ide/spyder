@@ -17,7 +17,7 @@ import os.path as osp
 # ---- Third library imports
 from qtconsole.svg import svg_to_image, svg_to_clipboard
 from qtpy.compat import getsavefilename, getexistingdirectory
-from qtpy.QtCore import Qt, Signal, QRect, QEvent, QPoint, Slot
+from qtpy.QtCore import Qt, Signal, QRect, QEvent, QPoint
 from qtpy.QtGui import QPixmap, QPainter, QKeySequence
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu,
                             QVBoxLayout, QWidget, QGridLayout, QFrame,
@@ -64,7 +64,6 @@ def get_unique_figname(dirname, root, ext):
             return osp.join(dirname, figname)
 
 
-@Slot()
 def copy_figure(fig, fmt):
     """Copy figure to clipboard."""
     if fmt in ['image/png', 'image/jpeg']:
@@ -808,12 +807,13 @@ class FigureCanvas(QFrame):
 
     def context_menu_requested(self, event):
         """Popup context menu."""
-        pos = QPoint(event.x(), event.y())
-        context_menu = QMenu(self)
-        context_menu.addAction(ima.icon('editcopy'), "Copy Image",
-                               lambda: copy_figure(self.fig, self.fmt),
-                               QKeySequence("Ctrl+C"))
-        context_menu.popup(self.mapToGlobal(pos))
+        if self.fig:
+            pos = QPoint(event.x(), event.y())
+            context_menu = QMenu(self)
+            context_menu.addAction(ima.icon('editcopy'), "Copy Image",
+                                   lambda: copy_figure(self.fig, self.fmt),
+                                   QKeySequence("Ctrl+C"))
+            context_menu.popup(self.mapToGlobal(pos))
 
     def clear_canvas(self):
         """Clear the figure that was painted on the widget."""
