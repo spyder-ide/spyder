@@ -72,8 +72,7 @@ class IndentationGuide(Panel):
 
             for i in range(1, indentation):
                 if (line_number > last_line and
-                        TextBlockHelper.get_fold_lvl(end_of_sub_fold.next())
-                        <= i + 1):
+                        TextBlockHelper.get_fold_lvl(end_of_sub_fold) <= i):
                     continue
                 else:
                     x = self.editor.fontMetrics().width(i * self.i_width *
