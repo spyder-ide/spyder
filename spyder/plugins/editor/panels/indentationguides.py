@@ -58,7 +58,7 @@ class IndentationGuide(Panel):
             if last_line:
                 block = block.document().findBlockByNumber(last_line)
                 while block.blockNumber() and block.text().strip() == '' or
-                    block.text().strip().startswith('#')):
+                       block.text().strip().startswith('#')):
                     block = block.previous()
                     last_line = block.blockNumber()
 
