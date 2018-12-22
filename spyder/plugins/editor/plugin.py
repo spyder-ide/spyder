@@ -1831,7 +1831,8 @@ class Editor(SpyderPluginWidget):
                  and results is not None and len(results)
         for action in (self.warning_list_action, self.previous_warning_action,
                        self.next_warning_action):
-            action.setEnabled(state)
+            if state is not None:
+                action.setEnabled(state)
 
     def update_todo_actions(self):
         editorstack = self.get_current_editorstack()
