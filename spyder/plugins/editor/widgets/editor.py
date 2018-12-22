@@ -713,15 +713,13 @@ class EditorStack(QWidget):
             bookmark_shortcuts.append(config_shortcut(
                 lambda i=i: self.sig_save_bookmark.emit(i),
                 context="Editor",
-                name="bookmark current position "
-                     "to slot {slot}".format(slot=i),
+                name="save bookmark {slot}".format(slot=i),
                 parent=self))
         for i in range(10):
             bookmark_shortcuts.append(config_shortcut(
                 lambda i=i: self.sig_load_bookmark.emit(i),
                 context="Editor",
-                name="go to bookmarked position "
-                     "in slot {slot}".format(slot=i),
+                name="go to bookmark {slot}".format(slot=i),
                 parent=self))
 
         # Return configurable ones
