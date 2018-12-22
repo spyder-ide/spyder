@@ -2287,9 +2287,11 @@ class MainWindow(QMainWindow):
         if CONF.get('main', 'single_instance') and self.open_files_server:
             self.open_files_server.close()
         for plugin in self.thirdparty_plugins:
+            plugin.close_window()
             if not plugin.closing_plugin(cancelable):
                 return False
         for widget in self.widgetlist:
+            widget.close_window()
             if not widget.closing_plugin(cancelable):
                 return False
         self.dialog_manager.close_all()
