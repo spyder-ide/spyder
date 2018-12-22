@@ -184,7 +184,7 @@ _qtaargs = {
     'rename':                  [('fa.pencil',), {'color': MAIN_FG_COLOR}],
     'edit_add':                [('fa.plus',), {'color': MAIN_FG_COLOR}],
     'edit_remove':             [('fa.minus',), {'color': MAIN_FG_COLOR}],
-    'browse_tab':              [('fa.folder-o',), {'color': MAIN_FG_COLOR}],
+    'browse_tab':              [('mdi.tab',), {'color': MAIN_FG_COLOR}],
     'filelist':                [('fa.list',), {'color': MAIN_FG_COLOR}],
     'newwindow':               [('spyder.window',), {'color': MAIN_FG_COLOR}],
     'versplit':                [('spyder.rows',), {'color': MAIN_FG_COLOR}],

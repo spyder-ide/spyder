@@ -731,7 +731,7 @@ class EditorStack(QWidget):
         # Don't show menu arrow and remove padding
         menu_btn.setStyleSheet(
             ("QToolButton::menu-indicator{image: none;}\n"
-             "QToolButton{padding: 3px;}"))
+             "QToolButton{margin: 1px; padding: 3px;}"))
         self.menu = QMenu(self)
         menu_btn.setMenu(self.menu)
         menu_btn.setPopupMode(menu_btn.InstantPopup)
