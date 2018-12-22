@@ -604,7 +604,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     def show_syspath(self, syspath):
         """Show sys.path contents."""
         if syspath is not None:
-            editor = CollectionsEditor()
+            editor = CollectionsEditor(self)
             editor.setup(syspath, title="sys.path contents", readonly=True,
                          width=600, icon=ima.icon('syspath'))
             self.dialog_manager.show(editor)
@@ -614,7 +614,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     @Slot(object)
     def show_env(self, env):
         """Show environment variables."""
-        self.dialog_manager.show(RemoteEnvDialog(env))
+        self.dialog_manager.show(RemoteEnvDialog(env, parent=self))
 
     def create_time_label(self):
         """Create elapsed time label widget (if necessary) and return it"""
