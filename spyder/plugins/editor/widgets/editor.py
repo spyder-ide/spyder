@@ -427,6 +427,8 @@ class EditorStack(QWidget):
     sig_next_warning = Signal()
     sig_go_to_definition = Signal(str, int, int)
     perform_lsp_request = Signal(str, str, dict)
+    sig_save_bookmark = Signal(int)
+    sig_load_bookmark = Signal(int)
 
     def __init__(self, parent, actions):
         QWidget.__init__(self, parent)
@@ -694,6 +696,86 @@ class EditorStack(QWidget):
                                       context="Editor",
                                       name="close split panel",
                                       parent=self)
+        save_bookmark_1 = config_shortcut(lambda : self.sig_save_bookmark.emit(0),
+                                      context="Editor",
+                                      name="bookmark current position to slot 0",
+                                      parent=self)
+        save_bookmark_2 = config_shortcut(lambda : self.sig_save_bookmark.emit(1),
+                                      context="Editor",
+                                      name="bookmark current position to slot 1",
+                                      parent=self)
+        save_bookmark_3 = config_shortcut(lambda : self.sig_save_bookmark.emit(2),
+                                      context="Editor",
+                                      name="bookmark current position to slot 2",
+                                      parent=self)
+        save_bookmark_4 = config_shortcut(lambda : self.sig_save_bookmark.emit(3),
+                                      context="Editor",
+                                      name="bookmark current position to slot 3",
+                                      parent=self)
+        save_bookmark_5 = config_shortcut(lambda : self.sig_save_bookmark.emit(4),
+                                      context="Editor",
+                                      name="bookmark current position to slot 4",
+                                      parent=self)
+        save_bookmark_6 = config_shortcut(lambda : self.sig_save_bookmark.emit(5),
+                                      context="Editor",
+                                      name="bookmark current position to slot 5",
+                                      parent=self)
+        save_bookmark_7 = config_shortcut(lambda : self.sig_save_bookmark.emit(6),
+                                      context="Editor",
+                                      name="bookmark current position to slot 6",
+                                      parent=self)
+        save_bookmark_8 = config_shortcut(lambda : self.sig_save_bookmark.emit(7),
+                                      context="Editor",
+                                      name="bookmark current position to slot 7",
+                                      parent=self)
+        save_bookmark_9 = config_shortcut(lambda : self.sig_save_bookmark.emit(8),
+                                      context="Editor",
+                                      name="bookmark current position to slot 8",
+                                      parent=self)
+        save_bookmark_10 = config_shortcut(lambda : self.sig_save_bookmark.emit(9),
+                                      context="Editor",
+                                      name="bookmark current position to slot 9",
+                                      parent=self)
+        load_bookmark_1 = config_shortcut(lambda : self.sig_load_bookmark.emit(0),
+                                      context="Editor",
+                                      name="go to bookmarked position in slot 0",
+                                      parent=self)
+        load_bookmark_2 = config_shortcut(lambda : self.sig_load_bookmark.emit(1),
+                                      context="Editor",
+                                      name="go to bookmarked position in slot 1",
+                                      parent=self)
+        load_bookmark_3 = config_shortcut(lambda : self.sig_load_bookmark.emit(2),
+                                      context="Editor",
+                                      name="go to bookmarked position in slot 2",
+                                      parent=self)
+        load_bookmark_4 = config_shortcut(lambda : self.sig_load_bookmark.emit(3),
+                                      context="Editor",
+                                      name="go to bookmarked position in slot 3",
+                                      parent=self)
+        load_bookmark_5 = config_shortcut(lambda : self.sig_load_bookmark.emit(4),
+                                      context="Editor",
+                                      name="go to bookmarked position in slot 4",
+                                      parent=self)
+        load_bookmark_6 = config_shortcut(lambda : self.sig_load_bookmark.emit(5),
+                                      context="Editor",
+                                      name="go to bookmarked position in slot 5",
+                                      parent=self)
+        load_bookmark_7 = config_shortcut(lambda : self.sig_load_bookmark.emit(6),
+                                      context="Editor",
+                                      name="go to bookmarked position in slot 6",
+                                      parent=self)
+        load_bookmark_8 = config_shortcut(lambda : self.sig_load_bookmark.emit(7),
+                                      context="Editor",
+                                      name="go to bookmarked position in slot 7",
+                                      parent=self)
+        load_bookmark_9 = config_shortcut(lambda : self.sig_load_bookmark.emit(8),
+                                      context="Editor",
+                                      name="go to bookmarked position in slot 8",
+                                      parent=self)
+        load_bookmark_10 = config_shortcut(lambda : self.sig_load_bookmark.emit(9),
+                                      context="Editor",
+                                      name="go to bookmarked position in slot 9",
+                                      parent=self)
 
         # Return configurable ones
         return [inspect, set_breakpoint, set_cond_breakpoint, gotoline, tab,
@@ -703,7 +785,12 @@ class EditorStack(QWidget):
                 close_file_1, close_file_2, run_cell, run_cell_and_advance,
                 go_to_next_cell, go_to_previous_cell, re_run_last_cell,
                 prev_warning, next_warning, split_vertically,
-                split_horizontally, close_split, prevtab, nexttab]
+                split_horizontally, close_split, prevtab, nexttab, save_bookmark_1,
+                save_bookmark_2, save_bookmark_3, save_bookmark_4, save_bookmark_5,
+                save_bookmark_6, save_bookmark_7, save_bookmark_8, save_bookmark_9,
+                save_bookmark_10, load_bookmark_1, load_bookmark_2, load_bookmark_3,
+                load_bookmark_4, load_bookmark_5, load_bookmark_6, load_bookmark_7,
+                load_bookmark_8, load_bookmark_9, load_bookmark_10]
 
     def get_shortcut_data(self):
         """

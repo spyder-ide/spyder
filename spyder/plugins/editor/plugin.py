@@ -507,6 +507,9 @@ class Editor(SpyderPluginWidget):
         self.cursor_pos_index = None
         self.__ignore_cursor_position = True
 
+        # Initialize saved bookmarks from ini file
+        self.bookmarks = self.init_bookmarks()
+
         # LSP setup
         self.sig_lsp_notification.connect(self.document_server_settings)
         self.lsp_editor_settings = {}
@@ -1527,6 +1530,8 @@ class Editor(SpyderPluginWidget):
         editorstack.sig_next_cursor.connect(self.go_to_next_cursor_position)
         editorstack.sig_prev_warning.connect(self.go_to_previous_warning)
         editorstack.sig_next_warning.connect(self.go_to_next_warning)
+        editorstack.sig_save_bookmark.connect(self.save_bookmark)
+        editorstack.sig_load_bookmark.connect(self.load_bookmark)
 
     def unregister_editorstack(self, editorstack):
         """Removing editorstack only if it's not the last remaining"""
@@ -1826,8 +1831,7 @@ class Editor(SpyderPluginWidget):
                  and results is not None and len(results)
         for action in (self.warning_list_action, self.previous_warning_action,
                        self.next_warning_action):
-            if state is not None:
-                action.setEnabled(state)
+            action.setEnabled(state)
 
     def update_todo_actions(self):
         editorstack = self.get_current_editorstack()
@@ -2700,6 +2704,35 @@ class Editor(SpyderPluginWidget):
         """Run last executed cell."""
         editorstack = self.get_current_editorstack()
         editorstack.re_run_last_cell()
+
+    @Slot(int)
+    def save_bookmark(self, num):
+        """Save current cursor position as bookmark in slot based
+        on number of shortcut e.g Ctrl+Shift+1 for slot 1"""
+        filename = self.get_current_filename()
+        position = self.get_current_editor().get_position('cursor')
+        self.bookmarks[num] = (filename, position)
+        CONF.set('editor', 'bookmarks', self.bookmarks)
+    
+    @Slot(int)
+    def load_bookmark(self, num):
+        """Set cursor to saved file and position in selected slot
+        based on number of shortcut e.g Ctrl+Alt+1 for slot 1"""
+        filename, position = self.bookmarks[num]
+        if not osp.isfile(filename):
+            self.last_edit_cursor_pos = None
+            return
+        else:
+            self.load(filename)
+            editor = self.get_current_editor()
+            if position < editor.document().characterCount():
+                editor.set_cursor_position(position)
+
+    def init_bookmarks(self):
+        """Load last saved cursor bookmarks for config file"""
+        # If line in config doesn't exist yet, initialize as empy list
+        bookmarks = CONF.get('editor', 'bookmarks', [('', 0)]*10)
+        return bookmarks
 
     #------ Zoom in/out/reset
     def zoom(self, factor):
