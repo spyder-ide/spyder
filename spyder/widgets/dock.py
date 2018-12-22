@@ -85,7 +85,7 @@ class DragButton(QToolButton):
                 "QToolButton {"
                 "border-radius: 0px;"
                 "border: 0px;"
-                "background-color: #31363B;}")
+                "background-color: #32414B;}")
 
     def mouseReleaseEvent(self, event):
         self.parent.mouseReleaseEvent(event)
@@ -113,7 +113,7 @@ class CloseButton(QToolButton):
                 "border-radius: 0px;"
                 "border: 0px;"
                 "image: url(:/qss_icons/rc/close.png);"
-                "background-color: #31363B;}"
+                "background-color: #32414B;}"
                 "QToolButton:hover {"
                 "image: url(:/qss_icons/rc/close-hover.png);}")
         else:
@@ -139,14 +139,14 @@ class DockTitleBar(QWidget):
         left_spacer = QWidget(self)
         left_spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
         if is_dark_interface():
-            left_spacer.setStyleSheet("background-color: #31363B")
+            left_spacer.setStyleSheet("background-color: #32414B")
 
         drag_button = DragButton(self, button_size)
 
         right_spacer = QWidget(self)
         right_spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
         if is_dark_interface():
-            right_spacer.setStyleSheet("background-color: #31363B")
+            right_spacer.setStyleSheet("background-color: #32414B")
 
         close_button = CloseButton(self, button_size)
         close_button.clicked.connect(parent.sig_plugin_closed.emit)
