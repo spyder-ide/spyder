@@ -2372,8 +2372,7 @@ class Editor(SpyderPluginWidget):
 
     @Slot(int)
     def save_bookmark(self, num):
-        """Save current cursor position as bookmark in slot based
-        on number of shortcut e.g Ctrl+Shift+1 for slot 1"""
+        """Save current cursor position as bookmark."""
         filename = self.get_current_filename()
         position = self.get_current_editor().get_position('cursor')
         self.bookmarks[num] = (filename, position)
@@ -2381,8 +2380,7 @@ class Editor(SpyderPluginWidget):
 
     @Slot(int)
     def load_bookmark(self, num):
-        """Set cursor to saved file and position in selected slot
-        based on number of shortcut e.g Ctrl+Alt+1 for slot 1"""
+        """Set cursor to bookmarked file and position."""
         filename, position = self.bookmarks[num]
         if not osp.isfile(filename):
             self.last_edit_cursor_pos = None
@@ -2394,8 +2392,8 @@ class Editor(SpyderPluginWidget):
                 editor.set_cursor_position(position)
 
     def init_bookmarks(self):
-        """Load last saved cursor bookmarks for config file"""
-        # If line in config doesn't exist yet, initialize as empy list
+        """Load last saved cursor bookmarks from config file."""
+        # If line in config doesn't exist yet, initialize as empty list
         bookmarks = CONF.get('editor', 'bookmarks', [('', 0)]*10)
         return bookmarks
 
