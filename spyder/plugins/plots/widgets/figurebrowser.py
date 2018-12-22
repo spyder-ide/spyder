@@ -32,6 +32,7 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, create_plugin_layout,
                                     MENU_SEPARATOR)
 from spyder.utils.misc import getcwd_or_home
+from spyder.config.gui import config_shortcut, get_shortcut
 
 
 def save_figure_tofile(fig, fmt, fname):
@@ -91,6 +92,7 @@ class FigureBrowser(QWidget):
 
         self.options_button = options_button
         self.plugin_actions = plugin_actions
+        self.shortcuts = self.create_shortcuts(parent)
 
     def setup(self, mute_inline_plotting=None, show_plot_outline=None):
         """Setup the figure browser with provided settings."""
@@ -147,7 +149,7 @@ class FigureBrowser(QWidget):
 
         copyfig_btn = create_toolbutton(
             self, icon=ima.icon('editcopy'),
-            tip=_("Copy Image"),
+            tip=_("Copy Image (%s)" % get_shortcut('plots', 'copy')),
             triggered=self.copy_figure)
 
         closefig_btn = create_toolbutton(
@@ -247,6 +249,23 @@ class FigureBrowser(QWidget):
         else:
             self.tools_layout.addWidget(self.options_button)
 
+    def create_shortcuts(self, parent):
+        """Create shortcuts for this widget"""
+        # Configurable
+        copyfig = config_shortcut(self.copy_figure, context='plots',
+                                  name='copy', parent=parent)
+
+        return [copyfig]
+
+    def get_shortcut_data(self):
+        """
+        Returns shortcut data, a list of tuples (shortcut, text, default)
+        shortcut (QShortcut or QAction instance)
+        text (string): action/shortcut description
+        default (string): default key sequence
+        """
+        return [sc.data for sc in self.shortcuts]
+
     def option_changed(self, option, value):
         """Handle when the value of an option has changed"""
         setattr(self, to_text_string(option), value)
@@ -310,13 +329,6 @@ class FigureBrowser(QWidget):
     def close_all_figures(self):
         """Close all the figures in the thumbnail scrollbar."""
         self.thumbnails_sb.remove_all_thumbnails()
-
-    def keyPressEvent(self, event):
-        """Define Shortcut."""
-        if (event.key() == Qt.Key_C) and (
-                event.modifiers() & Qt.ControlModifier):
-            self.copy_figure()
-        self.parent().keyPressEvent(event)
 
     def copy_figure(self):
         """Copy figure from figviewer to clipboard."""
@@ -790,7 +802,9 @@ class FigureCanvas(QFrame):
             pos = QPoint(event.x(), event.y())
             context_menu = QMenu(self)
             context_menu.addAction(ima.icon('editcopy'), "Copy Image",
-                                   self.copy_figure, QKeySequence("Ctrl+C"))
+                                   self.copy_figure,
+                                   QKeySequence(
+                                       get_shortcut('plots', 'copy')))
             context_menu.popup(self.mapToGlobal(pos))
 
     @Slot()
@@ -813,7 +827,7 @@ class FigureCanvas(QFrame):
             timer = QTimer()
             frame_rect = self.frameSize()
             self.setFixedSize(0, 0)
-            timer.singleShot(100,
+            timer.singleShot(40,
                              lambda: self.setFixedSize(frame_rect.width(),
                                                        frame_rect.height()))
 
