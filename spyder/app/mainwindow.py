@@ -1532,7 +1532,7 @@ class MainWindow(QMainWindow):
             self.quick_layout_set_menu()
         self.set_window_settings(*settings)
 
-        for plugin in self.widgetlist:
+        for plugin in (self.widgetlist + self.thirdparty_plugins):
             try:
                 plugin.initialize_plugin_in_mainwindow_layout()
             except Exception as error:
@@ -1979,7 +1979,7 @@ class MainWindow(QMainWindow):
         self.current_quick_layout = index
 
         # make sure the flags are correctly set for visible panes
-        for plugin in self.widgetlist:
+        for plugin in (self.widgetlist + self.thirdparty_plugins):
             action = plugin.toggle_view_action
             action.setChecked(plugin.dockwidget.isVisible())
 
@@ -2254,7 +2254,7 @@ class MainWindow(QMainWindow):
     def hideEvent(self, event):
         """Reimplement Qt method"""
         try:
-            for plugin in self.widgetlist:
+            for plugin in (self.widgetlist + self.thirdparty_plugins):
                 if plugin.isAncestorOf(self.last_focused_widget):
                     plugin.visibility_changed(True)
             QMainWindow.hideEvent(self, event)
@@ -2285,13 +2285,9 @@ class MainWindow(QMainWindow):
         self.save_current_window_settings(prefix)
         if CONF.get('main', 'single_instance') and self.open_files_server:
             self.open_files_server.close()
-        for plugin in self.thirdparty_plugins:
+        for plugin in (self.widgetlist + self.thirdparty_plugins):
             plugin.close_window()
             if not plugin.closing_plugin(cancelable):
-                return False
-        for widget in self.widgetlist:
-            widget.close_window()
-            if not widget.closing_plugin(cancelable):
                 return False
         self.dialog_manager.close_all()
         if self.toolbars_visible:
@@ -2312,7 +2308,7 @@ class MainWindow(QMainWindow):
     @Slot()
     def close_current_dockwidget(self):
         widget = QApplication.focusWidget()
-        for plugin in self.widgetlist:
+        for plugin in (self.widgetlist + self.thirdparty_plugins):
             if plugin.isAncestorOf(widget):
                 plugin.dockwidget.hide()
                 break
@@ -2323,8 +2319,7 @@ class MainWindow(QMainWindow):
         CONF.set('main', 'panes_locked', value)
 
         # Apply lock to panes
-        plugins = self.widgetlist + self.thirdparty_plugins
-        for plugin in plugins:
+        for plugin in (self.widgetlist + self.thirdparty_plugins):
             if self.interface_locked:
                 if plugin.dockwidget.isFloating():
                     plugin.dockwidget.setFloating(False)
@@ -2365,7 +2360,7 @@ class MainWindow(QMainWindow):
             # Select plugin to maximize
             self.state_before_maximizing = self.saveState()
             focus_widget = QApplication.focusWidget()
-            for plugin in self.widgetlist:
+            for plugin in (self.widgetlist + self.thirdparty_plugins):
                 plugin.dockwidget.hide()
                 if plugin.isAncestorOf(focus_widget):
                     self.last_plugin = plugin
@@ -2797,8 +2792,7 @@ class MainWindow(QMainWindow):
 
     def apply_panes_settings(self):
         """Update dockwidgets features settings"""
-        plugins = self.widgetlist + self.thirdparty_plugins
-        for plugin in plugins:
+        for plugin in (self.widgetlist + self.thirdparty_plugins):
             features = plugin.FEATURES
             if CONF.get('main', 'vertical_dockwidget_titlebars'):
                 features = features | QDockWidget.DockWidgetVerticalTitleBar
