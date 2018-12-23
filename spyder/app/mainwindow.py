@@ -1294,7 +1294,6 @@ class MainWindow(QMainWindow):
 
         # Update lock status
         self.lock_interface_action.setChecked(self.interface_locked)
-        self.apply_panes_settings()
 
         # Hide Internal Console so that people don't use it instead of
         # the External or IPython ones
@@ -2321,9 +2320,24 @@ class MainWindow(QMainWindow):
     def toggle_lock(self, value):
         """Lock/Unlock dockwidgets and toolbars"""
         self.interface_locked = value
-        self.apply_panes_settings()
-        self.apply_toolbar_settings()
         CONF.set('main', 'panes_locked', value)
+
+        # Apply lock to panes
+        plugins = self.widgetlist + self.thirdparty_plugins
+        for plugin in plugins:
+            if self.interface_locked:
+                if plugin.dockwidget.isFloating():
+                    plugin.dockwidget.setFloating(False)
+                plugin.dockwidget.setTitleBarWidget(QWidget())
+            else:
+                plugin.dockwidget.set_title_bar()
+
+        # Apply lock to toolbars
+        for toolbar in self.toolbarslist:
+            if self.interface_locked:
+                toolbar.setMovable(False)
+            else:
+                toolbar.setMovable(True)
 
     def __update_maximize_action(self):
         if self.state_before_maximizing is None:
@@ -2783,27 +2797,13 @@ class MainWindow(QMainWindow):
 
     def apply_panes_settings(self):
         """Update dockwidgets features settings"""
-        # Update toggle action on menu
-        for child in self.widgetlist:
-            features = child.FEATURES
+        plugins = self.widgetlist + self.thirdparty_plugins
+        for plugin in plugins:
+            features = plugin.FEATURES
             if CONF.get('main', 'vertical_dockwidget_titlebars'):
                 features = features | QDockWidget.DockWidgetVerticalTitleBar
-            if not self.interface_locked:
-                child.dockwidget.set_title_bar()
-            else:
-                if child.dockwidget.isFloating():
-                    child.dockwidget.setFloating(False)
-                child.dockwidget.setTitleBarWidget(QWidget())
-            child.dockwidget.setFeatures(features)
-            child.update_margins()
-
-    def apply_toolbar_settings(self):
-        """Update toolbars settings"""
-        for toolbar in self.toolbarslist:
-            if self.interface_locked:
-                toolbar.setMovable(False)
-            else:
-                toolbar.setMovable(True)
+            plugin.dockwidget.setFeatures(features)
+            plugin.update_margins()
 
     def apply_statusbar_settings(self):
         """Update status bar widgets settings"""

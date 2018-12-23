@@ -182,8 +182,9 @@ class SpyderDockWidget(QDockWidget):
     def __init__(self, title, parent):
         super(SpyderDockWidget, self).__init__(title, parent)
 
-        # Our custom title bar
+        # Set our custom title bar
         self.titlebar = DockTitleBar(self)
+        self.set_title_bar()
 
         # Needed for the installation of the event filter
         self.title = title
