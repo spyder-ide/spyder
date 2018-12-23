@@ -2171,7 +2171,7 @@ class MainWindow(QMainWindow):
                  'help', 'plots', None, 'explorer', 'outline_explorer',
                  'project_explorer', 'find_in_files', None, 'historylog',
                  'profiler', 'breakpoints', 'pylint', None,
-                 'onlinehelp', 'internal_console']
+                 'onlinehelp', 'internal_console', None]
         for plugin in self.widgetlist:
             action = plugin.toggle_view_action
             action.setChecked(plugin.dockwidget.isVisible())
