@@ -149,7 +149,8 @@ class FigureBrowser(QWidget):
 
         copyfig_btn = create_toolbutton(
             self, icon=ima.icon('editcopy'),
-            tip=_("Copy Image (%s)" % get_shortcut('plots', 'copy')),
+            tip=_("Copy plot to clipboard as image (%s)" %
+                  get_shortcut('plots', 'copy')),
             triggered=self.copy_figure)
 
         closefig_btn = create_toolbutton(
@@ -250,7 +251,7 @@ class FigureBrowser(QWidget):
             self.tools_layout.addWidget(self.options_button)
 
     def create_shortcuts(self, parent):
-        """Create shortcuts for this widget"""
+        """Create shortcuts for this widget."""
         # Configurable
         copyfig = config_shortcut(self.copy_figure, context='plots',
                                   name='copy', parent=parent)
@@ -259,7 +260,8 @@ class FigureBrowser(QWidget):
 
     def get_shortcut_data(self):
         """
-        Returns shortcut data, a list of tuples (shortcut, text, default)
+        Return shortcut data, a list of tuples (shortcut, text, default).
+
         shortcut (QShortcut or QAction instance)
         text (string): action/shortcut description
         default (string): default key sequence
