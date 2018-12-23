@@ -729,9 +729,13 @@ class EditorStack(QWidget):
         menu_btn = create_toolbutton(self, icon=ima.icon('tooloptions'),
                                      tip=_('Options'))
         # Don't show menu arrow and remove padding
-        menu_btn.setStyleSheet(
-            ("QToolButton::menu-indicator{image: none;}\n"
-             "QToolButton{margin: 1px; padding: 3px;}"))
+        if is_dark_interface():
+            menu_btn.setStyleSheet(
+                ("QToolButton::menu-indicator{image: none;}\n"
+                 "QToolButton{margin: 1px; padding: 3px;}"))
+        else:
+            menu_btn.setStyleSheet(
+                "QToolButton::menu-indicator{image: none;}")
         self.menu = QMenu(self)
         menu_btn.setMenu(self.menu)
         menu_btn.setPopupMode(menu_btn.InstantPopup)

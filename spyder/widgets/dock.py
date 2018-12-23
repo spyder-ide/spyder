@@ -86,6 +86,8 @@ class DragButton(QToolButton):
                 "border-radius: 0px;"
                 "border: 0px;"
                 "background-color: #32414B;}")
+        else:
+            self.setStyleSheet("QToolButton {border: 0px;}")
 
     def mouseReleaseEvent(self, event):
         self.parent.mouseReleaseEvent(event)
