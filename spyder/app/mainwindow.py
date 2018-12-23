@@ -2310,7 +2310,7 @@ class MainWindow(QMainWindow):
         widget = QApplication.focusWidget()
         for plugin in (self.widgetlist + self.thirdparty_plugins):
             if plugin.isAncestorOf(widget):
-                plugin.dockwidget.hide()
+                plugin.toggle_view_action.setChecked(False)
                 break
 
     def toggle_lock(self, value):
