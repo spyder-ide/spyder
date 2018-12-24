@@ -17,13 +17,12 @@ import os.path as osp
 # ---- Third library imports
 from qtconsole.svg import svg_to_image, svg_to_clipboard
 from qtpy.compat import getsavefilename, getexistingdirectory
-from qtpy.QtCore import Qt, Signal, QRect, QEvent, QPoint, Slot
+from qtpy.QtCore import Qt, Signal, QRect, QEvent, QPoint, QTimer, Slot
 from qtpy.QtGui import QPixmap, QPainter, QKeySequence
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu,
                             QVBoxLayout, QWidget, QGridLayout, QFrame,
                             QScrollArea, QPushButton, QScrollBar, QSizePolicy,
-                            QSpinBox, QSplitter, QStyleOptionSlider, QStyle,
-                            QMessageBox)
+                            QSpinBox, QSplitter, QStyleOptionSlider, QStyle)
 
 # ---- Local library imports
 from spyder.config.base import _
@@ -33,6 +32,7 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, create_plugin_layout,
                                     MENU_SEPARATOR)
 from spyder.utils.misc import getcwd_or_home
+from spyder.config.gui import config_shortcut, get_shortcut
 
 
 def save_figure_tofile(fig, fmt, fname):
@@ -64,21 +64,6 @@ def get_unique_figname(dirname, root, ext):
             return osp.join(dirname, figname)
 
 
-@Slot(object, str)
-def copy_figure(fig, fmt):
-    """Copy figure to clipboard."""
-    if fmt in ['image/png', 'image/jpeg']:
-        qpixmap = QPixmap()
-        qpixmap.loadFromData(fig, fmt.upper())
-        QApplication.clipboard().setImage(qpixmap.toImage())
-    elif fmt == 'image/svg+xml':
-        svg_to_clipboard(fig)
-    else:
-        return False
-
-    return True
-
-
 class FigureBrowser(QWidget):
     """
     Widget to browse the figures that were sent by the kernel to the IPython
@@ -107,6 +92,7 @@ class FigureBrowser(QWidget):
 
         self.options_button = options_button
         self.plugin_actions = plugin_actions
+        self.shortcuts = self.create_shortcuts(parent)
 
     def setup(self, mute_inline_plotting=None, show_plot_outline=None):
         """Setup the figure browser with provided settings."""
@@ -163,8 +149,9 @@ class FigureBrowser(QWidget):
 
         copyfig_btn = create_toolbutton(
             self, icon=ima.icon('editcopy'),
-            tip=_("Copy Image..."),
-            triggered=self.thumbnails_sb.copy_current_figure)
+            tip=_("Copy plot to clipboard as image (%s)" %
+                  get_shortcut('plots', 'copy')),
+            triggered=self.copy_figure)
 
         closefig_btn = create_toolbutton(
                 self, icon=ima.icon('editclear'),
@@ -263,6 +250,24 @@ class FigureBrowser(QWidget):
         else:
             self.tools_layout.addWidget(self.options_button)
 
+    def create_shortcuts(self, parent):
+        """Create shortcuts for this widget."""
+        # Configurable
+        copyfig = config_shortcut(self.copy_figure, context='plots',
+                                  name='copy', parent=parent)
+
+        return [copyfig]
+
+    def get_shortcut_data(self):
+        """
+        Return shortcut data, a list of tuples (shortcut, text, default).
+
+        shortcut (QShortcut or QAction instance)
+        text (string): action/shortcut description
+        default (string): default key sequence
+        """
+        return [sc.data for sc in self.shortcuts]
+
     def option_changed(self, option, value):
         """Handle when the value of an option has changed"""
         setattr(self, to_text_string(option), value)
@@ -327,12 +332,10 @@ class FigureBrowser(QWidget):
         """Close all the figures in the thumbnail scrollbar."""
         self.thumbnails_sb.remove_all_thumbnails()
 
-    def keyPressEvent(self, event):
-        """Define Shortcut."""
-        if (event.key() == Qt.Key_C) and (
-                event.modifiers() & Qt.ControlModifier):
-            self.thumbnails_sb.copy_current_figure()
-        self.parent().keyPressEvent(event)
+    def copy_figure(self):
+        """Copy figure from figviewer to clipboard."""
+        if self.figviewer and self.figviewer.figcanvas.fig:
+            self.figviewer.figcanvas.copy_figure()
 
 
 class FigureViewer(QScrollArea):
@@ -600,17 +603,6 @@ class ThumbnailScrollBar(QFrame):
         if fname:
             save_figure_tofile(fig, fmt, fname)
 
-    def copy_current_figure(self):
-        """Copy the currently selected figure."""
-        if self.current_thumbnail is None:
-            return
-
-        b_succeed = copy_figure(self.current_thumbnail.canvas.fig,
-                                self.current_thumbnail.canvas.fmt)
-
-        if b_succeed:
-            QMessageBox.information(self, "Information", "copy completed")
-
     # ---- Thumbails Handlers
     def add_thumbnail(self, fig, fmt):
         thumbnail = FigureThumbnail(background_color=self.background_color)
@@ -812,9 +804,34 @@ class FigureCanvas(QFrame):
             pos = QPoint(event.x(), event.y())
             context_menu = QMenu(self)
             context_menu.addAction(ima.icon('editcopy'), "Copy Image",
-                                   lambda: copy_figure(self.fig, self.fmt),
-                                   QKeySequence("Ctrl+C"))
+                                   self.copy_figure,
+                                   QKeySequence(
+                                       get_shortcut('plots', 'copy')))
             context_menu.popup(self.mapToGlobal(pos))
+
+    @Slot()
+    def copy_figure(self):
+        """Copy figure to clipboard."""
+        if self.fmt in ['image/png', 'image/jpeg']:
+            qpixmap = QPixmap()
+            qpixmap.loadFromData(self.fig, self.fmt.upper())
+            QApplication.clipboard().setImage(qpixmap.toImage())
+        elif self.fmt == 'image/svg+xml':
+            svg_to_clipboard(self.fig)
+        else:
+            return
+
+        self.blink_figure()
+
+    def blink_figure(self):
+        """Blink figure once."""
+        if self.fig:
+            timer = QTimer()
+            frame_rect = self.frameSize()
+            self.setFixedSize(0, 0)
+            timer.singleShot(40,
+                             lambda: self.setFixedSize(frame_rect.width(),
+                                                       frame_rect.height()))
 
     def clear_canvas(self):
         """Clear the figure that was painted on the widget."""
