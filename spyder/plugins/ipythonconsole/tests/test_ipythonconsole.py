@@ -32,7 +32,7 @@ import pytest
 from qtpy import PYQT5
 from qtpy.QtCore import Qt
 from qtpy.QtWebEngineWidgets import WEBENGINE
-from qtpy.QtWidgets import QMessageBox, QWidget
+from qtpy.QtWidgets import QMessageBox, QMainWindow
 import sympy
 
 # Local imports
@@ -82,7 +82,7 @@ class FaultyKernelSpec(KernelSpec):
 def ipyconsole(qtbot, request):
     """IPython console fixture."""
 
-    class MainWindowMock(QWidget):
+    class MainWindowMock(QMainWindow):
         def __getattr__(self, attr):
             if attr == 'consoles_menu_actions':
                 return []
@@ -124,13 +124,15 @@ def ipyconsole(qtbot, request):
     is_cython = True if cython_client else False
 
     # Create the console and a new client
-    console = IPythonConsole(parent=MainWindowMock(),
+    window = MainWindowMock()
+    console = IPythonConsole(parent=window,
                              test_dir=test_dir,
                              test_no_stderr=test_no_stderr)
     console.dockwidget = Mock()
     console.create_new_client(is_pylab=is_pylab,
                               is_sympy=is_sympy,
                               is_cython=is_cython)
+    window.setCentralWidget(console)
 
     # Close callback
     def close_console():
@@ -138,8 +140,8 @@ def ipyconsole(qtbot, request):
         console.close()
     request.addfinalizer(close_console)
 
-    qtbot.addWidget(console)
-    console.show()
+    qtbot.addWidget(window)
+    window.show()
     return console
 
 

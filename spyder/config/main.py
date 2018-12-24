@@ -454,6 +454,8 @@ DEFAULTS = [
               'array_builder/enter array table': "Ctrl+M",
               # ---- In widgets/variableexplorer/aarayeditor.py ----
               'variable_explorer/copy': 'Ctrl+C',
+              # ---- In widgets/plots/figurebrowser.py ----
+              'plots/copy': 'Ctrl+C',
               }),
             ('appearance',
              {
