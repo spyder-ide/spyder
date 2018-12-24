@@ -1344,19 +1344,16 @@ class EditorStack(QWidget):
         # Regular actions
         actions = [MENU_SEPARATOR, self.versplit_action,
                    self.horsplit_action, self.close_action]
-        if plugin is not None:
-            actions += [MENU_SEPARATOR, self.new_window_action,
-                        plugin.undock_action, plugin.close_plugin_action]
 
-        # Actions when the stack is part of an undocked window
         if self.new_window:
-            actions = [MENU_SEPARATOR, self.versplit_action,
-                       self.horsplit_action, self.close_action]
-            if plugin is not None:
-                if plugin.undocked_window:
-                    actions += [MENU_SEPARATOR, plugin.dock_action]
-                else:
-                    actions += [MENU_SEPARATOR, self.new_window_action]
+            actions += [MENU_SEPARATOR, self.new_window_action]
+        elif plugin is not None:
+            if plugin.undocked_window is not None:
+                actions += [MENU_SEPARATOR, plugin.dock_action]
+            else:
+                actions += [MENU_SEPARATOR, self.new_window_action,
+                            plugin.undock_action, plugin.close_plugin_action]
+
         return actions
 
     def reset_orientation(self):
