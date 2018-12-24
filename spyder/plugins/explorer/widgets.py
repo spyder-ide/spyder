@@ -26,11 +26,11 @@ from qtpy.compat import getsavefilename, getexistingdirectory
 from qtpy.QtCore import (QDir, QFileInfo, QMimeData, QSize,
                          QSortFilterProxyModel, Qt, QTimer, QUrl,
                          Signal, Slot)
-from qtpy.QtGui import QDrag, QIcon
+from qtpy.QtGui import QDrag, QIcon, QClipboard
 from qtpy.QtWidgets import (QFileSystemModel, QHBoxLayout, QFileIconProvider,
                             QInputDialog, QLabel, QLineEdit, QMenu,
                             QMessageBox, QToolButton, QTreeView, QVBoxLayout,
-                            QWidget)
+                            QWidget, QApplication)
 # Local imports
 from spyder.config.base import _, get_home_dir, get_image_path
 from spyder.config.gui import is_dark_interface
@@ -388,6 +388,14 @@ class DirView(QTreeView):
         ipynb_convert_action = create_action(self, _("Convert to Python script"),
                                              icon=ima.icon('python'),
                                              triggered=self.convert_notebooks)
+        copy_absolute_path_action = create_action(self,
+                _("Copy Absolute Path"), triggered=self.copy_absolute_path)
+        copy_relative_path_action = create_action(self, 
+                _("Copy Relative Path"), triggered=self.copy_relative_path)
+        copy_file_clipboard_action = create_action(self, 
+                _("Copy to Clipboard"), triggered=self.copy_file_clipboard)
+        save_file_clipboard_action = create_action(self,
+                _("Save from Clipboard"), triggered=self.save_file_clipboard)
         
         actions = []
         if only_modules:
@@ -405,6 +413,13 @@ class DirView(QTreeView):
         basedir = fixpath(osp.dirname(fnames[0]))
         if all([fixpath(osp.dirname(_fn)) == basedir for _fn in fnames]):
             actions.append(move_action)
+            actions += [None]
+            actions.append(copy_absolute_path_action)
+            actions.append(copy_relative_path_action)
+        if only_valid and only_files:
+            if len(self.get_selected_filenames())==1:
+                actions.append(copy_file_clipboard_action)
+                actions.append(save_file_clipboard_action)
         actions += [None]
         if only_files:
             actions.append(open_external_action)
@@ -851,7 +866,102 @@ class DirView(QTreeView):
 
     def go_to_parent_directory(self):
         pass
-        
+
+    @Slot()
+    def copy_absolute_path(self, fnames=None):
+        """Copy file/directory names into clipboard"""
+        cb = QApplication.clipboard()
+        cb.clear(mode=cb.Clipboard)
+        if fnames is None:
+            fnames = self.get_selected_filenames()
+        if not isinstance(fnames, (tuple, list)):
+            fnames = [fnames]
+        if len(fnames) > 1:
+            clipboard_files = ''.join(_fn +'\n' for _fn in fnames)
+            cb.setText(clipboard_files, mode=cb.Clipboard)
+        else:
+            cb.setText(fnames[0], mode=cb.Clipboard)
+
+    @Slot()
+    def copy_relative_path(self, fnames=None):
+        """Copy file/directory names into clipboard"""
+        cb = QApplication.clipboard()
+        cb.clear(mode=cb.Clipboard)
+        home_diretory = getcwd_or_home()
+        if fnames is None:
+            fnames = self.get_selected_filenames()
+        if not isinstance(fnames, (tuple, list)):
+            fnames = [fnames]
+        if len(fnames) > 1:
+            clipboard_files = ''.join(osp.relpath(_fn, home_diretory) +'\n' 
+                                        for _fn in fnames)
+            cb.setText(clipboard_files, mode=cb.Clipboard)
+        else:
+            cb.setText(osp.relpath(fnames[0], home_diretory),
+                                         mode=cb.Clipboard)
+            
+    @Slot()
+    def copy_file_clipboard(self, fnames=None):
+        """Copy file into clipboard"""
+        if fnames is None:
+            fnames = self.get_selected_filenames()
+        if not isinstance(fnames, (tuple, list)):
+            fnames = [fnames]
+        if len(fnames) == 1:
+            try: # https://stackoverflow.com/a/6064304/6814154
+                file_content = QMimeData()
+                fname = fnames[0]
+                if os.name == 'nt':
+                    file_content.setUrls([QUrl.fromLocalFile(fname)])
+                else:
+                    file_content.setUrls([QUrl(fname)])
+                cb_app = QApplication(self)
+                cb_app.clipboard().setMimeData(file_content)
+                cb_app.exec_()
+            except Exception as e:
+                QMessageBox.critical(self, _('File type error'), 
+                                    _("Cannot copy this type of file:\n\n") +\
+                                    to_text_string(e))
+        else:
+            pass
+
+    @Slot()
+    def save_file_clipboard(self, fnames=None):
+        """save file from clipboard to file/project explorer"""
+        if fnames is None:
+            fnames = self.get_selected_filenames()
+        if not isinstance(fnames, (tuple, list)):
+            fnames = [fnames]
+        if len(self.get_selected_filenames()) == 1:
+            selected_item = self.get_selected_filenames()[0]
+            if osp.isfile(selected_item):
+                parrent_path = osp.dirname(selected_item)
+            else:
+                parrent_path = osp.normpath(selected_item)
+            cb_app = QApplication(self)
+            cb_data = cb_app.clipboard().mimeData()
+            if cb_data.hasUrls():
+                try:
+                    urls = cb_data.urls()
+                    source_name = urls[0].toLocalFile()
+                    base_name = osp.basename(source_name)
+                    while base_name in os.listdir(parrent_path):
+                        base_name = "copy_of_" + base_name
+                        destination = osp.join(parrent_path, base_name)
+                    else:
+                        destination = osp.join(parrent_path, base_name)
+                    shutil.copy2(source_name, destination)
+                except Exception as e:
+                    QMessageBox.critical(self, _('Error in Action'), 
+                        _("Not Supported Action:\n\n")\
+                         + to_text_string(e))
+            else:
+                QMessageBox.critical(self, _("Clipboard Empty"), 
+                        _("No data in the clipboard:\n\n") + "Please copy "
+                        "file to clipboard first")
+        else:
+            pass
+
     #----- VCS actions
     def vcs_command(self, fnames, action):
         """VCS action (commit, browse)"""
