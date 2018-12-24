@@ -21,17 +21,19 @@ from collections import MutableSequence
 import unicodedata
 
 # Third party imports
+import qdarkstyle
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import (QByteArray, QFileInfo, QObject, QPoint, QSize, Qt,
                          QThread, QTimer, Signal, Slot)
 from qtpy.QtGui import QFont
 from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
-                            QMainWindow, QMessageBox, QMenu, QSplitter,
-                            QVBoxLayout, QWidget, QListWidget, QListWidgetItem)
+                            QLabel, QMainWindow, QMessageBox, QMenu,
+                            QSplitter, QVBoxLayout, QWidget, QListWidget,
+                            QListWidgetItem)
 
 # Local imports
 from spyder.config.base import _, running_under_pytest
-from spyder.config.gui import config_shortcut, get_shortcut
+from spyder.config.gui import config_shortcut, is_dark_interface, get_shortcut
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
 from spyder.py3compat import qbytearray_to_str, to_text_string
@@ -404,7 +406,6 @@ class EditorStack(QWidget):
     sig_close_file = Signal(str, str)
     file_saved = Signal(str, str, str)
     file_renamed_in_data = Signal(str, str, str)
-    sig_undock_window = Signal()
     opened_files_list_changed = Signal()
     active_languages_stats = Signal(set)
     todo_results_changed = Signal()
@@ -435,7 +436,6 @@ class EditorStack(QWidget):
 
         self.threadmanager = ThreadManager(self)
         self.new_window = False
-        self.undock_action = None
         self.horsplit_action = None
         self.versplit_action = None
         self.close_action = None
@@ -548,6 +548,9 @@ class EditorStack(QWidget):
         self.analysis_timer.setSingleShot(True)
         self.analysis_timer.setInterval(2000)
         self.analysis_timer.timeout.connect(self.analyze_script)
+
+        # Update filename label
+        self.editor_focus_changed.connect(self.update_fname_label)
 
         # Accepting drops
         self.setAcceptDrops(True)
@@ -716,32 +719,28 @@ class EditorStack(QWidget):
 
     def setup_editorstack(self, parent, layout):
         """Setup editorstack's layout"""
+        layout.setSpacing(1)
+
+        self.fname_label = QLabel()
+        self.fname_label.setStyleSheet(
+            "QLabel {margin: 0px; padding: 3px;}")
+        layout.addWidget(self.fname_label)
+
         menu_btn = create_toolbutton(self, icon=ima.icon('tooloptions'),
                                      tip=_('Options'))
+        # Don't show menu arrow and remove padding
+        if is_dark_interface():
+            menu_btn.setStyleSheet(
+                ("QToolButton::menu-indicator{image: none;}\n"
+                 "QToolButton{margin: 1px; padding: 3px;}"))
+        else:
+            menu_btn.setStyleSheet(
+                "QToolButton::menu-indicator{image: none;}")
         self.menu = QMenu(self)
         menu_btn.setMenu(self.menu)
         menu_btn.setPopupMode(menu_btn.InstantPopup)
         self.menu.aboutToShow.connect(self.__setup_menu)
 
-#        self.filelist_btn = create_toolbutton(self,
-#                             icon=ima.icon('filelist'),
-#                             tip=_("File list management"),
-#                             triggered=self.open_fileswitcher_dlg)
-#
-#        self.previous_btn = create_toolbutton(self,
-#                             icon=ima.icon('previous'),
-#                             tip=_("Previous file"),
-#                             triggered=self.go_to_previous_file)
-#
-#        self.next_btn = create_toolbutton(self,
-#                             icon=ima.icon('next'),
-#                             tip=_("Next file"),
-#                             triggered=self.go_to_next_file)
-
-        # Optional tabs
-#        corner_widgets = {Qt.TopRightCorner: [self.previous_btn,
-#                                              self.filelist_btn, self.next_btn,
-#                                              5, menu_btn]}
         corner_widgets = {Qt.TopRightCorner: [menu_btn]}
         self.tabs = BaseTabs(self, menu=self.menu, menu_use_tooltips=True,
                              corner_widgets=corner_widgets)
@@ -769,6 +768,16 @@ class EditorStack(QWidget):
             layout.addWidget(tab_container)
         else:
             layout.addWidget(self.tabs)
+
+    @Slot()
+    def update_fname_label(self):
+        """Upadte file name label."""
+        filename = to_text_string(self.get_current_filename())
+        if len(filename) > 100:
+            shorten_filename = u'...' + filename[-100:]
+        else:
+            shorten_filename = filename
+        self.fname_label.setText(shorten_filename)
 
     def add_corner_widgets_to_tabbar(self, widgets):
         self.tabs.add_corner_widgets(widgets)
@@ -1300,12 +1309,19 @@ class EditorStack(QWidget):
 
     #------ Hor/Ver splitting
     def __get_split_actions(self):
-        # Undock Editor window
-        self.undock_action = create_action(self, _("Undock Editor window"),
-                                           icon=ima.icon('newwindow'),
-                                           tip=_("Undock the editor window"),
-                                           triggered=lambda:
-                                               self.sig_undock_window.emit())
+        if self.parent() is not None:
+            plugin = self.parent().plugin
+        else:
+            plugin = None
+
+        # New window
+        if plugin is not None:
+            self.new_window_action = create_action(
+                self, _("New window"),
+                icon=ima.icon('newwindow'),
+                tip=_("Create a new editor window"),
+                triggered=plugin.create_new_window)
+
         # Splitting
         self.versplit_action = create_action(self, _("Split vertically"),
                 icon=ima.icon('versplit'),
@@ -1324,12 +1340,23 @@ class EditorStack(QWidget):
                 triggered=self.close_split,
                 shortcut=get_shortcut(context='Editor', name='close split panel'),
                 context=Qt.WidgetShortcut)
-        actions = [MENU_SEPARATOR, self.undock_action,
-                   MENU_SEPARATOR, self.versplit_action,
+
+        # Regular actions
+        actions = [MENU_SEPARATOR, self.versplit_action,
                    self.horsplit_action, self.close_action]
+        if plugin is not None:
+            actions += [MENU_SEPARATOR, self.new_window_action,
+                        plugin.undock_action, plugin.close_plugin_action]
+
+        # Actions when the stack is part of an undocked window
         if self.new_window:
             actions = [MENU_SEPARATOR, self.versplit_action,
                        self.horsplit_action, self.close_action]
+            if plugin is not None:
+                if plugin.undocked_window:
+                    actions += [MENU_SEPARATOR, plugin.dock_action]
+                else:
+                    actions += [MENU_SEPARATOR, self.new_window_action]
         return actions
 
     def reset_orientation(self):
@@ -2840,6 +2867,7 @@ class EditorMainWindow(QMainWindow):
         QMainWindow.__init__(self)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
+        self.plugin = plugin
         self.window_size = None
 
         self.editorwidget = EditorWidget(self, plugin, menu_actions,
@@ -2847,6 +2875,10 @@ class EditorMainWindow(QMainWindow):
                                          group_cells, show_comments,
                                          sort_files_alphabetically)
         self.setCentralWidget(self.editorwidget)
+
+        # Setting interface theme
+        if is_dark_interface():
+            self.setStyleSheet(qdarkstyle.load_stylesheet_from_environment())
 
         # Give focus to current editor to update/show all status bar widgets
         editorstack = self.editorwidget.editorsplitter.editorstack
@@ -2917,7 +2949,13 @@ class EditorMainWindow(QMainWindow):
 
     def closeEvent(self, event):
         """Reimplement Qt method"""
+        if self.plugin.undocked_window is not None:
+            self.plugin.dockwidget.setWidget(self.plugin)
+            self.plugin.dockwidget.setVisible(True)
+        self.plugin.switch_to_plugin()
         QMainWindow.closeEvent(self, event)
+        if self.plugin.undocked_window is not None:
+            self.plugin.undocked_window = None
 
     def get_layout_settings(self):
         """Return layout state"""
@@ -2955,6 +2993,9 @@ class EditorPluginExample(QSplitter):
     def __init__(self):
         QSplitter.__init__(self)
 
+        self.dock_action = None
+        self.undock_action = None
+        self.close_plugin_action = None
         menu_actions = []
 
         self.editorstacks = []

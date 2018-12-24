@@ -269,9 +269,14 @@ class BaseTabs(QTabWidget):
             corner_widgets = {}
         corner_widgets.setdefault(Qt.TopLeftCorner, [])
         corner_widgets.setdefault(Qt.TopRightCorner, [])
+
         self.browse_button = create_toolbutton(self,
                                           icon=ima.icon('browse_tab'),
                                           tip=_("Browse tabs"))
+        self.browse_button.setStyleSheet(
+            ("QToolButton::menu-indicator{image: none;}\n"
+             "QToolButton{margin: 1px; padding: 3px;}"))
+
         self.browse_tabs_menu = QMenu(self)
         self.browse_button.setMenu(self.browse_tabs_menu)
         self.browse_button.setPopupMode(self.browse_button.InstantPopup)

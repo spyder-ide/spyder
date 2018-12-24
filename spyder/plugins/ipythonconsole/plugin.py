@@ -674,6 +674,7 @@ class IPythonConsole(SpyderPluginWidget):
         for client in self.clients:
             client.shutdown()
             client.remove_stderr_file()
+            client.dialog_manager.close_all()
             client.close()
         return True
 
@@ -1372,6 +1373,7 @@ class IPythonConsole(SpyderPluginWidget):
         if len(related_clients) == 0 and osp.exists(client.stderr_file):
             client.remove_stderr_file()
 
+        client.dialog_manager.close_all()
         client.close()
 
         # Note: client index may have changed after closing related widgets

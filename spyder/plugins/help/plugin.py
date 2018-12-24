@@ -61,9 +61,6 @@ class Help(SpyderPluginWidget):
         self.console = None
         self.css_path = css_path
 
-        # Initialize plugin
-        self.initialize_plugin()
-
         self.no_doc_string = _("No documentation available")
 
         self._last_console_cb = None
@@ -154,12 +151,6 @@ class Help(SpyderPluginWidget):
         self._update_lock_icon()
 
         # Option menu
-        self.menu = QMenu(self)
-        add_actions(self.menu, [self.rich_text_action, self.plain_text_action,
-                                self.show_source_action, MENU_SEPARATOR,
-                                self.auto_import_action, MENU_SEPARATOR,
-                                self.undock_action])
-        self.options_button.setMenu(self.menu)
         layout_edit.addWidget(self.options_button)
 
         if self.rich_help:
@@ -192,6 +183,9 @@ class Help(SpyderPluginWidget):
             view.page().setLinkDelegationPolicy(QWebEnginePage.DelegateAllLinks)
         view.linkClicked.connect(self.handle_link_clicks)
 
+        # Initialize plugin
+        self.initialize_plugin()
+
         self._starting_up = True
 
     #------ SpyderPluginWidget API ---------------------------------------------
@@ -217,7 +211,9 @@ class Help(SpyderPluginWidget):
 
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
-        return []
+        return [self.rich_text_action, self.plain_text_action,
+                self.show_source_action, MENU_SEPARATOR,
+                self.auto_import_action]
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""

@@ -69,6 +69,7 @@ _resource = {
 }
 
 _qtaargs = {
+    'drag-horizontal':         [('mdi.drag-horizontal',), {'color': MAIN_FG_COLOR}],
     'format_letter_case':      [('mdi.format-letter-case',), {'color': MAIN_FG_COLOR}],
     'regex':                   [('mdi.regex',), {'color': MAIN_FG_COLOR}],
     'log':                     [('fa.file-text-o',), {'color': MAIN_FG_COLOR}],
@@ -83,7 +84,7 @@ _qtaargs = {
     'font':                    [('fa.font',), {'color': MAIN_FG_COLOR}],
     'keyboard':                [('fa.keyboard-o',), {'color': MAIN_FG_COLOR}],
     'eyedropper':              [('fa.eyedropper',), {'color': MAIN_FG_COLOR}],
-    'tooloptions':             [('fa.cog',), {'color': '#333333'}],
+    'tooloptions':             [('fa.bars',), {'color': MAIN_FG_COLOR}],
     'edit24':                  [('fa.edit',), {'color': MAIN_FG_COLOR}],
     'edit':                    [('fa.edit',), {'color': MAIN_FG_COLOR}],
     'filenew':                 [('fa.file-o',), {'color': MAIN_FG_COLOR}],
@@ -155,7 +156,7 @@ _qtaargs = {
     'replace':                 [('fa.exchange',), {'color': MAIN_FG_COLOR}],
     'undo':                    [('fa.undo',), {'color': MAIN_FG_COLOR}],
     'redo':                    [('fa.repeat',), {'color': MAIN_FG_COLOR}],
-    'restart':                 [('fa.repeat',), {'çolor': '#3775a9'}],
+    'restart':                 [('fa.repeat',), {'color': MAIN_FG_COLOR}],
     'editcopy':                [('fa.copy',), {'color': MAIN_FG_COLOR}],
     'editcut':                 [('fa.scissors',), {'color': MAIN_FG_COLOR}],
     'editpaste':               [('fa.clipboard',), {'color': MAIN_FG_COLOR}],
@@ -183,7 +184,7 @@ _qtaargs = {
     'rename':                  [('fa.pencil',), {'color': MAIN_FG_COLOR}],
     'edit_add':                [('fa.plus',), {'color': MAIN_FG_COLOR}],
     'edit_remove':             [('fa.minus',), {'color': MAIN_FG_COLOR}],
-    'browse_tab':              [('fa.folder-o',), {'color': MAIN_FG_COLOR}],
+    'browse_tab':              [('mdi.tab',), {'color': MAIN_FG_COLOR}],
     'filelist':                [('fa.list',), {'color': MAIN_FG_COLOR}],
     'newwindow':               [('spyder.window',), {'color': MAIN_FG_COLOR}],
     'versplit':                [('spyder.rows',), {'color': MAIN_FG_COLOR}],
@@ -263,6 +264,9 @@ _qtaargs = {
     '1uparrow':                [('fa.angle-up',), {'color': MAIN_FG_COLOR}],
     '2downarrow':              [('fa.angle-double-down',), {'color': MAIN_FG_COLOR}],
     '1downarrow':              [('fa.angle-down',), {'color': MAIN_FG_COLOR}],
+    'undock':                  [('fa.external-link',), {'color': MAIN_FG_COLOR}],
+    'dock':                    [('fa.caret-square-o-down',), {'color': MAIN_FG_COLOR}],
+    'close_pane':              [('fa.window-close-o',), {'color': MAIN_FG_COLOR}],
     # --- Autocompletion type icons --------------
     'attribute':               [('mdi.alpha-a-box',), {'color': 'magenta', 'scale_factor': 1.3}],
     'module':                  [('mdi.alpha-m-box',), {'color': '#daa520', 'scale_factor': 1.3}],
