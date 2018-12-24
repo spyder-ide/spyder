@@ -34,7 +34,7 @@ from qtpy.QtCore import Qt, QTimer, QEvent, QUrl
 from qtpy.QtTest import QTest
 from qtpy.QtGui import QImage
 from qtpy.QtWidgets import (QApplication, QFileDialog, QLineEdit, QTabBar,
-                            QToolTip)
+                            QToolTip, QWidget)
 from qtpy.QtWebEngineWidgets import WEBENGINE
 from matplotlib.testing.compare import compare_images
 import nbconvert
@@ -50,9 +50,10 @@ from spyder.preferences.runconfig import RunConfiguration
 from spyder.plugins.base import PluginWindow
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
-from spyder.py3compat import PY2, to_text_string
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
+from spyder.py3compat import PY2, to_text_string
 from spyder.utils.programs import is_module_installed
+from spyder.widgets.dock import DockTitleBar
 
 # For testing various Spyder urls
 if not PY2:
@@ -233,6 +234,32 @@ def test_calltip(main_window, qtbot):
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
 
     main_window.editor.close_file()
+
+
+@pytest.mark.slow
+def test_lock_action(main_window):
+    """Test the lock interface action."""
+    action = main_window.lock_interface_action
+    plugins = main_window.widgetlist
+
+    # By default the action is checked
+    assert action.isChecked()
+
+    # In this state the title bar is an empty QWidget
+    for plugin in plugins:
+        title_bar = plugin.dockwidget.titleBarWidget()
+        assert not isinstance(title_bar, DockTitleBar)
+        assert isinstance(title_bar, QWidget)
+
+    # Test that our custom title bar is shown when the action
+    # is unchecked
+    action.setChecked(False)
+    for plugin in plugins:
+        title_bar = plugin.dockwidget.titleBarWidget()
+        assert isinstance(title_bar, DockTitleBar)
+
+    # Restore default state
+    action.setChecked(True)
 
 
 @pytest.mark.slow
