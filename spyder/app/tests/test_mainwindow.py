@@ -47,6 +47,7 @@ from spyder.config.base import get_home_dir, get_module_path
 from spyder.config.main import CONF
 from spyder.widgets.dock import TabFilter
 from spyder.preferences.runconfig import RunConfiguration
+from spyder.plugins.base import PluginWindow
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.py3compat import PY2, to_text_string
@@ -232,6 +233,37 @@ def test_calltip(main_window, qtbot):
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
 
     main_window.editor.close_file()
+
+
+@pytest.mark.slow
+def test_default_plugin_actions(main_window, qtbot):
+    """Test the effect of dock, undock, close and toggle view actions."""
+    # Use a particular plugin
+    file_explorer = main_window.explorer
+
+    # Undock action
+    file_explorer.undock_action.triggered.emit(True)
+    qtbot.wait(500)
+    assert not file_explorer.dockwidget.isVisible()
+    assert file_explorer.undocked_window is not None
+    assert isinstance(file_explorer.undocked_window, PluginWindow)
+    assert file_explorer.undocked_window.centralWidget() == file_explorer
+
+    # Dock action
+    file_explorer.dock_action.triggered.emit(True)
+    qtbot.wait(500)
+    assert file_explorer.dockwidget.isVisible()
+    assert file_explorer.undocked_window is None
+
+    # Close action
+    file_explorer.close_plugin_action.triggered.emit(True)
+    qtbot.wait(500)
+    assert not file_explorer.dockwidget.isVisible()
+    assert not file_explorer.toggle_view_action.isChecked()
+
+    # Toggle view action
+    file_explorer.toggle_view_action.setChecked(True)
+    assert file_explorer.dockwidget.isVisible()
 
 
 @pytest.mark.slow
