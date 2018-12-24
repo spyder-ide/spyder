@@ -18,21 +18,22 @@ import os
 # Third party imports
 from qtpy.QtCore import Qt, Signal
 from qtpy.QtGui import QCursor
-from qtpy.QtWidgets import QApplication, QMenu, QMessageBox, QToolButton
+from qtpy.QtWidgets import (QApplication, QMenu, QMessageBox, QToolButton,
+                            QWidget)
 
 # Local imports
-from spyder.config.gui import get_color_scheme
+from spyder.config.base import _
+from spyder.config.gui import get_color_scheme, is_dark_interface
 from spyder.config.main import CONF
 from spyder.config.user import NoDefault
-from spyder.plugins.base import _, BasePluginWidget
-from spyder.py3compat import configparser, is_text_string
+from spyder.plugins.base import BasePluginMixin
+from spyder.py3compat import configparser
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_toolbutton,
                                     MENU_SEPARATOR, toggle_actions)
-from spyder.plugins.base import PluginMainWindow
 
 
-class PluginWidget(BasePluginWidget):
+class PluginWidget(QWidget, BasePluginMixin):
     """
     Public interface for Spyder plugins.
 
@@ -52,8 +53,11 @@ class PluginWidget(BasePluginWidget):
 
     def __init__(self, main=None):
         """Bind widget to a QMainWindow instance."""
-        BasePluginWidget.__init__(self, main)
+        super(PluginWidget, self).__init__(main)
         assert self.CONF_SECTION is not None
+
+        self.dockwidget = None
+        self.undocked_window = None
 
         # Check compatibility
         check_compatibility, message = self.check_compatibility()
@@ -64,8 +68,6 @@ class PluginWidget(BasePluginWidget):
         self.main = main
         self.default_margins = None
         self.plugin_actions = None
-        self.dockwidget = None
-        self.mainwindow = None
         self.ismaximized = False
         self.isvisible = False
 
@@ -73,6 +75,14 @@ class PluginWidget(BasePluginWidget):
         self.options_button = create_toolbutton(self, text=_('Options'),
                                                 icon=ima.icon('tooloptions'))
         self.options_button.setPopupMode(QToolButton.InstantPopup)
+        # Don't show menu arrow and remove padding
+        if is_dark_interface():
+            self.options_button.setStyleSheet(
+                ("QToolButton::menu-indicator{image: none;}\n"
+                 "QToolButton{padding: 3px;}"))
+        else:
+            self.options_button.setStyleSheet(
+                "QToolButton::menu-indicator{image: none;}")
         self.options_menu = QMenu(self)
 
         # NOTE: Don't use the default option of CONF.get to assign a
@@ -97,12 +107,8 @@ class PluginWidget(BasePluginWidget):
         """
         self.create_toggle_view_action()
 
-        # Undock action
-        self.create_undock_action()
         self.plugin_actions = self.get_plugin_actions() + [MENU_SEPARATOR,
                                                            self.undock_action]
-
-        # Options button and menu
         add_actions(self.options_menu, self.plugin_actions)
         self.options_button.setMenu(self.options_menu)
         self.options_menu.aboutToShow.connect(self.refresh_actions)
@@ -111,23 +117,6 @@ class PluginWidget(BasePluginWidget):
         self.sig_update_plugin_title.connect(self.update_plugin_title)
         self.sig_option_changed.connect(self.set_option)
         self.setWindowTitle(self.get_plugin_title())
-
-    def create_mainwindow(self):
-        """
-        Create a QMainWindow instance containing this plugin.
-
-        Note: this method is currently not used in Spyder core plugins
-        """
-        self.mainwindow = mainwindow = PluginMainWindow(self)
-        mainwindow.setAttribute(Qt.WA_DeleteOnClose)
-        icon = self.get_plugin_icon()
-        if is_text_string(icon):
-            icon = self.get_icon(icon)
-        mainwindow.setWindowIcon(icon)
-        mainwindow.setWindowTitle(self.get_plugin_title())
-        mainwindow.setCentralWidget(self)
-        self.refresh_plugin()
-        return mainwindow
 
     def register_shortcut(self, qaction_or_qshortcut, context, name,
                           add_sc_to_tip=False):
@@ -150,13 +139,15 @@ class PluginWidget(BasePluginWidget):
             self.register_shortcut(qshortcut, context, name)
 
     def visibility_changed(self, enable):
-        """Dock widget visibility has changed."""
+        """
+        Dock widget visibility has changed.
+        """
         if self.dockwidget is None:
             return
         if enable:
             self.dockwidget.raise_()
             widget = self.get_focus_widget()
-            if widget is not None:
+            if widget is not None and self.undocked_window is not None:
                 widget.setFocus()
         visible = self.dockwidget.isVisible() or self.ismaximized
         if self.DISABLE_ACTIONS_WHEN_HIDDEN:
@@ -169,13 +160,15 @@ class PluginWidget(BasePluginWidget):
         """
         Set a plugin option in configuration file.
 
-        Use a SIGNAL to call it, e.g.:
-        plugin.sig_option_changed.emit('show_all', checked)
+        Note: Use sig_option_changed to call it from widgets of the
+              same or another plugin.
         """
         CONF.set(self.CONF_SECTION, str(option), value)
 
     def get_option(self, option, default=NoDefault):
-        """Get a plugin option from configuration file."""
+        """
+        Get a plugin's option from configuration file.
+        """
         return CONF.get(self.CONF_SECTION, option, default)
 
     def starting_long_process(self, message):
@@ -189,17 +182,23 @@ class PluginWidget(BasePluginWidget):
         QApplication.processEvents()
 
     def ending_long_process(self, message=""):
-        """Clear main window's status bar and restore mouse cursor."""
+        """
+        Clear main window's status bar and restore mouse cursor.
+        """
         QApplication.restoreOverrideCursor()
         self.show_message(message, timeout=2000)
         QApplication.processEvents()
 
     def get_color_scheme(self):
-        """Get current color scheme."""
+        """
+        Get current color scheme.
+        """
         return get_color_scheme(CONF.get('appearance', 'selected'))
 
     def show_compatibility_message(self, message):
-        """Show compatibility message."""
+        """
+        Show compatibility message.
+        """
         messageBox = QMessageBox(self)
         messageBox.setWindowModality(Qt.NonModal)
         messageBox.setAttribute(Qt.WA_DeleteOnClose)
@@ -209,10 +208,22 @@ class PluginWidget(BasePluginWidget):
         messageBox.show()
 
     def refresh_actions(self):
-        """Clear the menu of the plugin and add the actions."""
+        """
+        Create options menu.
+        """
         self.options_menu.clear()
-        self.plugin_actions = self.get_plugin_actions() + [MENU_SEPARATOR,
-                                                           self.undock_action]
+
+        # Decide what additional actions to show
+        if self.undocked_window is None:
+            additional_actions = [MENU_SEPARATOR,
+                                  self.undock_action,
+                                  self.close_plugin_action]
+        else:
+            additional_actions = [MENU_SEPARATOR,
+                                  self.dock_action]
+
+        # Create actions list
+        self.plugin_actions = self.get_plugin_actions() + additional_actions
         add_actions(self.options_menu, self.plugin_actions)
 
 
@@ -262,19 +273,12 @@ class SpyderPluginWidget(PluginWidget):
     def get_plugin_title(self):
         """
         Return plugin title.
-
-        Note: after some thinking, it appears that using a method
-        is more flexible here than using a class attribute
         """
         raise NotImplementedError
 
     def get_plugin_icon(self):
         """
         Return plugin icon (QIcon instance).
-
-        Note: this is required for plugins creating a main window
-              (see SpyderPluginMixin.create_mainwindow)
-              and for configuration dialog widgets creation
         """
         return ima.icon('outline_explorer')
 
@@ -291,7 +295,7 @@ class SpyderPluginWidget(PluginWidget):
         Perform actions before parent main window is closed.
 
         Return True or False whether the plugin may be closed immediately or
-        not
+        not.
         Note: returned value is ignored if *cancelable* is False
         """
         return True
@@ -302,23 +306,33 @@ class SpyderPluginWidget(PluginWidget):
 
     def get_plugin_actions(self):
         """
-        Return a list of actions related to plugin.
+        Return a list of QAction's related to plugin.
 
-        Note: these actions will be enabled when plugin's dockwidget is visible
-              and they will be disabled when it's hidden
+        Note: These actions will be shown in the plugins Options menu.
         """
         raise NotImplementedError
 
     def register_plugin(self):
-        """Register plugin in Spyder's main window."""
+        """
+        Register plugin in Spyder's main window.
+        """
         raise NotImplementedError
 
     def on_first_registration(self):
-        """Action to be performed on first plugin registration."""
+        """
+        Action to be performed on first plugin registration.
+
+        Note: This is most usually used to tabify the plugin next to one
+              of the core plugins, like this:
+
+              self.main.tabify_plugins(self.main.variableexplorer, self)
+        """
         raise NotImplementedError
 
     def apply_plugin_settings(self, options):
-        """Apply configuration file's plugin settings."""
+        """
+        What to do to apply configuration plugin settings.
+        """
         raise NotImplementedError
 
     def update_font(self):

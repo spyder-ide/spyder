@@ -84,7 +84,7 @@ from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
 from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QDockWidget, QMainWindow,
                             QMenu, QMessageBox, QShortcut, QSplashScreen,
-                            QStyleFactory)
+                            QStyleFactory, QTabWidget, QWidget)
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -424,7 +424,7 @@ class MainWindow(QMainWindow):
         self.dialog_layout_settings = LayoutSettingsDialog
 
         # Actions
-        self.lock_dockwidgets_action = None
+        self.lock_interface_action = None
         self.show_toolbars_action = None
         self.close_dockwidget_action = None
         self.undo_action = None
@@ -525,7 +525,7 @@ class MainWindow(QMainWindow):
         self.is_starting_up = True
         self.is_setting_up = True
 
-        self.dockwidgets_locked = CONF.get('main', 'panes_locked')
+        self.interface_locked = CONF.get('main', 'panes_locked')
         self.floating_dockwidgets = []
         self.window_size = None
         self.window_position = None
@@ -566,7 +566,14 @@ class MainWindow(QMainWindow):
             self.open_files_server = socket.socket(socket.AF_INET,
                                                    socket.SOCK_STREAM,
                                                    socket.IPPROTO_TCP)
+
+        # Apply preferences
         self.apply_settings()
+
+        # To set all dockwidgets tabs to be on top (in case we want to do it
+        # in the future)
+        # self.setTabPosition(Qt.AllDockWidgetAreas, QTabWidget.North)
+
         logger.info("End of MainWindow constructor")
 
     #---- Window setup
@@ -600,17 +607,20 @@ class MainWindow(QMainWindow):
             css_path = CSS_PATH
 
         logger.info("Creating core actions...")
-        self.close_dockwidget_action = create_action(self,
-                                    icon=ima.icon('DialogCloseButton'),
-                                    text=_("Close current pane"),
-                                    triggered=self.close_current_dockwidget,
-                                    context=Qt.ApplicationShortcut)
+        self.close_dockwidget_action = create_action(
+            self, icon=ima.icon('close_pane'),
+            text=_("Close current pane"),
+            triggered=self.close_current_dockwidget,
+            context=Qt.ApplicationShortcut
+        )
         self.register_shortcut(self.close_dockwidget_action, "_",
                                "Close pane")
-        self.lock_dockwidgets_action = create_action(self, _("Lock panes"),
-                                        toggled=self.toggle_lock_dockwidgets,
-                                        context=Qt.ApplicationShortcut)
-        self.register_shortcut(self.lock_dockwidgets_action, "_",
+        self.lock_interface_action = create_action(
+            self,
+            _("Lock panes and toolbars"),
+            toggled=self.toggle_lock,
+            context=Qt.ApplicationShortcut)
+        self.register_shortcut(self.lock_interface_action, "_",
                                "Lock unlock panes")
         # custom layouts shortcuts
         self.toggle_next_layout_action = create_action(self,
@@ -1144,7 +1154,7 @@ class MainWindow(QMainWindow):
         self.quick_layout_set_menu()
 
         self.view_menu.addMenu(self.plugins_menu)  # Panes
-        add_actions(self.view_menu, (self.lock_dockwidgets_action,
+        add_actions(self.view_menu, (self.lock_interface_action,
                                      self.close_dockwidget_action,
                                      self.maximize_action,
                                      MENU_SEPARATOR))
@@ -1282,9 +1292,8 @@ class MainWindow(QMainWindow):
         self.toolbars_visible = CONF.get('main', 'toolbars_visible')
         self.load_last_visible_toolbars()
 
-        # Update lock status of dockidgets (panes)
-        self.lock_dockwidgets_action.setChecked(self.dockwidgets_locked)
-        self.apply_panes_settings()
+        # Update lock status
+        self.lock_interface_action.setChecked(self.interface_locked)
 
         # Hide Internal Console so that people don't use it instead of
         # the External or IPython ones
@@ -1523,7 +1532,7 @@ class MainWindow(QMainWindow):
             self.quick_layout_set_menu()
         self.set_window_settings(*settings)
 
-        for plugin in self.widgetlist:
+        for plugin in (self.widgetlist + self.thirdparty_plugins):
             try:
                 plugin.initialize_plugin_in_mainwindow_layout()
             except Exception as error:
@@ -1970,7 +1979,7 @@ class MainWindow(QMainWindow):
         self.current_quick_layout = index
 
         # make sure the flags are correctly set for visible panes
-        for plugin in self.widgetlist:
+        for plugin in (self.widgetlist + self.thirdparty_plugins):
             action = plugin.toggle_view_action
             action.setChecked(plugin.dockwidget.isVisible())
 
@@ -2158,11 +2167,11 @@ class MainWindow(QMainWindow):
         self.search_menu_actions[3].setEnabled(readwrite_editor)
 
     def create_plugins_menu(self):
-        order = ['editor', 'console', 'ipython_console', 'variable_explorer',
-                 'help', None, 'explorer', 'outline_explorer',
+        order = ['editor', 'ipython_console', 'variable_explorer',
+                 'help', 'plots', None, 'explorer', 'outline_explorer',
                  'project_explorer', 'find_in_files', None, 'historylog',
                  'profiler', 'breakpoints', 'pylint', None,
-                 'onlinehelp', 'internal_console']
+                 'onlinehelp', 'internal_console', None]
         for plugin in self.widgetlist:
             action = plugin.toggle_view_action
             action.setChecked(plugin.dockwidget.isVisible())
@@ -2245,7 +2254,7 @@ class MainWindow(QMainWindow):
     def hideEvent(self, event):
         """Reimplement Qt method"""
         try:
-            for plugin in self.widgetlist:
+            for plugin in (self.widgetlist + self.thirdparty_plugins):
                 if plugin.isAncestorOf(self.last_focused_widget):
                     plugin.visibility_changed(True)
             QMainWindow.hideEvent(self, event)
@@ -2276,11 +2285,9 @@ class MainWindow(QMainWindow):
         self.save_current_window_settings(prefix)
         if CONF.get('main', 'single_instance') and self.open_files_server:
             self.open_files_server.close()
-        for plugin in self.thirdparty_plugins:
+        for plugin in (self.widgetlist + self.thirdparty_plugins):
+            plugin.close_window()
             if not plugin.closing_plugin(cancelable):
-                return False
-        for widget in self.widgetlist:
-            if not widget.closing_plugin(cancelable):
                 return False
         self.dialog_manager.close_all()
         if self.toolbars_visible:
@@ -2301,16 +2308,31 @@ class MainWindow(QMainWindow):
     @Slot()
     def close_current_dockwidget(self):
         widget = QApplication.focusWidget()
-        for plugin in self.widgetlist:
+        for plugin in (self.widgetlist + self.thirdparty_plugins):
             if plugin.isAncestorOf(widget):
-                plugin.dockwidget.hide()
+                plugin.toggle_view_action.setChecked(False)
                 break
 
-    def toggle_lock_dockwidgets(self, value):
-        """Lock/Unlock dockwidgets"""
-        self.dockwidgets_locked = value
-        self.apply_panes_settings()
+    def toggle_lock(self, value):
+        """Lock/Unlock dockwidgets and toolbars"""
+        self.interface_locked = value
         CONF.set('main', 'panes_locked', value)
+
+        # Apply lock to panes
+        for plugin in (self.widgetlist + self.thirdparty_plugins):
+            if self.interface_locked:
+                if plugin.dockwidget.isFloating():
+                    plugin.dockwidget.setFloating(False)
+                plugin.dockwidget.setTitleBarWidget(QWidget())
+            else:
+                plugin.dockwidget.set_title_bar()
+
+        # Apply lock to toolbars
+        for toolbar in self.toolbarslist:
+            if self.interface_locked:
+                toolbar.setMovable(False)
+            else:
+                toolbar.setMovable(True)
 
     def __update_maximize_action(self):
         if self.state_before_maximizing is None:
@@ -2338,7 +2360,7 @@ class MainWindow(QMainWindow):
             # Select plugin to maximize
             self.state_before_maximizing = self.saveState()
             focus_widget = QApplication.focusWidget()
-            for plugin in self.widgetlist:
+            for plugin in (self.widgetlist + self.thirdparty_plugins):
                 plugin.dockwidget.hide()
                 if plugin.isAncestorOf(focus_widget):
                     self.last_plugin = plugin
@@ -2770,15 +2792,12 @@ class MainWindow(QMainWindow):
 
     def apply_panes_settings(self):
         """Update dockwidgets features settings"""
-        # Update toggle action on menu
-        for child in self.widgetlist:
-            features = child.FEATURES
+        for plugin in (self.widgetlist + self.thirdparty_plugins):
+            features = plugin.FEATURES
             if CONF.get('main', 'vertical_dockwidget_titlebars'):
                 features = features | QDockWidget.DockWidgetVerticalTitleBar
-            if not self.dockwidgets_locked:
-                features = features | QDockWidget.DockWidgetMovable
-            child.dockwidget.setFeatures(features)
-            child.update_margins()
+            plugin.dockwidget.setFeatures(features)
+            plugin.update_margins()
 
     def apply_statusbar_settings(self):
         """Update status bar widgets settings"""

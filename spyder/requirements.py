@@ -36,7 +36,7 @@ def check_path():
 
 def check_qt():
     """Check Qt binding requirements"""
-    qt_infos = dict(pyqt5=("PyQt5", "5.5"))
+    qt_infos = dict(pyqt5=("PyQt5", "5.6"))
     try:
         import qtpy
         package_name, required_ver = qt_infos[qtpy.API]

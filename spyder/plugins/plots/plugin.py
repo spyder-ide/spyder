@@ -38,7 +38,6 @@ class Plots(SpyderPluginWidget):
     CONF_SECTION = 'plots'
     CONFIGWIDGET_CLASS = PlotsConfigPage
     DISABLE_ACTIONS_WHEN_HIDDEN = False
-    sig_option_changed = Signal(str, object)
 
     def __init__(self, parent):
         SpyderPluginWidget.__init__(self, parent)
@@ -158,3 +157,7 @@ class Plots(SpyderPluginWidget):
         """Apply configuration file's plugin settings"""
         for fig_browser in list(self.shellwidgets.values()):
             fig_browser.setup(**self.get_settings())
+
+    def on_first_registration(self):
+        """Action to be performed on first plugin registration"""
+        self.main.tabify_plugins(self.main.variableexplorer, self)

@@ -35,7 +35,7 @@ from spyder.utils import icon_manager as ima
 
 
 if is_dark_interface():
-    MAIN_TOP_COLOR = MAIN_BG_COLOR = QColor.fromRgb(35, 38, 41)
+    MAIN_TOP_COLOR = MAIN_BG_COLOR = QColor.fromRgb(25, 35, 45)
 else:
     MAIN_TOP_COLOR = QColor.fromRgb(230, 230, 230)
     MAIN_BG_COLOR = QColor.fromRgb(255, 255, 255)

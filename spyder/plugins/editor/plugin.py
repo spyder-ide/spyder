@@ -653,13 +653,6 @@ class Editor(SpyderPluginWidget):
     def get_plugin_title(self):
         """Return widget title"""
         title = _('Editor')
-        if self.dockwidget:
-            filename = self.get_current_filename()
-            if self.dockwidget.dock_tabbar:
-                if filename and self.dockwidget.dock_tabbar.count() < 2:
-                    title += ' - ' + to_text_string(filename)
-            else:
-                 title += ' - ' + to_text_string(filename)
         return title
 
     def get_plugin_icon(self):
@@ -1497,7 +1490,6 @@ class Editor(SpyderPluginWidget):
         editorstack.file_saved.connect(self.file_saved_in_editorstack)
         editorstack.file_renamed_in_data.connect(
                                       self.file_renamed_in_data_in_editorstack)
-        editorstack.sig_undock_window.connect(self.undock_plugin)
         editorstack.opened_files_list_changed.connect(
                                                 self.opened_files_list_changed)
         editorstack.active_languages_stats.connect(
@@ -1599,24 +1591,6 @@ class Editor(SpyderPluginWidget):
             win = self.create_new_window()
             win.set_layout_settings(layout_settings)
 
-    @Slot()
-    def create_window(self):
-        """Open a new window instance of the Editor instead of undocking it."""
-        if (self.dockwidget.isFloating() and not self.undocked and
-                self.dockwidget.main.dockwidgets_locked):
-            self.dockwidget.setVisible(False)
-            self.create_new_window()
-            self.toggle_view_action.setChecked(False)
-            self.dockwidget.setFloating(False)
-        self.undocked = False
-        if self.get_current_editorstack():
-            self.get_current_editorstack().new_window = False
-
-    def undock_plugin(self):
-        """Undocks the Editor window."""
-        super(Editor, self).undock_plugin()
-        self.get_current_editorstack().new_window = True
-
     def switch_to_plugin(self):
         """
         Reimplemented method to desactivate shortcut when
@@ -1647,8 +1621,6 @@ class Editor(SpyderPluginWidget):
         self.editorwindows.append(window)
 
     def unregister_editorwindow(self, window):
-        if len(self.editorwindows) == 1:
-            self.toggle_view_action.setChecked(True)
         self.editorwindows.pop(self.editorwindows.index(window))
 
 
