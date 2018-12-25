@@ -402,7 +402,7 @@ class DirView(QTreeView):
                                                    copy_file_clipboard)
         save_file_clipboard_action = create_action(self,
                                                    _("Paste File from "
-                                                   "Clipboard"),
+                                                     "Clipboard"),
                                                    triggered=self.
                                                    save_file_clipboard)
         
@@ -963,7 +963,7 @@ class DirView(QTreeView):
                     shutil.copy2(source_name, destination)
                 except Exception as e:
                     QMessageBox.critical(self, _('Error Pasting File'),
-                                         _("Unsupported Copy Operation:\n\n")
+                                         _("Unsupported Copy Operation::\n\n")
                                          + to_text_string(e))
             else:
                 QMessageBox.critical(self, _("No File in Clipboard"),
