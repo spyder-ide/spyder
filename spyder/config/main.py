@@ -456,6 +456,11 @@ DEFAULTS = [
               'variable_explorer/copy': 'Ctrl+C',
               # ---- In widgets/plots/figurebrowser.py ----
               'plots/copy': 'Ctrl+C',
+              # ---- In widgets/FileExplorer ----
+              'file_to_clipboard/copy file': 'Ctrl+C',
+              'file_from_clipboard/paste file': 'Ctrl+V',
+              'absolute_path/copy abs path': 'Ctrl+Alt+C',
+              'relative_path/copy rel path': 'Ctrl+Shift+C', 
               }),
             ('appearance',
              {

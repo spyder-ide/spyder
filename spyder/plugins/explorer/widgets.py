@@ -33,7 +33,7 @@ from qtpy.QtWidgets import (QFileSystemModel, QHBoxLayout, QFileIconProvider,
                             QWidget, QApplication)
 # Local imports
 from spyder.config.base import _, get_home_dir, get_image_path
-from spyder.config.gui import is_dark_interface
+from spyder.config.gui import is_dark_interface, config_shortcut, get_shortcut
 from spyder.py3compat import (str_lower, to_binary_string,
                               to_text_string)
 from spyder.utils import icon_manager as ima
@@ -59,7 +59,6 @@ def open_file_in_external_explorer(filename):
 
 def show_in_external_file_explorer(fnames=None):
     """Show files in external file explorer
-
     Args:
         fnames (list): Names of files to show.
     """
@@ -218,6 +217,7 @@ class DirView(QTreeView):
         self.setup_fs_model()
         self._scrollbar_positions = None
         self.setSelectionMode(self.ExtendedSelection)
+        self.shortcuts = self.create_shortcuts()
                 
     #---- Model
     def setup_fs_model(self):
@@ -388,21 +388,31 @@ class DirView(QTreeView):
         ipynb_convert_action = create_action(self, _("Convert to Python script"),
                                              icon=ima.icon('python'),
                                              triggered=self.convert_notebooks)
-        copy_absolute_path_action = create_action(self,
-                                                  _("Copy Absolute Path"),
-                                                  triggered=self.
-                                                  copy_absolute_path)
+        copy_absolute_path_action = \
+            create_action(self, _("Copy Absolute Path %10s"
+                                  % get_shortcut('absolute_path',
+                                                 'copy abs path')),
+                          triggered=self.
+                          copy_absolute_path)
         copy_relative_path_action = create_action(self,
-                                                  _("Copy Relative Path"),
+                                                  _("Copy Relative Path" +
+                                                    "%10s" % get_shortcut(
+                                                      'relative_path',
+                                                      'copy rel path')),
                                                   triggered=self.
                                                   copy_relative_path)
-        copy_file_clipboard_action = create_action(self,
-                                                   _("Copy File to Clipboard"),
-                                                   triggered=self.
-                                                   copy_file_clipboard)
+        copy_file_clipboard_action = \
+            create_action(self, _("Copy File to Clipboard %10s" % get_shortcut(
+                'file_to_clipboard', 'copy file')), icon=ima.icon('editcopy'),
+                          triggered=self.
+                          copy_file_clipboard)
         save_file_clipboard_action = create_action(self,
                                                    _("Paste File from "
-                                                     "Clipboard"),
+                                                     "Clipboard %10s" %
+                                                     get_shortcut(
+                                                         'file_from_clipboard',
+                                                         'paste file')),
+                                                   icon=ima.icon('filesave'),
                                                    triggered=self.
                                                    save_file_clipboard)
         
@@ -876,7 +886,7 @@ class DirView(QTreeView):
         pass
 
     def copy_path_helper(self, fnames=None, method="absolute"):
-        """function helper to copy files absolute or relative paths."""
+        """Copy absolute or relative path to given file(s)"""
         cb = QApplication.clipboard()
         mode = cb.Clipboard
         home_directory = getcwd_or_home()
@@ -884,17 +894,20 @@ class DirView(QTreeView):
             fnames = self.get_selected_filenames()
         if not isinstance(fnames, (tuple, list)):
             fnames = [fnames]
+        fnames = [_fn.replace(os.sep, "/") for _fn in fnames]
         if len(fnames) > 1:
             if method == "absolute":
                 clipboard_files = ''.join(_fn + '\n' for _fn in fnames)
             elif method == "relative":
-                clipboard_files = ''.join(osp.relpath(_fn, home_directory) +
+                clipboard_files = ''.join(osp.relpath(_fn, home_directory).
+                                          replace(os.sep, "/") +
                                           '\n' for _fn in fnames)
         else:
             if method == "absolute":
                 clipboard_files = fnames[0]
             elif method == "relative":
-                clipboard_files = osp.relpath(fnames[0], home_directory)
+                clipboard_files = osp.relpath(fnames[0], home_directory).\
+                                                replace(os.sep, "/")
         cb.clear(mode=mode)
         return cb, clipboard_files, mode
 
@@ -905,7 +918,7 @@ class DirView(QTreeView):
         cb.setText(clipboard_files, mode=mode)
 
     @Slot()
-    def copy_relative_path(self, fnames=None):
+    def copy_relative_path(self):
         """Copy relative paths of named files/directories to the clipboard."""
         cb, clipboard_files, mode = self.copy_path_helper(method="relative")
         cb.setText(clipboard_files, mode=mode)
@@ -929,11 +942,12 @@ class DirView(QTreeView):
                 cb_app.clipboard().setMimeData(file_content)
                 cb_app.exec_()
             except Exception as e:
-                QMessageBox.critical(self, _('File type error'),
+                QMessageBox.critical(self, _('File Type Error'),
                                      _("Cannot copy this type of file:\n\n") +
                                      to_text_string(e))
         else:
-            pass
+            QMessageBox.critical(self, _('Multiple Files/Folders'),
+                                 _("Can only copy a single file."))
 
     @Slot()
     def save_file_clipboard(self, fnames=None):
@@ -951,26 +965,58 @@ class DirView(QTreeView):
             cb_app = QApplication(self)
             cb_data = cb_app.clipboard().mimeData()
             if cb_data.hasUrls():
-                try:
-                    urls = cb_data.urls()
-                    source_name = urls[0].toLocalFile()
-                    base_name = osp.basename(source_name)
-                    while base_name in os.listdir(parrent_path):
-                        base_name = "copy_of_" + base_name
-                        destination = osp.join(parrent_path, base_name)
-                    else:
-                        destination = osp.join(parrent_path, base_name)
-                    shutil.copy2(source_name, destination)
-                except Exception as e:
-                    QMessageBox.critical(self, _('Error Pasting File'),
-                                         _("Unsupported Copy Operation::\n\n")
-                                         + to_text_string(e))
+                urls = cb_data.urls()
+                source_name = urls[0].toLocalFile()
+                if osp.isfile(source_name):
+                    try:
+                        base_name = osp.basename(source_name)
+                        while base_name in os.listdir(parrent_path):
+                            file_no_ext, file_ext = osp.splitext(base_name)
+                            end_number = re.search(r'\d+$', file_no_ext)
+                            if end_number:
+                                new_number = int(end_number.group()) + 1
+                            else:
+                                new_number = str(1)
+                            left_string = re.sub(r'\d+$', '', file_no_ext)
+                            left_string += str(new_number)
+                            base_name = left_string + file_ext
+                            destination = osp.join(parrent_path, base_name)
+                        else:
+                            destination = osp.join(parrent_path, base_name)
+                        shutil.copy2(source_name, destination)
+                    except Exception as e:
+                        QMessageBox.critical(self, _('Error Pasting File'),
+                                             _("Unsupported Copy Operation:"
+                                               "\n\n") + to_text_string(e))
+                else:
+                    QMessageBox.critical(self, _("Directory Detected"),
+                                         _("Cannot paste directories. Please "
+                                           "copy a file first."))
             else:
                 QMessageBox.critical(self, _("No File in Clipboard"),
                                      _("No file in the clipboard. Please copy"
                                        " a file to the clipboard first."))
-        else:
-            pass
+        else:  # happens when pasting multiple files from outside spyder.
+            QMessageBox.critical(self, _('Multiple Files/Folders'),
+                                 _("Can only paste a single file."))
+
+    def create_shortcuts(self):
+        """Create shortcuts for this widget."""
+        # Configurable
+        copy_clipboard_file = config_shortcut(self.copy_file_clipboard,
+                                              context='file_to_clipboard',
+                                              name='copy file', parent=self)
+        paste_clipboard_file = config_shortcut(self.save_file_clipboard,
+                                               context='file_from_clipboard',
+                                               name='paste file', parent=self)
+        copy_abs_path = config_shortcut(self.copy_absolute_path,
+                                        context='absolute_path',
+                                        name='copy abs path', parent=self)
+        copy_rel_path = config_shortcut(self.copy_relative_path,
+                                        context='relative_path',
+                                        name='copy rel path', parent=self)
+        return [copy_clipboard_file, paste_clipboard_file, copy_abs_path,
+                copy_rel_path]
         
     #----- VCS actions
     def vcs_command(self, fnames, action):
