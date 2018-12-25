@@ -397,11 +397,12 @@ class DirView(QTreeView):
                                                   triggered=self.
                                                   copy_relative_path)
         copy_file_clipboard_action = create_action(self,
-                                                   _("Copy to Clipboard"),
+                                                   _("Copy File to Clipboard"),
                                                    triggered=self.
                                                    copy_file_clipboard)
         save_file_clipboard_action = create_action(self,
-                                                   _("Save from Clipboard"),
+                                                   _("Paste File from "
+                                                   "Clipboard"),
                                                    triggered=self.
                                                    save_file_clipboard)
         
@@ -421,13 +422,12 @@ class DirView(QTreeView):
         basedir = fixpath(osp.dirname(fnames[0]))
         if all([fixpath(osp.dirname(_fn)) == basedir for _fn in fnames]):
             actions.append(move_action)
-            actions += [None]
-            actions.append(copy_absolute_path_action)
-            actions.append(copy_relative_path_action)
-        if only_valid and only_files:
-            if len(self.get_selected_filenames()) == 1:
+        actions += [None]
+        actions += [copy_absolute_path_action, copy_relative_path_action]
+        if len(self.get_selected_filenames()) == 1:
+            if only_files:
                 actions.append(copy_file_clipboard_action)
-                actions.append(save_file_clipboard_action)
+            actions.append(save_file_clipboard_action)
         actions += [None]
         if only_files:
             actions.append(open_external_action)
@@ -874,43 +874,45 @@ class DirView(QTreeView):
 
     def go_to_parent_directory(self):
         pass
-    
-    @Slot()
-    def copy_absolute_path(self, fnames=None):
-        """Copy file/directory names into clipboard"""
+
+    def copy_path_helper(self, fnames=None, method="absolute"):
+        """function helper to copy files absolute or relative paths."""
         cb = QApplication.clipboard()
-        cb.clear(mode=cb.Clipboard)
+        mode = cb.Clipboard
+        home_directory = getcwd_or_home()
         if fnames is None:
             fnames = self.get_selected_filenames()
         if not isinstance(fnames, (tuple, list)):
             fnames = [fnames]
         if len(fnames) > 1:
-            clipboard_files = ''.join(_fn + '\n' for _fn in fnames)
-            cb.setText(clipboard_files, mode=cb.Clipboard)
+            if method == "absolute":
+                clipboard_files = ''.join(_fn + '\n' for _fn in fnames)
+            elif method == "relative":
+                clipboard_files = ''.join(osp.relpath(_fn, home_directory) +
+                                          '\n' for _fn in fnames)
         else:
-            cb.setText(fnames[0], mode=cb.Clipboard)
+            if method == "absolute":
+                clipboard_files = fnames[0]
+            elif method == "relative":
+                clipboard_files = osp.relpath(fnames[0], home_directory)
+        cb.clear(mode=mode)
+        return cb, clipboard_files, mode
+
+    @Slot()
+    def copy_absolute_path(self):
+        """Copy absolute paths of named files/directories to the clipboard."""
+        cb, clipboard_files, mode = self.copy_path_helper(method="absolute")
+        cb.setText(clipboard_files, mode=mode)
 
     @Slot()
     def copy_relative_path(self, fnames=None):
-        """Copy file/directory names into clipboard"""
-        cb = QApplication.clipboard()
-        cb.clear(mode=cb.Clipboard)
-        home_diretory = getcwd_or_home()
-        if fnames is None:
-            fnames = self.get_selected_filenames()
-        if not isinstance(fnames, (tuple, list)):
-            fnames = [fnames]
-        if len(fnames) > 1:
-            clipboard_files = ''.join(osp.relpath(_fn, home_diretory) + '\n'
-                                      for _fn in fnames)
-            cb.setText(clipboard_files, mode=cb.Clipboard)
-        else:
-            cb.setText(osp.relpath(fnames[0], home_diretory),
-                       mode=cb.Clipboard)
+        """Copy relative paths of named files/directories to the clipboard."""
+        cb, clipboard_files, mode = self.copy_path_helper(method="relative")
+        cb.setText(clipboard_files, mode=mode)
 
     @Slot()
     def copy_file_clipboard(self, fnames=None):
-        """Copy file into clipboard"""
+        """Copy file to clipboard."""
         if fnames is None:
             fnames = self.get_selected_filenames()
         if not isinstance(fnames, (tuple, list)):
@@ -935,7 +937,7 @@ class DirView(QTreeView):
 
     @Slot()
     def save_file_clipboard(self, fnames=None):
-        """save file from clipboard to file/project explorer"""
+        """Paste file from clipboard into file/project explorer directory."""
         if fnames is None:
             fnames = self.get_selected_filenames()
         if not isinstance(fnames, (tuple, list)):
@@ -960,13 +962,13 @@ class DirView(QTreeView):
                         destination = osp.join(parrent_path, base_name)
                     shutil.copy2(source_name, destination)
                 except Exception as e:
-                    QMessageBox.critical(self, _('Error in Action'),
-                                         _("Not Supported Action:\n\n")
+                    QMessageBox.critical(self, _('Error Pasting File'),
+                                         _("Unsupported Copy Operation:\n\n")
                                          + to_text_string(e))
             else:
-                QMessageBox.critical(self, _("Clipboard Empty"),
-                                     ("No data in the clipboard:\n\n") +
-                                     "Please copy file to clipboard first")
+                QMessageBox.critical(self, _("No File in Clipboard"),
+                                     _("No file in the clipboard. Please copy"
+                                       " a file to the clipboard first."))
         else:
             pass
         
