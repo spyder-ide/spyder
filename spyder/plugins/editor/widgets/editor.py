@@ -1346,7 +1346,13 @@ class EditorStack(QWidget):
                    self.horsplit_action, self.close_action]
 
         if self.new_window:
-            actions += [MENU_SEPARATOR, self.new_window_action]
+            window = self.window()
+            close_window_action = create_action(
+                self, _("Close window"),
+                icon=ima.icon('close_pane'),
+                triggered=window.close)
+            actions += [MENU_SEPARATOR, self.new_window_action,
+                        close_window_action]
         elif plugin is not None:
             if plugin.undocked_window is not None:
                 actions += [MENU_SEPARATOR, plugin.dock_action]
