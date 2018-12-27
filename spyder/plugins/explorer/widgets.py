@@ -876,7 +876,7 @@ class DirView(QTreeView):
 
     def go_to_parent_directory(self):
         pass
-    
+
     def copy_path_helper(self, fnames=None, method="absolute"):
         """Copy absolute or relative path to given file(s)"""
         cb = QApplication.clipboard()
@@ -899,9 +899,10 @@ class DirView(QTreeView):
                 clipboard_files = fnames[0]
             elif method == "relative":
                 clipboard_files = (osp.relpath(fnames[0], home_directory).
-                                                replace(os.sep, "/"))
+                                   replace(os.sep, "/"))
         cb.clear(mode=mode)
         return cb, clipboard_files, mode
+
     @Slot()
     def copy_absolute_path(self):
         """Copy absolute paths of named files/directories to the clipboard."""
