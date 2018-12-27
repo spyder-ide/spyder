@@ -219,7 +219,7 @@ class DirView(QTreeView):
         self._scrollbar_positions = None
         self.setSelectionMode(self.ExtendedSelection)
         self.shortcuts = self.create_shortcuts()
-                
+               
     #---- Model
     def setup_fs_model(self):
         """Setup filesystem model"""
@@ -996,7 +996,7 @@ class DirView(QTreeView):
                                  _("Cannot paste in the blank area."))
 
     def create_shortcuts(self):
-        """Create shortcuts for this widget."""
+        """Create shortcuts for this file explorer."""
         # Configurable
         copy_clipboard_file = config_shortcut(self.copy_file_clipboard,
                                               context='explorer',
@@ -1014,7 +1014,17 @@ class DirView(QTreeView):
                                              parent=self)
         return [copy_clipboard_file, paste_clipboard_file, copy_absolute_path,
                 copy_relative_path]
-        
+
+    def get_shortcut_data(self):
+        """
+        Return shortcut data, a list of tuples (shortcut, text, default).
+
+        shortcut (QShortcut or QAction instance)
+        text (string): action/shortcut description
+        default (string): default key sequence
+        """
+        return [sc.data for sc in self.shortcuts]
+
     #----- VCS actions
     def vcs_command(self, fnames, action):
         """VCS action (commit, browse)"""
