@@ -44,10 +44,11 @@ class LSPEditorWrapper(QObject):
 # --- Fixtures
 # -----------------------------------------------------------------------------
 @pytest.fixture
-def construct_editor(qtbot, *args, **kwargs):
+def construct_editor(qtbot, request, *args, **kwargs):
     os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
     # Tests assume show warnings as True
-    CONF.set('editor', 'code_analysis/pep8', True)
+    show_warnings = request.node.get_marker('show_warnings')
+    CONF.set('editor', 'code_analysis/pep8', show_warnings)
 
     app = qapplication()
     lsp_manager = LSPManager(parent=None)
@@ -81,6 +82,28 @@ def construct_editor(qtbot, *args, **kwargs):
 
 @pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
                     reason="Times out on AppVeyor")
+def test_not_show_warnings(qtbot, construct_editor):
+    """Test that warning are not shown in the blocks of the editor."""
+    editor, lsp_manager = construct_editor
+
+    block = editor.textCursor().block()
+    line_count = editor.document().blockCount()
+
+    warnings = []
+    for i in range(line_count):
+        data = block.userData()
+        if data:
+            for analysis in data.code_analysis:
+                warnings.append((i+1, analysis[-1]))
+        block = block.next()
+
+    # assert that no warnings are shown
+    assert len(warnings) == 0
+
+
+@pytest.mark.show_warnings
+@pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
+                    reason="Times out on AppVeyor")
 def test_adding_warnings(qtbot, construct_editor):
     """Test that warning are saved in the blocks of the editor."""
     editor, lsp_manager = construct_editor
@@ -106,6 +129,7 @@ def test_adding_warnings(qtbot, construct_editor):
             # assert expected in warning
 
 
+@pytest.mark.show_warnings
 @pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
                     reason="Times out on AppVeyor")
 def test_move_warnings(qtbot, construct_editor):
