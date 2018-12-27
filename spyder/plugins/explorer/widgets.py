@@ -219,7 +219,7 @@ class DirView(QTreeView):
         self._scrollbar_positions = None
         self.setSelectionMode(self.ExtendedSelection)
         self.shortcuts = self.create_shortcuts()
-               
+
     #---- Model
     def setup_fs_model(self):
         """Setup filesystem model"""
