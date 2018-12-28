@@ -547,7 +547,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.create_new_client_if_empty = True
         self.css_path = css_path
         self.run_cell_filename = None
-        self._kernelSpec = SpyderKernelSpec
+        self._handler_creators = []
 
         # Attrs for testing
         self.test_dir = test_dir
@@ -1128,6 +1128,8 @@ class IPythonConsole(SpyderPluginWidget):
         kc.stopped_channels.connect(lambda c=client: self.process_finished(c))
         kc.start_channels(shell=True, iopub=True)
 
+        self._attach_handler_creator(km, kc)
+
         shellwidget = client.shellwidget
         shellwidget.kernel_manager = km
         shellwidget.kernel_client = kc
@@ -1525,7 +1527,7 @@ class IPythonConsole(SpyderPluginWidget):
         # set this value in spyder.ini
         CONF.set('main', 'spyder_pythonpath',
                  self.main.get_spyder_pythonpath())
-        return self._kernelSpec(is_cython=is_cython,
+        return SpyderKernelSpec(is_cython=is_cython,
                                 is_pylab=is_pylab,
                                 is_sympy=is_sympy)
 
@@ -1839,6 +1841,7 @@ class IPythonConsole(SpyderPluginWidget):
             client.shellwidget.sig_is_spykernel.connect(
                     self.connect_external_kernel)
             client.shellwidget.is_spyder_kernel()
+            self._attach_handler_creator(kernel_manager, kernel_client)
 
         # Set elapsed time, if possible
         if not external_kernel:
@@ -1865,3 +1868,7 @@ class IPythonConsole(SpyderPluginWidget):
                         os.remove(osp.join(tmpdir, fname))
                     except Exception:
                         pass
+
+    def _attach_handler_creator(self, kernel_manager, kernel_client):
+        for creator in self._handler_creators:
+            creator.create_handler(kernel_manager, kernel_client)

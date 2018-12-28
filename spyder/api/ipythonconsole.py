@@ -6,27 +6,25 @@
 
 """The API for Spyder's IPython Console."""
 
-from spyder.plugins.ipythonconsole.utils.messagehandler \
-    import SpyderMessageHandler
-
+from qtconsole.base_frontend_mixin import BaseFrontendMixin
+import spyder.plugins.ipythonconsole.plugin as ipyplugin
 
 class IPythonAPIMixin(object):
     """Support communication between SpyderPluginWidget and IPython kernels."""
-
-    def __init__(self, main=None):
+    message_handler_class = BaseFrontendMixin
+    def __init__(self, main, register_handler=False):
         super(IPythonAPIMixin, self).__init__(main)
-        self.main = main
         self.ipyconsole = main.ipyconsole
+        if register_handler:
+            self.ipyconsole._handler_creators.append(self)
+        self._handlers = []
 
-    def register_message_handler(self, name, func):
-        """
-        Register a message handler for Spyder-IPython kernel communication.
-
-        All Spyder messages with ``spyder_msg_type==name``
-        will be handled by the given function.
-        """
-        SpyderMessageHandler.registered_handlers[name] = func
+    def create_handler(self, kernel_manager, kernel_client):
+        handler = self.message_handler_class()
+        handler.kernel_manager = kernel_manager
+        handler.kernel_client = kernel_client
+        self._handlers.append(handler)
 
     def set_kernelSpec(self, kernelSpec):
         """Use a different kernel spec for the spyder kernels."""
-        self.ipyconsole._kernelSpec = kernelSpec
+        ipyplugin.SpyderKernelSpec = kernelSpec
