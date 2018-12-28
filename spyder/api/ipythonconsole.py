@@ -9,9 +9,11 @@
 from qtconsole.base_frontend_mixin import BaseFrontendMixin
 import spyder.plugins.ipythonconsole.plugin as ipyplugin
 
+
 class IPythonAPIMixin(object):
     """Support communication between SpyderPluginWidget and IPython kernels."""
     message_handler_class = BaseFrontendMixin
+
     def __init__(self, main, register_handler=False):
         super(IPythonAPIMixin, self).__init__(main)
         self.ipyconsole = main.ipyconsole
