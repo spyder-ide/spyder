@@ -877,8 +877,8 @@ class DirView(QTreeView):
     def go_to_parent_directory(self):
         pass
 
-    def copy_path_helper(self, fnames=None, method="absolute"):
-        """Copy absolute or relative path to given file(s)"""
+    def copy_path(self, fnames=None, method="absolute"):
+        """Copy absolute or relative path to given file(s)."""
         cb = QApplication.clipboard()
         mode = cb.Clipboard
         home_directory = getcwd_or_home()
@@ -901,19 +901,17 @@ class DirView(QTreeView):
                 clipboard_files = (osp.relpath(fnames[0], home_directory).
                                    replace(os.sep, "/"))
         cb.clear(mode=mode)
-        return cb, clipboard_files, mode
+        cb.setText(clipboard_files, mode=mode)
 
     @Slot()
     def copy_absolute_path(self):
         """Copy absolute paths of named files/directories to the clipboard."""
-        cb, clipboard_files, mode = self.copy_path_helper(method="absolute")
-        cb.setText(clipboard_files, mode=mode)
+        self.copy_path(method="absolute")
 
     @Slot()
     def copy_relative_path(self):
         """Copy relative paths of named files/directories to the clipboard."""
-        cb, clipboard_files, mode = self.copy_path_helper(method="relative")
-        cb.setText(clipboard_files, mode=mode)
+        self.copy_path(method="relative")
 
     @Slot()
     def copy_file_clipboard(self, fnames=None):
@@ -1018,7 +1016,6 @@ class DirView(QTreeView):
     def get_shortcut_data(self):
         """
         Return shortcut data, a list of tuples (shortcut, text, default).
-
         shortcut (QShortcut or QAction instance)
         text (string): action/shortcut description
         default (string): default key sequence

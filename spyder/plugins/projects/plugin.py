@@ -119,7 +119,8 @@ class Projects(SpyderPluginWidget):
 
         self.main.add_dockwidget(self)
         self.explorer.sig_open_file.connect(self.main.open_file)
-
+        self.register_widget_shortcuts(treewidget)
+        
         treewidget.sig_edit.connect(self.main.editor.load)
         treewidget.sig_removed.connect(self.main.editor.removed)
         treewidget.sig_removed_tree.connect(self.main.editor.removed_tree)
