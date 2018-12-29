@@ -425,11 +425,10 @@ class DirView(QTreeView):
         if all([fixpath(osp.dirname(_fn)) == basedir for _fn in fnames]):
             actions.append(move_action)
         actions += [None]
-        actions += [copy_absolute_path_action, copy_relative_path_action]
-        if len(self.get_selected_filenames()) == 1:
-            if only_files:
-                actions.append(copy_file_clipboard_action)
-            actions.append(save_file_clipboard_action)
+        actions += [copy_absolute_path_action, copy_relative_path_action,
+                    copy_file_clipboard_action, save_file_clipboard_action]
+        if not QApplication(self).clipboard().mimeData().hasUrls():
+            save_file_clipboard_action.setDisabled(True)
         actions += [None]
         if only_files:
             actions.append(open_external_action)
@@ -880,7 +879,6 @@ class DirView(QTreeView):
     def copy_path(self, fnames=None, method="absolute"):
         """Copy absolute or relative path to given file(s)."""
         cb = QApplication.clipboard()
-        mode = cb.Clipboard
         home_directory = getcwd_or_home()
         if fnames is None:
             fnames = self.get_selected_filenames()
@@ -889,19 +887,22 @@ class DirView(QTreeView):
         fnames = [_fn.replace(os.sep, "/") for _fn in fnames]
         if len(fnames) > 1:
             if method == "absolute":
-                clipboard_files = ''.join(_fn + '\n' for _fn in fnames)
+                clipboard_files = ''.join('"' + _fn + '",' + '\n' for _fn in
+                                          fnames)
             elif method == "relative":
-                clipboard_files = ''.join(osp.relpath(_fn, home_directory).
-                                          replace(os.sep, "/") +
+                clipboard_files = ''.join('"' +
+                                          osp.relpath(_fn, home_directory).
+                                          replace(os.sep, "/") + '",' +
                                           '\n' for _fn in fnames)
+            clipboard_files = "[" + clipboard_files[:-2] + "]"
         else:
             if method == "absolute":
                 clipboard_files = fnames[0]
             elif method == "relative":
                 clipboard_files = (osp.relpath(fnames[0], home_directory).
                                    replace(os.sep, "/"))
-        cb.clear(mode=mode)
-        cb.setText(clipboard_files, mode=mode)
+        cb.clear(mode=cb.Clipboard)
+        cb.setText(clipboard_files, mode=cb.Clipboard)
 
     @Slot()
     def copy_absolute_path(self):
@@ -920,24 +921,21 @@ class DirView(QTreeView):
             fnames = self.get_selected_filenames()
         if not isinstance(fnames, (tuple, list)):
             fnames = [fnames]
-        if len(fnames) == 1:
-            try:
-                file_content = QMimeData()
-                fname = fnames[0]
-                if os.name == 'nt':
-                    file_content.setUrls([QUrl.fromLocalFile(fname)])
-                else:
-                    file_content.setUrls([QUrl(fname)])
-                cb_app = QApplication(self)
-                cb_app.clipboard().setMimeData(file_content)
-                cb_app.exec_()
-            except Exception as e:
-                QMessageBox.critical(self, _('File Type Error'),
-                                     _("Cannot copy this type of file:\n\n") +
-                                     to_text_string(e))
-        else:
-            QMessageBox.critical(self, _('Multiple Files/Folders'),
-                                 _("Can only copy a single file."))
+        try:
+            file_content = QMimeData()
+            if os.name == 'nt':
+                file_content.setUrls([QUrl.fromLocalFile(_fn) for _fn in
+                                      fnames])
+            else:
+                file_content.setUrls([QUrl(_fn) for _fn in fnames])
+            cb_app = QApplication(self)
+            cb_app.clipboard().setMimeData(file_content)
+            cb_app.exec_()
+        except Exception as e:
+            QMessageBox.critical(self,
+                                 _('File Type Error'),
+                                 _("Cannot copy this type of file or folders"
+                                   ":\n\n") + to_text_string(e))
 
     @Slot()
     def save_file_clipboard(self, fnames=None):
@@ -952,43 +950,69 @@ class DirView(QTreeView):
                 parrent_path = osp.dirname(selected_item)
             else:
                 parrent_path = osp.normpath(selected_item)
-            cb_app = QApplication(self)
-            cb_data = cb_app.clipboard().mimeData()
+            cb_data = QApplication(self).clipboard().mimeData()
             if cb_data.hasUrls():
                 urls = cb_data.urls()
-                source_name = urls[0].toLocalFile()
-                if osp.isfile(source_name):
-                    try:
-                        base_name = osp.basename(source_name)
-                        while base_name in os.listdir(parrent_path):
-                            file_no_ext, file_ext = osp.splitext(base_name)
-                            end_number = re.search(r'\d+$', file_no_ext)
-                            if end_number:
-                                new_number = int(end_number.group()) + 1
+                for i in range(len(urls)):
+                    source_name = urls[i].toLocalFile()
+                    base_name = osp.basename(source_name)
+                    if osp.isfile(source_name):
+                        try:
+                            while base_name in os.listdir(parrent_path):
+                                file_no_ext, file_ext = osp.splitext(base_name)
+                                end_number = re.search(r'\d+$', file_no_ext)
+                                if end_number:
+                                    new_number = int(end_number.group()) + 1
+                                else:
+                                    new_number = str(1)
+                                left_string = re.sub(r'\d+$', '', file_no_ext)
+                                left_string += str(new_number)
+                                base_name = left_string + file_ext
+                                destination = osp.join(parrent_path, base_name)
                             else:
-                                new_number = str(1)
-                            left_string = re.sub(r'\d+$', '', file_no_ext)
-                            left_string += str(new_number)
-                            base_name = left_string + file_ext
-                            destination = osp.join(parrent_path, base_name)
-                        else:
-                            destination = osp.join(parrent_path, base_name)
-                        shutil.copy2(source_name, destination)
-                    except Exception as e:
-                        QMessageBox.critical(self, _('Error Pasting File'),
-                                             _("Unsupported Copy Operation:"
-                                               "\n\n") + to_text_string(e))
-                else:
-                    QMessageBox.critical(self, _("Directory Detected"),
-                                         _("Cannot paste directories. Please "
-                                           "copy a file first."))
+                                destination = osp.join(parrent_path, base_name)
+                            shutil.copy2(source_name, destination)
+                        except Exception as e:
+                            QMessageBox.critical(self, _('Error Pasting File'),
+                                                 _("Unsupported Copy"
+                                                   " Operation:"
+                                                   "\n\n") + to_text_string(e))
+                    else:
+                        try:
+                            while base_name in os.listdir(parrent_path):
+                                end_number = re.search(r'\d+$', base_name)
+                                if end_number:
+                                    new_number = int(end_number.group()) + 1
+                                else:
+                                    new_number = str(1)
+                                left_string = re.sub(r'\d+$', '', base_name)
+                                base_name = left_string + str(new_number)
+                                destination = osp.join(parrent_path, base_name)
+                            else:
+                                destination = osp.join(parrent_path, base_name)
+                            if osp.realpath(destination).startswith(
+                                    osp.realpath(source_name) + os.sep):
+                                QMessageBox.critical(self,
+                                                     _('Recursive Copy'),
+                                                     _("Source is an ancestor"
+                                                       " of destination"
+                                                       " folder."))
+                                continue
+                            shutil.copytree(source_name, destination)
+                        except Exception as e:
+                            QMessageBox.critical(self,
+                                                 _('Error Pasting Folder'),
+                                                 _("Unsupported Copy"
+                                                   " Operation:"
+                                                   "\n\n") + to_text_string(e))
             else:
                 QMessageBox.critical(self, _("No File in Clipboard"),
                                      _("No file in the clipboard. Please copy"
                                        " a file to the clipboard first."))
         elif len(self.get_selected_filenames()) > 1:
-            QMessageBox.critical(self, _('Multiple Files'),
-                                 _("Can only paste a single file."))
+            QMessageBox.critical(self, _('Multiple Selections'),
+                                 _("Please select a single item to paste"
+                                   " data to."))
         else:
             QMessageBox.critical(self, _('BLANK AREA'),
                                  _("Cannot paste in the blank area."))

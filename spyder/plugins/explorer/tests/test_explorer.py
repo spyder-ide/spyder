@@ -8,12 +8,18 @@
 Tests for explorer.py
 """
 
+# Standard imports
+import os
+import os.path as osp
+
 # Test library imports
 import pytest
 
+from qtpy.QtWidgets import QApplication
+
 # Local imports
 from spyder.plugins.explorer.widgets import (FileExplorerTest,
-                                             ProjectExplorerTest)
+                                             ProjectExplorerTest, DirView)
 
 
 @pytest.fixture
@@ -44,6 +50,25 @@ def test_project_explorer(project_explorer):
     project_explorer.resize(640, 480)
     project_explorer.show()
     assert project_explorer
+
+
+def test_copy_paste_files_or_paths(qtbot, tmpdir):
+    tmpdir.join('script.py').ensure()
+    window = DirView()
+    window.show()
+    qtbot.addWidget(window)
+    fnames = [osp.join(tmpdir, 'script.py')]
+    window.copy_path(fnames=fnames, method='absolute')
+    cb = QApplication.clipboard()
+    #  test copy absolute path
+    asb_path = cb.text(mode=cb.Clipboard)
+    cb.clear(mode=cb.Clipboard)
+    assert osp.join(tmpdir, 'script.py').replace(os.sep, "/") == asb_path
+    #  test copy relative path
+    window.copy_path(fnames=fnames, method='relative')
+    rel_path = cb.text(mode=cb.Clipboard)
+    cb.clear(mode=cb.Clipboard)
+    assert 'script.py' == osp.basename(rel_path)
 
 
 if __name__ == "__main__":
