@@ -88,7 +88,7 @@ def editor_open_files(request, setup_editor, python_files):
     """
     def _get_editor_open_files(last_focused_filename,
                                expected_current_filename):
-        editor, qtbot = setup_editor
+        editor = setup_editor
         expected_filenames, tmpdir = python_files
         if expected_current_filename is None:
             expected_current_filename = expected_filenames[0]
@@ -109,7 +109,7 @@ def editor_open_files(request, setup_editor, python_files):
         editor.get_option = get_option
 
         editor.setup_open_files()
-        return editor, qtbot, expected_filenames, expected_current_filename
+        return editor, expected_filenames, expected_current_filename
 
     return _get_editor_open_files
 
@@ -140,7 +140,7 @@ def test_setup_open_files(editor_open_files, last_focused_filename,
     that the current file correspond to the last focused file.
     """
     editor_factory = editor_open_files
-    editor, qtbot, expected_filenames, expected_current_filename = (
+    editor, expected_filenames, expected_current_filename = (
         editor_factory(last_focused_filename, expected_current_filename))
 
     current_filename = editor.get_current_editorstack().get_current_filename()
@@ -157,7 +157,7 @@ def test_setup_open_files_cleanprefs(editor_open_files):
     Regression test for #8458 .
     """
     editor_factory = editor_open_files
-    editor, qtbot, expected_filenames, expected_current_filename = (
+    editor, expected_filenames, expected_current_filename = (
         editor_factory(None, None))
 
     filenames = editor.get_current_editorstack().get_filenames()
