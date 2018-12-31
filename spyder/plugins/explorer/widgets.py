@@ -925,11 +925,10 @@ class DirView(QTreeView):
             fnames = [fnames]
         try:
             file_content = QMimeData()
-            if os.name == 'nt':
-                file_content.setUrls([QUrl.fromLocalFile(_fn) for _fn in
-                                      fnames])
-            else:
-                file_content.setUrls([QUrl(_fn) for _fn in fnames])
+            # if os.name == 'nt':
+            file_content.setUrls([QUrl.fromLocalFile(_fn) for _fn in fnames])
+            # else:
+            #     file_content.setUrls([QUrl(_fn) for _fn in fnames])
             cb_app = QApplication.clipboard()
             cb_app.setMimeData(file_content)
         except Exception as e:
