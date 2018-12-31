@@ -15,11 +15,15 @@ import os.path as osp
 # Test library imports
 import pytest
 
+# Third party imports
 from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyder.plugins.explorer.widgets import (FileExplorerTest,
-                                             ProjectExplorerTest, DirView)
+                                             ProjectExplorerTest)
+from spyder.py3compat import to_text_string
+from spyder.plugins.projects.widgets.explorer import ProjectExplorerTest as \
+    ProjectExplorerTest2
 
 
 @pytest.fixture
@@ -38,6 +42,19 @@ def project_explorer(qtbot):
     return widget
 
 
+@pytest.fixture
+def copy_path_file(qtbot, request, tmpdir):
+    """Setup Project Explorer widget."""
+    directory = request.node.get_marker('change_directory')
+    if directory:
+        project_dir = to_text_string(tmpdir.mkdir('project'))
+    else:
+        project_dir = None
+    project_explorer = ProjectExplorerTest2(directory=project_dir)
+    qtbot.addWidget(project_explorer)
+    return project_explorer
+
+
 def test_file_explorer(file_explorer):
     """Run FileExplorerTest."""
     file_explorer.resize(640, 480)
@@ -52,23 +69,47 @@ def test_project_explorer(project_explorer):
     assert project_explorer
 
 
-def test_copy_paste_files_or_paths(qtbot, tmpdir):
-    tmpdir.join('script.py').ensure()
-    window = DirView()
-    window.show()
-    qtbot.addWidget(window)
-    fnames = [osp.join(tmpdir, 'script.py')]
-    window.copy_path(fnames=fnames, method='absolute')
+def test_copy_paste_files_paths(copy_path_file, qtbot):
+    """Test copy/paste files and their absolute/relative paths."""
+    project = copy_path_file
+    project_dir = project.directory
+    project_file1 = osp.join(project_dir, 'script.py')
     cb = QApplication.clipboard()
     #  test copy absolute path
+    project.explorer.treewidget.copy_path(fnames=[project_file1],
+                                          method='absolute')
     asb_path = cb.text(mode=cb.Clipboard)
-    cb.clear(mode=cb.Clipboard)
-    assert osp.join(tmpdir, 'script.py').replace(os.sep, "/") == asb_path
+    assert project_file1.replace(os.sep, "/") == asb_path
+
     #  test copy relative path
-    window.copy_path(fnames=fnames, method='relative')
+    project.explorer.treewidget.copy_path(fnames=[project_file1],
+                                          method='relative')
     rel_path = cb.text(mode=cb.Clipboard)
-    cb.clear(mode=cb.Clipboard)
-    assert 'script.py' == osp.basename(rel_path)
+    len_rel_path = len(rel_path)
+    assert project_file1.replace(os.sep, "/")[-len_rel_path:] == rel_path
+
+    #  test copy file to clipboard
+    project.explorer.treewidget.copy_file_clipboard(fnames=[project_file1])
+    clipboard_data = cb.mimeData().urls()[0].toLocalFile()
+    assert project_file1.replace(os.sep, "/") == clipboard_data.replace(os.sep,
+                                                                        "/")
+    project_file2 = osp.join(project_dir, 'pyscript.py')
+    with open(project_file2, 'w') as fh:
+        fh.write('Spyder4')
+    project.explorer.treewidget.copy_file_clipboard(fnames=[project_file2])
+    clipboard_data = cb.mimeData().urls()[0].toLocalFile()
+    with open(clipboard_data, 'r') as fh:
+        text_data = fh.read()
+    assert text_data == "Spyder4"
+
+    #  test save file from clipboard
+    project.explorer.treewidget.save_file_clipboard(fnames=[project_file1])
+    assert osp.exists(osp.join(project_dir, "pyscript1.py"))
+    project.explorer.treewidget.save_file_clipboard(fnames=[project_file2])
+    assert osp.exists(osp.join(project_dir, "pyscript2.py"))
+    with open(osp.join(project_dir, "pyscript2.py"), 'r') as fh:
+        text_data = fh.read()
+    assert text_data == "Spyder4"
 
 
 if __name__ == "__main__":
