@@ -89,6 +89,7 @@ def test_copy_paste_files_paths(copy_path_file, qtbot):
     assert project_file1.replace(os.sep, "/")[-len_rel_path:] == rel_path
 
     #  test copy file to clipboard
+    cb = QApplication.clipboard()
     project.explorer.treewidget.copy_file_clipboard(fnames=[project_file1])
     clipboard_data = cb.mimeData().urls()[0].toLocalFile()
     assert project_file1.replace(os.sep, "/") == clipboard_data.replace(os.sep,

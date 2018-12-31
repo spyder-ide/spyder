@@ -932,7 +932,7 @@ class DirView(QTreeView):
                 file_content.setUrls([QUrl(_fn) for _fn in fnames])
             cb = QApplication.clipboard()
             cb.clear(mode=cb.Clipboard)
-            cb.setMimeData(file_content)
+            cb.setMimeData(file_content, mode=cb.Clipboard)
         except Exception as e:
             QMessageBox.critical(self,
                                  _('File/Folder Type Error'),
@@ -959,8 +959,8 @@ class DirView(QTreeView):
                     source_name = url.toLocalFile()
                     base_name = osp.basename(source_name)
                     if osp.isfile(source_name):
+                        associated_files = []
                         if source_name.endswith(('.py', '.pyc', '.pyo')):
-                            associated_files = []
                             for ending in ('.py', '.pyc', '.pyo'):
                                 associated_file = (osp.splitext(source_name)[
                                                        0] + ending)
