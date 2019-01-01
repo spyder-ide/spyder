@@ -75,6 +75,8 @@ def test_copy_paste_files_paths(copy_path_file, qtbot):
     project_dir = project.directory
     project_file1 = osp.join(project_dir, 'script.py')
     open(project_file1, 'w').close()
+    with open(project_file1, 'w') as fh:
+        fh.write('Spyder4 will be released this year')
     cb = QApplication.clipboard()
     #  test copy absolute path
     project.explorer.treewidget.copy_path(fnames=[project_file1],
@@ -115,11 +117,14 @@ def test_copy_paste_files_paths(copy_path_file, qtbot):
         text_data = fh.read()
     assert text_data == "Spyder4"
     folder = osp.join(project_dir, 'subdir')
-    os.mkdir(folder)
-    project_file3 = osp.join(folder, 'python.py')
-    open(project_file3, 'w').close()
-    project.explorer.treewidget.save_file_clipboard(fnames=[project_file3])
-    assert osp.isfile(osp.join(folder, "pyscript.py"))
+    if not osp.exists(folder):
+        os.mkdir(folder)
+    project.explorer.treewidget.copy_file_clipboard(fnames=[project_file1])
+    project.explorer.treewidget.save_file_clipboard(fnames=[folder])
+    assert osp.isfile(osp.join(folder, "script.py"))
+    with open(osp.join(folder, "script.py"), 'r') as fh:
+        text_data = fh.read()
+    assert text_data == 'Spyder4 will be released this year'
 
 if __name__ == "__main__":
     pytest.main()
