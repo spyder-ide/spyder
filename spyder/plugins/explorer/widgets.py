@@ -946,7 +946,7 @@ class DirView(QTreeView):
             try:
                 selected_item = osp.commonpath(fnames)
             except AttributeError:
-                selected_item = osp.realpath(osp.dirname(osp.commonprefix(aa)))
+                selected_item = osp.dirname(osp.commonprefix(fnames))
             if osp.isfile(selected_item):
                 parrent_path = osp.dirname(selected_item)
             else:
