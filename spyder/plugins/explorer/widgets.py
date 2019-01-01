@@ -925,11 +925,7 @@ class DirView(QTreeView):
             fnames = [fnames]
         try:
             file_content = QMimeData()
-            if os.name == 'nt':
-                file_content.setUrls([QUrl.fromLocalFile(_fn) for _fn in
-                                      fnames])
-            else:
-                file_content.setUrls([QUrl(_fn) for _fn in fnames])
+            file_content.setUrls([QUrl.fromLocalFile(_fn) for _fn in fnames])
             cb = QApplication.clipboard()
             cb.clear(mode=cb.Clipboard)
             cb.setMimeData(file_content, mode=cb.Clipboard)
@@ -960,8 +956,8 @@ class DirView(QTreeView):
                     base_name = osp.basename(source_name)
                     if osp.isfile(source_name):
                         associated_files = []
-                        if source_name.endswith(('.py', '.pyc', '.pyo')):
-                            for ending in ('.py', '.pyc', '.pyo'):
+                        if source_name.endswith('.py'):
+                            for ending in ('.pyc', '.pyo'):
                                 associated_file = (osp.splitext(source_name)[
                                                        0] + ending)
                                 if (associated_file not in [url.toLocalFile()
