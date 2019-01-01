@@ -945,8 +945,8 @@ class DirView(QTreeView):
         if len(fnames) >= 1:
             try:
                 selected_item = osp.commonpath(fnames)
-            except:  #  Python 2 fallback
-                selected_item = osp.dirname(osp.commonprefix(fnames))
+            except AttributeError:
+                selected_item = osp.realpath(osp.dirname(osp.commonprefix(aa)))
             if osp.isfile(selected_item):
                 parrent_path = osp.dirname(selected_item)
             else:

@@ -89,7 +89,7 @@ def test_copy_paste_files_paths(copy_path_file, qtbot):
     len_rel_path = len(rel_path)
     assert project_file1.replace(os.sep, "/")[-len_rel_path:] == rel_path
     assert (project_dir.replace(os.sep, '/') + "/" + osp.basename(rel_path)
-                         == project_file1.replace(os.sep, "/"))
+            == project_file1.replace(os.sep, "/"))
     assert project_file1.replace(os.sep, '/').endswith(rel_path)
 
     #  test copy file to clipboard
@@ -114,7 +114,12 @@ def test_copy_paste_files_paths(copy_path_file, qtbot):
     with open(osp.join(project_dir, "pyscript2.py"), 'r') as fh:
         text_data = fh.read()
     assert text_data == "Spyder4"
-
+    folder = osp.join(project_dir, 'subdir')
+    os.mkdir(folder)
+    project_file3 = osp.join(folder, 'python.py')
+    open(project_file3, 'w').close()
+    project.explorer.treewidget.save_file_clipboard(fnames=[project_file3])
+    assert osp.isfile(osp.join(folder, "pyscript.py"))
 
 if __name__ == "__main__":
     pytest.main()
