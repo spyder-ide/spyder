@@ -74,6 +74,7 @@ def test_copy_paste_files_paths(copy_path_file, qtbot):
     project = copy_path_file
     project_dir = project.directory
     project_file1 = osp.join(project_dir, 'script.py')
+    open(project_file1, 'w').close()
     cb = QApplication.clipboard()
     #  test copy absolute path
     project.explorer.treewidget.copy_path(fnames=[project_file1],
@@ -87,9 +88,11 @@ def test_copy_paste_files_paths(copy_path_file, qtbot):
     rel_path = cb.text(mode=cb.Clipboard)
     len_rel_path = len(rel_path)
     assert project_file1.replace(os.sep, "/")[-len_rel_path:] == rel_path
+    assert (project_dir.replace(os.sep, '/') + "/" + osp.basename(rel_path)
+                         == project_file1.replace(os.sep, "/"))
+    assert project_file1.replace(os.sep, '/').endswith(rel_path)
 
     #  test copy file to clipboard
-    cb = QApplication.clipboard()
     project.explorer.treewidget.copy_file_clipboard(fnames=[project_file1])
     clipboard_data = cb.mimeData().urls()[0].toLocalFile()
     assert project_file1.replace(os.sep, "/") == clipboard_data.replace(os.sep,
