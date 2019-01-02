@@ -22,7 +22,6 @@ from qtpy.QtWidgets import QApplication
 from spyder.plugins.explorer.widgets import (FileExplorerTest,
                                              ProjectExplorerTest)
 from spyder.py3compat import to_text_string
-from spyder.utils.misc import getcwd_or_home
 from spyder.plugins.projects.widgets.explorer import ProjectExplorerTest as \
     ProjectExplorerTest2
 
@@ -48,8 +47,7 @@ def copy_path_file(qtbot, request, tmpdir):
     """Setup Project Explorer widget."""
     directory = request.node.get_marker('change_directory')
     if directory:
-        #  project_dir = to_text_string(tmpdir.mkdir('project'))
-        project_dir = getcwd_or_home()
+        project_dir = to_text_string(tmpdir.mkdir('project'))
     else:
         project_dir = None
     project_explorer = ProjectExplorerTest2(directory=project_dir)
@@ -126,15 +124,6 @@ def test_copy_path(copy_path_file):
     with open(osp.join(folder, 'script.py'), 'r') as fh:
         text_data = fh.read()
     assert text_data == 'Spyder4 will be released this year'
-
-    #  clean up
-    os.remove(project_file1)
-    os.remove(project_file2)
-    os.remove(osp.join(project_dir, 'pyscript1.py'))
-    os.remove(osp.join(project_dir, 'pyscript2.py'))
-    os.remove(osp.join(folder, 'script.py'))
-    os.rmdir(folder)
-
 
 if __name__ == "__main__":
     pytest.main()
