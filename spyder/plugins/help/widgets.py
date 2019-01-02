@@ -100,8 +100,8 @@ class RichText(QWidget):
             self.webview.web_widget.page().setBackgroundColor(
                 QColor(MAIN_BG_COLOR))
         else:
-            self.webview.web_widget.setBackgroundColor(
-                QColor(MAIN_BG_COLOR))
+            self.webview.web_widget.setStyleSheet(
+                "background:{}".format(MAIN_BG_COLOR))
         self.find_widget = FindReplace(self)
         self.find_widget.set_editor(self.webview.web_widget)
         self.find_widget.hide()

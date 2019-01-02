@@ -159,7 +159,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         if WEBENGINE:
             self.infowidget.page().setBackgroundColor(QColor(MAIN_BG_COLOR))
         else:
-            self.infowidget.setBackgroundColor(QColor(MAIN_BG_COLOR))
+            self.infowidget.setStyleSheet(
+                "background:{}".format(MAIN_BG_COLOR))
         self.set_infowidget_font()
         self.blank_page = self._create_blank_page()
         self.loading_page = self._create_loading_page()
