@@ -955,18 +955,6 @@ class DirView(QTreeView):
                     source_name = url.toLocalFile()
                     base_name = osp.basename(source_name)
                     if osp.isfile(source_name):
-                        associated_files = []
-                        if source_name.endswith('.py'):
-                            for ending in ('.pyc', '.pyo'):
-                                associated_file = (osp.splitext(source_name)[
-                                                       0] + ending)
-                                if (associated_file not in [url.toLocalFile()
-                                                            for url in
-                                                            urls] and
-                                        osp.basename(
-                                        associated_file) in os.listdir(
-                                        os.path.dirname(source_name))):
-                                    associated_files.append(associated_file)
                         try:
                             while base_name in os.listdir(parrent_path):
                                 file_no_ext, file_ext = osp.splitext(base_name)
@@ -982,14 +970,6 @@ class DirView(QTreeView):
                             else:
                                 destination = osp.join(parrent_path, base_name)
                             shutil.copy(source_name, destination)
-                            if associated_files:
-                                for associated_file in associated_files:
-                                    destination = osp.splitext(destination)[
-                                                      0] + osp.splitext(
-                                        osp.basename(associated_file))[1]
-                                    if osp.exists(destination):
-                                        os.remove(destination)
-                                    shutil.copy(associated_file, destination)
                         except Exception as e:
                             QMessageBox.critical(self, _('Error Pasting File'),
                                                  _("Unsupported Copy "
