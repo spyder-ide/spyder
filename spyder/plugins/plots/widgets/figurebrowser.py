@@ -92,7 +92,7 @@ class FigureBrowser(QWidget):
 
         self.options_button = options_button
         self.plugin_actions = plugin_actions
-        self.shortcuts = self.create_shortcuts(parent)
+        self.shortcuts = self.create_shortcuts()
 
     def setup(self, mute_inline_plotting=None, show_plot_outline=None):
         """Setup the figure browser with provided settings."""
@@ -250,11 +250,11 @@ class FigureBrowser(QWidget):
         else:
             self.tools_layout.addWidget(self.options_button)
 
-    def create_shortcuts(self, parent):
+    def create_shortcuts(self):
         """Create shortcuts for this widget."""
         # Configurable
         copyfig = config_shortcut(self.copy_figure, context='plots',
-                                  name='copy', parent=parent)
+                                  name='copy', parent=self)
 
         return [copyfig]
 
