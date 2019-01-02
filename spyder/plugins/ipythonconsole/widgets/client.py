@@ -26,9 +26,10 @@ import time
 
 # Third party imports (qtpy)
 from qtpy.QtCore import QUrl, QTimer, Signal, Slot
-from qtpy.QtGui import QKeySequence
+from qtpy.QtGui import QKeySequence, QColor
 from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMenu, QMessageBox,
                             QToolButton, QVBoxLayout, QWidget)
+from qtpy.QtWebEngineWidgets import WEBENGINE
 
 # Local imports
 from spyder.config.base import (_, get_image_path, get_module_source_path,
@@ -63,6 +64,11 @@ TEMPLATES_PATH = osp.join(PLUGINS_PATH, 'ipythonconsole', 'assets', 'templates')
 BLANK = open(osp.join(TEMPLATES_PATH, 'blank.html')).read()
 LOADING = open(osp.join(TEMPLATES_PATH, 'loading.html')).read()
 KERNEL_ERROR = open(osp.join(TEMPLATES_PATH, 'kernel_error.html')).read()
+
+if is_dark_interface():
+    MAIN_BG_COLOR = '#19232D'
+else:
+    MAIN_BG_COLOR = 'white'
 
 try:
     time.monotonic  # time.monotonic new in 3.3
@@ -150,7 +156,13 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                                        external_kernel=external_kernel,
                                        local_kernel=True)
         self.infowidget = WebView(self)
+        if WEBENGINE:
+            self.infowidget.page().setBackgroundColor(QColor(MAIN_BG_COLOR))
+        else:
+            self.infowidget.setStyleSheet(
+                "background:{}".format(MAIN_BG_COLOR))
         self.set_infowidget_font()
+        self.blank_page = self._create_blank_page()
         self.loading_page = self._create_loading_page()
         self._show_loading_page()
 
@@ -671,6 +683,12 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                                            message=message)
         return page
 
+    def _create_blank_page(self):
+        """Create html page to show while the kernel is starting"""
+        loading_template = Template(BLANK)
+        page = loading_template.substitute(css_path=self.css_path)
+        return page
+
     def _show_loading_page(self):
         """Show animation while the kernel is loading."""
         self.shellwidget.hide()
@@ -682,7 +700,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """Hide animation shown while the kernel is loading."""
         self.infowidget.hide()
         self.shellwidget.show()
-        self.infowidget.setHtml(BLANK,
+        self.infowidget.setHtml(self.blank_page,
                                 QUrl.fromLocalFile(self.css_path))
         self.shellwidget.sig_prompt_ready.disconnect(self._hide_loading_page)
 
