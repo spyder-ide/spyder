@@ -44,7 +44,6 @@ def mock_RecoveryDialog(monkeypatch):
 @pytest.fixture
 def setup_editor(qtbot, monkeypatch):
     """Set up the Editor plugin."""
-    # monkeypatch.setattr('spyder.dependencies', Mock())
     monkeypatch.setattr('spyder.plugins.editor.plugin.add_actions', Mock())
 
     class MainMock(QMainWindow):
