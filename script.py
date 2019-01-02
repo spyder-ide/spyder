@@ -1,1 +1,0 @@
-Spyder4 will be released this year

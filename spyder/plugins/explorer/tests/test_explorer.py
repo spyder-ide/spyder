@@ -44,14 +44,14 @@ def project_explorer(qtbot):
 
 
 @pytest.fixture
-def copy_path_file(qtbot):
+def copy_path_file(qtbot, request, tmpdir):
     """Setup Project Explorer widget."""
-    # directory = request.node.get_marker('change_directory')
-    # if directory:
-    #     project_dir = to_text_string(tmpdir.mkdir('project'))
-    # else:
-    #     project_dir = None
-    project_dir = getcwd_or_home()
+    directory = request.node.get_marker('change_directory')
+    if directory:
+        #  project_dir = to_text_string(tmpdir.mkdir('project'))
+        project_dir = getcwd_or_home()
+    else:
+        project_dir = None
     project_explorer = ProjectExplorerTest2(directory=project_dir)
     qtbot.addWidget(project_explorer)
     return project_explorer
@@ -70,13 +70,12 @@ def test_project_explorer(project_explorer):
     project_explorer.show()
     assert project_explorer
 
-# @pytest.mark.parametrize('path', ["absolute", "relative"])
+
 def test_copy_path(copy_path_file):
     """Test copy/paste files and their absolute/relative paths."""
     project = copy_path_file
     project_dir = project.directory
     project_file1 = osp.join(project_dir, 'script.py')
-    open(project_file1, 'w').close()
     with open(project_file1, 'w') as fh:
         fh.write('Spyder4 will be released this year')
     cb = QApplication.clipboard()
@@ -127,6 +126,15 @@ def test_copy_path(copy_path_file):
     with open(osp.join(folder, 'script.py'), 'r') as fh:
         text_data = fh.read()
     assert text_data == 'Spyder4 will be released this year'
+
+    #  clean up
+    os.remove(project_file1)
+    os.remove(project_file2)
+    os.remove(osp.join(project_dir, 'pyscript1.py'))
+    os.remove(osp.join(project_dir, 'pyscript2.py'))
+    os.remove(osp.join(folder, 'script.py'))
+    os.rmdir(folder)
+
 
 if __name__ == "__main__":
     pytest.main()
