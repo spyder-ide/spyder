@@ -161,7 +161,10 @@ class AutosaveForStack(object):
         if filename not in self.name_mapping:
             return
         autosave_filename = self.name_mapping[filename]
-        os.remove(autosave_filename)
+        try:
+            os.remove(autosave_filename)
+        except EnvironmentError:
+            pass
         del self.name_mapping[filename]
         self.stack.sig_option_changed.emit(
                 'autosave_mapping', self.name_mapping)

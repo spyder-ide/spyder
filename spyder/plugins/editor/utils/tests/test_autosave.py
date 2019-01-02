@@ -9,7 +9,8 @@
 import pytest
 
 # Local imports
-from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
+from spyder.plugins.editor.utils.autosave import (AutosaveForStack,
+                                                  AutosaveForPlugin)
 
 
 def test_autosave_component_set_interval(qtbot, mocker):
@@ -28,7 +29,7 @@ def test_autosave_component_set_interval(qtbot, mocker):
 
 @pytest.mark.parametrize('enabled', [False, True])
 def test_autosave_component_timer_if_enabled(qtbot, mocker, enabled):
-    """Test that AutosaveCompenent calls do_autosave() on timer if enabled."""
+    """Test that AutosaveForPlugin calls do_autosave() on timer if enabled."""
     mocker.patch.object(AutosaveForPlugin, 'do_autosave')
     addon = AutosaveForPlugin(None)
     addon.do_autosave.assert_not_called()
@@ -39,3 +40,19 @@ def test_autosave_component_timer_if_enabled(qtbot, mocker, enabled):
         assert addon.do_autosave.called
     else:
         addon.do_autosave.assert_not_called()
+
+
+@pytest.mark.parametrize('exception', [False, True])
+def test_autosave_remove_autosave_file(mocker, exception):
+    """Test that AutosaveForStack.remove_autosave_file removes the autosave
+    file and that it ignores any exceptions raised when removing the file."""
+    mock_remove = mocker.patch('os.remove')
+    if exception:
+        mock_remove.side_effect = EnvironmentError()
+    mock_stack = mocker.Mock()
+    fileinfo = mocker.Mock()
+    fileinfo.filename = 'orig'
+    addon = AutosaveForStack(mock_stack)
+    addon.name_mapping = {'orig': 'autosave'}
+    addon.remove_autosave_file(fileinfo)
+    mock_remove.assert_called_with('autosave')
