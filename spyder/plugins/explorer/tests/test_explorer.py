@@ -69,7 +69,7 @@ def test_project_explorer(project_explorer):
     assert project_explorer
 
 
-def test_copy_paste_files_paths(copy_path_file, qtbot):
+def test_copy_path(copy_path_file):
     """Test copy/paste files and their absolute/relative paths."""
     project = copy_path_file
     project_dir = project.directory
