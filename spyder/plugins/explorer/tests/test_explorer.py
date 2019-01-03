@@ -118,7 +118,7 @@ def test_copy_path(copy_path_file, path_method, file_paths):
                                         [project_file1, project_file2, subdir],
                                         [project_file1, project_file3]])
 def test_copy_file(copy_path_file, file_paths):
-    """Test copy/paste files and their absolute/relative paths."""
+    """Test copy file(s)/folders(s) to clipboard."""
     project = copy_path_file
     project.explorer.treewidget.copy_file_clipboard(fnames=file_paths)
     cb_data = cb.mimeData().urls()
@@ -139,6 +139,7 @@ def test_copy_file(copy_path_file, file_paths):
 
 @pytest.mark.parametrize('file_paths', [[subdir], [subdir, project_file3]])
 def test_save_file(copy_path_file, file_paths):
+    """Test save file(s)/folders(s) from clipboard."""
     project = copy_path_file
     project.explorer.treewidget.copy_file_clipboard(fnames=[project_file2])
     project.explorer.treewidget.save_file_clipboard(fnames=file_paths)
