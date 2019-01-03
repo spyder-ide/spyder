@@ -11,6 +11,7 @@ Tests for the Projects plugin.
 """
 
 # Standard library imports
+import os.path as osp
 try:
     from unittest.mock import Mock
 except ImportError:
@@ -229,6 +230,38 @@ def test_recent_projects_menu_action(projects, tmpdir):
     # Trigger project0 in the list of Recent Projects actions.
     projects.recent_projects_actions[2].trigger()
     assert projects.get_active_project().root_path == path0
+
+
+def test_project_explorer_tree_root(projects, tmpdir, qtbot):
+    """
+    Test that the root item of the project explorer tree widget is set
+    correctly when switching projects.
+
+    Regression test for Issue #8455
+    """
+    qtbot.addWidget(projects.explorer)
+    projects.show_explorer()
+
+    ppath1 = to_text_string(tmpdir.mkdir(u'測試'))
+    ppath2 = to_text_string(tmpdir.mkdir(u'ïèô éàñ').mkdir(u'اختبار'))
+
+    # Open the projects.
+    for ppath in [ppath1, ppath2]:
+        projects.open_project(path=ppath)
+        projects.update_explorer()
+
+        # Check that the root path of the project explorer tree widget is
+        # set correctly.
+        assert projects.get_active_project_path() == ppath
+        assert projects.explorer.treewidget.root_path == osp.dirname(ppath)
+        assert (projects.explorer.treewidget.rootIndex().data() ==
+                osp.basename(osp.dirname(ppath)))
+
+        # Check that the first visible item in the project explorer
+        # tree widget is the folder of the project.
+        topleft_index = (projects.explorer.treewidget.indexAt(
+            projects.explorer.treewidget.rect().topLeft()))
+        assert topleft_index.data() == osp.basename(ppath)
 
 
 if __name__ == "__main__":

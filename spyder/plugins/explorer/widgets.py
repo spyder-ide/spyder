@@ -1019,6 +1019,7 @@ class FilteredDirView(DirView):
         self.root_path = root_path
         self.install_model()
         index = self.fsmodel.setRootPath(root_path)
+        self.proxymodel.setup_filter(self.root_path, [])
         self.setRootIndex(self.proxymodel.mapFromSource(index))
         
     def get_index(self, filename):
