@@ -46,8 +46,8 @@ def project_explorer(qtbot):
 @pytest.fixture
 def copy_path_file(qtbot):
     """Setup Project Explorer widget."""
-    project_directory = getcwd_or_home()
-    project_explorer = ProjectExplorerTest2(directory=project_directory)
+    project_dir = getcwd_or_home()
+    project_explorer = ProjectExplorerTest2(directory=project_dir)
     qtbot.addWidget(project_explorer)
     return project_explorer
 
@@ -68,9 +68,9 @@ def test_project_explorer(project_explorer):
 
 def setup_directory(copy_path_file):
     project = copy_path_file
-    projec_dir = project.directory
+    project_dir = project.directory
     project_dir = osp.join(
-            projec_dir,
+            project_dir,
             'temp_dir_test_file_explorer_functions_copy_save_path_file')
     if not osp.exists(project_dir):
             os.mkdir(project_dir)
@@ -163,9 +163,9 @@ def test_save_file(copy_path_file, file_paths):
 
 def test_delete_project_dir(copy_path_file):
     project = copy_path_file
-    projec_dir = project.directory
+    project_dir = project.directory
     project_dir = osp.join(
-            projec_dir,
+            project_dir,
             'temp_dir_test_file_explorer_functions_copy_save_path_file')
     shutil.rmtree(project_dir)
     assert not osp.exists(project_dir)
