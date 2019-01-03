@@ -41,14 +41,6 @@ def project_explorer(qtbot):
     return widget
 
 
-@pytest.fixture
-def copy_path_file(qtbot):
-    """Setup Project Explorer widget."""
-    widget = FileExplorerTest()
-    qtbot.addWidget(widget)
-    return widget
-
-
 def test_file_explorer(file_explorer):
     """Run FileExplorerTest."""
     file_explorer.resize(640, 480)
@@ -87,9 +79,9 @@ cb = QApplication.clipboard()
 @pytest.mark.parametrize('file_paths', [[project_file1],
                                         [project_file1, project_file2, subdir],
                                         [project_file1, project_file3]])
-def test_copy_path(copy_path_file, path_method, file_paths):
+def test_copy_path(file_explorer, path_method, file_paths):
     """Test copy absolute and relative paths."""
-    project = copy_path_file
+    project = file_explorer
     project.explorer.treewidget.copy_path(fnames=file_paths,
                                           method=path_method)
     cb_output = cb.text(mode=cb.Clipboard)
@@ -114,9 +106,9 @@ def test_copy_path(copy_path_file, path_method, file_paths):
 @pytest.mark.parametrize('file_paths', [[project_file1],
                                         [project_file1, project_file2, subdir],
                                         [project_file1, project_file3]])
-def test_copy_file(copy_path_file, file_paths):
+def test_copy_file(file_explorer, file_paths):
     """Test copy/paste files and their absolute/relative paths."""
-    project = copy_path_file
+    project = file_explorer
     project.explorer.treewidget.copy_file_clipboard(fnames=file_paths)
     cb_data = cb.mimeData().urls()
     for url in cb_data:
@@ -135,8 +127,8 @@ def test_copy_file(copy_path_file, file_paths):
 
 
 @pytest.mark.parametrize('file_paths', [[subdir], [subdir, project_file3]])
-def test_save_file(copy_path_file, file_paths):
-    project = copy_path_file
+def test_save_file(file_explorer, file_paths):
+    project = file_explorer
     project.explorer.treewidget.copy_file_clipboard(fnames=[project_file2])
     project.explorer.treewidget.save_file_clipboard(fnames=file_paths)
     assert osp.exists(osp.join(subdir, 'pyscript.py'))
