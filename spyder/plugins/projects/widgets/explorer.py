@@ -208,9 +208,8 @@ class ProjectExplorerWidget(QWidget):
     def set_project_dir(self, directory):
         """Set the project directory"""
         if directory is not None:
-            project = directory.split(osp.sep)[-1]
             self.treewidget.set_root_path(osp.dirname(directory))
-            self.treewidget.set_folder_names([project])
+            self.treewidget.set_folder_names([osp.basename(directory)])
         self.treewidget.setup_project_view()
         try:
             self.treewidget.setExpanded(self.treewidget.get_index(directory),
