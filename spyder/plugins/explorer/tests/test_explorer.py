@@ -23,6 +23,8 @@ from qtpy.QtWidgets import QApplication
 from spyder.plugins.explorer.widgets import (FileExplorerTest,
                                              ProjectExplorerTest)
 from spyder.utils.misc import getcwd_or_home
+from spyder.plugins.projects.widgets.explorer import ProjectExplorerTest as \
+    ProjectExplorerTest2
 
 
 @pytest.fixture
@@ -39,6 +41,15 @@ def project_explorer(qtbot):
     widget = ProjectExplorerTest()
     qtbot.addWidget(widget)
     return widget
+
+
+@pytest.fixture
+def copy_path_file(qtbot):
+    """Setup Project Explorer widget."""
+    project_dir = getcwd_or_home()
+    project_explorer = ProjectExplorerTest2(directory=project_dir)
+    qtbot.addWidget(project_explorer)
+    return project_explorer
 
 
 def test_file_explorer(file_explorer):
@@ -79,9 +90,9 @@ cb = QApplication.clipboard()
 @pytest.mark.parametrize('file_paths', [[project_file1],
                                         [project_file1, project_file2, subdir],
                                         [project_file1, project_file3]])
-def test_copy_path(file_explorer, path_method, file_paths):
+def test_copy_path(copy_path_file, path_method, file_paths):
     """Test copy absolute and relative paths."""
-    project = file_explorer
+    project = copy_path_file
     project.explorer.treewidget.copy_path(fnames=file_paths,
                                           method=path_method)
     cb_output = cb.text(mode=cb.Clipboard)
@@ -106,9 +117,9 @@ def test_copy_path(file_explorer, path_method, file_paths):
 @pytest.mark.parametrize('file_paths', [[project_file1],
                                         [project_file1, project_file2, subdir],
                                         [project_file1, project_file3]])
-def test_copy_file(file_explorer, file_paths):
+def test_copy_file(copy_path_file, file_paths):
     """Test copy/paste files and their absolute/relative paths."""
-    project = file_explorer
+    project = copy_path_file
     project.explorer.treewidget.copy_file_clipboard(fnames=file_paths)
     cb_data = cb.mimeData().urls()
     for url in cb_data:
@@ -127,8 +138,8 @@ def test_copy_file(file_explorer, file_paths):
 
 
 @pytest.mark.parametrize('file_paths', [[subdir], [subdir, project_file3]])
-def test_save_file(file_explorer, file_paths):
-    project = file_explorer
+def test_save_file(copy_path_file, file_paths):
+    project = copy_path_file
     project.explorer.treewidget.copy_file_clipboard(fnames=[project_file2])
     project.explorer.treewidget.save_file_clipboard(fnames=file_paths)
     assert osp.exists(osp.join(subdir, 'pyscript.py'))
