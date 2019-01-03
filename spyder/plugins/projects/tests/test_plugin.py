@@ -241,7 +241,7 @@ def test_project_explorer_tree_root(projects, tmpdir, qtbot):
     """
     qtbot.addWidget(projects.explorer)
     projects.show_explorer()
-    
+
     ppath1 = to_text_string(tmpdir.mkdir(u'測試'))
     ppath2 = to_text_string(tmpdir.mkdir(u'ïèô éàñ').mkdir(u'اختبار'))
 
@@ -256,13 +256,13 @@ def test_project_explorer_tree_root(projects, tmpdir, qtbot):
         assert projects.explorer.treewidget.root_path == osp.dirname(ppath)
         assert (projects.explorer.treewidget.rootIndex().data() ==
                 osp.basename(osp.dirname(ppath)))
-        
+
         # Check that the first visible item in the project explorer
         # tree widget is the folder of the project.
         topleft_index = (projects.explorer.treewidget.indexAt(
             projects.explorer.treewidget.rect().topLeft()))
         assert topleft_index.data() == osp.basename(ppath)
-        
-        
+
+
 if __name__ == "__main__":
     pytest.main()
