@@ -68,9 +68,7 @@ def project_explorer_withfiles(qtbot):
     cb = QApplication.clipboard()
     project_explorer = ProjectExplorerTest2(directory=project_dir)
     qtbot.addWidget(project_explorer)
-    yield project_explorer, file_list, cb
-    if osp.exists(project_dir):
-            shutil.rmtree(project_dir)
+    return project_explorer, file_list, cb
 
 
 def test_file_explorer(file_explorer):
