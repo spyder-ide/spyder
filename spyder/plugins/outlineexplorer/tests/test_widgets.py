@@ -207,6 +207,24 @@ def test_go_to_cursor_position(create_outlineexplorer, qtbot):
     assert outlineexplorer.treewidget.currentItem().text(0) == 'method1'
 
 
+def test_go_to_cursor_position_with_new_file(create_outlineexplorer, qtbot):
+    """
+    Test that clicking on the 'Go to cursor position' button located in the
+    toolbar of the outline explorer is working as expected for newly created
+    files.
+
+    Regression test for issue  #8510.
+    """
+    text = "# -*- coding: utf-8 -*-\nSome newly created\nPython file."
+    outlineexplorer = create_outlineexplorer(text, 'new_file.py')
+
+    # Click on the 'Go to cursor position' button of the outline explorer's
+    # toolbar :
+    assert outlineexplorer.treewidget.currentItem() is None
+    qtbot.mouseClick(outlineexplorer.fromcursor_btn, Qt.LeftButton)
+    assert outlineexplorer.treewidget.currentItem().text(0) == 'new_file.py'
+
+
 def test_go_to_last_item(create_outlineexplorer, qtbot):
     """
     Test that clicking on the 'Go to cursor position' button located in the
