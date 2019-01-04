@@ -230,32 +230,6 @@ class ProjectExplorerWidget(QWidget):
         # Setup the directory shown by the tree
         self.set_project_dir(directory)
 
-        # Signal to delete the project
-        self.treewidget.sig_delete_project.connect(self.delete_project)
-
-    def delete_project(self):
-        """Delete current project without deleting the files in the
-        directory."""
-        if self.current_active_project:
-            path = self.current_active_project.root_path
-            buttons = QMessageBox.Yes | QMessageBox.No
-            answer = QMessageBox.warning(self, _("Delete"),
-                                 _("Do you really want "
-                                   "to delete <b>{filename}</b>?<br><br>"
-                                   "<b>Note:</b> This action will only delete "
-                                   "the project. Its files are going to be "
-                                   "preserved on disk."
-                                   ).format(filename=osp.basename(path)),
-                                   buttons)
-            if answer == QMessageBox.Yes:
-                try:
-                    self.close_project()
-                    shutil.rmtree(osp.join(path,'.spyproject'))
-                except EnvironmentError as error:
-                    QMessageBox.critical(self, _("Project Explorer"),
-                                    _("<b>Unable to delete <i>{varpath}</i></b>"
-                                      "<br><br>The error message was:<br>{error}" )
-                                    .format(varpath=path,error=to_text_string(error)))
 
 #==============================================================================
 # Tests
