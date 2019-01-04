@@ -46,11 +46,7 @@ def project_explorer(qtbot):
 @pytest.fixture
 def project_explorer_withfiles(qtbot):
     """Setup Project Explorer widget."""
-    project_dir = osp.join(
-        getcwd_or_home(),
-        'temp_dir_test_file_explorer_functions_copy_save_path_file')
-    if not osp.exists(project_dir):
-        os.mkdir(project_dir) 
+    project_dir = getcwd_or_home()
     project_explorer = ProjectExplorerTest2(directory=project_dir)
     qtbot.addWidget(project_explorer)
     return project_explorer
@@ -70,26 +66,26 @@ def test_project_explorer(project_explorer):
     assert project_explorer
 
 
-project_dir = osp.join(
-        getcwd_or_home(),
-        'temp_dir_test_file_explorer_functions_copy_save_path_file')
+project_dir = getcwd_or_home()
 if not osp.exists(project_dir):
-        os.mkdir(project_dir)
-project_file1 = osp.join(project_dir, 'script.py')
+    os.mkdir(project_dir)
+project_file1 = osp.join(project_dir, 'project_explorer_withfiles_script.py')
 with open(project_file1, 'w') as fh:
     fh.write('Spyder4 will be released this year')
-project_file2 = osp.join(project_dir, 'pyscript.py')
+project_file2 = osp.join(project_dir, 'project_explorer_withfiles_pyscript.py')
 with open(project_file2, 'w') as fh:
     fh.write('Spyder4')
-subdir = osp.join(project_dir, 'subdir')
+subdir = osp.join(project_dir, 'project_explorer_withfiles_subdir')
 if not osp.exists(subdir):
     os.mkdir(subdir)
-project_file3 = osp.join(subdir, 'Columbia.txt')
+project_file3 = osp.join(subdir, 'project_explorer_withfiles_Columbia.txt')
 with open(project_file3, 'w') as fh:
     fh.write('South America')
+file_list = [project_file1, project_file2, subdir]
 cb = QApplication.clipboard()
 
 
+@pytest.mark.change_directory
 @pytest.mark.parametrize('path_method', ['absolute', 'relative'])
 @pytest.mark.parametrize('file_paths', [[project_file1],
                                         [project_file1, project_file2, subdir],
@@ -118,6 +114,7 @@ def test_copy_path(project_explorer_withfiles, path_method, file_paths):
     assert true_path == cb_output
 
 
+@pytest.mark.change_directory
 @pytest.mark.parametrize('file_paths', [[project_file1],
                                         [project_file1, project_file2, subdir],
                                         [project_file1, project_file3]])
@@ -141,27 +138,40 @@ def test_copy_file(project_explorer_withfiles, file_paths):
             assert osp.isdir(file_name)
 
 
+@pytest.mark.change_directory
 @pytest.mark.parametrize('file_paths', [[subdir], [subdir, project_file3]])
 def test_save_file(project_explorer_withfiles, file_paths):
     """Test save file(s)/folders(s) from clipboard."""
     project = project_explorer_withfiles
     project.explorer.treewidget.copy_file_clipboard(fnames=[project_file2])
     project.explorer.treewidget.save_file_clipboard(fnames=file_paths)
-    assert osp.exists(osp.join(subdir, 'pyscript.py'))
-    with open(osp.join(subdir, 'pyscript.py'), 'r') as fh:
+    assert osp.exists(osp.join(subdir, project_file2))
+    with open(osp.join(subdir, project_file2), 'r') as fh:
         text_data = fh.read()
-    assert text_data == "Spyder4"
+    assert text_data == 'Spyder4'
     project.explorer.treewidget.copy_file_clipboard(fnames=[subdir])
     project.explorer.treewidget.save_file_clipboard(fnames=[subdir,
                                                             project_file3])
-    assert osp.exists(subdir + "1")
-    for afile in [project_file3, osp.join(subdir, 'pyscript.py')]:
+    assert osp.exists(subdir + '1')
+    for afile in [project_file3, osp.join(subdir, project_file2)]:
         assert osp.basename(afile) in os.listdir(subdir + '1')
+        if afile == project_file3:
+            with open(osp.join(project_file3), 'r') as fh:
+                text_data = fh.read()
+            assert text_data == 'South America'
 
 
-def test_delete_project_dir():
-    shutil.rmtree(project_dir)
-    assert not osp.exists(project_dir)
+def test_remove_files():
+    subdir1 = subdir + '1'
+    subdir2 = subdir + '2'
+    project_file2_1 = osp.splitext(project_file2)[0] + '1.py'
+    file_list.extend([subdir1, subdir2, project_file2_1])
+    for file_name in file_list:
+        if osp.isdir(file_name):
+            shutil.rmtree(file_name)
+        else:
+            os.remove(file_name)
+        assert not osp.exists(file_name)
 
 
 if __name__ == "__main__":
