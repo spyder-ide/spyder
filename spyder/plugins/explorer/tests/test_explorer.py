@@ -46,9 +46,7 @@ def project_explorer(qtbot):
 def project_explorer_withfiles(qtbot):
     """Setup Project Explorer widget."""
     project_dir = osp.join(getcwd_or_home(),
-                           'spyder/plugins/projects/widgets/tests')
-    project_dir = project_dir.replace('/', os.sep)
-    project_dir = osp.join(project_dir, 'tmpdir_test_copy_save_file_paths')
+                           'tmpdir_test_copy_save_file_paths_spyder2019')
     if not osp.exists(project_dir):
         os.mkdir(project_dir)
     project_file1 = osp.join(project_dir, 'script.py')
