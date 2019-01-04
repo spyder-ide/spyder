@@ -47,7 +47,7 @@ def project_explorer(qtbot):
 def project_explorer_withfiles(qtbot):
     """Setup Project Explorer widget."""
     project_dir = osp.join(getcwd_or_home(),
-                           'temp_dir_test_file_explorer_functions')
+                           'temp_dir_test_file_explorer_functions_spyder2019')
     if not osp.exists(project_dir):
         os.mkdir(project_dir)
     if not osp.exists(project_dir):
@@ -69,9 +69,7 @@ def project_explorer_withfiles(qtbot):
     cb = QApplication.clipboard()
     project_explorer = ProjectExplorerTest2(directory=project_dir)
     qtbot.addWidget(project_explorer)
-    yield project_explorer, file_list, cb
-    if osp.exists(project_dir):
-        shutil.rmtree(project_dir)
+    return project_explorer, file_list, cb
 
 
 def test_file_explorer(file_explorer):
@@ -96,14 +94,14 @@ def test_copy_path(project_explorer_withfiles, path_method):
         project.explorer.treewidget.copy_path(fnames=file_paths,
                                               method=path_method)
         cb_output = cb.text(mode=cb.Clipboard)
-        file_paths = [_fn.replace(os.sep, "/") for _fn in file_paths]
+        file_paths = [_fn.replace(os.sep, '/') for _fn in file_paths]
         if len(file_paths) > 1:
             if path_method == 'absolute':
                 true_path = ''.join('"' + _fn + '",' + '\n' for _fn in
                                     file_paths)
             elif path_method == 'relative':
                 true_path = ''.join('"' + osp.relpath(_fn, getcwd_or_home()).
-                                    replace(os.sep, "/") + '",' +
+                                    replace(os.sep, '/') + '",' +
                                     '\n' for _fn in file_paths)
             true_path = true_path[:-2]
         else:
@@ -115,45 +113,58 @@ def test_copy_path(project_explorer_withfiles, path_method):
         assert true_path == cb_output
 
 
-# def test_copy_file(project_explorer_withfiles):
-#     """Test copy file(s)/folders(s) to clipboard."""
-#     project = project_explorer_withfiles
-#     project.explorer.treewidget.copy_file_clipboard(fnames=file_paths)
-#     cb_data = cb.mimeData().urls()
-#     for url in cb_data:
-#         file_name = url.toLocalFile()
-#         assert osp.isdir(file_name) or osp.isfile(file_name)
-#         if file_paths == [project_file1]:
-#             with open(file_name, 'r') as fh:
-#                 text_data = fh.read()
-#             assert text_data == 'Spyder4 will be released this year'
-#         if file_paths == [project_file1, project_file3][1]:
-#             with open(file_name, 'r') as fh:
-#                 text_data = fh.read()
-#             assert text_data == 'South America'
-#         if file_paths == [project_file1, project_file2, subdir][2]:
-#             assert osp.isdir(file_name)
+def test_copy_file(project_explorer_withfiles):
+    """Test copy file(s)/folders(s) to clipboard."""
+    project, file_list, cb = project_explorer_withfiles
+    for file_paths in file_list:
+        project.explorer.treewidget.copy_file_clipboard(fnames=file_paths)
+        cb_data = cb.mimeData().urls()
+        for url in cb_data:
+            file_name = url.toLocalFile()
+            assert osp.isdir(file_name) or osp.isfile(file_name)
+            if file_paths == file_list[0]:
+                with open(file_name, 'r') as fh:
+                    text_data = fh.read()
+                assert text_data == 'Spyder4 will be released this year'
+            if file_paths == file_list[2][1]:
+                with open(file_name, 'r') as fh:
+                    text_data = fh.read()
+                assert text_data == 'South America'
+            if file_paths == file_list[1][2]:
+                assert osp.isdir(file_name)
 
 
-# def test_save_file(project_explorer_withfiles):
-#     """Test save file(s)/folders(s) from clipboard."""
-#     project = project_explorer_withfiles
-#     project.explorer.treewidget.copy_file_clipboard(fnames=[project_file2])
-#     project.explorer.treewidget.save_file_clipboard(fnames=file_paths)
-#     assert osp.exists(osp.join(subdir, project_file2))
-#     with open(osp.join(subdir, project_file2), 'r') as fh:
-#         text_data = fh.read()
-#     assert text_data == 'Spyder4'
-#     project.explorer.treewidget.copy_file_clipboard(fnames=[subdir])
-#     project.explorer.treewidget.save_file_clipboard(fnames=[subdir,
-#                                                             project_file3])
-#     assert osp.exists(subdir + '1')
-#     for afile in [project_file3, osp.join(subdir, project_file2)]:
-#         assert osp.basename(afile) in os.listdir(subdir + '1')
-#         if afile == project_file3:
-#             with open(osp.join(project_file3), 'r') as fh:
-#                 text_data = fh.read()
-#             assert text_data == 'South America'
+def test_save_file(project_explorer_withfiles):
+    """Test save file(s)/folders(s) from clipboard."""
+    project, file_list, _ = project_explorer_withfiles
+    file_list2 = [file_list[1][2], [file_list[1][2], file_list[2][1]]]
+    for file_paths in file_list2:
+        project.explorer.treewidget.copy_file_clipboard(
+                fnames=[file_list[1][1]])
+        project.explorer.treewidget.save_file_clipboard(fnames=file_paths)
+        assert osp.exists(osp.join(file_list[1][2], file_list[1][1]))
+        with open(osp.join(file_list[1][2], file_list[1][1]), 'r') as fh:
+            text_data = fh.read()
+        assert text_data == 'Spyder4'
+        project.explorer.treewidget.copy_file_clipboard(
+                fnames=[file_list[1][2]])
+        project.explorer.treewidget.save_file_clipboard(
+                fnames=[file_list[1][2], file_list[2][1]])
+        assert osp.exists(file_list[1][2] + '1')
+        for afile in [file_list[2][1],
+                      osp.join(file_list[1][2], file_list[1][1])]:
+            assert osp.basename(afile) in os.listdir(file_list[1][2] + '1')
+            if afile == file_list[2][1]:
+                with open(osp.join(file_list[2][1]), 'r') as fh:
+                    text_data = fh.read()
+                assert text_data == 'South America'
+
+
+def test_remove_directory(project_explorer_withfiles):
+    project = project_explorer_withfiles[0]
+    project_dir = project.directory
+    if osp.exists(project_dir):
+        shutil.rmtree(project_dir)
 
 
 if __name__ == "__main__":
