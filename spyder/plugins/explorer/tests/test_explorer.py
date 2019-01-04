@@ -81,6 +81,7 @@ def create_test_files_folders(project_explorer_withfiles):
     if osp.exists(project_folder):
         shutil.rmtree(project_folder)
 
+
 def test_file_explorer(file_explorer):
     """Run FileExplorerTest."""
     file_explorer.resize(640, 480)
@@ -96,7 +97,8 @@ def test_project_explorer(project_explorer):
 
 
 @pytest.mark.parametrize('path_method', ['absolute', 'relative'])
-def test_copy_path(project_explorer_withfiles, create_test_files_folders, path_method):
+def test_copy_path(project_explorer_withfiles, create_test_files_folders,
+                   path_method):
     """Test copy absolute and relative paths."""
     project = project_explorer_withfiles
     file_list, cb = create_test_files_folders
