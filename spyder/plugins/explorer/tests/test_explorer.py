@@ -13,10 +13,8 @@ import os
 import os.path as osp
 import shutil
 
-# Test library imports
-import pytest
-
 # Third party imports
+import pytest
 from qtpy.QtWidgets import QApplication
 
 # Local imports
