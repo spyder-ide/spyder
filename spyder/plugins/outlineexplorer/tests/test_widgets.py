@@ -150,7 +150,7 @@ def create_outlineexplorer(qtbot):
 
 
 # ---- Test OutlineExplorerWidget
-def test_outline_explorer(create_outlineexplorer, qtbot):
+def test_outline_explorer(create_outlineexplorer):
     """
     Test to assert the outline explorer is initializing correctly and
     is showing the expected number of items, the expected type of items, and
