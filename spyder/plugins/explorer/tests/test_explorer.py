@@ -23,6 +23,7 @@ from qtpy.QtWidgets import QApplication
 from spyder.plugins.explorer.widgets import (FileExplorerTest,
                                              ProjectExplorerTest)
 from spyder.utils.misc import getcwd_or_home
+from spyder.py3compat import to_text_string
 from spyder.plugins.projects.widgets.explorer import ProjectExplorerTest as \
     ProjectExplorerTest2
 
@@ -48,8 +49,6 @@ def project_explorer_withfiles(qtbot):
     """Setup Project Explorer widget."""
     project_dir = osp.join(getcwd_or_home(),
                            'temp_dir_test_file_explorer_functions_spyder2019')
-    if not osp.exists(project_dir):
-        os.mkdir(project_dir)
     if not osp.exists(project_dir):
         os.mkdir(project_dir)
     project_file1 = osp.join(project_dir, 'script.py')
