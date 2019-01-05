@@ -72,7 +72,7 @@ class FigureBrowser(QWidget):
     sig_option_changed = Signal(str, object)
     sig_collapse = Signal()
 
-    def __init__(self, parent, options_button=None, plugin_actions=[],
+    def __init__(self, parent=None, options_button=None, plugin_actions=[],
                  background_color=None):
         super(FigureBrowser, self).__init__(parent)
 
