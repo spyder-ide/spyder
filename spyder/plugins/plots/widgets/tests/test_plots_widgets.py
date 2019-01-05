@@ -24,6 +24,7 @@ import numpy as np
 
 # Local imports
 from spyder.plugins.plots.widgets.figurebrowser import FigureBrowser
+from spyder.py3compat import to_text_string
 
 
 # =============================================================================
@@ -72,7 +73,7 @@ def test_handle_new_figures(figbrowser, tmpdir, fmt, fext):
     assert len(figbrowser.thumbnails_sb._thumbnails) == 0
 
     for i in range(3):
-        fname = osp.join(tmpdir, 'mplfig' + fext)
+        fname = osp.join(to_text_string(tmpdir), 'mplfig' + fext)
         fig = create_figure(fname)
         figbrowser._handle_new_figure(fig, fmt)
         assert len(figbrowser.thumbnails_sb._thumbnails) == i + 1
@@ -87,12 +88,12 @@ def test_save_figure_to_file(figbrowser, tmpdir, mocker, fmt, fext):
     Test saving png and svg figures to file with the figure browser.
     """
     # Create a figure with matplotlib and load it in the figure browser.
-    mpl_figname = osp.join(tmpdir, 'mplfig' + fext)
+    mpl_figname = osp.join(to_text_string(tmpdir), 'mplfig' + fext)
     fig = create_figure(mpl_figname)
     figbrowser._handle_new_figure(fig, fmt)
 
     # Save the figure back to disk with the figure browser.
-    spy_figname = osp.join(tmpdir, 'spyfig' + fext)
+    spy_figname = osp.join(to_text_string(tmpdir), 'spyfig' + fext)
     mocker.patch('spyder.plugins.plots.widgets.figurebrowser.getsavefilename',
                  return_value=(spy_figname, fext))
     figbrowser.thumbnails_sb.save_current_figure_as()
