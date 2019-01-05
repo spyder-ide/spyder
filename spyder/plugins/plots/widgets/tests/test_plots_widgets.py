@@ -145,6 +145,21 @@ def test_clear_current_figure(figbrowser, tmpdir):
     assert figbrowser.figviewer.figcanvas.fig is None
 
 
+def test_clear_all_figures(figbrowser, tmpdir):
+    """
+    Test that clearing all figures displayed in the thumbnails scrollbar
+    works as expected.
+    """
+    # Open some figures in the figure browser.
+    add_figures_to_browser(figbrowser, 3, tmpdir)
+
+    # Close all previously opened figures.
+    figbrowser.close_all_figures()
+    assert len(figbrowser.thumbnails_sb._thumbnails) == 0
+    assert figbrowser.thumbnails_sb.current_thumbnail is None
+    assert figbrowser.figviewer.figcanvas.fig is None
+
+
 if __name__ == "__main__":
     import os
     pytest.main([os.path.basename(__file__), '-vv', '-rw'])
