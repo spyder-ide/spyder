@@ -40,3 +40,20 @@ def figbrowser(qtbot, mocker):
     figbrowser.setMinimumSize(700, 500)
     return figbrowser
 
+
+# =============================================================================
+# ---- Helper functions
+# =============================================================================
+def create_figure(figname):
+    """Create a matplotlib figure, save it to disk and return its data."""
+    # Create and save to disk a figure with matplotlib.
+    fig, ax = plt.subplots()
+    fig.set_size_inches(6, 4)
+    ax.plot(np.random.rand(10), '.', color='red')
+    fig.savefig(figname)
+
+    # Read back and return the binary data from the file.
+    with open(figname, "rb") as img:
+        fig = img.read()
+    return fig
+
