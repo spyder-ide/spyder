@@ -31,8 +31,8 @@ from spyder.py3compat import to_text_string
 # ---- Fixtures
 # =============================================================================
 @pytest.fixture
-def figbrowser(qtbot, mocker):
-    """Plots plugin fixture."""
+def figbrowser(qtbot):
+    """An empty figure browser widget fixture."""
     figbrowser = FigureBrowser()
     figbrowser.set_shellwidget(Mock())
     figbrowser.setup(mute_inline_plotting=True, show_plot_outline=False)
