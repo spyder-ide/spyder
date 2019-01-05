@@ -125,6 +125,26 @@ def test_save_figure_to_file(figbrowser, tmpdir, mocker, fmt, fext):
     assert mplfig == spyfig
 
 
+def test_clear_current_figure(figbrowser, tmpdir):
+    """
+    Test that clearing the current figure works as expected.
+    """
+    # Open some figures in the figure browser.
+    figs = add_figures_to_browser(figbrowser, 2, tmpdir)
+
+    # Remove the first figure.
+    figbrowser.close_figure()
+    assert len(figbrowser.thumbnails_sb._thumbnails) == 1
+    assert figbrowser.thumbnails_sb.current_thumbnail.canvas.fig == figs[0]
+    assert figbrowser.figviewer.figcanvas.fig == figs[0]
+
+    # Remove the last figure.
+    figbrowser.close_figure()
+    assert len(figbrowser.thumbnails_sb._thumbnails) == 0
+    assert figbrowser.thumbnails_sb.current_thumbnail is None
+    assert figbrowser.figviewer.figcanvas.fig is None
+
+
 if __name__ == "__main__":
     import os
     pytest.main([os.path.basename(__file__), '-vv', '-rw'])
