@@ -351,7 +351,7 @@ class FigureViewer(QScrollArea):
         self.setAlignment(Qt.AlignCenter)
         self.viewport().setObjectName("figviewport")
         self.viewport().setStyleSheet(
-            "#figviewport {background-color:" + background_color + "}")
+            "#figviewport {background-color:" + str(background_color) + "}")
         self.setFrameStyle(0)
 
         self.background_color = background_color
@@ -792,7 +792,7 @@ class FigureCanvas(QFrame):
         self.setMidLineWidth(1)
         self.setObjectName("figcanvas")
         self.setStyleSheet(
-            "#figcanvas {background-color:" + background_color + "}")
+            "#figcanvas {background-color:" + str(background_color) + "}")
 
         self.fig = None
         self.fmt = None
