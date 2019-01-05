@@ -71,6 +71,7 @@ def add_figures_to_browser(figbrowser, nfig, tmpdir):
         figbrowser._handle_new_figure(figs[-1], 'image/png')
 
     assert len(figbrowser.thumbnails_sb._thumbnails) == nfig
+    assert figbrowser.thumbnails_sb.get_current_index() == nfig - 1
     assert figbrowser.thumbnails_sb.current_thumbnail.canvas.fig == figs[-1]
     assert figbrowser.figviewer.figcanvas.fig == figs[-1]
 
@@ -96,6 +97,7 @@ def test_handle_new_figures(figbrowser, tmpdir, fmt, fext):
         fig = create_figure(figname)
         figbrowser._handle_new_figure(fig, fmt)
         assert len(figbrowser.thumbnails_sb._thumbnails) == i + 1
+        assert figbrowser.thumbnails_sb.get_current_index() == i
         assert figbrowser.thumbnails_sb.current_thumbnail.canvas.fig == fig
         assert figbrowser.figviewer.figcanvas.fig == fig
 
@@ -135,12 +137,14 @@ def test_clear_current_figure(figbrowser, tmpdir):
     # Remove the first figure.
     figbrowser.close_figure()
     assert len(figbrowser.thumbnails_sb._thumbnails) == 1
+    assert figbrowser.thumbnails_sb.get_current_index() == 0
     assert figbrowser.thumbnails_sb.current_thumbnail.canvas.fig == figs[0]
     assert figbrowser.figviewer.figcanvas.fig == figs[0]
 
     # Remove the last figure.
     figbrowser.close_figure()
     assert len(figbrowser.thumbnails_sb._thumbnails) == 0
+    assert figbrowser.thumbnails_sb.get_current_index() == -1
     assert figbrowser.thumbnails_sb.current_thumbnail is None
     assert figbrowser.figviewer.figcanvas.fig is None
 
@@ -156,6 +160,7 @@ def test_clear_all_figures(figbrowser, tmpdir):
     # Close all previously opened figures.
     figbrowser.close_all_figures()
     assert len(figbrowser.thumbnails_sb._thumbnails) == 0
+    assert figbrowser.thumbnails_sb.get_current_index() == -1
     assert figbrowser.thumbnails_sb.current_thumbnail is None
     assert figbrowser.figviewer.figcanvas.fig is None
 

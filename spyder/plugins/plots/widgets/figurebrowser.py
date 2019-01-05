@@ -667,6 +667,13 @@ class ThumbnailScrollBar(QFrame):
         """Set the currently selected thumbnail by its index."""
         self.set_current_thumbnail(self._thumbnails[index])
 
+    def get_current_index(self):
+        """Return the index of the currently selected thumbnail."""
+        try:
+            return self._thumbnails.index(self.current_thumbnail)
+        except ValueError:
+            return -1
+
     def set_current_thumbnail(self, thumbnail):
         """Set the currently selected thumbnail."""
         self.current_thumbnail = thumbnail
