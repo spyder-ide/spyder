@@ -57,3 +57,29 @@ def create_figure(figname):
         fig = img.read()
     return fig
 
+
+# =============================================================================
+# ---- Tests
+# =============================================================================
+@pytest.mark.parametrize("fmt, fext",
+                         [('image/png', '.png'), ('image/svg+xml', '.svg')])
+def test_handle_new_figures(figbrowser, tmpdir, fmt, fext):
+    """
+    Test that the figure browser widget display correctly new figures in
+    its viewer and thumbnails scrollbar.
+    """
+    assert figbrowser.figviewer.figcanvas.fig is None
+    assert len(figbrowser.thumbnails_sb._thumbnails) == 0
+
+    for i in range(3):
+        fname = osp.join(tmpdir, 'mplfig' + fext)
+        fig = create_figure(fname)
+        figbrowser._handle_new_figure(fig, fmt)
+        assert len(figbrowser.thumbnails_sb._thumbnails) == i + 1
+        assert figbrowser.thumbnails_sb.current_thumbnail.canvas.fig == fig
+        assert figbrowser.figviewer.figcanvas.fig == fig
+
+
+if __name__ == "__main__":
+    import os
+    pytest.main([os.path.basename(__file__), '-vv', '-rw'])
