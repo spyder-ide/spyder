@@ -87,12 +87,13 @@ def test_handle_new_figures(figbrowser, tmpdir, fmt, fext):
     Test that the figure browser widget display correctly new figures in
     its viewer and thumbnails scrollbar.
     """
-    assert figbrowser.figviewer.figcanvas.fig is None
     assert len(figbrowser.thumbnails_sb._thumbnails) == 0
+    assert figbrowser.thumbnails_sb.current_thumbnail is None
+    assert figbrowser.figviewer.figcanvas.fig is None
 
     for i in range(3):
-        fname = osp.join(to_text_string(tmpdir), 'mplfig' + fext)
-        fig = create_figure(fname)
+        figname = osp.join(to_text_string(tmpdir), 'mplfig' + str(i) + fext)
+        fig = create_figure(figname)
         figbrowser._handle_new_figure(fig, fmt)
         assert len(figbrowser.thumbnails_sb._thumbnails) == i + 1
         assert figbrowser.thumbnails_sb.current_thumbnail.canvas.fig == fig
@@ -107,20 +108,18 @@ def test_save_figure_to_file(figbrowser, tmpdir, mocker, fmt, fext):
     """
     # Create a figure with matplotlib and load it in the figure browser.
     mpl_figname = osp.join(to_text_string(tmpdir), 'mplfig' + fext)
-    fig = create_figure(mpl_figname)
-    figbrowser._handle_new_figure(fig, fmt)
+    mplfig = create_figure(mpl_figname)
+    figbrowser._handle_new_figure(mplfig, fmt)
 
     # Save the figure back to disk with the figure browser.
     spy_figname = osp.join(to_text_string(tmpdir), 'spyfig' + fext)
     mocker.patch('spyder.plugins.plots.widgets.figurebrowser.getsavefilename',
                  return_value=(spy_figname, fext))
     figbrowser.thumbnails_sb.save_current_figure_as()
+    assert osp.exists(spy_figname)
 
     # Compare the figure created with matplotlib with the one created with our
     # figure browser.
-    assert osp.exists(spy_figname)
-    with open(mpl_figname, "rb") as figfile:
-        mplfig = figfile.read()
     with open(spy_figname, "rb") as figfile:
         spyfig = figfile.read()
     assert mplfig == spyfig
