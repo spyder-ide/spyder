@@ -59,6 +59,24 @@ def create_figure(figname):
     return fig
 
 
+def add_figures_to_browser(figbrowser, nfig, tmpdir):
+    """
+    Create and add bitmap figures to the figure browser. Also return a list
+    of the created figures data.
+    """
+    figs = []
+    for i in range(nfig):
+        figname = osp.join(to_text_string(tmpdir), 'mplfig' + str(i) + '.png')
+        figs.append(create_figure(figname))
+        figbrowser._handle_new_figure(figs[-1], 'image/png')
+
+    assert len(figbrowser.thumbnails_sb._thumbnails) == nfig
+    assert figbrowser.thumbnails_sb.current_thumbnail.canvas.fig == figs[-1]
+    assert figbrowser.figviewer.figcanvas.fig == figs[-1]
+
+    return figs
+
+
 # =============================================================================
 # ---- Tests
 # =============================================================================
