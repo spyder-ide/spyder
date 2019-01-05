@@ -25,3 +25,18 @@ import numpy as np
 # Local imports
 from spyder.plugins.plots.widgets.figurebrowser import FigureBrowser
 
+
+# =============================================================================
+# ---- Fixtures
+# =============================================================================
+@pytest.fixture
+def figbrowser(qtbot, mocker):
+    """Plots plugin fixture."""
+    figbrowser = FigureBrowser()
+    figbrowser.set_shellwidget(Mock())
+    figbrowser.setup(mute_inline_plotting=True, show_plot_outline=False)
+    qtbot.addWidget(figbrowser)
+    figbrowser.show()
+    figbrowser.setMinimumSize(700, 500)
+    return figbrowser
+
