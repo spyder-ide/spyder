@@ -349,8 +349,9 @@ class FigureViewer(QScrollArea):
     def __init__(self, parent=None, background_color=None):
         super(FigureViewer, self).__init__(parent)
         self.setAlignment(Qt.AlignCenter)
+        self.viewport().setObjectName("figviewport")
         self.viewport().setStyleSheet(
-                "background-color: {}".format(background_color))
+            "#figviewport {background-color:" + str(background_color) + "}")
         self.setFrameStyle(0)
 
         self.background_color = background_color
@@ -789,11 +790,14 @@ class FigureCanvas(QFrame):
         super(FigureCanvas, self).__init__(parent)
         self.setLineWidth(2)
         self.setMidLineWidth(1)
-        self.setStyleSheet("background-color: {}".format(background_color))
+        self.setObjectName("figcanvas")
+        self.setStyleSheet(
+            "#figcanvas {background-color:" + str(background_color) + "}")
 
         self.fig = None
         self.fmt = None
         self.fwidth, self.fheight = 200, 200
+        self._blink_flag = False
 
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.context_menu_requested)
@@ -826,12 +830,11 @@ class FigureCanvas(QFrame):
     def blink_figure(self):
         """Blink figure once."""
         if self.fig:
-            timer = QTimer()
-            frame_rect = self.frameSize()
-            self.setFixedSize(0, 0)
-            timer.singleShot(40,
-                             lambda: self.setFixedSize(frame_rect.width(),
-                                                       frame_rect.height()))
+            self._blink_flag = not self._blink_flag
+            self.repaint()
+            if self._blink_flag:
+                timer = QTimer()
+                timer.singleShot(40, self.blink_figure)
 
     def clear_canvas(self):
         """Clear the figure that was painted on the widget."""
@@ -867,7 +870,7 @@ class FigureCanvas(QFrame):
                      self.size().width() - 2 * fw,
                      self.size().height() - 2 * fw)
 
-        if self.fig is None:
+        if self.fig is None or self._blink_flag:
             return
 
         # Check/update the qpixmap buffer :
