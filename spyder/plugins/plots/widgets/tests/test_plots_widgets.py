@@ -165,17 +165,16 @@ def test_clear_all_figures(figbrowser, tmpdir):
     assert figbrowser.figviewer.figcanvas.fig is None
 
 
-def test_go_prev_next_figure(figbrowser, tmpdir):
+def test_go_prev_next_thumbnail(figbrowser, tmpdir):
     """
-    Test that the go to previous and next figure actions are working
+    Test that the go to previous and next thumbnail actions are working
     as expected.
     """
     # Open some figures in the figure browser.
     figs = add_figures_to_browser(figbrowser, 3, tmpdir)
-    assert figbrowser.thumbnails_sb.get_current_index() == 2
-    assert figbrowser.thumbnails_sb.current_thumbnail.canvas.fig == figs[2]
-    assert figbrowser.figviewer.figcanvas.fig == figs[2]
 
+    # Circle through the open figures with go_next_thumbnail and
+    # go_previous_thumbnail.
     figbrowser.go_next_thumbnail()
     assert figbrowser.thumbnails_sb.get_current_index() == 0
     assert figbrowser.thumbnails_sb.current_thumbnail.canvas.fig == figs[0]
