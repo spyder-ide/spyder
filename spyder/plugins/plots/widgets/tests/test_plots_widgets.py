@@ -80,6 +80,33 @@ def test_handle_new_figures(figbrowser, tmpdir, fmt, fext):
         assert figbrowser.figviewer.figcanvas.fig == fig
 
 
+@pytest.mark.parametrize("fmt, fext",
+                         [('image/png', '.png'), ('image/svg+xml', '.svg')])
+def test_save_figure_to_file(figbrowser, tmpdir, mocker, fmt, fext):
+    """
+    Test saving png and svg figures to file with the figure browser.
+    """
+    # Create a figure with matplotlib and load it in the figure browser.
+    mpl_figname = osp.join(tmpdir, 'mplfig' + fext)
+    fig = create_figure(mpl_figname)
+    figbrowser._handle_new_figure(fig, fmt)
+
+    # Save the figure back to disk with the figure browser.
+    spy_figname = osp.join(tmpdir, 'spyfig' + fext)
+    mocker.patch('spyder.plugins.plots.widgets.figurebrowser.getsavefilename',
+                 return_value=(spy_figname, fext))
+    figbrowser.thumbnails_sb.save_current_figure_as()
+
+    # Compare the figure created with matplotlib with the one created with our
+    # figure browser.
+    assert osp.exists(spy_figname)
+    with open(mpl_figname, "rb") as figfile:
+        mplfig = figfile.read()
+    with open(spy_figname, "rb") as figfile:
+        spyfig = figfile.read()
+    assert mplfig == spyfig
+
+
 if __name__ == "__main__":
     import os
     pytest.main([os.path.basename(__file__), '-vv', '-rw'])
