@@ -165,6 +165,33 @@ def test_clear_all_figures(figbrowser, tmpdir):
     assert figbrowser.figviewer.figcanvas.fig is None
 
 
+def test_go_prev_next_figure(figbrowser, tmpdir):
+    """
+    Test that the go to previous and next figure actions are working
+    as expected.
+    """
+    # Open some figures in the figure browser.
+    figs = add_figures_to_browser(figbrowser, 3, tmpdir)
+    assert figbrowser.thumbnails_sb.get_current_index() == 2
+    assert figbrowser.thumbnails_sb.current_thumbnail.canvas.fig == figs[2]
+    assert figbrowser.figviewer.figcanvas.fig == figs[2]
+
+    figbrowser.go_next_thumbnail()
+    assert figbrowser.thumbnails_sb.get_current_index() == 0
+    assert figbrowser.thumbnails_sb.current_thumbnail.canvas.fig == figs[0]
+    assert figbrowser.figviewer.figcanvas.fig == figs[0]
+
+    figbrowser.go_previous_thumbnail()
+    assert figbrowser.thumbnails_sb.get_current_index() == 2
+    assert figbrowser.thumbnails_sb.current_thumbnail.canvas.fig == figs[2]
+    assert figbrowser.figviewer.figcanvas.fig == figs[2]
+
+    figbrowser.go_previous_thumbnail()
+    assert figbrowser.thumbnails_sb.get_current_index() == 1
+    assert figbrowser.thumbnails_sb.current_thumbnail.canvas.fig == figs[1]
+    assert figbrowser.figviewer.figcanvas.fig == figs[1]
+
+
 if __name__ == "__main__":
     import os
     pytest.main([os.path.basename(__file__), '-vv', '-rw'])
