@@ -216,7 +216,7 @@ install_requires = [
     'pyzmq',
     'chardet>=2.0.0',
     'numpydoc',
-    'spyder-kernels>=1.0',
+    'spyder-kernels>=1.2',
     'qdarkstyle>=2.6.4',
     'atomicwrites',
     # Don't require keyring for Python 2 and Linux
