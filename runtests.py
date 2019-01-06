@@ -33,6 +33,9 @@ def main(run_slow=False, extra_args=None):
     if RUN_CI:
         pytest_args += ['-x', '--run-slow', '--cov=spyder',
                         '--cov=spyder_profiler', '--no-cov-on-fail']
+        # To display nice tests resume in Azure's web page
+        if os.environ.get('AZURE', None) is not None:
+            pytest_args += ['--cache-clear', '--junitxml=result.xml']
     elif run_slow:
         pytest_args += ['--run-slow']
     elif extra_args:
