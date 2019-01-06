@@ -234,7 +234,7 @@ install_requires = [
 
 extras_require = {
     'test:python_version == "2.7"': ['mock'],
-    'test': ['pytest',
+    'test': ['pytest<4.1',
              'pytest-qt',
              'pytest-mock',
              'pytest-cov',
