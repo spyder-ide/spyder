@@ -260,8 +260,8 @@ def test_project_explorer_tree_root(projects, tmpdir, qtbot):
     qtbot.addWidget(projects.explorer)
     projects.show_explorer()
 
-    ppath1 = to_text_string(tmpdir.mkdir('test'))
-    ppath2 = to_text_string(tmpdir.mkdir('subfolder').mkdir('test2'))
+    ppath1 = to_text_string(tmpdir.mkdir(u'測試'))
+    ppath2 = to_text_string(tmpdir.mkdir(u'ïèô éàñ').mkdir(u'اختبار'))
 
     # Open the projects.
     for ppath in [ppath1, ppath2]:
