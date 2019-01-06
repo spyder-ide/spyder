@@ -10,11 +10,11 @@ pycodestyle
 pylint
 psutil
 qtawesome>=0.4.1
-qtpy>=1.2.0
+qtpy>=1.5.0
 pickleshare
 pyzmq
 chardet>=2.0.0
 numpydoc
-pyqt5
+pyqt
 keyring
 spyder-kernels<1.0
