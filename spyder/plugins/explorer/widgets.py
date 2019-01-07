@@ -147,14 +147,14 @@ class ColorModel(QFileSystemModel):
 
     def setVCSState(self, root_path):
         """Set the vcs state dictionary."""
-        self.root_path = root_path
+        self.root_path = osp.abspath(root_path)
         self.vcs_state = vcs.get_vcs_status(self.root_path)
         self.dataChanged.emit(QModelIndex(), QModelIndex())
 
     def relativePath(self, index):
         """Return the project-relative path of a file with a given index."""
-        return str(re.sub('^' + self.root_path + '/', '',
-                          self.filePath(index)))
+        return str(osp.relpath(osp.abspath(self.filePath(index)),
+                               self.root_path))
 
     def data(self, index, role):
         """Set the colors of the elements in the Treeview."""

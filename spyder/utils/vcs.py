@@ -123,7 +123,7 @@ def get_vcs_status(path):
                             index = stat.index(fString[:o-1].strip())
                         except ValueError:
                             continue
-                        vcsst[fString[o:]] = index
+                        vcsst[osp.relpath(fString[o:], rootPath)] = index
                     return vcsst
                 else:
                     return []
