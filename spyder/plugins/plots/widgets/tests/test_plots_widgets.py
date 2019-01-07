@@ -141,7 +141,7 @@ def test_save_figure_to_file(figbrowser, tmpdir, mocker, fmt, fext):
 
 
 @pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
-def test_clear_current_figure(figbrowser, tmpdir, fmt):
+def test_close_current_figure(figbrowser, tmpdir, fmt):
     """
     Test that clearing the current figure works as expected.
     """
@@ -163,7 +163,7 @@ def test_clear_current_figure(figbrowser, tmpdir, fmt):
 
 
 @pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
-def test_clear_all_figures(figbrowser, tmpdir, fmt):
+def test_close_all_figures(figbrowser, tmpdir, fmt):
     """
     Test that clearing all figures displayed in the thumbnails scrollbar
     works as expected.
