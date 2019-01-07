@@ -651,6 +651,9 @@ class ThumbnailScrollBar(QFrame):
         """Remove all thumbnails."""
         for thumbnail in self._thumbnails:
             self.layout().removeWidget(thumbnail)
+            thumbnail.sig_canvas_clicked.disconnect()
+            thumbnail.sig_remove_figure.disconnect()
+            thumbnail.sig_save_figure.disconnect()
             thumbnail.deleteLater()
         self._thumbnails = []
         self.current_thumbnail = None
@@ -663,6 +666,9 @@ class ThumbnailScrollBar(QFrame):
             self._thumbnails.remove(thumbnail)
         self.layout().removeWidget(thumbnail)
         thumbnail.deleteLater()
+        thumbnail.sig_canvas_clicked.disconnect()
+        thumbnail.sig_remove_figure.disconnect()
+        thumbnail.sig_save_figure.disconnect()
 
         # Select a new thumbnail if any :
         if thumbnail == self.current_thumbnail:
