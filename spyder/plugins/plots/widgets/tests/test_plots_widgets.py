@@ -179,8 +179,7 @@ def test_clear_all_figures(figbrowser, tmpdir):
 
 def test_go_prev_next_thumbnail(figbrowser, tmpdir):
     """
-    Test that the go to previous and next thumbnail actions are working
-    as expected.
+    Test go to previous and next thumbnail actions.
     """
     # Open some figures in the figure browser.
     figs = add_figures_to_browser(figbrowser, 3, tmpdir)
