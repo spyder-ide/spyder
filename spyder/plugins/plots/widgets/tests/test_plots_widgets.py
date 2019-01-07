@@ -24,6 +24,7 @@ import numpy as np
 from qtpy.QtWidgets import QApplication
 from qtpy.QtGui import QPixmap
 from qtpy.QtCore import Qt
+from qtconsole.svg import svg_to_image
 
 # Local imports
 from spyder.plugins.plots.widgets.figurebrowser import FigureBrowser
@@ -248,6 +249,42 @@ def test_copy_svg_to_clipboard(figbrowser, tmpdir):
     figbrowser.go_next_thumbnail()
     figbrowser.copy_figure()
     assert clipboard.mimeData().data('image/svg+xml') == figs[0]
+
+
+@pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
+def test_zoom_figure_viewer(figbrowser, tmpdir, fmt):
+    """
+    Test zooming in and out the figure diplayed in the figure viewer.
+    """
+    fig = add_figures_to_browser(figbrowser, 1, tmpdir, fmt)[0]
+    figcanvas = figbrowser.figviewer.figcanvas
+
+    # Calculate original figure size in pixels.
+    if fmt == 'image/png':
+        qpix = QPixmap()
+        qpix.loadFromData(fig, fmt.upper())
+    elif fmt == 'image/svg+xml':
+        qpix = QPixmap(svg_to_image(fig))
+    fwidth, fheight = qpix.width(), qpix.height()
+
+    assert figbrowser.zoom_disp.value() == 100
+    assert figcanvas.width() == fwidth
+    assert figcanvas.height() == fheight
+
+    # Zoom in and out the figure in the figure viewer.
+    scaling_factor = 0
+    scaling_step = figbrowser.figviewer._scalestep
+    for zoom_step in [1, 1, -1, -1, -1]:
+        if zoom_step == 1:
+            figbrowser.zoom_in()
+        elif zoom_step == -1:
+            figbrowser.zoom_out()
+        scaling_factor += zoom_step
+        scale = scaling_step**scaling_factor
+
+        assert figbrowser.zoom_disp.value() == np.floor(scale * 100)
+        assert figcanvas.width() == np.floor(fwidth * scale)
+        assert figcanvas.height() == np.floor(fheight * scale)
 
 
 if __name__ == "__main__":
