@@ -247,6 +247,47 @@ def test_mouse_clicking_thumbnails(figbrowser, tmpdir, qtbot, fmt):
         assert figbrowser.figviewer.figcanvas.fig == figs[i]
 
 
+@pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
+def test_save_thumbnails(figbrowser, tmpdir, qtbot, mocker, fmt):
+    """
+    Test saving figures by clicking on the thumbnail icon.
+    """
+    figs = add_figures_to_browser(figbrowser, 3, tmpdir, fmt)
+    fext = '.svg' if fmt == 'image/svg+xml' else '.png'
+
+    # Save the second thumbnail of the scrollbar.
+    figname = osp.join(to_text_string(tmpdir), 'figname' + fext)
+    mocker.patch('spyder.plugins.plots.widgets.figurebrowser.getsavefilename',
+                 return_value=(figname, fext))
+    qtbot.mouseClick(
+        figbrowser.thumbnails_sb._thumbnails[1].savefig_btn, Qt.LeftButton)
+
+    expected_qpix = QPixmap()
+    expected_qpix.loadFromData(figs[1], fmt.upper())
+    saved_qpix = QPixmap()
+    saved_qpix.load(figname)
+
+    assert osp.exists(figname)
+    assert expected_qpix.toImage() == saved_qpix.toImage()
+
+
+@pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
+def test_close_thumbnails(figbrowser, tmpdir, qtbot, mocker, fmt):
+    """
+    Test closing figures by clicking on the thumbnail icon.
+    """
+    figs = add_figures_to_browser(figbrowser, 3, tmpdir, fmt)
+
+    # Close the second thumbnail of the scrollbar.
+    qtbot.mouseClick(
+        figbrowser.thumbnails_sb._thumbnails[1].delfig_btn, Qt.LeftButton)
+    del figs[1]
+
+    assert len(figbrowser.thumbnails_sb._thumbnails) == len(figs)
+    assert figbrowser.thumbnails_sb._thumbnails[0].canvas.fig == figs[0]
+    assert figbrowser.thumbnails_sb._thumbnails[1].canvas.fig == figs[1]
+
+
 def test_copy_png_to_clipboard(figbrowser, tmpdir):
     """
     Test copying png figures to the clipboard.

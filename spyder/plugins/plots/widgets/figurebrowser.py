@@ -745,20 +745,20 @@ class FigureThumbnail(QWidget):
 
     def setup_toolbar(self):
         """Setup the toolbar."""
-        savefig_btn = create_toolbutton(
-                self, icon=ima.icon('filesave'),
-                tip=_("Save Image As..."),
-                triggered=self.emit_save_figure)
-        delfig_btn = create_toolbutton(
-                self, icon=ima.icon('editclear'),
-                tip=_("Delete image"),
-                triggered=self.emit_remove_figure)
+        self.savefig_btn = create_toolbutton(
+            self, icon=ima.icon('filesave'),
+            tip=_("Save Image As..."),
+            triggered=self.emit_save_figure)
+        self.delfig_btn = create_toolbutton(
+            self, icon=ima.icon('editclear'),
+            tip=_("Delete image"),
+            triggered=self.emit_remove_figure)
 
         toolbar = QVBoxLayout()
         toolbar.setContentsMargins(0, 0, 0, 0)
         toolbar.setSpacing(1)
-        toolbar.addWidget(savefig_btn)
-        toolbar.addWidget(delfig_btn)
+        toolbar.addWidget(self.savefig_btn)
+        toolbar.addWidget(self.delfig_btn)
         toolbar.addStretch(2)
 
         return toolbar
