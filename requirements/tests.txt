@@ -1,6 +1,5 @@
 mock
-pytest
-pytest-qt
+pytest <4.1
 pytest-mock
 pytest-cov
 pandas
@@ -9,4 +8,5 @@ sympy
 pillow
 matplotlib
 cython
+pytest-qt
 flaky
