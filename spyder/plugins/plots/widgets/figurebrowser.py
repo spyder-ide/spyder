@@ -579,11 +579,9 @@ class ThumbnailScrollBar(QFrame):
 
     def save_current_figure_as(self):
         """Save the currently selected figure."""
-        if self.current_thumbnail is None:
-            return
-
-        self.save_figure_as(self.current_thumbnail.canvas.fig,
-                            self.current_thumbnail.canvas.fmt)
+        if self.current_thumbnail is not None:
+            self.save_figure_as(self.current_thumbnail.canvas.fig,
+                                self.current_thumbnail.canvas.fmt)
 
     def save_figure_as(self, fig, fmt):
         """Save the figure to a file."""
