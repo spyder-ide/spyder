@@ -21,6 +21,8 @@ except ImportError:
 import pytest
 import matplotlib.pyplot as plt
 import numpy as np
+from qtpy.QtWidgets import QApplication
+from qtpy.QtGui import QPixmap
 
 # Local imports
 from spyder.plugins.plots.widgets.figurebrowser import FigureBrowser
@@ -199,6 +201,21 @@ def test_go_prev_next_thumbnail(figbrowser, tmpdir):
     assert figbrowser.thumbnails_sb.current_thumbnail.canvas.fig == figs[1]
     assert figbrowser.figviewer.figcanvas.fig == figs[1]
 
+
+def test_copy_png_to_clipboard(figbrowser, tmpdir):
+    """Test copying png figures to the clipboard."""
+    # Open some figures in the figure browser.
+    figs = add_figures_to_browser(figbrowser, 3, tmpdir, 'image/png')
+    clipboard = QApplication.clipboard()
+
+    # Copy the current figure (last thumbnail) to the clipboard.
+    figbrowser.copy_figure()
+    assert clipboard.image() == png_to_qimage(figs[-1])
+
+    # Copy the first thumbnail to the clipboard.
+    figbrowser.go_next_thumbnail()
+    figbrowser.copy_figure()
+    assert clipboard.image() == png_to_qimage(figs[0])
 
 if __name__ == "__main__":
     import os
