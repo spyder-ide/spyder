@@ -139,12 +139,13 @@ def test_save_figure_to_file(figbrowser, tmpdir, mocker, fmt, fext):
     assert mplfig == spyfig
 
 
-def test_clear_current_figure(figbrowser, tmpdir):
+@pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
+def test_clear_current_figure(figbrowser, tmpdir, fmt):
     """
     Test that clearing the current figure works as expected.
     """
     # Open some figures in the figure browser.
-    figs = add_figures_to_browser(figbrowser, 2, tmpdir)
+    figs = add_figures_to_browser(figbrowser, 2, tmpdir, fmt)
 
     # Remove the first figure.
     figbrowser.close_figure()
@@ -161,13 +162,14 @@ def test_clear_current_figure(figbrowser, tmpdir):
     assert figbrowser.figviewer.figcanvas.fig is None
 
 
-def test_clear_all_figures(figbrowser, tmpdir):
+@pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
+def test_clear_all_figures(figbrowser, tmpdir, fmt):
     """
     Test that clearing all figures displayed in the thumbnails scrollbar
     works as expected.
     """
     # Open some figures in the figure browser.
-    add_figures_to_browser(figbrowser, 3, tmpdir)
+    add_figures_to_browser(figbrowser, 3, tmpdir, fmt)
 
     # Close all previously opened figures.
     figbrowser.close_all_figures()
@@ -177,12 +179,13 @@ def test_clear_all_figures(figbrowser, tmpdir):
     assert figbrowser.figviewer.figcanvas.fig is None
 
 
-def test_go_prev_next_thumbnail(figbrowser, tmpdir):
+@pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
+def test_go_prev_next_thumbnail(figbrowser, tmpdir, fmt):
     """
     Test go to previous and next thumbnail actions.
     """
     # Open some figures in the figure browser.
-    figs = add_figures_to_browser(figbrowser, 3, tmpdir)
+    figs = add_figures_to_browser(figbrowser, 3, tmpdir, fmt)
 
     # Circle through the open figures with go_next_thumbnail and
     # go_previous_thumbnail.
@@ -202,12 +205,13 @@ def test_go_prev_next_thumbnail(figbrowser, tmpdir):
     assert figbrowser.figviewer.figcanvas.fig == figs[1]
 
 
-def test_mouse_clicking_thumbnails(figbrowser, tmpdir, qtbot):
+@pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
+def test_mouse_clicking_thumbnails(figbrowser, tmpdir, qtbot, fmt):
     """
     Test mouse clicking on thumbnails.
     """
     # Open some figures in the figure browser.
-    figs = add_figures_to_browser(figbrowser, 3, tmpdir)
+    figs = add_figures_to_browser(figbrowser, 3, tmpdir, fmt)
 
     for i in [1, 0, 2]:
         qtbot.mouseClick(
