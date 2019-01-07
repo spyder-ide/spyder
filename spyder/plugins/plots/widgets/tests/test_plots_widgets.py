@@ -132,7 +132,7 @@ def test_save_figure_to_file(figbrowser, tmpdir, mocker, fmt, fext):
     mocker.patch('spyder.plugins.plots.widgets.figurebrowser.getsavefilename',
                  return_value=(saved_figname, fext))
 
-    figbrowser.thumbnails_sb.save_current_figure_as()
+    figbrowser.save_figure()
     saved_qpix = QPixmap()
     saved_qpix.load(saved_figname)
 

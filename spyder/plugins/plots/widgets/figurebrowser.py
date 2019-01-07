@@ -140,7 +140,7 @@ class FigureBrowser(QWidget):
         savefig_btn = create_toolbutton(
                 self, icon=ima.icon('filesave'),
                 tip=_("Save Image As..."),
-                triggered=self.thumbnails_sb.save_current_figure_as)
+                triggered=self.save_figure)
 
         saveall_btn = create_toolbutton(
                 self, icon=ima.icon('save_all'),
@@ -323,6 +323,10 @@ class FigureBrowser(QWidget):
         thumbnail scrollbar.
         """
         self.thumbnails_sb.go_next_thumbnail()
+
+    def save_figure(self):
+        """Save the currently selected figure in the thumbnail scrollbar."""
+        self.thumbnails_sb.save_current_figure_as()
 
     def close_figure(self):
         """Close the currently selected figure in the thumbnail scrollbar."""
