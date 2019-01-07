@@ -356,5 +356,4 @@ def test_zoom_figure_viewer(figbrowser, tmpdir, fmt):
 
 
 if __name__ == "__main__":
-    import os
-    pytest.main([os.path.basename(__file__), '-vv', '-rw'])
+    pytest.main()
