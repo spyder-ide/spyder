@@ -216,7 +216,7 @@ install_requires = [
     'pyzmq',
     'chardet>=2.0.0',
     'numpydoc',
-    'spyder-kernels>=1.0',
+    'spyder-kernels>=1.2',
     'qdarkstyle>=2.6.4',
     'atomicwrites',
     # Don't require keyring for Python 2 and Linux
@@ -234,7 +234,7 @@ install_requires = [
 
 extras_require = {
     'test:python_version == "2.7"': ['mock'],
-    'test': ['pytest',
+    'test': ['pytest<4.1',
              'pytest-qt',
              'pytest-mock',
              'pytest-cov',
