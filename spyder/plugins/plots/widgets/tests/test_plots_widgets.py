@@ -115,28 +115,29 @@ def test_handle_new_figures(figbrowser, tmpdir, fmt, fext):
 
 
 @pytest.mark.parametrize("fmt, fext",
-                         [('image/png', '.png'), ('image/svg+xml', '.svg')])
+                         [('image/png', '.png'),
+                          ('image/svg+xml', '.svg'),
+                          ('image/svg+xml', '.png')])
 def test_save_figure_to_file(figbrowser, tmpdir, mocker, fmt, fext):
     """
     Test saving png and svg figures to file with the figure browser.
     """
     # Create a figure with matplotlib and load it in the figure browser.
-    mpl_figname = osp.join(to_text_string(tmpdir), 'mplfig' + fext)
-    mplfig = create_figure(mpl_figname)
-    figbrowser._handle_new_figure(mplfig, fmt)
+    fig = add_figures_to_browser(figbrowser, 1, tmpdir, fmt)[0]
+    expected_qpix = QPixmap()
+    expected_qpix.loadFromData(fig, fmt.upper())
 
-    # Save the figure back to disk with the figure browser.
-    spy_figname = osp.join(to_text_string(tmpdir), 'spyfig' + fext)
+    # Save the figure to disk with the figure browser.
+    saved_figname = osp.join(to_text_string(tmpdir), 'spyfig' + fext)
     mocker.patch('spyder.plugins.plots.widgets.figurebrowser.getsavefilename',
-                 return_value=(spy_figname, fext))
-    figbrowser.thumbnails_sb.save_current_figure_as()
-    assert osp.exists(spy_figname)
+                 return_value=(saved_figname, fext))
 
-    # Compare the figure created with matplotlib with the one created with our
-    # figure browser.
-    with open(spy_figname, "rb") as figfile:
-        spyfig = figfile.read()
-    assert mplfig == spyfig
+    figbrowser.thumbnails_sb.save_current_figure_as()
+    saved_qpix = QPixmap()
+    saved_qpix.load(saved_figname)
+
+    assert osp.exists(saved_figname)
+    assert expected_qpix.toImage() == saved_qpix.toImage()
 
 
 @pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
