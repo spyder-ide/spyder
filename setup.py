@@ -224,7 +224,7 @@ install_requires = [
     'keyring;sys_platform!="linux2"',
     # Packages for pyqt5 are only available in
     # Python 3
-    'pyqt5<5.10;python_version>="3"',
+    'pyqt5<=5.12;python_version>="3"',
     # Pyls with all its dependencies
     'python-language-server[all]==0.19.0',
     # Required to get SSH connections to remote kernels
