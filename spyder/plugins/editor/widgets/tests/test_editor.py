@@ -691,15 +691,18 @@ def test_autosave_updates_name_mapping(editor_bot, mocker, qtbot):
     assert blocker.args == ['autosave_mapping', expected]
 
 
-def test_autosave_ignores_error(editor_bot, mocker):
+def test_autosave_handles_error(editor_bot, mocker):
     """Test that autosave() ignores errors when writing to file."""
     editor_stack, editor = editor_bot
     mock_write = mocker.patch.object(editor_stack, '_write_to_file')
+    mock_dialog = mocker.patch(
+        'spyder.plugins.editor.utils.autosave.AutosaveErrorMessageBox')
     try:
         mock_write.side_effect = PermissionError
     except NameError:  # Python 2
         mock_write.side_effect = IOError
     editor_stack.autosave.autosave(0)
+    assert mock_dialog.called
 
 
 def test_remove_autosave_file(editor_bot, mocker, qtbot):

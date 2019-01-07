@@ -13,9 +13,10 @@ import os.path as osp
 
 # Third party imports
 from qtpy.QtCore import QTimer
+from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyder.config.base import get_conf_path
+from spyder.config.base import _, get_conf_path
 from spyder.config.main import CONF
 from spyder.plugins.editor.widgets.recover import RecoveryDialog
 
@@ -164,7 +165,7 @@ class AutosaveForStack(object):
         try:
             os.remove(autosave_filename)
         except EnvironmentError:
-            pass
+            pass  # TODO Show errors
         del self.name_mapping[filename]
         self.stack.sig_option_changed.emit(
                 'autosave_mapping', self.name_mapping)
@@ -186,7 +187,7 @@ class AutosaveForStack(object):
         except KeyError:
             autosave_dir = get_conf_path('autosave')
             if not osp.isdir(autosave_dir):
-                os.mkdir(autosave_dir)
+                os.mkdir(autosave_dir)  # TODO Handle errors
             autosave_filename = self.create_unique_autosave_filename(
                     filename, autosave_dir)
             self.name_mapping[filename] = autosave_filename
@@ -217,10 +218,31 @@ class AutosaveForStack(object):
         try:
             self.stack._write_to_file(finfo, autosave_filename)
             document.changed_since_autosave = False
-        except (IOError, OSError):
-            pass
+        except EnvironmentError as error:
+            action = (_('Error while autosaving {} to {}')
+                      .format(finfo.filename, autosave_filename))
+            msgbox = AutosaveErrorMessageBox(action, error)
+            msgbox.exec_()
 
     def autosave_all(self):
         """Autosave all opened files."""
         for index in range(self.stack.get_stack_count()):
             self.autosave(index)
+
+
+class AutosaveErrorMessageBox(QMessageBox):
+    """Dialog window notifying user of autosave related errors."""
+
+    def __init__(self, action, error):
+        """
+        Constructor.
+
+        Args:
+            action (str): what Spyder was trying to do when error occured
+            error (Exception): the error that occured
+        """
+        logger.error(action, exc_info=error)
+        header = _('Error message:')
+        txt = '<br>{}<br><br>{}<br>{!s}'.format(action, header, error)
+        QMessageBox.__init__(
+            self, QMessageBox.Critical, _('Autosave Error'), txt)
