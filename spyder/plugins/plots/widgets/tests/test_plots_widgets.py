@@ -80,6 +80,13 @@ def add_figures_to_browser(figbrowser, nfig, tmpdir, fmt='image/png'):
     return figs
 
 
+def png_to_qimage(png):
+    """Return a QImage from the raw data of a png image."""
+    qpix = QPixmap()
+    qpix.loadFromData(png, 'image/png'.upper())
+    return qpix.toImage()
+
+
 # =============================================================================
 # ---- Tests
 # =============================================================================
