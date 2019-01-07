@@ -202,7 +202,7 @@ def test_go_prev_next_thumbnail(figbrowser, tmpdir):
     assert figbrowser.figviewer.figcanvas.fig == figs[1]
 
 
-def test_click_on_thumbnail(figbrowser, tmpdir, qtbot):
+def test_mouse_clicking_thumbnails(figbrowser, tmpdir, qtbot):
     """
     Test mouse clicking on thumbnails.
     """
@@ -218,7 +218,9 @@ def test_click_on_thumbnail(figbrowser, tmpdir, qtbot):
 
 
 def test_copy_png_to_clipboard(figbrowser, tmpdir):
-    """Test copying png figures to the clipboard."""
+    """
+    Test copying png figures to the clipboard.
+    """
     # Open some figures in the figure browser.
     figs = add_figures_to_browser(figbrowser, 3, tmpdir, 'image/png')
     clipboard = QApplication.clipboard()
@@ -234,7 +236,9 @@ def test_copy_png_to_clipboard(figbrowser, tmpdir):
 
 
 def test_copy_svg_to_clipboard(figbrowser, tmpdir):
-    """Test copying svg figures to the clipboard."""
+    """
+    Test copying svg figures to the clipboard.
+    """
     # Open some figures in the figure browser.
     figs = add_figures_to_browser(figbrowser, 3, tmpdir, 'image/svg+xml')
     clipboard = QApplication.clipboard()
