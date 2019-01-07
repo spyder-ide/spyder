@@ -72,7 +72,6 @@ def setup_editor(qtbot, monkeypatch):
     os.environ['SPY_TEST_USE_INTROSPECTION'] = 'False'
     editor.main.lspmanager.closing_plugin()
 
-
 @pytest.mark.slow
 @pytest.mark.skipif(PY2, reason="Segfaults with other tests on Py2.")
 @pytest.mark.skipif(os.name == 'nt' and not PY2,
@@ -99,6 +98,39 @@ def test_introspection(setup_editor):
     # enter should accept first completion
     qtbot.keyPress(completion, Qt.Key_Enter, delay=1000)
     assert code_editor.toPlainText() == 'import math\n'
+
+    # enter for new line
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
+
+    # Complete math.d() -> math.degrees()
+    qtbot.keyClicks(code_editor, 'math.d')
+    qtbot.wait(20000)
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+    assert "degrees(x)" in [x['label'] for x in sig.args[0]]
+
+    qtbot.keyPress(completion, Qt.Key_Enter, delay=1000)
+    assert code_editor.toPlainText() == 'import math\nmath.degrees\n'
+
+    # enter for new line
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
+
+    # Complete math.d() -> math.degrees()
+    qtbot.keyClicks(code_editor, 'math.d(')
+    qtbot.keyPress(code_editor, Qt.Key_Left, delay=1000)
+    qtbot.keyClicks(code_editor, 'e')
+    qtbot.wait(20000)
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+    assert "degrees(x)" in [x['label'] for x in sig.args[0]]
+
+    qtbot.keyPress(completion, Qt.Key_Enter, delay=1000)
+    assert code_editor.toPlainText() == 'import math\nmath.degrees' \
+                                        '\nmath.degrees()\n'
 
     # Modify PYTHONPATH
     # editor.introspector.change_extra_path([LOCATION])
