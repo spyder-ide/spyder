@@ -23,6 +23,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from qtpy.QtWidgets import QApplication
 from qtpy.QtGui import QPixmap
+from qtpy.QtCore import Qt
 
 # Local imports
 from spyder.plugins.plots.widgets.figurebrowser import FigureBrowser
@@ -200,6 +201,21 @@ def test_go_prev_next_thumbnail(figbrowser, tmpdir):
     assert figbrowser.thumbnails_sb.get_current_index() == 1
     assert figbrowser.thumbnails_sb.current_thumbnail.canvas.fig == figs[1]
     assert figbrowser.figviewer.figcanvas.fig == figs[1]
+
+
+def test_click_on_thumbnail(figbrowser, tmpdir, qtbot):
+    """
+    Test mouse clicking on thumbnails.
+    """
+    # Open some figures in the figure browser.
+    figs = add_figures_to_browser(figbrowser, 3, tmpdir)
+
+    for i in [1, 0, 2]:
+        qtbot.mouseClick(
+            figbrowser.thumbnails_sb._thumbnails[i].canvas, Qt.LeftButton)
+        assert figbrowser.thumbnails_sb.get_current_index() == i
+        assert figbrowser.thumbnails_sb.current_thumbnail.canvas.fig == figs[i]
+        assert figbrowser.figviewer.figcanvas.fig == figs[i]
 
 
 def test_copy_png_to_clipboard(figbrowser, tmpdir):
