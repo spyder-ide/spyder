@@ -217,6 +217,23 @@ def test_copy_png_to_clipboard(figbrowser, tmpdir):
     figbrowser.copy_figure()
     assert clipboard.image() == png_to_qimage(figs[0])
 
+
+def test_copy_svg_to_clipboard(figbrowser, tmpdir):
+    """Test copying svg figures to the clipboard."""
+    # Open some figures in the figure browser.
+    figs = add_figures_to_browser(figbrowser, 3, tmpdir, 'image/svg+xml')
+    clipboard = QApplication.clipboard()
+
+    # Copy the current figure (last thumbnail) to the clipboard.
+    figbrowser.copy_figure()
+    assert clipboard.mimeData().data('image/svg+xml') == figs[-1]
+
+    # Copy the first thumbnail to the clipboard.
+    figbrowser.go_next_thumbnail()
+    figbrowser.copy_figure()
+    assert clipboard.mimeData().data('image/svg+xml') == figs[0]
+
+
 if __name__ == "__main__":
     import os
     pytest.main([os.path.basename(__file__), '-vv', '-rw'])
