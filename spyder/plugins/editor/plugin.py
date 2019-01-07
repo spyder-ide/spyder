@@ -1296,7 +1296,7 @@ class Editor(SpyderPluginWidget):
     def update_vcs_status(self, _, file):
         if self.projects is not None:
             path = osp.dirname(file)
-            self.projects.explorer.treewidget.fsmodel.setVCSState(path)
+            self.projects.explorer.treewidget.fsmodel.setVCSState(None)
 
     #------ Handling editor windows
     def setup_other_windows(self):
