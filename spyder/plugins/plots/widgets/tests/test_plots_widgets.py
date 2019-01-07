@@ -24,7 +24,6 @@ import numpy as np
 from qtpy.QtWidgets import QApplication
 from qtpy.QtGui import QPixmap
 from qtpy.QtCore import Qt
-from qtconsole.svg import svg_to_image
 
 # Local imports
 from spyder.plugins.plots.widgets.figurebrowser import FigureBrowser
@@ -260,11 +259,8 @@ def test_zoom_figure_viewer(figbrowser, tmpdir, fmt):
     figcanvas = figbrowser.figviewer.figcanvas
 
     # Calculate original figure size in pixels.
-    if fmt == 'image/png':
-        qpix = QPixmap()
-        qpix.loadFromData(fig, fmt.upper())
-    elif fmt == 'image/svg+xml':
-        qpix = QPixmap(svg_to_image(fig))
+    qpix = QPixmap()
+    qpix.loadFromData(fig, fmt.upper())
     fwidth, fheight = qpix.width(), qpix.height()
 
     assert figbrowser.zoom_disp.value() == 100
