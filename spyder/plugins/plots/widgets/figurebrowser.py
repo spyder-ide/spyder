@@ -145,7 +145,7 @@ class FigureBrowser(QWidget):
         saveall_btn = create_toolbutton(
                 self, icon=ima.icon('save_all'),
                 tip=_("Save All Images..."),
-                triggered=self.thumbnails_sb.save_all_figures_as)
+                triggered=self.save_all_figures)
 
         copyfig_btn = create_toolbutton(
             self, icon=ima.icon('editcopy'),
@@ -327,6 +327,10 @@ class FigureBrowser(QWidget):
     def save_figure(self):
         """Save the currently selected figure in the thumbnail scrollbar."""
         self.thumbnails_sb.save_current_figure_as()
+
+    def save_all_figures(self):
+        """Save all the figures in a selected directory."""
+        return self.thumbnails_sb.save_all_figures_as()
 
     def close_figure(self):
         """Close the currently selected figure in the thumbnail scrollbar."""
@@ -567,10 +571,11 @@ class ThumbnailScrollBar(QFrame):
                                        basedir=getcwd_or_home())
         self.redirect_stdio.emit(True)
         if dirname:
-            self.save_all_figures_todir(dirname)
+            return self.save_all_figures_todir(dirname)
 
     def save_all_figures_todir(self, dirname):
         """Save all figure in dirname."""
+        fignames = []
         for thumbnail in self._thumbnails:
             fig = thumbnail.canvas.fig
             fmt = thumbnail.canvas.fmt
@@ -580,6 +585,8 @@ class ThumbnailScrollBar(QFrame):
 
             figname = get_unique_figname(dirname, 'Figure', fext)
             save_figure_tofile(fig, fmt, figname)
+            fignames.append(figname)
+        return fignames
 
     def save_current_figure_as(self):
         """Save the currently selected figure."""

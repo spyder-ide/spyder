@@ -122,7 +122,6 @@ def test_save_figure_to_file(figbrowser, tmpdir, mocker, fmt, fext):
     """
     Test saving png and svg figures to file with the figure browser.
     """
-    # Create a figure with matplotlib and load it in the figure browser.
     fig = add_figures_to_browser(figbrowser, 1, tmpdir, fmt)[0]
     expected_qpix = QPixmap()
     expected_qpix.loadFromData(fig, fmt.upper())
@@ -138,6 +137,37 @@ def test_save_figure_to_file(figbrowser, tmpdir, mocker, fmt, fext):
 
     assert osp.exists(saved_figname)
     assert expected_qpix.toImage() == saved_qpix.toImage()
+
+
+@pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
+def test_save_all_figures(figbrowser, tmpdir, mocker, fmt):
+    """
+    Test saving all figures contained in the thumbnail scrollbar in batch
+    into a single directory.
+    """
+    figs = add_figures_to_browser(figbrowser, 3, tmpdir, fmt)
+
+    # Save all figures, but cancel the dialog to get a directory.
+    mocker.patch(
+        'spyder.plugins.plots.widgets.figurebrowser.getexistingdirectory',
+        return_value=None)
+    fignames = figbrowser.save_all_figures()
+    assert fignames is None
+
+    # Save all figures.
+    mocker.patch(
+        'spyder.plugins.plots.widgets.figurebrowser.getexistingdirectory',
+        return_value=to_text_string(tmpdir.mkdir('all_saved_figures')))
+    fignames = figbrowser.save_all_figures()
+    assert len(fignames) == len(figs)
+    for fig, figname in zip(figs, fignames):
+        expected_qpix = QPixmap()
+        expected_qpix.loadFromData(fig, fmt.upper())
+        saved_qpix = QPixmap()
+        saved_qpix.load(figname)
+
+        assert osp.exists(figname)
+        assert expected_qpix.toImage() == saved_qpix.toImage()
 
 
 @pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
