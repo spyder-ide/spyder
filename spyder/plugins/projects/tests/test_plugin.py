@@ -11,6 +11,7 @@ Tests for the Projects plugin.
 """
 
 # Standard library imports
+import os
 import os.path as osp
 try:
     from unittest.mock import Mock
@@ -262,6 +263,12 @@ def test_project_explorer_tree_root(projects, tmpdir, qtbot):
 
     ppath1 = to_text_string(tmpdir.mkdir(u'測試'))
     ppath2 = to_text_string(tmpdir.mkdir(u'ïèô éàñ').mkdir(u'اختبار'))
+    if os.name == 'nt':
+        # For an explanation of why this part is necessary to make this test
+        # pass for Python2 in Windows, see PR #8528.
+        import win32file
+        ppath1 = win32file.GetLongPathName(ppath1)
+        ppath2 = win32file.GetLongPathName(ppath2)
 
     # Open the projects.
     for ppath in [ppath1, ppath2]:
