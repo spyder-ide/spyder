@@ -74,9 +74,8 @@ def create_test_files_folders(project_explorer_withfiles):
     file_list = [[project_file1], [project_file1, project_file2, subdir],
                  [project_file1, project_file3]]
     cb = QApplication.clipboard()
-    yield file_list, cb
-    if osp.exists(project_folder):
-        shutil.rmtree(project_folder)
+    return file_list, cb
+
 
 
 def test_file_explorer(file_explorer):
