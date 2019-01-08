@@ -7,12 +7,10 @@
 
 # Third party imports
 import pytest
-from qtpy.QtWidgets import QPushButton
 
 # Local imports
 from spyder.plugins.editor.utils.autosave import (AutosaveForStack,
-                                                  AutosaveForPlugin,
-                                                  AutosaveErrorMessageBox)
+                                                  AutosaveForPlugin)
 
 
 def test_autosave_component_set_interval(qtbot, mocker):
@@ -58,18 +56,3 @@ def test_autosave_remove_autosave_file(mocker, exception):
     addon.name_mapping = {'orig': 'autosave'}
     addon.remove_autosave_file(fileinfo)
     mock_remove.assert_called_with('autosave')
-
-
-def test_autosave_error_message_box(qtbot, mocker):
-    """Test that AutosaveErrorMessageBox exec's at first, but that after the
-    'do not show anymore' checkbox is clicked, it does not exec anymore."""
-    mock_exec = mocker.patch.object(AutosaveErrorMessageBox, 'exec_')
-    box = AutosaveErrorMessageBox('action', 'error')
-    box.exec_if_enabled()
-    assert mock_exec.call_count == 1
-    box.dismiss_box.click()
-    ok_button = box.findChild(QPushButton)
-    ok_button.click()
-    box2 = AutosaveErrorMessageBox('action', 'error')
-    box2.exec_if_enabled()
-    assert mock_exec.call_count == 1

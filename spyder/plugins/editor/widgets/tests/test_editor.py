@@ -696,7 +696,7 @@ def test_autosave_handles_error(editor_bot, mocker):
     editor_stack, editor = editor_bot
     mock_write = mocker.patch.object(editor_stack, '_write_to_file')
     mock_dialog = mocker.patch(
-        'spyder.plugins.editor.utils.autosave.AutosaveErrorMessageBox')
+        'spyder.plugins.editor.utils.autosave.AutosaveErrorDialog')
     try:
         mock_write.side_effect = PermissionError
     except NameError:  # Python 2
