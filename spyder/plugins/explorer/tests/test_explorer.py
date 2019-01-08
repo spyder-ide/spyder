@@ -11,7 +11,6 @@ Tests for explorer.py
 # Standard imports
 import os
 import os.path as osp
-import shutil
 
 # Third party imports
 import pytest
@@ -21,7 +20,6 @@ from qtpy.QtWidgets import QApplication
 from spyder.plugins.explorer.widgets import (FileExplorerTest,
                                              ProjectExplorerTest)
 from spyder.py3compat import to_text_string
-from spyder.utils.misc import getcwd_or_home
 from spyder.plugins.projects.widgets.explorer import ProjectExplorerTest as \
     ProjectExplorerTest2
 
@@ -43,13 +41,12 @@ def project_explorer(qtbot):
 
 
 @pytest.fixture
-def project_explorer_withfiles(qtbot, request, tmpdir):
+def project_explorer_withfiles(qtbot, tmpdir):
     """Setup Project Explorer widget."""
-    directory = request.node.get_marker('change_directory')
-    if directory:
-        project_dir = to_text_string(tmpdir.mkdir('project'))
-    else:
-        project_dir = None
+    project_dir = to_text_string(tmpdir.mkdir('project'))
+    # if os.name == 'nt':
+    #     import win32file
+    #     project_dir = win32file.GetLongPathName(project_dir)
     project_explorer = ProjectExplorerTest2(directory=project_dir)
     qtbot.addWidget(project_explorer)
     return project_explorer
@@ -102,6 +99,7 @@ def test_copy_path(project_explorer_withfiles, create_test_files_folders,
     """Test copy absolute and relative paths."""
     project = project_explorer_withfiles
     file_list, cb = create_test_files_folders
+    home_directory = project.explorer.treewidget.fsmodel.rootPath()
     for file_paths in file_list:
         project.explorer.treewidget.copy_path(fnames=file_paths,
                                               method=path_method)
@@ -112,7 +110,7 @@ def test_copy_path(project_explorer_withfiles, create_test_files_folders,
                 true_path = ''.join('"' + _fn + '",' + '\n' for _fn in
                                     file_paths)
             elif path_method == 'relative':
-                true_path = ''.join('"' + osp.relpath(_fn, getcwd_or_home()).
+                true_path = ''.join('"' + osp.relpath(_fn, home_directory).
                                     replace(os.sep, '/') + '",' +
                                     '\n' for _fn in file_paths)
             true_path = true_path[:-2]
@@ -120,7 +118,7 @@ def test_copy_path(project_explorer_withfiles, create_test_files_folders,
             if path_method == 'absolute':
                 true_path = file_paths[0]
             elif path_method == 'relative':
-                true_path = (osp.relpath(file_paths[0], getcwd_or_home()).
+                true_path = (osp.relpath(file_paths[0], home_directory).
                              replace(os.sep, "/"))
         assert true_path == cb_output
 
