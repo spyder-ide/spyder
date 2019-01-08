@@ -64,7 +64,7 @@ else:
 
 
 # =============================================================================
-# Constants
+# ---- Constants
 # =============================================================================
 # Location of this file
 LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
@@ -83,7 +83,7 @@ EVAL_TIMEOUT = 3000
 
 
 # =============================================================================
-# Utility functions
+# ---- Utility functions
 # =============================================================================
 def open_file_in_editor(main_window, fname, directory=None):
     """Open a file using the Editor and its open file dialog"""
@@ -142,7 +142,7 @@ def find_desired_tab_in_window(tab_name, window):
 
 
 # =============================================================================
-# Fixtures
+# ---- Fixtures
 # =============================================================================
 @pytest.fixture
 def main_window(request):
@@ -191,7 +191,7 @@ def main_window(request):
 
 
 # =============================================================================
-# Tests
+# ---- Tests
 # =============================================================================
 # IMPORTANT NOTE: Please leave this test to be the first one here to
 # avoid possible timeouts in Appveyor
@@ -1435,6 +1435,55 @@ def test_varexp_magic_dbg(main_window, qtbot):
 
     # Assert that there's a plot in the console
     assert shell._control.toHtml().count('img src') == 1
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.skipif(PY2, reason="It times out sometimes")
+@pytest.mark.parametrize(
+    'main_window',
+    [{'spy_config': ('ipython_console', 'pylab/inline/figure_format', 0)},
+     {'spy_config': ('ipython_console', 'pylab/inline/figure_format', 1)}],
+    indirect=True)
+def test_plots_plugin(main_window, qtbot, tmpdir, mocker):
+    """
+    Test that plots generated in the IPython console are properly displayed
+    in the plots plugin.
+    """
+    assert CONF.get('plots', 'mute_inline_plotting') is False
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    figbrowser = main_window.plots.current_widget()
+
+    # Wait until the window is fully up.
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Generate a plot inline.
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(("import matplotlib.pyplot as plt\n"
+                       "fig = plt.plot([1, 2, 3, 4], '.')\n"))
+
+    if CONF.get('ipython_console', 'pylab/inline/figure_format') == 0:
+        assert figbrowser.figviewer.figcanvas.fmt == 'image/png'
+    else:
+        assert figbrowser.figviewer.figcanvas.fmt == 'image/svg+xml'
+
+    # Get the image name from the html, fetch the image from the shell, and
+    # save it as a png.
+    html = shell._control.toHtml()
+    img_name = re.search('''<img src="(.+?)" /></p>''', html).group(1)
+
+    ipython_figname = osp.join(to_text_string(tmpdir), 'ipython_img.png')
+    ipython_qimg = shell._get_image(img_name)
+    ipython_qimg.save(ipython_figname)
+
+    # Save the image with the Plots plugin as a png.
+    plots_figname = osp.join(to_text_string(tmpdir), 'plots_img.png')
+    mocker.patch('spyder.plugins.plots.widgets.figurebrowser.getsavefilename',
+                 return_value=(plots_figname, '.png'))
+    figbrowser.save_figure()
+
+    assert compare_images(ipython_figname, plots_figname, 0.1) is None
 
 
 @pytest.mark.slow
