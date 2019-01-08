@@ -19,7 +19,8 @@ except ImportError:
 
 # Third party imports
 import pytest
-import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_agg import FigureCanvasAgg
 import numpy as np
 from qtpy.QtWidgets import QApplication
 from qtpy.QtGui import QPixmap
@@ -51,7 +52,9 @@ def figbrowser(qtbot):
 def create_figure(figname):
     """Create a matplotlib figure, save it to disk and return its data."""
     # Create and save to disk a figure with matplotlib.
-    fig, ax = plt.subplots()
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = fig.add_axes([0.15, 0.15, 0.7, 0.7])
     fig.set_size_inches(6, 4)
     ax.plot(np.random.rand(10), '.', color='red')
     fig.savefig(figname)
