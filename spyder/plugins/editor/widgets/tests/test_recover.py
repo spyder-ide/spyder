@@ -60,10 +60,14 @@ def test_recoverydialog_table_labels(qtbot, recovery_env):
     assert osp.join(autosave_dir, 'spam.py') in text(1, 1)
 
     # eggs.py: Only original files exists, so cannot be recovered
+    # It won't be in the table, so nothing to test
 
     # cheese.py: Only autosave file exists, not mentioned in mapping
     assert 'not recorded' in text(2, 0)
     assert osp.join(autosave_dir, 'cheese.py') in text(2, 1)
+
+    # Thus, there should be three rows in total
+    assert table.rowCount() == 3
 
 
 def test_recoverydialog_exec_if_nonempty_when_empty(qtbot, tmpdir, mocker):
