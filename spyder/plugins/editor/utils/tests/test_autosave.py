@@ -45,10 +45,12 @@ def test_autosave_component_timer_if_enabled(qtbot, mocker, enabled):
 @pytest.mark.parametrize('exception', [False, True])
 def test_autosave_remove_autosave_file(mocker, exception):
     """Test that AutosaveForStack.remove_autosave_file removes the autosave
-    file and that it ignores any exceptions raised when removing the file."""
+    file and that an error dialog is displayed if an exception is raised."""
     mock_remove = mocker.patch('os.remove')
     if exception:
         mock_remove.side_effect = EnvironmentError()
+    mock_dialog = mocker.patch(
+        'spyder.plugins.editor.utils.autosave.AutosaveErrorDialog')
     mock_stack = mocker.Mock()
     fileinfo = mocker.Mock()
     fileinfo.filename = 'orig'
@@ -56,3 +58,4 @@ def test_autosave_remove_autosave_file(mocker, exception):
     addon.name_mapping = {'orig': 'autosave'}
     addon.remove_autosave_file(fileinfo)
     mock_remove.assert_called_with('autosave')
+    assert mock_dialog.called == exception

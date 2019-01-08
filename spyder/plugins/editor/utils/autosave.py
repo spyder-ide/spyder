@@ -164,8 +164,11 @@ class AutosaveForStack(object):
         autosave_filename = self.name_mapping[filename]
         try:
             os.remove(autosave_filename)
-        except EnvironmentError:
-            pass  # TODO Show errors
+        except EnvironmentError as error:
+            action = (_('Error while removing autosave file {}')
+                      .format(autosave_filename))
+            msgbox = AutosaveErrorDialog(action, error)
+            msgbox.exec_if_enabled()
         del self.name_mapping[filename]
         self.stack.sig_option_changed.emit(
                 'autosave_mapping', self.name_mapping)
@@ -187,7 +190,12 @@ class AutosaveForStack(object):
         except KeyError:
             autosave_dir = get_conf_path('autosave')
             if not osp.isdir(autosave_dir):
-                os.mkdir(autosave_dir)  # TODO Handle errors
+                try:
+                    os.mkdir(autosave_dir)
+                except EnvironmentError as error:
+                    action = _('Error while creating autosave directory')
+                    msgbox = AutosaveErrorDialog(action, error)
+                    msgbox.exec_if_enabled()
             autosave_filename = self.create_unique_autosave_filename(
                     filename, autosave_dir)
             self.name_mapping[filename] = autosave_filename
