@@ -55,7 +55,6 @@ def create_figure(figname):
     fig.set_size_inches(6, 4)
     ax.plot(np.random.rand(10), '.', color='red')
     fig.savefig(figname)
-    plt.close(fig)
 
     # Read back and return the binary data from the file.
     with open(figname, "rb") as img:
