@@ -45,8 +45,8 @@ from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.editor.widgets.editor import (EditorMainWindow, Printer,
                                                   EditorSplitter, EditorStack,)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
-from spyder.widgets.sourcecode.utils.debugger import (clear_all_breakpoints,
-                                                      clear_breakpoint)
+from spyder.plugins.editor.utils.debugger import (clear_all_breakpoints,
+                                                  clear_breakpoint)
 from spyder.widgets.status import (CursorPositionStatus, EncodingStatus,
                                    EOLStatus, ReadWriteStatus)
 from spyder.api.plugins import SpyderPluginWidget

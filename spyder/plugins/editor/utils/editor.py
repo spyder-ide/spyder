@@ -22,7 +22,8 @@ import weakref
 
 # Third party imports
 from qtpy.QtCore import QTimer, Qt
-from qtpy.QtGui import QColor, QTextCursor, QTextBlock, QTextDocument, QCursor
+from qtpy.QtGui import (QColor, QTextBlockUserData, QTextCursor, QTextBlock,
+                        QTextDocument, QCursor)
 from qtpy.QtWidgets import QApplication
 
 # Local imports
@@ -48,6 +49,24 @@ def drift_color(base_color, factor=110):
             return drift_color(QColor('#101010'), factor + 20)
         else:
             return base_color.lighter(factor + 10)
+
+
+class BlockUserData(QTextBlockUserData):
+    def __init__(self, editor):
+        QTextBlockUserData.__init__(self)
+        self.editor = editor
+        self.breakpoint = False
+        self.breakpoint_condition = None
+        self.code_analysis = []
+        self.todo = ''
+        self.editor.blockuserdata_list.append(self)
+
+    def is_empty(self):
+        return not self.breakpoint and not self.code_analysis and not self.todo
+
+    def __del__(self):
+        bud_list = self.editor.blockuserdata_list
+        bud_list.pop(bud_list.index(self))
 
 
 class DelayJobRunner(object):

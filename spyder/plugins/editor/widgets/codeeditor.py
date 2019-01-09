@@ -78,8 +78,8 @@ from spyder.plugins.editor.utils.lsp import (
 from spyder.plugins.editor.lsp import (
     LSPRequestTypes, TextDocumentSyncKind, DiagnosticSeverity,
     )
-from spyder.widgets.sourcecode.utils.editor import BlockUserData
-from spyder.widgets.sourcecode.utils.debugger import DebuggerManager
+from spyder.plugins.editor.utils.editor import BlockUserData
+from spyder.plugins.editor.utils.debugger import DebuggerManager
 from spyder.api.panel import Panel
 
 try:

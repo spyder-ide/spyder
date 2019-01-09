@@ -15,7 +15,7 @@ from spyder.config.main import CONF
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
 from spyder.api.manager import Manager
-from spyder.widgets.sourcecode.utils.editor import BlockUserData
+from spyder.plugins.editor.utils.editor import BlockUserData
 
 
 def _load_all_breakpoints():
