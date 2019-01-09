@@ -164,6 +164,8 @@ def test_copy_file(project_explorer_with_files, file_paths):
                 text_data = fh.read()
             assert text_data == 'Spyder4'
         if file_name.endswith('script2.py'):
+            with open(file_name, 'r') as fh:
+                text_data = fh.read()
             assert text_data == 'Jan-2019'
 
 
