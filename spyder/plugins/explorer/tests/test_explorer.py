@@ -20,6 +20,7 @@ from qtpy.QtWidgets import QApplication
 from spyder.plugins.explorer.widgets import (FileExplorerTest,
                                              ProjectExplorerTest)
 from spyder.py3compat import to_text_string
+from spyder.utils.misc import get_common_path
 from spyder.plugins.projects.widgets.explorer import ProjectExplorerTest as \
     ProjectExplorerTest2
 
@@ -41,41 +42,13 @@ def project_explorer(qtbot):
 
 
 @pytest.fixture
-def project_explorer_withfiles(qtbot, tmpdir):
+def project_explorer_with_files(qtbot, tmpdir):
     """Setup Project Explorer widget."""
+    cb = QApplication.clipboard()
     project_dir = to_text_string(tmpdir.mkdir('project'))
-    # if os.name == 'nt':
-    #     import win32file
-    #     project_dir = win32file.GetLongPathName(project_dir)
     project_explorer = ProjectExplorerTest2(directory=project_dir)
     qtbot.addWidget(project_explorer)
-    return project_explorer
-
-
-@pytest.fixture
-def create_test_files_folders(project_explorer_withfiles):
-    project = project_explorer_withfiles
-    project_dir = project.directory
-    project_folder = osp.join(project_dir, u'測試')
-    if not osp.exists(project_folder):
-        os.mkdir(project_folder)
-    project_file1 = osp.join(project_folder, 'script.py')
-    with open(project_file1, 'w') as fh:
-        fh.write('Spyder4 will be released this year')
-    project_file2 = osp.join(project_folder, 'pyscript.py')
-    with open(project_file2, 'w') as fh:
-        fh.write('Spyder4')
-    subdir = osp.join(project_folder, 'subdir')
-    if not osp.exists(subdir):
-        os.mkdir(subdir)
-    project_file3 = osp.join(subdir, 'Columbia.txt')
-    with open(project_file3, 'w') as fh:
-        fh.write('South America')
-    file_list = [[project_file1], [project_file1, project_file2, subdir],
-                 [project_file1, project_file3]]
-    cb = QApplication.clipboard()
-    return file_list, cb
-
+    return project_explorer, cb
 
 
 def test_file_explorer(file_explorer):
@@ -92,83 +65,145 @@ def test_project_explorer(project_explorer):
     assert project_explorer
 
 
+def create_folder_files(file_paths, project_dir):
+    """Function to create folders and files to be used in test functions."""
+    list_paths = []
+    for sublist in file_paths:
+        for item in sublist:
+            #  ignore empty string
+            if item:
+                #  create folders
+                if osp.splitext(item)[1]:
+                    if osp.split(item)[0]:
+                        dirs, fname = osp.split(item)
+                        os.makedirs(dirs, exist_ok=True)
+                        dirpath = osp.join(project_dir, dirs)
+                        item_path = osp.join(dirpath, fname)
+                    else:
+                        item_path = osp.join(project_dir, item)
+                else:
+                    dirpath = osp.join(project_dir, item)
+                    if not osp.exists(dirpath):
+                        os.mkdir(dirpath)
+                        item_path = dirpath
+                #  create files with some texts
+                if item_path.endswith('script.py'):
+                    with open(item_path, 'w') as fh:
+                        fh.write('Python')
+                elif item_path.endswith('script1.py'):
+                    with open(item_path, 'w') as fh:
+                        fh.write('Spyder4')
+                elif item_path.endswith('script2.py'):
+                    with open(item_path, 'w') as fh:
+                        fh.write('Jan-2019')
+                #  append item path names to the list
+                list_paths.append(item_path)
+    return list_paths
+
+
 @pytest.mark.parametrize('path_method', ['absolute', 'relative'])
-def test_copy_path(project_explorer_withfiles, create_test_files_folders,
-                   path_method):
+@pytest.mark.parametrize('file_paths',
+                         [['script.py'],
+                          ['script.py', 'script1.py', 'testdir/script2.py'],
+                          ['', 'testdir']])
+def test_copy_path(project_explorer_with_files, path_method, file_paths):
     """Test copy absolute and relative paths."""
-    project = project_explorer_withfiles
-    file_list, cb = create_test_files_folders
+    project, cb = project_explorer_with_files
+    project_dir = project.directory
+    file_paths = create_folder_files(file_paths, project_dir)
     home_directory = project.explorer.treewidget.fsmodel.rootPath()
-    for file_paths in file_list:
-        project.explorer.treewidget.copy_path(fnames=file_paths,
-                                              method=path_method)
-        cb_output = cb.text(mode=cb.Clipboard)
-        file_paths = [_fn.replace(os.sep, '/') for _fn in file_paths]
-        if len(file_paths) > 1:
-            if path_method == 'absolute':
-                true_path = ''.join('"' + _fn + '",' + '\n' for _fn in
-                                    file_paths)
-            elif path_method == 'relative':
-                true_path = ''.join('"' + osp.relpath(_fn, home_directory).
-                                    replace(os.sep, '/') + '",' +
-                                    '\n' for _fn in file_paths)
-            true_path = true_path[:-2]
-        else:
-            if path_method == 'absolute':
-                true_path = file_paths[0]
-            elif path_method == 'relative':
-                true_path = (osp.relpath(file_paths[0], home_directory).
-                             replace(os.sep, "/"))
-        assert true_path == cb_output
+    #  copy selected items [fnames]
+    project.explorer.treewidget.copy_path(fnames=file_paths,
+                                          method=path_method)
+    #  get the copied items from clipboard
+    cb_output = cb.text(mode=cb.Clipboard)
+    #  create true path names simulating what copy_path function does
+    file_paths = [_fn.replace(os.sep, '/') for _fn in file_paths]
+    if len(file_paths) > 1:
+        if path_method == 'absolute':
+            true_path = ''.join('"' + _fn + '",' + '\n' for _fn in
+                                file_paths)
+        elif path_method == 'relative':
+            true_path = ''.join('"' + osp.relpath(_fn, home_directory).
+                                replace(os.sep, '/') + '",' +
+                                '\n' for _fn in file_paths)
+        true_path = true_path[:-2]
+    else:
+        if path_method == 'absolute':
+            true_path = file_paths[0]
+        elif path_method == 'relative':
+            true_path = (osp.relpath(file_paths[0], home_directory).
+                         replace(os.sep, '/'))
+    #  compare true results with clipboard data
+    assert true_path == cb_output
 
 
-def test_copy_file(project_explorer_withfiles, create_test_files_folders):
+@pytest.mark.parametrize('file_paths',
+                         [['script.py'],
+                          ['script.py', 'script1.py', 'testdir/script2.py'],
+                          ['', 'testdir']])
+def test_copy_file(project_explorer_with_files, file_paths):
     """Test copy file(s)/folders(s) to clipboard."""
-    project = project_explorer_withfiles
-    file_list, cb = create_test_files_folders
-    for file_paths in file_list:
-        project.explorer.treewidget.copy_file_clipboard(fnames=file_paths)
-        cb_data = cb.mimeData().urls()
-        for url in cb_data:
-            file_name = url.toLocalFile()
-            assert osp.isdir(file_name) or osp.isfile(file_name)
-            if file_paths == file_list[0]:
-                with open(file_name, 'r') as fh:
-                    text_data = fh.read()
-                assert text_data == 'Spyder4 will be released this year'
-            if file_paths == file_list[2][1]:
-                with open(file_name, 'r') as fh:
-                    text_data = fh.read()
-                assert text_data == 'South America'
-            if file_paths == file_list[1][2]:
-                assert osp.isdir(file_name)
+    project, cb = project_explorer_with_files
+    project_dir = project.directory
+    file_paths = create_folder_files(file_paths, project_dir)
+    project.explorer.treewidget.copy_file_clipboard(fnames=file_paths)
+    cb_data = cb.mimeData().urls()
+    for url in cb_data:
+        file_name = url.toLocalFile()
+        try:
+            assert osp.isdir(file_name)
+        except AssertionError:
+            assert osp.isfile(file_name)
+        if file_name.endswith('script.py'):
+            with open(file_name, 'r') as fh:
+                text_data = fh.read()
+            assert text_data == 'Python'
+        if file_name.endswith('script1.py'):
+            with open(file_name, 'r') as fh:
+                text_data = fh.read()
+            assert text_data == 'Spyder4'
+        if file_name.endswith('script2.py'):
+            assert text_data == 'Jan-2019'
 
 
-def test_save_file(project_explorer_withfiles, create_test_files_folders):
+@pytest.mark.parametrize('file_paths',
+                         [['script.py'],
+                          ['script.py', 'script1.py', 'testdir/script2.py'],
+                          ['', 'testdir']])
+def test_save_file(project_explorer_with_files, file_paths):
     """Test save file(s)/folders(s) from clipboard."""
-    project = project_explorer_withfiles
-    file_list = create_test_files_folders[0]
-    file_list2 = [file_list[1][2], [file_list[1][2], file_list[2][1]]]
-    for file_paths in file_list2:
-        project.explorer.treewidget.copy_file_clipboard(
-                fnames=[file_list[1][1]])
-        project.explorer.treewidget.save_file_clipboard(fnames=file_paths)
-        assert osp.exists(osp.join(file_list[1][2], file_list[1][1]))
-        with open(osp.join(file_list[1][2], file_list[1][1]), 'r') as fh:
+    project = project_explorer_with_files[0]
+    project_dir = project.directory
+    file_paths = create_folder_files(file_paths, project_dir)
+    #  copy items
+    project.explorer.treewidget.copy_file_clipboard(fnames=file_paths)
+    #  paste items at the selected fnames common directory
+    project.explorer.treewidget.save_file_clipboard(fnames=file_paths)
+    common_path = get_common_path(file_paths)
+    if len(file_paths) == 1:
+        #  'script1.py' is already exists in the common path
+        assert osp.exists(osp.join(common_path, 'script2.py'))
+        with open(osp.join(common_path, 'script2.py'), 'r') as fh:
+            text_data = fh.read()
+        assert text_data == 'Python'
+    if len(file_paths) == 3:
+        #  'script2.py' is created before
+        assert osp.exists(osp.join(common_path, 'script3.py'))
+        with open(osp.join(common_path, 'script3.py'), 'r') as fh:
+            text_data = fh.read()
+        assert text_data == 'Python'
+        #  script4.py is a copy of original 'script1.py'
+        assert osp.exists(osp.join(common_path, 'script4.py'))
+        with open(osp.join(common_path, 'script4.py'), 'r') as fh:
             text_data = fh.read()
         assert text_data == 'Spyder4'
-        project.explorer.treewidget.copy_file_clipboard(
-                fnames=[file_list[1][2]])
-        project.explorer.treewidget.save_file_clipboard(
-                fnames=[file_list[1][2], file_list[2][1]])
-        assert osp.exists(file_list[1][2] + '1')
-        for afile in [file_list[2][1],
-                      osp.join(file_list[1][2], file_list[1][1])]:
-            assert osp.basename(afile) in os.listdir(file_list[1][2] + '1')
-            if afile == file_list[2][1]:
-                with open(osp.join(file_list[2][1]), 'r') as fh:
-                    text_data = fh.read()
-                assert text_data == 'South America'
+        assert osp.exists(osp.join(common_path, 'script5.py'))
+        with open(osp.join(common_path, 'script5.py'), 'r') as fh:
+            text_data = fh.read()
+        assert text_data == 'Jan-2019'
+    if len(file_paths) == 2:
+        assert osp.exists(osp.join(common_path, 'testdir1'))
 
 
 if __name__ == "__main__":
