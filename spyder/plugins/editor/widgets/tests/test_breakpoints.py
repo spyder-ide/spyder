@@ -21,7 +21,7 @@ from qtpy.QtGui import QTextCursor
 from spyder import version_info
 from spyder.py3compat import to_text_string
 import spyder.plugins.editor.widgets.codeeditor as codeeditor
-from spyder.widgets.sourcecode.utils import debugger
+from spyder.plugins.editor.utils import debugger
 
 
 # --- Helper methods
