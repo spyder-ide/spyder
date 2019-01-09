@@ -64,7 +64,7 @@ else:
 
 
 # =============================================================================
-# Constants
+# ---- Constants
 # =============================================================================
 # Location of this file
 LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
@@ -83,7 +83,7 @@ EVAL_TIMEOUT = 3000
 
 
 # =============================================================================
-# Utility functions
+# ---- Utility functions
 # =============================================================================
 def open_file_in_editor(main_window, fname, directory=None):
     """Open a file using the Editor and its open file dialog"""
@@ -142,7 +142,7 @@ def find_desired_tab_in_window(tab_name, window):
 
 
 # =============================================================================
-# Fixtures
+# ---- Fixtures
 # =============================================================================
 @pytest.fixture
 def main_window(request):
@@ -150,8 +150,9 @@ def main_window(request):
     # Tests assume inline backend
     CONF.set('ipython_console', 'pylab/backend', 0)
 
-    # Test assume the plots are rendered in the console
+    # Test assume the plots are rendered in the console as png
     CONF.set('plots', 'mute_inline_plotting', False)
+    CONF.set('ipython_console', 'pylab/inline/figure_format', 0)
 
     # Check if we need to use introspection in a given test
     # (it's faster and less memory consuming not to use it!)
@@ -191,7 +192,7 @@ def main_window(request):
 
 
 # =============================================================================
-# Tests
+# ---- Tests
 # =============================================================================
 # IMPORTANT NOTE: Please leave this test to be the first one here to
 # avoid possible timeouts in Appveyor
@@ -1440,12 +1441,63 @@ def test_varexp_magic_dbg(main_window, qtbot):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(PY2, reason="It times out sometimes")
-def test_tight_layout_option_for_inline_plot(main_window, qtbot):
+@pytest.mark.parametrize(
+    'main_window',
+    [{'spy_config': ('ipython_console', 'pylab/inline/figure_format', 0)},
+     {'spy_config': ('ipython_console', 'pylab/inline/figure_format', 1)}],
+    indirect=True)
+def test_plots_plugin(main_window, qtbot, tmpdir, mocker):
+    """
+    Test that plots generated in the IPython console are properly displayed
+    in the plots plugin.
+    """
+    assert CONF.get('plots', 'mute_inline_plotting') is False
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    figbrowser = main_window.plots.current_widget()
+
+    # Wait until the window is fully up.
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Generate a plot inline.
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(("import matplotlib.pyplot as plt\n"
+                       "fig = plt.plot([1, 2, 3, 4], '.')\n"))
+
+    if CONF.get('ipython_console', 'pylab/inline/figure_format') == 0:
+        assert figbrowser.figviewer.figcanvas.fmt == 'image/png'
+    else:
+        assert figbrowser.figviewer.figcanvas.fmt == 'image/svg+xml'
+
+    # Get the image name from the html, fetch the image from the shell, and
+    # save it as a png.
+    html = shell._control.toHtml()
+    img_name = re.search('''<img src="(.+?)" /></p>''', html).group(1)
+
+    ipython_figname = osp.join(to_text_string(tmpdir), 'ipython_img.png')
+    ipython_qimg = shell._get_image(img_name)
+    ipython_qimg.save(ipython_figname)
+
+    # Save the image with the Plots plugin as a png.
+    plots_figname = osp.join(to_text_string(tmpdir), 'plots_img.png')
+    mocker.patch('spyder.plugins.plots.widgets.figurebrowser.getsavefilename',
+                 return_value=(plots_figname, '.png'))
+    figbrowser.save_figure()
+
+    assert compare_images(ipython_figname, plots_figname, 0.1) is None
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.skipif(PY2, reason="It times out sometimes")
+def test_tight_layout_option_for_inline_plot(main_window, qtbot, tmpdir):
     """
     Test that the option to set bbox_inches to 'tight' or 'None' is
     working when plotting inline in the IPython console. By default, figures
     are plotted inline with bbox_inches='tight'.
     """
+    tmpdir = to_text_string(tmpdir)
+
     # Assert that the default is True.
     assert CONF.get('ipython_console', 'pylab/inline/bbox_inches') is True
 
@@ -1465,6 +1517,8 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot):
 
     # Generate a plot inline with bbox_inches=tight (since it is default) and
     # save the figure with savefig.
+    savefig_figname = osp.join(
+        tmpdir, 'savefig_bbox_inches_tight.png').replace('\\', '/')
     with qtbot.waitSignal(shell.executed):
         shell.execute(("import matplotlib.pyplot as plt\n"
                        "fig, ax = plt.subplots()\n"
@@ -1480,10 +1534,10 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot):
                        "    ax.spines[loc].set_linewidth(2)\n"
                        "ax.axis([0, 9, 0, 9])\n"
                        "ax.plot(range(10), color='#000000', lw=2)\n"
-                       "fig.savefig('savefig_bbox_inches_tight.png',\n"
+                       "fig.savefig('%s',\n"
                        "            bbox_inches='tight',\n"
                        "            dpi=%f)"
-                       ) % (fig_width, fig_height, fig_dpi))
+                       ) % (fig_width, fig_height, savefig_figname, fig_dpi))
 
     # Get the image name from the html, fetch the image from the shell, and
     # then save it to a file.
@@ -1494,10 +1548,9 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot):
 
     # Save the inline figure and assert it is similar to the one generated
     # with savefig.
-    qimg.save('inline_bbox_inches_tight.png')
-    assert compare_images('savefig_bbox_inches_tight.png',
-                          'inline_bbox_inches_tight.png',
-                          0.1) is None
+    inline_figname = osp.join(tmpdir, 'inline_bbox_inches_tight.png')
+    qimg.save(inline_figname)
+    assert compare_images(savefig_figname, inline_figname, 0.1) is None
 
     # Change the option so that bbox_inches=None.
     CONF.set('ipython_console', 'pylab/inline/bbox_inches', False)
@@ -1510,6 +1563,8 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot):
 
     # Generate the same plot inline with bbox_inches='tight' and save the
     # figure with savefig.
+    savefig_figname = osp.join(
+        tmpdir, 'savefig_bbox_inches_None.png').replace('\\', '/')
     with qtbot.waitSignal(shell.executed):
         shell.execute(("import matplotlib.pyplot as plt\n"
                        "fig, ax = plt.subplots()\n"
@@ -1525,10 +1580,10 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot):
                        "    ax.spines[loc].set_linewidth(2)\n"
                        "ax.axis([0, 9, 0, 9])\n"
                        "ax.plot(range(10), color='#000000', lw=2)\n"
-                       "fig.savefig('savefig_bbox_inches_None.png',\n"
+                       "fig.savefig('%s',\n"
                        "            bbox_inches=None,\n"
                        "            dpi=%f)"
-                       ) % (fig_width, fig_height, fig_dpi))
+                       ) % (fig_width, fig_height, savefig_figname, fig_dpi))
 
     # Get the image name from the html, fetch the image from the shell, and
     # then save it to a file.
@@ -1539,10 +1594,9 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot):
 
     # Save the inline figure and assert it is similar to the one generated
     # with savefig.
-    qimg.save('inline_bbox_inches_None.png')
-    assert compare_images('savefig_bbox_inches_None.png',
-                          'inline_bbox_inches_None.png',
-                          0.1) is None
+    inline_figname = osp.join(tmpdir, 'inline_bbox_inches_None.png')
+    qimg.save(inline_figname)
+    assert compare_images(savefig_figname, inline_figname, 0.1) is None
 
 
 @pytest.mark.slow
