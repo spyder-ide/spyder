@@ -59,7 +59,7 @@ class BlockUserData(QTextBlockUserData):
         self.breakpoint_condition = None
         self.code_analysis = []
         self.todo = ''
-        self.selection = color
+        self.selection = cursor
         self.color = color
         self.editor.blockuserdata_list.append(self)
 
