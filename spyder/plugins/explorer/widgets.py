@@ -144,8 +144,11 @@ class ColorModel(QFileSystemModel):
                             QColor(CONF.get('appearance', normalstyle)[0])]
         self.root_path = ''
         super(ColorModel, self).__init__(*args, **kwargs)
+        self.rowsInserted.connect(self.set_vcs_state)
 
-    def set_vcs_state(self, root_path):
+    @Slot()
+    @Slot(str)
+    def set_vcs_state(self, root_path=None):
         """Set the vcs state dictionary."""
         if root_path is not None:
             self.root_path = osp.abspath(root_path)
