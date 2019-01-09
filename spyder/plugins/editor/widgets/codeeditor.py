@@ -66,6 +66,7 @@ from spyder.plugins.editor.panels.manager import PanelsManager
 from spyder.plugins.editor.panels.codefolding import FoldingPanel
 from spyder.plugins.editor.panels.classfunctiondropdown import (
     ClassFunctionDropdown)
+from spyder.plugins.editor.panels.debugger import DebuggerPanel
 from spyder.plugins.editor.utils.folding import IndentFoldDetector
 from spyder.plugins.editor.extensions.manager import (
     EditorExtensionsManager)
@@ -77,7 +78,6 @@ from spyder.plugins.editor.utils.lsp import (
 from spyder.plugins.editor.lsp import (
     LSPRequestTypes, TextDocumentSyncKind, DiagnosticSeverity,
     )
-from spyder.widgets.panels.debugger import DebuggerPanel
 from spyder.widgets.sourcecode.utils.editor import BlockUserData
 from spyder.widgets.sourcecode.utils.debugger import DebuggerManager
 from spyder.api.panel import Panel
