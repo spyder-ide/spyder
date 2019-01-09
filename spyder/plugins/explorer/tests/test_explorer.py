@@ -83,9 +83,8 @@ def create_folder_files(file_paths, project_dir):
                         item_path = osp.join(project_dir, item)
                 else:
                     dirpath = osp.join(project_dir, item)
-                    if not osp.exists(dirpath):
-                        os.mkdir(dirpath)
-                        item_path = dirpath
+                    os.makedirs(dirpath, exist_ok=True)
+                    item_path = dirpath
                 #  create files with some texts
                 if item_path.endswith('script.py'):
                     with open(item_path, 'w') as fh:
