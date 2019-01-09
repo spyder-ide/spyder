@@ -2227,8 +2227,7 @@ class EditorStack(QWidget):
                                       lambda: self.todo_results_changed.emit())
         finfo.edit_goto.connect(lambda fname, lineno, name:
                                 self.edit_goto.emit(fname, lineno, name))
-        finfo.save_breakpoints.connect(lambda s1, s2:
-                                       self.save_breakpoints.emit(s1, s2))
+
         editor.sig_run_selection.connect(self.run_selection)
         editor.sig_run_cell.connect(self.run_cell)
         editor.sig_run_cell_and_advance.connect(self.run_cell_and_advance)
