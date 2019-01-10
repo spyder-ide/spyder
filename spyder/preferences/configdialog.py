@@ -1098,13 +1098,13 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         custom_names = self.get_option("custom_names", [])
 
         # Interface options
-        theme_group = QGroupBox(_("Interface"))
+        theme_group = QGroupBox(_("Main interface"))
 
         # Interface Widgets
         ui_themes = ['Automatic', 'Light', 'Dark']
         ui_theme_choices = list(zip(ui_themes, [ui_theme.lower()
                                                 for ui_theme in ui_themes]))
-        ui_theme_combo = self.create_combobox(_('Interface theme:'),
+        ui_theme_combo = self.create_combobox(_('Interface theme'),
                                               ui_theme_choices,
                                               'ui_theme',
                                               restart=True)
