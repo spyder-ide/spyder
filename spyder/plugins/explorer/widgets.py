@@ -400,12 +400,12 @@ class DirView(QTreeView):
                 get_shortcut('explorer', 'copy relative path')),
                           triggered=self.copy_relative_path))
         copy_file_clipboard_action = (
-            create_action(self, _("Copy File to Clipboard"),
+            create_action(self, _("Copy"),
                           QKeySequence(get_shortcut('explorer', 'copy file')),
                           icon=ima.icon('editcopy'),
                           triggered=self.copy_file_clipboard))
         save_file_clipboard_action = (
-            create_action(self, _("Paste File from Clipboard"),
+            create_action(self, _("Paste"),
                           QKeySequence(get_shortcut('explorer', 'paste file')),
                           icon=ima.icon('editpaste'),
                           triggered=self.save_file_clipboard))
@@ -427,8 +427,8 @@ class DirView(QTreeView):
         if all([fixpath(osp.dirname(_fn)) == basedir for _fn in fnames]):
             actions.append(move_action)
         actions += [None]
-        actions += [copy_absolute_path_action, copy_relative_path_action,
-                    copy_file_clipboard_action, save_file_clipboard_action]
+        actions += [copy_file_clipboard_action, save_file_clipboard_action,
+                    copy_absolute_path_action, copy_relative_path_action]
         if not QApplication.clipboard().mimeData().hasUrls():
             save_file_clipboard_action.setDisabled(True)
         actions += [None]
