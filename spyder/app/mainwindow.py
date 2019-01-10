@@ -119,20 +119,12 @@ if hasattr(Qt, 'AA_EnableHighDpiScaling'):
 #==============================================================================
 from spyder.utils.qthelpers import qapplication, MENU_SEPARATOR
 from spyder.config.base import get_image_path
-from spyder.config.gui import is_dark_interface
 MAIN_APP = qapplication()
 
 if PYQT5:
-    if is_dark_interface():
-        icon_filename = "spyder.svg"
-    else:
-        icon_filename = "spyder_dark.svg"
+    APP_ICON = QIcon(get_image_path("spyder.svg"))
 else:
-    if is_dark_interface():
-        icon_filename = "spyder.png"
-    else:
-        icon_filename = "spyder_dark.png"
-APP_ICON = QIcon(get_image_path(icon_filename))
+    APP_ICON = QIcon(get_image_path("spyder.png"))
 
 MAIN_APP.setWindowIcon(APP_ICON)
 
@@ -2535,7 +2527,21 @@ class MainWindow(QMainWindow):
         )
         msgBox.setWindowTitle(_("About %s") % "Spyder")
         msgBox.setStandardButtons(QMessageBox.Ok)
-        msgBox.setIconPixmap(APP_ICON.pixmap(QSize(64, 64)))
+
+        from spyder.config.gui import is_dark_interface
+        if PYQT5:
+            if is_dark_interface():
+                icon_filename = "spyder.svg"
+            else:
+                icon_filename = "spyder_dark.svg"
+        else:
+            if is_dark_interface():
+                icon_filename = "spyder.png"
+            else:
+                icon_filename = "spyder_dark.png"
+        app_icon = QIcon(get_image_path(icon_filename))
+        msgBox.setIconPixmap(app_icon.pixmap(QSize(64, 64)))
+
         msgBox.setTextInteractionFlags(
             Qt.LinksAccessibleByMouse | Qt.TextSelectableByMouse)
         msgBox.exec_()
