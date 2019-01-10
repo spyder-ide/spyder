@@ -84,7 +84,7 @@ from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
 from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QDockWidget, QMainWindow,
                             QMenu, QMessageBox, QShortcut, QSplashScreen,
-                            QStyleFactory, QTabWidget, QWidget)
+                            QStyleFactory, QTabWidget, QWidget, QDesktopWidget)
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -2433,7 +2433,12 @@ class MainWindow(QMainWindow):
                 self.setWindowFlags(self.windowFlags()
                                     | Qt.FramelessWindowHint
                                     | Qt.WindowStaysOnTopHint)
-                r = QApplication.desktop().screenGeometry()
+
+                screen_number = QDesktopWidget().screenNumber(self)
+                if screen_number < 0:
+                    screen_number = 0
+
+                r = QApplication.desktop().screenGeometry(screen_number)
                 self.setGeometry(
                     r.left() - 1, r.top() - 1, r.width() + 2, r.height() + 2)
                 self.showNormal()
