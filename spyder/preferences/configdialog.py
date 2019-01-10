@@ -1139,37 +1139,37 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         theme_group.setLayout(theme_layout)
 
         # Syntax coloring options
-        syntax_group = QGroupBox(_("Syntax highlighting"))
+        syntax_group = QGroupBox(_("Syntax highlighting theme"))
 
         # Syntax Widgets
         edit_button = QPushButton(_("Edit selected scheme"))
         create_button = QPushButton(_("Create new scheme"))
         self.delete_button = QPushButton(_("Delete scheme"))
+        self.reset_button = QPushButton(_("Reset to defaults"))
+
         self.preview_editor = CodeEditor(self)
         self.stacked_widget = QStackedWidget(self)
-        self.reset_button = QPushButton(_("Reset to defaults"))
         self.scheme_editor_dialog = SchemeEditor(parent=self,
                                                  stack=self.stacked_widget)
 
         self.scheme_choices_dict = {}
-        schemes_combobox_widget = self.create_combobox(_('Syntax scheme:'),
-                                                       [('', '')],
+        schemes_combobox_widget = self.create_combobox('', [('', '')],
                                                        'selected')
         self.schemes_combobox = schemes_combobox_widget.combobox
 
-        # Syntax Layouts
-        syntax_comboboxes_layout = QGridLayout()
-        syntax_comboboxes_layout.addWidget(schemes_combobox_widget.label, 0, 0)
-        syntax_comboboxes_layout.addWidget(schemes_combobox_widget.combobox,
-                                           0, 1)
+        # Adjust size so buttons don't expand to the full width
+        for btn in [edit_button, create_button, self.delete_button,
+                    self.reset_button, self.schemes_combobox]:
+            btn.setMaximumWidth(250)
 
-        buttons_layout = QVBoxLayout()
-        buttons_layout.addLayout(syntax_comboboxes_layout)
-        buttons_layout.addWidget(edit_button)
-        buttons_layout.addWidget(self.reset_button)
-        buttons_layout.addWidget(create_button)
-        buttons_layout.addWidget(self.delete_button)
-        syntax_group.setLayout(buttons_layout)
+        # Syntax layout
+        syntax_layout = QVBoxLayout()
+        syntax_layout.addWidget(self.schemes_combobox)
+        syntax_layout.addWidget(edit_button)
+        syntax_layout.addWidget(self.reset_button)
+        syntax_layout.addWidget(create_button)
+        syntax_layout.addWidget(self.delete_button)
+        syntax_group.setLayout(syntax_layout)
 
         # Fonts options
         fonts_group = QGroupBox(_("Fonts"))
