@@ -73,14 +73,16 @@ def create_folder_files(file_paths, project_dir):
             if osp.split(item)[0]:
                 dirs, fname = osp.split(item)
                 dirpath = osp.join(project_dir, dirs)
-                os.makedirs(dirpath)
-                item_path = osp.join(dirpath, fname)
+                if not osp.exists(dirpath):
+                    os.makedirs(dirpath)
+                    item_path = osp.join(dirpath, fname)
             else:
                 item_path = osp.join(project_dir, item)
         else:
             dirpath = osp.join(project_dir, item)
-            os.makedirs(dirpath)
-            item_path = dirpath
+            if not osp.exists(dirpath):
+                os.makedirs(dirpath)
+                item_path = dirpath
         if item_path.endswith('script.py'):
             with open(item_path, 'w') as fh:
                 fh.write('Python')
@@ -194,10 +196,10 @@ def test_save_file(project_explorer_with_files, file_paths):
             if item.endswith('script.py'):
                 assert osp.exists(osp.join(parrent_path, 'script2.py'))
                 assert text_data == 'Python'
-            elif item.endswith('script1.py'):
+            if item.endswith('script1.py'):
                 assert osp.exists(osp.join(parrent_path, 'script3.py'))
                 assert text_data == 'Spyder4'
-            elif item.endswith('script2.py'):
+            if item.endswith('script2.py'):
                 assert osp.exists(osp.join(parrent_path, 'script4.py'))
                 assert text_data == 'Jan-2019'
     if len(file_paths) == 2:
