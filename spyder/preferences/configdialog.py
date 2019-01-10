@@ -143,6 +143,7 @@ class ConfigDialog(QDialog):
 
         # Widgets
         self.pages_widget = QStackedWidget()
+        self.pages_widget.setMinimumWidth(600)
         self.contents_widget = QListWidget()
         self.button_reset = QPushButton(_('Reset to defaults'))
 
@@ -162,6 +163,7 @@ class ConfigDialog(QDialog):
         self.contents_widget.setSpacing(1)
         self.contents_widget.setCurrentRow(0)
         self.contents_widget.setMinimumWidth(220)
+        self.contents_widget.setMinimumHeight(400)
 
         # Layout
         hsplitter = QSplitter()
