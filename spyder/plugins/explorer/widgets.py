@@ -943,10 +943,12 @@ class DirView(QTreeView):
         if not isinstance(fnames, (tuple, list)):
             fnames = [fnames]
         if len(fnames) >= 1:
-            # try:
-            selected_item = osp.normpath(osp.dirname(osp.commonprefix(fnames)))
-            # except AttributeError:
-            #     selected_item = misc.get_common_path(fnames)
+            try:
+                selected_item = osp.commonpath(fnames)
+            except AttributeError:
+                #  py2 does not have commonpath
+                selected_item = osp.normpath(
+                        osp.dirname(osp.commonprefix(fnames)))
             if osp.isfile(selected_item):
                 parrent_path = osp.dirname(selected_item)
             else:

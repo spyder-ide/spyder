@@ -20,7 +20,6 @@ from qtpy.QtWidgets import QApplication
 from spyder.plugins.explorer.widgets import (FileExplorerTest,
                                              ProjectExplorerTest)
 from spyder.py3compat import to_text_string
-from spyder.utils.misc import get_common_path
 from spyder.plugins.projects.widgets.explorer import ProjectExplorerTest as \
     ProjectExplorerTest2
 
@@ -173,11 +172,12 @@ def test_save_file(project_explorer_with_files, file_paths):
     file_paths = create_folder_files(file_paths, project_dir)
     project.explorer.treewidget.copy_file_clipboard(fnames=file_paths)
     project.explorer.treewidget.save_file_clipboard(fnames=file_paths)
-    # try:
-    #     selected_item = osp.commonpath(file_paths)
-    # except AttributeError:
-    #     selected_item = get_common_path(file_paths)
-    selected_item = osp.normpath(osp.dirname(osp.commonprefix(file_paths)))
+    try:
+        selected_item = osp.commonpath(file_paths)
+    except AttributeError:
+        #  py2 does not have commonpath
+        selected_item = osp.normpath(
+                osp.dirname(osp.commonprefix(file_paths)))
     if osp.isfile(selected_item):
         parrent_path = osp.dirname(selected_item)
     else:
