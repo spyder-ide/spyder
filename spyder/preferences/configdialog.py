@@ -1142,12 +1142,12 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         syntax_group = QGroupBox(_("Syntax highlighting"))
 
         # Syntax Widgets
-        edit_button = QPushButton(_("Edit selected"))
+        edit_button = QPushButton(_("Edit selected scheme"))
         create_button = QPushButton(_("Create new scheme"))
-        self.delete_button = QPushButton(_("Delete"))
+        self.delete_button = QPushButton(_("Delete scheme"))
         self.preview_editor = CodeEditor(self)
         self.stacked_widget = QStackedWidget(self)
-        self.reset_button = QPushButton(_("Reset"))
+        self.reset_button = QPushButton(_("Reset to defaults"))
         self.scheme_editor_dialog = SchemeEditor(parent=self,
                                                  stack=self.stacked_widget)
 
@@ -1167,9 +1167,8 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         buttons_layout.addLayout(syntax_comboboxes_layout)
         buttons_layout.addWidget(edit_button)
         buttons_layout.addWidget(self.reset_button)
-        buttons_layout.addWidget(self.delete_button)
-        buttons_layout.addStretch(1)
         buttons_layout.addWidget(create_button)
+        buttons_layout.addWidget(self.delete_button)
         syntax_group.setLayout(buttons_layout)
 
         # Fonts options
