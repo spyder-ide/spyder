@@ -85,7 +85,7 @@ DEFAULTS = [
               'window/position': (10, 10),
               'window/is_maximized': True,
               'window/is_fullscreen': False,
-              'window/prefs_dialog_size': (745, 411),
+              'window/prefs_dialog_size': (1050, 520),
               'show_status_bar': True,
               'memory_usage/enable': True,
               'memory_usage/timeout': 2000,
@@ -753,7 +753,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '47.3.0'
+CONF_VERSION = '47.4.0'
 
 
 # Main configuration instance

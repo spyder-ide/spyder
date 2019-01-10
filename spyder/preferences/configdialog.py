@@ -161,6 +161,7 @@ class ConfigDialog(QDialog):
         self.contents_widget.setMovement(QListView.Static)
         self.contents_widget.setSpacing(1)
         self.contents_widget.setCurrentRow(0)
+        self.contents_widget.setMinimumWidth(220)
 
         # Layout
         hsplitter = QSplitter()
