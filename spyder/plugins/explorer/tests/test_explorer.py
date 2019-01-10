@@ -187,18 +187,19 @@ def test_save_file(project_explorer_with_files, file_paths):
         assert text_data == 'Python'
     if len(file_paths) == 3:
         #  'script.py', 'script1.py', 'testdir/script2.py' exists in pro dir
-        assert osp.exists(osp.join(parrent_path, 'script2.py'))
-        with open(osp.join(parrent_path, 'script2.py'), 'r') as fh:
-            text_data = fh.read()
-        assert text_data == 'Python'
-        assert osp.exists(osp.join(parrent_path, 'script3.py'))
-        with open(osp.join(parrent_path, 'script3.py'), 'r') as fh:
-            text_data = fh.read()
-        assert text_data == 'Spyder4'
-        assert osp.exists(osp.join(parrent_path, 'script4.py'))
-        with open(osp.join(parrent_path, 'script4.py'), 'r') as fh:
-            text_data = fh.read()
-        assert text_data == 'Jan-2019'
+        for item in file_paths:
+            if osp.isfile(item):
+                with open(osp.join(parrent_path, item), 'r') as fh:
+                    text_data = fh.read()
+            if item.endswith('script.py'):
+                assert osp.exists(osp.join(parrent_path, 'script2.py'))
+                assert text_data == 'Python'
+            elif item.endswith('script1.py'):
+                assert osp.exists(osp.join(parrent_path, 'script3.py'))
+                assert text_data == 'Spyder4'
+            elif item.endswith('script2.py'):
+                assert osp.exists(osp.join(parrent_path, 'script4.py'))
+                assert text_data == 'Jan-2019'
     if len(file_paths) == 2:
         #  'subdir/innerdir/text.txt' 'testdir' in proj dir
         assert osp.isdir(osp.join(parrent_path, 'testdir'))
