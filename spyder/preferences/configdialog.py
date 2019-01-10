@@ -1097,15 +1097,6 @@ class ColorSchemeConfigPage(GeneralConfigPage):
             pass
         custom_names = self.get_option("custom_names", [])
 
-        # Layouts
-        manage_layout = QVBoxLayout()
-
-        # Description of the section
-        about_label = QLabel(_("Customize the look and feel of "
-                               "Spyder and its plugins.<br>"))
-        about_label.setWordWrap(True)
-        manage_layout.addWidget(about_label)
-
         # Interface options
         theme_group = QGroupBox(_("Interface"))
 
@@ -1220,21 +1211,14 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         preview_layout.addWidget(self.preview_editor)
         preview_group.setLayout(preview_layout)
 
-        buttons_preview_layout = QGridLayout()
-        buttons_preview_layout.setRowStretch(0, 1)
-        buttons_preview_layout.setColumnStretch(0, 1)
-        buttons_preview_layout.setColumnStretch(1, 1)
-        buttons_preview_layout.addLayout(options_layout, 0, 0)
-        buttons_preview_layout.addWidget(preview_group, 0, 1)
-
-        # Groupbox for the section
-        manage_layout.addLayout(buttons_preview_layout)
-        manage_group = QGroupBox(_("Appearance"))
-        manage_group.setLayout(manage_layout)
-
-        vlayout = QVBoxLayout()
-        vlayout.addWidget(manage_group)
-        self.setLayout(vlayout)
+        # Combined layout
+        combined_layout = QGridLayout()
+        combined_layout.setRowStretch(0, 1)
+        combined_layout.setColumnStretch(0, 1)
+        combined_layout.setColumnStretch(1, 1)
+        combined_layout.addLayout(options_layout, 0, 0)
+        combined_layout.addWidget(preview_group, 0, 1)
+        self.setLayout(combined_layout)
 
         # Signals and slots
         create_button.clicked.connect(self.create_new_scheme)
