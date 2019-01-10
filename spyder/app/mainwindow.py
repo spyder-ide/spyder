@@ -2532,7 +2532,21 @@ class MainWindow(QMainWindow):
         )
         msgBox.setWindowTitle(_("About %s") % "Spyder")
         msgBox.setStandardButtons(QMessageBox.Ok)
-        msgBox.setIconPixmap(APP_ICON.pixmap(QSize(64, 64)))
+
+        from spyder.config.gui import is_dark_interface
+        if PYQT5:
+            if is_dark_interface():
+                icon_filename = "spyder.svg"
+            else:
+                icon_filename = "spyder_dark.svg"
+        else:
+            if is_dark_interface():
+                icon_filename = "spyder.png"
+            else:
+                icon_filename = "spyder_dark.png"
+        app_icon = QIcon(get_image_path(icon_filename))
+        msgBox.setIconPixmap(app_icon.pixmap(QSize(64, 64)))
+
         msgBox.setTextInteractionFlags(
             Qt.LinksAccessibleByMouse | Qt.TextSelectableByMouse)
         msgBox.exec_()
