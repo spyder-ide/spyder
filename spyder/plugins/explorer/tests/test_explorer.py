@@ -73,13 +73,13 @@ def create_folder_files(file_paths, project_dir):
             if osp.split(item)[0]:
                 dirs, fname = osp.split(item)
                 dirpath = osp.join(project_dir, dirs)
-                os.makedirs(dirpath, exist_ok=True)
+                os.makedirs(dirpath)
                 item_path = osp.join(dirpath, fname)
             else:
                 item_path = osp.join(project_dir, item)
         else:
             dirpath = osp.join(project_dir, item)
-            os.makedirs(dirpath, exist_ok=True)
+            os.makedirs(dirpath)
             item_path = dirpath
         if item_path.endswith('script.py'):
             with open(item_path, 'w') as fh:
@@ -201,7 +201,7 @@ def test_save_file(project_explorer_with_files, file_paths):
             text_data = fh.read()
         assert text_data == 'Jan-2019'
     if len(file_paths) == 2:
-         #  'subdir/innerdir/text.txt' 'testdir' in proj dir
+        #  'subdir/innerdir/text.txt' 'testdir' in proj dir
         assert osp.isdir(osp.join(parrent_path, 'testdir'))
         assert osp.isfile(osp.join(parrent_path, 'text.txt'))
         with open(osp.join(parrent_path, 'text.txt'), 'r') as fh:
