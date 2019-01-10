@@ -1487,11 +1487,15 @@ class ExplorerWidget(QWidget):
 # Tests
 #==============================================================================
 class FileExplorerTest(QWidget):
-    def __init__(self):
+    def __init__(self, directory=None):
         QWidget.__init__(self)
         vlayout = QVBoxLayout()
         self.setLayout(vlayout)
         self.explorer = ExplorerWidget(self, show_cd_only=None)
+        if directory is not None:
+            self.directory = directory
+        else:
+            self.directory = osp.dirname(osp.abspath(__file__))
         vlayout.addWidget(self.explorer)
         
         hlayout1 = QHBoxLayout()

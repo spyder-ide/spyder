@@ -50,6 +50,16 @@ def project_explorer_with_files(qtbot, tmpdir):
     return project_explorer, cb
 
 
+@pytest.fixture
+def file_explorer_with_files(qtbot, tmpdir):
+    """Setup Project Explorer widget."""
+    cb = QApplication.clipboard()
+    project_dir = to_text_string(tmpdir.mkdir('project'))
+    project_explorer = FileExplorerTest(directory=project_dir)
+    qtbot.addWidget(project_explorer)
+    return project_explorer, cb
+
+
 def test_file_explorer(file_explorer):
     """Run FileExplorerTest."""
     file_explorer.resize(640, 480)
@@ -64,7 +74,7 @@ def test_project_explorer(project_explorer):
     assert project_explorer
 
 
-def create_folder_files(file_paths, project_dir):
+def create_folders_files(file_paths, project_dir):
     """Function to create folders and files to be used in test functions."""
     list_paths = []
     for item in file_paths:
@@ -103,11 +113,13 @@ def create_folder_files(file_paths, project_dir):
                          [['script.py'],
                           ['script.py', 'script1.py', 'testdir/script2.py'],
                           ['subdir/innerdir/text.txt', 'testdir']])
-def test_copy_path(project_explorer_with_files, path_method, file_paths):
+@pytest.mark.parametrize('explorer_type', ['project_explorer_with_files',
+                                           'file_explorer_with_files'])
+def test_copy_path(explorer_type, path_method, file_paths, request):
     """Test copy absolute and relative paths."""
-    project, cb = project_explorer_with_files
+    project, cb = request.getfixturevalue(explorer_type)
     project_dir = project.directory
-    file_paths = create_folder_files(file_paths, project_dir)
+    file_paths = create_folders_files(file_paths, project_dir)
     home_directory = project.explorer.treewidget.fsmodel.rootPath()
     project.explorer.treewidget.copy_path(fnames=file_paths,
                                           method=path_method)
@@ -135,11 +147,13 @@ def test_copy_path(project_explorer_with_files, path_method, file_paths):
                          [['script.py'],
                           ['script.py', 'script1.py', 'testdir/script2.py'],
                           ['subdir/innerdir/text.txt', 'testdir']])
-def test_copy_file(project_explorer_with_files, file_paths):
+@pytest.mark.parametrize('explorer_type', ['project_explorer_with_files',
+                                           'file_explorer_with_files'])
+def test_copy_file(explorer_type, file_paths, request):
     """Test copy file(s)/folders(s) to clipboard."""
-    project, cb = project_explorer_with_files
+    project, cb = request.getfixturevalue(explorer_type)
     project_dir = project.directory
-    file_paths = create_folder_files(file_paths, project_dir)
+    file_paths = create_folders_files(file_paths, project_dir)
     project.explorer.treewidget.copy_file_clipboard(fnames=file_paths)
     cb_data = cb.mimeData().urls()
     for url in cb_data:
@@ -165,11 +179,13 @@ def test_copy_file(project_explorer_with_files, file_paths):
                          [['script.py'],
                           ['script.py', 'script1.py', 'testdir/script2.py'],
                           ['subdir/innerdir/text.txt', 'testdir']])
-def test_save_file(project_explorer_with_files, file_paths):
+@pytest.mark.parametrize('explorer_type', ['project_explorer_with_files',
+                                           'file_explorer_with_files'])
+def test_save_file(explorer_type, file_paths, request):
     """Test save file(s)/folders(s) from clipboard."""
-    project = project_explorer_with_files[0]
+    project = request.getfixturevalue(explorer_type)[0]
     project_dir = project.directory
-    file_paths = create_folder_files(file_paths, project_dir)
+    file_paths = create_folders_files(file_paths, project_dir)
     project.explorer.treewidget.copy_file_clipboard(fnames=file_paths)
     project.explorer.treewidget.save_file_clipboard(fnames=file_paths)
     try:
@@ -189,7 +205,7 @@ def test_save_file(project_explorer_with_files, file_paths):
             text_data = fh.read()
         assert text_data == 'Python'
     if len(file_paths) == 3:
-        #  'script.py', 'script1.py', 'testdir/script2.py' exists in proj dir
+        #  script.py, script1.py and testdir/script2.py exist in project_dir
         for item in file_paths:
             if osp.isfile(item):
                 with open(osp.join(parrent_path, item), 'r') as fh:
@@ -204,7 +220,7 @@ def test_save_file(project_explorer_with_files, file_paths):
                 assert osp.exists(osp.join(parrent_path, 'script4.py'))
                 assert text_data == 'Jan-2019'
     if len(file_paths) == 2:
-        #  'subdir/innerdir/text.txt' and 'testdir' in proj dir
+        #  subdir/innerdir/text.txt and testdir in project_dir
         assert osp.isdir(osp.join(parrent_path, 'testdir'))
         assert osp.isfile(osp.join(parrent_path, 'text.txt'))
         with open(osp.join(parrent_path, 'text.txt'), 'r') as fh:
