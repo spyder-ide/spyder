@@ -174,7 +174,7 @@ def test_save_file(project_explorer_with_files, file_paths):
     try:
         selected_item = osp.commonpath(file_paths)
     except AttributeError:
-        selected_item = misc.get_common_path(file_paths)
+        selected_item = get_common_path(file_paths)
     if osp.isfile(selected_item):
         parrent_path = osp.dirname(selected_item)
     else:
