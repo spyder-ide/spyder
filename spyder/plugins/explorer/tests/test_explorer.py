@@ -52,7 +52,7 @@ def project_explorer_with_files(qtbot, tmpdir):
 
 @pytest.fixture
 def file_explorer_with_files(qtbot, tmpdir):
-    """Setup Project Explorer widget."""
+    """Setup File Explorer widget."""
     cb = QApplication.clipboard()
     project_dir = to_text_string(tmpdir.mkdir('project'))
     project_explorer = FileExplorerTest(directory=project_dir)
@@ -108,11 +108,11 @@ def create_folders_files(file_paths, project_dir):
     return list_paths
 
 
-@pytest.mark.parametrize('path_method', ['absolute', 'relative'])
 @pytest.mark.parametrize('file_paths',
                          [['script.py'],
                           ['script.py', 'script1.py', 'testdir/script2.py'],
                           ['subdir/innerdir/text.txt', 'testdir']])
+@pytest.mark.parametrize('path_method', ['absolute', 'relative'])
 @pytest.mark.parametrize('explorer_type', ['project_explorer_with_files',
                                            'file_explorer_with_files'])
 def test_copy_path(explorer_type, path_method, file_paths, request):
