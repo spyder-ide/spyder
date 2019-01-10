@@ -728,13 +728,13 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         if title:
             fontlabel = QLabel(title)
         else:
-            fontlabel = QLabel(_("Font: "))
+            fontlabel = QLabel(_("Font"))
         fontbox = QFontComboBox()
 
         if fontfilters is not None:
             fontbox.setFontFilters(fontfilters)
 
-        sizelabel = QLabel("  "+_("Size: "))
+        sizelabel = QLabel("  "+_("Size"))
         sizebox = QSpinBox()
         sizebox.setRange(7, 100)
         self.fontboxes[(fontbox, sizebox)] = option
@@ -1178,13 +1178,13 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         # Fonts widgets
         plain_text_font = self.create_fontgroup(
             option='font',
-            title=_("Plain text font"),
+            title=_("Plain text"),
             fontfilters=QFontComboBox.MonospacedFonts,
             without_group=True)
 
         rich_text_font = self.create_fontgroup(
             option='rich_font',
-            title=_("Rich text font"),
+            title=_("Rich text"),
             without_group=True)
 
         # Fonts layouts
