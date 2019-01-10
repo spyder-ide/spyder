@@ -173,10 +173,11 @@ def test_save_file(project_explorer_with_files, file_paths):
     file_paths = create_folder_files(file_paths, project_dir)
     project.explorer.treewidget.copy_file_clipboard(fnames=file_paths)
     project.explorer.treewidget.save_file_clipboard(fnames=file_paths)
-    try:
-        selected_item = osp.commonpath(file_paths)
-    except AttributeError:
-        selected_item = get_common_path(file_paths)
+    # try:
+    #     selected_item = osp.commonpath(file_paths)
+    # except AttributeError:
+    #     selected_item = get_common_path(file_paths)
+    selected_item = osp.normpath(osp.dirname(osp.commonprefix(file_paths)))
     if osp.isfile(selected_item):
         parrent_path = osp.dirname(selected_item)
     else:
@@ -188,7 +189,7 @@ def test_save_file(project_explorer_with_files, file_paths):
             text_data = fh.read()
         assert text_data == 'Python'
     if len(file_paths) == 3:
-        #  'script.py', 'script1.py', 'testdir/script2.py' exists in pro dir
+        #  'script.py', 'script1.py', 'testdir/script2.py' exists in proj dir
         for item in file_paths:
             if osp.isfile(item):
                 with open(osp.join(parrent_path, item), 'r') as fh:
@@ -203,7 +204,7 @@ def test_save_file(project_explorer_with_files, file_paths):
                 assert osp.exists(osp.join(parrent_path, 'script4.py'))
                 assert text_data == 'Jan-2019'
     if len(file_paths) == 2:
-        #  'subdir/innerdir/text.txt' 'testdir' in proj dir
+        #  'subdir/innerdir/text.txt' and 'testdir' in proj dir
         assert osp.isdir(osp.join(parrent_path, 'testdir'))
         assert osp.isfile(osp.join(parrent_path, 'text.txt'))
         with open(osp.join(parrent_path, 'text.txt'), 'r') as fh:
