@@ -143,22 +143,21 @@ def test_copy_file(project_explorer_with_files, file_paths):
     cb_data = cb.mimeData().urls()
     for url in cb_data:
         file_name = url.toLocalFile()
+        if osp.isfile(file_name):
+            with open(file_name, 'r') as fh:
+                text_data = fh.read()
         try:
             assert osp.isdir(file_name)
         except AssertionError:
             assert osp.isfile(file_name)
         if file_name.endswith('script.py'):
-            with open(file_name, 'r') as fh:
-                text_data = fh.read()
             assert text_data == 'Python'
         if file_name.endswith('script1.py'):
-            with open(file_name, 'r') as fh:
-                text_data = fh.read()
             assert text_data == 'Spyder4'
         if file_name.endswith('script2.py'):
-            with open(file_name, 'r') as fh:
-                text_data = fh.read()
             assert text_data == 'Jan-2019'
+        if file_name.endswith('text.txt'):
+            assert text_data == 'Hello World'
 
 
 @pytest.mark.parametrize('file_paths',
