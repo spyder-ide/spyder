@@ -1172,6 +1172,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         syntax_layout.addWidget(self.reset_button)
         syntax_layout.addWidget(create_button)
         syntax_layout.addWidget(self.delete_button)
+        syntax_layout.setContentsMargins(85, 12, 20, 12)
         syntax_group.setLayout(syntax_layout)
 
         # Fonts options
