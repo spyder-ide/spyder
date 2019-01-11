@@ -73,7 +73,7 @@ class DragButton(QToolButton):
     """
 
     def __init__(self, parent, button_size):
-        super(QToolButton, self).__init__(parent)
+        QToolButton.__init__(self, parent)
         self.parent = parent
 
         # Style
@@ -103,7 +103,7 @@ class CloseButton(QToolButton):
     """Close button for the title bar."""
 
     def __init__(self, parent, button_size):
-        super(QToolButton, self).__init__(parent)
+        QToolButton.__init__(self, parent)
 
         # Style
         self.setMaximumSize(button_size)

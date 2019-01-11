@@ -51,9 +51,7 @@ class BasePluginMixin(object):
     LOCATION = Qt.LeftDockWidgetArea
     FEATURES = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetMovable
 
-    def __init__(self, parent=None):
-        super(BasePluginMixin, self).__init__()
-
+    def __init__(self):
         # Additional actions
         self.dock_action = create_action(self,
                                          _("Dock"),

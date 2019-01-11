@@ -36,11 +36,14 @@ def check_path():
 
 def check_qt():
     """Check Qt binding requirements"""
-    qt_infos = dict(pyqt5=("PyQt5", "5.6"))
+    qt_infos = dict(pyqt5=("PyQt5", "5.6"), pyside2=("PySide2", "5.12"))
     try:
         import qtpy
         package_name, required_ver = qt_infos[qtpy.API]
-        actual_ver = qtpy.PYQT_VERSION
+        if qtpy.API == 'pyqt5':
+            actual_ver = qtpy.PYQT_VERSION
+        else:
+            actual_ver = qtpy.PYSIDE_VERSION
         if LooseVersion(actual_ver) < LooseVersion(required_ver):
             show_warning("Please check Spyder installation requirements:\n"
                          "%s %s+ is required (found v%s)."
