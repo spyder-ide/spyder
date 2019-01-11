@@ -1038,13 +1038,13 @@ class DirView(QTreeView):
                                              name='copy absolute path',
                                              parent=self)
         copy_relative_path1 = config_shortcut(self.copy_relative_path,
-                                             context='explorer',
-                                             name='copy relative path 1',
-                                             parent=self)
+                                              context='explorer',
+                                              name='copy relative path 1',
+                                              parent=self)
         copy_relative_path2 = config_shortcut(self.copy_relative_path,
-                                             context='explorer',
-                                             name='copy relative path 2',
-                                             parent=self)
+                                              context='explorer',
+                                              name='copy relative path 2',
+                                              parent=self)
         return [copy_clipboard_file, paste_clipboard_file, copy_absolute_path,
                 copy_relative_path1, copy_relative_path2]
 
