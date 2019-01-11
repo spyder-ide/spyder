@@ -40,22 +40,12 @@ def project_explorer(qtbot):
     return widget
 
 
-@pytest.fixture
-def project_explorer_with_files(qtbot, tmpdir):
+@pytest.fixture(params=[FileExplorerTest, ProjectExplorerTest2])
+def explorer_with_files(qtbot, tmpdir, request):
     """Setup Project Explorer widget."""
     cb = QApplication.clipboard()
     project_dir = to_text_string(tmpdir.mkdir('project'))
-    project_explorer = ProjectExplorerTest2(directory=project_dir)
-    qtbot.addWidget(project_explorer)
-    return project_explorer, cb
-
-
-@pytest.fixture
-def file_explorer_with_files(qtbot, tmpdir):
-    """Setup File Explorer widget."""
-    cb = QApplication.clipboard()
-    project_dir = to_text_string(tmpdir.mkdir('project'))
-    project_explorer = FileExplorerTest(directory=project_dir)
+    project_explorer = request.param(directory=project_dir)
     qtbot.addWidget(project_explorer)
     return project_explorer, cb
 
@@ -113,11 +103,9 @@ def create_folders_files(file_paths, project_dir):
                           ['script.py', 'script1.py', 'testdir/script2.py'],
                           ['subdir/innerdir/text.txt', 'testdir']])
 @pytest.mark.parametrize('path_method', ['absolute', 'relative'])
-@pytest.mark.parametrize('explorer_type', ['project_explorer_with_files',
-                                           'file_explorer_with_files'])
-def test_copy_path(explorer_type, path_method, file_paths, request):
+def test_copy_path(explorer_with_files, path_method, file_paths):
     """Test copy absolute and relative paths."""
-    project, cb = request.getfixturevalue(explorer_type)
+    project, cb = explorer_with_files
     project_dir = project.directory
     file_paths = create_folders_files(file_paths, project_dir)
     home_directory = project.explorer.treewidget.fsmodel.rootPath()
@@ -147,11 +135,9 @@ def test_copy_path(explorer_type, path_method, file_paths, request):
                          [['script.py'],
                           ['script.py', 'script1.py', 'testdir/script2.py'],
                           ['subdir/innerdir/text.txt', 'testdir']])
-@pytest.mark.parametrize('explorer_type', ['project_explorer_with_files',
-                                           'file_explorer_with_files'])
-def test_copy_file(explorer_type, file_paths, request):
+def test_copy_file(explorer_with_files, file_paths):
     """Test copy file(s)/folders(s) to clipboard."""
-    project, cb = request.getfixturevalue(explorer_type)
+    project, cb = explorer_with_files
     project_dir = project.directory
     file_paths = create_folders_files(file_paths, project_dir)
     project.explorer.treewidget.copy_file_clipboard(fnames=file_paths)
@@ -179,11 +165,9 @@ def test_copy_file(explorer_type, file_paths, request):
                          [['script.py'],
                           ['script.py', 'script1.py', 'testdir/script2.py'],
                           ['subdir/innerdir/text.txt', 'testdir']])
-@pytest.mark.parametrize('explorer_type', ['project_explorer_with_files',
-                                           'file_explorer_with_files'])
-def test_save_file(explorer_type, file_paths, request):
+def test_save_file(explorer_with_files, file_paths):
     """Test save file(s)/folders(s) from clipboard."""
-    project = request.getfixturevalue(explorer_type)[0]
+    project = explorer_with_files[0]
     project_dir = project.directory
     file_paths = create_folders_files(file_paths, project_dir)
     project.explorer.treewidget.copy_file_clipboard(fnames=file_paths)
