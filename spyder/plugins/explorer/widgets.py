@@ -406,8 +406,7 @@ class DirView(QTreeView):
                 get_shortcut('explorer', 'copy absolute path')),
                           triggered=self.copy_absolute_path))
         copy_relative_path_action = (
-            create_action(self, _("Copy Relative Path"), QKeySequence(
-                get_shortcut('explorer', 'copy relative path')),
+            create_action(self, _("Copy Relative Path"),
                           triggered=self.copy_relative_path))
         copy_relative_path_action.setShortcuts(
                 [QKeySequence(
