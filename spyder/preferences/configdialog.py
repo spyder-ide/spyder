@@ -1160,20 +1160,16 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                                                        'selected')
         self.schemes_combobox = schemes_combobox_widget.combobox
 
-        # Adjust size so buttons don't expand to the full width
-        for btn in [edit_button, create_button, self.delete_button,
-                    self.reset_button, self.schemes_combobox]:
-            btn.setMaximumWidth(250)
-
         # Syntax layout
-        syntax_layout = QVBoxLayout()
-        syntax_layout.addWidget(self.schemes_combobox)
-        syntax_layout.addWidget(edit_button)
-        syntax_layout.addWidget(self.reset_button)
-        syntax_layout.addWidget(create_button)
-        syntax_layout.addWidget(self.delete_button)
-        syntax_layout.setContentsMargins(85, 12, 20, 12)
-        syntax_group.setLayout(syntax_layout)
+        syntax_layout = QGridLayout(syntax_group)
+        btns = [self.schemes_combobox, edit_button, self.reset_button,
+                create_button, self.delete_button]
+        for i, btn in enumerate(btns):
+            syntax_layout.addWidget(btn, i, 1)
+        syntax_layout.setColumnStretch(0, 1)
+        syntax_layout.setColumnStretch(1, 2)
+        syntax_layout.setColumnStretch(2, 1)
+        syntax_layout.setContentsMargins(0, 12, 0, 12)
 
         # Fonts options
         fonts_group = QGroupBox(_("Fonts"))
