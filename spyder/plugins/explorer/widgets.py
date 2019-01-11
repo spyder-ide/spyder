@@ -406,13 +406,9 @@ class DirView(QTreeView):
                 get_shortcut('explorer', 'copy absolute path')),
                           triggered=self.copy_absolute_path))
         copy_relative_path_action = (
-            create_action(self, _("Copy Relative Path"),
+            create_action(self, _("Copy Relative Path"), QKeySequence(
+                get_shortcut('explorer', 'copy relative path'))
                           triggered=self.copy_relative_path))
-        copy_relative_path_action.setShortcuts(
-                [QKeySequence(
-                        get_shortcut('explorer', 'copy relative path 1')),
-                 QKeySequence(
-                         get_shortcut('explorer', 'copy relative path 2'))])
         
         actions = []
         if only_modules:
@@ -1036,16 +1032,12 @@ class DirView(QTreeView):
                                              context='explorer',
                                              name='copy absolute path',
                                              parent=self)
-        copy_relative_path1 = config_shortcut(self.copy_relative_path,
+        copy_relative_path = config_shortcut(self.copy_relative_path,
                                               context='explorer',
-                                              name='copy relative path 1',
-                                              parent=self)
-        copy_relative_path2 = config_shortcut(self.copy_relative_path,
-                                              context='explorer',
-                                              name='copy relative path 2',
+                                              name='copy relative path',
                                               parent=self)
         return [copy_clipboard_file, paste_clipboard_file, copy_absolute_path,
-                copy_relative_path1, copy_relative_path2]
+                copy_relative_path]
 
     def get_shortcut_data(self):
         """
