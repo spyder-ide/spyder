@@ -49,7 +49,7 @@ class EditTabNamePopup(QLineEdit):
         self.tab_index = None
 
         # Widget setup
-        QLineEdit.__init__(self, parent=None)
+        QLineEdit.__init__(self, parent=parent)
 
         # Slot to handle tab name update
         self.editingFinished.connect(self.edit_finished)
