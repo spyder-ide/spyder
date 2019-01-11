@@ -1217,8 +1217,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         # Combined layout
         combined_layout = QGridLayout()
         combined_layout.setRowStretch(0, 1)
-        combined_layout.setColumnStretch(0, 1)
-        combined_layout.setColumnStretch(1, 1)
+        combined_layout.setColumnStretch(1, 100)
         combined_layout.addLayout(options_layout, 0, 0)
         combined_layout.addWidget(preview_group, 0, 1)
         self.setLayout(combined_layout)
