@@ -42,7 +42,7 @@ def project_explorer(qtbot):
 
 @pytest.fixture(params=[FileExplorerTest, ProjectExplorerTest2])
 def explorer_with_files(qtbot, tmpdir, request):
-    """Setup Project Explorer widget."""
+    """Setup Project/File Explorer widget."""
     cb = QApplication.clipboard()
     project_dir = to_text_string(tmpdir.mkdir('project'))
     project_explorer = request.param(directory=project_dir)
