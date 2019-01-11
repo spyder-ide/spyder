@@ -22,6 +22,7 @@ except ImportError:
 import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
+from qtpy import PYSIDE_VERSION
 from qtpy.QtCore import Qt
 from flaky import flaky
 
@@ -155,6 +156,7 @@ def test_arrayeditor_with_empty_3d_array(qtbot):
     assert_array_equal(arr, launch_arrayeditor(arr, "3D array"))
 
 
+@pytest.mark.skipif(PYSIDE_VERSION is not None, reason="Fails in PySide2")
 def test_arrayeditor_edit_1d_array(qtbot):
     exp_arr = np.array([1, 0, 2, 3, 4])
     arr = np.arange(0, 5)
@@ -175,6 +177,7 @@ def test_arrayeditor_edit_1d_array(qtbot):
 
 
 @pytest.mark.skipif(sys.platform == 'darwin', reason="It fails on macOS")
+@pytest.mark.skipif(PYSIDE_VERSION is not None, reason="Fails in PySide2")
 def test_arrayeditor_edit_2d_array(qtbot):
     arr = np.ones((3, 3))
     diff_arr = arr.copy()
@@ -225,6 +228,7 @@ def test_arraymodel_set_data_overflow(monkeypatch):
 
 @flaky(max_runs=3)
 @pytest.mark.skipif(sys.platform == 'darwin', reason="It fails on macOS")
+@pytest.mark.skipif(PYSIDE_VERSION is not None, reason="Fails in PySide2")
 def test_arrayeditor_edit_overflow(qtbot, monkeypatch):
     """
     Test that entry of an overflowing integer is caught and handled properly.

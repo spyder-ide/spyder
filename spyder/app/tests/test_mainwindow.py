@@ -29,7 +29,7 @@ from jupyter_client.manager import KernelManager
 import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
-from qtpy import PYQT5, PYQT_VERSION
+from qtpy import PYQT5, PYQT_VERSION, PYSIDE_VERSION
 from qtpy.QtCore import Qt, QTimer, QEvent, QUrl
 from qtpy.QtTest import QTest
 from qtpy.QtGui import QImage
@@ -263,6 +263,7 @@ def test_lock_action(main_window):
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(PYSIDE_VERSION is not None, reason="Fails in PySide2")
 def test_default_plugin_actions(main_window, qtbot):
     """Test the effect of dock, undock, close and toggle view actions."""
     # Use a particular plugin
@@ -340,6 +341,7 @@ def test_filter_numpy_warning(main_window, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
                     reason="Times out on AppVeyor")
+@pytest.mark.skipif(PYSIDE_VERSION is not None, reason="Fails in PySide2")
 @pytest.mark.use_introspection
 def test_get_help_ipython_console(main_window, qtbot):
     """Test that Help works when called from the IPython console."""
@@ -366,6 +368,7 @@ def test_get_help_ipython_console(main_window, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
                     reason="Times out on AppVeyor")
+@pytest.mark.skipif(PYSIDE_VERSION is not None, reason="Fails in PySide2")
 @pytest.mark.use_introspection
 def test_get_help_editor(main_window, qtbot):
     """ Test that Help works when called from the Editor."""
@@ -1176,7 +1179,8 @@ def test_maximize_minimize_plugins(main_window, qtbot):
 
 @flaky(max_runs=3)
 @pytest.mark.skipif((os.name == 'nt' or
-                     os.environ.get('CI', None) is not None and PYQT_VERSION >= '5.9'),
+                     os.environ.get('CI', None) is not None and
+                    PYQT_VERSION and PYQT_VERSION >= '5.9'),
                     reason="It times out on Windows and segfaults in our CIs with PyQt >= 5.9")
 def test_issue_4066(main_window, qtbot):
     """

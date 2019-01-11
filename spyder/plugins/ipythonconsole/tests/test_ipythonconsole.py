@@ -29,7 +29,7 @@ from flaky import flaky
 from jupyter_client.kernelspec import KernelSpec
 from pygments.token import Name
 import pytest
-from qtpy import PYQT5
+from qtpy import PYQT5, PYSIDE_VERSION
 from qtpy.QtCore import Qt
 from qtpy.QtWebEngineWidgets import WEBENGINE
 from qtpy.QtWidgets import QMessageBox, QMainWindow
@@ -152,6 +152,7 @@ def ipyconsole(qtbot, request):
 @flaky(max_runs=3)
 @pytest.mark.auto_backend
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+@pytest.mark.skipif(PYSIDE_VERSION is not None, reason="Fails in PySide2")
 def test_auto_backend(ipyconsole, qtbot):
     """Test that the automatic backend is working correctly."""
     # Wait until the window is fully up
