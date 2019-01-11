@@ -391,14 +391,6 @@ class DirView(QTreeView):
         ipynb_convert_action = create_action(self, _("Convert to Python script"),
                                              icon=ima.icon('python'),
                                              triggered=self.convert_notebooks)
-        copy_absolute_path_action = (
-            create_action(self, _("Copy Absolute Path"), QKeySequence(
-                get_shortcut('explorer', 'copy absolute path')),
-                          triggered=self.copy_absolute_path))
-        copy_relative_path_action = (
-            create_action(self, _("Copy Relative Path"), QKeySequence(
-                get_shortcut('explorer', 'copy relative path')),
-                          triggered=self.copy_relative_path))
         copy_file_clipboard_action = (
             create_action(self, _("Copy"),
                           QKeySequence(get_shortcut('explorer', 'copy file')),
@@ -409,6 +401,14 @@ class DirView(QTreeView):
                           QKeySequence(get_shortcut('explorer', 'paste file')),
                           icon=ima.icon('editpaste'),
                           triggered=self.save_file_clipboard))
+        copy_absolute_path_action = (
+            create_action(self, _("Copy Absolute Path"), QKeySequence(
+                get_shortcut('explorer', 'copy absolute path')),
+                          triggered=self.copy_absolute_path))
+        copy_relative_path_action = (
+            create_action(self, _("Copy Relative Path"), QKeySequence(
+                get_shortcut('explorer', 'copy relative path')),
+                          triggered=self.copy_relative_path))
         
         actions = []
         if only_modules:
@@ -967,7 +967,7 @@ class DirView(QTreeView):
                                 if end_number:
                                     new_number = int(end_number.group()) + 1
                                 else:
-                                    new_number = str(1)
+                                    new_number = 1
                                 left_string = re.sub(r'\d+$', '', file_no_ext)
                                 left_string += str(new_number)
                                 base_name = left_string + file_ext
@@ -987,7 +987,7 @@ class DirView(QTreeView):
                                 if end_number:
                                     new_number = int(end_number.group()) + 1
                                 else:
-                                    new_number = str(1)
+                                    new_number = 1
                                 left_string = re.sub(r'\d+$', '', base_name)
                                 base_name = left_string + str(new_number)
                                 destination = osp.join(parrent_path, base_name)
