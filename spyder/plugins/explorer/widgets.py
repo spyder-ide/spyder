@@ -948,8 +948,11 @@ class DirView(QTreeView):
                 selected_item = osp.commonpath(fnames)
             except AttributeError:
                 #  py2 does not have commonpath
-                selected_item = osp.normpath(
-                        osp.dirname(osp.commonprefix(fnames)))
+                if len(fnames) > 1:
+                    selected_item = osp.normpath(
+                            osp.dirname(osp.commonprefix(fnames)))
+                else:
+                    selected_item = fnames[0]
             if osp.isfile(selected_item):
                 parrent_path = osp.dirname(selected_item)
             else:

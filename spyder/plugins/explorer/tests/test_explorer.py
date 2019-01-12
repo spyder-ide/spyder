@@ -176,8 +176,11 @@ def test_save_file(explorer_with_files, file_paths):
         selected_item = osp.commonpath(file_paths)
     except AttributeError:
         #  py2 does not have commonpath
-        selected_item = osp.normpath(
-                osp.dirname(osp.commonprefix(file_paths)))
+        if len(file_paths) > 1:
+            selected_item = osp.normpath(
+                    osp.dirname(osp.commonprefix(file_paths)))
+        else:
+            selected_item = file_paths[0]
     if osp.isfile(selected_item):
         parrent_path = osp.dirname(selected_item)
     else:
