@@ -926,6 +926,7 @@ class DirView(QTreeView):
         try:
             file_content = QMimeData()
             file_content.setUrls([QUrl.fromLocalFile(_fn) for _fn in fnames])
+            file_content.setText('')
             cb = QApplication.clipboard()
             cb.clear(mode=cb.Clipboard)
             cb.setMimeData(file_content, mode=cb.Clipboard)

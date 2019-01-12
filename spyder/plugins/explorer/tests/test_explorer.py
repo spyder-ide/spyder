@@ -190,22 +190,21 @@ def test_save_file(explorer_with_files, file_paths):
         assert text_data == 'Python'
     if len(file_paths) == 3:
         #  script.py, script1.py and testdir/script2.py exist in project_dir
-        for item in file_paths:
-            if osp.isfile(item):
-                with open(osp.join(parrent_path, item), 'r') as fh:
-                    text_data = fh.read()
-            if item.endswith('script.py'):
-                assert osp.exists(osp.join(parrent_path, 'script2.py'))
-                assert text_data == 'Python'
-            if item.endswith('script1.py'):
-                assert osp.exists(osp.join(parrent_path, 'script3.py'))
-                assert text_data == 'Spyder4'
-            if item.endswith('script2.py'):
-                assert osp.exists(osp.join(parrent_path, 'script4.py'))
-                assert text_data == 'Jan-2019'
+        assert osp.exists(osp.join(parrent_path, 'script2.py'))
+        with open(osp.join(parrent_path, 'script2.py'), 'r') as fh:
+            text_data = fh.read()
+        assert text_data == 'Python'
+        assert osp.exists(osp.join(parrent_path, 'script3.py'))
+        with open(osp.join(parrent_path, 'script3.py'), 'r') as fh:
+            text_data = fh.read()
+        assert text_data == 'Spyder4'
+        assert osp.exists(osp.join(parrent_path, 'script4.py'))
+        with open(osp.join(parrent_path, 'script4.py'), 'r') as fh:
+            text_data = fh.read()
+        assert text_data == 'Jan-2019'
     if len(file_paths) == 2:
         #  subdir/innerdir/text.txt and testdir in project_dir
-        assert osp.isdir(osp.join(parrent_path, 'testdir'))
+        assert osp.isdir(osp.join(parrent_path, 'testdir1'))
         assert osp.isfile(osp.join(parrent_path, 'text.txt'))
         with open(osp.join(parrent_path, 'text.txt'), 'r') as fh:
             text_data = fh.read()
