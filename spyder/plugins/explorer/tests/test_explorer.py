@@ -106,8 +106,7 @@ def create_folders_files(file_paths, project_dir):
 def test_copy_path(explorer_with_files, path_method, file_paths):
     """Test copy absolute and relative paths."""
     project, cb = explorer_with_files
-    project_dir = project.directory
-    file_paths = create_folders_files(file_paths, project_dir)
+    file_paths = create_folders_files(file_paths, project.directory)
     home_directory = project.explorer.treewidget.fsmodel.rootPath()
     project.explorer.treewidget.copy_path(fnames=file_paths,
                                           method=path_method)
@@ -138,8 +137,7 @@ def test_copy_path(explorer_with_files, path_method, file_paths):
 def test_copy_file(explorer_with_files, file_paths):
     """Test copy file(s)/folders(s) to clipboard."""
     project, cb = explorer_with_files
-    project_dir = project.directory
-    file_paths = create_folders_files(file_paths, project_dir)
+    file_paths = create_folders_files(file_paths, project.directory)
     project.explorer.treewidget.copy_file_clipboard(fnames=file_paths)
     cb_data = cb.mimeData().urls()
     for url in cb_data:
@@ -168,8 +166,7 @@ def test_copy_file(explorer_with_files, file_paths):
 def test_save_file(explorer_with_files, file_paths):
     """Test save file(s)/folders(s) from clipboard."""
     project = explorer_with_files[0]
-    project_dir = project.directory
-    file_paths = create_folders_files(file_paths, project_dir)
+    file_paths = create_folders_files(file_paths, project.directory)
     project.explorer.treewidget.copy_file_clipboard(fnames=file_paths)
     project.explorer.treewidget.save_file_clipboard(fnames=file_paths)
     try:
