@@ -1582,14 +1582,19 @@ class CodeEditor(TextEditBaseWidget):
         text has 'CRLF' EOL chars
         """
         clipboard = QApplication.clipboard()
-        text = to_text_string(clipboard.text())
-        if len(text.splitlines()) > 1:
-            eol_chars = self.get_line_separator()
-            text = eol_chars.join((text + eol_chars).splitlines())
-            clipboard.setText(text)
-        # Standard paste
-        TextEditBaseWidget.paste(self)
-        self.document_did_change(text)
+        # This is here to prevent pasting mime data in the Editor.
+        # See issue 8566 for the details.
+        if clipboard.mimeData().hasUrls():
+            return
+        else:
+            text = to_text_string(clipboard.text())
+            if len(text.splitlines()) > 1:
+                eol_chars = self.get_line_separator()
+                text = eol_chars.join((text + eol_chars).splitlines())
+                clipboard.setText(text)
+            # Standard paste
+            TextEditBaseWidget.paste(self)
+            self.document_did_change(text)
 
     @Slot()
     def undo(self):
