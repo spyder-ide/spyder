@@ -1582,6 +1582,8 @@ class CodeEditor(TextEditBaseWidget):
         text has 'CRLF' EOL chars
         """
         clipboard = QApplication.clipboard()
+        # This is here to prevent pasting mime data in the Editor.
+        # See issue 8566 for the details.
         if clipboard.mimeData().hasUrls():
             return
         else:
