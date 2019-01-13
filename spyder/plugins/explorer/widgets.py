@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-
-# -*- coding: utf-8 -*-
 #
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
@@ -932,9 +930,10 @@ class DirView(QTreeView):
             cb.setMimeData(file_content, mode=cb.Clipboard)
         except Exception as e:
             QMessageBox.critical(self,
-                                 _('File/Folder Type Error'),
-                                 _("Cannot copy this type of file(s)"
-                                     "/folder(s):\n\n") + to_text_string(e))
+                                 _('File/Folder copy error'),
+                                 _("Cannot copy this type of file(s) or "
+                                     "folder(s). The error was:\n\n")
+                                 + to_text_string(e))
 
     @Slot()
     def save_file_clipboard(self, fnames=None):
@@ -980,9 +979,9 @@ class DirView(QTreeView):
                                 destination = osp.join(parrent_path, base_name)
                             shutil.copy(source_name, destination)
                         except Exception as e:
-                            QMessageBox.critical(self, _('Error Pasting File'),
-                                                 _("Unsupported Copy "
-                                                   "Operation:\n\n")
+                            QMessageBox.critical(self, _('Error pasting file'),
+                                                 _("Unsupported copy operation"
+                                                   ". The error was:\n\n")
                                                  + to_text_string(e))
                     else:
                         try:
@@ -1008,17 +1007,17 @@ class DirView(QTreeView):
                             shutil.copytree(source_name, destination)
                         except Exception as e:
                             QMessageBox.critical(self,
-                                                 _('Error Pasting Folder'),
-                                                 _("Unsupported Copy"
-                                                   " Operation:"
+                                                 _('Error pasting folder'),
+                                                 _("Unsupported copy"
+                                                   " operation. The error was:"
                                                    "\n\n") + to_text_string(e))
             else:
-                QMessageBox.critical(self, _("No File in Clipboard"),
+                QMessageBox.critical(self, _("No file in clipboard"),
                                      _("No file in the clipboard. Please copy"
                                        " a file to the clipboard first."))
         else:
             if QApplication.clipboard().mimeData().hasUrls():
-                QMessageBox.critical(self, _('Blank Area'),
+                QMessageBox.critical(self, _('Blank area'),
                                      _("Cannot paste in the blank area."))
             else:
                 pass
