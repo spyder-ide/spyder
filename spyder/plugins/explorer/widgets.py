@@ -999,7 +999,7 @@ class DirView(QTreeView):
                             if osp.realpath(destination).startswith(
                                     osp.realpath(source_name) + os.sep):
                                 QMessageBox.critical(self,
-                                                     _('Recursive Copy'),
+                                                     _('Recursive copy'),
                                                      _("Source is an ancestor"
                                                        " of destination"
                                                        " folder."))
