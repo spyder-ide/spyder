@@ -27,8 +27,8 @@ from jupyter_core.paths import jupyter_config_dir, jupyter_runtime_dir
 from qtconsole.client import QtKernelClient
 from qtconsole.manager import QtKernelManager
 from qtpy.QtCore import Qt, Signal, Slot
-from qtpy.QtWidgets import (QApplication, QGridLayout, QGroupBox, QHBoxLayout,
-                            QLabel, QMessageBox, QTabWidget, QVBoxLayout,
+from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QGridLayout, QGroupBox, QHBoxLayout,
+                            QLabel, QMenu, QMessageBox, QTabWidget, QVBoxLayout,
                             QWidget)
 from traitlets.config.loader import Config, load_pyconfig_files
 from zmq.ssh import tunnel as zmqtunnel
@@ -44,7 +44,7 @@ from spyder.api.preferences import PluginConfigPage
 from spyder.py3compat import is_string, PY2, to_text_string
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
-from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
+from spyder.utils.qthelpers import create_action, add_actions, MENU_SEPARATOR
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.programs import get_temp_dir
@@ -734,6 +734,12 @@ class IPythonConsole(SpyderPluginWidget):
                                    icon=ima.icon('ipython_console'),
                                    triggered=self.create_cython_client,
                                    context=Qt.WidgetWithChildrenShortcut)
+        special_console_action_group = QActionGroup(self)
+        special_console_actions = (create_pylab_action, create_sympy_action,
+                       create_cython_action)
+        add_actions(special_console_action_group, special_console_actions)
+        special_console_menu = QMenu(_("New special console"), self)
+        add_actions(special_console_menu, special_console_actions)
 
         restart_action = create_action(self, _("Restart kernel"),
                                        icon=ima.icon('restart'),
@@ -757,23 +763,19 @@ class IPythonConsole(SpyderPluginWidget):
         main_consoles_menu.insert(1, create_pylab_action)
         main_consoles_menu.insert(2, create_sympy_action)
         main_consoles_menu.insert(3, create_cython_action)
-        main_consoles_menu += [MENU_SEPARATOR, restart_action,
-                               connect_to_kernel_action,
-                               MENU_SEPARATOR]
+        main_consoles_menu += [connect_to_kernel_action, MENU_SEPARATOR,
+                               restart_action]
 
         # Plugin actions
-        self.menu_actions = [create_client_action, create_pylab_action,
-                             create_sympy_action, create_cython_action,
+        self.menu_actions = [create_client_action, special_console_menu,
+                             connect_to_kernel_action,
                              MENU_SEPARATOR,
-                             restart_action, connect_to_kernel_action,
-                             MENU_SEPARATOR, rename_tab_action,
-                             MENU_SEPARATOR]
+                             restart_action, rename_tab_action]
 
         # Check for a current client. Since it manages more actions.
         client = self.get_current_client()
         if client:
             return client.get_options_menu()
-        
         return self.menu_actions
 
     def register_plugin(self):

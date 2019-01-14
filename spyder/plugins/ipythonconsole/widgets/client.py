@@ -45,7 +45,7 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     MENU_SEPARATOR)
 from spyder.py3compat import to_text_string
 from spyder.widgets.browser import WebView
-from spyder.plugins.ipythonconsole.widgets import ShellWidget
+from spyder.plugins.ipythonconsole.widgets import ShellWidget 
 from spyder.widgets.mixins import SaveHistoryMixin
 from spyder.plugins.variableexplorer.widgets.collectionseditor import (
         CollectionsEditor)
@@ -379,13 +379,17 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def get_options_menu(self):
         """Return options menu"""
+        interrupt_action = create_action(self, _("Interrupt kernel"),
+                                     icon=self.stop_icon,
+                                     triggered=self.stop_button_click_handler)
+               
         reset_action = create_action(self, _("Remove all variables"),
                                      icon=ima.icon('editdelete'),
                                      triggered=self.reset_namespace)
 
         env_action = create_action(
                         self,
-                        _("Show environment variables"),
+                        _("Show env vars"),
                         icon=ima.icon('environ'),
                         triggered=self.shellwidget.get_env
                      )
@@ -398,14 +402,21 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                          )
 
         self.show_time_action.setChecked(self.show_elapsed_time)
-        additional_actions = [reset_action,
+        additional_actions = [interrupt_action, reset_action,
                               MENU_SEPARATOR,
                               env_action,
                               syspath_action,
                               self.show_time_action]
 
+        #main_consoles_menu = self.parent.consoles_menu_actions
+        #main_consoles_menu += [reset_action]
+
         if self.menu_actions is not None:
-            return self.menu_actions + additional_actions
+            console_menu = self.menu_actions + additional_actions
+            rearrange_menu = [0,1,2,3,4,6,7,5,8,9,10,11]
+            console_menu = [console_menu[i] for i in rearrange_menu]
+            return console_menu   
+
         else:
             return additional_actions
 
