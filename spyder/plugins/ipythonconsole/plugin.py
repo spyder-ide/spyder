@@ -745,6 +745,17 @@ class IPythonConsole(SpyderPluginWidget):
                                        icon=ima.icon('restart'),
                                        triggered=self.restart_kernel,
                                        context=Qt.WidgetWithChildrenShortcut)
+
+        reset_action = create_action(self, _("Remove all variables"),
+                                       icon=ima.icon('editdelete'),
+                                       triggered=self.reset_action,
+                                       context=Qt.WidgetWithChildrenShortcut)
+
+        interrupt_action = create_action(self, _("Interrupt kernel"),
+                                       icon=ima.icon('stop'),
+                                       triggered=self.interrupt_action,
+                                       context=Qt.WidgetWithChildrenShortcut)
+
         self.register_shortcut(restart_action, context="ipython_console",
                                name="Restart kernel")
 
@@ -764,7 +775,7 @@ class IPythonConsole(SpyderPluginWidget):
         main_consoles_menu.insert(2, create_sympy_action)
         main_consoles_menu.insert(3, create_cython_action)
         main_consoles_menu += [connect_to_kernel_action, MENU_SEPARATOR,
-                               restart_action]
+                               restart_action, interrupt_action, reset_action]
 
         # Plugin actions
         self.menu_actions = [create_client_action, special_console_menu,
@@ -777,7 +788,7 @@ class IPythonConsole(SpyderPluginWidget):
         if client:
             return client.get_options_menu()
         return self.menu_actions
-
+ 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.main.add_dockwidget(self)
@@ -1583,6 +1594,20 @@ class IPythonConsole(SpyderPluginWidget):
         if client is not None:
             self.switch_to_plugin()
             client.restart_kernel()
+
+    def reset_action(self):
+        """."""
+        client = self.get_current_client()
+        if client is not None:
+            self.switch_to_plugin()
+            client.reset_namespace()
+
+    def interrupt_action(self):
+        """."""
+        client = self.get_current_client()
+        if client is not None:
+            self.switch_to_plugin()
+            client.stop_button_click_handler()
 
     def connect_external_kernel(self, shellwidget):
         """
