@@ -14,9 +14,13 @@ import os.path as osp
 # Test library imports
 import pytest
 
+# Third Party imports
+from qtpy.QtCore import Qt
+
 # Local imports
 from spyder.plugins.projects.widgets.explorer import ProjectExplorerTest
 from spyder.py3compat import to_text_string
+from spyder.utils import programs
 
 
 @pytest.fixture
@@ -55,13 +59,51 @@ def test_change_directory_in_project_explorer(project_explorer, qtbot):
     # Assert content was moved
     assert osp.isfile(osp.join(project_dir_tmp, 'script.py'))
 
-
 def test_project_explorer(project_explorer, qtbot):
     """Run project explorer."""
     project = project_explorer
     project.resize(250, 480)
     project.show()
     assert project
+
+
+@pytest.mark.change_directory
+def test_project_vcs_color(project_explorer, qtbot):
+    # Create project
+    project_explorer.show()
+    project_dir = project_explorer.directory
+    test_dir = os.getcwd()
+    os.chdir(project_dir)
+
+    # Create files for the repository
+    files = []
+    for n in range(5):
+        files.append(osp.join(project_dir, 'file%i.py' % n))
+        if n > 0:
+            open(files[n], 'w').close()
+
+    # Init the repo and set some files to different states
+    programs.run_program('git', ['init', '.'], cwd=project_dir)
+    programs.run_program('git', ['add', 'file2.py', 'file4.py'], cwd=project_dir)
+    programs.run_program('git', ['commit', '-m', 'test'], cwd=project_dir)
+    f = open(files[2], 'a')
+    f.writelines('text')
+    f.close()
+    programs.run_program('git', ['add', 'file3.py'], cwd=project_dir)
+    gitign = open(osp.join(project_dir,'.gitignore'), 'a')
+    gitign.writelines('file1.py')
+    gitign.close()
+    # Check that the files have their according colors
+    tree = project_explorer.explorer.treewidget
+    pcolors = tree.fsmodel.color_array
+    tree.expandAll()
+    tree.fsmodel.set_vcs_state(project_dir)
+    open(files[0], 'w').close()
+    qtbot.waitForWindowShown(project_explorer.explorer)
+    ind0 = tree.fsmodel.index(tree.fsmodel.rootPath()).child(0, 0)
+    for n in range(5):
+        assert tree.fsmodel.index(n, 0, ind0).data(Qt.TextColorRole).name() == pcolors[n].name()
+    os.chdir(test_dir)
 
 
 if __name__ == "__main__":

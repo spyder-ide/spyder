@@ -112,21 +112,18 @@ def get_vcs_status(path):
         o = 2
     for tool, args in info['actions']['cstate']:
         if programs.find_program(tool):
-            if not running_under_pytest():
-                proc = programs.run_program(tool, args, cwd=rootPath)
-                out, err = proc.communicate()
-                if proc.returncode >= 0 and err == b'':
-                    oStr = out.decode("utf-8")[:-1]
-                    vcsst = {}
-                    for fString in (x for x in oStr.split("\n") if x):
-                        try:
-                            index = stat.index(fString[:o-1].strip())
-                        except ValueError:
-                            continue
-                        vcsst[osp.relpath(fString[o:], rootPath)] = index
-                    return vcsst
-                else:
-                    return []
+            proc = programs.run_program(tool, args, cwd=rootPath)
+            out, err = proc.communicate()
+            if proc.returncode >= 0 and err == b'':
+                oStr = out.decode("utf-8")[:-1]
+                vcsst = {}
+                for fString in (x for x in oStr.split("\n") if x):
+                    try:
+                        index = stat.index(fString[:o-1].strip())
+                    except ValueError:
+                        continue
+                    vcsst[osp.relpath(fString[o:], rootPath)] = index
+                return vcsst
             else:
                 return []
 

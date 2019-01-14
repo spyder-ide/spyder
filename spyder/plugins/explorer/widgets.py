@@ -159,7 +159,7 @@ class ColorModel(QFileSystemModel):
         """Return the project-relative path of a file with a given index."""
         return osp.relpath(osp.abspath(self.filePath(index)), self.root_path)
 
-    def data(self, index, role):
+    def data(self, index, role=Qt.DisplayRole):
         """Set the colors of the elements in the Treeview."""
         if self.vcs_state and role == Qt.TextColorRole:
             filename = osp.normpath(self.relative_path(index))
