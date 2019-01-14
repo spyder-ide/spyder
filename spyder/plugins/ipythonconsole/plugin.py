@@ -748,12 +748,12 @@ class IPythonConsole(SpyderPluginWidget):
 
         reset_action = create_action(self, _("Remove all variables"),
                                        icon=ima.icon('editdelete'),
-                                       triggered=self.reset_action,
+                                       triggered=self.reset_kernel,
                                        context=Qt.WidgetWithChildrenShortcut)
 
         interrupt_action = create_action(self, _("Interrupt kernel"),
                                        icon=ima.icon('stop'),
-                                       triggered=self.interrupt_action,
+                                       triggered=self.interrupt_kernel,
                                        context=Qt.WidgetWithChildrenShortcut)
 
         self.register_shortcut(restart_action, context="ipython_console",
@@ -1595,15 +1595,15 @@ class IPythonConsole(SpyderPluginWidget):
             self.switch_to_plugin()
             client.restart_kernel()
 
-    def reset_action(self):
-        """."""
+    def reset_kernel(self):
+        """Reset kernel of current client."""
         client = self.get_current_client()
         if client is not None:
             self.switch_to_plugin()
             client.reset_namespace()
 
-    def interrupt_action(self):
-        """."""
+    def interrupt_kernel(self):
+        """Interrupt kernel of current client."""
         client = self.get_current_client()
         if client is not None:
             self.switch_to_plugin()

@@ -408,9 +408,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                               syspath_action,
                               self.show_time_action]
 
-        #main_consoles_menu = self.parent.consoles_menu_actions
-        #main_consoles_menu += [reset_action]
-
         if self.menu_actions is not None:
             console_menu = self.menu_actions + additional_actions
             rearrange_menu = [0,1,2,3,4,6,7,5,8,9,10,11]
