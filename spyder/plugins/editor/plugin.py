@@ -2904,25 +2904,31 @@ class Editor(SpyderPluginWidget):
 
         if filenames and any([osp.isfile(f) for f in filenames]):
             layout = self.get_option('layout_settings', None)
-            is_vertical, cfname, clines = layout.get('splitsettings')[0]
-            if cfname in filenames:
-                index = filenames.index(cfname)
-                # First we load the last focused file.
-                self.load(filenames[index], goto=clines[index], set_focus=True)
-                # Then we load the files located to the left of the last
-                # focused file in the tabbar, while keeping the focus on
-                # the last focused file.
-                if index > 0:
-                    self.load(filenames[index::-1], goto=clines[index::-1],
-                              set_focus=False, add_where='start')
-                # Finally we load the files located to the right of the last
-                # focused file in the tabbar, while keeping the focus on
-                # the last focused file.
-                if index < (len(filenames) - 1):
-                    self.load(filenames[index+1:], goto=clines[index:],
-                              set_focus=False, add_where='end')
+            # Check if no saved layout settings exist, e.g. clean prefs file
+            # If not, load with default focus/layout, to fix issue #8458 .
+            if layout:
+                is_vertical, cfname, clines = layout.get('splitsettings')[0]
+                if cfname in filenames:
+                    index = filenames.index(cfname)
+                    # First we load the last focused file.
+                    self.load(filenames[index], goto=clines[index],
+                              set_focus=True)
+                    # Then we load the files located to the left of the last
+                    # focused file in the tabbar, while keeping the focus on
+                    # the last focused file.
+                    if index > 0:
+                        self.load(filenames[index::-1], goto=clines[index::-1],
+                                  set_focus=False, add_where='start')
+                    # Finally we load the files to the right of the last
+                    # focused file in the tabbar, while keeping the focus on
+                    # the last focused file.
+                    if index < (len(filenames) - 1):
+                        self.load(filenames[index+1:], goto=clines[index:],
+                                  set_focus=False, add_where='end')
+                else:
+                    self.load(filenames, goto=clines)
             else:
-                self.load(filenames, goto=clines)
+                self.load(filenames)
 
             if self.__first_open_files_setup:
                 self.__first_open_files_setup = False

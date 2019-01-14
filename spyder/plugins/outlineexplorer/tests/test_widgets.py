@@ -131,8 +131,8 @@ CODE = """# -*- coding: utf-8 -*-
 
 # ---- Qt Test Fixtures
 @pytest.fixture
-def outlineexplorer_bot(qtbot):
-    def _create_bot(code, filename):
+def create_outlineexplorer(qtbot):
+    def _create_outlineexplorer(code, filename):
         code_editor = CodeEditor(None)
         code_editor.set_language('py', filename)
         code_editor.set_text(code)
@@ -145,19 +145,18 @@ def outlineexplorer_bot(qtbot):
         outlineexplorer.setFixedSize(400, 350)
 
         qtbot.addWidget(outlineexplorer)
-        return outlineexplorer, qtbot
-    return _create_bot
+        return outlineexplorer
+    return _create_outlineexplorer
 
 
 # ---- Test OutlineExplorerWidget
-def test_outline_explorer(outlineexplorer_bot):
+def test_outline_explorer(create_outlineexplorer):
     """
     Test to assert the outline explorer is initializing correctly and
     is showing the expected number of items, the expected type of items, and
     the expected text for each item.
     """
-    outlineexplorer, qtbot = outlineexplorer_bot(
-        TEXT, 'test_outline_explorer.py')
+    outlineexplorer = create_outlineexplorer(TEXT, 'test_outline_explorer.py')
     assert outlineexplorer
 
     outlineexplorer.treewidget.expandAll()
@@ -187,14 +186,14 @@ def test_outline_explorer(outlineexplorer_bot):
             assert item.is_method() == expected_result[2]
 
 
-def test_go_to_cursor_position(outlineexplorer_bot):
+def test_go_to_cursor_position(create_outlineexplorer, qtbot):
     """
     Test that clicking on the 'Go to cursor position' button located in the
     toolbar of the outline explorer is working as expected.
 
     Regression test for issue #7729.
     """
-    outlineexplorer, qtbot = outlineexplorer_bot(TEXT, 'test.py')
+    outlineexplorer = create_outlineexplorer(TEXT, 'test.py')
 
     # Move the mouse cursor in the editor to line 31 :
     editor = outlineexplorer.treewidget.current_editor
@@ -208,7 +207,25 @@ def test_go_to_cursor_position(outlineexplorer_bot):
     assert outlineexplorer.treewidget.currentItem().text(0) == 'method1'
 
 
-def test_go_to_last_item(outlineexplorer_bot):
+def test_go_to_cursor_position_with_new_file(create_outlineexplorer, qtbot):
+    """
+    Test that clicking on the 'Go to cursor position' button located in the
+    toolbar of the outline explorer is working as expected for newly created
+    files.
+
+    Regression test for issue  #8510.
+    """
+    text = "# -*- coding: utf-8 -*-\nSome newly created\nPython file."
+    outlineexplorer = create_outlineexplorer(text, 'new_file.py')
+
+    # Click on the 'Go to cursor position' button of the outline explorer's
+    # toolbar :
+    assert outlineexplorer.treewidget.currentItem() is None
+    qtbot.mouseClick(outlineexplorer.fromcursor_btn, Qt.LeftButton)
+    assert outlineexplorer.treewidget.currentItem().text(0) == 'new_file.py'
+
+
+def test_go_to_last_item(create_outlineexplorer, qtbot):
     """
     Test that clicking on the 'Go to cursor position' button located in the
     toolbar of the outline explorer is working as expected when the cursor
@@ -216,7 +233,7 @@ def test_go_to_last_item(outlineexplorer_bot):
 
     Regression test for issue #7744.
     """
-    outlineexplorer, qtbot = outlineexplorer_bot(TEXT, 'test.py')
+    outlineexplorer = create_outlineexplorer(TEXT, 'test.py')
 
     # Move the mouse cursor in the editor to the last line :
     editor = outlineexplorer.treewidget.current_editor
@@ -231,14 +248,14 @@ def test_go_to_last_item(outlineexplorer_bot):
     assert outlineexplorer.treewidget.currentItem().text(0) == 'method2'
 
 
-def test_code_cell_grouping(outlineexplorer_bot):
+def test_code_cell_grouping(create_outlineexplorer):
     """
     Test to assert the outline explorer is initializing correctly and
     is showing the expected number of items, the expected type of items, and
     the expected text for each item. In addition this tests ancestry, code
     cells comments, code cell grouping and disabling this feature.
     """
-    outlineexplorer, qtbot = outlineexplorer_bot(dedent(CODE), 'test_file.py')
+    outlineexplorer = create_outlineexplorer(dedent(CODE), 'test_file.py')
     assert outlineexplorer
 
     expected_results = [

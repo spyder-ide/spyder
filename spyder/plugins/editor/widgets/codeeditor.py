@@ -1584,7 +1584,7 @@ class CodeEditor(TextEditBaseWidget):
         clipboard = QApplication.clipboard()
         text = to_text_string(clipboard.text())
         # This is here to make copied files/folders to be pasted as path.
-        # See issue 8566 for the details.
+        # See issue 8566 and PR: 8576 for the details.
         if clipboard.mimeData().hasUrls():
             urls = clipboard.mimeData().urls()
             text = "".join('"' + url.toLocalFile().replace(osp.os.sep, '/') +

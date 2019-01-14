@@ -878,7 +878,7 @@ class DataFrameEditor(QDialog):
         self.dataTable.installEventFilter(self)
 
         avg_width = self.fontMetrics().averageCharWidth()
-        self.min_trunc = avg_width * 8  # Minimum size for columns
+        self.min_trunc = avg_width * 12  # Minimum size for columns
         self.max_width = avg_width * 64  # Maximum size for columns
 
         self.setLayout(self.layout)
@@ -1113,7 +1113,7 @@ class DataFrameEditor(QDialog):
         max_row = table.model().rowCount()
         lm_start = time.clock()
         lm_row = 64 if limit_ms else max_row
-        max_width = 0
+        max_width = self.min_trunc
         for row in range(max_row):
             v = table.sizeHintForIndex(table.model().index(row, col))
             max_width = max(max_width, v.width())
@@ -1135,7 +1135,7 @@ class DataFrameEditor(QDialog):
             width = max(min(hdr_width, self.min_trunc), min(self.max_width,
                         data_width))
         else:
-            width = min(self.max_width, hdr_width)
+            width = max(min(self.max_width, hdr_width), self.min_trunc)
         header.setColumnWidth(col, width)
 
     def _resizeColumnsToContents(self, header, data, limit_ms):
@@ -1194,7 +1194,6 @@ class DataFrameEditor(QDialog):
         self._resizeColumnsToContents(self.table_level,
                                       self.table_index, self._max_autosize_ms)
         self._update_layout()
-        self.table_level.resizeColumnsToContents()
 
     def change_bgcolor_enable(self, state):
         """

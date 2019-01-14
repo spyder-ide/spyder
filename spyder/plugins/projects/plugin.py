@@ -13,6 +13,7 @@ updating the file tree explorer associated with a project
 
 # Standard library imports
 import os.path as osp
+import shutil
 
 # Third party imports
 from qtpy.compat import getexistingdirectory
@@ -89,7 +90,7 @@ class Projects(SpyderPluginWidget):
                                     triggered=self.close_project)
         self.delete_project_action = create_action(self,
                                     _("Delete Project"),
-                                    triggered=self._delete_project)
+                                    triggered=self.delete_project)
         self.clear_recent_projects_action =\
             create_action(self, _("Clear this list"),
                           triggered=self.clear_recent_projects)
@@ -120,6 +121,7 @@ class Projects(SpyderPluginWidget):
         self.main.add_dockwidget(self)
         self.explorer.sig_open_file.connect(self.main.open_file)
 
+        treewidget.sig_delete_project.connect(self.delete_project)
         treewidget.sig_edit.connect(self.main.editor.load)
         treewidget.sig_removed.connect(self.main.editor.removed)
         treewidget.sig_removed_tree.connect(self.main.editor.removed_tree)
@@ -331,11 +333,33 @@ class Projects(SpyderPluginWidget):
             self.explorer.clear()
             self.restart_consoles()
 
-    def _delete_project(self):
-        """Delete current project."""
+    def delete_project(self):
+        """
+        Delete the current project without deleting the files in the directory.
+        """
         if self.current_active_project:
             self.switch_to_plugin()
-            self.explorer.delete_project()
+            path = self.current_active_project.root_path
+            buttons = QMessageBox.Yes | QMessageBox.No
+            answer = QMessageBox.warning(
+                self,
+                _("Delete"),
+                _("Do you really want to delete <b>{filename}</b>?<br><br>"
+                  "<b>Note:</b> This action will only delete the project. "
+                  "Its files are going to be preserved on disk."
+                  ).format(filename=osp.basename(path)),
+                buttons)
+            if answer == QMessageBox.Yes:
+                try:
+                    self.close_project()
+                    shutil.rmtree(osp.join(path, '.spyproject'))
+                except EnvironmentError as error:
+                    QMessageBox.critical(
+                        self,
+                        _("Project Explorer"),
+                        _("<b>Unable to delete <i>{varpath}</i></b>"
+                          "<br><br>The error message was:<br>{error}"
+                          ).format(varpath=path, error=to_text_string(error)))
 
     def clear_recent_projects(self):
         """Clear the list of recent projects"""

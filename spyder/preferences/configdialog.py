@@ -143,6 +143,7 @@ class ConfigDialog(QDialog):
 
         # Widgets
         self.pages_widget = QStackedWidget()
+        self.pages_widget.setMinimumWidth(600)
         self.contents_widget = QListWidget()
         self.button_reset = QPushButton(_('Reset to defaults'))
 
@@ -161,6 +162,8 @@ class ConfigDialog(QDialog):
         self.contents_widget.setMovement(QListView.Static)
         self.contents_widget.setSpacing(1)
         self.contents_widget.setCurrentRow(0)
+        self.contents_widget.setMinimumWidth(220)
+        self.contents_widget.setMinimumHeight(400)
 
         # Layout
         hsplitter = QSplitter()
@@ -728,13 +731,13 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         if title:
             fontlabel = QLabel(title)
         else:
-            fontlabel = QLabel(_("Font: "))
+            fontlabel = QLabel(_("Font"))
         fontbox = QFontComboBox()
 
         if fontfilters is not None:
             fontbox.setFontFilters(fontfilters)
 
-        sizelabel = QLabel("  "+_("Size: "))
+        sizelabel = QLabel("  "+_("Size"))
         sizebox = QSpinBox()
         sizebox.setRange(7, 100)
         self.fontboxes[(fontbox, sizebox)] = option
@@ -1097,23 +1100,14 @@ class ColorSchemeConfigPage(GeneralConfigPage):
             pass
         custom_names = self.get_option("custom_names", [])
 
-        # Layouts
-        manage_layout = QVBoxLayout()
-
-        # Description of the section
-        about_label = QLabel(_("Customize the look and feel of "
-                               "Spyder and its plugins.<br>"))
-        about_label.setWordWrap(True)
-        manage_layout.addWidget(about_label)
-
         # Interface options
-        theme_group = QGroupBox(_("Interface"))
+        theme_group = QGroupBox(_("Main interface"))
 
         # Interface Widgets
         ui_themes = ['Automatic', 'Light', 'Dark']
         ui_theme_choices = list(zip(ui_themes, [ui_theme.lower()
                                                 for ui_theme in ui_themes]))
-        ui_theme_combo = self.create_combobox(_('Interface theme:'),
+        ui_theme_combo = self.create_combobox(_('Interface theme'),
                                               ui_theme_choices,
                                               'ui_theme',
                                               restart=True)
@@ -1148,38 +1142,34 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         theme_group.setLayout(theme_layout)
 
         # Syntax coloring options
-        syntax_group = QGroupBox(_("Syntax highlighting"))
+        syntax_group = QGroupBox(_("Syntax highlighting theme"))
 
         # Syntax Widgets
-        edit_button = QPushButton(_("Edit selected"))
+        edit_button = QPushButton(_("Edit selected scheme"))
         create_button = QPushButton(_("Create new scheme"))
-        self.delete_button = QPushButton(_("Delete"))
+        self.delete_button = QPushButton(_("Delete scheme"))
+        self.reset_button = QPushButton(_("Reset to defaults"))
+
         self.preview_editor = CodeEditor(self)
         self.stacked_widget = QStackedWidget(self)
-        self.reset_button = QPushButton(_("Reset"))
         self.scheme_editor_dialog = SchemeEditor(parent=self,
                                                  stack=self.stacked_widget)
 
         self.scheme_choices_dict = {}
-        schemes_combobox_widget = self.create_combobox(_('Syntax scheme:'),
-                                                       [('', '')],
+        schemes_combobox_widget = self.create_combobox('', [('', '')],
                                                        'selected')
         self.schemes_combobox = schemes_combobox_widget.combobox
 
-        # Syntax Layouts
-        syntax_comboboxes_layout = QGridLayout()
-        syntax_comboboxes_layout.addWidget(schemes_combobox_widget.label, 0, 0)
-        syntax_comboboxes_layout.addWidget(schemes_combobox_widget.combobox,
-                                           0, 1)
-
-        buttons_layout = QVBoxLayout()
-        buttons_layout.addLayout(syntax_comboboxes_layout)
-        buttons_layout.addWidget(edit_button)
-        buttons_layout.addWidget(self.reset_button)
-        buttons_layout.addWidget(self.delete_button)
-        buttons_layout.addStretch(1)
-        buttons_layout.addWidget(create_button)
-        syntax_group.setLayout(buttons_layout)
+        # Syntax layout
+        syntax_layout = QGridLayout(syntax_group)
+        btns = [self.schemes_combobox, edit_button, self.reset_button,
+                create_button, self.delete_button]
+        for i, btn in enumerate(btns):
+            syntax_layout.addWidget(btn, i, 1)
+        syntax_layout.setColumnStretch(0, 1)
+        syntax_layout.setColumnStretch(1, 2)
+        syntax_layout.setColumnStretch(2, 1)
+        syntax_layout.setContentsMargins(0, 12, 0, 12)
 
         # Fonts options
         fonts_group = QGroupBox(_("Fonts"))
@@ -1187,13 +1177,13 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         # Fonts widgets
         plain_text_font = self.create_fontgroup(
             option='font',
-            title=_("Plain text font"),
+            title=_("Plain text"),
             fontfilters=QFontComboBox.MonospacedFonts,
             without_group=True)
 
         rich_text_font = self.create_fontgroup(
             option='rich_font',
-            title=_("Rich text font"),
+            title=_("Rich text"),
             without_group=True)
 
         # Fonts layouts
@@ -1220,21 +1210,13 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         preview_layout.addWidget(self.preview_editor)
         preview_group.setLayout(preview_layout)
 
-        buttons_preview_layout = QGridLayout()
-        buttons_preview_layout.setRowStretch(0, 1)
-        buttons_preview_layout.setColumnStretch(0, 1)
-        buttons_preview_layout.setColumnStretch(1, 1)
-        buttons_preview_layout.addLayout(options_layout, 0, 0)
-        buttons_preview_layout.addWidget(preview_group, 0, 1)
-
-        # Groupbox for the section
-        manage_layout.addLayout(buttons_preview_layout)
-        manage_group = QGroupBox(_("Appearance"))
-        manage_group.setLayout(manage_layout)
-
-        vlayout = QVBoxLayout()
-        vlayout.addWidget(manage_group)
-        self.setLayout(vlayout)
+        # Combined layout
+        combined_layout = QGridLayout()
+        combined_layout.setRowStretch(0, 1)
+        combined_layout.setColumnStretch(1, 100)
+        combined_layout.addLayout(options_layout, 0, 0)
+        combined_layout.addWidget(preview_group, 0, 1)
+        self.setLayout(combined_layout)
 
         # Signals and slots
         create_button.clicked.connect(self.create_new_scheme)

@@ -699,7 +699,9 @@ def test_values_dbg(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=10)
-@pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
+@pytest.mark.skipif(
+    os.environ.get('AZURE', None) is not None,
+    reason="It doesn't work on Windows and fails often on macOS")
 def test_plot_magic_dbg(ipyconsole, qtbot):
     """Test our plot magic while debugging"""
     shell = ipyconsole.get_current_shellwidget()
