@@ -74,9 +74,7 @@ def create_folders_files(tmpdir, request):
 def explorer_with_files(qtbot, create_folders_files, request):
     """Setup Project/File Explorer widget."""
     cb = QApplication.clipboard()
-    list_paths = create_folders_files[0]
-    project_dir = create_folders_files[1]
-    destination_dir = create_folders_files[2]
+    list_paths, project_dir, destination_dir = create_folders_files
     project_explorer_orig = request.param(directory=project_dir)
     project_explorer_dest = request.param(directory=destination_dir)
     qtbot.addWidget(project_explorer_orig)
@@ -101,8 +99,7 @@ def test_project_explorer(project_explorer):
 @pytest.mark.parametrize('path_method', ['absolute', 'relative'])
 def test_copy_path(explorer_with_files, path_method):
     """Test copy absolute and relative paths."""
-    project, _, _, cb = explorer_with_files
-    file_paths = explorer_with_files[2]
+    project, _, file_paths, cb = explorer_with_files
     explorer_directory = project.explorer.treewidget.fsmodel.rootPath()
     project.explorer.treewidget.copy_path(fnames=file_paths,
                                           method=path_method)
@@ -128,8 +125,7 @@ def test_copy_path(explorer_with_files, path_method):
 
 def test_copy_file(explorer_with_files):
     """Test copy file(s)/folders(s) to clipboard."""
-    project, _, _, cb = explorer_with_files
-    file_paths = explorer_with_files[2]
+    project, _, file_paths, cb = explorer_with_files
     project.explorer.treewidget.copy_file_clipboard(fnames=file_paths)
     cb_data = cb.mimeData().urls()
     for url, expected_path in zip(cb_data, file_paths):
@@ -155,7 +151,6 @@ def test_save_file(explorer_with_files):
         if osp.isfile(destination_item):
             with open(destination_item, 'r') as fh:
                 text = fh.read()
-            # Notice file content is source path which is correct.
             assert text == "File Path:\n" + str(item) + '\n'
 
 
