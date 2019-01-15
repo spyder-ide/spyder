@@ -100,7 +100,9 @@ def test_project_explorer(project_explorer):
 def test_copy_path(explorer_with_files, path_method):
     """Test copy absolute and relative paths."""
     project, _, file_paths, cb = explorer_with_files
-    explorer_directory = project.explorer.treewidget.fsmodel.rootPath()
+    root_dir = project.explorer.treewidget.fsmodel.rootPath()
+    explorer_directory = ('os.sep'.join(root_dir.strip('os.sep').
+                                        split('os.sep')[1:]))
     project.explorer.treewidget.copy_path(fnames=file_paths,
                                           method=path_method)
     file_paths = [fname.replace(os.sep, '/') for fname in file_paths]
