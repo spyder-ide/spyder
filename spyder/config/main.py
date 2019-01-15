@@ -460,7 +460,7 @@ DEFAULTS = [
               'explorer/copy file': 'Ctrl+C',
               'explorer/paste file': 'Ctrl+V',
               'explorer/copy absolute path': 'Ctrl+Alt+C',
-              'explorer/copy relative path': 'Ctrl+Shift+Alt+C',
+              'explorer/copy relative path': 'Ctrl+Alt+Shift+C',
               }),
             ('appearance',
              {

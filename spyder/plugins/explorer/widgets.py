@@ -879,7 +879,7 @@ class DirView(QTreeView):
     def copy_path(self, fnames=None, method="absolute"):
         """Copy absolute or relative path to given file(s)/folders(s)."""
         cb = QApplication.clipboard()
-        home_directory = self.fsmodel.rootPath()
+        explorer_directory = self.fsmodel.rootPath()
         if fnames is None:
             fnames = self.get_selected_filenames()
         if not isinstance(fnames, (tuple, list)):
@@ -891,7 +891,7 @@ class DirView(QTreeView):
                                           fnames)
             elif method == "relative":
                 clipboard_files = ''.join('"' +
-                                          osp.relpath(_fn, home_directory).
+                                          osp.relpath(_fn, explorer_directory).
                                           replace(os.sep, "/") + '",' +
                                           '\n' for _fn in fnames)
             clipboard_files = clipboard_files[:-2]
@@ -899,7 +899,7 @@ class DirView(QTreeView):
             if method == "absolute":
                 clipboard_files = fnames[0]
             elif method == "relative":
-                clipboard_files = (osp.relpath(fnames[0], home_directory).
+                clipboard_files = (osp.relpath(fnames[0], explorer_directory).
                                    replace(os.sep, "/"))
         cb.clear(mode=cb.Clipboard)
         cb.setText(clipboard_files, mode=cb.Clipboard)

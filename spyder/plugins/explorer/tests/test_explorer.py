@@ -40,14 +40,48 @@ def project_explorer(qtbot):
     return widget
 
 
+@pytest.fixture(params=[['script.py'],
+                        ['script.py', 'script1.py', 'testdir/script2.py'],
+                        ['subdir/innerdir/text.txt', 'testdir']])
+def create_folders_files(tmpdir, request):
+    """A project directory with dirs and files for testing."""
+    project_dir = to_text_string(tmpdir.mkdir('project'))
+    destination_dir = to_text_string(tmpdir.mkdir('destination'))
+    list_paths = []
+    for item in request.param:
+        if osp.splitext(item)[1]:
+            if osp.split(item)[0]:
+                dirs, fname = osp.split(item)
+                dirpath = osp.join(project_dir, dirs)
+                if not osp.exists(dirpath):
+                    os.makedirs(dirpath)
+                    item_path = osp.join(dirpath, fname)
+            else:
+                item_path = osp.join(project_dir, item)
+        else:
+            dirpath = osp.join(project_dir, item)
+            if not osp.exists(dirpath):
+                os.makedirs(dirpath)
+                item_path = dirpath
+        if not osp.isdir(item_path):
+            with open(item_path, 'w') as fh:
+                fh.write("File Path:\n" + str(item_path) + '\n')
+        list_paths.append(item_path)
+    return list_paths, project_dir, destination_dir
+
+
 @pytest.fixture(params=[FileExplorerTest, ProjectExplorerTest2])
-def explorer_with_files(qtbot, tmpdir, request):
+def explorer_with_files(qtbot, create_folders_files, request):
     """Setup Project/File Explorer widget."""
     cb = QApplication.clipboard()
-    project_dir = to_text_string(tmpdir.mkdir('project'))
-    project_explorer = request.param(directory=project_dir)
-    qtbot.addWidget(project_explorer)
-    return project_explorer, cb
+    list_paths = create_folders_files[0]
+    project_dir = create_folders_files[1]
+    destination_dir = create_folders_files[2]
+    project_explorer_orig = request.param(directory=project_dir)
+    project_explorer_dest = request.param(directory=destination_dir)
+    qtbot.addWidget(project_explorer_orig)
+    qtbot.addWidget(project_explorer_dest)
+    return project_explorer_orig, project_explorer_dest, list_paths, cb
 
 
 def test_file_explorer(file_explorer):
@@ -64,151 +98,65 @@ def test_project_explorer(project_explorer):
     assert project_explorer
 
 
-def create_folders_files(file_paths, project_dir):
-    """Function to create folders and files to be used in test functions."""
-    list_paths = []
-    for item in file_paths:
-        if osp.splitext(item)[1]:
-            if osp.split(item)[0]:
-                dirs, fname = osp.split(item)
-                dirpath = osp.join(project_dir, dirs)
-                if not osp.exists(dirpath):
-                    os.makedirs(dirpath)
-                    item_path = osp.join(dirpath, fname)
-            else:
-                item_path = osp.join(project_dir, item)
-        else:
-            dirpath = osp.join(project_dir, item)
-            if not osp.exists(dirpath):
-                os.makedirs(dirpath)
-                item_path = dirpath
-        if item_path.endswith('script.py'):
-            with open(item_path, 'w') as fh:
-                fh.write('Python')
-        elif item_path.endswith('script1.py'):
-            with open(item_path, 'w') as fh:
-                fh.write('Spyder4')
-        elif item_path.endswith('script2.py'):
-            with open(item_path, 'w') as fh:
-                fh.write('Jan-2019')
-        elif item_path.endswith('text.txt'):
-            with open(item_path, 'w') as fh:
-                fh.write('Hello World')
-        list_paths.append(item_path)
-    return list_paths
-
-
-@pytest.mark.parametrize('file_paths',
-                         [['script.py'],
-                          ['script.py', 'script1.py', 'testdir/script2.py'],
-                          ['subdir/innerdir/text.txt', 'testdir']])
 @pytest.mark.parametrize('path_method', ['absolute', 'relative'])
-def test_copy_path(explorer_with_files, path_method, file_paths):
+def test_copy_path(explorer_with_files, path_method):
     """Test copy absolute and relative paths."""
-    project, cb = explorer_with_files
-    file_paths = create_folders_files(file_paths, project.directory)
-    home_directory = project.explorer.treewidget.fsmodel.rootPath()
+    project, _, _, cb = explorer_with_files
+    file_paths = explorer_with_files[2]
+    explorer_directory = project.explorer.treewidget.fsmodel.rootPath()
     project.explorer.treewidget.copy_path(fnames=file_paths,
                                           method=path_method)
-    cb_output = cb.text(mode=cb.Clipboard)
-    file_paths = [_fn.replace(os.sep, '/') for _fn in file_paths]
+    file_paths = [fname.replace(os.sep, '/') for fname in file_paths]
     if len(file_paths) > 1:
         if path_method == 'absolute':
-            true_path = ''.join('"' + _fn + '",' + '\n' for _fn in
+            true_path = ''.join('"' + fname + '",' + '\n' for fname in
                                 file_paths)
         elif path_method == 'relative':
-            true_path = ''.join('"' + osp.relpath(_fn, home_directory).
+            true_path = ''.join('"' + osp.relpath(fname, explorer_directory).
                                 replace(os.sep, '/') + '",' +
-                                '\n' for _fn in file_paths)
+                                '\n' for fname in file_paths)
         true_path = true_path[:-2]
     else:
         if path_method == 'absolute':
             true_path = file_paths[0]
         elif path_method == 'relative':
-            true_path = (osp.relpath(file_paths[0], home_directory).
+            true_path = (osp.relpath(file_paths[0], explorer_directory).
                          replace(os.sep, '/'))
+    cb_output = cb.text(mode=cb.Clipboard)
     assert true_path == cb_output
 
 
-@pytest.mark.parametrize('file_paths',
-                         [['script.py'],
-                          ['script.py', 'script1.py', 'testdir/script2.py'],
-                          ['subdir/innerdir/text.txt', 'testdir']])
-def test_copy_file(explorer_with_files, file_paths):
+def test_copy_file(explorer_with_files):
     """Test copy file(s)/folders(s) to clipboard."""
-    project, cb = explorer_with_files
-    file_paths = create_folders_files(file_paths, project.directory)
+    project, _, _, cb = explorer_with_files
+    file_paths = explorer_with_files[2]
     project.explorer.treewidget.copy_file_clipboard(fnames=file_paths)
     cb_data = cb.mimeData().urls()
-    for url in cb_data:
+    for url, expected_path in zip(cb_data, file_paths):
         file_name = url.toLocalFile()
-        if osp.isfile(file_name):
-            with open(file_name, 'r') as fh:
-                text_data = fh.read()
+        assert file_name == expected_path.replace(os.sep, '/')
         try:
             assert osp.isdir(file_name)
         except AssertionError:
             assert osp.isfile(file_name)
-        if file_name.endswith('script.py'):
-            assert text_data == 'Python'
-        if file_name.endswith('script1.py'):
-            assert text_data == 'Spyder4'
-        if file_name.endswith('script2.py'):
-            assert text_data == 'Jan-2019'
-        if file_name.endswith('text.txt'):
-            assert text_data == 'Hello World'
+            with open(file_name, 'r') as fh:
+                text = fh.read().replace('\\', '/')
+            assert text == "File Path:\n" + str(file_name) + '\n'
 
 
-@pytest.mark.parametrize('file_paths',
-                         [['script.py'],
-                          ['script.py', 'script1.py', 'testdir/script2.py'],
-                          ['subdir/innerdir/text.txt', 'testdir']])
-def test_save_file(explorer_with_files, file_paths):
+def test_save_file(explorer_with_files):
     """Test save file(s)/folders(s) from clipboard."""
-    project = explorer_with_files[0]
-    file_paths = create_folders_files(file_paths, project.directory)
+    project, dest, file_paths, _ = explorer_with_files
     project.explorer.treewidget.copy_file_clipboard(fnames=file_paths)
-    project.explorer.treewidget.save_file_clipboard(fnames=file_paths)
-    try:
-        selected_item = osp.commonpath(file_paths)
-    except AttributeError:
-        #  py2 does not have commonpath
-        if len(file_paths) > 1:
-            selected_item = osp.normpath(
-                    osp.dirname(osp.commonprefix(file_paths)))
-        else:
-            selected_item = file_paths[0]
-    if osp.isfile(selected_item):
-        parrent_path = osp.dirname(selected_item)
-    else:
-        parrent_path = osp.normpath(selected_item)
-    if len(file_paths) == 1:
-        #  there is only script.py in project_dir
-        assert osp.exists(osp.join(parrent_path, 'script1.py'))
-        with open(osp.join(parrent_path, 'script1.py'), 'r') as fh:
-            text_data = fh.read()
-        assert text_data == 'Python'
-    if len(file_paths) == 3:
-        #  script.py, script1.py and testdir/script2.py exist in project_dir
-        assert osp.exists(osp.join(parrent_path, 'script2.py'))
-        with open(osp.join(parrent_path, 'script2.py'), 'r') as fh:
-            text_data = fh.read()
-        assert text_data == 'Python'
-        assert osp.exists(osp.join(parrent_path, 'script3.py'))
-        with open(osp.join(parrent_path, 'script3.py'), 'r') as fh:
-            text_data = fh.read()
-        assert text_data == 'Spyder4'
-        assert osp.exists(osp.join(parrent_path, 'script4.py'))
-        with open(osp.join(parrent_path, 'script4.py'), 'r') as fh:
-            text_data = fh.read()
-        assert text_data == 'Jan-2019'
-    if len(file_paths) == 2:
-        #  subdir/innerdir/text.txt and testdir in project_dir
-        assert osp.isdir(osp.join(parrent_path, 'testdir1'))
-        assert osp.isfile(osp.join(parrent_path, 'text.txt'))
-        with open(osp.join(parrent_path, 'text.txt'), 'r') as fh:
-            text_data = fh.read()
-        assert text_data == 'Hello World'
+    dest.explorer.treewidget.save_file_clipboard(fnames=[dest.directory])
+    for item in file_paths:
+        destination_item = osp.join(dest.directory, osp.basename(item))
+        assert osp.exists(destination_item)
+        if osp.isfile(destination_item):
+            with open(destination_item, 'r') as fh:
+                text = fh.read()
+            # Notice file content is source path which is correct.
+            assert text == "File Path:\n" + str(item) + '\n'
 
 
 if __name__ == "__main__":
