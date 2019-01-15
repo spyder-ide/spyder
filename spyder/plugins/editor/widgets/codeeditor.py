@@ -1604,7 +1604,7 @@ class CodeEditor(TextEditBaseWidget):
         if urls:
             org_content = QMimeData()
             org_content.setUrls(urls)
-            clipboard.setMimeData(org_content, mode=clipboard.Clipboard)
+            clipboard.setMimeData(org_content)
 
     @Slot()
     def undo(self):
