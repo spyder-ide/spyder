@@ -1582,8 +1582,6 @@ class CodeEditor(TextEditBaseWidget):
         text has 'CRLF' EOL chars
         """
         clipboard = QApplication.clipboard()
-        # Save original clipboard text to restore after paste in Spyder.
-        original_cb_text = clipboard.text()
         text = to_text_string(clipboard.text())
         # This is here to make copied files/folders to be pasted as path.
         # See issue 8566 and PR: 8576 for the details.
@@ -1602,8 +1600,6 @@ class CodeEditor(TextEditBaseWidget):
         # Standard paste
         TextEditBaseWidget.paste(self)
         self.document_did_change(text)
-        # Restore clipboard text to original text for use in other Apps.
-        clipboard.setText(original_cb_text)
 
     @Slot()
     def undo(self):
