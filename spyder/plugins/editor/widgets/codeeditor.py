@@ -1589,7 +1589,7 @@ class CodeEditor(TextEditBaseWidget):
             urls = clipboard.mimeData().urls()
             if len(urls) > 1:
                 text = ''.join('"' + url.toLocalFile().replace(osp.os.sep, '/')
-                               + '"' + '\n' for url in urls)
+                               + '",' + '\n' for url in urls)
             else:
                 text = urls[0].toLocalFile() + '\n'
         eol_chars = self.get_line_separator()
