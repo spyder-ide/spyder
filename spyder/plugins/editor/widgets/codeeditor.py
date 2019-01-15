@@ -1585,11 +1585,10 @@ class CodeEditor(TextEditBaseWidget):
         text = to_text_string(clipboard.text())
         # This is here to make copied files/folders to be pasted as text path.
         # See issue 8566 and PR: 8576 for the details.
-        urls_data = []
+        urls = []
         if (not clipboard.mimeData().hasFormat('text/plain') and
                 clipboard.mimeData().hasUrls()):
             urls = clipboard.mimeData().urls()
-            urls_data = urls
             if len(urls) > 1:
                 text = ''.join('"' + url.toLocalFile().replace(osp.os.sep, '/')
                                + '",' + '\n' for url in urls)
@@ -1602,9 +1601,9 @@ class CodeEditor(TextEditBaseWidget):
         TextEditBaseWidget.paste(self)
         self.document_did_change(text)
         # Restore files/folders into original state instead as text. See #8576.
-        if urls_data:
+        if urls:
             org_content = QMimeData()
-            org_content.setUrls(urls_data)
+            org_content.setUrls(urls)
             clipboard.setMimeData(org_content, mode=clipboard.Clipboard)
 
     @Slot()
