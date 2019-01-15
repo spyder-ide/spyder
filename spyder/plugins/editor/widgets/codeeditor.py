@@ -1587,12 +1587,14 @@ class CodeEditor(TextEditBaseWidget):
         # See issue 8566 and PR: 8576 for the details.
         if clipboard.mimeData().hasUrls():
             urls = clipboard.mimeData().urls()
-            text = "".join('"' + url.toLocalFile().replace(osp.os.sep, '/') +
-                           '"' + '\n' for url in urls)
-        if len(text.splitlines()) > 1:
-            eol_chars = self.get_line_separator()
-            text = eol_chars.join((text + eol_chars).splitlines())
-            clipboard.setText(text)
+            if len(urls) > 1:
+                text = ''.join('"' + url.toLocalFile().replace(osp.os.sep, '/')
+                               + '"' + '\n' for url in urls)
+            else:
+                text = urls[0].toLocalFile() + '\n'
+        eol_chars = self.get_line_separator()
+        text = eol_chars.join((text + eol_chars).splitlines())
+        clipboard.setText(text)
         # Standard paste
         TextEditBaseWidget.paste(self)
         self.document_did_change(text)
