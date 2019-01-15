@@ -101,31 +101,44 @@ def get_vcs_status(path):
     """Return the commit status."""
     rootPath = get_vcs_root(path)
     if not rootPath:
+        # look in subdirectories for repositories
+        paths = []
+        for subdir in os.listdir(rootPath):
+            rootPath = get_vcs_root(subdir)
+            if rootPath:
+                paths.append(rootPath)
+        if paths == []:
+            return []
+    else:
+        paths = [rootPath]
+    vcsst = {}
+    for path in paths:
+        info = get_vcs_info(path)
+        # Status list (in Order): untracked, ignored, modified, added
+        if info['name'] == 'Git':
+            stat = ["??", "!!", "M", "A"]
+            o = 3  # position at which the filename starts
+        elif info['name'] == 'Mercurial':
+            stat = ["?", "I", "M", "A"]
+            o = 2
+        for tool, args in info['actions']['cstate']:
+            if programs.find_program(tool):
+                proc = programs.run_program(tool, args, cwd=path)
+                out, err = proc.communicate()
+                if proc.returncode >= 0 and err == b'':
+                    oStr = out.decode("utf-8")[:-1]
+                    for fString in (x for x in oStr.split("\n") if x):
+                        try:
+                            index = stat.index(fString[:o-1].strip())
+                        except ValueError:
+                            continue
+                        vcsst[osp.abspath(osp.join(path, fString[o:]))] = index
+                else:
+                    continue
+    if vcsst == {}:
         return []
-    info = get_vcs_info(rootPath)
-    # Status list (in Order): untracked, ignored, modified, added
-    if info['name'] == 'Git':
-        stat = ["??", "!!", "M", "A"]
-        o = 3  # position at which the filename starts
-    elif info['name'] == 'Mercurial':
-        stat = ["?", "I", "M", "A"]
-        o = 2
-    for tool, args in info['actions']['cstate']:
-        if programs.find_program(tool):
-            proc = programs.run_program(tool, args, cwd=rootPath)
-            out, err = proc.communicate()
-            if proc.returncode >= 0 and err == b'':
-                oStr = out.decode("utf-8")[:-1]
-                vcsst = {}
-                for fString in (x for x in oStr.split("\n") if x):
-                    try:
-                        index = stat.index(fString[:o-1].strip())
-                    except ValueError:
-                        continue
-                    vcsst[osp.relpath(fString[o:], rootPath)] = index
-                return vcsst
-            else:
-                return []
+    else:
+        return vcsst
 
 
 def is_hg_installed():

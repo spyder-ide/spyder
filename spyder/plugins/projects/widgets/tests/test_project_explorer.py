@@ -59,6 +59,7 @@ def test_change_directory_in_project_explorer(project_explorer, qtbot):
     # Assert content was moved
     assert osp.isfile(osp.join(project_dir_tmp, 'script.py'))
 
+
 def test_project_explorer(project_explorer, qtbot):
     """Run project explorer."""
     project = project_explorer
@@ -69,6 +70,7 @@ def test_project_explorer(project_explorer, qtbot):
 
 @pytest.mark.change_directory
 def test_project_vcs_color(project_explorer, qtbot):
+    """Test that files are colored according to their commit state."""
     # Create project
     project_explorer.show()
     project_dir = project_explorer.directory
@@ -84,13 +86,14 @@ def test_project_vcs_color(project_explorer, qtbot):
 
     # Init the repo and set some files to different states
     programs.run_program('git', ['init', '.'], cwd=project_dir)
-    programs.run_program('git', ['add', 'file2.py', 'file4.py'], cwd=project_dir)
+    programs.run_program('git', ['add', 'file2.py', 'file4.py'],
+                         cwd=project_dir)
     programs.run_program('git', ['commit', '-m', 'test'], cwd=project_dir)
     f = open(files[2], 'a')
     f.writelines('text')
     f.close()
     programs.run_program('git', ['add', 'file3.py'], cwd=project_dir)
-    gitign = open(osp.join(project_dir,'.gitignore'), 'a')
+    gitign = open(osp.join(project_dir, '.gitignore'), 'a')
     gitign.writelines('file1.py')
     gitign.close()
     # Check that the files have their according colors
@@ -102,7 +105,8 @@ def test_project_vcs_color(project_explorer, qtbot):
     qtbot.waitForWindowShown(project_explorer.explorer)
     ind0 = tree.fsmodel.index(tree.fsmodel.rootPath()).child(0, 0)
     for n in range(5):
-        assert tree.fsmodel.index(n, 0, ind0).data(Qt.TextColorRole).name() == pcolors[n].name()
+        assert tree.fsmodel.index(n, 0, ind0).data(Qt.TextColorRole).name() \
+            == pcolors[n].name()
     os.chdir(test_dir)
 
 
