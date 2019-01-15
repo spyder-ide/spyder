@@ -953,9 +953,9 @@ class DirView(QTreeView):
                 else:
                     selected_item = fnames[0]
             if osp.isfile(selected_item):
-                parrent_path = osp.dirname(selected_item)
+                parent_path = osp.dirname(selected_item)
             else:
-                parrent_path = osp.normpath(selected_item)
+                parent_path = osp.normpath(selected_item)
             cb_data = QApplication.clipboard().mimeData()
             if cb_data.hasUrls():
                 urls = cb_data.urls()
@@ -964,7 +964,7 @@ class DirView(QTreeView):
                     base_name = osp.basename(source_name)
                     if osp.isfile(source_name):
                         try:
-                            while base_name in os.listdir(parrent_path):
+                            while base_name in os.listdir(parent_path):
                                 file_no_ext, file_ext = osp.splitext(base_name)
                                 end_number = re.search(r'\d+$', file_no_ext)
                                 if end_number:
@@ -974,9 +974,9 @@ class DirView(QTreeView):
                                 left_string = re.sub(r'\d+$', '', file_no_ext)
                                 left_string += str(new_number)
                                 base_name = left_string + file_ext
-                                destination = osp.join(parrent_path, base_name)
+                                destination = osp.join(parent_path, base_name)
                             else:
-                                destination = osp.join(parrent_path, base_name)
+                                destination = osp.join(parent_path, base_name)
                             shutil.copy(source_name, destination)
                         except Exception as e:
                             QMessageBox.critical(self, _('Error pasting file'),
@@ -985,7 +985,7 @@ class DirView(QTreeView):
                                                  + to_text_string(e))
                     else:
                         try:
-                            while base_name in os.listdir(parrent_path):
+                            while base_name in os.listdir(parent_path):
                                 end_number = re.search(r'\d+$', base_name)
                                 if end_number:
                                     new_number = int(end_number.group()) + 1
@@ -993,9 +993,9 @@ class DirView(QTreeView):
                                     new_number = 1
                                 left_string = re.sub(r'\d+$', '', base_name)
                                 base_name = left_string + str(new_number)
-                                destination = osp.join(parrent_path, base_name)
+                                destination = osp.join(parent_path, base_name)
                             else:
-                                destination = osp.join(parrent_path, base_name)
+                                destination = osp.join(parent_path, base_name)
                             if osp.realpath(destination).startswith(
                                     osp.realpath(source_name) + os.sep):
                                 QMessageBox.critical(self,
