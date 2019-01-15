@@ -29,7 +29,7 @@ from unicodedata import category
 
 # Third party imports
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import QRegExp, Qt, QTimer, Signal, Slot, QEvent
+from qtpy.QtCore import QRegExp, Qt, QTimer, Signal, Slot, QEvent, QMimeData
 from qtpy.QtGui import (QColor, QCursor, QFont, QIntValidator,
                         QKeySequence, QPaintEvent, QPainter, QMouseEvent,
                         QTextBlockUserData, QTextCharFormat, QTextCursor,
@@ -1583,23 +1583,29 @@ class CodeEditor(TextEditBaseWidget):
         """
         clipboard = QApplication.clipboard()
         text = to_text_string(clipboard.text())
-        # This is here to make copied files/folders to be pasted as path.
+        # This is here to make copied files/folders to be pasted as text path.
         # See issue 8566 and PR: 8576 for the details.
+        urls_data = []
         if (not clipboard.mimeData().hasFormat('text/plain') and
                 clipboard.mimeData().hasUrls()):
-                urls = clipboard.mimeData().urls()
-                if len(urls) > 1:
-                    text = ''.join('"' +
-                                   url.toLocalFile().replace(osp.os.sep, '/')
-                                   + '",' + '\n' for url in urls)
-                else:
-                    text = urls[0].toLocalFile() + '\n'
-        eol_chars = self.get_line_separator()
-        text = eol_chars.join((text + eol_chars).splitlines())
-        clipboard.setText(text)
+            urls = clipboard.mimeData().urls()
+            urls_data = urls
+            if len(urls) > 1:
+                text = ''.join('"' + url.toLocalFile().replace(osp.os.sep, '/')
+                               + '",' + '\n' for url in urls)
+            else:
+                text = urls[0].toLocalFile() + '\n'
+            eol_chars = self.get_line_separator()
+            text = eol_chars.join((text + eol_chars).splitlines())
+            clipboard.setText(text)
         # Standard paste
         TextEditBaseWidget.paste(self)
         self.document_did_change(text)
+        # Restore files/folders into original state instead as text. See #8576.
+        if urls_data:
+            org_content = QMimeData()
+            org_content.setUrls(urls_data)
+            clipboard.setMimeData(org_content, mode=clipboard.Clipboard)
 
     @Slot()
     def undo(self):
