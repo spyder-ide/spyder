@@ -747,14 +747,14 @@ class IPythonConsole(SpyderPluginWidget):
                                        context=Qt.WidgetWithChildrenShortcut)
 
         reset_action = create_action(self, _("Remove all variables"),
-                                       icon=ima.icon('editdelete'),
-                                       triggered=self.reset_kernel,
-                                       context=Qt.WidgetWithChildrenShortcut)
+                                     icon=ima.icon('editdelete'),
+                                     triggered=self.reset_kernel,
+                                     context=Qt.WidgetWithChildrenShortcut)
 
         interrupt_action = create_action(self, _("Interrupt kernel"),
-                                       icon=ima.icon('stop'),
-                                       triggered=self.interrupt_kernel,
-                                       context=Qt.WidgetWithChildrenShortcut)
+                                         icon=ima.icon('stop'),
+                                         triggered=self.interrupt_kernel,
+                                         context=Qt.WidgetWithChildrenShortcut)
 
         self.register_shortcut(restart_action, context="ipython_console",
                                name="Restart kernel")
@@ -771,11 +771,9 @@ class IPythonConsole(SpyderPluginWidget):
         # Add the action to the 'Consoles' menu on the main window
         main_consoles_menu = self.main.consoles_menu_actions
         main_consoles_menu.insert(0, create_client_action)
-        main_consoles_menu.insert(1, create_pylab_action)
-        main_consoles_menu.insert(2, create_sympy_action)
-        main_consoles_menu.insert(3, create_cython_action)
+        main_consoles_menu.insert(1, special_console_menu)
         main_consoles_menu += [connect_to_kernel_action, MENU_SEPARATOR,
-                               restart_action, interrupt_action, reset_action]
+                               interrupt_action, restart_action, reset_action]
 
         # Plugin actions
         self.menu_actions = [create_client_action, special_console_menu,
@@ -788,7 +786,7 @@ class IPythonConsole(SpyderPluginWidget):
         if client:
             return client.get_options_menu()
         return self.menu_actions
- 
+
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.main.add_dockwidget(self)

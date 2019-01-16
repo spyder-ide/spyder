@@ -45,7 +45,7 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     MENU_SEPARATOR)
 from spyder.py3compat import to_text_string
 from spyder.widgets.browser import WebView
-from spyder.plugins.ipythonconsole.widgets import ShellWidget 
+from spyder.plugins.ipythonconsole.widgets import ShellWidget
 from spyder.widgets.mixins import SaveHistoryMixin
 from spyder.plugins.variableexplorer.widgets.collectionseditor import (
         CollectionsEditor)
@@ -380,16 +380,16 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     def get_options_menu(self):
         """Return options menu"""
         interrupt_action = create_action(self, _("Interrupt kernel"),
-                                     icon=self.stop_icon,
-                                     triggered=self.stop_button_click_handler)
-               
+                                         icon=self.stop_icon,
+                                         triggered=self.stop_button_click_handler)
+
         reset_action = create_action(self, _("Remove all variables"),
                                      icon=ima.icon('editdelete'),
                                      triggered=self.reset_namespace)
 
         env_action = create_action(
                         self,
-                        _("Show env vars"),
+                        _("Show environment variables"),
                         icon=ima.icon('environ'),
                         triggered=self.shellwidget.get_env
                      )
@@ -410,9 +410,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
         if self.menu_actions is not None:
             console_menu = self.menu_actions + additional_actions
-            rearrange_menu = [0,1,2,3,4,6,7,5,8,9,10,11]
+            rearrange_menu = [0, 1, 2, 3, 6, 4, 7, 5, 8, 9, 10, 11]
             console_menu = [console_menu[i] for i in rearrange_menu]
-            return console_menu   
+            return console_menu
 
         else:
             return additional_actions
