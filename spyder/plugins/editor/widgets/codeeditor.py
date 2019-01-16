@@ -1583,8 +1583,8 @@ class CodeEditor(TextEditBaseWidget):
         """
         clipboard = QApplication.clipboard()
         text = to_text_string(clipboard.text())
-        # This is here to make copied files/folders to be pasted as text path.
-        # See issue 8566 and PR: 8576 for the details.
+        # Have copied file and folder urls pasted as text paths.
+        # See issue: 8566 and PR: 8576 for details.
         urls = []
         if clipboard.mimeData().hasUrls():
             urls = clipboard.mimeData().urls()
@@ -1600,7 +1600,7 @@ class CodeEditor(TextEditBaseWidget):
         # Standard paste
         TextEditBaseWidget.paste(self)
         self.document_did_change(text)
-        # Restore files/folders into original state instead as text. See #8576.
+        # Restore files/folders into original state. See #8576.
         if urls:
             org_content = QMimeData()
             org_content.setUrls(urls)
