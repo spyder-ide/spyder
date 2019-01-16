@@ -1586,14 +1586,14 @@ class CodeEditor(TextEditBaseWidget):
         # This is here to make copied files/folders to be pasted as text path.
         # See issue 8566 and PR: 8576 for the details.
         urls = []
-        if (not clipboard.mimeData().hasFormat('text/plain') and
-                clipboard.mimeData().hasUrls()):
+        if clipboard.mimeData().hasUrls():
             urls = clipboard.mimeData().urls()
             if len(urls) > 1:
                 text = ''.join('"' + url.toLocalFile().replace(osp.os.sep, '/')
-                               + '",' + '\n' for url in urls)
+                               + '",' + '\n' for url in urls)[:-2]
             else:
-                text = urls[0].toLocalFile() + '\n'
+                text = urls[0].toLocalFile()
+        if len(text.splitlines()) > 1:
             eol_chars = self.get_line_separator()
             text = eol_chars.join((text + eol_chars).splitlines())
             clipboard.setText(text)
