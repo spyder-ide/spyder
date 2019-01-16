@@ -103,9 +103,13 @@ def test_copy_path(explorer_with_files, path_method):
     project.explorer.treewidget.copy_path(fnames=file_paths,
                                           method=path_method)
     cb_output = cb.text(mode=cb.Clipboard)
-    path_list = [path.strip(',').strip('"') for path in cb_output.splitlines()]
+    path_list = [path.strip(',"') for path in cb_output.splitlines()]
     for path in path_list:
         assert osp.exists(path)
+        if osp.isfile(path) and path_method == 'absolute':
+            with open(path, 'r') as fh:
+                text = fh.read().replace(os.sep, '/')
+            assert text == "File Path:\n" + str(path) + '\n'
 
 
 def test_copy_file(explorer_with_files):
@@ -121,7 +125,7 @@ def test_copy_file(explorer_with_files):
         except AssertionError:
             assert osp.isfile(file_name)
             with open(file_name, 'r') as fh:
-                text = fh.read().replace('\\', '/')
+                text = fh.read().replace(os.sep, '/')
             assert text == "File Path:\n" + str(file_name) + '\n'
 
 
