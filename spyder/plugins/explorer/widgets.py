@@ -879,8 +879,8 @@ class DirView(QTreeView):
     def copy_path(self, fnames=None, method="absolute"):
         """Copy absolute or relative path to given file(s)/folders(s)."""
         cb = QApplication.clipboard()
-        root_dir = self.fsmodel.rootPath()
-        explorer_directory = ('os.sep'.join(root_dir.strip('os.sep').
+        explorer_directory = self.fsmodel.rootPath()
+        explorer_directory = ('os.sep'.join(explorer_directory.strip('os.sep').
                                             split('os.sep')[1:]))
         if fnames is None:
             fnames = self.get_selected_filenames()

@@ -100,29 +100,12 @@ def test_project_explorer(project_explorer):
 def test_copy_path(explorer_with_files, path_method):
     """Test copy absolute and relative paths."""
     project, _, file_paths, cb = explorer_with_files
-    root_dir = project.explorer.treewidget.fsmodel.rootPath()
-    explorer_directory = ('os.sep'.join(root_dir.strip('os.sep').
-                                        split('os.sep')[1:]))
     project.explorer.treewidget.copy_path(fnames=file_paths,
                                           method=path_method)
-    file_paths = [fname.replace(os.sep, '/') for fname in file_paths]
-    if len(file_paths) > 1:
-        if path_method == 'absolute':
-            true_path = ''.join('"' + fname + '",' + '\n' for fname in
-                                file_paths)
-        elif path_method == 'relative':
-            true_path = ''.join('"' + osp.relpath(fname, explorer_directory).
-                                replace(os.sep, '/') + '",' +
-                                '\n' for fname in file_paths)
-        true_path = true_path[:-2]
-    else:
-        if path_method == 'absolute':
-            true_path = file_paths[0]
-        elif path_method == 'relative':
-            true_path = (osp.relpath(file_paths[0], explorer_directory).
-                         replace(os.sep, '/'))
     cb_output = cb.text(mode=cb.Clipboard)
-    assert true_path == cb_output
+    path_list = [path.strip(',').strip('"') for path in cb_output.splitlines()]
+    for path in path_list:
+        assert osp.exists(path)
 
 
 def test_copy_file(explorer_with_files):
