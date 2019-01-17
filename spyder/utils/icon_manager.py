@@ -6,6 +6,7 @@
 
 # Standard library imports
 import os.path as osp
+import sys
 
 # Third party imports
 from qtpy.QtGui import QIcon
@@ -23,7 +24,16 @@ if is_dark_interface():
 else:
     MAIN_FG_COLOR = 'black'
 
+# Magnification factors for attribute icons
+if sys.platform.startswith('linux'):
+    BIG_ATTR_FACTOR = 1.0
+    SMALL_ATTR_FACTOR = 0.9
+else:
+    BIG_ATTR_FACTOR = 1.3
+    SMALL_ATTR_FACTOR = 1.1
 
+# Icons for different programming language
+# extensions
 LANGUAGE_ICONS = {
     '.c': 'CFileIcon',
     '.h': 'CFileIcon',
@@ -268,13 +278,13 @@ _qtaargs = {
     'dock':                    [('fa.caret-square-o-down',), {'color': MAIN_FG_COLOR}],
     'close_pane':              [('fa.window-close-o',), {'color': MAIN_FG_COLOR}],
     # --- Autocompletion type icons --------------
-    'attribute':               [('mdi.alpha-a-box',), {'color': 'magenta', 'scale_factor': 1.3}],
-    'module':                  [('mdi.alpha-m-box',), {'color': '#daa520', 'scale_factor': 1.3}],
-    'class':                   [('mdi.alpha-c-box',), {'color':'#3775a9', 'scale_factor': 1.3}],
-    'private2':                [('spyder.circle-underscore',), {'color':'#e69c9c', 'scale_factor': 1.1}],
-    'private1':                [('spyder.circle-underscore',), {'color':'#e69c9c', 'scale_factor': 1.1}],
-    'method':                  [('mdi.alpha-m-box',), {'color':'#7ea67e', 'scale_factor': 1.3}],
-    'function':                [('mdi.alpha-f-box',), {'color':'orange', 'scale_factor': 1.3}],
+    'attribute':               [('mdi.alpha-a-box',), {'color': 'magenta', 'scale_factor': BIG_ATTR_FACTOR}],
+    'module':                  [('mdi.alpha-m-box',), {'color': '#daa520', 'scale_factor': BIG_ATTR_FACTOR}],
+    'class':                   [('mdi.alpha-c-box',), {'color':'#3775a9', 'scale_factor': BIG_ATTR_FACTOR}],
+    'private2':                [('spyder.circle-underscore',), {'color':'#e69c9c', 'scale_factor': SMALL_ATTR_FACTOR}],
+    'private1':                [('spyder.circle-underscore',), {'color':'#e69c9c', 'scale_factor': SMALL_ATTR_FACTOR}],
+    'method':                  [('mdi.alpha-m-box',), {'color':'#7ea67e', 'scale_factor': BIG_ATTR_FACTOR}],
+    'function':                [('mdi.alpha-f-box',), {'color':'orange', 'scale_factor': BIG_ATTR_FACTOR}],
     'blockcomment':            [('fa5s.hashtag',), {'color':'grey'}],
     'cell':                    [('mdi.percent',), {'color':'red'}],
     'no_match':                [('fa.circle',), {'color': 'gray'}],
