@@ -5,6 +5,7 @@
 # (see spyder/__init__.py for details)
 
 # Standard library imports
+import os
 import os.path as osp
 import sys
 
@@ -25,9 +26,13 @@ else:
     MAIN_FG_COLOR = 'black'
 
 # Magnification factors for attribute icons
+# per platform
 if sys.platform.startswith('linux'):
     BIG_ATTR_FACTOR = 1.0
     SMALL_ATTR_FACTOR = 0.9
+elif os.name == 'nt':
+    BIG_ATTR_FACTOR = 1.1
+    SMALL_ATTR_FACTOR = 1.0
 else:
     BIG_ATTR_FACTOR = 1.3
     SMALL_ATTR_FACTOR = 1.1
