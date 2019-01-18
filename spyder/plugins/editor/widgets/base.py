@@ -31,7 +31,7 @@ from qtconsole.styles import dark_color
 from spyder.config.gui import get_font
 from spyder.config.main import CONF
 from spyder.config.gui import is_dark_interface
-from spyder.py3compat import PY3, str_lower, to_text_string
+from spyder.py3compat import PY3, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.widgets.calltip import CallTipWidget
 from spyder.widgets.mixins import BaseEditMixin
@@ -1111,25 +1111,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     def hide_completion_widget(self):
         """Hide completion widget"""
         self.completion_widget.hide()
-
-    def show_completion_list(self, completions, completion_text=""):
-        """Display the possible completions"""
-        if not completions:
-            return
-        if not isinstance(completions[0], tuple):
-            completions = [(c, '') for c in completions]
-        if len(completions) == 1 and completions[0][0] == completion_text:
-            return
-        self.completion_text = completion_text
-        # Sorting completion list (entries starting with underscore are
-        # put at the end of the list):
-        underscore = set([(comp, t) for (comp, t) in completions
-                          if comp.startswith('_')])
-
-        completions = sorted(set(completions) - underscore,
-                             key=lambda x: str_lower(x[0]))
-        completions += sorted(underscore, key=lambda x: str_lower(x[0]))
-        self.show_completion_widget(completions)
 
     def select_completion_list(self):
         """Completion list is active, Enter was just pressed"""

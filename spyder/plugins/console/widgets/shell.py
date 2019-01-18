@@ -31,7 +31,7 @@ from spyder.config.base import _, get_conf_path, get_debug_level, STDERR
 from spyder.config.gui import config_shortcut, get_shortcut
 from spyder.config.main import CONF
 from spyder.py3compat import (builtins, is_string, is_text_string,
-                              PY3, to_text_string)
+                              PY3, str_lower, to_text_string)
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_action, keybinding,
@@ -846,7 +846,26 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
     def is_defined(self, objtxt, force_import=False):
         """Return True if object is defined"""
         raise NotImplementedError
-        
+
+    def show_completion_list(self, completions, completion_text=""):
+        """Display the possible completions"""
+        if not completions:
+            return
+        if not isinstance(completions[0], tuple):
+            completions = [(c, '') for c in completions]
+        if len(completions) == 1 and completions[0][0] == completion_text:
+            return
+        self.completion_text = completion_text
+        # Sorting completion list (entries starting with underscore are
+        # put at the end of the list):
+        underscore = set([(comp, t) for (comp, t) in completions
+                          if comp.startswith('_')])
+
+        completions = sorted(set(completions) - underscore,
+                             key=lambda x: str_lower(x[0]))
+        completions += sorted(underscore, key=lambda x: str_lower(x[0]))
+        self.show_completion_widget(completions)
+
     def show_code_completion(self):
         """Display a completion list based on the current line"""
         # Note: unicode conversion is needed only for ExternalShellBase
