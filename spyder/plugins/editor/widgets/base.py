@@ -88,14 +88,15 @@ class CompletionWidget(QListWidget):
         self.setFont(font)
 
     def show_list(self, completion_list):
-        self.textedit.completion_text = ''
-        self.completion_list = completion_list
-        self.clear()
-
         # Completions are handled differently for the Internal
         # console.
-        if not isinstance(self.completion_list[0], dict):
+        if not isinstance(completion_list[0], dict):
             self.is_internal_console = True
+
+        if not self.is_internal_console:
+            self.textedit.completion_text = ''
+        self.completion_list = completion_list
+        self.clear()
 
         icons_map = {CompletionItemKind.PROPERTY: 'attribute',
                      CompletionItemKind.VARIABLE: 'attribute',
@@ -171,7 +172,7 @@ class CompletionWidget(QListWidget):
             tooltip_point.setX(point.x() + self.width())
             tooltip_point.setY(point.y() - (3 * self.height()) // 4)
             for completion in completion_list:
-                    completion['point'] = tooltip_point
+                completion['point'] = tooltip_point
 
         if to_text_string(self.textedit.completion_text):
             # When initialized, if completion text is not empty, we need
@@ -220,13 +221,14 @@ class CompletionWidget(QListWidget):
             QListWidget.keyPressEvent(self, event)
 
     def update_current(self):
-        if self.is_internal_console:
-            return
-
         completion_text = to_text_string(self.textedit.completion_text)
         if completion_text:
             for row, completion in enumerate(self.completion_list):
-                completion_label = completion['filterText']
+                if not self.is_internal_console:
+                    completion_label = completion['filterText']
+                else:
+                    completion_label = completion[0]
+
                 if not self.case_sensitive:
                     print(completion_text)  # spyder: test-skip
                     completion_label = completion.lower()
