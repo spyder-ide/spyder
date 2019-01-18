@@ -255,8 +255,6 @@ class CompletionWidget(QListWidget):
     def item_selected(self, item=None):
         if item is None:
             item = self.currentItem()
-        # index = self.currentIndex()
-        # self.textedit.show_calltip()
         self.textedit.insert_completion(to_text_string(item.text()))
         self.hide()
 
@@ -1105,14 +1103,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 QToolTip.hideText()
         except (IndexError, TypeError):
             QToolTip.hideText()
-
-    def show_completion_widget(self, textlist):
-        """Show completion widget"""
-        self.completion_widget.show_list(textlist)
-
-    def hide_completion_widget(self):
-        """Hide completion widget"""
-        self.completion_widget.hide()
 
     def select_completion_list(self):
         """Completion list is active, Enter was just pressed"""

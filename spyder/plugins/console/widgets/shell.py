@@ -847,6 +847,14 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         """Return True if object is defined"""
         raise NotImplementedError
 
+    def show_completion_widget(self, textlist):
+        """Show completion widget"""
+        self.completion_widget.show_list(textlist)
+
+    def hide_completion_widget(self):
+        """Hide completion widget"""
+        self.completion_widget.hide()
+
     def show_completion_list(self, completions, completion_text=""):
         """Display the possible completions"""
         if not completions:

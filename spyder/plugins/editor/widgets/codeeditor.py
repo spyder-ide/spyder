@@ -789,8 +789,6 @@ class CodeEditor(TextEditBaseWidget):
     @request(method=LSPRequestTypes.DOCUMENT_COMPLETION)
     def do_completion(self, automatic=False):
         """Trigger completion"""
-        # if self.is_completion_widget_visible():
-        #     return
         self.document_did_change('')
         line, column = self.get_cursor_line_column()
         params = {
@@ -822,7 +820,6 @@ class CodeEditor(TextEditBaseWidget):
 
     @handles(LSPRequestTypes.DOCUMENT_SIGNATURE)
     def process_signatures(self, params):
-        # self.hide_completion_widget()
         signature = params['params']
         if (signature is not None and
                 'activeParameter' in signature):
@@ -2925,7 +2922,6 @@ class CodeEditor(TextEditBaseWidget):
             self.request_signature()
         elif (text == '(' and
               not self.has_selected_text()):
-            # self.hide_completion_widget()
             self.handle_parentheses(text)
         elif (text in ('[', '{') and not has_selection and
               self.close_parentheses_enabled):
@@ -3026,9 +3022,6 @@ class CodeEditor(TextEditBaseWidget):
             self.insert_text(text)
         if '(' in self.signature_completion_characters:
             self.request_signature()
-        # if self.is_python_like() and self.get_text('sol', 'cursor') and \
-        #         self.calltips:
-        #     self.sig_show_object_info.emit(position)
 
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""
