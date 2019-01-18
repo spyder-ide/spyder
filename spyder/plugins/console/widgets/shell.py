@@ -96,7 +96,10 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
         self.setFocus()
 
         # Cursor width
-        self.setCursorWidth( CONF.get('main', 'cursor/width') )
+        self.setCursorWidth(CONF.get('main', 'cursor/width'))
+
+        # Adjustments to completion_widget to use it here
+        self.completion_widget.currentRowChanged.disconnect()
 
     def toggle_wrap_mode(self, enable):
         """Enable/disable wrap mode"""
@@ -742,12 +745,12 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
             if empty_line:
                 self.stdkey_tab()
             else:
-                self.show_code_completion(automatic=False)
+                self.show_code_completion()
                 
     def _key_ctrl_space(self):
         """Action for Ctrl+Space"""
         if not self.is_completion_widget_visible():
-            self.show_code_completion(automatic=False)
+            self.show_code_completion()
                 
     def _key_pageup(self):
         """Action for PageUp key"""
@@ -791,7 +794,7 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
             # Enable auto-completion only if last token isn't a float
             last_obj = self.get_last_obj()
             if last_obj and not last_obj.isdigit():
-                self.show_code_completion(automatic=True)
+                self.show_code_completion()
 
 
     #------ Paste
@@ -847,7 +850,7 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         """Return True if object is defined"""
         raise NotImplementedError
         
-    def show_code_completion(self, automatic):
+    def show_code_completion(self):
         """Display a completion list based on the current line"""
         # Note: unicode conversion is needed only for ExternalShellBase
         text = to_text_string(self.get_current_line_to_cursor())
@@ -861,10 +864,8 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
             words = text.split(' ')
             if ',' in words[-1]:
                 words = words[-1].split(',')
-            self.show_completion_list(obj_list, completion_text=words[-1],
-                                      automatic=automatic)
+            self.show_completion_list(obj_list, completion_text=words[-1])
             return
-            
         elif text.startswith('from '):
             obj_list = self.get_module_completion(text)
             if obj_list is None:
@@ -874,13 +875,12 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
                 words = words[:-2] + words[-1].split('(')
             if ',' in words[-1]:
                 words = words[:-2] + words[-1].split(',')
-            self.show_completion_list(obj_list, completion_text=words[-1],
-                                      automatic=automatic)
+            self.show_completion_list(obj_list, completion_text=words[-1])
             return
         
         obj_dir = self.get_dir(last_obj)
         if last_obj and obj_dir and text.endswith('.'):
-            self.show_completion_list(obj_dir, automatic=automatic)
+            self.show_completion_list(obj_dir)
             return
         
         # Builtins and globals
@@ -889,8 +889,7 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
             b_k_g = dir(builtins)+self.get_globals_keys()+keyword.kwlist
             for objname in b_k_g:
                 if objname.startswith(last_obj) and objname != last_obj:
-                    self.show_completion_list(b_k_g, completion_text=last_obj,
-                                              automatic=automatic)
+                    self.show_completion_list(b_k_g, completion_text=last_obj)
                     return
             else:
                 return
@@ -908,8 +907,7 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
             completions = self.get_dir(last_obj)
             if completions is not None:
                 self.show_completion_list(completions,
-                                          completion_text=completion_text,
-                                          automatic=automatic)
+                                          completion_text=completion_text)
                 return
         
         # Looking for ' or ": filename completion
@@ -918,9 +916,15 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
             completions = self.get_cdlistdir()
             if completions:
                 self.show_completion_list(completions,
-                                          completion_text=text[q_pos+1:],
-                                          automatic=automatic)
+                                          completion_text=text[q_pos+1:])
             return
+
+    def document_did_change(self, text=None):
+        """
+        This is here to be compatible with CodeEditor and be able to use
+        code completion.
+        """
+        pass
             
     #------ Drag'n Drop
     def drop_pathlist(self, pathlist):

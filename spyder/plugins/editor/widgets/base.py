@@ -81,22 +81,21 @@ class CompletionWidget(QListWidget):
         self.hide()
         self.itemActivated.connect(self.item_selected)
         self.currentRowChanged.connect(self.row_changed)
+        self.is_internal_console = False
 
     def setup_appearance(self, size, font):
         self.resize(*size)
         self.setFont(font)
 
-    def show_list(self, completion_list, automatic=True):
-        # types = [c[1] for c in completion_list]
-        # completion_list = [c[0] for c in completion_list]
-        # if len(completion_list) == 1 and not automatic:
-        #     self.textedit.insert_completion(
-        #         completion_list[0]['insertText'])
-        #     return
-
+    def show_list(self, completion_list):
         self.textedit.completion_text = ''
         self.completion_list = completion_list
         self.clear()
+
+        # Completions are handled differently for the Internal
+        # console.
+        if not isinstance(self.completion_list[0], dict):
+            self.is_internal_console = True
 
         icons_map = {CompletionItemKind.PROPERTY: 'attribute',
                      CompletionItemKind.VARIABLE: 'attribute',
@@ -107,14 +106,14 @@ class CompletionWidget(QListWidget):
                      CompletionItemKind.CONSTRUCTOR: 'method',
                      CompletionItemKind.REFERENCE: 'attribute'}
 
-        # self.type_list = types
-        # if any(types):
         for completion in completion_list:
-            icon = icons_map.get(completion['kind'], 'no_match')
-            self.addItem(
-                QListWidgetItem(ima.icon(icon), completion['insertText']))
-        # else:
-            # self.addItems(completion_list)
+            if not self.is_internal_console:
+                icon = icons_map.get(completion['kind'], 'no_match')
+                self.addItem(
+                    QListWidgetItem(ima.icon(icon), completion['insertText']))
+            else:
+                # This is used by the Internal console.
+                self.addItem(QListWidgetItem(completion[0]))
 
         self.setCurrentRow(0)
 
@@ -167,11 +166,12 @@ class CompletionWidget(QListWidget):
             point = ancestor.mapFromGlobal(point)
         self.move(point)
 
-        tooltip_point = QPoint(point)
-        tooltip_point.setX(point.x() + self.width())
-        tooltip_point.setY(point.y() - (3 * self.height()) // 4)
-        for completion in completion_list:
-            completion['point'] = tooltip_point
+        if not self.is_internal_console:
+            tooltip_point = QPoint(point)
+            tooltip_point.setX(point.x() + self.width())
+            tooltip_point.setY(point.y() - (3 * self.height()) // 4)
+            for completion in completion_list:
+                    completion['point'] = tooltip_point
 
         if to_text_string(self.textedit.completion_text):
             # When initialized, if completion text is not empty, we need
@@ -220,6 +220,9 @@ class CompletionWidget(QListWidget):
             QListWidget.keyPressEvent(self, event)
 
     def update_current(self):
+        if self.is_internal_console:
+            return
+
         completion_text = to_text_string(self.textedit.completion_text)
         if completion_text:
             for row, completion in enumerate(self.completion_list):
@@ -233,8 +236,6 @@ class CompletionWidget(QListWidget):
                     self.scrollTo(self.currentIndex(),
                                   QAbstractItemView.PositionAtTop)
                     break
-            # if not match:
-                # self.hide()
         else:
             self.hide()
 
@@ -1103,16 +1104,15 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         except (IndexError, TypeError):
             QToolTip.hideText()
 
-    def show_completion_widget(self, textlist, automatic=True):
+    def show_completion_widget(self, textlist):
         """Show completion widget"""
-        self.completion_widget.show_list(textlist, automatic=automatic)
+        self.completion_widget.show_list(textlist)
 
     def hide_completion_widget(self):
         """Hide completion widget"""
         self.completion_widget.hide()
 
-    def show_completion_list(self, completions, completion_text="",
-                             automatic=True):
+    def show_completion_list(self, completions, completion_text=""):
         """Display the possible completions"""
         if not completions:
             return
@@ -1129,7 +1129,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         completions = sorted(set(completions) - underscore,
                              key=lambda x: str_lower(x[0]))
         completions += sorted(underscore, key=lambda x: str_lower(x[0]))
-        self.show_completion_widget(completions, automatic=automatic)
+        self.show_completion_widget(completions)
 
     def select_completion_list(self):
         """Completion list is active, Enter was just pressed"""
@@ -1156,7 +1156,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     def is_completion_widget_visible(self):
         """Return True is completion list widget is visible"""
         return self.completion_widget.isVisible()
-
 
     #------Standard keys
     def stdkey_clear(self):
