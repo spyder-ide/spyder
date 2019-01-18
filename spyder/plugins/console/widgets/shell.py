@@ -822,9 +822,6 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
     def get_dir(self, objtxt):
         """Return dir(object)"""
         raise NotImplementedError
-    def get_module_completion(self, objtxt):
-        """Return module completion list associated to object name"""
-        pass
     def get_globals_keys(self):
         """Return shell globals() keys"""
         raise NotImplementedError
@@ -855,29 +852,9 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         # Note: unicode conversion is needed only for ExternalShellBase
         text = to_text_string(self.get_current_line_to_cursor())
         last_obj = self.get_last_obj()
-        
         if not text:
             return
 
-        if text.startswith('import '):
-            obj_list = self.get_module_completion(text)
-            words = text.split(' ')
-            if ',' in words[-1]:
-                words = words[-1].split(',')
-            self.show_completion_list(obj_list, completion_text=words[-1])
-            return
-        elif text.startswith('from '):
-            obj_list = self.get_module_completion(text)
-            if obj_list is None:
-                return
-            words = text.split(' ')
-            if '(' in words[-1]:
-                words = words[:-2] + words[-1].split('(')
-            if ',' in words[-1]:
-                words = words[:-2] + words[-1].split(',')
-            self.show_completion_list(obj_list, completion_text=words[-1])
-            return
-        
         obj_dir = self.get_dir(last_obj)
         if last_obj and obj_dir and text.endswith('.'):
             self.show_completion_list(obj_dir)
