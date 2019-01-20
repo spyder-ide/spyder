@@ -606,8 +606,9 @@ class DirView(QTreeView):
         while osp.exists(dirname):
             try:
                 shutil.rmtree(dirname, onerror=misc.onerror)
-            # Windows Problem with shutil.rmtree. See issue #8567.
             except Exception as e:
+                # This handles a Windows problem with shutil.rmtree.
+                # See issue #8567.
                 if type(e).__name__ == "OSError":
                     error_path = to_text_string(e.filename)
                     shutil.rmtree(error_path, ignore_errors=True)

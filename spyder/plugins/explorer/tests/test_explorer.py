@@ -14,10 +14,11 @@ import os.path as osp
 
 # Third party imports
 import pytest
+from qtpy.QtWidgets import QMessageBox
 
 # Local imports
 from spyder.plugins.explorer.widgets import (FileExplorerTest,
-                                             ProjectExplorerTest, QMessageBox)
+                                             ProjectExplorerTest)
 from spyder.py3compat import to_text_string
 from spyder.plugins.projects.widgets.explorer import ProjectExplorerTest as \
     ProjectExplorerTest2
