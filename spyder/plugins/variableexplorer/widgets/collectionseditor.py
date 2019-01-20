@@ -32,7 +32,7 @@ from qtpy.QtCore import (QAbstractTableModel, QDateTime, QModelIndex, Qt,
                          Signal, Slot)
 from qtpy.QtGui import QColor, QKeySequence
 from qtpy.QtWidgets import (QAbstractItemDelegate, QApplication, QDateEdit,
-                            QDateTimeEdit, QDialog, QHBoxLayout,
+                            QDateTimeEdit, QDialog, QHBoxLayout, QHeaderView,
                             QInputDialog, QItemDelegate, QLineEdit, QMenu,
                             QMessageBox, QPushButton, QTableView,
                             QVBoxLayout, QWidget)
@@ -685,6 +685,32 @@ class CollectionsDelegate(QItemDelegate):
         self.set_value(index, value)
 
 
+class BaseHeaderView(QHeaderView):
+    """
+    A header view for the BaseTableView that emits a signal when the width of
+    one of its section is resized by the user.
+    """
+    sig_user_resized_section = Signal(int, int, int)
+
+    def __init__(self, parent=None):
+        super(BaseHeaderView, self).__init__(Qt.Horizontal, parent)
+        self._section_handle_ispressed = False
+        self.sectionResized.connect(self.sectionResizeEvent)
+
+    def mousePressEvent(self, e):
+        self._section_handle_ispressed = (self.cursor().shape() ==
+                                          Qt.SplitHCursor)
+        super(BaseHeaderView, self).mousePressEvent(e)
+
+    def mouseReleaseEvent(self, e):
+        self._section_handle_ispressed = False
+        super(BaseHeaderView, self).mouseReleaseEvent(e)
+
+    def sectionResizeEvent(self, logicalIndex, oldSize, newSize):
+        if self._section_handle_ispressed:
+            self.sig_user_resized_section.emit(logicalIndex, oldSize, newSize)
+
+
 class BaseTableView(QTableView):
     """Base collection editor table view"""
     sig_option_changed = Signal(str, object)
@@ -711,8 +737,10 @@ class BaseTableView(QTableView):
         self.duplicate_action = None
         self.delegate = None
         self.setAcceptDrops(True)
-        self._updating_column_width = False
         self.automatic_column_width = True
+        self.setHorizontalHeader(BaseHeaderView(parent=self))
+        self.horizontalHeader().sig_user_resized_section.connect(
+            self.user_resize_columns)
 
     def setup_table(self):
         """Setup table"""
@@ -869,14 +897,16 @@ class BaseTableView(QTableView):
         self.hist_action.setVisible(condition_hist or is_list)
         self.imshow_action.setVisible(condition_imshow)
         self.save_array_action.setVisible(is_array)
-        
+
+    def user_resize_columns(self, logical_index, old_size, new_size):
+        """Handle the user resize action."""
+        self.automatic_column_width = False
+
     def adjust_columns(self):
         """Resize two first columns to contents"""
         if self.automatic_column_width:
-            self._updating_column_width = True
             for col in range(3):
                 self.resizeColumnToContents(col)
-            self._updating_column_width = False
 
     def set_data(self, data):
         """Set table data"""

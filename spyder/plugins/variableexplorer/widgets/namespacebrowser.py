@@ -140,9 +140,7 @@ class NamespaceBrowser(QWidget):
         self.setLayout(layout)
 
         self.sig_option_changed.connect(self.option_changed)
-        self.editor.horizontalHeader().sectionResized.connect(
-                    self.resize_columns)
-        
+
     def set_shellwidget(self, shellwidget):
         """Bind shellwidget instance to namespace browser"""
         self.shellwidget = shellwidget
@@ -249,9 +247,7 @@ class NamespaceBrowser(QWidget):
     def refresh_table(self):
         """Refresh variable table"""
         if self.is_visible and self.isVisible():
-            self._updating_column_width = True
             self.shellwidget.refresh_namespacebrowser()
-            self._updating_column_width = False
             try:
                 self.editor.resizeRowToContents()
             except TypeError:
@@ -350,10 +346,8 @@ class NamespaceBrowser(QWidget):
     @Slot()
     def reset_namespace(self):
         warning = CONF.get('ipython_console', 'show_reset_namespace_warning')
-        self.editor._updating_column_width = True
         self.shellwidget.reset_namespace(warning=warning, message=True)
         self.editor.automatic_column_width = True
-        self.editor._updating_column_width = False
 
     @Slot()
     def save_data(self, filename=None):
@@ -382,10 +376,3 @@ class NamespaceBrowser(QWidget):
                             _("<b>Unable to save current workspace</b>"
                               "<br><br>Error message:<br>%s") % error_message)
         self.save_button.setEnabled(self.filename is not None)
-
-    def resize_columns(self, logical_index, old_size, new_size):
-        if not self.editor._updating_column_width:
-            self.editor.automatic_column_width = False
-        else:
-            # Print statement required (#5764)
-            print('.')  # spyder: test-skip

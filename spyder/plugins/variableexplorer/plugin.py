@@ -135,13 +135,11 @@ class VariableExplorer(SpyderPluginWidget):
             nsb = NamespaceBrowser(self, options_button=self.options_button)
             nsb.set_shellwidget(shellwidget)
             nsb.setup(**self.get_settings())
-            nsb.editor._updating_column_width = True
             nsb.sig_option_changed.connect(self.change_option)
             nsb.sig_free_memory.connect(self.free_memory)
             self.add_widget(nsb)
             self.shellwidgets[shellwidget_id] = nsb
             self.set_shellwidget_from_id(shellwidget_id)
-            nsb.editor._updating_column_width = True
             return nsb
         
     def remove_shellwidget(self, shellwidget_id):
