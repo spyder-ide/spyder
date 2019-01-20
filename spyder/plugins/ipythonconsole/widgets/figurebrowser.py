@@ -60,11 +60,12 @@ class FigureBrowserWidget(RichJupyterWidget):
             if (self.figurebrowser is not None and
                     self.figurebrowser.mute_inline_plotting):
                 if not self.sended_render_message:
-                    msg['content']['data']['text/plain'] = _(
-                        'Figures now render in the Plots pane by default. '
-                        'To make them also appear inline in the Console, '
-                        'uncheck "Mute Inline Plotting" under the Plots '
-                        'pane options menu.')
+                    msg['content']['data']['text/plain'] = self._append_html(
+                        _('<hr>'
+                          '\nFigures now render in the Plots pane by default. '
+                          'To make them also appear inline in the Console, '
+                          'uncheck "Mute Inline Plotting" under the Plots '
+                          'pane options menu. \n<hr>'))
                     self.sended_render_message = True
                 else:
                     msg['content']['data']['text/plain'] = ''
