@@ -40,28 +40,29 @@ def project_explorer(qtbot):
 
 
 @pytest.fixture(params=[['script.py', 'dir1/dir2/dir3/dir4/dir5/dir6/dir7'],
-                        ['script.py', 'script1.py', 'testdir/script2.py'],
+                        ['script.py', 'script1.py', 'testdir/dir1/script2.py'],
                         ['subdir/innerdir/dir3/text.txt',
                          'dir1/dir2/dir3/dir4', 'dir1/dir2/dir3/file.txt',
-                         'dir1/dir2/dir3/dir4/dir5',
-                         'dir1/dir2/dir3/dir4/dir5/text.txt',
                          'dir1/dir2/dir3/dir4/dir5/dir6/dir7/python.py']])
 def create_folders_files(tmpdir, request):
     """A project directory with dirs and files for testing."""
     project_dir = to_text_string(tmpdir.mkdir('project'))
+    top_folder = osp.join(project_dir, 'top_folder_in_proj')
+    if not osp.exists(top_folder):
+        os.mkdir(top_folder)
     list_paths = []
     for item in request.param:
         if osp.splitext(item)[1]:
             if osp.split(item)[0]:
                 dirs, fname = osp.split(item)
-                dirpath = osp.join(project_dir, dirs)
+                dirpath = osp.join(top_folder, dirs)
                 if not osp.exists(dirpath):
                     os.makedirs(dirpath)
                     item_path = osp.join(dirpath, fname)
             else:
-                item_path = osp.join(project_dir, item)
+                item_path = osp.join(top_folder, item)
         else:
-            dirpath = osp.join(project_dir, item)
+            dirpath = osp.join(top_folder, item)
             if not osp.exists(dirpath):
                 os.makedirs(dirpath)
                 item_path = dirpath
@@ -69,16 +70,16 @@ def create_folders_files(tmpdir, request):
             with open(item_path, 'w') as fh:
                 fh.write("File Path:\n" + str(item_path) + '\n')
         list_paths.append(item_path)
-    return list_paths, project_dir
+    return list_paths, project_dir, top_folder
 
 
 @pytest.fixture(params=[FileExplorerTest, ProjectExplorerTest2])
 def explorer_with_files(qtbot, create_folders_files, request):
     """Setup Project/File Explorer widget."""
-    list_paths, project_dir = create_folders_files
+    paths, project_dir, top_folder = create_folders_files
     project_explorer_orig = request.param(directory=project_dir)
     qtbot.addWidget(project_explorer_orig)
-    return project_explorer_orig, list_paths
+    return project_explorer_orig, paths, top_folder
 
 
 def test_file_explorer(file_explorer):
@@ -97,11 +98,10 @@ def test_project_explorer(project_explorer):
 
 def test_delete_files_folders(explorer_with_files, mocker):
     """Test delete file(s)/folders(s)."""
-    project, file_paths = explorer_with_files
+    project, __, top_folder = explorer_with_files
     mocker.patch.object(QMessageBox, 'warning', return_value=QMessageBox.Yes)
-    project.explorer.treewidget.delete(fnames=file_paths)
-    for item in file_paths:
-        assert not osp.exists(item)
+    project.explorer.treewidget.delete(fnames=[top_folder])
+    assert not osp.exists(top_folder)
 
 
 if __name__ == "__main__":
