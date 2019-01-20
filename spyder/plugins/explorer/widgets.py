@@ -603,7 +603,15 @@ class DirView(QTreeView):
     def remove_tree(self, dirname):
         """Remove whole directory tree
         Reimplemented in project explorer widget"""
-        shutil.rmtree(dirname, onerror=misc.onerror)
+        while osp.exists(dirname):
+            try:
+                shutil.rmtree(dirname, onerror=misc.onerror)
+            except Exception as e:
+                # This handles a Windows problem with shutil.rmtree.
+                # See issue #8567.
+                if type(e).__name__ == "OSError":
+                    error_path = to_text_string(e.filename)
+                    shutil.rmtree(error_path, ignore_errors=True)
     
     def delete_file(self, fname, multiple, yes_to_all):
         """Delete file"""
@@ -1293,11 +1301,15 @@ class ExplorerWidget(QWidget):
 # Tests
 #==============================================================================
 class FileExplorerTest(QWidget):
-    def __init__(self):
+    def __init__(self, directory=None):
         QWidget.__init__(self)
         vlayout = QVBoxLayout()
         self.setLayout(vlayout)
         self.explorer = ExplorerWidget(self, show_cd_only=None)
+        if directory is not None:
+            self.directory = directory
+        else:
+            self.directory = osp.dirname(osp.abspath(__file__))
         vlayout.addWidget(self.explorer)
         
         hlayout1 = QHBoxLayout()
