@@ -39,11 +39,11 @@ def project_explorer(qtbot):
     return widget
 
 
-@pytest.fixture(params=[['script.py', 'dir1/dir2/dir3/dir4/dir5/dir6/dir7'],
+@pytest.fixture(params=[['script.py', 'dir1/dir2/dir3/dir4'],
                         ['script.py', 'script1.py', 'testdir/dir1/script2.py'],
-                        ['subdir/innerdir/dir3/text.txt',
-                         'dir1/dir2/dir3/dir4', 'dir1/dir2/dir3/file.txt',
-                         'dir1/dir2/dir3/dir4/dir5/dir6/dir7/python.py']])
+                        ['subdir/innerdir/dir3/text.txt', 'dir1/dir2/dir3',
+                         'dir1/dir2/dir3/file.txt',
+                         'dir1/dir2/dir3/dir4/python.py']])
 def create_folders_files(tmpdir, request):
     """A project directory with dirs and files for testing."""
     project_dir = to_text_string(tmpdir.mkdir('project'))
