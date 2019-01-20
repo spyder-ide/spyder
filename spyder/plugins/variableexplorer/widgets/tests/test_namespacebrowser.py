@@ -40,6 +40,7 @@ def test_automatic_column_width(qtbot):
     new_col_width = [browser.editor.columnWidth(i) for i in range(4)]
     assert browser.editor.automatic_column_width
     assert col_width != new_col_width  # Automatic col width is on
+    browser.editor.horizontalHeader()._section_handle_ispressed = True
     browser.editor.setColumnWidth(0, 100)  # Simulate user changing col width
     assert browser.editor.automatic_column_width == False
     browser.set_data({'a_lengthy_variable_name_which_should_change_width':
