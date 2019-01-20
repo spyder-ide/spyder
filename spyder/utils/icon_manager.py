@@ -290,9 +290,9 @@ _qtaargs = {
     'private1':                [('spyder.circle-underscore',), {'color':'#e69c9c', 'scale_factor': SMALL_ATTR_FACTOR}],
     'method':                  [('mdi.alpha-m-box',), {'color':'#7ea67e', 'scale_factor': BIG_ATTR_FACTOR}],
     'function':                [('mdi.alpha-f-box',), {'color':'orange', 'scale_factor': BIG_ATTR_FACTOR}],
-    'blockcomment':            [('fa5s.hashtag',), {'color':'grey'}],
-    'cell':                    [('mdi.percent',), {'color':'red'}],
-    'no_match':                [('fa.circle',), {'color': 'gray'}],
+    'blockcomment':            [('fa5s.hashtag',), {'color':'grey', 'scale_factor': SMALL_ATTR_FACTOR}],
+    'cell':                    [('mdi.percent',), {'color':'red', 'scale_factor': SMALL_ATTR_FACTOR}],
+    'no_match':                [('fa.circle',), {'color': 'gray', 'scale_factor': SMALL_ATTR_FACTOR}],
     'github':                  [('fa.github',), {'color': MAIN_FG_COLOR}],
     # --- Spyder Tour --------------------------------------------------------
     'tour.close':              [('fa.close',), {'color': MAIN_FG_COLOR}],
