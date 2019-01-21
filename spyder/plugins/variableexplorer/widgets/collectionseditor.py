@@ -758,6 +758,10 @@ class BaseTableView(QTableView):
         
         resize_action = create_action(self, _("Resize rows to contents"),
                                       triggered=self.resizeRowsToContents)
+        resize_columns_action = create_action(
+            self,
+            _("Resize columns to contents"),
+            triggered=self.resize_column_contents)
         self.paste_action = create_action(self, _("Paste"),
                                           icon=ima.icon('editpaste'),
                                           triggered=self.paste)
@@ -805,14 +809,14 @@ class BaseTableView(QTableView):
                         self.insert_action, self.remove_action,
                         self.copy_action, self.paste_action,
                         None, self.rename_action, self.duplicate_action,
-                        None, resize_action]
+                        None, resize_action, resize_columns_action]
         if ndarray is not FakeObject:
             menu_actions.append(self.minmax_action)
         add_actions(menu, menu_actions)
         self.empty_ws_menu = QMenu(self)
         add_actions(self.empty_ws_menu,
                     [self.insert_action, self.paste_action,
-                     None, resize_action])
+                     None, resize_action, resize_columns_action])
         return menu
     
     #------ Remote/local API --------------------------------------------------
@@ -897,6 +901,11 @@ class BaseTableView(QTableView):
         self.hist_action.setVisible(condition_hist or is_list)
         self.imshow_action.setVisible(condition_imshow)
         self.save_array_action.setVisible(is_array)
+
+    def resize_column_contents(self):
+        """Resize columns to contents."""
+        self.automatic_column_width = True
+        self.adjust_columns()
 
     def user_resize_columns(self, logical_index, old_size, new_size):
         """Handle the user resize action."""
