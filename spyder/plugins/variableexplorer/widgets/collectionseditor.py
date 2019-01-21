@@ -699,7 +699,7 @@ class BaseHeaderView(QHeaderView):
 
     def mousePressEvent(self, e):
         self._handle_section_is_pressed = (self.cursor().shape() ==
-                                          Qt.SplitHCursor)
+                                           Qt.SplitHCursor)
         super(BaseHeaderView, self).mousePressEvent(e)
 
     def mouseReleaseEvent(self, e):
