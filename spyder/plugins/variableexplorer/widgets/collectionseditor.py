@@ -688,26 +688,26 @@ class CollectionsDelegate(QItemDelegate):
 class BaseHeaderView(QHeaderView):
     """
     A header view for the BaseTableView that emits a signal when the width of
-    one of its section is resized by the user.
+    one of its sections is resized by the user.
     """
     sig_user_resized_section = Signal(int, int, int)
 
     def __init__(self, parent=None):
         super(BaseHeaderView, self).__init__(Qt.Horizontal, parent)
-        self._section_handle_ispressed = False
+        self._handle_section_is_pressed = False
         self.sectionResized.connect(self.sectionResizeEvent)
 
     def mousePressEvent(self, e):
-        self._section_handle_ispressed = (self.cursor().shape() ==
+        self._handle_section_is_pressed = (self.cursor().shape() ==
                                           Qt.SplitHCursor)
         super(BaseHeaderView, self).mousePressEvent(e)
 
     def mouseReleaseEvent(self, e):
-        self._section_handle_ispressed = False
+        self._handle_section_is_pressed = False
         super(BaseHeaderView, self).mouseReleaseEvent(e)
 
     def sectionResizeEvent(self, logicalIndex, oldSize, newSize):
-        if self._section_handle_ispressed:
+        if self._handle_section_is_pressed:
             self.sig_user_resized_section.emit(logicalIndex, oldSize, newSize)
 
 
