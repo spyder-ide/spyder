@@ -32,7 +32,7 @@ from qtpy.QtCore import (QAbstractTableModel, QDateTime, QModelIndex, Qt,
                          Signal, Slot)
 from qtpy.QtGui import QColor, QKeySequence
 from qtpy.QtWidgets import (QAbstractItemDelegate, QApplication, QDateEdit,
-                            QDateTimeEdit, QDialog, QHBoxLayout,
+                            QDateTimeEdit, QDialog, QHBoxLayout, QHeaderView,
                             QInputDialog, QItemDelegate, QLineEdit, QMenu,
                             QMessageBox, QPushButton, QTableView,
                             QVBoxLayout, QWidget)
@@ -685,6 +685,32 @@ class CollectionsDelegate(QItemDelegate):
         self.set_value(index, value)
 
 
+class BaseHeaderView(QHeaderView):
+    """
+    A header view for the BaseTableView that emits a signal when the width of
+    one of its sections is resized by the user.
+    """
+    sig_user_resized_section = Signal(int, int, int)
+
+    def __init__(self, parent=None):
+        super(BaseHeaderView, self).__init__(Qt.Horizontal, parent)
+        self._handle_section_is_pressed = False
+        self.sectionResized.connect(self.sectionResizeEvent)
+
+    def mousePressEvent(self, e):
+        self._handle_section_is_pressed = (self.cursor().shape() ==
+                                           Qt.SplitHCursor)
+        super(BaseHeaderView, self).mousePressEvent(e)
+
+    def mouseReleaseEvent(self, e):
+        self._handle_section_is_pressed = False
+        super(BaseHeaderView, self).mouseReleaseEvent(e)
+
+    def sectionResizeEvent(self, logicalIndex, oldSize, newSize):
+        if self._handle_section_is_pressed:
+            self.sig_user_resized_section.emit(logicalIndex, oldSize, newSize)
+
+
 class BaseTableView(QTableView):
     """Base collection editor table view"""
     sig_option_changed = Signal(str, object)
@@ -711,7 +737,11 @@ class BaseTableView(QTableView):
         self.duplicate_action = None
         self.delegate = None
         self.setAcceptDrops(True)
-        
+        self.automatic_column_width = True
+        self.setHorizontalHeader(BaseHeaderView(parent=self))
+        self.horizontalHeader().sig_user_resized_section.connect(
+            self.user_resize_columns)
+
     def setup_table(self):
         """Setup table"""
         self.horizontalHeader().setStretchLastSection(True)
@@ -728,6 +758,10 @@ class BaseTableView(QTableView):
         
         resize_action = create_action(self, _("Resize rows to contents"),
                                       triggered=self.resizeRowsToContents)
+        resize_columns_action = create_action(
+            self,
+            _("Resize columns to contents"),
+            triggered=self.resize_column_contents)
         self.paste_action = create_action(self, _("Paste"),
                                           icon=ima.icon('editpaste'),
                                           triggered=self.paste)
@@ -775,14 +809,14 @@ class BaseTableView(QTableView):
                         self.insert_action, self.remove_action,
                         self.copy_action, self.paste_action,
                         None, self.rename_action, self.duplicate_action,
-                        None, resize_action]
+                        None, resize_action, resize_columns_action]
         if ndarray is not FakeObject:
             menu_actions.append(self.minmax_action)
         add_actions(menu, menu_actions)
         self.empty_ws_menu = QMenu(self)
         add_actions(self.empty_ws_menu,
                     [self.insert_action, self.paste_action,
-                     None, resize_action])
+                     None, resize_action, resize_columns_action])
         return menu
     
     #------ Remote/local API --------------------------------------------------
@@ -867,12 +901,22 @@ class BaseTableView(QTableView):
         self.hist_action.setVisible(condition_hist or is_list)
         self.imshow_action.setVisible(condition_imshow)
         self.save_array_action.setVisible(is_array)
-        
+
+    def resize_column_contents(self):
+        """Resize columns to contents."""
+        self.automatic_column_width = True
+        self.adjust_columns()
+
+    def user_resize_columns(self, logical_index, old_size, new_size):
+        """Handle the user resize action."""
+        self.automatic_column_width = False
+
     def adjust_columns(self):
         """Resize two first columns to contents"""
-        for col in range(3):
-            self.resizeColumnToContents(col)
-        
+        if self.automatic_column_width:
+            for col in range(3):
+                self.resizeColumnToContents(col)
+
     def set_data(self, data):
         """Set table data"""
         if data is not None:

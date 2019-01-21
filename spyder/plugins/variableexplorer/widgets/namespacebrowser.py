@@ -140,7 +140,7 @@ class NamespaceBrowser(QWidget):
         self.setLayout(layout)
 
         self.sig_option_changed.connect(self.option_changed)
-        
+
     def set_shellwidget(self, shellwidget):
         """Bind shellwidget instance to namespace browser"""
         self.shellwidget = shellwidget
@@ -347,6 +347,7 @@ class NamespaceBrowser(QWidget):
     def reset_namespace(self):
         warning = CONF.get('ipython_console', 'show_reset_namespace_warning')
         self.shellwidget.reset_namespace(warning=warning, message=True)
+        self.editor.automatic_column_width = True
 
     @Slot()
     def save_data(self, filename=None):
