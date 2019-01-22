@@ -97,9 +97,10 @@ class DebuggerManager(Manager):
         if edit_condition:
             condition = data.breakpoint_condition
             condition, valid = QInputDialog.getText(self,
-                                        _('Breakpoint'),
-                                        _("Condition:"),
-                                        QLineEdit.Normal, condition)
+                                                    _('Breakpoint'),
+                                                    _("Condition:"),
+                                                    QLineEdit.Normal,
+                                                    condition)
             if not valid:
                 return
             data.breakpoint = True

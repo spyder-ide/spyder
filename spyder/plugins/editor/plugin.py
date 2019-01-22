@@ -2497,7 +2497,7 @@ class Editor(SpyderPluginWidget):
             if index is not None:
                 editorstack.data[index].editor.debugger.toogle_breakpoint(
                         lineno)
-                
+
     def debug_command(self, command):
         """Debug actions"""
         self.switch_to_plugin()

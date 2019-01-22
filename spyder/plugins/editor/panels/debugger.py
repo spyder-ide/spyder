@@ -103,7 +103,8 @@ class DebuggerPanel(Panel):
 
         Draw semitransparent breakpoint hint.
         """
-        self.line_number_hint = self.editor.get_linenumber_from_mouse_event(event)
+        self.line_number_hint = self.editor.get_linenumber_from_mouse_event(
+            event)
         self.update()
 
     def leaveEvent(self, event):

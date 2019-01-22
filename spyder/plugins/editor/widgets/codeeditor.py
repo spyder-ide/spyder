@@ -1206,6 +1206,8 @@ class CodeEditor(TextEditBaseWidget):
                         outline_color=None,
                         underline_style=QTextCharFormat.WaveUnderline,
                         update=False):
+        if cursor is None:
+            return
         extra_selections = self.get_extra_selections(key)
         selection = TextDecoration(cursor)
         if foreground_color is not None:
