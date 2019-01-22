@@ -663,10 +663,12 @@ class FileSwitcher(QDialog):
                     text_item += " [{0:} {1:}]".format(self.line_count[index],
                                                        _("lines"))
                 if max_width > self.list.width():
-                    text_item += u"<br><i style='color:{0:}'>{1:}</i>".format(
+                    text_item += (u" <i style='color:rgb(153,153,153)'>"
+                                  " {1:}</i>").format(
                             ima.MAIN_FG_COLOR, short_paths[index])
                 else:
-                    text_item += u"<br><i style='color:{0:}'>{1:}</i>".format(
+                    text_item += (u" <i style='color:rgb(153,153,153)'> "
+                                  " {1:}</i>").format(
                             ima.MAIN_FG_COLOR, paths[index])
                 if (trying_for_line_number and self.line_count[index] != 0 or
                         not trying_for_line_number):
