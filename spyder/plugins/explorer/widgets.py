@@ -26,14 +26,14 @@ from qtpy.compat import getsavefilename, getexistingdirectory
 from qtpy.QtCore import (QDir, QFileInfo, QMimeData, QSize,
                          QSortFilterProxyModel, Qt, QTimer, QUrl,
                          Signal, Slot)
-from qtpy.QtGui import QDrag, QIcon
+from qtpy.QtGui import QDrag, QIcon, QKeySequence
 from qtpy.QtWidgets import (QFileSystemModel, QHBoxLayout, QFileIconProvider,
                             QInputDialog, QLabel, QLineEdit, QMenu,
                             QMessageBox, QToolButton, QTreeView, QVBoxLayout,
                             QWidget, QApplication)
 # Local imports
 from spyder.config.base import _, get_home_dir, get_image_path
-from spyder.config.gui import is_dark_interface, config_shortcut
+from spyder.config.gui import is_dark_interface, config_shortcut, get_shortcut
 from spyder.py3compat import (str_lower, to_binary_string,
                               to_text_string)
 from spyder.utils import icon_manager as ima
@@ -389,6 +389,24 @@ class DirView(QTreeView):
         ipynb_convert_action = create_action(self, _("Convert to Python script"),
                                              icon=ima.icon('python'),
                                              triggered=self.convert_notebooks)
+        copy_file_clipboard_action = (
+            create_action(self, _("Copy"),
+                          QKeySequence(get_shortcut('explorer', 'copy file')),
+                          icon=ima.icon('editcopy'),
+                          triggered=self.copy_file_clipboard))
+        save_file_clipboard_action = (
+            create_action(self, _("Paste"),
+                          QKeySequence(get_shortcut('explorer', 'paste file')),
+                          icon=ima.icon('editpaste'),
+                          triggered=self.save_file_clipboard))
+        copy_absolute_path_action = (
+            create_action(self, _("Copy Absolute Path"), QKeySequence(
+                get_shortcut('explorer', 'copy absolute path')),
+                          triggered=self.copy_absolute_path))
+        copy_relative_path_action = (
+            create_action(self, _("Copy Relative Path"), QKeySequence(
+                get_shortcut('explorer', 'copy relative path')),
+                          triggered=self.copy_relative_path))
         
         actions = []
         if only_modules:
@@ -406,6 +424,11 @@ class DirView(QTreeView):
         basedir = fixpath(osp.dirname(fnames[0]))
         if all([fixpath(osp.dirname(_fn)) == basedir for _fn in fnames]):
             actions.append(move_action)
+        actions += [None]
+        actions += [copy_file_clipboard_action, save_file_clipboard_action,
+                    copy_absolute_path_action, copy_relative_path_action]
+        if not QApplication.clipboard().mimeData().hasUrls():
+            save_file_clipboard_action.setDisabled(True)
         actions += [None]
         if only_files:
             actions.append(open_external_action)
