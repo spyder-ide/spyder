@@ -518,8 +518,10 @@ class DataFrameView(QTableView):
             if columns and value == self.horizontalScrollBar().maximum():
                 self.model().fetch_more(columns=columns)
                 self.sig_fetch_more_columns.emit()
-        # Needed to handle a NameError while fetching data when closing
+
         except NameError:
+            # Needed to handle a NameError while fetching data when closing
+            # See issue 7880
             pass
 
     def sortByColumn(self, index):
