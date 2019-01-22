@@ -122,9 +122,41 @@ def test_copy_path(explorer_with_files, path_method):
         assert osp.normpath(path) == osp.normpath(expected_path)
 
 
-def test_delete_files_folders(explorer_with_files, mocker):
+def test_copy_file(explorer_with_files):
+    """Test copy file(s)/folders(s) to clipboard."""
+    project, __, file_paths, __, cb = explorer_with_files
+    project.explorer.treewidget.copy_file_clipboard(fnames=file_paths)
+    cb_data = cb.mimeData().urls()
+    assert len(cb_data) == len(file_paths)
+    for url, expected_path in zip(cb_data, file_paths):
+        file_name = url.toLocalFile()
+        assert osp.normpath(file_name) == osp.normpath(expected_path)
+        try:
+            assert osp.isdir(file_name)
+        except AssertionError:
+            assert osp.isfile(file_name)
+            with open(file_name, 'r') as fh:
+                text = fh.read()
+            assert text == "File Path:\n" + str(file_name)
+
+
+def test_save_file(explorer_with_files):
+    """Test save file(s)/folders(s) from clipboard."""
+    project, dest, file_paths, __, __ = explorer_with_files
+    project.explorer.treewidget.copy_file_clipboard(fnames=file_paths)
+    dest.explorer.treewidget.save_file_clipboard(fnames=[dest.directory])
+    for item in file_paths:
+        destination_item = osp.join(dest.directory, osp.basename(item))
+        assert osp.exists(destination_item)
+        if osp.isfile(destination_item):
+            with open(destination_item, 'r') as fh:
+                text = fh.read()
+            assert text == "File Path:\n" + str(item).replace(os.sep, '/')
+
+
+def test_delete_file(explorer_with_files, mocker):
     """Test delete file(s)/folders(s)."""
-    project, __, top_folder = explorer_with_files
+    project, __, __, top_folder, __ = explorer_with_files
     mocker.patch.object(QMessageBox, 'warning', return_value=QMessageBox.Yes)
     project.explorer.treewidget.delete(fnames=[top_folder])
     assert not osp.exists(top_folder)
