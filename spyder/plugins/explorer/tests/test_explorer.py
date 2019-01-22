@@ -14,6 +14,7 @@ import os.path as osp
 
 # Third party imports
 import pytest
+from qtpy.QtWidgets import QApplication
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
@@ -48,6 +49,7 @@ def project_explorer(qtbot):
 def create_folders_files(tmpdir, request):
     """A project directory with dirs and files for testing."""
     project_dir = to_text_string(tmpdir.mkdir('project'))
+    destination_dir = to_text_string(tmpdir.mkdir('destination'))
     top_folder = osp.join(project_dir, 'top_folder_in_proj')
     if not osp.exists(top_folder):
         os.mkdir(top_folder)
@@ -69,18 +71,21 @@ def create_folders_files(tmpdir, request):
                 item_path = dirpath
         if not osp.isdir(item_path):
             with open(item_path, 'w') as fh:
-                fh.write("File Path:\n" + str(item_path) + '\n')
+                fh.write("File Path:\n" + str(item_path).replace(os.sep, '/'))
         list_paths.append(item_path)
-    return list_paths, project_dir, top_folder
+    return list_paths, project_dir, destination_dir, top_folder
 
 
 @pytest.fixture(params=[FileExplorerTest, ProjectExplorerTest2])
 def explorer_with_files(qtbot, create_folders_files, request):
     """Setup Project/File Explorer widget."""
-    paths, project_dir, top_folder = create_folders_files
-    project_explorer_orig = request.param(directory=project_dir)
-    qtbot.addWidget(project_explorer_orig)
-    return project_explorer_orig, paths, top_folder
+    cb = QApplication.clipboard()
+    paths, project_dir, destination_dir, top_folder = create_folders_files
+    explorer_orig = request.param(directory=project_dir)
+    explorer_dest = request.param(directory=destination_dir)
+    qtbot.addWidget(explorer_orig)
+    qtbot.addWidget(explorer_dest)
+    return explorer_orig, explorer_dest, paths, top_folder, cb
 
 
 def test_file_explorer(file_explorer):
