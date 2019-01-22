@@ -33,7 +33,7 @@ from qtpy.QtWidgets import (QFileSystemModel, QHBoxLayout, QFileIconProvider,
                             QWidget, QApplication)
 # Local imports
 from spyder.config.base import _, get_home_dir, get_image_path
-from spyder.config.gui import is_dark_interface
+from spyder.config.gui import is_dark_interface, config_shortcut
 from spyder.py3compat import (str_lower, to_binary_string,
                               to_text_string)
 from spyder.utils import icon_manager as ima
@@ -218,6 +218,7 @@ class DirView(QTreeView):
         self.setup_fs_model()
         self._scrollbar_positions = None
         self.setSelectionMode(self.ExtendedSelection)
+        self.shortcuts = self.create_shortcuts()
                 
     #---- Model
     def setup_fs_model(self):
@@ -1011,6 +1012,35 @@ class DirView(QTreeView):
                                      _("Cannot paste in the blank area."))
             else:
                 pass
+
+    def create_shortcuts(self):
+        """Create shortcuts for this file explorer."""
+        # Configurable
+        copy_clipboard_file = config_shortcut(self.copy_file_clipboard,
+                                              context='explorer',
+                                              name='copy file', parent=self)
+        paste_clipboard_file = config_shortcut(self.save_file_clipboard,
+                                               context='explorer',
+                                               name='paste file', parent=self)
+        copy_absolute_path = config_shortcut(self.copy_absolute_path,
+                                             context='explorer',
+                                             name='copy absolute path',
+                                             parent=self)
+        copy_relative_path = config_shortcut(self.copy_relative_path,
+                                             context='explorer',
+                                             name='copy relative path',
+                                             parent=self)
+        return [copy_clipboard_file, paste_clipboard_file, copy_absolute_path,
+                copy_relative_path]
+
+    def get_shortcut_data(self):
+        """
+        Return shortcut data, a list of tuples (shortcut, text, default).
+        shortcut (QShortcut or QAction instance)
+        text (string): action/shortcut description
+        default (string): default key sequence
+        """
+        return [sc.data for sc in self.shortcuts]
 
     #----- VCS actions
     def vcs_command(self, fnames, action):
