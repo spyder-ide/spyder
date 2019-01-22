@@ -925,6 +925,93 @@ class DirView(QTreeView):
                                      "folder(s). The error was:\n\n")
                                  + to_text_string(e))
 
+    @Slot()
+    def save_file_clipboard(self, fnames=None):
+        """Paste file from clipboard into file/project explorer directory."""
+        if fnames is None:
+            fnames = self.get_selected_filenames()
+        if not isinstance(fnames, (tuple, list)):
+            fnames = [fnames]
+        if len(fnames) >= 1:
+            try:
+                selected_item = osp.commonpath(fnames)
+            except AttributeError:
+                #  py2 does not have commonpath
+                if len(fnames) > 1:
+                    selected_item = osp.normpath(
+                            osp.dirname(osp.commonprefix(fnames)))
+                else:
+                    selected_item = fnames[0]
+            if osp.isfile(selected_item):
+                parent_path = osp.dirname(selected_item)
+            else:
+                parent_path = osp.normpath(selected_item)
+            cb_data = QApplication.clipboard().mimeData()
+            if cb_data.hasUrls():
+                urls = cb_data.urls()
+                for url in urls:
+                    source_name = url.toLocalFile()
+                    base_name = osp.basename(source_name)
+                    if osp.isfile(source_name):
+                        try:
+                            while base_name in os.listdir(parent_path):
+                                file_no_ext, file_ext = osp.splitext(base_name)
+                                end_number = re.search(r'\d+$', file_no_ext)
+                                if end_number:
+                                    new_number = int(end_number.group()) + 1
+                                else:
+                                    new_number = 1
+                                left_string = re.sub(r'\d+$', '', file_no_ext)
+                                left_string += str(new_number)
+                                base_name = left_string + file_ext
+                                destination = osp.join(parent_path, base_name)
+                            else:
+                                destination = osp.join(parent_path, base_name)
+                            shutil.copy(source_name, destination)
+                        except Exception as e:
+                            QMessageBox.critical(self, _('Error pasting file'),
+                                                 _("Unsupported copy operation"
+                                                   ". The error was:\n\n")
+                                                 + to_text_string(e))
+                    else:
+                        try:
+                            while base_name in os.listdir(parent_path):
+                                end_number = re.search(r'\d+$', base_name)
+                                if end_number:
+                                    new_number = int(end_number.group()) + 1
+                                else:
+                                    new_number = 1
+                                left_string = re.sub(r'\d+$', '', base_name)
+                                base_name = left_string + str(new_number)
+                                destination = osp.join(parent_path, base_name)
+                            else:
+                                destination = osp.join(parent_path, base_name)
+                            if osp.realpath(destination).startswith(
+                                    osp.realpath(source_name) + os.sep):
+                                QMessageBox.critical(self,
+                                                     _('Recursive copy'),
+                                                     _("Source is an ancestor"
+                                                       " of destination"
+                                                       " folder."))
+                                continue
+                            shutil.copytree(source_name, destination)
+                        except Exception as e:
+                            QMessageBox.critical(self,
+                                                 _('Error pasting folder'),
+                                                 _("Unsupported copy"
+                                                   " operation. The error was:"
+                                                   "\n\n") + to_text_string(e))
+            else:
+                QMessageBox.critical(self, _("No file in clipboard"),
+                                     _("No file in the clipboard. Please copy"
+                                       " a file to the clipboard first."))
+        else:
+            if QApplication.clipboard().mimeData().hasUrls():
+                QMessageBox.critical(self, _('Blank area'),
+                                     _("Cannot paste in the blank area."))
+            else:
+                pass
+
     #----- VCS actions
     def vcs_command(self, fnames, action):
         """VCS action (commit, browse)"""
