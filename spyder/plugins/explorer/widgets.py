@@ -905,7 +905,26 @@ class DirView(QTreeView):
     def copy_relative_path(self):
         """Copy relative paths of named files/directories to the clipboard."""
         self.copy_path(method="relative")
-        
+
+    @Slot()
+    def copy_file_clipboard(self, fnames=None):
+        """Copy file(s)/folders(s) to clipboard."""
+        if fnames is None:
+            fnames = self.get_selected_filenames()
+        if not isinstance(fnames, (tuple, list)):
+            fnames = [fnames]
+        try:
+            file_content = QMimeData()
+            file_content.setUrls([QUrl.fromLocalFile(_fn) for _fn in fnames])
+            cb = QApplication.clipboard()
+            cb.setMimeData(file_content, mode=cb.Clipboard)
+        except Exception as e:
+            QMessageBox.critical(self,
+                                 _('File/Folder copy error'),
+                                 _("Cannot copy this type of file(s) or "
+                                     "folder(s). The error was:\n\n")
+                                 + to_text_string(e))
+
     #----- VCS actions
     def vcs_command(self, fnames, action):
         """VCS action (commit, browse)"""
