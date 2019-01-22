@@ -30,7 +30,7 @@ from qtpy.QtGui import QDrag, QIcon
 from qtpy.QtWidgets import (QFileSystemModel, QHBoxLayout, QFileIconProvider,
                             QInputDialog, QLabel, QLineEdit, QMenu,
                             QMessageBox, QToolButton, QTreeView, QVBoxLayout,
-                            QWidget)
+                            QWidget, QApplication)
 # Local imports
 from spyder.config.base import _, get_home_dir, get_image_path
 from spyder.config.gui import is_dark_interface
@@ -859,6 +859,52 @@ class DirView(QTreeView):
 
     def go_to_parent_directory(self):
         pass
+
+    def copy_path(self, fnames=None, method="absolute"):
+        """Copy absolute or relative path to given file(s)/folders(s)."""
+        cb = QApplication.clipboard()
+        explorer_dir = self.fsmodel.rootPath()
+        if fnames is None:
+            fnames = self.get_selected_filenames()
+        if not isinstance(fnames, (tuple, list)):
+            fnames = [fnames]
+        fnames = [_fn.replace(os.sep, "/") for _fn in fnames]
+        if len(fnames) > 1:
+            if method == "absolute":
+                clipboard_files = ',\n'.join('"' + _fn + '"' for _fn in fnames)
+            elif method == "relative":
+                clipboard_files = ',\n'.join('"' +
+                                             osp.relpath(_fn, explorer_dir).
+                                             replace(os.sep, "/") + '"'
+                                             for _fn in fnames)
+        else:
+            if method == "absolute":
+                clipboard_files = fnames[0]
+            elif method == "relative":
+                clipboard_files = (osp.relpath(fnames[0], explorer_dir).
+                                   replace(os.sep, "/"))
+        copied_from = self.parent_widget.__class__.__name__
+        if copied_from == 'ProjectExplorerWidget' and method == 'relative':
+            clipboard_files = [path.strip(',"') for path in
+                               clipboard_files.splitlines()]
+            clipboard_files = ['/'.join(path.strip('/').split('/')[1:]) for
+                               path in clipboard_files]
+            if len(clipboard_files) > 1:
+                clipboard_files = ',\n'.join('"' + _fn + '"' for _fn in
+                                             clipboard_files)
+            else:
+                clipboard_files = clipboard_files[0]
+        cb.setText(clipboard_files, mode=cb.Clipboard)
+
+    @Slot()
+    def copy_absolute_path(self):
+        """Copy absolute paths of named files/directories to the clipboard."""
+        self.copy_path(method="absolute")
+
+    @Slot()
+    def copy_relative_path(self):
+        """Copy relative paths of named files/directories to the clipboard."""
+        self.copy_path(method="relative")
         
     #----- VCS actions
     def vcs_command(self, fnames, action):
