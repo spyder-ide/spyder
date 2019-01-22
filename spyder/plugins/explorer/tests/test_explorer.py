@@ -102,6 +102,26 @@ def test_project_explorer(project_explorer):
     assert project_explorer
 
 
+@pytest.mark.parametrize('path_method', ['absolute', 'relative'])
+def test_copy_path(explorer_with_files, path_method):
+    """Test copy absolute and relative paths."""
+    project, __, file_paths, __, cb = explorer_with_files
+    explorer_directory = project.explorer.treewidget.fsmodel.rootPath()
+    copied_from = project.explorer.treewidget.parent_widget.__class__.__name__
+    project.explorer.treewidget.copy_path(fnames=file_paths,
+                                          method=path_method)
+    cb_output = cb.text(mode=cb.Clipboard)
+    path_list = [path.strip(',"') for path in cb_output.splitlines()]
+    assert len(path_list) == len(file_paths)
+    for path, expected_path in zip(path_list, file_paths):
+        if path_method == 'relative':
+            expected_path = osp.relpath(expected_path, explorer_directory)
+            if copied_from == 'ProjectExplorerWidget':
+                expected_path = os.sep.join(expected_path.strip(os.sep).
+                                            split(os.sep)[1:])
+        assert osp.normpath(path) == osp.normpath(expected_path)
+
+
 def test_delete_files_folders(explorer_with_files, mocker):
     """Test delete file(s)/folders(s)."""
     project, __, top_folder = explorer_with_files
