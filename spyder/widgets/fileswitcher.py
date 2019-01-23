@@ -229,6 +229,7 @@ class FileSwitcher(QDialog):
     # in a given file when using the '@' symbol.
     FILE_MODE, SYMBOL_MODE = [1, 2]
     MAX_WIDTH = 600
+    PATH_FG_COLOR = 'rgb(153, 153, 153)'
 
     def __init__(self, parent, plugin, tabs, data, icon):
         QDialog.__init__(self, parent)
@@ -663,13 +664,13 @@ class FileSwitcher(QDialog):
                     text_item += " [{0:} {1:}]".format(self.line_count[index],
                                                        _("lines"))
                 if max_width > self.list.width():
-                    text_item += (u" <i style='color:rgb(153,153,153)'>"
-                                  " {1:}</i>").format(
-                            ima.MAIN_FG_COLOR, short_paths[index])
+                    text_item += (u" <span style='color:{0:}'>{1:}"
+                                  "</span>").format(self.PATH_FG_COLOR,
+                                                    short_paths[index])
                 else:
-                    text_item += (u" <i style='color:rgb(153,153,153)'> "
-                                  " {1:}</i>").format(
-                            ima.MAIN_FG_COLOR, paths[index])
+                    text_item += (u" <span style='color:{0:}'>{1:}"
+                                  "</span>").format(self.PATH_FG_COLOR,
+                                                    paths[index])
                 if (trying_for_line_number and self.line_count[index] != 0 or
                         not trying_for_line_number):
                     results.append((score_value, index, text_item))
