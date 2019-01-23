@@ -13,27 +13,37 @@ import os
 import os.path as osp
 import shutil
 try:
-    from unittest.mock import Mock
+    from unittest.mock import MagicMock, Mock
 except ImportError:
-    from mock import Mock  # Python 2
+    from mock import MagicMock, Mock  # Python 2
 
 # Third party imports
 import pytest
 from qtpy.QtWidgets import QMainWindow
 
 # Local imports
+from spyder.config.main import CONF
 from spyder.utils.qthelpers import qapplication
+app = qapplication()
+from spyder.plugins.editor.plugin import Editor
+from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
 
 
 # =============================================================================
 # ---- Fixtures
 # =============================================================================
 @pytest.fixture
+def mock_RecoveryDialog(monkeypatch):
+    """Mock the RecoveryDialog in the editor plugin."""
+    mock = MagicMock()
+    monkeypatch.setattr('spyder.plugins.editor.utils.autosave.RecoveryDialog',
+                        mock)
+    return mock
+
+
+@pytest.fixture
 def setup_editor(qtbot, monkeypatch):
     """Set up the Editor plugin."""
-    qapplication()
-    from spyder.plugins.editor.plugin import Editor
-
     monkeypatch.setattr('spyder.plugins.editor.plugin.add_actions', Mock())
 
     class MainMock(QMainWindow):
@@ -59,6 +69,8 @@ def setup_editor(qtbot, monkeypatch):
 
     yield editor
     editor.close()
+
+    CONF.remove_option('editor', 'autosave_mapping')
 
 
 @pytest.fixture(scope="module")
@@ -215,6 +227,73 @@ def test_no_template(setup_editor):
 
     # Revert template back
     shutil.move(osp.join(osp.dirname(template), 'template.py.old'), template)
+
+
+def test_editor_has_autosave_component(setup_editor):
+    """Test that Editor includes an AutosaveForPlugin."""
+    editor = setup_editor
+    assert isinstance(editor.autosave, AutosaveForPlugin)
+
+
+def test_autosave_component_do_autosave(setup_editor, mocker):
+    """Test that AutosaveForPlugin's do_autosave() calls the current editor
+    stack's autosave_all()."""
+    editor = setup_editor
+    editorStack = editor.get_current_editorstack()
+    mocker.patch.object(editorStack.autosave, 'autosave_all')
+    editor.autosave.do_autosave()
+    assert editorStack.autosave.autosave_all.called
+
+
+def test_editor_transmits_sig_option_changed(setup_editor, qtbot):
+    editor = setup_editor
+    editorStack = editor.get_current_editorstack()
+    with qtbot.waitSignal(editor.sig_option_changed) as blocker:
+        editorStack.sig_option_changed.emit('autosave_mapping', {1: 2})
+    assert blocker.args == ['autosave_mapping', {1: 2}]
+
+
+def test_editor_sets_autosave_mapping_on_first_editorstack(setup_editor):
+    """Check that first editor stack gets autosave mapping from config."""
+    editor = setup_editor
+    editorStack = editor.get_current_editorstack()
+    assert editorStack.autosave_mapping == {}
+
+
+def test_editor_syncs_autosave_mapping_among_editorstacks(setup_editor, qtbot):
+    """Check that when an editorstack emits a sig_option_changed for
+    autosave_mapping, the autosave mapping of all other editorstacks is
+    updated."""
+    editor = setup_editor
+    editor.editorsplitter.split()
+    assert len(editor.editorstacks) == 2
+    old_mapping = {}
+    for editorstack in editor.editorstacks:
+        assert editorstack.autosave_mapping == old_mapping
+    new_mapping = {'ham': 'spam'}
+    editor.get_current_editorstack().sig_option_changed.emit(
+            'autosave_mapping', new_mapping)
+    for editorstack in editor.editorstacks:
+        if editorstack == editor.get_current_editorstack():
+            assert editorstack.autosave_mapping == old_mapping
+        else:
+            assert editorstack.autosave_mapping == new_mapping
+
+
+# The mock_RecoveryDialog fixture needs to be called before setup_editor, so
+# it needs to be mentioned first
+def test_editor_calls_recoverydialog_exec_if_nonempty(
+        mock_RecoveryDialog, setup_editor):
+    """Check that editor tries to exec a recovery dialog on construction."""
+    editor = setup_editor
+    assert mock_RecoveryDialog.return_value.exec_if_nonempty.called
+
+
+def test_closing_editor_plugin_stops_autosave_timer(setup_editor):
+    editor = setup_editor
+    assert editor.autosave.timer.isActive()
+    editor.closing_plugin()
+    assert not editor.autosave.timer.isActive()
 
 
 if __name__ == "__main__":

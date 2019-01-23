@@ -151,6 +151,7 @@ def test_save(editor_bot, mocker):
     mocker.patch.object(editor.os.path, 'isfile')
     mocker.patch.object(editor.encoding, 'write')
     mocker.patch.object(editor_stack, 'save_as')
+    mocker.patch.object(editor_stack.autosave, 'remove_autosave_file')
     save_file_saved = editor_stack.file_saved
     editor_stack.file_saved = Mock()
     editor.encoding.write.return_value = 'utf-8'
@@ -160,6 +161,7 @@ def test_save(editor_bot, mocker):
     editor_stack.data[0].newly_created = False
     assert save(index=0) is True
     assert not editor.encoding.write.called
+    assert not editor_stack.autosave.remove_autosave_file.called
 
     # File modified.
     editor_stack.data[0].editor.document().setModified(True)
@@ -170,13 +172,16 @@ def test_save(editor_bot, mocker):
     assert save(index=0) == 'save_as_called'
     editor_stack.save_as.assert_called_with(index=0)
     assert not editor.encoding.write.called
+    assert not editor_stack.autosave.remove_autosave_file.called
 
     # Force save.
     editor.os.path.isfile.return_value = True
     assert save(index=0, force=True)
     assert editor.encoding.write.called == 1
-    editor_stack.file_saved.emit.assert_called_with(str(id(editor_stack)),
-                                                    'foo.py', 'foo.py')
+    editor_stack.file_saved.emit.assert_called_with(
+        str(id(editor_stack)), 'foo.py', 'foo.py')
+    editor_stack.autosave.remove_autosave_file.assert_called_with(
+        editor_stack.data[0])
 
     editor_stack.file_saved = save_file_saved
 

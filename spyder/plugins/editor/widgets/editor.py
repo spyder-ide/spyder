@@ -11,7 +11,7 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-# Local imports
+# Standard library imports
 from __future__ import print_function
 import logging
 import os
@@ -47,6 +47,7 @@ from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.widgets.fileswitcher import FileSwitcher
 from spyder.widgets.findreplace import FindReplace
+from spyder.plugins.editor.utils.autosave import AutosaveForStack
 from spyder.plugins.editor.widgets import codeeditor
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget  # analysis:ignore
 from spyder.plugins.editor.widgets.codeeditor import Printer       # analysis:ignore
@@ -184,6 +185,7 @@ class FileInfo(QObject):
     def text_changed(self):
         """Editor's text has changed"""
         self.default = False
+        self.editor.document().changed_since_autosave = True
         self.text_changed_at.emit(self.filename,
                                   self.editor.get_position('cursor'))
 
@@ -428,6 +430,7 @@ class EditorStack(QWidget):
     sig_next_warning = Signal()
     sig_go_to_definition = Signal(str, int, int)
     perform_lsp_request = Signal(str, str, dict)
+    sig_option_changed = Signal(str, object)  # config option needs changing
 
     def __init__(self, parent, actions):
         QWidget.__init__(self, parent)
@@ -570,6 +573,9 @@ class EditorStack(QWidget):
 
         # For testing
         self.save_dialog_on_tests = not running_under_pytest()
+
+        # Autusave component
+        self.autosave = AutosaveForStack(self)
 
     @Slot()
     def show_in_external_file_explorer(self, fnames=None):
@@ -1640,6 +1646,19 @@ class EditorStack(QWidget):
                     return False
         return True
 
+    def _write_to_file(self, fileinfo, filename):
+        """Low-level function for writing text of editor to file.
+
+        Args:
+            fileinfo: FileInfo object associated to editor to be saved
+            filename: str with filename to save to
+
+        This is a low-level function that only saves the text to file in the
+        correct encoding without doing any error handling.
+        """
+        txt = to_text_string(fileinfo.editor.get_text_with_eol())
+        fileinfo.encoding = encoding.write(txt, filename, fileinfo.encoding)
+
     def save(self, index=None, force=False):
         """Write text of editor to a file.
 
@@ -1678,10 +1697,9 @@ class EditorStack(QWidget):
             osname_lookup = {'LF': 'posix', 'CRLF': 'nt', 'CR': 'mac'}
             osname = osname_lookup[self.convert_eol_on_save_to]
             self.set_os_eol_chars(osname=osname)
-        txt = to_text_string(finfo.editor.get_text_with_eol())
         try:
-            finfo.encoding = encoding.write(txt, finfo.filename,
-                                            finfo.encoding)
+            self._write_to_file(finfo, finfo.filename)
+            self.autosave.remove_autosave_file(finfo)
             finfo.newly_created = False
             self.encoding_changed.emit(finfo.encoding)
             finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
@@ -1705,6 +1723,10 @@ class EditorStack(QWidget):
             # patterns instead of only searching for class/def patterns which
             # would be sufficient for outline explorer data.
             finfo.editor.rehighlight()
+
+            # rehighlight() calls textChanged(), so the change_since_autosave
+            # flag should be cleared after rehighlight()
+            finfo.editor.document().changed_since_autosave = False
 
             self._refresh_outlineexplorer(index)
 
@@ -1867,9 +1889,8 @@ class EditorStack(QWidget):
                     return
                 if ao_index < index:
                     index -= 1
-            txt = to_text_string(finfo.editor.get_text_with_eol())
             try:
-                finfo.encoding = encoding.write(txt, filename, finfo.encoding)
+                self._write_to_file(finfo, filename)
                 # open created copy file
                 self.plugin_load.emit(filename)
                 return True
@@ -2185,6 +2206,10 @@ class EditorStack(QWidget):
         # would be sufficient for outline explorer data.
         finfo.editor.rehighlight()
 
+        # rehighlight() calls textChanged(), so the change_since_autosave
+        # flag should be cleared after rehighlight()
+        finfo.editor.document().changed_since_autosave = False
+
         self._refresh_outlineexplorer(index)
 
     def revert(self):
@@ -2265,6 +2290,7 @@ class EditorStack(QWidget):
         if cloned_from is None:
             editor.set_text(txt)
             editor.document().setModified(False)
+        editor.document().changed_since_autosave = False
         finfo.text_changed_at.connect(
                                     lambda fname, position:
                                     self.text_changed_at.emit(fname, position))
