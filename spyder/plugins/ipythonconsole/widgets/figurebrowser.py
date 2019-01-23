@@ -67,7 +67,7 @@ class FigureBrowserWidget(RichJupyterWidget):
                           'To make them also appear inline in the Console, '
                           'uncheck "Mute Inline Plotting" under the Plots '
                           'pane options menu. \n'
-                          '<hr><br>'))
+                          '<hr><br>'), before_prompt=True)
                     self.sended_render_message = True
                 else:
                     msg['content']['data']['text/plain'] = ''
