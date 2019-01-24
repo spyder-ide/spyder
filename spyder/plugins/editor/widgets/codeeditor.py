@@ -782,7 +782,11 @@ class CodeEditor(TextEditBaseWidget):
 
     @handles(LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
     def linting_diagnostics(self, params):
-        self.process_code_analysis(params['params'])
+        enabled_pep8 = CONF.get('editor', 'code_analysis/pep8')
+        if not enabled_pep8:
+            self.process_code_analysis(params['params'], enabled_pep8=False)
+        else:
+            self.process_code_analysis(params['params'])
 
     # ------------- LSP: Completion ---------------------------------------
 
@@ -1656,8 +1660,8 @@ class CodeEditor(TextEditBaseWidget):
         self.sig_flags_changed.emit()
         self.linenumberarea.update()
 
-    def process_code_analysis(self, check_results):
-        """Analyze filename code with pyflakes"""
+    def process_code_analysis(self, check_results, enabled_pep8=True):
+        """Analyze filename code with pyflakes and pep8 if enabled."""
         self.cleanup_code_analysis()
         # if check_results is None:
         #     # Not able to compile module
@@ -1667,39 +1671,42 @@ class CodeEditor(TextEditBaseWidget):
         document = self.document()
         for diagnostic in check_results:
             source = diagnostic.get('source', '')
-            msg_range = diagnostic['range']
-            start = msg_range['start']
-            end = msg_range['end']
-            code = diagnostic.get('code', 'E')
-            message = diagnostic['message']
-            severity = diagnostic.get(
-                'severity', DiagnosticSeverity.ERROR)
+            show_pep8 = source == 'pycodestyle' and enabled_pep8
+            show = True if source != 'pycodestyle' else show_pep8
+            if show:
+                msg_range = diagnostic['range']
+                start = msg_range['start']
+                end = msg_range['end']
+                code = diagnostic.get('code', 'E')
+                message = diagnostic['message']
+                severity = diagnostic.get(
+                    'severity', DiagnosticSeverity.ERROR)
 
-            block = document.findBlockByNumber(start['line'])
-            error = severity == DiagnosticSeverity.ERROR
-            color = self.error_color if error else self.warning_color
-            cursor.setPosition(block.position())
-            cursor.movePosition(QTextCursor.StartOfBlock)
-            cursor.movePosition(
-                QTextCursor.NextCharacter, n=start['character'])
-            block2 = document.findBlockByNumber(end['line'])
-            cursor.setPosition(block2.position(), QTextCursor.KeepAnchor)
-            cursor.movePosition(
-                QTextCursor.StartOfBlock, mode=QTextCursor.KeepAnchor)
-            cursor.movePosition(
-                QTextCursor.NextCharacter, n=end['character'],
-                mode=QTextCursor.KeepAnchor)
-            color = QColor(color)
-            color.setAlpha(50)
+                block = document.findBlockByNumber(start['line'])
+                error = severity == DiagnosticSeverity.ERROR
+                color = self.error_color if error else self.warning_color
+                cursor.setPosition(block.position())
+                cursor.movePosition(QTextCursor.StartOfBlock)
+                cursor.movePosition(
+                    QTextCursor.NextCharacter, n=start['character'])
+                block2 = document.findBlockByNumber(end['line'])
+                cursor.setPosition(block2.position(), QTextCursor.KeepAnchor)
+                cursor.movePosition(
+                    QTextCursor.StartOfBlock, mode=QTextCursor.KeepAnchor)
+                cursor.movePosition(
+                    QTextCursor.NextCharacter, n=end['character'],
+                    mode=QTextCursor.KeepAnchor)
+                color = QColor(color)
+                color.setAlpha(50)
 
-            data = block.userData()
-            if not data:
-                data = BlockUserData(
-                    self, cursor=QTextCursor(cursor), color=color)
-            data.code_analysis.append((source, code, severity, message))
-            block.setUserData(data)
-            block.selection = QTextCursor(cursor)
-            block.color = color
+                data = block.userData()
+                if not data:
+                    data = BlockUserData(
+                        self, cursor=QTextCursor(cursor), color=color)
+                data.code_analysis.append((source, code, severity, message))
+                block.setUserData(data)
+                block.selection = QTextCursor(cursor)
+                block.color = color
 
         self.update_extra_selections()
         self.setUpdatesEnabled(True)
