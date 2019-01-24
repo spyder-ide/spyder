@@ -71,6 +71,8 @@ from spyder.plugins.editor.extensions.manager import (
     EditorExtensionsManager)
 from spyder.plugins.editor.extensions.closequotes import (
     CloseQuotesExtension)
+from spyder.plugins.editor.extensions.closebrackets import (
+    CloseBracketsExtension)
 from spyder.plugins.editor.api.decoration import TextDecoration
 from spyder.plugins.editor.utils.lsp import (
     request, handles, class_register)
@@ -501,6 +503,7 @@ class CodeEditor(TextEditBaseWidget):
         self.editor_extensions = EditorExtensionsManager(self)
 
         self.editor_extensions.add(CloseQuotesExtension())
+        self.editor_extensions.add(CloseBracketsExtension())
 
     # ---- Keyboard Shortcuts
 
@@ -954,6 +957,9 @@ class CodeEditor(TextEditBaseWidget):
     def set_close_parentheses_enabled(self, enable):
         """Enable/disable automatic parentheses insertion feature"""
         self.close_parentheses_enabled = enable
+        bracket_extension = self.editor_extensions.get(CloseBracketsExtension)
+        if bracket_extension is not None:
+            bracket_extension.enabled = enable
 
     def set_close_quotes_enabled(self, enable):
         """Enable/disable automatic quote insertion feature"""
@@ -2633,32 +2639,6 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return False
 
-    def __unmatched_braces_in_line(self, text, closing_braces_type=None):
-        """
-        Checks if there is an unmatched brace in the 'text'.
-        The brace type can be general or specified by closing_braces_type
-        (')', ']', or '}')
-        """
-        if closing_braces_type is None:
-            opening_braces = ['(', '[', '{']
-            closing_braces = [')', ']', '}']
-        else:
-            closing_braces = [closing_braces_type]
-            opening_braces = [{')': '(', '}': '{',
-                               ']': '['}[closing_braces_type]]
-        block = self.textCursor().block()
-        line_pos = block.position()
-        for pos, char in enumerate(text):
-            if char in opening_braces:
-                match = self.find_brace_match(line_pos+pos, char, forward=True)
-                if (match is None) or (match > line_pos+len(text)):
-                    return True
-            if char in closing_braces:
-                match = self.find_brace_match(line_pos+pos, char, forward=False)
-                if (match is None) or (match < line_pos):
-                    return True
-        return False
-
     def __has_colon_not_in_brackets(self, text):
         """
         Return whether a string has a colon which is not between brackets.
@@ -2666,13 +2646,16 @@ class CodeEditor(TextEditBaseWidget):
         not between a pair of (round, square or curly) brackets. It assumes
         that the brackets in the string are balanced.
         """
+        bracket_extension = self.editor_extensions.get(CloseBracketsExtension)
         for pos, char in enumerate(text):
-            if char == ':' and not self.__unmatched_braces_in_line(text[:pos]):
+            if (char == ':' and 
+                not bracket_extension.unmatched_brackets_in_line(text[:pos])):
                 return True
         return False
 
     def autoinsert_colons(self):
         """Decide if we want to autoinsert colons"""
+        bracket_extension = self.editor_extensions.get(CloseBracketsExtension)
         line_text = self.get_text('sol', 'cursor')
         if not self.textCursor().atBlockEnd():
             return False
@@ -2682,7 +2665,7 @@ class CodeEditor(TextEditBaseWidget):
             return False
         elif self.__forbidden_colon_end_char(line_text):
             return False
-        elif self.__unmatched_braces_in_line(line_text):
+        elif bracket_extension.unmatched_brackets_in_line(line_text):
             return False
         elif self.__has_colon_not_in_brackets(line_text):
             return False
@@ -2925,39 +2908,6 @@ class CodeEditor(TextEditBaseWidget):
                 not self.has_selected_text()):
             self.insert_text(text)
             self.request_signature()
-        elif (text == '(' and
-              not self.has_selected_text()):
-            self.handle_parentheses(text)
-        elif (text in ('[', '{') and not has_selection and
-              self.close_parentheses_enabled):
-            s_trailing_text = self.get_text('cursor', 'eol').strip()
-            if len(s_trailing_text) == 0 or \
-               s_trailing_text[0] in (',', ')', ']', '}'):
-                self.insert_text({'{': '{}', '[': '[]'}[text])
-                cursor = self.textCursor()
-                cursor.movePosition(QTextCursor.PreviousCharacter)
-                self.setTextCursor(cursor)
-            else:
-                TextEditBaseWidget.keyPressEvent(self, event)
-        elif key in (Qt.Key_ParenRight, Qt.Key_BraceRight, Qt.Key_BracketRight)\
-          and not has_selection and self.close_parentheses_enabled \
-          and not self.textCursor().atBlockEnd():
-            cursor = self.textCursor()
-            cursor.movePosition(QTextCursor.NextCharacter,
-                                QTextCursor.KeepAnchor)
-            text = to_text_string(cursor.selectedText())
-            key_matches_next_char = (
-                text == {Qt.Key_ParenRight: ')', Qt.Key_BraceRight: '}',
-                         Qt.Key_BracketRight: ']'}[key]
-            )
-            if (key_matches_next_char
-                    and not self.__unmatched_braces_in_line(
-                        cursor.block().text(), text)):
-                # overwrite an existing brace if all braces in line are matched
-                cursor.clearSelection()
-                self.setTextCursor(cursor)
-            else:
-                TextEditBaseWidget.keyPressEvent(self, event)
         elif key == Qt.Key_Colon and not has_selection \
              and self.auto_unindent_enabled:
             leading_text = self.get_text('sol', 'cursor')
@@ -3012,21 +2962,6 @@ class CodeEditor(TextEditBaseWidget):
         """Run pygments highlighter."""
         if isinstance(self.highlighter, sh.PygmentsSH):
             self.highlighter.make_charlist()
-
-    def handle_parentheses(self, text):
-        """Handle left and right parenthesis depending on editor config."""
-        # position = self.get_position('cursor')
-        rest = self.get_text('cursor', 'eol').rstrip()
-        valid = not rest or rest[0] in (',', ')', ']', '}')
-        if self.close_parentheses_enabled and valid:
-            self.insert_text('()')
-            cursor = self.textCursor()
-            cursor.movePosition(QTextCursor.PreviousCharacter)
-            self.setTextCursor(cursor)
-        else:
-            self.insert_text(text)
-        if '(' in self.signature_completion_characters:
-            self.request_signature()
 
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""
