@@ -167,7 +167,7 @@ from spyder.utils.programs import is_module_installed
 from spyder.utils.misc import select_port, getcwd_or_home, get_python_executable
 from spyder.widgets.fileswitcher import FileSwitcher
 from spyder.plugins.help.utils.sphinxify import CSS_PATH, DARK_CSS_PATH
-from spyder.plugins.lspmanager import LSPManager
+from spyder.preferences.languageserver import LSPManager
 from spyder.config.gui import is_dark_font_color
 
 #==============================================================================

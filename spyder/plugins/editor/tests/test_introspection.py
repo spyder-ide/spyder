@@ -21,7 +21,7 @@ from qtpy.QtCore import Qt
 # Local imports
 from spyder.utils.qthelpers import qapplication
 from spyder.py3compat import PY2
-from spyder.plugins.lspmanager import LSPManager
+from spyder.preferences.languageserver import LSPManager
 from spyder.utils.misc import getcwd_or_home
 
 
