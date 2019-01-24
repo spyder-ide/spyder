@@ -11,30 +11,24 @@ Manager for all LSP servers defined in our Preferences.
 import logging
 import os
 
-from qtpy.QtCore import Slot
-from spyder.api.plugins import SpyderPluginWidget
+from qtpy.QtCore import QObject, Slot
 from spyder.config.main import CONF
 from spyder.utils.misc import select_port, getcwd_or_home
 from spyder.plugins.editor.lsp.client import LSPClient
-from spyder.preferences.languageserver import LSPManagerConfigPage
 
 
 logger = logging.getLogger(__name__)
 
 
-class LSPManager(SpyderPluginWidget):
+class LSPManager(QObject):
     """Language Server Protocol Client Manager."""
     CONF_SECTION = 'lsp-server'
-    # Configuration page disabled until further disussion
-    CONFIGWIDGET_CLASS = LSPManagerConfigPage
-
     STOPPED = 'stopped'
     RUNNING = 'running'
 
     def __init__(self, parent):
-        SpyderPluginWidget.__init__(self, parent)
-        self.options_button.hide()
-        self.hide()
+        QObject.__init__(self)
+        self.main = parent
 
         self.lsp_plugins = {}
         self.clients = {}
@@ -42,7 +36,7 @@ class LSPManager(SpyderPluginWidget):
         self.register_queue = {}
         for option in CONF.options(self.CONF_SECTION):
             self.clients[option] = {'status': self.STOPPED,
-                                    'config': self.get_option(option),
+                                    'config': CONF.get('lsp-server', option),
                                     'instance': None}
             self.register_queue[option] = []
 
@@ -112,14 +106,14 @@ class LSPManager(SpyderPluginWidget):
                 self.register_queue[language] = []
         return started
 
-    def closing_plugin(self, cancelable=False):
+    def shutdown(self):
         for language in self.clients:
             self.close_client(language)
 
     def update_server_list(self):
         for language in CONF.options(self.CONF_SECTION):
             config = {'status': self.STOPPED,
-                      'config': self.get_option(language),
+                      'config': CONF.get('lsp-server', language),
                       'instance': None}
             if language not in self.clients:
                 self.clients[language] = config

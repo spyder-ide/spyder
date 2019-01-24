@@ -407,13 +407,14 @@ class MainWindow(QMainWindow):
 
         # Preferences
         from spyder.preferences.configdialog import (MainConfigPage,
-                                                 ColorSchemeConfigPage)
+                                                     ColorSchemeConfigPage)
         from spyder.preferences.shortcuts import ShortcutsConfigPage
         from spyder.preferences.runconfig import RunConfigPage
         from spyder.preferences.maininterpreter import MainInterpreterConfigPage
+        from spyder.preferences.languageserver import LSPManagerConfigPage
         self.general_prefs = [MainConfigPage, ShortcutsConfigPage,
                               ColorSchemeConfigPage, MainInterpreterConfigPage,
-                              RunConfigPage]
+                              RunConfigPage, LSPManagerConfigPage]
         self.prefs_index = None
         self.prefs_dialog_size = None
 
@@ -869,7 +870,7 @@ class MainWindow(QMainWindow):
         self.console.register_plugin()
 
         # Language Server Protocol Client initialization
-        self.set_splash(_("Creating LSP Manager..."))
+        self.set_splash(_("Starting Language Server Protocol manager..."))
         self.lspmanager = LSPManager(self)
 
         # Working directory plugin
@@ -2292,7 +2293,7 @@ class MainWindow(QMainWindow):
         self.dialog_manager.close_all()
         if self.toolbars_visible:
             self.save_visible_toolbars()
-        self.lspmanager.closing_plugin(cancelable)
+        self.lspmanager.shutdown()
         self.already_closed = True
         return True
 
@@ -2844,7 +2845,7 @@ class MainWindow(QMainWindow):
             widget = PrefPageClass(dlg, main=self)
             widget.initialize()
             dlg.add_page(widget)
-        for plugin in [self.workingdirectory, self.lspmanager, self.editor,
+        for plugin in [self.workingdirectory, self.editor,
                        self.projects, self.ipyconsole,
                        self.historylog, self.help, self.variableexplorer,
                        self.onlinehelp, self.explorer, self.findinfiles

@@ -26,7 +26,7 @@ from spyder.config.main import CONF
 from spyder.utils import icon_manager as ima
 from spyder.config.base import _
 from spyder.utils.programs import find_program
-from spyder.api.preferences import PluginConfigPage
+from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.widgets.helperwidgets import ItemDelegate
 from spyder.config.gui import get_font
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
@@ -605,14 +605,11 @@ class LSPServerTable(QTableView):
         self.show_editor()
 
 
-class LSPManagerConfigPage(PluginConfigPage):
+class LSPManagerConfigPage(GeneralConfigPage):
     """Language Server Protocol client manager preferences."""
-
-    def get_name(self):
-        return _('Language Server Protocol Manager')
-
-    def get_icon(self):
-        return ima.icon('lspserver')
+    CONF_SECTION = 'lsp-server'
+    NAME = _('Language Server Protocol Manager')
+    ICON = ima.icon('lspserver')
 
     def setup_page(self):
         self.table = LSPServerTable(self, text_color=ima.MAIN_FG_COLOR)
@@ -653,4 +650,4 @@ class LSPManagerConfigPage(PluginConfigPage):
     def apply_changes(self):
         self.table.save_servers()
         # TODO: Reset Manager
-        self.plugin.update_server_list()
+        self.main.lspmanager.update_server_list()
