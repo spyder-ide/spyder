@@ -458,8 +458,8 @@ DEFAULTS = [
               'variable_explorer/copy': 'Ctrl+C',
               # ---- In widgets/plots/figurebrowser.py ----
               'plots/copy': 'Ctrl+C',
-              'plots/previous figure': 'Ctrl+Alt+Shift+U',
-              'plots/next figure': 'Ctrl+Alt+Shift+D',
+              'plots/previous figure': 'Ctrl+PgUp',
+              'plots/next figure': 'Ctrl+PgDown',
               # ---- In widgets/explorer ----
               'explorer/copy file': 'Ctrl+C',
               'explorer/paste file': 'Ctrl+V',
