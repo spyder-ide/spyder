@@ -70,7 +70,7 @@ def setup_editor(qtbot, monkeypatch):
     yield editor, qtbot
     # teardown
     os.environ['SPY_TEST_USE_INTROSPECTION'] = 'False'
-    editor.main.lspmanager.closing_plugin()
+    editor.main.lspmanager.shutdown()
 
 @pytest.mark.slow
 @pytest.mark.skipif(PY2, reason="Segfaults with other tests on Py2.")

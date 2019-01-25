@@ -72,7 +72,7 @@ def construct_editor(qtbot, *args, **kwargs):
 
     yield editor, lsp_manager
     os.environ['SPY_TEST_USE_INTROSPECTION'] = 'False'
-    lsp_manager.closing_plugin()
+    lsp_manager.shutdown()
 
 
 @pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
