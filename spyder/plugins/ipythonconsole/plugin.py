@@ -27,9 +27,9 @@ from jupyter_core.paths import jupyter_config_dir, jupyter_runtime_dir
 from qtconsole.client import QtKernelClient
 from qtconsole.manager import QtKernelManager
 from qtpy.QtCore import Qt, Signal, Slot
-from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QGridLayout, QGroupBox, QHBoxLayout,
-                            QLabel, QMenu, QMessageBox, QTabWidget, QVBoxLayout,
-                            QWidget)
+from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QGridLayout,
+                            QGroupBox, QHBoxLayout, QLabel, QMenu, QMessageBox,
+                            QTabWidget, QVBoxLayout, QWidget)
 from traitlets.config.loader import Config, load_pyconfig_files
 from zmq.ssh import tunnel as zmqtunnel
 if not os.name == 'nt':
@@ -736,7 +736,7 @@ class IPythonConsole(SpyderPluginWidget):
                                    context=Qt.WidgetWithChildrenShortcut)
         special_console_action_group = QActionGroup(self)
         special_console_actions = (create_pylab_action, create_sympy_action,
-                       create_cython_action)
+                                   create_cython_action)
         add_actions(special_console_action_group, special_console_actions)
         special_console_menu = QMenu(_("New special console"), self)
         add_actions(special_console_menu, special_console_actions)

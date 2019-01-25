@@ -381,7 +381,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """Return options menu"""
         interrupt_action = create_action(self, _("Interrupt kernel"),
                                          icon=self.stop_icon,
-                                         triggered=self.stop_button_click_handler)
+                                         triggered=(self.
+                                                    stop_button_click_handler))
 
         reset_action = create_action(self, _("Remove all variables"),
                                      icon=ima.icon('editdelete'),
