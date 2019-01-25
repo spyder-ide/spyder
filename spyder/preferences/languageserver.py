@@ -606,9 +606,9 @@ class LSPServerTable(QTableView):
 
 
 class LSPManagerConfigPage(GeneralConfigPage):
-    """Language Server Protocol client manager preferences."""
+    """Language Server Protocol manager preferences."""
     CONF_SECTION = 'lsp-server'
-    NAME = _('Language Server Protocol Manager')
+    NAME = _('Language Server Protocol')
     ICON = ima.icon('lspserver')
 
     def setup_page(self):
