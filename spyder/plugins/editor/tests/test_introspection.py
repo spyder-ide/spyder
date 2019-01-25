@@ -21,7 +21,7 @@ from qtpy.QtCore import Qt
 # Local imports
 from spyder.utils.qthelpers import qapplication
 from spyder.py3compat import PY2
-from spyder.plugins.lspmanager import LSPManager
+from spyder.plugins.editor.lsp.manager import LSPManager
 from spyder.utils.misc import getcwd_or_home
 
 
@@ -70,7 +70,7 @@ def setup_editor(qtbot, monkeypatch):
     yield editor, qtbot
     # teardown
     os.environ['SPY_TEST_USE_INTROSPECTION'] = 'False'
-    editor.main.lspmanager.closing_plugin()
+    editor.main.lspmanager.shutdown()
 
 @pytest.mark.slow
 @pytest.mark.skipif(PY2, reason="Segfaults with other tests on Py2.")
