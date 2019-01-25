@@ -5,13 +5,15 @@
 # (see spyder/__init__.py for details)
 
 """
-Manager for all LSP servers defined in our Preferences.
+Manager for all LSP clients connected to the servers defined
+in our Preferences.
 """
 
 import logging
 import os
 
 from qtpy.QtCore import QObject, Slot
+
 from spyder.config.main import CONF
 from spyder.utils.misc import select_port, getcwd_or_home
 from spyder.plugins.editor.lsp.client import LSPClient
@@ -21,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class LSPManager(QObject):
-    """Language Server Protocol Client Manager."""
+    """Language Server Protocol manager."""
     CONF_SECTION = 'lsp-server'
     STOPPED = 'stopped'
     RUNNING = 'running'
