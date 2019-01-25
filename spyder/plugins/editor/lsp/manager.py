@@ -101,6 +101,7 @@ class LSPManager(QObject):
                     language_client['instance'].register_plugin_type(
                         plugin, self.lsp_plugins[plugin])
 
+                logger.info("Starting LSP client for {}...".format(language))
                 language_client['instance'].start()
                 language_client['status'] = self.RUNNING
                 for entry in queue:
@@ -109,6 +110,7 @@ class LSPManager(QObject):
         return started
 
     def shutdown(self):
+        logger.info("Shutting down LSP manager...")
         for language in self.clients:
             self.close_client(language)
 
@@ -150,7 +152,7 @@ class LSPManager(QObject):
         if language in self.clients:
             language_client = self.clients[language]
             if language_client['status'] == self.RUNNING:
-                logger.info("Closing LSP")
+                logger.info("Stopping LSP client for {}...".format(language))
                 # language_client['instance'].shutdown()
                 # language_client['instance'].exit()
                 language_client['instance'].stop()

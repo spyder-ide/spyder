@@ -901,7 +901,7 @@ class MainWindow(QMainWindow):
         self.editor.register_plugin()
 
         # Start LSP client
-        self.set_splash(_("Launching LSP Client..."))
+        self.set_splash(_("Launching LSP Client for Python..."))
         self.lspmanager.start_lsp_client('python')
 
         # Populating file menu entries
