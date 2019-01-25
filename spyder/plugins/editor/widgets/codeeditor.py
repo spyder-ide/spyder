@@ -2646,16 +2646,16 @@ class CodeEditor(TextEditBaseWidget):
         not between a pair of (round, square or curly) brackets. It assumes
         that the brackets in the string are balanced.
         """
-        bracket_extension = self.editor_extensions.get(CloseBracketsExtension)
+        bracket_ext = self.editor_extensions.get(CloseBracketsExtension)
         for pos, char in enumerate(text):
-            if (char == ':' and 
-                not bracket_extension.unmatched_brackets_in_line(text[:pos])):
+            if (char == ':' and
+                    not bracket_ext.unmatched_brackets_in_line(text[:pos])):
                 return True
         return False
 
     def autoinsert_colons(self):
         """Decide if we want to autoinsert colons"""
-        bracket_extension = self.editor_extensions.get(CloseBracketsExtension)
+        bracket_ext = self.editor_extensions.get(CloseBracketsExtension)
         line_text = self.get_text('sol', 'cursor')
         if not self.textCursor().atBlockEnd():
             return False
@@ -2665,7 +2665,7 @@ class CodeEditor(TextEditBaseWidget):
             return False
         elif self.__forbidden_colon_end_char(line_text):
             return False
-        elif bracket_extension.unmatched_brackets_in_line(line_text):
+        elif bracket_ext.unmatched_brackets_in_line(line_text):
             return False
         elif self.__has_colon_not_in_brackets(line_text):
             return False
