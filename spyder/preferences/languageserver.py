@@ -15,11 +15,11 @@ import re
 # Third party imports
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import (Qt, Slot, QAbstractTableModel, QModelIndex)
-from qtpy.QtWidgets import (QDialog,
-                            QGroupBox, QHBoxLayout, QLabel,
-                            QVBoxLayout, QTableView,
-                            QAbstractItemView, QPushButton, QComboBox,
-                            QLineEdit, QSpinBox, QCheckBox, QDialogButtonBox)
+from qtpy.QtWidgets import (QAbstractItemView, QCheckBox, QComboBox, QDialog,
+                            QDialogButtonBox, QGroupBox, QGridLayout,
+                            QHBoxLayout, QLabel, QLineEdit, QPushButton,
+                            QSpinBox, QTableView, QTabWidget, QVBoxLayout,
+                            QWidget)
 
 # Local imports
 from spyder.config.main import CONF
@@ -497,6 +497,7 @@ class LSPServerTable(QTableView):
         self.setEditTriggers(QAbstractItemView.AllEditTriggers)
         self.selectionModel().selectionChanged.connect(self.selection)
         self.verticalHeader().hide()
+
         self.load_servers()
 
     def focusOutEvent(self, e):
@@ -608,29 +609,61 @@ class LSPServerTable(QTableView):
 class LSPManagerConfigPage(GeneralConfigPage):
     """Language Server Protocol manager preferences."""
     CONF_SECTION = 'lsp-server'
-    NAME = _('Language Server Protocol')
+    NAME = _('Language server')
     ICON = ima.icon('lspserver')
 
     def setup_page(self):
+        # --- Other servers tab ---
+        servers_label = QLabel(_("Here you can define language servers "
+                                 "for other programming languages besides "
+                                 "Python, along with their respective "
+                                 "conffigurations. Spyder will start them "
+                                 "automatically at startup."))
+
+        # Servers table
+        table_group = QGroupBox(_('Available servers'))
         self.table = LSPServerTable(self, text_color=ima.MAIN_FG_COLOR)
+        table_layout = QVBoxLayout()
+        table_layout.addWidget(self.table)
+        table_group.setLayout(table_layout)
+
+        # Buttons
         self.reset_btn = QPushButton(_("Reset to default values"))
         self.new_btn = QPushButton(_("Setup a new server"))
         self.delete_btn = QPushButton(_("Delete currently selected server"))
         self.delete_btn.setEnabled(False)
-        server_group = QGroupBox(_('Available LSP Servers'))
 
-        vlayout = QVBoxLayout()
-        vlayout.addWidget(server_group)
-        # vlayout.addWidget(server_settings_description)
-        vlayout.addWidget(self.table)
-        vlayout.addWidget(self.new_btn)
-        vlayout.addWidget(self.delete_btn)
-        vlayout.addWidget(self.reset_btn)
-        self.setLayout(vlayout)
-
+        # Slots connected to buttons
         self.new_btn.clicked.connect(self.create_new_server)
         self.reset_btn.clicked.connect(self.reset_to_default)
         self.delete_btn.clicked.connect(self.delete_server)
+
+        # Buttons layout
+        btns = [self.new_btn, self.delete_btn, self.reset_btn]
+        buttons_layout = QGridLayout()
+        for i, btn in enumerate(btns):
+            buttons_layout.addWidget(btn, i, 1)
+        buttons_layout.setColumnStretch(0, 1)
+        buttons_layout.setColumnStretch(1, 2)
+        buttons_layout.setColumnStretch(2, 1)
+
+        # Combined layout
+        servers_widget = QWidget()
+        servers_layout = QVBoxLayout()
+        servers_layout.addSpacing(-10)
+        servers_layout.addWidget(servers_label)
+        servers_layout.addWidget(table_group)
+        servers_layout.addSpacing(10)
+        servers_layout.addLayout(buttons_layout)
+        servers_widget.setLayout(servers_layout)
+
+        # --- Tabs organization ---
+        tabs = QTabWidget()
+        tabs.addTab(self.create_tab(servers_widget), _('Other servers'))
+
+        vlayout = QVBoxLayout()
+        vlayout.addWidget(tabs)
+        self.setLayout(vlayout)
 
     def reset_to_default(self):
         CONF.reset_to_defaults(section='lsp-server')
