@@ -13,18 +13,16 @@ from spyder.api.editorextension import EditorExtension
 
 class CloseBracketsExtension(EditorExtension):
     """Editor Extension for insert brackets automatically."""
-
+    BRACKETS_LIST = ["(", ")", "{", "}", "[", "]"]
+    BRACKETS_KEYS = [Qt.Key_ParenLeft, Qt.Key_ParenRight,
+                     Qt.Key_BraceLeft, Qt.Key_BraceRight,
+                     Qt.Key_BracketLeft, Qt.Key_BracketRight]
+    BRACKETS_CHAR = dict(zip(BRACKETS_KEYS, BRACKETS_LIST))
+    BRACKETS_LEFT = dict(zip(BRACKETS_KEYS[::2], BRACKETS_LIST[::2]))
+    BRACKETS_RIGHT = dict(zip(BRACKETS_KEYS[1::2], BRACKETS_LIST[1::2]))
     BRACKETS_PAIR = {Qt.Key_ParenLeft: "()", Qt.Key_ParenRight: "()",
                      Qt.Key_BraceLeft: "{}", Qt.Key_BraceRight: "{}",
                      Qt.Key_BracketLeft: "[]", Qt.Key_BracketRight: "[]"}
-    BRACKETS_LEFT = {Qt.Key_ParenLeft: "(",
-                     Qt.Key_BraceLeft: "{",
-                     Qt.Key_BracketLeft: "["}
-    BRACKETS_RIGHT = {Qt.Key_ParenRight: ")",
-                      Qt.Key_BraceRight: "}",
-                      Qt.Key_BracketRight: "]"}
-    BRACKETS_CHAR = BRACKETS_LEFT.copy()
-    BRACKETS_CHAR.update(BRACKETS_RIGHT)
 
     def on_state_changed(self, state):
         """Connect/disconnect sig_key_pressed signal."""
@@ -46,7 +44,7 @@ class CloseBracketsExtension(EditorExtension):
         """
         Checks if there is an unmatched brackets in the 'text'.
         The brackets type can be general or specified by closing_braces_type
-        (')', ']', '}' or '>')
+        (')', ']' or '}')
         """
         if closing_braces_type is None:
             opening_braces = self.BRACKETS_LEFT.values()
@@ -83,15 +81,16 @@ class CloseBracketsExtension(EditorExtension):
         if self.editor.has_selected_text():
             text = self.editor.get_selected_text()
             self.editor.insert_text("{0}{1}{2}".format(pair[0], text, pair[1]))
-            # Keep text selected, for inserting multiple quotes
+            # Keep text selected, for inserting multiple brackets
             cursor.movePosition(QTextCursor.Left, QTextCursor.MoveAnchor, 1)
             cursor.movePosition(QTextCursor.Left, QTextCursor.KeepAnchor,
                                 len(text))
             self.editor.setTextCursor(cursor)
         elif key in self.BRACKETS_LEFT:
             if (not trailing_text or
-                    trailing_text[0] in BRACKETS_RIGHT.items() + [',']):
-                # Automatic insertion of quotes
+                    trailing_text[0] in self.BRACKETS_RIGHT.values() or
+                    trailing_text[0] == ','):
+                # Automatic insertion of brackets
                 self.editor.insert_text(pair)
                 cursor.movePosition(QTextCursor.PreviousCharacter)
                 self.editor.setTextCursor(cursor)
