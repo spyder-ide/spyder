@@ -298,7 +298,7 @@ _qtaargs = {
     'folding.arrow_right_on':  [('fa.caret-right',), {'color': MAIN_FG_COLOR}],
     'folding.arrow_down_off':  [('fa.caret-down',), {'color': 'gray'}],
     'folding.arrow_down_on':   [('fa.caret-down',), {'color': MAIN_FG_COLOR}],
-    'lspserver':               [('fa.server',), {'color': MAIN_FG_COLOR}],
+    'lspserver':               [('mdi.code-tags-check',), {'color': MAIN_FG_COLOR}],
     'dependency_ok':           [('fa.check',), {'color': MAIN_FG_COLOR}],
     'dependency_warning':      [('fa.warning',), {'color': 'orange'}],
     'dependency_error':        [('fa.warning',), {'color': 'darkred'}],

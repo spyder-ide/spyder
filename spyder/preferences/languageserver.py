@@ -39,6 +39,7 @@ LSP_LANGUAGES = [
     'Fortran'
 ]
 LSP_LANGUAGE_NAME = {x.lower(): x for x in LSP_LANGUAGES}
+LSP_URL = "https://microsoft.github.io/language-server-protocol"
 
 
 def iter_servers():
@@ -609,16 +610,24 @@ class LSPServerTable(QTableView):
 class LSPManagerConfigPage(GeneralConfigPage):
     """Language Server Protocol manager preferences."""
     CONF_SECTION = 'lsp-server'
-    NAME = _('Language server')
+    NAME = _('Code completion and linting')
     ICON = ima.icon('lspserver')
 
     def setup_page(self):
         # --- Other servers tab ---
-        servers_label = QLabel(_("Here you can define language servers "
-                                 "for other programming languages besides "
-                                 "Python, along with their respective "
-                                 "conffigurations. Spyder will start them "
-                                 "automatically at startup."))
+        # Section label
+        servers_label = QLabel(
+            _("Spyder uses the <a href=\"{lsp_url}\">Language Server "
+              "Protocol</a> technology to provide code completion and linting "
+              "for its Editor. Here you can define how to start a server for "
+              "other programming languages besides Python, along with its "
+              "respective configuration. After doing that, Spyder will be "
+              "able to give completions and linting for the files associated "
+              "with that language."
+              ).format(lsp_url=LSP_URL))
+        servers_label.setOpenExternalLinks(True)
+        servers_label.setWordWrap(True)
+        servers_label.setAlignment(Qt.AlignJustify)
 
         # Servers table
         table_group = QGroupBox(_('Available servers'))
@@ -659,7 +668,7 @@ class LSPManagerConfigPage(GeneralConfigPage):
 
         # --- Tabs organization ---
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(servers_widget), _('Other servers'))
+        tabs.addTab(self.create_tab(servers_widget), _('Other languages'))
 
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)
