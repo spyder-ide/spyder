@@ -359,9 +359,9 @@ class BaseEditMixin(object):
             # selected), but only if the first character to the left is not a
             # white space too.
             def is_space(move):
-                    curs = self.textCursor()
-                    curs.movePosition(move, QTextCursor.KeepAnchor)
-                    return not to_text_string(curs.selectedText()).strip()
+                curs = self.textCursor()
+                curs.movePosition(move, QTextCursor.KeepAnchor)
+                return not to_text_string(curs.selectedText()).strip()
             if not completion:
                 if is_space(QTextCursor.NextCharacter):
                     if is_space(QTextCursor.PreviousCharacter):
@@ -375,7 +375,7 @@ class BaseEditMixin(object):
                     return len(re.findall(r'([^\d\W]\w*)',
                                           text_cursor, re.UNICODE)) == 0
                 if is_space(QTextCursor.PreviousCharacter):
-                        return
+                    return
                 if (is_special_character(QTextCursor.NextCharacter)):
                     cursor.movePosition(QTextCursor.WordLeft)
 
