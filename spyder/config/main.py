@@ -672,7 +672,12 @@ DEFAULTS = [
               'solarized/dark/number':     ('#cb4b16', False, False),
               'solarized/dark/instance':   ('#b58900', False, True)
              }),
-            ('lsp-server', {
+            ('lsp-server',
+             {
+              'code_completion': True,
+              'jedi_definition': True,
+              'jedi_definition/follow_imports': True,
+              'jedi_signature_help': True,
                 'python': {
                     'index': 0,
                     'cmd': 'pyls',

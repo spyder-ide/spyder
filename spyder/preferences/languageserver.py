@@ -44,9 +44,10 @@ LSP_URL = "https://microsoft.github.io/language-server-protocol"
 
 def iter_servers():
     for option in CONF.options('lsp-server'):
-        server = LSPServer(language=option)
-        server.load()
-        yield server
+        if option in [l.lower() for l in LSP_LANGUAGES]:
+            server = LSPServer(language=option)
+            server.load()
+            yield server
 
 
 class LSPServer:
@@ -614,6 +615,29 @@ class LSPManagerConfigPage(GeneralConfigPage):
     ICON = ima.icon('lspserver')
 
     def setup_page(self):
+        newcb = self.create_checkbox
+
+        # --- Code completion ---
+        completion_box = newcb(_("Enable code completion"), 'code_completion')
+        goto_definition_box = newcb(
+            _("Go to definitions"),
+            'jedi_definition',
+            tip=_("If this option is enabled, doing a left mouse click on\n"
+                  "an object name while pressing the Ctrl key will go to\n"
+                  "that object's definition (if resolved)."))
+        follow_imports_box = newcb(_("Follow imports when going to a "
+                                     "definition"),
+                                   'jedi_definition/follow_imports')
+        show_signature_box = newcb(_("Show signature"), 'jedi_signature_help')
+
+        completion_widget = QWidget()
+        completion_layout = QVBoxLayout()
+        completion_layout.addWidget(completion_box)
+        completion_layout.addWidget(goto_definition_box)
+        completion_layout.addWidget(follow_imports_box)
+        completion_layout.addWidget(show_signature_box)
+        completion_widget.setLayout(completion_layout)
+
         # --- Other servers tab ---
         # Section label
         servers_label = QLabel(
@@ -666,6 +690,7 @@ class LSPManagerConfigPage(GeneralConfigPage):
 
         # --- Tabs organization ---
         tabs = QTabWidget()
+        tabs.addTab(self.create_tab(completion_widget), _('Code completion'))
         tabs.addTab(self.create_tab(servers_widget), _('Other languages'))
 
         vlayout = QVBoxLayout()
