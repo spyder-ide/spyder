@@ -610,7 +610,7 @@ class LSPServerTable(QTableView):
 class LSPManagerConfigPage(GeneralConfigPage):
     """Language Server Protocol manager preferences."""
     CONF_SECTION = 'lsp-server'
-    NAME = _('Code completion and linting')
+    NAME = _('Completion and linting')
     ICON = ima.icon('lspserver')
 
     def setup_page(self):
@@ -619,11 +619,9 @@ class LSPManagerConfigPage(GeneralConfigPage):
         servers_label = QLabel(
             _("Spyder uses the <a href=\"{lsp_url}\">Language Server "
               "Protocol</a> technology to provide code completion and linting "
-              "for its Editor. Here you can define how to start a server for "
-              "other programming languages besides Python, along with its "
-              "respective configuration. After doing that, Spyder will be "
-              "able to give completions and linting for the files associated "
-              "with that language."
+              "for its Editor. Here you can setup and configure LSP servers "
+              "for languages other than Python, so Spyder can provide such "
+              "features for those languages as well."
               ).format(lsp_url=LSP_URL))
         servers_label.setOpenExternalLinks(True)
         servers_label.setWordWrap(True)
