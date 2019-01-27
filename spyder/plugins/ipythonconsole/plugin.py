@@ -27,7 +27,7 @@ from jupyter_core.paths import jupyter_config_dir, jupyter_runtime_dir
 from qtconsole.client import QtKernelClient
 from qtconsole.manager import QtKernelManager
 from qtpy.QtCore import Qt, Signal, Slot
-from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QGridLayout,
+from qtpy.QtWidgets import (QActionGroup, QApplication, QGridLayout,
                             QGroupBox, QHBoxLayout, QLabel, QMenu, QMessageBox,
                             QTabWidget, QVBoxLayout, QWidget)
 from traitlets.config.loader import Config, load_pyconfig_files
@@ -547,6 +547,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.create_new_client_if_empty = True
         self.css_path = css_path
         self.run_cell_filename = None
+        self.interrupt_action = None
 
         # Attrs for testing
         self.test_dir = test_dir
@@ -751,10 +752,11 @@ class IPythonConsole(SpyderPluginWidget):
                                      triggered=self.reset_kernel,
                                      context=Qt.WidgetWithChildrenShortcut)
 
-        interrupt_action = create_action(self, _("Interrupt kernel"),
-                                         icon=ima.icon('stop'),
-                                         triggered=self.interrupt_kernel,
-                                         context=Qt.WidgetWithChildrenShortcut)
+        self.interrupt_action = create_action(
+            self, _("Interrupt kernel"),
+            icon=ima.icon('stop'),
+            triggered=self.interrupt_kernel,
+            context=Qt.WidgetWithChildrenShortcut)
 
         self.register_shortcut(restart_action, context="ipython_console",
                                name="Restart kernel")
@@ -771,15 +773,18 @@ class IPythonConsole(SpyderPluginWidget):
         # Add the action to the 'Consoles' menu on the main window
         main_consoles_menu = self.main.consoles_menu_actions
         main_consoles_menu.insert(0, create_client_action)
-        main_consoles_menu.insert(1, special_console_menu)
-        main_consoles_menu += [connect_to_kernel_action, MENU_SEPARATOR,
-                               interrupt_action, restart_action, reset_action]
+        main_consoles_menu += [create_pylab_action, create_sympy_action,
+                               create_cython_action, connect_to_kernel_action,
+                               MENU_SEPARATOR,
+                               self.interrupt_action, restart_action,
+                               reset_action]
 
         # Plugin actions
         self.menu_actions = [create_client_action, special_console_menu,
                              connect_to_kernel_action,
                              MENU_SEPARATOR,
-                             restart_action, rename_tab_action]
+                             self.interrupt_action,
+                             restart_action, reset_action, rename_tab_action]
 
         # Check for a current client. Since it manages more actions.
         client = self.get_current_client()
@@ -1606,6 +1611,13 @@ class IPythonConsole(SpyderPluginWidget):
         if client is not None:
             self.switch_to_plugin()
             client.stop_button_click_handler()
+
+    def update_execution_state_kernel(self):
+        """Update actions following the execution state of the kernel."""
+        client = self.get_current_client()
+        if client is not None:
+            executing = client.stop_button.isEnabled()
+            self.interrupt_action.setEnabled(executing)
 
     def connect_external_kernel(self, shellwidget):
         """

@@ -719,6 +719,8 @@ class MainWindow(QMainWindow):
 
         # Consoles menu/toolbar
         self.consoles_menu = self.menuBar().addMenu(_("C&onsoles"))
+        self.consoles_menu.aboutToShow.connect(
+                self.update_execution_state_kernel)
 
         # Projects menu
         self.projects_menu = self.menuBar().addMenu(_("&Projects"))
@@ -2046,6 +2048,13 @@ class MainWindow(QMainWindow):
         self._update_show_toolbars_action()
 
     # --- Other
+    def update_execution_state_kernel(self):
+        """Handle execution state of the current console."""
+        try:
+            self.ipyconsole.update_execution_state_kernel()
+        except AttributeError:
+            return
+
     def valid_project(self):
         """Handle an invalid active project."""
         try:

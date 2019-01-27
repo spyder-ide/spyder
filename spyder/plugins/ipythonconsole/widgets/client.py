@@ -379,15 +379,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def get_options_menu(self):
         """Return options menu"""
-        interrupt_action = create_action(self, _("Interrupt kernel"),
-                                         icon=self.stop_icon,
-                                         triggered=(self.
-                                                    stop_button_click_handler))
-
-        reset_action = create_action(self, _("Remove all variables"),
-                                     icon=ima.icon('editdelete'),
-                                     triggered=self.reset_namespace)
-
         env_action = create_action(
                         self,
                         _("Show environment variables"),
@@ -403,16 +394,13 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                          )
 
         self.show_time_action.setChecked(self.show_elapsed_time)
-        additional_actions = [interrupt_action, reset_action,
-                              MENU_SEPARATOR,
+        additional_actions = [MENU_SEPARATOR,
                               env_action,
                               syspath_action,
                               self.show_time_action]
 
         if self.menu_actions is not None:
             console_menu = self.menu_actions + additional_actions
-            rearrange_menu = [0, 1, 2, 3, 6, 4, 7, 5, 8, 9, 10, 11]
-            console_menu = [console_menu[i] for i in rearrange_menu]
             return console_menu
 
         else:
