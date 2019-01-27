@@ -53,7 +53,7 @@ class CloseBracketsExtension(EditorExtension):
         else:
             closing_brackets = [closing_brackets_type]
             opening_brackets = [{')': '(', '}': '{',
-                               ']': '['}[closing_brackets_type]]
+                                 ']': '['}[closing_brackets_type]]
         block = self.editor.textCursor().block()
         line_pos = block.position()
         for pos, char in enumerate(text):
