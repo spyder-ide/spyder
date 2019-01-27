@@ -3,7 +3,7 @@
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
 #
-"""Tests for close quotes."""
+"""Tests for close brackets."""
 
 # Third party imports
 import pytest
@@ -17,8 +17,9 @@ from spyder.plugins.editor.extensions.closebrackets import (
         CloseBracketsExtension)
 
 
-# --- Fixtures
-# -----------------------------------------------------------------------------
+# =============================================================================
+# ---- Fixtures
+# =============================================================================
 @pytest.fixture
 def editor_close_brackets():
     """Set up Editor with close brackets activated."""
@@ -30,10 +31,10 @@ def editor_close_brackets():
     editor.setup_editor(**kwargs)
     return editor
 
-# --- Tests
-# -----------------------------------------------------------------------------
 
-
+# =============================================================================
+# ---- Tests
+# =============================================================================
 @pytest.mark.parametrize(
     'text, expected_text, cursor_column',
     [
@@ -42,8 +43,8 @@ def editor_close_brackets():
         ("[", "[]", 1),
     ])
 def test_close_brackets(qtbot, editor_close_brackets, text, expected_text,
-                      cursor_column):
-    """Test insertion of extra quotes."""
+                        cursor_column):
+    """Test insertion of brackets."""
     editor = editor_close_brackets
 
     qtbot.keyClicks(editor, text)
@@ -101,15 +102,31 @@ def test_selected_text_multiple_lines(qtbot, editor_close_brackets):
                                     "\n"
                                     "some]}) text")
 
+
 def test_nested_completion(qtbot, editor_close_brackets):
+    """Test bracket completion in nested brackets."""
     editor = editor_close_brackets
+    # Test completion when following character is a right bracket
     editor.textCursor().insertText('foo(bar)')
     editor.move_cursor(-1)
     qtbot.keyClicks(editor, '(')
     assert editor.toPlainText() == 'foo(bar())'
     assert editor.textCursor().columnNumber() == 8
+    # Test normal insertion when next character is not a right bracket
+    editor.move_cursor(-1)
+    qtbot.keyClicks(editor, '[')
+    assert editor.toPlainText() == 'foo(bar[())'
+    assert editor.textCursor().columnNumber() == 8
+    # Test completion when following character is a comma
+    qtbot.keyClicks(editor, ',')
+    editor.move_cursor(-1)
+    qtbot.keyClicks(editor, '{')
+    assert editor.toPlainText() == 'foo(bar[{},())'
+    assert editor.textCursor().columnNumber() == 9
+
 
 def test_bracket_closing(qtbot, editor_close_brackets):
+    """Test bracket completion with existing brackets."""
     editor = editor_close_brackets
     editor.textCursor().insertText('foo(bar(x')
     qtbot.keyClicks(editor, ')')

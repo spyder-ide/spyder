@@ -40,28 +40,29 @@ class CloseBracketsExtension(EditorExtension):
             self._autoinsert_brackets(key)
             event.accept()
 
-    def unmatched_brackets_in_line(self, text, closing_braces_type=None):
+    def unmatched_brackets_in_line(self, text, closing_brackets_type=None):
         """
         Checks if there is an unmatched brackets in the 'text'.
-        The brackets type can be general or specified by closing_braces_type
+
+        The brackets type can be general or specified by closing_brackets_type
         (')', ']' or '}')
         """
-        if closing_braces_type is None:
-            opening_braces = self.BRACKETS_LEFT.values()
-            closing_braces = self.BRACKETS_RIGHT.values()
+        if closing_brackets_type is None:
+            opening_brackets = self.BRACKETS_LEFT.values()
+            closing_brackets = self.BRACKETS_RIGHT.values()
         else:
-            closing_braces = [closing_braces_type]
-            opening_braces = [{')': '(', '}': '{',
-                               ']': '['}[closing_braces_type]]
+            closing_brackets = [closing_brackets_type]
+            opening_brackets = [{')': '(', '}': '{',
+                               ']': '['}[closing_brackets_type]]
         block = self.editor.textCursor().block()
         line_pos = block.position()
         for pos, char in enumerate(text):
-            if char in opening_braces:
+            if char in opening_brackets:
                 match = self.editor.find_brace_match(line_pos+pos, char,
                                                      forward=True)
                 if (match is None) or (match > line_pos+len(text)):
                     return True
-            if char in closing_braces:
+            if char in closing_brackets:
                 match = self.editor.find_brace_match(line_pos+pos, char,
                                                      forward=False)
                 if (match is None) or (match < line_pos):
@@ -100,8 +101,8 @@ class CloseBracketsExtension(EditorExtension):
                 self.editor.request_signature()
         elif key in self.BRACKETS_RIGHT:
             if (self.editor.next_char() == char and
-                not self.editor.textCursor().atBlockEnd() and
-                not self.unmatched_brackets_in_line(
+                    not self.editor.textCursor().atBlockEnd() and
+                    not self.unmatched_brackets_in_line(
                         cursor.block().text(), char)):
                 # Overwrite an existing brackets if all in line are matched
                 cursor.movePosition(QTextCursor.NextCharacter,
