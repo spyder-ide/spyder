@@ -25,6 +25,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QCheckBox, QComboBox, QDialog,
 from spyder.config.base import _
 from spyder.config.main import CONF
 from spyder.config.gui import get_font, is_dark_interface
+from spyder.plugins.editor.lsp import LSP_LANGUAGES
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.utils import icon_manager as ima
@@ -32,12 +33,6 @@ from spyder.utils.programs import find_program
 from spyder.widgets.helperwidgets import ItemDelegate
 
 
-LSP_LANGUAGES = [
-    'C#', 'CSS/LESS/SASS', 'Go', 'GraphQL', 'Groovy', 'Haxe', 'HTML',
-    'Java', 'JavaScript', 'JSON', 'Julia', 'OCaml', 'PHP',
-    'Python', 'Rust', 'Scala', 'Swift', 'TypeScript', 'Erlang',
-    'Fortran'
-]
 LSP_LANGUAGE_NAME = {x.lower(): x for x in LSP_LANGUAGES}
 LSP_URL = "https://microsoft.github.io/language-server-protocol"
 
@@ -730,7 +725,8 @@ class LSPManagerConfigPage(GeneralConfigPage):
         self.set_modified(True)
         self.delete_btn.setEnabled(False)
 
-    def apply_changes(self):
+    def apply_settings(self, options):
         self.table.save_servers()
         # TODO: Reset Manager
         self.main.lspmanager.update_server_list()
+        self.main.apply_settings()
