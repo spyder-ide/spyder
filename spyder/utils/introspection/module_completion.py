@@ -20,15 +20,15 @@ from spyder.config.base import get_conf_path
 
 # List of preferred modules
 PREFERRED_MODULES = ['numpy', 'scipy', 'sympy', 'pandas', 'networkx',
-                    'statsmodels', 'matplotlib', 'sklearn', 'skimage',
-                    'mpmath', 'os', 'PIL', 'OpenGL', 'array', 'audioop',
-                    'binascii', 'cPickle', 'cStringIO', 'cmath',
-                    'collections', 'datetime', 'errno', 'exceptions', 'gc',
-                    'imageop', 'imp', 'itertools', 'marshal', 'math', 'mmap',
-                    'msvcrt', 'nt', 'operator', 'parser', 'rgbimg', 'signal',
-                    'strop', 'sys', 'thread', 'time', 'wx', 'xxsubtype',
-                    'zipimport', 'zlib', 'nose', 'PyQt4', 'PyQt5', 'PySide',
-                    'PySide2', 'os.path']
+                     'statsmodels', 'matplotlib', 'sklearn', 'skimage',
+                     'mpmath', 'os', 'PIL', 'OpenGL', 'array', 'audioop',
+                     'binascii', 'cPickle', 'cStringIO', 'cmath',
+                     'collections', 'datetime', 'errno', 'exceptions', 'gc',
+                     'imageop', 'imp', 'itertools', 'marshal', 'math', 'mmap',
+                     'msvcrt', 'nt', 'operator', 'parser', 'rgbimg', 'signal',
+                     'strop', 'sys', 'thread', 'time', 'wx', 'xxsubtype',
+                     'zipimport', 'zlib', 'nose', 'PyQt4', 'PyQt5', 'PySide',
+                     'PySide2', 'os.path']
 
 
 def get_submodules(mod):

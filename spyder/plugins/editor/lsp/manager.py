@@ -120,8 +120,8 @@ class LSPManager(QObject):
             if option in [l.lower() for l in LSP_LANGUAGES]:
                 language = option
                 config = {'status': self.STOPPED,
-                        'config': CONF.get('lsp-server', language),
-                        'instance': None}
+                          'config': CONF.get('lsp-server', language),
+                          'instance': None}
                 if language not in self.clients:
                     self.clients[language] = config
                     self.register_queue[language] = []

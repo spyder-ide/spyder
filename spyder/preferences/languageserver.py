@@ -703,7 +703,7 @@ class LSPManagerConfigPage(GeneralConfigPage):
         # --- Tabs organization ---
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(introspection_group, advanced_group),
-                                    _('Code completion'))
+                    _('Code completion'))
         tabs.addTab(self.create_tab(servers_widget), _('Other languages'))
 
         vlayout = QVBoxLayout()
