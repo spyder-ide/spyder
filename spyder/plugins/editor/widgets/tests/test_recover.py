@@ -171,6 +171,28 @@ def test_recoverydialog_restore_when_original_not_recorded(
         assert not table.cellWidget(2, col).isEnabled()
 
 
+def test_recoverydialog_restore_fallback(qtbot, recovery_env, mocker):
+    """
+    Test fallback for when os.replace() fails when recovering a file.
+
+    Test that after pressing the 'Restore' button, if os.replace() fails,
+    the fallback to copy and delete kicks in and the restore succeeds.
+    Regression test for issue #8631.
+    """
+    orig_dir, autosave_dir, autosave_mapping = recovery_env
+    mocker.patch('spyder.plugins.editor.widgets.recover.os.replace',
+                 side_effect=OSError)
+    dialog = RecoveryDialog(autosave_dir, autosave_mapping)
+    table = dialog.findChild(QTableWidget)
+    button = table.cellWidget(0, 2).findChildren(QPushButton)[0]
+    button.click()
+    with open(osp.join(orig_dir, 'ham.py')) as f:
+        assert f.read() == 'ham = "autosave"\n'
+    assert not osp.isfile(osp.join(autosave_dir, 'ham.py'))
+    for col in range(table.columnCount()):
+        assert not table.cellWidget(0, col).isEnabled()
+
+
 def test_recoverydialog_restore_when_error(qtbot, recovery_env, mocker):
     """
     Test that errors during a restore action are handled gracefully.
@@ -180,12 +202,10 @@ def test_recoverydialog_restore_when_error(qtbot, recovery_env, mocker):
     in the grid is not deactivated.
     """
     orig_dir, autosave_dir, autosave_mapping = recovery_env
-    if PY3:
-        mocker.patch('spyder.plugins.editor.widgets.recover.os.replace',
-                     side_effect=OSError)
-    else:
-        mocker.patch('spyder.plugins.editor.widgets.recover.shutil.copy2',
-                     side_effect=IOError)
+    mocker.patch('spyder.plugins.editor.widgets.recover.os.replace',
+                 side_effect=OSError)
+    mocker.patch('spyder.plugins.editor.widgets.recover.shutil.copy2',
+                 side_effect=IOError)
     mock_QMessageBox = mocker.patch(
                 'spyder.plugins.editor.widgets.recover.QMessageBox')
     dialog = RecoveryDialog(autosave_dir, autosave_mapping)
