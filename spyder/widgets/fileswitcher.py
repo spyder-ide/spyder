@@ -658,17 +658,20 @@ class FileSwitcher(QDialog):
         for index, score in enumerate(scores):
             text, rich_text, score_value = score
             if score_value != -1:
-                text_item = "<big style='color:{0:}'>{1:}</big>".format(
-                        ima.MAIN_FG_COLOR, rich_text.replace('&', ''))
+                text_item = ("<span style='font-size: 13pt; color:{0:}'>{1:}"
+                             "</span>").format(ima.MAIN_FG_COLOR,
+                                               rich_text.replace('&', ''))
                 if trying_for_line_number:
                     text_item += " [{0:} {1:}]".format(self.line_count[index],
                                                        _("lines"))
                 if max_width > self.list.width():
-                    text_item += (u" &nbsp; <span style='color:{0:}'>{1:}"
+                    text_item += (u" &nbsp; <span style='font-size: 11pt;"
+                                  "color:{0:}'>{1:}"
                                   "</span>").format(self.PATH_FG_COLOR,
                                                     short_paths[index])
                 else:
-                    text_item += (u" &nbsp; <span style='color:{0:}'>{1:}"
+                    text_item += (u" &nbsp; <span style='font-size: 11pt;"
+                                  "color:{0:}'>{1:}"
                                   "</span>").format(self.PATH_FG_COLOR,
                                                     paths[index])
                 if (trying_for_line_number and self.line_count[index] != 0 or
