@@ -405,14 +405,14 @@ class MainWindow(QMainWindow):
         self.give_updates_feedback = True
 
         # Preferences
-        from spyder.preferences.configdialog import ColorSchemeConfigPage
+        from spyder.preferences.appearance import AppearanceConfigPage
         from spyder.preferences.general import MainConfigPage
         from spyder.preferences.shortcuts import ShortcutsConfigPage
         from spyder.preferences.runconfig import RunConfigPage
         from spyder.preferences.maininterpreter import MainInterpreterConfigPage
         from spyder.preferences.languageserver import LSPManagerConfigPage
-        self.general_prefs = [MainConfigPage, ShortcutsConfigPage,
-                              ColorSchemeConfigPage, MainInterpreterConfigPage,
+        self.general_prefs = [MainConfigPage, AppearanceConfigPage,
+                              ShortcutsConfigPage, MainInterpreterConfigPage,
                               RunConfigPage, LSPManagerConfigPage]
         self.prefs_index = None
         self.prefs_dialog_size = None
