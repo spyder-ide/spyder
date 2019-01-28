@@ -22,14 +22,14 @@ from qtpy.QtWidgets import (QAbstractItemView, QCheckBox, QComboBox, QDialog,
                             QWidget)
 
 # Local imports
-from spyder.config.main import CONF
-from spyder.utils import icon_manager as ima
 from spyder.config.base import _
-from spyder.utils.programs import find_program
-from spyder.preferences.configdialog import GeneralConfigPage
-from spyder.widgets.helperwidgets import ItemDelegate
-from spyder.config.gui import get_font
+from spyder.config.main import CONF
+from spyder.config.gui import get_font, is_dark_interface
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+from spyder.preferences.configdialog import GeneralConfigPage
+from spyder.utils import icon_manager as ima
+from spyder.utils.programs import find_program
+from spyder.widgets.helperwidgets import ItemDelegate
 
 
 LSP_LANGUAGES = [
@@ -618,6 +618,8 @@ class LSPManagerConfigPage(GeneralConfigPage):
         newcb = self.create_checkbox
 
         # --- Code completion ---
+        # Introspection group
+        introspection_group = QGroupBox(_("Introspection"))
         completion_box = newcb(_("Enable code completion"), 'code_completion')
         goto_definition_box = newcb(
             _("Go to definitions"),
@@ -630,13 +632,28 @@ class LSPManagerConfigPage(GeneralConfigPage):
                                    'jedi_definition/follow_imports')
         show_signature_box = newcb(_("Show signature"), 'jedi_signature_help')
 
-        completion_widget = QWidget()
-        completion_layout = QVBoxLayout()
-        completion_layout.addWidget(completion_box)
-        completion_layout.addWidget(goto_definition_box)
-        completion_layout.addWidget(follow_imports_box)
-        completion_layout.addWidget(show_signature_box)
-        completion_widget.setLayout(completion_layout)
+        introspection_layout = QVBoxLayout()
+        introspection_layout.addWidget(completion_box)
+        introspection_layout.addWidget(goto_definition_box)
+        introspection_layout.addWidget(follow_imports_box)
+        introspection_layout.addWidget(show_signature_box)
+        introspection_group.setLayout(introspection_layout)
+
+        # Advanced group
+        advanced_group = QGroupBox(_("Advanced"))
+        modules_textedit = self.create_textedit(
+            _("Preload the following modules to make completion faster "
+              "or more accurate:"),
+            'preload_modules'
+        )
+        if is_dark_interface():
+            modules_textedit.textbox.setStyleSheet(
+                "border: 1px solid #32414B;"
+            )
+
+        advanced_layout = QVBoxLayout()
+        advanced_layout.addWidget(modules_textedit)
+        advanced_group.setLayout(advanced_layout)
 
         # --- Other servers tab ---
         # Section label
@@ -652,7 +669,7 @@ class LSPManagerConfigPage(GeneralConfigPage):
         servers_label.setAlignment(Qt.AlignJustify)
 
         # Servers table
-        table_group = QGroupBox(_('Available servers'))
+        table_group = QGroupBox(_('Available servers:'))
         self.table = LSPServerTable(self, text_color=ima.MAIN_FG_COLOR)
         table_layout = QVBoxLayout()
         table_layout.addWidget(self.table)
@@ -690,7 +707,8 @@ class LSPManagerConfigPage(GeneralConfigPage):
 
         # --- Tabs organization ---
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(completion_widget), _('Code completion'))
+        tabs.addTab(self.create_tab(introspection_group, advanced_group),
+                                    _('Code completion'))
         tabs.addTab(self.create_tab(servers_widget), _('Other languages'))
 
         vlayout = QVBoxLayout()

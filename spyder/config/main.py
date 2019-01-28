@@ -22,6 +22,7 @@ from spyder.config.fonts import BIG, MEDIUM, MONOSPACE, SANS_SERIF
 from spyder.config.user import UserConfig
 from spyder.config.utils import IMPORT_EXT
 from spyder.utils import codeanalysis
+from spyder.utils.introspection.module_completion import PREFERRED_MODULES
 
 
 # =============================================================================
@@ -33,20 +34,16 @@ EXCLUDE_PATTERNS = ['*.csv, *.dat, *.log, *.tmp, *.bak, *.orig']
 # Extensions that should be visible in Spyder's file/project explorers
 SHOW_EXT = ['.py', '.ipynb', '.txt', '.dat', '.pdf', '.png', '.svg']
 
-
 # Extensions supported by Spyder (Editor or Variable explorer)
 USEFUL_EXT = IMPORT_EXT + SHOW_EXT
-
 
 # Name filters for file/project explorers (excluding files without extension)
 NAME_FILTERS = ['README', 'INSTALL', 'LICENSE', 'CHANGELOG'] + \
                ['*' + _ext for _ext in USEFUL_EXT if _ext]
 
-
 # Port used to detect if there is a running instance and to communicate with
 # it to open external files
 OPEN_FILES_PORT = 21128
-
 
 # OS Specific
 WIN = os.name == 'nt'
@@ -60,6 +57,9 @@ else:
     RUN_CELL_SHORTCUT = 'Ctrl+Return'
 RE_RUN_LAST_CELL_SHORTCUT = 'Alt+Return'
 RUN_CELL_AND_ADVANCE_SHORTCUT = 'Shift+Return'
+
+# Modules to be preloaded for Rope and Jedi
+PRELOAD_MDOULES = ', '.join(PREFERRED_MODULES)
 
 
 # =============================================================================
@@ -678,6 +678,7 @@ DEFAULTS = [
               'jedi_definition': True,
               'jedi_definition/follow_imports': True,
               'jedi_signature_help': True,
+              'preload_modules': PRELOAD_MDOULES,
                 'python': {
                     'index': 0,
                     'cmd': 'pyls',
