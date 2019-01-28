@@ -21,7 +21,6 @@ from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout, QLabel,
 
 # Local imports
 from spyder.config.base import _, running_under_pytest
-from spyder.py3compat import PY2
 
 
 def gather_file_data(name):
