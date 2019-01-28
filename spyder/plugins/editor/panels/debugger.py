@@ -128,7 +128,6 @@ class DebuggerPanel(Panel):
         Args:
             state (bool): Activate/deactivate.
         """
-        self.setVisible(state)
         if state:
             self.editor.sig_breakpoints_changed.connect(self.repaint)
             self.editor.sig_debug_stop.connect(self.set_current_line_arrow)
