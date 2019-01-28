@@ -9,6 +9,7 @@
 # Standard library imports
 from os import path as osp
 import os
+import shutil
 import time
 
 # Third party imports
@@ -20,9 +21,6 @@ from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout, QLabel,
 
 # Local imports
 from spyder.config.base import _, running_under_pytest
-from spyder.py3compat import PY2
-if PY2:
-    import shutil
 
 
 def gather_file_data(name):
@@ -221,7 +219,9 @@ class RecoveryDialog(QDialog):
         try:
             try:
                 os.replace(autosave['name'], orig_name)
-            except AttributeError:  # Python 2
+            except (AttributeError, OSError):
+                # os.replace() does not exist on Python 2 and fails if the
+                # files are on different file systems (issue #8631)
                 shutil.copy2(autosave['name'], orig_name)
                 os.remove(autosave['name'])
             self.deactivate(idx)
