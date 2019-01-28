@@ -17,7 +17,7 @@ from qtpy import API
 from qtpy.compat import (getexistingdirectory, getopenfilename, from_qvariant,
                          to_qvariant)
 from qtpy.QtCore import QSize, Qt, Signal, Slot, QRegExp
-from qtpy.QtGui import QColor, QRegExpValidator
+from qtpy.QtGui import QColor, QRegExpValidator, QTextOption
 from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
                             QDialogButtonBox, QDoubleSpinBox, QFontComboBox,
                             QGridLayout, QGroupBox, QHBoxLayout, QLabel,
@@ -25,7 +25,7 @@ from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
                             QMessageBox, QPushButton, QRadioButton,
                             QScrollArea, QSpinBox, QSplitter, QStackedWidget,
                             QStyleFactory, QTabWidget, QVBoxLayout, QWidget,
-                            QApplication)
+                            QApplication, QPlainTextEdit)
 
 # Local imports
 from spyder.config.base import (_, LANGUAGE_CODES, load_lang_conf,
@@ -278,6 +278,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         self.checkboxes = {}
         self.radiobuttons = {}
         self.lineedits = {}
+        self.textedits = {}
         self.validate_data = {}
         self.spinboxes = {}
         self.comboboxes = {}
@@ -337,6 +338,12 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                                          self.has_been_modified(opt))
             if lineedit.restart_required:
                 self.restart_options[option] = lineedit.label_text
+        for textedit, (option, default) in list(self.textedits.items()):
+            textedit.setPlainText(self.get_option(option, default))
+            textedit.textChanged.connect(lambda opt=option:
+                                         self.has_been_modified(opt))
+            if textedit.restart_required:
+                self.restart_options[option] = textedit.label_text
         for spinbox, (option, default) in list(self.spinboxes.items()):
             spinbox.setValue(self.get_option(option, default))
             spinbox.valueChanged.connect(lambda _foo, opt=option:
@@ -420,6 +427,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             self.set_option(option, radiobutton.isChecked())
         for lineedit, (option, _default) in list(self.lineedits.items()):
             self.set_option(option, to_text_string(lineedit.text()))
+        for textedit, (option, _default) in list(self.textedits.items()):
+            self.set_option(option, to_text_string(textedit.toPlainText()))
         for spinbox, (option, _default) in list(self.spinboxes.items()):
             self.set_option(option, spinbox.value())
         for combobox, (option, _default) in list(self.comboboxes.items()):
@@ -506,6 +515,27 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         widget = QWidget(self)
         widget.label = label
         widget.textbox = edit 
+        widget.setLayout(layout)
+        edit.restart_required = restart
+        edit.label_text = text
+        return widget
+
+    def create_textedit(self, text, option, default=NoDefault,
+                        tip=None, restart=False):
+        label = QLabel(text)
+        label.setWordWrap(True)
+        edit = QPlainTextEdit()
+        edit.setWordWrapMode(QTextOption.WordWrap)
+        layout = QVBoxLayout()
+        layout.addWidget(label)
+        layout.addWidget(edit)
+        layout.setContentsMargins(0, 0, 0, 0)
+        if tip:
+            edit.setToolTip(tip)
+        self.textedits[edit] = (option, default)
+        widget = QWidget(self)
+        widget.label = label
+        widget.textbox = edit
         widget.setLayout(layout)
         edit.restart_required = restart
         edit.label_text = text
