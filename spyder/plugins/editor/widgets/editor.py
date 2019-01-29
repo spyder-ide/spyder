@@ -1595,7 +1595,8 @@ class EditorStack(QWidget):
 
         This function controls the message box prompt for saving
         changed files.  The actual save is performed in save() for
-        each index processed.
+        each index processed. This function also removes autosave files
+        corresponding to files the user chooses not to save.
         """
         if index is None:
             indexes = list(range(self.get_stack_count()))
@@ -1613,13 +1614,15 @@ class EditorStack(QWidget):
             return True
         if unsaved_nb > 1:
             buttons |= QMessageBox.YesToAll | QMessageBox.NoToAll
-        yes_all = False
+        yes_all = no_all = False
         for index in indexes:
             self.set_stack_index(index)
             finfo = self.data[index]
             if finfo.filename == self.tempfile_path or yes_all:
                 if not self.save(index):
                     return False
+            elif no_all:
+                self.autosave.remove_autosave_file(finfo)
             elif (finfo.editor.document().isModified() and
                   self.save_dialog_on_tests):
 
@@ -1636,12 +1639,15 @@ class EditorStack(QWidget):
                 if answer == QMessageBox.Yes:
                     if not self.save(index):
                         return False
+                elif answer == QMessageBox.No:
+                    self.autosave.remove_autosave_file(finfo)
                 elif answer == QMessageBox.YesToAll:
                     if not self.save(index):
                         return False
                     yes_all = True
                 elif answer == QMessageBox.NoToAll:
-                    return True
+                    self.autosave.remove_autosave_file(finfo)
+                    no_all = True
                 elif answer == QMessageBox.Cancel:
                     return False
         return True
