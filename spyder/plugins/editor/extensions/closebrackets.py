@@ -90,7 +90,7 @@ class CloseBracketsExtension(EditorExtension):
         elif key in self.BRACKETS_LEFT:
             if (not trailing_text or
                     trailing_text[0] in self.BRACKETS_RIGHT.values() or
-                    trailing_text[0] == ','):
+                    trailing_text[0] in [',', ':', ';']):
                 # Automatic insertion of brackets
                 self.editor.insert_text(pair)
                 cursor.movePosition(QTextCursor.PreviousCharacter)

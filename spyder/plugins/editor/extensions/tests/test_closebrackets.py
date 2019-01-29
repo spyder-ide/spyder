@@ -53,6 +53,32 @@ def test_close_brackets(qtbot, editor_close_brackets, text, expected_text,
     assert cursor_column == TextHelper(editor).current_column_nbr()
 
 
+@pytest.mark.parametrize(
+    'text, expected_text, cursor_column',
+    [
+        ('()', '(())', 2),  # Complete in brackets
+        ('{}', '{()}', 2),
+        ('[]', '[()]', 2),
+        (',', '(),', 1),  # Complete before commas, colons and semi-colons
+        (':', '():', 1),
+        (';', '();', 1),
+    ])
+def test_nested_brackets(qtbot, editor_close_brackets, text, expected_text,
+                      cursor_column):
+    """
+    Test completion of brackets inside brackets and before commas,
+    colons and semi-colons.
+    """
+    editor = editor_close_brackets
+
+    qtbot.keyClicks(editor, text)
+    editor.move_cursor(-1)
+    qtbot.keyClicks(editor, '(')
+    assert editor.toPlainText() == expected_text
+
+    assert cursor_column == TextHelper(editor).current_column_nbr()
+
+
 def test_selected_text(qtbot, editor_close_brackets):
     """Test insert surronding brackets to selected text."""
     editor = editor_close_brackets
@@ -103,7 +129,7 @@ def test_selected_text_multiple_lines(qtbot, editor_close_brackets):
                                     "some]}) text")
 
 
-def test_nested_completion(qtbot, editor_close_brackets):
+def test_complex_completion(qtbot, editor_close_brackets):
     """Test bracket completion in nested brackets."""
     editor = editor_close_brackets
     # Test completion when following character is a right bracket
