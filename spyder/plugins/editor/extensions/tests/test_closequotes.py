@@ -69,9 +69,10 @@ def test_close_quotes(qtbot, editor_close_quotes, text, expected_text,
         (',', '"",', 1),  # Complete before commas, colons and semi-colons
         (':', '"":', 1),
         (';', '"";', 1),
+        ('a', '"a', 1),  # No Completion before other text
     ])
-def test_close_quotes(qtbot, editor_close_quotes, text, expected_text,
-                      cursor_column):
+def test_trailing_text(qtbot, editor_close_quotes, text, expected_text,
+                       cursor_column):
     """
     Test insertion of extra quotes inside brackets and before commas,
     colons and semi-colons.
