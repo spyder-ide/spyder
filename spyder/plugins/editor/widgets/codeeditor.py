@@ -67,12 +67,9 @@ from spyder.plugins.editor.panels.codefolding import FoldingPanel
 from spyder.plugins.editor.panels.classfunctiondropdown import (
     ClassFunctionDropdown)
 from spyder.plugins.editor.utils.folding import IndentFoldDetector
-from spyder.plugins.editor.extensions.manager import (
-    EditorExtensionsManager)
-from spyder.plugins.editor.extensions.closequotes import (
-    CloseQuotesExtension)
-from spyder.plugins.editor.extensions.closebrackets import (
-    CloseBracketsExtension)
+from spyder.plugins.editor.extensions import (CloseBracketsExtension,
+                                              CloseQuotesExtension,
+                                              EditorExtensionsManager)
 from spyder.plugins.editor.api.decoration import TextDecoration
 from spyder.plugins.editor.utils.lsp import (
     request, handles, class_register)
