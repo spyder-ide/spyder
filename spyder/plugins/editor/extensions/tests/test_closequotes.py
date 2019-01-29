@@ -72,7 +72,10 @@ def test_close_quotes(qtbot, editor_close_quotes, text, expected_text,
     ])
 def test_close_quotes(qtbot, editor_close_quotes, text, expected_text,
                       cursor_column):
-    """Test insertion of extra quotes."""
+    """
+    Test insertion of extra quotes inside brackets and before commas,
+    colons and semi-colons.
+    """
     editor = editor_close_quotes
 
     qtbot.keyClicks(editor, text)
@@ -134,7 +137,7 @@ def test_selected_text_multiple_lines(qtbot, editor_close_quotes):
 
 
 def test_close_quotes_in_brackets(qtbot, editor_close_quotes):
-    """Test bracket completion in nested brackets."""
+    """Test quote completion in nested brackets."""
     editor = editor_close_quotes
     # Test closing when following character is a right parentheses
     editor.textCursor().insertText('foo()')
