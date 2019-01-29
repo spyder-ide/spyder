@@ -113,15 +113,17 @@ class MainConfigPage(GeneralConfigPage):
 
         cursor_box = newcb(_("Cursor blinking:"),
                            'use_custom_cursor_blinking')
-        cursor_spin = self.create_spinbox("", _("ms"), 'custom_cursor_blinking',
-                                          default = QApplication.cursorFlashTime(),
-                                          min_=0, max_=5000, step=100)
+        cursor_spin = self.create_spinbox(
+            "", _("ms"),
+            'custom_cursor_blinking',
+            default=QApplication.cursorFlashTime(),
+            min_=0, max_=5000, step=100)
         cursor_box.toggled.connect(cursor_spin.spinbox.setEnabled)
         cursor_box.toggled.connect(cursor_spin.slabel.setEnabled)
         cursor_spin.spinbox.setEnabled(
-                self.get_option('use_custom_cursor_blinking'))
+            self.get_option('use_custom_cursor_blinking'))
         cursor_spin.slabel.setEnabled(
-                self.get_option('use_custom_cursor_blinking'))
+            self.get_option('use_custom_cursor_blinking'))
 
         margins_cursor_layout = QGridLayout()
         margins_cursor_layout.addWidget(margin_box, 0, 0)
@@ -217,14 +219,15 @@ class MainConfigPage(GeneralConfigPage):
                                       "auto scaling does not work"),
                                 restart=True)
 
-        custom_scaling_edit = self.create_lineedit("",
-                                'high_dpi_custom_scale_factors',
-                                tip=_("Enter values for different screens "
-                                      "separated by semicolons ';', "
-                                      "float values are supported"),
-                                alignment=Qt.Horizontal,
-                                regex="[0-9]+(?:\.[0-9]*)(;[0-9]+(?:\.[0-9]*))*",
-                                restart=True)
+        custom_scaling_edit = self.create_lineedit(
+            "",
+            'high_dpi_custom_scale_factors',
+            tip=_("Enter values for different screens "
+                  "separated by semicolons ';', "
+                  "float values are supported"),
+            alignment=Qt.Horizontal,
+            regex=r"[0-9]+(?:\.[0-9]*)(;[0-9]+(?:\.[0-9]*))*",
+            restart=True)
 
         normal_radio.toggled.connect(custom_scaling_edit.setDisabled)
         auto_scale_radio.toggled.connect(custom_scaling_edit.setDisabled)
@@ -269,7 +272,8 @@ class MainConfigPage(GeneralConfigPage):
             save_lang_conf(value)
             self.set_option('interface_language', value)
         except Exception:
-            QMessageBox.critical(self, _("Error"),
+            QMessageBox.critical(
+                self, _("Error"),
                 _("We're sorry but the following error occurred while trying "
                   "to set your selected language:<br><br>"
                   "<tt>{}</tt>").format(traceback.format_exc()),
