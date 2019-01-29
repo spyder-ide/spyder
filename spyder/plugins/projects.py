@@ -179,6 +179,13 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
                 self.toggle_view_action.setChecked(True)
             self.visibility_changed(True)
 
+    def get_slot(self, project):
+        def slot():
+            self.switch_to_plugin()
+            self.open_project(path=project)
+
+        return slot
+
     #------ Public API ---------------------------------------------------------
     def setup_menu_actions(self):
         """Setup and update the menu actions."""
@@ -189,9 +196,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
                 if self.is_valid_project(project):
                     name = project.replace(get_home_dir(), '~')
 
-                    def slot():
-                        self.switch_to_plugin()
-                        self.open_project(path=project)
+                    slot = self.get_slot(project)
 
                     action = create_action(self,
                         name,
