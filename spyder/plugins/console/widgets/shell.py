@@ -38,7 +38,7 @@ from spyder.utils.qthelpers import (add_actions, create_action, keybinding,
                                     restore_keyevent)
 from spyder.widgets.mixins import (GetHelpMixin, SaveHistoryMixin,
                                    TracebackLinksMixin, BrowseHistoryMixin)
-from spyder.plugins.editor.widgets.base import ConsoleBaseWidget
+from spyder.plugins.console.widgets.console import ConsoleBaseWidget
 
 
 class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
