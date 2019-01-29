@@ -31,6 +31,7 @@ else:
     MAIN_TB_FG_COLOR = '#0000FF'
     MAIN_PROMPT_FG_COLOR = '#00AA00'
 
+
 def insert_text_to(cursor, text, fmt):
     """Helper to print text, taking into account backspaces"""
     while True:
@@ -167,8 +168,8 @@ class ConsoleBaseWidget(TextEditBaseWidget):
         # Disable undo/redo (nonsense for a console widget...):
         self.setUndoRedoEnabled(False)
 
-        self.userListActivated.connect(lambda user_id, text:
-                                   self.completion_widget_activated.emit(text))
+        self.userListActivated.connect(
+            lambda user_id, text: self.completion_widget_activated.emit(text))
 
         background_color = MAIN_BG_COLOR
         default_foreground_color = MAIN_DEFAULT_FG_COLOR
@@ -180,15 +181,15 @@ class ConsoleBaseWidget(TextEditBaseWidget):
                             foregroundcolor=default_foreground_color,
                             backgroundcolor=background_color,
                             bold=False, italic=False, underline=False)
-        self.error_style  = ConsoleFontStyle(
+        self.error_style = ConsoleFontStyle(
                             foregroundcolor=error_foreground_color,
                             backgroundcolor=background_color,
                             bold=False, italic=False, underline=False)
-        self.traceback_link_style  = ConsoleFontStyle(
+        self.traceback_link_style = ConsoleFontStyle(
                             foregroundcolor=traceback_foreground_color,
                             backgroundcolor=background_color,
                             bold=True, italic=False, underline=True)
-        self.prompt_style  = ConsoleFontStyle(
+        self.prompt_style = ConsoleFontStyle(
                             foregroundcolor=prompt_foreground_color,
                             backgroundcolor=background_color,
                             bold=True, italic=False, underline=False)
@@ -210,7 +211,7 @@ class ConsoleBaseWidget(TextEditBaseWidget):
 
         self.set_pythonshell_font()
 
-    #------Python shell
+    # ----- Python shell
     def insert_text(self, text):
         """Reimplement TextEditBaseWidget method"""
         # Eventually this maybe should wrap to insert_text_to if
@@ -247,8 +248,8 @@ class ConsoleBaseWidget(TextEditBaseWidget):
         if error:
             is_traceback = False
             for text in text.splitlines(True):
-                if text.startswith('  File') \
-                and not text.startswith('  File "<'):
+                if (text.startswith('  File')
+                        and not text.startswith('  File "<')):
                     is_traceback = True
                     # Show error links in blue underlined text
                     cursor.insertText('  ', self.default_style.format)
