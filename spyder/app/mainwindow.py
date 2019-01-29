@@ -2468,7 +2468,8 @@ class MainWindow(QMainWindow):
             <b>Spyder {spyder_ver}</b> {revision}
             <br>The Scientific Python Development Environment |
             <a href="{website_url}">Spyder-IDE.org</a>
-            <br>Copyright &copy; 2009-2018 Spyder Project Contributors
+            <br>Copyright &copy; 2009-2019 Spyder Project Contributors and
+            <a href="{github_url}/blob/master/AUTHORS.txt">others</a>
             <br>Distributed under the terms of the
             <a href="{github_url}/blob/master/LICENSE.txt">MIT License</a>.
 
