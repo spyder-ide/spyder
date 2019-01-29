@@ -44,42 +44,33 @@ from spyder_kernels.utils.dochelpers import getobj
 # %% This line is for cell execution testing
 
 # Local imports
+from spyder.api.panel import Panel
 from spyder.config.base import _
 from spyder.config.gui import get_shortcut, config_shortcut
 from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
                                 RUN_CELL_AND_ADVANCE_SHORTCUT)
+from spyder.plugins.editor.api.decoration import TextDecoration
+from spyder.plugins.editor.extensions import (CloseBracketsExtension,
+                                              CloseQuotesExtension,
+                                              EditorExtensionsManager)
+from spyder.plugins.editor.lsp import (LSPRequestTypes, TextDocumentSyncKind,
+                                       DiagnosticSeverity)
+from spyder.plugins.editor.panels import (ClassFunctionDropdown, EdgeLine,
+                                          FoldingPanel, IndentationGuide,
+                                          LineNumberArea, PanelsManager,
+                                          ScrollFlagArea)
+from spyder.plugins.editor.utils.editor import TextHelper
+from spyder.plugins.editor.utils.folding import IndentFoldDetector
+from spyder.plugins.editor.utils.kill_ring import QtKillRing
+from spyder.plugins.editor.utils.languages import ALL_LANGUAGES, CELL_LANGUAGES
+from spyder.plugins.editor.utils.lsp import request, handles, class_register
+from spyder.plugins.editor.widgets.base import TextEditBaseWidget
+from spyder.plugins.outlineexplorer.languages import PythonCFM
 from spyder.py3compat import to_text_string
+from spyder.utils import encoding, sourcecode
 from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters as sh
-from spyder.utils import encoding, sourcecode
 from spyder.utils.qthelpers import add_actions, create_action, mimedata2url
-from spyder.plugins.editor.utils.languages import ALL_LANGUAGES, CELL_LANGUAGES
-from spyder.plugins.outlineexplorer.languages import PythonCFM
-from spyder.plugins.editor.widgets.base import TextEditBaseWidget
-from spyder.plugins.editor.utils.kill_ring import QtKillRing
-from spyder.plugins.editor.utils.editor import TextHelper
-from spyder.plugins.editor.panels.linenumber import LineNumberArea
-from spyder.plugins.editor.panels.edgeline import EdgeLine
-from spyder.plugins.editor.panels.indentationguides import IndentationGuide
-from spyder.plugins.editor.panels.scrollflag import ScrollFlagArea
-from spyder.plugins.editor.panels.manager import PanelsManager
-from spyder.plugins.editor.panels.codefolding import FoldingPanel
-from spyder.plugins.editor.panels.classfunctiondropdown import (
-    ClassFunctionDropdown)
-from spyder.plugins.editor.utils.folding import IndentFoldDetector
-from spyder.plugins.editor.extensions.manager import (
-    EditorExtensionsManager)
-from spyder.plugins.editor.extensions.closequotes import (
-    CloseQuotesExtension)
-from spyder.plugins.editor.extensions.closebrackets import (
-    CloseBracketsExtension)
-from spyder.plugins.editor.api.decoration import TextDecoration
-from spyder.plugins.editor.utils.lsp import (
-    request, handles, class_register)
-from spyder.plugins.editor.lsp import (
-    LSPRequestTypes, TextDocumentSyncKind, DiagnosticSeverity,
-    )
-from spyder.api.panel import Panel
 
 try:
     import nbformat as nbformat
@@ -101,8 +92,6 @@ def is_letter_or_number(char):
 # =============================================================================
 # Go to line dialog box
 # =============================================================================
-
-
 class GoToLineDialog(QDialog):
     def __init__(self, editor):
         QDialog.__init__(self, editor, Qt.WindowTitleHint
