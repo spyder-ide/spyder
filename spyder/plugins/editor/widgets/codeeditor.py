@@ -58,14 +58,10 @@ from spyder.plugins.outlineexplorer.languages import PythonCFM
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.editor.utils.kill_ring import QtKillRing
 from spyder.plugins.editor.utils.editor import TextHelper
-from spyder.plugins.editor.panels.linenumber import LineNumberArea
-from spyder.plugins.editor.panels.edgeline import EdgeLine
-from spyder.plugins.editor.panels.indentationguides import IndentationGuide
-from spyder.plugins.editor.panels.scrollflag import ScrollFlagArea
-from spyder.plugins.editor.panels.manager import PanelsManager
-from spyder.plugins.editor.panels.codefolding import FoldingPanel
-from spyder.plugins.editor.panels.classfunctiondropdown import (
-    ClassFunctionDropdown)
+from spyder.plugins.editor.panels import (ClassFunctionDropdown, EdgeLine,
+                                          FoldingPanel, IndentationGuide,
+                                          LineNumberArea, PanelsManager,
+                                          ScrollFlagArea)
 from spyder.plugins.editor.utils.folding import IndentFoldDetector
 from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               CloseQuotesExtension,
