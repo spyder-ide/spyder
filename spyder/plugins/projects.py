@@ -180,6 +180,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
             self.visibility_changed(True)
 
     def get_slot(self, project):
+        """Create onClick handler"""
         def slot():
             self.switch_to_plugin()
             self.open_project(path=project)
