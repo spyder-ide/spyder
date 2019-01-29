@@ -15,7 +15,7 @@ from qtpy.QtWidgets import QApplication
 
 from spyder.config.gui import is_dark_interface
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
-from spyder.plugins.editor.utils.terminal import ANSIEscapeCodeHandler
+from spyder.plugins.console.utils.ansihandler import ANSIEscapeCodeHandler
 
 
 if is_dark_interface():
