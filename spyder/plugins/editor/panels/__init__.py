@@ -8,3 +8,5 @@ This module contains the editor panels.
 
 Panels are widgets used to extend editor functionalities.
 """
+
+from .debugger import DebuggerPanel

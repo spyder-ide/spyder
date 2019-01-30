@@ -66,7 +66,7 @@ from spyder.plugins.editor.panels.manager import PanelsManager
 from spyder.plugins.editor.panels.codefolding import FoldingPanel
 from spyder.plugins.editor.panels.classfunctiondropdown import (
     ClassFunctionDropdown)
-from spyder.plugins.editor.panels.debugger import DebuggerPanel
+from spyder.plugins.editor.panels import DebuggerPanel
 from spyder.plugins.editor.utils.folding import IndentFoldDetector
 from spyder.plugins.editor.extensions.manager import (
     EditorExtensionsManager)
@@ -321,14 +321,14 @@ class CodeEditor(TextEditBaseWidget):
         # Folding
         self.panels.register(FoldingPanel())
 
-        # Line number area management
-        self.linenumberarea = self.panels.register(LineNumberArea(self))
-
         # Debugger panel (Breakpoints)
         self.debugger = DebuggerManager(self)
         self.panels.register(DebuggerPanel())
         # Update breakpoints if the number of lines in the file changes
         self.blockCountChanged.connect(self.debugger.update_breakpoints)
+
+        # Line number area management
+        self.linenumberarea = self.panels.register(LineNumberArea(self))
 
         # Class and Method/Function Dropdowns
         self.classfuncdropdown = self.panels.register(
