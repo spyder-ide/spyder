@@ -22,6 +22,7 @@ from spyder.py3compat import iteritems, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.stringmatching import get_search_scores
 from spyder.widgets.helperwidgets import HelperToolButton, HTMLDelegate
+from spyder.config.main import CONF
 
 
 # --- Python Outline explorer helpers
@@ -655,24 +656,29 @@ class FileSwitcher(QDialog):
         self.fix_size(paths)
 
         # Build the text that will appear on the list widget
+        PATH_TEXT_FONT_SIZE = CONF.get('appearance', 'rich_font/size', 11)
+        FILENAME_TEXT_FONT_SIZE = PATH_TEXT_FONT_SIZE + 2
         for index, score in enumerate(scores):
             text, rich_text, score_value = score
             if score_value != -1:
-                text_item = ("<span style='font-size: 13pt; color:{0:}'>{1:}"
+                text_item = ("<span style='color:{0:}; font-size:{1:}pt'>{2:}"
                              "</span>").format(ima.MAIN_FG_COLOR,
+                                               FILENAME_TEXT_FONT_SIZE,
                                                rich_text.replace('&', ''))
                 if trying_for_line_number:
                     text_item += " [{0:} {1:}]".format(self.line_count[index],
                                                        _("lines"))
                 if max_width > self.list.width():
-                    text_item += (u" &nbsp; <span style='font-size: 11pt;"
-                                  "color:{0:}'>{1:}"
+                    text_item += (u" &nbsp; <span style='color:{0:};"
+                                  "font-size:{1:}pt'>{2:}"
                                   "</span>").format(self.PATH_FG_COLOR,
+                                                    PATH_TEXT_FONT_SIZE,
                                                     short_paths[index])
                 else:
-                    text_item += (u" &nbsp; <span style='font-size: 11pt;"
-                                  "color:{0:}'>{1:}"
+                    text_item += (u" &nbsp; <span style='color:{0:};"
+                                  "font-size:{1:}pt'>{2:}"
                                   "</span>").format(self.PATH_FG_COLOR,
+                                                    PATH_TEXT_FONT_SIZE,
                                                     paths[index])
                 if (trying_for_line_number and self.line_count[index] != 0 or
                         not trying_for_line_number):
