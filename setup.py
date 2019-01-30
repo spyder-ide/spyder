@@ -226,7 +226,7 @@ install_requires = [
     # Python 3
     'pyqt5<=5.12;python_version>="3"',
     # Pyls with all its dependencies
-    'python-language-server[all]==0.19.0',
+    'python-language-server[all]>=0.19.0',
     # Required to get SSH connections to remote kernels
     'pexpect;platform_system!="Windows"',
     'paramiko;platform_system=="Windows"'

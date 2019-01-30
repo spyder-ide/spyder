@@ -73,7 +73,7 @@ class IncomingMessageThread(Thread):
         continue_reading = True
         while continue_reading:
             try:
-                buffer += self.socket.recv(1024)
+                buffer += self.socket.recv(1)
                 if b'\r\n\r\n' in buffer:
                     split = buffer.split(b'\r\n\r\n')
                     if len(split) == 2:

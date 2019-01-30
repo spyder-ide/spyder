@@ -31,14 +31,14 @@ from spyder.config.base import _, get_conf_path, get_debug_level, STDERR
 from spyder.config.gui import config_shortcut, get_shortcut
 from spyder.config.main import CONF
 from spyder.py3compat import (builtins, is_string, is_text_string,
-                              PY3, to_text_string)
+                              PY3, str_lower, to_text_string)
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_action, keybinding,
                                     restore_keyevent)
 from spyder.widgets.mixins import (GetHelpMixin, SaveHistoryMixin,
                                    TracebackLinksMixin, BrowseHistoryMixin)
-from spyder.plugins.editor.widgets.base import ConsoleBaseWidget
+from spyder.plugins.console.widgets.console import ConsoleBaseWidget
 
 
 class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
@@ -96,7 +96,10 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
         self.setFocus()
 
         # Cursor width
-        self.setCursorWidth( CONF.get('main', 'cursor/width') )
+        self.setCursorWidth(CONF.get('main', 'cursor/width'))
+
+        # Adjustments to completion_widget to use it here
+        self.completion_widget.currentRowChanged.disconnect()
 
     def toggle_wrap_mode(self, enable):
         """Enable/disable wrap mode"""
@@ -742,12 +745,12 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
             if empty_line:
                 self.stdkey_tab()
             else:
-                self.show_code_completion(automatic=False)
+                self.show_code_completion()
                 
     def _key_ctrl_space(self):
         """Action for Ctrl+Space"""
         if not self.is_completion_widget_visible():
-            self.show_code_completion(automatic=False)
+            self.show_code_completion()
                 
     def _key_pageup(self):
         """Action for PageUp key"""
@@ -791,7 +794,7 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
             # Enable auto-completion only if last token isn't a float
             last_obj = self.get_last_obj()
             if last_obj and not last_obj.isdigit():
-                self.show_code_completion(automatic=True)
+                self.show_code_completion()
 
 
     #------ Paste
@@ -819,9 +822,6 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
     def get_dir(self, objtxt):
         """Return dir(object)"""
         raise NotImplementedError
-    def get_module_completion(self, objtxt):
-        """Return module completion list associated to object name"""
-        pass
     def get_globals_keys(self):
         """Return shell globals() keys"""
         raise NotImplementedError
@@ -846,41 +846,45 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
     def is_defined(self, objtxt, force_import=False):
         """Return True if object is defined"""
         raise NotImplementedError
-        
-    def show_code_completion(self, automatic):
+
+    def show_completion_widget(self, textlist):
+        """Show completion widget"""
+        self.completion_widget.show_list(textlist)
+
+    def hide_completion_widget(self):
+        """Hide completion widget"""
+        self.completion_widget.hide()
+
+    def show_completion_list(self, completions, completion_text=""):
+        """Display the possible completions"""
+        if not completions:
+            return
+        if not isinstance(completions[0], tuple):
+            completions = [(c, '') for c in completions]
+        if len(completions) == 1 and completions[0][0] == completion_text:
+            return
+        self.completion_text = completion_text
+        # Sorting completion list (entries starting with underscore are
+        # put at the end of the list):
+        underscore = set([(comp, t) for (comp, t) in completions
+                          if comp.startswith('_')])
+
+        completions = sorted(set(completions) - underscore,
+                             key=lambda x: str_lower(x[0]))
+        completions += sorted(underscore, key=lambda x: str_lower(x[0]))
+        self.show_completion_widget(completions)
+
+    def show_code_completion(self):
         """Display a completion list based on the current line"""
         # Note: unicode conversion is needed only for ExternalShellBase
         text = to_text_string(self.get_current_line_to_cursor())
         last_obj = self.get_last_obj()
-        
         if not text:
             return
 
-        if text.startswith('import '):
-            obj_list = self.get_module_completion(text)
-            words = text.split(' ')
-            if ',' in words[-1]:
-                words = words[-1].split(',')
-            self.show_completion_list(obj_list, completion_text=words[-1],
-                                      automatic=automatic)
-            return
-            
-        elif text.startswith('from '):
-            obj_list = self.get_module_completion(text)
-            if obj_list is None:
-                return
-            words = text.split(' ')
-            if '(' in words[-1]:
-                words = words[:-2] + words[-1].split('(')
-            if ',' in words[-1]:
-                words = words[:-2] + words[-1].split(',')
-            self.show_completion_list(obj_list, completion_text=words[-1],
-                                      automatic=automatic)
-            return
-        
         obj_dir = self.get_dir(last_obj)
         if last_obj and obj_dir and text.endswith('.'):
-            self.show_completion_list(obj_dir, automatic=automatic)
+            self.show_completion_list(obj_dir)
             return
         
         # Builtins and globals
@@ -889,8 +893,7 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
             b_k_g = dir(builtins)+self.get_globals_keys()+keyword.kwlist
             for objname in b_k_g:
                 if objname.startswith(last_obj) and objname != last_obj:
-                    self.show_completion_list(b_k_g, completion_text=last_obj,
-                                              automatic=automatic)
+                    self.show_completion_list(b_k_g, completion_text=last_obj)
                     return
             else:
                 return
@@ -908,8 +911,7 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
             completions = self.get_dir(last_obj)
             if completions is not None:
                 self.show_completion_list(completions,
-                                          completion_text=completion_text,
-                                          automatic=automatic)
+                                          completion_text=completion_text)
                 return
         
         # Looking for ' or ": filename completion
@@ -918,9 +920,15 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
             completions = self.get_cdlistdir()
             if completions:
                 self.show_completion_list(completions,
-                                          completion_text=text[q_pos+1:],
-                                          automatic=automatic)
+                                          completion_text=text[q_pos+1:])
             return
+
+    def document_did_change(self, text=None):
+        """
+        This is here to be compatible with CodeEditor and be able to use
+        code completion.
+        """
+        pass
             
     #------ Drag'n Drop
     def drop_pathlist(self, pathlist):

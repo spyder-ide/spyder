@@ -7,6 +7,7 @@
 
 # Third party imports
 import pytest
+from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
 
 # Local imports
@@ -54,6 +55,33 @@ def test_close_quotes(qtbot, editor_close_quotes, text, expected_text,
     editor = editor_close_quotes
 
     qtbot.keyClicks(editor, text)
+    assert editor.toPlainText() == expected_text
+
+    assert cursor_column == TextHelper(editor).current_column_nbr()
+
+
+@pytest.mark.parametrize(
+    'text, expected_text, cursor_column',
+    [
+        ('()', '("")', 2),  # Complete in brackets
+        ('{}', '{""}', 2),
+        ('[]', '[""]', 2),
+        (',', '"",', 1),  # Complete before commas, colons and semi-colons
+        (':', '"":', 1),
+        (';', '"";', 1),
+        ('a', '"a', 1),  # No Completion before other text
+    ])
+def test_trailing_text(qtbot, editor_close_quotes, text, expected_text,
+                       cursor_column):
+    """
+    Test insertion of extra quotes inside brackets and before commas,
+    colons and semi-colons.
+    """
+    editor = editor_close_quotes
+
+    qtbot.keyClicks(editor, text)
+    editor.move_cursor(-1)
+    qtbot.keyClicks(editor, '"')
     assert editor.toPlainText() == expected_text
 
     assert cursor_column == TextHelper(editor).current_column_nbr()
@@ -107,6 +135,43 @@ def test_selected_text_multiple_lines(qtbot, editor_close_quotes):
     assert editor.toPlainText() == ('"""some text\n'
                                     '\n'
                                     'some""" text')
+
+
+def test_close_quotes_in_brackets(qtbot, editor_close_quotes):
+    """Test quote completion in nested brackets."""
+    editor = editor_close_quotes
+    # Test closing when following character is a right parentheses
+    editor.textCursor().insertText('foo()')
+    editor.move_cursor(-1)
+    qtbot.keyClicks(editor, '"')
+    assert editor.toPlainText() == 'foo("")'
+    assert editor.textCursor().columnNumber() == 5
+    # Test not closing when single quote is before a bracket
+    qtbot.keyPress(editor, Qt.Key_Delete)  # now 'foo(")'
+    qtbot.keyClicks(editor, '"')
+    assert editor.toPlainText() == 'foo("")'
+    assert editor.textCursor().columnNumber() == 6
+    # Test closing when following character is a comma
+    qtbot.keyClicks(editor, ', ,')
+    editor.move_cursor(-1)
+    qtbot.keyClicks(editor, '"')
+    assert editor.toPlainText() == 'foo("", "",)'
+    assert editor.textCursor().columnNumber() == 9
+    # Test closing when following character is a right brace
+    # and white preceding the next character
+    editor.move_cursor(2)
+    qtbot.keyClicks(editor, ' { },')
+    editor.move_cursor(-3)
+    qtbot.keyClicks(editor, '"')
+    assert editor.toPlainText() == 'foo("", "", {"" },)'
+    assert editor.textCursor().columnNumber() == 14
+    # Test not closing otherwise
+    editor.move_cursor(4)
+    qtbot.keyClicks(editor, ' bar')
+    editor.move_cursor(-3)
+    qtbot.keyClicks(editor, '"')
+    assert editor.toPlainText() == 'foo("", "", {"" }, "bar)'
+    assert editor.textCursor().columnNumber() == 20
 
 
 def test_activate_deactivate(qtbot, editor_close_quotes):

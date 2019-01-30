@@ -8,12 +8,21 @@
 Tests for explorer.py
 """
 
-# Test library imports
+# Standard imports
+import os
+import os.path as osp
+
+# Third party imports
 import pytest
+from qtpy.QtWidgets import QApplication
+from qtpy.QtWidgets import QMessageBox
 
 # Local imports
 from spyder.plugins.explorer.widgets import (FileExplorerTest,
                                              ProjectExplorerTest)
+from spyder.py3compat import to_text_string
+from spyder.plugins.projects.widgets.explorer import ProjectExplorerTest as \
+    ProjectExplorerTest2
 
 
 @pytest.fixture
@@ -32,6 +41,53 @@ def project_explorer(qtbot):
     return widget
 
 
+@pytest.fixture(params=[['script.py', 'dir1/dir2/dir3/dir4'],
+                        ['script.py', 'script1.py', 'testdir/dir1/script2.py'],
+                        ['subdir/innerdir/dir3/text.txt', 'dir1/dir2/dir3',
+                         'dir1/dir2/dir3/file.txt',
+                         'dir1/dir2/dir3/dir4/python.py']])
+def create_folders_files(tmpdir, request):
+    """A project directory with dirs and files for testing."""
+    project_dir = to_text_string(tmpdir.mkdir('project'))
+    destination_dir = to_text_string(tmpdir.mkdir('destination'))
+    top_folder = osp.join(project_dir, 'top_folder_in_proj')
+    if not osp.exists(top_folder):
+        os.mkdir(top_folder)
+    list_paths = []
+    for item in request.param:
+        if osp.splitext(item)[1]:
+            if osp.split(item)[0]:
+                dirs, fname = osp.split(item)
+                dirpath = osp.join(top_folder, dirs)
+                if not osp.exists(dirpath):
+                    os.makedirs(dirpath)
+                    item_path = osp.join(dirpath, fname)
+            else:
+                item_path = osp.join(top_folder, item)
+        else:
+            dirpath = osp.join(top_folder, item)
+            if not osp.exists(dirpath):
+                os.makedirs(dirpath)
+                item_path = dirpath
+        if not osp.isdir(item_path):
+            with open(item_path, 'w') as fh:
+                fh.write("File Path:\n" + str(item_path).replace(os.sep, '/'))
+        list_paths.append(item_path)
+    return list_paths, project_dir, destination_dir, top_folder
+
+
+@pytest.fixture(params=[FileExplorerTest, ProjectExplorerTest2])
+def explorer_with_files(qtbot, create_folders_files, request):
+    """Setup Project/File Explorer widget."""
+    cb = QApplication.clipboard()
+    paths, project_dir, destination_dir, top_folder = create_folders_files
+    explorer_orig = request.param(directory=project_dir)
+    explorer_dest = request.param(directory=destination_dir)
+    qtbot.addWidget(explorer_orig)
+    qtbot.addWidget(explorer_dest)
+    return explorer_orig, explorer_dest, paths, top_folder, cb
+
+
 def test_file_explorer(file_explorer):
     """Run FileExplorerTest."""
     file_explorer.resize(640, 480)
@@ -44,6 +100,66 @@ def test_project_explorer(project_explorer):
     project_explorer.resize(640, 480)
     project_explorer.show()
     assert project_explorer
+
+
+@pytest.mark.parametrize('path_method', ['absolute', 'relative'])
+def test_copy_path(explorer_with_files, path_method):
+    """Test copy absolute and relative paths."""
+    project, __, file_paths, __, cb = explorer_with_files
+    explorer_directory = project.explorer.treewidget.fsmodel.rootPath()
+    copied_from = project.explorer.treewidget.parent_widget.__class__.__name__
+    project.explorer.treewidget.copy_path(fnames=file_paths,
+                                          method=path_method)
+    cb_output = cb.text(mode=cb.Clipboard)
+    path_list = [path.strip(',"') for path in cb_output.splitlines()]
+    assert len(path_list) == len(file_paths)
+    for path, expected_path in zip(path_list, file_paths):
+        if path_method == 'relative':
+            expected_path = osp.relpath(expected_path, explorer_directory)
+            if copied_from == 'ProjectExplorerWidget':
+                expected_path = os.sep.join(expected_path.strip(os.sep).
+                                            split(os.sep)[1:])
+        assert osp.normpath(path) == osp.normpath(expected_path)
+
+
+def test_copy_file(explorer_with_files):
+    """Test copy file(s)/folders(s) to clipboard."""
+    project, __, file_paths, __, cb = explorer_with_files
+    project.explorer.treewidget.copy_file_clipboard(fnames=file_paths)
+    cb_data = cb.mimeData().urls()
+    assert len(cb_data) == len(file_paths)
+    for url, expected_path in zip(cb_data, file_paths):
+        file_name = url.toLocalFile()
+        assert osp.normpath(file_name) == osp.normpath(expected_path)
+        try:
+            assert osp.isdir(file_name)
+        except AssertionError:
+            assert osp.isfile(file_name)
+            with open(file_name, 'r') as fh:
+                text = fh.read()
+            assert text == "File Path:\n" + str(file_name)
+
+
+def test_save_file(explorer_with_files):
+    """Test save file(s)/folders(s) from clipboard."""
+    project, dest, file_paths, __, __ = explorer_with_files
+    project.explorer.treewidget.copy_file_clipboard(fnames=file_paths)
+    dest.explorer.treewidget.save_file_clipboard(fnames=[dest.directory])
+    for item in file_paths:
+        destination_item = osp.join(dest.directory, osp.basename(item))
+        assert osp.exists(destination_item)
+        if osp.isfile(destination_item):
+            with open(destination_item, 'r') as fh:
+                text = fh.read()
+            assert text == "File Path:\n" + str(item).replace(os.sep, '/')
+
+
+def test_delete_file(explorer_with_files, mocker):
+    """Test delete file(s)/folders(s)."""
+    project, __, __, top_folder, __ = explorer_with_files
+    mocker.patch.object(QMessageBox, 'warning', return_value=QMessageBox.Yes)
+    project.explorer.treewidget.delete(fnames=[top_folder])
+    assert not osp.exists(top_folder)
 
 
 if __name__ == "__main__":

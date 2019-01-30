@@ -140,7 +140,7 @@ class NamespaceBrowser(QWidget):
         self.setLayout(layout)
 
         self.sig_option_changed.connect(self.option_changed)
-        
+
     def set_shellwidget(self, shellwidget):
         """Bind shellwidget instance to namespace browser"""
         self.shellwidget = shellwidget
@@ -347,6 +347,7 @@ class NamespaceBrowser(QWidget):
     def reset_namespace(self):
         warning = CONF.get('ipython_console', 'show_reset_namespace_warning')
         self.shellwidget.reset_namespace(warning=warning, message=True)
+        self.editor.automatic_column_width = True
 
     @Slot()
     def save_data(self, filename=None):
@@ -371,7 +372,14 @@ class NamespaceBrowser(QWidget):
         QApplication.restoreOverrideCursor()
         QApplication.processEvents()
         if error_message is not None:
-            QMessageBox.critical(self, _("Save data"),
-                            _("<b>Unable to save current workspace</b>"
-                              "<br><br>Error message:<br>%s") % error_message)
+            if 'Some objects could not be saved:' in error_message:
+                save_data_message = (
+                    _('<b>Some objects could not be saved:</b>')
+                    + '<br><br><code>{obj_list}</code>'.format(
+                        obj_list=error_message.split(': ')[1]))
+            else:
+                save_data_message = _(
+                    '<b>Unable to save current workspace</b>'
+                    '<br><br>Error message:<br>') + error_message
+            QMessageBox.critical(self, _("Save data"), save_data_message)
         self.save_button.setEnabled(self.filename is not None)

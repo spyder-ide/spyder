@@ -23,8 +23,9 @@ from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
 
 # Local imports
+from spyder.config.base import get_conf_path
 from spyder.plugins.editor.widgets.tests.fixtures import setup_editor
-from spyder.plugins.editor.widgets.editor import EditorStack, EditorSplitter
+from spyder.plugins.editor.widgets.editor import EditorStack
 from spyder.widgets.findreplace import FindReplace
 from spyder.py3compat import PY2
 
@@ -51,6 +52,7 @@ def editor_bot(base_editor_bot, qtbot):
             '\n'
             'x = 2')  # a newline is added at end
     finfo = editor_stack.new('foo.py', 'utf-8', text)
+    finfo.newly_created = False
     qtbot.addWidget(editor_stack)
     return editor_stack, finfo.editor
 
@@ -572,6 +574,161 @@ def test_tab_copies_find_to_replace(editor_find_replace_bot, qtbot):
     qtbot.keyClick(finder.search_text, Qt.Key_Tab)
     qtbot.wait(500)
     assert finder.replace_text.currentText() == 'This is some test text!'
+
+
+def test_get_autosave_filename(editor_bot):
+    """
+    Test filename returned by `get_autosave_filename`.
+
+    Test a consistent and unique name for the autosave file is returned.
+    """
+    editor_stack, editor = editor_bot
+    autosave = editor_stack.autosave
+    expected = os.path.join(get_conf_path('autosave'), 'foo.py')
+    assert autosave.get_autosave_filename('foo.py') == expected
+    editor_stack.new('ham/foo.py', 'utf-8', '')
+    expected2 = os.path.join(get_conf_path('autosave'), 'foo-1.py')
+    assert autosave.get_autosave_filename('foo.py') == expected
+    assert autosave.get_autosave_filename('ham/foo.py') == expected2
+
+
+def test_autosave_all(editor_bot, mocker):
+    """
+    Test that `autosave_all()` calls autosave() on all open buffers.
+
+    The `editor_bot` fixture is constructed with one open file and the test
+    opens another one with `new()`, so autosave should be called twice.
+    """
+    editor_stack, editor = editor_bot
+    editor_stack.new('ham.py', 'utf-8', '')
+    mocker.patch.object(editor_stack.autosave, 'autosave')
+    editor_stack.autosave.autosave_all()
+    expected_calls = [mocker.call(0), mocker.call(1)]
+    assert editor_stack.autosave.autosave.call_args_list == expected_calls
+
+
+def test_autosave(editor_bot):
+    """Test that autosave() saves text to correct file."""
+    editor_stack, editor = editor_bot
+    editor_stack.autosave.autosave(0)
+    contents = open(os.path.join(get_conf_path('autosave'), 'foo.py')).read()
+    assert contents.startswith('a = 1')
+
+
+def test_autosave_saves_only_if_changed(editor_bot, mocker):
+    """
+    Test that autosave() only saves text if text has changed.
+
+    The `editor_bot` fixture changes the text, so the first call to
+    `autosave()` should indeed autosave. The text is not changed after call #1,
+    so call #2 should not autosave. After call #2 we change the text, so call
+    #3 should again autosave.
+    """
+    editor_stack, editor = editor_bot
+    mocker.patch.object(editor_stack, '_write_to_file')
+    editor_stack.autosave.autosave(0)  # call #1, should write
+    assert editor_stack._write_to_file.call_count == 1
+    editor_stack.autosave.autosave(0)  # call #2, should not write
+    assert editor_stack._write_to_file.call_count == 1
+    editor.set_text('ham\n')
+    editor_stack.autosave.autosave(0)  # call #3, should write
+    assert editor_stack._write_to_file.call_count == 2
+
+
+def test_autosave_does_not_save_new_files(editor_bot, mocker):
+    """Test that autosave() does not save newly created files."""
+    editor_stack, editor = editor_bot
+    editor_stack.data[0].newly_created = True
+    mocker.patch.object(editor_stack, '_write_to_file')
+    editor_stack.autosave.autosave(0)
+    editor_stack._write_to_file.assert_not_called()
+
+
+def test_autosave_does_not_save_after_open(base_editor_bot, mocker):
+    """
+    Test that autosave() does not save files immediately after opening.
+
+    Files should only be autosaved after the user made changes.
+    """
+    editor_stack = base_editor_bot
+    txt = 'spam\n'
+    editor_stack.create_new_editor('ham.py', 'ascii', txt, set_current=True)
+    mocker.patch.object(editor_stack, '_write_to_file')
+    editor_stack.autosave.autosave(0)
+    editor_stack._write_to_file.assert_not_called()
+
+
+def test_autosave_does_not_save_after_reload(base_editor_bot, mocker):
+    """
+    Test that autosave() does not save files immediately after reloading.
+
+    Spyder reload the file if it has changed on disk. In that case, there is
+    no need to autosave because the contents in Spyder are identical to the
+    contents on disk.
+    """
+    editor_stack = base_editor_bot
+    txt = 'spam\n'
+    editor_stack.create_new_editor('ham.py', 'ascii', txt, set_current=True)
+    mocker.patch.object(editor_stack, '_write_to_file')
+    mocker.patch('spyder.plugins.editor.widgets.editor.encoding.read',
+                 return_value=(txt, 'ascii'))
+    print(editor_stack.data[0].editor.document().changed_since_autosave)
+    editor_stack.reload(0)
+    print(editor_stack.data[0].editor.document().changed_since_autosave)
+    editor_stack.autosave.autosave(0)
+    editor_stack._write_to_file.assert_not_called()
+
+
+def test_autosave_updates_name_mapping(editor_bot, mocker, qtbot):
+    """Test that autosave() updates name_mapping."""
+    editor_stack, editor = editor_bot
+    assert editor_stack.autosave.name_mapping == {}
+    mocker.patch.object(editor_stack, '_write_to_file')
+    with qtbot.wait_signal(editor_stack.sig_option_changed) as blocker:
+        editor_stack.autosave.autosave(0)
+    expected = {'foo.py': os.path.join(get_conf_path('autosave'), 'foo.py')}
+    assert editor_stack.autosave.name_mapping == expected
+    assert blocker.args == ['autosave_mapping', expected]
+
+
+def test_autosave_handles_error(editor_bot, mocker):
+    """Test that autosave() ignores errors when writing to file."""
+    editor_stack, editor = editor_bot
+    mock_write = mocker.patch.object(editor_stack, '_write_to_file')
+    mock_dialog = mocker.patch(
+        'spyder.plugins.editor.utils.autosave.AutosaveErrorDialog')
+    try:
+        mock_write.side_effect = PermissionError
+    except NameError:  # Python 2
+        mock_write.side_effect = IOError
+    editor_stack.autosave.autosave(0)
+    assert mock_dialog.called
+
+
+def test_remove_autosave_file(editor_bot, mocker, qtbot):
+    """
+    Test that remove_autosave_file() removes the autosave file
+
+    Also, test that it updates `name_mapping`.
+    """
+    editor_stack, editor = editor_bot
+    autosave = editor_stack.autosave
+    with qtbot.wait_signal(editor_stack.sig_option_changed) as blocker:
+        autosave.autosave(0)
+    autosave_filename = os.path.join(get_conf_path('autosave'), 'foo.py')
+    assert os.access(autosave_filename, os.R_OK)
+    expected = {'foo.py': autosave_filename}
+    assert autosave.name_mapping == expected
+    assert blocker.args == ['autosave_mapping', expected]
+    with qtbot.wait_signal(editor_stack.sig_option_changed) as blocker:
+        autosave.remove_autosave_file(editor_stack.data[0])
+    assert not os.access(autosave_filename, os.R_OK)
+    assert autosave.name_mapping == {}
+    assert blocker.args == ['autosave_mapping', {}]
+    with qtbot.assert_not_emitted(editor_stack.sig_option_changed):
+        autosave.autosave(0)
+    assert not os.access(autosave_filename, os.R_OK)
+    assert autosave.name_mapping == {}
 
 
 if __name__ == "__main__":

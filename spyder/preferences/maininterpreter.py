@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Shortcut management"""
+"""Main interpreter entry in Preferences."""
 
 # Standard library imports
 from __future__ import print_function

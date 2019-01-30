@@ -44,43 +44,36 @@ from spyder_kernels.utils.dochelpers import getobj
 # %% This line is for cell execution testing
 
 # Local imports
+from spyder.api.panel import Panel
 from spyder.config.base import _
 from spyder.config.gui import get_shortcut, config_shortcut
 from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
                                 RUN_CELL_AND_ADVANCE_SHORTCUT)
+from spyder.plugins.editor.api.decoration import TextDecoration
+from spyder.plugins.editor.extensions import (CloseBracketsExtension,
+                                              CloseQuotesExtension,
+                                              EditorExtensionsManager)
+from spyder.plugins.editor.lsp import (LSPRequestTypes, TextDocumentSyncKind,
+                                       DiagnosticSeverity)
+from spyder.plugins.editor.panels import (ClassFunctionDropdown,
+                                          DebuggerPanel, EdgeLine,
+                                          FoldingPanel, IndentationGuide,
+                                          LineNumberArea, PanelsManager,
+                                          ScrollFlagArea)
+from spyder.plugins.editor.utils.editor import TextHelper, BlockUserData
+from spyder.plugins.editor.utils.debugger import DebuggerManager
+from spyder.plugins.editor.utils.folding import IndentFoldDetector
+from spyder.plugins.editor.utils.kill_ring import QtKillRing
+from spyder.plugins.editor.utils.languages import ALL_LANGUAGES, CELL_LANGUAGES
+from spyder.plugins.editor.utils.lsp import request, handles, class_register
+from spyder.plugins.editor.widgets.base import TextEditBaseWidget
+from spyder.plugins.outlineexplorer.languages import PythonCFM
 from spyder.py3compat import to_text_string
+from spyder.utils import encoding, sourcecode
 from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters as sh
-from spyder.utils import encoding, sourcecode
 from spyder.utils.qthelpers import add_actions, create_action, mimedata2url
-from spyder.plugins.editor.utils.languages import ALL_LANGUAGES, CELL_LANGUAGES
-from spyder.plugins.outlineexplorer.languages import PythonCFM
-from spyder.plugins.editor.widgets.base import TextEditBaseWidget
-from spyder.plugins.editor.utils.kill_ring import QtKillRing
-from spyder.plugins.editor.utils.editor import TextHelper
-from spyder.plugins.editor.panels.linenumber import LineNumberArea
-from spyder.plugins.editor.panels.edgeline import EdgeLine
-from spyder.plugins.editor.panels.indentationguides import IndentationGuide
-from spyder.plugins.editor.panels.scrollflag import ScrollFlagArea
-from spyder.plugins.editor.panels.manager import PanelsManager
-from spyder.plugins.editor.panels.codefolding import FoldingPanel
-from spyder.plugins.editor.panels.classfunctiondropdown import (
-    ClassFunctionDropdown)
-from spyder.plugins.editor.panels import DebuggerPanel
-from spyder.plugins.editor.utils.folding import IndentFoldDetector
-from spyder.plugins.editor.extensions.manager import (
-    EditorExtensionsManager)
-from spyder.plugins.editor.extensions.closequotes import (
-    CloseQuotesExtension)
-from spyder.plugins.editor.api.decoration import TextDecoration
-from spyder.plugins.editor.utils.lsp import (
-    request, handles, class_register)
-from spyder.plugins.editor.lsp import (
-    LSPRequestTypes, TextDocumentSyncKind, DiagnosticSeverity,
-    )
-from spyder.plugins.editor.utils.editor import BlockUserData
-from spyder.plugins.editor.utils.debugger import DebuggerManager
-from spyder.api.panel import Panel
+
 
 try:
     import nbformat as nbformat
@@ -102,8 +95,6 @@ def is_letter_or_number(char):
 # =============================================================================
 # Go to line dialog box
 # =============================================================================
-
-
 class GoToLineDialog(QDialog):
     def __init__(self, editor):
         QDialog.__init__(self, editor, Qt.WindowTitleHint
@@ -487,6 +478,7 @@ class CodeEditor(TextEditBaseWidget):
         self.editor_extensions = EditorExtensionsManager(self)
 
         self.editor_extensions.add(CloseQuotesExtension())
+        self.editor_extensions.add(CloseBracketsExtension())
 
     # ---- Keyboard Shortcuts
 
@@ -778,8 +770,6 @@ class CodeEditor(TextEditBaseWidget):
     @request(method=LSPRequestTypes.DOCUMENT_COMPLETION)
     def do_completion(self, automatic=False):
         """Trigger completion"""
-        # if self.is_completion_widget_visible():
-        #     return
         self.document_did_change('')
         line, column = self.get_cursor_line_column()
         params = {
@@ -811,7 +801,6 @@ class CodeEditor(TextEditBaseWidget):
 
     @handles(LSPRequestTypes.DOCUMENT_SIGNATURE)
     def process_signatures(self, params):
-        # self.hide_completion_widget()
         signature = params['params']
         if (signature is not None and
                 'activeParameter' in signature):
@@ -946,6 +935,9 @@ class CodeEditor(TextEditBaseWidget):
     def set_close_parentheses_enabled(self, enable):
         """Enable/disable automatic parentheses insertion feature"""
         self.close_parentheses_enabled = enable
+        bracket_extension = self.editor_extensions.get(CloseBracketsExtension)
+        if bracket_extension is not None:
+            bracket_extension.enabled = enable
 
     def set_close_quotes_enabled(self, enable):
         """Enable/disable automatic quote insertion feature"""
@@ -1502,14 +1494,19 @@ class CodeEditor(TextEditBaseWidget):
         text has 'CRLF' EOL chars
         """
         clipboard = QApplication.clipboard()
-        text = to_text_string(clipboard.text())
-        if len(text.splitlines()) > 1:
-            eol_chars = self.get_line_separator()
-            text = eol_chars.join((text + eol_chars).splitlines())
-            clipboard.setText(text)
-        # Standard paste
-        TextEditBaseWidget.paste(self)
-        self.document_did_change(text)
+        # This is here to prevent pasting mime data in the Editor.
+        # See issue 8566 for the details.
+        if clipboard.mimeData().hasUrls():
+            return
+        else:
+            text = to_text_string(clipboard.text())
+            if len(text.splitlines()) > 1:
+                eol_chars = self.get_line_separator()
+                text = eol_chars.join((text + eol_chars).splitlines())
+                clipboard.setText(text)
+            # Standard paste
+            TextEditBaseWidget.paste(self)
+            self.document_did_change(text)
 
     @Slot()
     def undo(self):
@@ -2551,32 +2548,6 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return False
 
-    def __unmatched_braces_in_line(self, text, closing_braces_type=None):
-        """
-        Checks if there is an unmatched brace in the 'text'.
-        The brace type can be general or specified by closing_braces_type
-        (')', ']', or '}')
-        """
-        if closing_braces_type is None:
-            opening_braces = ['(', '[', '{']
-            closing_braces = [')', ']', '}']
-        else:
-            closing_braces = [closing_braces_type]
-            opening_braces = [{')': '(', '}': '{',
-                               ']': '['}[closing_braces_type]]
-        block = self.textCursor().block()
-        line_pos = block.position()
-        for pos, char in enumerate(text):
-            if char in opening_braces:
-                match = self.find_brace_match(line_pos+pos, char, forward=True)
-                if (match is None) or (match > line_pos+len(text)):
-                    return True
-            if char in closing_braces:
-                match = self.find_brace_match(line_pos+pos, char, forward=False)
-                if (match is None) or (match < line_pos):
-                    return True
-        return False
-
     def __has_colon_not_in_brackets(self, text):
         """
         Return whether a string has a colon which is not between brackets.
@@ -2584,13 +2555,16 @@ class CodeEditor(TextEditBaseWidget):
         not between a pair of (round, square or curly) brackets. It assumes
         that the brackets in the string are balanced.
         """
+        bracket_ext = self.editor_extensions.get(CloseBracketsExtension)
         for pos, char in enumerate(text):
-            if char == ':' and not self.__unmatched_braces_in_line(text[:pos]):
+            if (char == ':' and
+                    not bracket_ext.unmatched_brackets_in_line(text[:pos])):
                 return True
         return False
 
     def autoinsert_colons(self):
         """Decide if we want to autoinsert colons"""
+        bracket_ext = self.editor_extensions.get(CloseBracketsExtension)
         line_text = self.get_text('sol', 'cursor')
         if not self.textCursor().atBlockEnd():
             return False
@@ -2600,7 +2574,7 @@ class CodeEditor(TextEditBaseWidget):
             return False
         elif self.__forbidden_colon_end_char(line_text):
             return False
-        elif self.__unmatched_braces_in_line(line_text):
+        elif bracket_ext.unmatched_brackets_in_line(line_text):
             return False
         elif self.__has_colon_not_in_brackets(line_text):
             return False
@@ -2843,40 +2817,6 @@ class CodeEditor(TextEditBaseWidget):
                 not self.has_selected_text()):
             self.insert_text(text)
             self.request_signature()
-        elif (text == '(' and
-              not self.has_selected_text()):
-            # self.hide_completion_widget()
-            self.handle_parentheses(text)
-        elif (text in ('[', '{') and not has_selection and
-              self.close_parentheses_enabled):
-            s_trailing_text = self.get_text('cursor', 'eol').strip()
-            if len(s_trailing_text) == 0 or \
-               s_trailing_text[0] in (',', ')', ']', '}'):
-                self.insert_text({'{': '{}', '[': '[]'}[text])
-                cursor = self.textCursor()
-                cursor.movePosition(QTextCursor.PreviousCharacter)
-                self.setTextCursor(cursor)
-            else:
-                TextEditBaseWidget.keyPressEvent(self, event)
-        elif key in (Qt.Key_ParenRight, Qt.Key_BraceRight, Qt.Key_BracketRight)\
-          and not has_selection and self.close_parentheses_enabled \
-          and not self.textCursor().atBlockEnd():
-            cursor = self.textCursor()
-            cursor.movePosition(QTextCursor.NextCharacter,
-                                QTextCursor.KeepAnchor)
-            text = to_text_string(cursor.selectedText())
-            key_matches_next_char = (
-                text == {Qt.Key_ParenRight: ')', Qt.Key_BraceRight: '}',
-                         Qt.Key_BracketRight: ']'}[key]
-            )
-            if (key_matches_next_char
-                    and not self.__unmatched_braces_in_line(
-                        cursor.block().text(), text)):
-                # overwrite an existing brace if all braces in line are matched
-                cursor.clearSelection()
-                self.setTextCursor(cursor)
-            else:
-                TextEditBaseWidget.keyPressEvent(self, event)
         elif key == Qt.Key_Colon and not has_selection \
              and self.auto_unindent_enabled:
             leading_text = self.get_text('sol', 'cursor')
@@ -2931,24 +2871,6 @@ class CodeEditor(TextEditBaseWidget):
         """Run pygments highlighter."""
         if isinstance(self.highlighter, sh.PygmentsSH):
             self.highlighter.make_charlist()
-
-    def handle_parentheses(self, text):
-        """Handle left and right parenthesis depending on editor config."""
-        # position = self.get_position('cursor')
-        rest = self.get_text('cursor', 'eol').rstrip()
-        valid = not rest or rest[0] in (',', ')', ']', '}')
-        if self.close_parentheses_enabled and valid:
-            self.insert_text('()')
-            cursor = self.textCursor()
-            cursor.movePosition(QTextCursor.PreviousCharacter)
-            self.setTextCursor(cursor)
-        else:
-            self.insert_text(text)
-        if '(' in self.signature_completion_characters:
-            self.request_signature()
-        # if self.is_python_like() and self.get_text('sol', 'cursor') and \
-        #         self.calltips:
-        #     self.sig_show_object_info.emit(position)
 
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""

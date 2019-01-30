@@ -21,7 +21,7 @@ from qtpy.QtCore import Qt
 # Local imports
 from spyder.utils.qthelpers import qapplication
 from spyder.py3compat import PY2
-from spyder.plugins.lspmanager import LSPManager
+from spyder.plugins.editor.lsp.manager import LSPManager
 from spyder.utils.misc import getcwd_or_home
 
 
@@ -70,7 +70,33 @@ def setup_editor(qtbot, monkeypatch):
     yield editor, qtbot
     # teardown
     os.environ['SPY_TEST_USE_INTROSPECTION'] = 'False'
-    editor.main.lspmanager.closing_plugin()
+    editor.main.lspmanager.shutdown()
+
+
+@pytest.mark.slow
+def test_space_completion(setup_editor):
+    """Validate completion's space character handling."""
+    editor, qtbot = setup_editor
+    code_editor = editor.get_focus_widget()
+    completion = code_editor.completion_widget
+
+    # Set cursor to start
+    code_editor.go_to_line(1)
+
+    # Complete from numpy --> from numpy import
+    qtbot.keyClicks(code_editor, 'from numpy ')
+    qtbot.wait(20000)
+
+    # press tab and get completions
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+    assert "import" in [x['label'] for x in sig.args[0]]
+
+    # enter should accept first completion
+    qtbot.keyPress(completion, Qt.Key_Enter, delay=1000)
+    assert code_editor.toPlainText() == 'from numpy import\n'
+
 
 @pytest.mark.slow
 @pytest.mark.skipif(PY2, reason="Segfaults with other tests on Py2.")

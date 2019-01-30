@@ -42,6 +42,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action, add_actions, MENU_SEPARATOR
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.findreplace import FindReplace
+from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
 from spyder.plugins.editor.widgets.editor import (EditorMainWindow, Printer,
                                                   EditorSplitter, EditorStack,)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
@@ -372,14 +373,28 @@ class EditorConfigPage(PluginConfigPage):
         eol_layout.addLayout(eol_on_save_layout)
         eol_group.setLayout(eol_layout)
 
+        autosave_group = QGroupBox(_('Autosave'))
+        autosave_checkbox = newcb(
+                _('Automatically save a copy of files with unsaved changes'),
+                'autosave_enabled', default=True)
+        autosave_spinbox = self.create_spinbox(
+                _('Autosave interval: '), _('seconds'), 'autosave_interval',
+                min_=1, max_=3600)
+        autosave_checkbox.toggled.connect(autosave_spinbox.setEnabled)
+
+        autosave_layout = QVBoxLayout()
+        autosave_layout.addWidget(autosave_checkbox)
+        autosave_layout.addWidget(autosave_spinbox)
+        autosave_group.setLayout(autosave_layout)
+
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(interface_group, display_group),
                     _("Display"))
         tabs.addTab(self.create_tab(introspection_group, analysis_group),
                     _("Code Introspection/Analysis"))
         tabs.addTab(self.create_tab(template_btn, run_group,
-                                    run_selection_group,
-                                    sourcecode_group, eol_group),
+                                    run_selection_group, sourcecode_group,
+                                    eol_group, autosave_group),
                     _("Advanced settings"))
 
         vlayout = QVBoxLayout()
@@ -497,6 +512,13 @@ class Editor(SpyderPluginWidget):
                                          self.stack_menu_actions, first=True)
         editor_layout.addWidget(self.editorsplitter)
         editor_layout.addWidget(self.find_widget)
+
+        # Start autosave component
+        self.autosave = AutosaveForPlugin(self)
+        self.autosave.try_recover_from_autosave()
+        # Multiply by 1000 to convert seconds to milliseconds
+        self.autosave.interval = self.get_option('autosave_interval') * 1000
+        self.autosave.enabled = self.get_option('autosave_enabled')
 
         # Splitter: editor widgets (see above) + outline explorer
         self.splitter = QSplitter(self)
@@ -672,6 +694,10 @@ class Editor(SpyderPluginWidget):
                     [win.get_layout_settings() for win in self.editorwindows])
 #        self.set_option('filenames', filenames)
         self.set_option('recent_files', self.recent_files)
+
+        # Stop autosave timer before closing windows
+        self.autosave.stop_autosave_timer()
+
         try:
             if not editorstack.save_if_changed(cancelable) and cancelable:
                 return False
@@ -1318,6 +1344,19 @@ class Editor(SpyderPluginWidget):
                     pass
         CONF.set('editor', conf_name, checked)
 
+    def received_sig_option_changed(self, option, value):
+        """
+        Called when sig_option_changed is received.
+
+        If option being changed is autosave_mapping, then synchronize new
+        mapping with all editor stacks except the sender.
+        """
+        if option == 'autosave_mapping':
+            for editorstack in self.editorstacks:
+                if editorstack != self.sender():
+                    editorstack.autosave_mapping = value
+        self.sig_option_changed.emit(option, value)
+
     #------ Focus tabwidget
     def __get_focus_editorstack(self):
         fwidget = QApplication.focusWidget()
@@ -1377,6 +1416,8 @@ class Editor(SpyderPluginWidget):
                                  self.cursorpos_status.cursor_position_changed)
             editorstack.sig_refresh_eol_chars.connect(self.eol_status.eol_changed)
 
+        editorstack.autosave_mapping \
+            = CONF.get('editor', 'autosave_mapping', {})
         editorstack.set_help(self.help)
         editorstack.set_io_actions(self.new_action, self.open_action,
                                    self.save_action, self.revert_action)
@@ -1431,6 +1472,8 @@ class Editor(SpyderPluginWidget):
         editorstack.ending_long_process.connect(self.ending_long_process)
 
         # Redirect signals
+        editorstack.sig_option_changed.connect(
+                self.received_sig_option_changed)
         editorstack.redirect_stdio.connect(
                                  lambda state: self.redirect_stdio.emit(state))
         editorstack.exec_in_extconsole.connect(
@@ -2827,6 +2870,12 @@ class Editor(SpyderPluginWidget):
                     state = self.get_option(name)
                     action.setChecked(state)
                     action.trigger()
+
+            # Multiply by 1000 to convert seconds to milliseconds
+            self.autosave.interval = (
+                    self.get_option('autosave_interval') * 1000)
+            self.autosave.enabled = self.get_option('autosave_enabled')
+
             # We must update the current editor after the others:
             # (otherwise, code analysis buttons state would correspond to the
             #  last editor instead of showing the one of the current editor)
@@ -2859,7 +2908,11 @@ class Editor(SpyderPluginWidget):
                 self.set_option('filenames', filenames)
 
     def setup_open_files(self):
-        """Open the list of saved files per project"""
+        """
+        Open the list of saved files per project.
+
+        Also open any files that the user selected in the recovery dialog.
+        """
         self.set_create_new_file_if_empty(False)
         active_project_path = None
         if self.projects is not None:
@@ -2871,7 +2924,8 @@ class Editor(SpyderPluginWidget):
             filenames = self.get_option('filenames', default=[])
         self.close_all_files()
 
-        if filenames and any([osp.isfile(f) for f in filenames]):
+        all_filenames = self.autosave.recover_files_to_open + filenames
+        if all_filenames and any([osp.isfile(f) for f in all_filenames]):
             layout = self.get_option('layout_settings', None)
             # Check if no saved layout settings exist, e.g. clean prefs file
             # If not, load with default focus/layout, to fix issue #8458 .
@@ -2880,24 +2934,34 @@ class Editor(SpyderPluginWidget):
                 if cfname in filenames:
                     index = filenames.index(cfname)
                     # First we load the last focused file.
-                    self.load(filenames[index], goto=clines[index],
-                              set_focus=True)
+                    self.load(filenames[index], goto=clines[index], set_focus=True)
                     # Then we load the files located to the left of the last
                     # focused file in the tabbar, while keeping the focus on
                     # the last focused file.
                     if index > 0:
                         self.load(filenames[index::-1], goto=clines[index::-1],
                                   set_focus=False, add_where='start')
-                    # Finally we load the files to the right of the last
+                    # Then we load the files located to the right of the last
                     # focused file in the tabbar, while keeping the focus on
                     # the last focused file.
                     if index < (len(filenames) - 1):
                         self.load(filenames[index+1:], goto=clines[index:],
                                   set_focus=False, add_where='end')
+                    # Finally we load any recovered files at the end of the tabbar,
+                    # while keeping focus on the last focused file.
+                    if self.autosave.recover_files_to_open:
+                        self.load(self.autosave.recover_files_to_open,
+                                  set_focus=False, add_where='end')
                 else:
-                    self.load(filenames, goto=clines)
+                    if filenames:
+                        self.load(filenames, goto=clines)
+                    if self.autosave.recover_files_to_open:
+                        self.load(self.autosave.recover_files_to_open)
             else:
-                self.load(filenames)
+                if filenames:
+                    self.load(filenames)
+                if self.autosave.recover_files_to_open:
+                    self.load(self.autosave.recover_files_to_open)
 
             if self.__first_open_files_setup:
                 self.__first_open_files_setup = False
