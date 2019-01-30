@@ -366,3 +366,71 @@ def icon(name, resample=False, icon_path=None):
             if osp.isfile(icon_path):
                 icon = QIcon(icon_path)
         return icon if icon is not None else QIcon()
+
+BIN_FILES = {x: 'ArchiveFileIcon' for x in ['zip', 'x-tar',
+             'x-7z-compressed', 'rar']}
+DOCUMENT_FILES = {'vnd.ms-powerpoint': 'PowerpointFileIcon',
+                  'vnd.openxmlformats-officedocument.'
+                  'presentationml.presentation': 'PowerpointFileIcon',
+                  'msword': 'WordFileIcon',
+                  'vnd.openxmlformats-officedocument.'
+                  'wordprocessingml.document': 'WordFileIcon',
+                  'vnd.ms-excel': 'ExcelFileIcon',
+                  'vnd.openxmlformats-officedocument.'
+                  'spreadsheetml.sheet': 'ExcelFileIcon',
+                  'pdf': 'PDFIcon'}
+OFFICE_FILES = {'.xlsx': 'ExcelFileIcon', '.docx': 'WordFileIcon',
+                '.pptx': 'PowerpointFileIcon'}
+
+
+
+def get_icon_by_extension(qfileinfo):
+    application_icons = {}
+    application_icons.update(BIN_FILES)
+    application_icons.update(DOCUMENT_FILES)
+    """Reimplement Qt method"""
+    fname = osp.normpath(to_text_string(qfileinfo.absoluteFilePath()))
+    if osp.isdir(fname):
+        return ima.icon('DirOpenIcon')
+    else:
+        basename = osp.basename(fname)
+        _, extension = osp.splitext(basename.lower())
+        mime_type, _ = mime.guess_type(basename)
+        icon = ima.icon('FileIcon')
+
+        if extension in OFFICE_FILES:
+            icon = ima.icon(OFFICE_FILES[extension])
+
+        if extension in ima.LANGUAGE_ICONS:
+            icon = ima.icon(ima.LANGUAGE_ICONS[extension])
+        else:
+            if extension == '.ipynb':
+                if is_dark_interface():
+                    icon = QIcon(get_image_path("notebook_dark.svg"))
+                else:
+                    icon = QIcon(get_image_path("notebook_light.svg"))
+            elif mime_type is not None:
+                try:
+                    # Fix for issue 5080. Even though
+                    # mimetypes.guess_type documentation states that
+                    # the return value will be None or a tuple of
+                    # the form type/subtype, in the Windows registry,
+                    # .sql has a mimetype of text\plain
+                    # instead of text/plain therefore mimetypes is
+                    # returning it incorrectly.
+                    file_type, bin_name = mime_type.split('/')
+                except ValueError:
+                    file_type = 'text'
+                if file_type == 'text':
+                    icon = ima.icon('TextFileIcon')
+                elif file_type == 'audio':
+                    icon = ima.icon('AudioFileIcon')
+                elif file_type == 'video':
+                    icon = ima.icon('VideoFileIcon')
+                elif file_type == 'image':
+                    icon = ima.icon('ImageFileIcon')
+                elif file_type == 'application':
+                    if bin_name in application_icons:
+                        icon = ima.icon(
+                            application_icons[bin_name])
+    return icon
