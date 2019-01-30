@@ -27,7 +27,7 @@ def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1',
     issue https://github.com/zeromq/pyzmq/issues/589 which was solved
     in pyzmq https://github.com/zeromq/pyzmq/pull/615
     """
-    ssh="ssh "
+    ssh = "ssh "
     if keyfile:
         ssh += "-i " + keyfile
 
@@ -60,7 +60,7 @@ def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1',
     while True:
         try:
             i = tunnel.expect([ssh_newkey, '[Pp]assword:'], timeout=.1)
-            if i==0:
+            if i == 0:
                 host = server.split('@')[-1]
                 question = _("The authenticity of host <b>%s</b> can't be "
                              "established. Are you sure you want to continue "
@@ -75,7 +75,7 @@ def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1',
                     tunnel.sendline('no')
                     raise RuntimeError(
                        _("The authenticity of the host can't be established"))
-            if i==1 and password is not None:
+            if i == 1 and password is not None:
                 tunnel.sendline(password)
         except pexpect.TIMEOUT:
             continue

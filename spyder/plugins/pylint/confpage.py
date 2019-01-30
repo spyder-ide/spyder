@@ -24,9 +24,10 @@ class PylintConfigPage(PluginConfigPage):
         hist_label1 = QLabel(_("The following option will be applied at next "
                                "startup."))
         hist_label1.setWordWrap(True)
-        hist_spin = self.create_spinbox(_("History: "),
-                            _(" results"), 'max_entries', default=50,
-                            min_=10, max_=1000000, step=10)
+        hist_spin = self.create_spinbox(
+            _("History: "),
+            _(" results"), 'max_entries', default=50,
+            min_=10, max_=1000000, step=10)
 
         results_group = QGroupBox(_("Results"))
         results_label1 = QLabel(_("Results are stored here:"))

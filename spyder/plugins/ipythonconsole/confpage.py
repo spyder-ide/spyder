@@ -29,15 +29,16 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         # Interface Group
         interface_group = QGroupBox(_("Interface"))
         banner_box = newcb(_("Display initial banner"), 'show_banner',
-                      tip=_("This option lets you hide the message shown at\n"
-                            "the top of the console when it's opened."))
+                           tip=_("This option lets you hide the message "
+                                 "shown at\nthe top of the console when "
+                                 "it's opened."))
         pager_box = newcb(_("Use a pager to display additional text inside "
                             "the console"), 'use_pager',
-                            tip=_("Useful if you don't want to fill the "
-                                  "console with long help or completion "
-                                  "texts.\n"
-                                  "Note: Use the Q key to get out of the "
-                                  "pager."))
+                          tip=_("Useful if you don't want to fill the "
+                                "console with long help or completion "
+                                "texts.\n"
+                                "Note: Use the Q key to get out of the "
+                                "pager."))
         calltips_box = newcb(_("Display balloon tips"), 'show_calltips')
         ask_box = newcb(_("Ask for confirmation before closing"),
                         'ask_before_closing')
@@ -91,15 +92,13 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         # Pylab Group
         pylab_group = QGroupBox(_("Support for graphics (Matplotlib)"))
         pylab_box = newcb(_("Activate support"), 'pylab')
-        autoload_pylab_box = newcb(_("Automatically load Pylab and NumPy "
-                                     "modules"),
-                               'pylab/autoload',
-                               tip=_("This lets you load graphics support "
-                                     "without importing \nthe commands to do "
-                                     "plots. Useful to work with other\n"
-                                     "plotting libraries different to "
-                                     "Matplotlib or to develop \nGUIs with "
-                                     "Spyder."))
+        autoload_pylab_box = newcb(
+            _("Automatically load Pylab and NumPy modules"),
+            'pylab/autoload',
+            tip=_("This lets you load graphics support without importing\n"
+                  "the commands to do plots. Useful to work with other\n"
+                  "plotting libraries different to Matplotlib or to develop\n"
+                  "GUIs with Spyder."))
         autoload_pylab_box.setEnabled(self.get_option('pylab'))
         pylab_box.toggled.connect(autoload_pylab_box.setEnabled)
 
@@ -123,19 +122,21 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         backends = [(inline, 0), (automatic, 1), ("Qt5", 2), ("Qt4", 3)]
 
         if sys.platform == 'darwin':
-            backends.append( ("OS X", 4) )
+            backends.append(("OS X", 4))
         if sys.platform.startswith('linux'):
-            backends.append( ("Gtk3", 5) )
-            backends.append( ("Gtk", 6) )
+            backends.append(("Gtk3", 5))
+            backends.append(("Gtk", 6))
         if PY2:
-            backends.append( ("Wx", 7) )
-        backends.append( ("Tkinter", 8) )
+            backends.append(("Wx", 7))
+        backends.append(("Tkinter", 8))
         backends = tuple(backends)
-        
-        backend_box = self.create_combobox( _("Backend:")+"   ", backends,
-                                       'pylab/backend', default=0,
-                                       tip=_("This option will be applied the "
-                                             "next time a console is opened."))
+
+        backend_box = self.create_combobox(
+            _("Backend:") + "   ",
+            backends,
+            'pylab/backend', default=0,
+            tip=_("This option will be applied the next time a console is "
+                  "opened."))
 
         backend_layout = QVBoxLayout()
         backend_layout.addWidget(bend_label)
@@ -210,12 +211,12 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         run_lines_label.setWordWrap(True)
         run_lines_edit = self.create_lineedit(_("Lines:"), 'startup/run_lines',
                                               '', alignment=Qt.Horizontal)
-        
+
         run_lines_layout = QVBoxLayout()
         run_lines_layout.addWidget(run_lines_label)
         run_lines_layout.addWidget(run_lines_edit)
         run_lines_group.setLayout(run_lines_layout)
-        
+
         # Run file Group
         run_file_group = QGroupBox(_("Run a file"))
         run_file_label = QLabel(_("You can also run a whole file at startup "
@@ -227,35 +228,35 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         run_file_browser = self.create_browsefile('', 'startup/run_file', '')
         run_file_browser.setEnabled(False)
         file_radio.toggled.connect(run_file_browser.setEnabled)
-        
+
         run_file_layout = QVBoxLayout()
         run_file_layout.addWidget(run_file_label)
         run_file_layout.addWidget(file_radio)
         run_file_layout.addWidget(run_file_browser)
         run_file_group.setLayout(run_file_layout)
-        
+
         # ---- Advanced settings ----
         # Enable Jedi completion
         jedi_group = QGroupBox(_("Jedi completion"))
         jedi_label = QLabel(_("Enable Jedi-based <tt>Tab</tt> completion "
-                                  "in the IPython console; similar to the "
-                                  "greedy completer, but without evaluating "
-                                  "the code.<br>"
-                                  "<b>Warning:</b> Slows down your console "
-                                  "when working with large dataframes!"))
+                              "in the IPython console; similar to the "
+                              "greedy completer, but without evaluating "
+                              "the code.<br>"
+                              "<b>Warning:</b> Slows down your console "
+                              "when working with large dataframes!"))
         jedi_label.setWordWrap(True)
-        jedi_box = newcb(_("Use Jedi completion in the IPython console"), 
-                             "jedi_completer",
-                             tip="<b>Warning</b>: "
-                                 "Slows down your console when working with "
-                                 "large dataframes!<br>"
-                                 "Allows completion of nested lists etc.")
-        
+        jedi_box = newcb(_("Use Jedi completion in the IPython console"),
+                         "jedi_completer",
+                         tip=_("<b>Warning</b>: "
+                               "Slows down your console when working with "
+                               "large dataframes!<br>"
+                               "Allows completion of nested lists etc."))
+
         jedi_layout = QVBoxLayout()
         jedi_layout.addWidget(jedi_label)
         jedi_layout.addWidget(jedi_box)
         jedi_group.setLayout(jedi_layout)
-                
+
         # Greedy completer group
         greedy_group = QGroupBox(_("Greedy completion"))
         greedy_label = QLabel(_("Enable <tt>Tab</tt> completion on elements "
@@ -275,12 +276,12 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                            tip="<b>Warning</b>: It can be unsafe because the "
                                "code is actually evaluated when you press "
                                "<tt>Tab</tt>.")
-        
+
         greedy_layout = QVBoxLayout()
         greedy_layout.addWidget(greedy_label)
         greedy_layout.addWidget(greedy_box)
         greedy_group.setLayout(greedy_layout)
-        
+
         # Autocall group
         autocall_group = QGroupBox(_("Autocall"))
         autocall_label = QLabel(_("Autocall makes IPython automatically call "
@@ -289,7 +290,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                   "For example, if you type <i>str 43</i> it "
                                   "becomes <i>str(43)</i> automatically."))
         autocall_label.setWordWrap(True)
-        
+
         smart = _('Smart')
         full = _('Full')
         autocall_opts = ((_('Off'), 0), (smart, 1), (full, 2))
@@ -300,24 +301,25 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                              "<b>%s</b> mode, all callable objects are "
                              "automatically called (even if no arguments are "
                              "present).") % (smart, full))
-        
+
         autocall_layout = QVBoxLayout()
         autocall_layout.addWidget(autocall_label)
         autocall_layout.addWidget(autocall_box)
         autocall_group.setLayout(autocall_layout)
-        
+
         # Sympy group
         sympy_group = QGroupBox(_("Symbolic Mathematics"))
         sympy_label = QLabel(_("Perfom symbolic operations in the console "
-                               "(e.g. integrals, derivatives, vector calculus, "
-                               "etc) and get the outputs in a beautifully "
-                               "printed style (it requires the Sympy module)."))
+                               "(e.g. integrals, derivatives, vector "
+                               "calculus, etc) and get the outputs in a "
+                               "beautifully printed style (it requires the "
+                               "Sympy module)."))
         sympy_label.setWordWrap(True)
         sympy_box = newcb(_("Use symbolic math"), "symbolic_math",
                           tip=_("This option loads the Sympy library to work "
-                                "with.<br>Please refer to its documentation to "
-                                "learn how to use it."))
-        
+                                "with.<br>Please refer to its documentation "
+                                "to learn how to use it."))
+
         sympy_layout = QVBoxLayout()
         sympy_layout.addWidget(sympy_label)
         sympy_layout.addWidget(sympy_box)
@@ -328,22 +330,24 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         prompts_label = QLabel(_("Modify how Input and Output prompts are "
                                  "shown in the console."))
         prompts_label.setWordWrap(True)
-        in_prompt_edit = self.create_lineedit(_("Input prompt:"),
-                                    'in_prompt', '',
-                                  _('Default is<br>'
-                                    'In [&lt;span class="in-prompt-number"&gt;'
-                                    '%i&lt;/span&gt;]:'),
-                                    alignment=Qt.Horizontal)
-        out_prompt_edit = self.create_lineedit(_("Output prompt:"),
-                                   'out_prompt', '',
-                                 _('Default is<br>'
-                                   'Out[&lt;span class="out-prompt-number"&gt;'
-                                   '%i&lt;/span&gt;]:'),
-                                   alignment=Qt.Horizontal)
-        
+        in_prompt_edit = self.create_lineedit(
+            _("Input prompt:"),
+            'in_prompt', '',
+            _('Default is<br>'
+              'In [&lt;span class="in-prompt-number"&gt;'
+              '%i&lt;/span&gt;]:'),
+            alignment=Qt.Horizontal)
+        out_prompt_edit = self.create_lineedit(
+            _("Output prompt:"),
+            'out_prompt', '',
+            _('Default is<br>'
+              'Out[&lt;span class="out-prompt-number"&gt;'
+              '%i&lt;/span&gt;]:'),
+            alignment=Qt.Horizontal)
+
         prompts_layout = QVBoxLayout()
         prompts_layout.addWidget(prompts_label)
-        prompts_g_layout  = QGridLayout()
+        prompts_g_layout = QGridLayout()
         prompts_g_layout.addWidget(in_prompt_edit.label, 0, 0)
         prompts_g_layout.addWidget(in_prompt_edit.textbox, 0, 1)
         prompts_g_layout.addWidget(out_prompt_edit.label, 1, 0)
@@ -356,11 +360,12 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         tabs.addTab(self.create_tab(interface_group, comp_group,
                                     source_code_group), _("Display"))
         tabs.addTab(self.create_tab(pylab_group, backend_group, inline_group),
-                                    _("Graphics"))
+                    _("Graphics"))
         tabs.addTab(self.create_tab(run_lines_group, run_file_group),
-                                    _("Startup"))
-        tabs.addTab(self.create_tab(jedi_group, greedy_group, autocall_group, sympy_group,
-                                    prompts_group), _("Advanced Settings"))
+                    _("Startup"))
+        tabs.addTab(self.create_tab(jedi_group, greedy_group, autocall_group,
+                                    sympy_group, prompts_group),
+                    _("Advanced Settings"))
 
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)
