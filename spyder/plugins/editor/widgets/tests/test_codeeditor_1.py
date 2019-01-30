@@ -8,11 +8,12 @@
 Tests for codeeditor.py.
 """
 
+# Standard library imports
+import os.path as osp
 try:
     from unittest.mock import Mock
 except ImportError:
     from mock import Mock  # Python 2
-import os.path as osp
 
 # Third party imports
 import pytest
@@ -23,7 +24,6 @@ from qtpy.QtWidgets import QApplication
 # Local imports
 from spyder import version_info
 import spyder.plugins.editor.widgets.codeeditor as codeeditor
-from spyder.py3compat import to_text_string
 
 
 @pytest.fixture
@@ -43,6 +43,29 @@ def code_editor_bot(qtbot):
         editor.get_linenumberarea_width = Mock(return_value=1)
     editor.breakpoints_changed = Mock()
     return editor, qtbot
+
+
+@pytest.mark.usefixtures("create_folders_files")
+@pytest.fixture
+def copy_files_clipboard(create_folders_files):
+    """Fixture to copy files/folders into the clipboard"""
+    list_paths = create_folders_files[0]
+    file_content = QMimeData()
+    file_content.setUrls([QUrl.fromLocalFile(fname) for fname in list_paths])
+    cb = QApplication.clipboard()
+    cb.setMimeData(file_content, mode=cb.Clipboard)
+    return list_paths
+
+
+@pytest.fixture
+def copy_files_text():
+    """Fixture to copy text data into the clipboard"""
+    text = 'First line.\nSecond line.\nThird line.'
+    file_content = QMimeData()
+    file_content.setText(text)
+    cb = QApplication.clipboard()
+    cb.setMimeData(file_content, mode=cb.Clipboard)
+    return text
 
 
 # --- Tests
@@ -75,37 +98,36 @@ def test_delete(code_editor_bot, mocker):
     assert editor.get_text_line(0) == ' f1(a, b):'
 
 
-def test_paste(code_editor_bot, tmpdir):
-    """Test CodeEditor.paste()."""
+def test_paste_paths(code_editor_bot, copy_files_clipboard):
+    """Test CodeEditor.paste() from clipboard files/folders as paths."""
     editor = code_editor_bot[0]
-
-    # Copy a file into the clipboard.
-    temp_directory = to_text_string(tmpdir.mkdir('folder'))
-    tmpfile = osp.join(temp_directory, 'script.py')
-    with open(tmpfile, 'w') as fh:
-        fh.write('def f1(a, b):\n')
-    file_content = QMimeData()
-    file_content.setUrls([QUrl.fromLocalFile(tmpfile)])
-    cb = QApplication.clipboard()
-    cb.setMimeData(file_content, mode=cb.Clipboard)
+    file_paths = copy_files_clipboard
 
     # Paste clipboard data which contains a file as its path into the editor.
     cursor = editor.textCursor()
     cursor.movePosition(QTextCursor.Start)
     editor.setTextCursor(cursor)
     editor.paste()
-    assert osp.exists(tmpfile)
-    assert editor.get_text_line(0) == tmpfile.replace(osp.os.sep, '/')
+    editor.selectAll()
+    text = editor.toPlainText()
+    path_list_in_editor = [path.strip(',"') for path in text.splitlines()]
+    assert len(file_paths) == len(path_list_in_editor)
+    for path, expected_path in zip(path_list_in_editor, file_paths):
+        assert osp.normpath(path) == osp.normpath(expected_path)
 
-    # Paste clipboard data which contains normal text.
-    with open(tmpfile, 'r') as fh:
-        text = fh.read()
-    cb.setText(text, mode=cb.Clipboard)
+
+def test_paste_text(code_editor_bot, copy_files_text):
+    """Test CodeEditor.paste() from clipboard text data into the editor."""
+    editor = code_editor_bot[0]
+    orig_text = copy_files_text
+
+    # Paste clipboard data which contains text into the editor.
     cursor = editor.textCursor()
     cursor.movePosition(QTextCursor.Start)
     editor.setTextCursor(cursor)
     editor.paste()
-    assert editor.get_text_line(0) == 'def f1(a, b):'
+    for line_no, text in enumerate(orig_text.splitlines()):
+        assert editor.get_text_line(line_no) == text
 
 
 if __name__ == "__main__":

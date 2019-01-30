@@ -14,6 +14,9 @@ import shutil
 
 import pytest
 
+# Local imports
+from spyder.tests.fixtures.file_fixtures import create_folders_files
+
 
 # To activate/deactivate certain things for pytest's only
 os.environ['SPYDER_PYTEST'] = 'True'

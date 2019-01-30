@@ -1574,25 +1574,33 @@ class CodeEditor(TextEditBaseWidget):
     @Slot()
     def paste(self):
         """
+        Insert text or file/folder path copied from clipboard.
+
         Reimplement QPlainTextEdit's method to fix the following issue:
         on Windows, pasted text has only 'LF' EOL chars even if the original
-        text has 'CRLF' EOL chars
+        text has 'CRLF' EOL chars.
+        This function changes the clipboard data if they are copied as
+        files/folder but does not change normal text data except if they are
+        multiple lines. Since we are changing clipboard data we can not use
+        paste, which directly pastes from clipboard instead we use
+        insertPlainText and pass the formatted/changed text.
         """
         clipboard = QApplication.clipboard()
         text = to_text_string(clipboard.text())
-        eol_chars = self.get_line_separator()
         if clipboard.mimeData().hasUrls():
             # Have copied file and folder urls pasted as text paths.
             # See PR: #8644 for details.
             urls = clipboard.mimeData().urls()
             if all([url.isLocalFile() for url in urls]):
                 if len(urls) > 1:
-                    text = str(',' + eol_chars).join('"' + url.toLocalFile().
-                                                     replace(osp.os.sep, '/')
-                                                     + '"' for url in urls)
+                    sep_chars = ',' + self.get_line_separator()
+                    text = sep_chars.join('"' + url.toLocalFile().
+                                          replace(osp.os.sep, '/')
+                                          + '"' for url in urls)
                 else:
                     text = urls[0].toLocalFile()
         if len(text.splitlines()) > 1:
+            eol_chars = self.get_line_separator()
             text = eol_chars.join((text + eol_chars).splitlines())
         # Standard paste
         TextEditBaseWidget.insertPlainText(self, text)
