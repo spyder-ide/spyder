@@ -773,8 +773,7 @@ class IPythonConsole(SpyderPluginWidget):
         # Add the action to the 'Consoles' menu on the main window
         main_consoles_menu = self.main.consoles_menu_actions
         main_consoles_menu.insert(0, create_client_action)
-        main_consoles_menu += [create_pylab_action, create_sympy_action,
-                               create_cython_action, connect_to_kernel_action,
+        main_consoles_menu += [special_console_menu, connect_to_kernel_action,
                                MENU_SEPARATOR,
                                self.interrupt_action, restart_action,
                                reset_action]
