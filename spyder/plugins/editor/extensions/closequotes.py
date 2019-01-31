@@ -78,11 +78,12 @@ class CloseQuotesExtension(EditorExtension):
             self.editor.setTextCursor(cursor)
         elif self.editor.in_comment():
             self.editor.insert_text(char)
-        elif len(trailing_text) > 0 and not \
-                unmatched_quotes_in_line(line_to_cursor) == char:
+        elif (len(trailing_text) > 0 and
+                not unmatched_quotes_in_line(line_to_cursor) == char and
+                not trailing_text[0] in (',', ':', ';', ')', ']', '}')):
             self.editor.insert_text(char)
-        elif unmatched_quotes_in_line(line_text) and \
-                (not last_three == 3*char):
+        elif (unmatched_quotes_in_line(line_text) and
+                (not last_three == 3*char)):
             self.editor.insert_text(char)
         # Move to the right if we are before a quote
         elif self.editor.next_char() == char:

@@ -69,6 +69,7 @@ class Explorer(SpyderPluginWidget):
 
         self.main.add_dockwidget(self)
         self.fileexplorer.sig_open_file.connect(self.main.open_file)
+        self.register_widget_shortcuts(treewidget)
 
         treewidget.sig_edit.connect(self.main.editor.load)
         treewidget.sig_removed.connect(self.main.editor.removed)

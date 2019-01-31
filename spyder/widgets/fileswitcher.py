@@ -22,6 +22,7 @@ from spyder.py3compat import iteritems, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.stringmatching import get_search_scores
 from spyder.widgets.helperwidgets import HelperToolButton, HTMLDelegate
+from spyder.config.main import CONF
 
 
 # --- Python Outline explorer helpers
@@ -229,6 +230,7 @@ class FileSwitcher(QDialog):
     # in a given file when using the '@' symbol.
     FILE_MODE, SYMBOL_MODE = [1, 2]
     MAX_WIDTH = 600
+    PATH_FG_COLOR = 'rgb(153, 153, 153)'
 
     def __init__(self, parent, plugin, tabs, data, icon):
         QDialog.__init__(self, parent)
@@ -654,20 +656,30 @@ class FileSwitcher(QDialog):
         self.fix_size(paths)
 
         # Build the text that will appear on the list widget
+        path_text_font_size = CONF.get('appearance', 'rich_font/size', 11)
+        filename_text_font_size = path_text_font_size + 2
         for index, score in enumerate(scores):
             text, rich_text, score_value = score
             if score_value != -1:
-                text_item = "<big style='color:{0:}'>{1:}</big>".format(
-                        ima.MAIN_FG_COLOR, rich_text.replace('&', ''))
+                text_item = ("<span style='color:{0:}; font-size:{1:}pt'>{2:}"
+                             "</span>").format(ima.MAIN_FG_COLOR,
+                                               filename_text_font_size,
+                                               rich_text.replace('&', ''))
                 if trying_for_line_number:
                     text_item += " [{0:} {1:}]".format(self.line_count[index],
                                                        _("lines"))
                 if max_width > self.list.width():
-                    text_item += u"<br><i style='color:{0:}'>{1:}</i>".format(
-                            ima.MAIN_FG_COLOR, short_paths[index])
+                    text_item += (u" &nbsp; <span style='color:{0:};"
+                                  "font-size:{1:}pt'>{2:}"
+                                  "</span>").format(self.PATH_FG_COLOR,
+                                                    path_text_font_size,
+                                                    short_paths[index])
                 else:
-                    text_item += u"<br><i style='color:{0:}'>{1:}</i>".format(
-                            ima.MAIN_FG_COLOR, paths[index])
+                    text_item += (u" &nbsp; <span style='color:{0:};"
+                                  "font-size:{1:}pt'>{2:}"
+                                  "</span>").format(self.PATH_FG_COLOR,
+                                                    path_text_font_size,
+                                                    paths[index])
                 if (trying_for_line_number and self.line_count[index] != 0 or
                         not trying_for_line_number):
                     results.append((score_value, index, text_item))

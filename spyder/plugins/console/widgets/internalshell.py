@@ -26,7 +26,7 @@ from spyder_kernels.utils.dochelpers import (getargtxt, getdoc, getobjdir,
 
 # Local imports
 from spyder import get_versions
-from spyder.plugins.console.interpreter import Interpreter
+from spyder.plugins.console.utils.interpreter import Interpreter
 from spyder.py3compat import (builtins, to_binary_string,
                               to_text_string)
 from spyder.utils import icon_manager as ima

@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
-# -----------------------------------------------------------------------------
-# Copyright (c) 2009- Spyder Project Contributors
 #
-# Distributed under the terms of the MIT License
+# Copyright © Spyder Project Contributors
+# Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
-# -----------------------------------------------------------------------------
 
 
 """Pylint Code Analysis Plugin."""
@@ -18,18 +16,18 @@
 import os.path as osp
 
 # Third party imports
-from qtpy.QtCore import Qt, Slot
-from qtpy.QtWidgets import QGroupBox, QInputDialog, QLabel, QVBoxLayout
+from qtpy.QtCore import Slot
+from qtpy.QtWidgets import QInputDialog, QVBoxLayout
 
 # Local imports
 from spyder.config.base import _
 from spyder.config.gui import is_dark_interface
 from spyder.api.plugins import SpyderPluginWidget
-from spyder.api.preferences import PluginConfigPage
 from spyder.utils import icon_manager as ima
 from spyder.utils.programs import is_module_installed
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
-from .widgets.pylintgui import PylintWidget
+from spyder.plugins.pylint.confpage import PylintConfigPage
+from spyder.plugins.pylint.widgets.pylintgui import PylintWidget
 
 
 if is_dark_interface():
@@ -38,54 +36,6 @@ if is_dark_interface():
 else:
     MAIN_TEXT_COLOR = '#444444'
     MAIN_PREVRATE_COLOR = '#666666'
-
-
-class PylintConfigPage(PluginConfigPage):
-    def setup_page(self):
-        settings_group = QGroupBox(_("Settings"))
-        save_box = self.create_checkbox(_("Save file before analyzing it"),
-                                        'save_before', default=True)
-        
-        hist_group = QGroupBox(_("History"))
-        hist_label1 = QLabel(_("The following option will be applied at next "
-                               "startup."))
-        hist_label1.setWordWrap(True)
-        hist_spin = self.create_spinbox(_("History: "),
-                            _(" results"), 'max_entries', default=50,
-                            min_=10, max_=1000000, step=10)
-
-        results_group = QGroupBox(_("Results"))
-        results_label1 = QLabel(_("Results are stored here:"))
-        results_label1.setWordWrap(True)
-
-        # Warning: do not try to regroup the following QLabel contents with 
-        # widgets above -- this string was isolated here in a single QLabel
-        # on purpose: to fix Issue 863
-        results_label2 = QLabel(PylintWidget.DATAPATH)
-
-        results_label2.setTextInteractionFlags(Qt.TextSelectableByMouse)
-        results_label2.setWordWrap(True)
-
-        settings_layout = QVBoxLayout()
-        settings_layout.addWidget(save_box)
-        settings_group.setLayout(settings_layout)
-
-        hist_layout = QVBoxLayout()
-        hist_layout.addWidget(hist_label1)
-        hist_layout.addWidget(hist_spin)
-        hist_group.setLayout(hist_layout)
-
-        results_layout = QVBoxLayout()
-        results_layout.addWidget(results_label1)
-        results_layout.addWidget(results_label2)
-        results_group.setLayout(results_layout)
-
-        vlayout = QVBoxLayout()
-        vlayout.addWidget(settings_group)
-        vlayout.addWidget(hist_group)
-        vlayout.addWidget(results_group)
-        vlayout.addStretch(1)
-        self.setLayout(vlayout)
 
 
 class Pylint(SpyderPluginWidget):

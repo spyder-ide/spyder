@@ -72,7 +72,7 @@ class FigureBrowser(QWidget):
     sig_option_changed = Signal(str, object)
     sig_collapse = Signal()
 
-    def __init__(self, parent, options_button=None, plugin_actions=[],
+    def __init__(self, parent=None, options_button=None, plugin_actions=[],
                  background_color=None):
         super(FigureBrowser, self).__init__(parent)
 
@@ -140,12 +140,12 @@ class FigureBrowser(QWidget):
         savefig_btn = create_toolbutton(
                 self, icon=ima.icon('filesave'),
                 tip=_("Save Image As..."),
-                triggered=self.thumbnails_sb.save_current_figure_as)
+                triggered=self.save_figure)
 
         saveall_btn = create_toolbutton(
                 self, icon=ima.icon('save_all'),
                 tip=_("Save All Images..."),
-                triggered=self.thumbnails_sb.save_all_figures_as)
+                triggered=self.save_all_figures)
 
         copyfig_btn = create_toolbutton(
             self, icon=ima.icon('editcopy'),
@@ -168,12 +168,14 @@ class FigureBrowser(QWidget):
 
         goback_btn = create_toolbutton(
                 self, icon=ima.icon('ArrowBack'),
-                tip=_("Previous Figure"),
+                tip=_("Previous Figure ({})".format(
+                      get_shortcut('plots', 'previous figure'))),
                 triggered=self.go_previous_thumbnail)
 
         gonext_btn = create_toolbutton(
                 self, icon=ima.icon('ArrowForward'),
-                tip=_("Next Figure"),
+                tip=_("Next Figure ({})".format(
+                      get_shortcut('plots', 'next figure'))),
                 triggered=self.go_next_thumbnail)
 
         vsep2 = QFrame()
@@ -255,8 +257,12 @@ class FigureBrowser(QWidget):
         # Configurable
         copyfig = config_shortcut(self.copy_figure, context='plots',
                                   name='copy', parent=self)
+        prevfig = config_shortcut(self.go_previous_thumbnail, context='plots',
+                                  name='previous figure', parent=self)
+        nextfig = config_shortcut(self.go_next_thumbnail, context='plots',
+                                  name='next figure', parent=self)
 
-        return [copyfig]
+        return [copyfig, prevfig, nextfig]
 
     def get_shortcut_data(self):
         """
@@ -324,6 +330,14 @@ class FigureBrowser(QWidget):
         """
         self.thumbnails_sb.go_next_thumbnail()
 
+    def save_figure(self):
+        """Save the currently selected figure in the thumbnail scrollbar."""
+        self.thumbnails_sb.save_current_figure_as()
+
+    def save_all_figures(self):
+        """Save all the figures in a selected directory."""
+        return self.thumbnails_sb.save_all_figures_as()
+
     def close_figure(self):
         """Close the currently selected figure in the thumbnail scrollbar."""
         self.thumbnails_sb.remove_current_thumbnail()
@@ -349,8 +363,9 @@ class FigureViewer(QScrollArea):
     def __init__(self, parent=None, background_color=None):
         super(FigureViewer, self).__init__(parent)
         self.setAlignment(Qt.AlignCenter)
+        self.viewport().setObjectName("figviewport")
         self.viewport().setStyleSheet(
-                "background-color: {}".format(background_color))
+            "#figviewport {background-color:" + str(background_color) + "}")
         self.setFrameStyle(0)
 
         self.background_color = background_color
@@ -562,10 +577,11 @@ class ThumbnailScrollBar(QFrame):
                                        basedir=getcwd_or_home())
         self.redirect_stdio.emit(True)
         if dirname:
-            self.save_all_figures_todir(dirname)
+            return self.save_all_figures_todir(dirname)
 
     def save_all_figures_todir(self, dirname):
         """Save all figure in dirname."""
+        fignames = []
         for thumbnail in self._thumbnails:
             fig = thumbnail.canvas.fig
             fmt = thumbnail.canvas.fmt
@@ -575,14 +591,14 @@ class ThumbnailScrollBar(QFrame):
 
             figname = get_unique_figname(dirname, 'Figure', fext)
             save_figure_tofile(fig, fmt, figname)
+            fignames.append(figname)
+        return fignames
 
     def save_current_figure_as(self):
         """Save the currently selected figure."""
-        if self.current_thumbnail is None:
-            return
-
-        self.save_figure_as(self.current_thumbnail.canvas.fig,
-                            self.current_thumbnail.canvas.fmt)
+        if self.current_thumbnail is not None:
+            self.save_figure_as(self.current_thumbnail.canvas.fig,
+                                self.current_thumbnail.canvas.fmt)
 
     def save_figure_as(self, fig, fmt):
         """Save the figure to a file."""
@@ -641,6 +657,9 @@ class ThumbnailScrollBar(QFrame):
         """Remove all thumbnails."""
         for thumbnail in self._thumbnails:
             self.layout().removeWidget(thumbnail)
+            thumbnail.sig_canvas_clicked.disconnect()
+            thumbnail.sig_remove_figure.disconnect()
+            thumbnail.sig_save_figure.disconnect()
             thumbnail.deleteLater()
         self._thumbnails = []
         self.current_thumbnail = None
@@ -653,6 +672,9 @@ class ThumbnailScrollBar(QFrame):
             self._thumbnails.remove(thumbnail)
         self.layout().removeWidget(thumbnail)
         thumbnail.deleteLater()
+        thumbnail.sig_canvas_clicked.disconnect()
+        thumbnail.sig_remove_figure.disconnect()
+        thumbnail.sig_save_figure.disconnect()
 
         # Select a new thumbnail if any :
         if thumbnail == self.current_thumbnail:
@@ -665,6 +687,13 @@ class ThumbnailScrollBar(QFrame):
     def set_current_index(self, index):
         """Set the currently selected thumbnail by its index."""
         self.set_current_thumbnail(self._thumbnails[index])
+
+    def get_current_index(self):
+        """Return the index of the currently selected thumbnail."""
+        try:
+            return self._thumbnails.index(self.current_thumbnail)
+        except ValueError:
+            return -1
 
     def set_current_thumbnail(self, thumbnail):
         """Set the currently selected thumbnail."""
@@ -728,20 +757,20 @@ class FigureThumbnail(QWidget):
 
     def setup_toolbar(self):
         """Setup the toolbar."""
-        savefig_btn = create_toolbutton(
-                self, icon=ima.icon('filesave'),
-                tip=_("Save Image As..."),
-                triggered=self.emit_save_figure)
-        delfig_btn = create_toolbutton(
-                self, icon=ima.icon('editclear'),
-                tip=_("Delete image"),
-                triggered=self.emit_remove_figure)
+        self.savefig_btn = create_toolbutton(
+            self, icon=ima.icon('filesave'),
+            tip=_("Save Image As..."),
+            triggered=self.emit_save_figure)
+        self.delfig_btn = create_toolbutton(
+            self, icon=ima.icon('editclear'),
+            tip=_("Delete image"),
+            triggered=self.emit_remove_figure)
 
         toolbar = QVBoxLayout()
         toolbar.setContentsMargins(0, 0, 0, 0)
         toolbar.setSpacing(1)
-        toolbar.addWidget(savefig_btn)
-        toolbar.addWidget(delfig_btn)
+        toolbar.addWidget(self.savefig_btn)
+        toolbar.addWidget(self.delfig_btn)
         toolbar.addStretch(2)
 
         return toolbar
@@ -789,11 +818,14 @@ class FigureCanvas(QFrame):
         super(FigureCanvas, self).__init__(parent)
         self.setLineWidth(2)
         self.setMidLineWidth(1)
-        self.setStyleSheet("background-color: {}".format(background_color))
+        self.setObjectName("figcanvas")
+        self.setStyleSheet(
+            "#figcanvas {background-color:" + str(background_color) + "}")
 
         self.fig = None
         self.fmt = None
         self.fwidth, self.fheight = 200, 200
+        self._blink_flag = False
 
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.context_menu_requested)
@@ -826,12 +858,11 @@ class FigureCanvas(QFrame):
     def blink_figure(self):
         """Blink figure once."""
         if self.fig:
-            timer = QTimer()
-            frame_rect = self.frameSize()
-            self.setFixedSize(0, 0)
-            timer.singleShot(40,
-                             lambda: self.setFixedSize(frame_rect.width(),
-                                                       frame_rect.height()))
+            self._blink_flag = not self._blink_flag
+            self.repaint()
+            if self._blink_flag:
+                timer = QTimer()
+                timer.singleShot(40, self.blink_figure)
 
     def clear_canvas(self):
         """Clear the figure that was painted on the widget."""
@@ -867,7 +898,7 @@ class FigureCanvas(QFrame):
                      self.size().width() - 2 * fw,
                      self.size().height() - 2 * fw)
 
-        if self.fig is None:
+        if self.fig is None or self._blink_flag:
             return
 
         # Check/update the qpixmap buffer :

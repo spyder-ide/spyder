@@ -216,7 +216,7 @@ install_requires = [
     'pyzmq',
     'chardet>=2.0.0',
     'numpydoc',
-    'spyder-kernels>=1.0',
+    'spyder-kernels>=1.2',
     'qdarkstyle>=2.6.4',
     'atomicwrites',
     # Don't require keyring for Python 2 and Linux
@@ -224,9 +224,9 @@ install_requires = [
     'keyring;sys_platform!="linux2"',
     # Packages for pyqt5 are only available in
     # Python 3
-    'pyqt5<5.10;python_version>="3"',
+    'pyqt5<=5.12;python_version>="3"',
     # Pyls with all its dependencies
-    'python-language-server[all]==0.19.0',
+    'python-language-server[all]>=0.19.0',
     # Required to get SSH connections to remote kernels
     'pexpect;platform_system!="Windows"',
     'paramiko;platform_system=="Windows"'
@@ -234,7 +234,7 @@ install_requires = [
 
 extras_require = {
     'test:python_version == "2.7"': ['mock'],
-    'test': ['pytest',
+    'test': ['pytest<4.1',
              'pytest-qt',
              'pytest-mock',
              'pytest-cov',

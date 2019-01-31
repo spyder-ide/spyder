@@ -11,6 +11,7 @@ Tests for the Projects plugin.
 """
 
 # Standard library imports
+import os
 import os.path as osp
 try:
     from unittest.mock import Mock
@@ -22,7 +23,7 @@ import pytest
 
 # Local imports
 import spyder.plugins.base
-from spyder.plugins.projects.plugin import Projects
+from spyder.plugins.projects.plugin import Projects, QMessageBox
 from spyder.py3compat import to_text_string
 
 
@@ -111,6 +112,24 @@ def test_open_project(projects, tmpdir, test_directory):
 
     # Close project
     projects.close_project()
+
+
+@pytest.mark.parametrize("test_directory", [u'測試', u'اختبار', u"test_dir"])
+def test_delete_project(projects, tmpdir, mocker, test_directory):
+    """Test that we can delete a project."""
+    # Create the directory
+    path = to_text_string(tmpdir.mkdir(test_directory))
+
+    # Open project in path
+    projects.open_project(path=path)
+    assert projects.is_valid_project(path)
+    assert osp.exists(osp.join(path, '.spyproject'))
+
+    # Delete project
+    mocker.patch.object(QMessageBox, 'warning', return_value=QMessageBox.Yes)
+    projects.delete_project()
+    assert not projects.is_valid_project(path)
+    assert not osp.exists(osp.join(path, '.spyproject'))
 
 
 @pytest.mark.parametrize('value', [True, False])
@@ -244,6 +263,12 @@ def test_project_explorer_tree_root(projects, tmpdir, qtbot):
 
     ppath1 = to_text_string(tmpdir.mkdir(u'測試'))
     ppath2 = to_text_string(tmpdir.mkdir(u'ïèô éàñ').mkdir(u'اختبار'))
+    if os.name == 'nt':
+        # For an explanation of why this part is necessary to make this test
+        # pass for Python2 in Windows, see PR #8528.
+        import win32file
+        ppath1 = win32file.GetLongPathName(ppath1)
+        ppath2 = win32file.GetLongPathName(ppath2)
 
     # Open the projects.
     for ppath in [ppath1, ppath2]:

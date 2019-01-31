@@ -8,14 +8,12 @@
 
 
 # Third party imports
-from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QStackedWidget, QGridLayout
 
 # Local imports
 from spyder.config.base import _
 from spyder.config.gui import is_dark_interface
 from spyder.api.plugins import SpyderPluginWidget
-from spyder.api.preferences import PluginConfigPage
 from spyder.utils import icon_manager as ima
 from spyder.plugins.plots.widgets.figurebrowser import FigureBrowser
 
@@ -26,17 +24,10 @@ else:
     MAIN_BG_COLOR = 'white'
 
 
-class PlotsConfigPage(PluginConfigPage):
-
-    def setup_page(self):
-        pass
-
-
 class Plots(SpyderPluginWidget):
     """Plots plugin."""
 
     CONF_SECTION = 'plots'
-    CONFIGWIDGET_CLASS = PlotsConfigPage
     DISABLE_ACTIONS_WHEN_HIDDEN = False
 
     def __init__(self, parent):
