@@ -32,11 +32,11 @@ from qtpy.compat import to_qvariant
 from qtpy.QtCore import QRegExp, Qt, QTimer, Signal, Slot, QEvent
 from qtpy.QtGui import (QColor, QCursor, QFont, QIntValidator,
                         QKeySequence, QPaintEvent, QPainter, QMouseEvent,
-                        QTextBlockUserData, QTextCharFormat, QTextCursor,
+                        QTextCharFormat, QTextCursor,
                         QKeyEvent, QTextDocument, QTextFormat, QTextOption)
 from qtpy.QtPrintSupport import QPrinter
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
-                            QGridLayout, QHBoxLayout, QInputDialog, QLabel,
+                            QGridLayout, QHBoxLayout, QLabel,
                             QLineEdit, QMenu, QMessageBox, QSplitter,
                             QToolTip, QVBoxLayout, QScrollBar)
 from spyder_kernels.utils.dochelpers import getobj
@@ -55,11 +55,13 @@ from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               EditorExtensionsManager)
 from spyder.plugins.editor.lsp import (LSPRequestTypes, TextDocumentSyncKind,
                                        DiagnosticSeverity)
-from spyder.plugins.editor.panels import (ClassFunctionDropdown, EdgeLine,
+from spyder.plugins.editor.panels import (ClassFunctionDropdown,
+                                          DebuggerPanel, EdgeLine,
                                           FoldingPanel, IndentationGuide,
                                           LineNumberArea, PanelsManager,
                                           ScrollFlagArea)
-from spyder.plugins.editor.utils.editor import TextHelper
+from spyder.plugins.editor.utils.editor import TextHelper, BlockUserData
+from spyder.plugins.editor.utils.debugger import DebuggerManager
 from spyder.plugins.editor.utils.folding import IndentFoldDetector
 from spyder.plugins.editor.utils.kill_ring import QtKillRing
 from spyder.plugins.editor.utils.languages import ALL_LANGUAGES, CELL_LANGUAGES
@@ -71,6 +73,7 @@ from spyder.utils import encoding, sourcecode
 from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.qthelpers import add_actions, create_action, mimedata2url
+
 
 try:
     import nbformat as nbformat
@@ -166,26 +169,6 @@ class GoToLineDialog(QDialog):
 #===============================================================================
 # CodeEditor widget
 #===============================================================================
-class BlockUserData(QTextBlockUserData):
-    def __init__(self, editor, cursor=None, color=None):
-        QTextBlockUserData.__init__(self)
-        self.editor = editor
-        self.breakpoint = False
-        self.breakpoint_condition = None
-        self.code_analysis = []
-        self.todo = ''
-        self.selection = cursor
-        self.color = color
-        self.editor.blockuserdata_list.append(self)
-
-    def is_empty(self):
-        return not self.breakpoint and not self.code_analysis and not self.todo
-
-    def __del__(self):
-        bud_list = self.editor.blockuserdata_list
-        bud_list.pop(bud_list.index(self))
-
-
 def get_file_language(filename, text=None):
     """Get file language from filename"""
     ext = osp.splitext(filename)[1]
@@ -236,7 +219,10 @@ class CodeEditor(TextEditBaseWidget):
     edge_line = None
     indent_guides = None
 
-    breakpoints_changed = Signal()
+    sig_breakpoints_changed = Signal()
+    sig_debug_stop = Signal(int)
+    sig_breakpoints_saved = Signal()
+    sig_filename_changed = Signal(str)
     get_completions = Signal(bool)
     go_to_definition = Signal(str, int, int)
     sig_show_object_info = Signal(int)
@@ -326,6 +312,12 @@ class CodeEditor(TextEditBaseWidget):
         # Folding
         self.panels.register(FoldingPanel())
 
+        # Debugger panel (Breakpoints)
+        self.debugger = DebuggerManager(self)
+        self.panels.register(DebuggerPanel())
+        # Update breakpoints if the number of lines in the file changes
+        self.blockCountChanged.connect(self.debugger.update_breakpoints)
+
         # Line number area management
         self.linenumberarea = self.panels.register(LineNumberArea(self))
 
@@ -400,9 +392,6 @@ class CodeEditor(TextEditBaseWidget):
         # Block user data
         self.blockuserdata_list = []
 
-        # Update breakpoints if the number of lines in the file changes
-        self.blockCountChanged.connect(self.update_breakpoints)
-
         # Highlight using Pygments highlighter timer
         # ---------------------------------------------------------------------
         # For files that use the PygmentsSH we parse the full file inside
@@ -450,9 +439,6 @@ class CodeEditor(TextEditBaseWidget):
         self.setMouseTracking(True)
         self.__cursor_changed = False
         self.ctrl_click_color = QColor(Qt.blue)
-
-        # Breakpoints
-        self.breakpoints = self.get_breakpoints()
 
         # Keyboard shortcuts
         self.shortcuts = self.create_shortcuts()
@@ -630,6 +616,9 @@ class CodeEditor(TextEditBaseWidget):
 
         # Scrollbar flag area
         self.scrollflagarea.set_enabled(scrollflagarea)
+
+        # Debugging
+        self.debugger.set_filename(filename)
 
         # Edge line
         self.edge_line.set_enabled(edge_line)
@@ -1209,6 +1198,8 @@ class CodeEditor(TextEditBaseWidget):
                         outline_color=None,
                         underline_style=QTextCharFormat.WaveUnderline,
                         update=False):
+        if cursor is None:
+            return
         extra_selections = self.get_extra_selections(key)
         selection = TextDecoration(cursor)
         if foreground_color is not None:
@@ -1364,77 +1355,6 @@ class CodeEditor(TextEditBaseWidget):
             cursor.movePosition(cursor.StartOfBlock, cursor.KeepAnchor)
 
         self.setTextCursor(cursor)
-
-    #------Breakpoints
-    def add_remove_breakpoint(self, line_number=None, condition=None,
-                              edit_condition=False):
-        """Add/remove breakpoint"""
-        if not self.is_python_like():
-            return
-        if line_number is None:
-            block = self.textCursor().block()
-        else:
-            block = self.document().findBlockByNumber(line_number-1)
-        data = block.userData()
-        if not data:
-            data = BlockUserData(self)
-            data.breakpoint = True
-        elif not edit_condition:
-            data.breakpoint = not data.breakpoint
-            data.breakpoint_condition = None
-        if condition is not None:
-            data.breakpoint_condition = condition
-        if edit_condition:
-            condition = data.breakpoint_condition
-            condition, valid = QInputDialog.getText(self,
-                                        _('Breakpoint'),
-                                        _("Condition:"),
-                                        QLineEdit.Normal, condition)
-            if not valid:
-                return
-            data.breakpoint = True
-            data.breakpoint_condition = str(condition) if condition else None
-        if data.breakpoint:
-            text = to_text_string(block.text()).strip()
-            if len(text) == 0 or text.startswith(('#', '"', "'")):
-                data.breakpoint = False
-        block.setUserData(data)
-        self.linenumberarea.update()
-        self.sig_flags_changed.emit()
-        self.breakpoints_changed.emit()
-
-    def get_breakpoints(self):
-        """Get breakpoints"""
-        breakpoints = []
-        block = self.document().firstBlock()
-        for line_number in range(1, self.document().blockCount()+1):
-            data = block.userData()
-            if data and data.breakpoint:
-                breakpoints.append((line_number, data.breakpoint_condition))
-            block = block.next()
-        return breakpoints
-
-    def clear_breakpoints(self):
-        """Clear breakpoints"""
-        self.breakpoints = []
-        for data in self.blockuserdata_list[:]:
-            data.breakpoint = False
-            # data.breakpoint_condition = None  # not necessary, but logical
-            if data.is_empty():
-                # This is not calling the __del__ in BlockUserData.  Not
-                # sure if it's supposed to or not, but that seems to be the
-                # intent.
-                del data
-
-    def set_breakpoints(self, breakpoints):
-        """Set breakpoints"""
-        self.clear_breakpoints()
-        for line_number, condition in breakpoints:
-            self.add_remove_breakpoint(line_number, condition)
-
-    def update_breakpoints(self):
-        """Update breakpoints"""
-        self.breakpoints_changed.emit()
 
     #-----Code introspection
     def do_go_to_definition(self):

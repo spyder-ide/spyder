@@ -96,8 +96,10 @@ _qtaargs = {
     'print':                   [('fa.print',), {'color': MAIN_FG_COLOR}],
     'fileclose':               [('fa.close',), {'color': MAIN_FG_COLOR}],
     'filecloseall':            [('fa.close', 'fa.close', 'fa.close'), {'options': [{'scale_factor': 0.6, 'offset': (0.3, -0.3), 'color': MAIN_FG_COLOR},  {'scale_factor': 0.6, 'offset': (-0.3, -0.3), 'color': MAIN_FG_COLOR}, {'scale_factor': 0.6, 'offset': (0.3, 0.3), 'color': MAIN_FG_COLOR}]}],
+    'breakpoint_transparent':  [('fa.circle',), {'color': 'rgba(139, 0, 0, 0.5)'}],  # darkred transparent
     'breakpoint_big':          [('fa.circle',), {'color': 'darkred'} ],
     'breakpoint_cond_big':     [('fa.question-circle',), {'color': 'darkred'},],
+    'arrow_debugger':          [('mdi.arrow-right-thick',), {'color': '#3775a9'}],
     'debug':                   [('spyder.debug',), {'color': '#3775a9'}],
     'arrow-step-over':         [('spyder.step-forward',), {'color': '#3775a9'}],
     'arrow-continue':          [('spyder.continue',), {'color': '#3775a9'}],
