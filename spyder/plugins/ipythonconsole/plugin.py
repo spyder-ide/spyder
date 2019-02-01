@@ -313,11 +313,12 @@ class IPythonConsole(SpyderPluginWidget):
                                      triggered=self.reset_kernel,
                                      context=Qt.WidgetWithChildrenShortcut)
 
-        self.interrupt_action = create_action(
-            self, _("Interrupt kernel"),
-            icon=ima.icon('stop'),
-            triggered=self.interrupt_kernel,
-            context=Qt.WidgetWithChildrenShortcut)
+        if self.interrupt_action is None:
+            self.interrupt_action = create_action(
+                self, _("Interrupt kernel"),
+                icon=ima.icon('stop'),
+                triggered=self.interrupt_kernel,
+                context=Qt.WidgetWithChildrenShortcut)
 
         self.register_shortcut(restart_action, context="ipython_console",
                                name="Restart kernel")
@@ -345,6 +346,8 @@ class IPythonConsole(SpyderPluginWidget):
                              MENU_SEPARATOR,
                              self.interrupt_action,
                              restart_action, reset_action, rename_tab_action]
+
+        self.update_execution_state_kernel()
 
         # Check for a current client. Since it manages more actions.
         client = self.get_current_client()
