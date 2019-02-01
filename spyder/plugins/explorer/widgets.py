@@ -129,13 +129,11 @@ class IconProvider(QFileIconProvider):
     OFFICE_FILES = {'.xlsx': 'ExcelFileIcon', '.docx': 'WordFileIcon',
                     '.pptx': 'PowerpointFileIcon'}
 
+
     """Project tree widget icon provider"""
     def __init__(self, treeview):
         super(IconProvider, self).__init__()
         self.treeview = treeview
-        self.application_icons = {}
-        self.application_icons.update(self.BIN_FILES)
-        self.application_icons.update(self.DOCUMENT_FILES)
 
     @Slot(int)
     @Slot(QFileInfo)
@@ -145,7 +143,9 @@ class IconProvider(QFileIconProvider):
         if isinstance(icontype_or_qfileinfo, QFileIconProvider.IconType):
             return super(IconProvider, self).icon(icontype_or_qfileinfo)
         else:
-            return ima.get_icon_by_extension(icontype_or_qfileinfo)
+            qfileinfo = icontype_or_qfileinfo
+            fname = osp.normpath(to_text_string(qfileinfo.absoluteFilePath()))
+            return ima.get_icon_by_extension(fname)
 
 class DirView(QTreeView):
     """Base file/directory tree view"""

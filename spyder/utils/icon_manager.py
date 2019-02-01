@@ -383,12 +383,10 @@ def icon(name, resample=False, icon_path=None):
         return icon if icon is not None else QIcon()
 
 
-def get_icon_by_extension(qfileinfo):
+def get_icon_by_extension(fname):
     application_icons = {}
     application_icons.update(BIN_FILES)
     application_icons.update(DOCUMENT_FILES)
-    """Reimplement Qt method"""
-    fname = osp.normpath(to_text_string(qfileinfo.absoluteFilePath()))
     if osp.isdir(fname):
         return icon('DirOpenIcon')
     else:
