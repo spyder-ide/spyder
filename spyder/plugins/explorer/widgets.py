@@ -147,7 +147,6 @@ class IconProvider(QFileIconProvider):
         else:
             return ima.get_icon_by_extension(icontype_or_qfileinfo)
 
-
 class DirView(QTreeView):
     """Base file/directory tree view"""
     sig_edit = Signal(str)

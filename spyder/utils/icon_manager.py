@@ -6,6 +6,7 @@
 
 # Standard library imports
 import os.path as osp
+import mimetypes as mime
 
 # Third party imports
 from qtpy.QtGui import QIcon
@@ -15,6 +16,7 @@ from qtpy.QtWidgets import QStyle, QWidget
 from spyder.config.base import get_image_path
 from spyder.config.main import CONF
 from spyder.config.gui import is_dark_interface
+from spyder.py3compat import (to_text_string)
 import qtawesome as qta
 
 
@@ -23,7 +25,20 @@ if is_dark_interface():
 else:
     MAIN_FG_COLOR = 'black'
 
-
+BIN_FILES = {x: 'ArchiveFileIcon' for x in ['zip', 'x-tar',
+             'x-7z-compressed', 'rar']}
+DOCUMENT_FILES = {'vnd.ms-powerpoint': 'PowerpointFileIcon',
+                  'vnd.openxmlformats-officedocument.'
+                  'presentationml.presentation': 'PowerpointFileIcon',
+                  'msword': 'WordFileIcon',
+                  'vnd.openxmlformats-officedocument.'
+                  'wordprocessingml.document': 'WordFileIcon',
+                  'vnd.ms-excel': 'ExcelFileIcon',
+                  'vnd.openxmlformats-officedocument.'
+                  'spreadsheetml.sheet': 'ExcelFileIcon',
+                  'pdf': 'PDFIcon'}
+OFFICE_FILES = {'.xlsx': 'ExcelFileIcon', '.docx': 'WordFileIcon',
+                '.pptx': 'PowerpointFileIcon'}
 LANGUAGE_ICONS = {
     '.c': 'CFileIcon',
     '.h': 'CFileIcon',
@@ -367,22 +382,6 @@ def icon(name, resample=False, icon_path=None):
                 icon = QIcon(icon_path)
         return icon if icon is not None else QIcon()
 
-BIN_FILES = {x: 'ArchiveFileIcon' for x in ['zip', 'x-tar',
-             'x-7z-compressed', 'rar']}
-DOCUMENT_FILES = {'vnd.ms-powerpoint': 'PowerpointFileIcon',
-                  'vnd.openxmlformats-officedocument.'
-                  'presentationml.presentation': 'PowerpointFileIcon',
-                  'msword': 'WordFileIcon',
-                  'vnd.openxmlformats-officedocument.'
-                  'wordprocessingml.document': 'WordFileIcon',
-                  'vnd.ms-excel': 'ExcelFileIcon',
-                  'vnd.openxmlformats-officedocument.'
-                  'spreadsheetml.sheet': 'ExcelFileIcon',
-                  'pdf': 'PDFIcon'}
-OFFICE_FILES = {'.xlsx': 'ExcelFileIcon', '.docx': 'WordFileIcon',
-                '.pptx': 'PowerpointFileIcon'}
-
-
 
 def get_icon_by_extension(qfileinfo):
     application_icons = {}
@@ -391,30 +390,33 @@ def get_icon_by_extension(qfileinfo):
     """Reimplement Qt method"""
     fname = osp.normpath(to_text_string(qfileinfo.absoluteFilePath()))
     if osp.isdir(fname):
-        return ima.icon('DirOpenIcon')
+        return icon('DirOpenIcon')
     else:
         basename = osp.basename(fname)
         _, extension = osp.splitext(basename.lower())
         mime_type, _ = mime.guess_type(basename)
-        icon = ima.icon('FileIcon')
+        icon_by_extension = icon('FileIcon')
 
         if extension in OFFICE_FILES:
-            icon = ima.icon(OFFICE_FILES[extension])
+            icon_by_extension = icon(OFFICE_FILES[extension])
 
-        if extension in ima.LANGUAGE_ICONS:
-            icon = ima.icon(ima.LANGUAGE_ICONS[extension])
+        if extension in LANGUAGE_ICONS:
+            icon_by_extension = icon(LANGUAGE_ICONS[extension])
         else:
             if extension == '.ipynb':
                 if is_dark_interface():
-                    icon = QIcon(get_image_path("notebook_dark.svg"))
+                    icon_by_extension = QIcon(get_image_path(
+                                            "notebook_dark.svg"))
                 else:
-                    icon = QIcon(get_image_path("notebook_light.svg"))
+                    icon_by_extension = QIcon(get_image_path(
+                                            "notebook_light.svg"))
             elif mime_type is not None:
                 try:
                     # Fix for issue 5080. Even though
                     # mimetypes.guess_type documentation states that
                     # the return value will be None or a tuple of
                     # the form type/subtype, in the Windows registry,
+
                     # .sql has a mimetype of text\plain
                     # instead of text/plain therefore mimetypes is
                     # returning it incorrectly.
@@ -422,15 +424,15 @@ def get_icon_by_extension(qfileinfo):
                 except ValueError:
                     file_type = 'text'
                 if file_type == 'text':
-                    icon = ima.icon('TextFileIcon')
+                    icon_by_extension = icon('TextFileIcon')
                 elif file_type == 'audio':
-                    icon = ima.icon('AudioFileIcon')
+                    icon_by_extension = icon('AudioFileIcon')
                 elif file_type == 'video':
-                    icon = ima.icon('VideoFileIcon')
+                    icon_by_extension = icon('VideoFileIcon')
                 elif file_type == 'image':
-                    icon = ima.icon('ImageFileIcon')
+                    icon_by_extension = icon('ImageFileIcon')
                 elif file_type == 'application':
                     if bin_name in application_icons:
-                        icon = ima.icon(
+                        icon_by_extension = icon(
                             application_icons[bin_name])
-    return icon
+    return icon_by_extension
