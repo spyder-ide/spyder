@@ -16,7 +16,7 @@ from qtpy.QtWidgets import QStyle, QWidget
 from spyder.config.base import get_image_path
 from spyder.config.main import CONF
 from spyder.config.gui import is_dark_interface
-from spyder.py3compat import (to_text_string)
+from spyder.py3compat import to_text_string
 import qtawesome as qta
 
 
@@ -26,7 +26,8 @@ else:
     MAIN_FG_COLOR = 'black'
 
 BIN_FILES = {x: 'ArchiveFileIcon' for x in ['zip', 'x-tar',
-             'x-7z-compressed', 'rar']}
+                                            'x-7z-compressed', 'rar']}
+
 DOCUMENT_FILES = {'vnd.ms-powerpoint': 'PowerpointFileIcon',
                   'vnd.openxmlformats-officedocument.'
                   'presentationml.presentation': 'PowerpointFileIcon',
@@ -37,8 +38,10 @@ DOCUMENT_FILES = {'vnd.ms-powerpoint': 'PowerpointFileIcon',
                   'vnd.openxmlformats-officedocument.'
                   'spreadsheetml.sheet': 'ExcelFileIcon',
                   'pdf': 'PDFIcon'}
+
 OFFICE_FILES = {'.xlsx': 'ExcelFileIcon', '.docx': 'WordFileIcon',
                 '.pptx': 'PowerpointFileIcon'}
+
 LANGUAGE_ICONS = {
     '.c': 'CFileIcon',
     '.h': 'CFileIcon',
@@ -384,6 +387,7 @@ def icon(name, resample=False, icon_path=None):
 
 
 def get_icon_by_extension(fname):
+    """Return the icon depending on the file extension"""
     application_icons = {}
     application_icons.update(BIN_FILES)
     application_icons.update(DOCUMENT_FILES)
@@ -404,17 +408,16 @@ def get_icon_by_extension(fname):
             if extension == '.ipynb':
                 if is_dark_interface():
                     icon_by_extension = QIcon(get_image_path(
-                                            "notebook_dark.svg"))
+                        "notebook_dark.svg"))
                 else:
                     icon_by_extension = QIcon(get_image_path(
-                                            "notebook_light.svg"))
+                        "notebook_light.svg"))
             elif mime_type is not None:
                 try:
                     # Fix for issue 5080. Even though
                     # mimetypes.guess_type documentation states that
                     # the return value will be None or a tuple of
                     # the form type/subtype, in the Windows registry,
-
                     # .sql has a mimetype of text\plain
                     # instead of text/plain therefore mimetypes is
                     # returning it incorrectly.

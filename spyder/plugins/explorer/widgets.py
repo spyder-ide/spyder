@@ -114,30 +114,14 @@ def has_subdirectories(path, include, exclude, show_all):
 
 
 class IconProvider(QFileIconProvider):
-    BIN_FILES = {x: 'ArchiveFileIcon' for x in ['zip', 'x-tar',
-                 'x-7z-compressed', 'rar']}
-    DOCUMENT_FILES = {'vnd.ms-powerpoint': 'PowerpointFileIcon',
-                      'vnd.openxmlformats-officedocument.'
-                      'presentationml.presentation': 'PowerpointFileIcon',
-                      'msword': 'WordFileIcon',
-                      'vnd.openxmlformats-officedocument.'
-                      'wordprocessingml.document': 'WordFileIcon',
-                      'vnd.ms-excel': 'ExcelFileIcon',
-                      'vnd.openxmlformats-officedocument.'
-                      'spreadsheetml.sheet': 'ExcelFileIcon',
-                      'pdf': 'PDFIcon'}
-    OFFICE_FILES = {'.xlsx': 'ExcelFileIcon', '.docx': 'WordFileIcon',
-                    '.pptx': 'PowerpointFileIcon'}
-
-
     """Project tree widget icon provider"""
+
     def __init__(self, treeview):
         super(IconProvider, self).__init__()
         self.treeview = treeview
 
     @Slot(int)
     @Slot(QFileInfo)
-
     def icon(self, icontype_or_qfileinfo):
         """Reimplement Qt method"""
         if isinstance(icontype_or_qfileinfo, QFileIconProvider.IconType):
