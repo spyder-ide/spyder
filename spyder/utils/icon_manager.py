@@ -407,11 +407,11 @@ def get_icon_by_extension(fname):
         else:
             if extension == '.ipynb':
                 if is_dark_interface():
-                    icon_by_extension = QIcon(get_image_path(
-                        "notebook_dark.svg"))
+                    icon_by_extension = QIcon(
+                        get_image_path('notebook_dark.svg'))
                 else:
-                    icon_by_extension = QIcon(get_image_path(
-                        "notebook_light.svg"))
+                    icon_by_extension = QIcon(
+                        get_image_path('notebook_light.svg'))
             elif mime_type is not None:
                 try:
                     # Fix for issue 5080. Even though
