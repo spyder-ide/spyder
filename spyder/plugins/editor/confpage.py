@@ -8,7 +8,7 @@
 
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
-                            QTabWidget, QVBoxLayout, QFrame)
+                            QTabWidget, QVBoxLayout)
 
 from spyder.api.preferences import PluginConfigPage
 from spyder.config.base import _
