@@ -88,11 +88,11 @@ def test_information_of_function(text, n_indent, name_list, type_list,
          ),
 
         ('numpy',
-         '''def foo(arg1: int, arg2: List[Tuple[str, float]], 
+         '''def foo(arg1: int, arg2: List[Tuple[str, float]],
 arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
   (List[Tuple[str, float]], str, float):
     ''',
-         '''def foo(arg1: int, arg2: List[Tuple[str, float]], 
+         '''def foo(arg1: int, arg2: List[Tuple[str, float]],
 arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
   (List[Tuple[str, float]], str, float):
     """
@@ -117,7 +117,8 @@ arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
 
     """'''),
     ])
-def test_editor_docstring(qtbot, editor_auto_docstring, doc_type, text, expected):
+def test_editor_docstring(qtbot, editor_auto_docstring, doc_type, text,
+                          expected):
     """Test auto docstring."""
     CONF.set('editor', 'docstring_type', doc_type)
     editor = editor_auto_docstring
