@@ -232,6 +232,8 @@ DEFAULTS = [
               'onsave_analysis': False,
               'autosave_enabled': True,
               'autosave_interval': 60,
+              'auto_docstring': True,
+              'docstring_type': 'one-line',
               }),
             ('historylog',
              {

@@ -520,6 +520,7 @@ class EditorStack(QWidget):
         self.go_to_definition_enabled = True
         self.close_parentheses_enabled = True
         self.close_quotes_enabled = True
+        self.auto_docstring_enabled = False
         self.add_colons_enabled = True
         self.auto_unindent_enabled = True
         self.indent_chars = " "*4
@@ -1059,6 +1060,13 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_close_quotes_enabled(state)
+
+    def set_auto_docstring_enabled(self, state):
+        # CONF.get(self.CONF_SECTION, 'auto_docstring')
+        self.auto_docstring_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_auto_docstring_enabled(state)
 
     def set_add_colons_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'add_colons')
@@ -2300,7 +2308,8 @@ class EditorStack(QWidget):
                 cloned_from=cloned_from,
                 filename=fname,
                 show_class_func_dropdown=self.show_class_func_dropdown,
-                indent_guides=self.indent_guides)
+                indent_guides=self.indent_guides,
+                auto_docstring=self.auto_docstring_enabled)
         if cloned_from is None:
             editor.set_text(txt)
             editor.document().setModified(False)

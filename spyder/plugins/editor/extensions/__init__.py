@@ -13,4 +13,5 @@ Editor Extensions classes and manager.
 
 from .closebrackets import CloseBracketsExtension
 from .closequotes import CloseQuotesExtension
+from .docstring import DocstringExtension
 from .manager import EditorExtensionsManager
