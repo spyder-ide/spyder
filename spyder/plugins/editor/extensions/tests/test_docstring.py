@@ -62,6 +62,14 @@ def test_information_of_function(text, n_indent, name_list, type_list,
     "doc_type, text, expected",
     [
         ('one-line',
+         '',
+         '"""\n'
+         ),
+        ('one-line',
+         'if 1:\n    ',
+         'if 1:\n    """\n    '
+         ),
+        ('one-line',
          '''def foo():
     print(''',
          '''def foo():

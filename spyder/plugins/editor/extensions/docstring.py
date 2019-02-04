@@ -19,7 +19,7 @@ from spyder.py3compat import to_text_string
 
 def is_start_of_function(text):
     """Return True if text is the beginning of the function definition."""
-    if isinstance(text, str):
+    if isinstance(text, str) or isinstance(text, unicode):
         function_prefix = ['def', 'async def']
         text = text.lstrip()
 
@@ -31,6 +31,8 @@ def is_start_of_function(text):
 
 
 class DocstringExtension(EditorExtension):
+    """Editor Extension for insert docstring template automatically."""
+
     def on_state_changed(self, state):
         """Connect/disconnect sig_key_pressed signal."""
         if state:
@@ -93,6 +95,7 @@ class DocstringExtension(EditorExtension):
         return None
 
     def _write_docstring(self):
+        """Write docstring to editor."""
         line_to_cursor = self.editor.get_text('sol', 'cursor')
         if self._is_beginning_triple_quotes(line_to_cursor):
             cursor = self.editor.textCursor()
@@ -305,7 +308,7 @@ class FunctionInfo:
             self.arg_value_list.append(arg_value)
 
     def split_args_text_to_list(self, args_text):
-        """Split the text including multiple arguments to list form.
+        """Split the text including multiple arguments to list.
 
         This function uses a comma to separate arguments and ignores a comma in
         brackets ans quotes.
