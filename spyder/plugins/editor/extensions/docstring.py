@@ -156,8 +156,8 @@ class DocstringExtension(EditorExtension):
             del arg_types[0]
             del arg_values[0]
 
-        indent1 = ' ' * (4 + func_info.n_indent)
-        indent2 = ' ' * (8 + func_info.n_indent)
+        indent1 = func_info.get_first_indentation_character()
+        indent2 = func_info.get_second_indentation_character()
 
         numpy_doc += '\n'
         if len(arg_names) > 0:
@@ -206,7 +206,7 @@ class FunctionInfo:
         self.has_info = False
         self.func_text = ''
         self.args_text = ''
-        self.n_indent = 0
+        self.indent = ''
         self.arg_name_list = []
         self.arg_type_list = []
         self.arg_value_list = []
@@ -301,7 +301,7 @@ class FunctionInfo:
                 arg_name = arg[0:pos_equal].strip()
                 arg_value = arg[pos_equal + 1:].strip()
             else:
-                arg_name = arg
+                arg_name = arg.strip()
 
             self.arg_name_list.append(arg_name)
             self.arg_type_list.append(arg_type)
@@ -357,7 +357,8 @@ class FunctionInfo:
         if not is_start_of_function(text):
             return
 
-        self.n_indent = text.find(text.lstrip())
+        pos_indent = text.find(text.lstrip())
+        self.indent = text[0:pos_indent]
 
         text = text.strip()
         text = text.replace('\r\n', '')
@@ -380,3 +381,13 @@ class FunctionInfo:
         if args_list is not None:
             self.has_info = True
             self.split_arg_to_name_type_value(args_list)
+
+    def get_first_indentation_character(self):
+        """Return the indentation_character."""
+        # TODO : Preference indentation character
+        return self.indent + ' ' * 4
+
+    def get_second_indentation_character(self):
+        """Return the indentation_character."""
+        # TODO : Preference indentation character
+        return self.indent + ' ' * 8

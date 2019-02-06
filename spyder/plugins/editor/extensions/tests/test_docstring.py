@@ -36,22 +36,22 @@ def editor_auto_docstring():
 # ---- Tests
 # =============================================================================
 @pytest.mark.parametrize(
-    "text, n_indent, name_list, type_list, value_list, rtype",
+    "text, indent, name_list, type_list, value_list, rtype",
     [
-        ('def foo():', 0, [], [], [], None),
+        ('def foo():', '', [], [], [], None),
         (""" def foo(arg0, arg1=':', arg2: str='-> (float, str):') -> \
              (float, int): """,
-         1, ['arg0', 'arg1', 'arg2'], [None, None, 'str'],
+         ' ', ['arg0', 'arg1', 'arg2'], [None, None, 'str'],
          [None, "':'", "'-> (float, str):'"],
          '(float, int)')
     ])
-def test_information_of_function(text, n_indent, name_list, type_list,
+def test_information_of_function(text, indent, name_list, type_list,
                                  value_list, rtype):
     """Test FunctionInfo."""
     func_info = FunctionInfo()
     func_info.parse(text)
 
-    assert func_info.n_indent == n_indent
+    assert func_info.indent == indent
     assert func_info.arg_name_list == name_list
     assert func_info.arg_type_list == type_list
     assert func_info.arg_value_list == value_list
@@ -94,19 +94,22 @@ def test_information_of_function(text, n_indent, name_list, type_list,
 
       """''',
          ),
-
         ('numpy',
-         '''def foo(arg1: int, arg2: List[Tuple[str, float]],
+         '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
 arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
   (List[Tuple[str, float]], str, float):
     ''',
-         '''def foo(arg1: int, arg2: List[Tuple[str, float]],
+         '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
 arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
   (List[Tuple[str, float]], str, float):
     """
 
     Parameters
     ----------
+    arg : [type]
+        [description]
+    arg0 : [type]
+        [description]
     arg1 : int
         [description]
     arg2 : List[Tuple[str, float]]
