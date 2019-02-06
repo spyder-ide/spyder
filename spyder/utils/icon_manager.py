@@ -395,8 +395,8 @@ def get_icon_by_extension(fname):
         return icon('DirOpenIcon')
     else:
         basename = osp.basename(fname)
-        _, extension = osp.splitext(basename.lower())
-        mime_type, _ = mime.guess_type(basename)
+        __, extension = osp.splitext(basename.lower())
+        mime_type, __ = mime.guess_type(basename)
         icon_by_extension = icon('FileIcon')
 
         if extension in OFFICE_FILES:
