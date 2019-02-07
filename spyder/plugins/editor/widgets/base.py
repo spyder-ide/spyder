@@ -193,7 +193,8 @@ class CompletionWidget(QListWidget):
             QListWidget.keyPressEvent(self, event)
 
     def update_current(self):
-        completion_text = to_text_string(self.textedit.completion_text)
+        completion_text = to_text_string(
+                self.textedit.get_current_word(completion=True))
         if completion_text:
             for row, completion in enumerate(self.completion_list):
                 if not self.is_internal_console:
@@ -1084,21 +1085,11 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     def insert_completion(self, text, position):
         if text:
             cursor = self.textCursor()
-            cursor.setPosition(position)
+            if position is not None:
+                cursor.setPosition(position)
+            cursor.select(QTextCursor.WordUnderCursor)
+            cursor.removeSelectedText()
             self.setTextCursor(cursor)
-            word = self.get_current_word(completion=True) or ""
-            common_prefix = osp.commonprefix([text, word])
-            start = len(common_prefix) if common_prefix is not None else 0
-            if start == len(word):
-                text = text[start:]
-            else:
-                # Remove current word since the completion is not
-                # a perfect match
-                cursor = self.textCursor()
-                cursor.movePosition(QTextCursor.PreviousCharacter,
-                                    QTextCursor.KeepAnchor,
-                                    len(word))
-                cursor.removeSelectedText()
             self.insert_text(text)
             self.document_did_change()
 
