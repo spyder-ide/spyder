@@ -58,9 +58,10 @@ class CompletionWidget(QListWidget):
         self.resize(*size)
         self.setFont(font)
 
-    def show_list(self, completion_list):
+    def show_list(self, completion_list, position):
         # Completions are handled differently for the Internal
         # console.
+        self.position = position
         if not isinstance(completion_list[0], dict):
             self.is_internal_console = True
 
@@ -226,7 +227,8 @@ class CompletionWidget(QListWidget):
     def item_selected(self, item=None):
         if item is None:
             item = self.currentItem()
-        self.textedit.insert_completion(to_text_string(item.text()))
+        self.textedit.insert_completion(to_text_string(item.text()),
+                                        self.position)
         self.hide()
 
     @Slot(int)
@@ -1079,8 +1081,11 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Completion list is active, Enter was just pressed"""
         self.completion_widget.item_selected()
 
-    def insert_completion(self, text):
+    def insert_completion(self, text, position):
         if text:
+            cursor = self.textCursor()
+            cursor.setPosition(position)
+            self.setTextCursor(cursor)
             word = self.get_current_word(completion=True) or ""
             common_prefix = osp.commonprefix([text, word])
             start = len(common_prefix) if common_prefix is not None else 0

@@ -473,6 +473,7 @@ class CodeEditor(TextEditBaseWidget):
         self.range_formatting_enabled = False
         self.formatting_characters = []
         self.rename_support = False
+        self.last_completion_position = None
 
         # Editor Extensions
         self.editor_extensions = EditorExtensionsManager(self)
@@ -777,6 +778,7 @@ class CodeEditor(TextEditBaseWidget):
             'line': line,
             'column': column
         }
+        self.last_completion_position = self.textCursor().position()
         return params
 
     @handles(LSPRequestTypes.DOCUMENT_COMPLETION)
@@ -784,7 +786,9 @@ class CodeEditor(TextEditBaseWidget):
         if len(params['params']) > 0:
             completion_list = sorted(
                 params['params'], key=lambda x: x['sortText'])
-            self.completion_widget.show_list(completion_list)
+            position = self.last_completion_position
+            self.last_completion_position = None
+            self.completion_widget.show_list(completion_list, position)
 
     # ------------- LSP: Signature Hints ------------------------------------
 
