@@ -52,7 +52,7 @@ from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
 from spyder.plugins.editor.api.decoration import TextDecoration
 from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               CloseQuotesExtension,
-                                              DocstringExtension,
+                                              WriterDocstring,
                                               EditorExtensionsManager)
 from spyder.plugins.editor.lsp import (LSPRequestTypes, TextDocumentSyncKind,
                                        DiagnosticSeverity)
@@ -423,6 +423,9 @@ class CodeEditor(TextEditBaseWidget):
         # Context menu
         self.gotodef_action = None
         self.setup_context_menu()
+        self.menu_docstring = None
+        self.docstring_action = None
+        self.writer_docstring = None
 
         # Tab key behavior
         self.tab_indents = None
@@ -436,7 +439,6 @@ class CodeEditor(TextEditBaseWidget):
         self.close_quotes_enabled = False
         self.add_colons_enabled = True
         self.auto_unindent_enabled = True
-        self.auto_docstring_enabled = False
 
         # Mouse tracking
         self.setMouseTracking(True)
@@ -483,7 +485,6 @@ class CodeEditor(TextEditBaseWidget):
 
         self.editor_extensions.add(CloseQuotesExtension())
         self.editor_extensions.add(CloseBracketsExtension())
-        self.editor_extensions.add(DocstringExtension())
 
     # ---- Keyboard Shortcuts
 
@@ -605,8 +606,7 @@ class CodeEditor(TextEditBaseWidget):
                      add_colons=True, auto_unindent=True, indent_chars=" "*4,
                      tab_stop_width_spaces=4, cloned_from=None, filename=None,
                      occurrence_timeout=1500, show_class_func_dropdown=False,
-                     indent_guides=False, scroll_past_end=False,
-                     auto_docstring=False):
+                     indent_guides=False, scroll_past_end=False):
 
         # Code completion and calltips
         self.set_codecompletion_auto(codecompletion_auto)
@@ -619,7 +619,6 @@ class CodeEditor(TextEditBaseWidget):
         self.set_add_colons_enabled(add_colons)
         self.set_auto_unindent_enabled(auto_unindent)
         self.set_indent_chars(indent_chars)
-        self.set_auto_docstring_enabled(auto_docstring)
 
         # Scrollbar flag area
         self.scrollflagarea.set_enabled(scrollflagarea)
@@ -954,14 +953,6 @@ class CodeEditor(TextEditBaseWidget):
         quote_extension = self.editor_extensions.get(CloseQuotesExtension)
         if quote_extension is not None:
             quote_extension.enabled = enable
-
-    def set_auto_docstring_enabled(self, enable):
-        """Enable/disable automatic docstring insertion feature"""
-        self.auto_docstring_enabled = enable
-        docstring_extension = self.editor_extensions.get(
-            DocstringExtension)
-        if docstring_extension is not None:
-            docstring_extension.enabled = enable
 
     def set_add_colons_enabled(self, enable):
         """Enable/disable automatic colons insertion feature"""
@@ -3090,6 +3081,42 @@ class CodeEditor(TextEditBaseWidget):
 
     def is_editor(self):
         return True
+
+    def popup_docstring(self, prev_text, prev_pos):
+        line_text = self.textCursor().block().text()
+        if line_text != prev_text:
+            return
+
+        if prev_pos != self.textCursor().position():
+            return
+
+        if self.writer_docstring.get_function_definition_from_cursor():
+            point = self.cursorRect().bottomRight()
+            point = self.calculate_real_position(point)
+            point = self.mapToGlobal(point)
+
+            self.menu_docstring = QMenu()
+            self.docstring_action = create_action(
+                self, _("Write docstring"), icon=ima.icon('TextFileIcon'),
+                triggered=self.writer_docstring.write_docstring)
+            self.menu_docstring.addAction(self.docstring_action)
+            self.menu_docstring.setActiveAction(self.docstring_action)
+            self.menu_docstring.popup(point)
+
+    def delayed_popup_docstring(self):
+        """Show context menu for docstring.
+
+        This method is called after typing '''. After typing ''', This function
+        wait 300ms. If there was no input for 300ms, show the context menu.
+        """
+        self.writer_docstring = WriterDocstring(self)
+        line_text = self.textCursor().block().text()
+        pos = self.textCursor().position()
+
+        timer = QTimer()
+        timer.singleShot(300, lambda: self.popup_docstring(line_text, pos))
+
+
 
 
 #===============================================================================

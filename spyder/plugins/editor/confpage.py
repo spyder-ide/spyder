@@ -179,18 +179,12 @@ class EditorConfigPage(PluginConfigPage):
         removetrail_box = newcb(_("Automatically remove trailing spaces "
                                   "when saving files"),
                                 'always_remove_trailing_spaces', default=False)
-        docstring_box = newcb(_("Automatically generate docstring template"),
-                              'auto_docstring')
         docstring_combo_choices = ((_("one-line"), 'one-line'),
                                    (_("numpy"), 'numpy')
                                    )
-        docstring_combo = self.create_combobox("",
+        docstring_combo = self.create_combobox("Docstring type",
                                                docstring_combo_choices,
                                                'docstring_type')
-        docstring_box.toggled.connect(
-                docstring_combo.setEnabled)
-        docstring_combo.setEnabled(
-                self.get_option('auto_docstring'))
 
         analysis_group = QGroupBox(_("Analysis"))
         pep_url = '<a href="https://www.python.org/dev/peps/pep-0008">PEP8</a>'
@@ -287,13 +281,13 @@ class EditorConfigPage(PluginConfigPage):
         sourcecode_layout.addWidget(tab_mode_box)
         sourcecode_layout.addWidget(ibackspace_box)
         sourcecode_layout.addWidget(removetrail_box)
-        docstring_tab_layout = QHBoxLayout()
-        docstring_tab_grid_layout = QGridLayout()
-        docstring_tab_grid_layout.addWidget(docstring_box, 0, 0)
-        docstring_tab_grid_layout.addWidget(docstring_combo, 0, 1)
-        docstring_tab_layout.addLayout(docstring_tab_grid_layout)
-        docstring_tab_layout.addStretch(1)
-        sourcecode_layout.addLayout(docstring_tab_layout)
+        sourcecode_layout.addWidget(docstring_combo)
+        # docstring_tab_layout = QHBoxLayout()
+        # docstring_tab_grid_layout = QGridLayout()
+        # docstring_tab_grid_layout.addWidget(docstring_combo, 0, 1)
+        # docstring_tab_layout.addLayout(docstring_tab_grid_layout)
+        # docstring_tab_layout.addStretch(1)
+        # sourcecode_layout.addLayout(docstring_tab_layout)
         sourcecode_group.setLayout(sourcecode_layout)
 
         eol_group = QGroupBox(_("End-of-line characters"))

@@ -1132,7 +1132,6 @@ class Editor(SpyderPluginWidget):
             ('set_always_remove_trailing_spaces',   'always_remove_trailing_spaces'),
             ('set_convert_eol_on_save',             'convert_eol_on_save'),
             ('set_convert_eol_on_save_to',          'convert_eol_on_save_to'),
-            ('set_auto_docstring_enabled',          'auto_docstring')
                     )
         for method, setting in settings:
             getattr(editorstack, method)(self.get_option(setting))
@@ -2458,8 +2457,6 @@ class Editor(SpyderPluginWidget):
             closepar_o = self.get_option(closepar_n)
             close_quotes_n = 'close_quotes'
             close_quotes_o = self.get_option(close_quotes_n)
-            auto_docstring_n = 'auto_docstring'
-            auto_docstring_o = self.get_option(auto_docstring_n)
             add_colons_n = 'add_colons'
             add_colons_o = self.get_option(add_colons_n)
             autounindent_n = 'auto_unindent'
@@ -2522,8 +2519,6 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_close_parentheses_enabled(closepar_o)
                 if close_quotes_n in options:
                     editorstack.set_close_quotes_enabled(close_quotes_o)
-                if auto_docstring_n in options:
-                    editorstack.set_auto_docstring_enabled(auto_docstring_o)
                 if add_colons_n in options:
                     editorstack.set_add_colons_enabled(add_colons_o)
                 if autounindent_n in options:

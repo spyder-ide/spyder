@@ -8,12 +8,10 @@
 import re
 
 # Third party imports
-from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
 
 # Local imports
 from spyder.config.main import CONF
-from spyder.api.editorextension import EditorExtension
 from spyder.py3compat import to_text_string
 
 
@@ -30,25 +28,13 @@ def is_start_of_function(text):
     return False
 
 
-class DocstringExtension(EditorExtension):
-    """Editor Extension for insert docstring template automatically."""
-
-    def on_state_changed(self, state):
-        """Connect/disconnect sig_key_pressed signal."""
-        if state:
-            self.editor.sig_key_pressed.connect(self._on_key_pressed)
-        else:
-            self.editor.sig_key_pressed.disconnect(self._on_key_pressed)
-
-    def _on_key_pressed(self, event):
-        """Override key press to check enter key for docstring trigger."""
-        if event.isAccepted():
-            return
-
-        key = event.key()
-        if key in (Qt.Key_Enter, Qt.Key_Return) and self.enabled:
-            if self._write_docstring():
-                event.accept()
+class WriterDocstring:
+    """Class for insert docstring template automatically."""
+    def __init__(self, code_editor):
+        """Initialize and Add code_editor to the variable."""
+        self.code_editor = code_editor
+        self.quote3 = '"""'
+        self.quote3_other = "'''"
 
     @staticmethod
     def _is_beginning_triple_quotes(text):
@@ -59,12 +45,9 @@ class DocstringExtension(EditorExtension):
 
         return False
 
-    @staticmethod
-    def _get_function_definition_from_cursor(cursor):
-        """Get information of function from block of QTextCursor ."""
-        if not isinstance(cursor, QTextCursor):
-            return
-
+    def get_function_definition_from_cursor(self):
+        """Get information of function from block of QTextCursor."""
+        cursor = self.code_editor.textCursor()
         func_text = ''
         is_first_line = True
         line_number = cursor.blockNumber() + 1
@@ -94,40 +77,39 @@ class DocstringExtension(EditorExtension):
 
         return None
 
-    def _write_docstring(self):
+    def write_docstring(self):
         """Write docstring to editor."""
-        line_to_cursor = self.editor.get_text('sol', 'cursor')
+        line_to_cursor = self.code_editor.get_text('sol', 'cursor')
         if self._is_beginning_triple_quotes(line_to_cursor):
-            cursor = self.editor.textCursor()
+            cursor = self.code_editor.textCursor()
             prev_pos = cursor.position()
 
             quote = line_to_cursor[-1]
             docstring_type = CONF.get('editor', 'docstring_type')
-            docstring = self._generate_docstring(docstring_type,
-                                                 cursor, quote)
+            docstring = self._generate_docstring(docstring_type, quote)
 
             if docstring:
-                self.editor.insert_text(docstring)
+                self.code_editor.insert_text(docstring)
 
-                cursor = self.editor.textCursor()
+                cursor = self.code_editor.textCursor()
                 cursor.setPosition(prev_pos, QTextCursor.KeepAnchor)
                 cursor.clearSelection()
-                self.editor.setTextCursor(cursor)
+                self.code_editor.setTextCursor(cursor)
                 return True
 
         return False
 
-    def _generate_docstring(self, doc_type, cursor, quote):
+    def _generate_docstring(self, doc_type, quote):
         """Generate docstring."""
         docstring = None
 
-        quote3 = quote * 3
+        self.quote3 = quote * 3
         if quote == '"':
-            quote3_other = "'''"
+            self.quote3_other = "'''"
         else:
-            quote3_other = '"""'
+            self.quote3_other = '"""'
 
-        func_text = self._get_function_definition_from_cursor(cursor)
+        func_text = self.get_function_definition_from_cursor()
 
         if func_text:
             func_info = FunctionInfo()
@@ -135,15 +117,13 @@ class DocstringExtension(EditorExtension):
 
             if func_info.has_info:
                 if doc_type == 'one-line':
-                    docstring = quote3
+                    docstring = self.quote3
                 elif doc_type == 'numpy':
-                    docstring = self._generate_numpy_doc(func_info, quote3,
-                                                         quote3_other)
+                    docstring = self._generate_numpy_doc(func_info)
 
         return docstring
 
-    @staticmethod
-    def _generate_numpy_doc(func_info, quote3, quote3_other):
+    def _generate_numpy_doc(self, func_info):
         """Generate a docstring of numpy type."""
         numpy_doc = ''
 
@@ -156,8 +136,8 @@ class DocstringExtension(EditorExtension):
             del arg_types[0]
             del arg_values[0]
 
-        indent1 = func_info.get_first_indentation_character()
-        indent2 = func_info.get_second_indentation_character()
+        indent1 = func_info.func_indent + self.code_editor.indent_chars
+        indent2 = func_info.func_indent + self.code_editor.indent_chars * 2
 
         numpy_doc += '\n'
         if len(arg_names) > 0:
@@ -179,7 +159,7 @@ class DocstringExtension(EditorExtension):
             arg_text += '\n{}[description]'.format(indent2)
 
             if arg_value:
-                arg_value = arg_value.replace(quote3, quote3_other)
+                arg_value = arg_value.replace(self.quote3, self.quote3_other)
                 arg_text += ' (the default is {})'.format(arg_value)
 
             arg_text += '\n'
@@ -193,7 +173,7 @@ class DocstringExtension(EditorExtension):
         else:
             numpy_doc += '\n{}None\n'.format(indent1)
 
-        numpy_doc += '\n{}{}'.format(indent1, quote3)
+        numpy_doc += '\n{}{}'.format(indent1, self.quote3)
 
         return numpy_doc
 
@@ -206,7 +186,7 @@ class FunctionInfo:
         self.has_info = False
         self.func_text = ''
         self.args_text = ''
-        self.indent = ''
+        self.func_indent = ''
         self.arg_name_list = []
         self.arg_type_list = []
         self.arg_value_list = []
@@ -358,7 +338,7 @@ class FunctionInfo:
             return
 
         pos_indent = text.find(text.lstrip())
-        self.indent = text[0:pos_indent]
+        self.func_indent = text[0:pos_indent]
 
         text = text.strip()
         text = text.replace('\r\n', '')
@@ -381,13 +361,3 @@ class FunctionInfo:
         if args_list is not None:
             self.has_info = True
             self.split_arg_to_name_type_value(args_list)
-
-    def get_first_indentation_character(self):
-        """Return the indentation_character."""
-        # TODO : Preference indentation character
-        return self.indent + ' ' * 4
-
-    def get_second_indentation_character(self):
-        """Return the indentation_character."""
-        # TODO : Preference indentation character
-        return self.indent + ' ' * 8
