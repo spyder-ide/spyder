@@ -420,12 +420,12 @@ class CodeEditor(TextEditBaseWidget):
         self.found_results = []
         self.found_results_color = QColor(Qt.magenta).lighter(180)
 
+        # Docstring
+        self.writer_docstring = WriterDocstring(self)
+
         # Context menu
         self.gotodef_action = None
         self.setup_context_menu()
-        self.menu_docstring = None
-        self.docstring_action = None
-        self.writer_docstring = None
 
         # Tab key behavior
         self.tab_indents = None
@@ -543,6 +543,7 @@ class CodeEditor(TextEditBaseWidget):
             ('editor', 'paste', self.paste),
             ('editor', 'delete', self.delete),
             ('editor', 'select all', self.selectAll),
+            ('editor', 'docstring', self.writer_docstring.write_docstring),
             ('array_builder', 'enter array inline', self.enter_array_inline),
             ('array_builder', 'enter array table', self.enter_array_table)
             )
@@ -2689,6 +2690,14 @@ class CodeEditor(TextEditBaseWidget):
             self, _("Zoom reset"), shortcut=QKeySequence("Ctrl+0"),
             triggered=self.zoom_reset.emit)
 
+        # Docstring
+        self.docstring_action = create_action(
+            self, _("Write Docstring"),
+            shortcut=get_shortcut('editor', 'docstring'),
+            tip=_('You can use it after typing """ '
+                  'under the function definition.'),
+            triggered=self.writer_docstring.write_docstring)
+
         # Build menu
         self.menu = QMenu(self)
         actions_1 = [self.run_cell_action, self.run_cell_and_advance_action,
@@ -2697,7 +2706,7 @@ class CodeEditor(TextEditBaseWidget):
                      self.redo_action, None, self.cut_action,
                      self.copy_action, self.paste_action, selectall_action]
         actions_2 = [None, zoom_in_action, zoom_out_action, zoom_reset_action,
-                     None, toggle_comment_action]
+                     None, toggle_comment_action, self.docstring_action]
         if nbformat is not None:
             nb_actions = [self.clear_all_output_action,
                           self.ipynb_convert_action, None]
@@ -2989,6 +2998,16 @@ class CodeEditor(TextEditBaseWidget):
         self.re_run_last_cell_action.setVisible(self.is_python())
         self.gotodef_action.setVisible(self.go_to_definition_enabled)
 
+        # Check if a docstring is writable
+        writer = self.writer_docstring
+        function_text = writer.get_function_definition_from_cursor()
+        line_to_cursor = self.get_text('sol', 'cursor')
+
+        if function_text and writer.is_beginning_triple_quotes(line_to_cursor):
+            self.docstring_action.setEnabled(True)
+        else:
+            self.docstring_action.setEnabled(False)
+
         # Code duplication go_to_definition_from_cursor and mouse_move_event
         cursor = self.textCursor()
         text = to_text_string(cursor.selectedText())
@@ -3081,42 +3100,6 @@ class CodeEditor(TextEditBaseWidget):
 
     def is_editor(self):
         return True
-
-    def popup_docstring(self, prev_text, prev_pos):
-        line_text = self.textCursor().block().text()
-        if line_text != prev_text:
-            return
-
-        if prev_pos != self.textCursor().position():
-            return
-
-        if self.writer_docstring.get_function_definition_from_cursor():
-            point = self.cursorRect().bottomRight()
-            point = self.calculate_real_position(point)
-            point = self.mapToGlobal(point)
-
-            self.menu_docstring = QMenu()
-            self.docstring_action = create_action(
-                self, _("Write docstring"), icon=ima.icon('TextFileIcon'),
-                triggered=self.writer_docstring.write_docstring)
-            self.menu_docstring.addAction(self.docstring_action)
-            self.menu_docstring.setActiveAction(self.docstring_action)
-            self.menu_docstring.popup(point)
-
-    def delayed_popup_docstring(self):
-        """Show context menu for docstring.
-
-        This method is called after typing '''. After typing ''', This function
-        wait 300ms. If there was no input for 300ms, show the context menu.
-        """
-        self.writer_docstring = WriterDocstring(self)
-        line_text = self.textCursor().block().text()
-        pos = self.textCursor().position()
-
-        timer = QTimer()
-        timer.singleShot(300, lambda: self.popup_docstring(line_text, pos))
-
-
 
 
 #===============================================================================

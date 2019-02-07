@@ -282,12 +282,6 @@ class EditorConfigPage(PluginConfigPage):
         sourcecode_layout.addWidget(ibackspace_box)
         sourcecode_layout.addWidget(removetrail_box)
         sourcecode_layout.addWidget(docstring_combo)
-        # docstring_tab_layout = QHBoxLayout()
-        # docstring_tab_grid_layout = QGridLayout()
-        # docstring_tab_grid_layout.addWidget(docstring_combo, 0, 1)
-        # docstring_tab_layout.addLayout(docstring_tab_grid_layout)
-        # docstring_tab_layout.addStretch(1)
-        # sourcecode_layout.addLayout(docstring_tab_layout)
         sourcecode_group.setLayout(sourcecode_layout)
 
         eol_group = QGroupBox(_("End-of-line characters"))

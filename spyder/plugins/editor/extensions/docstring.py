@@ -30,6 +30,7 @@ def is_start_of_function(text):
 
 class WriterDocstring:
     """Class for insert docstring template automatically."""
+
     def __init__(self, code_editor):
         """Initialize and Add code_editor to the variable."""
         self.code_editor = code_editor
@@ -37,7 +38,7 @@ class WriterDocstring:
         self.quote3_other = "'''"
 
     @staticmethod
-    def _is_beginning_triple_quotes(text):
+    def is_beginning_triple_quotes(text):
         """Return True if there are only triple quotes in text."""
         docstring_triggers = ['"""', 'r"""', "'''", "r'''"]
         if text.lstrip() in docstring_triggers:
@@ -80,7 +81,7 @@ class WriterDocstring:
     def write_docstring(self):
         """Write docstring to editor."""
         line_to_cursor = self.code_editor.get_text('sol', 'cursor')
-        if self._is_beginning_triple_quotes(line_to_cursor):
+        if self.is_beginning_triple_quotes(line_to_cursor):
             cursor = self.code_editor.textCursor()
             prev_pos = cursor.position()
 

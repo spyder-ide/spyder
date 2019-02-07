@@ -439,6 +439,7 @@ DEFAULTS = [
               'editor/split vertically': "Ctrl+{",
               'editor/split horizontally': "Ctrl+_",
               'editor/close split panel': "Alt+Shift+W",
+              'editor/docstring': "Ctrl+Alt+D",
               # -- In Breakpoints
               '_/switch to breakpoints': "Ctrl+Shift+B",
               # ---- Consoles (in widgets/shell) ----
