@@ -238,7 +238,7 @@ install_requires = [
     'pyzmq',
     'chardet>=2.0.0',
     'numpydoc',
-    'spyder-kernels>=0.4.0,<1.0',
+    'spyder-kernels>=0.4.2,<1.0',
     # Don't require keyring for Python 2 and Linux
     # because it depends on system packages
     'keyring;sys_platform!="linux2"',
