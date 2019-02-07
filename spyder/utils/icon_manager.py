@@ -5,8 +5,10 @@
 # (see spyder/__init__.py for details)
 
 # Standard library imports
+import os
 import os.path as osp
 import mimetypes as mime
+import sys
 
 # Third party imports
 from qtpy.QtGui import QIcon
@@ -42,6 +44,20 @@ DOCUMENT_FILES = {'vnd.ms-powerpoint': 'PowerpointFileIcon',
 OFFICE_FILES = {'.xlsx': 'ExcelFileIcon', '.docx': 'WordFileIcon',
                 '.pptx': 'PowerpointFileIcon'}
 
+# Magnification factors for attribute icons
+# per platform
+if sys.platform.startswith('linux'):
+    BIG_ATTR_FACTOR = 1.0
+    SMALL_ATTR_FACTOR = 0.9
+elif os.name == 'nt':
+    BIG_ATTR_FACTOR = 1.1
+    SMALL_ATTR_FACTOR = 1.0
+else:
+    BIG_ATTR_FACTOR = 1.3
+    SMALL_ATTR_FACTOR = 1.1
+
+# Icons for different programming language
+# extensions
 LANGUAGE_ICONS = {
     '.c': 'CFileIcon',
     '.h': 'CFileIcon',
@@ -114,9 +130,9 @@ _qtaargs = {
     'print':                   [('fa.print',), {'color': MAIN_FG_COLOR}],
     'fileclose':               [('fa.close',), {'color': MAIN_FG_COLOR}],
     'filecloseall':            [('fa.close', 'fa.close', 'fa.close'), {'options': [{'scale_factor': 0.6, 'offset': (0.3, -0.3), 'color': MAIN_FG_COLOR},  {'scale_factor': 0.6, 'offset': (-0.3, -0.3), 'color': MAIN_FG_COLOR}, {'scale_factor': 0.6, 'offset': (0.3, 0.3), 'color': MAIN_FG_COLOR}]}],
-    'breakpoint_transparent':  [('fa.circle',), {'color': 'rgba(139, 0, 0, 0.5)'}],  # darkred transparent
-    'breakpoint_big':          [('fa.circle',), {'color': 'darkred'} ],
-    'breakpoint_cond_big':     [('fa.question-circle',), {'color': 'darkred'},],
+    'breakpoint_transparent':  [('fa.circle',), {'color': 'darkred', 'opacity': 0.75, 'scale_factor': 0.9}],
+    'breakpoint_big':          [('fa.circle',), {'color': '#cc0000', 'scale_factor': 0.9} ],
+    'breakpoint_cond_big':     [('fa.question-circle',), {'color': '#cc0000', 'scale_factor': 0.9},],
     'arrow_debugger':          [('mdi.arrow-right-thick',), {'color': '#3775a9'}],
     'debug':                   [('spyder.debug',), {'color': '#3775a9'}],
     'arrow-step-over':         [('spyder.step-forward',), {'color': '#3775a9'}],
@@ -288,16 +304,16 @@ _qtaargs = {
     'dock':                    [('fa.caret-square-o-down',), {'color': MAIN_FG_COLOR}],
     'close_pane':              [('fa.window-close-o',), {'color': MAIN_FG_COLOR}],
     # --- Autocompletion type icons --------------
-    'attribute':               [('mdi.alpha-a-box',), {'color': 'magenta', 'scale_factor': 1.3}],
-    'module':                  [('mdi.alpha-m-box',), {'color': '#daa520', 'scale_factor': 1.3}],
-    'class':                   [('mdi.alpha-c-box',), {'color':'#3775a9', 'scale_factor': 1.3}],
-    'private2':                [('spyder.circle-underscore',), {'color':'#e69c9c', 'scale_factor': 1.1}],
-    'private1':                [('spyder.circle-underscore',), {'color':'#e69c9c', 'scale_factor': 1.1}],
-    'method':                  [('mdi.alpha-m-box',), {'color':'#7ea67e', 'scale_factor': 1.3}],
-    'function':                [('mdi.alpha-f-box',), {'color':'orange', 'scale_factor': 1.3}],
-    'blockcomment':            [('fa5s.hashtag',), {'color':'grey'}],
-    'cell':                    [('mdi.percent',), {'color':'red'}],
-    'no_match':                [('fa.circle',), {'color': 'gray'}],
+    'attribute':               [('mdi.alpha-a-box',), {'color': 'magenta', 'scale_factor': BIG_ATTR_FACTOR}],
+    'module':                  [('mdi.alpha-m-box',), {'color': '#daa520', 'scale_factor': BIG_ATTR_FACTOR}],
+    'class':                   [('mdi.alpha-c-box',), {'color':'#3775a9', 'scale_factor': BIG_ATTR_FACTOR}],
+    'private2':                [('spyder.circle-underscore',), {'color':'#e69c9c', 'scale_factor': SMALL_ATTR_FACTOR}],
+    'private1':                [('spyder.circle-underscore',), {'color':'#e69c9c', 'scale_factor': SMALL_ATTR_FACTOR}],
+    'method':                  [('mdi.alpha-m-box',), {'color':'#7ea67e', 'scale_factor': BIG_ATTR_FACTOR}],
+    'function':                [('mdi.alpha-f-box',), {'color':'orange', 'scale_factor': BIG_ATTR_FACTOR}],
+    'blockcomment':            [('fa5s.hashtag',), {'color':'grey', 'scale_factor': SMALL_ATTR_FACTOR}],
+    'cell':                    [('mdi.percent',), {'color':'red', 'scale_factor': SMALL_ATTR_FACTOR}],
+    'no_match':                [('fa.circle',), {'color': 'gray', 'scale_factor': SMALL_ATTR_FACTOR}],
     'github':                  [('fa.github',), {'color': MAIN_FG_COLOR}],
     # --- Spyder Tour --------------------------------------------------------
     'tour.close':              [('fa.close',), {'color': MAIN_FG_COLOR}],

@@ -26,8 +26,9 @@ from jupyter_core.paths import jupyter_config_dir, jupyter_runtime_dir
 from qtconsole.client import QtKernelClient
 from qtconsole.manager import QtKernelManager
 from qtpy.QtCore import Qt, Signal, Slot
-from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMessageBox,
-                            QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (QActionGroup, QApplication, QGridLayout,
+                            QGroupBox, QHBoxLayout, QLabel, QMenu, QMessageBox,
+                            QTabWidget, QVBoxLayout, QWidget)
 from traitlets.config.loader import Config, load_pyconfig_files
 from zmq.ssh import tunnel as zmqtunnel
 
@@ -40,8 +41,8 @@ from spyder.py3compat import is_string, PY2, to_text_string
 from spyder.plugins.ipythonconsole.confpage import IPythonConsoleConfigPage
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
+from spyder.utils.qthelpers import create_action, add_actions, MENU_SEPARATOR
 from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
-from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.programs import get_temp_dir
@@ -107,6 +108,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.create_new_client_if_empty = True
         self.css_path = css_path
         self.run_cell_filename = None
+        self.interrupt_action = None
 
         # Attrs for testing
         self.test_dir = test_dir
@@ -294,11 +296,30 @@ class IPythonConsole(SpyderPluginWidget):
                                    icon=ima.icon('ipython_console'),
                                    triggered=self.create_cython_client,
                                    context=Qt.WidgetWithChildrenShortcut)
+        special_console_action_group = QActionGroup(self)
+        special_console_actions = (create_pylab_action, create_sympy_action,
+                                   create_cython_action)
+        add_actions(special_console_action_group, special_console_actions)
+        special_console_menu = QMenu(_("New special console"), self)
+        add_actions(special_console_menu, special_console_actions)
 
         restart_action = create_action(self, _("Restart kernel"),
                                        icon=ima.icon('restart'),
                                        triggered=self.restart_kernel,
                                        context=Qt.WidgetWithChildrenShortcut)
+
+        reset_action = create_action(self, _("Remove all variables"),
+                                     icon=ima.icon('editdelete'),
+                                     triggered=self.reset_kernel,
+                                     context=Qt.WidgetWithChildrenShortcut)
+
+        if self.interrupt_action is None:
+            self.interrupt_action = create_action(
+                self, _("Interrupt kernel"),
+                icon=ima.icon('stop'),
+                triggered=self.interrupt_kernel,
+                context=Qt.WidgetWithChildrenShortcut)
+
         self.register_shortcut(restart_action, context="ipython_console",
                                name="Restart kernel")
 
@@ -314,26 +335,24 @@ class IPythonConsole(SpyderPluginWidget):
         # Add the action to the 'Consoles' menu on the main window
         main_consoles_menu = self.main.consoles_menu_actions
         main_consoles_menu.insert(0, create_client_action)
-        main_consoles_menu.insert(1, create_pylab_action)
-        main_consoles_menu.insert(2, create_sympy_action)
-        main_consoles_menu.insert(3, create_cython_action)
-        main_consoles_menu += [MENU_SEPARATOR, restart_action,
-                               connect_to_kernel_action,
-                               MENU_SEPARATOR]
+        main_consoles_menu += [special_console_menu, connect_to_kernel_action,
+                               MENU_SEPARATOR,
+                               self.interrupt_action, restart_action,
+                               reset_action]
 
         # Plugin actions
-        self.menu_actions = [create_client_action, create_pylab_action,
-                             create_sympy_action, create_cython_action,
+        self.menu_actions = [create_client_action, special_console_menu,
+                             connect_to_kernel_action,
                              MENU_SEPARATOR,
-                             restart_action, connect_to_kernel_action,
-                             MENU_SEPARATOR, rename_tab_action,
-                             MENU_SEPARATOR]
+                             self.interrupt_action,
+                             restart_action, reset_action, rename_tab_action]
+
+        self.update_execution_state_kernel()
 
         # Check for a current client. Since it manages more actions.
         client = self.get_current_client()
         if client:
             return client.get_options_menu()
-        
         return self.menu_actions
 
     def register_plugin(self):
@@ -1141,6 +1160,27 @@ class IPythonConsole(SpyderPluginWidget):
         if client is not None:
             self.switch_to_plugin()
             client.restart_kernel()
+
+    def reset_kernel(self):
+        """Reset kernel of current client."""
+        client = self.get_current_client()
+        if client is not None:
+            self.switch_to_plugin()
+            client.reset_namespace()
+
+    def interrupt_kernel(self):
+        """Interrupt kernel of current client."""
+        client = self.get_current_client()
+        if client is not None:
+            self.switch_to_plugin()
+            client.stop_button_click_handler()
+
+    def update_execution_state_kernel(self):
+        """Update actions following the execution state of the kernel."""
+        client = self.get_current_client()
+        if client is not None:
+            executing = client.stop_button.isEnabled()
+            self.interrupt_action.setEnabled(executing)
 
     def connect_external_kernel(self, shellwidget):
         """
