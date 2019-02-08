@@ -1084,12 +1084,20 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
     def insert_completion(self, text, position):
         if text:
-            cursor = self.textCursor()
+            # Set position to where the request was made
             if position is not None:
+                cursor = self.textCursor()
                 cursor.setPosition(position)
+                self.setTextCursor(cursor)
+            # Move to the beginning of the selected word
+            _, position = self.get_current_word_and_position(completion=True)
+            cursor = self.textCursor()
+            cursor.setPosition(position)
+            # Remove the word under the cursor
             cursor.select(QTextCursor.WordUnderCursor)
             cursor.removeSelectedText()
             self.setTextCursor(cursor)
+            # Add text
             self.insert_text(text)
             self.document_did_change()
 
