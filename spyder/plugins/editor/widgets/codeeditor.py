@@ -2795,8 +2795,6 @@ class CodeEditor(TextEditBaseWidget):
                     cursor.removeSelectedText()
                 else:
                     TextEditBaseWidget.keyPressEvent(self, event)
-                    if self.is_completion_widget_visible():
-                        self.completion_text = self.completion_text[:-1]
         # elif key == Qt.Key_Period:
         #     self.insert_text(text)
         #     if (self.is_python_like()) and not \
@@ -2860,8 +2858,6 @@ class CodeEditor(TextEditBaseWidget):
             event.accept()
         elif not event.isAccepted():
             TextEditBaseWidget.keyPressEvent(self, event)
-            if self.is_completion_widget_visible() and text:
-                self.completion_text += text
         if len(text) > 0:
             self.document_did_change(text)
             # self.do_completion(automatic=True)

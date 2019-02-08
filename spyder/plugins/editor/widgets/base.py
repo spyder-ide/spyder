@@ -64,9 +64,6 @@ class CompletionWidget(QListWidget):
         self.position = position
         if not isinstance(completion_list[0], dict):
             self.is_internal_console = True
-
-        if not self.is_internal_console:
-            self.textedit.completion_text = ''
         self.completion_list = completion_list
         self.clear()
 
@@ -292,7 +289,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.codecompletion_auto = False
         self.codecompletion_case = True
         self.codecompletion_enter = False
-        self.completion_text = ""
         self.setup_completion()
 
         self.calltip_widget = CallTipWidget(self, hide_timer_on=False)
