@@ -155,8 +155,33 @@ def test_introspection(setup_editor):
     assert "degrees(x)" in [x['label'] for x in sig.args[0]]
 
     qtbot.keyPress(completion, Qt.Key_Enter, delay=1000)
+
+    # Complete math.a <tab> s <enter> to math.asin
+    qtbot.keyClicks(code_editor, 'math.a')
+    qtbot.wait(20000)
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+    assert "asin(x)" in [x['label'] for x in sig.args[0]]
+    qtbot.keyClicks(completion, 's')
+    qtbot.keyPress(completion, Qt.Key_Enter, delay=1000)
+
+    # enter for new line
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
+
+    # Complete math.a <tab><enter> ... <enter> to math.acos
+    qtbot.keyClicks(code_editor, 'math.a')
+    qtbot.wait(20000)
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+        qtbot.keyPress(code_editor, Qt.Key_Enter)
+    assert "acos(x)" in [x['label'] for x in sig.args[0]]
+    qtbot.keyPress(completion, Qt.Key_Enter, delay=1000)
+
     assert code_editor.toPlainText() == 'import math\nmath.degrees' \
-                                        '\nmath.degrees()\n'
+                                        '\nmath.degrees()\nmath.asin\n'\
+                                        'math.acos\n'
 
     # Modify PYTHONPATH
     # editor.introspector.change_extra_path([LOCATION])
