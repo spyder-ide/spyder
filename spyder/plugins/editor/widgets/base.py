@@ -173,7 +173,7 @@ class CompletionWidget(QListWidget):
         elif key in (Qt.Key_Return, Qt.Key_Enter,
                      Qt.Key_Left, Qt.Key_Right) or text in ('.', ':'):
             self.hide()
-            self.sendKeyToTextEdit(event)
+            self.textedit.keyPressEvent(event)
         elif key in (Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp, Qt.Key_PageDown,
                      Qt.Key_Home, Qt.Key_End,
                      Qt.Key_CapsLock) and not modifier:
@@ -184,26 +184,18 @@ class CompletionWidget(QListWidget):
             else:
                 QListWidget.keyPressEvent(self, event)
         elif len(text) or key == Qt.Key_Backspace:
-            self.sendKeyToTextEdit(event)
-            self.update_current()
+            if key == Qt.Key_Backspace and (
+                    self.textedit.textCursor().position() == self.position):
+                self.hide()
+                self.textedit.keyPressEvent(event)
+            else:
+                self.textedit.keyPressEvent(event)
+                self.update_current()
         elif modifier:
-            self.sendKeyToTextEdit(event)
+            self.textedit.keyPressEvent(event)
         else:
             self.hide()
             QListWidget.keyPressEvent(self, event)
-
-    def sendKeyToTextEdit(self, event):
-        """Send key to text edit and updates the position of
-        the text completion"""
-        keystroke_position_before = self.textedit.textCursor().position()
-        self.textedit.keyPressEvent(event)
-        keystroke_position_after = self.textedit.textCursor().position()
-        update = keystroke_position_before < self.position
-        if event.key() == Qt.Key_Backspace:
-            update = keystroke_position_before <= self.position
-        if update:
-            self.position += (
-                    keystroke_position_after - keystroke_position_before)
 
     def update_current(self):
         completion_text = to_text_string(
