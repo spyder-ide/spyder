@@ -184,8 +184,11 @@ class CompletionWidget(QListWidget):
             else:
                 QListWidget.keyPressEvent(self, event)
         elif len(text) or key == Qt.Key_Backspace:
-            if key == Qt.Key_Backspace and (
-                    self.textedit.textCursor().position() <= self.position):
+            # If the cursor goes behind the current position,
+            # the autocomplete is no longer relevant
+            if self.textedit.textCursor().position() < self.position or (
+                    key == Qt.Key_Backspace and (
+                    self.textedit.textCursor().position() <= self.position)):
                 self.hide()
                 self.textedit.keyPressEvent(event)
             else:
