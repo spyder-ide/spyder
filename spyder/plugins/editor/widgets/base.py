@@ -173,7 +173,7 @@ class CompletionWidget(QListWidget):
         elif key in (Qt.Key_Return, Qt.Key_Enter,
                      Qt.Key_Left, Qt.Key_Right) or text in ('.', ':'):
             self.hide()
-            self.textedit.keyPressEvent(event)
+            self.sendKeyToTextEdit(event)
         elif key in (Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp, Qt.Key_PageDown,
                      Qt.Key_Home, Qt.Key_End,
                      Qt.Key_CapsLock) and not modifier:
@@ -184,13 +184,26 @@ class CompletionWidget(QListWidget):
             else:
                 QListWidget.keyPressEvent(self, event)
         elif len(text) or key == Qt.Key_Backspace:
-            self.textedit.keyPressEvent(event)
+            self.sendKeyToTextEdit(event)
             self.update_current()
         elif modifier:
-            self.textedit.keyPressEvent(event)
+            self.sendKeyToTextEdit(event)
         else:
             self.hide()
             QListWidget.keyPressEvent(self, event)
+
+    def sendKeyToTextEdit(self, event):
+        """Send key to text edit and updates the position of
+        the text completion"""
+        keystroke_position_before = self.textedit.textCursor().position()
+        self.textedit.keyPressEvent(event)
+        keystroke_position_after = self.textedit.textCursor().position()
+        update = keystroke_position_before < self.position
+        if event.key() == Qt.Key_Backspace:
+            update = keystroke_position_before <= self.position
+        if update:
+            self.position += (
+                    keystroke_position_after - keystroke_position_before)
 
     def update_current(self):
         completion_text = to_text_string(
@@ -1090,13 +1103,15 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 cursor.setPosition(position)
                 self.setTextCursor(cursor)
             # Move to the beginning of the selected word
-            _, position = self.get_current_word_and_position(completion=True)
-            cursor = self.textCursor()
-            cursor.setPosition(position)
-            # Remove the word under the cursor
-            cursor.select(QTextCursor.WordUnderCursor)
-            cursor.removeSelectedText()
-            self.setTextCursor(cursor)
+            result = self.get_current_word_and_position(completion=True)
+            if result is not None:
+                position = result[1]
+                cursor = self.textCursor()
+                cursor.setPosition(position)
+                # Remove the word under the cursor
+                cursor.select(QTextCursor.WordUnderCursor)
+                cursor.removeSelectedText()
+                self.setTextCursor(cursor)
             # Add text
             self.insert_text(text)
             self.document_did_change()
