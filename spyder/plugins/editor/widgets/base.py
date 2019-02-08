@@ -185,7 +185,7 @@ class CompletionWidget(QListWidget):
                 QListWidget.keyPressEvent(self, event)
         elif len(text) or key == Qt.Key_Backspace:
             if key == Qt.Key_Backspace and (
-                    self.textedit.textCursor().position() == self.position):
+                    self.textedit.textCursor().position() <= self.position):
                 self.hide()
                 self.textedit.keyPressEvent(event)
             else:
