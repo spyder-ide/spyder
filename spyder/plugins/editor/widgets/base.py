@@ -146,7 +146,8 @@ class CompletionWidget(QListWidget):
             for completion in completion_list:
                 completion['point'] = tooltip_point
 
-        if to_text_string(self.textedit.completion_text):
+        if to_text_string(to_text_string(
+                self.textedit.get_current_word(completion=True))):
             # When initialized, if completion text is not empty, we need
             # to update the displayed list:
             self.update_current()
