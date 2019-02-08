@@ -272,6 +272,8 @@ class FileSwitcher(QDialog):
         self.setWindowOpacity(0.95)
         self.edit.installEventFilter(self.filter)
         self.edit.setValidator(regex_validator)
+        self.edit.setPlaceholderText(_("Start typing the name of an open file "
+                                       "or console to switch to it"))
         self.help.setToolTip(help_text)
         self.list.setItemDelegate(HTMLDelegate(self))
 
