@@ -156,6 +156,9 @@ def test_introspection(setup_editor):
 
     qtbot.keyPress(completion, Qt.Key_Enter, delay=1000)
 
+    # enter for new line
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
+
     # Complete math.a <tab> ... s <enter> to math.asin
     qtbot.keyClicks(code_editor, 'math.a')
     qtbot.wait(20000)
