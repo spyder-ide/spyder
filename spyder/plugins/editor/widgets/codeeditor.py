@@ -1382,7 +1382,7 @@ class CodeEditor(TextEditBaseWidget):
         if not data:
             data = BlockUserData(self)
         if slot_num not in data.bookmarks:
-            data.bookmarks.append(slot_num)
+            data.bookmarks.append((slot_num, column))
         block.setUserData(data)
         self.bookmarks_changed.emit()
 
@@ -1393,8 +1393,8 @@ class CodeEditor(TextEditBaseWidget):
         for line_number in range(1, self.document().blockCount()+1):
             data = block.userData()
             if data and data.bookmarks:
-                for slot_num in data.bookmarks:
-                    bookmarks[slot_num] = line_number
+                for slot_num, column in data.bookmarks:
+                    bookmarks[slot_num] = [line_number, column]
             block = block.next()
         return bookmarks
 

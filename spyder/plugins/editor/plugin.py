@@ -84,8 +84,8 @@ def save_bookmarks(filename, bookmarks):
     if not osp.isfile(filename):
         return
     slots = _load_all_bookmarks()
-    for slot_num, line_num in bookmarks.items():
-        slots[slot_num] = [filename, line_num]
+    for slot_num, info in bookmarks.items():
+        slots[slot_num] = [filename, info[0], info[1]]
     CONF.set('editor', 'bookmarks', slots)
 
 WINPDB_PATH = programs.find_program('winpdb')
@@ -2412,7 +2412,7 @@ class Editor(SpyderPluginWidget):
     def load_bookmark(self, slot_num):
         """Set cursor to bookmarked file and position."""
         bookmarks = CONF.get('editor', 'bookmarks')
-        filename, line_num = bookmarks[slot_num]
+        filename, line_num, column = bookmarks[slot_num]
         if not osp.isfile(filename):
             self.last_edit_cursor_pos = None
             return
@@ -2420,7 +2420,7 @@ class Editor(SpyderPluginWidget):
             self.load(filename)
             editor = self.get_current_editor()
             if line_num < editor.document().lineCount():
-                editor.go_to_line(line_num)
+                editor.go_to_line(line_num, column)
 
     #------ Zoom in/out/reset
     def zoom(self, factor):
