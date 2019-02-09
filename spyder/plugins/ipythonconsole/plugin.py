@@ -26,6 +26,8 @@ from jupyter_core.paths import jupyter_config_dir, jupyter_runtime_dir
 from qtconsole.client import QtKernelClient
 from qtconsole.manager import QtKernelManager
 from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtGui import QColor
+from qtpy.QtWebEngineWidgets import WEBENGINE
 from qtpy.QtWidgets import (QActionGroup, QApplication, QGridLayout,
                             QGroupBox, QHBoxLayout, QLabel, QMenu, QMessageBox,
                             QTabWidget, QVBoxLayout, QWidget)
@@ -35,6 +37,7 @@ from zmq.ssh import tunnel as zmqtunnel
 # Local imports
 from spyder import dependencies
 from spyder.config.base import _, get_conf_path, get_home_dir
+from spyder.config.gui import is_dark_interface
 from spyder.config.main import CONF
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import is_string, PY2, to_text_string
@@ -50,6 +53,7 @@ from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.ipythonconsole.widgets import ClientWidget
 from spyder.plugins.ipythonconsole.widgets import KernelConnectionDialog
+from spyder.widgets.browser import WebView
 from spyder.widgets.tabs import Tabs
 
 
@@ -73,6 +77,11 @@ dependencies.add("IPython", _("IPython interactive python environment"),
 MATPLOTLIB_REQVER = '>=2.0.0'
 dependencies.add("matplotlib", _("Display 2D graphics in the IPython Console"),
                  required_version=MATPLOTLIB_REQVER, optional=True)
+
+if is_dark_interface():
+    MAIN_BG_COLOR = '#19232D'
+else:
+    MAIN_BG_COLOR = 'white'
 
 
 class IPythonConsole(SpyderPluginWidget):
@@ -145,6 +154,15 @@ class IPythonConsole(SpyderPluginWidget):
             layout.addWidget(tab_container)
         else:
             layout.addWidget(self.tabwidget)
+
+        # Info widget
+        self.infowidget = WebView(self)
+        if WEBENGINE:
+            self.infowidget.page().setBackgroundColor(QColor(MAIN_BG_COLOR))
+        else:
+            self.infowidget.setStyleSheet(
+                "background:{}".format(MAIN_BG_COLOR))
+        layout.addWidget(self.infowidget)
 
         # Find/replace widget
         self.find_widget = FindReplace(self)

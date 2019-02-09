@@ -26,10 +26,9 @@ import time
 
 # Third party imports (qtpy)
 from qtpy.QtCore import QUrl, QTimer, Signal, Slot
-from qtpy.QtGui import QKeySequence, QColor
+from qtpy.QtGui import QKeySequence
 from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMenu, QMessageBox,
                             QToolButton, QVBoxLayout, QWidget)
-from qtpy.QtWebEngineWidgets import WEBENGINE
 
 # Local imports
 from spyder.config.base import (_, get_image_path, get_module_source_path,
@@ -44,7 +43,6 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, DialogManager,
                                     MENU_SEPARATOR)
 from spyder.py3compat import to_text_string
-from spyder.widgets.browser import WebView
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
 from spyder.widgets.mixins import SaveHistoryMixin
 from spyder.plugins.variableexplorer.widgets.collectionseditor import (
@@ -64,11 +62,6 @@ TEMPLATES_PATH = osp.join(PLUGINS_PATH, 'ipythonconsole', 'assets', 'templates')
 BLANK = open(osp.join(TEMPLATES_PATH, 'blank.html')).read()
 LOADING = open(osp.join(TEMPLATES_PATH, 'loading.html')).read()
 KERNEL_ERROR = open(osp.join(TEMPLATES_PATH, 'kernel_error.html')).read()
-
-if is_dark_interface():
-    MAIN_BG_COLOR = '#19232D'
-else:
-    MAIN_BG_COLOR = 'white'
 
 try:
     time.monotonic  # time.monotonic new in 3.3
@@ -97,8 +90,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     """
     Client widget for the IPython Console
 
-    This is a widget composed of a shell widget and a WebView info widget
-    to print different messages there.
+    This widget is necessary to handle the interaction between the
+    plugin and each shell widget.
     """
 
     SEPARATOR = '{0}## ---({1})---'.format(os.linesep*2, time.ctime())
@@ -155,12 +148,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                                        interpreter_versions=interpreter_versions,
                                        external_kernel=external_kernel,
                                        local_kernel=True)
-        self.infowidget = WebView(self)
-        if WEBENGINE:
-            self.infowidget.page().setBackgroundColor(QColor(MAIN_BG_COLOR))
-        else:
-            self.infowidget.setStyleSheet(
-                "background:{}".format(MAIN_BG_COLOR))
+
+        self.infowidget = plugin.infowidget
         self.set_infowidget_font()
         self.blank_page = self._create_blank_page()
         self.loading_page = self._create_loading_page()
@@ -186,7 +175,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         vlayout.addLayout(hlayout)
         vlayout.setContentsMargins(0, 0, 0, 0)
         vlayout.addWidget(self.shellwidget)
-        vlayout.addWidget(self.infowidget)
         self.setLayout(vlayout)
 
         # --- Exit function
