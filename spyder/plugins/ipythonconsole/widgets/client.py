@@ -703,9 +703,19 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def _read_stderr(self):
         """Read the stderr file of the kernel."""
+        # We need to read stderr_file as bytes to be able to
+        # detect its encoding with chardet
         f = open(self.stderr_file, 'rb')
+
         try:
             stderr_text = f.read()
+
+            # This is needed to avoid showing an empty error message
+            # when the kernel takes too much time to start.
+            # See issue 8581
+            if not stderr_text:
+                return ''
+
             # This is needed since the stderr file could be encoded
             # in something different to utf-8.
             # See issue 4191
