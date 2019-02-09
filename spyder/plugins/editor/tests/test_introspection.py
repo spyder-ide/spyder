@@ -11,6 +11,7 @@ import os.path as osp
 
 # Third party imports
 import pytest
+import pytestqt
 try:
     from unittest.mock import Mock
 except ImportError:
@@ -156,7 +157,9 @@ def test_introspection(setup_editor):
 
     qtbot.keyPress(completion, Qt.Key_Enter, delay=1000)
 
-    # enter for new line
+    # right for () + enter for new line
+    qtbot.keyPress(code_editor, Qt.Key_Right, delay=1000)
+    qtbot.keyPress(code_editor, Qt.Key_Right, delay=1000)
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
 
     # Complete math.a <tab> ... s <enter> to math.asin
@@ -166,7 +169,7 @@ def test_introspection(setup_editor):
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
     assert "asin(x)" in [x['label'] for x in sig.args[0]]
-    qtbot.keyClicks(code_editor, 's')
+    qtbot.keyClicks(completion, 's')
     qtbot.keyPress(completion, Qt.Key_Enter, delay=1000)
 
     # enter for new line
@@ -182,7 +185,7 @@ def test_introspection(setup_editor):
     assert "acos(x)" in [x['label'] for x in sig.args[0]]
     qtbot.keyPress(completion, Qt.Key_Enter, delay=1000)
 
-    # There already is a \n
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
 
     # Complete math.a <tab> s ...<enter> to math.asin
     qtbot.keyClicks(code_editor, 'math.a')
@@ -190,13 +193,26 @@ def test_introspection(setup_editor):
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
-        qtbot.keyClicks(code_editor, 's')
+        qtbot.keyPress(code_editor, 's')
     assert "asin(x)" in [x['label'] for x in sig.args[0]]
     qtbot.keyPress(completion, Qt.Key_Enter, delay=1000)
 
-    assert code_editor.toPlainText() == 'import math\nmath.degrees' \
-                                        '\nmath.degrees()\nmath.asin\n'\
-                                        'math.acos\nmath.asin'
+    # Check math.a <tab> <backspace> doesn't emit sig_show_completions
+    qtbot.keyPress(code_editor, Qt.Key_Right, delay=1000)
+    qtbot.keyClicks(code_editor, 'math.a')
+    qtbot.wait(20000)
+    try:
+        with qtbot.waitSignal(completion.sig_show_completions,
+                              timeout=10000) as sig:
+            qtbot.keyPress(code_editor, Qt.Key_Tab)
+            qtbot.keyPress(code_editor, Qt.Key_Backspace)
+        raise RuntimeError("The signal should not have been recieved!")
+    except pytestqt.exceptions.TimeoutError:
+        pass
+
+    assert code_editor.toPlainText() == 'import math\nmath.degrees\n'\
+                                        'math.degrees()\nmath.asin\n'\
+                                        'math.acos\nmath.asin\nmath.\n'
 
     # Modify PYTHONPATH
     # editor.introspector.change_extra_path([LOCATION])

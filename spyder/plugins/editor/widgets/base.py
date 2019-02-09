@@ -61,6 +61,9 @@ class CompletionWidget(QListWidget):
     def show_list(self, completion_list, position):
         # Completions are handled differently for the Internal
         # console.
+        if self.textedit.textCursor().position() < position:
+            # hide the text as we moved away from the position
+            return
         self.position = position
         if not isinstance(completion_list[0], dict):
             self.is_internal_console = True
