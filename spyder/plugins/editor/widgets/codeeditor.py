@@ -2691,12 +2691,10 @@ class CodeEditor(TextEditBaseWidget):
             triggered=self.zoom_reset.emit)
 
         # Docstring
+        writer = self.writer_docstring
         self.docstring_action = create_action(
             self, _("Write Docstring"),
-            shortcut=get_shortcut('editor', 'docstring'),
-            tip=_('You can use it after typing """ '
-                  'under the function definition.'),
-            triggered=self.writer_docstring.write_docstring)
+            triggered=writer.write_docstring_at_mouse_position)
 
         # Build menu
         self.menu = QMenu(self)
@@ -3000,10 +2998,10 @@ class CodeEditor(TextEditBaseWidget):
 
         # Check if a docstring is writable
         writer = self.writer_docstring
-        function_text = writer.get_function_definition_from_cursor()
-        line_to_cursor = self.get_text('sol', 'cursor')
+        writer.mouse_position = event.pos()
+        result = writer.get_function_definition_from_position()
 
-        if function_text and writer.is_beginning_triple_quotes(line_to_cursor):
+        if result:
             self.docstring_action.setEnabled(True)
         else:
             self.docstring_action.setEnabled(False)

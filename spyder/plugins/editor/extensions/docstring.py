@@ -28,6 +28,13 @@ def is_start_of_function(text):
     return False
 
 
+def get_indent(text):
+    """Get indent of text."""
+    pos_indent = text.find(text.lstrip())
+    indent = text[0:pos_indent]
+    return indent
+
+
 class WriterDocstring:
     """Class for insert docstring template automatically."""
 
@@ -36,6 +43,7 @@ class WriterDocstring:
         self.code_editor = code_editor
         self.quote3 = '"""'
         self.quote3_other = "'''"
+        self.mouse_position = None
 
     @staticmethod
     def is_beginning_triple_quotes(text):
@@ -45,6 +53,51 @@ class WriterDocstring:
             return True
 
         return False
+
+    def get_function_definition_from_position(self):
+        """Get information of function from mouse position."""
+        cursor = self.code_editor.cursorForPosition(self.mouse_position)
+
+        func_text = ''
+        func_indent = ''
+
+        is_first_line = True
+        line_number = cursor.blockNumber() + 1
+
+        number_of_lines = self.code_editor.blockCount()
+        remain_lines = number_of_lines - line_number + 1
+        number_of_lines_of_function = 0
+
+        for _ in range(min(remain_lines, 20)):
+            cur_text = to_text_string(cursor.block().text()).rstrip()
+
+            if is_first_line:
+                if not is_start_of_function(cur_text):
+                    return None
+
+                func_indent = get_indent(cur_text)
+                is_first_line = False
+            else:
+                cur_indent = get_indent(cur_text)
+                if cur_indent <= func_indent:
+                    return None
+                if is_start_of_function(cur_text):
+                    return None
+                if cur_text.strip == '':
+                    return None
+
+            if cur_text[-1] == '\\':
+                cur_text = cur_text[:-1]
+
+            func_text += cur_text
+            number_of_lines_of_function += 1
+
+            if cur_text.endswith(':'):
+                return func_text, number_of_lines_of_function
+
+            cursor.movePosition(QTextCursor.NextBlock)
+
+        return None
 
     def get_function_definition_from_cursor(self):
         """Get information of function from block of QTextCursor."""
@@ -99,6 +152,31 @@ class WriterDocstring:
                 return True
 
         return False
+
+    def write_docstring_at_mouse_position(self):
+        """Write docstring to editor at mouse position."""
+        result = self.get_function_definition_from_position()
+        editor = self.code_editor
+        if result:
+            func_text, number_of_line_func = result
+            line_number_mouse = editor.get_line_number_at(self.mouse_position)
+            line_number_function = line_number_mouse + number_of_line_func - 1
+
+            cursor = editor.textCursor()
+            line_number_cursor = cursor.blockNumber() + 1
+            offset = line_number_function - line_number_cursor
+            if offset > 0:
+                for _ in range(offset):
+                    cursor.movePosition(QTextCursor.NextBlock)
+            else:
+                for _ in range(abs(offset)):
+                    cursor.movePosition(QTextCursor.PreviousBlock)
+            cursor.movePosition(QTextCursor.EndOfLine, QTextCursor.MoveAnchor)
+            editor.setTextCursor(cursor)
+
+            indent = get_indent(func_text)
+            editor.insert_text('\n{}{}"""'.format(indent, editor.indent_chars))
+            self.write_docstring()
 
     def _generate_docstring(self, doc_type, quote):
         """Generate docstring."""
@@ -338,8 +416,7 @@ class FunctionInfo:
         if not is_start_of_function(text):
             return
 
-        pos_indent = text.find(text.lstrip())
-        self.func_indent = text[0:pos_indent]
+        self.func_indent = get_indent(text)
 
         text = text.strip()
         text = text.replace('\r\n', '')
