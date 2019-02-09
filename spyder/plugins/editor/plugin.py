@@ -175,9 +175,6 @@ class Editor(SpyderPluginWidget):
         self.cursor_pos_index = None
         self.__ignore_cursor_position = True
 
-        # Initialize saved bookmarks from ini file
-        # self.bookmarks = self.init_bookmarks()
-
         # LSP setup
         self.sig_lsp_notification.connect(self.document_server_settings)
         self.lsp_editor_settings = {}
@@ -1531,7 +1528,7 @@ class Editor(SpyderPluginWidget):
         self.breakpoints_saved.emit()
 
 
-    #------ Breakpoints
+    #------ Bookmarks
     def save_bookmarks(self, filename, bookmarks):
         filename = to_text_string(filename)
         bookmarks = to_text_string(bookmarks)

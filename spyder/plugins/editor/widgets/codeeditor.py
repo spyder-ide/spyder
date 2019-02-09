@@ -1398,22 +1398,6 @@ class CodeEditor(TextEditBaseWidget):
             block = block.next()
         return bookmarks
 
-    def clear_bookmarks(self):
-        """Clear bookmarks"""
-        for data in self.blockuserdata_list[:]:
-            data.bookmarks = []
-            if data.is_empty():
-                # This is not calling the __del__ in BlockUserData.  Not
-                # sure if it's supposed to or not, but that seems to be the
-                # intent.
-                del data
-
-    def set_bookmarks(self, bookmarks):
-        """Set bookmarks"""
-        self.clear_bookmarks()
-        for line_number in bookmarks:
-            self.add_bookmark(line_number)
-
     def update_bookmarks(self):
         """Update bookmarks"""
         self.bookmarks_changed.emit()
