@@ -37,7 +37,7 @@ from zmq.ssh import tunnel as zmqtunnel
 # Local imports
 from spyder import dependencies
 from spyder.config.base import _, get_conf_path, get_home_dir
-from spyder.config.gui import is_dark_interface
+from spyder.config.gui import get_font, is_dark_interface
 from spyder.config.main import CONF
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import is_string, PY2, to_text_string
@@ -157,6 +157,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Info widget
         self.infowidget = WebView(self)
+        self.set_infowidget_font()
         if WEBENGINE:
             self.infowidget.page().setBackgroundColor(QColor(MAIN_BG_COLOR))
         else:
@@ -1092,6 +1093,11 @@ class IPythonConsole(SpyderPluginWidget):
                 client.timer.timeout.connect(client.show_time)
                 client.timer.start(1000)
                 break
+
+    def set_infowidget_font(self):
+        """Set font for infowidget"""
+        font = get_font(option='rich_font')
+        self.infowidget.set_font(font)
 
     #------ Public API (for kernels) ------------------------------------------
     def ssh_tunnel(self, *args, **kwargs):

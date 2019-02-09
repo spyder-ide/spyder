@@ -33,7 +33,7 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMenu, QMessageBox,
 # Local imports
 from spyder.config.base import (_, get_image_path, get_module_source_path,
                                 running_under_pytest)
-from spyder.config.gui import get_font, get_shortcut, is_dark_interface
+from spyder.config.gui import get_shortcut, is_dark_interface
 from spyder.utils import icon_manager as ima
 from spyder.utils import sourcecode
 from spyder.utils.encoding import get_coding
@@ -150,7 +150,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                                        local_kernel=True)
 
         self.infowidget = plugin.infowidget
-        self.set_infowidget_font()
         self.blank_page = self._create_blank_page()
         self.loading_page = self._create_loading_page()
         self._show_loading_page()
@@ -478,11 +477,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """Set IPython widget's font"""
         self.shellwidget._control.setFont(font)
         self.shellwidget.font = font
-
-    def set_infowidget_font(self):
-        """Set font for infowidget"""
-        font = get_font(option='rich_font')
-        self.infowidget.set_font(font)
 
     def set_color_scheme(self, color_scheme, reset=True):
         """Set IPython color scheme."""
