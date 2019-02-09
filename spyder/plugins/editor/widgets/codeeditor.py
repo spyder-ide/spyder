@@ -226,6 +226,7 @@ class CodeEditor(TextEditBaseWidget):
     sig_debug_start = Signal()
     sig_breakpoints_saved = Signal()
     sig_filename_changed = Signal(str)
+    bookmarks_changed = Signal()
     get_completions = Signal(bool)
     go_to_definition = Signal(str, int, int)
     sig_show_object_info = Signal(int)
@@ -395,6 +396,10 @@ class CodeEditor(TextEditBaseWidget):
         # Block user data
         self.blockuserdata_list = []
 
+        # Update breakpoints if the number of lines in the file changes
+        self.blockCountChanged.connect(self.update_breakpoints)
+        self.blockCountChanged.connect(self.update_bookmarks)
+
         # Highlight using Pygments highlighter timer
         # ---------------------------------------------------------------------
         # For files that use the PygmentsSH we parse the full file inside
@@ -445,6 +450,8 @@ class CodeEditor(TextEditBaseWidget):
         self.setMouseTracking(True)
         self.__cursor_changed = False
         self.ctrl_click_color = QColor(Qt.blue)
+
+        self.bookmarks = self.get_bookmarks()
 
         # Keyboard shortcuts
         self.shortcuts = self.create_shortcuts()
@@ -1359,6 +1366,57 @@ class CodeEditor(TextEditBaseWidget):
             cursor.movePosition(cursor.StartOfBlock, cursor.KeepAnchor)
 
         self.setTextCursor(cursor)
+
+    #-----Code bookmarks
+
+    def add_bookmark(self, slot_num):
+        """Add/remove bookmark"""
+        line, column = self.get_cursor_line_column()
+        if not self.is_python_like():
+            return
+        if line is None:
+            block = self.textCursor().block()
+        else:
+            block = self.document().findBlockByNumber(line)
+        data = block.userData()
+        if not data:
+            data = BlockUserData(self)
+        if slot_num not in data.bookmarks:
+            data.bookmarks.append(slot_num)
+        block.setUserData(data)
+        self.bookmarks_changed.emit()
+
+    def get_bookmarks(self):
+        """Get bookmarks"""
+        bookmarks = {}
+        block = self.document().firstBlock()
+        for line_number in range(1, self.document().blockCount()+1):
+            data = block.userData()
+            if data and data.bookmarks:
+                for slot_num in data.bookmarks:
+                    bookmarks[slot_num] = line_number
+            block = block.next()
+        return bookmarks
+
+    def clear_bookmarks(self):
+        """Clear bookmarks"""
+        for data in self.blockuserdata_list[:]:
+            data.bookmarks = []
+            if data.is_empty():
+                # This is not calling the __del__ in BlockUserData.  Not
+                # sure if it's supposed to or not, but that seems to be the
+                # intent.
+                del data
+
+    def set_bookmarks(self, bookmarks):
+        """Set bookmarks"""
+        self.clear_bookmarks()
+        for line_number in bookmarks:
+            self.add_bookmark(line_number)
+
+    def update_bookmarks(self):
+        """Update bookmarks"""
+        self.bookmarks_changed.emit()
 
     #-----Code introspection
     def do_go_to_definition(self):

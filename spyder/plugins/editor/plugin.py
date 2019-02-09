@@ -71,6 +71,23 @@ NBCONVERT_REQVER = ">=4.0"
 dependencies.add("nbconvert", _("Manipulate Jupyter notebooks on the Editor"),
                  required_version=NBCONVERT_REQVER)
 
+
+def _load_all_bookmarks():
+    slots = CONF.get('editor', 'bookmarks', {})
+    for slot_nr, slot_content in slots.items():
+        if not osp.isfile(slot_content[0]):
+            slots.pop(slot_nr)
+    return slots
+
+
+def save_bookmarks(filename, bookmarks):
+    if not osp.isfile(filename):
+        return
+    slots = _load_all_bookmarks()
+    for slot_num, line_num in bookmarks.items():
+        slots[slot_num] = [filename, line_num]
+    CONF.set('editor', 'bookmarks', slots)
+
 WINPDB_PATH = programs.find_program('winpdb')
 
 
@@ -159,7 +176,7 @@ class Editor(SpyderPluginWidget):
         self.__ignore_cursor_position = True
 
         # Initialize saved bookmarks from ini file
-        self.bookmarks = self.init_bookmarks()
+        # self.bookmarks = self.init_bookmarks()
 
         # LSP setup
         self.sig_lsp_notification.connect(self.document_server_settings)
@@ -1204,8 +1221,9 @@ class Editor(SpyderPluginWidget):
         editorstack.sig_next_cursor.connect(self.go_to_next_cursor_position)
         editorstack.sig_prev_warning.connect(self.go_to_previous_warning)
         editorstack.sig_next_warning.connect(self.go_to_next_warning)
-        editorstack.sig_save_bookmark.connect(self.save_bookmark)
-        editorstack.sig_load_bookmark.connect(self.load_bookmark)
+        editorstack.save_bookmark.connect(self.save_bookmark)
+        editorstack.load_bookmark.connect(self.load_bookmark)
+        editorstack.save_bookmarks.connect(self.save_bookmarks)
 
     def unregister_editorstack(self, editorstack):
         """Removing editorstack only if it's not the last remaining"""
@@ -1512,6 +1530,17 @@ class Editor(SpyderPluginWidget):
         save_breakpoints(filename, breakpoints)
         self.breakpoints_saved.emit()
 
+
+    #------ Breakpoints
+    def save_bookmarks(self, filename, bookmarks):
+        filename = to_text_string(filename)
+        bookmarks = to_text_string(bookmarks)
+        filename = osp.normpath(osp.abspath(filename))
+        if bookmarks:
+            bookmarks = eval(bookmarks)
+        else:
+            bookmarks = []
+        save_bookmarks(filename, bookmarks)
 
     #------ File I/O
     def __load_temp_file(self):
@@ -2369,33 +2398,29 @@ class Editor(SpyderPluginWidget):
         """Run last executed cell."""
         editorstack = self.get_current_editorstack()
         editorstack.re_run_last_cell()
+    
+    #------ Code bookmarks
+    @Slot(int)
+    def save_bookmark(self, slot_num):
+        """Save current line and position as bookmark"""
+        editorstack = self.get_current_editorstack()
+        if editorstack is not None:
+            self.switch_to_plugin()
+            editorstack.set_bookmark(slot_num)
 
     @Slot(int)
-    def save_bookmark(self, num):
-        """Save current cursor position as bookmark."""
-        filename = self.get_current_filename()
-        position = self.get_current_editor().get_position('cursor')
-        self.bookmarks[num] = (filename, position)
-        CONF.set('editor', 'bookmarks', self.bookmarks)
-
-    @Slot(int)
-    def load_bookmark(self, num):
+    def load_bookmark(self, slot_num):
         """Set cursor to bookmarked file and position."""
-        filename, position = self.bookmarks[num]
+        bookmarks = CONF.get('editor', 'bookmarks')
+        filename, line_num = bookmarks[slot_num]
         if not osp.isfile(filename):
             self.last_edit_cursor_pos = None
             return
         else:
             self.load(filename)
             editor = self.get_current_editor()
-            if position < editor.document().characterCount():
-                editor.set_cursor_position(position)
-
-    def init_bookmarks(self):
-        """Load last saved cursor bookmarks from config file."""
-        # If line in config doesn't exist yet, initialize as empty list
-        bookmarks = CONF.get('editor', 'bookmarks', [('', 0)]*10)
-        return bookmarks
+            if line_num < editor.document().lineCount():
+                editor.go_to_line(line_num)
 
     #------ Zoom in/out/reset
     def zoom(self, factor):
