@@ -1,38 +1,27 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 3.3.2 is released!
+**Subject**: [ANN] Spyder 3.3.3 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **3.3.2** has been released and is available for
+I'm pleased to announce that Spyder **3.3.3** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes three months and a half after version 3.3.1 and it adds the
+This release comes two months and a half after version 3.3.2 and it adds the
 following new features:
 
-- Main Window
-    * Add new German and Hungarian translations.
+* Fix an incompatibility with Numpy 1.16 that generated an error
+  when trying to open an array in the Variable Explorer.
+* Increase maximum PyQt5 supported version to 5.12
+* Increase minimal required version of spyder-kernels to 0.4.2
+  to get important fixes about saving/loading the current
+  namespace and skipping installed modules from our User Module
+  Reloader (UMR).
 
-- Preferences
-    * Give users the ability to select the OpenGL implementation
-      used by Qt. This option can be changed in
-      `General > Advanced Settings > Rendering engine`.
-
-- Find in files
-    * Simplify the way to exclude files from search.
-    * Fix error that prevented to stop a search when it was in
-      progress.
-    * Save its options when Spyder is closed.
-
-- Under the hood
-    * Don't remove Spyder's temporary directory when Spyder is
-      closed. This avoids conflicts when multiple Spyder
-      instances are running.
-
-In this release we fixed 45 issues and merged 69 pull requests that amount
-to more than 340 commits. For a full list of fixes, please see our
+In this release we fixed 6 issues and merged 10 pull requests that amount
+to 39 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/3.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's
