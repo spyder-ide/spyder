@@ -6,9 +6,9 @@ To release a new version of Spyder you need to follow these steps:
 
 * Update CHANGELOG.md
 
-* git clean -xfdi
-
 * Update Announcements.md
+
+* git clean -xfdi
 
 * Update version in `__init__.py` (set release version, remove 'dev0')
 
