@@ -152,6 +152,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.infowidget = plugin.infowidget
         self.blank_page = self._create_blank_page()
         self.loading_page = self._create_loading_page()
+        # To keep a reference to the page to be displayed
+        # in infowidget
+        self.info_page = None
         self._show_loading_page()
 
         # Elapsed time
@@ -321,12 +324,13 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # Create error page
         message = _("An error ocurred while starting the kernel")
         kernel_error_template = Template(KERNEL_ERROR)
-        page = kernel_error_template.substitute(css_path=self.css_path,
-                                                message=message,
-                                                error=error)
+        self.info_page = kernel_error_template.substitute(
+            css_path=self.css_path,
+            message=message,
+            error=error)
 
         # Show error
-        self.infowidget.setHtml(page, QUrl.fromLocalFile(self.css_path))
+        self.set_info_page()
         self.shellwidget.hide()
         self.infowidget.show()
 
@@ -649,6 +653,14 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         if self.time_label is not None:
             self.time_label.setVisible(state)
 
+    def set_info_page(self):
+        """Set current info_page."""
+        if self.info_page is not None:
+            self.infowidget.setHtml(
+                self.info_page,
+                QUrl.fromLocalFile(self.css_path)
+            )
+
     #------ Private API -------------------------------------------------------
     def _create_loading_page(self):
         """Create html page to show while the kernel is starting"""
@@ -672,15 +684,15 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """Show animation while the kernel is loading."""
         self.shellwidget.hide()
         self.infowidget.show()
-        self.infowidget.setHtml(self.loading_page,
-                                QUrl.fromLocalFile(self.css_path))
+        self.info_page = self.loading_page
+        self.set_info_page()
 
     def _hide_loading_page(self):
         """Hide animation shown while the kernel is loading."""
         self.infowidget.hide()
         self.shellwidget.show()
-        self.infowidget.setHtml(self.blank_page,
-                                QUrl.fromLocalFile(self.css_path))
+        self.info_page = self.blank_page
+        self.set_info_page()
         self.shellwidget.sig_prompt_ready.disconnect(self._hide_loading_page)
 
     def _read_stderr(self):
