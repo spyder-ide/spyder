@@ -227,9 +227,10 @@ class WriterDocstring:
         indent1 = func_info.func_indent + self.code_editor.indent_chars
         indent2 = func_info.func_indent + self.code_editor.indent_chars * 2
 
-        numpy_doc += '\n'
+        numpy_doc += '\n{}\n'.format(indent1)
+
         if len(arg_names) > 0:
-            numpy_doc += '{0}\n\n{0}Parameters'.format(indent1)
+            numpy_doc += '\n{0}Parameters'.format(indent1)
             numpy_doc += '\n{}----------\n'.format(indent1)
 
         arg_text = ''

@@ -8,7 +8,6 @@
 
 # Third party imports
 import pytest
-from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
 
 # Local imports
@@ -63,88 +62,94 @@ def test_information_of_function(text, indent, name_list, type_list,
 @pytest.mark.parametrize(
     "doc_type, text, expected",
     [
-        ('one-line',
+        ('numpy',
          '',
-         '"""'
+         ''
          ),
-        ('one-line',
+        ('numpy',
          'if 1:\n    ',
-         'if 1:\n    """'
+         'if 1:\n    '
          ),
-        ('one-line',
-         '''def foo():
-    print(''',
-         '''def foo():
-    print("""'''
-         ),
-        ('one-line',
+        ('numpy',
          '''async def foo():
     ''',
          '''async def foo():
-    """"""'''
+    """
+    
+
+    Returns
+    -------
+    RETURN_TYPE
+
+    """
+    '''
          ),
         ('numpy',
          '''  def foo():
       ''',
          '''  def foo():
       """
+      
 
       Returns
       -------
-      None
+      RETURN_TYPE
 
-      """''',
+      """
+      ''',
          ),
         ('numpy',
          '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
-arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
+    arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
   (List[Tuple[str, float]], str, float):
     ''',
          '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
-arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
+    arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
   (List[Tuple[str, float]], str, float):
     """
+    
 
     Parameters
     ----------
-    arg : [type]
-        [description]
-    arg0 : [type]
-        [description]
+    arg : TYPE
+        DESCRIPTION
+    arg0 : TYPE
+        DESCRIPTION
     arg1 : int
-        [description]
+        DESCRIPTION
     arg2 : List[Tuple[str, float]]
-        [description]
-    arg3 : [type], optional
-        [description] (the default is '-> (float, int):')
-    arg4 : [type], optional
-        [description] (the default is ':float, int[')
+        DESCRIPTION
+    arg3 : TYPE, optional
+        DESCRIPTION (the default is '-> (float, int):')
+    arg4 : TYPE, optional
+        DESCRIPTION (the default is ':float, int[')
     arg5 : str, optional
-        [description] (the default is '""')
+        DESCRIPTION (the default is '""')
 
     Returns
     -------
     (List[Tuple[str, float]], str, float)
-        [description]
+        DESCRIPTION
 
-    """'''),
+    """
+    '''),
     ])
-def test_editor_docstring(qtbot, editor_auto_docstring, doc_type, text,
-                          expected):
-    """Test auto docstring."""
+def test_editor_docstring_by_shortcut(qtbot, editor_auto_docstring, doc_type,
+                                      text, expected):
+    """Test auto docstring by shortcut."""
     CONF.set('editor', 'docstring_type', doc_type)
     editor = editor_auto_docstring
     editor.set_text(text)
 
     cursor = editor.textCursor()
-    cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor, len(text))
-    cursor.clearSelection()
+    cursor.setPosition(0, QTextCursor.MoveAnchor)
     editor.setTextCursor(cursor)
 
-    qtbot.keyClicks(editor, '"""')
-    # qtbot.keyClick(editor, Qt.Key_D,
-    #                modifier=Qt.ControlModifier | Qt.AltModifier)
-    editor.writer_docstring.write_docstring()
+    pos = editor.cursorRect().bottomRight()
+    pos = editor.mapToGlobal(pos)
+
+    qtbot.mouseMove(editor, pos=pos, delay=-1)
+    editor.writer_docstring.write_docstring_for_shortcut()
 
     assert editor.toPlainText() == expected
 
@@ -155,73 +160,85 @@ def test_editor_docstring(qtbot, editor_auto_docstring, doc_type, text,
 # def foo():
 #     """
 #
+#
 #     Returns
 #     -------
-#     None
+#     RETURN_TYPE
 #
 #     """
 #     pass
 #
 #
-# def foo1(arg1):
+# def foo1(arg2):
 #     """
+#
 #
 #     Parameters
 #     ----------
-#     arg1 : [type]
-#         [description]
+#     arg2 : TYPE
+#         DESCRIPTION
 #
 #     Returns
 #     -------
-#     None
+#     RETURN_TYPE
 #
 #     """
-#     pass
+#     return arg1
 #
 #
-# def foo2(arg1, arg2) -> (float, str):
+# def foo2(arg1, arg2, arg3, arg4, arg5) -> (float, str):
 #     """
+#
 #
 #     Parameters
 #     ----------
-#     arg1 : [type]
-#         [description]
-#      arg2 : [type]
-#         [description]
+#     arg1 : TYPE
+#         DESCRIPTION
+#     arg2 : TYPE
+#         DESCRIPTION
+#     arg3 : TYPE
+#         DESCRIPTION
+#     arg4 : TYPE
+#         DESCRIPTION
+#     arg5 : TYPE
+#         DESCRIPTION
 #
 #     Returns
 #     -------
 #     (float, str)
-#         [description]
+#         DESCRIPTION
 #
 #     """
 #     pass
 #
+#
 # def foo3(arg1: int, arg2: List[Tuple[str, float]], arg3='-> (float, int):',
-#           arg4=':float, int[',  arg5: str='"\'"', arg6: str="""string1
-#           string2""") -> \
-#           (List[Tuple[str, float]], str, float):
+#          arg4=':float, int[', arg5: str = '"\'"', arg7: str = """string1
+#          string2""") -> \
+#         (List[Tuple[str, float]], str, float):
 #     """
+#
 #
 #     Parameters
 #     ----------
 #     arg1 : int
-#         [description]
+#         DESCRIPTION
 #     arg2 : List[Tuple[str, float]]
-#         [description]
-#     arg3 : [type], optional
-#         [description] (the default is '-> (float, int):')
-#     arg4 : [type], optional
-#         [description] (the default is ':float, int[')
+#         DESCRIPTION
+#     arg3 : TYPE, optional
+#         DESCRIPTION (the default is '-> (float, int):')
+#     arg4 : TYPE, optional
+#         DESCRIPTION (the default is ':float, int[')
 #     arg5 : str, optional
-#         [description] (the default is '"\'"')
-#     arg6 : str, optional
-#         [description] (the default is '''string1          string2''')
+#         DESCRIPTION (the default is '"\'"')
+#     arg7 : str, optional
+#         DESCRIPTION (the default is '''string1         string2''')
 #
 #     Returns
 #     -------
 #     (List[Tuple[str, float]], str, float)
-#         [description]
+#         DESCRIPTION
 #
 #     """
 #     pass
+
