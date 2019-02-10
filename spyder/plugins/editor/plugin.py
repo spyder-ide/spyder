@@ -2402,7 +2402,7 @@ class Editor(SpyderPluginWidget):
         """Run last executed cell."""
         editorstack = self.get_current_editorstack()
         editorstack.re_run_last_cell()
-    
+
     # ------ Code bookmarks
     @Slot(int)
     def save_bookmark(self, slot_num):
@@ -2435,8 +2435,8 @@ class Editor(SpyderPluginWidget):
         self.load(filename)
         editor = self.get_current_editor()
         if line_num < editor.document().lineCount():
-            linelength = len(editor.document() \
-                .findBlockByNumber(line_num).text())
+            linelength = len(editor.document()
+                             .findBlockByNumber(line_num).text())
             if column <= linelength:
                 editor.go_to_line(line_num + 1, column)
             else:
