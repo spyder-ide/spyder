@@ -206,9 +206,7 @@ class WriterDocstring:
             func_info.parse(func_text)
 
             if func_info.has_info:
-                if doc_type == 'one-line':
-                    docstring = self.quote3
-                elif doc_type == 'numpy':
+                if doc_type == 'numpy':
                     docstring = self._generate_numpy_doc(func_info)
 
         return docstring

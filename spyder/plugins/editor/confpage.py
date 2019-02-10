@@ -179,9 +179,7 @@ class EditorConfigPage(PluginConfigPage):
         removetrail_box = newcb(_("Automatically remove trailing spaces "
                                   "when saving files"),
                                 'always_remove_trailing_spaces', default=False)
-        docstring_combo_choices = ((_("one-line"), 'one-line'),
-                                   (_("numpy"), 'numpy')
-                                   )
+        docstring_combo_choices = ((_("numpy"), 'numpy'),)
         docstring_combo = self.create_combobox("Docstring type",
                                                docstring_combo_choices,
                                                'docstring_type')
