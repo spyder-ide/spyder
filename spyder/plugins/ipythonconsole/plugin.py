@@ -157,12 +157,12 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Info widget
         self.infowidget = WebView(self)
-        self.set_infowidget_font()
         if WEBENGINE:
             self.infowidget.page().setBackgroundColor(QColor(MAIN_BG_COLOR))
         else:
             self.infowidget.setStyleSheet(
                 "background:{}".format(MAIN_BG_COLOR))
+        self.set_infowidget_font()
         layout.addWidget(self.infowidget)
 
         # Find/replace widget
