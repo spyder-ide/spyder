@@ -543,7 +543,8 @@ class CodeEditor(TextEditBaseWidget):
             ('editor', 'paste', self.paste),
             ('editor', 'delete', self.delete),
             ('editor', 'select all', self.selectAll),
-            ('editor', 'docstring', self.writer_docstring.write_docstring),
+            ('editor', 'docstring',
+             self.writer_docstring.write_docstring_at_mouse_position),
             ('array_builder', 'enter array inline', self.enter_array_inline),
             ('array_builder', 'enter array table', self.enter_array_table)
             )
@@ -2694,6 +2695,7 @@ class CodeEditor(TextEditBaseWidget):
         writer = self.writer_docstring
         self.docstring_action = create_action(
             self, _("Write Docstring"),
+            shortcut=get_shortcut('editor', 'docstring'),
             triggered=writer.write_docstring_at_mouse_position)
 
         # Build menu

@@ -147,6 +147,9 @@ class WriterDocstring:
 
                 cursor = self.code_editor.textCursor()
                 cursor.setPosition(prev_pos, QTextCursor.KeepAnchor)
+                cursor.movePosition(QTextCursor.NextBlock)
+                cursor.movePosition(QTextCursor.EndOfLine,
+                                    QTextCursor.KeepAnchor)
                 cursor.clearSelection()
                 self.code_editor.setTextCursor(cursor)
                 return True
@@ -220,7 +223,7 @@ class WriterDocstring:
 
         numpy_doc += '\n'
         if len(arg_names) > 0:
-            numpy_doc += '\n{}Parameters'.format(indent1)
+            numpy_doc += '{0}\n\n{0}Parameters'.format(indent1)
             numpy_doc += '\n{}----------\n'.format(indent1)
 
         arg_text = ''
@@ -230,12 +233,12 @@ class WriterDocstring:
             if arg_type:
                 arg_text += '{}'.format(arg_type)
             else:
-                arg_text += '[type]'
+                arg_text += 'TYPE'
 
             if arg_value:
                 arg_text += ', optional'
 
-            arg_text += '\n{}[description]'.format(indent2)
+            arg_text += '\n{}DESCRIPTION'.format(indent2)
 
             if arg_value:
                 arg_value = arg_value.replace(self.quote3, self.quote3_other)
@@ -248,9 +251,9 @@ class WriterDocstring:
         numpy_doc += '\n{}-------'.format(indent1)
         if func_info.return_type:
             numpy_doc += '\n{}{}'.format(indent1, func_info.return_type)
-            numpy_doc += '\n{}[description]\n'.format(indent2)
+            numpy_doc += '\n{}DESCRIPTION\n'.format(indent2)
         else:
-            numpy_doc += '\n{}None\n'.format(indent1)
+            numpy_doc += '\n{}RETURN_TYPE\n'.format(indent1)
 
         numpy_doc += '\n{}{}'.format(indent1, self.quote3)
 
