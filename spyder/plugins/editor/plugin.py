@@ -1537,8 +1537,7 @@ class Editor(SpyderPluginWidget):
         save_breakpoints(filename, breakpoints)
         self.breakpoints_saved.emit()
 
-
-    #------ Bookmarks
+    # ------ Bookmarks
     def save_bookmarks(self, filename, bookmarks):
         filename = to_text_string(filename)
         bookmarks = to_text_string(bookmarks)
@@ -2404,7 +2403,7 @@ class Editor(SpyderPluginWidget):
         editorstack = self.get_current_editorstack()
         editorstack.re_run_last_cell()
     
-    #------ Code bookmarks
+    # ------ Code bookmarks
     @Slot(int)
     def save_bookmark(self, slot_num):
         """Save current line and position as bookmark"""
@@ -2415,7 +2414,8 @@ class Editor(SpyderPluginWidget):
             if osp.isfile(filename):
                 index = editorstack.has_filename(filename)
                 if index is not None:
-                    block = editorstack.tabs.widget(index).document().findBlockByNumber(line_num)
+                    block = editorstack.tabs.widget(index).document() \
+                        .findBlockByNumber(line_num)
                     block.userData().bookmarks.remove((slot_num, column))
         if editorstack is not None:
             self.switch_to_plugin()
@@ -2435,7 +2435,8 @@ class Editor(SpyderPluginWidget):
         self.load(filename)
         editor = self.get_current_editor()
         if line_num < editor.document().lineCount():
-            linelength = len(editor.document().findBlockByNumber(line_num).text())
+            linelength = len(editor.document() \
+                .findBlockByNumber(line_num).text())
             if column <= linelength:
                 editor.go_to_line(line_num + 1, column)
             else:

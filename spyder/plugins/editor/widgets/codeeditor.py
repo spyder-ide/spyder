@@ -1367,10 +1367,8 @@ class CodeEditor(TextEditBaseWidget):
 
         self.setTextCursor(cursor)
 
-    #-----Code bookmarks
-
+    # -----Code bookmarks
     def add_bookmark(self, slot_num, line=None, column=None):
-        #TODO: When line is removed, bookmark should be removed
         """Add bookmark"""
         if line is None:
             # Triggered by shortcut, else by spyder start
