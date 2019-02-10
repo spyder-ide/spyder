@@ -263,10 +263,23 @@ class IPythonConsole(SpyderPluginWidget):
         """Refresh tabwidget"""
         client = None
         if self.tabwidget.count():
-            # Give focus to the control widget of the selected tab
             client = self.tabwidget.currentWidget()
+
+            # Decide what to show for each client
+            if client.info_page != client.blank_page:
+                # Show info_page if it has content
+                client.set_info_page()
+                client.shellwidget.hide()
+                self.infowidget.show()
+            else:
+                self.infowidget.hide()
+                client.shellwidget.show()
+
+            # Give focus to the control widget of the selected tab
             control = client.get_control()
             control.setFocus()
+
+            # Create corner widgets
             buttons = [[b, -7] for b in client.get_toolbar_buttons()]
             buttons = sum(buttons, [])[:-1]
             widgets = [client.create_time_label()] + buttons
