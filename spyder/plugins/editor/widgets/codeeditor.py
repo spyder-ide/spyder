@@ -2694,7 +2694,7 @@ class CodeEditor(TextEditBaseWidget):
         # Docstring
         writer = self.writer_docstring
         self.docstring_action = create_action(
-            self, _("Write Docstring"),
+            self, _("Generate function docstring"),
             shortcut=get_shortcut('editor', 'docstring'),
             triggered=writer.write_docstring_at_mouse_position)
 
