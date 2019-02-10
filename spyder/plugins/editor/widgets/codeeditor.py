@@ -544,7 +544,7 @@ class CodeEditor(TextEditBaseWidget):
             ('editor', 'delete', self.delete),
             ('editor', 'select all', self.selectAll),
             ('editor', 'docstring',
-             self.writer_docstring.write_docstring_at_mouse_position),
+             self.writer_docstring.write_docstring_for_shortcut),
             ('array_builder', 'enter array inline', self.enter_array_inline),
             ('array_builder', 'enter array table', self.enter_array_table)
             )

@@ -181,6 +181,12 @@ class WriterDocstring:
             editor.insert_text('\n{}{}"""'.format(indent, editor.indent_chars))
             self.write_docstring()
 
+    def write_docstring_for_shortcut(self):
+        """Write docstring to editor by shortcut of code editor."""
+        self.mouse_position = self.code_editor.mapFromGlobal(
+            self.code_editor.cursor().pos())
+        self.write_docstring_at_mouse_position()
+
     def _generate_docstring(self, doc_type, quote):
         """Generate docstring."""
         docstring = None
