@@ -165,7 +165,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                                          toggled=self.set_elapsed_time_visible)
 
         # --- Layout
-        vlayout = QVBoxLayout()
+        self.layout = QVBoxLayout()
         toolbar_buttons = self.get_toolbar_buttons()
 
         hlayout = QHBoxLayout()
@@ -174,10 +174,11 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         for button in toolbar_buttons:
             hlayout.addWidget(button)
 
-        vlayout.addLayout(hlayout)
-        vlayout.setContentsMargins(0, 0, 0, 0)
-        vlayout.addWidget(self.shellwidget)
-        self.setLayout(vlayout)
+        self.layout.addLayout(hlayout)
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.addWidget(self.shellwidget)
+        self.layout.addWidget(self.infowidget)
+        self.setLayout(self.layout)
 
         # --- Exit function
         self.exit_callback = lambda: plugin.close_client(client=self)

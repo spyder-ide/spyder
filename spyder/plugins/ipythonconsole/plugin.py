@@ -270,6 +270,7 @@ class IPythonConsole(SpyderPluginWidget):
                 # Show info_page if it has content
                 client.set_info_page()
                 client.shellwidget.hide()
+                client.layout.addWidget(self.infowidget)
                 self.infowidget.show()
             else:
                 self.infowidget.hide()
