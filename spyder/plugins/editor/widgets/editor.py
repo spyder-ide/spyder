@@ -893,17 +893,17 @@ class EditorStack(QWidget):
             editor = self.get_current_editor()
             editor.debugger.toogle_breakpoint()
 
-    def set_bookmark(self, slot_num):
-        """Set bookmark"""
-        if self.data:
-            editor = self.get_current_editor()
-            editor.add_bookmark(slot_num)
-
     def set_or_edit_conditional_breakpoint(self):
         """Set conditional breakpoint"""
         if self.data:
             editor = self.get_current_editor()
             editor.debugger.toogle_breakpoint(edit_condition=True)
+
+    def set_bookmark(self, slot_num):
+        """Set bookmark"""
+        if self.data:
+            editor = self.get_current_editor()
+            editor.add_bookmark(slot_num)
 
     def inspect_current_object(self):
         """Inspect current object in the Help plugin"""

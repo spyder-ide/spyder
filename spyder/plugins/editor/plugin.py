@@ -74,18 +74,28 @@ dependencies.add("nbconvert", _("Manipulate Jupyter notebooks on the Editor"),
 
 def _load_all_bookmarks():
     slots = CONF.get('editor', 'bookmarks', {})
-    for slot_nr, slot_content in slots.items():
-        if not osp.isfile(slot_content[0]):
-            slots.pop(slot_nr)
+    for slot_num in list(slots.keys()):
+        if not osp.isfile(slots[slot_num][0]):
+            slots.pop(slot_num)
     return slots
+
+
+def load_bookmarks(filename):
+    bookmarks = _load_all_bookmarks()
+    return {k: v for k, v in bookmarks.items() if v[0] == filename}
+
+
+def load_bookmarks_without_file(filename):
+    bookmarks = _load_all_bookmarks()
+    return {k: v for k, v in bookmarks.items() if v[0] != filename}
 
 
 def save_bookmarks(filename, bookmarks):
     if not osp.isfile(filename):
         return
-    slots = _load_all_bookmarks()
-    for slot_num, info in bookmarks.items():
-        slots[slot_num] = [filename, info[0], info[1]]
+    slots = load_bookmarks_without_file(filename)
+    for slot_num, content in bookmarks.items():
+        slots[slot_num] = [filename, content[0], content[1]]
     CONF.set('editor', 'bookmarks', slots)
 
 WINPDB_PATH = programs.find_program('winpdb')
@@ -1533,10 +1543,7 @@ class Editor(SpyderPluginWidget):
         filename = to_text_string(filename)
         bookmarks = to_text_string(bookmarks)
         filename = osp.normpath(osp.abspath(filename))
-        if bookmarks:
-            bookmarks = eval(bookmarks)
-        else:
-            bookmarks = []
+        bookmarks = eval(bookmarks)
         save_bookmarks(filename, bookmarks)
 
     #------ File I/O
@@ -1832,6 +1839,7 @@ class Editor(SpyderPluginWidget):
                 current_editor = current_es.set_current_filename(filename,
                                                                  focus=focus)
                 current_editor.debugger.load_breakpoints()
+                current_editor.set_bookmarks(load_bookmarks(filename))
                 self.register_widget_shortcuts(current_editor)
                 current_es.analyze_script()
                 self.__add_recent_file(filename)
@@ -2400,7 +2408,15 @@ class Editor(SpyderPluginWidget):
     @Slot(int)
     def save_bookmark(self, slot_num):
         """Save current line and position as bookmark"""
+        bookmarks = CONF.get('editor', 'bookmarks')
         editorstack = self.get_current_editorstack()
+        if slot_num in bookmarks:
+            filename, line_num, column = bookmarks[slot_num]
+            if osp.isfile(filename):
+                index = editorstack.has_filename(filename)
+                if index is not None:
+                    block = editorstack.tabs.widget(index).document().findBlockByNumber(line_num)
+                    block.userData().bookmarks.remove((slot_num, column))
         if editorstack is not None:
             self.switch_to_plugin()
             editorstack.set_bookmark(slot_num)
@@ -2409,15 +2425,22 @@ class Editor(SpyderPluginWidget):
     def load_bookmark(self, slot_num):
         """Set cursor to bookmarked file and position."""
         bookmarks = CONF.get('editor', 'bookmarks')
-        filename, line_num, column = bookmarks[slot_num]
+        if slot_num in bookmarks:
+            filename, line_num, column = bookmarks[slot_num]
+        else:
+            return
         if not osp.isfile(filename):
             self.last_edit_cursor_pos = None
             return
-        else:
-            self.load(filename)
-            editor = self.get_current_editor()
-            if line_num < editor.document().lineCount():
-                editor.go_to_line(line_num, column)
+        self.load(filename)
+        editor = self.get_current_editor()
+        if line_num < editor.document().lineCount():
+            linelength = len(editor.document().findBlockByNumber(line_num).text())
+            if column <= linelength:
+                editor.go_to_line(line_num + 1, column)
+            else:
+                # Last column
+                editor.go_to_line(line_num + 1, linelength)
 
     #------ Zoom in/out/reset
     def zoom(self, factor):

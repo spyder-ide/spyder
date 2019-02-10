@@ -1369,15 +1369,13 @@ class CodeEditor(TextEditBaseWidget):
 
     #-----Code bookmarks
 
-    def add_bookmark(self, slot_num):
-        """Add/remove bookmark"""
-        line, column = self.get_cursor_line_column()
-        if not self.is_python_like():
-            return
+    def add_bookmark(self, slot_num, line=None, column=None):
+        #TODO: When line is removed, bookmark should be removed
+        """Add bookmark"""
         if line is None:
-            block = self.textCursor().block()
-        else:
-            block = self.document().findBlockByNumber(line)
+            # Triggered by shortcut, else by spyder start
+            line, column = self.get_cursor_line_column()
+        block = self.document().findBlockByNumber(line)
         data = block.userData()
         if not data:
             data = BlockUserData(self)
@@ -1390,13 +1388,30 @@ class CodeEditor(TextEditBaseWidget):
         """Get bookmarks"""
         bookmarks = {}
         block = self.document().firstBlock()
-        for line_number in range(1, self.document().blockCount()+1):
+        for line_number in range(0, self.document().blockCount()):
             data = block.userData()
             if data and data.bookmarks:
                 for slot_num, column in data.bookmarks:
                     bookmarks[slot_num] = [line_number, column]
             block = block.next()
         return bookmarks
+
+    def clear_bookmarks(self):
+        """Clear bookmarks"""
+        self.bookmarks = {}
+        for data in self.blockuserdata_list[:]:
+            data.bookmarks = []
+            if data.is_empty():
+                # This is not calling the __del__ in BlockUserData.  Not
+                # sure if it's supposed to or not, but that seems to be the
+                # intent.
+                del data
+
+    def set_bookmarks(self, bookmarks):
+        """Set bookmarks when opening file"""
+        self.clear_bookmarks()
+        for slot_num, bookmark in bookmarks.items():
+            self.add_bookmark(slot_num, bookmark[1], bookmark[2])
 
     def update_bookmarks(self):
         """Update bookmarks"""
