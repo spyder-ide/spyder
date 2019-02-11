@@ -231,7 +231,7 @@ class FileSwitcher(QDialog):
     FILE_MODE, SYMBOL_MODE = [1, 2]
     MAX_WIDTH = 600
     PATH_FG_COLOR = 'rgb(153, 153, 153)'
-    SECTION_COLOR = 'rgb(48, 114, 176)'
+    SECTION_COLOR = 'rgb(70, 179, 239)'
 
     def __init__(self, parent, plugin, tabs, data, icon):
         QDialog.__init__(self, parent)
@@ -683,7 +683,7 @@ class FileSwitcher(QDialog):
                                                     paths[index])
                     title = self.widgets[index][1].get_plugin_title().split(' - ')[0]
                     text_item += (u" &nbsp; <span style='color:{0:};"
-                                  "font-size:{1:}pt; align:right'>{2:}"
+                                  "font-size:{1:}pt; 'float-right''>{2:}"
                                   "</span>").format(self.SECTION_COLOR,
                                                     path_text_font_size,
                                                     title)
@@ -704,7 +704,7 @@ class FileSwitcher(QDialog):
                 title = self.widgets[index][1].get_plugin_title().split(' - ')
                 if plugin != title[0]:
                     plugin = title[0]
-                    #text =
+                    #text +=  
                     item = QListWidgetItem(text)
                     item.setToolTip(path)
                     item.setSizeHint(QSize(0, 25))
