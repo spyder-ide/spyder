@@ -73,6 +73,7 @@ dependencies.add("nbconvert", _("Manipulate Jupyter notebooks on the Editor"),
 
 
 def _load_all_bookmarks():
+    """Load all bookmarks from config."""
     slots = CONF.get('editor', 'bookmarks', {})
     for slot_num in list(slots.keys()):
         if not osp.isfile(slots[slot_num][0]):
@@ -81,16 +82,19 @@ def _load_all_bookmarks():
 
 
 def load_bookmarks(filename):
+    """Load all bookmarks for a specific file from config."""
     bookmarks = _load_all_bookmarks()
     return {k: v for k, v in bookmarks.items() if v[0] == filename}
 
 
 def load_bookmarks_without_file(filename):
+    """Load all bookmarks but those from a specific file."""
     bookmarks = _load_all_bookmarks()
     return {k: v for k, v in bookmarks.items() if v[0] != filename}
 
 
 def save_bookmarks(filename, bookmarks):
+    """Save all bookmarks from specific file to config."""
     if not osp.isfile(filename):
         return
     slots = load_bookmarks_without_file(filename)
@@ -1539,6 +1543,7 @@ class Editor(SpyderPluginWidget):
 
     # ------ Bookmarks
     def save_bookmarks(self, filename, bookmarks):
+        """Receive bookmark changes and save them."""
         filename = to_text_string(filename)
         bookmarks = to_text_string(bookmarks)
         filename = osp.normpath(osp.abspath(filename))
@@ -2406,7 +2411,7 @@ class Editor(SpyderPluginWidget):
     # ------ Code bookmarks
     @Slot(int)
     def save_bookmark(self, slot_num):
-        """Save current line and position as bookmark"""
+        """Save current line and position as bookmark."""
         bookmarks = CONF.get('editor', 'bookmarks')
         editorstack = self.get_current_editorstack()
         if slot_num in bookmarks:
@@ -2414,8 +2419,8 @@ class Editor(SpyderPluginWidget):
             if osp.isfile(filename):
                 index = editorstack.has_filename(filename)
                 if index is not None:
-                    block = editorstack.tabs.widget(index).document() \
-                        .findBlockByNumber(line_num)
+                    block = (editorstack.tabs.widget(index).document()
+                             .findBlockByNumber(line_num))
                     block.userData().bookmarks.remove((slot_num, column))
         if editorstack is not None:
             self.switch_to_plugin()

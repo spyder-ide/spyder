@@ -1369,7 +1369,7 @@ class CodeEditor(TextEditBaseWidget):
 
     # -----Code bookmarks
     def add_bookmark(self, slot_num, line=None, column=None):
-        """Add bookmark"""
+        """Add bookmark to current block's userData."""
         if line is None:
             # Triggered by shortcut, else by spyder start
             line, column = self.get_cursor_line_column()
@@ -1383,7 +1383,7 @@ class CodeEditor(TextEditBaseWidget):
         self.bookmarks_changed.emit()
 
     def get_bookmarks(self):
-        """Get bookmarks"""
+        """Get bookmarks by going over all blocks."""
         bookmarks = {}
         block = self.document().firstBlock()
         for line_number in range(0, self.document().blockCount()):
@@ -1395,7 +1395,7 @@ class CodeEditor(TextEditBaseWidget):
         return bookmarks
 
     def clear_bookmarks(self):
-        """Clear bookmarks"""
+        """Clear bookmarks for all blocks."""
         self.bookmarks = {}
         for data in self.blockuserdata_list[:]:
             data.bookmarks = []
@@ -1406,13 +1406,13 @@ class CodeEditor(TextEditBaseWidget):
                 del data
 
     def set_bookmarks(self, bookmarks):
-        """Set bookmarks when opening file"""
+        """Set bookmarks when opening file."""
         self.clear_bookmarks()
         for slot_num, bookmark in bookmarks.items():
             self.add_bookmark(slot_num, bookmark[1], bookmark[2])
 
     def update_bookmarks(self):
-        """Update bookmarks"""
+        """Emit signal to update bookmarks."""
         self.bookmarks_changed.emit()
 
     #-----Code introspection

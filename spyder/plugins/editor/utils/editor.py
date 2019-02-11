@@ -65,8 +65,9 @@ class BlockUserData(QTextBlockUserData):
         self.editor.blockuserdata_list.append(self)
 
     def is_empty(self):
-        return not self.breakpoint and not self.code_analysis \
-            and not self.todo and not self.bookmarks
+        """Return whether the block of user data is empty."""
+        return (not self.breakpoint and not self.code_analysis 
+                and not self.todo and not self.bookmarks)
 
     def __del__(self):
         bud_list = self.editor.blockuserdata_list

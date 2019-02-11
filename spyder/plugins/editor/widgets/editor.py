@@ -228,7 +228,7 @@ class FileInfo(QObject):
         self.todo_results = []
 
     def bookmarks_changed(self):
-        """Breakpoint list has changed"""
+        """Bookmarks list has changed."""
         bookmarks = self.editor.get_bookmarks()
         if self.editor.bookmarks != bookmarks:
             self.editor.bookmarks = bookmarks
@@ -900,7 +900,7 @@ class EditorStack(QWidget):
             editor.debugger.toogle_breakpoint(edit_condition=True)
 
     def set_bookmark(self, slot_num):
-        """Set bookmark"""
+        """Bookmark current position to given slot."""
         if self.data:
             editor = self.get_current_editor()
             editor.add_bookmark(slot_num)
