@@ -62,20 +62,19 @@ def test_information_of_function(text, indent, name_list, type_list,
 @pytest.mark.parametrize(
     "doc_type, text, expected",
     [
-        ('numpy',
+        ('Numpydoc',
          '',
          ''
          ),
-        ('numpy',
+        ('Numpydoc',
          'if 1:\n    ',
          'if 1:\n    '
          ),
-        ('numpy',
+        ('Numpydoc',
          '''async def foo():
     ''',
          '''async def foo():
-    """
-    
+    """\n    
 
     Returns
     -------
@@ -84,12 +83,11 @@ def test_information_of_function(text, indent, name_list, type_list,
     """
     '''
          ),
-        ('numpy',
+        ('Numpydoc',
          '''  def foo():
       ''',
          '''  def foo():
-      """
-      
+      """\n      
 
       Returns
       -------
@@ -98,7 +96,7 @@ def test_information_of_function(text, indent, name_list, type_list,
       """
       ''',
          ),
-        ('numpy',
+        ('Numpydoc',
          '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
     arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
   (List[Tuple[str, float]], str, float):
@@ -106,8 +104,7 @@ def test_information_of_function(text, indent, name_list, type_list,
          '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
     arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
   (List[Tuple[str, float]], str, float):
-    """
-    
+    """\n    
 
     Parameters
     ----------
@@ -130,6 +127,54 @@ def test_information_of_function(text, indent, name_list, type_list,
     -------
     (List[Tuple[str, float]], str, float)
         DESCRIPTION
+
+    """
+    '''),
+        ('Googledoc',
+         '''async def foo():
+    ''',
+         '''async def foo():
+    """\n    
+
+    Returns:
+        RETURN_TYPE: DESCRIPTION
+
+    """
+    '''
+         ),
+        ('Googledoc',
+         '''  def foo():
+      ''',
+         '''  def foo():
+      """\n      
+
+      Returns:
+          RETURN_TYPE: DESCRIPTION
+
+      """
+      ''',
+         ),
+        ('Googledoc',
+         '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
+    arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
+  (List[Tuple[str, float]], str, float):
+    ''',
+         '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
+    arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
+  (List[Tuple[str, float]], str, float):
+    """\n    
+
+    Args:
+        arg (TYPE): DESCRIPTION
+        arg0 (TYPE): DESCRIPTION
+        arg1 (int): DESCRIPTION
+        arg2 (List[Tuple[str, float]]): DESCRIPTION
+        arg3 (TYPE, optional): Defaults to '-> (float, int):'. DESCRIPTION
+        arg4 (TYPE, optional): Defaults to ':float, int['. DESCRIPTION
+        arg5 (str, optional): Defaults to '""'. DESCRIPTION
+
+    Returns:
+        (List[Tuple[str, float]], str, float): DESCRIPTION
 
     """
     '''),
@@ -242,3 +287,70 @@ def test_editor_docstring_by_shortcut(qtbot, editor_auto_docstring, doc_type,
 #     """
 #     pass
 
+# =============================================================================
+# ---- Example for manual Testing of google docstring
+# =============================================================================
+# def foo():
+#     """
+#
+#
+#     Returns:
+#         RETURN_TYPE: DESCRIPTION
+#
+#     """
+#     return 0
+#
+#
+# def foo1(arg2):
+#     """
+#
+#
+#     Args:
+#         arg2 (TYPE): DESCRIPTION
+#
+#     Returns:
+#         RETURN_TYPE: DESCRIPTION
+#
+#     """
+#     return arg2
+#
+#
+# def foo2(arg1, arg2, arg3, arg4=3, arg5: float=5.0) -> (float, str):
+#     """
+#
+#
+#     Args:
+#         arg1 (TYPE): DESCRIPTION
+#         arg2 (TYPE): DESCRIPTION
+#         arg3 (TYPE): DESCRIPTION
+#         arg4 (TYPE, optional): Defaults to 3. DESCRIPTION
+#         arg5 (float, optional): Defaults to 5.0. DESCRIPTION
+#
+#     Returns:
+#         (float, str): DESCRIPTION
+#
+#     """
+#     pass
+#
+#
+# def foo3(arg1: int, arg2: List[Tuple[str, float]], arg3='-> (float, int):',
+#           arg4=':float, int[', arg5: str = '"\'"', arg7: str = """string1
+#           string2""") -> \
+#         (List[Tuple[str, float]], str, float):
+#     """
+#
+#
+#     Args:
+#         arg1 (int): DESCRIPTION
+#         arg2 (List[Tuple[str, float]]): DESCRIPTION
+#         arg3 (TYPE, optional): Defaults to '-> (float, int):'. DESCRIPTION
+#         arg4 (TYPE, optional): Defaults to ':float, int['. DESCRIPTION
+#         arg5 (str, optional): Defaults to '"\'"'. DESCRIPTION
+#         arg7 (str, optional): Defaults to '''string1          string2'''.
+#                               DESCRIPTION
+#
+#     Returns:
+#         (List[Tuple[str, float]], str, float): DESCRIPTION
+#
+#     """
+#     pass

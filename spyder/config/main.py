@@ -232,7 +232,7 @@ DEFAULTS = [
               'onsave_analysis': False,
               'autosave_enabled': True,
               'autosave_interval': 60,
-              'docstring_type': 'numpy',
+              'docstring_type': 'Numpydoc',
               }),
             ('historylog',
              {

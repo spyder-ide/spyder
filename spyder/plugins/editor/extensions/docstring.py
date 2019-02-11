@@ -206,8 +206,10 @@ class WriterDocstring:
             func_info.parse(func_text)
 
             if func_info.has_info:
-                if doc_type == 'numpy':
+                if doc_type == 'Numpydoc':
                     docstring = self._generate_numpy_doc(func_info)
+                elif doc_type == 'Googledoc':
+                    docstring = self._generate_google_doc(func_info)
 
         return docstring
 
@@ -265,6 +267,61 @@ class WriterDocstring:
         numpy_doc += '\n{}{}'.format(indent1, self.quote3)
 
         return numpy_doc
+
+    def _generate_google_doc(self, func_info):
+        """Generate a docstring of google type."""
+        google_doc = ''
+
+        arg_names = func_info.arg_name_list
+        arg_types = func_info.arg_type_list
+        arg_values = func_info.arg_value_list
+
+        if len(arg_names) > 0 and arg_names[0] == 'self':
+            del arg_names[0]
+            del arg_types[0]
+            del arg_values[0]
+
+        indent1 = func_info.func_indent + self.code_editor.indent_chars
+        indent2 = func_info.func_indent + self.code_editor.indent_chars * 2
+
+        google_doc += '\n{}\n'.format(indent1)
+
+        if len(arg_names) > 0:
+            google_doc += '\n{0}Args:\n'.format(indent1)
+
+        arg_text = ''
+        for arg_name, arg_type, arg_value in zip(arg_names, arg_types,
+                                                 arg_values):
+            arg_text += '{}{} '.format(indent2, arg_name)
+
+            arg_text += '('
+            if arg_type:
+                arg_text += '{}'.format(arg_type)
+            else:
+                arg_text += 'TYPE'
+
+            if arg_value:
+                arg_text += ', optional'
+            arg_text += '):'
+
+            if arg_value:
+                arg_value = arg_value.replace(self.quote3, self.quote3_other)
+                arg_text += ' Defaults to {}.'.format(arg_value)
+
+            arg_text += ' DESCRIPTION\n'
+
+        google_doc += arg_text
+
+        google_doc += '\n{}Returns:'.format(indent1)
+        if func_info.return_type:
+            google_doc += '\n{}{}: DESCRIPTION\n'.format(indent2,
+                                                         func_info.return_type)
+        else:
+            google_doc += '\n{}RETURN_TYPE: DESCRIPTION\n'.format(indent2)
+
+        google_doc += '\n{}{}'.format(indent1, self.quote3)
+
+        return google_doc
 
 
 class FunctionInfo:
