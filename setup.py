@@ -227,7 +227,7 @@ install_requires = [
     'pyqt5<=5.12;python_version>="3"',
     # pyqt5 5.12 split WebEngine into the
     # pyqtwebengine module
-    'pyqtwebengine'
+    'pyqtwebengine',
     # Pyls with all its dependencies
     'python-language-server[all]>=0.19.0',
     # Required to get SSH connections to remote kernels
