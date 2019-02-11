@@ -244,7 +244,10 @@ install_requires = [
     'keyring;sys_platform!="linux2"',
     # Packages for pyqt5 are only available in
     # Python 3
-    'pyqt5<=5.12;python_version>="3"'
+    'pyqt5<=5.12;python_version>="3"',
+    # pyqt5 5.12 split WebEngine into the
+    # pyqtwebengine module
+    'pyqtwebengine'
 ]
 
 extras_require = {
