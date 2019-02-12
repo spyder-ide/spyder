@@ -670,20 +670,20 @@ class FileSwitcher(QDialog):
                     text_item += " [{0:} {1:}]".format(self.line_count[index],
                                                        _("lines"))
                 if max_width > self.list.width():
-                    text_item += (u" &nbsp; <span style='color:{0:};"
+                    text_item += (u" &nbsp; <span style='float: left; color:{0:};"
                                   "font-size:{1:}pt'>{2:}"
                                   "</span>").format(self.PATH_FG_COLOR,
                                                     path_text_font_size,
                                                     short_paths[index])
                 else:
-                    text_item += (u" &nbsp; <span style='color:{0:};"
+                    text_item += (u" &nbsp; <span style='float: left; color:{0:};"
                                   "font-size:{1:}pt'>{2:}"
                                   "</span>").format(self.PATH_FG_COLOR,
                                                     path_text_font_size,
                                                     paths[index])
                     title = self.widgets[index][1].get_plugin_title().split(' - ')[0]
-                    text_item += (u" &nbsp; <span style='color:{0:};"
-                                  "font-size:{1:}pt; 'float-right''>{2:}"
+                    text_item += (u"<span style= 'float: right; color:{0:};"
+                                  "font-size:{1:}pt'>{2:}"
                                   "</span>").format(self.SECTION_COLOR,
                                                     path_text_font_size,
                                                     title)
@@ -704,7 +704,8 @@ class FileSwitcher(QDialog):
                 title = self.widgets[index][1].get_plugin_title().split(' - ')
                 if plugin != title[0]:
                     plugin = title[0]
-                    #text +=  
+                    text += ("<span style='color:{0:}'>{1:}"
+                             "</span>").format(ima.MAIN_FG_COLOR,'<hr>')
                     item = QListWidgetItem(text)
                     item.setToolTip(path)
                     item.setSizeHint(QSize(0, 25))
