@@ -2696,7 +2696,7 @@ class CodeEditor(TextEditBaseWidget):
         self.docstring_action = create_action(
             self, _("Generate function docstring"),
             shortcut=get_shortcut('editor', 'docstring'),
-            triggered=writer.write_docstring_at_mouse_position)
+            triggered=writer.write_docstring_at_first_line_of_function)
 
         # Build menu
         self.menu = QMenu(self)
@@ -3000,8 +3000,8 @@ class CodeEditor(TextEditBaseWidget):
 
         # Check if a docstring is writable
         writer = self.writer_docstring
-        writer.mouse_position = event.pos()
-        result = writer.get_function_definition_from_position()
+        writer.line_number_cursor = self.get_line_number_at(event.pos())
+        result = writer.get_function_definition_from_first_line()
 
         if result:
             self.docstring_action.setEnabled(True)

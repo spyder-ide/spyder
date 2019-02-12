@@ -8,6 +8,7 @@
 
 # Third party imports
 import pytest
+from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
 
 # Local imports
@@ -59,6 +60,7 @@ def test_information_of_function(text, indent, name_list, type_list,
     assert func_info.return_type == rtype
 
 
+@pytest.mark.parametrize("use_shortcut", [True, False])
 @pytest.mark.parametrize(
     "doc_type, text, expected",
     [
@@ -180,7 +182,7 @@ def test_information_of_function(text, indent, name_list, type_list,
     '''),
     ])
 def test_editor_docstring_by_shortcut(qtbot, editor_auto_docstring, doc_type,
-                                      text, expected):
+                                      text, expected, use_shortcut):
     """Test auto docstring by shortcut."""
     CONF.set('editor', 'docstring_type', doc_type)
     editor = editor_auto_docstring
@@ -189,12 +191,15 @@ def test_editor_docstring_by_shortcut(qtbot, editor_auto_docstring, doc_type,
     cursor = editor.textCursor()
     cursor.setPosition(0, QTextCursor.MoveAnchor)
     editor.setTextCursor(cursor)
+    writer = editor.writer_docstring
 
-    pos = editor.cursorRect().bottomRight()
-    pos = editor.mapToGlobal(pos)
-
-    qtbot.mouseMove(editor, pos=pos, delay=-1)
-    editor.writer_docstring.write_docstring_for_shortcut()
+    if use_shortcut:
+        writer.write_docstring_for_shortcut()
+    else:
+        pos = editor.cursorRect().bottomRight()
+        pos = editor.mapToGlobal(pos)
+        writer.line_number_cursor = editor.get_line_number_at(pos)
+        writer.write_docstring_at_first_line_of_function()
 
     assert editor.toPlainText() == expected
 

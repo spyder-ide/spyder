@@ -45,7 +45,7 @@ class WriterDocstring:
         self.code_editor = code_editor
         self.quote3 = '"""'
         self.quote3_other = "'''"
-        self.mouse_position = None
+        self.line_number_cursor = None
 
     @staticmethod
     def is_beginning_triple_quotes(text):
@@ -56,9 +56,14 @@ class WriterDocstring:
 
         return False
 
-    def get_function_definition_from_position(self):
-        """Get information of function from mouse position."""
-        cursor = self.code_editor.cursorForPosition(self.mouse_position)
+    def get_function_definition_from_first_line(self):
+        """
+        Get the definition of function when there is the cursor at first
+        line of function definition.
+        """
+        document = self.code_editor.document()
+        cursor = QTextCursor(
+            document.findBlockByLineNumber(self.line_number_cursor - 1))
 
         func_text = ''
         func_indent = ''
@@ -101,8 +106,11 @@ class WriterDocstring:
 
         return None
 
-    def get_function_definition_from_cursor(self):
-        """Get information of function from block of QTextCursor."""
+    def get_function_definition_from_below_last_line(self):
+        """
+        Get the definition of function when there is the QTextCursor below the
+        last line of function definition.
+        """
         cursor = self.code_editor.textCursor()
         func_text = ''
         is_first_line = True
@@ -158,14 +166,14 @@ class WriterDocstring:
 
         return False
 
-    def write_docstring_at_mouse_position(self):
+    def write_docstring_at_first_line_of_function(self):
         """Write docstring to editor at mouse position."""
-        result = self.get_function_definition_from_position()
+        result = self.get_function_definition_from_first_line()
         editor = self.code_editor
         if result:
             func_text, number_of_line_func = result
-            line_number_mouse = editor.get_line_number_at(self.mouse_position)
-            line_number_function = line_number_mouse + number_of_line_func - 1
+            line_number_function = (self.line_number_cursor +
+                                    number_of_line_func - 1)
 
             cursor = editor.textCursor()
             line_number_cursor = cursor.blockNumber() + 1
@@ -185,9 +193,10 @@ class WriterDocstring:
 
     def write_docstring_for_shortcut(self):
         """Write docstring to editor by shortcut of code editor."""
-        self.mouse_position = self.code_editor.mapFromGlobal(
-            self.code_editor.cursor().pos())
-        self.write_docstring_at_mouse_position()
+        cursor = self.code_editor.textCursor()
+        self.line_number_cursor = cursor.blockNumber() + 1
+
+        self.write_docstring_at_first_line_of_function()
 
     def _generate_docstring(self, doc_type, quote):
         """Generate docstring."""
@@ -199,7 +208,7 @@ class WriterDocstring:
         else:
             self.quote3_other = '"""'
 
-        func_text = self.get_function_definition_from_cursor()
+        func_text = self.get_function_definition_from_below_last_line()
 
         if func_text:
             func_info = FunctionInfo()
