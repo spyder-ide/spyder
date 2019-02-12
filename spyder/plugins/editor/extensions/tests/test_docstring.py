@@ -76,8 +76,7 @@ def test_information_of_function(text, indent, name_list, type_list,
          '''async def foo():
     ''',
          '''async def foo():
-    """\n    
-
+    """\n    \n
     Returns
     -------
     RETURN_TYPE
@@ -89,8 +88,7 @@ def test_information_of_function(text, indent, name_list, type_list,
          '''  def foo():
       ''',
          '''  def foo():
-      """\n      
-
+      """\n      \n
       Returns
       -------
       RETURN_TYPE
@@ -106,8 +104,7 @@ def test_information_of_function(text, indent, name_list, type_list,
          '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
     arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
   (List[Tuple[str, float]], str, float):
-    """\n    
-
+    """\n    \n
     Parameters
     ----------
     arg : TYPE
@@ -136,8 +133,7 @@ def test_information_of_function(text, indent, name_list, type_list,
          '''async def foo():
     ''',
          '''async def foo():
-    """\n    
-
+    """\n    \n
     Returns:
         RETURN_TYPE: DESCRIPTION
 
@@ -148,8 +144,7 @@ def test_information_of_function(text, indent, name_list, type_list,
          '''  def foo():
       ''',
          '''  def foo():
-      """\n      
-
+      """\n      \n
       Returns:
           RETURN_TYPE: DESCRIPTION
 
@@ -164,8 +159,7 @@ def test_information_of_function(text, indent, name_list, type_list,
          '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
     arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
   (List[Tuple[str, float]], str, float):
-    """\n    
-
+    """\n    \n
     Args:
         arg (TYPE): DESCRIPTION
         arg0 (TYPE): DESCRIPTION
