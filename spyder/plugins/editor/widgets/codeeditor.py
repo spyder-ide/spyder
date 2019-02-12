@@ -787,7 +787,6 @@ class CodeEditor(TextEditBaseWidget):
             completion_list = sorted(
                 params['params'], key=lambda x: x['sortText'])
             position = self.last_completion_position
-            self.last_completion_position = None
             self.completion_widget.show_list(completion_list, position)
 
     # ------------- LSP: Signature Hints ------------------------------------
