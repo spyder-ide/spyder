@@ -37,7 +37,7 @@ def get_indent(text):
     return indent
 
 
-class WriterDocstring:
+class DocstringWriterExtension:
     """Class for insert docstring template automatically."""
 
     def __init__(self, code_editor):

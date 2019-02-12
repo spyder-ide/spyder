@@ -52,7 +52,7 @@ from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
 from spyder.plugins.editor.api.decoration import TextDecoration
 from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               CloseQuotesExtension,
-                                              WriterDocstring,
+                                              DocstringWriterExtension,
                                               EditorExtensionsManager)
 from spyder.plugins.editor.lsp import (LSPRequestTypes, TextDocumentSyncKind,
                                        DiagnosticSeverity)
@@ -421,7 +421,7 @@ class CodeEditor(TextEditBaseWidget):
         self.found_results_color = QColor(Qt.magenta).lighter(180)
 
         # Docstring
-        self.writer_docstring = WriterDocstring(self)
+        self.writer_docstring = DocstringWriterExtension(self)
 
         # Context menu
         self.gotodef_action = None
