@@ -191,7 +191,7 @@ def test_update_bookmarks(code_editor_bot):
 
 
 def test_save_bookmark(setup_editor):
-    """Test Plugin.save_bookmark. 
+    """Test Plugin.save_bookmark.
 
     Test saving of bookmarks by looking at data in blocks. Reassignment
     should remove data from old block and put it in new.
@@ -228,7 +228,7 @@ def test_save_bookmark(setup_editor):
 def test_load_bookmark(setup_editor, test_file):
     """Test that loading a bookmark works.
 
-    Check this by saving and loading bookmarks and checking for cursor 
+    Check this by saving and loading bookmarks and checking for cursor
     position. Also over multiple files.
     """
     editor = setup_editor
