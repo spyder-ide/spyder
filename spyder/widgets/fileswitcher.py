@@ -10,7 +10,7 @@ import os
 import os.path as osp
 
 # Third party imports
-from qtpy.QtCore import Signal, QEvent, QObject, QRegExp, QSize, Qt
+from qtpy.QtCore import Signal, QEvent, QFileInfo, QObject, QRegExp, QSize, Qt
 from qtpy.QtGui import (QIcon, QRegExpValidator, QTextCursor)
 from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLabel, QLineEdit,
                             QListWidget, QListWidgetItem, QVBoxLayout,
@@ -272,6 +272,8 @@ class FileSwitcher(QDialog):
         self.setWindowOpacity(0.95)
         self.edit.installEventFilter(self.filter)
         self.edit.setValidator(regex_validator)
+        self.edit.setPlaceholderText(_("Start typing the name of an open file "
+                                       "or console to switch to it"))
         self.help.setToolTip(help_text)
         self.list.setItemDelegate(HTMLDelegate(self))
 
@@ -458,11 +460,11 @@ class FileSwitcher(QDialog):
             self.list.setMinimumWidth(relative_width)
 
             # Height
-            if len(content) < 8:
+            if len(content) < 15:
                 max_entries = len(content)
             else:
-                max_entries = 8
-            max_height = height * max_entries * 2.5
+                max_entries = 15
+            max_height = height * max_entries * 1.7
             self.list.setMinimumHeight(max_height)
 
             # Resize
@@ -690,7 +692,7 @@ class FileSwitcher(QDialog):
         for result in sorted(results):
             index = result[1]
             path = paths[index]
-            icon = icons[index]
+            icon = ima.get_icon_by_extension(path)
             text = ''
             try:
                 title = self.widgets[index][1].get_plugin_title().split(' - ')
