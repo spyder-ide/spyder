@@ -340,8 +340,9 @@ class BaseEditMixin(object):
         cursor = self.__select_text(position_from, position_to)
         cursor.removeSelectedText()
 
-    def get_current_word(self, completion=False):
-        """Return current word, i.e. word at cursor position"""
+    def get_current_word_and_position(self, completion=False):
+        """Return current word, i.e. word at cursor position,
+            and the start position"""
         cursor = self.textCursor()
 
         if cursor.hasSelection():
@@ -384,7 +385,13 @@ class BaseEditMixin(object):
         # find a valid python variable name
         match = re.findall(r'([^\d\W]\w*)', text, re.UNICODE)
         if match:
-            return match[0]
+            return match[0], cursor.selectionStart()
+
+    def get_current_word(self, completion=False):
+        """Return current word, i.e. word at cursor position"""
+        ret = self.get_current_word_and_position(completion)
+        if ret is not None:
+            return ret[0]
 
     def get_current_line(self):
         """Return current line's text"""

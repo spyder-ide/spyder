@@ -58,14 +58,21 @@ class CompletionWidget(QListWidget):
         self.resize(*size)
         self.setFont(font)
 
-    def show_list(self, completion_list):
+    def show_list(self, completion_list, position):
         # Completions are handled differently for the Internal
         # console.
+        if position is None:
+            # Somehow the position was not saved.
+            # Hope that the current position is still valid
+            self.position = self.textedit.textCursor().position()
+        elif self.textedit.textCursor().position() < position:
+            # hide the text as we moved away from the position
+            return
+        else:
+            self.position = position
+
         if not isinstance(completion_list[0], dict):
             self.is_internal_console = True
-
-        if not self.is_internal_console:
-            self.textedit.completion_text = ''
         self.completion_list = completion_list
         self.clear()
 
@@ -145,7 +152,8 @@ class CompletionWidget(QListWidget):
             for completion in completion_list:
                 completion['point'] = tooltip_point
 
-        if to_text_string(self.textedit.completion_text):
+        if to_text_string(to_text_string(
+                self.textedit.get_current_word(completion=True))):
             # When initialized, if completion text is not empty, we need
             # to update the displayed list:
             self.update_current()
@@ -183,8 +191,16 @@ class CompletionWidget(QListWidget):
             else:
                 QListWidget.keyPressEvent(self, event)
         elif len(text) or key == Qt.Key_Backspace:
-            self.textedit.keyPressEvent(event)
-            self.update_current()
+            # If the cursor goes behind the current position,
+            # the autocomplete is no longer relevant
+            if self.textedit.textCursor().position() < self.position or (
+                    key == Qt.Key_Backspace and (
+                    self.textedit.textCursor().position() <= self.position)):
+                self.hide()
+                self.textedit.keyPressEvent(event)
+            else:
+                self.textedit.keyPressEvent(event)
+                self.update_current()
         elif modifier:
             self.textedit.keyPressEvent(event)
         else:
@@ -192,7 +208,8 @@ class CompletionWidget(QListWidget):
             QListWidget.keyPressEvent(self, event)
 
     def update_current(self):
-        completion_text = to_text_string(self.textedit.completion_text)
+        completion_text = to_text_string(
+                self.textedit.get_current_word(completion=True))
         if completion_text:
             for row, completion in enumerate(self.completion_list):
                 if not self.is_internal_console:
@@ -226,7 +243,8 @@ class CompletionWidget(QListWidget):
     def item_selected(self, item=None):
         if item is None:
             item = self.currentItem()
-        self.textedit.insert_completion(to_text_string(item.text()))
+        self.textedit.insert_completion(to_text_string(item.text()),
+                                        self.position)
         self.hide()
 
     @Slot(int)
@@ -280,7 +298,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.codecompletion_auto = False
         self.codecompletion_case = True
         self.codecompletion_enter = False
-        self.completion_text = ""
         self.setup_completion()
 
         self.calltip_widget = CallTipWidget(self, hide_timer_on=False)
@@ -1079,21 +1096,24 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Completion list is active, Enter was just pressed"""
         self.completion_widget.item_selected()
 
-    def insert_completion(self, text):
+    def insert_completion(self, text, position):
         if text:
-            word = self.get_current_word(completion=True) or ""
-            common_prefix = osp.commonprefix([text, word])
-            start = len(common_prefix) if common_prefix is not None else 0
-            if start == len(word):
-                text = text[start:]
-            else:
-                # Remove current word since the completion is not
-                # a perfect match
+            # Set position to where the request was made
+            if position is not None:
                 cursor = self.textCursor()
-                cursor.movePosition(QTextCursor.PreviousCharacter,
-                                    QTextCursor.KeepAnchor,
-                                    len(word))
+                cursor.setPosition(position)
+                self.setTextCursor(cursor)
+            # Move to the beginning of the selected word
+            result = self.get_current_word_and_position(completion=True)
+            if result is not None:
+                position = result[1]
+                cursor = self.textCursor()
+                cursor.setPosition(position)
+                # Remove the word under the cursor
+                cursor.select(QTextCursor.WordUnderCursor)
                 cursor.removeSelectedText()
+                self.setTextCursor(cursor)
+            # Add text
             self.insert_text(text)
             self.document_did_change()
 
