@@ -19,6 +19,7 @@ from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLabel, QLineEdit,
 # Local imports
 from spyder.config.base import _
 from spyder.py3compat import iteritems, to_text_string
+from spyder.config.fonts import FILESWITCHER_FONT
 from spyder.utils import icon_manager as ima
 from spyder.utils.stringmatching import get_search_scores
 from spyder.widgets.helperwidgets import HelperToolButton, HTMLDelegate
@@ -658,8 +659,9 @@ class FileSwitcher(QDialog):
         self.fix_size(paths)
 
         # Build the text that will appear on the list widget
-        path_text_font_size = CONF.get('appearance', 'rich_font/size', 11)
-        filename_text_font_size = path_text_font_size + 2
+        path_text_font_size = FILESWITCHER_FONT
+        filename_text_font_size = FILESWITCHER_FONT + 1
+
         for index, score in enumerate(scores):
             text, rich_text, score_value = score
             if score_value != -1:
