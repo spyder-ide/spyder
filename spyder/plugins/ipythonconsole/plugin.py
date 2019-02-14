@@ -405,6 +405,8 @@ class IPythonConsole(SpyderPluginWidget):
                                      self.set_current_client_working_directory)
 
         self.tabwidget.currentChanged.connect(self.update_working_directory)
+        self.main.add_to_fileswitcher(self, self.tabwidget, self.clients,
+                                      ima.icon('ipython_console'))
 
         self._remove_old_stderr_files()
 

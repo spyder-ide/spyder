@@ -3060,9 +3060,11 @@ class MainWindow(QMainWindow):
             self.fileswitcher = FileSwitcher(self, plugin, tabs, data, icon)
         else:
             self.fileswitcher.add_plugin(plugin, tabs, data, icon)
-
-        self.fileswitcher.sig_goto_file.connect(
+        try:
+            self.fileswitcher.sig_goto_file.connect(
                 plugin.get_current_tab_manager().set_stack_index)
+        except:
+            pass
 
     # ---- Check for Spyder Updates
     def _check_updates_ready(self):
