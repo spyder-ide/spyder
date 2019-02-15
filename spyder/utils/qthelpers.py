@@ -450,7 +450,8 @@ class SpyderAction(QAction):
         """Intercept method calls and apply to both actions, except signals."""
         attr = super(SpyderAction, self).__getattribute__(name)
 
-        if super(SpyderAction, self).__getattribute__('_action_no_icon') is self:
+        shadow = super(SpyderAction, self).__getattribute__('_action_no_icon')
+        if shadow is self:
             return attr
 
         if hasattr(attr, '__call__') and name not in ['triggered', 'toggled',
