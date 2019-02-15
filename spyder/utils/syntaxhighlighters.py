@@ -1236,16 +1236,18 @@ def guess_pygments_highlighter(filename):
     """
     try:
         from pygments.lexers import get_lexer_for_filename, get_lexer_by_name
-        from pygments.util import ClassNotFound
-    except ImportError:
+    except Exception:
         return TextSH
     root, ext = os.path.splitext(filename)
     if ext in custom_extension_lexer_mapping:
-        lexer = get_lexer_by_name(custom_extension_lexer_mapping[ext])
+        try:
+            lexer = get_lexer_by_name(custom_extension_lexer_mapping[ext])
+        except Exception:
+            return TextSH
     else:
         try:
             lexer = get_lexer_for_filename(filename)
-        except ClassNotFound:
+        except Exception:
             return TextSH
     class GuessedPygmentsSH(PygmentsSH):
         _lexer = lexer
