@@ -1973,8 +1973,14 @@ class EditorStack(QWidget):
         self.stack_history.refresh()
         self.stack_history.remove_and_append(index)
 
-        logger.debug("Current changed: %d - %s" %
-                     (index, self.data[index].editor.filename))
+        # Needed to avoid an error generated after moving/renaming
+        # files outside Spyder while in debug mode.
+        # See issue 8749.
+        try:
+            logger.debug("Current changed: %d - %s" %
+                         (index, self.data[index].editor.filename))
+        except IndexError:
+            pass
 
         self.update_plugin_title.emit()
         if editor is not None:
