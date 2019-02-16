@@ -35,20 +35,16 @@ MONOSPACE = ['Monospace', 'DejaVu Sans Mono', 'Consolas',
 if sys.platform == 'darwin':
     MONOSPACE = ['Menlo'] + MONOSPACE
     BIG = MEDIUM = SMALL = 12
-    FILESWITCHER_FONT = BIG
 elif os.name == 'nt':
     BIG = MEDIUM = 10
     SMALL = 9
-    FILESWITCHER_FONT = BIG-1
 elif is_ubuntu():
     SANS_SERIF = ['Ubuntu'] + SANS_SERIF
     MONOSPACE = ['Ubuntu Mono'] + MONOSPACE
     BIG = MEDIUM = SMALL = 11
-    FILESWITCHER_FONT = BIG-2
 else:
     BIG = 10
     MEDIUM = SMALL = 9
-    FILESWITCHER_FONT = BIG
 
 DEFAULT_SMALL_DELTA = SMALL - MEDIUM
 DEFAULT_LARGE_DELTA = SMALL - BIG
