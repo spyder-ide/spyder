@@ -20,7 +20,6 @@ from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLabel, QLineEdit,
 # Local imports
 from spyder.config.base import _
 from spyder.py3compat import iteritems, to_text_string
-from spyder.config.fonts import FILESWITCHER_FONT
 from spyder.config.utils import is_ubuntu
 from spyder.utils import icon_manager as ima
 from spyder.utils.stringmatching import get_search_scores
