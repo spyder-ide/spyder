@@ -2718,6 +2718,14 @@ class MainWindow(QMainWindow):
         """
         fname = to_text_string(fname)
         ext = osp.splitext(fname)[1]
+
+        # Go through third party plugins first
+        for plugin in self.thirdparty_plugins:
+            if ext in plugin.registered_file_extensions:
+                plugin.open_file(fname)
+
+        # Open file with the editor, the variable explorer or with
+        # an external program
         if encoding.is_text_file(fname):
             self.editor.load(fname)
         elif self.variableexplorer is not None and ext in IMPORT_EXT:
