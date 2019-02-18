@@ -57,10 +57,7 @@ class DocstringWriterExtension:
         return False
 
     def get_function_definition_from_first_line(self):
-        """
-        Get the definition of function when there is the cursor at first
-        line of function definition.
-        """
+        """Get func def when the cursor is located on the first def line."""
         document = self.code_editor.document()
         cursor = QTextCursor(
             document.findBlockByLineNumber(self.line_number_cursor - 1))
@@ -107,10 +104,7 @@ class DocstringWriterExtension:
         return None
 
     def get_function_definition_from_below_last_line(self):
-        """
-        Get the definition of function when there is the QTextCursor below the
-        last line of function definition.
-        """
+        """Get func def when the cursor is located below the last def line."""
         cursor = self.code_editor.textCursor()
         func_text = ''
         is_first_line = True
@@ -379,7 +373,7 @@ class FunctionInfo:
 
     def find_bracket_position(self, text, bracket_left, bracket_right,
                               pos_quote):
-        r"""Return the start and end position of pairs of brackets.
+        """Return the start and end position of pairs of brackets.
 
         https://stackoverflow.com/questions/29991917/
         indices-of-matching-parentheses-in-python
@@ -485,7 +479,7 @@ class FunctionInfo:
         return args_list
 
     def parse(self, text):
-        """Parse function definition text."""
+        """Parse the function definition text."""
         self.__init__()
 
         if not is_start_of_function(text):

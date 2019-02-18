@@ -49,7 +49,7 @@ def editor_auto_docstring():
     ])
 def test_information_of_function(text, indent, name_list, type_list,
                                  value_list, rtype):
-    """Test FunctionInfo."""
+    """Test the parse method of FunctionInfo class."""
     func_info = FunctionInfo()
     func_info.parse(text)
 
