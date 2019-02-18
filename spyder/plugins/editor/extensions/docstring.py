@@ -116,7 +116,6 @@ class DocstringWriterExtension:
         is_first_line = True
         line_number = cursor.blockNumber() + 1
 
-        # while 1:
         for _ in range(min(line_number, 20)):
             if cursor.block().blockNumber() == 0:
                 return None
