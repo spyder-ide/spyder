@@ -75,7 +75,7 @@ class DocstringWriterExtension:
         remain_lines = number_of_lines - line_number + 1
         number_of_lines_of_function = 0
 
-        for _ in range(min(remain_lines, 20)):
+        for __ in range(min(remain_lines, 20)):
             cur_text = to_text_string(cursor.block().text()).rstrip()
 
             if is_first_line:
@@ -179,10 +179,10 @@ class DocstringWriterExtension:
             line_number_cursor = cursor.blockNumber() + 1
             offset = line_number_function - line_number_cursor
             if offset > 0:
-                for _ in range(offset):
+                for __ in range(offset):
                     cursor.movePosition(QTextCursor.NextBlock)
             else:
-                for _ in range(abs(offset)):
+                for __ in range(abs(offset)):
                     cursor.movePosition(QTextCursor.PreviousBlock)
             cursor.movePosition(QTextCursor.EndOfLine, QTextCursor.MoveAnchor)
             editor.setTextCursor(cursor)
