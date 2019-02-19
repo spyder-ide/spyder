@@ -167,9 +167,9 @@ def test_information_of_function(text, indent, name_list, type_list,
         arg0 (TYPE): DESCRIPTION.
         arg1 (int): DESCRIPTION.
         arg2 (List[Tuple[str, float]]): DESCRIPTION.
-        arg3 (TYPE, optional): Defaults to '-> (float, int):'. DESCRIPTION.
-        arg4 (TYPE, optional): Defaults to ':float, int['. DESCRIPTION.
-        arg5 (str, optional): Defaults to '""'. DESCRIPTION.
+        arg3 (TYPE, optional): DESCRIPTION. Defaults to '-> (float, int):'.
+        arg4 (TYPE, optional): DESCRIPTION. Defaults to ':float, int['.
+        arg5 (str, optional): DESCRIPTION. Defaults to '""'.
 
     Returns:
         (List[Tuple[str, float]], str, float): DESCRIPTION.

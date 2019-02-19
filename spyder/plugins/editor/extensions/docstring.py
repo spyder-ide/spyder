@@ -318,18 +318,20 @@ class DocstringWriterExtension:
                 arg_text += ', optional'
             arg_text += '):'
 
+            arg_text += ' DESCRIPTION.'
+
             if arg_value:
                 arg_value = arg_value.replace(self.quote3, self.quote3_other)
-                arg_text += ' Defaults to {}.'.format(arg_value)
-
-            arg_text += ' DESCRIPTION.\n'
+                arg_text += ' Defaults to {}.\n'.format(arg_value)
+            else:
+                arg_text += '\n'
 
         google_doc += arg_text
 
         google_doc += '\n{}Returns:'.format(indent1)
         if func_info.return_type:
-            google_doc += '\n{}{}: DESCRIPTION.\n'.format(indent2,
-                                                         func_info.return_type)
+            google_doc += '\n{}{}: DESCRIPTION.\n'.format(
+                indent2, func_info.return_type)
         else:
             google_doc += '\n{}RETURN_TYPE: DESCRIPTION.\n'.format(indent2)
 
