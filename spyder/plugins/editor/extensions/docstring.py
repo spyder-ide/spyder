@@ -350,7 +350,7 @@ class FunctionInfo:
         return False
 
     @staticmethod
-    def find_quote_position(text):
+    def _find_quote_position(text):
         """Return the start and end position of pairs of quotes."""
         pos = {}
         is_found_left_quote = False
@@ -371,8 +371,8 @@ class FunctionInfo:
 
         return pos
 
-    def find_bracket_position(self, text, bracket_left, bracket_right,
-                              pos_quote):
+    def _find_bracket_position(self, text, bracket_left, bracket_right,
+                               pos_quote):
         """Return the start and end position of pairs of brackets.
 
         https://stackoverflow.com/questions/29991917/
@@ -446,13 +446,13 @@ class FunctionInfo:
         idx_arg_start = 0
 
         try:
-            pos_quote = self.find_quote_position(args_text)
-            pos_round = self.find_bracket_position(args_text, '(', ')',
-                                                   pos_quote)
-            pos_curly = self.find_bracket_position(args_text, '{', '}',
-                                                   pos_quote)
-            pos_square = self.find_bracket_position(args_text, '[', ']',
+            pos_quote = self._find_quote_position(args_text)
+            pos_round = self._find_bracket_position(args_text, '(', ')',
                                                     pos_quote)
+            pos_curly = self._find_bracket_position(args_text, '{', '}',
+                                                    pos_quote)
+            pos_square = self._find_bracket_position(args_text, '[', ']',
+                                                     pos_quote)
         except IndexError:
             return None
 
