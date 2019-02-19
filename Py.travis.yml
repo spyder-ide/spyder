@@ -1,0 +1,32 @@
+sudo: required
+services:
+  - docker
+addons:
+  apt:
+    sources:
+      - deadsnakes
+    packages:
+      - python3.5
+language: python
+python: 2.7
+env:
+  - TOX_ENV=py35
+  - TOX_ENV=py34
+  - TOX_ENV=py27
+  - TOX_ENV=pep8
+  - TOX_ENV=docs
+  - TOX_ENV=py_func_v4
+  - TOX_ENV=cli_func_v4
+install:
+  - pip install tox
+script:
+  - tox -e $TOX_ENV
+
+deploy:
+  provider: pypi
+  user: max-wittig
+  password:
+    secure: LmNkZdbNe1oBSJ/PeTCKXaeu9Ml/biY4ZN4aedbD4lLXbxV/sgsHEE4N1Xrg2D/CJsnNjBY7CHzO0vL5iak8IRpV61xkdquZHvAUQKuhjMY30HopReAEw8sP+Wpf3lYcD1BjC5KT9vqWG99feoQ6epRt//Xm4DdkBYNmmUsCsMBTZLlGnj3B/mE8w+XQxQpdA2QzpRJ549N12vidwZRKqP0Zuug3rELVSo64O2bpqarKx/EeUUhTXZ0Y4XeVYgvuHBjvPqtuSJzR17CNkjaBhacD7EFTP34sAaCKGRDpfYiiiGx9LeKOEAv5Hj0+LOqEC/o6EyiIFviE+HvLQ/kBLJ6Oo2p47fibyIU/YOAFdZYKmBRq2ZUaV0DhhuuCRPZ+yLrsuaFRrKTVEMsHVtdsXJkW5gKG08vwOndW+kamppRhkAcdFVyokIgu/6nPBRWMuS6ue2aKoKRdP2gmqk0daKM1ao2uv06A2/J1/xkPy1EX5MjyK8Mh78ooKjITp5DHYn8l1pxaB0YcEkRzfwMyLErGQaRDgo7rCOm0tTRNhArkn0VE1/KLKFbATo2NSxZDwUJQ5TBNCEqfdBN1VzNEduJ7ajbZpq3DsBRM/9hzQ5LLxn7azMl9m+WmT12Qcgz25wg2Sgbs9Z2rT6fto5h8GSLpy8ReHo+S6fALJBzA4pg=
+  distributions: sdist bdist_wheel
+  on:
+    tags: true
