@@ -80,6 +80,7 @@ def test_information_of_function(text, indent, name_list, type_list,
     Returns
     -------
     RETURN_TYPE
+        DESCRIPTION.
 
     """
     '''
@@ -92,6 +93,7 @@ def test_information_of_function(text, indent, name_list, type_list,
       Returns
       -------
       RETURN_TYPE
+          DESCRIPTION.
 
       """
       ''',
@@ -108,24 +110,24 @@ def test_information_of_function(text, indent, name_list, type_list,
     Parameters
     ----------
     arg : TYPE
-        DESCRIPTION
+        DESCRIPTION.
     arg0 : TYPE
-        DESCRIPTION
+        DESCRIPTION.
     arg1 : int
-        DESCRIPTION
+        DESCRIPTION.
     arg2 : List[Tuple[str, float]]
-        DESCRIPTION
+        DESCRIPTION.
     arg3 : TYPE, optional
-        DESCRIPTION (the default is '-> (float, int):')
+        DESCRIPTION. (the default is '-> (float, int):')
     arg4 : TYPE, optional
-        DESCRIPTION (the default is ':float, int[')
+        DESCRIPTION. (the default is ':float, int[')
     arg5 : str, optional
-        DESCRIPTION (the default is '""')
+        DESCRIPTION. (the default is '""')
 
     Returns
     -------
     (List[Tuple[str, float]], str, float)
-        DESCRIPTION
+        DESCRIPTION.
 
     """
     '''),
@@ -135,7 +137,7 @@ def test_information_of_function(text, indent, name_list, type_list,
          '''async def foo():
     """\n    \n
     Returns:
-        RETURN_TYPE: DESCRIPTION
+        RETURN_TYPE: DESCRIPTION.
 
     """
     '''
@@ -146,7 +148,7 @@ def test_information_of_function(text, indent, name_list, type_list,
          '''  def foo():
       """\n      \n
       Returns:
-          RETURN_TYPE: DESCRIPTION
+          RETURN_TYPE: DESCRIPTION.
 
       """
       ''',
@@ -161,16 +163,16 @@ def test_information_of_function(text, indent, name_list, type_list,
   (List[Tuple[str, float]], str, float):
     """\n    \n
     Args:
-        arg (TYPE): DESCRIPTION
-        arg0 (TYPE): DESCRIPTION
-        arg1 (int): DESCRIPTION
-        arg2 (List[Tuple[str, float]]): DESCRIPTION
-        arg3 (TYPE, optional): Defaults to '-> (float, int):'. DESCRIPTION
-        arg4 (TYPE, optional): Defaults to ':float, int['. DESCRIPTION
-        arg5 (str, optional): Defaults to '""'. DESCRIPTION
+        arg (TYPE): DESCRIPTION.
+        arg0 (TYPE): DESCRIPTION.
+        arg1 (int): DESCRIPTION.
+        arg2 (List[Tuple[str, float]]): DESCRIPTION.
+        arg3 (TYPE, optional): Defaults to '-> (float, int):'. DESCRIPTION.
+        arg4 (TYPE, optional): Defaults to ':float, int['. DESCRIPTION.
+        arg5 (str, optional): Defaults to '""'. DESCRIPTION.
 
     Returns:
-        (List[Tuple[str, float]], str, float): DESCRIPTION
+        (List[Tuple[str, float]], str, float): DESCRIPTION.
 
     """
     '''),
@@ -208,6 +210,7 @@ def test_editor_docstring_by_shortcut(qtbot, editor_auto_docstring, doc_type,
       Returns
       -------
       RETURN_TYPE
+          DESCRIPTION.
 
       """
       ''',)

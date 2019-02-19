@@ -275,7 +275,8 @@ class DocstringWriterExtension:
             numpy_doc += '\n{}{}'.format(indent1, func_info.return_type)
             numpy_doc += '\n{}DESCRIPTION.\n'.format(indent2)
         else:
-            numpy_doc += '\n{}RETURN_TYPE\n'.format(indent1)
+            numpy_doc += '\n{}RETURN_TYPE'.format(indent1)
+            numpy_doc += '\n{}DESCRIPTION.\n'.format(indent2)
 
         numpy_doc += '\n{}{}'.format(indent1, self.quote3)
 
