@@ -260,7 +260,7 @@ class DocstringWriterExtension:
             if arg_value:
                 arg_text += ', optional'
 
-            arg_text += '\n{}DESCRIPTION'.format(indent2)
+            arg_text += '\n{}DESCRIPTION.'.format(indent2)
 
             if arg_value:
                 arg_value = arg_value.replace(self.quote3, self.quote3_other)
@@ -273,7 +273,7 @@ class DocstringWriterExtension:
         numpy_doc += '\n{}-------'.format(indent1)
         if func_info.return_type:
             numpy_doc += '\n{}{}'.format(indent1, func_info.return_type)
-            numpy_doc += '\n{}DESCRIPTION\n'.format(indent2)
+            numpy_doc += '\n{}DESCRIPTION.\n'.format(indent2)
         else:
             numpy_doc += '\n{}RETURN_TYPE\n'.format(indent1)
 
@@ -321,16 +321,16 @@ class DocstringWriterExtension:
                 arg_value = arg_value.replace(self.quote3, self.quote3_other)
                 arg_text += ' Defaults to {}.'.format(arg_value)
 
-            arg_text += ' DESCRIPTION\n'
+            arg_text += ' DESCRIPTION.\n'
 
         google_doc += arg_text
 
         google_doc += '\n{}Returns:'.format(indent1)
         if func_info.return_type:
-            google_doc += '\n{}{}: DESCRIPTION\n'.format(indent2,
+            google_doc += '\n{}{}: DESCRIPTION.\n'.format(indent2,
                                                          func_info.return_type)
         else:
-            google_doc += '\n{}RETURN_TYPE: DESCRIPTION\n'.format(indent2)
+            google_doc += '\n{}RETURN_TYPE: DESCRIPTION.\n'.format(indent2)
 
         google_doc += '\n{}{}'.format(indent1, self.quote3)
 
