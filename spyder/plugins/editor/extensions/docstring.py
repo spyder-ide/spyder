@@ -378,24 +378,24 @@ class FunctionInfo:
         https://stackoverflow.com/questions/29991917/
         indices-of-matching-parentheses-in-python
         """
-        pos = {}
-        pstack = []
+        idx = {}
+        character = []
 
         for i, c in enumerate(text):
             if c == bracket_left and not self.is_char_in_pairs(i, pos_quote):
-                pstack.append(i)
+                character.append(i)
             elif c == bracket_right and not self.is_char_in_pairs(i,
                                                                   pos_quote):
-                if len(pstack) == 0:
+                if len(character) == 0:
                     raise IndexError(
                         "No matching closing parens at: " + str(i))
-                pos[pstack.pop()] = i
+                idx[character.pop()] = i
 
-        if len(pstack) > 0:
+        if len(character) > 0:
             raise IndexError(
-                "No matching opening parens at: " + str(pstack.pop()))
+                "No matching opening parens at: " + str(character.pop()))
 
-        return pos
+        return idx
 
     def split_arg_to_name_type_value(self, args_list):
         """Split argument text to name, type, value."""
