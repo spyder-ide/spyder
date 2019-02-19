@@ -110,7 +110,7 @@ class DocstringWriterExtension:
         is_first_line = True
         line_number = cursor.blockNumber() + 1
 
-        for _ in range(min(line_number, 20)):
+        for idx in range(min(line_number, 20)):
             if cursor.block().blockNumber() == 0:
                 return None
 
@@ -130,7 +130,7 @@ class DocstringWriterExtension:
             func_text = prev_text + func_text
 
             if is_start_of_function(prev_text):
-                return func_text
+                return func_text, idx + 1
 
         return None
 
@@ -186,6 +186,16 @@ class DocstringWriterExtension:
 
     def write_docstring_for_shortcut(self):
         """Write docstring to editor by shortcut of code editor."""
+        # cursor placed below function definition
+        result = self.get_function_definition_from_below_last_line()
+        if result is not None:
+            __, number_of_lines_of_function = result
+            cursor = self.code_editor.textCursor()
+            for __ in range(number_of_lines_of_function):
+                cursor.movePosition(QTextCursor.PreviousBlock)
+
+            self.code_editor.setTextCursor(cursor)
+
         cursor = self.code_editor.textCursor()
         self.line_number_cursor = cursor.blockNumber() + 1
 
@@ -201,9 +211,10 @@ class DocstringWriterExtension:
         else:
             self.quote3_other = '"""'
 
-        func_text = self.get_function_definition_from_below_last_line()
+        result = self.get_function_definition_from_below_last_line()
 
-        if func_text:
+        if result:
+            func_text, __ = result
             func_info = FunctionInfo()
             func_info.parse(func_text)
 

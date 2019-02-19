@@ -196,3 +196,31 @@ def test_editor_docstring_by_shortcut(qtbot, editor_auto_docstring, doc_type,
         writer.write_docstring_at_first_line_of_function()
 
     assert editor.toPlainText() == expected
+
+
+@pytest.mark.parametrize(
+    'text, expected',
+    [
+        ('''  def foo():
+      ''',
+         '''  def foo():
+      """\n      \n
+      Returns
+      -------
+      RETURN_TYPE
+
+      """
+      ''',)
+    ])
+def test_editor_docstring_below_def_by_shortcut(qtbot, editor_auto_docstring,
+                                                text, expected):
+    """Test auto docstring below function definition by shortcut."""
+    CONF.set('editor', 'docstring_type', 'Numpydoc')
+    editor = editor_auto_docstring
+    editor.set_text(text)
+
+    cursor = editor.textCursor()
+    cursor.setPosition(QTextCursor.End, QTextCursor.MoveAnchor)
+    editor.setTextCursor(cursor)
+
+    editor.writer_docstring.write_docstring_for_shortcut()
