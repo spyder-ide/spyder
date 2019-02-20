@@ -384,7 +384,7 @@ def get_icon(name, default=None, resample=False):
         return icon
 
 
-def icon(name, resample=False, icon_path=None):
+def icon(name, scalefactor=None, resample=False, icon_path=None):
     theme = CONF.get('appearance', 'icon_theme')
     if theme == 'spyder 3':
         if not _resource['loaded']:
@@ -392,6 +392,8 @@ def icon(name, resample=False, icon_path=None):
                           directory=_resource['directory'])
             _resource['loaded'] = True
         args, kwargs = _qtaargs[name]
+        if scalefactor is not None:
+            kwargs['scale_factor'] = scalefactor
         return qta.icon(*args, **kwargs)
     elif theme == 'spyder 2':
         icon = get_icon(name + '.png', resample=resample)
@@ -402,24 +404,24 @@ def icon(name, resample=False, icon_path=None):
         return icon if icon is not None else QIcon()
 
 
-def get_icon_by_extension(fname):
+def get_icon_by_extension(fname, scalefactor):
     """Return the icon depending on the file extension"""
     application_icons = {}
     application_icons.update(BIN_FILES)
     application_icons.update(DOCUMENT_FILES)
     if osp.isdir(fname):
-        return icon('DirOpenIcon')
+        return icon('DirOpenIcon', scalefactor)
     else:
         basename = osp.basename(fname)
         __, extension = osp.splitext(basename.lower())
         mime_type, __ = mime.guess_type(basename)
-        icon_by_extension = icon('FileIcon')
+        icon_by_extension = icon('FileIcon', scalefactor)
 
         if extension in OFFICE_FILES:
-            icon_by_extension = icon(OFFICE_FILES[extension])
+            icon_by_extension = icon(OFFICE_FILES[extension], scalefactor)
 
         if extension in LANGUAGE_ICONS:
-            icon_by_extension = icon(LANGUAGE_ICONS[extension])
+            icon_by_extension = icon(LANGUAGE_ICONS[extension], scalefactor)
         else:
             if extension == '.ipynb':
                 if is_dark_interface():
@@ -441,15 +443,15 @@ def get_icon_by_extension(fname):
                 except ValueError:
                     file_type = 'text'
                 if file_type == 'text':
-                    icon_by_extension = icon('TextFileIcon')
+                    icon_by_extension = icon('TextFileIcon', scalefactor)
                 elif file_type == 'audio':
-                    icon_by_extension = icon('AudioFileIcon')
+                    icon_by_extension = icon('AudioFileIcon', scalefactor)
                 elif file_type == 'video':
-                    icon_by_extension = icon('VideoFileIcon')
+                    icon_by_extension = icon('VideoFileIcon', scalefactor)
                 elif file_type == 'image':
-                    icon_by_extension = icon('ImageFileIcon')
+                    icon_by_extension = icon('ImageFileIcon', scalefactor)
                 elif file_type == 'application':
                     if bin_name in application_icons:
                         icon_by_extension = icon(
-                            application_icons[bin_name])
+                            application_icons[bin_name], scalefactor)
     return icon_by_extension
