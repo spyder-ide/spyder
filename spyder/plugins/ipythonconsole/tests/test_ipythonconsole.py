@@ -218,7 +218,7 @@ def test_sympy_client(ipyconsole, qtbot):
 
     # Assert there are no errors in the console
     control = ipyconsole.get_focus_widget()
-    assert 'Error' not in control.toPlainText()
+    assert 'NameError' not in control.toPlainText()
 
     # Reset the console namespace
     shell.reset_namespace(warning=False)
@@ -230,7 +230,7 @@ def test_sympy_client(ipyconsole, qtbot):
 
     # Assert there are no errors after restting the console
     control = ipyconsole.get_focus_widget()
-    assert 'Error' not in control.toPlainText()
+    assert 'NameError' not in control.toPlainText()
 
 
 @pytest.mark.slow
