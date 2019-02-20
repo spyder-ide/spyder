@@ -32,8 +32,12 @@ def is_start_of_function(text):
 
 def get_indent(text):
     """Get indent of text."""
-    pos_indent = text.find(text.lstrip())
-    indent = text[0:pos_indent]
+    indent = ''
+
+    ret = re.match(r'^(\s*)', text)
+    if ret:
+        indent = ret.group(1)
+
     return indent
 
 
@@ -109,6 +113,7 @@ class DocstringWriterExtension:
         func_text = ''
         is_first_line = True
         line_number = cursor.blockNumber() + 1
+        number_of_lines_of_function = 0
 
         for idx in range(min(line_number, 20)):
             if cursor.block().blockNumber() == 0:
@@ -129,10 +134,20 @@ class DocstringWriterExtension:
 
             func_text = prev_text + func_text
 
+            number_of_lines_of_function += 1
             if is_start_of_function(prev_text):
-                return func_text, idx + 1
+                return func_text, number_of_lines_of_function
 
         return None
+
+    def get_function_body(self, func_indent):
+        """Get the function body text."""
+        cursor = self.code_editor.textCursor()
+        line_number = self.code_editor.blockNumber() + 1
+        number_of_lines = self.code_editor.blockCount() + 1
+
+        for idx in range(min(line_number, 20)):
+            pass
 
     def write_docstring(self):
         """Write docstring to editor."""
