@@ -501,7 +501,8 @@ class PythonSH(BaseSH):
                                                    self.formats["definition"])
                                     oedata = OutlineExplorerData()
                                     oedata.text = to_text_string(text)
-                                    oedata.fold_level = start
+                                    oedata.fold_level = (len(text)
+                                                         - len(text.lstrip()))
                                     oedata.def_type = self.DEF_TYPES[
                                                         to_text_string(value)]
                                     oedata.def_name = text[start1:end1]
