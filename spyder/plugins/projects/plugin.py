@@ -149,6 +149,7 @@ class Projects(SpyderPluginWidget):
         self.sig_project_loaded.connect(
             lambda v: self.main.editor.setup_open_files())
         self.sig_project_loaded.connect(self.update_explorer)
+        self.sig_project_loaded.connect(self.explorer.treewidget.fsmodel.set_vcs_state)
         self.sig_project_closed[object].connect(
             lambda v: self.main.workingdirectory.chdir(
                 self.get_last_working_dir()))

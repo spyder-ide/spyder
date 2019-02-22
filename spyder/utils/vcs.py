@@ -30,7 +30,9 @@ SUPPORTED = [
             browse=(('thg', ['log']),
                     ('hgtk', ['log'])),
             cstate=(('hg', ['status', '-A']), )
-        )
+        ),
+        'states': ["?", "I", "M", "A"],
+        'offset': 2
     }, {
         'name': 'Git',
         'rootdir': '.git',
@@ -38,7 +40,9 @@ SUPPORTED = [
             commit=(('git', ['gui' if os.name == 'nt' else 'cola']), ),
             browse=(('gitk', []), ),
             cstate=(('git', ['status', '--ignored', '--porcelain']), )
-        )
+        ),
+        'states': ["?", "!", "M", "A"],
+        'offset': 3
     }]
 
 
@@ -115,12 +119,8 @@ def get_vcs_status(path):
     for path in paths:
         info = get_vcs_info(path)
         # Status list (in Order): untracked, ignored, modified, added
-        if info['name'] == 'Git':
-            stat = ["??", "!!", "M", "A"]
-            o = 3  # position at which the filename starts
-        elif info['name'] == 'Mercurial':
-            stat = ["?", "I", "M", "A"]
-            o = 2
+        stat = info['states']
+        o = info['offset']  # position at which the filename starts
         for tool, args in info['actions']['cstate']:
             if programs.find_program(tool):
                 proc = programs.run_program(tool, args, cwd=path)
@@ -128,8 +128,11 @@ def get_vcs_status(path):
                 if proc.returncode >= 0 and err == b'':
                     oStr = out.decode("utf-8")[:-1]
                     for fString in (x for x in oStr.split("\n") if x):
+                        status = fString[:o-1].strip()
+                        if len(status) > 1:
+                            status = status[1]
                         try:
-                            index = stat.index(fString[:o-1].strip())
+                            index = stat.index(status)
                         except ValueError:
                             continue
                         vcsst[osp.abspath(osp.join(path, fString[o:]))] = index
@@ -139,6 +142,26 @@ def get_vcs_status(path):
         return []
     else:
         return vcsst
+
+
+def get_vcs_file_status(filename):
+    """Return the commit status a of a single file"""
+    path = get_vcs_root(filename)
+    info = get_vcs_info(path)
+    stat = info['states']
+    for tool, args in info['actions']['cstate']:
+            if programs.find_program(tool):
+                proc = programs.run_program(tool, args, cwd=path)
+                out, err = proc.communicate()
+                if proc.returncode >= 0 and err == b'':
+                    status = out.decode("utf-8")[:info['offset']-1].strip()
+                    if len(status) > 1:
+                        status = status[1]
+                    try:
+                        index = stat.index(status)
+                        return index
+                    except ValueError:
+                        return 0
 
 
 def is_hg_installed():

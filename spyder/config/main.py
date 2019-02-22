@@ -271,7 +271,7 @@ DEFAULTS = [
             ('vcs',
              {
               'color/untracked': "#ff0000",
-              'color/ignored': "#999999",
+              'color/ignored': "#808080",
               'color/modified': "#0099ff",
               'color/added': "#00ff00",
               }),

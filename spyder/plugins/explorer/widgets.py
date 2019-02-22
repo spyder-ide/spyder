@@ -135,7 +135,7 @@ class IconProvider(QFileIconProvider):
 class ColorModel(QFileSystemModel):
     """FileSystemModel providing a color-code for different commit-status."""
     def __init__(self, *args, **kwargs):
-        self.vcs_state = []
+        self.vcs_state = {}
         normalstyle = CONF.get('appearance', 'selected') + '/normal'
         self.color_array = [QColor(CONF.get('vcs', 'color/untracked')),
                             QColor(CONF.get('vcs', 'color/ignored')),
@@ -144,15 +144,22 @@ class ColorModel(QFileSystemModel):
                             QColor(CONF.get('appearance', normalstyle)[0])]
         self.root_path = ''
         super(ColorModel, self).__init__(*args, **kwargs)
-        self.rowsInserted.connect(self.set_vcs_state)
 
     @Slot()
     @Slot(str)
     def set_vcs_state(self, root_path=None):
         """Set the vcs state dictionary."""
-        if root_path is not None:
+        if root_path is None:
+            self.vcs_state = vcs.get_vcs_status(self.root_path)
+        elif osp.isfile(root_path):
+            # root_path is a file -> add the new state to vcs_state
+            status = vcs.get_vcs_file_status(root_path)
+            filename = osp.abspath(root_path)
+            self.vcs_state[filename] = status
+        else:
+            # root_path is a directory -> get a new vcs_state
             self.root_path = osp.abspath(root_path)
-        self.vcs_state = vcs.get_vcs_status(self.root_path)
+            self.vcs_state = vcs.get_vcs_status(self.root_path)
         self.dataChanged.emit(QModelIndex(), QModelIndex())
 
     def data(self, index, role=Qt.DisplayRole):
@@ -1246,8 +1253,6 @@ class FilteredDirView(DirView):
         path_list = [osp.join(self.root_path, dirname)
                      for dirname in folder_names]
         self.proxymodel.setup_filter(self.root_path, path_list)
-        # Enable vcs status higlighting
-        self.fsmodel.set_vcs_state(path_list[0])
 
     def get_filename(self, index):
         """Return filename from index"""
