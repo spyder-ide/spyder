@@ -119,8 +119,8 @@ def test_parse_function_body(editor_auto_docstring, text, indent, expected):
         DESCRIPTION.
     TypeError
         DESCRIPTION.\n
-    Yield
-    -----
+    Yields
+    ------
     RETURN_TYPE
         DESCRIPTION.
 
@@ -186,7 +186,7 @@ def test_parse_function_body(editor_auto_docstring, text, indent, expected):
     Raises:
         ValueError: DESCRIPTION.
         TypeError: DESCRIPTION.\n
-    Yield:
+    Yields:
         RETURN_TYPE: DESCRIPTION.
 
     """

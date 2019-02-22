@@ -315,8 +315,8 @@ class DocstringWriterExtension:
             numpy_doc += '\n'
 
         if func_info.has_yield:
-            numpy_doc += '\n{}Yield'.format(indent1)
-            numpy_doc += '\n{}-----'.format(indent1)
+            numpy_doc += '\n{}Yields'.format(indent1)
+            numpy_doc += '\n{}------'.format(indent1)
         else:
             numpy_doc += '\n{}Returns'.format(indent1)
             numpy_doc += '\n{}-------'.format(indent1)
@@ -385,7 +385,7 @@ class DocstringWriterExtension:
             google_doc += '\n'
 
         if func_info.has_yield:
-            google_doc += '\n{}Yield:'.format(indent1)
+            google_doc += '\n{}Yields:'.format(indent1)
         else:
             google_doc += '\n{}Returns:'.format(indent1)
         if func_info.return_type:
