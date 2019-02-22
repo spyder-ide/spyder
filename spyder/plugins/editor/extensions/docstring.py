@@ -31,7 +31,11 @@ def is_start_of_function(text):
 
 
 def get_indent(text):
-    """Get indent of text."""
+    """Get indent of text.
+
+    https://stackoverflow.com/questions/2268532/grab-a-lines-whitespace-
+    indention-with-python
+    """
     indent = ''
 
     ret = re.match(r'^(\s*)', text)
@@ -143,11 +147,24 @@ class DocstringWriterExtension:
     def get_function_body(self, func_indent):
         """Get the function body text."""
         cursor = self.code_editor.textCursor()
-        line_number = self.code_editor.blockNumber() + 1
-        number_of_lines = self.code_editor.blockCount() + 1
+        line_number = cursor.blockNumber() + 1
+        number_of_lines = self.code_editor.blockCount()
+        body_list = []
 
-        for idx in range(min(line_number, 20)):
-            pass
+        for idx in range(number_of_lines - line_number + 1):
+            text = to_text_string(cursor.block().text())
+            text_indent = get_indent(text)
+
+            if text.strip() == '':
+                pass
+            elif len(text_indent) <= len(func_indent):
+                break
+
+            body_list.append(text)
+
+            cursor.movePosition(QTextCursor.NextBlock)
+
+        return '\n'.join(body_list)
 
     def write_docstring(self):
         """Write docstring to editor."""
@@ -231,7 +248,7 @@ class DocstringWriterExtension:
         if result:
             func_text, __ = result
             func_info = FunctionInfo()
-            func_info.parse(func_text)
+            func_info.parse_def(func_text)
 
             if func_info.has_info:
                 if doc_type == 'Numpydoc':
@@ -368,6 +385,7 @@ class FunctionInfo:
         self.arg_type_list = []
         self.arg_value_list = []
         self.return_type = None
+        self.raise_list = None
 
     @staticmethod
     def is_char_in_pairs(pos_char, pairs):
@@ -507,7 +525,7 @@ class FunctionInfo:
 
         return args_list
 
-    def parse(self, text):
+    def parse_def(self, text):
         """Parse the function definition text."""
         self.__init__()
 

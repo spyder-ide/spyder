@@ -47,17 +47,51 @@ def editor_auto_docstring():
          [None, "':'", "'-> (float, str):'"],
          '(float, int)')
     ])
-def test_information_of_function(text, indent, name_list, type_list,
-                                 value_list, rtype):
-    """Test the parse method of FunctionInfo class."""
+def test_parse_function_definition(text, indent, name_list, type_list,
+                                   value_list, rtype):
+    """Test the parse_def method of FunctionInfo class."""
     func_info = FunctionInfo()
-    func_info.parse(text)
+    func_info.parse_def(text)
 
     assert func_info.func_indent == indent
     assert func_info.arg_name_list == name_list
     assert func_info.arg_type_list == type_list
     assert func_info.arg_value_list == value_list
     assert func_info.return_type == rtype
+
+
+@pytest.mark.parametrize(
+    "text, indent, expected",
+    [
+        ("""    def foo():\n
+        if 1:
+            raise ValueError
+        else:
+            return\n
+    class F:""",
+         "    ",
+         """\n        if 1:
+            raise ValueError
+        else:
+            return\n"""),
+        ("""def foo():
+    return""",
+         "",
+         """    return""")
+    ])
+def test_parse_function_body(editor_auto_docstring, text, indent, expected):
+    editor = editor_auto_docstring
+    editor.set_text(text)
+
+    cursor = editor.textCursor()
+    cursor.setPosition(0, QTextCursor.MoveAnchor)
+    cursor.movePosition(QTextCursor.NextBlock)
+    editor.setTextCursor(cursor)
+
+    writer = editor.writer_docstring
+    result = writer.get_function_body(indent)
+
+    assert expected == result
 
 
 @pytest.mark.parametrize("use_shortcut", [True, False])
@@ -177,7 +211,7 @@ def test_information_of_function(text, indent, name_list, type_list,
     """
     '''),
     ])
-def test_editor_docstring_by_shortcut(qtbot, editor_auto_docstring, doc_type,
+def test_editor_docstring_by_shortcut(editor_auto_docstring, doc_type,
                                       text, expected, use_shortcut):
     """Test auto docstring by shortcut."""
     CONF.set('editor', 'docstring_type', doc_type)
