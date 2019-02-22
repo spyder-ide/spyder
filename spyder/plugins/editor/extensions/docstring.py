@@ -386,6 +386,7 @@ class FunctionInfo:
         self.arg_value_list = []
         self.return_type = None
         self.raise_list = None
+        self.has_yield = False
 
     @staticmethod
     def is_char_in_pairs(pos_char, pairs):
@@ -555,3 +556,13 @@ class FunctionInfo:
         if args_list is not None:
             self.has_info = True
             self.split_arg_to_name_type_value(args_list)
+
+    def parse_body(self, text):
+        """Parse the function body text."""
+        re_raise = re.findall(r'\s*raise([ a-zA-Z0-9_]*)', text)
+        if len(re_raise) > 0:
+            self.raise_list = [x.strip() for x in re_raise]
+
+        re_yield = re.search(r'(^|\n)\s*yield', text)
+        if re_yield:
+            self.has_yield = True
