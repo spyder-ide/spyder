@@ -384,7 +384,7 @@ def get_icon(name, default=None, resample=False):
         return icon
 
 
-def icon(name, scalefactor=None, resample=False, icon_path=None):
+def icon(name, scale_factor=None, resample=False, icon_path=None):
     theme = CONF.get('appearance', 'icon_theme')
     if theme == 'spyder 3':
         if not _resource['loaded']:
@@ -392,8 +392,8 @@ def icon(name, scalefactor=None, resample=False, icon_path=None):
                           directory=_resource['directory'])
             _resource['loaded'] = True
         args, kwargs = _qtaargs[name]
-        if scalefactor is not None:
-            kwargs['scale_factor'] = scalefactor
+        if scale_factor is not None:
+            kwargs['scale_factor'] = scale_factor
         return qta.icon(*args, **kwargs)
     elif theme == 'spyder 2':
         icon = get_icon(name + '.png', resample=resample)
@@ -404,24 +404,24 @@ def icon(name, scalefactor=None, resample=False, icon_path=None):
         return icon if icon is not None else QIcon()
 
 
-def get_icon_by_extension(fname, scalefactor):
+def get_icon_by_extension(fname, scale_factor):
     """Return the icon depending on the file extension"""
     application_icons = {}
     application_icons.update(BIN_FILES)
     application_icons.update(DOCUMENT_FILES)
     if osp.isdir(fname):
-        return icon('DirOpenIcon', scalefactor)
+        return icon('DirOpenIcon', scale_factor)
     else:
         basename = osp.basename(fname)
         __, extension = osp.splitext(basename.lower())
         mime_type, __ = mime.guess_type(basename)
-        icon_by_extension = icon('FileIcon', scalefactor)
+        icon_by_extension = icon('FileIcon', scale_factor)
 
         if extension in OFFICE_FILES:
-            icon_by_extension = icon(OFFICE_FILES[extension], scalefactor)
+            icon_by_extension = icon(OFFICE_FILES[extension], scale_factor)
 
         if extension in LANGUAGE_ICONS:
-            icon_by_extension = icon(LANGUAGE_ICONS[extension], scalefactor)
+            icon_by_extension = icon(LANGUAGE_ICONS[extension], scale_factor)
         else:
             if extension == '.ipynb':
                 if is_dark_interface():
@@ -443,15 +443,15 @@ def get_icon_by_extension(fname, scalefactor):
                 except ValueError:
                     file_type = 'text'
                 if file_type == 'text':
-                    icon_by_extension = icon('TextFileIcon', scalefactor)
+                    icon_by_extension = icon('TextFileIcon', scale_factor)
                 elif file_type == 'audio':
-                    icon_by_extension = icon('AudioFileIcon', scalefactor)
+                    icon_by_extension = icon('AudioFileIcon', scale_factor)
                 elif file_type == 'video':
-                    icon_by_extension = icon('VideoFileIcon', scalefactor)
+                    icon_by_extension = icon('VideoFileIcon', scale_factor)
                 elif file_type == 'image':
-                    icon_by_extension = icon('ImageFileIcon', scalefactor)
+                    icon_by_extension = icon('ImageFileIcon', scale_factor)
                 elif file_type == 'application':
                     if bin_name in application_icons:
                         icon_by_extension = icon(
-                            application_icons[bin_name], scalefactor)
+                            application_icons[bin_name], scale_factor)
     return icon_by_extension
