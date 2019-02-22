@@ -38,7 +38,7 @@ def get_indent(text):
     """
     indent = ''
 
-    ret = re.match(r'^(\s*)', text)
+    ret = re.match(r'(\s*)', text)
     if ret:
         indent = ret.group(1)
 
@@ -586,10 +586,10 @@ class FunctionInfo:
 
     def parse_body(self, text):
         """Parse the function body text."""
-        re_raise = re.findall(r'\s*raise([ a-zA-Z0-9_]*)', text)
+        re_raise = re.findall(r'[^\n]\s*raise([ a-zA-Z0-9_]*)', text)
         if len(re_raise) > 0:
             self.raise_list = [x.strip() for x in re_raise]
 
-        re_yield = re.search(r'(^|\n)\s*yield', text)
+        re_yield = re.search(r'[^\n]\s*yield', text)
         if re_yield:
             self.has_yield = True
