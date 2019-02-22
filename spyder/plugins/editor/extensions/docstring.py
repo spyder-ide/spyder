@@ -246,11 +246,15 @@ class DocstringWriterExtension:
         result = self.get_function_definition_from_below_last_line()
 
         if result:
-            func_text, __ = result
+            func_def, __ = result
             func_info = FunctionInfo()
-            func_info.parse_def(func_text)
+            func_info.parse_def(func_def)
 
             if func_info.has_info:
+                func_body = self.get_function_body(func_info.func_indent)
+                if func_body:
+                    func_info.parse_body(func_body)
+
                 if doc_type == 'Numpydoc':
                     docstring = self._generate_numpy_doc(func_info)
                 elif doc_type == 'Googledoc':
@@ -277,7 +281,7 @@ class DocstringWriterExtension:
         numpy_doc += '\n{}\n'.format(indent1)
 
         if len(arg_names) > 0:
-            numpy_doc += '\n{0}Parameters'.format(indent1)
+            numpy_doc += '\n{}Parameters'.format(indent1)
             numpy_doc += '\n{}----------\n'.format(indent1)
 
         arg_text = ''
@@ -299,10 +303,23 @@ class DocstringWriterExtension:
                 arg_text += ' (the default is {})'.format(arg_value)
 
             arg_text += '\n'
+
         numpy_doc += arg_text
 
-        numpy_doc += '\n{}Returns'.format(indent1)
-        numpy_doc += '\n{}-------'.format(indent1)
+        if func_info.raise_list:
+            numpy_doc += '\n{}Raises'.format(indent1)
+            numpy_doc += '\n{}------'.format(indent1)
+            for raise_type in func_info.raise_list:
+                numpy_doc += '\n{}{}'.format(indent1, raise_type)
+                numpy_doc += '\n{}DESCRIPTION.'.format(indent2)
+            numpy_doc += '\n'
+
+        if func_info.has_yield:
+            numpy_doc += '\n{}Yield'.format(indent1)
+            numpy_doc += '\n{}-----'.format(indent1)
+        else:
+            numpy_doc += '\n{}Returns'.format(indent1)
+            numpy_doc += '\n{}-------'.format(indent1)
         if func_info.return_type:
             numpy_doc += '\n{}{}'.format(indent1, func_info.return_type)
             numpy_doc += '\n{}DESCRIPTION.\n'.format(indent2)
@@ -360,7 +377,17 @@ class DocstringWriterExtension:
 
         google_doc += arg_text
 
-        google_doc += '\n{}Returns:'.format(indent1)
+        if func_info.raise_list:
+            google_doc += '\n{0}Raises:'.format(indent1)
+            for raise_type in func_info.raise_list:
+                google_doc += '\n{}{}'.format(indent2, raise_type)
+                google_doc += ': DESCRIPTION.'
+            google_doc += '\n'
+
+        if func_info.has_yield:
+            google_doc += '\n{}Yield:'.format(indent1)
+        else:
+            google_doc += '\n{}Returns:'.format(indent1)
         if func_info.return_type:
             google_doc += '\n{}{}: DESCRIPTION.\n'.format(
                 indent2, func_info.return_type)
