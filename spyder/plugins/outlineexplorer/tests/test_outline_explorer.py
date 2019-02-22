@@ -27,6 +27,7 @@ oe_data = [
     [45, '    def parent(self):', 4, 1, 'get_line_count'],
     [50, 'def setup(qtbot):', 0, 1, 'setup'],
     [57, 'def test(qtbot):', 0, 1, 'test'],
+    [60, 'async def async_test(qtbot):', 0, 1, 'async_test'],
     [63, 'if __name__ == "__main__":', 0, 2, 'if __name__ == "__main__":']
 ]
 
