@@ -707,14 +707,14 @@ class FileSwitcher(QDialog):
             index = result[1]
             path = paths[index]
             if sys.platform == 'darwin':
-                scalefactor = 0.9
+                scale_factor = 0.9
             elif os.name == 'nt':
-                scalefactor = 0.8
+                scale_factor = 0.8
             elif is_ubuntu():
-                scalefactor = 0.6
+                scale_factor = 0.6
             else:
-                scalefactor = 0.9
-            icon = ima.get_icon_by_extension(path, scalefactor)
+                scale_factor = 0.9
+            icon = ima.get_icon_by_extension(path, scale_factor)
             text = ''
             try:
                 title = self.widgets[index][1].get_plugin_title().split(' - ')
