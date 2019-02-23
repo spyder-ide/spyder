@@ -8,6 +8,7 @@
 from __future__ import print_function
 import os
 import os.path as osp
+import sys
 
 # Third party imports
 from qtpy.QtCore import Signal, QEvent, QFileInfo, QObject, QRegExp, QSize, Qt
@@ -19,6 +20,7 @@ from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLabel, QLineEdit,
 # Local imports
 from spyder.config.base import _
 from spyder.py3compat import iteritems, to_text_string
+from spyder.config.utils import is_ubuntu
 from spyder.utils import icon_manager as ima
 from spyder.utils.stringmatching import get_search_scores
 from spyder.widgets.helperwidgets import HelperToolButton, HTMLDelegate
@@ -658,8 +660,20 @@ class FileSwitcher(QDialog):
         self.fix_size(paths)
 
         # Build the text that will appear on the list widget
-        path_text_font_size = CONF.get('appearance', 'rich_font/size', 11)
-        filename_text_font_size = path_text_font_size + 2
+        rich_font = CONF.get('appearance', 'rich_font/size', 11)
+        if sys.platform == 'darwin':
+            path_text_font_size = rich_font
+            filename_text_font_size = path_text_font_size + 2
+        elif os.name == 'nt':
+            path_text_font_size = rich_font - 1
+            filename_text_font_size = path_text_font_size + 1
+        elif is_ubuntu():
+            path_text_font_size = rich_font - 2
+            filename_text_font_size = path_text_font_size + 1
+        else:
+            path_text_font_size = rich_font
+            filename_text_font_size = path_text_font_size + 1
+
         for index, score in enumerate(scores):
             text, rich_text, score_value = score
             if score_value != -1:
@@ -692,7 +706,15 @@ class FileSwitcher(QDialog):
         for result in sorted(results):
             index = result[1]
             path = paths[index]
-            icon = ima.get_icon_by_extension(path)
+            if sys.platform == 'darwin':
+                scale_factor = 0.9
+            elif os.name == 'nt':
+                scale_factor = 0.8
+            elif is_ubuntu():
+                scale_factor = 0.6
+            else:
+                scale_factor = 0.9
+            icon = ima.get_icon_by_extension(path, scale_factor)
             text = ''
             try:
                 title = self.widgets[index][1].get_plugin_title().split(' - ')
