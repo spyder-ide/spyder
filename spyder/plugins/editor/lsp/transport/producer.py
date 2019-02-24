@@ -15,17 +15,21 @@ queue, encapsulates them into valid JSONRPC messages and sends them to an
 LSP server via TCP.
 """
 
-
-import os
-import zmq
+# Standard library imports
 import json
-import time
-import socket
-import sys
 import logging
+import os
+import socket
 import subprocess
+import sys
+import time
+
+# Third party imports
+import zmq
+
+# Local imports
+from spyder.plugins.editor.lsp.transport.consumer import IncomingMessageThread
 from spyder.py3compat import getcwd
-from consumer import IncomingMessageThread
 
 
 TIMEOUT = 5000
