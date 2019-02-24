@@ -27,13 +27,13 @@ import spyder.config.base
 # ============================================================================
 # ---- Tests
 # ============================================================================
-@pytest.mark.parametrize('version_input, expected_result', [
-    ('3.3.0', True), ('2', True), (('0', '5'), True), ('4.0.0b1', False),
-    ('3.3.2.dev0', False), ('beta', False), (('2', '0', 'alpha'), False)])
-def test_is_stable_version(version_input, expected_result):
+def test_is_stable_version():
     """Test that stable and non-stable versions are recognized correctly."""
-    actual_result = spyder.config.base.is_stable_version(version_input)
-    assert actual_result == expected_result
+    for stable_version in ['3.3.0', '2', ('0', '5')]:
+        assert spyder.config.base.is_stable_version(stable_version)
+    for not_stable_version in ['4.0.0b1', '3.3.2.dev0',
+                               'beta', ('2', '0', 'alpha')]:
+        assert not spyder.config.base.is_stable_version(not_stable_version)
 
 
 @pytest.mark.parametrize('use_dev_config_dir', [True, False])
