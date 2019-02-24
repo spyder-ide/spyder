@@ -57,7 +57,7 @@ def construct_editor(qtbot, *args, **kwargs):
     with qtbot.waitSignal(wrapper.sig_initialize, timeout=30000):
         editor.filename = 'test.py'
         editor.language = 'Python'
-        lsp_manager.start_lsp_client('python')
+        lsp_manager.start_client('python')
 
     text = ("def some_function():\n"  # D100, D103: Missing docstring
             "    \n"  # W293 trailing spaces

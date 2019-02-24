@@ -96,7 +96,7 @@ class LSPManager(QObject):
         return path
 
     @Slot()
-    def reinitialize_all_lsp_clients(self):
+    def reinitialize_all_clients(self):
         """
         Send a new initialize message to each LSP server when the project
         path has changed so they can update the respective server root paths.
@@ -109,7 +109,8 @@ class LSPManager(QObject):
                 instance.folder = folder
                 instance.initialize()
 
-    def start_lsp_client(self, language):
+    def start_client(self, language):
+        """Start an LSP client for a given language."""
         started = False
         if language in self.clients:
             language_client = self.clients[language]
@@ -175,7 +176,7 @@ class LSPManager(QObject):
                     elif self.clients[language]['status'] == self.RUNNING:
                         self.close_client(language)
                         self.clients[language] = config
-                        self.start_lsp_client(language)
+                        self.start_client(language)
                 else:
                     if self.clients[language]['status'] == self.RUNNING:
                         client = self.clients[language]['instance']

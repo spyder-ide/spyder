@@ -277,7 +277,7 @@ class Editor(SpyderPluginWidget):
         logger.debug('Call LSP for %s' % filename)
         language = options['language']
         callback = options['codeeditor']
-        stat = self.main.lspmanager.start_lsp_client(language.lower())
+        stat = self.main.lspmanager.start_client(language.lower())
         self.main.lspmanager.register_file(
             language.lower(), filename, callback)
         if stat:
