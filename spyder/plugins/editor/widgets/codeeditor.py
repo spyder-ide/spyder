@@ -53,6 +53,7 @@ from spyder.plugins.editor.api.decoration import TextDecoration
 from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               CloseQuotesExtension,
                                               DocstringWriterExtension,
+                                              QMenuOnlyForEnter,
                                               EditorExtensionsManager)
 from spyder.plugins.editor.lsp import (LSPRequestTypes, TextDocumentSyncKind,
                                        DiagnosticSeverity)
@@ -3100,6 +3101,40 @@ class CodeEditor(TextEditBaseWidget):
 
     def is_editor(self):
         return True
+
+    def popup_docstring(self, prev_text, prev_pos):
+        """Show the menu for generating docstring"""
+        line_text = self.textCursor().block().text()
+        if line_text != prev_text:
+            return
+
+        if prev_pos != self.textCursor().position():
+            return
+
+        writer = self.writer_docstring
+        if writer.get_function_definition_from_below_last_line():
+            point = self.cursorRect().bottomRight()
+            point = self.calculate_real_position(point)
+            point = self.mapToGlobal(point)
+
+            self.menu_docstring = QMenuOnlyForEnter(self)
+            self.docstring_action = create_action(
+                self, _("Write docstring"), icon=ima.icon('TextFileIcon'),
+                triggered=writer.write_docstring)
+            self.menu_docstring.addAction(self.docstring_action)
+            self.menu_docstring.setActiveAction(self.docstring_action)
+            self.menu_docstring.popup(point)
+
+    def delayed_popup_docstring(self):
+        """Show context menu for docstring.
+        This method is called after typing '''. After typing ''', This function
+        wait 300ms. If there was no input for 300ms, show the context menu.
+        """
+        line_text = self.textCursor().block().text()
+        pos = self.textCursor().position()
+
+        timer = QTimer()
+        timer.singleShot(300, lambda: self.popup_docstring(line_text, pos))
 
 
 #===============================================================================

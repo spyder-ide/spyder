@@ -11,6 +11,8 @@ import re
 
 # Third party imports
 from qtpy.QtGui import QTextCursor
+from qtpy.QtCore import Qt
+from qtpy.QtWidgets import QMenu
 
 # Local imports
 from spyder.config.main import CONF
@@ -593,3 +595,21 @@ class FunctionInfo:
         re_yield = re.search(r'[^\n]\s*yield', text)
         if re_yield:
             self.has_yield = True
+
+
+class QMenuOnlyForEnter(QMenu):
+    """Allow only Enter key."""
+
+    def __init__(self, parent):
+        """Init QMenu."""
+        super(QMenuOnlyForEnter, self).__init__(parent)
+        self.parent = parent
+
+    def keyPressEvent(self, event):
+        """Close the instance if key is not enter key."""
+        key = event.key()
+        if key not in (Qt.Key_Enter, Qt.Key_Return):
+            self.parent.keyPressEvent(event)
+            self.close()
+        else:
+            super(QMenuOnlyForEnter, self).keyPressEvent(event)
