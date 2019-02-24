@@ -38,7 +38,7 @@ LOGGER = logging.getLogger(__name__)
 class LanguageServerClient:
     """Implementation of a v3.0 compilant language server client."""
     CONTENT_LENGTH = 'Content-Length: {0}\r\n\r\n'
-    MAX_TIMEOUT_TIME = 5000
+    MAX_TIMEOUT_TIME = 20000
 
     def __init__(self, host='127.0.0.1', port=2087, workspace=getcwd(),
                  use_external_server=False, zmq_in_port=7000,
