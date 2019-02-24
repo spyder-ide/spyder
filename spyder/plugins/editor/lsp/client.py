@@ -59,10 +59,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                         '--server-port %(port)s '
                         '--server %(cmd)s')
 
-    def __init__(self, parent, server_args_fmt='',
-                 server_settings={}, external_server=False,
-                 folder=getcwd_or_home(), language='python',
-                 plugin_configurations={}):
+    def __init__(self, parent,
+                 server_settings={},
+                 folder=getcwd_or_home(),
+                 language='python'):
         QObject.__init__(self)
         # LSPMethodProviderMixIn.__init__(self)
         self.manager = parent
@@ -83,14 +83,15 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
         self.transport_args = [sys.executable, '-u',
                                osp.join(LOCATION, 'transport', 'main.py')]
-        self.external_server = external_server
+        self.external_server = server_settings.get('external', False)
 
         self.folder = folder
-        self.plugin_configurations = plugin_configurations
+        self.plugin_configurations = server_settings.get('configurations', {})
         self.client_capabilites = CLIENT_CAPABILITES
         self.server_capabilites = SERVER_CAPABILITES
         self.context = zmq.Context()
 
+        server_args_fmt = server_settings.get('args', '')
         server_args = server_args_fmt.format(**server_settings)
         # transport_args = self.local_server_fmt % (server_settings)
         # if self.external_server:

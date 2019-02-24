@@ -82,19 +82,26 @@ class LSPManager(QObject):
         if language in self.clients:
             language_client = self.clients[language]
             queue = self.register_queue[language]
+
+            # Don't start LSP services in our CIs unless we demand
+            # them.
             if (os.environ.get('CI', False) and
                     not os.environ.get('SPY_TEST_USE_INTROSPECTION')):
                 return started
+
+            # Start client
             started = language_client['status'] == self.RUNNING
             if language_client['status'] == self.STOPPED:
                 config = language_client['config']
+
                 if not config['external']:
                     port = select_port(default_port=config['port'])
                     config['port'] = port
+
                 language_client['instance'] = LSPClient(
-                    self, config['args'], config, config['external'],
+                    parent=self,
+                    server_settings=config,
                     folder=self.get_root_path(),
-                    plugin_configurations=config.get('configurations', {}),
                     language=language)
 
                 for plugin in self.lsp_plugins:
