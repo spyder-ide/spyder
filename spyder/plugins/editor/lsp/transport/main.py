@@ -22,7 +22,7 @@ import signal
 
 # Local imports
 from spyder.py3compat import getcwd
-from producer import LanguageServerClient
+from spyder.plugins.editor.lsp.transport.producer import LanguageServerClient
 
 
 logger = logging.getLogger(__name__)
