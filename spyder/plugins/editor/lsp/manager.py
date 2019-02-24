@@ -9,11 +9,16 @@ Manager for all LSP clients connected to the servers defined
 in our Preferences.
 """
 
+# Standard library imports
 import logging
 import os
+import os.path as osp
 
+# Third-party imports
 from qtpy.QtCore import QObject, Slot
 
+# Local imports
+from spyder.config.base import get_conf_path
 from spyder.config.main import CONF
 from spyder.utils.misc import select_port, getcwd_or_home
 from spyder.plugins.editor.lsp.client import LSPClient
@@ -60,15 +65,34 @@ class LSPManager(QObject):
             else:
                 language_client.register_file(filename, signal)
 
-    def get_root_path(self):
+    def get_root_path(self, language):
         """
-        Get root path to pass to the LSP servers, i.e. project path or cwd.
+        Get root path to pass to the LSP servers.
+
+        This can be the current project path or the output of
+        getcwd_or_home (except for Python, see below).
         """
         path = None
+
+        # Get path of the current project
         if self.main and self.main.projects:
             path = self.main.projects.get_active_project_path()
+
+        # If there's no project, use the output of getcwd_or_home.
         if not path:
-            path = getcwd_or_home()
+            # We can't use getcwd_or_home for Python because if it
+            # returns home and you have a lot of Python files on it
+            # then computing Rope completions takes a long time
+            # and blocks the PyLS server.
+            # Instead we use an empty directory inside our config one,
+            # just like we did for Rope in Spyder 3.
+            if language == 'python':
+                path = get_conf_path('lsp_root_path')
+                if not osp.exists(path):
+                    os.mkdir(path)
+            else:
+                path = getcwd_or_home()
+
         return path
 
     @Slot()
@@ -77,12 +101,13 @@ class LSPManager(QObject):
         Send a new initialize message to each LSP server when the project
         path has changed so they can update the respective server root paths.
         """
-        for language_client in self.clients.values():
+        for language in self.clients:
+            language_client = self.clients[language]
             if language_client['status'] == self.RUNNING:
-                folder = self.get_root_path()
-                inst = language_client['instance']
-                inst.folder = folder
-                inst.initialize()
+                folder = self.get_root_path(language)
+                instance = language_client['instance']
+                instance.folder = folder
+                instance.initialize()
 
     def start_lsp_client(self, language):
         started = False
@@ -108,7 +133,7 @@ class LSPManager(QObject):
                 language_client['instance'] = LSPClient(
                     parent=self,
                     server_settings=config,
-                    folder=self.get_root_path(),
+                    folder=self.get_root_path(language),
                     language=language)
 
                 for plugin in self.lsp_plugins:
