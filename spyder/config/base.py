@@ -15,14 +15,15 @@ sip API incompatibility issue in spyder's non-gui modules)
 from __future__ import print_function
 
 import codecs
+import getpass
 import locale
-import os.path as osp
 import os
+import os.path as osp
+import re
 import shutil
 import sys
-import warnings
-import getpass
 import tempfile
+import warnings
 
 # Local imports
 from spyder.utils import encoding
@@ -50,6 +51,23 @@ def running_under_pytest():
     variable SPYDER_PYTEST is defined in conftest.py.
     """
     return bool(os.environ.get('SPYDER_PYTEST'))
+
+
+def is_stable_version(version):
+    """
+    Return true if version is stable, i.e. with letters in the final component.
+
+    Stable version examples: ``1.2``, ``1.3.4``, ``1.0.5``.
+    Non-stable version examples: ``1.3.4beta``, ``0.1.0rc1``, ``3.0.0dev0``.
+    """
+    if not isinstance(version, tuple):
+        version = version.split('.')
+    last_part = version[-1]
+
+    if not re.search(r'[a-zA-Z]', last_part):
+        return True
+    else:
+        return False
 
 
 #==============================================================================

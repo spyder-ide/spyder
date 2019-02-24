@@ -16,10 +16,10 @@ from qtpy.QtCore import QObject, Signal
 
 # Local imports
 from spyder import __version__
-from spyder.config.base import _
+from spyder.config.base import _, is_stable_version
 from spyder.py3compat import PY3, is_text_string
 from spyder.config.utils import is_anaconda
-from spyder.utils.programs import check_version, is_stable_version
+from spyder.utils.programs import check_version
 
 
 if PY3:
