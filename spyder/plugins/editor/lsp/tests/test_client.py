@@ -30,12 +30,11 @@ class LSPEditor(QObject):
 def lsp_client(qtbot):
     config = CONF.get('lsp-server', 'python')
     lsp_editor = LSPEditor()
-    lsp = LSPClient(None, config['args'], config, config['external'],
-                    plugin_configurations=config.get('configurations', {}),
+    lsp = LSPClient(parent=None,
+                    server_settings=config,
                     language='python')
     lsp.register_plugin_type(
         LSPEventTypes.DOCUMENT, lsp_editor.sig_lsp_notification)
-    # qtbot.addWidget(lsp)
     yield lsp, lsp_editor
     if os.name != 'nt':
         lsp.stop()
