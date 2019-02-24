@@ -49,18 +49,12 @@ def code_editor_bot(qtbot):
 @pytest.fixture
 def copy_files_clipboard(create_folders_files):
     """Fixture to copy files/folders into the clipboard"""
-    def _paste(data_type='text'):
-        file_content = QMimeData()
-        if data_type == 'files':
-            data = create_folders_files[0]
-            file_content.setUrls([QUrl.fromLocalFile(fname) for fname in data])
-        elif data_type == 'text':
-            data = 'First line.\nSecond line.\nThird line.'
-            file_content.setText(data)
-        cb = QApplication.clipboard()
-        cb.setMimeData(file_content, mode=cb.Clipboard)
-        return data
-    return _paste
+    file_paths = create_folders_files[0]
+    file_content = QMimeData()
+    file_content.setUrls([QUrl.fromLocalFile(fname) for fname in file_paths])
+    cb = QApplication.clipboard()
+    cb.setMimeData(file_content, mode=cb.Clipboard)
+    return file_paths
 
 
 # --- Tests
@@ -93,35 +87,37 @@ def test_delete(code_editor_bot, mocker):
     assert editor.get_text_line(0) == ' f1(a, b):'
 
 
-@pytest.mark.parametrize('data_type', ['files', 'text'])
-def test_paste(code_editor_bot, copy_files_clipboard, data_type):
-    """Test CodeEditor.paste() from clipboard files/folders as paths."""
+def test_paste_files(code_editor_bot, copy_files_clipboard):
+    """Test pasting files/folders into the editor."""
     editor = code_editor_bot[0]
+    file_paths = copy_files_clipboard
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.Start)
+    editor.setTextCursor(cursor)
+    editor.paste()
+    editor.selectAll()
+    text = editor.toPlainText()
+    path_list_in_editor = [path.strip(',"') for path in text.splitlines()]
+    assert len(file_paths) == len(path_list_in_editor)
+    for path, expected_path in zip(path_list_in_editor, file_paths):
+        assert osp.normpath(path) == osp.normpath(expected_path)
 
-    def _editor_fun():
-        """CodeEditor function call."""
-        cursor = editor.textCursor()
-        cursor.movePosition(QTextCursor.Start)
-        editor.setTextCursor(cursor)
-        editor.paste()
 
-    # Paste clipboard data which contains a file as its path into the editor.
-    if data_type == 'files':
-        file_paths = copy_files_clipboard(data_type='files')
-        _editor_fun()
-        editor.selectAll()
-        text = editor.toPlainText()
-        path_list_in_editor = [path.strip(',"') for path in text.splitlines()]
-        assert len(file_paths) == len(path_list_in_editor)
-        for path, expected_path in zip(path_list_in_editor, file_paths):
-            assert osp.normpath(path) == osp.normpath(expected_path)
-
-    # Paste clipboard data which contains normal text.
-    elif data_type == 'text':
-        org_text = copy_files_clipboard(data_type='text')
-        _editor_fun()
-        for line_no, text in enumerate(org_text.splitlines()):
-            assert editor.get_text_line(line_no) == text
+@pytest.mark.parametrize('line_ending_char', ['\n', '\r\n', '\r'])
+@pytest.mark.parametrize('text', ['def fun(a, b):\n\treturn a + b',
+                                  'https://www.spyder-ide.org'])
+def test_paste_text(code_editor_bot, text, line_ending_char):
+    """Test pasting text into the editor."""
+    editor = code_editor_bot[0]
+    text = text.replace(osp.os.linesep, line_ending_char)
+    cb = QApplication.clipboard()
+    cb.setText(text, mode=cb.Clipboard)
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.Start)
+    editor.setTextCursor(cursor)
+    editor.paste()
+    for line_no, txt in enumerate(text.splitlines()):
+        assert editor.get_text_line(line_no) == txt
 
 
 if __name__ == "__main__":

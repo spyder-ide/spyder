@@ -1579,11 +1579,12 @@ class CodeEditor(TextEditBaseWidget):
         Reimplement QPlainTextEdit's method to fix the following issue:
         on Windows, pasted text has only 'LF' EOL chars even if the original
         text has 'CRLF' EOL chars.
-        This function changes the clipboard data if they are copied as
-        files/folder but does not change normal text data except if they are
-        multiple lines. Since we are changing clipboard data we can not use
+        The function also changes the clipboard data if they are copied as
+        files/folders but does not change normal text data except if they are
+        multiple lines. Since we are changing clipboard data we cannot use
         paste, which directly pastes from clipboard instead we use
-        insertPlainText and pass the formatted/changed text.
+        insertPlainText and pass the formatted/changed text without modifying
+        clipboard content.
         """
         clipboard = QApplication.clipboard()
         text = to_text_string(clipboard.text())
@@ -1598,11 +1599,10 @@ class CodeEditor(TextEditBaseWidget):
                                           replace(osp.os.sep, '/')
                                           + '"' for url in urls)
                 else:
-                    text = urls[0].toLocalFile()
+                    text = urls[0].toLocalFile().replace(osp.os.sep, '/')
         if len(text.splitlines()) > 1:
             eol_chars = self.get_line_separator()
             text = eol_chars.join((text + eol_chars).splitlines())
-        # Standard paste
         TextEditBaseWidget.insertPlainText(self, text)
         self.document_did_change(text)
 
