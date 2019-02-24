@@ -26,6 +26,7 @@ import tempfile
 import warnings
 
 # Local imports
+from spyder import __version__
 from spyder.utils import encoding
 from spyder.py3compat import (is_unicode, TEXT_TYPES, INT_TYPES, PY3,
                               to_text_string, is_text_string)
@@ -37,6 +38,9 @@ from spyder.py3compat import (is_unicode, TEXT_TYPES, INT_TYPES, PY3,
 # To activate/deactivate certain things for development
 # SPYDER_DEV is (and *only* has to be) set in bootstrap.py
 DEV = os.environ.get('SPYDER_DEV')
+
+# Manually override whether the dev configuration directory is used.
+USE_DEV_CONFIG_DIR = os.environ.get('SPYDER_USE_DEV_CONFIG_DIR')
 
 # Make Spyder use a temp clean configuration directory for testing purposes
 # SPYDER_SAFE_MODE can be set using the --safe-mode option of bootstrap.py
@@ -68,6 +72,16 @@ def is_stable_version(version):
         return True
     else:
         return False
+
+
+def use_dev_config_dir(use_dev_config_dir=USE_DEV_CONFIG_DIR):
+    """Return whether the dev configuration directory should used."""
+    if use_dev_config_dir is not None:
+        if use_dev_config_dir.lower() in {'false', '0'}:
+            use_dev_config_dir = False
+    else:
+        use_dev_config_dir = DEV or not is_stable_version(__version__)
+    return use_dev_config_dir
 
 
 #==============================================================================
@@ -120,6 +134,12 @@ else:
 #    completion) separately for each version
 if PY3:
     SUBFOLDER = SUBFOLDER + '-py3'
+
+
+# If running a development/beta version, save config in a seperate directory
+# to avoid wiping or contaiminating the user's saved stable configuration.
+if use_dev_config_dir():
+    SUBFOLDER = SUBFOLDER + '-dev'
 
 
 def get_home_dir():
