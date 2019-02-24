@@ -903,7 +903,7 @@ class MainWindow(QMainWindow):
 
         # Start LSP client
         self.set_splash(_("Launching LSP Client for Python..."))
-        self.lspmanager.start_client('python')
+        self.lspmanager.start_client(language='python')
 
         # Populating file menu entries
         quit_action = create_action(self, _("&Quit"),

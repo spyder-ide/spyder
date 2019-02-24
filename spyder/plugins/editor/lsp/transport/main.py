@@ -21,8 +21,8 @@ import psutil
 import signal
 
 # Local imports
-from spyder.py3compat import getcwd
 from spyder.plugins.editor.lsp.transport.producer import LanguageServerClient
+from spyder.py3compat import getcwd
 
 
 logger = logging.getLogger(__name__)
