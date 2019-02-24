@@ -201,8 +201,8 @@ class KeyPressFilter(QObject):
                 self.sig_up_key_pressed.emit()
             elif e.key() == Qt.Key_Down:
                 self.sig_down_key_pressed.emit()
-            elif e.key() == Qt.Key_Enter:
-                            sig_enter_key_pressed.emit()
+            elif (e.key() == Qt.Key_Enter) or (e.key() == Qt.Key_Return):
+                self.sig_enter_key_pressed.emit()
 
         return super(KeyPressFilter, self).eventFilter(src, e)
 
@@ -289,10 +289,10 @@ class FileSwitcher(QDialog):
         self.setLayout(layout)
 
         # Signals
-        self.filter.sig_enter_key_pressed.connect(self.enter)
         self.rejected.connect(self.restore_initial_state)
         self.filter.sig_up_key_pressed.connect(self.previous_row)
         self.filter.sig_down_key_pressed.connect(self.next_row)
+        self.filter.sig_enter_key_pressed.connect(self.enter)
         self.edit.returnPressed.connect(self.accept)
         self.edit.textChanged.connect(self.setup)
         self.list.itemSelectionChanged.connect(self.item_selection_changed)
@@ -612,11 +612,8 @@ class FileSwitcher(QDialog):
                 try:
                     stack_index = self.paths.index(self.filtered_path[row])
                     self.plugin = self.widgets[stack_index][1]
-                    #plugin_index = self.plugins_instances.index(self.plugin)
                     # Count the real index in the tabWidget of the
                     # current plugin
-                    #real_index = self.get_stack_index(stack_index,
-                                                      #plugin_index)
                     self.goto_line(self.line_number)
                     try:
                         self.plugin.switch_to_plugin()
@@ -633,20 +630,13 @@ class FileSwitcher(QDialog):
 
     def enter(self):
         row = self.current_row()
-        if self.count() and row >= 0:
-            if '</b></big><br>' in self.list.currentItem().text() and row == 0:
-                self.next_row()
-            if self.mode == self.FILE_MODE:
-                try:
-                    stack_index = self.paths.index(self.filtered_path[row])
-                    self.plugin = self.widgets[stack_index][1]
-                    plugin_index = self.plugins_instances.index(self.plugin)
-                    real_index = self.get_stack_index(stack_index,
-                                                        plugin_index)
-                    self.sig_goto_file.emit(real_index,
-                                            self.plugin.get_current_tab_manager())
-                except ValueError:
-                    pass
+        stack_index = self.paths.index(self.filtered_path[row])
+        self.plugin = self.widgets[stack_index][1]
+        plugin_index = self.plugins_instances.index(self.plugin)
+        real_index = self.get_stack_index(stack_index,
+                                          plugin_index)
+        self.sig_goto_file.emit(real_index,
+                                self.plugin.get_current_tab_manager())
 
     def setup_file_list(self, filter_text, current_path):
         """Setup list widget content for file list display."""
