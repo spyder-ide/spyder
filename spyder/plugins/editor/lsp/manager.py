@@ -72,7 +72,7 @@ class LSPManager(QObject):
         return path
 
     @Slot()
-    def reinit_all_lsp_clients(self):
+    def reinitialize_all_lsp_clients(self):
         """
         Send a new initialize message to each LSP server when the project
         path has changed so they can update the respective server root paths.
