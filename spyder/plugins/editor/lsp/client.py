@@ -113,12 +113,19 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
         server_log = subprocess.PIPE
         if get_debug_level() > 0:
+            # Create server log file
             server_log_fname = 'server_{0}.log'.format(self.language)
             server_log_file = get_conf_path(osp.join('lsp_logs',
                                                      server_log_fname))
             if not osp.exists(osp.dirname(server_log_file)):
                 os.makedirs(osp.dirname(server_log_file))
             server_log = open(server_log_file, 'w')
+
+            # Start server with logging options
+            if get_debug_level() == 2:
+                self.server_args.append('-v')
+            elif get_debug_level() == 3:
+                self.server_args.append('-vv')
 
         if not self.external_server:
             logger.info('Starting server: {0}'.format(
@@ -135,6 +142,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
         client_log = subprocess.PIPE
         if get_debug_level() > 0:
+            # Client log file
             client_log_fname = 'client_{0}.log'.format(self.language)
             client_log_file = get_conf_path(osp.join('lsp_logs',
                                                      client_log_fname))
