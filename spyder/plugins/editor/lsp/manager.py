@@ -24,7 +24,6 @@ logger = logging.getLogger(__name__)
 
 class LSPManager(QObject):
     """Language Server Protocol manager."""
-    CONF_SECTION = 'lsp-server'
     STOPPED = 'stopped'
     RUNNING = 'running'
 
@@ -36,11 +35,19 @@ class LSPManager(QObject):
         self.clients = {}
         self.requests = {}
         self.register_queue = {}
-        for option in CONF.options(self.CONF_SECTION):
-            self.clients[option] = {'status': self.STOPPED,
-                                    'config': CONF.get('lsp-server', option),
-                                    'instance': None}
-            self.register_queue[option] = []
+
+        # Get configurations for all LSP servers registered through
+        # our Preferences
+        self.configurations_for_servers = CONF.options('lsp-server')
+
+        # Register languages to create clients for
+        for language in self.configurations_for_servers:
+            self.clients[language] = {
+                'status': self.STOPPED,
+                'config': CONF.get('lsp-server', language),
+                'instance': None
+            }
+            self.register_queue[language] = []
 
     def register_plugin_type(self, type, sig):
         self.lsp_plugins[type] = sig
@@ -122,7 +129,7 @@ class LSPManager(QObject):
             self.close_client(language)
 
     def update_server_list(self):
-        for language in CONF.options(self.CONF_SECTION):
+        for language in self.configurations_for_servers:
             config = {'status': self.STOPPED,
                       'config': CONF.get('lsp-server', language),
                       'instance': None}
@@ -131,7 +138,7 @@ class LSPManager(QObject):
                 self.register_queue[language] = []
             else:
                 logger.debug(
-                        self.clients[language]['config'] != config['config'])
+                    self.clients[language]['config'] != config['config'])
                 current_config = self.clients[language]['config']
                 new_config = config['config']
                 restart_diff = ['cmd', 'args', 'host', 'port', 'external']
