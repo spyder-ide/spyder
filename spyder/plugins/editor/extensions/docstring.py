@@ -534,7 +534,7 @@ class FunctionInfo:
         except IndexError:
             return None
 
-        while 1:
+        while True:
             pos_comma = args_text.find(',', idx_find_start)
 
             if pos_comma == -1:

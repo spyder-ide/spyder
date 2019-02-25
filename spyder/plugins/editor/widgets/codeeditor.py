@@ -2695,7 +2695,7 @@ class CodeEditor(TextEditBaseWidget):
         # Docstring
         writer = self.writer_docstring
         self.docstring_action = create_action(
-            self, _("Generate function docstring"),
+            self, _("Generate docstring"),
             shortcut=get_shortcut('editor', 'docstring'),
             triggered=writer.write_docstring_at_first_line_of_function)
 
@@ -3103,7 +3103,7 @@ class CodeEditor(TextEditBaseWidget):
         return True
 
     def popup_docstring(self, prev_text, prev_pos):
-        """Show the menu for generating docstring"""
+        """Show the menu for generating docstring."""
         line_text = self.textCursor().block().text()
         if line_text != prev_text:
             return
@@ -3119,7 +3119,7 @@ class CodeEditor(TextEditBaseWidget):
 
             self.menu_docstring = QMenuOnlyForEnter(self)
             self.docstring_action = create_action(
-                self, _("Write docstring"), icon=ima.icon('TextFileIcon'),
+                self, _("Generate docstring"), icon=ima.icon('TextFileIcon'),
                 triggered=writer.write_docstring)
             self.menu_docstring.addAction(self.docstring_action)
             self.menu_docstring.setActiveAction(self.docstring_action)
@@ -3127,8 +3127,9 @@ class CodeEditor(TextEditBaseWidget):
 
     def delayed_popup_docstring(self):
         """Show context menu for docstring.
-        This method is called after typing '''. After typing ''', This function
-        wait 300ms. If there was no input for 300ms, show the context menu.
+
+        This method is called after typing '''. After typing ''', this function
+        waits 300ms. If there was no input for 300ms, show the context menu.
         """
         line_text = self.textCursor().block().text()
         pos = self.textCursor().position()
