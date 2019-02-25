@@ -432,15 +432,15 @@ class FunctionInfo:
         pos = {}
         is_found_left_quote = False
 
-        for i, c in enumerate(text):
+        for idx, character in enumerate(text):
             if is_found_left_quote is False:
-                if c == "'" or c == '"':
+                if character == "'" or character == '"':
                     is_found_left_quote = True
-                    quote = c
-                    left_pos = i
+                    quote = character
+                    left_pos = idx
             else:
-                if c == quote and text[i - 1] != '\\':
-                    pos[left_pos] = i
+                if character == quote and text[idx - 1] != '\\':
+                    pos[left_pos] = idx
                     is_found_left_quote = False
 
         if is_found_left_quote:
@@ -455,24 +455,25 @@ class FunctionInfo:
         https://stackoverflow.com/questions/29991917/
         indices-of-matching-parentheses-in-python
         """
-        idx = {}
-        character = []
+        pos = {}
+        pstack = []
 
-        for i, c in enumerate(text):
-            if c == bracket_left and not self.is_char_in_pairs(i, pos_quote):
-                character.append(i)
-            elif c == bracket_right and not self.is_char_in_pairs(i,
-                                                                  pos_quote):
-                if len(character) == 0:
+        for idx, character in enumerate(text):
+            if character == bracket_left and \
+                    not self.is_char_in_pairs(idx, pos_quote):
+                pstack.append(idx)
+            elif character == bracket_right and \
+                    not self.is_char_in_pairs(idx, pos_quote):
+                if len(pstack) == 0:
                     raise IndexError(
-                        "No matching closing parens at: " + str(i))
-                idx[character.pop()] = i
+                        "No matching closing parens at: " + str(idx))
+                pos[pstack.pop()] = idx
 
-        if len(character) > 0:
+        if len(pstack) > 0:
             raise IndexError(
-                "No matching opening parens at: " + str(character.pop()))
+                "No matching opening parens at: " + str(pstack.pop()))
 
-        return idx
+        return pos
 
     def split_arg_to_name_type_value(self, args_list):
         """Split argument text to name, type, value."""
