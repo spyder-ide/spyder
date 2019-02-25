@@ -302,7 +302,7 @@ class DocstringWriterExtension:
 
             if arg_value:
                 arg_value = arg_value.replace(self.quote3, self.quote3_other)
-                arg_text += ' (the default is {})'.format(arg_value)
+                arg_text += ' The default is {}.'.format(arg_value)
 
             arg_text += '\n'
 

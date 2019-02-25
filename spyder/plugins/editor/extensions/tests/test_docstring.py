@@ -164,11 +164,11 @@ def test_parse_function_body(editor_auto_docstring, text, indent, expected):
     arg2 : List[Tuple[str, float]]
         DESCRIPTION.
     arg3 : TYPE, optional
-        DESCRIPTION. (the default is '-> (float, int):')
+        DESCRIPTION. The default is '-> (float, int):'.
     arg4 : TYPE, optional
-        DESCRIPTION. (the default is ':float, int[')
+        DESCRIPTION. The default is ':float, int['.
     arg5 : str, optional
-        DESCRIPTION. (the default is '""')
+        DESCRIPTION. The default is '""'.
 
     Returns
     -------
