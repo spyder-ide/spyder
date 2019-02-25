@@ -10,3 +10,7 @@
 """
 Editor Extensions classes and manager.
 """
+
+from .closebrackets import CloseBracketsExtension
+from .closequotes import CloseQuotesExtension
+from .manager import EditorExtensionsManager

@@ -51,8 +51,7 @@ jobs:
 
     # Show Conda Build Env
   - script: |
-      echo "cwd:" `pwd`
-      conda list | egrep -v '^#' | perl -ne 's/_/-/g; @x=split /\s+/, lc $_; print "$x[0]==$x[1]\n"' | sort | uniq
+      conda list
     displayName: 'Show build environment'
     continueOnError: true
 

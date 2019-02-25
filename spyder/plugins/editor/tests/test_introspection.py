@@ -11,6 +11,7 @@ import os.path as osp
 
 # Third party imports
 import pytest
+import pytestqt
 try:
     from unittest.mock import Mock
 except ImportError:
@@ -72,6 +73,32 @@ def setup_editor(qtbot, monkeypatch):
     os.environ['SPY_TEST_USE_INTROSPECTION'] = 'False'
     editor.main.lspmanager.shutdown()
 
+
+@pytest.mark.slow
+def test_space_completion(setup_editor):
+    """Validate completion's space character handling."""
+    editor, qtbot = setup_editor
+    code_editor = editor.get_focus_widget()
+    completion = code_editor.completion_widget
+
+    # Set cursor to start
+    code_editor.go_to_line(1)
+
+    # Complete from numpy --> from numpy import
+    qtbot.keyClicks(code_editor, 'from numpy ')
+    qtbot.wait(20000)
+
+    # press tab and get completions
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+    assert "import" in [x['label'] for x in sig.args[0]]
+
+    # enter should accept first completion
+    qtbot.keyPress(completion, Qt.Key_Enter, delay=1000)
+    assert code_editor.toPlainText() == 'from numpy import\n'
+
+
 @pytest.mark.slow
 @pytest.mark.skipif(PY2, reason="Segfaults with other tests on Py2.")
 @pytest.mark.skipif(os.name == 'nt' and not PY2,
@@ -129,8 +156,63 @@ def test_introspection(setup_editor):
     assert "degrees(x)" in [x['label'] for x in sig.args[0]]
 
     qtbot.keyPress(completion, Qt.Key_Enter, delay=1000)
-    assert code_editor.toPlainText() == 'import math\nmath.degrees' \
-                                        '\nmath.degrees()\n'
+
+    # right for () + enter for new line
+    qtbot.keyPress(code_editor, Qt.Key_Right, delay=1000)
+    qtbot.keyPress(code_editor, Qt.Key_Right, delay=1000)
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
+
+    # Complete math.a <tab> ... s <enter> to math.asin
+    qtbot.keyClicks(code_editor, 'math.a')
+    qtbot.wait(20000)
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+    assert "asin(x)" in [x['label'] for x in sig.args[0]]
+    qtbot.keyClicks(completion, 's')
+    qtbot.keyPress(completion, Qt.Key_Enter, delay=1000)
+
+    # enter for new line
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
+
+    # Complete math.a <tab><enter> ... <enter> to math.acos
+    qtbot.keyClicks(code_editor, 'math.a')
+    qtbot.wait(20000)
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+        qtbot.keyPress(code_editor, Qt.Key_Enter)
+    assert "acos(x)" in [x['label'] for x in sig.args[0]]
+    qtbot.keyPress(completion, Qt.Key_Enter, delay=1000)
+
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
+
+    # Complete math.a <tab> s ...<enter> to math.asin
+    qtbot.keyClicks(code_editor, 'math.a')
+    qtbot.wait(20000)
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+        qtbot.keyPress(code_editor, 's')
+    assert "asin(x)" in [x['label'] for x in sig.args[0]]
+    qtbot.keyPress(completion, Qt.Key_Enter, delay=1000)
+
+    # Check math.a <tab> <backspace> doesn't emit sig_show_completions
+    qtbot.keyPress(code_editor, Qt.Key_Right, delay=1000)
+    qtbot.keyClicks(code_editor, 'math.a')
+    qtbot.wait(20000)
+    try:
+        with qtbot.waitSignal(completion.sig_show_completions,
+                              timeout=10000) as sig:
+            qtbot.keyPress(code_editor, Qt.Key_Tab)
+            qtbot.keyPress(code_editor, Qt.Key_Backspace)
+        raise RuntimeError("The signal should not have been recieved!")
+    except pytestqt.exceptions.TimeoutError:
+        pass
+
+    assert code_editor.toPlainText() == 'import math\nmath.degrees\n'\
+                                        'math.degrees()\nmath.asin\n'\
+                                        'math.acos\nmath.asin\nmath.\n'
 
     # Modify PYTHONPATH
     # editor.introspector.change_extra_path([LOCATION])

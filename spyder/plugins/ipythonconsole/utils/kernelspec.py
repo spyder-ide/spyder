@@ -80,7 +80,7 @@ class SpyderKernelSpec(KernelSpec):
 
         default_interpreter = CONF.get('main_interpreter', 'default')
         pypath = add_pathlist_to_PYTHONPATH([], pathlist, ipyconsole=True,
-                                            drop_env=(not default_interpreter))
+                                            drop_env=False)
 
         # Environment variables that we need to pass to our sitecustomize
         umr_namelist = CONF.get('main_interpreter', 'umr/namelist')

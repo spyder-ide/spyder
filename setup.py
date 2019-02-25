@@ -224,9 +224,12 @@ install_requires = [
     'keyring;sys_platform!="linux2"',
     # Packages for pyqt5 are only available in
     # Python 3
-    'pyqt5<=5.12;python_version>="3"',
+    'pyqt5<5.13;python_version>="3"',
+    # pyqt5 5.12 split WebEngine into the
+    # pyqtwebengine module
+    'pyqtwebengine<5.13',
     # Pyls with all its dependencies
-    'python-language-server[all]>=0.19.0',
+    'python-language-server[all]>=0.19.0,<0.23',
     # Required to get SSH connections to remote kernels
     'pexpect;platform_system!="Windows"',
     'paramiko;platform_system=="Windows"'

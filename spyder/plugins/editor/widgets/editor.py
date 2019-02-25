@@ -160,15 +160,15 @@ class ThreadManager(QObject):
 class FileInfo(QObject):
     """File properties"""
     todo_results_changed = Signal()
-    save_breakpoints = Signal(str, str)
     text_changed_at = Signal(str, int)
     edit_goto = Signal(str, int, str)
     send_to_help = Signal(str, str, str, str, bool)
+    sig_filename_changed = Signal(str)
 
     def __init__(self, filename, encoding, editor, new, threadmanager):
         QObject.__init__(self)
         self.threadmanager = threadmanager
-        self.filename = filename
+        self._filename = filename
         self.newly_created = new
         self.default = False      # Default untitled file
         self.encoding = encoding
@@ -180,7 +180,16 @@ class FileInfo(QObject):
         self.lastmodified = QFileInfo(filename).lastModified()
 
         self.editor.textChanged.connect(self.text_changed)
-        self.editor.breakpoints_changed.connect(self.breakpoints_changed)
+        self.sig_filename_changed.connect(self.editor.sig_filename_changed)
+
+    @property
+    def filename(self):
+        return self._filename
+
+    @filename.setter
+    def filename(self, value):
+        self._filename = value
+        self.sig_filename_changed.emit(value)
 
     def text_changed(self):
         """Editor's text has changed"""
@@ -213,13 +222,6 @@ class FileInfo(QObject):
     def cleanup_todo_results(self):
         """Clean-up TODO finder results"""
         self.todo_results = []
-
-    def breakpoints_changed(self):
-        """Breakpoint list has changed"""
-        breakpoints = self.editor.get_breakpoints()
-        if self.editor.breakpoints != breakpoints:
-            self.editor.breakpoints = breakpoints
-            self.save_breakpoints.emit(self.filename, repr(breakpoints))
 
 
 class StackHistory(MutableSequence):
@@ -414,7 +416,7 @@ class EditorStack(QWidget):
     update_code_analysis_actions = Signal()
     refresh_file_dependent_actions = Signal()
     refresh_save_all_action = Signal()
-    save_breakpoints = Signal(str, str)
+    sig_breakpoints_saved = Signal()
     text_changed_at = Signal(str, int)
     current_file_changed = Signal(str, int)
     plugin_load = Signal((str,), ())
@@ -861,13 +863,13 @@ class EditorStack(QWidget):
         """Set/clear breakpoint"""
         if self.data:
             editor = self.get_current_editor()
-            editor.add_remove_breakpoint()
+            editor.debugger.toogle_breakpoint()
 
     def set_or_edit_conditional_breakpoint(self):
         """Set conditional breakpoint"""
         if self.data:
             editor = self.get_current_editor()
-            editor.add_remove_breakpoint(edit_condition=True)
+            editor.debugger.toogle_breakpoint(edit_condition=True)
 
     def inspect_current_object(self):
         """Inspect current object in the Help plugin"""
@@ -1595,7 +1597,8 @@ class EditorStack(QWidget):
 
         This function controls the message box prompt for saving
         changed files.  The actual save is performed in save() for
-        each index processed.
+        each index processed. This function also removes autosave files
+        corresponding to files the user chooses not to save.
         """
         if index is None:
             indexes = list(range(self.get_stack_count()))
@@ -1613,13 +1616,15 @@ class EditorStack(QWidget):
             return True
         if unsaved_nb > 1:
             buttons |= QMessageBox.YesToAll | QMessageBox.NoToAll
-        yes_all = False
+        yes_all = no_all = False
         for index in indexes:
             self.set_stack_index(index)
             finfo = self.data[index]
             if finfo.filename == self.tempfile_path or yes_all:
                 if not self.save(index):
                     return False
+            elif no_all:
+                self.autosave.remove_autosave_file(finfo)
             elif (finfo.editor.document().isModified() and
                   self.save_dialog_on_tests):
 
@@ -1636,12 +1641,15 @@ class EditorStack(QWidget):
                 if answer == QMessageBox.Yes:
                     if not self.save(index):
                         return False
+                elif answer == QMessageBox.No:
+                    self.autosave.remove_autosave_file(finfo)
                 elif answer == QMessageBox.YesToAll:
                     if not self.save(index):
                         return False
                     yes_all = True
                 elif answer == QMessageBox.NoToAll:
-                    return True
+                    self.autosave.remove_autosave_file(finfo)
+                    no_all = True
                 elif answer == QMessageBox.Cancel:
                     return False
         return True
@@ -1965,8 +1973,14 @@ class EditorStack(QWidget):
         self.stack_history.refresh()
         self.stack_history.remove_and_append(index)
 
-        logger.debug("Current changed: %d - %s" %
-                     (index, self.data[index].editor.filename))
+        # Needed to avoid an error generated after moving/renaming
+        # files outside Spyder while in debug mode.
+        # See issue 8749.
+        try:
+            logger.debug("Current changed: %d - %s" %
+                         (index, self.data[index].editor.filename))
+        except IndexError:
+            pass
 
         self.update_plugin_title.emit()
         if editor is not None:
@@ -2250,13 +2264,13 @@ class EditorStack(QWidget):
                                       lambda: self.todo_results_changed.emit())
         finfo.edit_goto.connect(lambda fname, lineno, name:
                                 self.edit_goto.emit(fname, lineno, name))
-        finfo.save_breakpoints.connect(lambda s1, s2:
-                                       self.save_breakpoints.emit(s1, s2))
+
         editor.sig_run_selection.connect(self.run_selection)
         editor.sig_run_cell.connect(self.run_cell)
         editor.sig_run_cell_and_advance.connect(self.run_cell_and_advance)
         editor.sig_re_run_last_cell.connect(self.re_run_last_cell)
         editor.sig_new_file.connect(self.sig_new_file.emit)
+        editor.sig_breakpoints_saved.connect(self.sig_breakpoints_saved)
         language = get_file_language(fname, txt)
         editor.setup_editor(
                 linenumbers=self.linenumbers_enabled,

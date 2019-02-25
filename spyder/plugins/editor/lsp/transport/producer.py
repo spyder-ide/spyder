@@ -38,7 +38,7 @@ LOGGER = logging.getLogger(__name__)
 class LanguageServerClient:
     """Implementation of a v3.0 compilant language server client."""
     CONTENT_LENGTH = 'Content-Length: {0}\r\n\r\n'
-    MAX_TIMEOUT_TIME = 5000
+    MAX_TIMEOUT_TIME = 20000
 
     def __init__(self, host='127.0.0.1', port=2087, workspace=getcwd(),
                  use_external_server=False, zmq_in_port=7000,
@@ -64,26 +64,28 @@ class LanguageServerClient:
 
         LOGGER.info('Connecting to language server at {0}:{1}'.format(
             self.host, self.port))
-        connected = False
 
+        connected = False
         initial_time = time.time()
+        connection_error = None
         while not connected:
-            LOGGER.info('Attempting LSP server connection {0}:{1}'.
-                        format(self.host, self.port))
             try:
                 self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.socket.connect((self.host, int(self.port)))
                 connected = True
             except Exception as e:
-                LOGGER.info('Connection error: {}'.format(e))
+                connection_error = e
 
             if time.time() - initial_time > self.MAX_TIMEOUT_TIME:
                 break
 
         if not connected:
             LOGGER.error("The client was unable to establish a connection "
-                         "with the language server, terminating process...")
-            raise Exception('Error!')
+                         "with the Language Server. The error was: "
+                         "{}".format(connection_error))
+            raise Exception("An error occurred while trying to create a "
+                            "client to connect to the Language Server! The "
+                            "error was\n\n{}".format(connection_error))
 
         self.socket.setblocking(True)
 

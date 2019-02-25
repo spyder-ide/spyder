@@ -193,6 +193,49 @@ In this release 104 pull requests were closed.
 
 ----
 
+
+## Version 3.3.3 (2019-02-09)
+
+### New features
+
+* Fix an incompatibility with Numpy 1.16 that generated an error
+  when trying to open an array in the Variable Explorer.
+* Increase maximum PyQt5 supported version to 5.12
+* Increase minimal required version of spyder-kernels to 0.4.2
+  to get important fixes about saving/loading the current
+  namespace and skipping installed modules from our User Module
+  Reloader (UMR).
+
+### Issues Closed
+
+* [Issue 8697](https://github.com/spyder-ide/spyder/issues/8697) - Starting a python file importing tensorflow the second time results in error
+* [Issue 8681](https://github.com/spyder-ide/spyder/issues/8681) - PYTHONPATH environment variable not inherited if using non-default python interpreter ([PR 8685](https://github.com/spyder-ide/spyder/pull/8685))
+* [Issue 8668](https://github.com/spyder-ide/spyder/issues/8668) - Console throws error about wurlitzer on fresh install
+* [Issue 8582](https://github.com/spyder-ide/spyder/issues/8582) - Spyder encountered a problem when opening numpy array ([PR 8632](https://github.com/spyder-ide/spyder/pull/8632))
+* [Issue 8581](https://github.com/spyder-ide/spyder/issues/8581) - An error ocurred while starting the kernel: b'' ([PR 8736](https://github.com/spyder-ide/spyder/pull/8736))
+* [Issue 8475](https://github.com/spyder-ide/spyder/issues/8475) - pyqt5 Dependency seems outdated ([PR 8530](https://github.com/spyder-ide/spyder/pull/8530))
+
+In this release 6 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 8736](https://github.com/spyder-ide/spyder/pull/8736) - PR: Don't show empty kernel error messages ([8581](https://github.com/spyder-ide/spyder/issues/8581))
+* [PR 8731](https://github.com/spyder-ide/spyder/pull/8731) - PR: Backport PR 8559
+* [PR 8728](https://github.com/spyder-ide/spyder/pull/8728) - PR: Increase minimal spyder-kernels version in setup.py to avoid faulty release
+* [PR 8696](https://github.com/spyder-ide/spyder/pull/8696) - PR: Increase minimal required version of spyder-kernels
+* [PR 8689](https://github.com/spyder-ide/spyder/pull/8689) - PR: Backport PR 8363
+* [PR 8686](https://github.com/spyder-ide/spyder/pull/8686) - PR: Backport PR 8452
+* [PR 8685](https://github.com/spyder-ide/spyder/pull/8685) - PR: Avoid dropping predefined PYTHONPATH when using an external interpreter ([8681](https://github.com/spyder-ide/spyder/issues/8681))
+* [PR 8636](https://github.com/spyder-ide/spyder/pull/8636) - PR: Improve warning for when only some namespace objs couldn't be saved
+* [PR 8632](https://github.com/spyder-ide/spyder/pull/8632) - PR: Don't force write flag to True in ArrayEditor, to fix compat with Numpy >=1.16 ([8582](https://github.com/spyder-ide/spyder/issues/8582))
+* [PR 8530](https://github.com/spyder-ide/spyder/pull/8530) - PR: Increase maximum PyQt5 supported version ([8475](https://github.com/spyder-ide/spyder/issues/8475))
+
+In this release 10 pull requests were closed.
+
+
+----
+
+
 ## Version 3.3.2 (2018-11-24)
 
 #### Main Window

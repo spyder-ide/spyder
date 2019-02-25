@@ -15,16 +15,18 @@ sip API incompatibility issue in spyder's non-gui modules)
 from __future__ import print_function
 
 import codecs
+import getpass
 import locale
-import os.path as osp
 import os
+import os.path as osp
+import re
 import shutil
 import sys
-import warnings
-import getpass
 import tempfile
+import warnings
 
 # Local imports
+from spyder import __version__
 from spyder.utils import encoding
 from spyder.py3compat import (is_unicode, TEXT_TYPES, INT_TYPES, PY3,
                               to_text_string, is_text_string)
@@ -36,6 +38,9 @@ from spyder.py3compat import (is_unicode, TEXT_TYPES, INT_TYPES, PY3,
 # To activate/deactivate certain things for development
 # SPYDER_DEV is (and *only* has to be) set in bootstrap.py
 DEV = os.environ.get('SPYDER_DEV')
+
+# Manually override whether the dev configuration directory is used.
+USE_DEV_CONFIG_DIR = os.environ.get('SPYDER_USE_DEV_CONFIG_DIR')
 
 # Make Spyder use a temp clean configuration directory for testing purposes
 # SPYDER_SAFE_MODE can be set using the --safe-mode option of bootstrap.py
@@ -50,6 +55,33 @@ def running_under_pytest():
     variable SPYDER_PYTEST is defined in conftest.py.
     """
     return bool(os.environ.get('SPYDER_PYTEST'))
+
+
+def is_stable_version(version):
+    """
+    Return true if version is stable, i.e. with letters in the final component.
+
+    Stable version examples: ``1.2``, ``1.3.4``, ``1.0.5``.
+    Non-stable version examples: ``1.3.4beta``, ``0.1.0rc1``, ``3.0.0dev0``.
+    """
+    if not isinstance(version, tuple):
+        version = version.split('.')
+    last_part = version[-1]
+
+    if not re.search(r'[a-zA-Z]', last_part):
+        return True
+    else:
+        return False
+
+
+def use_dev_config_dir(use_dev_config_dir=USE_DEV_CONFIG_DIR):
+    """Return whether the dev configuration directory should used."""
+    if use_dev_config_dir is not None:
+        if use_dev_config_dir.lower() in {'false', '0'}:
+            use_dev_config_dir = False
+    else:
+        use_dev_config_dir = DEV or not is_stable_version(__version__)
+    return use_dev_config_dir
 
 
 #==============================================================================
@@ -102,6 +134,12 @@ else:
 #    completion) separately for each version
 if PY3:
     SUBFOLDER = SUBFOLDER + '-py3'
+
+
+# If running a development/beta version, save config in a seperate directory
+# to avoid wiping or contaiminating the user's saved stable configuration.
+if use_dev_config_dir():
+    SUBFOLDER = SUBFOLDER + '-dev'
 
 
 def get_home_dir():
@@ -350,8 +388,14 @@ def get_interface_language():
 
 def save_lang_conf(value):
     """Save language setting to language config file"""
-    with open(LANG_FILE, 'w') as f:
-        f.write(value)
+    # Needed to avoid an error when trying to save LANG_FILE
+    # but the operation fails for some reason.
+    # See issue 8807
+    try:
+        with open(LANG_FILE, 'w') as f:
+            f.write(value)
+    except EnvironmentError:
+        pass
 
 
 def load_lang_conf():

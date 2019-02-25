@@ -84,7 +84,7 @@ from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
 from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QDockWidget, QMainWindow,
                             QMenu, QMessageBox, QShortcut, QSplashScreen,
-                            QStyleFactory, QTabWidget, QWidget, QDesktopWidget)
+                            QStyleFactory, QWidget, QDesktopWidget)
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -149,8 +149,7 @@ else:
 # Local utility imports
 #==============================================================================
 from spyder import (__version__, __project_url__, __forum_url__,
-                    __trouble_url__, __trouble_url_short__, __website_url__,
-                    get_versions)
+                    __trouble_url__, __website_url__, get_versions)
 from spyder.config.base import (get_conf_path, get_module_source_path, STDERR,
                                 get_debug_level, MAC_APP_NAME, get_home_dir,
                                 running_in_mac_app, get_module_path,
@@ -406,14 +405,14 @@ class MainWindow(QMainWindow):
         self.give_updates_feedback = True
 
         # Preferences
-        from spyder.preferences.configdialog import (MainConfigPage,
-                                                     ColorSchemeConfigPage)
+        from spyder.preferences.appearance import AppearanceConfigPage
+        from spyder.preferences.general import MainConfigPage
         from spyder.preferences.shortcuts import ShortcutsConfigPage
         from spyder.preferences.runconfig import RunConfigPage
         from spyder.preferences.maininterpreter import MainInterpreterConfigPage
         from spyder.preferences.languageserver import LSPManagerConfigPage
-        self.general_prefs = [MainConfigPage, ShortcutsConfigPage,
-                              ColorSchemeConfigPage, MainInterpreterConfigPage,
+        self.general_prefs = [MainConfigPage, AppearanceConfigPage,
+                              ShortcutsConfigPage, MainInterpreterConfigPage,
                               RunConfigPage, LSPManagerConfigPage]
         self.prefs_index = None
         self.prefs_dialog_size = None
@@ -720,6 +719,8 @@ class MainWindow(QMainWindow):
 
         # Consoles menu/toolbar
         self.consoles_menu = self.menuBar().addMenu(_("C&onsoles"))
+        self.consoles_menu.aboutToShow.connect(
+                self.update_execution_state_kernel)
 
         # Projects menu
         self.projects_menu = self.menuBar().addMenu(_("&Projects"))
@@ -2047,6 +2048,13 @@ class MainWindow(QMainWindow):
         self._update_show_toolbars_action()
 
     # --- Other
+    def update_execution_state_kernel(self):
+        """Handle execution state of the current console."""
+        try:
+            self.ipyconsole.update_execution_state_kernel()
+        except AttributeError:
+            return
+
     def valid_project(self):
         """Handle an invalid active project."""
         try:
@@ -2469,7 +2477,8 @@ class MainWindow(QMainWindow):
             <b>Spyder {spyder_ver}</b> {revision}
             <br>The Scientific Python Development Environment |
             <a href="{website_url}">Spyder-IDE.org</a>
-            <br>Copyright &copy; 2009-2018 Spyder Project Contributors
+            <br>Copyright &copy; 2009-2019 Spyder Project Contributors and
+            <a href="{github_url}/blob/master/AUTHORS.txt">others</a>
             <br>Distributed under the terms of the
             <a href="{github_url}/blob/master/LICENSE.txt">MIT License</a>.
 
