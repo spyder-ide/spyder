@@ -284,3 +284,47 @@ def test_editor_docstring_below_def_by_shortcut(qtbot, editor_auto_docstring,
     editor.setTextCursor(cursor)
 
     editor.writer_docstring.write_docstring_for_shortcut()
+
+    assert editor.toPlainText() == expected
+
+
+# @pytest.mark.slow
+@pytest.mark.parametrize(
+    'text, expected',
+    [
+        ('''def foo():
+''',
+         '''def foo():
+    """\n    \n
+    Returns
+    -------
+    RETURN_TYPE
+        DESCRIPTION.
+
+    """''',)
+    ])
+def test_editor_docstring_delayed_popup(qtbot, editor_auto_docstring,
+                                        text, expected):
+    CONF.set('editor', 'docstring_type', 'Numpydoc')
+    editor = editor_auto_docstring
+    editor.set_text(text)
+
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.NextBlock)
+    cursor.setPosition(QTextCursor.EndOfLine, QTextCursor.MoveAnchor)
+    editor.setTextCursor(cursor)
+
+    qtbot.keyPress(editor, Qt.Key_Space)
+    qtbot.keyPress(editor, Qt.Key_Space)
+    qtbot.keyPress(editor, Qt.Key_Space)
+    qtbot.keyPress(editor, Qt.Key_Space)
+    qtbot.keyPress(editor, Qt.Key_QuoteDbl)
+    qtbot.keyPress(editor, Qt.Key_QuoteDbl)
+    qtbot.keyPress(editor, Qt.Key_QuoteDbl)
+    qtbot.wait(1000)
+    qtbot.keyPress(editor.menu_docstring, Qt.Key_Enter)
+    qtbot.wait(1000)
+
+    print('\n' + editor.toPlainText())
+
+    assert editor.toPlainText() == expected
