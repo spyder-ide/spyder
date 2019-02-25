@@ -108,6 +108,7 @@ def test_parse_function_body(editor_auto_docstring, text, indent, expected):
          ),
         ('Numpydoc',
          '''async def foo():
+    raise
     raise ValueError
     raise TypeError("test")
     yield''',
@@ -125,6 +126,7 @@ def test_parse_function_body(editor_auto_docstring, text, indent, expected):
         DESCRIPTION.
 
     """
+    raise
     raise ValueError
     raise TypeError("test")
     yield'''
@@ -177,6 +179,7 @@ def test_parse_function_body(editor_auto_docstring, text, indent, expected):
     '''),
         ('Googledoc',
          '''async def foo():
+    raise
     raise ValueError
     raise TypeError("test")
     yield
@@ -190,6 +193,7 @@ def test_parse_function_body(editor_auto_docstring, text, indent, expected):
         RETURN_TYPE: DESCRIPTION.
 
     """
+    raise
     raise ValueError
     raise TypeError("test")
     yield
