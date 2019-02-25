@@ -322,8 +322,10 @@ class DocstringWriterExtension:
         else:
             numpy_doc += '\n{}Returns'.format(indent1)
             numpy_doc += '\n{}-------'.format(indent1)
-        if func_info.return_type:
-            numpy_doc += '\n{}{}'.format(indent1, func_info.return_type)
+
+        return_type_annotated = func_info.return_type_annotated
+        if return_type_annotated:
+            numpy_doc += '\n{}{}'.format(indent1, return_type_annotated)
             numpy_doc += '\n{}DESCRIPTION.\n'.format(indent2)
         else:
             numpy_doc += '\n{}RETURN_TYPE'.format(indent1)
@@ -390,9 +392,11 @@ class DocstringWriterExtension:
             google_doc += '\n{}Yields:'.format(indent1)
         else:
             google_doc += '\n{}Returns:'.format(indent1)
-        if func_info.return_type:
+
+        return_type_annotated = func_info.return_type_annotated
+        if return_type_annotated:
             google_doc += '\n{}{}: DESCRIPTION.\n'.format(
-                indent2, func_info.return_type)
+                indent2, return_type_annotated)
         else:
             google_doc += '\n{}RETURN_TYPE: DESCRIPTION.\n'.format(indent2)
 
@@ -413,7 +417,8 @@ class FunctionInfo:
         self.arg_name_list = []
         self.arg_type_list = []
         self.arg_value_list = []
-        self.return_type = None
+        self.return_type_annotated = None
+        self.return_value_in_body = []
         self.raise_list = None
         self.has_yield = False
 
@@ -571,10 +576,10 @@ class FunctionInfo:
 
         return_type_re = re.search(r'->[ ]*([a-zA-Z0-9_,()\[\] ]*):$', text)
         if return_type_re:
-            self.return_type = return_type_re.group(1)
+            self.return_type_annotated = return_type_re.group(1)
             text_end = text.rfind(return_type_re.group(0))
         else:
-            self.return_type = None
+            self.return_type_annotated = None
             text_end = len(text)
 
         pos_args_start = text.find('(') + 1
@@ -596,6 +601,42 @@ class FunctionInfo:
         re_yield = re.search(r'[^\n]\s*yield', text)
         if re_yield:
             self.has_yield = True
+
+        # get return value
+        pattern_return = r'return|yield'
+        line_list = text.split('\n')
+        is_found_return = False
+        line_return_tmp = ''
+        for line in line_list:
+            line = line.strip()
+
+            if is_found_return is False:
+                if re.match(pattern_return, line):
+                    is_found_return = True
+
+            if is_found_return:
+                line_return_tmp += line
+                # check entire statement
+                try:
+                    pos_quote = self._find_quote_position(line_return_tmp)
+
+                    if line_return_tmp[-1] == '\\':
+                        line_return_tmp = line_return_tmp[:-1]
+
+                    self._find_bracket_position(line_return_tmp, '(', ')',
+                                                pos_quote)
+                    self._find_bracket_position(line_return_tmp, '{', '}',
+                                                pos_quote)
+                    self._find_bracket_position(line_return_tmp, '[', ']',
+                                                pos_quote)
+                except IndexError:
+                    continue
+
+                return_value = re.sub(pattern_return, '', line_return_tmp)
+                self.return_value_in_body.append(return_value)
+
+                is_found_return = False
+                line_return_tmp = ''
 
 
 class QMenuOnlyForEnter(QMenu):

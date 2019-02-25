@@ -57,7 +57,7 @@ def test_parse_function_definition(text, indent, name_list, type_list,
     assert func_info.arg_name_list == name_list
     assert func_info.arg_type_list == type_list
     assert func_info.arg_value_list == value_list
-    assert func_info.return_type == rtype
+    assert func_info.return_type_annotated == rtype
 
 
 @pytest.mark.parametrize(
@@ -79,7 +79,8 @@ def test_parse_function_definition(text, indent, name_list, type_list,
          "",
          """    return""")
     ])
-def test_parse_function_body(editor_auto_docstring, text, indent, expected):
+def test_get_function_body(editor_auto_docstring, text, indent, expected):
+    """Test get function body."""
     editor = editor_auto_docstring
     editor.set_text(text)
 
@@ -289,7 +290,6 @@ def test_editor_docstring_below_def_by_shortcut(qtbot, editor_auto_docstring,
     assert editor.toPlainText() == expected
 
 
-# @pytest.mark.slow
 @pytest.mark.parametrize(
     'text, expected, key',
     [
