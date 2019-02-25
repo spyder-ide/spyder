@@ -594,11 +594,11 @@ class FunctionInfo:
 
     def parse_body(self, text):
         """Parse the function body text."""
-        re_raise = re.findall(r'[^\n]\s*raise[ \t]*([a-zA-Z0-9_]*)', text)
+        re_raise = re.findall(r'(^|\n)[ \t]*raise[ \t]*([a-zA-Z0-9_]*)', text)
         if len(re_raise) > 0:
-            self.raise_list = [x.strip() for x in re_raise if len(x) > 0]
+            self.raise_list = [x[1].strip() for x in re_raise if len(x[1]) > 0]
 
-        re_yield = re.search(r'[^\n]\s*yield', text)
+        re_yield = re.search(r'(^|\n)[ \t]*yield', text)
         if re_yield:
             self.has_yield = True
 
@@ -607,6 +607,7 @@ class FunctionInfo:
         line_list = text.split('\n')
         is_found_return = False
         line_return_tmp = ''
+
         for line in line_list:
             line = line.strip()
 
@@ -622,6 +623,7 @@ class FunctionInfo:
 
                     if line_return_tmp[-1] == '\\':
                         line_return_tmp = line_return_tmp[:-1]
+                        continue
 
                     self._find_bracket_position(line_return_tmp, '(', ')',
                                                 pos_quote)
