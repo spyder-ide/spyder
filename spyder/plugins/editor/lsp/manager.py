@@ -9,11 +9,16 @@ Manager for all LSP clients connected to the servers defined
 in our Preferences.
 """
 
+# Standard library imports
 import logging
 import os
+import os.path as osp
 
+# Third-party imports
 from qtpy.QtCore import QObject, Slot
 
+# Local imports
+from spyder.config.base import get_conf_path
 from spyder.config.main import CONF
 from spyder.utils.misc import select_port, getcwd_or_home
 from spyder.plugins.editor.lsp.client import LSPClient
@@ -24,7 +29,6 @@ logger = logging.getLogger(__name__)
 
 class LSPManager(QObject):
     """Language Server Protocol manager."""
-    CONF_SECTION = 'lsp-server'
     STOPPED = 'stopped'
     RUNNING = 'running'
 
@@ -36,11 +40,19 @@ class LSPManager(QObject):
         self.clients = {}
         self.requests = {}
         self.register_queue = {}
-        for option in CONF.options(self.CONF_SECTION):
-            self.clients[option] = {'status': self.STOPPED,
-                                    'config': CONF.get('lsp-server', option),
-                                    'instance': None}
-            self.register_queue[option] = []
+
+        # Get configurations for all LSP servers registered through
+        # our Preferences
+        self.configurations_for_servers = CONF.options('lsp-server')
+
+        # Register languages to create clients for
+        for language in self.configurations_for_servers:
+            self.clients[language] = {
+                'status': self.STOPPED,
+                'config': CONF.get('lsp-server', language),
+                'instance': None
+            }
+            self.register_queue[language] = []
 
     def register_plugin_type(self, type, sig):
         self.lsp_plugins[type] = sig
@@ -53,48 +65,76 @@ class LSPManager(QObject):
             else:
                 language_client.register_file(filename, signal)
 
-    def get_root_path(self):
+    def get_root_path(self, language):
         """
-        Get root path to pass to the LSP servers, i.e. project path or cwd.
+        Get root path to pass to the LSP servers.
+
+        This can be the current project path or the output of
+        getcwd_or_home (except for Python, see below).
         """
         path = None
+
+        # Get path of the current project
         if self.main and self.main.projects:
             path = self.main.projects.get_active_project_path()
+
+        # If there's no project, use the output of getcwd_or_home.
         if not path:
-            path = getcwd_or_home()
+            # We can't use getcwd_or_home for Python because if it
+            # returns home and you have a lot of Python files on it
+            # then computing Rope completions takes a long time
+            # and blocks the PyLS server.
+            # Instead we use an empty directory inside our config one,
+            # just like we did for Rope in Spyder 3.
+            if language == 'python':
+                path = get_conf_path('lsp_root_path')
+                if not osp.exists(path):
+                    os.mkdir(path)
+            else:
+                path = getcwd_or_home()
+
         return path
 
     @Slot()
-    def reinit_all_lsp_clients(self):
+    def reinitialize_all_clients(self):
         """
         Send a new initialize message to each LSP server when the project
         path has changed so they can update the respective server root paths.
         """
-        for language_client in self.clients.values():
+        for language in self.clients:
+            language_client = self.clients[language]
             if language_client['status'] == self.RUNNING:
-                folder = self.get_root_path()
-                inst = language_client['instance']
-                inst.folder = folder
-                inst.initialize()
+                folder = self.get_root_path(language)
+                instance = language_client['instance']
+                instance.folder = folder
+                instance.initialize()
 
-    def start_lsp_client(self, language):
+    def start_client(self, language):
+        """Start an LSP client for a given language."""
         started = False
         if language in self.clients:
             language_client = self.clients[language]
             queue = self.register_queue[language]
+
+            # Don't start LSP services in our CIs unless we demand
+            # them.
             if (os.environ.get('CI', False) and
                     not os.environ.get('SPY_TEST_USE_INTROSPECTION')):
                 return started
+
+            # Start client
             started = language_client['status'] == self.RUNNING
             if language_client['status'] == self.STOPPED:
                 config = language_client['config']
+
                 if not config['external']:
                     port = select_port(default_port=config['port'])
                     config['port'] = port
+
                 language_client['instance'] = LSPClient(
-                    self, config['args'], config, config['external'],
-                    folder=self.get_root_path(),
-                    plugin_configurations=config.get('configurations', {}),
+                    parent=self,
+                    server_settings=config,
+                    folder=self.get_root_path(language),
                     language=language)
 
                 for plugin in self.lsp_plugins:
@@ -115,7 +155,7 @@ class LSPManager(QObject):
             self.close_client(language)
 
     def update_server_list(self):
-        for language in CONF.options(self.CONF_SECTION):
+        for language in self.configurations_for_servers:
             config = {'status': self.STOPPED,
                       'config': CONF.get('lsp-server', language),
                       'instance': None}
@@ -124,7 +164,7 @@ class LSPManager(QObject):
                 self.register_queue[language] = []
             else:
                 logger.debug(
-                        self.clients[language]['config'] != config['config'])
+                    self.clients[language]['config'] != config['config'])
                 current_config = self.clients[language]['config']
                 new_config = config['config']
                 restart_diff = ['cmd', 'args', 'host', 'port', 'external']
@@ -136,7 +176,7 @@ class LSPManager(QObject):
                     elif self.clients[language]['status'] == self.RUNNING:
                         self.close_client(language)
                         self.clients[language] = config
-                        self.start_lsp_client(language)
+                        self.start_client(language)
                 else:
                     if self.clients[language]['status'] == self.RUNNING:
                         client = self.clients[language]['instance']

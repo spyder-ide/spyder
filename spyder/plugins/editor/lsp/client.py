@@ -11,16 +11,19 @@ This client implements the calls and procedures required to
 communicate with a v3.0 Language Server Protocol server.
 """
 
+# Standard library imports
 import logging
 import os
 import os.path as osp
-import sys
 import signal
 import subprocess
+import sys
 
+# Third-party imports
 from qtpy.QtCore import QObject, Signal, QSocketNotifier, Slot
 import zmq
 
+# Local imports
 from spyder.py3compat import PY2
 from spyder.config.base import get_conf_path, get_debug_level
 from spyder.plugins.editor.lsp import (
@@ -32,17 +35,17 @@ from spyder.plugins.editor.lsp.decorators import (
 from spyder.plugins.editor.lsp.providers import LSPMethodProviderMixIn
 from spyder.utils.misc import getcwd_or_home
 
+# Conditional imports
 if PY2:
     import pathlib2 as pathlib
 else:
     import pathlib
 
-
+# Main constants
 LOCATION = osp.realpath(osp.join(os.getcwd(),
                                  osp.dirname(__file__)))
 PENDING = 'pending'
 SERVER_READY = 'server_ready'
-WINDOWS = os.name == 'nt'
 
 
 logger = logging.getLogger(__name__)
@@ -59,10 +62,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                         '--server-port %(port)s '
                         '--server %(cmd)s')
 
-    def __init__(self, parent, server_args_fmt='',
-                 server_settings={}, external_server=False,
-                 folder=getcwd_or_home(), language='python',
-                 plugin_configurations={}):
+    def __init__(self, parent,
+                 server_settings={},
+                 folder=getcwd_or_home(),
+                 language='python'):
         QObject.__init__(self)
         # LSPMethodProviderMixIn.__init__(self)
         self.manager = parent
@@ -83,14 +86,15 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
         self.transport_args = [sys.executable, '-u',
                                osp.join(LOCATION, 'transport', 'main.py')]
-        self.external_server = external_server
+        self.external_server = server_settings.get('external', False)
 
         self.folder = folder
-        self.plugin_configurations = plugin_configurations
+        self.plugin_configurations = server_settings.get('configurations', {})
         self.client_capabilites = CLIENT_CAPABILITES
         self.server_capabilites = SERVER_CAPABILITES
         self.context = zmq.Context()
 
+        server_args_fmt = server_settings.get('args', '')
         server_args = server_args_fmt.format(**server_settings)
         # transport_args = self.local_server_fmt % (server_settings)
         # if self.external_server:
@@ -131,7 +135,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             logger.info('Starting server: {0}'.format(
                 ' '.join(self.server_args)))
             creation_flags = 0
-            if WINDOWS:
+            if os.name == 'nt':
                 creation_flags = (subprocess.CREATE_NEW_PROCESS_GROUP
                                   | 0x08000000)  # CREATE_NO_WINDOW
             self.lsp_server = subprocess.Popen(
@@ -175,7 +179,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             self.notifier.activated.disconnect(self.on_msg_received)
             self.notifier.setEnabled(False)
             self.notifier = None
-        # if WINDOWS:
+        # if os.name == 'nt':
         #     self.transport_client.send_signal(signal.CTRL_BREAK_EVENT)
         # else:
         self.transport_client.kill()

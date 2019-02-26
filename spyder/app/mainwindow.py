@@ -37,11 +37,11 @@ import importlib
 
 logger = logging.getLogger(__name__)
 
+
 #==============================================================================
 # Keeping a reference to the original sys.exit before patching it
 #==============================================================================
 ORIGINAL_SYS_EXIT = sys.exit
-
 
 #==============================================================================
 # Check requirements
@@ -50,7 +50,6 @@ from spyder import requirements
 requirements.check_path()
 requirements.check_qt()
 requirements.check_spyder_kernels()
-
 
 #==============================================================================
 # Windows only: support for hiding console window when started with python.exe
@@ -62,17 +61,6 @@ if os.name == 'nt':
     from spyder.utils.windows import (set_attached_console_visible,
                                       is_attached_console_visible,
                                       set_windows_appusermodelid)
-
-
-#==============================================================================
-# Workaround: importing rope.base.project here, otherwise this module can't
-# be imported if Spyder was executed from another folder than spyder
-#==============================================================================
-try:
-    import rope.base.project  # analysis:ignore
-except ImportError:
-    pass
-
 
 #==============================================================================
 # Qt imports
@@ -111,7 +99,6 @@ from spyder.config.main import CONF
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
     QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling,
                                   CONF.get('main', 'high_dpi_scaling'))
-
 
 #==============================================================================
 # Create our QApplication instance here because it's needed to render the
@@ -164,9 +151,7 @@ from spyder.utils import encoding, programs
 from spyder.utils import icon_manager as ima
 from spyder.utils.programs import is_module_installed
 from spyder.utils.misc import select_port, getcwd_or_home, get_python_executable
-from spyder.widgets.fileswitcher import FileSwitcher
 from spyder.plugins.help.utils.sphinxify import CSS_PATH, DARK_CSS_PATH
-from spyder.plugins.editor.lsp.manager import LSPManager
 from spyder.config.gui import is_dark_font_color
 
 #==============================================================================
@@ -199,7 +184,6 @@ import qdarkstyle
 # used in the last session
 #==============================================================================
 CWD = getcwd_or_home()
-
 
 #==============================================================================
 # Utility functions
@@ -265,11 +249,9 @@ def setup_logging(cli_options):
 # =============================================================================
 # Dependencies
 # =============================================================================
-
 QDARKSTYLE_REQVER = '>=2.6.4'
 dependencies.add("qdarkstyle", _("Dark style for the entire interface"),
                  required_version=QDARKSTYLE_REQVER)
-
 
 #==============================================================================
 # Main Window
@@ -872,6 +854,7 @@ class MainWindow(QMainWindow):
 
         # Language Server Protocol Client initialization
         self.set_splash(_("Starting Language Server Protocol manager..."))
+        from spyder.plugins.editor.lsp.manager import LSPManager
         self.lspmanager = LSPManager(self)
 
         # Working directory plugin
@@ -903,7 +886,7 @@ class MainWindow(QMainWindow):
 
         # Start LSP client
         self.set_splash(_("Launching LSP Client for Python..."))
-        self.lspmanager.start_lsp_client('python')
+        self.lspmanager.start_client(language='python')
 
         # Populating file menu entries
         quit_action = create_action(self, _("&Quit"),
@@ -3057,6 +3040,7 @@ class MainWindow(QMainWindow):
     def add_to_fileswitcher(self, plugin, tabs, data, icon):
         """Add a plugin to the File Switcher."""
         if self.fileswitcher is None:
+            from spyder.widgets.fileswitcher import FileSwitcher
             self.fileswitcher = FileSwitcher(self, plugin, tabs, data, icon)
         else:
             self.fileswitcher.add_plugin(plugin, tabs, data, icon)
