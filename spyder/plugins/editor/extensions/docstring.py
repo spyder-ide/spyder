@@ -317,22 +317,45 @@ class DocstringWriterExtension:
                 numpy_doc += '\n{}DESCRIPTION.'.format(indent2)
             numpy_doc += '\n'
 
+        # if func_info.has_yield:
+        #     numpy_doc += '\n{}Yields'.format(indent1)
+        #     numpy_doc += '\n{}------'.format(indent1)
+        # else:
+        #     numpy_doc += '\n{}Returns'.format(indent1)
+        #     numpy_doc += '\n{}-------'.format(indent1)
+        #
+        # return_type_annotated = func_info.return_type_annotated
+        # if return_type_annotated:
+        #     numpy_doc += '\n{}{}'.format(indent1, return_type_annotated)
+        #     numpy_doc += '\n{}DESCRIPTION.\n'.format(indent2)
+        # else:
+        #     numpy_doc += '\n{}RETURN_TYPE'.format(indent1)
+        #     numpy_doc += '\n{}DESCRIPTION.\n'.format(indent2)
+
+        numpy_doc += '\n'
         if func_info.has_yield:
-            numpy_doc += '\n{}Yields'.format(indent1)
-            numpy_doc += '\n{}------'.format(indent1)
+            header = '{0}Yields\n{0}------\n'.format(indent1)
         else:
-            numpy_doc += '\n{}Returns'.format(indent1)
-            numpy_doc += '\n{}-------'.format(indent1)
+            header = '{0}Returns\n{0}-------\n'.format(indent1)
 
         return_type_annotated = func_info.return_type_annotated
         if return_type_annotated:
-            numpy_doc += '\n{}{}'.format(indent1, return_type_annotated)
-            numpy_doc += '\n{}DESCRIPTION.\n'.format(indent2)
+            return_section = '{}{}{}'.format(header, indent1,
+                                             return_type_annotated)
+            return_section += '\n{}DESCRIPTION.'.format(indent2)
         else:
-            numpy_doc += '\n{}RETURN_TYPE'.format(indent1)
-            numpy_doc += '\n{}DESCRIPTION.\n'.format(indent2)
+            return_element_type = indent1 + '{return_type}\n' + indent2 + \
+                                  'DESCRIPTION.'
+            placeholder = return_element_type.format(return_type='TYPE')
+            return_element_name = indent1 + '{return_name} : ' + \
+                                  placeholder.lstrip()
 
-        numpy_doc += '\n{}{}'.format(indent1, self.quote3)
+            return_section = self._generate_docstring_return_section(
+                func_info.return_value_in_body, header, return_element_name,
+                return_element_type, placeholder, indent1)
+
+        numpy_doc += return_section
+        numpy_doc += '\n\n{}{}'.format(indent1, self.quote3)
 
         return numpy_doc
 
@@ -404,6 +427,164 @@ class DocstringWriterExtension:
         google_doc += '\n{}{}'.format(indent1, self.quote3)
 
         return google_doc
+
+    @staticmethod
+    def find_top_level_bracket_locations(string_toparse):
+        """Get the locations of top-level brackets in a string."""
+        bracket_stack = []
+        replace_args_list = []
+        bracket_type = None
+        literal_type = ''
+        brackets = {'(': ')', '[': ']', '{': '}'}
+        for idx, character in enumerate(string_toparse):
+            if (not bracket_stack and character in brackets.keys()
+                    or character == bracket_type):
+                bracket_stack.append(idx)
+                bracket_type = character
+            elif bracket_type and character == brackets[bracket_type]:
+                begin_idx = bracket_stack.pop()
+                if not bracket_stack:
+                    if not literal_type:
+                        if bracket_type == '(':
+                            literal_type = '(None)'
+                        elif bracket_type == '[':
+                            literal_type = '[list]'
+                        elif bracket_type == '{':
+                            if idx - begin_idx <= 1:
+                                literal_type = '{dict}'
+                            else:
+                                literal_type = '{set}'
+                    replace_args_list.append(
+                        (string_toparse[begin_idx:idx + 1],
+                         literal_type, 1))
+                    bracket_type = None
+                    literal_type = ''
+            elif len(bracket_stack) == 1:
+                if bracket_type == '(' and character == ',':
+                    literal_type = '(tuple)'
+                elif bracket_type == '{' and character == ':':
+                    literal_type = '{dict}'
+                elif bracket_type == '(' and character == ':':
+                    literal_type = '[slice]'
+
+        if bracket_stack:
+            raise IndexError('Bracket mismatch')
+        for replace_args in replace_args_list:
+            string_toparse = string_toparse.replace(*replace_args)
+        return string_toparse
+
+    @staticmethod
+    def parse_return_elements(return_vals_group, return_element_name,
+                              return_element_type, placeholder):
+        """Return the appropriate text for a group of return elements."""
+        all_eq = (return_vals_group.count(return_vals_group[0])
+                  == len(return_vals_group))
+        if all([{'[list]', '(tuple)', '{dict}', '{set}'}.issuperset(
+                return_vals_group)]) and all_eq:
+            return return_element_type.format(
+                return_type=return_vals_group[0][1:-1])
+        # Output placeholder if special Python chars present in name
+        py_chars = {' ', '+', '-', '*', '/', '%', '@', '<', '>', '&', '|', '^',
+                    '~', '=', ',', ':', ';', '#', '(', '[', '{', '}', ']',
+                    ')', }
+        if any([any([py_char in return_val for py_char in py_chars])
+                for return_val in return_vals_group]):
+            return placeholder
+        # Output str type and no name if only string literals
+        if all(['"' in return_val or '\'' in return_val
+                for return_val in return_vals_group]):
+            return return_element_type.format(return_type='str')
+        # Output bool type and no name if only bool literals
+        if {'True', 'False'}.issuperset(return_vals_group):
+            return return_element_type.format(return_type='bool')
+        # Output numeric types and no name if only numeric literals
+        try:
+            [float(return_val) for return_val in return_vals_group]
+            num_not_int = 0
+            for return_val in return_vals_group:
+                try:
+                    int(return_val)
+                except ValueError:  # If not an integer (EAFP)
+                    num_not_int = num_not_int + 1
+            if num_not_int == 0:
+                return return_element_type.format(return_type='int')
+            elif num_not_int == len(return_vals_group):
+                return return_element_type.format(return_type='float')
+            else:
+                return return_element_type.format(return_type='numeric')
+        except ValueError:  # Not a numeric if float conversion didn't work
+            pass
+        # If names are not equal, don't contain "." or are a builtin
+        if ({'self', 'cls', 'None'}.isdisjoint(return_vals_group) and all_eq
+                and all(['.' not in return_val
+                         for return_val in return_vals_group])):
+            return return_element_name.format(return_name=return_vals_group[0])
+        return placeholder
+
+    def _generate_docstring_return_section(self, return_vals, header,
+                                           return_element_name,
+                                           return_element_type,
+                                           placeholder, indent1):
+        """Generate the Returns section of a function/method docstring."""
+        # If all return values are None, return none
+        non_none_vals = [return_val for return_val in return_vals
+                         if return_val and return_val != 'None']
+        if not non_none_vals:
+            return header + indent1 + 'None.'
+
+        # Get only values with matching brackets that can be cleaned up
+        non_none_vals = [return_val.strip(' ()\t\n').rstrip(',')
+                         for return_val in non_none_vals]
+        non_none_vals = [re.sub('([\"\'])(?:(?=(\\\\?))\\2.)*?\\1',
+                                '"string"', return_val)
+                         for return_val in non_none_vals]
+        unambiguous_vals = []
+        for return_val in non_none_vals:
+            try:
+                cleaned_val = self.find_top_level_bracket_locations(return_val)
+            except IndexError:
+                continue
+            unambiguous_vals.append(cleaned_val)
+        if not unambiguous_vals:
+            return header + placeholder
+
+        # If remaining are a mix of tuples and not, return single placeholder
+        single_vals, tuple_vals = [], []
+        for return_val in unambiguous_vals:
+            (tuple_vals.append(return_val) if ',' in return_val
+             else single_vals.append(return_val))
+        if single_vals and tuple_vals:
+            return header + placeholder
+
+        # If return values are tuples of different length, return a placeholder
+        if tuple_vals:
+            num_elements = [return_val.count(',') + 1
+                            for return_val in tuple_vals]
+            if num_elements.count(num_elements[0]) != len(num_elements):
+                return header + placeholder
+            num_elements = num_elements[0]
+        else:
+            num_elements = 1
+
+        # If all have the same len but some ambiguous return that placeholders
+        if len(unambiguous_vals) != len(non_none_vals):
+            return header + '\n'.join(
+                [placeholder for __ in range(num_elements)])
+
+        # Handle tuple (or single) values position by position
+        return_vals_grouped = zip(*[
+            [return_element.strip() for return_element in
+             return_val.split(',')]
+            for return_val in unambiguous_vals])
+        return_elements_out = []
+        for return_vals_group in return_vals_grouped:
+            return_elements_out.append(
+                self.parse_return_elements(return_vals_group,
+                                           return_element_name,
+                                           return_element_type,
+                                           placeholder))
+
+        return header + '\n'.join(return_elements_out)
 
 
 class FunctionInfo:
@@ -549,9 +730,9 @@ class FunctionInfo:
             idx_find_start = pos_comma + 1
 
             if self.is_char_in_pairs(pos_comma, pos_round) or \
-               self.is_char_in_pairs(pos_comma, pos_curly) or \
-               self.is_char_in_pairs(pos_comma, pos_square) or \
-               self.is_char_in_pairs(pos_comma, pos_quote):
+                    self.is_char_in_pairs(pos_comma, pos_curly) or \
+                    self.is_char_in_pairs(pos_comma, pos_square) or \
+                    self.is_char_in_pairs(pos_comma, pos_quote):
                 continue
 
             args_list.append(args_text[idx_arg_start:pos_comma])
@@ -598,9 +779,9 @@ class FunctionInfo:
         re_raise = re.findall(r'[ \t]raise ([a-zA-Z0-9_]*)', text)
         if len(re_raise) > 0:
             self.raise_list = [x.strip() for x in re_raise]
-            # Removing duplicates in lists
-            # stackoverflow.com/questions/7961363/removing-duplicates-in-lists
             # remove duplicates from list while keeping it in the order
+            # in python 2.7
+            # stackoverflow.com/questions/7961363/removing-duplicates-in-lists
             self.raise_list = list(OrderedDict.fromkeys(self.raise_list))
 
         re_yield = re.search(r'[ \t]yield ', text)
@@ -608,7 +789,7 @@ class FunctionInfo:
             self.has_yield = True
 
         # get return value
-        pattern_return = r'return|yield'
+        pattern_return = r'return |yield '
         line_list = text.split('\n')
         is_found_return = False
         line_return_tmp = ''
@@ -622,7 +803,7 @@ class FunctionInfo:
 
             if is_found_return:
                 line_return_tmp += line
-                # check entire statement
+                # check the integrity of line
                 try:
                     pos_quote = self._find_quote_position(line_return_tmp)
 

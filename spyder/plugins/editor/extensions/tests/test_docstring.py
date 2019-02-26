@@ -124,8 +124,7 @@ def test_get_function_body(editor_auto_docstring, text, indent, expected):
         DESCRIPTION.\n
     Yields
     ------
-    RETURN_TYPE
-        DESCRIPTION.
+    None.
 
     """
     raise
@@ -142,8 +141,7 @@ def test_get_function_body(editor_auto_docstring, text, indent, expected):
       """\n      \n
       Returns
       -------
-      RETURN_TYPE
-          DESCRIPTION.
+      None.
 
       """
       print('{}' % foo_raise Value)
@@ -271,8 +269,7 @@ def test_editor_docstring_by_shortcut(editor_auto_docstring, doc_type,
       """\n      \n
       Returns
       -------
-      RETURN_TYPE
-          DESCRIPTION.
+      None.
 
       """
       ''',)
@@ -303,8 +300,7 @@ def test_editor_docstring_below_def_by_shortcut(qtbot, editor_auto_docstring,
     """\n    \n
     Returns
     -------
-    RETURN_TYPE
-        DESCRIPTION.
+    None.
 
     """''',
          Qt.Key_Enter),
@@ -351,7 +347,7 @@ def test_editor_docstring_delayed_popup(qtbot, editor_auto_docstring,
       is_yield()
       raise ValueError('tt')
       yieldfoo()
-      raise TypeError('tt')
+      \traise TypeError('tt')
       _yield
       ''',
          '''  def foo():
@@ -364,8 +360,7 @@ def test_editor_docstring_delayed_popup(qtbot, editor_auto_docstring,
           DESCRIPTION.\n
       Returns
       -------
-      RETURN_TYPE
-          DESCRIPTION.
+      None.
 
       """
       raise
@@ -375,9 +370,63 @@ def test_editor_docstring_delayed_popup(qtbot, editor_auto_docstring,
       is_yield()
       raise ValueError('tt')
       yieldfoo()
-      raise TypeError('tt')
+      \traise TypeError('tt')
       _yield
-      ''',)
+      ''',),
+        ('''def foo():
+    return None
+    return "f, b", v1, v2, 3.0, .7, (,), {}, [ab], f(a), None, a.b, a+b, True
+    return "f, b", v1, v3, 420, 5., (,), {}, [ab], f(a), None, a.b, a+b, False
+    ''',
+         '''def foo():
+    """\n    \n
+    Returns
+    -------
+    str
+        DESCRIPTION.
+    v1 : TYPE
+        DESCRIPTION.
+    TYPE
+        DESCRIPTION.
+    numeric
+        DESCRIPTION.
+    float
+        DESCRIPTION.
+    tuple
+        DESCRIPTION.
+    dict
+        DESCRIPTION.
+    list
+        DESCRIPTION.
+    TYPE
+        DESCRIPTION.
+    TYPE
+        DESCRIPTION.
+    TYPE
+        DESCRIPTION.
+    TYPE
+        DESCRIPTION.
+    bool
+        DESCRIPTION.
+
+    """
+    return None
+    return "f, b", v1, v2, 3.0, .7, (,), {}, [ab], f(a), None, a.b, a+b, True
+    return "f, b", v1, v3, 420, 5., (,), {}, [ab], f(a), None, a.b, a+b, False
+    '''),
+        ('''def foo():
+    return no, (ano, eo, dken)
+    ''',
+         '''def foo():
+    """\n    \n
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+
+    """
+    return no, (ano, eo, dken)
+    ''')
     ])
 def test_editor_docstring_with_body(qtbot, editor_auto_docstring, text,
                                     expected):
