@@ -8,6 +8,7 @@
 
 # Standard library imports
 import re
+from collections import OrderedDict
 
 # Third party imports
 from qtpy.QtGui import QTextCursor
@@ -594,11 +595,16 @@ class FunctionInfo:
 
     def parse_body(self, text):
         """Parse the function body text."""
-        re_raise = re.findall(r'(^|\n)[ \t]*raise[ \t]*([a-zA-Z0-9_]*)', text)
+        re_raise = re.findall(r'[ \t]raise ([a-zA-Z0-9_]*)', text)
         if len(re_raise) > 0:
-            self.raise_list = [x[1].strip() for x in re_raise if len(x[1]) > 0]
+            self.raise_list = [x.strip() for x in re_raise]
+            # Removing duplicates in lists
+            # stackoverflow.com/questions/7961363/removing-duplicates-in-lists
+            # remove duplicates from list while keeping it in the order
+            self.raise_list = list(OrderedDict.fromkeys(self.raise_list))
 
-        re_yield = re.search(r'(^|\n)[ \t]*yield', text)
+
+        re_yield = re.search(r'[ \t]yield ', text)
         if re_yield:
             self.has_yield = True
 

@@ -111,8 +111,9 @@ def test_get_function_body(editor_auto_docstring, text, indent, expected):
          '''async def foo():
     raise
     raise ValueError
+    raise ValueError("test")
     raise TypeError("test")
-    yield''',
+    yield ''',
          '''async def foo():
     """\n    \n
     Raises
@@ -129,8 +130,9 @@ def test_get_function_body(editor_auto_docstring, text, indent, expected):
     """
     raise
     raise ValueError
+    raise ValueError("test")
     raise TypeError("test")
-    yield'''
+    yield '''
          ),
         ('Numpydoc',
          '''  def foo():
@@ -185,7 +187,7 @@ def test_get_function_body(editor_auto_docstring, text, indent, expected):
     raise
     raise ValueError
     raise TypeError("test")
-    yield
+    yield value
     ''',
          '''async def foo():
     """\n    \n
@@ -199,7 +201,7 @@ def test_get_function_body(editor_auto_docstring, text, indent, expected):
     raise
     raise ValueError
     raise TypeError("test")
-    yield
+    yield value
     '''
          ),
         ('Googledoc',
