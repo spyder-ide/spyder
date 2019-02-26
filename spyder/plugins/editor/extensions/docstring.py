@@ -317,21 +317,6 @@ class DocstringWriterExtension:
                 numpy_doc += '\n{}DESCRIPTION.'.format(indent2)
             numpy_doc += '\n'
 
-        # if func_info.has_yield:
-        #     numpy_doc += '\n{}Yields'.format(indent1)
-        #     numpy_doc += '\n{}------'.format(indent1)
-        # else:
-        #     numpy_doc += '\n{}Returns'.format(indent1)
-        #     numpy_doc += '\n{}-------'.format(indent1)
-        #
-        # return_type_annotated = func_info.return_type_annotated
-        # if return_type_annotated:
-        #     numpy_doc += '\n{}{}'.format(indent1, return_type_annotated)
-        #     numpy_doc += '\n{}DESCRIPTION.\n'.format(indent2)
-        # else:
-        #     numpy_doc += '\n{}RETURN_TYPE'.format(indent1)
-        #     numpy_doc += '\n{}DESCRIPTION.\n'.format(indent2)
-
         numpy_doc += '\n'
         if func_info.has_yield:
             header = '{0}Yields\n{0}------\n'.format(indent1)
@@ -345,10 +330,10 @@ class DocstringWriterExtension:
             return_section += '\n{}DESCRIPTION.'.format(indent2)
         else:
             return_element_type = indent1 + '{return_type}\n' + indent2 + \
-                                  'DESCRIPTION.'
+                'DESCRIPTION.'
             placeholder = return_element_type.format(return_type='TYPE')
             return_element_name = indent1 + '{return_name} : ' + \
-                                  placeholder.lstrip()
+                placeholder.lstrip()
 
             return_section = self._generate_docstring_return_section(
                 func_info.return_value_in_body, header, return_element_name,
@@ -412,19 +397,28 @@ class DocstringWriterExtension:
                 google_doc += ': DESCRIPTION.'
             google_doc += '\n'
 
+        google_doc += '\n'
         if func_info.has_yield:
-            google_doc += '\n{}Yields:'.format(indent1)
+            header = '{}Yields:\n'.format(indent1)
         else:
-            google_doc += '\n{}Returns:'.format(indent1)
+            header = '{}Returns:\n'.format(indent1)
 
         return_type_annotated = func_info.return_type_annotated
         if return_type_annotated:
-            google_doc += '\n{}{}: DESCRIPTION.\n'.format(
-                indent2, return_type_annotated)
+            return_section = '{}{}{}: DESCRIPTION.'.format(
+                header, indent2, return_type_annotated)
         else:
-            google_doc += '\n{}RETURN_TYPE: DESCRIPTION.\n'.format(indent2)
+            return_element_type = indent2 + '({return_type}): DESCRIPTION.'
+            placeholder = return_element_type.format(return_type='TYPE')
+            return_element_name = indent2 + '{return_name} ' + \
+                placeholder.lstrip()
 
-        google_doc += '\n{}{}'.format(indent1, self.quote3)
+            return_section = self._generate_docstring_return_section(
+                func_info.return_value_in_body, header, return_element_name,
+                return_element_type, placeholder, indent2)
+
+        google_doc += return_section
+        google_doc += '\n\n{}{}'.format(indent1, self.quote3)
 
         return google_doc
 
@@ -524,13 +518,13 @@ class DocstringWriterExtension:
     def _generate_docstring_return_section(self, return_vals, header,
                                            return_element_name,
                                            return_element_type,
-                                           placeholder, indent1):
+                                           placeholder, indent):
         """Generate the Returns section of a function/method docstring."""
         # If all return values are None, return none
         non_none_vals = [return_val for return_val in return_vals
                          if return_val and return_val != 'None']
         if not non_none_vals:
-            return header + indent1 + 'None.'
+            return header + indent + 'None.'
 
         # Get only values with matching brackets that can be cleaned up
         non_none_vals = [return_val.strip(' ()\t\n').rstrip(',')

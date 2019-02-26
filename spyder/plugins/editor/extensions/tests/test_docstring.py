@@ -193,7 +193,7 @@ def test_get_function_body(editor_auto_docstring, text, indent, expected):
         ValueError: DESCRIPTION.
         TypeError: DESCRIPTION.\n
     Yields:
-        RETURN_TYPE: DESCRIPTION.
+        value (TYPE): DESCRIPTION.
 
     """
     raise
@@ -208,7 +208,7 @@ def test_get_function_body(editor_auto_docstring, text, indent, expected):
          '''  def foo():
       """\n      \n
       Returns:
-          RETURN_TYPE: DESCRIPTION.
+          None.
 
       """
       ''',
@@ -428,10 +428,99 @@ def test_editor_docstring_delayed_popup(qtbot, editor_auto_docstring,
     return no, (ano, eo, dken)
     ''')
     ])
-def test_editor_docstring_with_body(qtbot, editor_auto_docstring, text,
-                                    expected):
+def test_editor_docstring_with_body_numpydoc(qtbot, editor_auto_docstring,
+                                             text, expected):
     """Test auto docstring when the function body is complex."""
     CONF.set('editor', 'docstring_type', 'Numpydoc')
+    editor = editor_auto_docstring
+    editor.set_text(text)
+
+    cursor = editor.textCursor()
+    cursor.setPosition(0, QTextCursor.MoveAnchor)
+    editor.setTextCursor(cursor)
+    writer = editor.writer_docstring
+
+    writer.write_docstring_for_shortcut()
+
+    assert editor.toPlainText() == expected
+
+
+@pytest.mark.parametrize(
+    'text, expected',
+    [
+        ('''  def foo():
+      raise
+      foo_raise()
+      raisefoo()
+      raise ValueError
+      is_yield()
+      raise ValueError('tt')
+      yieldfoo()
+      \traise TypeError('tt')
+      _yield
+      ''',
+         '''  def foo():
+      """\n      \n
+      Raises:
+          ValueError: DESCRIPTION.
+          TypeError: DESCRIPTION.\n
+      Returns:
+          None.
+
+      """
+      raise
+      foo_raise()
+      raisefoo()
+      raise ValueError
+      is_yield()
+      raise ValueError('tt')
+      yieldfoo()
+      \traise TypeError('tt')
+      _yield
+      ''',),
+        ('''def foo():
+    return None
+    return "f, b", v1, v2, 3.0, .7, (,), {}, [ab], f(a), None, a.b, a+b, True
+    return "f, b", v1, v3, 420, 5., (,), {}, [ab], f(a), None, a.b, a+b, False
+    ''',
+         '''def foo():
+    """\n    \n
+    Returns:
+        (str): DESCRIPTION.
+        v1 (TYPE): DESCRIPTION.
+        (TYPE): DESCRIPTION.
+        (numeric): DESCRIPTION.
+        (float): DESCRIPTION.
+        (tuple): DESCRIPTION.
+        (dict): DESCRIPTION.
+        (list): DESCRIPTION.
+        (TYPE): DESCRIPTION.
+        (TYPE): DESCRIPTION.
+        (TYPE): DESCRIPTION.
+        (TYPE): DESCRIPTION.
+        (bool): DESCRIPTION.
+
+    """
+    return None
+    return "f, b", v1, v2, 3.0, .7, (,), {}, [ab], f(a), None, a.b, a+b, True
+    return "f, b", v1, v3, 420, 5., (,), {}, [ab], f(a), None, a.b, a+b, False
+    '''),
+        ('''def foo():
+    return no, (ano, eo, dken)
+    ''',
+         '''def foo():
+    """\n    \n
+    Returns:
+        (TYPE): DESCRIPTION.
+
+    """
+    return no, (ano, eo, dken)
+    ''')
+    ])
+def test_editor_docstring_with_body_googledoc(qtbot, editor_auto_docstring,
+                                              text, expected):
+    """Test auto docstring when the function body is complex."""
+    CONF.set('editor', 'docstring_type', 'Googledoc')
     editor = editor_auto_docstring
     editor.set_text(text)
 
