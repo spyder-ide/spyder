@@ -338,3 +338,59 @@ def test_editor_docstring_delayed_popup(qtbot, editor_auto_docstring,
     qtbot.wait(1000)
 
     assert editor.toPlainText() == expected
+
+
+@pytest.mark.parametrize(
+    'text, expected',
+    [
+        ('''  def foo():
+      raise
+      foo_raise()
+      raisefoo()
+      raise ValueError
+      is_yield()
+      raise ValueError('tt')
+      yieldfoo()
+      raise TypeError('tt')
+      _yield
+      ''',
+         '''  def foo():
+      """\n      \n
+      Raises
+      ------
+      ValueError
+          DESCRIPTION.
+      TypeError
+          DESCRIPTION.\n
+      Returns
+      -------
+      RETURN_TYPE
+          DESCRIPTION.
+
+      """
+      raise
+      foo_raise()
+      raisefoo()
+      raise ValueError
+      is_yield()
+      raise ValueError('tt')
+      yieldfoo()
+      raise TypeError('tt')
+      _yield
+      ''',)
+    ])
+def test_editor_docstring_with_body(qtbot, editor_auto_docstring, text,
+                                    expected):
+    """Test auto docstring when the function body is complex."""
+    CONF.set('editor', 'docstring_type', 'Numpydoc')
+    editor = editor_auto_docstring
+    editor.set_text(text)
+
+    cursor = editor.textCursor()
+    cursor.setPosition(0, QTextCursor.MoveAnchor)
+    editor.setTextCursor(cursor)
+    writer = editor.writer_docstring
+
+    writer.write_docstring_for_shortcut()
+
+    assert editor.toPlainText() == expected

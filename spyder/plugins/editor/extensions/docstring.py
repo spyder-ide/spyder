@@ -603,7 +603,6 @@ class FunctionInfo:
             # remove duplicates from list while keeping it in the order
             self.raise_list = list(OrderedDict.fromkeys(self.raise_list))
 
-
         re_yield = re.search(r'[ \t]yield ', text)
         if re_yield:
             self.has_yield = True
