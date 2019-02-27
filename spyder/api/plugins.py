@@ -272,7 +272,7 @@ class SpyderPluginWidget(PluginWidget):
     # inside it.
     # Example: ['.ipynb'] for spyder-notebook
     # Status: Optional
-    registered_file_extensions = []
+    file_extensions = []
 
     # ------------------------------ METHODS ----------------------------------
 
@@ -362,5 +362,8 @@ class SpyderPluginWidget(PluginWidget):
     def open_file(self, filename=None):
         """
         Open filename inside the plugin.
+
+        To be able to use this method you need to define `file_extensions` for
+        your plugin too.
         """
         raise NotImplementedError

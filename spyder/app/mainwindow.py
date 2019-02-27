@@ -2712,16 +2712,22 @@ class MainWindow(QMainWindow):
 
     def open_file(self, fname, external=False):
         """
-        Open filename with the appropriate application
-        Redirect to the right widget (txt -> editor, spydata -> workspace, ...)
-        or open file outside Spyder (if extension is not supported)
+        Open fname with the appropriate plugin.
+
+        This is the order we follow to do it:
+        1. We check all third-party plugin to see if one can open fname.
+        2. If fname is a plain text file, we open it with the Editor.
+        3. If fname is a type that can be imported in the Variable
+           Explorer, we open it there.
+        4. If none of the above applies, we use the OS application
+           registered to handle fname.
         """
         fname = to_text_string(fname)
         ext = osp.splitext(fname)[1]
 
         # Go through third party plugins first
         for plugin in self.thirdparty_plugins:
-            if ext in plugin.registered_file_extensions:
+            if ext in plugin.file_extensions:
                 plugin.open_file(fname)
 
         # Open file with the editor, the variable explorer or with
