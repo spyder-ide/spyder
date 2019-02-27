@@ -2219,6 +2219,11 @@ class Editor(SpyderPluginWidget):
         focus_widget = self.main.ipyconsole.get_focus_widget()
         if focus_widget:
             focus_widget.setFocus()
+        current_editor = self.get_current_editor()
+        if current_editor is not None:
+            current_sw = self.main.ipyconsole.get_current_shellwidget()
+            if current_sw is not None and current_sw._reading:
+                current_editor.sig_stop_debugging.emit()
 
     #------ Run Python script
     @Slot()
@@ -2311,6 +2316,9 @@ class Editor(SpyderPluginWidget):
     def debug_file(self):
         """Debug current script"""
         self.switch_to_plugin()
+        current_editor = self.get_current_editor()
+        if current_editor is not None:
+            current_editor.sig_start_debugging.emit()
         self.run_file(debug=True)
 
     @Slot()

@@ -26,6 +26,7 @@ class DebuggerPanel(Panel):
 
         self.line_number_hint = None
         self._current_line_arrow = None
+        self.stop = False
 
         # Diccionary of QIcons to draw in the panel
         self.icons = {'breakpoint': ima.icon('breakpoint_big'),
@@ -64,6 +65,14 @@ class DebuggerPanel(Panel):
         else:
             icon.paint(painter, rect)
 
+    def stop_clean(self):
+        self.stop = True
+        self.update()
+
+    def start_clean(self):
+        self.stop = False
+        self.update()
+
     def paintEvent(self, event):
         """Override Qt method.
 
@@ -76,7 +85,7 @@ class DebuggerPanel(Panel):
         for top, line_number, block in self.editor.visible_blocks:
             if self.line_number_hint == line_number:
                 self._draw_breakpoint_icon(top, painter, 'transparent')
-            if self._current_line_arrow == line_number:
+            if self._current_line_arrow == line_number and not self.stop:
                 self._draw_breakpoint_icon(top, painter, 'arrow')
 
             data = block.userData()
@@ -123,7 +132,7 @@ class DebuggerPanel(Panel):
         self.editor.wheelEvent(event)
 
     def on_state_changed(self, state):
-        """Change visibility and connect/desconnect signal.
+        """Change visibility and connect/disconnect signal.
 
         Args:
             state (bool): Activate/deactivate.
@@ -131,6 +140,9 @@ class DebuggerPanel(Panel):
         if state:
             self.editor.sig_breakpoints_changed.connect(self.repaint)
             self.editor.sig_debug_stop.connect(self.set_current_line_arrow)
+            self.editor.sig_stop_debugging.connect(self.stop_clean)
+            self.editor.sig_start_debugging.connect(self.start_clean)
         else:
             self.editor.sig_breakpoints_changed.disconnect(self.repaint)
             self.editor.sig_debug_stop.disconnect(self.set_current_line_arrow)
+            self.editor.sig_stop_debugging.disconnect(self.stop_clean)

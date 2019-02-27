@@ -221,6 +221,8 @@ class CodeEditor(TextEditBaseWidget):
 
     sig_breakpoints_changed = Signal()
     sig_debug_stop = Signal(int)
+    sig_stop_debugging = Signal()
+    sig_start_debugging = Signal()
     sig_breakpoints_saved = Signal()
     sig_filename_changed = Signal(str)
     get_completions = Signal(bool)
