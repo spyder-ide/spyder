@@ -235,7 +235,6 @@ class SpyderPluginWidget(PluginWidget):
     """
 
     # ---------------------------- ATTRIBUTES ---------------------------------
-
     # Name of the configuration section that's going to be
     # used to record the plugin's permanent data in Spyder
     # config system (i.e. in spyder.ini)
@@ -275,7 +274,6 @@ class SpyderPluginWidget(PluginWidget):
     file_extensions = []
 
     # ------------------------------ METHODS ----------------------------------
-
     def get_plugin_title(self):
         """
         Return plugin title.
@@ -367,3 +365,12 @@ class SpyderPluginWidget(PluginWidget):
         your plugin too.
         """
         raise NotImplementedError
+
+    def get_current_filename(self):
+        """
+        Get the currently displayed file name.
+
+        This applies to plugins that can handle files in a QTabWiget, like
+        the Editor or spyder-notebook.
+        """
+        return None

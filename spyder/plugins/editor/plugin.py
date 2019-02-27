@@ -19,21 +19,19 @@ import re
 import time
 
 # Third party imports
-from qtpy.compat import from_qvariant, getopenfilenames, to_qvariant
+from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import QByteArray, Qt, Signal, Slot
 from qtpy.QtGui import QKeySequence
 from qtpy.QtPrintSupport import QAbstractPrintDialog, QPrintDialog, QPrinter
 from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
-                            QFileDialog, QInputDialog, QMenu, QSplitter,
-                            QToolBar, QVBoxLayout, QWidget)
+                            QInputDialog, QMenu, QSplitter, QToolBar,
+                            QVBoxLayout, QWidget)
 
 # Local imports
 from spyder import dependencies
 from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
                                 RUN_CELL_AND_ADVANCE_SHORTCUT)
-from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
-                                 get_filter)
 from spyder.py3compat import PY2, qbytearray_to_str, to_text_string
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils import icon_manager as ima
@@ -213,10 +211,6 @@ class Editor(SpyderPluginWidget):
         # Parameters of last file execution:
         self.__last_ic_exec = None # internal console
         self.__last_ec_exec = None # external console
-
-        # File types and filters used by the Open dialog
-        self.edit_filetypes = None
-        self.edit_filters = None
 
         self.__ignore_cursor_position = False
         current_editor = self.get_current_editor()
@@ -403,7 +397,7 @@ class Editor(SpyderPluginWidget):
 
         self.open_action = create_action(self, _("&Open..."),
                 icon=ima.icon('fileopen'), tip=_("Open file"),
-                triggered=self.load,
+                triggered=self.main.load_files,
                 context=Qt.WidgetShortcut)
         self.register_shortcut(self.open_action, context="Editor",
                                name="Open file", add_sc_to_tip=True)
@@ -1701,46 +1695,12 @@ class Editor(SpyderPluginWidget):
             filename0 = self.get_current_filename()
         else:
             position0, filename0 = None, None
+
         if not filenames:
             # Recent files action
             action = self.sender()
             if isinstance(action, QAction):
                 filenames = from_qvariant(action.data(), to_text_string)
-        if not filenames:
-            basedir = getcwd_or_home()
-            if self.edit_filetypes is None:
-                self.edit_filetypes = get_edit_filetypes()
-            if self.edit_filters is None:
-                self.edit_filters = get_edit_filters()
-
-            c_fname = self.get_current_filename()
-            if c_fname is not None and c_fname != self.TEMPFILE_PATH:
-                basedir = osp.dirname(c_fname)
-            self.redirect_stdio.emit(False)
-            parent_widget = self.get_current_editorstack()
-            if filename0 is not None:
-                selectedfilter = get_filter(self.edit_filetypes,
-                                            osp.splitext(filename0)[1])
-            else:
-                selectedfilter = ''
-            if not running_under_pytest():
-                filenames, _sf = getopenfilenames(
-                                    parent_widget,
-                                    _("Open file"), basedir,
-                                    self.edit_filters,
-                                    selectedfilter=selectedfilter,
-                                    options=QFileDialog.HideNameFilterDetails)
-            else:
-                # Use a Qt (i.e. scriptable) dialog for pytest
-                dialog = QFileDialog(parent_widget, _("Open file"),
-                                     options=QFileDialog.DontUseNativeDialog)
-                if dialog.exec_():
-                    filenames = dialog.selectedFiles()
-            self.redirect_stdio.emit(True)
-            if filenames:
-                filenames = [osp.normpath(fname) for fname in filenames]
-            else:
-                return
 
         focus_widget = QApplication.focusWidget()
         if self.editorwindows and not self.dockwidget.isVisible():
@@ -1752,8 +1712,8 @@ class Editor(SpyderPluginWidget):
             editorwindow.setFocus()
             editorwindow.raise_()
         elif (self.dockwidget and not self.ismaximized
-              and not self.dockwidget.isAncestorOf(focus_widget)
-              and not isinstance(focus_widget, CodeEditor)):
+                and not self.dockwidget.isAncestorOf(focus_widget)
+                and not isinstance(focus_widget, CodeEditor)):
             self.dockwidget.setVisible(True)
             self.dockwidget.setFocus()
             self.dockwidget.raise_()

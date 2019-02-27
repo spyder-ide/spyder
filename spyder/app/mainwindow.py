@@ -8,7 +8,7 @@
 Spyder, the Scientific Python Development Environment
 =====================================================
 
-Developped and maintained by the Spyder Project
+Developed and maintained by the Spyder Project
 Contributors
 
 Copyright © Spyder Project Contributors
@@ -78,13 +78,14 @@ except ImportError:
 # Qt imports
 #==============================================================================
 from qtpy import API, PYQT5
-from qtpy.compat import from_qvariant
+from qtpy.compat import from_qvariant, getopenfilenames
 from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
                          QThread, QTimer, QUrl, Signal, Slot)
 from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QDockWidget, QMainWindow,
                             QMenu, QMessageBox, QShortcut, QSplashScreen,
-                            QStyleFactory, QWidget, QDesktopWidget)
+                            QStyleFactory, QWidget, QDesktopWidget,
+                            QFileDialog)
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -155,7 +156,8 @@ from spyder.config.base import (get_conf_path, get_module_source_path, STDERR,
                                 running_in_mac_app, get_module_path,
                                 reset_config_files)
 from spyder.config.main import OPEN_FILES_PORT
-from spyder.config.utils import IMPORT_EXT, is_gtk_desktop
+from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
+                                 get_filter, IMPORT_EXT, is_gtk_desktop)
 from spyder.app.cli_options import get_options
 from spyder import dependencies
 from spyder.py3compat import (is_text_string, to_text_string,
@@ -544,6 +546,10 @@ class MainWindow(QMainWindow):
         # To keep track of the last focused widget
         self.last_focused_widget = None
         self.previous_focused_widget = None
+
+        # For load_files
+        self.edit_filetypes = None
+        self.edit_filters = None
 
         # Server to open external files on a single instance
         # This is needed in order to handle socket creation problems.
@@ -2709,6 +2715,67 @@ class MainWindow(QMainWindow):
         console.execute_code(lines)
         if focus_to_editor:
             self.editor.switch_to_plugin()
+
+    @Slot()
+    def load_files(self):
+        """Load files into Spyder using an 'Open files' dialog."""
+        basedir = getcwd_or_home()
+        if self.edit_filetypes is None:
+            self.edit_filetypes = get_edit_filetypes()
+        if self.edit_filters is None:
+            self.edit_filters = get_edit_filters()
+
+        # Try to get the current filename from the third-party plugins
+        c_fname = None
+        for plugin in self.thirdparty_plugins:
+            if plugin.isAncestorOf(self.last_focused_widget):
+                c_fname = plugin.get_current_filename()
+                break
+
+        # If we couldn't get it from them, then use the Editor
+        if c_fname is None:
+            c_fname = self.editor.get_current_filename()
+
+        # Switch basedir to the current filename one
+        if c_fname != self.editor.TEMPFILE_PATH:
+            basedir = osp.dirname(c_fname)
+
+        # Select filter for the dialog according to c_fname extension
+        if c_fname is not None:
+            selectedfilter = get_filter(self.edit_filetypes,
+                                        osp.splitext(c_fname)[1])
+        else:
+            selectedfilter = ''
+
+        # Open file dialog
+        self.redirect_internalshell_stdio(False)
+        if not running_under_pytest():
+            filenames, _sf = getopenfilenames(
+                self,
+                _("Open file"),
+                basedir,
+                self.edit_filters,
+                selectedfilter=selectedfilter,
+                options=QFileDialog.HideNameFilterDetails)
+        else:
+            # Use a Qt (i.e. scriptable) dialog for pytest
+            dialog = QFileDialog(
+                self,
+                _("Open file"),
+                options=QFileDialog.DontUseNativeDialog)
+            if dialog.exec_():
+                filenames = dialog.selectedFiles()
+        self.redirect_internalshell_stdio(True)
+
+        # Normalize returned filenames
+        if filenames:
+            filenames = [osp.normpath(fname) for fname in filenames]
+        else:
+            return
+
+        # Open filenames
+        for fname in filenames:
+            self.open_file(fname)
 
     def open_file(self, fname, external=False):
         """
