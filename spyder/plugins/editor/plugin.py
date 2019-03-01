@@ -395,13 +395,6 @@ class Editor(SpyderPluginWidget):
         self.register_shortcut(self.open_last_closed_action, context="Editor",
                                name="Open last closed")
 
-        self.open_action = create_action(self, _("&Open..."),
-                icon=ima.icon('fileopen'), tip=_("Open file"),
-                triggered=self.main.load_files,
-                context=Qt.WidgetShortcut)
-        self.register_shortcut(self.open_action, context="Editor",
-                               name="Open file", add_sc_to_tip=True)
-
         self.revert_action = create_action(self, _("&Revert"),
                 icon=ima.icon('revert'), tip=_("Revert file from disk"),
                 triggered=self.revert)
@@ -787,10 +780,9 @@ class Editor(SpyderPluginWidget):
 
         file_menu_actions = [self.new_action,
                              MENU_SEPARATOR,
-                             self.open_action,
+                             self.main.open_action,
                              self.open_last_closed_action,
                              self.recent_file_menu,
-                             MENU_SEPARATOR,
                              MENU_SEPARATOR,
                              self.save_action,
                              self.save_all_action,
@@ -806,7 +798,7 @@ class Editor(SpyderPluginWidget):
                              MENU_SEPARATOR]
 
         self.main.file_menu_actions += file_menu_actions
-        file_toolbar_actions = ([self.new_action, self.open_action,
+        file_toolbar_actions = ([self.new_action, self.main.open_action,
                                 self.save_action, self.save_all_action] +
                                 self.main.file_toolbar_actions)
 
@@ -1084,7 +1076,7 @@ class Editor(SpyderPluginWidget):
         editorstack.autosave_mapping \
             = CONF.get('editor', 'autosave_mapping', {})
         editorstack.set_help(self.help)
-        editorstack.set_io_actions(self.new_action, self.open_action,
+        editorstack.set_io_actions(self.new_action, self.main.open_action,
                                    self.save_action, self.revert_action)
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
 

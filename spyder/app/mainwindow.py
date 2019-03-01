@@ -641,22 +641,32 @@ class MainWindow(QMainWindow):
                                "Use next layout")
         self.register_shortcut(self.toggle_previous_layout_action, "_",
                                "Use previous layout")
-        # File switcher shortcuts
+
+        # File toolbar actions
+        self.open_action = create_action(
+            self,
+            _("&Open..."),
+            icon=ima.icon('fileopen'),
+            tip=_("Open file"),
+            triggered=self.load_files,
+            context=Qt.ApplicationShortcut)
+        self.register_shortcut(self.open_action, context="_",
+                               name="Open file", add_sc_to_tip=True)
         self.file_switcher_action = create_action(
-                                    self,
-                                    _('File switcher...'),
-                                    icon=ima.icon('filelist'),
-                                    tip=_('Fast switch between files'),
-                                    triggered=self.open_fileswitcher,
-                                    context=Qt.ApplicationShortcut)
+            self,
+            _('File switcher...'),
+            icon=ima.icon('filelist'),
+            tip=_('Fast switch between files'),
+            triggered=self.open_fileswitcher,
+            context=Qt.ApplicationShortcut)
         self.register_shortcut(self.file_switcher_action, context="_",
-                               name="File switcher")
+                               name="File switcher", add_sc_to_tip=True)
         self.symbol_finder_action = create_action(
-                                    self, _('Symbol finder...'),
-                                    icon=ima.icon('symbol_find'),
-                                    tip=_('Fast symbol search in file'),
-                                    triggered=self.open_symbolfinder,
-                                    context=Qt.ApplicationShortcut)
+            self, _('Symbol finder...'),
+            icon=ima.icon('symbol_find'),
+            tip=_('Fast symbol search in file'),
+            triggered=self.open_symbolfinder,
+            context=Qt.ApplicationShortcut)
         self.register_shortcut(self.symbol_finder_action, context="_",
                                name="symbol finder", add_sc_to_tip=True)
         self.file_toolbar_actions = [self.file_switcher_action,
