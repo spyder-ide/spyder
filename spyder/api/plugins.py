@@ -357,7 +357,7 @@ class SpyderPluginWidget(PluginWidget):
         valid = True
         return valid, message
 
-    def open_file(self, filename=None):
+    def open_file(self, filename):
         """
         Open filename inside the plugin.
 
