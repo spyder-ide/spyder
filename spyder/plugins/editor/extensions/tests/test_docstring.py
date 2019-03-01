@@ -430,7 +430,7 @@ def test_editor_docstring_delayed_popup(qtbot, editor_auto_docstring,
     ])
 def test_editor_docstring_with_body_numpydoc(qtbot, editor_auto_docstring,
                                              text, expected):
-    """Test auto docstring when the function body is complex."""
+    """Test auto docstring of numpydoc when the function body is complex."""
     CONF.set('editor', 'docstring_type', 'Numpydoc')
     editor = editor_auto_docstring
     editor.set_text(text)
@@ -519,7 +519,7 @@ def test_editor_docstring_with_body_numpydoc(qtbot, editor_auto_docstring,
     ])
 def test_editor_docstring_with_body_googledoc(qtbot, editor_auto_docstring,
                                               text, expected):
-    """Test auto docstring when the function body is complex."""
+    """Test auto docstring of googledoc when the function body is complex."""
     CONF.set('editor', 'docstring_type', 'Googledoc')
     editor = editor_auto_docstring
     editor.set_text(text)
