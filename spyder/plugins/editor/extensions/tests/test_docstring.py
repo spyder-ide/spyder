@@ -486,19 +486,19 @@ def test_editor_docstring_with_body_numpydoc(qtbot, editor_auto_docstring,
          '''def foo():
     """\n    \n
     Returns:
-        (str): DESCRIPTION.
+        str: DESCRIPTION.
         v1 (TYPE): DESCRIPTION.
-        (TYPE): DESCRIPTION.
-        (numeric): DESCRIPTION.
-        (float): DESCRIPTION.
-        (tuple): DESCRIPTION.
-        (dict): DESCRIPTION.
-        (list): DESCRIPTION.
-        (TYPE): DESCRIPTION.
-        (TYPE): DESCRIPTION.
-        (TYPE): DESCRIPTION.
-        (TYPE): DESCRIPTION.
-        (bool): DESCRIPTION.
+        TYPE: DESCRIPTION.
+        numeric: DESCRIPTION.
+        float: DESCRIPTION.
+        tuple: DESCRIPTION.
+        dict: DESCRIPTION.
+        list: DESCRIPTION.
+        TYPE: DESCRIPTION.
+        TYPE: DESCRIPTION.
+        TYPE: DESCRIPTION.
+        TYPE: DESCRIPTION.
+        bool: DESCRIPTION.
 
     """
     return None
@@ -511,7 +511,7 @@ def test_editor_docstring_with_body_numpydoc(qtbot, editor_auto_docstring,
          '''def foo():
     """\n    \n
     Returns:
-        (TYPE): DESCRIPTION.
+        TYPE: DESCRIPTION.
 
     """
     return no, (ano, eo, dken)

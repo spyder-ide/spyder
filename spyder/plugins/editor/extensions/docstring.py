@@ -408,10 +408,10 @@ class DocstringWriterExtension:
             return_section = '{}{}{}: DESCRIPTION.'.format(
                 header, indent2, return_type_annotated)
         else:
-            return_element_type = indent2 + '({return_type}): DESCRIPTION.'
+            return_element_type = indent2 + '{return_type}: DESCRIPTION.'
             placeholder = return_element_type.format(return_type='TYPE')
             return_element_name = indent2 + '{return_name} ' + \
-                placeholder.lstrip()
+                '(TYPE): DESCRIPTION.'
 
             return_section = self._generate_docstring_return_section(
                 func_info.return_value_in_body, header, return_element_name,
