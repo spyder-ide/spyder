@@ -340,7 +340,7 @@ class DocstringWriterExtension:
                     func_info.return_value_in_body, header,
                     return_element_name, return_element_type, placeholder,
                     indent1)
-            except:
+            except (ValueError, IndexError):
                 return_section = '{}{}None.'.format(header, indent1)
 
         numpy_doc += return_section
@@ -422,7 +422,7 @@ class DocstringWriterExtension:
                     func_info.return_value_in_body, header,
                     return_element_name, return_element_type, placeholder,
                     indent2)
-            except:
+            except (ValueError, IndexError):
                 return_section = '{}{}None.'.format(header, indent2)
 
         google_doc += return_section
