@@ -335,9 +335,13 @@ class DocstringWriterExtension:
             return_element_name = indent1 + '{return_name} : ' + \
                 placeholder.lstrip()
 
-            return_section = self._generate_docstring_return_section(
-                func_info.return_value_in_body, header, return_element_name,
-                return_element_type, placeholder, indent1)
+            try:
+                return_section = self._generate_docstring_return_section(
+                    func_info.return_value_in_body, header,
+                    return_element_name, return_element_type, placeholder,
+                    indent1)
+            except:
+                return_section = '{}{}None.'.format(header, indent1)
 
         numpy_doc += return_section
         numpy_doc += '\n\n{}{}'.format(indent1, self.quote3)
@@ -413,9 +417,13 @@ class DocstringWriterExtension:
             return_element_name = indent2 + '{return_name} ' + \
                 '(TYPE): DESCRIPTION.'
 
-            return_section = self._generate_docstring_return_section(
-                func_info.return_value_in_body, header, return_element_name,
-                return_element_type, placeholder, indent2)
+            try:
+                return_section = self._generate_docstring_return_section(
+                    func_info.return_value_in_body, header,
+                    return_element_name, return_element_type, placeholder,
+                    indent2)
+            except:
+                return_section = '{}{}None.'.format(header, indent2)
 
         google_doc += return_section
         google_doc += '\n\n{}{}'.format(indent1, self.quote3)
