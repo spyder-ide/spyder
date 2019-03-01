@@ -2725,7 +2725,8 @@ class MainWindow(QMainWindow):
         if self.edit_filters is None:
             self.edit_filters = get_edit_filters()
 
-        # Try to get the current filename from the third-party plugins
+        # Try to get the current filename from the currently focused
+        # third-party plugin (if any)
         c_fname = None
         for plugin in self.thirdparty_plugins:
             if plugin.isAncestorOf(self.last_focused_widget):
@@ -2796,6 +2797,7 @@ class MainWindow(QMainWindow):
         for plugin in self.thirdparty_plugins:
             if ext in plugin.file_extensions:
                 plugin.open_file(fname)
+                return
 
         # Open file with the editor, the variable explorer or with
         # an external program
