@@ -273,6 +273,10 @@ class SpyderPluginWidget(PluginWidget):
     # Status: Optional
     file_extensions = []
 
+    # Declare if the plugin is able to save files
+    # Status: Optional
+    can_save_files = False
+
     # ------------------------------ METHODS ----------------------------------
     def get_plugin_title(self):
         """
@@ -366,9 +370,13 @@ class SpyderPluginWidget(PluginWidget):
         """
         raise NotImplementedError
 
+    def save_file(self):
+        """Save current file."""
+        pass
+
     def get_current_filename(self):
         """
-        Get the currently displayed file name.
+        Get the currently focused file name.
 
         This applies to plugins that can handle files in a QTabWiget, like
         the Editor or spyder-notebook.
