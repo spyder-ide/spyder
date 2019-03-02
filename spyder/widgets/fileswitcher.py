@@ -191,11 +191,10 @@ def shorten_paths(path_list, is_unsaved):
 class KeyPressFilter(QObject):
     """Use with `installEventFilter` to get up/down arrow key press signal."""
     UP, DOWN = [-1, 1]  # Step constants
+
     sig_up_key_pressed = Signal()
     sig_down_key_pressed = Signal()
     sig_enter_key_pressed = Signal()
-    sig_mouse_clicked = Signal()
-    itemClicked = Signal()
 
     def eventFilter(self, src, e):
         if e.type() == QEvent.KeyPress:
@@ -206,6 +205,7 @@ class KeyPressFilter(QObject):
             elif (e.key() == Qt.Key_Return):
                 self.sig_enter_key_pressed.emit()
         return super(KeyPressFilter, self).eventFilter(src, e)
+
 
 class FilesFilterLine(QLineEdit):
     """QLineEdit used to filter files by name."""
@@ -227,7 +227,6 @@ class FilesFilterLine(QLineEdit):
 class FileSwitcher(QDialog):
     """A Sublime-like file switcher."""
     sig_goto_file = Signal(int, object)
-    sig_goto_file2 = Signal(object)
 
     # Constants that define the mode in which the list widget is working
     # FILE_MODE is for a list of files, SYMBOL_MODE if for a list of symbols
