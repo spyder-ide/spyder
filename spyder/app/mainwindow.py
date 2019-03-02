@@ -2841,7 +2841,11 @@ class MainWindow(QMainWindow):
 
     def save_file(self):
         """Save currently focused file."""
-        self.editor.save()
+        for plugin in (self.widgetlist + self.thirdparty_plugins):
+            if (plugin.isAncestorOf(self.last_focused_widget) and
+                    plugin.can_save_files):
+                plugin.save_file()
+                return
 
     # ---- PYTHONPATH management, etc.
     def get_spyder_pythonpath(self):

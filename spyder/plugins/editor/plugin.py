@@ -92,6 +92,9 @@ class Editor(SpyderPluginWidget):
     open_file_update = Signal(str)
     sig_lsp_notification = Signal(dict, str)
 
+    # Public API
+    can_save_files = True
+
     def __init__(self, parent, ignore_last_opened_files=False):
         SpyderPluginWidget.__init__(self, parent)
 
@@ -948,6 +951,10 @@ class Editor(SpyderPluginWidget):
             for finfo in editorstack.data:
                 comp_widget = finfo.editor.completion_widget
                 comp_widget.setup_appearance(completion_size, font)
+
+    def save_file(self):
+        """Save the currently focused file."""
+        self.save()
 
     def _create_checkable_action(self, text, conf_name, editorstack_method):
         """Helper function to create a checkable action.
