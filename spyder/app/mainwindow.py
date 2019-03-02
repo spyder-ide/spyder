@@ -652,6 +652,15 @@ class MainWindow(QMainWindow):
             context=Qt.ApplicationShortcut)
         self.register_shortcut(self.open_action, context="_",
                                name="Open file", add_sc_to_tip=True)
+        self.save_action = create_action(
+            self,
+            _("&Save"),
+            icon=ima.icon('filesave'),
+            tip=_("Save file"),
+            triggered=self.save_file,
+            context=Qt.ApplicationShortcut)
+        self.register_shortcut(self.save_action, context="_",
+                               name="Save file", add_sc_to_tip=True)
         self.file_switcher_action = create_action(
             self,
             _('File switcher...'),
@@ -2829,6 +2838,10 @@ class MainWindow(QMainWindow):
             self.open_file(fname, external=True)
         elif osp.isfile(osp.join(CWD, fname)):
             self.open_file(osp.join(CWD, fname), external=True)
+
+    def save_file(self):
+        """Save currently focused file."""
+        self.editor.save()
 
     # ---- PYTHONPATH management, etc.
     def get_spyder_pythonpath(self):

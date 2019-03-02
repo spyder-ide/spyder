@@ -617,8 +617,6 @@ class EditorStack(QWidget):
         new_file = config_shortcut(lambda : self.sig_new_file[()].emit(),
                                    context='Editor', name='New file',
                                    parent=self)
-        save_file = config_shortcut(self.save, context='Editor',
-                                    name='Save file', parent=self)
         save_all = config_shortcut(self.save_all, context='Editor',
                                    name='Save all', parent=self)
         save_as = config_shortcut(lambda : self.sig_save_as.emit(),
@@ -705,7 +703,7 @@ class EditorStack(QWidget):
 
         # Return configurable ones
         return [inspect, set_breakpoint, set_cond_breakpoint, gotoline, tab,
-                tabshift, run_selection, new_file, save_file,
+                tabshift, run_selection, new_file,
                 save_all, save_as, close_all, prev_edit_pos, prev_cursor,
                 next_cursor, zoom_in_1, zoom_in_2, zoom_out, zoom_reset,
                 close_file_1, close_file_2, run_cell, run_cell_and_advance,

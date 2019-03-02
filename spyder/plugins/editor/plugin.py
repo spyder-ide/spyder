@@ -399,13 +399,6 @@ class Editor(SpyderPluginWidget):
                 icon=ima.icon('revert'), tip=_("Revert file from disk"),
                 triggered=self.revert)
 
-        self.save_action = create_action(self, _("&Save"),
-                icon=ima.icon('filesave'), tip=_("Save file"),
-                triggered=self.save,
-                context=Qt.WidgetShortcut)
-        self.register_shortcut(self.save_action, context="Editor",
-                               name="Save file", add_sc_to_tip=True)
-
         self.save_all_action = create_action(self, _("Sav&e all"),
                 icon=ima.icon('save_all'), tip=_("Save all files"),
                 triggered=self.save_all,
@@ -784,7 +777,7 @@ class Editor(SpyderPluginWidget):
                              self.open_last_closed_action,
                              self.recent_file_menu,
                              MENU_SEPARATOR,
-                             self.save_action,
+                             self.main.save_action,
                              self.save_all_action,
                              save_as_action,
                              save_copy_as_action,
@@ -799,7 +792,7 @@ class Editor(SpyderPluginWidget):
 
         self.main.file_menu_actions += file_menu_actions
         file_toolbar_actions = ([self.new_action, self.main.open_action,
-                                self.save_action, self.save_all_action] +
+                                self.main.save_action, self.save_all_action] +
                                 self.main.file_toolbar_actions)
 
         self.main.file_toolbar_actions = file_toolbar_actions
@@ -915,7 +908,7 @@ class Editor(SpyderPluginWidget):
                                              self.winpdb_action]
         self.cythonfile_compatible_actions = [run_action, configure_action]
         self.file_dependent_actions = self.pythonfile_dependent_actions + \
-                [self.save_action, save_as_action, save_copy_as_action,
+                [self.main.save_action, save_as_action, save_copy_as_action,
                  print_preview_action, self.print_action,
                  self.save_all_action, gotoline_action, workdir_action,
                  self.close_action, self.close_all_action,
@@ -1077,7 +1070,7 @@ class Editor(SpyderPluginWidget):
             = CONF.get('editor', 'autosave_mapping', {})
         editorstack.set_help(self.help)
         editorstack.set_io_actions(self.new_action, self.main.open_action,
-                                   self.save_action, self.revert_action)
+                                   self.main.save_action, self.revert_action)
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
 
         settings = (
