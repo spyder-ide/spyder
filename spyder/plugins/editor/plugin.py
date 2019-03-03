@@ -1814,6 +1814,9 @@ class Editor(SpyderPluginWidget):
             else:
                 # processevents is false only when calling from debugging
                 current_editor.sig_debug_stop.emit(goto[index])
+                current_sw = self.main.ipyconsole.get_current_shellwidget()
+                current_sw.sig_prompt_ready.connect(
+                    current_editor.sig_stop_debugging.emit)
 
     @Slot()
     def print_file(self):
@@ -2219,11 +2222,6 @@ class Editor(SpyderPluginWidget):
         focus_widget = self.main.ipyconsole.get_focus_widget()
         if focus_widget:
             focus_widget.setFocus()
-        current_editor = self.get_current_editor()
-        if current_editor is not None:
-            current_sw = self.main.ipyconsole.get_current_shellwidget()
-            if current_sw is not None and current_sw._reading:
-                current_editor.sig_stop_debugging.emit()
 
     #------ Run Python script
     @Slot()

@@ -66,10 +66,12 @@ class DebuggerPanel(Panel):
             icon.paint(painter, rect)
 
     def stop_clean(self):
+        """Handle debugging state. The debugging is not running."""
         self.stop = True
         self.update()
 
     def start_clean(self):
+        """Handle debugging state. The debugging is running."""
         self.stop = False
         self.update()
 
@@ -146,3 +148,4 @@ class DebuggerPanel(Panel):
             self.editor.sig_breakpoints_changed.disconnect(self.repaint)
             self.editor.sig_debug_stop.disconnect(self.set_current_line_arrow)
             self.editor.sig_stop_debugging.disconnect(self.stop_clean)
+            self.editor.sig_start_debugging.disconnect(self.start_clean)
