@@ -56,6 +56,8 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     mimedata2url)
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
+from spyder.plugins.variableexplorer.widgets.objecteditor2.objecteditor \
+    import ObjectBrowser
 
 if ndarray is not FakeObject:
     from spyder.plugins.variableexplorer.widgets.arrayeditor import (
@@ -559,10 +561,9 @@ class CollectionsDelegate(QItemDelegate):
                 return editor
         # CollectionsEditor for an arbitrary Python object
         else:
-            editor = CollectionsEditor(parent=parent)
-            editor.setup(value, key, icon=self.parent().windowIcon(),
-                         readonly=readonly)
-            self.create_dialog(editor, dict(model=index.model(), editor=editor,
+            editor = ObjectBrowser({_('Object'): value}, parent=parent)
+            self.create_dialog(editor, dict(model=index.model(),
+                                            editor=editor,
                                             key=key, readonly=readonly))
             return None
 
@@ -573,7 +574,7 @@ class CollectionsDelegate(QItemDelegate):
         editor.rejected.connect(
                      lambda eid=id(editor): self.editor_rejected(eid))
         editor.show()
-        
+
     @Slot(str, object)
     def change_option(self, option_name, new_value):
         """

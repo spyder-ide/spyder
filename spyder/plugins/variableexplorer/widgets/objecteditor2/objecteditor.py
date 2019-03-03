@@ -51,6 +51,7 @@ class ObjectBrowser(QDialog):
     def __init__(self,
                  obj,
                  name='',
+                 parent=None,
                  attribute_columns=DEFAULT_ATTR_COLS,
                  attribute_details=DEFAULT_ATTR_DETAILS,
                  show_callable_attributes=None,  # Uses value from QSettings
@@ -80,7 +81,7 @@ class ObjectBrowser(QDialog):
         :param reset: If true the persistent settings, such as column widths,
             are reset.
         """
-        super(ObjectBrowser, self).__init__()
+        super(ObjectBrowser, self).__init__(parent=parent)
 
         self._instance_nr = self._add_instance()
 
@@ -536,7 +537,7 @@ class ObjectBrowser(QDialog):
         """
         object_browser = cls(*args, **kwargs)
         object_browser.exec_()
-#        return object_browser
+        return object_browser
 
 
 # =============================================================================
