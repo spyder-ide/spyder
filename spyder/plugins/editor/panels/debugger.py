@@ -6,7 +6,7 @@
 """
 This module contains the DebuggerPanel panel
 """
-from qtpy.QtCore import QSize, Qt, QRect
+from qtpy.QtCore import QSize, Qt, QRect, Slot
 from qtpy.QtGui import QPainter, QFontMetrics
 
 from spyder.utils import icon_manager as ima
@@ -65,11 +65,13 @@ class DebuggerPanel(Panel):
         else:
             icon.paint(painter, rect)
 
+    @Slot()
     def stop_clean(self):
         """Handle debugging state. The debugging is not running."""
         self.stop = True
         self.update()
 
+    @Slot()
     def start_clean(self):
         """Handle debugging state. The debugging is running."""
         self.stop = False
@@ -142,10 +144,10 @@ class DebuggerPanel(Panel):
         if state:
             self.editor.sig_breakpoints_changed.connect(self.repaint)
             self.editor.sig_debug_stop.connect(self.set_current_line_arrow)
-            self.editor.sig_stop_debugging.connect(self.stop_clean)
-            self.editor.sig_start_debugging.connect(self.start_clean)
+            self.editor.sig_debug_stop[()].connect(self.stop_clean)
+            self.editor.sig_debug_start.connect(self.start_clean)
         else:
             self.editor.sig_breakpoints_changed.disconnect(self.repaint)
             self.editor.sig_debug_stop.disconnect(self.set_current_line_arrow)
-            self.editor.sig_stop_debugging.disconnect(self.stop_clean)
-            self.editor.sig_start_debugging.disconnect(self.start_clean)
+            self.editor.sig_debug_stop[()].disconnect(self.stop_clean)
+            self.editor.sig_debug_start.disconnect(self.start_clean)

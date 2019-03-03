@@ -1816,7 +1816,7 @@ class Editor(SpyderPluginWidget):
                 current_editor.sig_debug_stop.emit(goto[index])
                 current_sw = self.main.ipyconsole.get_current_shellwidget()
                 current_sw.sig_prompt_ready.connect(
-                    current_editor.sig_stop_debugging.emit)
+                    current_editor.sig_debug_stop[()].emit)
 
     @Slot()
     def print_file(self):
@@ -2316,7 +2316,7 @@ class Editor(SpyderPluginWidget):
         self.switch_to_plugin()
         current_editor = self.get_current_editor()
         if current_editor is not None:
-            current_editor.sig_start_debugging.emit()
+            current_editor.sig_debug_start.emit()
         self.run_file(debug=True)
 
     @Slot()
