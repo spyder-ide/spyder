@@ -10,12 +10,14 @@
 # -----------------------------------------------------------------------------
 
 # Standard library imports
-import logger
+import logging
 
 # Third-party imports
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QAction, QActionGroup, QTableWidget, QTreeView,
                             QTreeWidget)
+
+logger = logging.getLogger(__name__)
 
 
 # Toggle mixin

@@ -11,7 +11,7 @@
 
 # Standard library imports
 import inspect
-import logger
+import logging
 import pprint
 import string
 import six
@@ -48,6 +48,8 @@ _ALL_PREDICATES = (inspect.ismodule, inspect.isclass, inspect.ismethod,
 # https://bugreports.qt-project.org/browse/PYSIDE-20
 ALIGN_LEFT = int(Qt.AlignVCenter | Qt.AlignLeft)
 ALIGN_RIGHT = int(Qt.AlignVCenter | Qt.AlignRight)
+
+logger = logging.getLogger(__name__)
 
 
 ###################
