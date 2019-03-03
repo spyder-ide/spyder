@@ -28,7 +28,7 @@ from qtpy.QtGui import QFont, QBrush, QColor
 from spyder.config.base import _
 from spyder.plugins.variableexplorer.widgets.objecteditor2.utils import (
     cut_off_str)
-from spyder.plugins.variableexplorer.widgets.objecteditor2.tree_model import (
+from spyder.plugins.variableexplorer.widgets.objecteditor2.tree_item import (
     TreeItem)
 
 logger = logging.getLogger(__name__)
