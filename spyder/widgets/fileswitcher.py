@@ -11,7 +11,8 @@ import os.path as osp
 import sys
 
 # Third party imports
-from qtpy.QtCore import Signal, QEvent, QFileInfo, QObject, QRegExp, QSize, Qt
+from qtpy.QtCore import (Signal, Slot, QEvent, QFileInfo, QObject, QRegExp,
+                         QSize, Qt)
 from qtpy.QtGui import (QIcon, QRegExpValidator, QTextCursor)
 from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLabel, QLineEdit,
                             QListWidget, QListWidgetItem, QVBoxLayout,
@@ -195,6 +196,7 @@ class KeyPressFilter(QObject):
 
     sig_up_key_pressed = Signal()
     sig_down_key_pressed = Signal()
+    sig_enter_key_pressed = Signal()
 
     def eventFilter(self, src, e):
         if e.type() == QEvent.KeyPress:
@@ -202,7 +204,8 @@ class KeyPressFilter(QObject):
                 self.sig_up_key_pressed.emit()
             elif e.key() == Qt.Key_Down:
                 self.sig_down_key_pressed.emit()
-
+            elif (e.key() == Qt.Key_Return):
+                self.sig_enter_key_pressed.emit()
         return super(KeyPressFilter, self).eventFilter(src, e)
 
 
@@ -292,6 +295,8 @@ class FileSwitcher(QDialog):
         self.rejected.connect(self.restore_initial_state)
         self.filter.sig_up_key_pressed.connect(self.previous_row)
         self.filter.sig_down_key_pressed.connect(self.next_row)
+        self.filter.sig_enter_key_pressed.connect(self.enter)
+        self.list.itemClicked.connect(self.enter)
         self.edit.returnPressed.connect(self.accept)
         self.edit.textChanged.connect(self.setup)
         self.list.itemSelectionChanged.connect(self.item_selection_changed)
@@ -611,13 +616,6 @@ class FileSwitcher(QDialog):
                 try:
                     stack_index = self.paths.index(self.filtered_path[row])
                     self.plugin = self.widgets[stack_index][1]
-                    plugin_index = self.plugins_instances.index(self.plugin)
-                    # Count the real index in the tabWidget of the
-                    # current plugin
-                    real_index = self.get_stack_index(stack_index,
-                                                      plugin_index)
-                    self.sig_goto_file.emit(real_index,
-                                            self.plugin.get_current_tab_manager())
                     self.goto_line(self.line_number)
                     try:
                         self.plugin.switch_to_plugin()
@@ -631,6 +629,21 @@ class FileSwitcher(QDialog):
             else:
                 line_number = self.filtered_symbol_lines[row]
                 self.goto_line(line_number)
+
+    @Slot()
+    @Slot(QListWidgetItem)
+    def enter(self, itemClicked=None):
+        row = self.current_row()
+        stack_index = self.paths.index(self.filtered_path[row])
+        self.plugin = self.widgets[stack_index][1]
+        plugin_index = self.plugins_instances.index(self.plugin)
+        # Count the real index in the tabWidget of the
+        # current plugin
+        real_index = self.get_stack_index(stack_index,
+                                          plugin_index)
+        self.sig_goto_file.emit(real_index,
+                                self.plugin.get_current_tab_manager())
+        self.accept()
 
     def setup_file_list(self, filter_text, current_path):
         """Setup list widget content for file list display."""
