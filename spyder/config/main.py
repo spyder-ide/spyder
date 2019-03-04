@@ -18,7 +18,7 @@ import sys
 # Local import
 from spyder.config.base import (CHECK_ALL, EXCLUDED_NAMES, get_home_dir,
                                 SUBFOLDER)
-from spyder.config.fonts import BIG, MEDIUM, MONOSPACE, SANS_SERIF
+from spyder.config.fonts import MEDIUM, MONOSPACE, SANS_SERIF, SMALL
 from spyder.config.user import UserConfig
 from spyder.config.utils import IMPORT_EXT
 from spyder.utils import codeanalysis
@@ -51,10 +51,11 @@ OPEN_FILES_PORT = 21128
 # OS Specific
 WIN = os.name == 'nt'
 MAC = sys.platform == 'darwin'
+LINUX = sys.platform.startswith('linux')
 CTRL = "Meta" if MAC else "Ctrl"
 
 # Run cell shortcuts
-if sys.platform == 'darwin':
+if MAC:
     RUN_CELL_SHORTCUT = 'Meta+Return'
 else:
     RUN_CELL_SHORTCUT = 'Ctrl+Return'
@@ -475,7 +476,7 @@ DEFAULTS = [
               'font/italic': False,
               'font/bold': False,
               'rich_font/family': SANS_SERIF,
-              'rich_font/size': BIG,
+              'rich_font/size': SMALL if (LINUX or WIN) else MEDIUM,
               'rich_font/italic': False,
               'rich_font/bold': False,
               'ui_theme': 'automatic',
@@ -762,7 +763,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '47.6.0'
+CONF_VERSION = '47.7.0'
 
 
 # Main configuration instance

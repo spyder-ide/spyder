@@ -673,12 +673,12 @@ class FileSwitcher(QDialog):
         self.fix_size(paths)
 
         # Build the text that will appear on the list widget
-        rich_font = CONF.get('appearance', 'rich_font/size', 11)
+        rich_font = CONF.get('appearance', 'rich_font/size', 10)
         if sys.platform == 'darwin':
             path_text_font_size = rich_font
             filename_text_font_size = path_text_font_size + 2
         elif os.name == 'nt':
-            path_text_font_size = rich_font - 1
+            path_text_font_size = rich_font
             filename_text_font_size = path_text_font_size + 1
         elif is_ubuntu():
             path_text_font_size = rich_font - 2
