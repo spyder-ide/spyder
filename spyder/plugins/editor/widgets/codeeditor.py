@@ -220,7 +220,8 @@ class CodeEditor(TextEditBaseWidget):
     indent_guides = None
 
     sig_breakpoints_changed = Signal()
-    sig_debug_stop = Signal(int)
+    sig_debug_stop = Signal((int,), ())
+    sig_debug_start = Signal()
     sig_breakpoints_saved = Signal()
     sig_filename_changed = Signal(str)
     get_completions = Signal(bool)

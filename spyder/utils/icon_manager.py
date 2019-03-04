@@ -133,7 +133,7 @@ _qtaargs = {
     'breakpoint_transparent':  [('fa.circle',), {'color': 'darkred', 'opacity': 0.75, 'scale_factor': 0.9}],
     'breakpoint_big':          [('fa.circle',), {'color': '#cc0000', 'scale_factor': 0.9} ],
     'breakpoint_cond_big':     [('fa.question-circle',), {'color': '#cc0000', 'scale_factor': 0.9},],
-    'arrow_debugger':          [('mdi.arrow-right-thick',), {'color': '#3775a9'}],
+    'arrow_debugger':          [('mdi.arrow-right-bold',), {'color': '#3775a9', 'scale_factor': 2.0}],
     'debug':                   [('spyder.debug',), {'color': '#3775a9'}],
     'arrow-step-over':         [('spyder.step-forward',), {'color': '#3775a9'}],
     'arrow-continue':          [('spyder.continue',), {'color': '#3775a9'}],
