@@ -16,6 +16,7 @@
 import logging
 
 # Local imports
+from spyder.config.base import _
 from spyder.plugins.variableexplorer.widgets.objecteditor2.utils import (
     cut_off_str)
 
@@ -48,19 +49,19 @@ class TreeItem(object):
     def __str__(self):
         n_children = len(self.child_items)
         if n_children == 0:
-            return "<TreeItem(0x{:x}): {} = {}>".format(
+            return _("<TreeItem(0x{:x}): {} = {}>").format(
                 id(self.obj),
                 self.obj_path,
                 cut_off_str(self.obj, MAX_OBJ_STR_LEN))
         else:
-            return "<TreeItem(0x{:x}): {} ({:d} children)>".format(
+            return _("<TreeItem(0x{:x}): {} ({:d} children)>").format(
                 id(self.obj),
                 self.obj_path,
                 len(self.child_items))
 
     def __repr__(self):
         n_children = len(self.child_items)
-        return "<TreeItem(0x{:x}): {} ({:d} children)>" \
+        return _("<TreeItem(0x{:x}): {} ({:d} children)>") \
             .format(id(self.obj), self.obj_path, n_children)
 
     @property

@@ -81,7 +81,7 @@ class ObjectBrowser(QDialog):
         :param reset: If true the persistent settings, such as column widths,
             are reset.
         """
-        super(ObjectBrowser, self).__init__(parent=parent)
+        QDialog.__init__(self, parent=parent)
 
         self._instance_nr = self._add_instance()
 

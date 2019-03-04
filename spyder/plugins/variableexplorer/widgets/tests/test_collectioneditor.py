@@ -362,6 +362,11 @@ def test_editor_parent_set(monkeypatch):
                               'collectionseditor.TextEditor')
     monkeypatch.setattr(attr_to_patch_textedit, MockTextEditor)
 
+    MockObjectEditor = Mock()
+    attr_to_patch_objecteditor = ('spyder.plugins.variableexplorer.widgets.' +
+                                  'objecteditor2.objecteditor.ObjectBrowser')
+    monkeypatch.setattr(attr_to_patch_objecteditor, MockObjectEditor)
+
     editor_data = [[0, 1, 2, 3, 4],
                    numpy.array([1.0, 42.0, 1337.0]),
                    pandas.DataFrame([[1, 2, 3], [20, 30, 40]]),
@@ -374,7 +379,7 @@ def test_editor_parent_set(monkeypatch):
                                       MockArrayEditor,
                                       MockDataFrameEditor,
                                       MockTextEditor,
-                                      MockCollectionsEditor]):
+                                      MockObjectEditor]):
         col_editor.delegate.createEditor(col_editor.parent(), None,
                                          col_editor.model.createIndex(idx, 3))
         assert mock_class.call_count == 1 + (idx // 3)
