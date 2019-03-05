@@ -14,7 +14,6 @@ import inspect
 import logging
 import pprint
 import string
-import six
 
 # Third-party imports
 from qtpy.QtCore import Qt
@@ -22,6 +21,7 @@ from qtpy.QtGui import QTextOption
 
 # Local imports
 from spyder.config.base import _
+from spyder.py3compat import TEXT_TYPES, to_text_string
 
 # Attribute models constants
 try:
@@ -106,7 +106,7 @@ def tio_summary(tree_item):
     For callables and modules an empty string is returned.
     """
     tio = tree_item.obj
-    if isinstance(tio, six.string_types):
+    if isinstance(tio, TEXT_TYPES):
         return tio
     elif isinstance(tio, (list, tuple, set, frozenset, dict)):
         n_items = len(tio)
@@ -245,7 +245,7 @@ ATTR_MODEL_UNICODE = AttributeModel(
     doc=_("The unicode representation "
           "of the object. In Python 2 it uses unicode()"
           "In Python 3 the str() function is used."),
-    data_fn=lambda tree_item: six.text_type(tree_item.obj),
+    data_fn=lambda tree_item: to_text_string(tree_item.obj),
     col_visible=True,
     width=MEDIUM_COL_WIDTH,
     line_wrap=QTextOption.WrapAtWordBoundaryOrAnywhere)

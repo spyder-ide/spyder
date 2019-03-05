@@ -17,7 +17,6 @@ import logging
 import inspect
 from difflib import SequenceMatcher
 from collections import OrderedDict
-from six import unichr
 
 # Third-party imports
 from qtpy.QtCore import (QAbstractItemModel, QModelIndex, Qt,
@@ -30,6 +29,7 @@ from spyder.plugins.variableexplorer.widgets.objecteditor2.utils import (
     cut_off_str)
 from spyder.plugins.variableexplorer.widgets.objecteditor2.tree_item import (
     TreeItem)
+from spyder.py3compat import to_unichr
 
 logger = logging.getLogger(__name__)
 
@@ -143,9 +143,9 @@ class TreeModel(QAbstractItemModel):
                 # return attr.replace('\n',
                 #                     unichr(0x240A)).replace('\r',
                 #                     unichr(0x240D))
-                return (attr.replace('\r\n', unichr(0x21B5))
-                            .replace('\n', unichr(0x21B5))
-                            .replace('\r', unichr(0x21B5)))
+                return (attr.replace('\r\n', to_unichr(0x21B5))
+                            .replace('\n', to_unichr(0x21B5))
+                            .replace('\r', to_unichr(0x21B5)))
             except Exception as ex:
                 # logger.exception(ex)
                 return "**ERROR**: {}".format(ex)
