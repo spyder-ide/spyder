@@ -232,7 +232,7 @@ install_requires = [
     'pycodestyle',
     'pylint',
     'psutil',
-    'qtawesome>=0.4.1',
+    'qtawesome>=0.5.7',
     'qtpy>=1.5.0',
     'pickleshare',
     'pyzmq',
