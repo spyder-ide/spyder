@@ -1,6 +1,20 @@
 :: Install dependencies
-conda install -q -y -c spyder-ide --file requirements/conda.txt
-conda install -q -y -c spyder-ide --file requirements/tests.txt
+if %USE_CONDA% == yes (
+    conda install -q -y -c spyder-ide --file requirements/conda.txt
+    conda install -q -y -c spyder-ide --file requirements/tests.txt
+) else (
+    :: Update pip and setuptools
+    pip install -U pip setuptools
+
+    :: Install Spyder and its dependencies from our setup.py
+    pip install -e .[test]
+
+    :: Install qtpy from Github
+    pip install git+https://github.com/spyder-ide/qtpy.git
+
+    :: Install qtconsole from Github
+    pip install git+https://github.com/jupyter/qtconsole.git
+)
 
 :: The newly introduced changes to the Python packages in Anaconda
 :: are breaking our tests. Reverting to known working builds.

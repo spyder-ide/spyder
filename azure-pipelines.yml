@@ -5,7 +5,7 @@ jobs:
 ################################################################################
 # macOS
 ################################################################################
-- job: 'macOS_Conda'
+- job: 'macOS'
 
   pool:
     vmImage: 'macOS-10.13'
@@ -72,7 +72,7 @@ jobs:
 ################################################################################
 # Windows
 ################################################################################
-- job: 'Windows_Conda'
+- job: 'Windows'
 
   pool:
     vmImage: 'vs2017-win2016'
@@ -90,8 +90,10 @@ jobs:
       #  python.version: '2.7'
       Python36:
         python.version: '3.6'
-      #Python37:
-      #  python.version: '3.7'
+        use.conda: "yes"
+      Python37:
+        python.version: '3.7'
+        use.conda: "no"
     maxParallel: 4
 
   steps:
