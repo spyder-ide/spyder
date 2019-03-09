@@ -414,10 +414,16 @@ class DataFrameModel(QAbstractTableModel):
 
     def rowCount(self, index=QModelIndex()):
         """DataFrame row number"""
-        if self.total_rows <= self.rows_loaded:
-            return self.total_rows
-        else:
-            return self.rows_loaded
+        # Avoid a "Qt exception in virtual methods" generated in our
+        # tests on Windows/Python 3.7
+        # See PR 8910
+        try:
+            if self.total_rows <= self.rows_loaded:
+                return self.total_rows
+            else:
+                return self.rows_loaded
+        except AttributeError:
+            return 0
 
     def can_fetch_more(self, rows=False, columns=False):
         if rows:
@@ -449,13 +455,19 @@ class DataFrameModel(QAbstractTableModel):
 
     def columnCount(self, index=QModelIndex()):
         """DataFrame column number"""
-        # This is done to implement series
-        if len(self.df.shape) == 1:
-            return 2
-        elif self.total_cols <= self.cols_loaded:
-            return self.total_cols + 1
-        else:
-            return self.cols_loaded + 1
+        # Avoid a "Qt exception in virtual methods" generated in our
+        # tests on Windows/Python 3.7
+        # See PR 8910
+        try:
+            # This is done to implement series
+            if len(self.df.shape) == 1:
+                return 2
+            elif self.total_cols <= self.cols_loaded:
+                return self.total_cols + 1
+            else:
+                return self.cols_loaded + 1
+        except AttributeError:
+            return 0
 
     def reset(self):
         self.beginResetModel()
