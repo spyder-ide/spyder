@@ -397,7 +397,7 @@ class Help(SpyderPluginWidget):
         self.combo.setMaxCount(self.get_option('max_history_entries'))
         self.combo.addItems( self.load_history() )
         self.combo.setItemText(0, '')
-        self.combo.valid.connect(lambda valid: self.force_refresh())
+        self.combo.valid.connect(lambda valid: self.force_refresh(valid))
 
         # Plain text docstring option
         self.docstring = True
@@ -750,11 +750,12 @@ class Help(SpyderPluginWidget):
             self.rich_text.webview.load(QUrl(url))
 
     #------ Public API ---------------------------------------------------------
-    def force_refresh(self):
-        if self.source_is_console():
-            self.set_object_text(None, force_refresh=True)
-        elif self._last_editor_doc is not None:
-            self.set_editor_doc(self._last_editor_doc, force_refresh=True)
+    def force_refresh(self, valid=True):
+        if valid:
+            if self.source_is_console():
+                self.set_object_text(None, force_refresh=True)
+            elif self._last_editor_doc is not None:
+                self.set_editor_doc(self._last_editor_doc, force_refresh=True)
 
     def set_object_text(self, text, force_refresh=False, ignore_unknown=False):
         """Set object analyzed by Help"""
