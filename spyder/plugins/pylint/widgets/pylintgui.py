@@ -227,6 +227,7 @@ class PylintWidget(QWidget):
         if self.rdata:
             self.remove_obsolete_items()
             self.filecombo.addItems(self.get_filenames())
+            self.start_button.setEnabled(self.filecombo.is_valid())
         else:
             self.start_button.setEnabled(False)
 
