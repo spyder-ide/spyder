@@ -830,18 +830,22 @@ class FunctionInfo(object):
 
 
 class QMenuOnlyForEnter(QMenu):
-    """Allow only Enter key."""
+    """
+    If a input of keyboard is the "enter key", the selected action is executed.
+    If a input of keyboard is not the "enter key", the menu is closed and
+    the input is inserted to code editor.
+    """
 
-    def __init__(self, parent):
+    def __init__(self, code_editor):
         """Init QMenu."""
-        super(QMenuOnlyForEnter, self).__init__(parent)
-        self.parent = parent
+        super(QMenuOnlyForEnter, self).__init__(code_editor)
+        self.code_editor = code_editor
 
     def keyPressEvent(self, event):
         """Close the instance if key is not enter key."""
         key = event.key()
         if key not in (Qt.Key_Enter, Qt.Key_Return):
-            self.parent.keyPressEvent(event)
+            self.code_editor.keyPressEvent(event)
             self.close()
         else:
             super(QMenuOnlyForEnter, self).keyPressEvent(event)
