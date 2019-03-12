@@ -436,15 +436,15 @@ class SpyderAction(QAction):
         super(SpyderAction, self).__init__(*args, **kwargs)
         self._action_no_icon = None
 
-        if sys.platform == 'darwin':
-            self._action_no_icon = QAction(*args, **kwargs)
-            self._action_no_icon.setIcon(QIcon())
-            self._action_no_icon.triggered.connect(self.triggered)
-            self._action_no_icon.toggled.connect(self.toggled)
-            self._action_no_icon.changed.connect(self.changed)
-            self._action_no_icon.hovered.connect(self.hovered)
-        else:
-            self._action_no_icon = self
+        # if sys.platform == 'darwin':
+        #     self._action_no_icon = QAction(*args, **kwargs)
+        #     self._action_no_icon.setIcon(QIcon())
+        #     self._action_no_icon.triggered.connect(self.triggered)
+        #     self._action_no_icon.toggled.connect(self.toggled)
+        #     self._action_no_icon.changed.connect(self.changed)
+        #     self._action_no_icon.hovered.connect(self.hovered)
+        # else:
+        self._action_no_icon = self
 
     def __getattribute__(self, name):
         """Intercept method calls and apply to both actions, except signals."""

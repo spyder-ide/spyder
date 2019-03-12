@@ -256,6 +256,13 @@ dependencies.add("qdarkstyle", _("Dark style for the entire interface"),
 #==============================================================================
 # Main Window
 #==============================================================================
+
+# class SpyderMenuBar(menuBar):
+#     def __init__(self, *args):
+#         menuBar.__init__(self, *args)
+
+#     def addMenu(self, icon, title):
+
 class MainWindow(QMainWindow):
     """Spyder main window"""
     DOCKOPTIONS = QMainWindow.AllowTabbedDocks|QMainWindow.AllowNestedDocks
@@ -565,7 +572,8 @@ class MainWindow(QMainWindow):
         toolbar.setObjectName(object_name)
         toolbar.setIconSize(QSize(iconsize, iconsize))
         self.toolbarslist.append(toolbar)
-        return toolbar
+        return toolbar 
+
 
     def setup(self):
         """Setup main window"""
@@ -673,48 +681,59 @@ class MainWindow(QMainWindow):
         self.file_menu = self.menuBar().addMenu(_("&File"))
         self.file_toolbar = self.create_toolbar(_("File toolbar"),
                                                 "file_toolbar")
+        self.file_menu.aboutToShow.connect(self.verifyMyMenu)
 
         # Edit menu/toolbar
         self.edit_menu = self.menuBar().addMenu(_("&Edit"))
         self.edit_toolbar = self.create_toolbar(_("Edit toolbar"),
                                                 "edit_toolbar")
+        self.edit_menu.aboutToShow.connect(self.verifyMyMenu)
 
         # Search menu/toolbar
         self.search_menu = self.menuBar().addMenu(_("&Search"))
         self.search_toolbar = self.create_toolbar(_("Search toolbar"),
                                                     "search_toolbar")
+        self.search_menu.aboutToShow.connect(self.verifyMyMenu)
 
         # Source menu/toolbar
         self.source_menu = self.menuBar().addMenu(_("Sour&ce"))
         self.source_toolbar = self.create_toolbar(_("Source toolbar"),
                                                     "source_toolbar")
+        self.source_menu.aboutToShow.connect(self.verifyMyMenu)
 
         # Run menu/toolbar
         self.run_menu = self.menuBar().addMenu(_("&Run"))
         self.run_toolbar = self.create_toolbar(_("Run toolbar"),
                                                 "run_toolbar")
+        self.run_menu.aboutToShow.connect(self.verifyMyMenu)
 
         # Debug menu/toolbar
         self.debug_menu = self.menuBar().addMenu(_("&Debug"))
         self.debug_toolbar = self.create_toolbar(_("Debug toolbar"),
                                                     "debug_toolbar")
+        self.debug_menu.aboutToShow.connect(self.verifyMyMenu)
 
         # Consoles menu/toolbar
         self.consoles_menu = self.menuBar().addMenu(_("C&onsoles"))
         self.consoles_menu.aboutToShow.connect(
                 self.update_execution_state_kernel)
+        #self.consoles_menu.aboutToShow.connect(self.verifyMyMenu)
 
         # Projects menu
         self.projects_menu = self.menuBar().addMenu(_("&Projects"))
         self.projects_menu.aboutToShow.connect(self.valid_project)
+        self.projects_menu.aboutToShow.connect(self.verifyMyMenu)
         # Tools menu
         self.tools_menu = self.menuBar().addMenu(_("&Tools"))
+        self.tools_menu.aboutToShow.connect(self.verifyMyMenu)
 
         # View menu
         self.view_menu = self.menuBar().addMenu(_("&View"))
+        self.view_menu.aboutToShow.connect(self.verifyMyMenu)
 
         # Help menu
         self.help_menu = self.menuBar().addMenu(_("&Help"))
+        self.help_menu.aboutToShow.connect(self.verifyMyMenu)
 
         # Status bar
         status = self.statusBar()
@@ -1853,6 +1872,43 @@ class MainWindow(QMainWindow):
             self.ql_preferences.setEnabled(False)
         else:
             self.ql_preferences.setEnabled(True)
+
+    def verifyMyMenu(self):
+        for action in self.consoles_menu_actions:
+            if isinstance(action, QAction):
+                action.setIconVisibleInMenu(False)
+
+        for action in self.edit_menu_actions:
+            if isinstance(action, QAction):
+                action.setIconVisibleInMenu(False)
+        for action in self.file_menu_actions:
+            if isinstance(action, QAction):
+                action.setIconVisibleInMenu(False)
+        for action in self.search_menu_actions:
+            if isinstance(action, QAction):
+                action.setIconVisibleInMenu(False)
+        for action in self.source_menu_actions:
+            if isinstance(action, QAction):
+                action.setIconVisibleInMenu(False)
+        for action in self.run_menu_actions:
+            if isinstance(action, QAction):
+                action.setIconVisibleInMenu(False)
+        for action in self.debug_menu_actions:
+            if isinstance(action, QAction):
+                action.setIconVisibleInMenu(False)
+        for action in self.projects_menu_actions:
+            if isinstance(action, QAction):
+                action.setIconVisibleInMenu(False)
+        for action in self.tools_menu_actions:
+            if isinstance(action, QAction):
+                action.setIconVisibleInMenu(False)
+        # for action in self.view_menu_actions:
+        #     if isinstance(action, QAction):
+        #         action.setIconVisibleInMenu(False)
+        for action in self.help_menu_actions:
+            if isinstance(action, QAction):
+                action.setIconVisibleInMenu(False)
+
 
     @Slot()
     def reset_window_layout(self):
@@ -3256,13 +3312,13 @@ def run_spyder(app, options, args):
         for a in args:
             main.open_external_file(a)
 
-    # Don't show icons in menus for Mac
-    if sys.platform == 'darwin':
-        QCoreApplication.setAttribute(Qt.AA_DontShowIconsInMenus, True)
-
     # Open external files with our Mac app
     if running_in_mac_app():
         app.sig_open_external_file.connect(main.open_external_file)
+
+    # # Don't show icons in menus for Mac
+    # if sys.platform == 'darwin':
+    #     QCoreApplication.setAttribute(Qt.AA_DontShowIconsInMenus, True)
 
     # To give focus again to the last focused widget after restoring
     # the window
