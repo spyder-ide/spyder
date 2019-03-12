@@ -445,9 +445,9 @@ the sympy module (e.g. plot)
                     calling_mayavi = True
                     break
         if calling_mayavi:
-            message = _("Changing backend to Qt4 for Mayavi")
+            message = _("Changing backend to Qt for Mayavi")
             self._append_plain_text(message + '\n')
-            self.silent_execute("%gui inline\n%gui qt4")
+            self.silent_execute("%gui inline\n%gui qt")
 
     def change_mpl_backend(self, command):
         """
