@@ -589,7 +589,7 @@ class DocstringWriterExtension(object):
         return header + '\n'.join(return_elements_out)
 
 
-class FunctionInfo:
+class FunctionInfo(object):
     """Parse function definition text."""
 
     def __init__(self):
