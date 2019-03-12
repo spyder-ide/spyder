@@ -830,8 +830,8 @@ class FunctionInfo(object):
 
 
 class QMenuOnlyForEnter(QMenu):
-    """
-    If a input of keyboard is the "enter key", the selected action is executed.
+    """The class executes the selected action when "enter key" is input.
+
     If a input of keyboard is not the "enter key", the menu is closed and
     the input is inserted to code editor.
     """
