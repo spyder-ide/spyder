@@ -179,6 +179,11 @@ class EditorConfigPage(PluginConfigPage):
         removetrail_box = newcb(_("Automatically remove trailing spaces "
                                   "when saving files"),
                                 'always_remove_trailing_spaces', default=False)
+        docstring_combo_choices = ((_("Numpydoc"), 'Numpydoc'),
+                                   (_("Googledoc"), 'Googledoc'),)
+        docstring_combo = self.create_combobox("Docstring type",
+                                               docstring_combo_choices,
+                                               'docstring_type')
 
         analysis_group = QGroupBox(_("Analysis"))
         pep_url = '<a href="https://www.python.org/dev/peps/pep-0008">PEP8</a>'
@@ -275,6 +280,7 @@ class EditorConfigPage(PluginConfigPage):
         sourcecode_layout.addWidget(tab_mode_box)
         sourcecode_layout.addWidget(ibackspace_box)
         sourcecode_layout.addWidget(removetrail_box)
+        sourcecode_layout.addWidget(docstring_combo)
         sourcecode_group.setLayout(sourcecode_layout)
 
         eol_group = QGroupBox(_("End-of-line characters"))

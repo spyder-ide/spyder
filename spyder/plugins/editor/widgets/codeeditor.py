@@ -52,6 +52,8 @@ from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
 from spyder.plugins.editor.api.decoration import TextDecoration
 from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               CloseQuotesExtension,
+                                              DocstringWriterExtension,
+                                              QMenuOnlyForEnter,
                                               EditorExtensionsManager)
 from spyder.plugins.editor.lsp import (LSPRequestTypes, TextDocumentSyncKind,
                                        DiagnosticSeverity)
@@ -419,6 +421,9 @@ class CodeEditor(TextEditBaseWidget):
         self.found_results = []
         self.found_results_color = QColor(Qt.magenta).lighter(180)
 
+        # Docstring
+        self.writer_docstring = DocstringWriterExtension(self)
+
         # Context menu
         self.gotodef_action = None
         self.setup_context_menu()
@@ -539,6 +544,8 @@ class CodeEditor(TextEditBaseWidget):
             ('editor', 'paste', self.paste),
             ('editor', 'delete', self.delete),
             ('editor', 'select all', self.selectAll),
+            ('editor', 'docstring',
+             self.writer_docstring.write_docstring_for_shortcut),
             ('array_builder', 'enter array inline', self.enter_array_inline),
             ('array_builder', 'enter array table', self.enter_array_table)
             )
@@ -2685,6 +2692,13 @@ class CodeEditor(TextEditBaseWidget):
             self, _("Zoom reset"), shortcut=QKeySequence("Ctrl+0"),
             triggered=self.zoom_reset.emit)
 
+        # Docstring
+        writer = self.writer_docstring
+        self.docstring_action = create_action(
+            self, _("Generate docstring"),
+            shortcut=get_shortcut('editor', 'docstring'),
+            triggered=writer.write_docstring_at_first_line_of_function)
+
         # Build menu
         self.menu = QMenu(self)
         actions_1 = [self.run_cell_action, self.run_cell_and_advance_action,
@@ -2693,7 +2707,7 @@ class CodeEditor(TextEditBaseWidget):
                      self.redo_action, None, self.cut_action,
                      self.copy_action, self.paste_action, selectall_action]
         actions_2 = [None, zoom_in_action, zoom_out_action, zoom_reset_action,
-                     None, toggle_comment_action]
+                     None, toggle_comment_action, self.docstring_action]
         if nbformat is not None:
             nb_actions = [self.clear_all_output_action,
                           self.ipynb_convert_action, None]
@@ -2985,6 +2999,16 @@ class CodeEditor(TextEditBaseWidget):
         self.re_run_last_cell_action.setVisible(self.is_python())
         self.gotodef_action.setVisible(self.go_to_definition_enabled)
 
+        # Check if a docstring is writable
+        writer = self.writer_docstring
+        writer.line_number_cursor = self.get_line_number_at(event.pos())
+        result = writer.get_function_definition_from_first_line()
+
+        if result:
+            self.docstring_action.setEnabled(True)
+        else:
+            self.docstring_action.setEnabled(False)
+
         # Code duplication go_to_definition_from_cursor and mouse_move_event
         cursor = self.textCursor()
         text = to_text_string(cursor.selectedText())
@@ -3077,6 +3101,41 @@ class CodeEditor(TextEditBaseWidget):
 
     def is_editor(self):
         return True
+
+    def popup_docstring(self, prev_text, prev_pos):
+        """Show the menu for generating docstring."""
+        line_text = self.textCursor().block().text()
+        if line_text != prev_text:
+            return
+
+        if prev_pos != self.textCursor().position():
+            return
+
+        writer = self.writer_docstring
+        if writer.get_function_definition_from_below_last_line():
+            point = self.cursorRect().bottomRight()
+            point = self.calculate_real_position(point)
+            point = self.mapToGlobal(point)
+
+            self.menu_docstring = QMenuOnlyForEnter(self)
+            self.docstring_action = create_action(
+                self, _("Generate docstring"), icon=ima.icon('TextFileIcon'),
+                triggered=writer.write_docstring)
+            self.menu_docstring.addAction(self.docstring_action)
+            self.menu_docstring.setActiveAction(self.docstring_action)
+            self.menu_docstring.popup(point)
+
+    def delayed_popup_docstring(self):
+        """Show context menu for docstring.
+
+        This method is called after typing '''. After typing ''', this function
+        waits 300ms. If there was no input for 300ms, show the context menu.
+        """
+        line_text = self.textCursor().block().text()
+        pos = self.textCursor().position()
+
+        timer = QTimer()
+        timer.singleShot(300, lambda: self.popup_docstring(line_text, pos))
 
 
 #===============================================================================

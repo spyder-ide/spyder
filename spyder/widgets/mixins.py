@@ -406,7 +406,7 @@ class BaseEditMixin(object):
     def get_line_number_at(self, coordinates):
         """Return line number at *coordinates* (QPoint)"""
         cursor = self.cursorForPosition(coordinates)
-        return cursor.blockNumber()-1
+        return cursor.blockNumber() + 1
 
     def get_line_at(self, coordinates):
         """Return line at *coordinates* (QPoint)"""
