@@ -295,6 +295,9 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
     def file_renamed(self, editor, new_filename):
         """File was renamed, updating outline explorer tree"""
+        if editor is None:
+            # We can't do anything
+            return
         editor_id = editor.get_id()
         if editor_id in list(self.editor_ids.values()):
             root_item = self.editor_items[editor_id]
