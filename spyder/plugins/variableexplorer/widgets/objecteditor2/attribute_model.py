@@ -464,12 +464,12 @@ DEFAULT_ATTR_COLS = (
     ATTR_MODEL_GET_SOURCE_FILE)
 
 DEFAULT_ATTR_DETAILS = (
+    ATTR_MODEL_PRETTY_PRINT,
     ATTR_MODEL_PATH,  # to allow for copy/paste
     # ATTR_MODEL_SUMMARY, # Too similar to unicode column
     ATTR_MODEL_UNICODE,
     # ATTR_MODEL_STR, # Too similar to unicode column
     ATTR_MODEL_REPR,
-    ATTR_MODEL_PRETTY_PRINT,
     # ATTR_MODEL_DOC_STRING, # not used, too similar to ATTR_MODEL_GET_DOC
     ATTR_MODEL_GET_DOC,
     ATTR_MODEL_GET_COMMENTS,
