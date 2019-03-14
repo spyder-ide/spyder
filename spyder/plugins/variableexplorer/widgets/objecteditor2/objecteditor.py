@@ -40,7 +40,6 @@ logger = logging.getLogger(__name__)
 
 # About message
 PROGRAM_NAME = 'objbrowser'
-PROGRAM_URL = 'https://github.com/titusjan/objbrowser'
 
 
 class ObjectBrowser(QDialog):
@@ -220,9 +219,6 @@ class ObjectBrowser(QDialog):
         view_menu.addAction(self.toggle_callable_action)
         view_menu.addAction(self.toggle_special_attribute_action)
 
-        menuBar.addSeparator()
-        help_menu = menuBar.addMenu("&Help")
-        help_menu.addAction('&About', self.about)
         self.layout.setMenuBar(menuBar)
 
     def _setup_views(self):
@@ -498,11 +494,6 @@ class ObjectBrowser(QDialog):
             self._change_details_field)
         selection_model = self.obj_tree.selectionModel()
         selection_model.currentChanged.disconnect(self._update_details)
-
-    def about(self):
-        """ Shows the about message window. """
-        message = (_("{}: {}").format(PROGRAM_NAME, PROGRAM_URL))
-        QMessageBox.about(self, _("About {}").format(PROGRAM_NAME), message)
 
     def closeEvent(self, event):
         """Called when the window is closed."""
