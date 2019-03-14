@@ -85,8 +85,9 @@ else:
 # Strings
 #==============================================================================
 def to_unichr(character_code):
-    """Return the Unicode string of one character whose Unicode code
-    is the integer."""
+    """
+    Return the Unicode string of the character with the given Unicode code.
+    """
     if PY2:
         return unichr(character_code)
     else:

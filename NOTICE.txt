@@ -1017,7 +1017,7 @@ Classes from objbrowser 1.2.1
 Copyright (c) 2016 Pepijn Kenter
 
 
-Author: <author-name> | <author-email> | <author-website>
+Author: Pepijn Kenter | <author-email> | <author-website>
 Site/Source: https://github.com/titusjan/objbrowser
 License: MIT (Expat) License | https://opensource.org/licenses/MIT
 
@@ -1042,7 +1042,12 @@ https://github.com/titusjan/objbrowser/tree/master/objbrowser
 
 Files covered:
 
-spyder/plugins/variableexplorer/widgets/objecteditor2/
+spyder/plugins/variableexplorer/widgets/objecteditor2/attribute_model.py
+spyder/plugins/variableexplorer/widgets/objecteditor2/objecteditor.py
+spyder/plugins/variableexplorer/widgets/objecteditor2/toggle_column_mixin.py
+spyder/plugins/variableexplorer/widgets/objecteditor2/tree_item.py
+spyder/plugins/variableexplorer/widgets/objecteditor2/tree_model.py
+spyder/plugins/variableexplorer/widgets/objecteditor2/utils.py
 
 
 ===============================================================================

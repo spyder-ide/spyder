@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright (c) Spyder Project Contributors
+# Copyright (c) 2019- Spyder Project Contributors
 #
-# Licensed under the terms of the MIT License
-# (see LICENSE.txt for details)
+# Released under the terms of the MIT License
+# (see LICENSE.txt in the Spyder root directory for details)
 # -----------------------------------------------------------------------------
 
 """Object Explorer Tests."""

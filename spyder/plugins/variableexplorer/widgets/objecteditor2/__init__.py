@@ -4,9 +4,8 @@
 # Copyright (c) 2019- Spyder Project Contributors
 #
 # Components of objectbrowser originally distributed under
-# the MIT (Expat) license.
-# Licensed under the terms of the MIT License; see NOTICE.txt in the Spyder
-# root directory for details
+# the MIT (Expat) license. Licensed under the terms of the MIT License;
+# see NOTICE.txt in the Spyder root directory for details
 # -----------------------------------------------------------------------------
 
 

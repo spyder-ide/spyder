@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright © Spyder Project Contributors
+# Copyright (c) 2019- Spyder Project Contributors
 #
-# Licensed under the terms of the MIT License
-# (see spyder/__init__.py for details)
+# Released under the terms of the MIT License
+# (see LICENSE.txt in the Spyder root directory for details)
 # -----------------------------------------------------------------------------
 
 """

@@ -3,13 +3,13 @@
 # Copyright (c) 2016 Pepijn Kenter.
 # Copyright (c) 2019- Spyder Project Contributors
 #
-# Components of objectbrowser originally distributed under
-# the MIT (Expat) license.
-# Licensed under the terms of the MIT License; see NOTICE.txt in the Spyder
-# root directory for details
 # Based on: PySide examples/itemviews/simpletreemodel
-# See: https://github.com/PySide/Examples/blob/master/examples/
-# itemviews/simpletreemodel/simpletreemodel.py
+# See: http://harmattan-dev.nokia.com/docs/library/html/qt4/
+# itemviews-simpletreemodel.html
+#
+# Components of objectbrowser originally distributed under
+# the MIT (Expat) license. Licensed under the terms of the MIT License;
+# see NOTICE.txt in the Spyder root directory for details
 # -----------------------------------------------------------------------------
 
 # Standard library imports
