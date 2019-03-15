@@ -101,7 +101,10 @@ class AsyncClient(QObject):
         self.process.finished.connect(self._on_finished)
         running = self.process.waitForStarted()
         if not running:
-            raise IOError('Could not start %s' % self)
+            # Don't raise an error if the plugin fails to start
+            # Fixes issue 8934
+            debug_print('Could not start %s' % self)
+            return
 
         # Set up the socket notifer.
         fid = self.socket.getsockopt(zmq.FD)
