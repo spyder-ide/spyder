@@ -3093,7 +3093,7 @@ msgstr "Toujours afficher %s lors de la première exécution d'un script"
 
 #: spyder/plugins/runconfig.py:45
 msgid "Remove all variables before execution"
-msgstr "Effacer toutes les variables avant l'exécution"
+msgstr "Supprimer toutes les variables avant l'exécution"
 
 #: spyder/plugins/runconfig.py:46
 msgid "Directly enter debugging when errors appear"
