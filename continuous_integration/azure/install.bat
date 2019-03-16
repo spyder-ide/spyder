@@ -1,19 +1,26 @@
 :: Install dependencies
 if %USE_CONDA% == yes (
     conda install -q -y -c spyder-ide --file requirements/conda.txt
+    if errorlevel 1 exit 1
+
     conda install -q -y -c spyder-ide --file requirements/tests.txt
+    if errorlevel 1 exit 1
 ) else (
     :: Update pip and setuptools
     pip install -U pip setuptools
+    if errorlevel 1 exit 1
 
     :: Install Spyder and its dependencies from our setup.py
     pip install -e .[test]
+    if errorlevel 1 exit 1
 
     :: Install qtpy from Github
     pip install git+https://github.com/spyder-ide/qtpy.git
+    if errorlevel 1 exit 1
 
     :: Install qtconsole from Github
     pip install git+https://github.com/jupyter/qtconsole.git
+    if errorlevel 1 exit 1
 )
 
 :: The newly introduced changes to the Python packages in Anaconda
@@ -26,6 +33,8 @@ if %USE_CONDA% == yes (
 
 :: Install spyder-kernels from master
 pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels
+if errorlevel 1 exit 1
 
 :: Install codecov
 pip install -q codecov
+if errorlevel 1 exit 1

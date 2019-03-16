@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -ex
 
 # -- Install Miniconda
 MINICONDA=Miniconda3-latest-Linux-x86_64.sh
