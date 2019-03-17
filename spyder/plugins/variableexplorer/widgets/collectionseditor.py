@@ -561,7 +561,8 @@ class CollectionsDelegate(QItemDelegate):
                 return editor
         # CollectionsEditor for an arbitrary Python object
         else:
-            editor = ObjectBrowser({_('Object'): value}, parent=parent)
+            editor = ObjectBrowser({_('Object'): value}, expanded=True,
+                                   parent=parent)
             self.create_dialog(editor, dict(model=index.model(),
                                             editor=editor,
                                             key=key, readonly=readonly))

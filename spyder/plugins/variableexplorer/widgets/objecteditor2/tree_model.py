@@ -88,7 +88,7 @@ class TreeModel(QAbstractItemModel):
         self._inspected_node_is_visible = None
         self._inspected_item = None
         self._root_item = None
-        self.populateTree(obj, obj_name)
+        self.populateTree(obj, obj_name=obj_name)
 
     @property
     def inspectedNodeIsVisible(self):
@@ -334,7 +334,6 @@ class TreeModel(QAbstractItemModel):
     def populateTree(self, obj, obj_name='', inspected_node_is_visible=None):
         """Fills the tree using a python object. Sets the rootItem."""
         logger.debug("populateTree with object id = 0x{:x}".format(id(obj)))
-
         if inspected_node_is_visible is None:
             inspected_node_is_visible = (obj_name != '')
         self._inspected_node_is_visible = inspected_node_is_visible

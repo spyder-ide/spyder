@@ -50,6 +50,7 @@ class ObjectBrowser(QDialog):
     def __init__(self,
                  obj,
                  name='',
+                 expanded=False,
                  parent=None,
                  attribute_columns=DEFAULT_ATTR_COLS,
                  attribute_details=DEFAULT_ATTR_DETAILS,
@@ -97,8 +98,8 @@ class ObjectBrowser(QDialog):
             refresh_rate=refresh_rate,
             show_callable_attributes=show_callable_attributes,
             show_special_attributes=show_special_attributes)
-
-        self._tree_model = TreeModel(obj, name, attr_cols=self._attr_cols)
+        self._tree_model = TreeModel(obj, obj_name=name,
+                                     attr_cols=self._attr_cols)
 
         self._proxy_tree_model = TreeProxyModel(
             show_callable_attributes=show_callable_attributes,
@@ -132,7 +133,7 @@ class ObjectBrowser(QDialog):
         # Select first row so that a hidden root node will not be selected.
         first_row_index = self._proxy_tree_model.firstItemIndex()
         self.obj_tree.setCurrentIndex(first_row_index)
-        if self._tree_model.inspectedNodeIsVisible:
+        if self._tree_model.inspectedNodeIsVisible or expanded:
             self.obj_tree.expand(first_row_index)
 
     def refresh(self):
