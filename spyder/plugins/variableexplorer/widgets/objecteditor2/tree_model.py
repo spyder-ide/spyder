@@ -30,6 +30,7 @@ from spyder.plugins.variableexplorer.widgets.objecteditor2.utils import (
 from spyder.plugins.variableexplorer.widgets.objecteditor2.tree_item import (
     TreeItem)
 from spyder.py3compat import to_unichr
+from spyder.utils import icon_manager as ima
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +73,7 @@ class TreeModel(QAbstractItemModel):
         self.special_attribute_font = QFont()
         self.special_attribute_font.setItalic(True)
 
-        self.regular_color = QBrush(QColor('black'))
+        self.regular_color = QBrush(QColor(ima.MAIN_FG_COLOR))
         self.callable_color = QBrush(
             QColor('mediumblue'))  # for functions, methods, etc.
 

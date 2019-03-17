@@ -35,6 +35,7 @@ from spyder.plugins.variableexplorer.widgets.objecteditor2.tree_model import (
     TreeModel, TreeProxyModel)
 from spyder.plugins.variableexplorer.widgets.objecteditor2.toggle_column_mixin\
     import ToggleColumnTreeView
+from spyder.utils import icon_manager as ima
 
 logger = logging.getLogger(__name__)
 
@@ -174,26 +175,26 @@ class ObjectBrowser(QDialog):
         """Creates the main window actions."""
         # Show/hide callable objects
         self.toggle_callable_action = \
-            QAction("Show callable attributes", self, checkable=True,
+            QAction(_("Show callable attributes"), self, checkable=True,
                     shortcut=QKeySequence("Alt+C"),
-                    statusTip="Shows/hides attributes "
-                              "that are callable (functions, methods, etc)")
+                    statusTip=_("Shows/hides attributes "
+                              "that are callable (functions, methods, etc)"))
         self.toggle_callable_action.toggled.connect(
             self._proxy_tree_model.setShowCallables)
 
         # Show/hide special attributes
         self.toggle_special_attribute_action = \
-            QAction("Show __special__ attributes", self, checkable=True,
+            QAction(_("Show __special__ attributes"), self, checkable=True,
                     shortcut=QKeySequence("Alt+S"),
-                    statusTip="Shows or hides __special__ attributes")
+                    statusTip=_("Shows or hides __special__ attributes"))
         self.toggle_special_attribute_action.toggled.connect(
             self._proxy_tree_model.setShowSpecialAttributes)
 
         # Toggle auto-refresh on/off
         self.toggle_auto_refresh_action = \
-            QAction("Auto-refresh", self, checkable=True,
-                    statusTip="Auto refresh every "
-                              "{} seconds".format(self._refresh_rate))
+            QAction(_("Auto-refresh"), self, checkable=True,
+                    statusTip=_("Auto refresh every "
+                                "{} seconds").format(self._refresh_rate))
         self.toggle_auto_refresh_action.toggled.connect(
             self.toggle_auto_refresh)
 
@@ -253,7 +254,7 @@ class ObjectBrowser(QDialog):
         bottom_pane_widget.setLayout(bottom_layout)
         self.central_splitter.addWidget(bottom_pane_widget)
 
-        group_box = QGroupBox("Details")
+        group_box = QGroupBox(_("Details"))
         bottom_layout.addWidget(group_box)
 
         group_layout = QHBoxLayout()
@@ -338,8 +339,8 @@ class ObjectBrowser(QDialog):
         """
         default_auto_refresh = False
         default_refresh_rate = 2
-        default_sra = True
-        default_ssa = True
+        default_sra = False
+        default_ssa = False
         if reset:
             logger.debug("Resetting persistent model settings")
             if refresh_rate is None:
@@ -448,7 +449,7 @@ class ObjectBrowser(QDialog):
 
     def _update_details_for_item(self, tree_item):
         """Shows the object details in the editor given an tree_item."""
-        self.editor.setStyleSheet("color: black;")
+        self.editor.setStyleSheet("color: {};".format(ima.MAIN_FG_COLOR))
         try:
             # obj = tree_item.obj
             button_id = self.button_group.checkedId()

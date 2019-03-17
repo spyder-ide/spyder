@@ -16,6 +16,9 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QAction, QActionGroup, QTableWidget, QTreeView,
                             QTreeWidget)
 
+# Local imports
+from spyder.config.base import _
+
 logger = logging.getLogger(__name__)
 
 
@@ -59,8 +62,8 @@ class ToggleColumnMixIn(object):
                              self.toggle_column_actions_group,
                              checkable=checkable.get(column_label, True),
                              enabled=enabled.get(column_label, True),
-                             toolTip="Shows or hides "
-                                     "the {} column".format(column_label))
+                             toolTip=_("Shows or hides "
+                                       "the {} column").format(column_label))
             func = self.__make_show_column_function(col)
             self.__toggle_functions.append(func)  # keep reference
             horizontal_header.addAction(action)
