@@ -179,7 +179,7 @@ class ObjectBrowser(QDialog):
             QAction(_("Show callable attributes"), self, checkable=True,
                     shortcut=QKeySequence("Alt+C"),
                     statusTip=_("Shows/hides attributes "
-                              "that are callable (functions, methods, etc)"))
+                                "that are callable (functions, methods, etc)"))
         self.toggle_callable_action.toggled.connect(
             self._proxy_tree_model.setShowCallables)
 
