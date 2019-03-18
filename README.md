@@ -294,3 +294,5 @@ https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ)
 [@SpyderIDE on Facebook](https://www.facebook.com/SpyderIDE/)
 
 [Support Spyder on OpenCollective](https://opencollective.com/spyder/)
+
+[![](https://codescene.io/projects/4391/status.svg) Get more details at **codescene.io**.](https://codescene.io/projects/4391/jobs/latest-successful/results)
