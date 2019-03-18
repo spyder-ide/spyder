@@ -723,7 +723,8 @@ DEFAULTS = [
                                     'enabled': False
                                 },
                                 'jedi_completion': {
-                                    'enabled': True
+                                    'enabled': True,
+                                    'include_params': False
                                 },
                                 'jedi_hover': {
                                     'enabled': True
