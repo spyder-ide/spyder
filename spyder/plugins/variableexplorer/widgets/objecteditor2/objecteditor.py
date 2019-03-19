@@ -20,16 +20,15 @@ import hashlib
 from qtpy.QtCore import (Slot, QModelIndex, QPoint, QSize, Qt, QTimer)
 from qtpy.QtGui import QFont, QKeySequence, QTextOption
 from qtpy.QtWidgets import (QAbstractItemView, QAction,
-                            QButtonGroup, QGridLayout, QHBoxLayout, QGroupBox,
-                            QMessageBox, QMenuBar,
-                            QPlainTextEdit, QRadioButton,
+                            QButtonGroup, QHBoxLayout, QGroupBox,
+                            QMenu, QPlainTextEdit, QRadioButton,
                             QSplitter, QVBoxLayout, QWidget, QDialog,
                             QHeaderView)
 
 # Local imports
 from spyder.config.base import _
-from spyder.utils.qthelpers import (add_actions, create_action,
-                                    keybinding, qapplication)
+from spyder.utils.qthelpers import (add_actions, create_plugin_layout,
+                                    create_toolbutton, qapplication)
 from spyder.plugins.variableexplorer.widgets.objecteditor2.attribute_model \
     import DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS
 from spyder.plugins.variableexplorer.widgets.objecteditor2.tree_model import (
@@ -214,25 +213,48 @@ class ObjectBrowser(QDialog):
 
     def _setup_menu(self):
         """Sets up the main menu."""
-        self.layout = QGridLayout()
-        self.setLayout(self.layout)
-        menuBar = QMenuBar()
-        view_menu = menuBar.addMenu("&View")
-        view_menu.addAction("&Refresh", self.refresh, "Ctrl+R")
-        view_menu.addAction(self.toggle_auto_refresh_action)
+        self.tools_layout = QHBoxLayout()
 
-        view_menu.addSeparator()
-        self.show_cols_submenu = view_menu.addMenu("Table columns")
-        view_menu.addSeparator()
-        view_menu.addAction(self.toggle_callable_action)
-        view_menu.addAction(self.toggle_special_attribute_action)
+        refresh = create_toolbutton(self, text=_("Refresh"),
+                                    icon=ima.icon("reload"),
+                                    triggered=lambda: self.refresh())
+        self.tools_layout.addWidget(refresh)
 
-        self.layout.setMenuBar(menuBar)
+        auto_refresh = create_toolbutton(
+            self, text=_("Auto-refresh"),
+            icon=ima.icon("auto_reload"),
+            triggered=lambda: self.toggle_auto_refresh_action.setChecked(
+                not self.toggle_auto_refresh_action.isChecked()))
+        self.tools_layout.addWidget(auto_refresh)
+
+        callable_attributes = create_toolbutton(
+            self, text=_("Show callable attributes"),
+            icon=ima.icon("class"),
+            triggered=lambda: self.toggle_callable_action.setChecked(
+                not self.toggle_callable_action.isChecked()))
+        self.tools_layout.addWidget(callable_attributes)
+
+        special_attributes = create_toolbutton(
+            self, text=_("Show __special__ attributes"),
+            icon=ima.icon("private2"),
+            triggered=lambda: self.toggle_special_attribute_action.setChecked(
+                not self.toggle_special_attribute_action.isChecked()))
+        self.tools_layout.addWidget(special_attributes)
+
+        self.options_button = create_toolbutton(
+                self, text=_('Options'), icon=ima.icon('tooloptions'))
+        self.show_cols_submenu = QMenu("Table columns", parent=self)
+        self.options_button.setMenu(self.show_cols_submenu)
+        self.tools_layout.addWidget(self.options_button)
+
+        self.tools_layout.addStretch()
 
     def _setup_views(self):
         """Creates the UI widgets."""
         self.central_splitter = QSplitter(self, orientation=Qt.Vertical)
-        self.layout.addWidget(self.central_splitter)
+        layout = create_plugin_layout(self.tools_layout,
+                                      self.central_splitter)
+        self.setLayout(layout)
 
         # Tree widget
         self.obj_tree = ToggleColumnTreeView()
@@ -248,8 +270,8 @@ class ObjectBrowser(QDialog):
         obj_tree_header = self.obj_tree.header()
         obj_tree_header.setSectionsMovable(True)
         obj_tree_header.setStretchLastSection(False)
-        for action in self.obj_tree.toggle_column_actions_group.actions():
-            self.show_cols_submenu.addAction(action)
+        add_actions(self.show_cols_submenu,
+                    self.obj_tree.toggle_column_actions_group.actions())
 
         self.central_splitter.addWidget(self.obj_tree)
 
