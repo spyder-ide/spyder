@@ -31,7 +31,7 @@ SUPPORTED = [
                     ('hgtk', ['log'])),
             cstate=(('hg', ['status', '-A']), )
         ),
-        'states': ["?", "I", "M", "A"],
+        'states': ["?", "I", "M", "A", "U"],
         'offset': 2
     }, {
         'name': 'Git',
@@ -41,7 +41,7 @@ SUPPORTED = [
             browse=(('gitk', []), ),
             cstate=(('git', ['status', '--ignored', '--porcelain']), )
         ),
-        'states': ["?", "!", "M", "A"],
+        'states': ["?", "!", "M", "A", "U"],
         'offset': 3
     }]
 
@@ -130,7 +130,11 @@ def get_vcs_status(path):
                     for fString in (x for x in oStr.split("\n") if x):
                         status = fString[:o-1].strip()
                         if len(status) > 1:
-                            status = status[1]
+                            if "U" in status or status == "AA":
+                                # merge conflict (only for git)
+                                status = "U"
+                            else:
+                                status = status[1]
                         try:
                             index = stat.index(status)
                         except ValueError:
@@ -151,12 +155,16 @@ def get_vcs_file_status(filename):
     stat = info['states']
     for tool, args in info['actions']['cstate']:
             if programs.find_program(tool):
-                proc = programs.run_program(tool, args, cwd=path)
+                proc = programs.run_program(tool, args + [filename], cwd=path)
                 out, err = proc.communicate()
                 if proc.returncode >= 0 and err == b'':
                     status = out.decode("utf-8")[:info['offset']-1].strip()
                     if len(status) > 1:
-                        status = status[1]
+                        if "U" in status or status == "AA":
+                            # merge conflict (only for git)
+                            status = "U"
+                        else:
+                            status = status[1]
                     try:
                         index = stat.index(status)
                         return index

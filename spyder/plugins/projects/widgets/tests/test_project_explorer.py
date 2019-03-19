@@ -99,11 +99,16 @@ def test_project_vcs_color(project_explorer, qtbot):
     # Check that the files have their according colors
     tree = project_explorer.explorer.treewidget
     pcolors = tree.fsmodel.color_array
+    # Conflict is not tested
+    pcolors.remove(pcolors[4])
+
+    # Check if the correct colors are set
     tree.expandAll()
     tree.fsmodel.set_vcs_state(project_dir)
     open(files[0], 'w').close()
     qtbot.waitForWindowShown(project_explorer.explorer)
     ind0 = tree.fsmodel.index(tree.fsmodel.rootPath()).child(0, 0)
+    tree.fsmodel.on_project_loaded()
     for n in range(5):
         assert tree.fsmodel.index(n, 0, ind0).data(Qt.TextColorRole).name() \
             == pcolors[n].name()

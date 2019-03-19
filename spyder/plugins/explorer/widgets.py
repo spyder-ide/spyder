@@ -132,6 +132,7 @@ class IconProvider(QFileIconProvider):
             fname = osp.normpath(to_text_string(qfileinfo.absoluteFilePath()))
             return ima.get_icon_by_extension(fname, scale_factor=1.0)
 
+
 class ColorModel(QFileSystemModel):
     """FileSystemModel providing a color-code for different commit-status."""
     def __init__(self, *args, **kwargs):
@@ -141,14 +142,38 @@ class ColorModel(QFileSystemModel):
                             QColor(CONF.get('vcs', 'color/ignored')),
                             QColor(CONF.get('vcs', 'color/modified')),
                             QColor(CONF.get('vcs', 'color/added')),
+                            QColor(CONF.get('vcs', 'color/conflict')),
                             QColor(CONF.get('appearance', normalstyle)[0])]
         self.root_path = ''
+        self.use_vcs = True
+        self.func = lambda p, f, l: self.new_row(p, f, l)
         super(ColorModel, self).__init__(*args, **kwargs)
+
+
+    def new_row(self, parent, first, last):
+        """Checks the contents of a new row when enabled."""
+        if not self.use_vcs or first != last:
+            return
+        data = parent.child(last, 0).data()
+        if data:
+            self.set_vcs_state()
+
+    def on_project_loaded(self):
+        """Get a new file list and enable checks on a loaded project."""
+        self.set_vcs_state()
+        self.rowsInserted.connect(self.func)
+
+    def on_project_closed(self):
+        """Clear file list and disable checks."""
+        self.vcs_state = {}
+        self.rowsInserted.disconnect(self.func)
 
     @Slot()
     @Slot(str)
     def set_vcs_state(self, root_path=None):
         """Set the vcs state dictionary."""
+        if not self.use_vcs:
+            return
         if root_path is None:
             self.vcs_state = vcs.get_vcs_status(self.root_path)
         elif osp.isfile(root_path):
@@ -164,10 +189,12 @@ class ColorModel(QFileSystemModel):
 
     def data(self, index, role=Qt.DisplayRole):
         """Set the colors of the elements in the Treeview."""
-        if self.vcs_state and role == Qt.TextColorRole:
+        if self.use_vcs and self.vcs_state and role == Qt.TextColorRole:
             filename = osp.abspath(self.filePath(index))
-            if filename in self.vcs_state and self.vcs_state[filename] <= 3:
-                return self.color_array[self.vcs_state[filename]]
+            bMap = [x in filename for x in self.vcs_state]
+            if sum(bMap) == 1:
+                val = list(self.vcs_state)[bMap.index(1)]
+                return self.color_array[self.vcs_state[val]]
             else:
                 return self.color_array[-1]
         return super(ColorModel, self).data(index, role)
