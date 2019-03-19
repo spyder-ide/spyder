@@ -245,7 +245,7 @@ ATTR_MODEL_UNICODE = AttributeModel(
           "of the object. In Python 2 it uses unicode()"
           "In Python 3 the str() function is used."),
     data_fn=lambda tree_item: to_text_string(tree_item.obj),
-    col_visible=True,
+    col_visible=False,
     width=MEDIUM_COL_WIDTH,
     line_wrap=QTextOption.WrapAtWordBoundaryOrAnywhere)
 
@@ -446,13 +446,13 @@ ALL_ATTR_MODELS = (
 
 DEFAULT_ATTR_COLS = (
     ATTR_MODEL_NAME,
+    ATTR_MODEL_TYPE,
     ATTR_MODEL_PATH,
     ATTR_MODEL_SUMMARY,
     ATTR_MODEL_UNICODE,
     ATTR_MODEL_STR,
     ATTR_MODEL_REPR,
     ATTR_MODEL_LENGTH,
-    ATTR_MODEL_TYPE,
     ATTR_MODEL_CLASS,
     ATTR_MODEL_ID,
     ATTR_MODEL_IS_ATTRIBUTE,

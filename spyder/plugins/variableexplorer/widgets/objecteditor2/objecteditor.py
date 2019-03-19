@@ -23,7 +23,8 @@ from qtpy.QtWidgets import (QAbstractItemView, QAction,
                             QButtonGroup, QGridLayout, QHBoxLayout, QGroupBox,
                             QMessageBox, QMenuBar,
                             QPlainTextEdit, QRadioButton,
-                            QSplitter, QVBoxLayout, QWidget, QDialog)
+                            QSplitter, QVBoxLayout, QWidget, QDialog,
+                            QHeaderView)
 
 # Local imports
 from spyder.config.base import _
@@ -40,7 +41,7 @@ from spyder.utils import icon_manager as ima
 logger = logging.getLogger(__name__)
 
 # About message
-PROGRAM_NAME = 'objbrowser'
+PROGRAM_NAME = 'Object Explorer'
 
 
 class ObjectBrowser(QDialog):
@@ -51,6 +52,7 @@ class ObjectBrowser(QDialog):
                  obj,
                  name='',
                  expanded=False,
+                 resize_to_contents=True,
                  parent=None,
                  attribute_columns=DEFAULT_ATTR_COLS,
                  attribute_details=DEFAULT_ATTR_DETAILS,
@@ -63,6 +65,9 @@ class ObjectBrowser(QDialog):
         Constructor
 
         :param name: name of the object as it will appear in the root node
+        :param expanded: show the first visible root element expanded
+        :param resize_to_contents: resize columns to contents ignoring width
+            of the attributes
         :param obj: any Python object or variable
         :param attribute_columns: list of AttributeColumn objects that
             define which columns are present in the table and their defaults
@@ -116,6 +121,7 @@ class ObjectBrowser(QDialog):
         self._setup_views()
         self.setWindowTitle("{} - {}".format(PROGRAM_NAME, name))
 
+        self._resize_to_contents = resize_to_contents
         self._readViewSettings(reset=reset)
 
         assert self._refresh_rate > 0, ("refresh_rate must be > 0."
@@ -381,7 +387,7 @@ class ObjectBrowser(QDialog):
         :param reset: If True, the program resets to its default settings.
         """
         pos = QPoint(20 * self._instance_nr, 20 * self._instance_nr)
-        window_size = QSize(1024, 700)
+        window_size = QSize(825, 500)
         details_button_idx = 0
 
         header = self.obj_tree.header()
@@ -407,15 +413,17 @@ class ObjectBrowser(QDialog):
             column_visible = [col.col_visible for col in self._attr_cols]
 
             for idx, size in enumerate(column_sizes):
-                if size > 0:  # Just in case
+                if not self._resize_to_contents and size > 0:  # Just in case
                     header.resizeSection(idx, size)
+                else:
+                    header.setSectionResizeMode(QHeaderView.ResizeToContents)
 
             for idx, visible in enumerate(column_visible):
                 elem = self.obj_tree.toggle_column_actions_group.actions()[idx]
                 elem.setChecked(visible)
 
         self.resize(window_size)
-        self.move(pos)
+
         button = self.button_group.button(details_button_idx)
         if button is not None:
             button.setChecked(True)
