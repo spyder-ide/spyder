@@ -162,6 +162,7 @@ class ColorModel(QFileSystemModel):
         """Get a new file list and enable checks on a loaded project."""
         self.set_vcs_state()
         self.rowsInserted.connect(self.func)
+        self.dataChanged.emit(QModelIndex(), QModelIndex())
 
     def on_project_closed(self):
         """Clear file list and disable checks."""

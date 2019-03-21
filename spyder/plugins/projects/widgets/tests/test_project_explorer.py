@@ -75,7 +75,7 @@ def test_project_vcs_color(project_explorer, qtbot):
     project_explorer.show()
     project_dir = project_explorer.directory
     test_dir = os.getcwd()
-    os.chdir(project_dir)
+    os.chdir(str(project_dir))
 
     # Create files for the repository
     files = []
@@ -85,17 +85,24 @@ def test_project_vcs_color(project_explorer, qtbot):
             open(files[n], 'w').close()
 
     # Init the repo and set some files to different states
-    programs.run_program('git', ['init', '.'], cwd=project_dir)
-    programs.run_program('git', ['add', 'file2.py', 'file4.py'],
-                         cwd=project_dir)
-    programs.run_program('git', ['commit', '-m', 'test'], cwd=project_dir)
+    gitcmds = [['init', '.'],
+               ['config', '--local', 'user.email', '"john@doe.com"'],
+               ['add', 'file2.py', 'file4.py'],
+               ['commit', '-m', 'test']]
+    for g_cmd in gitcmds:
+        p = programs.run_program('git', g_cmd, cwd=project_dir)
+        p.communicate()[0]
+    # change file 3 and add the changes
     f = open(files[2], 'a')
     f.writelines('text')
     f.close()
-    programs.run_program('git', ['add', 'file3.py'], cwd=project_dir)
+    p = programs.run_program('git', ['add', 'file3.py'], cwd=project_dir)
+    p.communicate()
+    # Write a file1 into .gitignore
     gitign = open(osp.join(project_dir, '.gitignore'), 'a')
     gitign.writelines('file1.py')
     gitign.close()
+
     # Check that the files have their according colors
     tree = project_explorer.explorer.treewidget
     pcolors = tree.fsmodel.color_array
@@ -105,8 +112,8 @@ def test_project_vcs_color(project_explorer, qtbot):
     # Check if the correct colors are set
     tree.expandAll()
     tree.fsmodel.set_vcs_state(project_dir)
-    open(files[0], 'w').close()
     qtbot.waitForWindowShown(project_explorer.explorer)
+    open(files[0], 'w').close()
     ind0 = tree.fsmodel.index(tree.fsmodel.rootPath()).child(0, 0)
     tree.fsmodel.on_project_loaded()
     for n in range(5):
