@@ -21,6 +21,7 @@ capabilities of a scientific package.
 
 from __future__ import print_function
 
+import io
 import os
 import os.path as osp
 import subprocess
@@ -150,28 +151,21 @@ if os.name == 'nt':
 
 
 #==============================================================================
+# Use Readme for long description
+#==============================================================================
+with io.open('README.md', encoding='utf-8') as f:
+    LONG_DESCRIPTION = f.read()
+
+
+#==============================================================================
 # Setup arguments
 #==============================================================================
 setup_args = dict(
     name=NAME,
     version=__version__,
     description='The Scientific Python Development Environment',
-    long_description=(
-"""Spyder is a powerful scientific environment written in Python, for Python,
-and designed by and for scientists, engineers and data analysts.
-It features a unique combination of the advanced editing, analysis, debugging
-and profiling functionality of a comprehensive development tool with the data
-exploration, interactive execution, deep inspection and beautiful visualization
-capabilities of a scientific package.\n
-Furthermore, Spyder offers built-in integration with many popular
-scientific packages, including NumPy, SciPy, Pandas, IPython, QtConsole,
-Matplotlib, SymPy, and more.\n
-Beyond its many built-in features, Spyder's abilities can be extended even
-further via first- and third-party plugins.\n
-Spyder can also be used as a PyQt5 extension library, allowing you to build
-upon its functionality and embed its components, such as the interactive
-console or advanced editor, in your own software.
-"""),
+    long_description=LONG_DESCRIPTION,
+    long_description_content_type='text/markdown',
     download_url=__website_url__ + "#fh5co-download",
     author="The Spyder Project Contributors",
     author_email="spyderlib@googlegroups.com",
