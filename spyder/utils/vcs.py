@@ -31,8 +31,6 @@ SUPPORTED = [
                     ('hgtk', ['log'])),
             cstate=(('hg', ['status', '-A']), )
         ),
-        'states': ["?", "I", "M", "A", "U"],
-        'offset': 2
     }, {
         'name': 'Git',
         'rootdir': '.git',
@@ -41,8 +39,6 @@ SUPPORTED = [
             browse=(('gitk', []), ),
             cstate=(('git', ['status', '--ignored', '--porcelain']), )
         ),
-        'states': ["?", "!", "M", "A", "U"],
-        'offset': 3
     }]
 
 
@@ -101,75 +97,89 @@ def run_vcs_tool(path, action):
         raise ActionToolNotFound(info['name'], action, cmdnames)
 
 
-def get_vcs_status(path):
+def git_status(out_str, path):
+    """Decode git status from the vcs output"""
+    vcsst = {}
+    for f_string in (x for x in out_str.split("\n") if x):
+        status = f_string[:2]
+        if "U" in status or status == "AA":
+            status = 4
+        elif status[1] == " ":
+            index = 3
+        elif status[1] in "MRC":
+            index = 2
+        else:
+            try:
+                index = ["??", "!!"].index(status)
+            except ValueError:
+                continue
+        vcsst[osp.abspath(osp.join(path, f_string[3:]))] = index
+    return vcsst
+
+
+def hg_status(out_str, path):
+    """Decode mercurial status from the vcs output"""
+    stat = ["?", "I", "M", "A", "U"]
+    vcsst = {}
+    for f_string in (x for x in out_str.split("\n") if x):
+        status = f_string[:1].strip()
+        if len(status) > 1:
+            status = status[1]
+        try:
+            index = stat.index(status)
+        except ValueError:
+            continue
+        vcsst[osp.abspath(osp.join(path, f_string[2:]))] = index
+    return vcsst
+
+
+def get_vcs_status(vcs_path):
     """Return the commit status."""
-    rootPath = get_vcs_root(path)
-    if not rootPath:
+    root_path = get_vcs_root(vcs_path)
+    if not root_path:
         # look in subdirectories for repositories
         paths = []
-        for subdir in os.listdir(rootPath):
-            rootPath = get_vcs_root(subdir)
-            if rootPath:
-                paths.append(rootPath)
+        for subdir in os.listdir(root_path):
+            root_path = get_vcs_root(subdir)
+            if root_path:
+                paths.append(root_path)
         if paths == []:
             return []
     else:
-        paths = [rootPath]
+        paths = [root_path]
     vcsst = {}
     for path in paths:
-        info = get_vcs_info(path)
         # Status list (in Order): untracked, ignored, modified, added
-        stat = info['states']
-        o = info['offset']  # position at which the filename starts
-        for tool, args in info['actions']['cstate']:
-            if programs.find_program(tool):
-                proc = programs.run_program(tool, args, cwd=path)
-                out, err = proc.communicate()
-                if proc.returncode >= 0 and err == b'':
-                    oStr = out.decode("utf-8")[:-1]
-                    for fString in (x for x in oStr.split("\n") if x):
-                        status = fString[:o-1].strip()
-                        if len(status) > 1:
-                            if "U" in status or status == "AA":
-                                # merge conflict (only for git)
-                                status = "U"
-                            else:
-                                status = status[1]
-                        try:
-                            index = stat.index(status)
-                        except ValueError:
-                            continue
-                        vcsst[osp.abspath(osp.join(path, fString[o:]))] = index
-                else:
-                    continue
+        tool, args = get_vcs_info(path)['actions']['cstate'][0]
+        if programs.find_program(tool):
+            proc = programs.run_program(tool, args, cwd=path)
+            out, err = proc.communicate()
+            if proc.returncode >= 0 and err == b'' and out:
+                if tool == 'git':
+                    vcsst.update(git_status(out.decode("utf-8")[:-1], path))
+                elif tool == 'hg':
+                    vcsst.update(hg_status(out.decode("utf-8")[:-1], path))
+            else:
+                continue
     if vcsst == {}:
         return []
-    else:
-        return vcsst
+    return vcsst
 
 
 def get_vcs_file_status(filename):
     """Return the commit status a of a single file"""
     path = get_vcs_root(filename)
-    info = get_vcs_info(path)
-    stat = info['states']
-    for tool, args in info['actions']['cstate']:
-            if programs.find_program(tool):
-                proc = programs.run_program(tool, args + [filename], cwd=path)
-                out, err = proc.communicate()
-                if proc.returncode >= 0 and err == b'':
-                    status = out.decode("utf-8")[:info['offset']-1].strip()
-                    if len(status) > 1:
-                        if "U" in status or status == "AA":
-                            # merge conflict (only for git)
-                            status = "U"
-                        else:
-                            status = status[1]
-                    try:
-                        index = stat.index(status)
-                        return index
-                    except ValueError:
-                        return 0
+    tool, args = get_vcs_info(path)['actions']['cstate'][0]
+    if programs.find_program(tool):
+        proc = programs.run_program(tool, args + [filename], cwd=path)
+        out, err = proc.communicate()
+        if proc.returncode >= 0 and err == b'':
+            if tool == 'git':
+                vcsst = git_status(out.decode("utf-8")[:-1], path)
+            elif tool == 'hg':
+                vcsst = hg_status(out.decode("utf-8")[:-1], path)
+            return [vcsst[b] for n, b in enumerate(vcsst)][0]
+    return 0
 
 
 def is_hg_installed():
