@@ -1525,15 +1525,20 @@ class MainWindow(QMainWindow):
                 traceback.print_exc(file=STDERR)
 
     def setup_default_layouts(self, index, settings):
-        """Setup default layouts when run for the first time"""
+        """Setup default layouts when run for the first time."""
+        base_size = self.size()
+        max_size = self.maximumSize()
+        min_size = self.minimumSize()
+        self.setFixedSize(base_size)
+
+        self.setUpdatesEnabled(False)
         self.maximize_dockwidget(restore=True)
         self.set_window_settings(*settings)
-        self.setUpdatesEnabled(False)
 
         # IMPORTANT: order has to be the same as defined in the config file
         MATLAB, RSTUDIO, VERTICAL, HORIZONTAL = range(self.DEFAULT_LAYOUTS)
 
-        # define widgets locally
+        # Define widgets locally
         editor = self.editor
         console_ipy = self.ipyconsole
         console_int = self.console
@@ -1553,8 +1558,10 @@ class MainWindow(QMainWindow):
         global_hidden_toolbars = [self.source_toolbar, self.edit_toolbar,
                                   self.search_toolbar]
         # Layout definition
-        # layouts are organized by columns, each colum is organized by rows
-        # widths have to add 1.0, height per column have to add 1.0
+        # --------------------------------------------------------------------
+        # Layouts are organized by columns, each column is organized by rows
+        # width has to add 1.0, height per column has to add 1.0
+
         # Spyder Default Initial Layout
         s_layout = {'widgets': [
                     # column 0
@@ -1677,7 +1684,7 @@ class MainWindow(QMainWindow):
                                      Qt.Horizontal)
 
         # Arrange rows vertically
-        for column in widgets_layout :
+        for column in widgets_layout:
             for i in range(len(column) - 1):
                 first_row, second_row = column[i], column[i+1]
                 if first_row is not None and second_row is not None:
@@ -1685,7 +1692,7 @@ class MainWindow(QMainWindow):
                                          second_row[0].dockwidget,
                                          Qt.Vertical)
         # Tabify
-        for column in widgets_layout :
+        for column in widgets_layout:
             for row in column:
                 for i in range(len(row) - 1):
                     first, second = row[i], row[i+1]
@@ -1695,6 +1702,19 @@ class MainWindow(QMainWindow):
                 # Raise front widget per row
                 row[0].dockwidget.show()
                 row[0].dockwidget.raise_()
+
+        # Set widths and heights
+        width_fractions = layout['width fraction']
+        if len(width_fractions) > 1:
+            # TODO: get the first col[i] that is not None
+            _widgets = [col[0][0].dockwidget for col in widgets_layout]
+            self.resizeDocks(_widgets, width_fractions, Qt.Horizontal)
+
+        height_fractions = layout['height fraction']
+        for i, column in enumerate(widgets_layout):
+            if len(column) > 1:
+                _widgets = [row[0].dockwidget for row in column]
+                self.resizeDocks(_widgets, height_fractions[i], Qt.Vertical)
 
         # Hide toolbars
         hidden_toolbars = global_hidden_toolbars + layout['hidden toolbars']
@@ -1708,57 +1728,9 @@ class MainWindow(QMainWindow):
             if widget is not None:
                 widget.dockwidget.close()
 
-        # set the width and height
-        self._layout_widget_info = []
-        width, height = self.window_size.width(), self.window_size.height()
-
-        # fix column width
-#        for c in range(len(widgets_layout)):
-#            widget = widgets_layout[c][0][0].dockwidget
-#            min_width, max_width = widget.minimumWidth(), widget.maximumWidth()
-#            info = {'widget': widget,
-#                    'min width': min_width,
-#                    'max width': max_width}
-#            self._layout_widget_info.append(info)
-#            new_width = int(layout['width fraction'][c] * width * 0.95)
-#            widget.setMinimumWidth(new_width)
-#            widget.setMaximumWidth(new_width)
-#            widget.updateGeometry()
-
-        # fix column height
-        for c, column in enumerate(widgets_layout):
-            for r in range(len(column) - 1):
-                widget = column[r][0]
-                dockwidget = widget.dockwidget
-                dock_min_h = dockwidget.minimumHeight()
-                dock_max_h = dockwidget.maximumHeight()
-                info = {'widget': widget,
-                        'dock min height': dock_min_h,
-                        'dock max height': dock_max_h}
-                self._layout_widget_info.append(info)
-                # The 0.95 factor is to adjust height based on usefull
-                # estimated area in the window
-                new_height = int(layout['height fraction'][c][r]*height*0.95)
-                dockwidget.setMinimumHeight(new_height)
-                dockwidget.setMaximumHeight(new_height)
-
-        self._custom_layout_timer = QTimer(self)
-        self._custom_layout_timer.timeout.connect(self.layout_fix_timer)
-        self._custom_layout_timer.setSingleShot(True)
-        self._custom_layout_timer.start(5000)
-
-    def layout_fix_timer(self):
-        """Fixes the height of docks after a new layout is set."""
-        info = self._layout_widget_info
-        for i in info:
-            dockwidget = i['widget'].dockwidget
-            if 'dock min width' in i:
-                dockwidget.setMinimumWidth(i['dock min width'])
-                dockwidget.setMaximumWidth(i['dock max width'])
-            if 'dock min height' in i:
-                dockwidget.setMinimumHeight(i['dock min height'])
-                dockwidget.setMaximumHeight(i['dock max height'])
-            dockwidget.updateGeometry()
+        self.setBaseSize(base_size)
+        self.setMaximumSize(max_size)
+        self.setMinimumSize(min_size)
 
         self.setUpdatesEnabled(True)
 
