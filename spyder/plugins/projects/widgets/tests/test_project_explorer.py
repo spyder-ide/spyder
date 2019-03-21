@@ -98,7 +98,7 @@ def test_project_vcs_color(project_explorer, qtbot):
     f.close()
     p = programs.run_program('git', ['add', 'file3.py'], cwd=project_dir)
     p.communicate()
-    # Write a file1 into .gitignore
+    # Write file1 into .gitignore
     gitign = open(osp.join(project_dir, '.gitignore'), 'a')
     gitign.writelines('file1.py')
     gitign.close()
@@ -113,9 +113,11 @@ def test_project_vcs_color(project_explorer, qtbot):
     tree.expandAll()
     tree.fsmodel.set_vcs_state(project_dir)
     qtbot.waitForWindowShown(project_explorer.explorer)
-    open(files[0], 'w').close()
-    ind0 = tree.fsmodel.index(tree.fsmodel.rootPath()).child(0, 0)
     tree.fsmodel.on_project_loaded()
+    with qtbot.waitSignal(tree.fsmodel.dataChanged, raising=False):
+        open(files[0], 'w').close()
+    qtbot.wait(500)
+    ind0 = tree.fsmodel.index(tree.fsmodel.rootPath()).child(0, 0)
     for n in range(5):
         assert tree.fsmodel.index(n, 0, ind0).data(Qt.TextColorRole).name() \
             == pcolors[n].name()

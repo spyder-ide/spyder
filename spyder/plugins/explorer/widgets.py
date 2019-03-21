@@ -138,17 +138,27 @@ class ColorModel(QFileSystemModel):
     def __init__(self, *args, **kwargs):
         self.vcs_state = {}
         normalstyle = CONF.get('appearance', 'selected') + '/normal'
-        self.color_array = [QColor(CONF.get('vcs', 'color/untracked')),
-                            QColor(CONF.get('vcs', 'color/ignored')),
-                            QColor(CONF.get('vcs', 'color/modified')),
-                            QColor(CONF.get('vcs', 'color/added')),
-                            QColor(CONF.get('vcs', 'color/conflict')),
+        self.color_array = [QColor(CONF.get('project_explorer', 'color/untracked')),
+                            QColor(CONF.get('project_explorer', 'color/ignored')),
+                            QColor(CONF.get('project_explorer', 'color/modified')),
+                            QColor(CONF.get('project_explorer', 'color/added')),
+                            QColor(CONF.get('project_explorer', 'color/conflict')),
                             QColor(CONF.get('appearance', normalstyle)[0])]
         self.root_path = ''
-        self.use_vcs = True
+        self.use_vcs = CONF.get('project_explorer', 'use_version_control')
         self.func = lambda p, f, l: self.new_row(p, f, l)
         super(ColorModel, self).__init__(*args, **kwargs)
 
+    def set_color(self, n, name):
+        """Set a specific color of the color_array"""
+        self.color_array[n] = QColor(name)
+
+    def set_highlighting(self, state):
+        """Enable/Disable the highlighting"""
+        self.use_vcs = state
+        if state and not self.vcs_state:
+            self.set_vcs_state()
+        self.dataChanged.emit(QModelIndex(), QModelIndex())
 
     def new_row(self, parent, first, last):
         """Checks the contents of a new row when enabled."""
@@ -435,7 +445,7 @@ class DirView(QTreeView):
             create_action(self, _("Copy Relative Path"), QKeySequence(
                 get_shortcut('explorer', 'copy relative path')),
                           triggered=self.copy_relative_path))
-
+        
         actions = []
         if only_modules:
             actions.append(run_action)
@@ -917,6 +927,7 @@ class DirView(QTreeView):
 
     def go_to_parent_directory(self):
         pass
+
     def copy_path(self, fnames=None, method="absolute"):
         """Copy absolute or relative path to given file(s)/folders(s)."""
         cb = QApplication.clipboard()
@@ -1281,7 +1292,7 @@ class FilteredDirView(DirView):
         path_list = [osp.join(self.root_path, dirname)
                      for dirname in folder_names]
         self.proxymodel.setup_filter(self.root_path, path_list)
-
+        
     def get_filename(self, index):
         """Return filename from index"""
         if index:

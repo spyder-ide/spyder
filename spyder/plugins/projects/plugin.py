@@ -28,6 +28,7 @@ from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import add_actions, create_action, MENU_SEPARATOR
 from spyder.utils.misc import getcwd_or_home
+from spyder.plugins.projects.confpage import ProjectConfigPage
 from spyder.plugins.projects.widgets.explorer import ProjectExplorerWidget
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
 from spyder.plugins.projects.widgets import EmptyProject
@@ -37,6 +38,7 @@ class Projects(SpyderPluginWidget):
     """Projects plugin."""
 
     CONF_SECTION = 'project_explorer'
+    CONFIGWIDGET_CLASS = ProjectConfigPage
     sig_pythonpath_changed = Signal()
     sig_project_created = Signal(object, object, object)
     sig_project_loaded = Signal(object)
@@ -496,3 +498,45 @@ class Projects(SpyderPluginWidget):
         if project not in self.recent_projects:
             self.recent_projects.insert(0, project)
             self.recent_projects = self.recent_projects[:10]
+
+    # ------ Options
+    def apply_plugin_settings(self, options):
+        """Apply configuration file's plugin settings"""
+        print(repr(options))
+        show_all_n = 'show_all'
+        show_all_o = self.get_option('show_all')
+        hscrollbar_n = 'show_hscrollbar'
+        hscrollbar_o = self.get_option('show_hscrollbar')
+        visible_n = 'visible_if_project_open'
+        visible_o = self.get_option('visible_if_project_open')
+
+        use_vcs_n = 'use_version_control'
+        use_vcs_o = self.get_option('use_version_control')
+        color_unt_n = 'color/untracked'
+        color_unt_o = self.get_option('color/untracked')
+        color_ign_n = 'color/ignored'
+        color_ign_o = self.get_option('color/ignored')
+        color_mod_n = 'color/modified'
+        color_mod_o = self.get_option('color/modified')
+        color_add_n = 'color/added'
+        color_add_o = self.get_option('color/added')
+        color_con_n = 'color/conflict'
+        color_con_o = self.get_option('color/conflict')
+
+        if use_vcs_n in options:
+            self.explorer.treewidget.fsmodel.set_highlighting(use_vcs_o)
+        if color_unt_n in options:
+            self.explorer.treewidget.fsmodel.set_color(0, color_unt_o)
+        if color_ign_n in options:
+            self.explorer.treewidget.fsmodel.set_color(1, color_ign_o)
+        if color_mod_n in options:
+            self.explorer.treewidget.fsmodel.set_color(2, color_mod_o)
+        if color_add_n in options:
+            self.explorer.treewidget.fsmodel.set_color(3, color_add_o)
+        if color_con_n in options:
+            self.explorer.treewidget.fsmodel.set_color(4, color_con_o)
+
+
+    def get_project_options(self):
+        """Return configuration file's plugin settings"""
+        pass

@@ -266,10 +266,8 @@ DEFAULTS = [
               'name_filters': NAME_FILTERS,
               'show_all': True,
               'show_hscrollbar': True,
-              'visible_if_project_open': True
-              }),
-            ('vcs',
-             {
+              'visible_if_project_open': True,
+              'use_version_control': True,
               'color/untracked': "#ff0000",
               'color/ignored': "#808080",
               'color/modified': "#0099ff",
