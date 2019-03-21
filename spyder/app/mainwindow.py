@@ -1526,12 +1526,13 @@ class MainWindow(QMainWindow):
 
     def setup_default_layouts(self, index, settings):
         """Setup default layouts when run for the first time."""
+        self.setUpdatesEnabled(False)
+
         base_size = self.size()
         max_size = self.maximumSize()
         min_size = self.minimumSize()
-        self.setFixedSize(base_size)
 
-        self.setUpdatesEnabled(False)
+        self.setFixedSize(base_size)
         self.maximize_dockwidget(restore=True)
         self.set_window_settings(*settings)
 
@@ -1575,9 +1576,9 @@ class MainWindow(QMainWindow):
                       explorer_file, finder] + plugins,
                      [console_int, console_ipy, history]]
                     ],
-                    'width fraction': [0.0,             # column 0 width
+                    'width fraction': [0.01,            # column 0 width
                                        0.55,            # column 1 width
-                                       0.0,             # column 2 width
+                                       0.01,            # column 2 width
                                        0.45],           # column 3 width
                     'height fraction': [[1.0],          # column 0, row heights
                                         [1.0],          # column 1, row heights
@@ -1614,9 +1615,9 @@ class MainWindow(QMainWindow):
                     [[explorer_variable, plots, finder] + plugins,
                      [history, help_plugin, helper]]
                     ],
-                    'width fraction': [0.20,            # column 0 width
-                                       0.40,            # column 1 width
-                                       0.40],           # column 2 width
+                    'width fraction': [0.10,            # column 0 width
+                                       0.45,            # column 1 width
+                                       0.45],           # column 2 width
                     'height fraction': [[0.55, 0.45],   # column 0, row heights
                                         [0.55, 0.45],   # column 1, row heights
                                         [0.55, 0.45]],  # column 2, row heights
@@ -1662,13 +1663,21 @@ class MainWindow(QMainWindow):
 
         layout = layouts[index]
 
+        # Remove None from widgets layout
         widgets_layout = layout['widgets']
+        widgets_layout_clean = []
+        for column in widgets_layout:
+            clean_col = []
+            for row in column:
+                clean_row = [w for w in row if w is not None]
+                clean_col.append(clean_row)
+            widgets_layout_clean.append(clean_col)
+
         widgets = []
-        for column in widgets_layout :
+        for column in widgets_layout_clean:
             for row in column:
                 for widget in row:
-                    if widget is not None:
-                        widgets.append(widget)
+                    widgets.append(widget)
 
         # Make every widget visible
         for widget in widgets:
@@ -1684,20 +1693,18 @@ class MainWindow(QMainWindow):
                                      Qt.Horizontal)
 
         # Arrange rows vertically
-        for column in widgets_layout:
+        for column in widgets_layout_clean:
             for i in range(len(column) - 1):
                 first_row, second_row = column[i], column[i+1]
-                if first_row is not None and second_row is not None:
-                    self.splitDockWidget(first_row[0].dockwidget,
-                                         second_row[0].dockwidget,
-                                         Qt.Vertical)
+                self.splitDockWidget(first_row[0].dockwidget,
+                                     second_row[0].dockwidget,
+                                     Qt.Vertical)
         # Tabify
-        for column in widgets_layout:
+        for column in widgets_layout_clean:
             for row in column:
                 for i in range(len(row) - 1):
                     first, second = row[i], row[i+1]
-                    if first is not None and second is not None:
-                        self.tabify_plugins(first, second)
+                    self.tabify_plugins(first, second)
 
                 # Raise front widget per row
                 row[0].dockwidget.show()
@@ -1708,12 +1715,14 @@ class MainWindow(QMainWindow):
         if len(width_fractions) > 1:
             # TODO: get the first col[i] that is not None
             _widgets = [col[0][0].dockwidget for col in widgets_layout]
+            print(_widgets, width_fractions, Qt.Horizontal)
             self.resizeDocks(_widgets, width_fractions, Qt.Horizontal)
 
         height_fractions = layout['height fraction']
-        for i, column in enumerate(widgets_layout):
+        for i, column in enumerate(widgets_layout_clean):
             if len(column) > 1:
                 _widgets = [row[0].dockwidget for row in column]
+                print(_widgets, height_fractions[i])
                 self.resizeDocks(_widgets, height_fractions[i], Qt.Vertical)
 
         # Hide toolbars
