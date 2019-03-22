@@ -12,7 +12,7 @@ from spyder.py3compat import to_text_string
 from spyder.widgets.status import StatusBarWidget
 
 
-class ReadWriteStatus(StatusBarWidget):    
+class ReadWriteStatus(StatusBarWidget):
     """Status bar widget for current file read/write mode."""
     TIP = _("File permissions")
 
