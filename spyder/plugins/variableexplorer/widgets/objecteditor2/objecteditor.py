@@ -14,16 +14,15 @@ from __future__ import print_function
 # Standard library imports
 import logging
 import traceback
-import hashlib
 
 # Third-party imports
-from qtpy.QtCore import (Slot, QModelIndex, QPoint, QSize, Qt, QTimer)
+from qtpy.QtCore import (Slot, Signal, QModelIndex, QPoint, QSize, Qt, QTimer)
 from qtpy.QtGui import QFont, QKeySequence, QTextOption
 from qtpy.QtWidgets import (QAbstractItemView, QAction,
                             QButtonGroup, QHBoxLayout, QGroupBox,
                             QMenu, QPlainTextEdit, QRadioButton,
-                            QSplitter, QVBoxLayout, QWidget, QDialog,
-                            QHeaderView)
+                            QSplitter, QToolButton, QVBoxLayout, QWidget,
+                            QDialog, QHeaderView)
 
 # Local imports
 from spyder.config.base import _
@@ -45,6 +44,9 @@ PROGRAM_NAME = 'Object Explorer'
 
 class ObjectBrowser(QDialog):
     """Object browser main widget window."""
+    # TODO: Use signal to trigger update of configs
+    sig_option_changed = Signal(str, object)
+
     _browsers = []  # Keep lists of browser windows.
 
     def __init__(self,
@@ -55,10 +57,10 @@ class ObjectBrowser(QDialog):
                  parent=None,
                  attribute_columns=DEFAULT_ATTR_COLS,
                  attribute_details=DEFAULT_ATTR_DETAILS,
-                 show_callable_attributes=None,  # Uses value from QSettings
-                 show_special_attributes=None,  # Uses value from QSettings
-                 auto_refresh=None,  # Uses value from QSettings
-                 refresh_rate=None,  # Uses value from QSettings
+                 show_callable_attributes=None,  # Uses value from settings
+                 show_special_attributes=None,  # Uses value from settings
+                 auto_refresh=None,  # Uses value from settings
+                 refresh_rate=None,  # Uses value from settings
                  reset=False):
         """
         Constructor
@@ -93,15 +95,10 @@ class ObjectBrowser(QDialog):
         self._attr_cols = attribute_columns
         self._attr_details = attribute_details
 
-        (self._auto_refresh,
-         self._refresh_rate,
-         show_callable_attributes,
-         show_special_attributes) = self._readModelSettings(
-            reset=reset,
-            auto_refresh=auto_refresh,
-            refresh_rate=refresh_rate,
-            show_callable_attributes=show_callable_attributes,
-            show_special_attributes=show_special_attributes)
+        # Settings
+        self._auto_refresh = auto_refresh
+        self._refresh_rate = refresh_rate
+
         self._tree_model = TreeModel(obj, obj_name=name,
                                      attr_cols=self._attr_cols)
 
@@ -118,7 +115,10 @@ class ObjectBrowser(QDialog):
         self._setup_actions()
         self._setup_menu()
         self._setup_views()
-        self.setWindowTitle("{} - {}".format(PROGRAM_NAME, name))
+        if name:
+            name = "- {}".format(name)
+        self.setWindowTitle("{} {}".format(PROGRAM_NAME, name))
+        self.setWindowFlags(Qt.Window)
 
         self._resize_to_contents = resize_to_contents
         self._readViewSettings(reset=reset)
@@ -241,13 +241,15 @@ class ObjectBrowser(QDialog):
                 not self.toggle_special_attribute_action.isChecked()))
         self.tools_layout.addWidget(special_attributes)
 
+        self.tools_layout.addStretch()
+
         self.options_button = create_toolbutton(
                 self, text=_('Options'), icon=ima.icon('tooloptions'))
-        self.show_cols_submenu = QMenu("Table columns", parent=self)
+        self.options_button.setPopupMode(QToolButton.InstantPopup)
+
+        self.show_cols_submenu = QMenu(self)
         self.options_button.setMenu(self.show_cols_submenu)
         self.tools_layout.addWidget(self.options_button)
-
-        self.tools_layout.addStretch()
 
     def _setup_views(self):
         """Creates the UI widgets."""
@@ -335,73 +337,6 @@ class ObjectBrowser(QDialog):
         selection_model.currentChanged.connect(self._update_details)
 
     # End of setup_methods
-    def _settings_group_name(self, postfix):
-        """
-        Constructs a group name for the persistent settings.
-
-        Because the columns in the main table are extendible, we must
-        store the settings in a different group if a different combination of
-        columns is used. Therefore the settings group name contains a hash that
-        is calculated from the used column names. Furthermore the window
-        number is included in the settings group name. Finally a
-        postfix string is appended.
-        """
-        column_names = ",".join([col.name for col in self._attr_cols])
-        settings_str = column_names
-        columns_hash = hashlib.md5(settings_str.encode('utf-8')).hexdigest()
-        settings_grp = "{}_win{}_{}".format(columns_hash, self._instance_nr,
-                                            postfix)
-        return settings_grp
-
-    def _readModelSettings(self,
-                           reset=False,
-                           auto_refresh=None,
-                           refresh_rate=None,
-                           show_callable_attributes=None,
-                           show_special_attributes=None):
-        """
-        Reads the persistent model settings .
-        The persistent settings (show_callable_attributes,
-        show_special_attributes)
-        can be overridden by giving it a True or False value.
-        If reset is True and the setting is None, True is used as default.
-        """
-        default_auto_refresh = False
-        default_refresh_rate = 2
-        default_sra = False
-        default_ssa = False
-        if reset:
-            logger.debug("Resetting persistent model settings")
-            if refresh_rate is None:
-                refresh_rate = default_refresh_rate
-            if auto_refresh is None:
-                auto_refresh = default_auto_refresh
-            if show_callable_attributes is None:
-                show_callable_attributes = default_sra
-            if show_special_attributes is None:
-                show_special_attributes = default_ssa
-        else:
-            logger.debug("Reading "
-                         "model settings for window: {:d}".format(
-                             self._instance_nr))
-#            settings = get_qsettings()
-#            settings.beginGroup(self._settings_group_name('model'))
-
-            if auto_refresh is None:
-                auto_refresh = default_auto_refresh
-
-            if refresh_rate is None:
-                refresh_rate = default_refresh_rate
-
-            if show_callable_attributes is None:
-                show_callable_attributes = default_sra
-
-            if show_special_attributes is None:
-                show_special_attributes = default_ssa
-
-        return (auto_refresh, refresh_rate,
-                show_callable_attributes, show_special_attributes)
-
     def _readViewSettings(self, reset=False):
         """
         Reads the persistent program settings.

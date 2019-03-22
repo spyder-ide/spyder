@@ -122,13 +122,22 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
     sig_setting_data = Signal()
 
     def __init__(self, parent, data, title="", names=False,
-                 minmax=False, dataframe_format=None, remote=False):
+                 minmax=False, dataframe_format=None,
+                 show_callable_attributes=None,
+                 show_special_attributes=None,
+                 auto_refresh=None,
+                 refresh_rate=None,
+                 remote=False):
         QAbstractTableModel.__init__(self, parent)
         if data is None:
             data = {}
         self.names = names
         self.minmax = minmax
         self.dataframe_format = dataframe_format
+        self.show_callable_attributes = show_callable_attributes
+        self.show_special_attributes = show_special_attributes
+        self.auto_refresh = auto_refresh
+        self.refresh_rate = refresh_rate
         self.remote = remote
         self.header0 = None
         self._data = None
@@ -561,8 +570,18 @@ class CollectionsDelegate(QItemDelegate):
                 return editor
         # CollectionsEditor for an arbitrary Python object
         else:
-            editor = ObjectBrowser({_('Object'): value}, expanded=True,
-                                   parent=parent)
+            show_callable_attributes = index.model().show_callable_attributes
+            show_special_attributes = index.model().show_special_attributes
+            auto_refresh = index.model().auto_refresh
+            refresh_rate = index.model().refresh_rate
+            editor = ObjectBrowser(
+                {_('Object'): value},
+                expanded=True,
+                parent=parent,
+                show_callable_attributes=show_callable_attributes,
+                show_special_attributes=show_special_attributes,
+                auto_refresh=auto_refresh,
+                refresh_rate=refresh_rate)
             self.create_dialog(editor, dict(model=index.model(),
                                             editor=editor,
                                             key=key, readonly=readonly))
@@ -1530,7 +1549,11 @@ class RemoteCollectionsDelegate(CollectionsDelegate):
 class RemoteCollectionsEditorTableView(BaseTableView):
     """DictEditor table view"""
     def __init__(self, parent, data, minmax=False, shellwidget=None,
-                 remote_editing=False, dataframe_format=None):
+                 remote_editing=False, dataframe_format=None,
+                 show_callable_attributes=None,
+                 show_special_attributes=None,
+                 auto_refresh=None,
+                 refresh_rate=None):
         BaseTableView.__init__(self, parent)
 
         self.shellwidget = shellwidget
@@ -1540,10 +1563,15 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.model = None
         self.delegate = None
         self.readonly = False
-        self.model = CollectionsModel(self, data, names=True,
-                                      minmax=minmax,
-                                      dataframe_format=dataframe_format,
-                                      remote=True)
+        self.model = CollectionsModel(
+            self, data, names=True,
+            minmax=minmax,
+            dataframe_format=dataframe_format,
+            show_callable_attributes=show_callable_attributes,
+            show_special_attributes=show_special_attributes,
+            auto_refresh=auto_refresh,
+            refresh_rate=refresh_rate,
+            remote=True)
         self.setModel(self.model)
 
         self.delegate = RemoteCollectionsDelegate(self)

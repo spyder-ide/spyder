@@ -64,9 +64,13 @@ class NamespaceBrowser(QWidget):
         self.exclude_unsupported = None
         self.excluded_names = None
         self.minmax = None
-        
+
         # Other setting
         self.dataframe_format = None
+        self.show_callable_attributes = None
+        self.show_special_attributes = None
+        self.auto_refresh = None
+        self.refresh_rate = None
 
         self.editor = None
         self.exclude_private_action = None
@@ -82,7 +86,11 @@ class NamespaceBrowser(QWidget):
     def setup(self, check_all=None, exclude_private=None,
               exclude_uppercase=None, exclude_capitalized=None,
               exclude_unsupported=None, excluded_names=None,
-              minmax=None, dataframe_format=None):
+              minmax=None, dataframe_format=None,
+              show_callable_attributes=None,
+              show_special_attributes=None,
+              auto_refresh=None,
+              refresh_rate=None):
         """
         Setup the namespace browser with provided settings.
 
@@ -100,7 +108,11 @@ class NamespaceBrowser(QWidget):
         self.excluded_names = excluded_names
         self.minmax = minmax
         self.dataframe_format = dataframe_format
-        
+        self.show_callable_attributes = show_callable_attributes
+        self.show_special_attributes = show_special_attributes
+        self.auto_refresh = auto_refresh
+        self.refresh_rate = refresh_rate
+
         if self.editor is not None:
             self.editor.setup_menu(minmax)
             self.editor.set_dataframe_format(dataframe_format)
@@ -116,7 +128,12 @@ class NamespaceBrowser(QWidget):
                         data=None,
                         minmax=minmax,
                         shellwidget=self.shellwidget,
-                        dataframe_format=dataframe_format)
+                        dataframe_format=dataframe_format,
+                        show_callable_attributes=show_callable_attributes,
+                        show_special_attributes=show_special_attributes,
+                        auto_refresh=auto_refresh,
+                        refresh_rate=refresh_rate
+                        )
 
         self.editor.sig_option_changed.connect(self.sig_option_changed.emit)
         self.editor.sig_files_dropped.connect(self.import_data)
@@ -219,6 +236,7 @@ class NamespaceBrowser(QWidget):
         if not self.options_button:
             self.options_button = create_toolbutton(
                 self, text=_('Options'), icon=ima.icon('tooloptions'))
+            self.options_button.setPopupMode(QToolButton.InstantPopup)
 
             actions = self.actions + [MENU_SEPARATOR] + self.plugin_actions
             self.options_menu = QMenu(self)
