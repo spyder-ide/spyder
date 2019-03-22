@@ -47,8 +47,9 @@ from spyder.plugins.editor.widgets.editor import (EditorMainWindow, Printer,
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.utils.debugger import (clear_all_breakpoints,
                                                   clear_breakpoint)
-from spyder.widgets.status import (CursorPositionStatus, EncodingStatus,
-                                   EOLStatus, ReadWriteStatus)
+from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
+                                                  EncodingStatus, EOLStatus,
+                                                  ReadWriteStatus)
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.preferences.runconfig import (ALWAYS_OPEN_FIRST_RUN_OPTION,
                                           get_run_configuration,

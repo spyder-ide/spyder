@@ -41,7 +41,7 @@ class StatusBarWidget(QWidget):
         self.label_value = QLabel()
 
         # Widget setup
-        self.text_font = get_font(option='rich_font')
+        self.text_font = get_font(option='font')
         self.text_font.setPointSize(self.font().pointSize())
         self.text_font.setBold(True)
         self.label_value.setAlignment(Qt.AlignRight)
@@ -131,7 +131,8 @@ class MemoryStatus(BaseTimerStatus):
     def get_value(self):
         """Return memory usage."""
         from spyder.utils.system import memory_usage
-        return '%d %%' % memory_usage()
+        text = '%d %%' % memory_usage()
+        return 'Mem ' + text.rjust(5)
 
 
 class CPUStatus(BaseTimerStatus):
@@ -149,51 +150,8 @@ class CPUStatus(BaseTimerStatus):
     def get_value(self):
         """Return CPU usage."""
         import psutil
-        return '%d %%' % psutil.cpu_percent(interval=0)
-
-
-# =============================================================================
-# Editor-related status bar widgets
-# =============================================================================
-class ReadWriteStatus(StatusBarWidget):    
-    """Status bar widget for current file read/write mode."""
-    TIP = _("File permissions")
-
-    def update_readonly(self, readonly):
-        """Update read/write file status."""
-        value = "R" if readonly else "RW"
-        self.set_value(value.ljust(3))
-
-
-class EOLStatus(StatusBarWidget):
-    """Status bar widget for the current file end of line."""
-    TIP = _("End of line")
-
-    def update_eol(self, os_name):
-        """Update end of line status."""
-        os_name = to_text_string(os_name)
-        value = {"nt": "CRLF", "posix": "LF"}.get(os_name, "CR")
-        self.set_value(value)
-
-
-class EncodingStatus(StatusBarWidget):
-    """Status bar widget for the current file encoding."""
-    TIP = _("Encoding")
-
-    def update_encoding(self, encoding):
-        """Update encoding of current file."""
-        value = str(encoding).upper()
-        self.set_value(value)
-
-
-class CursorPositionStatus(StatusBarWidget):
-    """Status bar widget for the current file cursor postion."""
-    TIP = _("Cursor position")
-
-    def update_cursor_position(self, line, index):
-        """Update cursor position."""
-        value = 'Line {}, Col {}'.format(line + 1, index + 1)
-        self.set_value(value)
+        text = '%d %%' % psutil.cpu_percent(interval=0)
+        return 'CPU ' + text.rjust(5)
 
 
 def test():
@@ -206,8 +164,7 @@ def test():
     win.resize(900, 300)
     statusbar = win.statusBar()
     status_widgets = []
-    for status_class in (ReadWriteStatus, EOLStatus, EncodingStatus,
-                         CursorPositionStatus, MemoryStatus, CPUStatus):
+    for status_class in (MemoryStatus, CPUStatus):
         status_widget = status_class(win, statusbar)
         status_widgets.append(status_widget)
     win.show()
