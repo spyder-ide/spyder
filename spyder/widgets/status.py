@@ -131,8 +131,8 @@ class MemoryStatus(BaseTimerStatus):
     def get_value(self):
         """Return memory usage."""
         from spyder.utils.system import memory_usage
-        text = '%d %%' % memory_usage()
-        return 'Mem ' + text.rjust(5)
+        text = '%d%%' % memory_usage()
+        return 'Mem ' + text.rjust(3)
 
 
 class CPUStatus(BaseTimerStatus):
@@ -150,8 +150,8 @@ class CPUStatus(BaseTimerStatus):
     def get_value(self):
         """Return CPU usage."""
         import psutil
-        text = '%d %%' % psutil.cpu_percent(interval=0)
-        return 'CPU ' + text.rjust(5)
+        text = '%d%%' % psutil.cpu_percent(interval=0)
+        return 'CPU ' + text.rjust(3)
 
 
 def test():
