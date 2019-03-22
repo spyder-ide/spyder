@@ -28,57 +28,63 @@ if not os.name == 'nt':
 
 class StatusBarWidget(QWidget):
     """Status bar widget base."""
+    TIP = None
 
     def __init__(self, parent, statusbar):
         """Status bar widget base."""
         super(StatusBarWidget, self).__init__(parent)
-        self.label_font = get_font(option='rich_font')
-        self.label_font.setPointSize(self.font().pointSize())
-        self.label_font.setBold(True)
 
-        # Layouts
+        # Variables
+        self.value = None
+
+        # Widget
+        self.label_value = QLabel()
+
+        # Widget setup
+        self.text_font = get_font(option='rich_font')
+        self.text_font.setPointSize(self.font().pointSize())
+        self.text_font.setBold(True)
+        self.label_value.setAlignment(Qt.AlignRight)
+        self.label_value.setFont(self.text_font)
+
+        if self.TIP:
+            self.setToolTip(self.TIP)
+            self.label_value.setToolTip(self.TIP)
+
+        # Layout
         layout = QHBoxLayout()
+        layout.addWidget(self.label_value)
+        layout.addSpacing(20)
+
+        # Layout setup
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
         # Setup
         statusbar.addPermanentWidget(self)
 
+    def set_value(self, value):
+        """Set formatted text value."""
+        self.value = value
+        if self.isVisible():
+            self.label_value.setText(value)
 
-# =============================================================================
-# Main window-related status bar widgets
-# =============================================================================
+
 class BaseTimerStatus(StatusBarWidget):
     """Status bar widget base for widgets that update based on timers."""
-
-    TITLE = None
-    TIP = None
 
     def __init__(self, parent, statusbar):
         """Status bar widget base for widgets that update based on timers."""
         super(BaseTimerStatus, self).__init__(parent, statusbar)
 
-        # Widgets
-        self.label = QLabel(self.TITLE)
-        self.value = QLabel()
-
         # Widget setup
-        self.setToolTip(self.TIP)
-        self.value.setAlignment(Qt.AlignRight)
-        self.value.setFont(self.label_font)
-        fm = self.value.fontMetrics()
-        self.value.setMinimumWidth(fm.width('000%'))
-
-        # Layout
-        layout = self.layout()
-        layout.addWidget(self.label)
-        layout.addWidget(self.value)
-        layout.addSpacing(20)
+        fm = self.label_value.fontMetrics()
+        self.label_value.setMinimumWidth(fm.width('000%'))
 
         # Setup
         if self.is_supported():
             self.timer = QTimer()
-            self.timer.timeout.connect(self.update_label)
+            self.timer.timeout.connect(self.update_status)
             self.timer.start(2000)
         else:
             self.timer = None
@@ -100,23 +106,23 @@ class BaseTimerStatus(StatusBarWidget):
             return True
         except ImportError:
             return False
-    
+
     def get_value(self):
-        """Return value (e.g. CPU or memory usage)."""
+        """Return formatted text value."""
         raise NotImplementedError
         
-    def update_label(self):
+    def update_status(self):
         """Update status label widget, if widget is visible."""
         if self.isVisible():
-            self.value.setText('%d %%' % self.get_value())
+            self.label_value.setText(self.get_value())
 
 
+# =============================================================================
+# Main window-related status bar widgets
+# =============================================================================
 class MemoryStatus(BaseTimerStatus):
     """Status bar widget for system memory usage."""
-
-    TITLE = _("Memory:")
-    TIP = _("Memory usage status: "
-            "requires the `psutil` (>=v0.3) library on non-Windows platforms")
+    TIP = _("Memory usage")
 
     def import_test(self):
         """Raise ImportError if feature is not supported."""
@@ -125,14 +131,12 @@ class MemoryStatus(BaseTimerStatus):
     def get_value(self):
         """Return memory usage."""
         from spyder.utils.system import memory_usage
-        return memory_usage()
+        return '%d %%' % memory_usage()
 
 
 class CPUStatus(BaseTimerStatus):
     """Status bar widget for system cpu usage."""
-
-    TITLE = _("CPU:")
-    TIP = _("CPU usage status: requires the `psutil` (>=v0.3) library")
+    TIP = _("CPU usage")
 
     def import_test(self):
         """Raise ImportError if feature is not supported."""
@@ -145,7 +149,7 @@ class CPUStatus(BaseTimerStatus):
     def get_value(self):
         """Return CPU usage."""
         import psutil
-        return psutil.cpu_percent(interval=0)
+        return '%d %%' % psutil.cpu_percent(interval=0)
 
 
 # =============================================================================
@@ -153,113 +157,43 @@ class CPUStatus(BaseTimerStatus):
 # =============================================================================
 class ReadWriteStatus(StatusBarWidget):    
     """Status bar widget for current file read/write mode."""
+    TIP = _("File permissions")
 
-    def __init__(self, parent, statusbar):
-        """Status bar widget for current file read/write mode."""
-        super(ReadWriteStatus, self).__init__(parent, statusbar)
-
-        # Widget
-        self.label = QLabel(_("Permissions:"))
-        self.readwrite = QLabel()
-
-        # Widget setup
-        self.label.setAlignment(Qt.AlignRight)
-        self.readwrite.setFont(self.label_font)
-
-        # Layouts
-        layout = self.layout()
-        layout.addWidget(self.label)
-        layout.addWidget(self.readwrite)
-        layout.addSpacing(20)
-        
-    def readonly_changed(self, readonly):
+    def update_readonly(self, readonly):
         """Update read/write file status."""
-        readwrite = "R" if readonly else "RW"
-        self.readwrite.setText(readwrite.ljust(3))
+        value = "R" if readonly else "RW"
+        self.set_value(value.ljust(3))
 
 
 class EOLStatus(StatusBarWidget):
     """Status bar widget for the current file end of line."""
+    TIP = _("End of line")
 
-    def __init__(self, parent, statusbar):
-        """Status bar widget for the current file end of line."""
-        super(EOLStatus, self).__init__(parent, statusbar)
-
-        # Widget
-        self.label = QLabel(_("End-of-lines:"))
-        self.eol = QLabel()
-
-        # Widget setup
-        self.label.setAlignment(Qt.AlignRight)
-        self.eol.setFont(self.label_font)
-
-        # Layouts
-        layout = self.layout()
-        layout.addWidget(self.label)
-        layout.addWidget(self.eol)
-        layout.addSpacing(20)
-        
-    def eol_changed(self, os_name):
+    def update_eol(self, os_name):
         """Update end of line status."""
         os_name = to_text_string(os_name)
-        self.eol.setText({"nt": "CRLF", "posix": "LF"}.get(os_name, "CR"))
+        value = {"nt": "CRLF", "posix": "LF"}.get(os_name, "CR")
+        self.set_value(value)
 
 
 class EncodingStatus(StatusBarWidget):
     """Status bar widget for the current file encoding."""
+    TIP = _("Encoding")
 
-    def __init__(self, parent, statusbar):
-        """Status bar widget for the current file encoding."""
-        super(EncodingStatus, self).__init__(parent, statusbar)
-
-        # Widgets
-        self.label = QLabel(_("Encoding:"))
-        self.encoding = QLabel()
-
-        # Widget setup
-        self.label.setAlignment(Qt.AlignRight)
-        self.encoding.setFont(self.label_font)
-
-        # Layouts
-        layout = self.layout()
-        layout.addWidget(self.label)
-        layout.addWidget(self.encoding)
-        layout.addSpacing(20)
-        
-    def encoding_changed(self, encoding):
+    def update_encoding(self, encoding):
         """Update encoding of current file."""
-        self.encoding.setText(str(encoding).upper().ljust(15))
+        value = str(encoding).upper()
+        self.set_value(value)
 
 
 class CursorPositionStatus(StatusBarWidget):
     """Status bar widget for the current file cursor postion."""
+    TIP = _("Cursor position")
 
-    def __init__(self, parent, statusbar):
-        """Status bar widget for the current file cursor postion."""
-        super(CursorPositionStatus, self).__init__(parent, statusbar)
-
-        # Widget
-        self.label_line = QLabel(_("Line:"))
-        self.label_column = QLabel(_("Column:"))
-        self.column = QLabel()
-        self.line = QLabel()
-
-        # Widget setup
-        self.line.setFont(self.label_font)
-        self.column.setFont(self.label_font)
-
-        # Layout
-        layout = self.layout()
-        layout.addWidget(self.label_line)
-        layout.addWidget(self.line)
-        layout.addWidget(self.label_column)
-        layout.addWidget(self.column)
-        self.setLayout(layout)
-        
-    def cursor_position_changed(self, line, index):
-        """Update cursos position."""
-        self.line.setText("%-6d" % (line+1))
-        self.column.setText("%-4d" % (index+1))
+    def update_cursor_position(self, line, index):
+        """Update cursor position."""
+        value = 'Line {}, Col {}'.format(line + 1, index + 1)
+        self.set_value(value)
 
 
 def test():
@@ -271,11 +205,11 @@ def test():
     win.setWindowTitle("Status widgets test")
     win.resize(900, 300)
     statusbar = win.statusBar()
-    swidgets = []
-    for klass in (ReadWriteStatus, EOLStatus, EncodingStatus,
-                  CursorPositionStatus, MemoryStatus, CPUStatus):
-        swidget = klass(win, statusbar)
-        swidgets.append(swidget)
+    status_widgets = []
+    for status_class in (ReadWriteStatus, EOLStatus, EncodingStatus,
+                         CursorPositionStatus, MemoryStatus, CPUStatus):
+        status_widget = status_class(win, statusbar)
+        status_widgets.append(status_widget)
     win.show()
     app.exec_()
 
