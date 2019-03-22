@@ -534,8 +534,3 @@ class Projects(SpyderPluginWidget):
             self.explorer.treewidget.fsmodel.set_color(3, color_add_o)
         if color_con_n in options:
             self.explorer.treewidget.fsmodel.set_color(4, color_con_o)
-
-
-    def get_project_options(self):
-        """Return configuration file's plugin settings"""
-        pass

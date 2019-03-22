@@ -120,12 +120,9 @@ def test_project_vcs_color(project_explorer, qtbot):
         open(files[0], 'w').close()
     ind0 = tree.fsmodel.index(tree.fsmodel.rootPath()).child(0, 0)
     qtbot.waitUntil(lambda: tree.fsmodel.index(0, 0, ind0) is not None)
-    i = 0
     for n in range(5):
-        if tree.fsmodel.index(n+i, 0, ind0).data() == ".gitignore":
-            i = 1
-        assert tree.fsmodel.index(n+i, 0, ind0).data(Qt.TextColorRole).name() \
-            == pcolors[n].name()
+        file_index = tree.fsmodel.index("file{0}.py".format(n), 0)
+        assert file_index.data(Qt.TextColorRole).name() == pcolors[n].name()
     os.chdir(test_dir)
 
 

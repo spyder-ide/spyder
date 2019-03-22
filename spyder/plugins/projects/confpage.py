@@ -6,6 +6,7 @@
 
 """Project config page."""
 
+from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QGroupBox, QGridLayout, QVBoxLayout
 from spyder.api.preferences import PluginConfigPage
 from spyder.config.base import _
@@ -22,26 +23,21 @@ class ProjectConfigPage(PluginConfigPage):
     def setup_page(self):
         newcb = self.create_checkbox
 
-        general_group = QGroupBox(_("Interface"))
-        show_all_box = newcb(_("Show all data"),
-                             'show_all')
-
         vcs_group = QGroupBox(_("Version control"))
-        use_version_control = newcb(_("Use version control"),
+        use_version_control = newcb(_("Highlight files based on vcs status"),
                                     'use_version_control')
         color_group = QGroupBox("Colors")
         color_layout = QGridLayout()
         names = ['untracked', 'ignored', 'modified', 'added', 'conflict']
         for row, key in enumerate(names):
             option = "color/{0}".format(key)
-            value = self.get_option(option)
             label, clayout = self.create_coloredit(
-                    key,
+                    key.capitalize(),
                     option,
                     without_layout=True,
                     )
             color_layout.addWidget(label, row+1, 0)
-            color_layout.addLayout(clayout, row+1, 1)
+            color_layout.addLayout(clayout, row+1, 1, alignment=Qt.AlignLeft)
         color_group.setLayout(color_layout)
         use_version_control.toggled.connect(color_group.setEnabled)
         if not self.get_option('use_version_control'):
@@ -52,12 +48,7 @@ class ProjectConfigPage(PluginConfigPage):
         vcs_layout.addWidget(color_group)
         vcs_group.setLayout(vcs_layout)
 
-        general_layout = QVBoxLayout()
-        general_layout.addWidget(show_all_box)
-        general_group.setLayout(general_layout)
-
         vlayout = QVBoxLayout()
-        vlayout.addWidget(general_group)
         vlayout.addWidget(vcs_group)
         vlayout.addWidget(color_group)
         vlayout.addStretch(1)
