@@ -502,7 +502,6 @@ class Projects(SpyderPluginWidget):
     # ------ Options
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
-        print(repr(options))
         show_all_n = 'show_all'
         show_all_o = self.get_option('show_all')
         hscrollbar_n = 'show_hscrollbar'

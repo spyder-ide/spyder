@@ -91,7 +91,7 @@ def test_project_vcs_color(project_explorer, qtbot):
                ['commit', '-m', 'test']]
     for g_cmd in gitcmds:
         p = programs.run_program('git', g_cmd, cwd=project_dir)
-        p.communicate()[0]
+        p.communicate()
     # change file 3 and add the changes
     f = open(files[2], 'a')
     f.writelines('text')
@@ -114,9 +114,8 @@ def test_project_vcs_color(project_explorer, qtbot):
     tree.fsmodel.set_vcs_state(project_dir)
     qtbot.waitForWindowShown(project_explorer.explorer)
     tree.fsmodel.on_project_loaded()
-    with qtbot.waitSignal(tree.fsmodel.dataChanged, raising=False):
+    with qtbot.waitSignal(tree.fsmodel.layoutChanged, raising=False):
         open(files[0], 'w').close()
-    qtbot.wait(500)
     ind0 = tree.fsmodel.index(tree.fsmodel.rootPath()).child(0, 0)
     for n in range(5):
         assert tree.fsmodel.index(n, 0, ind0).data(Qt.TextColorRole).name() \

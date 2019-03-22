@@ -138,12 +138,13 @@ class ColorModel(QFileSystemModel):
     def __init__(self, *args, **kwargs):
         self.vcs_state = {}
         normalstyle = CONF.get('appearance', 'selected') + '/normal'
-        self.color_array = [QColor(CONF.get('project_explorer', 'color/untracked')),
-                            QColor(CONF.get('project_explorer', 'color/ignored')),
-                            QColor(CONF.get('project_explorer', 'color/modified')),
-                            QColor(CONF.get('project_explorer', 'color/added')),
-                            QColor(CONF.get('project_explorer', 'color/conflict')),
-                            QColor(CONF.get('appearance', normalstyle)[0])]
+        self.color_array = [
+                QColor(CONF.get('project_explorer', 'color/untracked')),
+                QColor(CONF.get('project_explorer', 'color/ignored')),
+                QColor(CONF.get('project_explorer', 'color/modified')),
+                QColor(CONF.get('project_explorer', 'color/added')),
+                QColor(CONF.get('project_explorer', 'color/conflict')),
+                QColor(CONF.get('appearance', normalstyle)[0])]
         self.root_path = ''
         self.use_vcs = CONF.get('project_explorer', 'use_version_control')
         self.func = lambda p, f, l: self.new_row(p, f, l)
@@ -191,7 +192,8 @@ class ColorModel(QFileSystemModel):
             # root_path is a file -> add the new state to vcs_state
             status = vcs.get_vcs_file_status(root_path)
             filename = osp.abspath(root_path)
-            self.vcs_state[filename] = status
+            if status != 0:
+                self.vcs_state[filename] = status
         else:
             # root_path is a directory -> get a new vcs_state
             self.root_path = osp.abspath(root_path)

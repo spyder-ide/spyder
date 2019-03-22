@@ -21,6 +21,7 @@ from spyder.utils.programs import run_program
 from spyder.utils.vcs import (ActionToolNotFound, get_git_refs,
                               get_git_revision, get_vcs_root,
                               get_vcs_status, run_vcs_tool)
+from spyder.py3compat import to_text_string
 
 
 @pytest.mark.skipif(os.environ.get('CI', None) is None,
@@ -57,14 +58,14 @@ def test_get_git_refs():
 def test_vcs_state(tmpdir):
     """Test the vcs state of a directory and subdirectories."""
     test_dir = os.getcwd()
-    os.chdir(tmpdir)
-    subdir = tmpdir.mkdir('subdir')
+    tmpdir.chdir()
+    subdir = to_text_string(tmpdir.mkdir('subdir'))
     proc = run_program('git', ['init'], cwd=subdir)
-    out, err = proc.communicate()
+    proc.communicate()
     file = osp.join(subdir, 'test.py')
     open(file, 'w').close()
     assert get_vcs_status(subdir) != []
-    assert get_vcs_status(tmpdir) != []
+    assert get_vcs_status(to_text_string(tmpdir)) != []
     os.chdir(test_dir)
 
 

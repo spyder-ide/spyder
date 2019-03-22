@@ -68,7 +68,7 @@ def get_vcs_root(path):
     while get_vcs_info(path) is None:
         path = abspardir(path)
         if path == previous_path:
-            return
+            return None
         else:
             previous_path = path
     return osp.abspath(path)
@@ -168,6 +168,8 @@ def get_vcs_status(vcs_path):
 
 def get_vcs_file_status(filename):
     """Return the commit status a of a single file"""
+    if not is_vcs_repository(filename):
+        return 0
     path = get_vcs_root(filename)
     tool, args = get_vcs_info(path)['actions']['cstate'][0]
     if programs.find_program(tool):
@@ -178,7 +180,8 @@ def get_vcs_file_status(filename):
                 vcsst = git_status(out.decode("utf-8")[:-1], path)
             elif tool == 'hg':
                 vcsst = hg_status(out.decode("utf-8")[:-1], path)
-            return [vcsst[b] for n, b in enumerate(vcsst)][0]
+            if vcsst:
+                return [vcsst[b] for n, b in enumerate(vcsst)][0]
     return 0
 
 

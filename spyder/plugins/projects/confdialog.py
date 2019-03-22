@@ -15,17 +15,17 @@ from spyder.utils.qthelpers import get_icon
 from spyder.config.user import NoDefault
 from spyder.plugins.projects.widgets import EmptyProject
 from spyder.plugins.projects.utils.config import (WORKSPACE, VCS, ENCODING,
-                                            CODESTYLE)
+                                                  CODESTYLE)
 
 
 class ProjectPreferences(ConfigDialog):
-    """ """
+    """  """
     def __init__(self, parent, project):
         super(ProjectPreferences, self).__init__()
 
         self._main = parent
         self._project = project
-        self._project_preferences = [WorkspaceConfigPage] #, VersionConfigPage]
+        self._project_preferences = [WorkspaceConfigPage]  # VersionConfigPage
 
         self.setWindowTitle(_("Project preferences"))
         self.setWindowIcon(get_icon("configure.png"))
@@ -59,12 +59,12 @@ class ProjectConfigPage(GeneralConfigPage):
         GeneralConfigPage.__init__(self, parent, main)
 
     def set_option(self, option, value):
-        """ """
+        """  """
         CONF = self._conf
         CONF.set(self.CONF_SECTION, option, value)
 
     def get_option(self, option, default=NoDefault):
-        """" """
+        """  """
         CONF = self._conf
         return CONF.get(self.CONF_SECTION, option, default)
 
@@ -101,9 +101,9 @@ class WorkspaceConfigPage(ProjectConfigPage):
         self.setLayout(vlayout)
 
     def apply_settings(self, options):
-        """ """
+        """  """
         pass  # TODO:
-        #self.main.apply_settings()
+        # self.main.apply_settings()
 
 
 class CodeConfigPage(ProjectConfigPage):
@@ -138,9 +138,9 @@ class CodeConfigPage(ProjectConfigPage):
         self.setLayout(vlayout)
 
     def apply_settings(self, options):
-        """ """
-        print('applied')  # spyder: test-skip
-        #self.main.apply_settings()
+        """  """
+        pass  # spyder: test-skip
+        # self.main.apply_settings()
 
 
 class VersionConfigPage(ProjectConfigPage):
@@ -174,8 +174,8 @@ class VersionConfigPage(ProjectConfigPage):
 
     def apply_settings(self, options):
         """ """
-        print('applied')  # spyder: test-skip
-        #self.main.apply_settings()
+        pass  # spyder: test-skip
+        # self.main.apply_settings()
 
 
 if __name__ == "__main__":
