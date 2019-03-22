@@ -1682,7 +1682,6 @@ class CodeEditor(TextEditBaseWidget):
     def go_to_next_warning(self):
         """Go to next code analysis warning message
         and return new cursor position"""
-        print('dasdasdad')
         block = self.textCursor().block()
         line_count = self.document().blockCount()
         while True:
