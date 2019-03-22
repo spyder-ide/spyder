@@ -1380,10 +1380,11 @@ class Editor(SpyderPluginWidget):
     def update_warning_menu(self):
         """Update warning list menu"""
         # TODO: COnnect this to the LSP!
-        editorstack = self.get_current_editorstack()
-        check_results = [] #editorstack.get_analysis_results()
+        editor = self.get_current_editorstack().get_current_editor()
+        check_results = editor.get_current_warnings()
         self.warning_menu.clear()
         filename = self.get_current_filename()
+        logger.debug(check_results)
         for message, line_number in check_results:
             error = 'syntax' in message
             text = message[:1].upper() + message[1:]
