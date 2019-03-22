@@ -141,11 +141,11 @@ class Editor(SpyderPluginWidget):
         # Configuration dialog size
         self.dialog_size = None
 
-        statusbar = self.main.statusBar()
-        self.readwrite_status = ReadWriteStatus(self, statusbar)
-        self.eol_status = EOLStatus(self, statusbar)
-        self.encoding_status = EncodingStatus(self, statusbar)
+        statusbar = parent.statusBar() # Create a status bar
         self.cursorpos_status = CursorPositionStatus(self, statusbar)
+        self.encoding_status = EncodingStatus(self, statusbar)
+        self.eol_status = EOLStatus(self, statusbar)
+        self.readwrite_status = ReadWriteStatus(self, statusbar)
 
         layout = QVBoxLayout()
         self.dock_toolbar = QToolBar(self)
@@ -1080,12 +1080,12 @@ class Editor(SpyderPluginWidget):
             editorstack.reset_statusbar.connect(self.encoding_status.hide)
             editorstack.reset_statusbar.connect(self.cursorpos_status.hide)
             editorstack.readonly_changed.connect(
-                                        self.readwrite_status.readonly_changed)
+                                        self.readwrite_status.update_readonly)
             editorstack.encoding_changed.connect(
-                                         self.encoding_status.encoding_changed)
+                                         self.encoding_status.update_encoding)
             editorstack.sig_editor_cursor_position_changed.connect(
-                                 self.cursorpos_status.cursor_position_changed)
-            editorstack.sig_refresh_eol_chars.connect(self.eol_status.eol_changed)
+                                 self.cursorpos_status.update_cursor_position)
+            editorstack.sig_refresh_eol_chars.connect(self.eol_status.update_eol)
 
         editorstack.autosave_mapping \
             = CONF.get('editor', 'autosave_mapping', {})
