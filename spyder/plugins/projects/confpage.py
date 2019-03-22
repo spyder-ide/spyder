@@ -36,7 +36,7 @@ class ProjectConfigPage(PluginConfigPage):
             option = "color/{0}".format(key)
             value = self.get_option(option)
             label, clayout = self.create_coloredit(
-                    value,
+                    key,
                     option,
                     without_layout=True,
                     )

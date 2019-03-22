@@ -60,6 +60,7 @@ def test_vcs_state(tmpdir):
     test_dir = os.getcwd()
     tmpdir.chdir()
     subdir = to_text_string(tmpdir.mkdir('subdir'))
+    print(repr(subdir))
     proc = run_program('git', ['init'], cwd=subdir)
     proc.communicate()
     file = osp.join(subdir, 'test.py')

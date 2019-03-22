@@ -111,14 +111,20 @@ def test_project_vcs_color(project_explorer, qtbot):
 
     # Check if the correct colors are set
     tree.expandAll()
+    tree.setup_view()
     tree.fsmodel.set_vcs_state(project_dir)
     qtbot.waitForWindowShown(project_explorer.explorer)
-    tree.fsmodel.on_project_loaded()
+    with qtbot.waitSignal(tree.fsmodel.layoutChanged, raising=False):
+        tree.fsmodel.on_project_loaded()
     with qtbot.waitSignal(tree.fsmodel.layoutChanged, raising=False):
         open(files[0], 'w').close()
     ind0 = tree.fsmodel.index(tree.fsmodel.rootPath()).child(0, 0)
+    qtbot.waitUntil(lambda: tree.fsmodel.index(0, 0, ind0) is not None)
+    i = 0
     for n in range(5):
-        assert tree.fsmodel.index(n, 0, ind0).data(Qt.TextColorRole).name() \
+        if tree.fsmodel.index(n+i, 0, ind0).data() == ".gitignore":
+            i = 1
+        assert tree.fsmodel.index(n+i, 0, ind0).data(Qt.TextColorRole).name() \
             == pcolors[n].name()
     os.chdir(test_dir)
 
