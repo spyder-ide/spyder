@@ -141,7 +141,7 @@ class Editor(SpyderPluginWidget):
         # Configuration dialog size
         self.dialog_size = None
 
-        statusbar = parent.statusBar() # Create a status bar
+        statusbar = parent.statusBar()  # Create a status bar
         self.cursorpos_status = CursorPositionStatus(self, statusbar)
         self.encoding_status = EncodingStatus(self, statusbar)
         self.eol_status = EOLStatus(self, statusbar)
@@ -1085,7 +1085,8 @@ class Editor(SpyderPluginWidget):
                                          self.encoding_status.update_encoding)
             editorstack.sig_editor_cursor_position_changed.connect(
                                  self.cursorpos_status.update_cursor_position)
-            editorstack.sig_refresh_eol_chars.connect(self.eol_status.update_eol)
+            editorstack.sig_refresh_eol_chars.connect(
+                self.eol_status.update_eol)
 
         editorstack.autosave_mapping \
             = CONF.get('editor', 'autosave_mapping', {})
