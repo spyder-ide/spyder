@@ -1384,7 +1384,6 @@ class Editor(SpyderPluginWidget):
         check_results = editor.get_current_warnings()
         self.warning_menu.clear()
         filename = self.get_current_filename()
-        logger.debug(check_results)
         for message, line_number in check_results:
             error = 'syntax' in message
             text = message[:1].upper() + message[1:]
@@ -1468,9 +1467,8 @@ class Editor(SpyderPluginWidget):
 
     def update_code_analysis_actions(self):
         # TODO: Connect this to the LSP!
-        editorstack = self.get_current_editorstack()
-        results = None #editorstack.get_analysis_results()
-
+        editor = self.get_current_editorstack().get_current_editor()
+        results = editor.get_current_warnings()
         # Update code analysis buttons
         state = (self.get_option('code_analysis/pyflakes') \
                  or self.get_option('code_analysis/pep8')) \
