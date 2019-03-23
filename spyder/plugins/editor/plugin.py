@@ -1379,7 +1379,6 @@ class Editor(SpyderPluginWidget):
 
     def update_warning_menu(self):
         """Update warning list menu"""
-        # TODO: COnnect this to the LSP!
         editor = self.get_current_editorstack().get_current_editor()
         check_results = editor.get_current_warnings()
         self.warning_menu.clear()
@@ -1466,7 +1465,6 @@ class Editor(SpyderPluginWidget):
             self.open_file_update.emit(self.get_current_filename())
 
     def update_code_analysis_actions(self):
-        # TODO: Connect this to the LSP!
         editor = self.get_current_editorstack().get_current_editor()
         results = editor.get_current_warnings()
         # Update code analysis buttons

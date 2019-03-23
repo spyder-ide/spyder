@@ -1664,13 +1664,15 @@ class CodeEditor(TextEditBaseWidget):
             5000, lambda: self.clear_extra_selections('code_analysis'))
 
     def get_current_warnings(self):
-        """Get all the warnings for the current editor
-        and return a list with the message and line number."""
+        """
+        Get all warnings for the current editor and return
+        a list with the message and line number.
+        """
         block = self.document().firstBlock()
         line_count = self.document().blockCount()
         warnings = []
         while True:
-            if block.blockNumber()+1 == line_count:
+            if block.blockNumber() + 1 == line_count:
                 break
             data = block.userData()
             if data and data.code_analysis:
