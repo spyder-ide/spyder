@@ -72,7 +72,7 @@ from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
 from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QDockWidget, QMainWindow,
                             QMenu, QMessageBox, QShortcut, QSplashScreen,
-                            QStyleFactory, QWidget, QDesktopWidget)
+                            QStyleFactory, QWidget, QDesktopWidget, QMenuBar)
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -256,12 +256,6 @@ dependencies.add("qdarkstyle", _("Dark style for the entire interface"),
 #==============================================================================
 # Main Window
 #==============================================================================
-
-# class SpyderMenuBar(menuBar):
-#     def __init__(self, *args):
-#         menuBar.__init__(self, *args)
-
-#     def addMenu(self, icon, title):
 
 class MainWindow(QMainWindow):
     """Spyder main window"""
@@ -572,10 +566,32 @@ class MainWindow(QMainWindow):
         toolbar.setObjectName(object_name)
         toolbar.setIconSize(QSize(iconsize, iconsize))
         self.toolbarslist.append(toolbar)
-        return toolbar 
+        return toolbar
 
+    def setup_menus(self):
+        self.file_menu.aboutToShow.connect(lambda menu_actions=self.file_menu_actions: self.verify_menu_actions(menu_actions, False))
+        self.file_menu.aboutToHide.connect(lambda menu_actions=self.file_menu_actions: self.verify_menu_actions(menu_actions, True))
+        self.edit_menu.aboutToShow.connect(lambda menu_actions=self.edit_menu_actions: self.verify_menu_actions(menu_actions, False))
+        self.edit_menu.aboutToHide.connect(lambda menu_actions=self.edit_menu_actions: self.verify_menu_actions(menu_actions, True))
+        self.search_menu.aboutToShow.connect(lambda menu_actions=self.search_menu_actions: self.verify_menu_actions(menu_actions, False))
+        self.search_menu.aboutToHide.connect(lambda menu_actions=self.search_menu_actions: self.verify_menu_actions(menu_actions, True))
+        self.source_menu.aboutToShow.connect(lambda menu_actions=self.source_menu_actions: self.verify_menu_actions(menu_actions, False))
+        self.source_menu.aboutToHide.connect(lambda menu_actions=self.source_menu_actions: self.verify_menu_actions(menu_actions, True))
+        self.run_menu.aboutToShow.connect(lambda menu_actions=self.run_menu_actions: self.verify_menu_actions(menu_actions, False))
+        self.run_menu.aboutToHide.connect(lambda menu_actions=self.run_menu_actions: self.verify_menu_actions(menu_actions, True))
+        self.debug_menu.aboutToShow.connect(lambda menu_actions=self.debug_menu_actions: self.verify_menu_actions(menu_actions, False))
+        self.debug_menu.aboutToHide.connect(lambda menu_actions=self.debug_menu_actions: self.verify_menu_actions(menu_actions, True))
+        self.consoles_menu.aboutToShow.connect(lambda menu_actions=self.consoles_menu_actions: self.verify_menu_actions(menu_actions, False))
+        self.consoles_menu.aboutToHide.connect(lambda menu_actions=self.consoles_menu_actions: self.verify_menu_actions(menu_actions, True))
+        self.projects_menu.aboutToShow.connect(lambda menu_actions=self.projects_menu_actions: self.verify_menu_actions(menu_actions, False))
+        self.projects_menu.aboutToHide.connect(lambda menu_actions=self.projects_menu_actions: self.verify_menu_actions(menu_actions, True))
+        self.tools_menu.aboutToShow.connect(lambda menu_actions=self.tools_menu_actions: self.verify_menu_actions(menu_actions, False))
+        self.tools_menu.aboutToHide.connect(lambda menu_actions=self.tools_menu_actions: self.verify_menu_actions(menu_actions, True))
+        self.help_menu.aboutToShow.connect(lambda menu_actions=self.help_menu_actions: self.verify_menu_actions(menu_actions, False))
+        self.help_menu.aboutToHide.connect(lambda menu_actions=self.help_menu_actions: self.verify_menu_actions(menu_actions, True))
 
-    def setup(self):
+    def setup(self):  
+
         """Setup main window"""
         logger.info("*** Start of MainWindow setup ***")
 
@@ -681,59 +697,47 @@ class MainWindow(QMainWindow):
         self.file_menu = self.menuBar().addMenu(_("&File"))
         self.file_toolbar = self.create_toolbar(_("File toolbar"),
                                                 "file_toolbar")
-        self.file_menu.aboutToShow.connect(self.verifyMyMenu)
-
         # Edit menu/toolbar
         self.edit_menu = self.menuBar().addMenu(_("&Edit"))
         self.edit_toolbar = self.create_toolbar(_("Edit toolbar"),
                                                 "edit_toolbar")
-        self.edit_menu.aboutToShow.connect(self.verifyMyMenu)
-
         # Search menu/toolbar
         self.search_menu = self.menuBar().addMenu(_("&Search"))
         self.search_toolbar = self.create_toolbar(_("Search toolbar"),
                                                     "search_toolbar")
-        self.search_menu.aboutToShow.connect(self.verifyMyMenu)
-
         # Source menu/toolbar
         self.source_menu = self.menuBar().addMenu(_("Sour&ce"))
         self.source_toolbar = self.create_toolbar(_("Source toolbar"),
                                                     "source_toolbar")
-        self.source_menu.aboutToShow.connect(self.verifyMyMenu)
-
         # Run menu/toolbar
         self.run_menu = self.menuBar().addMenu(_("&Run"))
         self.run_toolbar = self.create_toolbar(_("Run toolbar"),
                                                 "run_toolbar")
-        self.run_menu.aboutToShow.connect(self.verifyMyMenu)
 
         # Debug menu/toolbar
         self.debug_menu = self.menuBar().addMenu(_("&Debug"))
         self.debug_toolbar = self.create_toolbar(_("Debug toolbar"),
                                                     "debug_toolbar")
-        self.debug_menu.aboutToShow.connect(self.verifyMyMenu)
-
         # Consoles menu/toolbar
         self.consoles_menu = self.menuBar().addMenu(_("C&onsoles"))
         self.consoles_menu.aboutToShow.connect(
                 self.update_execution_state_kernel)
-        #self.consoles_menu.aboutToShow.connect(self.verifyMyMenu)
 
         # Projects menu
         self.projects_menu = self.menuBar().addMenu(_("&Projects"))
         self.projects_menu.aboutToShow.connect(self.valid_project)
-        self.projects_menu.aboutToShow.connect(self.verifyMyMenu)
+
         # Tools menu
         self.tools_menu = self.menuBar().addMenu(_("&Tools"))
-        self.tools_menu.aboutToShow.connect(self.verifyMyMenu)
 
         # View menu
         self.view_menu = self.menuBar().addMenu(_("&View"))
-        self.view_menu.aboutToShow.connect(self.verifyMyMenu)
+        # self.view_menu.aboutToShow.connect(self.view_menu_actions)
 
         # Help menu
         self.help_menu = self.menuBar().addMenu(_("&Help"))
-        self.help_menu.aboutToShow.connect(self.verifyMyMenu)
+        
+        self.setup_menus()
 
         # Status bar
         status = self.statusBar()
@@ -1873,41 +1877,12 @@ class MainWindow(QMainWindow):
         else:
             self.ql_preferences.setEnabled(True)
 
-    def verifyMyMenu(self):
-        for action in self.consoles_menu_actions:
+    def verify_menu_actions(self, menu_actions, state):
+        """Check OS to hide icons in menu toolbars"""
+        for action in menu_actions:
             if isinstance(action, QAction):
-                action.setIconVisibleInMenu(False)
+                action.setIconVisibleInMenu(state)
 
-        for action in self.edit_menu_actions:
-            if isinstance(action, QAction):
-                action.setIconVisibleInMenu(False)
-        for action in self.file_menu_actions:
-            if isinstance(action, QAction):
-                action.setIconVisibleInMenu(False)
-        for action in self.search_menu_actions:
-            if isinstance(action, QAction):
-                action.setIconVisibleInMenu(False)
-        for action in self.source_menu_actions:
-            if isinstance(action, QAction):
-                action.setIconVisibleInMenu(False)
-        for action in self.run_menu_actions:
-            if isinstance(action, QAction):
-                action.setIconVisibleInMenu(False)
-        for action in self.debug_menu_actions:
-            if isinstance(action, QAction):
-                action.setIconVisibleInMenu(False)
-        for action in self.projects_menu_actions:
-            if isinstance(action, QAction):
-                action.setIconVisibleInMenu(False)
-        for action in self.tools_menu_actions:
-            if isinstance(action, QAction):
-                action.setIconVisibleInMenu(False)
-        # for action in self.view_menu_actions:
-        #     if isinstance(action, QAction):
-        #         action.setIconVisibleInMenu(False)
-        for action in self.help_menu_actions:
-            if isinstance(action, QAction):
-                action.setIconVisibleInMenu(False)
 
 
     @Slot()
@@ -3315,10 +3290,6 @@ def run_spyder(app, options, args):
     # Open external files with our Mac app
     if running_in_mac_app():
         app.sig_open_external_file.connect(main.open_external_file)
-
-    # # Don't show icons in menus for Mac
-    # if sys.platform == 'darwin':
-    #     QCoreApplication.setAttribute(Qt.AA_DontShowIconsInMenus, True)
 
     # To give focus again to the last focused widget after restoring
     # the window
