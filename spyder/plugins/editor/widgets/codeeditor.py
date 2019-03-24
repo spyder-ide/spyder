@@ -1367,7 +1367,7 @@ class CodeEditor(TextEditBaseWidget):
 
         self.setTextCursor(cursor)
 
-    # -----Code bookmarks
+    # ----- Code bookmarks
     def add_bookmark(self, slot_num, line=None, column=None):
         """Add bookmark to current block's userData."""
         if line is None:
