@@ -1535,11 +1535,7 @@ class Editor(SpyderPluginWidget):
             error = 'syntax' in message
             text = message[:1].upper() + message[1:]
             icon = ima.icon('error') if error else ima.icon('warning')
-
-            def slot():
-                self.switch_to_plugin()
-                self.load(filename, goto=line_number)
-
+            slot = lambda _checked, _l=line_number: self.load(filename, goto=_l)
             action = create_action(self, text=text, icon=icon, triggered=slot)
             self.warning_menu.addAction(action)
             
@@ -1566,11 +1562,7 @@ class Editor(SpyderPluginWidget):
         filename = self.get_current_filename()
         for text, line0 in results:
             icon = ima.icon('todo')
-
-            def slot():
-                self.switch_to_plugin()
-                self.load(filename, goto=line0)
-
+            slot = lambda _checked, _l=line0: self.load(filename, goto=_l)
             action = create_action(self, text=text, icon=icon, triggered=slot)
             self.todo_menu.addAction(action)
         self.update_todo_actions()
@@ -1847,6 +1839,12 @@ class Editor(SpyderPluginWidget):
         end of this method (set to False to prevent keyboard events from
         creeping through to the editor during debugging)
         """
+        # Switch to editor before trying to load a file
+        try:
+            self.switch_to_plugin()
+        except AttributeError:
+            pass
+
         editor0 = self.get_current_editor()
         if editor0 is not None:
             position0 = editor0.get_position('cursor')
