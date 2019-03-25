@@ -486,6 +486,11 @@ class DirView(QTreeView):
         QTreeView.mouseDoubleClickEvent(self, event)
         self.clicked()
 
+    def mouseReleaseEvent(self, event):
+        """Reimplement Qt method."""
+        QTreeView.mouseReleaseEvent(self, event)
+        self.clicked()
+
     @Slot()
     def clicked(self):
         """Selected item was double-clicked or enter/return was pressed"""
