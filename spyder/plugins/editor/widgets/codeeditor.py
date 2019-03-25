@@ -1663,6 +1663,24 @@ class CodeEditor(TextEditBaseWidget):
         QTimer.singleShot(
             5000, lambda: self.clear_extra_selections('code_analysis'))
 
+    def get_current_warnings(self):
+        """
+        Get all warnings for the current editor and return
+        a list with the message and line number.
+        """
+        block = self.document().firstBlock()
+        line_count = self.document().blockCount()
+        warnings = []
+        while True:
+            if block.blockNumber() + 1 == line_count:
+                break
+            data = block.userData()
+            if data and data.code_analysis:
+                for warning in data.code_analysis:
+                    warnings.append([warning[-1], block.blockNumber()])
+            block = block.next()
+        return warnings
+
     def go_to_next_warning(self):
         """Go to next code analysis warning message
         and return new cursor position"""
