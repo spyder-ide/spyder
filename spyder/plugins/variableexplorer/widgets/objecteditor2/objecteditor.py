@@ -26,6 +26,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QAction,
 
 # Local imports
 from spyder.config.base import _
+from spyder.config.gui import is_dark_interface
 from spyder.utils.qthelpers import (add_actions, create_plugin_layout,
                                     create_toolbutton, qapplication)
 from spyder.plugins.variableexplorer.widgets.objecteditor2.attribute_model \
@@ -130,9 +131,9 @@ class ObjectBrowser(QDialog):
         self._refresh_timer.timeout.connect(self.refresh)
 
         # Update views with model
-        self.toggle_special_attribute_action.setChecked(
+        self.toggle_show_special_attribute_action.setChecked(
             show_special_attributes)
-        self.toggle_callable_action.setChecked(show_callable_attributes)
+        self.toggle_show_callable_action.setChecked(show_callable_attributes)
         self.toggle_auto_refresh_action.setChecked(self._auto_refresh)
 
         # Select first row so that a hidden root node will not be selected.
@@ -180,20 +181,20 @@ class ObjectBrowser(QDialog):
     def _setup_actions(self):
         """Creates the main window actions."""
         # Show/hide callable objects
-        self.toggle_callable_action = \
+        self.toggle_show_callable_action = \
             QAction(_("Show callable attributes"), self, checkable=True,
                     shortcut=QKeySequence("Alt+C"),
                     statusTip=_("Shows/hides attributes "
                                 "that are callable (functions, methods, etc)"))
-        self.toggle_callable_action.toggled.connect(
+        self.toggle_show_callable_action.toggled.connect(
             self._proxy_tree_model.setShowCallables)
 
         # Show/hide special attributes
-        self.toggle_special_attribute_action = \
+        self.toggle_show_special_attribute_action = \
             QAction(_("Show __special__ attributes"), self, checkable=True,
                     shortcut=QKeySequence("Alt+S"),
                     statusTip=_("Shows or hides __special__ attributes"))
-        self.toggle_special_attribute_action.toggled.connect(
+        self.toggle_show_special_attribute_action.toggled.connect(
             self._proxy_tree_model.setShowSpecialAttributes)
 
         # Toggle auto-refresh on/off
@@ -223,22 +224,22 @@ class ObjectBrowser(QDialog):
         auto_refresh = create_toolbutton(
             self, text=_("Auto-refresh"),
             icon=ima.icon("auto_reload"),
-            triggered=lambda: self.toggle_auto_refresh_action.setChecked(
-                not self.toggle_auto_refresh_action.isChecked()))
+            toggled=self._toggle_auto_refresh_action)
+        auto_refresh.setCheckable(True)
         self.tools_layout.addWidget(auto_refresh)
 
         callable_attributes = create_toolbutton(
             self, text=_("Show callable attributes"),
             icon=ima.icon("class"),
-            triggered=lambda: self.toggle_callable_action.setChecked(
-                not self.toggle_callable_action.isChecked()))
+            toggled=self._toggle_show_callable_attributes_action)
+        callable_attributes.setCheckable(True)
         self.tools_layout.addWidget(callable_attributes)
 
         special_attributes = create_toolbutton(
             self, text=_("Show __special__ attributes"),
             icon=ima.icon("private2"),
-            triggered=lambda: self.toggle_special_attribute_action.setChecked(
-                not self.toggle_special_attribute_action.isChecked()))
+            toggled=self._toggle_show_special_attributes_action)
+        special_attributes.setCheckable(True)
         self.tools_layout.addWidget(special_attributes)
 
         self.tools_layout.addStretch()
@@ -249,7 +250,38 @@ class ObjectBrowser(QDialog):
 
         self.show_cols_submenu = QMenu(self)
         self.options_button.setMenu(self.show_cols_submenu)
+        # Don't show menu arrow and remove padding
+        if is_dark_interface():
+            self.options_button.setStyleSheet(
+                ("QToolButton::menu-indicator{image: none;}\n"
+                 "QToolButton{padding: 3px;}"))
+        else:
+            self.options_button.setStyleSheet(
+                "QToolButton::menu-indicator{image: none;}")
         self.tools_layout.addWidget(self.options_button)
+
+    @Slot()
+    def _toggle_show_callable_attributes_action(self):
+        """Toggle show callable atributes action."""
+        action_checked = not self.toggle_show_callable_action.isChecked()
+        self.toggle_show_callable_action.setChecked(action_checked)
+        self.sig_option_changed.emit('show_callable_attributes',
+                                     action_checked)
+
+    @Slot()
+    def _toggle_auto_refresh_action(self):
+        """Toggle auto-refresh action."""
+        action_checked = not self.toggle_auto_refresh_action.isChecked()
+        self.toggle_auto_refresh_action.setChecked(action_checked)
+        self.sig_option_changed.emit('auto_refresh', action_checked)
+
+    @Slot()
+    def _toggle_show_special_attributes_action(self):
+        """Toggle show special attributes action."""
+        action_checked = (
+            not self.toggle_show_special_attribute_action.isChecked())
+        self.toggle_show_special_attribute_action.setChecked(action_checked)
+        self.sig_option_changed.emit('show_special_attributes', action_checked)
 
     def _setup_views(self):
         """Creates the UI widgets."""
@@ -450,9 +482,9 @@ class ObjectBrowser(QDialog):
         """
         self._refresh_timer.stop()
         self._refresh_timer.timeout.disconnect(self.refresh)
-        self.toggle_callable_action.toggled.disconnect(
+        self.toggle_show_callable_action.toggled.disconnect(
             self._proxy_tree_model.setShowCallables)
-        self.toggle_special_attribute_action.toggled.disconnect(
+        self.toggle_show_special_attribute_action.toggled.disconnect(
             self._proxy_tree_model.setShowSpecialAttributes)
         self.toggle_auto_refresh_action.toggled.disconnect(
             self.toggle_auto_refresh)

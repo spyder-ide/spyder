@@ -582,6 +582,7 @@ class CollectionsDelegate(QItemDelegate):
                 show_special_attributes=show_special_attributes,
                 auto_refresh=auto_refresh,
                 refresh_rate=refresh_rate)
+            editor.sig_option_changed.connect(self.change_option)
             self.create_dialog(editor, dict(model=index.model(),
                                             editor=editor,
                                             key=key, readonly=readonly))
@@ -601,10 +602,17 @@ class CollectionsDelegate(QItemDelegate):
         Change configuration option.
 
         This function is called when a `sig_option_changed` signal is received.
-        At the moment, this signal can only come from a DataFrameEditor.
+        At the moment, this signal can only come from a DataFrameEditor
+        or an ObjectBrowser.
         """
         if option_name == 'dataframe_format':
             self.parent().set_dataframe_format(new_value)
+        elif option_name == 'show_callable_attributes':
+            self.parent().toggle_show_callable_attributes(new_value)
+        elif option_name == 'show_special_attributes':
+            self.parent().toggle_show_special_attributes(new_value)
+        elif option_name == 'auto_refresh':
+            self.parent().toggle_auto_refresh(new_value)
 
     def editor_accepted(self, editor_id):
         data = self._editors[editor_id]
@@ -1018,6 +1026,24 @@ class BaseTableView(QTableView):
             self.sig_files_dropped.emit(urls)
         else:
             event.ignore()
+
+    @Slot(bool)
+    def toggle_show_callable_attributes(self, state):
+        """Toggle callable attributes for the Object Explorer."""
+        self.sig_option_changed.emit('show_callable_attributes', state)
+        self.model.show_callable_attributes = state
+
+    @Slot(bool)
+    def toggle_show_special_attributes(self, state):
+        """Toggle special attributes for the Object Explorer."""
+        self.sig_option_changed.emit('show_special_attributes', state)
+        self.model.show_special_attributes = state
+
+    @Slot(bool)
+    def toggle_auto_refresh(self, state):
+        """Toggle auto-refresh for the Object Explorer."""
+        self.sig_option_changed.emit('auto_refresh', state)
+        self.model.auto_refresh = state
 
     @Slot(bool)
     def toggle_minmax(self, state):
