@@ -719,19 +719,6 @@ class EditorStack(QWidget):
                                       context="Editor",
                                       name="close split panel",
                                       parent=self)
-        bookmark_shortcuts = []
-        for i in range(10):
-            bookmark_shortcuts.append(config_shortcut(
-                lambda i=i: self.save_bookmark.emit(i),
-                context="Editor",
-                name="save bookmark {slot}".format(slot=i),
-                parent=self))
-        for i in range(10):
-            bookmark_shortcuts.append(config_shortcut(
-                lambda i=i: self.load_bookmark.emit(i),
-                context="Editor",
-                name="go to bookmark {slot}".format(slot=i),
-                parent=self))
 
         # Return configurable ones
         return [inspect, set_breakpoint, set_cond_breakpoint, gotoline, tab,
@@ -742,7 +729,7 @@ class EditorStack(QWidget):
                 go_to_next_cell, go_to_previous_cell, re_run_last_cell,
                 prev_warning, next_warning, split_vertically,
                 split_horizontally, close_split,
-                prevtab, nexttab] + bookmark_shortcuts
+                prevtab, nexttab]
 
     def get_shortcut_data(self):
         """
