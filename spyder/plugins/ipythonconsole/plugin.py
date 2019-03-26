@@ -736,9 +736,16 @@ class IPythonConsole(SpyderPluginWidget):
             client.show_kernel_error(km)
             return
 
-        kc.started_channels.connect(lambda c=client: self.process_started(c))
-        kc.stopped_channels.connect(lambda c=client: self.process_finished(c))
-        kc.start_channels(shell=True, iopub=True)
+        # Avoid a NameError when running our tests
+        # See https://travis-ci.org/spyder-ide/spyder/jobs/511579240#L1374
+        try:
+            kc.started_channels.connect(
+                lambda c=client: self.process_started(c))
+            kc.stopped_channels.connect(
+                lambda c=client: self.process_finished(c))
+            kc.start_channels(shell=True, iopub=True)
+        except NameError:
+            pass
 
         shellwidget = client.shellwidget
         shellwidget.kernel_manager = km

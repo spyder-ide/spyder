@@ -689,7 +689,6 @@ class CodeEditor(TextEditBaseWidget):
                                           and self.is_python_like())
 
     # ------------- LSP-related methods ---------------------------------------
-
     @Slot(str, dict)
     def handle_response(self, method, params):
         if method in self.handler_registry:
@@ -708,7 +707,6 @@ class CodeEditor(TextEditBaseWidget):
             self.language.lower(), method, params)
 
     # ------------- LSP: Configuration and protocol start/end ----------------
-
     def start_lsp_services(self, config):
         """Start LSP integration if it wasn't done before."""
         if not self.lsp_ready:
@@ -775,7 +773,6 @@ class CodeEditor(TextEditBaseWidget):
         self.process_code_analysis(params['params'])
 
     # ------------- LSP: Completion ---------------------------------------
-
     @request(method=LSPRequestTypes.DOCUMENT_COMPLETION)
     def do_completion(self, automatic=False):
         """Trigger completion"""
@@ -791,14 +788,14 @@ class CodeEditor(TextEditBaseWidget):
 
     @handles(LSPRequestTypes.DOCUMENT_COMPLETION)
     def process_completion(self, params):
-        if len(params['params']) > 0:
-            completion_list = sorted(
-                params['params'], key=lambda x: x['sortText'])
+        """Handle completion response."""
+        completions = params['params']
+        if completions is not None and len(completions) > 0:
+            completion_list = sorted(completions, key=lambda x: x['sortText'])
             position = self.last_completion_position
             self.completion_widget.show_list(completion_list, position)
 
     # ------------- LSP: Signature Hints ------------------------------------
-
     @request(method=LSPRequestTypes.DOCUMENT_SIGNATURE)
     def request_signature(self):
         self.document_did_change('')
@@ -847,7 +844,6 @@ class CodeEditor(TextEditBaseWidget):
                 title, tooltip_text, color='#999999')
 
     # ------------- LSP: Hover ---------------------------------------
-
     @request(method=LSPRequestTypes.DOCUMENT_HOVER)
     def request_hover(self, line, col):
         params = {
@@ -865,7 +861,6 @@ class CodeEditor(TextEditBaseWidget):
         # QTimer.singleShot(20000, lambda: QToolTip.hideText())
 
     # ------------- LSP: Go To Definition ----------------------------
-
     @Slot()
     @request(method=LSPRequestTypes.DOCUMENT_DEFINITION)
     def go_to_definition_from_cursor(self, cursor=None):
@@ -906,7 +901,6 @@ class CodeEditor(TextEditBaseWidget):
                                            start['character'])
 
     # ------------- LSP: Save/close file -----------------------------------
-
     @request(method=LSPRequestTypes.DOCUMENT_DID_SAVE,
              requires_response=False)
     def notify_save(self):
@@ -927,7 +921,6 @@ class CodeEditor(TextEditBaseWidget):
             return params
 
     # -------------------------------------------------------------------------
-
     def set_tab_mode(self, enable):
         """
         enabled = tab always indent
