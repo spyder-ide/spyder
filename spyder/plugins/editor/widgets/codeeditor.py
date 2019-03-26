@@ -1677,7 +1677,7 @@ class CodeEditor(TextEditBaseWidget):
             data = block.userData()
             if data and data.code_analysis:
                 for warning in data.code_analysis:
-                    warnings.append([warning[-1], block.blockNumber()])
+                    warnings.append([warning[-1], block.blockNumber() + 1])
             block = block.next()
         return warnings
 

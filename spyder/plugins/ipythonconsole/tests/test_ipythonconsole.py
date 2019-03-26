@@ -1078,7 +1078,8 @@ def test_stderr_file_remains_two_kernels(ipyconsole, qtbot, monkeypatch):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It fails on Windows")
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="It only works on Linux")
 def test_kernel_crash(ipyconsole, mocker, qtbot):
     """Test that we show kernel error messages when a kernel crash occurs."""
     # Patch create_kernel_spec method to make it return a faulty

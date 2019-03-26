@@ -610,6 +610,7 @@ class Editor(SpyderPluginWidget):
                       "HACK/BUG/OPTIMIZE/!!!/???)"),
                 triggered=self.go_to_next_todo)
         self.todo_menu = QMenu(self)
+        self.todo_menu.setStyleSheet("QMenu {menu-scrollable: 1;}")
         self.todo_list_action.setMenu(self.todo_menu)
         self.todo_menu.aboutToShow.connect(self.update_todo_menu)
 
@@ -618,6 +619,7 @@ class Editor(SpyderPluginWidget):
                 tip=_("Show code analysis warnings/errors"),
                 triggered=self.go_to_next_warning)
         self.warning_menu = QMenu(self)
+        self.warning_menu.setStyleSheet("QMenu {menu-scrollable: 1;}")
         self.warning_list_action.setMenu(self.warning_menu)
         self.warning_menu.aboutToShow.connect(self.update_warning_menu)
         self.previous_warning_action = create_action(self,
@@ -1379,7 +1381,7 @@ class Editor(SpyderPluginWidget):
 
     def update_warning_menu(self):
         """Update warning list menu"""
-        editor = self.get_current_editorstack().get_current_editor()
+        editor = self.get_current_editor()
         check_results = editor.get_current_warnings()
         self.warning_menu.clear()
         filename = self.get_current_filename()
@@ -1457,7 +1459,11 @@ class Editor(SpyderPluginWidget):
             self.open_file_update.emit(self.get_current_filename())
 
     def update_code_analysis_actions(self):
-        editor = self.get_current_editorstack().get_current_editor()
+        """Update actions in the warnings menu."""
+        editor = self.get_current_editor()
+        # To fix an error at startup
+        if editor is None:
+            return
         results = editor.get_current_warnings()
         # Update code analysis buttons
         state = (self.get_option('code_analysis/pyflakes') \

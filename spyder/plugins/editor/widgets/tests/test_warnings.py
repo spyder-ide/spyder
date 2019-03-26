@@ -135,8 +135,8 @@ def test_menu_show_warnings(qtbot, construct_editor):
     # Get current warnings
     warnings = editor.get_current_warnings()
 
-    expected = [['W293 blank line contains whitespace', 1],
-                ['E261 at least two spaces before inline comment', 2],
-                ["undefined name 's'", 4]]
+    expected = [['W293 blank line contains whitespace', 2],
+                ['E261 at least two spaces before inline comment', 3],
+                ["undefined name 's'", 5]]
 
     assert warnings == expected
