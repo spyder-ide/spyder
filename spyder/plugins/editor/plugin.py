@@ -1379,7 +1379,7 @@ class Editor(SpyderPluginWidget):
 
     def update_warning_menu(self):
         """Update warning list menu"""
-        editor = self.get_current_editorstack().get_current_editor()
+        editor = self.get_current_editor()
         check_results = editor.get_current_warnings()
         self.warning_menu.clear()
         filename = self.get_current_filename()
@@ -1457,7 +1457,9 @@ class Editor(SpyderPluginWidget):
             self.open_file_update.emit(self.get_current_filename())
 
     def update_code_analysis_actions(self):
-        editor = self.get_current_editorstack().get_current_editor()
+        editor = self.get_current_editor()
+        if editor is None:
+            return
         results = editor.get_current_warnings()
         # Update code analysis buttons
         state = (self.get_option('code_analysis/pyflakes') \
