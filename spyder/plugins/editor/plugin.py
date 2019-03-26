@@ -610,6 +610,7 @@ class Editor(SpyderPluginWidget):
                       "HACK/BUG/OPTIMIZE/!!!/???)"),
                 triggered=self.go_to_next_todo)
         self.todo_menu = QMenu(self)
+        self.todo_menu.setStyleSheet("QMenu {menu-scrollable: 1;}")
         self.todo_list_action.setMenu(self.todo_menu)
         self.todo_menu.aboutToShow.connect(self.update_todo_menu)
 
@@ -618,6 +619,7 @@ class Editor(SpyderPluginWidget):
                 tip=_("Show code analysis warnings/errors"),
                 triggered=self.go_to_next_warning)
         self.warning_menu = QMenu(self)
+        self.warning_menu.setStyleSheet("QMenu {menu-scrollable: 1;}")
         self.warning_list_action.setMenu(self.warning_menu)
         self.warning_menu.aboutToShow.connect(self.update_warning_menu)
         self.previous_warning_action = create_action(self,
