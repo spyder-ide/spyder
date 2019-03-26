@@ -1459,7 +1459,9 @@ class Editor(SpyderPluginWidget):
             self.open_file_update.emit(self.get_current_filename())
 
     def update_code_analysis_actions(self):
+        """Update actions in the warnings menu."""
         editor = self.get_current_editor()
+        # To fix an error at startup
         if editor is None:
             return
         results = editor.get_current_warnings()
