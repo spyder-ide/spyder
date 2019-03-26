@@ -102,15 +102,16 @@ class DocumentProvider:
     def process_document_completion(self, response, req_id):
         if isinstance(response, dict):
             response = response['items']
-        for item in response:
-            item['kind'] = item.get('kind', CompletionItemKind.TEXT)
-            item['detail'] = item.get('detail', '')
-            item['documentation'] = item.get('documentation', '')
-            item['sortText'] = item.get('sortText', item['label'])
-            item['filterText'] = item.get('filterText', item['label'])
-            item['insertTextFormat'] = item.get(
-                'insertTextFormat', InsertTextFormat.PLAIN_TEXT)
-            item['insertText'] = item.get('insertText', item['label'])
+        if response is not None:
+            for item in response:
+                item['kind'] = item.get('kind', CompletionItemKind.TEXT)
+                item['detail'] = item.get('detail', '')
+                item['documentation'] = item.get('documentation', '')
+                item['sortText'] = item.get('sortText', item['label'])
+                item['filterText'] = item.get('filterText', item['label'])
+                item['insertTextFormat'] = item.get(
+                    'insertTextFormat', InsertTextFormat.PLAIN_TEXT)
+                item['insertText'] = item.get('insertText', item['label'])
 
         if req_id in self.req_reply:
             self.req_reply[req_id].handle_response(
