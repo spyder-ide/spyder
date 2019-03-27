@@ -6,9 +6,14 @@
 
 """Status bar widgets."""
 
+# Standard library imports
+import os
+
 # Local imports
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
+from spyder.utils import icon_manager as ima
+from spyder.utils.vcs import get_git_refs
 from spyder.widgets.status import StatusBarWidget
 
 
@@ -51,6 +56,35 @@ class CursorPositionStatus(StatusBarWidget):
         """Update cursor position."""
         value = 'Line {}, Col {}'.format(line + 1, index + 1)
         self.set_value(value)
+
+
+class VCSStatus(StatusBarWidget):
+    """Status bar widget for system vcs."""
+    TIP = _("Git branch")
+
+    def __init__(self, parent, statusbar):
+        super(VCSStatus, self).__init__(parent, statusbar, 
+                                        icon=ima.icon('code_fork'))
+
+    def update_vcs_state(self, idx, fname, fname2):
+        """Update vcs status."""
+        self.update_vcs(fname, None)
+
+    def update_vcs(self, fname, index):
+        """Update vcs status."""
+        fpath = os.path.dirname(fname)
+        branches, branch, files_modified = get_git_refs(fpath)
+        text = branch if branch else ''
+
+        if len(files_modified):
+            text = text + ' [{}]'.format(len(files_modified))
+
+        self.setVisible(bool(branch))
+        self.set_value(text)
+
+    def change_branch(self):
+        """Change current branch."""
+        pass
 
 
 def test():
