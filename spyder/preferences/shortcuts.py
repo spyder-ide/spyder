@@ -272,7 +272,7 @@ class ShortcutEditor(QDialog):
         layout_sequence.addLayout(newseq_btnbar, 3, 3)
         layout_sequence.addWidget(self.label_warning, 4, 2, 1, 2)
         layout_sequence.setColumnStretch(2, 100)
-        layout_sequence.setRowStretch(4, 120)
+        layout_sequence.setRowStretch(4, 100)
 
         layout = QVBoxLayout()
         layout.addLayout(layout_sequence)
