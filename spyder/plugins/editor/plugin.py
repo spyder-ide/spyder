@@ -1091,7 +1091,8 @@ class Editor(SpyderPluginWidget):
                                  self.cursorpos_status.update_cursor_position)
             editorstack.sig_refresh_eol_chars.connect(
                 self.eol_status.update_eol)
-            editorstack.current_file_changed.connect(self.vcs_status.update_vcs)
+            editorstack.current_file_changed.connect(
+                self.vcs_status.update_vcs)
             editorstack.file_saved.connect(
                 self.vcs_status.update_vcs_state)
 

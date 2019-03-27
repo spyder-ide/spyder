@@ -63,7 +63,7 @@ class VCSStatus(StatusBarWidget):
     TIP = _("Git branch")
 
     def __init__(self, parent, statusbar):
-        super(VCSStatus, self).__init__(parent, statusbar, 
+        super(VCSStatus, self).__init__(parent, statusbar,
                                         icon=ima.icon('code_fork'))
 
     def update_vcs_state(self, idx, fname, fname2):
