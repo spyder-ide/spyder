@@ -17,7 +17,7 @@ import logging
 
 # Local imports
 from spyder.config.base import _
-from spyder.plugins.variableexplorer.widgets.objecteditor2.utils import (
+from spyder.plugins.variableexplorer.widgets.objectexplorer.utils import (
     cut_off_str)
 
 logger = logging.getLogger(__name__)

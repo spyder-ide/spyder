@@ -25,9 +25,9 @@ from qtpy.QtGui import QFont, QBrush, QColor
 
 # Local imports
 from spyder.config.base import _
-from spyder.plugins.variableexplorer.widgets.objecteditor2.utils import (
+from spyder.plugins.variableexplorer.widgets.objectexplorer.utils import (
     cut_off_str)
-from spyder.plugins.variableexplorer.widgets.objecteditor2.tree_item import (
+from spyder.plugins.variableexplorer.widgets.objectexplorer.tree_item import (
     TreeItem)
 from spyder.py3compat import to_unichr
 from spyder.utils import icon_manager as ima

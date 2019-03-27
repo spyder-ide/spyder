@@ -56,8 +56,8 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     mimedata2url)
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
-from spyder.plugins.variableexplorer.widgets.objecteditor2.objecteditor \
-    import ObjectBrowser
+from spyder.plugins.variableexplorer.widgets.objectexplorer.objectexplorer \
+    import ObjectExplorer
 
 if ndarray is not FakeObject:
     from spyder.plugins.variableexplorer.widgets.arrayeditor import (
@@ -574,7 +574,7 @@ class CollectionsDelegate(QItemDelegate):
             show_special_attributes = index.model().show_special_attributes
             auto_refresh = index.model().auto_refresh
             refresh_rate = index.model().refresh_rate
-            editor = ObjectBrowser(
+            editor = ObjectExplorer(
                 {_('Object'): value},
                 expanded=True,
                 parent=parent,
@@ -603,7 +603,7 @@ class CollectionsDelegate(QItemDelegate):
 
         This function is called when a `sig_option_changed` signal is received.
         At the moment, this signal can only come from a DataFrameEditor
-        or an ObjectBrowser.
+        or an ObjectExplorer.
         """
         if option_name == 'dataframe_format':
             self.parent().set_dataframe_format(new_value)

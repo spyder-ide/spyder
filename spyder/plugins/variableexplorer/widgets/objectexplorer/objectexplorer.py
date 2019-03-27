@@ -29,11 +29,11 @@ from spyder.config.base import _
 from spyder.config.gui import is_dark_interface
 from spyder.utils.qthelpers import (add_actions, create_plugin_layout,
                                     create_toolbutton, qapplication)
-from spyder.plugins.variableexplorer.widgets.objecteditor2.attribute_model \
+from spyder.plugins.variableexplorer.widgets.objectexplorer.attribute_model \
     import DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS
-from spyder.plugins.variableexplorer.widgets.objecteditor2.tree_model import (
+from spyder.plugins.variableexplorer.widgets.objectexplorer.tree_model import (
     TreeModel, TreeProxyModel)
-from spyder.plugins.variableexplorer.widgets.objecteditor2.toggle_column_mixin\
+from spyder.plugins.variableexplorer.widgets.objectexplorer.toggle_column_mixin\
     import ToggleColumnTreeView
 from spyder.utils import icon_manager as ima
 
@@ -43,8 +43,8 @@ logger = logging.getLogger(__name__)
 PROGRAM_NAME = 'Object Explorer'
 
 
-class ObjectBrowser(QDialog):
-    """Object browser main widget window."""
+class ObjectExplorer(QDialog):
+    """Object explorer main widget window."""
     # TODO: Use signal to trigger update of configs
     sig_option_changed = Signal(str, object)
 
@@ -515,11 +515,11 @@ class ObjectBrowser(QDialog):
                                      " cleaned up: {}".format(idx))
 
     @classmethod
-    def create_browser(cls, *args, **kwargs):
+    def create_explorer(cls, *args, **kwargs):
         """
-        Creates and shows and ObjectBrowser window.
+        Creates and shows and ObjectExplorer window.
 
-        The *args and **kwargs will be passed to the ObjectBrowser constructor.
+        The *args and **kwargs will be passed to the ObjectExplorer constructor
 
         A (class attribute) reference to the browser window is kept to prevent
         it from being garbage-collected.
@@ -560,7 +560,7 @@ def test():
                'date': datetime.date(1945, 5, 8),
                'datetime': datetime.datetime(1945, 5, 8),
                'foobar': foobar}
-    ObjectBrowser.create_browser(example, 'Example')
+    ObjectExplorer.create_browser(example, 'Example')
 
 
 if __name__ == "__main__":
