@@ -396,8 +396,6 @@ class CodeEditor(TextEditBaseWidget):
         # Block user data
         self.blockuserdata_list = []
 
-        # Update breakpoints if the number of lines in the file changes
-        self.blockCountChanged.connect(self.update_breakpoints)
         self.blockCountChanged.connect(self.update_bookmarks)
 
         # Highlight using Pygments highlighter timer
