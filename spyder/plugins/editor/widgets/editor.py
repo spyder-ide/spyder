@@ -182,7 +182,6 @@ class FileInfo(QObject):
         self.lastmodified = QFileInfo(filename).lastModified()
 
         self.editor.textChanged.connect(self.text_changed)
-        self.editor.breakpoints_changed.connect(self.breakpoints_changed)
         self.editor.bookmarks_changed.connect(self.bookmarks_changed)
         self.sig_filename_changed.connect(self.editor.sig_filename_changed)
 
