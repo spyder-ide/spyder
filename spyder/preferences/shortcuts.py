@@ -412,7 +412,7 @@ class ShortcutEditor(QDialog):
                 tip_body += ' - {0}: {1}<br>'.format(s.context, s.name)
             tip_body = tip_body[:-4]  # Removing last <br>
             tip_override = '<br>Press <b>OK</b> to unbind '
-            tip_override += 'it' if len(conflicts)==1 else 'them'
+            tip_override += 'it' if len(conflicts) == 1 else 'them'
             tip_override += ' and assign it to <b>{}</b>'.format(self.name)
             tip = template.format(tip_title, tip_body, tip_override)
             icon = get_std_icon('MessageBoxWarning')
