@@ -147,3 +147,58 @@ def get_git_revision(repopath):
         return commit, branch
     except (subprocess.CalledProcessError, AssertionError, AttributeError):
         return None, None
+
+
+def get_git_refs(repopath):
+    """
+    Return Git active branch, state, branches (plus tags).
+    """
+    tags = []
+    branches = []
+    branch = ''
+    number_files_modifed = ''
+
+    try:
+        git = programs.find_program('git')
+
+        # Status
+        out, err = programs.run_program(
+            git, ['status', '-s'],
+            cwd=repopath,
+        ).communicate()
+
+        if PY3:
+            out = out.decode(sys.getdefaultencoding())
+        files_modifed = [line.strip() for line in out.split('\n') if line]
+
+        # Tags
+        out, err = programs.run_program(
+            git, ['tag'],
+            cwd=repopath,
+        ).communicate()
+
+        if PY3:
+            out = out.decode(sys.getdefaultencoding())
+        tags = [line for line in out.split('\n') if line]
+
+        # Branches
+        out, err = programs.run_program(
+            git, ['branch'],
+            cwd=repopath,
+        ).communicate()
+
+        if PY3:
+            out = out.decode(sys.getdefaultencoding())
+
+        lines = [line for line in out.split('\n') if line]
+        for line in out.split('\n'):
+            if line.startswith('*'):
+                line = line.replace('*', '').strip()
+                branch = line
+
+            branches.append(line)
+
+    except (subprocess.CalledProcessError, AttributeError):
+        pass
+
+    return branches + tags, branch, files_modifed
