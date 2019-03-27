@@ -21,7 +21,7 @@ before_install:
   # Avoid annoying focus problems when running tests
   # See discussion in e.g. https://github.com/spyder-ide/spyder/pull/6132
   - sudo apt-get -qq update
-  - sudo apt-get install -y matchbox-window-manager xterm
+  - sudo apt-get install -y matchbox-window-manager xterm libxkbcommon-x11-0
   - matchbox-window-manager&
   - sleep 5
 
