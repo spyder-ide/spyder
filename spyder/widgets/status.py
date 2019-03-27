@@ -11,6 +11,7 @@ import os
 
 # Third party imports
 from qtpy.QtCore import Qt, QTimer
+from qtpy.QtGui import QFont
 from qtpy.QtWidgets import QHBoxLayout, QLabel, QWidget
 
 # Local imports
@@ -41,7 +42,7 @@ class StatusBarWidget(QWidget):
         self.label_value = QLabel()
 
         # Widget setup
-        self.text_font = get_font(option='font')
+        self.text_font = QFont(get_font(option='font'))  # See Issue #9044
         self.text_font.setPointSize(self.font().pointSize())
         self.text_font.setBold(True)
         self.label_value.setAlignment(Qt.AlignRight)
