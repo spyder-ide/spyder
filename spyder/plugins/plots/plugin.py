@@ -47,7 +47,8 @@ class Plots(SpyderPluginWidget):
     def get_settings(self):
         """Retrieve all Plots configuration settings."""
         return {name: self.get_option(name) for name in
-                ['mute_inline_plotting',  'show_plot_outline']}
+                ['mute_inline_plotting', 'show_plot_outline',
+                 'auto_fit_plotting']}
 
     # ---- Stack accesors
     def set_current_widget(self, fig_browser):

@@ -39,7 +39,8 @@ def figbrowser(qtbot):
     """An empty figure browser widget fixture."""
     figbrowser = FigureBrowser()
     figbrowser.set_shellwidget(Mock())
-    figbrowser.setup(mute_inline_plotting=True, show_plot_outline=False)
+    figbrowser.setup(mute_inline_plotting=True, show_plot_outline=False,
+                     auto_fit_plotting=False)
     qtbot.addWidget(figbrowser)
     figbrowser.show()
     figbrowser.setMinimumSize(700, 500)
