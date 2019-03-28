@@ -355,6 +355,7 @@ DEFAULTS = [
               '_/switch to variable_explorer': "Ctrl+Shift+V",
               '_/switch to find_in_files': "Ctrl+Shift+F",
               '_/switch to explorer': "Ctrl+Shift+X",
+              '_/switch to plots': "Ctrl+Shift+G",
               # -- In widgets/findreplace.py
               '_/find text': "Ctrl+F",
               '_/find next': "F3",
