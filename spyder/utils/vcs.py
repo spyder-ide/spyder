@@ -156,12 +156,15 @@ def get_git_refs(repopath):
     tags = []
     branches = []
     branch = ''
-    number_files_modifed = ''
+    files_modifed = []
+
+    if os.path.isfile(repopath):
+        repopath = os.path.dirname(repopath)
 
     try:
         git = programs.find_program('git')
 
-        # Status
+        # Files modified
         out, err = programs.run_program(
             git, ['status', '-s'],
             cwd=repopath,
@@ -179,19 +182,19 @@ def get_git_refs(repopath):
 
         if PY3:
             out = out.decode(sys.getdefaultencoding())
-        tags = [line for line in out.split('\n') if line]
+        tags = [line.strip() for line in out.split('\n') if line]
 
         # Branches
         out, err = programs.run_program(
-            git, ['branch'],
+            git, ['branch', '-a'],
             cwd=repopath,
         ).communicate()
 
         if PY3:
             out = out.decode(sys.getdefaultencoding())
 
-        lines = [line for line in out.split('\n') if line]
-        for line in out.split('\n'):
+        lines = [line.strip() for line in out.split('\n') if line]
+        for line in lines:
             if line.startswith('*'):
                 line = line.replace('*', '').strip()
                 branch = line
