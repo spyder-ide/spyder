@@ -143,6 +143,7 @@ from spyder.config.base import (get_conf_path, get_module_source_path, STDERR,
                                 reset_config_files)
 from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.utils import IMPORT_EXT, is_gtk_desktop
+from spyder.api.plugins import PluginWidget
 from spyder.app.cli_options import get_options
 from spyder import dependencies
 from spyder.py3compat import (is_text_string, to_text_string,
@@ -569,26 +570,29 @@ class MainWindow(QMainWindow):
         return toolbar
 
     def setup_menus(self):
-        self.file_menu.aboutToShow.connect(lambda menu_actions=self.file_menu_actions: self.verify_menu_actions(menu_actions, False))
-        self.file_menu.aboutToHide.connect(lambda menu_actions=self.file_menu_actions: self.verify_menu_actions(menu_actions, True))
-        self.edit_menu.aboutToShow.connect(lambda menu_actions=self.edit_menu_actions: self.verify_menu_actions(menu_actions, False))
-        self.edit_menu.aboutToHide.connect(lambda menu_actions=self.edit_menu_actions: self.verify_menu_actions(menu_actions, True))
-        self.search_menu.aboutToShow.connect(lambda menu_actions=self.search_menu_actions: self.verify_menu_actions(menu_actions, False))
-        self.search_menu.aboutToHide.connect(lambda menu_actions=self.search_menu_actions: self.verify_menu_actions(menu_actions, True))
-        self.source_menu.aboutToShow.connect(lambda menu_actions=self.source_menu_actions: self.verify_menu_actions(menu_actions, False))
-        self.source_menu.aboutToHide.connect(lambda menu_actions=self.source_menu_actions: self.verify_menu_actions(menu_actions, True))
-        self.run_menu.aboutToShow.connect(lambda menu_actions=self.run_menu_actions: self.verify_menu_actions(menu_actions, False))
-        self.run_menu.aboutToHide.connect(lambda menu_actions=self.run_menu_actions: self.verify_menu_actions(menu_actions, True))
-        self.debug_menu.aboutToShow.connect(lambda menu_actions=self.debug_menu_actions: self.verify_menu_actions(menu_actions, False))
-        self.debug_menu.aboutToHide.connect(lambda menu_actions=self.debug_menu_actions: self.verify_menu_actions(menu_actions, True))
-        self.consoles_menu.aboutToShow.connect(lambda menu_actions=self.consoles_menu_actions: self.verify_menu_actions(menu_actions, False))
-        self.consoles_menu.aboutToHide.connect(lambda menu_actions=self.consoles_menu_actions: self.verify_menu_actions(menu_actions, True))
-        self.projects_menu.aboutToShow.connect(lambda menu_actions=self.projects_menu_actions: self.verify_menu_actions(menu_actions, False))
-        self.projects_menu.aboutToHide.connect(lambda menu_actions=self.projects_menu_actions: self.verify_menu_actions(menu_actions, True))
-        self.tools_menu.aboutToShow.connect(lambda menu_actions=self.tools_menu_actions: self.verify_menu_actions(menu_actions, False))
-        self.tools_menu.aboutToHide.connect(lambda menu_actions=self.tools_menu_actions: self.verify_menu_actions(menu_actions, True))
-        self.help_menu.aboutToShow.connect(lambda menu_actions=self.help_menu_actions: self.verify_menu_actions(menu_actions, False))
-        self.help_menu.aboutToHide.connect(lambda menu_actions=self.help_menu_actions: self.verify_menu_actions(menu_actions, True))
+
+        if sys.platform == 'darwin':
+
+            self.file_menu.aboutToShow.connect(lambda menu_actions=self.file_menu_actions: self.verify_menu_actions(menu_actions, False))
+            self.file_menu.aboutToHide.connect(lambda menu_actions=self.file_menu_actions: self.verify_menu_actions(menu_actions, True))
+            self.edit_menu.aboutToShow.connect(lambda menu_actions=self.edit_menu_actions: self.verify_menu_actions(menu_actions, False))
+            self.edit_menu.aboutToHide.connect(lambda menu_actions=self.edit_menu_actions: self.verify_menu_actions(menu_actions, True))
+            self.search_menu.aboutToShow.connect(lambda menu_actions=self.search_menu_actions: self.verify_menu_actions(menu_actions, False))
+            self.search_menu.aboutToHide.connect(lambda menu_actions=self.search_menu_actions: self.verify_menu_actions(menu_actions, True))
+            self.source_menu.aboutToShow.connect(lambda menu_actions=self.source_menu_actions: self.verify_menu_actions(menu_actions, False))
+            self.source_menu.aboutToHide.connect(lambda menu_actions=self.source_menu_actions: self.verify_menu_actions(menu_actions, True))
+            self.run_menu.aboutToShow.connect(lambda menu_actions=self.run_menu_actions: self.verify_menu_actions(menu_actions, False))
+            self.run_menu.aboutToHide.connect(lambda menu_actions=self.run_menu_actions: self.verify_menu_actions(menu_actions, True))
+            self.debug_menu.aboutToShow.connect(lambda menu_actions=self.debug_menu_actions: self.verify_menu_actions(menu_actions, False))
+            self.debug_menu.aboutToHide.connect(lambda menu_actions=self.debug_menu_actions: self.verify_menu_actions(menu_actions, True))
+            self.consoles_menu.aboutToShow.connect(lambda menu_actions=self.consoles_menu_actions: self.verify_menu_actions(menu_actions, False))
+            self.consoles_menu.aboutToHide.connect(lambda menu_actions=self.consoles_menu_actions: self.verify_menu_actions(menu_actions, True))
+            self.projects_menu.aboutToShow.connect(lambda menu_actions=self.projects_menu_actions: self.verify_menu_actions(menu_actions, False))
+            self.projects_menu.aboutToHide.connect(lambda menu_actions=self.projects_menu_actions: self.verify_menu_actions(menu_actions, True))
+            self.tools_menu.aboutToShow.connect(lambda menu_actions=self.tools_menu_actions: self.verify_menu_actions(menu_actions, False))
+            self.tools_menu.aboutToHide.connect(lambda menu_actions=self.tools_menu_actions: self.verify_menu_actions(menu_actions, True))
+            self.help_menu.aboutToShow.connect(lambda menu_actions=self.help_menu_actions: self.verify_menu_actions(menu_actions, False))
+            self.help_menu.aboutToHide.connect(lambda menu_actions=self.help_menu_actions: self.verify_menu_actions(menu_actions, True))
 
     def setup(self):  
 
@@ -697,48 +701,59 @@ class MainWindow(QMainWindow):
         self.file_menu = self.menuBar().addMenu(_("&File"))
         self.file_toolbar = self.create_toolbar(_("File toolbar"),
                                                 "file_toolbar")
+        self.file_menu.aboutToShow.connect(self.hide_menus)
         # Edit menu/toolbar
         self.edit_menu = self.menuBar().addMenu(_("&Edit"))
         self.edit_toolbar = self.create_toolbar(_("Edit toolbar"),
                                                 "edit_toolbar")
+        self.edit_menu.aboutToShow.connect(self.hide_menus)
         # Search menu/toolbar
         self.search_menu = self.menuBar().addMenu(_("&Search"))
         self.search_toolbar = self.create_toolbar(_("Search toolbar"),
                                                     "search_toolbar")
+        self.search_menu.aboutToShow.connect(self.hide_menus)
         # Source menu/toolbar
         self.source_menu = self.menuBar().addMenu(_("Sour&ce"))
         self.source_toolbar = self.create_toolbar(_("Source toolbar"),
                                                     "source_toolbar")
+        self.source_menu.aboutToShow.connect(self.hide_menus)
         # Run menu/toolbar
         self.run_menu = self.menuBar().addMenu(_("&Run"))
         self.run_toolbar = self.create_toolbar(_("Run toolbar"),
                                                 "run_toolbar")
+        self.run_menu.aboutToShow.connect(self.hide_menus)
 
         # Debug menu/toolbar
         self.debug_menu = self.menuBar().addMenu(_("&Debug"))
         self.debug_toolbar = self.create_toolbar(_("Debug toolbar"),
                                                     "debug_toolbar")
+        self.debug_menu.aboutToShow.connect(self.hide_menus)
+
         # Consoles menu/toolbar
         self.consoles_menu = self.menuBar().addMenu(_("C&onsoles"))
         self.consoles_menu.aboutToShow.connect(
                 self.update_execution_state_kernel)
 
+        self.consoles_menu.aboutToShow.connect(self.hide_menus)
+
         # Projects menu
         self.projects_menu = self.menuBar().addMenu(_("&Projects"))
         self.projects_menu.aboutToShow.connect(self.valid_project)
+        self.projects_menu.aboutToShow.connect(self.hide_menus)
 
         # Tools menu
         self.tools_menu = self.menuBar().addMenu(_("&Tools"))
+        self.tools_menu.aboutToShow.connect(self.hide_menus)
 
         # View menu
         self.view_menu = self.menuBar().addMenu(_("&View"))
-        # self.view_menu.aboutToShow.connect(self.view_menu_actions)
+        self.view_menu.aboutToShow.connect(self.hide_menus)
 
         # Help menu
         self.help_menu = self.menuBar().addMenu(_("&Help"))
+        self.help_menu.aboutToShow.connect(self.hide_menus)
         
         self.setup_menus()
-
         # Status bar
         status = self.statusBar()
         status.setObjectName("StatusBar")
@@ -1883,6 +1898,36 @@ class MainWindow(QMainWindow):
             if isinstance(action, QAction):
                 action.setIconVisibleInMenu(state)
 
+    def hide_menus(self):
+        """Hide options menu of the plugins"""
+
+        if self.console is not None:
+            self.console.options_menu.hide()
+        if self.editor is not None:
+            self.editor.options_menu.hide()
+        if self.explorer is not None:
+            self.explorer.options_menu.hide()
+        if self.help is not None:
+            self.help.options_menu.hide()
+        if self.findinfiles is not None:
+            self.findinfiles.options_menu.hide()
+        if self.historylog is not None:
+            self.historylog.options_menu.hide()
+        if self.ipyconsole is not None:
+            self.ipyconsole.options_menu.hide()
+        if self.outlineexplorer is not None:
+            self.outlineexplorer.options_menu.hide()
+        if self.plots is not None:
+            self.plots.options_menu.hide()
+        if self.projects is not None:
+            self.projects.options_menu.hide()
+        if self.variableexplorer is not None:
+            self.variableexplorer.options_menu.hide()
+
+        # OneColumnTree -- Static code analysis
+        # Breakpoints
+        # Profiler
+        # Editor
 
 
     @Slot()
@@ -3286,6 +3331,10 @@ def run_spyder(app, options, args):
     if args:
         for a in args:
             main.open_external_file(a)
+
+    # Don't show icons in menus for Mac        
+    if sys.platform == 'darwin':
+        QCoreApplication.setAttribute(Qt.AA_DontShowIconsInMenus, True)
 
     # Open external files with our Mac app
     if running_in_mac_app():

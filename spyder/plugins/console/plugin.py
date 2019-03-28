@@ -55,7 +55,7 @@ class Console(SpyderPluginWidget):
     def __init__(self, parent=None, namespace=None, commands=[], message=None,
                  exitfunc=None, profile=False, multithreaded=False):
         SpyderPluginWidget.__init__(self, parent)
-
+ 
         logger.info("Initializing...")
         self.dialog_manager = DialogManager()
 

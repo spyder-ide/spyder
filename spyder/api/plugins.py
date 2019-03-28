@@ -14,11 +14,12 @@ Here, 'plugins' are Qt widgets designed specifically for Spyder
 # Standard library imports
 import inspect
 import os
+import sys
 
 # Third party imports
 from qtpy.QtCore import Qt, Signal
 from qtpy.QtGui import QCursor
-from qtpy.QtWidgets import (QApplication, QMenu, QMessageBox, QToolButton,
+from qtpy.QtWidgets import (QAction, QApplication, QMenu, QMessageBox, QToolButton,
                             QWidget)
 
 # Local imports
@@ -225,6 +226,21 @@ class PluginWidget(QWidget, BasePluginMixin):
         # Create actions list
         self.plugin_actions = self.get_plugin_actions() + additional_actions
         add_actions(self.options_menu, self.plugin_actions)
+
+        # Show icons in Mac plugin menus
+        
+        if sys.platform == 'darwin':
+
+            self.options_menu.aboutToShow.connect(lambda plugin_actions=self.plugin_actions: self.verify_menu_actions(plugin_actions, True))
+            self.options_menu.aboutToHide.connect(lambda plugin_actions=self.plugin_actions: self.verify_menu_actions(plugin_actions, False))
+
+    def verify_menu_actions(self, menu_actions, state):
+        """Check OS to hide icons in menu toolbars"""
+        if menu_actions is not None:
+
+            for action in menu_actions:
+                if isinstance(action, QAction):
+                    action.setIconVisibleInMenu(state)
 
 
 class SpyderPluginWidget(PluginWidget):
