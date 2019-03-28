@@ -10,7 +10,7 @@
 import os
 
 # Third party imports
-from qtpy.QtCore import Qt, QTimer
+from qtpy.QtCore import Qt, QSize, QTimer
 from qtpy.QtGui import QFont
 from qtpy.QtWidgets import QHBoxLayout, QLabel, QWidget
 
@@ -31,7 +31,7 @@ class StatusBarWidget(QWidget):
     """Status bar widget base."""
     TIP = None
 
-    def __init__(self, parent, statusbar):
+    def __init__(self, parent, statusbar, icon=None):
         """Status bar widget base."""
         super(StatusBarWidget, self).__init__(parent)
 
@@ -39,9 +39,14 @@ class StatusBarWidget(QWidget):
         self.value = None
 
         # Widget
+        self._icon = icon
+        self._pixmap = icon.pixmap(QSize(16, 16)) if icon is not None else None
+        self.label_icon = QLabel() if icon is not None else None
         self.label_value = QLabel()
 
         # Widget setup
+        if icon is not None:
+            self.label_icon.setPixmap(self._pixmap)
         self.text_font = QFont(get_font(option='font'))  # See Issue #9044
         self.text_font.setPointSize(self.font().pointSize())
         self.text_font.setBold(True)
@@ -54,6 +59,8 @@ class StatusBarWidget(QWidget):
 
         # Layout
         layout = QHBoxLayout()
+        if icon is not None:
+            layout.addWidget(self.label_icon)
         layout.addWidget(self.label_value)
         layout.addSpacing(20)
 

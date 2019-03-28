@@ -17,7 +17,7 @@ from qtpy.QtWidgets import QMainWindow
 # Local imports
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
-                                                  ReadWriteStatus)
+                                                  ReadWriteStatus, VCSStatus)
 
 
 @pytest.fixture
@@ -36,11 +36,11 @@ def test_status_bar(status_bar, qtbot):
     win, statusbar = status_bar
     swidgets = []
     for klass in (ReadWriteStatus, EOLStatus, EncodingStatus,
-                  CursorPositionStatus):
+                  CursorPositionStatus, VCSStatus):
         swidget = klass(win, statusbar)
         swidgets.append(swidget)
     assert win
-    assert len(swidgets) == 4
+    assert len(swidgets) == 5
 
 
 if __name__ == "__main__":

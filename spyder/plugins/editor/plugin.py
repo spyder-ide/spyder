@@ -49,7 +49,7 @@ from spyder.plugins.editor.utils.debugger import (clear_all_breakpoints,
                                                   clear_breakpoint)
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
-                                                  ReadWriteStatus)
+                                                  ReadWriteStatus, VCSStatus)
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.preferences.runconfig import (ALWAYS_OPEN_FIRST_RUN_OPTION,
                                           get_run_configuration,
@@ -143,6 +143,7 @@ class Editor(SpyderPluginWidget):
         self.dialog_size = None
 
         statusbar = parent.statusBar()  # Create a status bar
+        self.vcs_status = VCSStatus(self, statusbar)
         self.cursorpos_status = CursorPositionStatus(self, statusbar)
         self.encoding_status = EncodingStatus(self, statusbar)
         self.eol_status = EOLStatus(self, statusbar)
@@ -1090,6 +1091,10 @@ class Editor(SpyderPluginWidget):
                                  self.cursorpos_status.update_cursor_position)
             editorstack.sig_refresh_eol_chars.connect(
                 self.eol_status.update_eol)
+            editorstack.current_file_changed.connect(
+                self.vcs_status.update_vcs)
+            editorstack.file_saved.connect(
+                self.vcs_status.update_vcs_state)
 
         editorstack.autosave_mapping \
             = CONF.get('editor', 'autosave_mapping', {})
