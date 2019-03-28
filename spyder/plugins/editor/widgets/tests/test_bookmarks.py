@@ -12,9 +12,6 @@ Tests for bookmarks.
 import pytest
 from qtpy.QtGui import QTextCursor
 
-# Local imports
-import spyder.plugins.editor.widgets.codeeditor as codeeditor
-
 
 # -----------------------------------------------------------------------------
 # --- Helper functions
@@ -46,11 +43,9 @@ def editor_assert_helper(editor, block=None, bm=None, emits=True):
 # --- Tests
 # -----------------------------------------------------------------------------
 @pytest.mark.usefixtures("code_editor_bot")
-def test_add_bookmark(code_editor_bot, mocker):
+def test_add_bookmark(code_editor_bot):
     """Test CodeEditor.add_bookmark. Adds bookmark data to Textblock."""
     editor, __ = code_editor_bot
-
-    mocker.patch.object(codeeditor.QInputDialog, 'getText')
 
     editor.go_to_line(1)
     block = editor.textCursor().block()
