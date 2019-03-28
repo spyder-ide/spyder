@@ -126,6 +126,7 @@ def ipyconsole(qtbot, request):
     # Create the console and a new client
     window = MainWindowMock()
     console = IPythonConsole(parent=window,
+                             testing=True,
                              test_dir=test_dir,
                              test_no_stderr=test_no_stderr)
     console.dockwidget = Mock()
