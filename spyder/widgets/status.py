@@ -83,7 +83,9 @@ class BaseTimerStatus(StatusBarWidget):
 
     def __init__(self, parent, statusbar):
         """Status bar widget base for widgets that update based on timers."""
+        self.timer = None  # Needs to come before parent call
         super(BaseTimerStatus, self).__init__(parent, statusbar)
+        self._interval = 2000
 
         # Widget setup
         fm = self.label_value.fontMetrics()
@@ -93,13 +95,22 @@ class BaseTimerStatus(StatusBarWidget):
         if self.is_supported():
             self.timer = QTimer()
             self.timer.timeout.connect(self.update_status)
-            self.timer.start(2000)
+            self.timer.start(self._interval)
         else:
-            self.timer = None
             self.hide()
-    
+
+    def setVisible(self, value):
+        """Override Qt method to stops timers if widget is not visible."""
+        if self.timer is not None:
+            if value:
+                self.timer.start(self._interval)
+            else:
+                self.timer.stop()
+        super(BaseTimerStatus, self).setVisible(value)
+
     def set_interval(self, interval):
         """Set timer interval (ms)."""
+        self._interval = interval
         if self.timer is not None:
             self.timer.setInterval(interval)
     
