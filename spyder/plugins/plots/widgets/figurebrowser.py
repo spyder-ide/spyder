@@ -497,10 +497,10 @@ class FigureViewer(QScrollArea):
             height = size.height() - 15
             if (fwidth / fheight) > (width / height):
                 new_width = width
-                new_height = width / fwidth * fheight
+                new_height = int(width / fwidth * fheight)
             else:
                 new_height = height
-                new_width = height / fheight * fwidth
+                new_width = int(height / fheight * fwidth)
         self.figcanvas.setFixedSize(new_width, new_height)
 
     def get_scaling(self):
