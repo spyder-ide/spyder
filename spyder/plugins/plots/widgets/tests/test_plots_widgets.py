@@ -333,6 +333,9 @@ def test_zoom_figure_viewer(figbrowser, tmpdir, fmt):
     fig = add_figures_to_browser(figbrowser, 1, tmpdir, fmt)[0]
     figcanvas = figbrowser.figviewer.figcanvas
 
+    # Set `Fit plots to windows` to False before the test.
+    figbrowser.change_auto_fit_plotting(False)
+
     # Calculate original figure size in pixels.
     qpix = QPixmap()
     qpix.loadFromData(fig, fmt.upper())
@@ -356,6 +359,37 @@ def test_zoom_figure_viewer(figbrowser, tmpdir, fmt):
         assert figbrowser.zoom_disp.value() == np.floor(scale * 100)
         assert figcanvas.width() == np.floor(fwidth * scale)
         assert figcanvas.height() == np.floor(fheight * scale)
+
+
+@pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
+def test_autofit_figure_viewer(figbrowser, tmpdir, fmt):
+    """
+    Test figure diplayed when `Fit plots to window` is True.
+    """
+    fig = add_figures_to_browser(figbrowser, 1, tmpdir, fmt)[0]
+    figcanvas = figbrowser.figviewer.figcanvas
+
+    # Calculate original figure size in pixels.
+    qpix = QPixmap()
+    qpix.loadFromData(fig, fmt.upper())
+    fwidth, fheight = qpix.width(), qpix.height()
+
+    # Test when `Fit plots to window` is set to True.
+    # Otherwise, test should be `test_zoom_figure_viewer`
+    figbrowser.change_auto_fit_plotting(True)
+    size = figbrowser.figviewer.size()
+    # Need to change after figured out the actual figcanvas size?
+    width = width = size.width() - 15
+    height = size.height() - 15
+    if (fwidth / fheight) > (width / height):
+        new_width = width
+        new_height = width / fwidth * fheight
+    else:
+        new_height = height
+        new_width = height / fheight * fwidth
+
+    assert figcanvas.width() == int(new_width)
+    assert figcanvas.height() == int(new_height)
 
 
 if __name__ == "__main__":
