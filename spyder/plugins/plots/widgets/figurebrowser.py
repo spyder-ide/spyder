@@ -238,8 +238,8 @@ class FigureBrowser(QWidget):
         self.show_plot_outline_action.setChecked(show_plot_outline)
 
         self.auto_fit_action = create_action(
-            self, _("Auto fit plotting"),
-            tip=_("Auto fit plotting in the widget."),
+            self, _("Fit plots to window"),
+            tip=_("Automatically fit plots to Plot pane size."),
             toggled=self.change_auto_fit_plotting
             )
         self.auto_fit_action.setChecked(auto_fit_plotting)
@@ -308,7 +308,7 @@ class FigureBrowser(QWidget):
         self.option_changed('show_plot_outline', state)
 
     def change_auto_fit_plotting(self, state):
-        """Change the auto_fit_plotting option and scale images"""
+        """Change the auto_fit_plotting option and scale images."""
         self.option_changed('auto_fit_plotting', state)
         self.figviewer.auto_fit_plotting = state
         self.figviewer.scale_image()
