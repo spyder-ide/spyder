@@ -191,7 +191,8 @@ class DirView(QTreeView):
     def set_single_click_to_open(self, value):
         """Set single click to open files."""
         self._single_click = value
-        self.parent_widget.sig_option_changed.emit('single_click_to_open', value)
+        self.parent_widget.sig_option_changed.emit('single_click_to_open',
+                                                   value)
 
     def set_name_filters(self, name_filters):
         """Set name filters"""
@@ -235,8 +236,7 @@ class DirView(QTreeView):
         
     #---- Tree view widget
     def setup(self, name_filters=['*.py', '*.pyw'], show_all=False,
-        single_click_to_open=False
-    ):
+              single_click_to_open=False):
         """Setup tree widget"""
         self.setup_view()
 
@@ -267,8 +267,11 @@ class DirView(QTreeView):
         self.toggle_all(self.show_all)
 
         # Show all files
-        single_click_to_open = create_action(self, _("Single click to open"),
-                                             toggled=self.set_single_click_to_open)
+        single_click_to_open = create_action(
+            self,
+            _("Single click to open"),
+            toggled=self.set_single_click_to_open,
+        )
         single_click_to_open.setChecked(self.single_click_to_open)
         return [filters_action, all_action, single_click_to_open]
 
