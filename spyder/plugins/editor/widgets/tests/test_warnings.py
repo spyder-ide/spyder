@@ -57,7 +57,7 @@ def construct_editor(qtbot, *args, **kwargs):
     with qtbot.waitSignal(wrapper.sig_initialize, timeout=30000):
         editor.filename = 'test.py'
         editor.language = 'Python'
-        lsp_manager.start_lsp_client('python')
+        lsp_manager.start_client('python')
 
     text = ("def some_function():\n"  # D100, D103: Missing docstring
             "    \n"  # W293 trailing spaces
@@ -125,3 +125,18 @@ def test_move_warnings(qtbot, construct_editor):
     editor.go_to_previous_warning()
     assert 5 == editor.get_cursor_line_number()
     lsp_manager.close_client('python')
+
+
+@pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
+                    reason="Times out on AppVeyor")
+def test_menu_show_warnings(qtbot, construct_editor):
+    editor, lsp_manager = construct_editor
+
+    # Get current warnings
+    warnings = editor.get_current_warnings()
+
+    expected = [['W293 blank line contains whitespace', 2],
+                ['E261 at least two spaces before inline comment', 3],
+                ["undefined name 's'", 5]]
+
+    assert warnings == expected

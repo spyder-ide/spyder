@@ -116,7 +116,7 @@ class Help(SpyderPluginWidget):
         self.combo.setMaxCount(self.get_option('max_history_entries'))
         self.combo.addItems( self.load_history() )
         self.combo.setItemText(0, '')
-        self.combo.valid.connect(lambda valid: self.force_refresh())
+        self.combo.valid.connect(lambda valid: self.force_refresh(valid))
 
         # Plain text docstring option
         self.docstring = True
@@ -470,11 +470,12 @@ class Help(SpyderPluginWidget):
             self.rich_text.webview.load(QUrl(url))
 
     #------ Public API ---------------------------------------------------------
-    def force_refresh(self):
-        if self.source_is_console():
-            self.set_object_text(None, force_refresh=True)
-        elif self._last_editor_doc is not None:
-            self.set_editor_doc(self._last_editor_doc, force_refresh=True)
+    def force_refresh(self, valid=True):
+        if valid:
+            if self.source_is_console():
+                self.set_object_text(None, force_refresh=True)
+            elif self._last_editor_doc is not None:
+                self.set_editor_doc(self._last_editor_doc, force_refresh=True)
 
     def set_object_text(self, text, force_refresh=False, ignore_unknown=False):
         """Set object analyzed by Help"""
@@ -549,11 +550,14 @@ class Help(SpyderPluginWidget):
 
     def save_history(self):
         """Save history to a text file in user home directory"""
+        # Don't fail when saving search history to disk
+        # See issues 8878 and 6864
         try:
-            open(self.LOG_PATH, 'w').write("\n".join( \
-                    [to_text_string(self.combo.itemText(index))
-                     for index in range(self.combo.count())] ))
-        except (UnicodeDecodeError, EnvironmentError):
+            search_history = [to_text_string(self.combo.itemText(index))
+                              for index in range(self.combo.count())]
+            search_history = '\n'.join(search_history)
+            open(self.LOG_PATH, 'w').write(search_history)
+        except (UnicodeEncodeError, UnicodeDecodeError, EnvironmentError):
             pass
 
     @Slot(bool)

@@ -70,7 +70,7 @@ else:
 LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
 
 # Time to wait until the IPython console is ready to receive input
-# (in miliseconds)
+# (in milliseconds)
 SHELL_TIMEOUT = 20000
 
 # Need longer EVAL_TIMEOUT, because need to cythonize and C compile ".pyx" file
@@ -78,7 +78,7 @@ SHELL_TIMEOUT = 20000
 COMPILE_AND_EVAL_TIMEOUT = 30000
 
 # Time to wait for the IPython console to evaluate something (in
-# miliseconds)
+# milliseconds)
 EVAL_TIMEOUT = 3000
 
 
@@ -485,7 +485,7 @@ def test_move_to_first_breakpoint(main_window, qtbot):
     code_editor = main_window.editor.get_focus_widget()
 
     # Set breakpoint
-    code_editor.add_remove_breakpoint(line_number=10)
+    code_editor.debugger.toogle_breakpoint(line_number=10)
     qtbot.wait(500)
 
     # Click the debug button
@@ -504,7 +504,7 @@ def test_move_to_first_breakpoint(main_window, qtbot):
     qtbot.wait(500)
 
     # Set breakpoint on first line with code
-    code_editor.add_remove_breakpoint(line_number=2)
+    code_editor.debugger.toogle_breakpoint(line_number=2)
     qtbot.wait(500)
 
     # Click the debug button
@@ -879,7 +879,7 @@ def test_set_new_breakpoints(main_window, qtbot):
 
     # Set a breakpoint
     code_editor = main_window.editor.get_focus_widget()
-    code_editor.add_remove_breakpoint(line_number=6)
+    code_editor.debugger.toogle_breakpoint(line_number=6)
     qtbot.wait(500)
 
     # Verify that the breakpoint was set
@@ -1248,7 +1248,7 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
 
     # Set a breakpoint
     code_editor = main_window.editor.get_focus_widget()
-    code_editor.add_remove_breakpoint(line_number=6)
+    code_editor.debugger.toogle_breakpoint(line_number=6)
     qtbot.wait(500)
 
     # Verify that c works

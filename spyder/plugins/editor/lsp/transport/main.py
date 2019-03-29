@@ -13,17 +13,20 @@ Spyder MS Language Server v3.0 transport proxy implementation.
 Main point-of-entry to start an LSP ZMQ/TCP transport proxy.
 """
 
-
+# Standard library imports
+import argparse
+import logging
 import os
 import psutil
 import signal
-import logging
-import argparse
-from spyder.py3compat import getcwd
-from producer import LanguageServerClient
 
-LOGGER = logging.getLogger(__name__)
-WINDOWS = os.name == 'nt'
+# Local imports
+from spyder.plugins.editor.lsp.transport.producer import LanguageServerClient
+from spyder.py3compat import getcwd
+
+
+logger = logging.getLogger(__name__)
+
 
 parser = argparse.ArgumentParser(
     description='ZMQ Python-based MS Language-Server v3.0 client for Spyder')
@@ -86,13 +89,13 @@ class SignalManager:
         self.original_sigterm = signal.getsignal(signal.SIGTERM)
         signal.signal(signal.SIGINT, self.exit_gracefully)
         signal.signal(signal.SIGTERM, self.exit_gracefully)
-        if WINDOWS:
+        if os.name == 'nt':
             self.original_sigbreak = signal.getsignal(signal.SIGBREAK)
             signal.signal(signal.SIGBREAK, self.exit_gracefully)
 
     def exit_gracefully(self, signum, frame):
         """Capture exit/kill signal and throw and exception."""
-        LOGGER.info('Termination signal ({}) captured, '
+        logger.info('Termination signal ({}) captured, '
                     'initiating exit sequence'.format(signum))
         raise TerminateSignal("Exit process!")
 
@@ -100,7 +103,7 @@ class SignalManager:
         """Restore signal handlers to their original settings."""
         signal.signal(signal.SIGINT, self.original_sigint)
         signal.signal(signal.SIGTERM, self.original_sigterm)
-        if WINDOWS:
+        if os.name == 'nt':
             signal.signal(signal.SIGBREAK, self.original_sigbreak)
 
 

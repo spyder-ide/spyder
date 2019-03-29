@@ -1,7 +1,7 @@
 ![Spyder — The Scientific Python Development Environment](
 ./img_src/spyder_readme_banner.png)
 
-*Copyright © 2009–2018 [Spyder Project Contributors](
+*Copyright © 2009–2019 [Spyder Project Contributors](
 https://github.com/spyder-ide/spyder/graphs/contributors)*
 
 *Some source files and icons may be under other authorship/licenses; see
@@ -17,7 +17,6 @@ https://github.com/spyder-ide/spyder/graphs/contributors)*
 [![Join the chat at https://gitter.im/spyder-ide/public](https://badges.gitter.im/spyder-ide/spyder.svg)](https://gitter.im/spyder-ide/public)<br>
 [![PyPI status](https://img.shields.io/pypi/status/spyder.svg)](https://github.com/spyder-ide/spyder)
 [![Travis status](https://travis-ci.org/spyder-ide/spyder.svg?branch=master)](https://travis-ci.org/spyder-ide/spyder)
-[![AppVeyor status](https://ci.appveyor.com/api/projects/status/tvjcqa4kf53br8s0/branch/master?svg=true)](https://ci.appveyor.com/project/spyder-ide/spyder/branch/master)
 [![CircleCI](https://circleci.com/gh/spyder-ide/spyder.svg?style=shield)](https://circleci.com/gh/spyder-ide/spyder)
 [![Azure](https://dev.azure.com/spyder-ide/spyder/_apis/build/status/spyder-ide.spyder?branchName=master)](https://dev.azure.com/spyder-ide/spyder/_build/latest?definitionId=1?branchName=master)
 [![Coverage Status](https://coveralls.io/repos/github/spyder-ide/spyder/badge.svg?branch=master)](https://coveralls.io/github/spyder-ide/spyder?branch=master)
@@ -258,17 +257,15 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 * **SciPy**: Import Matlab workspace files in the Variable Explorer.
 * **Cython**: Run Cython files in the IPython console.
 
-
-## Backers
-
-Support us with a monthly donation and help us continue our activities.
-
-[![Backers](https://opencollective.com/spyder/backers.svg)](https://opencollective.com/spyder#support)
-
-
 ## Sponsors
 
-Become a sponsor to get your logo on our README on Github.
+Spyder is funded thanks to the generous support of
+
+
+[![Quansight](https://static.wixstatic.com/media/095d2c_2508c560e87d436ea00357abc404cf1d~mv2.png/v1/crop/x_0,y_9,w_915,h_329/fill/w_380,h_128,al_c,usm_0.66_1.00_0.01/095d2c_2508c560e87d436ea00357abc404cf1d~mv2.png)](https://www.quansight.com/)[![Numfocus](https://i2.wp.com/numfocus.org/wp-content/uploads/2017/07/NumFocus_LRG.png?fit=320%2C148&ssl=1)](https://numfocus.org/)
+
+
+and the donations we have received from our users around the world through [Open Collective](https://opencollective.com/spyder/):
 
 [![Sponsors](https://opencollective.com/spyder/sponsors.svg)](https://opencollective.com/spyder#support)
 

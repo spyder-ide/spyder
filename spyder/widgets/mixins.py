@@ -340,8 +340,9 @@ class BaseEditMixin(object):
         cursor = self.__select_text(position_from, position_to)
         cursor.removeSelectedText()
 
-    def get_current_word(self, completion=False):
-        """Return current word, i.e. word at cursor position"""
+    def get_current_word_and_position(self, completion=False):
+        """Return current word, i.e. word at cursor position,
+            and the start position"""
         cursor = self.textCursor()
 
         if cursor.hasSelection():
@@ -358,11 +359,11 @@ class BaseEditMixin(object):
             # (see below), the word to the left of the cursor won't be
             # selected), but only if the first character to the left is not a
             # white space too.
+            def is_space(move):
+                curs = self.textCursor()
+                curs.movePosition(move, QTextCursor.KeepAnchor)
+                return not to_text_string(curs.selectedText()).strip()
             if not completion:
-                def is_space(move):
-                    curs = self.textCursor()
-                    curs.movePosition(move, QTextCursor.KeepAnchor)
-                    return not to_text_string(curs.selectedText()).strip()
                 if is_space(QTextCursor.NextCharacter):
                     if is_space(QTextCursor.PreviousCharacter):
                         return
@@ -374,7 +375,9 @@ class BaseEditMixin(object):
                     text_cursor = to_text_string(curs.selectedText()).strip()
                     return len(re.findall(r'([^\d\W]\w*)',
                                           text_cursor, re.UNICODE)) == 0
-                if is_special_character(QTextCursor.NextCharacter):
+                if is_space(QTextCursor.PreviousCharacter):
+                    return
+                if (is_special_character(QTextCursor.NextCharacter)):
                     cursor.movePosition(QTextCursor.WordLeft)
 
         cursor.select(QTextCursor.WordUnderCursor)
@@ -382,7 +385,13 @@ class BaseEditMixin(object):
         # find a valid python variable name
         match = re.findall(r'([^\d\W]\w*)', text, re.UNICODE)
         if match:
-            return match[0]
+            return match[0], cursor.selectionStart()
+
+    def get_current_word(self, completion=False):
+        """Return current word, i.e. word at cursor position"""
+        ret = self.get_current_word_and_position(completion)
+        if ret is not None:
+            return ret[0]
 
     def get_current_line(self):
         """Return current line's text"""
@@ -397,7 +406,7 @@ class BaseEditMixin(object):
     def get_line_number_at(self, coordinates):
         """Return line number at *coordinates* (QPoint)"""
         cursor = self.cursorForPosition(coordinates)
-        return cursor.blockNumber()-1
+        return cursor.blockNumber() + 1
 
     def get_line_at(self, coordinates):
         """Return line at *coordinates* (QPoint)"""

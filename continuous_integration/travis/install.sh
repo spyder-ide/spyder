@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -ex
 
 # -- Install Miniconda
 MINICONDA=Miniconda3-latest-Linux-x86_64.sh
@@ -31,6 +31,12 @@ if [ "$USE_CONDA" = "yes" ]; then
 else
     # Install Spyder and its dependencies from our setup.py
     pip install -e .[test]
+
+    # Downgrade PyQt5 to 5.11 in Circle.
+    # Else our tests gives segfaults
+    if [ "$CIRCLECI" = "true" ]; then
+        pip install pyqt5==5.11.*
+    fi
 
     # Remove pytest-xvfb because it causes hangs
     pip uninstall -q -y pytest-xvfb

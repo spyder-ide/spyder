@@ -168,12 +168,14 @@ class FigureBrowser(QWidget):
 
         goback_btn = create_toolbutton(
                 self, icon=ima.icon('ArrowBack'),
-                tip=_("Previous Figure"),
+                tip=_("Previous Figure ({})".format(
+                      get_shortcut('plots', 'previous figure'))),
                 triggered=self.go_previous_thumbnail)
 
         gonext_btn = create_toolbutton(
                 self, icon=ima.icon('ArrowForward'),
-                tip=_("Next Figure"),
+                tip=_("Next Figure ({})".format(
+                      get_shortcut('plots', 'next figure'))),
                 triggered=self.go_next_thumbnail)
 
         vsep2 = QFrame()
@@ -255,8 +257,12 @@ class FigureBrowser(QWidget):
         # Configurable
         copyfig = config_shortcut(self.copy_figure, context='plots',
                                   name='copy', parent=self)
+        prevfig = config_shortcut(self.go_previous_thumbnail, context='plots',
+                                  name='previous figure', parent=self)
+        nextfig = config_shortcut(self.go_next_thumbnail, context='plots',
+                                  name='next figure', parent=self)
 
-        return [copyfig]
+        return [copyfig, prevfig, nextfig]
 
     def get_shortcut_data(self):
         """

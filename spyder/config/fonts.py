@@ -34,14 +34,15 @@ MONOSPACE = ['Monospace', 'DejaVu Sans Mono', 'Consolas',
 #==============================================================================
 if sys.platform == 'darwin':
     MONOSPACE = ['Menlo'] + MONOSPACE
-    BIG = MEDIUM = SMALL = 12
+    BIG = MEDIUM = SMALL = 11
 elif os.name == 'nt':
     BIG = MEDIUM = 10
     SMALL = 9
 elif is_ubuntu():
     SANS_SERIF = ['Ubuntu'] + SANS_SERIF
     MONOSPACE = ['Ubuntu Mono'] + MONOSPACE
-    BIG = MEDIUM = SMALL = 11
+    BIG = MEDIUM = 11
+    SMALL = 10
 else:
     BIG = 10
     MEDIUM = SMALL = 9

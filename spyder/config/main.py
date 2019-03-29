@@ -18,7 +18,7 @@ import sys
 # Local import
 from spyder.config.base import (CHECK_ALL, EXCLUDED_NAMES, get_home_dir,
                                 SUBFOLDER)
-from spyder.config.fonts import BIG, MEDIUM, MONOSPACE, SANS_SERIF
+from spyder.config.fonts import MEDIUM, MONOSPACE, SANS_SERIF, SMALL
 from spyder.config.user import UserConfig
 from spyder.config.utils import IMPORT_EXT
 from spyder.utils import codeanalysis
@@ -48,10 +48,11 @@ OPEN_FILES_PORT = 21128
 # OS Specific
 WIN = os.name == 'nt'
 MAC = sys.platform == 'darwin'
+LINUX = sys.platform.startswith('linux')
 CTRL = "Meta" if MAC else "Ctrl"
 
 # Run cell shortcuts
-if sys.platform == 'darwin':
+if MAC:
     RUN_CELL_SHORTCUT = 'Meta+Return'
 else:
     RUN_CELL_SHORTCUT = 'Ctrl+Return'
@@ -231,6 +232,7 @@ DEFAULTS = [
               'onsave_analysis': False,
               'autosave_enabled': True,
               'autosave_interval': 60,
+              'docstring_type': 'Numpydoc',
               }),
             ('historylog',
              {
@@ -353,6 +355,7 @@ DEFAULTS = [
               '_/switch to variable_explorer': "Ctrl+Shift+V",
               '_/switch to find_in_files': "Ctrl+Shift+F",
               '_/switch to explorer': "Ctrl+Shift+X",
+              '_/switch to plots': "Ctrl+Shift+G",
               # -- In widgets/findreplace.py
               '_/find text': "Ctrl+F",
               '_/find next': "F3",
@@ -437,6 +440,7 @@ DEFAULTS = [
               'editor/split vertically': "Ctrl+{",
               'editor/split horizontally': "Ctrl+_",
               'editor/close split panel': "Alt+Shift+W",
+              'editor/docstring': "Ctrl+Alt+D",
               # -- In Breakpoints
               '_/switch to breakpoints': "Ctrl+Shift+B",
               # ---- Consoles (in widgets/shell) ----
@@ -458,6 +462,8 @@ DEFAULTS = [
               'variable_explorer/copy': 'Ctrl+C',
               # ---- In widgets/plots/figurebrowser.py ----
               'plots/copy': 'Ctrl+C',
+              'plots/previous figure': 'Ctrl+PgUp',
+              'plots/next figure': 'Ctrl+PgDown',
               # ---- In widgets/explorer ----
               'explorer/copy file': 'Ctrl+C',
               'explorer/paste file': 'Ctrl+V',
@@ -473,7 +479,7 @@ DEFAULTS = [
               'font/italic': False,
               'font/bold': False,
               'rich_font/family': SANS_SERIF,
-              'rich_font/size': BIG,
+              'rich_font/size': SMALL if (LINUX or WIN) else MEDIUM,
               'rich_font/italic': False,
               'rich_font/bold': False,
               'ui_theme': 'automatic',
@@ -718,13 +724,14 @@ DEFAULTS = [
                                 },
                                 'rope': {
                                     'extensionModules': None,
-                                    'ropeFolder': []
+                                    'ropeFolder': None,
                                 },
                                 'rope_completion': {
                                     'enabled': False
                                 },
                                 'jedi_completion': {
-                                    'enabled': True
+                                    'enabled': True,
+                                    'include_params': False
                                 },
                                 'jedi_hover': {
                                     'enabled': True
@@ -766,7 +773,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '47.5.0'
+CONF_VERSION = '47.8.0'
 
 
 # Main configuration instance

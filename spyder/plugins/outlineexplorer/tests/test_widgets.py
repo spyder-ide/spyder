@@ -89,7 +89,7 @@ CODE = """# -*- coding: utf-8 -*-
     class Class2(x):
         def __init__(x):
             return x
-        def medthod1(x):
+        async def medthod1(x):
             if x:
                 return x
 
