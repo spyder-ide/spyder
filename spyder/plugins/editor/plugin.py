@@ -45,6 +45,8 @@ from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
 from spyder.plugins.editor.widgets.editor import (EditorMainWindow, Printer,
                                                   EditorSplitter, EditorStack,)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+from spyder.plugins.editor.utils.bookmarks import (load_bookmarks,
+                                                   save_bookmarks)
 from spyder.plugins.editor.utils.debugger import (clear_all_breakpoints,
                                                   clear_breakpoint)
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
@@ -1206,6 +1208,9 @@ class Editor(SpyderPluginWidget):
         editorstack.sig_next_cursor.connect(self.go_to_next_cursor_position)
         editorstack.sig_prev_warning.connect(self.go_to_previous_warning)
         editorstack.sig_next_warning.connect(self.go_to_next_warning)
+        editorstack.sig_save_bookmark.connect(self.save_bookmark)
+        editorstack.sig_load_bookmark.connect(self.load_bookmark)
+        editorstack.sig_save_bookmarks.connect(self.save_bookmarks)
 
     def unregister_editorstack(self, editorstack):
         """Removing editorstack only if it's not the last remaining"""
@@ -1512,6 +1517,14 @@ class Editor(SpyderPluginWidget):
         save_breakpoints(filename, breakpoints)
         self.breakpoints_saved.emit()
 
+    # ------ Bookmarks
+    def save_bookmarks(self, filename, bookmarks):
+        """Receive bookmark changes and save them."""
+        filename = to_text_string(filename)
+        bookmarks = to_text_string(bookmarks)
+        filename = osp.normpath(osp.abspath(filename))
+        bookmarks = eval(bookmarks)
+        save_bookmarks(filename, bookmarks)
 
     #------ File I/O
     def __load_temp_file(self):
@@ -1806,6 +1819,7 @@ class Editor(SpyderPluginWidget):
                 current_editor = current_es.set_current_filename(filename,
                                                                  focus=focus)
                 current_editor.debugger.load_breakpoints()
+                current_editor.set_bookmarks(load_bookmarks(filename))
                 self.register_widget_shortcuts(current_editor)
                 current_es.analyze_script()
                 self.__add_recent_file(filename)
@@ -2369,6 +2383,46 @@ class Editor(SpyderPluginWidget):
         """Run last executed cell."""
         editorstack = self.get_current_editorstack()
         editorstack.re_run_last_cell()
+
+    # ------ Code bookmarks
+    @Slot(int)
+    def save_bookmark(self, slot_num):
+        """Save current line and position as bookmark."""
+        bookmarks = CONF.get('editor', 'bookmarks')
+        editorstack = self.get_current_editorstack()
+        if slot_num in bookmarks:
+            filename, line_num, column = bookmarks[slot_num]
+            if osp.isfile(filename):
+                index = editorstack.has_filename(filename)
+                if index is not None:
+                    block = (editorstack.tabs.widget(index).document()
+                             .findBlockByNumber(line_num))
+                    block.userData().bookmarks.remove((slot_num, column))
+        if editorstack is not None:
+            self.switch_to_plugin()
+            editorstack.set_bookmark(slot_num)
+
+    @Slot(int)
+    def load_bookmark(self, slot_num):
+        """Set cursor to bookmarked file and position."""
+        bookmarks = CONF.get('editor', 'bookmarks')
+        if slot_num in bookmarks:
+            filename, line_num, column = bookmarks[slot_num]
+        else:
+            return
+        if not osp.isfile(filename):
+            self.last_edit_cursor_pos = None
+            return
+        self.load(filename)
+        editor = self.get_current_editor()
+        if line_num < editor.document().lineCount():
+            linelength = len(editor.document()
+                             .findBlockByNumber(line_num).text())
+            if column <= linelength:
+                editor.go_to_line(line_num + 1, column)
+            else:
+                # Last column
+                editor.go_to_line(line_num + 1, linelength)
 
     #------ Zoom in/out/reset
     def zoom(self, factor):

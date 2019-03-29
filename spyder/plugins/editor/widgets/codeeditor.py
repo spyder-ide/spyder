@@ -226,6 +226,7 @@ class CodeEditor(TextEditBaseWidget):
     sig_debug_start = Signal()
     sig_breakpoints_saved = Signal()
     sig_filename_changed = Signal(str)
+    sig_bookmarks_changed = Signal()
     get_completions = Signal(bool)
     go_to_definition = Signal(str, int, int)
     sig_show_object_info = Signal(int)
@@ -395,6 +396,8 @@ class CodeEditor(TextEditBaseWidget):
         # Block user data
         self.blockuserdata_list = []
 
+        self.blockCountChanged.connect(self.update_bookmarks)
+
         # Highlight using Pygments highlighter timer
         # ---------------------------------------------------------------------
         # For files that use the PygmentsSH we parse the full file inside
@@ -445,6 +448,8 @@ class CodeEditor(TextEditBaseWidget):
         self.setMouseTracking(True)
         self.__cursor_changed = False
         self.ctrl_click_color = QColor(Qt.blue)
+
+        self.bookmarks = self.get_bookmarks()
 
         # Keyboard shortcuts
         self.shortcuts = self.create_shortcuts()
@@ -1359,6 +1364,54 @@ class CodeEditor(TextEditBaseWidget):
             cursor.movePosition(cursor.StartOfBlock, cursor.KeepAnchor)
 
         self.setTextCursor(cursor)
+
+    # ----- Code bookmarks
+    def add_bookmark(self, slot_num, line=None, column=None):
+        """Add bookmark to current block's userData."""
+        if line is None:
+            # Triggered by shortcut, else by spyder start
+            line, column = self.get_cursor_line_column()
+        block = self.document().findBlockByNumber(line)
+        data = block.userData()
+        if not data:
+            data = BlockUserData(self)
+        if slot_num not in data.bookmarks:
+            data.bookmarks.append((slot_num, column))
+        block.setUserData(data)
+        self.sig_bookmarks_changed.emit()
+
+    def get_bookmarks(self):
+        """Get bookmarks by going over all blocks."""
+        bookmarks = {}
+        block = self.document().firstBlock()
+        for line_number in range(0, self.document().blockCount()):
+            data = block.userData()
+            if data and data.bookmarks:
+                for slot_num, column in data.bookmarks:
+                    bookmarks[slot_num] = [line_number, column]
+            block = block.next()
+        return bookmarks
+
+    def clear_bookmarks(self):
+        """Clear bookmarks for all blocks."""
+        self.bookmarks = {}
+        for data in self.blockuserdata_list[:]:
+            data.bookmarks = []
+            if data.is_empty():
+                # This is not calling the __del__ in BlockUserData.  Not
+                # sure if it's supposed to or not, but that seems to be the
+                # intent.
+                del data
+
+    def set_bookmarks(self, bookmarks):
+        """Set bookmarks when opening file."""
+        self.clear_bookmarks()
+        for slot_num, bookmark in bookmarks.items():
+            self.add_bookmark(slot_num, bookmark[1], bookmark[2])
+
+    def update_bookmarks(self):
+        """Emit signal to update bookmarks."""
+        self.sig_bookmarks_changed.emit()
 
     #-----Code introspection
     def do_go_to_definition(self):

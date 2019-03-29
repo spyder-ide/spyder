@@ -161,6 +161,7 @@ class ThreadManager(QObject):
 class FileInfo(QObject):
     """File properties"""
     todo_results_changed = Signal()
+    sig_save_bookmarks = Signal(str, str)
     text_changed_at = Signal(str, int)
     edit_goto = Signal(str, int, str)
     send_to_help = Signal(str, str, str, str, bool)
@@ -181,6 +182,7 @@ class FileInfo(QObject):
         self.lastmodified = QFileInfo(filename).lastModified()
 
         self.editor.textChanged.connect(self.text_changed)
+        self.editor.sig_bookmarks_changed.connect(self.bookmarks_changed)
         self.sig_filename_changed.connect(self.editor.sig_filename_changed)
 
     @property
@@ -223,6 +225,13 @@ class FileInfo(QObject):
     def cleanup_todo_results(self):
         """Clean-up TODO finder results"""
         self.todo_results = []
+
+    def bookmarks_changed(self):
+        """Bookmarks list has changed."""
+        bookmarks = self.editor.get_bookmarks()
+        if self.editor.bookmarks != bookmarks:
+            self.editor.bookmarks = bookmarks
+            self.sig_save_bookmarks.emit(self.filename, repr(bookmarks))
 
 
 class StackHistory(MutableSequence):
@@ -434,6 +443,9 @@ class EditorStack(QWidget):
     sig_go_to_definition = Signal(str, int, int)
     perform_lsp_request = Signal(str, str, dict)
     sig_option_changed = Signal(str, object)  # config option needs changing
+    sig_save_bookmark = Signal(int)
+    sig_load_bookmark = Signal(int)
+    sig_save_bookmarks = Signal(str, str)
 
     def __init__(self, parent, actions):
         QWidget.__init__(self, parent)
@@ -715,7 +727,8 @@ class EditorStack(QWidget):
                 close_file_1, close_file_2, run_cell, run_cell_and_advance,
                 go_to_next_cell, go_to_previous_cell, re_run_last_cell,
                 prev_warning, next_warning, split_vertically,
-                split_horizontally, close_split, prevtab, nexttab]
+                split_horizontally, close_split,
+                prevtab, nexttab]
 
     def get_shortcut_data(self):
         """
@@ -871,6 +884,12 @@ class EditorStack(QWidget):
         if self.data:
             editor = self.get_current_editor()
             editor.debugger.toogle_breakpoint(edit_condition=True)
+
+    def set_bookmark(self, slot_num):
+        """Bookmark current position to given slot."""
+        if self.data:
+            editor = self.get_current_editor()
+            editor.add_bookmark(slot_num)
 
     def inspect_current_object(self):
         """Inspect current object in the Help plugin"""
@@ -2264,7 +2283,8 @@ class EditorStack(QWidget):
                                       lambda: self.todo_results_changed.emit())
         finfo.edit_goto.connect(lambda fname, lineno, name:
                                 self.edit_goto.emit(fname, lineno, name))
-
+        finfo.sig_save_bookmarks.connect(lambda s1, s2:
+                                         self.sig_save_bookmarks.emit(s1, s2))
         editor.sig_run_selection.connect(self.run_selection)
         editor.sig_run_cell.connect(self.run_cell)
         editor.sig_run_cell_and_advance.connect(self.run_cell_and_advance)
