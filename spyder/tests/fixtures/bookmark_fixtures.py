@@ -55,7 +55,7 @@ def code_editor_bot(qtbot):
     editor.setup_editor(language='Python', indent_chars=indent_chars,
                         tab_stop_width_spaces=tab_stop_width_spaces)
     # Mock the signal emit to test when it's been called.
-    editor.bookmarks_changed = Mock()
+    editor.sig_bookmarks_changed = Mock()
     text = ('def f1(a, b):\n'
             '"Double quote string."\n'
             '\n'  # Blank line.

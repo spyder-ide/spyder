@@ -226,7 +226,7 @@ class CodeEditor(TextEditBaseWidget):
     sig_debug_start = Signal()
     sig_breakpoints_saved = Signal()
     sig_filename_changed = Signal(str)
-    bookmarks_changed = Signal()
+    sig_bookmarks_changed = Signal()
     get_completions = Signal(bool)
     go_to_definition = Signal(str, int, int)
     sig_show_object_info = Signal(int)
@@ -1378,7 +1378,7 @@ class CodeEditor(TextEditBaseWidget):
         if slot_num not in data.bookmarks:
             data.bookmarks.append((slot_num, column))
         block.setUserData(data)
-        self.bookmarks_changed.emit()
+        self.sig_bookmarks_changed.emit()
 
     def get_bookmarks(self):
         """Get bookmarks by going over all blocks."""
@@ -1411,7 +1411,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def update_bookmarks(self):
         """Emit signal to update bookmarks."""
-        self.bookmarks_changed.emit()
+        self.sig_bookmarks_changed.emit()
 
     #-----Code introspection
     def do_go_to_definition(self):

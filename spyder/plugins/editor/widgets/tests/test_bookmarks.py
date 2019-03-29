@@ -18,7 +18,7 @@ from qtpy.QtGui import QTextCursor
 # -----------------------------------------------------------------------------
 def reset_emits(editor):
     """Reset signal mocks."""
-    editor.bookmarks_changed.reset_mock()
+    editor.sig_bookmarks_changed.reset_mock()
 
 
 def editor_assert_helper(editor, block=None, bm=None, emits=True):
@@ -34,9 +34,9 @@ def editor_assert_helper(editor, block=None, bm=None, emits=True):
     data = block.userData()
     assert data.bookmarks == bm
     if emits:
-        editor.bookmarks_changed.emit.assert_called_with()
+        editor.sig_bookmarks_changed.emit.assert_called_with()
     else:
-        editor.bookmarks_changed.emit.assert_not_called()
+        editor.sig_bookmarks_changed.emit.assert_not_called()
 
 
 # -----------------------------------------------------------------------------
@@ -107,10 +107,10 @@ def test_update_bookmarks(code_editor_bot):
     """Test CodeEditor.update_bookmarks. Check if signal is emitted."""
     editor, __ = code_editor_bot
     reset_emits(editor)
-    editor.bookmarks_changed.emit.assert_not_called()
+    editor.sig_bookmarks_changed.emit.assert_not_called()
     # update_bookmarks is the slot for the blockCountChanged signal.
     editor.textCursor().insertBlock()
-    editor.bookmarks_changed.emit.assert_called_with()
+    editor.sig_bookmarks_changed.emit.assert_called_with()
 
 
 @pytest.mark.usefixtures("setup_editor")

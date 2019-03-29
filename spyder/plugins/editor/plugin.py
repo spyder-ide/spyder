@@ -45,6 +45,8 @@ from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
 from spyder.plugins.editor.widgets.editor import (EditorMainWindow, Printer,
                                                   EditorSplitter, EditorStack,)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+from spyder.plugins.editor.utils.bookmarks import (load_bookmarks,
+                                                   save_bookmarks)
 from spyder.plugins.editor.utils.debugger import (clear_all_breakpoints,
                                                   clear_breakpoint)
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
@@ -70,37 +72,6 @@ dependencies.add('pyls',
 NBCONVERT_REQVER = ">=4.0"
 dependencies.add("nbconvert", _("Manipulate Jupyter notebooks on the Editor"),
                  required_version=NBCONVERT_REQVER)
-
-
-def _load_all_bookmarks():
-    """Load all bookmarks from config."""
-    slots = CONF.get('editor', 'bookmarks', {})
-    for slot_num in list(slots.keys()):
-        if not osp.isfile(slots[slot_num][0]):
-            slots.pop(slot_num)
-    return slots
-
-
-def load_bookmarks(filename):
-    """Load all bookmarks for a specific file from config."""
-    bookmarks = _load_all_bookmarks()
-    return {k: v for k, v in bookmarks.items() if v[0] == filename}
-
-
-def load_bookmarks_without_file(filename):
-    """Load all bookmarks but those from a specific file."""
-    bookmarks = _load_all_bookmarks()
-    return {k: v for k, v in bookmarks.items() if v[0] != filename}
-
-
-def save_bookmarks(filename, bookmarks):
-    """Save all bookmarks from specific file to config."""
-    if not osp.isfile(filename):
-        return
-    slots = load_bookmarks_without_file(filename)
-    for slot_num, content in bookmarks.items():
-        slots[slot_num] = [filename, content[0], content[1]]
-    CONF.set('editor', 'bookmarks', slots)
 
 WINPDB_PATH = programs.find_program('winpdb')
 
@@ -1232,9 +1203,9 @@ class Editor(SpyderPluginWidget):
         editorstack.sig_next_cursor.connect(self.go_to_next_cursor_position)
         editorstack.sig_prev_warning.connect(self.go_to_previous_warning)
         editorstack.sig_next_warning.connect(self.go_to_next_warning)
-        editorstack.save_bookmark.connect(self.save_bookmark)
-        editorstack.load_bookmark.connect(self.load_bookmark)
-        editorstack.save_bookmarks.connect(self.save_bookmarks)
+        editorstack.sig_save_bookmark.connect(self.save_bookmark)
+        editorstack.sig_load_bookmark.connect(self.load_bookmark)
+        editorstack.sig_save_bookmarks.connect(self.save_bookmarks)
 
     def unregister_editorstack(self, editorstack):
         """Removing editorstack only if it's not the last remaining"""

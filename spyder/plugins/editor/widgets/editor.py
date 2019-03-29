@@ -161,7 +161,7 @@ class ThreadManager(QObject):
 class FileInfo(QObject):
     """File properties"""
     todo_results_changed = Signal()
-    save_bookmarks = Signal(str, str)
+    sig_save_bookmarks = Signal(str, str)
     text_changed_at = Signal(str, int)
     edit_goto = Signal(str, int, str)
     send_to_help = Signal(str, str, str, str, bool)
@@ -182,7 +182,7 @@ class FileInfo(QObject):
         self.lastmodified = QFileInfo(filename).lastModified()
 
         self.editor.textChanged.connect(self.text_changed)
-        self.editor.bookmarks_changed.connect(self.bookmarks_changed)
+        self.editor.sig_bookmarks_changed.connect(self.bookmarks_changed)
         self.sig_filename_changed.connect(self.editor.sig_filename_changed)
 
     @property
@@ -231,7 +231,7 @@ class FileInfo(QObject):
         bookmarks = self.editor.get_bookmarks()
         if self.editor.bookmarks != bookmarks:
             self.editor.bookmarks = bookmarks
-            self.save_bookmarks.emit(self.filename, repr(bookmarks))
+            self.sig_save_bookmarks.emit(self.filename, repr(bookmarks))
 
 
 class StackHistory(MutableSequence):
@@ -443,9 +443,9 @@ class EditorStack(QWidget):
     sig_go_to_definition = Signal(str, int, int)
     perform_lsp_request = Signal(str, str, dict)
     sig_option_changed = Signal(str, object)  # config option needs changing
-    save_bookmark = Signal(int)
-    load_bookmark = Signal(int)
-    save_bookmarks = Signal(str, str)
+    sig_save_bookmark = Signal(int)
+    sig_load_bookmark = Signal(int)
+    sig_save_bookmarks = Signal(str, str)
 
     def __init__(self, parent, actions):
         QWidget.__init__(self, parent)
@@ -2283,8 +2283,8 @@ class EditorStack(QWidget):
                                       lambda: self.todo_results_changed.emit())
         finfo.edit_goto.connect(lambda fname, lineno, name:
                                 self.edit_goto.emit(fname, lineno, name))
-        finfo.save_bookmarks.connect(lambda s1, s2:
-                                     self.save_bookmarks.emit(s1, s2))
+        finfo.sig_save_bookmarks.connect(lambda s1, s2:
+                                     self.sig_save_bookmarks.emit(s1, s2))
         editor.sig_run_selection.connect(self.run_selection)
         editor.sig_run_cell.connect(self.run_cell)
         editor.sig_run_cell_and_advance.connect(self.run_cell_and_advance)
