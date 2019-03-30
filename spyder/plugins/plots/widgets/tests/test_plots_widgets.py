@@ -379,17 +379,17 @@ def test_autofit_figure_viewer(figbrowser, tmpdir, fmt):
     figbrowser.change_auto_fit_plotting(True)
     size = figbrowser.figviewer.size()
     # Need to change after figured out the actual figcanvas size?
-    width = width = size.width() - 15
+    width = size.width() - 15
     height = size.height() - 15
     if (fwidth / fheight) > (width / height):
         new_width = width
-        new_height = width / fwidth * fheight
+        new_height = int(width / fwidth * fheight)
     else:
         new_height = height
-        new_width = height / fheight * fwidth
+        new_width = int(height / fheight * fwidth)
 
-    assert figcanvas.width() == int(new_width)
-    assert figcanvas.height() == int(new_height)
+    assert figcanvas.width() == new_width
+    assert figcanvas.height() == new_height
 
 
 if __name__ == "__main__":
