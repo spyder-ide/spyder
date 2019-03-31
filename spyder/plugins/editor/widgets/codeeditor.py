@@ -2779,7 +2779,7 @@ class CodeEditor(TextEditBaseWidget):
         shift = event.modifiers() & Qt.ShiftModifier
         operators = {'+', '-', '*', '**', '/', '//', '%', '@', '<<', '>>',
                      '&', '|', '^', '~', '<', '>', '<=', '>=', '==', '!='}
-        delimeters = {',', ':', ';', '@', '=', '->', '+=', '-=', '*=', '/=', 
+        delimeters = {',', ':', ';', '@', '=', '->', '+=', '-=', '*=', '/=',
                       '//=', '%=', '@=', '&=', '|=', '^=', '>>=', '<<=', '**='}
         logger.debug(text)
         if text in operators or text in delimeters:
