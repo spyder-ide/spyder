@@ -228,7 +228,6 @@ class PluginWidget(QWidget, BasePluginMixin):
         add_actions(self.options_menu, self.plugin_actions)
 
         # Show icons in Mac plugin menus
-        
         if sys.platform == 'darwin':
 
             self.options_menu.aboutToShow.connect(lambda plugin_actions=self.plugin_actions: self.verify_menu_actions(plugin_actions, True))

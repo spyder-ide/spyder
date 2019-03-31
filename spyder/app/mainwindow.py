@@ -570,29 +570,20 @@ class MainWindow(QMainWindow):
         return toolbar
 
     def setup_menus(self):
+        """Hide icon menus in toolbars before displaying them"""
 
         if sys.platform == 'darwin':
 
             self.file_menu.aboutToShow.connect(lambda menu_actions=self.file_menu_actions: self.verify_menu_actions(menu_actions, False))
-            self.file_menu.aboutToHide.connect(lambda menu_actions=self.file_menu_actions: self.verify_menu_actions(menu_actions, True))
             self.edit_menu.aboutToShow.connect(lambda menu_actions=self.edit_menu_actions: self.verify_menu_actions(menu_actions, False))
-            self.edit_menu.aboutToHide.connect(lambda menu_actions=self.edit_menu_actions: self.verify_menu_actions(menu_actions, True))
             self.search_menu.aboutToShow.connect(lambda menu_actions=self.search_menu_actions: self.verify_menu_actions(menu_actions, False))
-            self.search_menu.aboutToHide.connect(lambda menu_actions=self.search_menu_actions: self.verify_menu_actions(menu_actions, True))
             self.source_menu.aboutToShow.connect(lambda menu_actions=self.source_menu_actions: self.verify_menu_actions(menu_actions, False))
-            self.source_menu.aboutToHide.connect(lambda menu_actions=self.source_menu_actions: self.verify_menu_actions(menu_actions, True))
             self.run_menu.aboutToShow.connect(lambda menu_actions=self.run_menu_actions: self.verify_menu_actions(menu_actions, False))
-            self.run_menu.aboutToHide.connect(lambda menu_actions=self.run_menu_actions: self.verify_menu_actions(menu_actions, True))
             self.debug_menu.aboutToShow.connect(lambda menu_actions=self.debug_menu_actions: self.verify_menu_actions(menu_actions, False))
-            self.debug_menu.aboutToHide.connect(lambda menu_actions=self.debug_menu_actions: self.verify_menu_actions(menu_actions, True))
             self.consoles_menu.aboutToShow.connect(lambda menu_actions=self.consoles_menu_actions: self.verify_menu_actions(menu_actions, False))
-            self.consoles_menu.aboutToHide.connect(lambda menu_actions=self.consoles_menu_actions: self.verify_menu_actions(menu_actions, True))
             self.projects_menu.aboutToShow.connect(lambda menu_actions=self.projects_menu_actions: self.verify_menu_actions(menu_actions, False))
-            self.projects_menu.aboutToHide.connect(lambda menu_actions=self.projects_menu_actions: self.verify_menu_actions(menu_actions, True))
             self.tools_menu.aboutToShow.connect(lambda menu_actions=self.tools_menu_actions: self.verify_menu_actions(menu_actions, False))
-            self.tools_menu.aboutToHide.connect(lambda menu_actions=self.tools_menu_actions: self.verify_menu_actions(menu_actions, True))
             self.help_menu.aboutToShow.connect(lambda menu_actions=self.help_menu_actions: self.verify_menu_actions(menu_actions, False))
-            self.help_menu.aboutToHide.connect(lambda menu_actions=self.help_menu_actions: self.verify_menu_actions(menu_actions, True))
 
     def setup(self):  
 
@@ -1901,33 +1892,8 @@ class MainWindow(QMainWindow):
     def hide_menus(self):
         """Hide options menu of the plugins"""
 
-        if self.console is not None:
-            self.console.options_menu.hide()
-        if self.editor is not None:
-            self.editor.options_menu.hide()
-        if self.explorer is not None:
-            self.explorer.options_menu.hide()
-        if self.help is not None:
-            self.help.options_menu.hide()
-        if self.findinfiles is not None:
-            self.findinfiles.options_menu.hide()
-        if self.historylog is not None:
-            self.historylog.options_menu.hide()
-        if self.ipyconsole is not None:
-            self.ipyconsole.options_menu.hide()
-        if self.outlineexplorer is not None:
-            self.outlineexplorer.options_menu.hide()
-        if self.plots is not None:
-            self.plots.options_menu.hide()
-        if self.projects is not None:
-            self.projects.options_menu.hide()
-        if self.variableexplorer is not None:
-            self.variableexplorer.options_menu.hide()
-
-        # OneColumnTree -- Static code analysis
-        # Breakpoints
-        # Profiler
-        # Editor
+        for plugin in self.widgetlist + self.thirdparty_plugins:
+            plugin.options_menu.hide()
 
 
     @Slot()
