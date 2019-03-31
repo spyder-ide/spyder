@@ -234,7 +234,7 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 * **Pylint**: Static code analysis.
 * **Psutil**: CPU and memory usage on the status bar.
 * **Nbconvert**: Manipulation of notebooks in the Editor.
-* **Qtawesome** 0.5.2+: To have an icon theme based on FontAwesome.
+* **Qtawesome** 0.5.7+: To have an icon theme based on FontAwesome.
 * **Pickleshare**: Show import completions on the Python consoles.
 * **PyZMQ**: Client for the language server protocol (LSP).
 * **QtPy** 1.5.0+: Abstraction layer for Python Qt bindings so that Spyder
@@ -242,7 +242,7 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 * **Chardet**: Character encoding auto-detection in Python.
 * **Numpydoc**: Used by Jedi to get function return types from Numpydocstrings.
 * **Cloudpickle**: Serialize variables in the IPython kernel to send to Spyder.
-* **spyder-kernels** 1.0+: Jupyter kernels for the Spyder console.
+* **spyder-kernels** 1.2.0+: Jupyter kernels for the Spyder console.
 * **keyring**: Save Github credentials to report errors securely.
 * **QDarkStyle** 2.6.4+: A dark stylesheet for Qt applications, used for Spyder's dark theme.
 * **atomicwrites**: Atomic file writes.
