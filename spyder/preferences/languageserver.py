@@ -15,11 +15,11 @@ import re
 # Third party imports
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import (Qt, Slot, QAbstractTableModel, QModelIndex)
-from qtpy.QtWidgets import (QAbstractItemView, QCheckBox, QComboBox, QDialog,
-                            QDialogButtonBox, QGroupBox, QGridLayout,
-                            QHBoxLayout, QLabel, QLineEdit, QPushButton,
-                            QSpinBox, QTableView, QTabWidget, QVBoxLayout,
-                            QWidget)
+from qtpy.QtWidgets import (QAbstractItemView, QButtonGroup, QCheckBox,
+                            QComboBox, QDialog, QDialogButtonBox, QGroupBox,
+                            QGridLayout, QHBoxLayout, QLabel, QLineEdit,
+                            QPushButton, QSpinBox, QTableView, QTabWidget,
+                            QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import _
@@ -650,6 +650,89 @@ class LSPManagerConfigPage(GeneralConfigPage):
         advanced_layout.addWidget(modules_textedit)
         advanced_group.setLayout(advanced_layout)
 
+        # --- linting tab ---
+        linting_bg = QButtonGroup()
+
+        linting_pyflakes_radio = self.create_radiobutton(
+            _("Use Pyflakes for linting"),
+            'pyflakes/enabled',
+            button_group=linting_bg)
+        linting_pylint_radio = self.create_radiobutton(
+            _("Use Pylint for linting "
+              "(more complete but slower)"),
+            'pylint/enabled',
+            button_group=linting_bg)
+
+        linting_layout = QVBoxLayout()
+        linting_layout.addWidget(linting_pyflakes_radio)
+        linting_layout.addWidget(linting_pylint_radio)
+        linting_widget = QWidget()
+        linting_widget.setLayout(linting_layout)
+
+        # --- Code style tab ---
+        pep_url = '<a href="https://www.python.org/dev/peps/pep-0008">PEP8</a>'
+        code_style_check_label = QLabel(_("(Refer to "
+                                          "the {} page)").format(pep_url))
+        code_style_check_label.setOpenExternalLinks(True)
+        code_style_check = self.create_checkbox(
+            _("Enable code style linting"),
+            'pycodestyle')
+        code_style_filenames_match = self.create_lineedit(
+            _("Only check filenames matching these patterns"),
+            'pycodestyle/filename')
+        code_style_exclude = self.create_lineedit(
+            _("Exclude files or directories matching these patterns"),
+            'pycodestyle/exclude')
+        code_style_codes = (
+            "<a href='http://pycodestyle.pycqa.org/en/latest"
+            "/intro.html#error-codes'>here</a>")
+        code_style_select = self.create_lineedit(
+            _("""Select the following error or warnings to show. """
+              """Possible codes can """
+              """be found {}.""").format(code_style_codes),
+            'pycodestyle/select')
+        code_style_select.label.setOpenExternalLinks(True)
+        code_style_ignore = self.create_lineedit(
+            _("Ignore the following errors or warnings"),
+            'pycodestyle/ignore')
+        code_style_max_line_length = self.create_lineedit(
+            _("Maximum allowed line length"),
+            'pycodestyle/maxlinelength', alignment=Qt.Horizontal)
+
+        code_style_layout = QVBoxLayout()
+        code_style_check_layout = QHBoxLayout()
+        code_style_check_layout.addWidget(code_style_check)
+        code_style_check_layout.addWidget(code_style_check_label)
+        code_style_layout.addLayout(code_style_check_layout)
+        code_style_layout.addWidget(code_style_check)
+        code_style_layout.addWidget(code_style_filenames_match)
+        code_style_layout.addWidget(code_style_exclude)
+        code_style_layout.addWidget(code_style_select)
+        code_style_layout.addWidget(code_style_ignore)
+        code_style_layout.addWidget(code_style_max_line_length)
+
+        code_style_check.toggled.connect(
+            code_style_filenames_match.setEnabled)
+        code_style_check.toggled.connect(code_style_exclude.setEnabled)
+        code_style_check.toggled.connect(code_style_select.setEnabled)
+        code_style_check.toggled.connect(code_style_ignore.setEnabled)
+        code_style_check.toggled.connect(
+            code_style_max_line_length.setEnabled)
+
+        code_style_enabled = code_style_check.isChecked()
+        code_style_filenames_match.setEnabled(code_style_enabled)
+        code_style_exclude.setEnabled(code_style_enabled)
+        code_style_select.setEnabled(code_style_enabled)
+        code_style_ignore.setEnabled(code_style_enabled)
+        code_style_max_line_length.setEnabled(code_style_enabled)
+
+        code_style_widget = QWidget()
+        code_style_widget.setLayout(code_style_layout)
+
+        # --- Docstring tab ---
+        docstring_widget = QWidget()
+        
+
         # --- Other servers tab ---
         # Section label
         servers_label = QLabel(
@@ -704,6 +787,9 @@ class LSPManagerConfigPage(GeneralConfigPage):
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(introspection_group, advanced_group),
                     _('Code completion'))
+        tabs.addTab(self.create_tab(linting_widget), _('Linting'))
+        tabs.addTab(self.create_tab(code_style_widget), _('Code style'))
+        tabs.addTab(self.create_tab(docstring_widget), _('Docstring style'))
         tabs.addTab(self.create_tab(servers_widget), _('Other languages'))
 
         vlayout = QVBoxLayout()

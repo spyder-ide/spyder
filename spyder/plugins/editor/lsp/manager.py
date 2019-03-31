@@ -32,6 +32,7 @@ class LSPManager(QObject):
     """Language Server Protocol manager."""
     STOPPED = 'stopped'
     RUNNING = 'running'
+    CONF_SECTION = 'lsp-server'
 
     def __init__(self, parent):
         QObject.__init__(self)

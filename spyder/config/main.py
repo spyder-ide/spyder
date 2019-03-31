@@ -685,7 +685,15 @@ DEFAULTS = [
               'jedi_definition/follow_imports': True,
               'jedi_signature_help': True,
               'preload_modules': PRELOAD_MDOULES,
-                'python': {
+              'pyflakes/enabled': True,
+              'pylint/enabled': False,
+              'pycodestyle': False,
+              'pycodestyle/filename': '',
+              'pycodestyle/exclude': '',
+              'pycodestyle/select': '',
+              'pycodestyle/ignore': '',
+              'pycodestyle/maxlinelength': '79',
+              'python': {
                     'index': 0,
                     'cmd': 'pyls',
                     'args': '--host {host} --port {port} --tcp',
