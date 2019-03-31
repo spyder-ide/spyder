@@ -2,6 +2,14 @@
 
 ## Version 3.3.4 (2019-03-31)
 
+### New features
+
+* Fix several incompatibilities with PyQt5 5.12.
+* Avoid errors when running `turtle` programs in the IPython console
+  multiple times.
+* Avoid the UMR to reload modules installed in the user site-packages
+  directory.
+
 ### Issues Closed
 
 * [Issue 8978](https://github.com/spyder-ide/spyder/issues/8978) - Github login window is resizing automatically ([PR 8993](https://github.com/spyder-ide/spyder/pull/8993))

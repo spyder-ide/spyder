@@ -1,27 +1,25 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 3.3.3 is released!
+**Subject**: [ANN] Spyder 3.3.4 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **3.3.3** has been released and is available for
+I'm pleased to announce that Spyder **3.3.4** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes two months and a half after version 3.3.2 and it adds the
+This release comes seven weeks after version 3.3.2 and it adds the
 following new features:
 
-* Fix an incompatibility with Numpy 1.16 that generated an error
-  when trying to open an array in the Variable Explorer.
-* Increase maximum PyQt5 supported version to 5.12
-* Increase minimal required version of spyder-kernels to 0.4.2
-  to get important fixes about saving/loading the current
-  namespace and skipping installed modules from our User Module
-  Reloader (UMR).
+* Fix several incompatibilities with PyQt5 5.12.
+* Avoid errors when running `turtle` programs in the IPython console
+  multiple times.
+* Avoid the UMR to reload modules installed in the user site-packages
+  directory.
 
-In this release we fixed 6 issues and merged 10 pull requests that amount
-to 39 commits. For a full list of fixes, please see our
+In this release we fixed 13 issues and merged 23 pull requests that amount
+to 57 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/3.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's
