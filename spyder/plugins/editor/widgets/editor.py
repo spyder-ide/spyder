@@ -2351,16 +2351,14 @@ class EditorStack(QWidget):
         # Needs to reset the highlighting on startup in case the PygmentsSH
         # is in use
         editor.run_pygments_highlighter()
-
-        if cloned_from is None:
-            options = {
-                'language': editor.language,
-                'filename': editor.filename,
-                'codeeditor': editor
-            }
-            self.sig_open_file.emit(options)
-            if self.get_stack_index() == 0:
-                self.current_changed(0)
+        options = {
+            'language': editor.language,
+            'filename': editor.filename,
+            'codeeditor': editor
+        }
+        self.sig_open_file.emit(options)
+        if self.get_stack_index() == 0:
+            self.current_changed(0)
 
         return finfo
 
