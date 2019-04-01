@@ -2600,7 +2600,6 @@ class CodeEditor(TextEditBaseWidget):
     def autoinsert_colons(self):
         """Decide if we want to autoinsert colons"""
         bracket_ext = self.editor_extensions.get(CloseBracketsExtension)
-        logger.debug('holowis')
         self.completion_widget.hide()
         line_text = self.get_text('sol', 'cursor')
         if not self.textCursor().atBlockEnd():
