@@ -126,6 +126,8 @@ CODE = """# -*- coding: utf-8 -*-
             return x
     # %%% MGroup4
         x = 'test'
+    # %%
+        test = 'text'
 """
 
 
@@ -285,7 +287,9 @@ def test_code_cell_grouping(create_outlineexplorer):
         ('medthod1', FunctionItem, 'Class4', 'Class4', True),
         ('MGroup3', CellItem, 'test_file.py', 'test_file.py'),
         ('function6', FunctionItem, 'MGroup3', 'MGroup3', False),
-        ('MGroup4', CellItem, 'MGroup3', 'test_file.py')
+        ('MGroup4', CellItem, 'MGroup3', 'test_file.py'),
+        ('Unnamed cell, line 65', CellItem, 'test_file.py',
+         'test_file.py')
         ]
 
     outlineexplorer.treewidget.expandAll()
