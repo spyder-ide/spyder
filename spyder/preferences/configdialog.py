@@ -489,9 +489,9 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     
     def create_lineedit(self, text, option, default=NoDefault,
                         tip=None, alignment=Qt.Vertical, regex=None, 
-                        restart=False):
+                        restart=False, word_wrap=True):
         label = QLabel(text)
-        label.setWordWrap(True)
+        label.setWordWrap(word_wrap)
         edit = QLineEdit()
         layout = QVBoxLayout() if alignment == Qt.Vertical else QHBoxLayout()
         layout.addWidget(label)

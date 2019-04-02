@@ -671,39 +671,43 @@ class LSPManagerConfigPage(GeneralConfigPage):
 
         # --- Code style tab ---
         pep_url = '<a href="https://www.python.org/dev/peps/pep-0008">PEP8</a>'
-        code_style_check_label = QLabel(_("(Refer to "
-                                          "the {} page)").format(pep_url))
-        code_style_check_label.setOpenExternalLinks(True)
+        code_style_codes = (
+            "<a href='http://pycodestyle.pycqa.org/en/latest"
+            "/intro.html#error-codes'>page</a>")
+        code_style_label = QLabel(
+            _("Here you can decide if you want to perform style analysis on "
+              "your code according to the {} convention.<br>You can also "
+              "decide if you want to show or ignore specific errors or "
+              "warnings of that convention, according to the codes "
+              "found on this {}.").format(pep_url, code_style_codes))
+        code_style_label.setOpenExternalLinks(True)
         code_style_check = self.create_checkbox(
             _("Enable code style linting"),
             'pycodestyle')
         code_style_filenames_match = self.create_lineedit(
             _("Only check filenames matching these patterns"),
-            'pycodestyle/filename')
+            'pycodestyle/filename', alignment=Qt.Horizontal, word_wrap=False)
+        code_style_filenames_match.textbox.setPlaceholderText(_(""))
         code_style_exclude = self.create_lineedit(
             _("Exclude files or directories matching these patterns"),
-            'pycodestyle/exclude')
-        code_style_codes = (
-            "<a href='http://pycodestyle.pycqa.org/en/latest"
-            "/intro.html#error-codes'>here</a>")
+            'pycodestyle/exclude', alignment=Qt.Horizontal, word_wrap=False)
+        code_style_exclude.textbox.setPlaceholderText(_("(?!test_).*\\.py"))
         code_style_select = self.create_lineedit(
-            _("""Select the following error or warnings to show. """
-              """Possible codes can """
-              """be found {}.""").format(code_style_codes),
-            'pycodestyle/select')
-        code_style_select.label.setOpenExternalLinks(True)
+            _("Select the following error or warnings to show").format(
+                code_style_codes),
+            'pycodestyle/select', alignment=Qt.Horizontal, word_wrap=False)
+        code_style_select.textbox.setPlaceholderText("E113, W391")
         code_style_ignore = self.create_lineedit(
             _("Ignore the following errors or warnings"),
-            'pycodestyle/ignore')
-        code_style_max_line_length = self.create_lineedit(
-            _("Maximum allowed line length"),
-            'pycodestyle/maxlinelength', alignment=Qt.Horizontal)
+            'pycodestyle/ignore', alignment=Qt.Horizontal, word_wrap=False)
+        code_style_ignore.textbox.setPlaceholderText("E201, E303")
+        code_style_max_line_length = self.create_spinbox(
+            _("Maximum allowed line length"), None,
+            'pycodestyle/maxlinelength', min_=10, max_=500, step=1,
+            tip=_("Default is 6"))
 
         code_style_layout = QVBoxLayout()
-        code_style_check_layout = QHBoxLayout()
-        code_style_check_layout.addWidget(code_style_check)
-        code_style_check_layout.addWidget(code_style_check_label)
-        code_style_layout.addLayout(code_style_check_layout)
+        code_style_layout.addWidget(code_style_label)
         code_style_layout.addWidget(code_style_check)
         code_style_layout.addWidget(code_style_filenames_match)
         code_style_layout.addWidget(code_style_exclude)
@@ -730,8 +734,66 @@ class LSPManagerConfigPage(GeneralConfigPage):
         code_style_widget.setLayout(code_style_layout)
 
         # --- Docstring tab ---
-        docstring_widget = QWidget()
-        
+        docstring_style_check = self.create_checkbox(
+            _("Enable docstring style linting"),
+            'pydocstyle')
+        docstring_style_convention = self.create_combobox(
+            _("Choose the convention used to lint docstrings: "),
+            ((_("Numpy"), 'numpy'),
+             (_("Pep 257"), 'pep257')),
+            'pydocstyle/convention')
+        docstring_style_codes = (
+            "<a href='http://www.pydocstyle.org/en/stable"
+            "/error_codes.html'>here</a>")
+        docstring_style_add_select = self.create_lineedit(
+            _("Display the following errors or warnings in addition to the "
+              "specified convention. "
+              "Possible codes can be found {}".format(docstring_style_codes)),
+            'pydocstyle/add_select', alignment=Qt.Horizontal)
+        docstring_style_add_select.label.setOpenExternalLinks(True)
+        docstring_style_add_select.textbox.setPlaceholderText("D100, D200")
+        docstring_style_add_ignore = self.create_lineedit(
+            _("Ignore the following error or warnings in addition to "
+              "the specified convention").format(code_style_codes),
+            'pydocstyle/add_ignore', alignment=Qt.Horizontal, word_wrap=False)
+        docstring_style_add_ignore.textbox.setPlaceholderText("D400, D405")
+        docstring_style_select = self.create_lineedit(
+            _("Select the following errors or warnings to show"),
+            'pydocstyle/select', alignment=Qt.Horizontal, word_wrap=False)
+        docstring_style_select.textbox.setPlaceholderText("D413, D414")
+        docstring_style_ignore = self.create_lineedit(
+            _("Ignore the following errors or warnings"),
+            'pydocstyle/select', alignment=Qt.Horizontal, word_wrap=False)
+        docstring_style_ignore.textbox.setPlaceholderText("D107, D402")
+
+        docstring_style_layout = QVBoxLayout()
+        docstring_style_layout.addWidget(docstring_style_check)
+        docstring_style_layout.addWidget(docstring_style_convention)
+        docstring_style_layout.addWidget(docstring_style_add_select)
+        docstring_style_layout.addWidget(docstring_style_add_ignore)
+        docstring_style_layout.addWidget(docstring_style_select)
+        docstring_style_layout.addWidget(docstring_style_ignore)
+
+        docstring_style_check.toggled.connect(
+            docstring_style_convention.setEnabled)
+        docstring_style_check.toggled.connect(
+            docstring_style_add_select.setEnabled)
+        docstring_style_check.toggled.connect(
+            docstring_style_add_ignore.setEnabled)
+        docstring_style_check.toggled.connect(
+            docstring_style_select.setEnabled)
+        docstring_style_check.toggled.connect(
+            docstring_style_ignore.setEnabled)
+
+        docstring_style_enabled = docstring_style_check.isChecked()
+        docstring_style_convention.setEnabled(docstring_style_enabled)
+        docstring_style_add_select.setEnabled(docstring_style_enabled)
+        docstring_style_add_ignore.setEnabled(docstring_style_enabled)
+        docstring_style_select.setEnabled(docstring_style_enabled)
+        docstring_style_ignore.setEnabled(docstring_style_enabled)
+
+        docstring_style_widget = QWidget()
+        docstring_style_widget.setLayout(docstring_style_layout)
 
         # --- Other servers tab ---
         # Section label
@@ -789,7 +851,8 @@ class LSPManagerConfigPage(GeneralConfigPage):
                     _('Code completion'))
         tabs.addTab(self.create_tab(linting_widget), _('Linting'))
         tabs.addTab(self.create_tab(code_style_widget), _('Code style'))
-        tabs.addTab(self.create_tab(docstring_widget), _('Docstring style'))
+        tabs.addTab(self.create_tab(docstring_style_widget),
+                    _('Docstring style'))
         tabs.addTab(self.create_tab(servers_widget), _('Other languages'))
 
         vlayout = QVBoxLayout()
