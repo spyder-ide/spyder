@@ -489,7 +489,12 @@ class PythonSH(BaseSH):
                                     oedata.cell_level = len(cell_head) - 2
                                 oedata.fold_level = start
                                 oedata.def_type = OutlineExplorerData.CELL
-                                oedata.def_name = get_code_cell_name(text)
+                                cell_name = get_code_cell_name(text)
+                                if cell_name == '':
+                                    cell_name = 'Unnamed cell, line {}'.format(
+                                        self.currentBlock().firstLineNumber()
+                                        + 1)
+                                oedata.def_name = cell_name
                             elif self.OECOMMENT.match(text.lstrip()):
                                 oedata = OutlineExplorerData()
                                 oedata.text = to_text_string(text).strip()
