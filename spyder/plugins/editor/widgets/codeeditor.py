@@ -2780,7 +2780,6 @@ class CodeEditor(TextEditBaseWidget):
                      '&', '|', '^', '~', '<', '>', '<=', '>=', '==', '!='}
         delimeters = {',', ':', ';', '@', '=', '->', '+=', '-=', '*=', '/=',
                       '//=', '%=', '@=', '&=', '|=', '^=', '>>=', '<<=', '**='}
-        logger.debug(text)
         if text in operators or text in delimeters:
             self.completion_widget.hide()
         if key in (Qt.Key_Enter, Qt.Key_Return):
