@@ -676,11 +676,12 @@ class LSPManagerConfigPage(GeneralConfigPage):
             "/intro.html#error-codes'>page</a>")
         code_style_label = QLabel(
             _("Here you can decide if you want to perform style analysis on "
-              "your code according to the {} convention.<br>You can also "
+              "your code according to the {} convention. You can also "
               "decide if you want to show or ignore specific errors or "
               "warnings of that convention, according to the codes "
               "found on this {}.").format(pep_url, code_style_codes))
         code_style_label.setOpenExternalLinks(True)
+        code_style_label.setWordWrap(True)
         code_style_check = self.create_checkbox(
             _("Enable code style linting"),
             'pycodestyle')
