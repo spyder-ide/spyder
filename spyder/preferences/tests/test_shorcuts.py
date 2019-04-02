@@ -114,13 +114,13 @@ def test_clear_back_new_sequence(create_shortcut_editor, qtbot):
     qtbot.mouseClick(shortcut_editor.button_back_sequence, Qt.LeftButton)
     assert shortcut_editor.new_sequence == 'Ctrl+X, A, Ctrl+B'
     assert shortcut_editor.warning == SEQUENCE_CONFLICT
-    assert not shortcut_editor.button_ok.isEnabled()
+    assert shortcut_editor.button_ok.isEnabled()
 
     # Remove second to last key sequence entered.
     qtbot.mouseClick(shortcut_editor.button_back_sequence, Qt.LeftButton)
     assert shortcut_editor.new_sequence == 'Ctrl+X, A'
     assert shortcut_editor.warning == SEQUENCE_CONFLICT
-    assert not shortcut_editor.button_ok.isEnabled()
+    assert shortcut_editor.button_ok.isEnabled()
 
     # Clear all entered key sequences.
     qtbot.mouseClick(shortcut_editor.btn_clear_sequence, Qt.LeftButton)
@@ -140,13 +140,13 @@ def test_sequence_conflict(create_shortcut_editor, qtbot):
     qtbot.keyClick(shortcut_editor, Qt.Key_X, modifier=Qt.ControlModifier)
     assert shortcut_editor.new_sequence == 'Ctrl+X'
     assert shortcut_editor.warning == SEQUENCE_CONFLICT
-    assert not shortcut_editor.button_ok.isEnabled()
+    assert shortcut_editor.button_ok.isEnabled()
 
     # Check that the conflict is detected for a compound of key sequences.
     qtbot.keyClick(shortcut_editor, Qt.Key_X)
     assert shortcut_editor.new_sequence == 'Ctrl+X, X'
     assert shortcut_editor.warning == SEQUENCE_CONFLICT
-    assert not shortcut_editor.button_ok.isEnabled()
+    assert shortcut_editor.button_ok.isEnabled()
 
 
 def test_sequence_single_key(create_shortcut_editor, qtbot):
