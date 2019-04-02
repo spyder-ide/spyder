@@ -379,7 +379,7 @@ def test_autofit_figure_viewer(figbrowser, tmpdir, fmt):
     # Otherwise, test should fall into `test_zoom_figure_viewer`
     figbrowser.change_auto_fit_plotting(True)
     size = figviewer.size()
-    
+
     scrollbar_width = figviewer.verticalScrollBar().sizeHint().width()
     width = size.width() - scrollbar_width
     scrollbar_height = figviewer.horizontalScrollBar().sizeHint().height()
