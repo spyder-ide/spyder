@@ -608,6 +608,80 @@ class LSPManagerConfigPage(GeneralConfigPage):
     CONF_SECTION = 'lsp-server'
     NAME = _('Completion and linting')
     ICON = ima.icon('lspserver')
+    PYTHON_LSP_CONFIG = {
+        'index': 0,
+        'cmd': 'pyls',
+        'args': '--host {host} --port {port} --tcp',
+        'host': '127.0.0.1',
+        'port': 2087,
+        'external': False,
+        'configurations': {
+            'pyls': {
+                'configurationSources': [
+                    "pycodestyle", "pyflakes"],
+                'plugins': {
+                    'pycodestyle': {
+                        'enabled': True,
+                        'exclude': [],
+                        'filename': [],
+                        'select': [],
+                        'ignore': [],
+                        'hangClosing': False,
+                        'maxLineLength': 79
+                    },
+                    'pyflakes': {
+                        'enabled': True
+                    },
+                    'yapf': {
+                        'enabled': False
+                    },
+                    'pydocstyle': {
+                        'enabled': False,
+                        'convention': 'pep257',
+                        'addIgnore': [],
+                        'addSelect': [],
+                        'ignore': [],
+                        'select': [],
+                        'match': "(?!test_).*\\.py",
+                        'matchDir': '[^\\.].*',
+                    },
+                    'rope': {
+                        'extensionModules': None,
+                        'ropeFolder': None,
+                    },
+                    'rope_completion': {
+                        'enabled': False
+                    },
+                    'jedi_completion': {
+                        'enabled': True,
+                        'include_params': False
+                    },
+                    'jedi_hover': {
+                        'enabled': True
+                    },
+                    'jedi_references': {
+                        'enabled': True
+                    },
+                    'jedi_signature_help': {
+                        'enabled': True
+                    },
+                    'jedi_symbols': {
+                        'enabled': True,
+                        'all_scopes': True
+                    },
+                    'mccabe': {
+                        'enabled': False,
+                        'threshold': 15
+                    },
+                    'preload': {
+                        'enabled': True,
+                        'modules': []
+                    }
+                },
+
+            }
+        }
+    }
 
     def setup_page(self):
         newcb = self.create_checkbox
