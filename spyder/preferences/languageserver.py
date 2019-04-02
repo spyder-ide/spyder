@@ -686,35 +686,43 @@ class LSPManagerConfigPage(GeneralConfigPage):
             _("Enable code style linting"),
             'pycodestyle')
         code_style_filenames_match = self.create_lineedit(
-            _("Only check filenames matching these patterns"),
+            _("Only check filenames matching these patterns:"),
             'pycodestyle/filename', alignment=Qt.Horizontal, word_wrap=False)
         code_style_filenames_match.textbox.setPlaceholderText(_(""))
         code_style_exclude = self.create_lineedit(
-            _("Exclude files or directories matching these patterns"),
+            _("Exclude files or directories matching these patterns:"),
             'pycodestyle/exclude', alignment=Qt.Horizontal, word_wrap=False)
         code_style_exclude.textbox.setPlaceholderText(_("(?!test_).*\\.py"))
         code_style_select = self.create_lineedit(
-            _("Select the following error or warnings to show").format(
+            _("Select the following error or warnings to show:").format(
                 code_style_codes),
             'pycodestyle/select', alignment=Qt.Horizontal, word_wrap=False)
         code_style_select.textbox.setPlaceholderText("E113, W391")
         code_style_ignore = self.create_lineedit(
-            _("Ignore the following errors or warnings"),
+            _("Ignore the following errors or warnings:"),
             'pycodestyle/ignore', alignment=Qt.Horizontal, word_wrap=False)
         code_style_ignore.textbox.setPlaceholderText("E201, E303")
         code_style_max_line_length = self.create_spinbox(
-            _("Maximum allowed line length"), None,
+            _("Maximum allowed line length:"), None,
             'pycodestyle/max_line_length', min_=10, max_=500, step=1,
             tip=_("Default is 6"))
+
+        code_style_g_layout = QGridLayout()
+        code_style_g_layout.addWidget(code_style_filenames_match.label, 1, 0)
+        code_style_g_layout.addWidget(code_style_filenames_match.textbox, 1, 1)
+        code_style_g_layout.addWidget(code_style_exclude.label, 2, 0)
+        code_style_g_layout.addWidget(code_style_exclude.textbox, 2, 1)
+        code_style_g_layout.addWidget(code_style_select.label, 3, 0)
+        code_style_g_layout.addWidget(code_style_select.textbox, 3, 1)
+        code_style_g_layout.addWidget(code_style_ignore.label, 4, 0)
+        code_style_g_layout.addWidget(code_style_ignore.textbox, 4, 1)
+        code_style_g_layout.addWidget(code_style_max_line_length.plabel, 5, 0)
+        code_style_g_layout.addWidget(code_style_max_line_length.spinbox, 5, 1)
 
         code_style_layout = QVBoxLayout()
         code_style_layout.addWidget(code_style_label)
         code_style_layout.addWidget(code_style_check)
-        code_style_layout.addWidget(code_style_filenames_match)
-        code_style_layout.addWidget(code_style_exclude)
-        code_style_layout.addWidget(code_style_select)
-        code_style_layout.addWidget(code_style_ignore)
-        code_style_layout.addWidget(code_style_max_line_length)
+        code_style_layout.addLayout(code_style_g_layout)
 
         code_style_check.toggled.connect(
             code_style_filenames_match.setEnabled)
