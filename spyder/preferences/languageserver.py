@@ -703,7 +703,7 @@ class LSPManagerConfigPage(GeneralConfigPage):
         code_style_ignore.textbox.setPlaceholderText("E201, E303")
         code_style_max_line_length = self.create_spinbox(
             _("Maximum allowed line length"), None,
-            'pycodestyle/maxlinelength', min_=10, max_=500, step=1,
+            'pycodestyle/max_line_length', min_=10, max_=500, step=1,
             tip=_("Default is 6"))
 
         code_style_layout = QVBoxLayout()
