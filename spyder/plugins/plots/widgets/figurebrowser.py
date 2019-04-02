@@ -490,11 +490,13 @@ class FigureViewer(QScrollArea):
             new_height = int(fheight * self._scalestep ** self._scalefactor)
 
         # Auto fit plotting
-        # Scale the image to fit figcanvas size while respect the ratio
+        # Scale the image to fit figviewer size while respect the ratio
         else:
             size = self.size()
-            width = size.width() - 15  # How to get the actual figcanvas size?
-            height = size.height() - 15
+            scrollbar_width = self.verticalScrollBar().sizeHint().width()
+            width = size.width() - scrollbar_width
+            scrollbar_height = self.horizontalScrollBar().sizeHint().height()
+            height = size.height() - scrollbar_height
             if (fwidth / fheight) > (width / height):
                 new_width = width
                 new_height = int(width / fwidth * fheight)
