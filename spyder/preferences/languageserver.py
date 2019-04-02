@@ -685,11 +685,11 @@ class LSPManagerConfigPage(GeneralConfigPage):
         code_style_check = self.create_checkbox(
             _("Enable code style linting"),
             'pycodestyle')
-        code_style_filenames_match = self.create_lineedit(
+        self.code_style_filenames_match = self.create_lineedit(
             _("Only check filenames matching these patterns:"),
             'pycodestyle/filename', alignment=Qt.Horizontal, word_wrap=False,
             placeholder=_(r"/^[^\/]+\/src\/?(?:[^\/]+\/?)*$/gm"))
-        code_style_exclude = self.create_lineedit(
+        self.code_style_exclude = self.create_lineedit(
             _("Exclude files or directories matching these patterns:"),
             'pycodestyle/exclude', alignment=Qt.Horizontal, word_wrap=False,
             placeholder=_("(?!test_).*\\.py"))
@@ -708,10 +708,12 @@ class LSPManagerConfigPage(GeneralConfigPage):
             tip=_("Default is 6"))
 
         code_style_g_layout = QGridLayout()
-        code_style_g_layout.addWidget(code_style_filenames_match.label, 1, 0)
-        code_style_g_layout.addWidget(code_style_filenames_match.textbox, 1, 1)
-        code_style_g_layout.addWidget(code_style_exclude.label, 2, 0)
-        code_style_g_layout.addWidget(code_style_exclude.textbox, 2, 1)
+        code_style_g_layout.addWidget(
+            self.code_style_filenames_match.label, 1, 0)
+        code_style_g_layout.addWidget(
+            self.code_style_filenames_match.textbox, 1, 1)
+        code_style_g_layout.addWidget(self.code_style_exclude.label, 2, 0)
+        code_style_g_layout.addWidget(self.code_style_exclude.textbox, 2, 1)
         code_style_g_layout.addWidget(code_style_select.label, 3, 0)
         code_style_g_layout.addWidget(code_style_select.textbox, 3, 1)
         code_style_g_layout.addWidget(code_style_ignore.label, 4, 0)
@@ -725,16 +727,17 @@ class LSPManagerConfigPage(GeneralConfigPage):
         code_style_layout.addLayout(code_style_g_layout)
 
         code_style_check.toggled.connect(
-            code_style_filenames_match.textbox.setEnabled)
-        code_style_check.toggled.connect(code_style_exclude.textbox.setEnabled)
+            self.code_style_filenames_match.textbox.setEnabled)
+        code_style_check.toggled.connect(
+            self.code_style_exclude.textbox.setEnabled)
         code_style_check.toggled.connect(code_style_select.textbox.setEnabled)
         code_style_check.toggled.connect(code_style_ignore.textbox.setEnabled)
         code_style_check.toggled.connect(
             code_style_max_line_length.spinbox.setEnabled)
 
         code_style_enabled = code_style_check.isChecked()
-        code_style_filenames_match.textbox.setEnabled(code_style_enabled)
-        code_style_exclude.textbox.setEnabled(code_style_enabled)
+        self.code_style_filenames_match.textbox.setEnabled(code_style_enabled)
+        self.code_style_exclude.textbox.setEnabled(code_style_enabled)
         code_style_select.textbox.setEnabled(code_style_enabled)
         code_style_ignore.textbox.setEnabled(code_style_enabled)
         code_style_max_line_length.spinbox.setEnabled(code_style_enabled)
@@ -907,6 +910,20 @@ class LSPManagerConfigPage(GeneralConfigPage):
         self.delete_btn.setEnabled(False)
 
     def apply_settings(self, options):
+
+        try:
+            code_style_filenames_match = (
+                self.code_style_filenames_match.textbox.text())
+            re.compile(code_style_filenames_match)
+        except re.error:
+            self.set_option('pycodestyle/filename', '')
+
+        try:
+            code_style_exclude = self.code_style_exclude.textbox.text()
+            re.compile(code_style_exclude)
+        except re.error:
+            self.set_option('pycodestyle/exclude', '')
+
         self.table.save_servers()
         # TODO: Reset Manager
         self.main.lspmanager.update_server_list()
