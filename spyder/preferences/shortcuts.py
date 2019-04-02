@@ -476,6 +476,7 @@ class ShortcutEditor(QDialog):
         self.accept()
 
     def accept_override(self):
+        """Unbind all conflicted shortcuts, and accept the new one"""
         conflicts = self.check_conflicts()
         if conflicts:
             for shortcut in conflicts:
