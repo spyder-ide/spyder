@@ -481,8 +481,8 @@ class FigureViewer(QScrollArea):
 
     def scale_image(self):
         """Scale the image size."""
-        fwidth = self.figcanvas.fwidth * 1.0
-        fheight = self.figcanvas.fheight * 1.0
+        fwidth = self.figcanvas.fwidth
+        fheight = self.figcanvas.fheight
 
         # Don't auto fit plotting
         if not self.auto_fit_plotting:
@@ -494,9 +494,9 @@ class FigureViewer(QScrollArea):
         else:
             size = self.size()
             scrollbar_width = self.verticalScrollBar().sizeHint().width()
-            width = (size.width() - scrollbar_width) * 1.0
+            width = size.width() - scrollbar_width
             scrollbar_height = self.horizontalScrollBar().sizeHint().height()
-            height = (size.height() - scrollbar_height) * 1.0
+            height = size.height() - scrollbar_height
             if (fwidth / fheight) > (width / height):
                 new_width = int(width)
                 new_height = int(width / fwidth * fheight)

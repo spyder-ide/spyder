@@ -11,6 +11,7 @@ Tests for the widgets used in the Plots plugin.
 """
 
 # Standard library imports
+from __future__ import division
 import os.path as osp
 try:
     from unittest.mock import Mock
@@ -373,7 +374,7 @@ def test_autofit_figure_viewer(figbrowser, tmpdir, fmt):
     # Calculate original figure size in pixels.
     qpix = QPixmap()
     qpix.loadFromData(fig, fmt.upper())
-    fwidth, fheight = qpix.width() * 1.0, qpix.height() * 1.0
+    fwidth, fheight = qpix.width(), qpix.height()
 
     # Test when `Fit plots to window` is set to True.
     # Otherwise, test should fall into `test_zoom_figure_viewer`
@@ -381,9 +382,9 @@ def test_autofit_figure_viewer(figbrowser, tmpdir, fmt):
     size = figviewer.size()
 
     scrollbar_width = figviewer.verticalScrollBar().sizeHint().width()
-    width = (size.width() - scrollbar_width) * 1.0
+    width = size.width() - scrollbar_width
     scrollbar_height = figviewer.horizontalScrollBar().sizeHint().height()
-    height = (size.height() - scrollbar_height) * 1.0
+    height = size.height() - scrollbar_height
     if (fwidth / fheight) > (width / height):
         new_width = int(width)
         new_height = int(width / fwidth * fheight)
