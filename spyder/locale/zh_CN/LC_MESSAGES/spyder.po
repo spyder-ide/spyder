@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2018-11-13 11:49+-05\n"
-"PO-Revision-Date: 2019-04-03 14:21+0800\n"
+"PO-Revision-Date: 2019-04-03 14:33+0800\n"
 "Last-Translator: weak_ptr <weak_ptr@163.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -2103,11 +2103,11 @@ msgstr "首选项 > 帮助"
 
 #: spyder/plugins/help.py:705
 msgid "Usage"
-msgstr "使用"
+msgstr "使用方式"
 
 #: spyder/plugins/help.py:706
 msgid "New to Spyder? Read our"
-msgstr "全新的Spyder？阅读我们"
+msgstr "第一次使用 Spyder？请阅读我们的"
 
 #: spyder/plugins/help.py:707
 msgid "tutorial"
