@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2018-11-13 11:49+-05\n"
-"PO-Revision-Date: 2019-04-03 13:06+0800\n"
+"PO-Revision-Date: 2019-04-03 13:44+0800\n"
 "Last-Translator: weak_ptr <weak_ptr@163.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -1341,7 +1341,7 @@ msgstr "高亮显示当前行"
 
 #: spyder/plugins/editor.py:135
 msgid "Highlight current cell"
-msgstr "高亮显示当前单元格"
+msgstr "高亮显示当前Cell"
 
 #: spyder/plugins/editor.py:137
 msgid "Highlight occurrences after"
@@ -1357,7 +1357,7 @@ msgstr "运行所选"
 
 #: spyder/plugins/editor.py:173
 msgid "Maintain focus in the Editor after running cells or selections"
-msgstr "在运行单元格或选择之后保持编辑器中的焦点"
+msgstr "运行或选择Cell后保持编辑器焦点"
 
 #: spyder/plugins/editor.py:176
 msgid "Introspection"
@@ -1519,7 +1519,7 @@ msgstr ""
 
 #: spyder/plugins/editor.py:276
 msgid "Perform analysis when saving file and every"
-msgstr "只在保存文件文件每"
+msgstr "保存文件和定时执行分析，定时分析间隔"
 
 #: spyder/plugins/editor.py:280
 msgid "Perform analysis only when saving file"
@@ -1759,31 +1759,31 @@ msgstr "运行所选或当前行"
 
 #: spyder/plugins/editor.py:836 spyder/widgets/sourcecode/codeeditor.py:2715
 msgid "Run cell"
-msgstr "运行单元"
+msgstr "运行Cell"
 
 #: spyder/plugins/editor.py:839
 msgid ""
 "Run current cell (Ctrl+Enter)\n"
 "[Use #%% to create cells]"
 msgstr ""
-"运行当前单元\n"
-"[使用#%%来创建单元]"
+"运行当前Cell\n"
+"[使用#%%来创建Cell]"
 
 #: spyder/plugins/editor.py:845 spyder/widgets/sourcecode/codeeditor.py:2719
 msgid "Run cell and advance"
-msgstr "运行单元并继续"
+msgstr "运行Cell并继续"
 
 #: spyder/plugins/editor.py:848
 msgid "Run current cell and go to the next one (Shift+Enter)"
-msgstr "运行当前单元并跳到下一单元(Shift+Enter)"
+msgstr "运行当前Cell并跳到下一个(Shift+Enter)"
 
 #: spyder/plugins/editor.py:854 spyder/widgets/sourcecode/codeeditor.py:2723
 msgid "Re-run last cell"
-msgstr "重新运行最后一个单元"
+msgstr "重新运行最后一个Cell"
 
 #: spyder/plugins/editor.py:855
 msgid "Re run last cell "
-msgstr "重新运行最后一个单元 "
+msgstr "重新运行最后一个Cell "
 
 #: spyder/plugins/editor.py:865
 msgid "Show todo list"
@@ -3305,7 +3305,7 @@ msgstr "当前行："
 
 #: spyder/utils/syntaxhighlighters.py:46
 msgid "Current cell:"
-msgstr "当前单元格："
+msgstr "当前Cell："
 
 #: spyder/utils/syntaxhighlighters.py:47
 msgid "Occurrence:"
@@ -3611,7 +3611,7 @@ msgstr "函数定义于行 %s"
 
 #: spyder/widgets/editortools.py:149
 msgid "Cell starts at line %s"
-msgstr "单元开始于行 %s"
+msgstr "Cell开始于行 %s"
 
 #: spyder/widgets/editortools.py:201 spyder/widgets/editortools.py:527
 msgid "Go to cursor position"
