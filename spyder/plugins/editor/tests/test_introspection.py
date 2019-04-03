@@ -100,6 +100,20 @@ def test_space_completion(setup_editor):
 
 
 @pytest.mark.slow
+def test_hide_widget_completion(setup_editor):
+    """Validate hiding completion widget after a delimeter or operator."""
+    editor, qtbot = setup_editor
+    code_editor = editor.get_focus_widget()
+    completion = code_editor.completion_widget
+
+    # Set cursor to start
+    code_editor.go_to_line(1)
+
+    qtbot.keyClicks(code_editor, 'from numpy [')
+    assert completion.isVisible() is False
+
+
+@pytest.mark.slow
 @pytest.mark.skipif(PY2, reason="Segfaults with other tests on Py2.")
 @pytest.mark.skipif(os.name == 'nt' and not PY2,
                     reason="Times out on AppVeyor and fails on PY3")
