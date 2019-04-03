@@ -761,25 +761,25 @@ class LSPManagerConfigPage(GeneralConfigPage):
             'pydocstyle')
         docstring_style_convention = self.create_combobox(
             _("Choose the convention used to lint docstrings: "),
-            ((_("Numpy"), 'numpy'),
-             (_("Pep 257"), 'pep257')),
+            (("Numpy", 'numpy'),
+             ("Pep 257", 'pep257')),
             'pydocstyle/convention')
         docstring_style_add_select = self.create_lineedit(
             _("Display the following errors in addition to the "
-              "specified convention"),
+              "specified convention:"),
             'pydocstyle/add_select', alignment=Qt.Horizontal, word_wrap=False,
             placeholder="D100, D200")
         docstring_style_add_ignore = self.create_lineedit(
             _("Ignore the following errors in addition to "
-              "the specified convention").format(code_style_codes),
+              "the specified convention:").format(code_style_codes),
             'pydocstyle/add_ignore', alignment=Qt.Horizontal, word_wrap=False,
             placeholder="D400, D405")
         docstring_style_select = self.create_lineedit(
-            _("Select the following errors to show"),
+            _("Select the following errors to show:"),
             'pydocstyle/select', alignment=Qt.Horizontal, word_wrap=False,
             placeholder="D413, D414")
         docstring_style_ignore = self.create_lineedit(
-            _("Ignore the following errors"),
+            _("Ignore the following errors:"),
             'pydocstyle/select', alignment=Qt.Horizontal, word_wrap=False,
             placeholder="D107, D402")
 
@@ -796,10 +796,12 @@ class LSPManagerConfigPage(GeneralConfigPage):
             docstring_style_add_ignore.label, 3, 0)
         docstring_style_g_layout.addWidget(
             docstring_style_add_ignore.textbox, 3, 1)
-        docstring_style_g_layout.addWidget(docstring_style_select.label, 4, 0)
+        docstring_style_g_layout.addWidget(
+            docstring_style_select.label, 4, 0)
         docstring_style_g_layout.addWidget(
             docstring_style_select.textbox, 4, 1)
-        docstring_style_g_layout.addWidget(docstring_style_ignore.label, 5, 0)
+        docstring_style_g_layout.addWidget(
+            docstring_style_ignore.label, 5, 0)
         docstring_style_g_layout.addWidget(
             docstring_style_ignore.textbox, 5, 1)
 
