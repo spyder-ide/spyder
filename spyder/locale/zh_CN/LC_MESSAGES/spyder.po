@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2018-11-13 11:49+-05\n"
-"PO-Revision-Date: 2019-04-03 20:01+0800\n"
+"PO-Revision-Date: 2019-04-03 20:17+0800\n"
 "Last-Translator: weak_ptr <weak_ptr@163.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -336,7 +336,7 @@ msgstr "加载在线帮助…"
 
 #: spyder/app/mainwindow.py:894
 msgid "Loading project explorer..."
-msgstr "加载项目管理器…"
+msgstr "加载项目资源管理器…"
 
 #: spyder/app/mainwindow.py:907
 msgid "Loading namespace browser..."
@@ -716,7 +716,7 @@ msgstr ""
 
 #: spyder/app/tour.py:166
 msgid "The Variable Explorer"
-msgstr "变量资源管理器"
+msgstr "变量管理器"
 
 #: spyder/app/tour.py:167
 msgid ""
@@ -728,8 +728,8 @@ msgid ""
 "contents."
 msgstr ""
 "在这个窗格，您可以查看和编辑程序运行与控制台代码执行时产生的变量。<br><br>如"
-"您所见，变量资源管理器展示了这个教程最后一步产生的变量。双击这些变量会打开一"
-"个新窗口，在里面您可以查看和编辑变量的内容。"
+"您所见，变量管理器展示了这个教程最后一步产生的变量。双击这些变量会打开一个新"
+"窗口，在里面您可以查看和编辑变量的内容。"
 
 #: spyder/app/tour.py:179 spyder/plugins/help.py:482 spyder/plugins/help.py:931
 #: spyder/widgets/internalshell.py:271
@@ -749,7 +749,7 @@ msgstr ""
 
 #: spyder/app/tour.py:190
 msgid "The File Explorer"
-msgstr "文件资源管理器"
+msgstr "文件管理器"
 
 #: spyder/app/tour.py:191
 msgid ""
@@ -854,7 +854,7 @@ msgstr "文本文件"
 
 #: spyder/config/utils.py:38
 msgid "reStructuredText files"
-msgstr "关于文件"
+msgstr "reStructuredText文件"
 
 #: spyder/config/utils.py:39
 msgid "gettext files"
@@ -902,7 +902,7 @@ msgstr "所有文件"
 
 #: spyder/config/utils.py:138
 msgid "Supported text files"
-msgstr "支持文本文件"
+msgstr "支持的文本文件"
 
 #: spyder/plugins/__init__.py:512 spyder/plugins/editor.py:105
 #: spyder/plugins/editor.py:568 spyder/plugins/editor.py:1830
@@ -1983,7 +1983,7 @@ msgstr "打印中..."
 
 #: spyder/plugins/explorer.py:55
 msgid "File explorer"
-msgstr "文件资源管理器"
+msgstr "文件管理器"
 
 #: spyder/plugins/findinfiles.py:117 spyder/widgets/findinfiles.py:949
 msgid "Find in files"
@@ -3135,11 +3135,11 @@ msgstr "您想要重置为默认值吗？"
 
 #: spyder/plugins/variableexplorer.py:24
 msgid "View and edit DataFrames and Series in the Variable Explorer"
-msgstr "查看和编辑DataFrames并序列化到变量资源管理器"
+msgstr "查看和编辑DataFrames并序列化到变量管理器"
 
 #: spyder/plugins/variableexplorer.py:29
 msgid "View and edit two and three dimensional arrays in the Variable Explorer"
-msgstr "在变量资源管理器中查看和编辑两或三个维度的数组"
+msgstr "在变量管理器中查看和编辑两或三个维度的数组"
 
 #: spyder/plugins/variableexplorer.py:37
 msgid "Filter"
@@ -3172,13 +3172,13 @@ msgstr "显示数组最小/最大值"
 
 #: spyder/plugins/variableexplorer.py:202
 msgid "Variable explorer"
-msgstr "变量资源管理器"
+msgstr "变量管理器"
 
 #: spyder/plugins/workingdirectory.py:39
 msgid ""
 "The <b>current working directory</b> is the working directory for IPython "
 "consoles and the current directory for the File Explorer."
-msgstr "<b>当前工作目录</b>是IPython和文件资源管理器的工作目录。"
+msgstr "<b>当前工作目录</b>是IPython和文件管理器的工作目录。"
 
 #: spyder/plugins/workingdirectory.py:44
 msgid "Console directory"
@@ -3220,7 +3220,7 @@ msgid ""
 "created in the editor"
 msgstr ""
 "这是新打开的控制台（Python / IPython控制台和终端），\n"
-"文件资源管理器，查找文件插件和编辑器中创建的新文件的工作目录"
+"文件管理器，“文件中查找”插件和编辑器中新建文件的工作目录"
 
 #: spyder/plugins/workingdirectory.py:166
 msgid "Browse a working directory"
@@ -3507,7 +3507,7 @@ msgstr "在文件资源管理器中显示"
 
 #: spyder/widgets/editor.py:526 spyder/widgets/explorer.py:375
 msgid "Show in external file explorer"
-msgstr "用外部文件资源管理器打开"
+msgstr "用外部文件管理器打开"
 
 #: spyder/widgets/editor.py:1201
 msgid "Temporary file"
@@ -3725,7 +3725,7 @@ msgstr "删除"
 #: spyder/widgets/explorer.py:602 spyder/widgets/projects/explorer.py:148
 #: spyder/widgets/projects/explorer.py:256
 msgid "Project Explorer"
-msgstr "项目管理器"
+msgstr "项目资源管理器"
 
 #: spyder/widgets/explorer.py:603 spyder/widgets/projects/explorer.py:149
 msgid "<b>Unable to %s <i>%s</i></b><br><br>Error message:<br>%s"
