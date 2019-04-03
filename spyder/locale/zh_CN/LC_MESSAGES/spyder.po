@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2018-11-13 11:49+-05\n"
-"PO-Revision-Date: 2019-04-03 13:52+0800\n"
+"PO-Revision-Date: 2019-04-03 14:21+0800\n"
 "Last-Translator: weak_ptr <weak_ptr@163.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -2177,7 +2177,7 @@ msgstr "最大条数"
 
 #: spyder/plugins/ipythonconsole.py:64
 msgid "Symbolic mathematics in the IPython Console"
-msgstr "在Ipyhton控制台的符号数学"
+msgstr "IPython 控制台的符号化运算"
 
 #: spyder/plugins/ipythonconsole.py:68
 msgid "Run Cython files in the IPython Console"
@@ -2601,7 +2601,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole.py:580
 msgid "Symbolic Mathematics"
-msgstr "符号数学"
+msgstr "符号化运算"
 
 #: spyder/plugins/ipythonconsole.py:581
 msgid ""
@@ -2609,12 +2609,12 @@ msgid ""
 "vector calculus, etc) and get the outputs in a beautifully printed style (it "
 "requires the Sympy module)."
 msgstr ""
-"在控制台中执行符号操作（例如积分，导数，矢量微积分等），并以精美的打印样式获"
-"得输出（它需要Sympy模块）。"
+"在控制台中使用符号化运算（例如积分，导数，矢量微积分等），并以精美的打印样式"
+"获得输出（它需要Sympy模块）。"
 
 #: spyder/plugins/ipythonconsole.py:586
 msgid "Use symbolic math"
-msgstr "使用符号数学"
+msgstr "使用符号化运算"
 
 #: spyder/plugins/ipythonconsole.py:587
 msgid ""
