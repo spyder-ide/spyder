@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2018-11-13 11:49+-05\n"
-"PO-Revision-Date: 2019-04-03 13:44+0800\n"
+"PO-Revision-Date: 2019-04-03 13:52+0800\n"
 "Last-Translator: weak_ptr <weak_ptr@163.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -2215,7 +2215,7 @@ msgstr "无法连接远程主机"
 
 #: spyder/plugins/ipythonconsole.py:172 spyder/plugins/ipythonconsole.py:846
 msgid "Connect to an existing kernel"
-msgstr "连接到一个已存在的内核"
+msgstr "连接到一个已存在的 IPython kernel"
 
 #: spyder/plugins/ipythonconsole.py:174
 msgid ""
@@ -2225,12 +2225,12 @@ msgid ""
 "remote kernel."
 msgstr ""
 "请选择JSON连接文件（<I>e.g.</I><tt>kernel-3764.json</tt>）或者输入四位"
-"ID（<I>e.g.</I><tt>3764</tt>）来需要连接的已存在核心，如果是远程核心，还需要"
-"输入SSH主机名和凭据。"
+"ID（<I>e.g.</I><tt>3764</tt>）来需要连接的已存在 IPython kernel，如果是远程 "
+"IPython kernel，还需要输入SSH主机名和凭据。"
 
 #: spyder/plugins/ipythonconsole.py:183
 msgid "Kernel ID/Connection file:"
-msgstr "核心ID/连接文件："
+msgstr "IPython kernel ID/连接文件："
 
 #: spyder/plugins/ipythonconsole.py:185
 msgid "ID number or path to connection file"
@@ -2242,7 +2242,7 @@ msgstr "浏览器"
 
 #: spyder/plugins/ipythonconsole.py:196
 msgid "This is a remote kernel (via SSH)"
-msgstr "这是一个远程核心（SSH）"
+msgstr "这是一个远程 IPython kernel（SSH）"
 
 #: spyder/plugins/ipythonconsole.py:199
 msgid ""
@@ -2250,8 +2250,8 @@ msgid ""
 "i> the Password field need to be completed, unless the keyfile is protected "
 "with a passphrase."
 msgstr ""
-"<b>注意：</b>如果连接远程核心，只有SSH密钥文件<I>或</I>密码字段需要填写，除非"
-"密钥文件被密码保护。"
+"<b>注意：</b>如果连接远程IPython kernel，只有SSH密钥文件<I>或</I>密码字段需要"
+"填写，除非密钥文件被密码保护。"
 
 #: spyder/plugins/ipythonconsole.py:207
 msgid "username@hostname:port"
@@ -2279,7 +2279,7 @@ msgstr "SSH密钥文件："
 
 #: spyder/plugins/ipythonconsole.py:257
 msgid "Select kernel connection file"
-msgstr "选择内核连接文件"
+msgstr "选择 IPython kernel 连接文件"
 
 #: spyder/plugins/ipythonconsole.py:262
 msgid "Select SSH keyfile"
@@ -2339,7 +2339,7 @@ msgstr "在重新启动之前要求确认"
 msgid ""
 "This option lets you hide the warning message shown\n"
 "when restarting the kernel."
-msgstr "该选项会让您隐藏重启核心时的警告信息。"
+msgstr "该选项会让您隐藏重启 IPython kernel 时的警告信息。"
 
 #: spyder/plugins/ipythonconsole.py:337
 msgid "Completion Type"
@@ -2670,11 +2670,11 @@ msgstr "打开一个IPython控制台(&I)"
 
 #: spyder/plugins/ipythonconsole.py:838
 msgid "Restart kernel"
-msgstr "重启内核"
+msgstr "重启 IPython kernel"
 
 #: spyder/plugins/ipythonconsole.py:847
 msgid "Open a new IPython console connected to an existing kernel"
-msgstr "打开一个新IPython控制台以连接到一个现有内核"
+msgstr "打开一个新 IPython 控制台以连接到一个现有的 IPython kernel"
 
 #: spyder/plugins/ipythonconsole.py:850
 msgid "Rename tab"
@@ -2717,7 +2717,7 @@ msgstr "您想关闭当前控制台吗？"
 msgid ""
 "Do you want to close all other consoles connected to the same kernel as this "
 "one?"
-msgstr "是否要关闭连接到同一内核的所有其他控制台？"
+msgstr "是否要关闭连接到同一 IPython kernel 的所有其他控制台？"
 
 #: spyder/plugins/ipythonconsole.py:1440
 msgid ""
@@ -4198,7 +4198,7 @@ msgstr ""
 
 #: spyder/widgets/ipythonconsole/client.py:308
 msgid "An error ocurred while starting the kernel"
-msgstr "启动内核时出现了一个错误"
+msgstr "启动 IPython kernel 时出现了一个错误"
 
 #: spyder/widgets/ipythonconsole/client.py:352
 #: spyder/widgets/ipythonconsole/client.py:408
@@ -4240,31 +4240,31 @@ msgstr "清空控制台"
 
 #: spyder/widgets/ipythonconsole/client.py:507
 msgid "Are you sure you want to restart the kernel?"
-msgstr "您确定重启内核吗？"
+msgstr "您确定重启 IPython kernel 吗？"
 
 #: spyder/widgets/ipythonconsole/client.py:509
 msgid "Restart kernel?"
-msgstr "重启内核？"
+msgstr "重启 IPython kernel？"
 
 #: spyder/widgets/ipythonconsole/client.py:526
 msgid "Error restarting kernel: %s\n"
-msgstr "重启核心错误：%s\n"
+msgstr "重启 IPython kernel 错误：%s\n"
 
 #: spyder/widgets/ipythonconsole/client.py:534
 msgid ""
 "<br>Restarting kernel...\n"
 "<hr><br>"
 msgstr ""
-"<br>重启核心...\n"
+"<br>重启 IPython kernel...\n"
 "<hr><br>"
 
 #: spyder/widgets/ipythonconsole/client.py:538
 msgid "Cannot restart a kernel not started by Spyder\n"
-msgstr "无法重启非Spyder启动的核心\n"
+msgstr "无法重启非Spyder启动的 IPython kernel \n"
 
 #: spyder/widgets/ipythonconsole/client.py:649
 msgid "Connecting to kernel..."
-msgstr "连接到内核..."
+msgstr "连接到 IPython kernel..."
 
 #: spyder/widgets/ipythonconsole/help.py:128 spyder/widgets/mixins.py:726
 msgid "Arguments"
@@ -4301,11 +4301,11 @@ msgstr "为Mayavi使用Qt4"
 
 #: spyder/widgets/ipythonconsole/shell.py:477
 msgid "Kernel died, restarting"
-msgstr "内核挂了，重启中"
+msgstr "IPython kernel 已死亡，重启中"
 
 #: spyder/widgets/ipythonconsole/shell.py:477
 msgid "Kernel restarting"
-msgstr "内核重启中"
+msgstr "IPython kernel 重启中"
 
 #: spyder/widgets/onecolumntree.py:52
 msgid "Collapse all"
@@ -5216,7 +5216,8 @@ msgstr "排除具有不支持数据类型的名字（因为无法被正确处理
 msgid ""
 "The object you are trying to modify is too big to be sent back to the "
 "kernel. Therefore, your modifications won't take place."
-msgstr "您尝试修改的对象太大而无法发送回内核。因此，您的修改不会生效。"
+msgstr ""
+"您尝试修改的对象太大而无法发送回 IPython kernel。因此，您的修改不会生效。"
 
 #: spyder/widgets/variableexplorer/namespacebrowser.py:417
 msgid ""
