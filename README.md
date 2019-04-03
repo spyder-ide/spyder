@@ -1,5 +1,4 @@
-![Spyder — The Scientific Python Development Environment](
-./img_src/spyder_readme_banner.png)
+![Spyder — The Scientific Python Development Environment](https://raw.githubusercontent.com/spyder-ide/spyder/master/img_src/spyder_readme_banner.png)
 
 *Copyright © 2009–2019 [Spyder Project Contributors](
 https://github.com/spyder-ide/spyder/graphs/contributors)*
@@ -22,7 +21,7 @@ https://github.com/spyder-ide/spyder/graphs/contributors)*
 [![Coverage Status](https://coveralls.io/repos/github/spyder-ide/spyder/badge.svg?branch=master)](https://coveralls.io/github/spyder-ide/spyder?branch=master)
 [![codecov](https://codecov.io/gh/spyder-ide/spyder/branch/master/graph/badge.svg)](https://codecov.io/gh/spyder-ide/spyder)
 
-![Screenshot of Spyder's main window](./img_src/screenshot.png)
+![Screenshot of Spyder's main window](https://raw.githubusercontent.com/spyder-ide/spyder/master/img_src/screenshot.png)
 
 ----
 
@@ -256,6 +255,7 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 * **SymPy**: Symbolic mathematics in the IPython console.
 * **SciPy**: Import Matlab workspace files in the Variable Explorer.
 * **Cython**: Run Cython files in the IPython console.
+
 
 ## Sponsors
 
