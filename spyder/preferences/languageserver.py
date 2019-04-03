@@ -688,24 +688,25 @@ class LSPManagerConfigPage(GeneralConfigPage):
         self.code_style_filenames_match = self.create_lineedit(
             _("Only check filenames matching these patterns:"),
             'pycodestyle/filename', alignment=Qt.Horizontal, word_wrap=False,
-            placeholder=_(r"/^[^\/]+\/src\/?(?:[^\/]+\/?)*$/gm"))
+            placeholder=_(r"Include all files in src: "
+                          r"/^[^\/]+\/src\/?(?:[^\/]+\/?)*$/gm"))
         self.code_style_exclude = self.create_lineedit(
             _("Exclude files or directories matching these patterns:"),
             'pycodestyle/exclude', alignment=Qt.Horizontal, word_wrap=False,
-            placeholder=_("(?!test_).*\\.py"))
+            placeholder=_("Exclude all test files: (?!test_).*\\.py"))
         code_style_select = self.create_lineedit(
             _("Select the following error or warnings to show:").format(
                 code_style_codes),
             'pycodestyle/select', alignment=Qt.Horizontal, word_wrap=False,
-            placeholder="E113, W391")
+            placeholder=_("Example codes: E113, W391"))
         code_style_ignore = self.create_lineedit(
             _("Ignore the following errors or warnings:"),
             'pycodestyle/ignore', alignment=Qt.Horizontal, word_wrap=False,
-            placeholder="E201, E303")
+            placeholder=_("Example codes: E201, E303"))
         code_style_max_line_length = self.create_spinbox(
             _("Maximum allowed line length:"), None,
             'pycodestyle/max_line_length', min_=10, max_=500, step=1,
-            tip=_("Default is 6"))
+            tip=_("Default is 79"))
 
         code_style_g_layout = QGridLayout()
         code_style_g_layout.addWidget(
@@ -768,20 +769,20 @@ class LSPManagerConfigPage(GeneralConfigPage):
             _("Display the following errors in addition to the "
               "specified convention:"),
             'pydocstyle/add_select', alignment=Qt.Horizontal, word_wrap=False,
-            placeholder="D100, D200")
+            placeholder=_("Example codes: D100, D200"))
         docstring_style_add_ignore = self.create_lineedit(
             _("Ignore the following errors in addition to "
               "the specified convention:").format(code_style_codes),
             'pydocstyle/add_ignore', alignment=Qt.Horizontal, word_wrap=False,
-            placeholder="D400, D405")
+            placeholder=_("Example codes: D400, D405"))
         docstring_style_select = self.create_lineedit(
             _("Select the following errors to show:"),
             'pydocstyle/select', alignment=Qt.Horizontal, word_wrap=False,
-            placeholder="D413, D414")
+            placeholder=_("Example codes: D413, D414"))
         docstring_style_ignore = self.create_lineedit(
             _("Ignore the following errors:"),
             'pydocstyle/select', alignment=Qt.Horizontal, word_wrap=False,
-            placeholder="D107, D402")
+            placeholder=_("Example codes: D107, D402"))
 
         docstring_style_g_layout = QGridLayout()
         docstring_style_g_layout.addWidget(
