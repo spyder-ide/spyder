@@ -373,7 +373,7 @@ def test_autofit_figure_viewer(figbrowser, tmpdir, fmt):
     # Calculate original figure size in pixels.
     qpix = QPixmap()
     qpix.loadFromData(fig, fmt.upper())
-    fwidth, fheight = qpix.width(), qpix.height()
+    fwidth, fheight = qpix.width() * 1.0, qpix.height() * 1.0
 
     # Test when `Fit plots to window` is set to True.
     # Otherwise, test should fall into `test_zoom_figure_viewer`
@@ -381,14 +381,14 @@ def test_autofit_figure_viewer(figbrowser, tmpdir, fmt):
     size = figviewer.size()
 
     scrollbar_width = figviewer.verticalScrollBar().sizeHint().width()
-    width = size.width() - scrollbar_width
+    width = (size.width() - scrollbar_width) * 1.0
     scrollbar_height = figviewer.horizontalScrollBar().sizeHint().height()
-    height = size.height() - scrollbar_height
+    height = (size.height() - scrollbar_height) * 1.0
     if (fwidth / fheight) > (width / height):
-        new_width = width
+        new_width = int(width)
         new_height = int(width / fwidth * fheight)
     else:
-        new_height = height
+        new_height = int(height)
         new_width = int(height / fheight * fwidth)
 
     assert figcanvas.width() == new_width
