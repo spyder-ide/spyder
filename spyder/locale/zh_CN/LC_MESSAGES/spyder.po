@@ -11,9 +11,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: \n"
-"PO-Revision-Date: 2019-04-03 01:10+0800\n"
-"Last-Translator: 李增海 <860007600@qq.com> weak_ptr <weak_ptr@163.com>\n"
+"POT-Creation-Date: 2018-11-13 11:49+-05\n"
+"PO-Revision-Date: 2019-04-03 10:39+0800\n"
+"Last-Translator: weak_ptr <weak_ptr@163.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
@@ -63,7 +63,7 @@ msgid ""
 "b></span><br>"
 msgstr ""
 "创建Spyder所需的套接字时出现错误。请尝试使用管理员权限启动cmd，执行下述命令后"
-"重启你的电脑：<br><br><span style='color: #555555'><b>netsh winsock reset</"
+"重启您的电脑：<br><br><span style='color: #555555'><b>netsh winsock reset</"
 "b></span><br>"
 
 #: spyder/app/mainwindow.py:557
@@ -225,7 +225,7 @@ msgstr "刷新PYTHONPATH中可用模块列表"
 
 #: spyder/app/mainwindow.py:704
 msgid "Reset Spyder to factory defaults"
-msgstr "重置Spyder到初始设置"
+msgstr "恢复出厂设置"
 
 #: spyder/app/mainwindow.py:709
 msgid "Current user environment variables..."
@@ -290,7 +290,7 @@ msgstr ""
 "这个控制台用于汇报应用程序内部错误并通过spy.app, spy.window, dir(spy) 来检查"
 "Spyder内部。\n"
 "\n"
-"请不要使用它执行你的代码\n"
+"请不要使用它执行您的代码\n"
 "\n"
 
 #: spyder/app/mainwindow.py:830
@@ -468,9 +468,9 @@ msgid ""
 "result in bugs. Please be sure that any found bugs are not the direct result "
 "of missing dependencies, prior to reporting a new issue."
 msgstr ""
-"<b>你缺少依赖!</b><br><br><tt>%s</tt><br><br><b>请安装缺少的依赖可以消除此信"
+"<b>您缺少依赖!</b><br><br><tt>%s</tt><br><br><b>请安装缺少的依赖可以消除此信"
 "息。</b><br><br><i>提示</i>: Spyder可以在没有这些依赖的情况下工作，为使得"
-"Spyder运行更 <i>流畅</i>强烈建议你安装所有缺失的依赖。 <br><br>不安装这些依赖"
+"Spyder运行更 <i>流畅</i>强烈建议您安装所有缺失的依赖。 <br><br>不安装这些依赖"
 "可能会导致错误。请确保任何发生的BUG不是因为丢失依赖导致，之后再报告该BUG。"
 
 #: spyder/app/mainwindow.py:1756
@@ -514,7 +514,7 @@ msgid ""
 "Do you want to continue?"
 msgstr ""
 "窗口布局将重置为默认设置：这会影响窗口位置，大小和dockwidgets。\n"
-"你想继续吗？"
+"您想继续吗？"
 
 #: spyder/app/mainwindow.py:1825
 msgid ""
@@ -606,7 +606,7 @@ msgid ""
 "new version. <br><br>If you are not sure how to proceed to update Spyder "
 "please refer to our  <a href=\"%s\">Installation</a> instructions."
 msgstr ""
-"<b>Spyder %s 可用!</b> <br><br>请使用你的模块管理器更新Spyder或去我们的 <a "
+"<b>Spyder %s 可用!</b> <br><br>请使用您的模块管理器更新Spyder或去我们的 <a "
 "href=\"%s\">发布</a> 页面下载最新版本. <br><br>如果您不确定如何更新请参与我们"
 "的<a href=\"%s\">安装</a> 说明文档。"
 
@@ -674,7 +674,7 @@ msgid ""
 "click on the buttons below to move along the tour."
 msgstr ""
 "<b>Spyder</b>是基于Python语言的一个功能强大的继承开发环境 (或IDE) .<br><br>我"
-"们将指导你了解其最重要的特点。<br><br>请使用方向键或点击下面的按钮来浏览。"
+"们将指导您了解其最重要的特点。<br><br>请使用方向键或点击下面的按钮来浏览。"
 
 #: spyder/app/tour.py:133
 msgid "The Editor"
@@ -690,10 +690,10 @@ msgid ""
 "the code.<br><br>You can also set debug breakpoints in the line number area, "
 "by doing a double click next to a non-empty line."
 msgstr ""
-"这是你编写代码的地方。在编写代码时，你可以按下<b>Tab</b>来获得自动补全。"
-"<br><br>在编辑器的行号区域（红色高亮区），Spyder 会提示警告和语法错误。这些提"
-"示可以帮助你在运行代码前发现潜在的问题。<br><br>你也可以双击在非空行一侧的行"
-"号区域设置断点。"
+"这是您编写代码的地方。在编写代码时，您可以按下<b>Tab</b>来获得自动补全。"
+"<br><br>在编辑器的行号区域（红色方框内的区域），Spyder 会提示警告和语法错误。"
+"这些提示可以帮助您在运行代码前发现潜在的问题。<br><br>您也可以双击在非空行一"
+"侧的行号区域设置断点。"
 
 #: spyder/app/tour.py:149
 msgid "The IPython console"
@@ -709,10 +709,10 @@ msgid ""
 "click on the button below to run some simple code in this console. This will "
 "be useful to show you other important features."
 msgstr ""
-"这是你的代码执行面板。你可以按下<b>F5</b>运行代码。<br><br>这个控制台有很多有"
-"用的特效来改善你的编程体验（比如说代码高亮和图表显示）。如果你希望了解更多，"
+"这是您的代码执行窗格。您可以按下<b>F5</b>运行代码。<br><br>这个控制台有很多有"
+"用的特性来改善您的编程体验（比如说代码高亮和图表显示）。如果您希望了解更多，"
 "请查看这个<a href=\"{0}\">链接</a>.<br><br>请点击下面的按钮在控制台执行一些简"
-"单的代码，这会向你展示一些重要的特性。"
+"单的代码，这会向您展示一些重要的特性。"
 
 #: spyder/app/tour.py:166
 msgid "The Variable Explorer"
@@ -727,9 +727,9 @@ msgid ""
 "of them, a new window will be opened, where you can inspect and modify their "
 "contents."
 msgstr ""
-"在这个面板，你可以查看和编辑程序运行与控制台代码执行时产生的变量。<br><br>如"
-"你所见，变量资源管理器展示了这个教程最后一步产生的变量。双击这些变量会打开一"
-"个新窗口，在里面你可以查看和编辑变量的内容。"
+"在这个窗格，您可以查看和编辑程序运行与控制台代码执行时产生的变量。<br><br>如"
+"您所见，变量资源管理器展示了这个教程最后一步产生的变量。双击这些变量会打开一"
+"个新窗口，在里面您可以查看和编辑变量的内容。"
 
 #: spyder/app/tour.py:179 spyder/plugins/help.py:482 spyder/plugins/help.py:931
 #: spyder/widgets/internalshell.py:271
@@ -743,8 +743,8 @@ msgid ""
 "it, you need to press <b>Ctrl+I</b> in front of an object. If that object "
 "has some documentation associated with it, it will be displayed here."
 msgstr ""
-"这个面板显示了你当前在编辑器或终端里使用的函数、类、方法或模块的文档。"
-"<br><br>你可以在一个对象前按下<b>Ctrl+I</b>使用这个面板。如果那个对象有关联的"
+"这个窗格显示了您当前在编辑器或终端里使用的函数、类、方法或模块的文档。"
+"<br><br>您可以在一个对象前按下<b>Ctrl+I</b>使用这个窗格。如果那个对象有关联的"
 "文档，那么文档将会展示在这里。"
 
 #: spyder/app/tour.py:190
@@ -759,7 +759,7 @@ msgid ""
 "one exception to this rule: plain-text files will always be opened in the "
 "Spyder Editor."
 msgstr ""
-"此窗格允许您浏览计算机中存在的目录和文件。<br><br>你可以通过双击来使用与文件"
+"此窗格允许您浏览计算机中存在的目录和文件。<br><br>您可以通过双击来使用与文件"
 "类型关联的应用程序来打开任意的文件。<br><br> 但此规则有一个例外：将始终在"
 "Spyder编辑器中打开纯文本文件。"
 
@@ -770,7 +770,7 @@ msgstr "历史日志"
 #: spyder/app/tour.py:202
 msgid ""
 "This pane records all commands introduced in the Python and IPython consoles."
-msgstr "这个面板记录了在Python和IPython控制台里输入的命令。"
+msgstr "这个窗格记录了在Python和IPython控制台里输入的命令。"
 
 #: spyder/app/tour.py:250
 msgid "<b>Spyder</b> is an interactive development environment based on bla"
@@ -975,7 +975,7 @@ msgstr "Spyder需要重启以更改以下设置："
 
 #: spyder/plugins/configdialog.py:835
 msgid "Do you wish to restart now?"
-msgstr "你希望现在重启吗？"
+msgstr "您希望现在重启吗？"
 
 #: spyder/plugins/configdialog.py:841
 msgid "Information"
@@ -1048,7 +1048,7 @@ msgstr "设置该选项后，可以从主窗口中删除任意菜单"
 
 #: spyder/plugins/configdialog.py:941
 msgid "Custom margin for panes:"
-msgstr "自定义面板外边距："
+msgstr "自定义窗格外边距："
 
 #: spyder/plugins/configdialog.py:943
 msgid "pixels"
@@ -1092,6 +1092,8 @@ msgid ""
 "Configuration for high DPI screens<br><br>Please see <a href=\"{0}\">{0}</"
 "a><> for more information about these options (in English)."
 msgstr ""
+"高DPI显示器配置<br><br>请查阅<a href=\"{0}\">{0}</a>来获取关于此选项的更多信"
+"息。"
 
 #: spyder/plugins/configdialog.py:1048
 msgid "Normal"
@@ -1155,8 +1157,8 @@ msgid ""
 "plugins.<br><br>You can also edit the color schemes provided by Spyder or "
 "create your own ones by using the options provided below.<br>"
 msgstr ""
-"在此处你可以选择用于编辑器和其他所有Spyder插件的颜色方案<br><br>你也可以编辑"
-"Spyder提供的配色方案或使用下面的选项创建你个人的配色方案<br>"
+"在此处您可以选择用于编辑器和其他所有Spyder插件的颜色方案<br><br>您也可以编辑"
+"Spyder提供的配色方案或使用下面的选项创建您个人的配色方案<br>"
 
 #: spyder/plugins/configdialog.py:1182
 msgid "Edit selected"
@@ -1185,7 +1187,7 @@ msgstr "管理配色方案"
 
 #: spyder/plugins/configdialog.py:1416
 msgid "Are you sure you want to delete this scheme?"
-msgstr "你确定删除该方案吗？"
+msgstr "您确定删除该方案吗？"
 
 #: spyder/plugins/configdialog.py:1533
 msgid "Text"
@@ -1249,7 +1251,7 @@ msgstr "外部编辑路径…"
 
 #: spyder/plugins/console.py:167
 msgid "Set external editor executable path"
-msgstr "设置外部编辑器的可执行路径"
+msgstr "设置外部编辑器可执行文件路径"
 
 #: spyder/plugins/console.py:170 spyder/plugins/editor.py:149
 #: spyder/plugins/help.py:152 spyder/plugins/help.py:358
@@ -1268,7 +1270,7 @@ msgstr "代码自动补全"
 
 #: spyder/plugins/console.py:181 spyder/plugins/editor.py:183
 msgid "Enter key selects completion"
-msgstr "Entry键完成选择"
+msgstr "回车键选择补全"
 
 #: spyder/plugins/console.py:186
 msgid "Internal console settings"
@@ -1305,7 +1307,7 @@ msgstr "在编辑器操作Jupyter notebooks"
 
 #: spyder/plugins/editor.py:111
 msgid "Edit template for new modules"
-msgstr "为新模块编辑模板"
+msgstr "编辑新模块模板"
 
 #: spyder/plugins/editor.py:116
 msgid "Show tab bar"
@@ -1319,7 +1321,7 @@ msgstr "源代码"
 
 #: spyder/plugins/editor.py:123
 msgid "Show line numbers"
-msgstr "显示行数"
+msgstr "显示行号"
 
 #: spyder/plugins/editor.py:124 spyder/plugins/editor.py:985
 msgid "Show blank spaces"
@@ -1327,7 +1329,7 @@ msgstr "显示空白"
 
 #: spyder/plugins/editor.py:125
 msgid "Show vertical line after"
-msgstr "垂直标尺位置"
+msgstr "显示垂直标尺"
 
 #: spyder/plugins/editor.py:126
 msgid "characters"
@@ -1764,8 +1766,8 @@ msgid ""
 "Run current cell (Ctrl+Enter)\n"
 "[Use #%% to create cells]"
 msgstr ""
-"运行当前cell\n"
-"[使用#%%来创建cell]"
+"运行当前单元\n"
+"[使用#%%来创建单元]"
 
 #: spyder/plugins/editor.py:845 spyder/widgets/sourcecode/codeeditor.py:2719
 msgid "Run cell and advance"
@@ -1777,11 +1779,11 @@ msgstr "运行当前单元并跳到下一单元(Shift+Enter)"
 
 #: spyder/plugins/editor.py:854 spyder/widgets/sourcecode/codeeditor.py:2723
 msgid "Re-run last cell"
-msgstr "重新运行最后一个cell"
+msgstr "重新运行最后一个单元"
 
 #: spyder/plugins/editor.py:855
 msgid "Re run last cell "
-msgstr "重新运行最后的cell "
+msgstr "重新运行最后一个单元 "
 
 #: spyder/plugins/editor.py:865
 msgid "Show todo list"
@@ -1902,19 +1904,19 @@ msgstr "将当前行或所选行转为小写"
 
 #: spyder/plugins/editor.py:967
 msgid "Carriage return and line feed (Windows)"
-msgstr "回车与换行(Windows)"
+msgstr "回车与换行 CRLF（Windows）"
 
 #: spyder/plugins/editor.py:970
 msgid "Line feed (UNIX)"
-msgstr "换行（UNIX)"
+msgstr "换行 LF（UNIX）"
 
 #: spyder/plugins/editor.py:973
 msgid "Carriage return (Mac)"
-msgstr "回车（Mac）"
+msgstr "回车 CR（Mac）"
 
 #: spyder/plugins/editor.py:979
 msgid "Convert end-of-line characters"
-msgstr "转换结束字符串"
+msgstr "转换换行符"
 
 #: spyder/plugins/editor.py:983
 msgid "Remove trailing spaces"
@@ -2018,7 +2020,7 @@ msgid ""
 "It seems you don't have either installed."
 msgstr ""
 "该特性需要 Rope 或 Jedi 库。\n"
-"看起来你两者都没有安装。"
+"看起来您两者都没有安装。"
 
 #: spyder/plugins/help.py:125
 msgid "IPython Console"
@@ -2092,7 +2094,7 @@ msgid ""
 "writing a left parenthesis next to an object. You can activate this behavior "
 "in %s."
 msgstr ""
-"在编辑器或者控制台中，光标在任何对象上时，按下%s你都可以在这里获得帮助信"
+"在编辑器或者控制台中，光标在任何对象上时，按下%s您都可以在这里获得帮助信"
 "息。%s帮助也可以写一个左括号对象后自动显示。您可以在%s中激活此行为。"
 
 #: spyder/plugins/help.py:698
@@ -2197,7 +2199,7 @@ msgstr "在IPython控制台显示2D图形"
 msgid ""
 "The authenticity of host <b>%s</b> can't be established. Are you sure you "
 "want to continue connecting?"
-msgstr "无法确定主机<b>%s</b>身份真实性，你想要继续连接吗？"
+msgstr "无法确定主机<b>%s</b>身份真实性，您想要继续连接吗？"
 
 #: spyder/plugins/ipythonconsole.py:143
 msgid "The authenticity of the host can't be established"
@@ -2295,7 +2297,7 @@ msgstr "显示初始banner"
 msgid ""
 "This option lets you hide the message shown at\n"
 "the top of the console when it's opened."
-msgstr "此选项让你隐藏控制台开启时顶端的消息。"
+msgstr "此选项让您隐藏控制台开启时顶端的消息。"
 
 #: spyder/plugins/ipythonconsole.py:305
 msgid "Use a pager to display additional text inside the console"
@@ -2307,7 +2309,7 @@ msgid ""
 "texts.\n"
 "Note: Use the Q key to get out of the pager."
 msgstr ""
-"如果你不想终端被长帮助或补全文本填充时很有用。\n"
+"如果您不想终端被长帮助或补全文本填充时很有用。\n"
 "注意：使用Q键退出。"
 
 #: spyder/plugins/ipythonconsole.py:312
@@ -2322,7 +2324,7 @@ msgstr "在移除所有用户定义变量前询问"
 msgid ""
 "This option lets you hide the warning message shown\n"
 "when resetting the namespace from Spyder."
-msgstr "该选项使你能隐藏重置Spyder命名空间时的警告信息。"
+msgstr "该选项使您能隐藏重置Spyder命名空间时的警告信息。"
 
 #: spyder/plugins/ipythonconsole.py:320
 #: spyder/widgets/ipythonconsole/client.py:356
@@ -2337,7 +2339,7 @@ msgstr "在重新启动之前要求确认"
 msgid ""
 "This option lets you hide the warning message shown\n"
 "when restarting the kernel."
-msgstr "该选项会让你隐藏重启核心时的警告信息。"
+msgstr "该选项会让您隐藏重启核心时的警告信息。"
 
 #: spyder/plugins/ipythonconsole.py:337
 msgid "Completion Type"
@@ -2399,7 +2401,7 @@ msgid ""
 "plotting libraries different to Matplotlib or to develop \n"
 "GUIs with Spyder."
 msgstr ""
-"这会让你不导入命令的情况下绘制图形。\n"
+"这会让您不导入命令的情况下绘制图形。\n"
 "在使用matplotlib以外的绘图库或开发GUI时很有用。"
 
 #: spyder/plugins/ipythonconsole.py:382
@@ -2449,11 +2451,11 @@ msgstr "分辨率："
 
 #: spyder/plugins/ipythonconsole.py:427
 msgid "dpi"
-msgstr ""
+msgstr "dpi"
 
 #: spyder/plugins/ipythonconsole.py:429
 msgid "Only used when the format is PNG. Default is 72"
-msgstr "只有使用的格式是PNG。默认值是72"
+msgstr "只有在格式是PNG时使用。默认值是72"
 
 #: spyder/plugins/ipythonconsole.py:432
 msgid "Width:"
@@ -2512,7 +2514,7 @@ msgid ""
 "You can also run a whole file at startup instead of just some lines (This is "
 "similar to have a PYTHONSTARTUP file)."
 msgstr ""
-"你也可以在不只是一些线启动运行整个文件（这是类似于一个pythonstartup文件）。"
+"您也可以在不只是一些线启动运行整个文件（这是类似于一个pythonstartup文件）。"
 
 #: spyder/plugins/ipythonconsole.py:495
 msgid "Use the following file:"
@@ -2529,7 +2531,7 @@ msgid ""
 "Slows down your console when working with large dataframes!"
 msgstr ""
 "在IPython中启用基于Jedi的<tt>Tab</tt>补全；和贪心补全类似，但不会实际执行代"
-"码。<br><br><b>警告：</b>会让你的控制台在处理大DataFrames时效率低下！"
+"码。<br><br><b>警告：</b>会让您的控制台在处理大DataFrames时效率低下！"
 
 #: spyder/plugins/ipythonconsole.py:517
 msgid "Use Jedi completion in the IPython console"
@@ -2709,7 +2711,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole.py:1362
 msgid "Do you want to close this console?"
-msgstr "你想关闭当前控制台吗？"
+msgstr "您想关闭当前控制台吗？"
 
 #: spyder/plugins/ipythonconsole.py:1368
 msgid ""
@@ -2873,7 +2875,7 @@ msgid ""
 "The following modules are not installed on your machine:\n"
 "%s"
 msgstr ""
-"下面的模块没有在你的计算机上安装：\n"
+"下面的模块没有在您的计算机上安装：\n"
 "%s"
 
 #: spyder/plugins/maininterpreter.py:227
@@ -2985,7 +2987,7 @@ msgstr "系统终端"
 
 #: spyder/plugins/runconfig.py:241
 msgid "<b>-u</b> is added to the other options you set here"
-msgstr "<b>-u</b>已经添加到你设置的其他选项中"
+msgstr "<b>-u</b>已经添加到您设置的其他选项中"
 
 #: spyder/plugins/runconfig.py:250
 msgid "this dialog"
@@ -3129,7 +3131,7 @@ msgstr "重置快捷键"
 
 #: spyder/plugins/shortcuts.py:878
 msgid "Do you want to reset to default values?"
-msgstr "你想要重置为默认值吗？"
+msgstr "您想要重置为默认值吗？"
 
 #: spyder/plugins/variableexplorer.py:24
 msgid "View and edit DataFrames and Series in the Variable Explorer"
@@ -3527,7 +3529,7 @@ msgstr "水平分割当前编辑窗"
 
 #: spyder/widgets/editor.py:1299
 msgid "Close this panel"
-msgstr "关闭当前面板"
+msgstr "关闭当前窗格"
 
 #: spyder/widgets/editor.py:1534
 msgid "<b>%s</b> has been modified.<br>Do you want to save changes?"
@@ -3548,7 +3550,7 @@ msgid ""
 "<b>%s</b> is unavailable (this file may have been removed, moved or renamed "
 "outside Spyder).<br>Do you want to close it?"
 msgstr ""
-"<b>%s</b> 不可用(该文件已被移除、移动或在Spyder之外被重命名).<br>你想关闭它"
+"<b>%s</b> 不可用(该文件已被移除、移动或在Spyder之外被重命名).<br>您想关闭它"
 "吗?"
 
 #: spyder/widgets/editor.py:1994
@@ -3704,7 +3706,7 @@ msgstr "导入"
 
 #: spyder/widgets/explorer.py:583
 msgid "Do you really want to delete <b>%s</b>?"
-msgstr "你确定要删除<b>%s</b>?"
+msgstr "您确定要删除<b>%s</b>?"
 
 #: spyder/widgets/explorer.py:601
 msgid "delete"
@@ -3759,7 +3761,7 @@ msgstr "新名称："
 msgid ""
 "Do you really want to rename <b>%s</b> and overwrite the existing file <b>"
 "%s</b>?"
-msgstr "你确实想要重命名<b>%s</b>并覆盖已存在的文件<b>%s</b>吗？"
+msgstr "您确实想要重命名<b>%s</b>并覆盖已存在的文件<b>%s</b>吗？"
 
 #: spyder/widgets/explorer.py:677
 msgid "<b>Unable to rename file <i>%s</i></b><br><br>Error message:<br>%s"
@@ -3897,7 +3899,7 @@ msgstr "清除其他目录"
 
 #: spyder/widgets/findinfiles.py:334
 msgid "Do you want to clear the list of other directories?"
-msgstr "你想关闭其他目录列表么？"
+msgstr "您想关闭其他目录列表么？"
 
 #: spyder/widgets/findinfiles.py:404 spyder/widgets/findreplace.py:52
 msgid "Regular expression error"
@@ -4055,7 +4057,7 @@ msgstr "保存密码失败"
 msgid ""
 "It was not possible to securely save your password. You will be prompted for "
 "your Github credentials next time you want to report an issue."
-msgstr "不能安全地保存密码。你会在下次报告issue时再次被询问凭据。"
+msgstr "不能安全地保存密码。您会在下次报告issue时再次被询问凭据。"
 
 #: spyder/widgets/github/backend.py:212
 msgid "Failed to store token"
@@ -4065,7 +4067,7 @@ msgstr "无法保存token"
 msgid ""
 "It was not possible to securely save your token. You will be prompted for "
 "your Github token next time you want to report an issue."
-msgstr "不能安全地保存token。你会在下次报告issue时再次被询问凭据。"
+msgstr "不能安全地保存token。您会在下次报告issue时再次被询问凭据。"
 
 #: spyder/widgets/github/backend.py:237
 msgid "Failed to retrieve password"
@@ -4074,7 +4076,7 @@ msgstr "无法获取密码"
 #: spyder/widgets/github/backend.py:238
 msgid ""
 "It was not possible to retrieve your password. Please introduce it again."
-msgstr "不能获取你的密码。请重新输入。"
+msgstr "不能获取您的密码。请重新输入。"
 
 #: spyder/widgets/github/backend.py:249
 msgid "Failed to retrieve token"
@@ -4082,7 +4084,7 @@ msgstr "无法获取token"
 
 #: spyder/widgets/github/backend.py:250
 msgid "It was not possible to retrieve your token. Please introduce it again."
-msgstr "不能获取你的token，请重新输入。"
+msgstr "不能获取您的token，请重新输入。"
 
 #: spyder/widgets/github/gh_login.py:38
 msgid "Sign in to Github"
@@ -4108,7 +4110,7 @@ msgstr "记住我"
 
 #: spyder/widgets/github/gh_login.py:82
 msgid "Spyder will save your credentials safely"
-msgstr "Spyder将会安全地保存你的凭据"
+msgstr "Spyder将会安全地保存您的凭据"
 
 #: spyder/widgets/github/gh_login.py:99
 msgid "Password Only"
@@ -4130,7 +4132,7 @@ msgstr "记住令牌"
 
 #: spyder/widgets/github/gh_login.py:128
 msgid "Spyder will save your token safely"
-msgstr "Spyder将会安全保存你的令牌"
+msgstr "Spyder将会安全保存您的令牌"
 
 #: spyder/widgets/github/gh_login.py:145
 msgid "Access Token"
@@ -4228,7 +4230,7 @@ msgstr "清空控制台"
 
 #: spyder/widgets/ipythonconsole/client.py:507
 msgid "Are you sure you want to restart the kernel?"
-msgstr "你确定重启内核吗？"
+msgstr "您确定重启内核吗？"
 
 #: spyder/widgets/ipythonconsole/client.py:509
 msgid "Restart kernel?"
@@ -4269,7 +4271,7 @@ msgstr "不支持在调试时保存数据。"
 #: spyder/widgets/ipythonconsole/shell.py:235
 msgid ""
 "All user-defined variables will be removed. Are you sure you want to proceed?"
-msgstr "将删除所有用户定义的变量。 你确定要继续吗？"
+msgstr "将删除所有用户定义的变量。 您确定要继续吗？"
 
 #: spyder/widgets/ipythonconsole/shell.py:241
 msgid "Don't show again."
@@ -4363,8 +4365,8 @@ msgid ""
 "Spyder without having to configure sys.path. <br>Do you want to clear "
 "contents of PYTHONPATH before adding Spyder's path list?"
 msgstr ""
-"这将会使用当前用户的<b>PYTHONPATH</b>环境变量同步Spyder的path列表，以允许你不"
-"配置 sys.path 而运行你的Python模块。<br>你想要在Spyder将它们添加到path列表之"
+"这将会使用当前用户的<b>PYTHONPATH</b>环境变量同步Spyder的path列表，以允许您不"
+"配置 sys.path 而运行您的Python模块。<br>您想要在Spyder将它们添加到path列表之"
 "前清除PYTHONPATH吗？"
 
 #: spyder/widgets/pathmanager.py:248
@@ -4381,7 +4383,7 @@ msgstr "您正在使用Python 2，并且所选路径具有Unicode字符。 新�
 msgid ""
 "This directory is already included in Spyder path list.<br>Do you want to "
 "move it to the top of the list?"
-msgstr "这个目录已经包含在Spyder的path列表中。<br>你确定要移动它到列表头部吗？"
+msgstr "这个目录已经包含在Spyder的path列表中。<br>您确定要移动它到列表头部吗？"
 
 #: spyder/widgets/projects/configdialog.py:30
 msgid "Project preferences"
@@ -4434,7 +4436,7 @@ msgstr "显示水平滚动条"
 
 #: spyder/widgets/projects/explorer.py:113
 msgid "File <b>%s</b> already exists.<br>Do you want to overwrite it?"
-msgstr "文件 <b>%s</b>已存在。 <br>你确定要覆盖它吗?"
+msgstr "文件 <b>%s</b>已存在。 <br>您确定要覆盖它吗?"
 
 #: spyder/widgets/projects/explorer.py:127
 msgid "Folder <b>%s</b> already exists."
@@ -4454,7 +4456,7 @@ msgid ""
 "action will only delete the project. Its files are going to be preserved on "
 "disk."
 msgstr ""
-"你确定要删除 <b>{filename}</b>?<br><br><b>提示:</b> 本操作只会删除项目，它的"
+"您确定要删除 <b>{filename}</b>?<br><br><b>提示:</b> 本操作只会删除项目，它的"
 "文件仍将保存在磁盘上。"
 
 #: spyder/widgets/projects/explorer.py:257
@@ -4589,7 +4591,7 @@ msgid ""
 "your clipboard into the issue report box that will appear in a new browser "
 "tab before clicking <i>Submit</i> on that page."
 msgstr ""
-"尝试自动将问题发送到Github时发生错误。你想手动打开吗？<br><br>如果是这样，请"
+"尝试自动将问题发送到Github时发生错误。您想手动打开吗？<br><br>如果是这样，请"
 "确保将剪贴板粘贴到问题报告框中，该框将显示在新的浏览器选项卡中，然后单击该页"
 "面上的<i>Submit</i>。"
 
@@ -4895,7 +4897,7 @@ msgid ""
 msgstr ""
 "打开这个变量可能很慢\n"
 "\n"
-"你想要继续吗？"
+"您想要继续吗？"
 
 #: spyder/widgets/variableexplorer/collectionseditor.py:461
 msgid ""
@@ -4947,11 +4949,11 @@ msgstr "重复"
 
 #: spyder/widgets/variableexplorer/collectionseditor.py:968
 msgid "Do you want to remove the selected item?"
-msgstr "你确定要删除所选条目吗？"
+msgstr "您确定要删除所选条目吗？"
 
 #: spyder/widgets/variableexplorer/collectionseditor.py:969
 msgid "Do you want to remove all selected items?"
-msgstr "你确定要删除所有选中的条目吗？"
+msgstr "您确定要删除所有选中的条目吗？"
 
 #: spyder/widgets/variableexplorer/collectionseditor.py:989
 msgid "New variable name:"
@@ -5164,7 +5166,7 @@ msgid ""
 "<b>Unable to proceed to next step</b><br><br>Please check your entries."
 "<br><br>Error message:<br>%s"
 msgstr ""
-"<b>无法继续下一步</b><br><br>请检查你的项是否正确。<br><br>错误信息：<br>%s"
+"<b>无法继续下一步</b><br><br>请检查您的项是否正确。<br><br>错误信息：<br>%s"
 
 #: spyder/widgets/variableexplorer/namespacebrowser.py:184
 #: spyder/widgets/variableexplorer/namespacebrowser.py:397
@@ -5184,21 +5186,21 @@ msgstr "数据另存为..."
 
 #: spyder/widgets/variableexplorer/namespacebrowser.py:204
 msgid "Exclude references which name starts with an underscore"
-msgstr "排除名称以下划线开头的引用"
+msgstr "排除以下划线开头的名字"
 
 #: spyder/widgets/variableexplorer/namespacebrowser.py:212
 msgid "Exclude references which name is uppercase"
-msgstr "排除名称全大写的引用"
+msgstr "排除全大写的名字"
 
 #: spyder/widgets/variableexplorer/namespacebrowser.py:219
 msgid "Exclude references which name starts with an uppercase character"
-msgstr "排除名称以大写字母开头的引用"
+msgstr "排除以大写字母开头的名字"
 
 #: spyder/widgets/variableexplorer/namespacebrowser.py:227
 msgid ""
 "Exclude references to unsupported data types (i.e. which won't be handled/"
 "saved correctly)"
-msgstr "排除不支持的数据类型的引用（因为无法被正确处理和保存）"
+msgstr "排除具有不支持数据类型的名字（因为无法被正确处理和保存）"
 
 #: spyder/widgets/variableexplorer/namespacebrowser.py:306
 msgid ""
@@ -5238,7 +5240,7 @@ msgstr "无法获取信息。"
 msgid ""
 "Unable to connect to the internet. <br><br>Make sure the connection is "
 "working properly."
-msgstr "无法连接到互联网。<br><br>请确保你的网络工作正常。"
+msgstr "无法连接到互联网。<br><br>请确保您的网络工作正常。"
 
 #: spyder/workers/updates.py:135
 msgid "Unable to check for updates."
@@ -5451,7 +5453,7 @@ msgstr ""
 
 #: spyder/plugins/pylint/widgets/pylintgui.py:122
 msgid "Convention"
-msgstr "惯例"
+msgstr "约定"
 
 #: spyder/plugins/pylint/widgets/pylintgui.py:124
 msgid "Refactor"
