@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2018-11-13 11:49+-05\n"
-"PO-Revision-Date: 2019-04-03 10:39+0800\n"
+"PO-Revision-Date: 2019-04-03 13:06+0800\n"
 "Last-Translator: weak_ptr <weak_ptr@163.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -177,11 +177,11 @@ msgstr "调试(&D)"
 
 #: spyder/app/mainwindow.py:659 spyder/plugins/editor.py:1417
 msgid "Debug toolbar"
-msgstr "调试工具栏调试&D"
+msgstr "调试工具栏"
 
 #: spyder/app/mainwindow.py:663
 msgid "C&onsoles"
-msgstr "控制台"
+msgstr "控制台(&O)"
 
 #: spyder/app/mainwindow.py:666
 msgid "&Projects"
@@ -299,7 +299,7 @@ msgstr "加载帮助…"
 
 #: spyder/app/mainwindow.py:837
 msgid "Loading outline explorer..."
-msgstr "加载输出资源管理器…"
+msgstr "加载大纲浏览器…"
 
 #: spyder/app/mainwindow.py:843
 msgid "Loading editor..."
@@ -1393,7 +1393,7 @@ msgstr "自动插入圆括号、中括号、大括号"
 
 #: spyder/plugins/editor.py:203
 msgid "Automatic insertion of closing quotes"
-msgstr "自动插入结束引用"
+msgstr "自动插入成对的引号"
 
 #: spyder/plugins/editor.py:205
 msgid "Automatic insertion of colons after 'for', 'if', 'def', etc"
@@ -1441,7 +1441,7 @@ msgstr "表格"
 
 #: spyder/plugins/editor.py:219
 msgid "Tab stop width:"
-msgstr "制表宽度："
+msgstr "制表符宽度："
 
 #: spyder/plugins/editor.py:219
 msgid "spaces"
@@ -1449,7 +1449,7 @@ msgstr "空格"
 
 #: spyder/plugins/editor.py:231
 msgid "Tab always indent"
-msgstr "标签总是缩进"
+msgstr "Tab键总是缩进"
 
 #: spyder/plugins/editor.py:233
 msgid ""
@@ -2890,7 +2890,7 @@ msgstr "在线帮助"
 
 #: spyder/plugins/outlineexplorer.py:48 spyder/widgets/editortools.py:194
 msgid "Outline"
-msgstr "概述"
+msgstr "大纲"
 
 #: spyder/plugins/projects.py:77 spyder/widgets/projects/explorer.py:112
 #: spyder/widgets/projects/explorer.py:126
@@ -3377,7 +3377,7 @@ msgstr ""
 "           在MATLAB中输入一个数组    : <code>[1 2;3 4]</code><br>\n"
 "           或Spyder简化的语法            : <code>1 2;3 4</code>\n"
 "           <br><br>\n"
-"           为数组敲击 'Enter'， 为矩阵敲击 'Ctrl+Enter' 。\n"
+"           输入数组时敲 'Enter' ，输入矩阵时敲 'Ctrl+Enter'\n"
 "           <br><br>\n"
 "           <b>提示：</b><br>\n"
 "           使用两个Tab或两个空格来生成 ';'。\n"
@@ -3396,6 +3396,16 @@ msgid ""
 "           Use two tabs at the end of a row to move to the next row.\n"
 "           "
 msgstr ""
+"\n"
+"           <b>Numpy 数组/矩阵 助手</b><br>\n"
+"           在表格中输入一个数组。<br>\n"
+"           使用Tab在单元格之间切换。\n"
+"           <br><br>\n"
+"           输入数组时敲 'Enter' ，输入矩阵时敲 'Ctrl+Enter'\n"
+"           <br><br>\n"
+"           <b>提示：</b><br>\n"
+"           在行末使用两个tab来切换到下一行。\n"
+"           "
 
 #: spyder/widgets/arraybuilder.py:365
 msgid "Array dimensions not valid"
@@ -3621,7 +3631,7 @@ msgstr "显示特殊的注释"
 
 #: spyder/widgets/editortools.py:500
 msgid "Show/hide outline explorer"
-msgstr "显示/隐藏概要浏览器"
+msgstr "显示/隐藏大纲浏览器"
 
 #: spyder/widgets/explorer.py:282
 msgid "Edit filename filters..."
