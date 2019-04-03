@@ -693,7 +693,7 @@ DEFAULTS = [
               'pycodestyle/select': '',
               'pycodestyle/ignore': '',
               'pycodestyle/max_line_length': 79,
-              'pydocstyle': True,
+              'pydocstyle': False,
               'pydocstyle/convention': 'numpy',
               'pydocstyle/add_select': '',
               'pydocstyle/add_ignore': '',
