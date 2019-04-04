@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2018-11-13 11:49+-05\n"
-"PO-Revision-Date: 2019-04-03 20:17+0800\n"
+"PO-Revision-Date: 2019-04-04 10:19+0800\n"
 "Last-Translator: weak_ptr <weak_ptr@163.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -1716,7 +1716,7 @@ msgstr "步回"
 
 #: spyder/plugins/editor.py:791
 msgid "Run until current function or method returns"
-msgstr "执行知道当前函数或方法返回"
+msgstr "执行直到当前函数或方法返回"
 
 #: spyder/plugins/editor.py:796 spyder/widgets/findinfiles.py:450
 #: spyder/widgets/ipythonconsole/client.py:393
@@ -1766,7 +1766,7 @@ msgid ""
 "Run current cell (Ctrl+Enter)\n"
 "[Use #%% to create cells]"
 msgstr ""
-"运行当前Cell\n"
+"运行当前Cell （Ctrl+Enter）\n"
 "[使用#%%来创建Cell]"
 
 #: spyder/plugins/editor.py:845 spyder/widgets/sourcecode/codeeditor.py:2719
@@ -1864,7 +1864,7 @@ msgstr "在当前行或所选行添加块注释"
 
 #: spyder/plugins/editor.py:931
 msgid "R&emove block comment"
-msgstr "移除块注释(&R)"
+msgstr "移除块注释(&E)"
 
 #: spyder/plugins/editor.py:932
 msgid "Remove comment block around current line or selection"
@@ -2224,9 +2224,9 @@ msgid ""
 "kernel to connect to, and enter the SSH host name and credentials if a "
 "remote kernel."
 msgstr ""
-"请选择JSON连接文件（<I>e.g.</I><tt>kernel-3764.json</tt>）或者输入四位"
-"ID（<I>e.g.</I><tt>3764</tt>）来需要连接的已存在 IPython kernel，如果是远程 "
-"IPython kernel，还需要输入SSH主机名和凭据。"
+"请选择JSON连接文件（<I>例如</I><tt>kernel-3764.json</tt>）或者输入四位ID（<I>"
+"例如</I><tt>3764</tt>）来需要连接的已存在 IPython kernel，如果是远程 IPython "
+"kernel，还需要输入SSH主机名和凭据。"
 
 #: spyder/plugins/ipythonconsole.py:183
 msgid "Kernel ID/Connection file:"
@@ -2489,8 +2489,8 @@ msgid ""
 "between the image displayed inline and\n"
 "that created using savefig."
 msgstr ""
-"使用 bbox_inches 来紧凑matplotlib的嵌入图形。\n"
-"当启用时，可能造成savefig和显示图形存在差异。"
+"绘制嵌入Matplotlib图形时，设置bbox_inches为\"tight\"。\n"
+"启用后，可能造成显示的图形与通过savefig保存的图片不一致。"
 
 #: spyder/plugins/ipythonconsole.py:475
 msgid ""
@@ -2514,7 +2514,8 @@ msgid ""
 "You can also run a whole file at startup instead of just some lines (This is "
 "similar to have a PYTHONSTARTUP file)."
 msgstr ""
-"您也可以在不只是一些线启动运行整个文件（这是类似于一个pythonstartup文件）。"
+"你也可以在启动时运行整个文件而不是其中几行（这是一个类似于PYTHONSTARTUP的文"
+"件）。"
 
 #: spyder/plugins/ipythonconsole.py:495
 msgid "Use the following file:"
@@ -3135,11 +3136,11 @@ msgstr "您想要重置为默认值吗？"
 
 #: spyder/plugins/variableexplorer.py:24
 msgid "View and edit DataFrames and Series in the Variable Explorer"
-msgstr "查看和编辑DataFrames并序列化到变量管理器"
+msgstr "在变量管理器里查看和编辑DataFrames与Series"
 
 #: spyder/plugins/variableexplorer.py:29
 msgid "View and edit two and three dimensional arrays in the Variable Explorer"
-msgstr "在变量管理器中查看和编辑两或三个维度的数组"
+msgstr "在变量管理器中查看和编辑二维或三维的数组"
 
 #: spyder/plugins/variableexplorer.py:37
 msgid "Filter"
@@ -4783,11 +4784,11 @@ msgstr "浮点格式化"
 
 #: spyder/widgets/variableexplorer/arrayeditor.py:587
 msgid "Format (%s) is incorrect"
-msgstr "格式化(%s)是不正确的"
+msgstr "格式（%s）不正确"
 
 #: spyder/widgets/variableexplorer/arrayeditor.py:625
 msgid "Arrays with more than 3 dimensions are not supported"
-msgstr "不支持超过3个维度的数组"
+msgstr "不支持三维以上的数组"
 
 #: spyder/widgets/variableexplorer/arrayeditor.py:629
 msgid "The 'xlabels' argument length do no match array column number"
@@ -5176,7 +5177,8 @@ msgid ""
 "<b>Unable to proceed to next step</b><br><br>Please check your entries."
 "<br><br>Error message:<br>%s"
 msgstr ""
-"<b>无法继续下一步</b><br><br>请检查您的项是否正确。<br><br>错误信息：<br>%s"
+"<b>无法继续下一步</b><br><br>请检查您填写的条目是否正确。<br><br>错误信息："
+"<br>%s"
 
 #: spyder/widgets/variableexplorer/namespacebrowser.py:184
 #: spyder/widgets/variableexplorer/namespacebrowser.py:397
