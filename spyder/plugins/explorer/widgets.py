@@ -190,7 +190,7 @@ class DirView(QTreeView):
 
     def set_single_click_to_open(self, value):
         """Set single click to open files."""
-        self._single_click = value
+        self.single_click_to_open = value
         self.parent_widget.sig_option_changed.emit('single_click_to_open',
                                                    value)
 
@@ -508,7 +508,7 @@ class DirView(QTreeView):
     def mouseReleaseEvent(self, event):
         """Reimplement Qt method."""
         QTreeView.mouseReleaseEvent(self, event)
-        if self._single_click:
+        if self.single_click_to_open:
             self.clicked()
 
     @Slot()
