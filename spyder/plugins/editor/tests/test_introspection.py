@@ -12,6 +12,7 @@ import os.path as osp
 # Third party imports
 import pytest
 import pytestqt
+import random
 try:
     from unittest.mock import Mock
 except ImportError:
@@ -99,13 +100,16 @@ def test_space_completion(setup_editor):
     assert code_editor.toPlainText() == 'from numpy import\n'
 
 
-@pytest.mark.slow
+# @pytest.mark.slow
 def test_hide_widget_completion(setup_editor):
     """Validate hiding completion widget after a delimeter or operator."""
     editor, qtbot = setup_editor
     code_editor = editor.get_focus_widget()
     completion = code_editor.completion_widget
 
+    delimiters = ['(', ')', '[', ']', '{', '}', ',', ':', ';', '@', '=', '->',
+                  '+=', '-=', '*=', '/=', '//=', '%=', '@=', '&=', '|=', '^=',
+                  '>>=', '<<=', '**=']
     # Set cursor to start
     code_editor.go_to_line(1)
 
@@ -121,11 +125,14 @@ def test_hide_widget_completion(setup_editor):
     # Check the completion widget is visible
     assert completion.isHidden() is False
 
-    # Write a delimeter on the code editor
-    qtbot.keyClicks(code_editor, '(')
+    # Write a random delimeter on the code editor
+    delimeter = random.choice(delimiters)
+    qtbot.keyClicks(code_editor, delimeter)
 
     # Check the completion widget is not visible
     assert completion.isHidden() is True
+
+    qtbot.keyPress(code_editor, Qt.Key_Enter)
 
 
 @pytest.mark.slow

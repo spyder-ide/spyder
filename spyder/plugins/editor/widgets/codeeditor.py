@@ -2778,9 +2778,9 @@ class CodeEditor(TextEditBaseWidget):
         shift = event.modifiers() & Qt.ShiftModifier
         operators = {'+', '-', '*', '**', '/', '//', '%', '@', '<<', '>>',
                      '&', '|', '^', '~', '<', '>', '<=', '>=', '==', '!='}
-        delimeters = {',', ':', ';', '@', '=', '->', '+=', '-=', '*=', '/=',
+        delimiters = {',', ':', ';', '@', '=', '->', '+=', '-=', '*=', '/=',
                       '//=', '%=', '@=', '&=', '|=', '^=', '>>=', '<<=', '**='}
-        if text in operators or text in delimeters:
+        if text in operators or text in delimiters:
             self.completion_widget.hide()
         if key in (Qt.Key_Enter, Qt.Key_Return):
             if not shift and not ctrl:
