@@ -140,7 +140,11 @@ def test_single_click_to_open(qtbot, file_explorer):
     initial_index = treewidget.currentIndex()  # To keep a reference
 
     def run_test_helper(single_click, initial_index):
+        # Reset the widget
         treewidget.setCurrentIndex(initial_index)
+        file_explorer.label3.setText('')
+        file_explorer.label1.setText('')
+
         for i in range(4):  # 4 items inside `/spyder/plugins/explorer/`
             qtbot.keyClick(treewidget, Qt.Key_Down)        
             index = treewidget.currentIndex()
@@ -149,7 +153,6 @@ def test_single_click_to_open(qtbot, file_explorer):
                 full_path = os.path.join(cwd, path)
                 # Skip folder to avoid changing the view for single click case
                 if os.path.isfile(full_path):
-                    index = treewidget.currentIndex()
                     rect = treewidget.visualRect(index)
                     pos = rect.center()
                     qtbot.mouseClick(treewidget.viewport(), Qt.LeftButton, pos=pos)
@@ -159,15 +162,15 @@ def test_single_click_to_open(qtbot, file_explorer):
                     else:
                         assert full_path != file_explorer.label1.text()
 
-    # Test double click to open
-    treewidget.set_single_click_to_open(False)
-    run_test_helper(single_click=False, initial_index=initial_index)
-    assert 'False' in file_explorer.label3.text()
-
     # Test single click to open
     treewidget.set_single_click_to_open(True)
-    run_test_helper(single_click=True, initial_index=initial_index)
     assert 'True' in file_explorer.label3.text()
+    run_test_helper(single_click=True, initial_index=initial_index)
+
+    # Test double click to open
+    treewidget.set_single_click_to_open(False)
+    assert 'False' in file_explorer.label3.text()
+    run_test_helper(single_click=False, initial_index=initial_index)
 
 
 if __name__ == "__main__":

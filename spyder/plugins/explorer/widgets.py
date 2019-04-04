@@ -189,7 +189,7 @@ class DirView(QTreeView):
         self.filter_directories()
 
     def set_single_click_to_open(self, value):
-        """Set single click to open files."""
+        """Set single click to open items."""
         self.single_click_to_open = value
         self.parent_widget.sig_option_changed.emit('single_click_to_open',
                                                    value)
