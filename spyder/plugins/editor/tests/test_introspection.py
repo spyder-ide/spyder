@@ -109,8 +109,23 @@ def test_hide_widget_completion(setup_editor):
     # Set cursor to start
     code_editor.go_to_line(1)
 
-    qtbot.keyClicks(code_editor, 'from numpy [')
-    assert completion.isVisible() is False
+    # Complete from numpy --> from numpy import
+    qtbot.keyClicks(code_editor, 'from numpy ')
+    qtbot.wait(20000)
+
+    # press tab and get completions
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+
+    # Check the completion widget is visible
+    assert completion.isHidden() is False
+
+    # Write a delimeter on the code editor
+    qtbot.keyClicks(code_editor, '(')
+
+    # Check the completion widget is not visible
+    assert completion.isHidden() is True
 
 
 @pytest.mark.slow
