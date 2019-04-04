@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2018-11-13 11:49+-05\n"
-"PO-Revision-Date: 2019-04-04 10:19+0800\n"
+"PO-Revision-Date: 2019-04-04 10:22+0800\n"
 "Last-Translator: weak_ptr <weak_ptr@163.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -774,7 +774,7 @@ msgstr "这个窗格记录了在Python和IPython控制台里输入的命令。"
 
 #: spyder/app/tour.py:250
 msgid "<b>Spyder</b> is an interactive development environment based on bla"
-msgstr "<b> Spyder </b>是一种基于BLA的交互式开发环境"
+msgstr "<b> Spyder </b>是一个社区开发和支持的交互式开发环境"
 
 #: spyder/app/tour.py:254
 msgid "Welcome to Spyder introduction tour"
@@ -782,7 +782,7 @@ msgstr "欢迎来到Spyder浏览介绍"
 
 #: spyder/app/tour.py:255
 msgid "Spyder is an interactive development environment based on bla"
-msgstr "Spyder是一种基于BLA的交互式开发环境"
+msgstr "Spyder是一个社区开发和支持的交互式开发环境"
 
 #: spyder/app/tour.py:260
 msgid "Introduction tour"
