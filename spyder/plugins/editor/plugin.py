@@ -1120,7 +1120,6 @@ class Editor(SpyderPluginWidget):
             ('set_codecompletion_auto_enabled',     'codecompletion/auto'),
             ('set_codecompletion_case_enabled',     'codecompletion/case_sensitive'),
             ('set_codecompletion_enter_enabled',    'codecompletion/enter_key'),
-            ('set_calltips_enabled',                'calltips'),
             ('set_go_to_definition_enabled',        'go_to_definition'),
             ('set_focus_to_editor',                 'focus_to_editor'),
             ('set_run_cell_copy',                   'run_cell_copy'),
@@ -2511,8 +2510,6 @@ class Editor(SpyderPluginWidget):
             case_comp_o = self.get_option(case_comp_n)
             enter_key_n = 'codecompletion/enter_key'
             enter_key_o = self.get_option(enter_key_n)
-            calltips_n = 'calltips'
-            calltips_o = self.get_option(calltips_n)
             gotodef_n = 'go_to_definition'
             gotodef_o = self.get_option(gotodef_n)
             closepar_n = 'close_parentheses'
@@ -2573,8 +2570,6 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_codecompletion_case_enabled(case_comp_o)
                 if enter_key_n in options:
                     editorstack.set_codecompletion_enter_enabled(enter_key_o)
-                if calltips_n in options:
-                    editorstack.set_calltips_enabled(calltips_o)
                 if gotodef_n in options:
                     editorstack.set_go_to_definition_enabled(gotodef_o)
                 if closepar_n in options:

@@ -115,7 +115,6 @@ class EditorConfigPage(PluginConfigPage):
                                   'codecompletion/case_sensitive')
             comp_enter_box = newcb(_("Enter key selects completion"),
                                    'codecompletion/enter_key')
-            calltips_box = newcb(_("Display balloon tips"), 'calltips')
             gotodef_box = newcb(
                 _("Link to object definition"),
                 'go_to_definition',
@@ -125,7 +124,6 @@ class EditorConfigPage(PluginConfigPage):
         else:
             rope_label = QLabel(_("<b>Warning:</b><br>"
                                   "The Python module <i>rope</i> is not "
-                                  "installed on this computer: calltips, "
                                   "code completion and go-to-definition "
                                   "features won't be available."))
             rope_label.setWordWrap(True)
@@ -242,7 +240,6 @@ class EditorConfigPage(PluginConfigPage):
 
         introspection_layout = QVBoxLayout()
         if rope_is_installed:
-            introspection_layout.addWidget(calltips_box)
             introspection_layout.addWidget(completion_box)
             introspection_layout.addWidget(case_comp_box)
             introspection_layout.addWidget(comp_enter_box)

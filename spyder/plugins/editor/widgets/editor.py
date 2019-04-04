@@ -529,7 +529,6 @@ class EditorStack(QWidget):
         self.codecompletion_auto_enabled = True
         self.codecompletion_case_enabled = False
         self.codecompletion_enter_enabled = False
-        self.calltips_enabled = True
         self.go_to_definition_enabled = True
         self.close_parentheses_enabled = True
         self.close_quotes_enabled = True
@@ -1051,13 +1050,6 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_codecompletion_enter(state)
-
-    def set_calltips_enabled(self, state):
-        # CONF.get(self.CONF_SECTION, 'calltips')
-        self.calltips_enabled = state
-        if self.data:
-            for finfo in self.data:
-                finfo.editor.set_calltips(state)
 
     def set_go_to_definition_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'go_to_definition')
@@ -2309,7 +2301,6 @@ class EditorStack(QWidget):
                 codecompletion_auto=self.codecompletion_auto_enabled,
                 codecompletion_case=self.codecompletion_case_enabled,
                 codecompletion_enter=self.codecompletion_enter_enabled,
-                calltips=self.calltips_enabled,
                 go_to_definition=self.go_to_definition_enabled,
                 close_parentheses=self.close_parentheses_enabled,
                 close_quotes=self.close_quotes_enabled,
