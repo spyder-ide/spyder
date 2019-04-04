@@ -700,7 +700,7 @@ DEFAULTS = [
               'pydocstyle/select': '',
               'pydocstyle/ignore': '',
               'advanced/command_launch': 'pyls',
-              'advanced/address': '127.0.0.0',
+              'advanced/host': '127.0.0.1',
               'advanced/port': 2087,
               'python': {
                     'index': 0,
