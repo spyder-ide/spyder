@@ -699,6 +699,9 @@ DEFAULTS = [
               'pydocstyle/add_ignore': '',
               'pydocstyle/select': '',
               'pydocstyle/ignore': '',
+              'advanced/command_launch': 'pyls',
+              'advanced/address': '127.0.0.0',
+              'advanced/port': 2087,
               'python': {
                     'index': 0,
                     'cmd': 'pyls',

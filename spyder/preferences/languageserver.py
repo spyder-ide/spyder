@@ -725,8 +725,8 @@ class LSPManagerConfigPage(GeneralConfigPage):
         advanced_group.setLayout(advanced_layout)
 
         # --- linting tab ---
+        # Linting options
         linting_bg = QButtonGroup()
-
         linting_pyflakes_radio = self.create_radiobutton(
             _("Use Pyflakes for linting"),
             'pyflakes/enabled',
@@ -737,6 +737,7 @@ class LSPManagerConfigPage(GeneralConfigPage):
             'pylint/enabled',
             button_group=linting_bg)
 
+        # Linting layout
         linting_layout = QVBoxLayout()
         linting_layout.addWidget(linting_pyflakes_radio)
         linting_layout.addWidget(linting_pylint_radio)
@@ -744,8 +745,10 @@ class LSPManagerConfigPage(GeneralConfigPage):
         linting_widget.setLayout(linting_layout)
 
         # --- Code style tab ---
-        pep_url = '<a href="https://www.python.org/dev/peps/pep-0008">PEP8</a>'
-        code_style_codes = (
+        # Code style label
+        pep_url = (
+            '<a href="https://www.python.org/dev/peps/pep-0008">PEP8</a>')
+        code_style_codes = _(
             "<a href='http://pycodestyle.pycqa.org/en/latest"
             "/intro.html#error-codes'>page</a>")
         code_style_label = QLabel(
@@ -756,9 +759,13 @@ class LSPManagerConfigPage(GeneralConfigPage):
               "found on this {}.").format(pep_url, code_style_codes))
         code_style_label.setOpenExternalLinks(True)
         code_style_label.setWordWrap(True)
+
+        # Code style checkbox
         code_style_check = self.create_checkbox(
             _("Enable code style linting"),
             'pycodestyle')
+
+        # Code style options
         self.code_style_filenames_match = self.create_lineedit(
             _("Only check filenames matching these patterns:"),
             'pycodestyle/filename', alignment=Qt.Horizontal, word_wrap=False,
@@ -782,6 +789,7 @@ class LSPManagerConfigPage(GeneralConfigPage):
             'pycodestyle/max_line_length', min_=10, max_=500, step=1,
             tip=_("Default is 79"))
 
+        # Code style layout
         code_style_g_layout = QGridLayout()
         code_style_g_layout.addWidget(
             self.code_style_filenames_match.label, 1, 0)
@@ -801,6 +809,7 @@ class LSPManagerConfigPage(GeneralConfigPage):
         code_style_layout.addWidget(code_style_check)
         code_style_layout.addLayout(code_style_g_layout)
 
+        # Code style slots for checkbox
         code_style_check.toggled.connect(
             self.code_style_filenames_match.textbox.setEnabled)
         code_style_check.toggled.connect(
@@ -810,6 +819,7 @@ class LSPManagerConfigPage(GeneralConfigPage):
         code_style_check.toggled.connect(
             code_style_max_line_length.spinbox.setEnabled)
 
+        # Code style initialization of options state (enabled/disabled)
         code_style_enabled = code_style_check.isChecked()
         self.code_style_filenames_match.textbox.setEnabled(code_style_enabled)
         self.code_style_exclude.textbox.setEnabled(code_style_enabled)
@@ -821,19 +831,30 @@ class LSPManagerConfigPage(GeneralConfigPage):
         code_style_widget.setLayout(code_style_layout)
 
         # --- Docstring tab ---
-        docstring_style_codes = (
+        # Docstring style label
+        numpy_url = (
+            "<a href='https://numpydoc.readthedocs.io/en/"
+            "latest/format.html'>Numpy</a>")
+        pep257_url = (
+            "<a href='https://www.python.org/dev/peps/pep-0257/'>Pep 257</a>")
+        docstring_style_codes = _(
             "<a href='http://www.pydocstyle.org/en/stable"
             "/error_codes.html'>page</a>")
         docstring_style_label = QLabel(
             _("Here you can decide if you want to perform style analysis on "
-              "your docstrings according to several conventions. You can also "
-              "decide if you want to show or ignore specific errors, according"
-              " to the codes found on this {}.").format(docstring_style_codes))
+              "your docstrings according to the {} or {} conventions. You can "
+              "also decide if you want to show or ignore specific errors, "
+              "according to the codes found on this {}.").format(
+                  numpy_url, pep257_url, docstring_style_codes))
         docstring_style_label.setOpenExternalLinks(True)
         docstring_style_label.setWordWrap(True)
+
+        # Docstring style checkbox
         docstring_style_check = self.create_checkbox(
             _("Enable docstring style linting"),
             'pydocstyle')
+
+        # Docstring style options
         docstring_style_convention = self.create_combobox(
             _("Choose the convention used to lint docstrings: "),
             (("Numpy", 'numpy'),
@@ -858,6 +879,7 @@ class LSPManagerConfigPage(GeneralConfigPage):
             'pydocstyle/select', alignment=Qt.Horizontal, word_wrap=False,
             placeholder=_("Example codes: D107, D402"))
 
+        # Docstring style layout
         docstring_style_g_layout = QGridLayout()
         docstring_style_g_layout.addWidget(
             docstring_style_convention.label, 1, 0)
@@ -881,11 +903,11 @@ class LSPManagerConfigPage(GeneralConfigPage):
             docstring_style_ignore.textbox, 5, 1)
 
         docstring_style_layout = QVBoxLayout()
-
         docstring_style_layout.addWidget(docstring_style_label)
         docstring_style_layout.addWidget(docstring_style_check)
         docstring_style_layout.addLayout(docstring_style_g_layout)
 
+        # Docstring style slots for checkbox
         docstring_style_check.toggled.connect(
             docstring_style_convention.combobox.setEnabled)
         docstring_style_check.toggled.connect(
@@ -897,6 +919,7 @@ class LSPManagerConfigPage(GeneralConfigPage):
         docstring_style_check.toggled.connect(
             docstring_style_ignore.textbox.setEnabled)
 
+        # Docstring initialization of options state (enabled/disabled)
         docstring_style_enabled = docstring_style_check.isChecked()
         docstring_style_convention.combobox.setEnabled(docstring_style_enabled)
         docstring_style_add_select.textbox.setEnabled(docstring_style_enabled)
@@ -906,6 +929,51 @@ class LSPManagerConfigPage(GeneralConfigPage):
 
         docstring_style_widget = QWidget()
         docstring_style_widget.setLayout(docstring_style_layout)
+
+        # --- Advanced tab ---
+        # Advanced label
+        advanced_label = QLabel(
+            _("Please don't modify these values unless "
+              "you know what you're doing"))
+        advanced_label.setWordWrap(True)
+        advanced_label.setAlignment(Qt.AlignJustify)
+
+        # Advanced options
+        advanced_command_launch = self.create_lineedit(
+            _("Command to launch the Python language server: "),
+            'advanced/command_launch', alignment=Qt.Horizontal,
+            word_wrap=False)
+        advanced_address = self.create_lineedit(
+            _("IP Address and port to bind the server to: "),
+            'advanced/address', alignment=Qt.Horizontal,
+            word_wrap=False)
+        advanced_port = self.create_spinbox(
+            ":", "", 'advanced/port', min_=1, max_=65535, step=1)
+
+        # Advanced layout
+        advanced_g_layout = QGridLayout()
+        advanced_g_layout.addWidget(
+            advanced_command_launch.label, 1, 0)
+        advanced_g_layout.addWidget(
+            advanced_command_launch.textbox, 1, 1)
+        advanced_g_layout.addWidget(
+            advanced_address.label, 2, 0)
+
+        advanced_address_port_g_layout = QGridLayout()
+        advanced_address_port_g_layout.addWidget(
+            advanced_address.textbox, 1, 0)
+        advanced_address_port_g_layout.addWidget(
+            advanced_port.plabel, 1, 1)
+        advanced_address_port_g_layout.addWidget(
+            advanced_port.spinbox, 1, 2)
+        advanced_g_layout.addLayout(
+            advanced_address_port_g_layout, 2, 1)
+
+        advanced_widget = QWidget()
+        advanced_layout = QVBoxLayout()
+        advanced_layout.addWidget(advanced_label)
+        advanced_layout.addLayout(advanced_g_layout)
+        advanced_widget.setLayout(advanced_layout)
 
         # --- Other servers tab ---
         # Section label
@@ -965,6 +1033,8 @@ class LSPManagerConfigPage(GeneralConfigPage):
         tabs.addTab(self.create_tab(code_style_widget), _('Code style'))
         tabs.addTab(self.create_tab(docstring_style_widget),
                     _('Docstring style'))
+        tabs.addTab(self.create_tab(advanced_widget),
+                    _('Advanced'))
         tabs.addTab(self.create_tab(servers_widget), _('Other languages'))
 
         vlayout = QVBoxLayout()
