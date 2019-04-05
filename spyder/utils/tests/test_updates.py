@@ -66,7 +66,8 @@ def test_get_updates_url():
         url = get_updates_url(anaconda=value)
         response = urlopen(url)
         info = dict(response.info())
-        assert info['content-type'].startswith('application/json')
+        content_type = info.get('Content-Type', info.get('content-type', ''))
+        assert content_type.lower().startswith('application/json')
 
 
 def test_process_releases():

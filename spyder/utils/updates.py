@@ -40,6 +40,16 @@ else:
 logger = logging.getLogger(__name__)
 
 
+def get_encoding(headers):
+    """Get encoding from headers."""
+    content = headers.get('Content-Type', headers.get('content-type', ''))
+    content = content.lower()
+    encoding = 'utf-8'
+    if 'charset=' in content:
+        encoding = content.split('charset=')[-1].strip()
+    return encoding
+
+
 # TODO: This could be moved to a dowloand and url handling module/utils?
 def download(url):
     """Download and decode data from url."""
@@ -55,7 +65,9 @@ def download(url):
 
     # Needed step for Python 3 compatibility
     if not is_text_string(raw_data):
-        raw_data = raw_data.decode()
+        headers = dict(page.info())
+        encoding = get_encoding(headers)
+        raw_data = raw_data.decode(encoding)
 
     return raw_data
 
