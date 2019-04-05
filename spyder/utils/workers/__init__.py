@@ -6,5 +6,7 @@
 # (see spyder/__init__.py for details)
 # -----------------------------------------------------------------------------
 
-from spyder.utils.workers.manager import (ProcessWorker, PythonWorker,
-                                          WorkerManager)
+# Local imports
+from spyder.utils.workers.types import (DummyWorker, ProcessWorker,
+                                        PythonWorker)
+from spyder.utils.workers.manager import WorkerManager

@@ -376,6 +376,9 @@ class MainWindow(QMainWindow):
         self.tour = None
         self.tours_available = None
 
+        # Worker manager for running non-blocking tasks in threads
+        self.workermanager = None
+
         # File switcher
         self.fileswitcher = None
 
@@ -1028,6 +1031,10 @@ class MainWindow(QMainWindow):
         shortcuts_action = create_action(self, _("Shortcuts Summary"),
                                          shortcut="Meta+F1",
                                          triggered=self.show_shortcuts_dialog)
+
+        # Worker manager for running non-blocking tasks in threads
+        from spyder.utils.workers import WorkerManager
+        self.workermanager = WorkerManager(max_threads=1)
 
         #----- Tours
         self.tour = tour.AnimatedTour(self)
@@ -3052,19 +3059,29 @@ class MainWindow(QMainWindow):
                 plugin.get_current_tab_manager().set_stack_index)
 
     # ---- Check for Spyder Updates
-    def _check_updates_ready(self):
-        """Called by WorkerUpdates when ready"""
+    def _check_updates_finished(self, worker, output, error):
+        """Called by updates worker when ready."""
+        # Get results from worker
+        startup = worker.startup
+        if output:
+            update_available, latest_release, error_msg = output
+        else:
+            update_available, latest_release, error_msg = False, '', None
+
+        if error:
+            logger.error(error)
+            return
+
+        # Don't show dialog when starting up spyder and an error occur
+        if startup and error_msg is not None:
+            return
+
         from spyder.widgets.helperwidgets import MessageCheckBox
 
         # feedback` = False is used on startup, so only positive feedback is
         # given. `feedback` = True is used when after startup (when using the
         # menu action, and gives feeback if updates are, or are not found.
         feedback = self.give_updates_feedback
-
-        # Get results from worker
-        update_available = self.worker_updates.update_available
-        latest_release = self.worker_updates.latest_release
-        error_msg = self.worker_updates.error
 
         url_r = __project_url__ + '/releases'
         url_i = 'https://docs.spyder-ide.org/installation.html'
@@ -3133,23 +3150,17 @@ class MainWindow(QMainWindow):
     @Slot()
     def check_updates(self, startup=False):
         """
-        Check for spyder updates on github releases using a QThread.
+        Check for spyder updates on github/anaconda using the worker manager.
         """
-        from spyder.utils.workers.updates import WorkerUpdates
+        from spyder.utils.updates import check_updates
+        worker = self.workermanager.create_python_worker(check_updates)
+        worker.startup = startup
+        worker.sig_finished.connect(self._check_updates_finished)
 
         # Disable check_updates_action while the thread is working
         self.check_updates_action.setDisabled(True)
 
-        if self.thread_updates is not None:
-            self.thread_updates.terminate()
-
-        self.thread_updates = QThread(self)
-        self.worker_updates = WorkerUpdates(self, startup=startup)
-        self.worker_updates.sig_ready.connect(self._check_updates_ready)
-        self.worker_updates.sig_ready.connect(self.thread_updates.quit)
-        self.worker_updates.moveToThread(self.thread_updates)
-        self.thread_updates.started.connect(self.worker_updates.start)
-        self.thread_updates.start()
+        worker.start()
 
     # --- For OpenGL
     def _test_setting_opengl(self, option):
