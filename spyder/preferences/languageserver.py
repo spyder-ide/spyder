@@ -25,6 +25,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QButtonGroup, QCheckBox,
 from spyder.config.base import _
 from spyder.config.main import CONF
 from spyder.config.gui import get_font, is_dark_interface
+from spyder.config.lsp import PYTHON_LSP_CONFIG
 from spyder.plugins.editor.lsp import LSP_LANGUAGES
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.preferences.configdialog import GeneralConfigPage
@@ -609,80 +610,6 @@ class LSPManagerConfigPage(GeneralConfigPage):
     NAME = _('Completion and linting')
     ICON = ima.icon('lspserver')
     LOCALHOST = ['127.0.0.1', 'localhost']
-    PYTHON_LSP_CONFIG = {
-        'index': 0,
-        'cmd': 'pyls',
-        'args': '--host {host} --port {port} --tcp',
-        'host': '127.0.0.1',
-        'port': 2087,
-        'external': False,
-        'configurations': {
-            'pyls': {
-                'configurationSources': [
-                    "pycodestyle", "pyflakes"],
-                'plugins': {
-                    'pycodestyle': {
-                        'enabled': True,
-                        'exclude': [],
-                        'filename': [],
-                        'select': [],
-                        'ignore': [],
-                        'hangClosing': False,
-                        'maxLineLength': 79
-                    },
-                    'pyflakes': {
-                        'enabled': True
-                    },
-                    'yapf': {
-                        'enabled': False
-                    },
-                    'pydocstyle': {
-                        'enabled': False,
-                        'convention': 'pep257',
-                        'addIgnore': [],
-                        'addSelect': [],
-                        'ignore': [],
-                        'select': [],
-                        'match': "(?!test_).*\\.py",
-                        'matchDir': '[^\\.].*',
-                    },
-                    'rope': {
-                        'extensionModules': None,
-                        'ropeFolder': None,
-                    },
-                    'rope_completion': {
-                        'enabled': False
-                    },
-                    'jedi_completion': {
-                        'enabled': True,
-                        'include_params': False
-                    },
-                    'jedi_hover': {
-                        'enabled': True
-                    },
-                    'jedi_references': {
-                        'enabled': True
-                    },
-                    'jedi_signature_help': {
-                        'enabled': True
-                    },
-                    'jedi_symbols': {
-                        'enabled': True,
-                        'all_scopes': True
-                    },
-                    'mccabe': {
-                        'enabled': False,
-                        'threshold': 15
-                    },
-                    'preload': {
-                        'enabled': True,
-                        'modules': []
-                    }
-                },
-
-            }
-        }
-    }
 
     def setup_page(self):
         newcb = self.create_checkbox
@@ -1077,95 +1004,99 @@ class LSPManagerConfigPage(GeneralConfigPage):
     def config_to_json(self):
         """Create config json for lsp using the config values."""
         # Option values
-        cmd = self.advanced_command_launch.textbox.text()
-        host = self.advanced_host.textbox.text()
-        port = self.advanced_port.spinbox.value()
+        self.apply_changes()  # Could be not usable with apply_settings
+        cmd = self.get_option('advanced/command_launch')
+        host = self.get_option('advanced/host')
+        port = self.get_option('advanced/port')
+        code_style_enabled = self.get_option('pycodestyle')
+        code_style_exclude = self.get_option('pycodestyle/exclude').split(",")
+        code_style_filename = self.get_option(
+            'pycodestyle/filename').split(",")
+        code_style_select = self.get_option('pycodestyle/select').split(",")
+        code_style_ignore = self.get_option('pycodestyle/ignore').split(",")
+        code_style_max_line_length = (
+            self.get_option('pycodestyle/max_line_length'))
 
         pycodestyle = {
-            'enabled': self.code_style_check.isChecked(),
-            # TODO: Check if exclude and filename are an array of regex?
-            'exclude': self.code_style_exclude.textbox.text(),
-            'filename': self.code_style_filenames_match.textbox.text(),
-            'select': [x.strip()
-                       for x in (
-                           self.code_style_select.textbox.text().split(","))],
-            'ignore': [x.strip()
-                       for x in (
-                           self.code_style_ignore.textbox.text().split(","))],
+            'enabled': code_style_enabled,
+            'exclude': [exclude.strip() for exclude in code_style_exclude],
+            'filename': [filename.strip() for filename in code_style_filename],
+            'select': [select.strip() for select in code_style_select],
+            'ignore': [ignore.strip() for ignore in code_style_ignore],
             'hangClosing': False,
-            'maxLineLength': self.code_style_max_line_length.spinbox.value()
+            'maxLineLength': code_style_max_line_length
             }
 
+        pyflakes_enabled = self.get_option('pyflakes/enabled')
         pyflakes = {
-            'enabled': self.linting_pyflakes_radio.isChecked()
+            'enabled': pyflakes_enabled
             }
+
+        pydocstyle_enabled = self.get_option('pydocstyle')
+        pydocstyle_convention = self.get_option('pydocstyle/convention')
+        pydocstyle_add_ignore = (
+            self.get_option('pydocstyle/add_ignore').split(","))
+        pydocstyle_add_select = (
+            self.get_option('pydocstyle/add_select').split(","))
+        pydocstyle_ignore = self.get_option('pydocstyle/ignore').split(",")
+        pydocstyle_select = self.get_option('pydocstyle/select').split(",")
 
         pydocstyle = {
-            'enabled': self.docstring_style_check.isChecked(),
-            'convention': (
-                self.docstring_style_convention.combobox.currentData()),
-            'addIgnore': [
-                x.strip()
-                for x in (
-                    self.docstring_style_add_ignore.textbox.text().split(",")
-                    )],
-            'addSelect': [
-                x.strip()
-                for x in (
-                    self.docstring_style_add_select.textbox.text().split(",")
-                    )],
-            'ignore': [
-                x.strip()
-                for x in (
-                    self.docstring_style_ignore.textbox.text().split(",")
-                    )],
-            'select': [
-                x.strip()
-                for x in (
-                    self.docstring_style_select.textbox.text().split(",")
-                    )],
+            'enabled': pydocstyle_enabled,
+            'convention': pydocstyle_convention,
+            'addIgnore': [ignore.strip() for ignore in pydocstyle_add_ignore],
+            'addSelect': [select.strip() for select in pydocstyle_add_select],
+            'ignore': [ignore.strip() for ignore in pydocstyle_ignore],
+            'select': [select.strip() for select in pydocstyle_select],
             'match': "(?!test_).*\\.py",
             'matchDir': '[^\\.].*'
             }
 
+        jedi_completion_enabled = self.get_option('code_completion')
         jedi_completion = {
-            'enabled': self.completion_box.isChecked(),
+            'enabled': jedi_completion_enabled,
             'include_params': False
             }
 
+        jedi_signature_help_enabled = self.get_option('jedi_signature_help')
+        preload_modules = self.get_option('preload_modules')
+
         # Setup options in json
-        self.PYTHON_LSP_CONFIG['cmd'] = cmd
+        pyls = PYTHON_LSP_CONFIG['configurations']['pyls']
+        PYTHON_LSP_CONFIG['cmd'] = cmd
         if host in self.LOCALHOST:
-            self.PYTHON_LSP_CONFIG['args'] = (
-                '--host {host} --port {port} --tcp')
-            self.PYTHON_LSP_CONFIG['external'] = False
+            PYTHON_LSP_CONFIG['args'] = ('--host {host} --port {port} --tcp')
+            PYTHON_LSP_CONFIG['external'] = False
         else:
-            self.PYTHON_LSP_CONFIG['args'] = ''
-            self.PYTHON_LSP_CONFIG['external'] = True
-        self.PYTHON_LSP_CONFIG['host'] = host
-        self.PYTHON_LSP_CONFIG['port'] = port
-        (self.PYTHON_LSP_CONFIG['configurations']
-            ['pyls']['plugins']['pycodestyle']) = pycodestyle
-        (self.PYTHON_LSP_CONFIG['configurations']
-            ['pyls']['plugins']['pyflakes']) = pyflakes
-        (self.PYTHON_LSP_CONFIG['configurations']
-            ['pyls']['plugins']['pydocstyle']) = pydocstyle
-        (self.PYTHON_LSP_CONFIG['configurations']
-            ['pyls']['plugins']['jedi_completion']) = jedi_completion
-        # TODO: Add missing config
+            PYTHON_LSP_CONFIG['args'] = ''
+            PYTHON_LSP_CONFIG['external'] = True
+        PYTHON_LSP_CONFIG['host'] = host
+        PYTHON_LSP_CONFIG['port'] = port
+        pyls['plugins']['pycodestyle'] = pycodestyle
+        pyls['plugins']['pyflakes'] = pyflakes
+        pyls['plugins']['pydocstyle'] = pydocstyle
+        pyls['plugins']['jedi_completion'] = jedi_completion
+        pyls['plugins']['jedi_signature_help'] = jedi_signature_help_enabled
+        pyls['plugins']['preload']['modules'] = preload_modules
+        # TODO: Add jedi_definitions
+
+        return PYTHON_LSP_CONFIG
 
     def apply_settings(self, options):
         # Check regex of code style options
         try:
-            code_style_filenames_match = (
-                self.code_style_filenames_match.textbox.text())
-            re.compile(code_style_filenames_match)
+            code_style_filenames_matches = (
+                self.code_style_filenames_match.textbox.text().split(","))
+            for match in code_style_filenames_matches:
+                re.compile(match.strip())
         except re.error:
             self.set_option('pycodestyle/filename', '')
 
         try:
-            code_style_exclude = self.code_style_exclude.textbox.text()
-            re.compile(code_style_exclude)
+            code_style_excludes = (
+                self.code_style_exclude.textbox.text().split(","))
+            for match in code_style_excludes:
+                re.compile(match.strip())
         except re.error:
             self.set_option('pycodestyle/exclude', '')
 

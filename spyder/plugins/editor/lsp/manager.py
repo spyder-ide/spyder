@@ -180,7 +180,7 @@ class LSPManager(QObject):
                         elif self.clients[language]['status'] == self.RUNNING:
                             self.close_client(language)
                             self.clients[language] = config
-                            self.start_lsp_client(language)
+                            self.start_client(language)
                     else:
                         if self.clients[language]['status'] == self.RUNNING:
                             client = self.clients[language]['instance']
