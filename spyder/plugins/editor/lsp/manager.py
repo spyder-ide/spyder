@@ -215,8 +215,8 @@ class LSPManager(QObject):
                 client = self.clients[language]['instance']
                 client.perform_request(request, params)
 
-    def generate_python_configuration(self):
-        """Create Python configuration json from our config system."""
+    def get_python_config(self):
+        """Get Python server configuration from our config system."""
         # Server options
         cmd = self.get_option('advanced/command_launch')
         host = self.get_option('advanced/host')
@@ -267,11 +267,14 @@ class LSPManager(QObject):
             'include_params': False
         }
 
+        jedi_signature_help = {
+            'enabled': self.get_option('jedi_signature_help')
+        }
+
         # Setup options in json
         PYTHON_LSP_CONFIG['cmd'] = cmd
-
         if host in self.LOCALHOST:
-            PYTHON_LSP_CONFIG['args'] = ('--host {host} --port {port} --tcp')
+            PYTHON_LSP_CONFIG['args'] = '--host {host} --port {port} --tcp'
             PYTHON_LSP_CONFIG['external'] = False
         else:
             PYTHON_LSP_CONFIG['args'] = ''
@@ -279,13 +282,13 @@ class LSPManager(QObject):
         PYTHON_LSP_CONFIG['host'] = host
         PYTHON_LSP_CONFIG['port'] = port
 
-        pyls = PYTHON_LSP_CONFIG['configurations']['pyls']
-        pyls['plugins']['pycodestyle'] = pycodestyle
-        pyls['plugins']['pyflakes'] = pyflakes
-        pyls['plugins']['pydocstyle'] = pydocstyle
-        pyls['plugins']['jedi_completion'] = jedi_completion
-        pyls['plugins']['jedi_signature_help'] = self.get_option('jedi_signature_help')
-        pyls['plugins']['preload']['modules'] = self.get_option('preload_modules')
+        plugins = PYTHON_LSP_CONFIG['configurations']['pyls']['plugins']
+        plugins['pycodestyle'] = pycodestyle
+        plugins['pyflakes'] = pyflakes
+        plugins['pydocstyle'] = pydocstyle
+        plugins['jedi_completion'] = jedi_completion
+        plugins['jedi_signature_help'] = jedi_signature_help
+        plugins['preload']['modules'] = self.get_option('preload_modules')
         # TODO: Add jedi_definitions
 
         return PYTHON_LSP_CONFIG
