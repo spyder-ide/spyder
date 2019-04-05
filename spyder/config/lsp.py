@@ -5,14 +5,22 @@
 # (see spyder/__init__.py for details)
 
 """
-Spyder lsp variables
+Configuration options for the Python Language Server.
+
+Notes:
+
+1. Not all these options can be defined through our Preferences
+   (e.g. `ropeFolder`).
+2. Please preserve the structure of this dictionary. This is what
+   we need to send to the PyLS to configure it.
+3. The way we feed values in this dictopnary from our Preferences is
+   in editor/lsp/manager.py
 """
 
 # =============================================================================
 # Default json config for the lsp
 # =============================================================================
 PYTHON_LSP_CONFIG = {
-    'index': 0,
     'cmd': 'pyls',
     'args': '--host {host} --port {port} --tcp',
     'host': '127.0.0.1',
@@ -24,7 +32,7 @@ PYTHON_LSP_CONFIG = {
                 "pycodestyle", "pyflakes"],
             'plugins': {
                 'pycodestyle': {
-                    'enabled': True,
+                    'enabled': False,
                     'exclude': [],
                     'filename': [],
                     'select': [],

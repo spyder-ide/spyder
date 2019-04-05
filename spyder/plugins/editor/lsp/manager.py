@@ -45,15 +45,11 @@ class LSPManager(QObject):
         self.requests = {}
         self.register_queue = {}
 
-        # Get configurations for all LSP servers registered through
-        # our Preferences
-        self.configurations_for_servers = CONF.options('lsp-server')
-
         # Register languages to create clients for
-        for language in self.configurations_for_servers:
+        for language in self.get_languages():
             self.clients[language] = {
                 'status': self.STOPPED,
-                'config': self.get_option(language),
+                'config': self.get_language_config(language),
                 'instance': None
             }
             self.register_queue[language] = []
@@ -72,6 +68,25 @@ class LSPManager(QObject):
     def get_option(self, option):
         """Get an option from our config system."""
         return CONF.get(self.CONF_SECTION, option)
+
+    def get_languages(self):
+        """
+        Get the list of languages we need to start servers and create
+        clients for.
+        """
+        languages = ['python']
+        all_options = CONF.options(self.CONF_SECTION)
+        for option in all_options:
+            if option in [l.lower() for l in LSP_LANGUAGES]:
+                languages.append(option)
+        return languages
+
+    def get_language_config(self, language):
+        """Get language configuration options from our config system."""
+        if language == 'python':
+            return self.get_python_config()
+        else:
+            return self.get_option(language)
 
     def get_root_path(self, language):
         """
@@ -163,35 +178,33 @@ class LSPManager(QObject):
             self.close_client(language)
 
     def update_server_list(self):
-        for option in CONF.options(self.CONF_SECTION):
-            if option in [l.lower() for l in LSP_LANGUAGES]:
-                language = option
-                config = {'status': self.STOPPED,
-                          'config': self.get_option(language),
-                          'instance': None}
-                if language not in self.clients:
-                    self.clients[language] = config
-                    self.register_queue[language] = []
+        for language in self.get_languages():
+            config = {'status': self.STOPPED,
+                      'config': self.get_language_config(language),
+                      'instance': None}
+            if language not in self.clients:
+                self.clients[language] = config
+                self.register_queue[language] = []
+            else:
+                logger.debug(
+                    self.clients[language]['config'] != config['config'])
+                current_config = self.clients[language]['config']
+                new_config = config['config']
+                restart_diff = ['cmd', 'args', 'host', 'port', 'external']
+                restart = any([current_config[x] != new_config[x]
+                               for x in restart_diff])
+                if restart:
+                    if self.clients[language]['status'] == self.STOPPED:
+                        self.clients[language] = config
+                    elif self.clients[language]['status'] == self.RUNNING:
+                        self.close_client(language)
+                        self.clients[language] = config
+                        self.start_client(language)
                 else:
-                    logger.debug(
-                        self.clients[language]['config'] != config['config'])
-                    current_config = self.clients[language]['config']
-                    new_config = config['config']
-                    restart_diff = ['cmd', 'args', 'host', 'port', 'external']
-                    restart = any([current_config[x] != new_config[x]
-                                  for x in restart_diff])
-                    if restart:
-                        if self.clients[language]['status'] == self.STOPPED:
-                            self.clients[language] = config
-                        elif self.clients[language]['status'] == self.RUNNING:
-                            self.close_client(language)
-                            self.clients[language] = config
-                            self.start_client(language)
-                    else:
-                        if self.clients[language]['status'] == self.RUNNING:
-                            client = self.clients[language]['instance']
-                            client.send_plugin_configurations(
-                                new_config['configurations'])
+                    if self.clients[language]['status'] == self.RUNNING:
+                        client = self.clients[language]['instance']
+                        client.send_plugin_configurations(
+                            new_config['configurations'])
 
     def update_client_status(self, active_set):
         for language in self.clients:

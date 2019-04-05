@@ -702,80 +702,6 @@ DEFAULTS = [
               'advanced/command_launch': 'pyls',
               'advanced/host': '127.0.0.1',
               'advanced/port': 2087,
-              'python': {
-                    'index': 0,
-                    'cmd': 'pyls',
-                    'args': '--host {host} --port {port} --tcp',
-                    'host': '127.0.0.1',
-                    'port': 2087,
-                    'external': False,
-                    'configurations': {
-                        'pyls': {
-                            'configurationSources': [
-                                "pycodestyle", "pyflakes"],
-                            'plugins': {
-                                'pycodestyle': {
-                                    'enabled': True,
-                                    'exclude': [],
-                                    'filename': [],
-                                    'select': [],
-                                    'ignore': [],
-                                    'hangClosing': False,
-                                    'maxLineLength': 79
-                                },
-                                'pyflakes': {
-                                    'enabled': True
-                                },
-                                'yapf': {
-                                    'enabled': False
-                                },
-                                'pydocstyle': {
-                                    'enabled': False,
-                                    'convention': 'pep257',
-                                    'addIgnore': [],
-                                    'addSelect': [],
-                                    'ignore': [],
-                                    'select': [],
-                                    'match': "(?!test_).*\\.py",
-                                    'matchDir': '[^\\.].*',
-                                },
-                                'rope': {
-                                    'extensionModules': None,
-                                    'ropeFolder': None,
-                                },
-                                'rope_completion': {
-                                    'enabled': False
-                                },
-                                'jedi_completion': {
-                                    'enabled': True,
-                                    'include_params': False
-                                },
-                                'jedi_hover': {
-                                    'enabled': True
-                                },
-                                'jedi_references': {
-                                    'enabled': True
-                                },
-                                'jedi_signature_help': {
-                                    'enabled': True
-                                },
-                                'jedi_symbols': {
-                                    'enabled': True,
-                                    'all_scopes': True
-                                },
-                                'mccabe': {
-                                    'enabled': False,
-                                    'threshold': 15
-                                },
-                                'preload': {
-                                    'enabled': True,
-                                    'modules': []
-                                }
-                            },
-
-                        }
-                    }
-                }
             })
             ]
 
@@ -790,7 +716,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '47.8.0'
+CONF_VERSION = '48.0.0'
 
 
 # Main configuration instance
