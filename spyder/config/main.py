@@ -282,6 +282,7 @@ DEFAULTS = [
               'show_hidden': True,
               'show_all': True,
               'show_icontext': False,
+              'single_click_to_open': False,
               }),
             ('find_in_files',
              {
