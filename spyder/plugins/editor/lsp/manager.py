@@ -53,7 +53,7 @@ class LSPManager(QObject):
         for language in self.configurations_for_servers:
             self.clients[language] = {
                 'status': self.STOPPED,
-                'config': CONF.get('lsp-server', language),
+                'config': self.get_option(language),
                 'instance': None
             }
             self.register_queue[language] = []
@@ -68,6 +68,10 @@ class LSPManager(QObject):
                 self.register_queue[language].append((filename, signal))
             else:
                 language_client.register_file(filename, signal)
+
+    def get_option(self, option):
+        """Get an option from our config system."""
+        return CONF.get(self.CONF_SECTION, option)
 
     def get_root_path(self, language):
         """
@@ -163,7 +167,7 @@ class LSPManager(QObject):
             if option in [l.lower() for l in LSP_LANGUAGES]:
                 language = option
                 config = {'status': self.STOPPED,
-                          'config': CONF.get('lsp-server', language),
+                          'config': self.get_option(language),
                           'instance': None}
                 if language not in self.clients:
                     self.clients[language] = config
