@@ -175,22 +175,18 @@ class ProcessWorker(QObject):
         raw_stderr = self._process.readAllStandardError()
         stderr = handle_qbytearray(raw_stderr, enco)
 
-        print(type(stdout))
-        print(type(stderr))
-
+        # FIXME: Is this needed?
         # if PY2:
         #     stderr = stderr.decode()
-        # result[-1] = ''
 
-        result = [stdout, stderr]
-        self._result = result
+        self._result = (stdout, stderr)
 
         if not self._fired:
-            self.sig_finished.emit(self, result[0], result[-1])
+            self.sig_finished.emit(self, stdout, stderr)
 
         self._fired = True
 
-        return result
+        return self._result
 
     def close(self):
         """Close the running process."""
