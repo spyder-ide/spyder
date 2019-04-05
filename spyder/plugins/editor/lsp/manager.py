@@ -19,6 +19,7 @@ from qtpy.QtCore import QObject, Slot
 
 # Local imports
 from spyder.config.base import get_conf_path
+from spyder.config.lsp import PYTHON_LSP_CONFIG
 from spyder.config.main import CONF
 from spyder.utils.misc import select_port, getcwd_or_home
 from spyder.plugins.editor.lsp import LSP_LANGUAGES
@@ -33,6 +34,7 @@ class LSPManager(QObject):
     STOPPED = 'stopped'
     RUNNING = 'running'
     CONF_SECTION = 'lsp-server'
+    LOCALHOST = ['127.0.0.1', 'localhost']
 
     def __init__(self, parent):
         QObject.__init__(self)
@@ -208,3 +210,85 @@ class LSPManager(QObject):
             if language_client['status'] == self.RUNNING:
                 client = self.clients[language]['instance']
                 client.perform_request(request, params)
+
+    def generate_python_configuration(self):
+        """Create Python configuration json from our config system."""
+        # Option values
+        cmd = self.get_option('advanced/command_launch')
+        host = self.get_option('advanced/host')
+        port = self.get_option('advanced/port')
+        code_style_enabled = self.get_option('pycodestyle')
+        code_style_exclude = self.get_option('pycodestyle/exclude').split(",")
+        code_style_filename = self.get_option(
+            'pycodestyle/filename').split(",")
+        code_style_select = self.get_option('pycodestyle/select').split(",")
+        code_style_ignore = self.get_option('pycodestyle/ignore').split(",")
+        code_style_max_line_length = (
+            self.get_option('pycodestyle/max_line_length'))
+
+        pycodestyle = {
+            'enabled': code_style_enabled,
+            'exclude': [exclude.strip() for exclude in code_style_exclude],
+            'filename': [filename.strip() for filename in code_style_filename],
+            'select': [select.strip() for select in code_style_select],
+            'ignore': [ignore.strip() for ignore in code_style_ignore],
+            'hangClosing': False,
+            'maxLineLength': code_style_max_line_length
+        }
+
+        pyflakes_enabled = self.get_option('pyflakes/enabled')
+        pyflakes = {
+            'enabled': pyflakes_enabled
+        }
+
+        pydocstyle_enabled = self.get_option('pydocstyle')
+        pydocstyle_convention = self.get_option('pydocstyle/convention')
+        pydocstyle_add_ignore = (
+            self.get_option('pydocstyle/add_ignore').split(","))
+        pydocstyle_add_select = (
+            self.get_option('pydocstyle/add_select').split(","))
+        pydocstyle_ignore = self.get_option('pydocstyle/ignore').split(",")
+        pydocstyle_select = self.get_option('pydocstyle/select').split(",")
+
+        pydocstyle = {
+            'enabled': pydocstyle_enabled,
+            'convention': pydocstyle_convention,
+            'addIgnore': [ignore.strip() for ignore in pydocstyle_add_ignore],
+            'addSelect': [select.strip() for select in pydocstyle_add_select],
+            'ignore': [ignore.strip() for ignore in pydocstyle_ignore],
+            'select': [select.strip() for select in pydocstyle_select],
+            'match': "(?!test_).*\\.py",
+            'matchDir': '[^\\.].*'
+        }
+
+        jedi_completion_enabled = self.get_option('code_completion')
+        jedi_completion = {
+            'enabled': jedi_completion_enabled,
+            'include_params': False
+        }
+
+        jedi_signature_help_enabled = self.get_option('jedi_signature_help')
+        preload_modules = self.get_option('preload_modules')
+
+        # Setup options in json
+        PYTHON_LSP_CONFIG['cmd'] = cmd
+
+        if host in self.LOCALHOST:
+            PYTHON_LSP_CONFIG['args'] = ('--host {host} --port {port} --tcp')
+            PYTHON_LSP_CONFIG['external'] = False
+        else:
+            PYTHON_LSP_CONFIG['args'] = ''
+            PYTHON_LSP_CONFIG['external'] = True
+        PYTHON_LSP_CONFIG['host'] = host
+        PYTHON_LSP_CONFIG['port'] = port
+
+        pyls = PYTHON_LSP_CONFIG['configurations']['pyls']
+        pyls['plugins']['pycodestyle'] = pycodestyle
+        pyls['plugins']['pyflakes'] = pyflakes
+        pyls['plugins']['pydocstyle'] = pydocstyle
+        pyls['plugins']['jedi_completion'] = jedi_completion
+        pyls['plugins']['jedi_signature_help'] = jedi_signature_help_enabled
+        pyls['plugins']['preload']['modules'] = preload_modules
+        # TODO: Add jedi_definitions
+
+        return PYTHON_LSP_CONFIG
