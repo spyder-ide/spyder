@@ -7,7 +7,7 @@
 import pytest
 
 from spyder.config.utils import is_anaconda
-from spyder.workers.updates import WorkerUpdates
+from spyder.utils.workers.updates import WorkerUpdates
 
 
 @pytest.mark.slow
