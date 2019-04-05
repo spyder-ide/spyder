@@ -2653,6 +2653,7 @@ class CodeEditor(TextEditBaseWidget):
     def autoinsert_colons(self):
         """Decide if we want to autoinsert colons"""
         bracket_ext = self.editor_extensions.get(CloseBracketsExtension)
+        self.completion_widget.hide()
         line_text = self.get_text('sol', 'cursor')
         if not self.textCursor().atBlockEnd():
             return False
@@ -2828,6 +2829,12 @@ class CodeEditor(TextEditBaseWidget):
         has_selection = self.has_selected_text()
         ctrl = event.modifiers() & Qt.ControlModifier
         shift = event.modifiers() & Qt.ShiftModifier
+        operators = {'+', '-', '*', '**', '/', '//', '%', '@', '<<', '>>',
+                     '&', '|', '^', '~', '<', '>', '<=', '>=', '==', '!='}
+        delimiters = {',', ':', ';', '@', '=', '->', '+=', '-=', '*=', '/=',
+                      '//=', '%=', '@=', '&=', '|=', '^=', '>>=', '<<=', '**='}
+        if text in operators or text in delimiters:
+            self.completion_widget.hide()
         if key in (Qt.Key_Enter, Qt.Key_Return):
             if not shift and not ctrl:
                 if self.add_colons_enabled and self.is_python_like() and \
@@ -2922,6 +2929,7 @@ class CodeEditor(TextEditBaseWidget):
             TextEditBaseWidget.keyPressEvent(self, event)
         elif key == Qt.Key_Space and not shift and not ctrl \
              and not has_selection and self.auto_unindent_enabled:
+            self.completion_widget.hide()
             leading_text = self.get_text('sol', 'cursor')
             if leading_text.lstrip() in ('elif', 'except'):
                 ind = lambda txt: len(txt)-len(txt.lstrip())
