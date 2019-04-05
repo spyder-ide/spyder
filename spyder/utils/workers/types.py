@@ -174,12 +174,15 @@ class ProcessWorker(QObject):
 
         raw_stderr = self._process.readAllStandardError()
         stderr = handle_qbytearray(raw_stderr, enco)
-        result = [stdout.encode(enco), stderr.encode(enco)]
 
-        if PY2:
-            stderr = stderr.decode()
-        result[-1] = ''
+        print(type(stdout))
+        print(type(stderr))
 
+        # if PY2:
+        #     stderr = stderr.decode()
+        # result[-1] = ''
+
+        result = [stdout, stderr]
         self._result = result
 
         if not self._fired:
