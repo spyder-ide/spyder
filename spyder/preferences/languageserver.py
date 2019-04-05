@@ -519,7 +519,8 @@ class LSPServerTable(QTableView):
         self.resizeColumnsToContents()
         fm = self.horizontalHeader().fontMetrics()
         names = [fm.width(s.cmd) for s in self.source_model.servers]
-        self.setColumnWidth(CMD, max(names))
+        if names:
+            self.setColumnWidth(CMD, max(names))
         self.horizontalHeader().setStretchLastSection(True)
 
     def get_server_by_lang(self, lang):
@@ -692,12 +693,12 @@ class LSPManagerConfigPage(GeneralConfigPage):
             'pycodestyle')
 
         # Code style options
-        code_style_filenames_match = self.create_lineedit(
+        self.code_style_filenames_match = self.create_lineedit(
             _("Only check filenames matching these patterns:"),
             'pycodestyle/filename', alignment=Qt.Horizontal, word_wrap=False,
             placeholder=_(r"Include all files in src: "
                           r"/^[^\/]+\/src\/?(?:[^\/]+\/?)*$/gm"))
-        code_style_exclude = self.create_lineedit(
+        self.code_style_exclude = self.create_lineedit(
             _("Exclude files or directories matching these patterns:"),
             'pycodestyle/exclude', alignment=Qt.Horizontal, word_wrap=False,
             placeholder=_("Exclude all test files: (?!test_).*\\.py"))
@@ -717,11 +718,12 @@ class LSPManagerConfigPage(GeneralConfigPage):
 
         # Code style layout
         code_style_g_layout = QGridLayout()
-        code_style_g_layout.addWidget(code_style_filenames_match.label, 1, 0)
         code_style_g_layout.addWidget(
-            code_style_filenames_match.textbox, 1, 1)
-        code_style_g_layout.addWidget(code_style_exclude.label, 2, 0)
-        code_style_g_layout.addWidget(code_style_exclude.textbox, 2, 1)
+            self.code_style_filenames_match.label, 1, 0)
+        code_style_g_layout.addWidget(
+            self.code_style_filenames_match.textbox, 1, 1)
+        code_style_g_layout.addWidget(self.code_style_exclude.label, 2, 0)
+        code_style_g_layout.addWidget(self.code_style_exclude.textbox, 2, 1)
         code_style_g_layout.addWidget(code_style_select.label, 3, 0)
         code_style_g_layout.addWidget(code_style_select.textbox, 3, 1)
         code_style_g_layout.addWidget(code_style_ignore.label, 4, 0)
@@ -737,9 +739,9 @@ class LSPManagerConfigPage(GeneralConfigPage):
 
         # Code style slots for checkbox
         code_style_check.toggled.connect(
-            code_style_filenames_match.textbox.setEnabled)
+            self.code_style_filenames_match.textbox.setEnabled)
         code_style_check.toggled.connect(
-            code_style_exclude.textbox.setEnabled)
+            self.code_style_exclude.textbox.setEnabled)
         code_style_check.toggled.connect(
             code_style_select.textbox.setEnabled)
         code_style_check.toggled.connect(
@@ -749,8 +751,8 @@ class LSPManagerConfigPage(GeneralConfigPage):
 
         # Code style initialization of options state (enabled/disabled)
         code_style_enabled = code_style_check.isChecked()
-        code_style_filenames_match.textbox.setEnabled(code_style_enabled)
-        code_style_exclude.textbox.setEnabled(code_style_enabled)
+        self.code_style_filenames_match.textbox.setEnabled(code_style_enabled)
+        self.code_style_exclude.textbox.setEnabled(code_style_enabled)
         code_style_select.textbox.setEnabled(code_style_enabled)
         code_style_ignore.textbox.setEnabled(code_style_enabled)
         code_style_max_line_length.spinbox.setEnabled(code_style_enabled)
