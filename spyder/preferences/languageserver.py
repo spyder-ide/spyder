@@ -615,51 +615,49 @@ class LSPManagerConfigPage(GeneralConfigPage):
         # --- Code completion ---
         # Introspection group
         introspection_group = QGroupBox(_("Introspection"))
-        self.completion_box = newcb(
-            _("Enable code completion"), 'code_completion')
-        self.goto_definition_box = newcb(
+        completion_box = newcb(_("Enable code completion"), 'code_completion')
+        goto_definition_box = newcb(
             _("Go to definitions"),
             'jedi_definition',
             tip=_("If this option is enabled, doing a left mouse click on\n"
                   "an object name while pressing the Ctrl key will go to\n"
                   "that object's definition (if resolved)."))
-        self.follow_imports_box = newcb(_("Follow imports when going to a "
-                                          "definition"),
-                                        'jedi_definition/follow_imports')
-        self.show_signature_box = newcb(
-            _("Show signature"), 'jedi_signature_help')
+        follow_imports_box = newcb(_("Follow imports when going to a "
+                                     "definition"),
+                                   'jedi_definition/follow_imports')
+        show_signature_box = newcb(_("Show signature"), 'jedi_signature_help')
 
         introspection_layout = QVBoxLayout()
-        introspection_layout.addWidget(self.completion_box)
-        introspection_layout.addWidget(self.goto_definition_box)
-        introspection_layout.addWidget(self.follow_imports_box)
-        introspection_layout.addWidget(self.show_signature_box)
+        introspection_layout.addWidget(completion_box)
+        introspection_layout.addWidget(goto_definition_box)
+        introspection_layout.addWidget(follow_imports_box)
+        introspection_layout.addWidget(show_signature_box)
         introspection_group.setLayout(introspection_layout)
 
         # Advanced group
         advanced_group = QGroupBox(_("Advanced"))
-        self.modules_textedit = self.create_textedit(
+        modules_textedit = self.create_textedit(
             _("Preload the following modules to make completion faster "
               "or more accurate:"),
             'preload_modules'
         )
         if is_dark_interface():
-            self.modules_textedit.textbox.setStyleSheet(
+            modules_textedit.textbox.setStyleSheet(
                 "border: 1px solid #32414B;"
             )
 
         advanced_layout = QVBoxLayout()
-        advanced_layout.addWidget(self.modules_textedit)
+        advanced_layout.addWidget(modules_textedit)
         advanced_group.setLayout(advanced_layout)
 
-        # --- linting tab ---
+        # --- Linting ---
         # Linting options
         linting_bg = QButtonGroup()
-        self.linting_pyflakes_radio = self.create_radiobutton(
+        linting_pyflakes_radio = self.create_radiobutton(
             _("Use Pyflakes for linting"),
             'pyflakes/enabled',
             button_group=linting_bg)
-        self.linting_pylint_radio = self.create_radiobutton(
+        linting_pylint_radio = self.create_radiobutton(
             _("Use Pylint for linting "
               "(more complete but slower)"),
             'pylint/enabled',
@@ -667,8 +665,8 @@ class LSPManagerConfigPage(GeneralConfigPage):
 
         # Linting layout
         linting_layout = QVBoxLayout()
-        linting_layout.addWidget(self.linting_pyflakes_radio)
-        linting_layout.addWidget(self.linting_pylint_radio)
+        linting_layout.addWidget(linting_pyflakes_radio)
+        linting_layout.addWidget(linting_pylint_radio)
         linting_widget = QWidget()
         linting_widget.setLayout(linting_layout)
 
@@ -689,81 +687,73 @@ class LSPManagerConfigPage(GeneralConfigPage):
         code_style_label.setWordWrap(True)
 
         # Code style checkbox
-        self.code_style_check = self.create_checkbox(
+        code_style_check = self.create_checkbox(
             _("Enable code style linting"),
             'pycodestyle')
 
         # Code style options
-        self.code_style_filenames_match = self.create_lineedit(
+        code_style_filenames_match = self.create_lineedit(
             _("Only check filenames matching these patterns:"),
             'pycodestyle/filename', alignment=Qt.Horizontal, word_wrap=False,
             placeholder=_(r"Include all files in src: "
                           r"/^[^\/]+\/src\/?(?:[^\/]+\/?)*$/gm"))
-        self.code_style_exclude = self.create_lineedit(
+        code_style_exclude = self.create_lineedit(
             _("Exclude files or directories matching these patterns:"),
             'pycodestyle/exclude', alignment=Qt.Horizontal, word_wrap=False,
             placeholder=_("Exclude all test files: (?!test_).*\\.py"))
-        self.code_style_select = self.create_lineedit(
+        code_style_select = self.create_lineedit(
             _("Select the following error or warnings to show:").format(
                 code_style_codes),
             'pycodestyle/select', alignment=Qt.Horizontal, word_wrap=False,
             placeholder=_("Example codes: E113, W391"))
-        self.code_style_ignore = self.create_lineedit(
+        code_style_ignore = self.create_lineedit(
             _("Ignore the following errors or warnings:"),
             'pycodestyle/ignore', alignment=Qt.Horizontal, word_wrap=False,
             placeholder=_("Example codes: E201, E303"))
-        self.code_style_max_line_length = self.create_spinbox(
+        code_style_max_line_length = self.create_spinbox(
             _("Maximum allowed line length:"), None,
             'pycodestyle/max_line_length', min_=10, max_=500, step=1,
             tip=_("Default is 79"))
 
         # Code style layout
         code_style_g_layout = QGridLayout()
+        code_style_g_layout.addWidget(code_style_filenames_match.label, 1, 0)
         code_style_g_layout.addWidget(
-            self.code_style_filenames_match.label, 1, 0)
+            code_style_filenames_match.textbox, 1, 1)
+        code_style_g_layout.addWidget(code_style_exclude.label, 2, 0)
+        code_style_g_layout.addWidget(code_style_exclude.textbox, 2, 1)
+        code_style_g_layout.addWidget(code_style_select.label, 3, 0)
+        code_style_g_layout.addWidget(code_style_select.textbox, 3, 1)
+        code_style_g_layout.addWidget(code_style_ignore.label, 4, 0)
+        code_style_g_layout.addWidget(code_style_ignore.textbox, 4, 1)
+        code_style_g_layout.addWidget(code_style_max_line_length.plabel, 5, 0)
         code_style_g_layout.addWidget(
-            self.code_style_filenames_match.textbox, 1, 1)
-        code_style_g_layout.addWidget(
-            self.code_style_exclude.label, 2, 0)
-        code_style_g_layout.addWidget(
-            self.code_style_exclude.textbox, 2, 1)
-        code_style_g_layout.addWidget(
-            self.code_style_select.label, 3, 0)
-        code_style_g_layout.addWidget(
-            self.code_style_select.textbox, 3, 1)
-        code_style_g_layout.addWidget(
-            self.code_style_ignore.label, 4, 0)
-        code_style_g_layout.addWidget(
-            self.code_style_ignore.textbox, 4, 1)
-        code_style_g_layout.addWidget(
-            self.code_style_max_line_length.plabel, 5, 0)
-        code_style_g_layout.addWidget(
-            self.code_style_max_line_length.spinbox, 5, 1)
+            code_style_max_line_length.spinbox, 5, 1)
 
         code_style_layout = QVBoxLayout()
         code_style_layout.addWidget(code_style_label)
-        code_style_layout.addWidget(self.code_style_check)
+        code_style_layout.addWidget(code_style_check)
         code_style_layout.addLayout(code_style_g_layout)
 
         # Code style slots for checkbox
-        self.code_style_check.toggled.connect(
-            self.code_style_filenames_match.textbox.setEnabled)
-        self.code_style_check.toggled.connect(
-            self.code_style_exclude.textbox.setEnabled)
-        self.code_style_check.toggled.connect(
-            self.code_style_select.textbox.setEnabled)
-        self.code_style_check.toggled.connect(
-            self.code_style_ignore.textbox.setEnabled)
-        self.code_style_check.toggled.connect(
-            self.code_style_max_line_length.spinbox.setEnabled)
+        code_style_check.toggled.connect(
+            code_style_filenames_match.textbox.setEnabled)
+        code_style_check.toggled.connect(
+            code_style_exclude.textbox.setEnabled)
+        code_style_check.toggled.connect(
+            code_style_select.textbox.setEnabled)
+        code_style_check.toggled.connect(
+            code_style_ignore.textbox.setEnabled)
+        code_style_check.toggled.connect(
+            code_style_max_line_length.spinbox.setEnabled)
 
         # Code style initialization of options state (enabled/disabled)
-        code_style_enabled = self.code_style_check.isChecked()
-        self.code_style_filenames_match.textbox.setEnabled(code_style_enabled)
-        self.code_style_exclude.textbox.setEnabled(code_style_enabled)
-        self.code_style_select.textbox.setEnabled(code_style_enabled)
-        self.code_style_ignore.textbox.setEnabled(code_style_enabled)
-        self.code_style_max_line_length.spinbox.setEnabled(code_style_enabled)
+        code_style_enabled = code_style_check.isChecked()
+        code_style_filenames_match.textbox.setEnabled(code_style_enabled)
+        code_style_exclude.textbox.setEnabled(code_style_enabled)
+        code_style_select.textbox.setEnabled(code_style_enabled)
+        code_style_ignore.textbox.setEnabled(code_style_enabled)
+        code_style_max_line_length.spinbox.setEnabled(code_style_enabled)
 
         code_style_widget = QWidget()
         code_style_widget.setLayout(code_style_layout)
@@ -788,31 +778,31 @@ class LSPManagerConfigPage(GeneralConfigPage):
         docstring_style_label.setWordWrap(True)
 
         # Docstring style checkbox
-        self.docstring_style_check = self.create_checkbox(
+        docstring_style_check = self.create_checkbox(
             _("Enable docstring style linting"),
             'pydocstyle')
 
         # Docstring style options
-        self.docstring_style_convention = self.create_combobox(
+        docstring_style_convention = self.create_combobox(
             _("Choose the convention used to lint docstrings: "),
             (("Numpy", 'numpy'),
              ("Pep 257", 'pep257')),
             'pydocstyle/convention')
-        self.docstring_style_add_select = self.create_lineedit(
+        docstring_style_add_select = self.create_lineedit(
             _("Display the following errors in addition to the "
               "specified convention:"),
             'pydocstyle/add_select', alignment=Qt.Horizontal, word_wrap=False,
             placeholder=_("Example codes: D100, D200"))
-        self.docstring_style_add_ignore = self.create_lineedit(
+        docstring_style_add_ignore = self.create_lineedit(
             _("Ignore the following errors in addition to "
               "the specified convention:").format(code_style_codes),
             'pydocstyle/add_ignore', alignment=Qt.Horizontal, word_wrap=False,
             placeholder=_("Example codes: D400, D405"))
-        self.docstring_style_select = self.create_lineedit(
+        docstring_style_select = self.create_lineedit(
             _("Select the following errors to show:"),
             'pydocstyle/select', alignment=Qt.Horizontal, word_wrap=False,
             placeholder=_("Example codes: D413, D414"))
-        self.docstring_style_ignore = self.create_lineedit(
+        docstring_style_ignore = self.create_lineedit(
             _("Ignore the following errors:"),
             'pydocstyle/select', alignment=Qt.Horizontal, word_wrap=False,
             placeholder=_("Example codes: D107, D402"))
@@ -820,55 +810,55 @@ class LSPManagerConfigPage(GeneralConfigPage):
         # Docstring style layout
         docstring_style_g_layout = QGridLayout()
         docstring_style_g_layout.addWidget(
-            self.docstring_style_convention.label, 1, 0)
+            docstring_style_convention.label, 1, 0)
         docstring_style_g_layout.addWidget(
-            self.docstring_style_convention.combobox, 1, 1)
+            docstring_style_convention.combobox, 1, 1)
         docstring_style_g_layout.addWidget(
-            self.docstring_style_add_select.label, 2, 0)
+            docstring_style_add_select.label, 2, 0)
         docstring_style_g_layout.addWidget(
-            self.docstring_style_add_select.textbox, 2, 1)
+            docstring_style_add_select.textbox, 2, 1)
         docstring_style_g_layout.addWidget(
-            self.docstring_style_add_ignore.label, 3, 0)
+            docstring_style_add_ignore.label, 3, 0)
         docstring_style_g_layout.addWidget(
-            self.docstring_style_add_ignore.textbox, 3, 1)
+            docstring_style_add_ignore.textbox, 3, 1)
         docstring_style_g_layout.addWidget(
-            self.docstring_style_select.label, 4, 0)
+            docstring_style_select.label, 4, 0)
         docstring_style_g_layout.addWidget(
-            self.docstring_style_select.textbox, 4, 1)
+            docstring_style_select.textbox, 4, 1)
         docstring_style_g_layout.addWidget(
-            self.docstring_style_ignore.label, 5, 0)
+            docstring_style_ignore.label, 5, 0)
         docstring_style_g_layout.addWidget(
-            self.docstring_style_ignore.textbox, 5, 1)
+            docstring_style_ignore.textbox, 5, 1)
 
         docstring_style_layout = QVBoxLayout()
         docstring_style_layout.addWidget(docstring_style_label)
-        docstring_style_layout.addWidget(self.docstring_style_check)
+        docstring_style_layout.addWidget(docstring_style_check)
         docstring_style_layout.addLayout(docstring_style_g_layout)
 
         # Docstring style slots for checkbox
-        self.docstring_style_check.toggled.connect(
-            self.docstring_style_convention.combobox.setEnabled)
-        self.docstring_style_check.toggled.connect(
-            self.docstring_style_add_select.textbox.setEnabled)
-        self.docstring_style_check.toggled.connect(
-            self.docstring_style_add_ignore.textbox.setEnabled)
-        self.docstring_style_check.toggled.connect(
-            self.docstring_style_select.textbox.setEnabled)
-        self.docstring_style_check.toggled.connect(
-            self.docstring_style_ignore.textbox.setEnabled)
+        docstring_style_check.toggled.connect(
+            docstring_style_convention.combobox.setEnabled)
+        docstring_style_check.toggled.connect(
+            docstring_style_add_select.textbox.setEnabled)
+        docstring_style_check.toggled.connect(
+            docstring_style_add_ignore.textbox.setEnabled)
+        docstring_style_check.toggled.connect(
+            docstring_style_select.textbox.setEnabled)
+        docstring_style_check.toggled.connect(
+            docstring_style_ignore.textbox.setEnabled)
 
         # Docstring initialization of options state (enabled/disabled)
-        docstring_style_enabled = self.docstring_style_check.isChecked()
-        self.docstring_style_convention.combobox.setEnabled(
+        docstring_style_enabled = docstring_style_check.isChecked()
+        docstring_style_convention.combobox.setEnabled(
             docstring_style_enabled)
-        self.docstring_style_add_select.textbox.setEnabled(
+        docstring_style_add_select.textbox.setEnabled(
             docstring_style_enabled)
-        self.docstring_style_add_ignore.textbox.setEnabled(
+        docstring_style_add_ignore.textbox.setEnabled(
             docstring_style_enabled)
-        self.docstring_style_select.textbox.setEnabled(
+        docstring_style_select.textbox.setEnabled(
             docstring_style_enabled)
-        self.docstring_style_ignore.textbox.setEnabled(
-                docstring_style_enabled)
+        docstring_style_ignore.textbox.setEnabled(
+            docstring_style_enabled)
 
         docstring_style_widget = QWidget()
         docstring_style_widget.setLayout(docstring_style_layout)
@@ -882,35 +872,28 @@ class LSPManagerConfigPage(GeneralConfigPage):
         advanced_label.setAlignment(Qt.AlignJustify)
 
         # Advanced options
-        self.advanced_command_launch = self.create_lineedit(
+        advanced_command_launch = self.create_lineedit(
             _("Command to launch the Python language server: "),
             'advanced/command_launch', alignment=Qt.Horizontal,
             word_wrap=False)
-        self.advanced_host = self.create_lineedit(
+        advanced_host = self.create_lineedit(
             _("IP Address and port to bind the server to: "),
             'advanced/host', alignment=Qt.Horizontal,
             word_wrap=False)
-        self.advanced_port = self.create_spinbox(
+        advanced_port = self.create_spinbox(
             ":", "", 'advanced/port', min_=1, max_=65535, step=1)
 
         # Advanced layout
         advanced_g_layout = QGridLayout()
-        advanced_g_layout.addWidget(
-            self.advanced_command_launch.label, 1, 0)
-        advanced_g_layout.addWidget(
-            self.advanced_command_launch.textbox, 1, 1)
-        advanced_g_layout.addWidget(
-            self.advanced_host.label, 2, 0)
+        advanced_g_layout.addWidget(advanced_command_launch.label, 1, 0)
+        advanced_g_layout.addWidget(advanced_command_launch.textbox, 1, 1)
+        advanced_g_layout.addWidget(advanced_host.label, 2, 0)
 
         advanced_host_port_g_layout = QGridLayout()
-        advanced_host_port_g_layout.addWidget(
-            self.advanced_host.textbox, 1, 0)
-        advanced_host_port_g_layout.addWidget(
-            self.advanced_port.plabel, 1, 1)
-        advanced_host_port_g_layout.addWidget(
-            self.advanced_port.spinbox, 1, 2)
-        advanced_g_layout.addLayout(
-            advanced_host_port_g_layout, 2, 1)
+        advanced_host_port_g_layout.addWidget(advanced_host.textbox, 1, 0)
+        advanced_host_port_g_layout.addWidget(advanced_port.plabel, 1, 1)
+        advanced_host_port_g_layout.addWidget(advanced_port.spinbox, 1, 2)
+        advanced_g_layout.addLayout(advanced_host_port_g_layout, 2, 1)
 
         advanced_widget = QWidget()
         advanced_layout = QVBoxLayout()
