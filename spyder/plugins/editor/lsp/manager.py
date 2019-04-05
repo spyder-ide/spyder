@@ -213,62 +213,55 @@ class LSPManager(QObject):
 
     def generate_python_configuration(self):
         """Create Python configuration json from our config system."""
-        # Option values
+        # Server options
         cmd = self.get_option('advanced/command_launch')
         host = self.get_option('advanced/host')
         port = self.get_option('advanced/port')
-        code_style_enabled = self.get_option('pycodestyle')
-        code_style_exclude = self.get_option('pycodestyle/exclude').split(",")
-        code_style_filename = self.get_option(
-            'pycodestyle/filename').split(",")
-        code_style_select = self.get_option('pycodestyle/select').split(",")
-        code_style_ignore = self.get_option('pycodestyle/ignore').split(",")
-        code_style_max_line_length = (
-            self.get_option('pycodestyle/max_line_length'))
+
+        # Pycodestyle
+        cs_exclude = self.get_option('pycodestyle/exclude').split(',')
+        cs_filename = self.get_option('pycodestyle/filename').split(',')
+        cs_select = self.get_option('pycodestyle/select').split(',')
+        cs_ignore = self.get_option('pycodestyle/ignore').split(',')
+        cs_max_line_length = self.get_option('pycodestyle/max_line_length')
 
         pycodestyle = {
-            'enabled': code_style_enabled,
-            'exclude': [exclude.strip() for exclude in code_style_exclude],
-            'filename': [filename.strip() for filename in code_style_filename],
-            'select': [select.strip() for select in code_style_select],
-            'ignore': [ignore.strip() for ignore in code_style_ignore],
+            'enabled': self.get_option('pycodestyle'),
+            'exclude': [exclude.strip() for exclude in cs_exclude],
+            'filename': [filename.strip() for filename in cs_filename],
+            'select': [select.strip() for select in cs_select],
+            'ignore': [ignore.strip() for ignore in cs_ignore],
             'hangClosing': False,
-            'maxLineLength': code_style_max_line_length
+            'maxLineLength': cs_max_line_length
         }
 
-        pyflakes_enabled = self.get_option('pyflakes/enabled')
+        # Pyflakes
         pyflakes = {
-            'enabled': pyflakes_enabled
+            'enabled': self.get_option('pyflakes/enabled')
         }
 
-        pydocstyle_enabled = self.get_option('pydocstyle')
-        pydocstyle_convention = self.get_option('pydocstyle/convention')
-        pydocstyle_add_ignore = (
-            self.get_option('pydocstyle/add_ignore').split(","))
-        pydocstyle_add_select = (
-            self.get_option('pydocstyle/add_select').split(","))
-        pydocstyle_ignore = self.get_option('pydocstyle/ignore').split(",")
-        pydocstyle_select = self.get_option('pydocstyle/select').split(",")
+        # Pydocstyle
+        ds_add_ignore = self.get_option('pydocstyle/add_ignore').split(',')
+        ds_add_select = self.get_option('pydocstyle/add_select').split(',')
+        ds_ignore = self.get_option('pydocstyle/ignore').split(',')
+        ds_select = self.get_option('pydocstyle/select').split(',')
 
         pydocstyle = {
-            'enabled': pydocstyle_enabled,
-            'convention': pydocstyle_convention,
-            'addIgnore': [ignore.strip() for ignore in pydocstyle_add_ignore],
-            'addSelect': [select.strip() for select in pydocstyle_add_select],
-            'ignore': [ignore.strip() for ignore in pydocstyle_ignore],
-            'select': [select.strip() for select in pydocstyle_select],
+            'enabled': self.get_option('pydocstyle'),
+            'convention': self.get_option('pydocstyle/convention'),
+            'addIgnore': [ignore.strip() for ignore in ds_add_ignore],
+            'addSelect': [select.strip() for select in ds_add_select],
+            'ignore': [ignore.strip() for ignore in ds_ignore],
+            'select': [select.strip() for select in ds_select],
             'match': "(?!test_).*\\.py",
             'matchDir': '[^\\.].*'
         }
 
-        jedi_completion_enabled = self.get_option('code_completion')
+        # Code completion
         jedi_completion = {
-            'enabled': jedi_completion_enabled,
+            'enabled': self.get_option('code_completion'),
             'include_params': False
         }
-
-        jedi_signature_help_enabled = self.get_option('jedi_signature_help')
-        preload_modules = self.get_option('preload_modules')
 
         # Setup options in json
         PYTHON_LSP_CONFIG['cmd'] = cmd
@@ -287,8 +280,8 @@ class LSPManager(QObject):
         pyls['plugins']['pyflakes'] = pyflakes
         pyls['plugins']['pydocstyle'] = pydocstyle
         pyls['plugins']['jedi_completion'] = jedi_completion
-        pyls['plugins']['jedi_signature_help'] = jedi_signature_help_enabled
-        pyls['plugins']['preload']['modules'] = preload_modules
+        pyls['plugins']['jedi_signature_help'] = self.get_option('jedi_signature_help')
+        pyls['plugins']['preload']['modules'] = self.get_option('preload_modules')
         # TODO: Add jedi_definitions
 
         return PYTHON_LSP_CONFIG
