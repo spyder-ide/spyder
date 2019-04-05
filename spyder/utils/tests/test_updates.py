@@ -9,6 +9,11 @@
 Tests for spyder update checking utilities.
 """
 
+# Standard library imports
+from collections import OrderedDict
+import bz2
+import json
+
 # Third party imports
 import pytest
 
@@ -33,11 +38,13 @@ RELEASE_TYPES = [ANACONDA_RELEASES, GITHUB_RELEASES]
 
 
 def test_download():
+    """Test download util."""
     data = download(url='https://www.google.com/')
     assert '<title>Google</title>' in data
 
 
 def test_check_update_available():
+    """Test different version combinations."""
     for releases in RELEASE_TYPES:
         # Test we offer updates for lower versions
         update, _ = check_update_available("1.0.0", releases=releases)
@@ -70,8 +77,26 @@ def test_get_updates_url():
         assert content_type.lower().startswith('application/json')
 
 
-def test_process_releases():
-    # Test we don't include spyder-kernels releases in detected releases
+def test_process_releases_live_data():
+    """Test the api remains consistent."""
+    for value in [True, False]:
+        url = get_updates_url(anaconda=value)
+        raw_data = download(url)
+
+        if value and url.endswith('.bz2'):
+            raw_data = bz2.decompress(raw_data)
+
+        data = json.loads(raw_data, object_pairs_hook=OrderedDict)
+        releases = process_releases(data, anaconda=value)
+
+        if value:
+            assert '0.2.4' not in releases
+        else:
+            assert '3.3.4' in releases
+
+
+def test_process_releases_mock_data():
+    """Test we don't include spyder-kernels releases in detected releases."""
     anaconda_data = {
         "info": {
             "subdir": "osx-64"
@@ -90,9 +115,18 @@ def test_process_releases():
 
 
 def test_check_updates():
+    """Test the complete update checking process."""
     update_available, latest_release, error_msg = check_updates()
+
+    # Since this will run on CI servers, it should return `False`
     assert not update_available
+
+    # Latest release will be the either the latest or the current
+    # one, so this will always return a valid version string 
     assert bool(latest_release)
+
+    # There should not be any error messages from this process running
+    # on CI servers (Unless there are connectivity problems)
     assert error_msg is None
 
 
