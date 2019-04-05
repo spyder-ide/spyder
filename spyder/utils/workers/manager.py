@@ -56,11 +56,11 @@ class WorkerManager(QObject):
             self._queue_workers.append(worker)
 
         if self._queue_workers and self._running_threads < self._max_threads:
-            #print('Queue: {0} Running: {1} Workers: {2} '
-            #       'Threads: {3}'.format(len(self._queue_workers),
-            #                                 self._running_threads,
-            #                                 len(self._workers),
-            #                                 len(self._threads)))
+            # print('Queue: {0} Running: {1} Workers: {2} '
+            #        'Threads: {3}'.format(len(self._queue_workers),
+            #                                  self._running_threads,
+            #                                  len(self._workers),
+            #                                  len(self._threads)))
             self._running_threads += 1
             worker = self._queue_workers.popleft()
             thread = QThread()
@@ -122,13 +122,14 @@ class WorkerManager(QObject):
         worker.sig_started.connect(self._start)
         self._workers.append(worker)
 
+
 # --- Local testing
 # -----------------------------------------------------------------------------
 def ready_print(worker, output, error):  # pragma: no cover
     """Print worker output for tests."""
     print(worker, output, error)  # spyder: test-skip
 
-    
+
 def sleeping_func(arg, secs=10, result_queue=None):
     """This methods illustrates how the workers can be used."""
     import time
