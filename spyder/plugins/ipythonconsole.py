@@ -621,6 +621,14 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         prompts_layout.addLayout(prompts_g_layout)
         prompts_group.setLayout(prompts_layout)
 
+        # Windows adjustments
+        windows_group = QGroupBox(_("Windows adjustments"))
+        show_subprocess_window = newcb(_("Show subprocess windows"),
+                                       'subprocess_windows')
+        windows_layout = QVBoxLayout()
+        windows_layout.addWidget(show_subprocess_window)
+        windows_group.setLayout(windows_layout)
+
         # --- Tabs organization ---
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(interface_group, comp_group,
@@ -629,8 +637,9 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                     _("Graphics"))
         tabs.addTab(self.create_tab(run_lines_group, run_file_group),
                                     _("Startup"))
-        tabs.addTab(self.create_tab(jedi_group, greedy_group, autocall_group, sympy_group,
-                                    prompts_group), _("Advanced Settings"))
+        tabs.addTab(self.create_tab(jedi_group, greedy_group, autocall_group,
+                                    sympy_group, prompts_group,
+                                    windows_group), _("Advanced Settings"))
 
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)

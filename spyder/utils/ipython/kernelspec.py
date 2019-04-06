@@ -117,7 +117,8 @@ class SpyderKernelSpec(KernelSpec):
             'SPY_JEDI_O': CONF.get('ipython_console', 'jedi_completer'),
             'SPY_SYMPY_O': CONF.get('ipython_console', 'symbolic_math'),
             'SPY_RUN_CYTHON': self.is_cython,
-            'SPY_TESTING': running_under_pytest() or SAFE_MODE
+            'SPY_TESTING': running_under_pytest() or SAFE_MODE,
+            'SPY_SHOW_CMD': CONF.get('ipython_console', 'subprocess_windows')
         }
 
         # Add our PYTHONPATH to env_vars

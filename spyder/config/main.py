@@ -170,7 +170,8 @@ DEFAULTS = [
               'in_prompt': '',
               'out_prompt': '',
               'show_elapsed_time': False,
-              'ask_before_restart': True
+              'ask_before_restart': True,
+              'subprocess_windows': False
               }),
             ('variable_explorer',
              {
