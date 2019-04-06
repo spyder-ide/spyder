@@ -653,21 +653,31 @@ class LSPManagerConfigPage(GeneralConfigPage):
 
         # --- Linting ---
         # Linting options
-        linting_bg = QButtonGroup()
-        linting_pyflakes_radio = self.create_radiobutton(
-            _("Use Pyflakes for linting"),
-            'pyflakes/enabled',
-            button_group=linting_bg)
-        linting_pylint_radio = self.create_radiobutton(
-            _("Use Pylint for linting "
-              "(more complete but slower)"),
-            'pylint/enabled',
-            button_group=linting_bg)
+        linting_label = QLabel(_("Here you can decide if you want to get "
+                                 "syntax errors and informative warnings "
+                                 "about the code you write in the editor."))
+        linting_label.setOpenExternalLinks(True)
+        linting_label.setWordWrap(True)
+        linting_check = self.create_checkbox(
+            _("Enable linting"),
+            'pyflakes')
+
+        mccabe_url = "<a href='https://github.com/pycqa/mccabe'>Mccabe</a>"
+        linting_complexity_label = QLabel(
+            _("{} package".format(mccabe_url)))
+        linting_complexity_box = self.create_checkbox(
+            _("Enable complexity linting with "
+              "the"), 'mccabe')
 
         # Linting layout
         linting_layout = QVBoxLayout()
-        linting_layout.addWidget(linting_pyflakes_radio)
-        linting_layout.addWidget(linting_pylint_radio)
+        linting_layout.addWidget(linting_label)
+        linting_layout.addWidget(linting_check)
+        complexity_layout = QHBoxLayout()
+        complexity_layout.addWidget(linting_complexity_box)
+        complexity_layout.addWidget(linting_complexity_label)
+        complexity_layout.addStretch(1)
+        linting_layout.addLayout(complexity_layout)
         linting_widget = QWidget()
         linting_widget.setLayout(linting_layout)
 
@@ -807,6 +817,12 @@ class LSPManagerConfigPage(GeneralConfigPage):
             _("Ignore the following errors:"),
             'pydocstyle/select', alignment=Qt.Horizontal, word_wrap=False,
             placeholder=_("Example codes: D107, D402"))
+        self.docstring_style_match = self.create_lineedit(
+            _("Only check filenames matching these patterns:"),
+            'pydocstyle/match', alignment=Qt.Horizontal, word_wrap=False)
+        self.docstring_style_match_dir = self.create_lineedit(
+            _("Only check in directories matching these patterns:"),
+            'pydocstyle/match_dir', alignment=Qt.Horizontal, word_wrap=False)
 
         # Docstring style layout
         docstring_style_g_layout = QGridLayout()
@@ -830,6 +846,14 @@ class LSPManagerConfigPage(GeneralConfigPage):
             docstring_style_ignore.label, 5, 0)
         docstring_style_g_layout.addWidget(
             docstring_style_ignore.textbox, 5, 1)
+        docstring_style_g_layout.addWidget(
+            self.docstring_style_match.label, 6, 0)
+        docstring_style_g_layout.addWidget(
+            self.docstring_style_match.textbox, 6, 1)
+        docstring_style_g_layout.addWidget(
+            self.docstring_style_match_dir.label, 7, 0)
+        docstring_style_g_layout.addWidget(
+            self.docstring_style_match_dir.textbox, 7, 1)
 
         docstring_style_layout = QVBoxLayout()
         docstring_style_layout.addWidget(docstring_style_label)
@@ -847,6 +871,10 @@ class LSPManagerConfigPage(GeneralConfigPage):
             docstring_style_select.textbox.setEnabled)
         docstring_style_check.toggled.connect(
             docstring_style_ignore.textbox.setEnabled)
+        docstring_style_check.toggled.connect(
+            self.docstring_style_match.textbox.setEnabled)
+        docstring_style_check.toggled.connect(
+            self.docstring_style_match_dir.textbox.setEnabled)
 
         # Docstring initialization of options state (enabled/disabled)
         docstring_style_enabled = docstring_style_check.isChecked()
@@ -859,6 +887,10 @@ class LSPManagerConfigPage(GeneralConfigPage):
         docstring_style_select.textbox.setEnabled(
             docstring_style_enabled)
         docstring_style_ignore.textbox.setEnabled(
+            docstring_style_enabled)
+        self.docstring_style_match.textbox.setEnabled(
+            docstring_style_enabled)
+        self.docstring_style_match_dir.textbox.setEnabled(
             docstring_style_enabled)
 
         docstring_style_widget = QWidget()
@@ -1000,6 +1032,21 @@ class LSPManagerConfigPage(GeneralConfigPage):
                 re.compile(match.strip())
         except re.error:
             self.set_option('pycodestyle/exclude', '')
+
+        # Check regex of docstring style options
+        try:
+            docstring_style_match = (
+                self.docstring_style_match.textbox.text().split(","))
+            re.compile(docstring_style_match)
+        except re.error:
+            self.set_option('pydocstyle/match', '')
+
+        try:
+            docstring_style_match_dir = (
+                self.docstring_style_match.textbox.text().split(","))
+            re.compile(docstring_style_match_dir)
+        except re.error:
+            self.set_option('pydocstyle/match_dir', '')
 
         self.table.save_servers()
         # TODO: Reset Manager

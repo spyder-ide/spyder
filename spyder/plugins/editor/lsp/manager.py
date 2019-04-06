@@ -258,9 +258,9 @@ class LSPManager(QObject):
             'maxLineLength': cs_max_line_length
         }
 
-        # Pyflakes
+        # Linting - Pyflakes
         pyflakes = {
-            'enabled': self.get_option('pyflakes/enabled')
+            'enabled': self.get_option('pyflakes')
         }
 
         # Pydocstyle
@@ -276,8 +276,8 @@ class LSPManager(QObject):
             'addSelect': [select.strip() for select in ds_add_select],
             'ignore': [ignore.strip() for ignore in ds_ignore],
             'select': [select.strip() for select in ds_select],
-            'match': "(?!test_).*\\.py",
-            'matchDir': '[^\\.].*'
+            'match': self.get_option('pydocstyle/match'),
+            'matchDir': self.get_option('pydocstyle/match_dir')
         }
 
         # Code completion
@@ -288,6 +288,11 @@ class LSPManager(QObject):
 
         jedi_signature_help = {
             'enabled': self.get_option('jedi_signature_help')
+        }
+
+        jedi_definition = {
+            'enabled': self.get_option('jedi_definition'),
+            'follow_imports': self.get_option('jedi_definition/follow_imports')
         }
 
         # Setup options in json
@@ -308,5 +313,4 @@ class LSPManager(QObject):
         plugins['jedi_completion'] = jedi_completion
         plugins['jedi_signature_help'] = jedi_signature_help
         plugins['preload']['modules'] = self.get_option('preload_modules')
-
-        # TODO: Add jedi_definitions
+        plugins['jedi_definition'] = jedi_definition

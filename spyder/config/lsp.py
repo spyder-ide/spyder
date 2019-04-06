@@ -67,6 +67,11 @@ PYTHON_CONFIG = {
                     'enabled': True,
                     'include_params': False
                 },
+                'jedi_definition': {
+                    'enabled': True,
+                    'follow_imports': True,
+                    'follow_builtin_imports': True
+                },
                 'jedi_hover': {
                     'enabled': True
                 },

@@ -685,8 +685,8 @@ DEFAULTS = [
               'jedi_definition/follow_imports': True,
               'jedi_signature_help': True,
               'preload_modules': PRELOAD_MDOULES,
-              'pyflakes/enabled': True,
-              'pylint/enabled': False,
+              'pyflakes': True,
+              'mccabe': False,
               'pycodestyle': False,
               'pycodestyle/filename': '',
               'pycodestyle/exclude': '',
@@ -699,10 +699,12 @@ DEFAULTS = [
               'pydocstyle/add_ignore': '',
               'pydocstyle/select': '',
               'pydocstyle/ignore': '',
+              'pydocstyle/match': '(?!test_).*\\.py',
+              'pydocstyle/match_dir': '[^\\.].*',
               'advanced/command_launch': 'pyls',
               'advanced/host': '127.0.0.1',
               'advanced/port': 2087,
-            })
+             })
             ]
 
 
