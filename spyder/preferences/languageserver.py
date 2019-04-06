@@ -45,7 +45,7 @@ def iter_servers():
             yield server
 
 
-class LSPServer:
+class LSPServer(object):
     """Convenience class to store LSP Server configuration values."""
 
     def __init__(self, language=None, cmd='', host='127.0.0.1',
