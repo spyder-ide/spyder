@@ -696,8 +696,7 @@ class LSPManagerConfigPage(GeneralConfigPage):
         self.code_style_filenames_match = self.create_lineedit(
             _("Only check filenames matching these patterns:"),
             'pycodestyle/filename', alignment=Qt.Horizontal, word_wrap=False,
-            placeholder=_(r"Include all files in src: "
-                          r"/^[^\/]+\/src\/?(?:[^\/]+\/?)*$/gm"))
+            placeholder=_("Check Python files: *.py"))
         self.code_style_exclude = self.create_lineedit(
             _("Exclude files or directories matching these patterns:"),
             'pycodestyle/exclude', alignment=Qt.Horizontal, word_wrap=False,
