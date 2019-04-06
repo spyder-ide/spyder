@@ -560,7 +560,7 @@ def test():
                'date': datetime.date(1945, 5, 8),
                'datetime': datetime.datetime(1945, 5, 8),
                'foobar': foobar}
-    ObjectExplorer.create_browser(example, 'Example')
+    ObjectExplorer.create_browser(example, 'Example', refresh_rate=2)
 
 
 if __name__ == "__main__":
