@@ -5,22 +5,22 @@
 # (see spyder/__init__.py for details)
 
 """
-Configuration options for the Python Language Server.
+Configuration options for the Language Server.
 
 Notes:
 
+1. Please preserve the structure of this dictionary. This is what
+   we need to send to the PyLS to configure it.
 1. Not all these options can be defined through our Preferences
    (e.g. `ropeFolder`).
-2. Please preserve the structure of this dictionary. This is what
-   we need to send to the PyLS to configure it.
-3. The way we feed values in this dictopnary from our Preferences is
-   in editor/lsp/manager.py
+3. The way we change the values of this dictionary with the options
+   saved in our Preferences can be found in editor/lsp/manager.py
 """
 
 # =============================================================================
 # Default json config for the lsp
 # =============================================================================
-PYTHON_LSP_CONFIG = {
+PYTHON_CONFIG = {
     'cmd': 'pyls',
     'args': '--host {host} --port {port} --tcp',
     'host': '127.0.0.1',

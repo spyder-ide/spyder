@@ -19,7 +19,7 @@ from qtpy.QtCore import QObject, Slot
 
 # Local imports
 from spyder.config.base import get_conf_path
-from spyder.config.lsp import PYTHON_LSP_CONFIG
+from spyder.config.lsp import PYTHON_CONFIG
 from spyder.config.main import CONF
 from spyder.utils.misc import select_port, getcwd_or_home
 from spyder.plugins.editor.lsp import LSP_LANGUAGES
@@ -44,6 +44,7 @@ class LSPManager(QObject):
         self.clients = {}
         self.requests = {}
         self.register_queue = {}
+        self.python_config = PYTHON_CONFIG.copy()
 
         # Register languages to create clients for
         for language in self.get_languages():
@@ -84,7 +85,8 @@ class LSPManager(QObject):
     def get_language_config(self, language):
         """Get language configuration options from our config system."""
         if language == 'python':
-            return self.get_python_config()
+            self.update_python_config()
+            return self.python_config
         else:
             return self.get_option(language)
 
@@ -158,7 +160,8 @@ class LSPManager(QObject):
                     parent=self,
                     server_settings=config,
                     folder=self.get_root_path(language),
-                    language=language)
+                    language=language
+                )
 
                 for plugin in self.lsp_plugins:
                     language_client['instance'].register_plugin_type(
@@ -228,8 +231,11 @@ class LSPManager(QObject):
                 client = self.clients[language]['instance']
                 client.perform_request(request, params)
 
-    def get_python_config(self):
-        """Get Python server configuration from our config system."""
+    def update_python_config(self):
+        """
+        Update Python server configuration with the options saved in our
+        config system.
+        """
         # Server options
         cmd = self.get_option('advanced/command_launch')
         host = self.get_option('advanced/host')
@@ -285,23 +291,22 @@ class LSPManager(QObject):
         }
 
         # Setup options in json
-        PYTHON_LSP_CONFIG['cmd'] = cmd
+        self.python_config['cmd'] = cmd
         if host in self.LOCALHOST:
-            PYTHON_LSP_CONFIG['args'] = '--host {host} --port {port} --tcp'
-            PYTHON_LSP_CONFIG['external'] = False
+            self.python_config['args'] = '--host {host} --port {port} --tcp'
+            self.python_config['external'] = False
         else:
-            PYTHON_LSP_CONFIG['args'] = ''
-            PYTHON_LSP_CONFIG['external'] = True
-        PYTHON_LSP_CONFIG['host'] = host
-        PYTHON_LSP_CONFIG['port'] = port
+            self.python_config['args'] = ''
+            self.python_config['external'] = True
+        self.python_config['host'] = host
+        self.python_config['port'] = port
 
-        plugins = PYTHON_LSP_CONFIG['configurations']['pyls']['plugins']
+        plugins = self.python_config['configurations']['pyls']['plugins']
         plugins['pycodestyle'] = pycodestyle
         plugins['pyflakes'] = pyflakes
         plugins['pydocstyle'] = pydocstyle
         plugins['jedi_completion'] = jedi_completion
         plugins['jedi_signature_help'] = jedi_signature_help
         plugins['preload']['modules'] = self.get_option('preload_modules')
-        # TODO: Add jedi_definitions
 
-        return PYTHON_LSP_CONFIG
+        # TODO: Add jedi_definitions
