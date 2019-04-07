@@ -162,20 +162,6 @@ class EditorConfigPage(PluginConfigPage):
                                                'docstring_type')
 
         analysis_group = QGroupBox(_("Analysis"))
-        # pep_url = '<a href="https://www.python.org/dev/peps/pep-0008">PEP8</a>'
-        # pep8_label = QLabel(_("<i>(Refer to the {} page)</i>").format(pep_url))
-        # pep8_label.setOpenExternalLinks(True)
-        # is_pep8 = codeanalysis.get_checker_executable(
-        #         'pycodestyle') is not None
-        # pep8_box = newcb(
-        #     _("Real-time code style analysis"),
-        #     'code_analysis/pep8', default=False,
-        #     tip=_("<p>If enabled, Python source code will be analyzed "
-        #           "using pycodestyle, and lines that are not following "
-        #           "the PEP 8 style guide will be highlighted.</p>"
-        #           "<p><u>Note</u>: Add <b>analysis:ignore</b> in a "
-        #           "comment to ignore style analysis warnings.</p>"))
-        # pep8_box.setEnabled(is_pep8)
         todolist_box = newcb(_("Code annotations (TODO, FIXME, XXX, HINT, TIP,"
                                " @todo, HACK, BUG, OPTIMIZE, !!!, ???)"),
                              'todo_list', default=True)
@@ -205,8 +191,6 @@ class EditorConfigPage(PluginConfigPage):
 
         analysis_layout = QVBoxLayout()
         analysis_pep_layout = QHBoxLayout()
-        # analysis_pep_layout.addWidget(pep8_box)
-        # analysis_pep_layout.addWidget(pep8_label)
         analysis_layout.addLayout(analysis_pep_layout)
         analysis_layout.addWidget(todolist_box)
         analysis_layout.addLayout(af_layout)
