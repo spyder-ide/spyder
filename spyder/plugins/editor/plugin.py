@@ -1117,7 +1117,6 @@ class Editor(SpyderPluginWidget):
             ('set_edgeline_enabled',                'edge_line'),
             ('set_edgeline_columns',                'edge_line_columns'),
             ('set_indent_guides',                   'indent_guides'),
-            ('set_go_to_definition_enabled',        'go_to_definition'),
             ('set_focus_to_editor',                 'focus_to_editor'),
             ('set_run_cell_copy',                   'run_cell_copy'),
             ('set_close_parentheses_enabled',       'close_parentheses'),
@@ -2501,8 +2500,6 @@ class Editor(SpyderPluginWidget):
             converteolto_o = self.get_option(converteolto_n)
             runcellcopy_n = 'run_cell_copy'
             runcellcopy_o = self.get_option(runcellcopy_n)
-            gotodef_n = 'go_to_definition'
-            gotodef_o = self.get_option(gotodef_n)
             closepar_n = 'close_parentheses'
             closepar_o = self.get_option(closepar_n)
             close_quotes_n = 'close_quotes'
@@ -2555,8 +2552,6 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_convert_eol_on_save_to(converteolto_o)
                 if runcellcopy_n in options:
                     editorstack.set_run_cell_copy(runcellcopy_o)
-                if gotodef_n in options:
-                    editorstack.set_go_to_definition_enabled(gotodef_o)
                 if closepar_n in options:
                     editorstack.set_close_parentheses_enabled(closepar_o)
                 if close_quotes_n in options:

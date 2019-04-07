@@ -106,23 +106,6 @@ class EditorConfigPage(PluginConfigPage):
         run_cell_box = newcb(_("Copy full cell contents to the console when "
                                "running code cells"), 'run_cell_copy')
 
-        introspection_group = QGroupBox(_("Introspection"))
-        rope_is_installed = programs.is_module_installed('rope')
-        if rope_is_installed:
-            gotodef_box = newcb(
-                _("Link to object definition"),
-                'go_to_definition',
-                tip=_("If this option is enabled, clicking on an object\n"
-                      "name (left-click + Ctrl key) will go to this object\n"
-                      "definition (if resolved)."))
-        else:
-            rope_label = QLabel(_("<b>Warning:</b><br>"
-                                  "The Python module <i>rope</i> is not "
-                                  "installed on this computer:"
-                                  "go-to-definition "
-                                  "features won't be available."))
-            rope_label.setWordWrap(True)
-
         sourcecode_group = QGroupBox(_("Source code"))
         closepar_box = newcb(_("Automatic insertion of parentheses, braces "
                                "and brackets"),
@@ -233,13 +216,6 @@ class EditorConfigPage(PluginConfigPage):
         run_selection_layout.addWidget(run_cell_box)
         run_selection_group.setLayout(run_selection_layout)
 
-        introspection_layout = QVBoxLayout()
-        if rope_is_installed:
-            introspection_layout.addWidget(gotodef_box)
-        else:
-            introspection_layout.addWidget(rope_label)
-        introspection_group.setLayout(introspection_layout)
-
         analysis_layout = QVBoxLayout()
         analysis_layout.addWidget(pyflakes_box)
         analysis_pep_layout = QHBoxLayout()
@@ -326,7 +302,7 @@ class EditorConfigPage(PluginConfigPage):
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(interface_group, display_group),
                     _("Display"))
-        tabs.addTab(self.create_tab(introspection_group, analysis_group),
+        tabs.addTab(self.create_tab(analysis_group),
                     _("Code Introspection/Analysis"))
         tabs.addTab(self.create_tab(template_btn, run_group,
                                     run_selection_group, sourcecode_group,

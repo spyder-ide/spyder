@@ -526,7 +526,6 @@ class EditorStack(QWidget):
         self.scrollpastend_enabled = False
         self.edgeline_enabled = True
         self.edgeline_columns = (79,)
-        self.go_to_definition_enabled = True
         self.close_parentheses_enabled = True
         self.close_quotes_enabled = True
         self.add_colons_enabled = True
@@ -1036,12 +1035,12 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 finfo.editor.set_codecompletion_case(state)
 
-    def set_go_to_definition_enabled(self, state):
-        # CONF.get(self.CONF_SECTION, 'go_to_definition')
-        self.go_to_definition_enabled = state
-        if self.data:
-            for finfo in self.data:
-                finfo.editor.set_go_to_definition_enabled(state)
+    # def set_go_to_definition_enabled(self, state):
+    #     # CONF.get(self.CONF_SECTION, 'go_to_definition')
+    #     self.go_to_definition_enabled = state
+    #     if self.data:
+    #         for finfo in self.data:
+    #             finfo.editor.set_go_to_definition_enabled(state)
 
     def set_close_parentheses_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'close_parentheses')
@@ -2283,7 +2282,6 @@ class EditorStack(QWidget):
                 highlight_current_cell=self.highlight_current_cell_enabled,
                 occurrence_highlighting=self.occurrence_highlighting_enabled,
                 occurrence_timeout=self.occurrence_highlighting_timeout,
-                go_to_definition=self.go_to_definition_enabled,
                 close_parentheses=self.close_parentheses_enabled,
                 close_quotes=self.close_quotes_enabled,
                 add_colons=self.add_colons_enabled,
