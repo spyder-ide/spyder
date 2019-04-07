@@ -295,7 +295,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 parent = mainwin
 
         self.completion_widget = CompletionWidget(self, parent)
-        self.codecompletion_auto = False
         self.codecompletion_case = True
         self.codecompletion_enter = False
         self.setup_completion()
@@ -547,10 +546,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
 
     #-----Widget setup and options
-    def set_codecompletion_auto(self, state):
-        """Set code completion state"""
-        self.codecompletion_auto = state
-
     def set_codecompletion_case(self, state):
         """Case sensitive completion"""
         self.codecompletion_case = state

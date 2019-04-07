@@ -526,7 +526,6 @@ class EditorStack(QWidget):
         self.scrollpastend_enabled = False
         self.edgeline_enabled = True
         self.edgeline_columns = (79,)
-        self.codecompletion_auto_enabled = True
         self.codecompletion_case_enabled = False
         self.codecompletion_enter_enabled = False
         self.go_to_definition_enabled = True
@@ -1031,13 +1030,6 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.indent_guides.set_enabled(state)
-
-    def set_codecompletion_auto_enabled(self, state):
-        # CONF.get(self.CONF_SECTION, 'codecompletion_auto')
-        self.codecompletion_auto_enabled = state
-        if self.data:
-            for finfo in self.data:
-                finfo.editor.set_codecompletion_auto(state)
 
     def set_codecompletion_case_enabled(self, state):
         self.codecompletion_case_enabled = state
@@ -2298,7 +2290,6 @@ class EditorStack(QWidget):
                 highlight_current_cell=self.highlight_current_cell_enabled,
                 occurrence_highlighting=self.occurrence_highlighting_enabled,
                 occurrence_timeout=self.occurrence_highlighting_timeout,
-                codecompletion_auto=self.codecompletion_auto_enabled,
                 codecompletion_case=self.codecompletion_case_enabled,
                 codecompletion_enter=self.codecompletion_enter_enabled,
                 go_to_definition=self.go_to_definition_enabled,

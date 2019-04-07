@@ -109,8 +109,6 @@ class EditorConfigPage(PluginConfigPage):
         introspection_group = QGroupBox(_("Introspection"))
         rope_is_installed = programs.is_module_installed('rope')
         if rope_is_installed:
-            completion_box = newcb(_("Automatic code completion"),
-                                   'codecompletion/auto')
             case_comp_box = newcb(_("Case sensitive code completion"),
                                   'codecompletion/case_sensitive')
             comp_enter_box = newcb(_("Enter key selects completion"),
@@ -124,7 +122,8 @@ class EditorConfigPage(PluginConfigPage):
         else:
             rope_label = QLabel(_("<b>Warning:</b><br>"
                                   "The Python module <i>rope</i> is not "
-                                  "code completion and go-to-definition "
+                                  "installed on this computer:"
+                                  "go-to-definition "
                                   "features won't be available."))
             rope_label.setWordWrap(True)
 
@@ -240,7 +239,6 @@ class EditorConfigPage(PluginConfigPage):
 
         introspection_layout = QVBoxLayout()
         if rope_is_installed:
-            introspection_layout.addWidget(completion_box)
             introspection_layout.addWidget(case_comp_box)
             introspection_layout.addWidget(comp_enter_box)
             introspection_layout.addWidget(gotodef_box)

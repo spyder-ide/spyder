@@ -1117,7 +1117,6 @@ class Editor(SpyderPluginWidget):
             ('set_edgeline_enabled',                'edge_line'),
             ('set_edgeline_columns',                'edge_line_columns'),
             ('set_indent_guides',                   'indent_guides'),
-            ('set_codecompletion_auto_enabled',     'codecompletion/auto'),
             ('set_codecompletion_case_enabled',     'codecompletion/case_sensitive'),
             ('set_codecompletion_enter_enabled',    'codecompletion/enter_key'),
             ('set_go_to_definition_enabled',        'go_to_definition'),
@@ -2504,8 +2503,6 @@ class Editor(SpyderPluginWidget):
             converteolto_o = self.get_option(converteolto_n)
             runcellcopy_n = 'run_cell_copy'
             runcellcopy_o = self.get_option(runcellcopy_n)
-            autocomp_n = 'codecompletion/auto'
-            autocomp_o = self.get_option(autocomp_n)
             case_comp_n = 'codecompletion/case_sensitive'
             case_comp_o = self.get_option(case_comp_n)
             enter_key_n = 'codecompletion/enter_key'
@@ -2564,8 +2561,6 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_convert_eol_on_save_to(converteolto_o)
                 if runcellcopy_n in options:
                     editorstack.set_run_cell_copy(runcellcopy_o)
-                if autocomp_n in options:
-                    editorstack.set_codecompletion_auto_enabled(autocomp_o)
                 if case_comp_n in options:
                     editorstack.set_codecompletion_case_enabled(case_comp_o)
                 if enter_key_n in options:

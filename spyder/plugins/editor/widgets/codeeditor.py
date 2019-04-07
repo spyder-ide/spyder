@@ -607,7 +607,7 @@ class CodeEditor(TextEditBaseWidget):
                      intelligent_backspace=True, highlight_current_line=True,
                      highlight_current_cell=True, occurrence_highlighting=True,
                      scrollflagarea=True, edge_line=True, edge_line_columns=(79,),
-                     codecompletion_auto=False, codecompletion_case=True,
+                     codecompletion_case=True,
                      codecompletion_enter=False, show_blanks=False,
                      go_to_definition=False,
                      close_parentheses=True, close_quotes=False,
@@ -617,7 +617,6 @@ class CodeEditor(TextEditBaseWidget):
                      indent_guides=False, scroll_past_end=False):
 
         # Code completion and calltips
-        self.set_codecompletion_auto(codecompletion_auto)
         self.set_codecompletion_case(codecompletion_case)
         self.set_codecompletion_enter(codecompletion_enter)
         self.set_go_to_definition_enabled(go_to_definition)
