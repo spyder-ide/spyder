@@ -254,11 +254,9 @@ class EditorConfigPage(PluginConfigPage):
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(interface_group, display_group),
                     _("Display"))
-        tabs.addTab(self.create_tab(analysis_group),
-                    _("Code Introspection/Analysis"))
         tabs.addTab(self.create_tab(template_btn, run_group,
                                     run_selection_group, sourcecode_group,
-                                    eol_group, autosave_group),
+                                    eol_group, autosave_group, analysis_group),
                     _("Advanced settings"))
 
         vlayout = QVBoxLayout()
