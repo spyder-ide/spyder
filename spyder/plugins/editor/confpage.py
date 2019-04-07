@@ -165,20 +165,10 @@ class EditorConfigPage(PluginConfigPage):
         todolist_box = newcb(_("Code annotations (TODO, FIXME, XXX, HINT, TIP,"
                                " @todo, HACK, BUG, OPTIMIZE, !!!, ???)"),
                              'todo_list', default=True)
-        realtime_radio = self.create_radiobutton(
-            _("Perform analysis when "
-              "saving file and every"),
-            'realtime_analysis', True)
         saveonly_radio = self.create_radiobutton(
             _("Perform analysis only "
               "when saving file"),
             'onsave_analysis')
-        af_spin = self.create_spinbox("", _(" ms"),
-                                      'realtime_analysis/timeout',
-                                      min_=100, max_=1000000, step=100)
-        af_layout = QHBoxLayout()
-        af_layout.addWidget(realtime_radio)
-        af_layout.addWidget(af_spin)
 
         run_layout = QVBoxLayout()
         run_layout.addWidget(saveall_box)
@@ -190,10 +180,7 @@ class EditorConfigPage(PluginConfigPage):
         run_selection_group.setLayout(run_selection_layout)
 
         analysis_layout = QVBoxLayout()
-        analysis_pep_layout = QHBoxLayout()
-        analysis_layout.addLayout(analysis_pep_layout)
         analysis_layout.addWidget(todolist_box)
-        analysis_layout.addLayout(af_layout)
         analysis_layout.addWidget(saveonly_radio)
         analysis_group.setLayout(analysis_layout)
 

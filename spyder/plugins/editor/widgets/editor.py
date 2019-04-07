@@ -517,7 +517,6 @@ class EditorStack(QWidget):
         self.tempfile_path = None
         self.title = _("Editor")
         self.todolist_enabled = True
-        self.realtime_analysis_enabled = False
         self.is_analysis_done = False
         self.linenumbers_enabled = True
         self.blanks_enabled = False
@@ -969,9 +968,6 @@ class EditorStack(QWidget):
                 if state and current_finfo is not None:
                     if current_finfo is not finfo:
                         finfo.run_todo_finder()
-
-    def set_realtime_analysis_enabled(self, state):
-        self.realtime_analysis_enabled = state
 
     def set_realtime_analysis_timeout(self, timeout):
         self.analysis_timer.setInterval(timeout)
@@ -1910,9 +1906,6 @@ class EditorStack(QWidget):
     #------ Update UI
     def start_stop_analysis_timer(self):
         self.is_analysis_done = False
-        if self.realtime_analysis_enabled:
-            self.analysis_timer.stop()
-            self.analysis_timer.start()
 
     def analyze_script(self, index=None):
         """Analyze current script with todos"""

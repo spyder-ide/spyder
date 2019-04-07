@@ -1108,7 +1108,6 @@ class Editor(SpyderPluginWidget):
         settings = (
             # ('set_pep8_enabled',                    'code_analysis/pep8'),
             ('set_todolist_enabled',                'todo_list'),
-            ('set_realtime_analysis_enabled',       'realtime_analysis'),
             ('set_realtime_analysis_timeout',       'realtime_analysis/timeout'),
             ('set_blanks_enabled',                  'blank_spaces'),
             ('set_scrollpastend_enabled',           'scroll_past_end'),
@@ -2515,8 +2514,6 @@ class Editor(SpyderPluginWidget):
             help_o = CONF.get('help', 'connect/editor')
             todo_n = 'todo_list'
             todo_o = self.get_option(todo_n)
-            rt_analysis_n = 'realtime_analysis'
-            rt_analysis_o = self.get_option(rt_analysis_n)
             rta_timeout_n = 'realtime_analysis/timeout'
             rta_timeout_o = self.get_option(rta_timeout_n)
 
@@ -2564,8 +2561,6 @@ class Editor(SpyderPluginWidget):
                 if todo_n in options:
                     editorstack.set_todolist_enabled(todo_o,
                                                      current_finfo=finfo)
-                if rt_analysis_n in options:
-                    editorstack.set_realtime_analysis_enabled(rt_analysis_o)
                 if rta_timeout_n in options:
                     editorstack.set_realtime_analysis_timeout(rta_timeout_o)
 
