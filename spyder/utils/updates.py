@@ -21,6 +21,7 @@ import sys
 
 # Third party imports
 from qtpy.QtCore import QObject, Signal
+import chardet
 
 # Local imports
 from spyder import __version__
@@ -40,13 +41,22 @@ else:
 logger = logging.getLogger(__name__)
 
 
-def get_encoding(headers):
+def get_encoding(headers, raw_data):
     """Get encoding from headers."""
-    content = headers.get('Content-Type', headers.get('content-type', ''))
-    content = content.lower()
-    encoding = 'utf-8'
-    if 'charset=' in content:
-        encoding = content.split('charset=')[-1].strip()
+    content_type = headers.get('Content-Type',
+                               headers.get('content-type', ''))
+    content_type = content_type.lower()
+    if 'charset=' in content_type:
+        encoding = content_type.split('charset=')[-1].strip()
+    else:
+        results = chardet.detect(raw_data)
+        if results.get('encoding') is None:
+            if os.name == 'nt':
+                encoding = 'cp-1252'
+            else:
+                encoding = 'utf-8'
+        else:
+            encoding = results.get('encoding')
     return encoding
 
 
@@ -66,7 +76,7 @@ def download(url):
     # Needed step for Python 3 compatibility
     if not is_text_string(raw_data):
         headers = dict(page.info())
-        encoding = get_encoding(headers)
+        encoding = get_encoding(headers, raw_data)
         raw_data = raw_data.decode(encoding)
 
     return raw_data
@@ -94,12 +104,13 @@ def get_updates_url(anaconda=True):
     """Returns the url to use for downloading release versions data."""
     if anaconda:
         url = 'https://repo.anaconda.com/pkgs/main'
+        # We could use .bz2 files but encoding is not provided
         if os.name == 'nt':
-            url += '/win-64/repodata.json.bz2'
+            url += '/win-64/repodata.json'
         elif sys.platform == 'darwin':
-            url += '/osx-64/repodata.json.bz2'
+            url += '/osx-64/repodata.json'
         else:
-            url += '/linux-64/repodata.json.bz2'
+            url += '/linux-64/repodata.json'
     else:
         url = 'https://api.github.com/repos/spyder-ide/spyder/releases'
 

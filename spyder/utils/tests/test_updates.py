@@ -122,7 +122,7 @@ def test_check_updates():
     assert not update_available
 
     # Latest release will be the either the latest or the current
-    # one, so this will always return a valid version string 
+    # one, so this will always return a valid version string
     assert bool(latest_release)
 
     # There should not be any error messages from this process running
