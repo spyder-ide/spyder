@@ -1106,7 +1106,6 @@ class Editor(SpyderPluginWidget):
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
 
         settings = (
-            ('set_pyflakes_enabled',                'code_analysis/pyflakes'),
             ('set_pep8_enabled',                    'code_analysis/pep8'),
             ('set_todolist_enabled',                'todo_list'),
             ('set_realtime_analysis_enabled',       'realtime_analysis'),
@@ -2516,8 +2515,6 @@ class Editor(SpyderPluginWidget):
             help_o = CONF.get('help', 'connect/editor')
             todo_n = 'todo_list'
             todo_o = self.get_option(todo_n)
-            pyflakes_n = 'code_analysis/pyflakes'
-            pyflakes_o = self.get_option(pyflakes_n)
             pep8_n = 'code_analysis/pep8'
             pep8_o = self.get_option(pep8_n)
             rt_analysis_n = 'realtime_analysis'
@@ -2569,9 +2566,6 @@ class Editor(SpyderPluginWidget):
                 if todo_n in options:
                     editorstack.set_todolist_enabled(todo_o,
                                                      current_finfo=finfo)
-                if pyflakes_n in options:
-                    editorstack.set_pyflakes_enabled(pyflakes_o,
-                                                     current_finfo=finfo)
                 if pep8_n in options:
                     editorstack.set_pep8_enabled(pep8_o, current_finfo=finfo)
                 if rt_analysis_n in options:
@@ -2596,7 +2590,7 @@ class Editor(SpyderPluginWidget):
             if finfo is not None:
                 if todo_n in options and todo_o:
                     finfo.run_todo_finder()
-                if pyflakes_n in options or pep8_n in options:
+                if pep8_n in options:
                     # TODO: Connect this to the LSP
                     #finfo.run_code_analysis(pyflakes_o, pep8_o)
                     pass

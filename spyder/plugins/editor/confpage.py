@@ -165,21 +165,8 @@ class EditorConfigPage(PluginConfigPage):
         pep_url = '<a href="https://www.python.org/dev/peps/pep-0008">PEP8</a>'
         pep8_label = QLabel(_("<i>(Refer to the {} page)</i>").format(pep_url))
         pep8_label.setOpenExternalLinks(True)
-        is_pyflakes = codeanalysis.is_pyflakes_installed()
         is_pep8 = codeanalysis.get_checker_executable(
                 'pycodestyle') is not None
-        pyflakes_box = newcb(
-            _("Real-time code analysis"),
-            'code_analysis/pyflakes', default=True,
-            tip=_("<p>If enabled, Python source code will be analyzed "
-                  "using pyflakes, and lines containing errors or "
-                  "warnings will be highlighted.</p>"
-                  "<p><u>Note</u>: Add <b>analysis:ignore</b> in a "
-                  "comment to ignore code analysis warnings.</p>"))
-        pyflakes_box.setEnabled(is_pyflakes)
-        if not is_pyflakes:
-            pyflakes_box.setToolTip(_("Code analysis requires pyflakes %s+") %
-                                    codeanalysis.PYFLAKES_REQVER)
         pep8_box = newcb(
             _("Real-time code style analysis"),
             'code_analysis/pep8', default=False,
@@ -217,7 +204,6 @@ class EditorConfigPage(PluginConfigPage):
         run_selection_group.setLayout(run_selection_layout)
 
         analysis_layout = QVBoxLayout()
-        analysis_layout.addWidget(pyflakes_box)
         analysis_pep_layout = QHBoxLayout()
         analysis_pep_layout.addWidget(pep8_box)
         analysis_pep_layout.addWidget(pep8_label)
