@@ -1576,14 +1576,14 @@ class EditorStack(QWidget):
         while self.sorted() is False:
             for i in range(0, self.tabs.tabBar().count()):
                 if(self.tabs.tabBar().tabText(i) >
-                   self.tabs.tabBar().tabText(i+1)):
-                    self.tabs.tabBar().moveTab(i, i+1)
+                        self.tabs.tabBar().tabText(i + 1)):
+                    self.tabs.tabBar().moveTab(i, i + 1)
 
     def sorted(self):
         """Utility function for sort_file_tabs_alphabetically()."""
-        for i in range(0, self.tabs.tabBar().count()-1):
+        for i in range(0, self.tabs.tabBar().count() - 1):
             if (self.tabs.tabBar().tabText(i) >
-                self.tabs.tabBar().tabText(i + 1)):
+                    self.tabs.tabBar().tabText(i + 1)):
                 return False
         return True
 
