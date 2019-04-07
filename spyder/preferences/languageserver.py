@@ -734,30 +734,17 @@ class LSPManagerConfigPage(GeneralConfigPage):
         code_style_g_layout.addWidget(
             code_style_max_line_length.spinbox, 5, 1)
 
+        # Set Code style options enabled/disabled
+        code_style_g_widget = QWidget()
+        code_style_g_widget.setLayout(code_style_g_layout)
+        code_style_g_widget.setEnabled(self.get_option('pycodestyle'))
+        code_style_check.toggled.connect(code_style_g_widget.setEnabled)
+
+        # Code style layout
         code_style_layout = QVBoxLayout()
         code_style_layout.addWidget(code_style_label)
         code_style_layout.addWidget(code_style_check)
-        code_style_layout.addLayout(code_style_g_layout)
-
-        # Code style slots for checkbox
-        code_style_check.toggled.connect(
-            self.code_style_filenames_match.textbox.setEnabled)
-        code_style_check.toggled.connect(
-            self.code_style_exclude.textbox.setEnabled)
-        code_style_check.toggled.connect(
-            code_style_select.textbox.setEnabled)
-        code_style_check.toggled.connect(
-            code_style_ignore.textbox.setEnabled)
-        code_style_check.toggled.connect(
-            code_style_max_line_length.spinbox.setEnabled)
-
-        # Code style initialization of options state (enabled/disabled)
-        code_style_enabled = code_style_check.isChecked()
-        self.code_style_filenames_match.textbox.setEnabled(code_style_enabled)
-        self.code_style_exclude.textbox.setEnabled(code_style_enabled)
-        code_style_select.textbox.setEnabled(code_style_enabled)
-        code_style_ignore.textbox.setEnabled(code_style_enabled)
-        code_style_max_line_length.spinbox.setEnabled(code_style_enabled)
+        code_style_layout.addWidget(code_style_g_widget)
 
         code_style_widget = QWidget()
         code_style_widget.setLayout(code_style_layout)
@@ -848,43 +835,18 @@ class LSPManagerConfigPage(GeneralConfigPage):
         docstring_style_g_layout.addWidget(
             self.docstring_style_match_dir.textbox, 7, 1)
 
+        # Set Docstring style options enabled/disabled
+        docstring_style_g_widget = QWidget()
+        docstring_style_g_widget.setLayout(docstring_style_g_layout)
+        docstring_style_g_widget.setEnabled(self.get_option('pydocstyle'))
+        docstring_style_check.toggled.connect(
+            docstring_style_g_widget.setEnabled)
+
+        # Docstring style layout
         docstring_style_layout = QVBoxLayout()
         docstring_style_layout.addWidget(docstring_style_label)
         docstring_style_layout.addWidget(docstring_style_check)
-        docstring_style_layout.addLayout(docstring_style_g_layout)
-
-        # Docstring style slots for checkbox
-        docstring_style_check.toggled.connect(
-            docstring_style_convention.combobox.setEnabled)
-        docstring_style_check.toggled.connect(
-            docstring_style_add_select.textbox.setEnabled)
-        docstring_style_check.toggled.connect(
-            docstring_style_add_ignore.textbox.setEnabled)
-        docstring_style_check.toggled.connect(
-            docstring_style_select.textbox.setEnabled)
-        docstring_style_check.toggled.connect(
-            docstring_style_ignore.textbox.setEnabled)
-        docstring_style_check.toggled.connect(
-            self.docstring_style_match.textbox.setEnabled)
-        docstring_style_check.toggled.connect(
-            self.docstring_style_match_dir.textbox.setEnabled)
-
-        # Docstring initialization of options state (enabled/disabled)
-        docstring_style_enabled = docstring_style_check.isChecked()
-        docstring_style_convention.combobox.setEnabled(
-            docstring_style_enabled)
-        docstring_style_add_select.textbox.setEnabled(
-            docstring_style_enabled)
-        docstring_style_add_ignore.textbox.setEnabled(
-            docstring_style_enabled)
-        docstring_style_select.textbox.setEnabled(
-            docstring_style_enabled)
-        docstring_style_ignore.textbox.setEnabled(
-            docstring_style_enabled)
-        self.docstring_style_match.textbox.setEnabled(
-            docstring_style_enabled)
-        self.docstring_style_match_dir.textbox.setEnabled(
-            docstring_style_enabled)
+        docstring_style_layout.addWidget(docstring_style_g_widget)
 
         docstring_style_widget = QWidget()
         docstring_style_widget.setLayout(docstring_style_layout)
