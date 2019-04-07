@@ -1106,9 +1106,7 @@ class Editor(SpyderPluginWidget):
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
 
         settings = (
-            # ('set_pep8_enabled',                    'code_analysis/pep8'),
             ('set_todolist_enabled',                'todo_list'),
-            ('set_realtime_analysis_timeout',       'realtime_analysis/timeout'),
             ('set_blanks_enabled',                  'blank_spaces'),
             ('set_scrollpastend_enabled',           'scroll_past_end'),
             ('set_linenumbers_enabled',             'line_numbers'),
@@ -2514,8 +2512,6 @@ class Editor(SpyderPluginWidget):
             help_o = CONF.get('help', 'connect/editor')
             todo_n = 'todo_list'
             todo_o = self.get_option(todo_n)
-            rta_timeout_n = 'realtime_analysis/timeout'
-            rta_timeout_o = self.get_option(rta_timeout_n)
 
             finfo = self.get_current_finfo()
 
@@ -2561,8 +2557,6 @@ class Editor(SpyderPluginWidget):
                 if todo_n in options:
                     editorstack.set_todolist_enabled(todo_o,
                                                      current_finfo=finfo)
-                if rta_timeout_n in options:
-                    editorstack.set_realtime_analysis_timeout(rta_timeout_o)
 
             for name, action in self.checkable_actions.items():
                 if name in options:

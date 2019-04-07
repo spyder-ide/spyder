@@ -969,9 +969,6 @@ class EditorStack(QWidget):
                     if current_finfo is not finfo:
                         finfo.run_todo_finder()
 
-    def set_realtime_analysis_timeout(self, timeout):
-        self.analysis_timer.setInterval(timeout)
-
     def set_linenumbers_enabled(self, state, current_finfo=None):
         # CONF.get(self.CONF_SECTION, 'line_numbers')
         self.linenumbers_enabled = state
@@ -1017,13 +1014,6 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_codecompletion_case(state)
-
-    # def set_go_to_definition_enabled(self, state):
-    #     # CONF.get(self.CONF_SECTION, 'go_to_definition')
-    #     self.go_to_definition_enabled = state
-    #     if self.data:
-    #         for finfo in self.data:
-    #             finfo.editor.set_go_to_definition_enabled(state)
 
     def set_close_parentheses_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'close_parentheses')

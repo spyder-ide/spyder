@@ -165,10 +165,6 @@ class EditorConfigPage(PluginConfigPage):
         todolist_box = newcb(_("Code annotations (TODO, FIXME, XXX, HINT, TIP,"
                                " @todo, HACK, BUG, OPTIMIZE, !!!, ???)"),
                              'todo_list', default=True)
-        saveonly_radio = self.create_radiobutton(
-            _("Perform analysis only "
-              "when saving file"),
-            'onsave_analysis')
 
         run_layout = QVBoxLayout()
         run_layout.addWidget(saveall_box)
@@ -181,7 +177,6 @@ class EditorConfigPage(PluginConfigPage):
 
         analysis_layout = QVBoxLayout()
         analysis_layout.addWidget(todolist_box)
-        analysis_layout.addWidget(saveonly_radio)
         analysis_group.setLayout(analysis_layout)
 
         sourcecode_layout = QVBoxLayout()
