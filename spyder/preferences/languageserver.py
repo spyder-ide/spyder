@@ -662,22 +662,15 @@ class LSPManagerConfigPage(GeneralConfigPage):
             _("Enable linting"),
             'pyflakes')
 
-        mccabe_url = "<a href='https://github.com/pycqa/mccabe'>Mccabe</a>"
-        linting_complexity_label = QLabel(
-            _("{} package".format(mccabe_url)))
         linting_complexity_box = self.create_checkbox(
             _("Enable complexity linting with "
-              "the"), 'mccabe')
+              "the Mccabe package"), 'mccabe')
 
         # Linting layout
         linting_layout = QVBoxLayout()
         linting_layout.addWidget(linting_label)
         linting_layout.addWidget(linting_check)
-        complexity_layout = QHBoxLayout()
-        complexity_layout.addWidget(linting_complexity_box)
-        complexity_layout.addWidget(linting_complexity_label)
-        complexity_layout.addStretch(1)
-        linting_layout.addLayout(complexity_layout)
+        linting_layout.addWidget(linting_complexity_box)
         linting_widget = QWidget()
         linting_widget.setLayout(linting_layout)
 
