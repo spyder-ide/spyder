@@ -482,7 +482,7 @@ class EditorStack(QWidget):
                                            triggered=self.close_all_but_this)
 
         sort_tabs = create_action(self, _("Sort tabs alphabetically"),
-                                  triggered=self.sort_file_tabs)
+                                  triggered=self.sort_file_tabs_alphabetically)
 
         if sys.platform == 'darwin':
            text=_("Show in Finder")
