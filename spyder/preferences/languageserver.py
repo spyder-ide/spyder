@@ -799,10 +799,12 @@ class LSPManagerConfigPage(GeneralConfigPage):
             placeholder=_("Example codes: D107, D402"))
         self.docstring_style_match = self.create_lineedit(
             _("Only check filenames matching these patterns:"),
-            'pydocstyle/match', alignment=Qt.Horizontal, word_wrap=False)
+            'pydocstyle/match', alignment=Qt.Horizontal, word_wrap=False,
+            placeholder=_("Skip test files: (?!test_).*\\.py"))
         self.docstring_style_match_dir = self.create_lineedit(
             _("Only check in directories matching these patterns:"),
-            'pydocstyle/match_dir', alignment=Qt.Horizontal, word_wrap=False)
+            'pydocstyle/match_dir', alignment=Qt.Horizontal, word_wrap=False,
+            placeholder=_("Skip dot directories: [^\\.].*"))
 
         # Docstring style layout
         docstring_style_g_layout = QGridLayout()
