@@ -295,11 +295,13 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 parent = mainwin
 
         self.completion_widget = CompletionWidget(self, parent)
+        self.codecompletion_auto = False
         self.codecompletion_case = True
         self.codecompletion_enter = False
         self.setup_completion()
 
         self.calltip_widget = CallTipWidget(self, hide_timer_on=False)
+        self.calltips = True
         self.calltip_position = None
 
         self.has_cell_separators = False
@@ -546,6 +548,10 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
 
     #-----Widget setup and options
+    def set_codecompletion_auto(self, state):
+        """Set code completion state"""
+        self.codecompletion_auto = state
+
     def set_codecompletion_case(self, state):
         """Case sensitive completion"""
         self.codecompletion_case = state
@@ -556,6 +562,9 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.codecompletion_enter = state
         self.completion_widget.enter_select = state
 
+    def set_calltips(self, state):
+        """Set calltips state"""
+        self.calltips = state
 
     def set_wrap_mode(self, mode=None):
         """

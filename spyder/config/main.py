@@ -202,6 +202,7 @@ DEFAULTS = [
               'indent_guides': False,
               'scroll_past_end': False,
               'toolbox_panel': True,
+              'calltips': True,
               'go_to_definition': True,
               'close_parentheses': True,
               'close_quotes': True,

@@ -109,8 +109,6 @@ class EditorConfigPage(PluginConfigPage):
         introspection_group = QGroupBox(_("Introspection"))
         rope_is_installed = programs.is_module_installed('rope')
         if rope_is_installed:
-            case_comp_box = newcb(_("Case sensitive code completion"),
-                                  'codecompletion/case_sensitive')
             comp_enter_box = newcb(_("Enter key selects completion"),
                                    'codecompletion/enter_key')
             gotodef_box = newcb(
@@ -239,7 +237,6 @@ class EditorConfigPage(PluginConfigPage):
 
         introspection_layout = QVBoxLayout()
         if rope_is_installed:
-            introspection_layout.addWidget(case_comp_box)
             introspection_layout.addWidget(comp_enter_box)
             introspection_layout.addWidget(gotodef_box)
         else:

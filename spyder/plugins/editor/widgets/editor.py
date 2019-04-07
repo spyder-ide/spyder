@@ -526,7 +526,6 @@ class EditorStack(QWidget):
         self.scrollpastend_enabled = False
         self.edgeline_enabled = True
         self.edgeline_columns = (79,)
-        self.codecompletion_case_enabled = False
         self.codecompletion_enter_enabled = False
         self.go_to_definition_enabled = True
         self.close_parentheses_enabled = True
@@ -2290,7 +2289,6 @@ class EditorStack(QWidget):
                 highlight_current_cell=self.highlight_current_cell_enabled,
                 occurrence_highlighting=self.occurrence_highlighting_enabled,
                 occurrence_timeout=self.occurrence_highlighting_timeout,
-                codecompletion_case=self.codecompletion_case_enabled,
                 codecompletion_enter=self.codecompletion_enter_enabled,
                 go_to_definition=self.go_to_definition_enabled,
                 close_parentheses=self.close_parentheses_enabled,
