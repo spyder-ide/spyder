@@ -516,7 +516,6 @@ class EditorStack(QWidget):
         self.revert_action = None
         self.tempfile_path = None
         self.title = _("Editor")
-        self.pep8_enabled = False
         self.todolist_enabled = True
         self.realtime_analysis_enabled = False
         self.is_analysis_done = False
@@ -955,15 +954,10 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 self.__update_editor_margins(finfo.editor)
 
-    def set_pep8_enabled(self, state, current_finfo=None):
-        # CONF.get(self.CONF_SECTION, 'code_analysis/pep8')
-        self.pep8_enabled = state
-        self.__codeanalysis_settings_changed(current_finfo)
-
     def has_markers(self):
         """Return True if this editorstack has a marker margin for TODOs or
         code analysis"""
-        return self.todolist_enabled or self.pep8_enabled
+        return self.todolist_enabled
 
     def set_todolist_enabled(self, state, current_finfo=None):
         # CONF.get(self.CONF_SECTION, 'todo_list')
