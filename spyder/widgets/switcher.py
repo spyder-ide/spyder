@@ -6,34 +6,38 @@
 
 # Standard library imports
 from __future__ import print_function
-from collections import namedtuple, OrderedDict
+from collections import OrderedDict
 import os
-import os.path as osp
 import re
 import sys
 
 # Third party imports
-from qtpy.QtCore import (Signal, Slot, QEvent, QFileInfo, QObject, QRegExp,
-                         QSize, Qt, QSortFilterProxyModel)
-from qtpy.QtGui import (QIcon, QRegExpValidator, QTextCursor, QStandardItem,
-                        QStandardItemModel)
-from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLabel, QLineEdit,
+from qtpy.QtCore import (QEvent, QObject, QSize, QSortFilterProxyModel, Qt,
+                         Signal, Slot)
+from qtpy.QtGui import QIcon, QStandardItem, QStandardItemModel
+from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLineEdit,
                             QListWidget, QListWidgetItem, QVBoxLayout,
-                            QMainWindow, QListView)
+                            QListView)
 
 # Local imports
 from spyder.config.base import _
-from spyder.py3compat import iteritems, TEXT_TYPES, to_text_string
+from spyder.config.main import CONF
 from spyder.config.utils import is_ubuntu
+from spyder.py3compat import TEXT_TYPES, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.stringmatching import get_search_scores
-from spyder.widgets.helperwidgets import HelperToolButton, HTMLDelegate
-from spyder.config.main import CONF
+from spyder.widgets.helperwidgets import HTMLDelegate
+
+
+def clean_string(text):
+    """Remove regex special characters from string."""
+    for ch in ('(', ')', '.', '\\', '?', '*', '[', ']', '&', '|', '^', '+'):
+        text = text.replace(ch, '')
+    return text
 
 
 class KeyPressFilter(QObject):
     """Use with `installEventFilter` to get up/down arrow key press signal."""
-
     sig_up_key_pressed = Signal()
     sig_down_key_pressed = Signal()
     sig_enter_key_pressed = Signal()
@@ -53,14 +57,14 @@ class KeyPressFilter(QObject):
 
 
 class SwitcherBaseItem(QStandardItem):
-    """"""
+    """Base List Item."""
     _WIDTH = 400
     _HEIGHT = None
     _STYLES = None
     _TEMPLATE = None
 
     def __init__(self, parent=None):
-        """"""
+        """Base List Item."""
         super(SwitcherBaseItem, self).__init__()
 
         # Style
@@ -73,35 +77,40 @@ class SwitcherBaseItem(QStandardItem):
         self.setSizeHint(QSize(0, self._HEIGHT))
 
     def _render_text(self):
-        """"""
+        """Render the html template for this item."""
         raise NotImplementedError
 
     def _set_rendered_text(self):
-        """"""
+        """Set the rendered html template as text of this item."""
         self.setText(self._render_text())
+
+    @classmethod
+    def _set_styles(cls):
+        """Set the styles for this item."""
+        raise NotImplementedError
 
     # --- API
     def set_width(self, value):
-        """"""
+        """Set the content width."""
         self._width = value
         self._set_rendered_text()
 
     def get_width(self):
-        """"""
+        """Return the content width."""
         return self._width
 
     def set_score(self, value):
-        """"""
+        """Set the search text fuzzy match score."""
         self._score = value
         self._set_rendered_text()
 
     def is_action_item(self):
-        """"""
+        """Return wether the item is of action type."""
         return bool(self._action_item)
 
     # --- Qt overrides
     def refresh(self):
-        """"""
+        """Override Qt."""
         super(SwitcherBaseItem, self).refresh()
         self._set_styles()
         self._set_rendered_text()
@@ -109,6 +118,8 @@ class SwitcherBaseItem(QStandardItem):
 
 class SwitcherSeparatorItem(SwitcherBaseItem):
     """
+    Separator Item represented as <hr>.
+
     Based on HTML delegate.
 
     See: https://doc.qt.io/qt-5/richtext-html-subset.html
@@ -122,12 +133,12 @@ class SwitcherSeparatorItem(SwitcherBaseItem):
     }
     _TEMPLATE = \
         '''<table cellpadding="5" cellspacing="0" width="{width}"
-            height="{height}" border="0">
+                  height="{height}" border="0">
   <tr><td valign="top" align="center"><hr></td></tr>
 </table>'''
 
     def __init__(self, parent=None):
-        """"""
+        """Separator Item represented as <hr>."""
         super(SwitcherSeparatorItem, self).__init__()
         self.setFlags(Qt.NoItemFlags)
         self._set_rendered_text()
@@ -135,7 +146,7 @@ class SwitcherSeparatorItem(SwitcherBaseItem):
     # --- Helpers
     @classmethod
     def _set_styles(self, cls):
-        """Build the text that will appear on the list widget."""
+        """Set the styles for this item."""
         rich_font = CONF.get('appearance', 'rich_font/size', 10)
 
         if sys.platform == 'darwin':
@@ -151,7 +162,7 @@ class SwitcherSeparatorItem(SwitcherBaseItem):
         cls._STYLES['color'] = ima.MAIN_FG_COLOR
 
     def _render_text(self):
-        """"""
+        """Render the html template for this item."""
         width = self._width
         height = self._HEIGHT
         text = self._TEMPLATE.format(width=width - 10, height=height,
@@ -161,6 +172,8 @@ class SwitcherSeparatorItem(SwitcherBaseItem):
 
 class SwitcherItem(SwitcherBaseItem):
     """
+    Switcher item with title, description, shortcut and section.
+
     Based on HTML delegate.
 
     See: https://doc.qt.io/qt-5/richtext-html-subset.html
@@ -179,7 +192,7 @@ class SwitcherItem(SwitcherBaseItem):
         'shortcut_font_size': _FONT_SIZE,
     }
     _TEMPLATE = '''<table width="{width}" height="{height}"
-                    cellpadding="{padding}">
+                          cellpadding="{padding}">
   <tr>
     <td valign="bottom">
       <span style="color:{title_color};font-size:{title_font_size}pt">
@@ -204,7 +217,7 @@ class SwitcherItem(SwitcherBaseItem):
     def __init__(self, parent=None, icon=None, title=None, description=None,
                  shortcut=None, section=None, data=None, tool_tip=None,
                  action_item=False):
-        """"""
+        """Switcher item with title, description, shortcut and section."""
         super(SwitcherItem, self).__init__()
 
         self._title = title if title else ''
@@ -230,7 +243,7 @@ class SwitcherItem(SwitcherBaseItem):
 
     # --- Helpers
     def _render_text(self, title=None, description=None, section=None):
-        """"""
+        """Render the html template for this item."""
         if self._rich_title:
             title = self._rich_title
         else:
@@ -254,13 +267,9 @@ class SwitcherItem(SwitcherBaseItem):
                                      **self._STYLES)
         return text
 
-    def _set_rendered_text(self):
-        """"""
-        self.setText(self._render_text())
-
     @classmethod
     def _set_styles(cls):
-        """Build the text that will appear on the list widget."""
+        """Set the styles for this item."""
         rich_font = CONF.get('appearance', 'rich_font/size', 10)
         if sys.platform == 'darwin':
             title_font_size = rich_font
@@ -284,104 +293,104 @@ class SwitcherItem(SwitcherBaseItem):
 
     # --- API
     def set_icon(self, value):
-        """"""
+        """Set the QIcon for the list item."""
         self._icon = icon
         self.setIcon(icon)
 
     def get_icon(self):
-        """"""
+        """Return the QIcon for the list item."""
         return self._icon
 
     def set_title(self, value):
-        """"""
+        """Set the main text (title) of the item."""
         self._title = value
         self._set_rendered_text()
 
     def get_title(self):
-        """"""
+        """Return the the main text (title) of the item."""
         return self._title
 
     def set_rich_title(self, value):
-        """"""
+        """Set the rich title version (filter highlight) of the item."""
         self._rich_title = value
         self._set_rendered_text()
 
     def get_rich_title(self):
-        """"""
+        """Return the rich title version (filter highlight) of the item."""
         return self._rich_title
 
     def set_description(self, value):
-        """"""
+        """Set the item description text."""
         self._description = value
         self._set_rendered_text()
 
     def get_description(self):
-        """"""
+        """Return the item description text."""
         return self._description
 
     def set_shortcut(self, value):
-        """"""
+        """Set the shortcut for the item action."""
         self._shortcut = value
         self._set_rendered_text()
 
     def get_shortcut(self, value):
-        """"""
+        """Return the shortcut for the item action."""
         return self._shortcut
 
     def set_tooltip(self, value):
-        """"""
+        """Set the tooltip text for the item."""
         super(SwitcherItem, self).setTooltip(value)
 
     def set_data(self, value):
-        """"""
+        """Set the additional data associated to the item."""
         self._data = value
 
     def get_data(self):
-        """"""
+        """Return the additional data associated to the item."""
         return self._data
 
     def get_score(self):
-        """"""
+        """Return the fuzzy matchig score."""
         return self._score
 
     def set_section(self, value):
-        """"""
+        """Set the item section name."""
         self._section = value
         self._set_rendered_text()
 
     def get_section(self):
-        """"""
+        """Return the item section name."""
         return self._section
 
     def set_section_visible(self, value):
-        """"""
+        """Set visibility of the item section."""
         self._section_visible = value
         self._set_rendered_text()
 
     def set_action_item(self, value):
-        """"""
+        """Enable/disbale the action type for the item."""
         self._action_item = value
         self._set_rendered_text()
 
 
 class SwitcherProxyModel(QSortFilterProxyModel):
-    """"""
+    """A proxy model to perform sorting on the scored items."""
 
     def __init__(self, parent=None):
-        """"""
+        """A proxy model to perform sorting on the scored items."""
         super(SwitcherProxyModel, self).__init__(parent)
         self.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.setSortCaseSensitivity(Qt.CaseInsensitive)
         self.setDynamicSortFilter(True)
 
     def sortBy(self, attr):
-        """"""
+        """Override Qt method."""
         self.__sort_by = attr
         self.invalidate()
         self.sort(0, Qt.DescendingOrder)
 
     def lessThan(self, left, right):
-        """"""
+        """Override Qt method."""
         left_item = self.sourceModel().itemFromIndex(left)
         right_item = self.sourceModel().itemFromIndex(right)
 
@@ -397,13 +406,16 @@ class SwitcherProxyModel(QSortFilterProxyModel):
 class Switcher(QDialog):
     """A multi purpose switcher."""
 
-    sig_text_changed = Signal(TEXT_TYPES[-1])  # Search/Filter text changes
-    sig_item_selected = Signal(object)  # List item sleected with click/enter
+    # Search/Filter text changes
+    sig_text_changed = Signal(TEXT_TYPES[-1])
+    # List item selected, mode and cleaned search text
+    sig_item_selected = Signal(object, TEXT_TYPES[-1], TEXT_TYPES[-1], )
     sig_mode_selected = Signal(TEXT_TYPES[-1])
 
     _MIN_WIDTH = 500
 
     def __init__(self, parent, help_text=None):
+        """A multi purpose switcher."""
         super(Switcher, self).__init__(parent)
         self._visible_rows = 0
         self._modes = {}
@@ -449,7 +461,7 @@ class Switcher(QDialog):
 
     # --- Helper methods
     def _add_item(self, item):
-        """"""
+        """Helper to erform common actions when adding items."""
         item.set_width(self._MIN_WIDTH)
         self.model.appendRow(item)
         self.set_current_row(0)
@@ -458,23 +470,33 @@ class Switcher(QDialog):
 
     # --- API
     def clear(self):
-        """"""
+        """Remove all items from the list and clear the search text."""
         self.set_placeholder_text('')
         self.model.beginResetModel()
         self.model.clear()
         self.model.endResetModel()
 
     def set_placeholder_text(self, text):
-        """"""
+        """Set the text appearing on the empty line edit."""
         self.edit.setPlaceholderText(text)
 
     def add_mode(self, token, description):
-        """"""
+        """Addd mode by token key and description."""
         self._modes[token] = description
+
+    def remove_mode(self, token):
+        """Remove mode by token key."""
+        if token in self._modes:
+            self._modes.pop(token)
+
+    def clear_modes(self):
+        """Delete all modes setpreviously ."""
+        del self._modes
+        self._modes = {}
 
     def add_item(self, icon=None, title=None, description=None, shortcut=None,
                  section=None, data=None, tool_tip=None, action_item=False):
-        """"""
+        """Add switcher list item."""
         # TODO: Add caching
         item = SwitcherItem(
             parent=self.list,
@@ -491,12 +513,12 @@ class Switcher(QDialog):
         self._add_item(item)
 
     def add_separator(self):
-        """"""
+        """Add separator item."""
         item = SwitcherSeparatorItem(parent=self.list)
         self._add_item(item)
 
     def setup(self):
-        """Setup list widget content."""
+        """Setup list widget content based on the filtering."""
         # Check exited mode
         mode = self._mode_on
         if mode:
@@ -504,9 +526,11 @@ class Switcher(QDialog):
         else:
             search_text = self.search_text()
 
+        # Check exited mode
         if mode and self.search_text() == '':
             self._mode_on = ''
             self.sig_mode_selected.emit(self._mode_on)
+            return
 
         # Check entered mode
         for key in self._modes:
@@ -525,6 +549,7 @@ class Switcher(QDialog):
                 title = ''
             titles.append(title)
 
+        search_text = clean_string(search_text)
         scores = get_search_scores(search_text, titles, template="<b>{0}</b>")
 
         self._visible_rows = self.model.rowCount()
@@ -544,12 +569,15 @@ class Switcher(QDialog):
                 if score_value == -1:
                     self._visible_rows -= 1
 
-        self.set_current_row(0)
+        if self._visible_rows:
+            self.set_current_row(0)
+        else:
+            self.set_current_row(-1)
+
         self.setup_sections()
-        self.proxy.sortBy('_score')
 
     def setup_sections(self):
-        """"""
+        """Setup which sections appear on the item list."""
         mode = self._mode_on
         if mode:
             search_text = self.search_text()[len(mode):]
@@ -590,13 +618,15 @@ class Switcher(QDialog):
         model_index = self.proxy.mapToSource(self.proxy.index(row, 0))
         item = self.model.item(model_index.row())
         if item:
-            self.sig_item_selected.emit(item)
+            mode = self._mode_on
+            self.sig_item_selected.emit(item, mode,
+                                        self.search_text()[len(mode):])
         self.accept()
 
     def accept(self):
         """Override Qt method."""
-        self.clear()
-        super(Switcher, self).accept()
+        # self.clear()
+        # super(Switcher, self).accept()
 
     def resizeEvent(self, event):
         """Override Qt method."""
@@ -655,7 +685,7 @@ class Switcher(QDialog):
                 model_index = self.proxy.mapToSource(list_index)
                 item = self.model.item(model_index.row(), 0)
                 if self._is_separator(item):
-                    steps +=  1
+                    steps += 1
             self._select_row(-steps)
 
     def next_row(self):
@@ -705,6 +735,26 @@ def create_options_example_switcher(sw):
     sw.add_item(title=_('Trim Trailing Whitespace'), section=section)
 
 
+def create_help_example_switcher(sw):
+    sw.clear()
+    sw.add_item(title=_('Help me!'), section='1')
+    sw.add_separator()
+    sw.add_item(title=_('Help me 2!'), section='2')
+    sw.add_separator()
+    sw.add_item(title=_('Help me 3!'), section='3')
+
+
+def create_line_example_switcher(sw):
+    sw.clear()
+    sw.add_item(title=_('Current line, type something'), action_item=True)
+
+
+def create_symbol_example_switcher(sw):
+    sw.clear()
+    sw.add_item(title=_('Some symbol'))
+    sw.add_item(title=_('another symbol'))
+
+
 def test():  # pragma: no cover
     from spyder.utils.qthelpers import qapplication
     app = qapplication()
@@ -712,19 +762,28 @@ def test():  # pragma: no cover
 
     # Create Switcher
     sw = Switcher(w)
-    sw.add_mode('>', 'Commands')
+    sw.add_mode('>', _('Commands'))
+    sw.add_mode('?', _('Help'))
+    sw.add_mode(':', _('Go to Line'))
+    sw.add_mode('@', _('Go to Symbol'))
 
     def handle_modes(mode):
         if mode == '>':
             create_options_example_switcher(sw)
+        if mode == '?':
+            create_help_example_switcher(sw)
+        if mode == ':':
+            create_line_example_switcher(sw)
+        if mode == '@':
+            create_symbol_example_switcher(sw)
         elif mode == '':
             create_vcs_example_switcher(sw)
 
-    def print_item_selected(item):
-        print([item.get_title()])
+    def item_selected(item, mode, search_text):
+        print([item.get_title(), mode, search_text])  # spyder: test-skip
 
     sw.sig_mode_selected.connect(handle_modes)
-    sw.sig_item_selected.connect(print_item_selected)
+    sw.sig_item_selected.connect(item_selected)
 
     create_vcs_example_switcher(sw)
     sw.show()
