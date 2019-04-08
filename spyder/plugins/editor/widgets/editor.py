@@ -494,6 +494,9 @@ class EditorStack(QWidget):
         close_all_but_this = create_action(self, _("Close all but this"),
                                            triggered=self.close_all_but_this)
 
+        sort_tabs = create_action(self, _("Sort tabs alphabetically"),
+                                  triggered=self.sort_file_tabs_alphabetically)
+
         if sys.platform == 'darwin':
            text=_("Show in Finder")
         else:
@@ -505,7 +508,7 @@ class EditorStack(QWidget):
                                        None, fileswitcher_action,
                                        symbolfinder_action,
                                        copy_to_cb_action, None, close_right,
-                                       close_all_but_this]
+                                       close_all_but_this, sort_tabs]
         self.outlineexplorer = None
         self.help = None
         self.unregister_callback = None
@@ -1587,6 +1590,22 @@ class EditorStack(QWidget):
         self.close_all_right()
         for i in range(0, self.get_stack_count()-1  ):
             self.close_file(0)
+
+    def sort_file_tabs_alphabetically(self):
+        """Sort open tabs alphabetically."""
+        while self.sorted() is False:
+            for i in range(0, self.tabs.tabBar().count()):
+                if(self.tabs.tabBar().tabText(i) >
+                        self.tabs.tabBar().tabText(i + 1)):
+                    self.tabs.tabBar().moveTab(i, i + 1)
+
+    def sorted(self):
+        """Utility function for sort_file_tabs_alphabetically()."""
+        for i in range(0, self.tabs.tabBar().count() - 1):
+            if (self.tabs.tabBar().tabText(i) >
+                    self.tabs.tabBar().tabText(i + 1)):
+                return False
+        return True
 
     def add_last_closed_file(self, fname):
         """Add to last closed file list."""
