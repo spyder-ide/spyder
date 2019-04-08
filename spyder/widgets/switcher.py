@@ -110,7 +110,7 @@ class SwitcherBaseItem(QStandardItem):
 class SwitcherSeparatorItem(SwitcherBaseItem):
     """
     Based on HTML delegate.
-    
+
     See: https://doc.qt.io/qt-5/richtext-html-subset.html
     """
 
@@ -121,8 +121,8 @@ class SwitcherSeparatorItem(SwitcherBaseItem):
         'font_size': CONF.get('appearance', 'rich_font/size', 10),
     }
     _TEMPLATE = \
-'''<table cellpadding="5" cellspacing="0" width="{width}" height="{height}"
-    border="0">
+        '''<table cellpadding="5" cellspacing="0" width="{width}"
+            height="{height}" border="0">
   <tr><td valign="top" align="center"><hr></td></tr>
 </table>'''
 
@@ -178,17 +178,17 @@ class SwitcherItem(SwitcherBaseItem):
         'section_font_size': _FONT_SIZE,
         'shortcut_font_size': _FONT_SIZE,
     }
-    _TEMPLATE = \
-'''<table width="{width}" height="{height}" cellpadding="{padding}">
+    _TEMPLATE = '''<table width="{width}" height="{height}"
+                    cellpadding="{padding}">
   <tr>
     <td valign="bottom">
-    <span style="color:{title_color};font-size:{title_font_size}pt">
-      {title}
-    </span>&nbsp;
-    <small
-     style="color:{description_color};font-size:{description_font_size}pt">
-      <span>{description}</span>
-    </small>
+      <span style="color:{title_color};font-size:{title_font_size}pt">
+        {title}
+      </span>&nbsp;
+      <small
+       style="color:{description_color};font-size:{description_font_size}pt">
+        <span>{description}</span>
+      </small>
     </td>
     <td valign="middle" align="right" float="right">
       <span style="color:{shortcut_color};font-size:{shortcut_font_size}pt">
@@ -476,7 +476,7 @@ class Switcher(QDialog):
                  section=None, data=None, tool_tip=None, action_item=False):
         """"""
         # TODO: Add caching
-        item =  SwitcherItem(
+        item = SwitcherItem(
             parent=self.list,
             icon=icon,
             title=title,
@@ -505,8 +505,8 @@ class Switcher(QDialog):
             search_text = self.search_text()
 
         if mode and self.search_text() == '':
-             self._mode_on = ''
-             self.sig_mode_selected.emit(self._mode_on)
+            self._mode_on = ''
+            self.sig_mode_selected.emit(self._mode_on)
 
         # Check entered mode
         for key in self._modes:
@@ -680,7 +680,8 @@ class Switcher(QDialog):
 def create_vcs_example_switcher(sw):
     sw.clear()
     sw.set_placeholder_text('Select a ref to Checkout')
-    sw.add_item(title='Create New Branch', icon=ima.icon('MessageBoxInformation'), action_item=True)
+    sw.add_item(title='Create New Branch', action_item=True,
+                icon=ima.icon('MessageBoxInformation'))
     sw.add_item(title='master', description='123123')
     sw.add_item(title='develop', description='1231232a')
     sw.add_separator()
@@ -691,12 +692,15 @@ def create_options_example_switcher(sw):
     sw.clear()
     sw.set_placeholder_text('Select Action')
     section = _('change view')
-    sw.add_item(title=_('Indent Using Spaces'), description='Test', section=section, shortcut='Ctrl+I')
-    sw.add_item(title=_('Indent Using Tabs'), description='Test', section=section)
+    sw.add_item(title=_('Indent Using Spaces'), description='Test',
+                section=section, shortcut='Ctrl+I')
+    sw.add_item(title=_('Indent Using Tabs'), description='Test',
+                section=section)
     sw.add_item(title=_('Detect Indentation from Content'), section=section)
     sw.add_separator()
     section = _('convert file')
-    sw.add_item(title=_('Convert Indentation to Spaces'), description='Test', section=section)
+    sw.add_item(title=_('Convert Indentation to Spaces'), description='Test',
+                section=section)
     sw.add_item(title=_('Convert Indentation to Tabs'), section=section)
     sw.add_item(title=_('Trim Trailing Whitespace'), section=section)
 
