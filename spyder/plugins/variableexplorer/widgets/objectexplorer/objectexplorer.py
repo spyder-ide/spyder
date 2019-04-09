@@ -33,8 +33,8 @@ from spyder.plugins.variableexplorer.widgets.objectexplorer.attribute_model \
     import DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS
 from spyder.plugins.variableexplorer.widgets.objectexplorer.tree_model import (
     TreeModel, TreeProxyModel)
-from spyder.plugins.variableexplorer.widgets.objectexplorer.toggle_column_mixin\
-    import ToggleColumnTreeView
+from spyder.plugins.variableexplorer.widgets.objectexplorer.\
+    toggle_column_mixin import ToggleColumnTreeView
 from spyder.utils import icon_manager as ima
 
 logger = logging.getLogger(__name__)
@@ -114,7 +114,8 @@ class ObjectExplorer(QDialog):
 
         # Views
         self._setup_actions()
-        self._setup_menu()
+        self._setup_menu(show_callable_attributes=show_callable_attributes,
+                         show_special_attributes=show_special_attributes)
         self._setup_views()
         if name:
             name = "- {}".format(name)
@@ -212,7 +213,8 @@ class ObjectExplorer(QDialog):
         self.refresh_action_f5.triggered.connect(self.refresh)
         self.addAction(self.refresh_action_f5)
 
-    def _setup_menu(self):
+    def _setup_menu(self, show_callable_attributes=False,
+                    show_special_attributes=False):
         """Sets up the main menu."""
         self.tools_layout = QHBoxLayout()
 
@@ -233,6 +235,7 @@ class ObjectExplorer(QDialog):
             icon=ima.icon("class"),
             toggled=self._toggle_show_callable_attributes_action)
         callable_attributes.setCheckable(True)
+        callable_attributes.setChecked(show_callable_attributes)
         self.tools_layout.addWidget(callable_attributes)
 
         special_attributes = create_toolbutton(
@@ -240,6 +243,7 @@ class ObjectExplorer(QDialog):
             icon=ima.icon("private2"),
             toggled=self._toggle_show_special_attributes_action)
         special_attributes.setCheckable(True)
+        special_attributes.setChecked(show_special_attributes)
         self.tools_layout.addWidget(special_attributes)
 
         self.tools_layout.addStretch()

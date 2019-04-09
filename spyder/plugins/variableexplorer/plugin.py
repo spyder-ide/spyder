@@ -67,10 +67,12 @@ class VariableExplorer(SpyderPluginWidget):
             dict: settings
         """
         settings = {}
+        for name in REMOTE_SETTINGS:
+            settings[name] = self.get_option(name)
+
         # TODO: Add new REMOTE_SETTINGS values in Spyder-kernels
-        for name in REMOTE_SETTINGS + ('show_callable_attributes',
-                                       'show_special_attributes',
-                                       'auto_refresh', 'refresh_rate'):
+        for name in ['show_callable_attributes', 'show_special_attributes',
+                     'auto_refresh', 'refresh_rate']:
             settings[name] = self.get_option(name)
 
         # dataframe_format is stored without percent sign in config
