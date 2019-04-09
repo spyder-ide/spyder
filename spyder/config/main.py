@@ -116,12 +116,9 @@ DEFAULTS = [
               'working_dir_history': 30,
               'working_dir_adjusttocontents': False,
               'wrap': True,
-              'calltips': True,
               'codecompletion/auto': False,
-              'codecompletion/enter_key': True,
               'external_editor/path': 'SciTE',
               'external_editor/gotoline': '-goto:',
-              'light_background': True,
               }),
             ('main_interpreter',
              {
@@ -201,16 +198,12 @@ DEFAULTS = [
               'indent_guides': False,
               'scroll_past_end': False,
               'toolbox_panel': True,
-              'calltips': True,
-              'go_to_definition': True,
               'close_parentheses': True,
               'close_quotes': True,
               'add_colons': True,
               'auto_unindent': True,
               'indent_chars': '*    *',
               'tab_stop_width_spaces': 4,
-              'codecompletion/auto': True,
-              'codecompletion/enter_key': True,
               'check_eol_chars': True,
               'convert_eol_on_save': False,
               'convert_eol_on_save_to': 'LF',
@@ -765,7 +758,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '47.8.0'
+CONF_VERSION = '48.0.0'
 
 
 # Main configuration instance
