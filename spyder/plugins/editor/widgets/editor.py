@@ -519,21 +519,13 @@ class EditorStack(QWidget):
         self.revert_action = None
         self.tempfile_path = None
         self.title = _("Editor")
-        self.pyflakes_enabled = True
-        self.pep8_enabled = False
         self.todolist_enabled = True
-        self.realtime_analysis_enabled = False
         self.is_analysis_done = False
         self.linenumbers_enabled = True
         self.blanks_enabled = False
         self.scrollpastend_enabled = False
         self.edgeline_enabled = True
         self.edgeline_columns = (79,)
-        self.codecompletion_auto_enabled = True
-        self.codecompletion_case_enabled = False
-        self.codecompletion_enter_enabled = False
-        self.calltips_enabled = True
-        self.go_to_definition_enabled = True
         self.close_parentheses_enabled = True
         self.close_quotes_enabled = True
         self.add_colons_enabled = True
@@ -964,21 +956,10 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 self.__update_editor_margins(finfo.editor)
 
-    def set_pyflakes_enabled(self, state, current_finfo=None):
-        # CONF.get(self.CONF_SECTION, 'code_analysis/pyflakes')
-        self.pyflakes_enabled = state
-        self.__codeanalysis_settings_changed(current_finfo)
-
-    def set_pep8_enabled(self, state, current_finfo=None):
-        # CONF.get(self.CONF_SECTION, 'code_analysis/pep8')
-        self.pep8_enabled = state
-        self.__codeanalysis_settings_changed(current_finfo)
-
     def has_markers(self):
         """Return True if this editorstack has a marker margin for TODOs or
         code analysis"""
-        return self.todolist_enabled or self.pyflakes_enabled\
-               or self.pep8_enabled
+        return self.todolist_enabled
 
     def set_todolist_enabled(self, state, current_finfo=None):
         # CONF.get(self.CONF_SECTION, 'todo_list')
@@ -990,12 +971,6 @@ class EditorStack(QWidget):
                 if state and current_finfo is not None:
                     if current_finfo is not finfo:
                         finfo.run_todo_finder()
-
-    def set_realtime_analysis_enabled(self, state):
-        self.realtime_analysis_enabled = state
-
-    def set_realtime_analysis_timeout(self, timeout):
-        self.analysis_timer.setInterval(timeout)
 
     def set_linenumbers_enabled(self, state, current_finfo=None):
         # CONF.get(self.CONF_SECTION, 'line_numbers')
@@ -1035,39 +1010,6 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.indent_guides.set_enabled(state)
-
-    def set_codecompletion_auto_enabled(self, state):
-        # CONF.get(self.CONF_SECTION, 'codecompletion_auto')
-        self.codecompletion_auto_enabled = state
-        if self.data:
-            for finfo in self.data:
-                finfo.editor.set_codecompletion_auto(state)
-
-    def set_codecompletion_case_enabled(self, state):
-        self.codecompletion_case_enabled = state
-        if self.data:
-            for finfo in self.data:
-                finfo.editor.set_codecompletion_case(state)
-
-    def set_codecompletion_enter_enabled(self, state):
-        self.codecompletion_enter_enabled = state
-        if self.data:
-            for finfo in self.data:
-                finfo.editor.set_codecompletion_enter(state)
-
-    def set_calltips_enabled(self, state):
-        # CONF.get(self.CONF_SECTION, 'calltips')
-        self.calltips_enabled = state
-        if self.data:
-            for finfo in self.data:
-                finfo.editor.set_calltips(state)
-
-    def set_go_to_definition_enabled(self, state):
-        # CONF.get(self.CONF_SECTION, 'go_to_definition')
-        self.go_to_definition_enabled = state
-        if self.data:
-            for finfo in self.data:
-                finfo.editor.set_go_to_definition_enabled(state)
 
     def set_close_parentheses_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'close_parentheses')
@@ -1966,9 +1908,6 @@ class EditorStack(QWidget):
     #------ Update UI
     def start_stop_analysis_timer(self):
         self.is_analysis_done = False
-        if self.realtime_analysis_enabled:
-            self.analysis_timer.stop()
-            self.analysis_timer.start()
 
     def analyze_script(self, index=None):
         """Analyze current script with todos"""
@@ -2325,11 +2264,6 @@ class EditorStack(QWidget):
                 highlight_current_cell=self.highlight_current_cell_enabled,
                 occurrence_highlighting=self.occurrence_highlighting_enabled,
                 occurrence_timeout=self.occurrence_highlighting_timeout,
-                codecompletion_auto=self.codecompletion_auto_enabled,
-                codecompletion_case=self.codecompletion_case_enabled,
-                codecompletion_enter=self.codecompletion_enter_enabled,
-                calltips=self.calltips_enabled,
-                go_to_definition=self.go_to_definition_enabled,
                 close_parentheses=self.close_parentheses_enabled,
                 close_quotes=self.close_quotes_enabled,
                 add_colons=self.add_colons_enabled,

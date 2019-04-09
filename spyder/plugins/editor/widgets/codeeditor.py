@@ -438,7 +438,6 @@ class CodeEditor(TextEditBaseWidget):
         # Intelligent backspace mode
         self.intelligent_backspace = True
 
-        self.go_to_definition_enabled = False
         self.close_parentheses_enabled = True
         self.close_quotes_enabled = False
         self.add_colons_enabled = True
@@ -477,7 +476,7 @@ class CodeEditor(TextEditBaseWidget):
         self.enable_hover = False
         self.auto_completion_characters = []
         self.signature_completion_characters = []
-        self.lsp_go_to_definition_enabled = False
+        self.go_to_definition_enabled = False
         self.find_references_enabled = False
         self.highlight_enabled = False
         self.formatting_enabled = False
@@ -513,7 +512,7 @@ class CodeEditor(TextEditBaseWidget):
             ('editor', 'move line up', self.move_line_up),
             ('editor', 'move line down', self.move_line_down),
             ('editor', 'go to new line', self.go_to_new_line),
-            ('editor', 'go to definition', self.do_go_to_definition),
+            ('editor', 'go to definition', self.go_to_definition_from_cursor),
             ('editor', 'toggle comment', self.toggle_comment),
             ('editor', 'blockcomment', self.blockcomment),
             ('editor', 'unblockcomment', self.unblockcomment),
@@ -597,31 +596,41 @@ class CodeEditor(TextEditBaseWidget):
     @property
     def panels(self):
         """
-        Returns a reference to the :class:`spyder.widgets.panels.managers.PanelsManager`
+        Returns a reference to the
+        :class:`spyder.widgets.panels.managers.PanelsManager`
         used to manage the collection of installed panels
         """
         return self._panels
 
-    def setup_editor(self, linenumbers=True, language=None, markers=False,
-                     font=None, color_scheme=None, wrap=False, tab_mode=True,
-                     intelligent_backspace=True, highlight_current_line=True,
-                     highlight_current_cell=True, occurrence_highlighting=True,
-                     scrollflagarea=True, edge_line=True, edge_line_columns=(79,),
-                     codecompletion_auto=False, codecompletion_case=True,
-                     codecompletion_enter=False, show_blanks=False,
-                     calltips=None, go_to_definition=False,
-                     close_parentheses=True, close_quotes=False,
-                     add_colons=True, auto_unindent=True, indent_chars=" "*4,
-                     tab_stop_width_spaces=4, cloned_from=None, filename=None,
-                     occurrence_timeout=1500, show_class_func_dropdown=False,
-                     indent_guides=False, scroll_past_end=False):
+    def setup_editor(self,
+                     linenumbers=True,
+                     language=None,
+                     markers=False,
+                     font=None,
+                     color_scheme=None,
+                     wrap=False,
+                     tab_mode=True,
+                     intelligent_backspace=True,
+                     highlight_current_line=True,
+                     highlight_current_cell=True,
+                     occurrence_highlighting=True,
+                     scrollflagarea=True,
+                     edge_line=True,
+                     edge_line_columns=(79,),
+                     show_blanks=False,
+                     close_parentheses=True,
+                     close_quotes=False,
+                     add_colons=True,
+                     auto_unindent=True,
+                     indent_chars=" "*4,
+                     tab_stop_width_spaces=4,
+                     cloned_from=None,
+                     filename=None,
+                     occurrence_timeout=1500,
+                     show_class_func_dropdown=False,
+                     indent_guides=False,
+                     scroll_past_end=False):
 
-        # Code completion and calltips
-        self.set_codecompletion_auto(codecompletion_auto)
-        self.set_codecompletion_case(codecompletion_case)
-        self.set_codecompletion_enter(codecompletion_enter)
-        self.set_calltips(calltips)
-        self.set_go_to_definition_enabled(go_to_definition)
         self.set_close_parentheses_enabled(close_parentheses)
         self.set_close_quotes_enabled(close_quotes)
         self.set_add_colons_enabled(add_colons)
@@ -736,7 +745,7 @@ class CodeEditor(TextEditBaseWidget):
             completion_options['triggerCharacters'])
         self.signature_completion_characters = (
             signature_options['triggerCharacters'])
-        self.lsp_go_to_definition_enabled = config['definitionProvider']
+        self.go_to_definition_enabled = config['definitionProvider']
         self.find_references_enabled = config['referencesProvider']
         self.highlight_enabled = config['documentHighlightProvider']
         self.formatting_enabled = config['documentFormattingProvider']
@@ -862,7 +871,7 @@ class CodeEditor(TextEditBaseWidget):
     def handle_hover_response(self, contents):
         text = contents['params']
         self.sig_display_signature.emit(text)
-        self.show_calltip(_("Hint"), text, at_point=self.mouse_point)
+        self.show_calltip(_("Hint"), text)
         # QTimer.singleShot(20000, lambda: QToolTip.hideText())
 
     # ------------- LSP: Go To Definition ----------------------------
@@ -871,19 +880,15 @@ class CodeEditor(TextEditBaseWidget):
     def go_to_definition_from_cursor(self, cursor=None):
         """Go to definition from cursor instance (QTextCursor)"""
         if (not self.go_to_definition_enabled or
-                not self.lsp_go_to_definition_enabled):
+                self.in_comment_or_string()):
             return
         if cursor is None:
             cursor = self.textCursor()
-        if self.in_comment_or_string():
-            return
-        # position = cursor.position()
         text = to_text_string(cursor.selectedText())
         if len(text) == 0:
             cursor.select(QTextCursor.WordUnderCursor)
             text = to_text_string(cursor.selectedText())
         if text is not None:
-            # self.go_to_definition.emit(position)
             line, column = self.get_cursor_line_column()
             params = {
                 'file': self.filename,
@@ -935,11 +940,6 @@ class CodeEditor(TextEditBaseWidget):
 
     def toggle_intelligent_backspace(self, state):
         self.intelligent_backspace = state
-
-    def set_go_to_definition_enabled(self, enable):
-        """Enable/Disable go-to-definition feature, which is implemented in
-        child class -> Editor widget"""
-        self.go_to_definition_enabled = enable
 
     def set_close_parentheses_enabled(self, enable):
         """Enable/disable automatic parentheses insertion feature"""
@@ -1414,12 +1414,6 @@ class CodeEditor(TextEditBaseWidget):
         self.sig_bookmarks_changed.emit()
 
     #-----Code introspection
-    def do_go_to_definition(self):
-        """Trigger go-to-definition"""
-        self.go_to_definition_from_cursor()
-        # if not self.in_comment_or_string():
-        #     self.go_to_definition.emit(self.textCursor().position())
-
     def show_object_info(self, position):
         """Trigger a calltip"""
         self.sig_show_object_info.emit(position)
@@ -2843,8 +2837,7 @@ class CodeEditor(TextEditBaseWidget):
                     self.insert_text(':' + self.get_line_separator())
                     self.fix_indent()
                     self.textCursor().endEditBlock()
-                elif self.is_completion_widget_visible() \
-                   and self.codecompletion_enter:
+                elif self.is_completion_widget_visible():
                     self.select_completion_list()
                 else:
                     # Check if we're in a comment or a string at the
@@ -2893,14 +2886,6 @@ class CodeEditor(TextEditBaseWidget):
                     cursor.removeSelectedText()
                 else:
                     TextEditBaseWidget.keyPressEvent(self, event)
-        # elif key == Qt.Key_Period:
-        #     self.insert_text(text)
-        #     if (self.is_python_like()) and not \
-        #       self.in_comment_or_string() and self.codecompletion_auto:
-        #         # Enable auto-completion only if last token isn't a float
-        #         last_obj = getobj(self.get_text('sol', 'cursor'))
-        #         if last_obj and not last_obj.isdigit():
-        #             self.do_completion(automatic=True)
         elif key == Qt.Key_Home:
             self.stdkey_home(shift, ctrl)
         elif key == Qt.Key_End:
@@ -2909,7 +2894,7 @@ class CodeEditor(TextEditBaseWidget):
             self.stdkey_end(shift, ctrl)
         elif text in self.auto_completion_characters:
             self.insert_text(text)
-            if not self.in_comment_or_string() and self.codecompletion_auto:
+            if not self.in_comment_or_string():
                 last_obj = getobj(self.get_text('sol', 'cursor'))
                 if last_obj and not last_obj.isdigit():
                     self.do_completion(automatic=True)
@@ -2983,8 +2968,8 @@ class CodeEditor(TextEditBaseWidget):
         if self.has_selected_text():
             TextEditBaseWidget.mouseMoveEvent(self, event)
             return
-        if self.go_to_definition_enabled and \
-           event.modifiers() & Qt.ControlModifier:
+        if (self.go_to_definition_enabled and
+                event.modifiers() & Qt.ControlModifier):
             text = self.get_word_at(event.pos())
             if (text and not sourcecode.is_keyword(to_text_string(text))):
                 if not self.__cursor_changed:

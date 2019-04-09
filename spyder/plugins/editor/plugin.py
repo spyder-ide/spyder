@@ -1106,22 +1106,13 @@ class Editor(SpyderPluginWidget):
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
 
         settings = (
-            ('set_pyflakes_enabled',                'code_analysis/pyflakes'),
-            ('set_pep8_enabled',                    'code_analysis/pep8'),
             ('set_todolist_enabled',                'todo_list'),
-            ('set_realtime_analysis_enabled',       'realtime_analysis'),
-            ('set_realtime_analysis_timeout',       'realtime_analysis/timeout'),
             ('set_blanks_enabled',                  'blank_spaces'),
             ('set_scrollpastend_enabled',           'scroll_past_end'),
             ('set_linenumbers_enabled',             'line_numbers'),
             ('set_edgeline_enabled',                'edge_line'),
             ('set_edgeline_columns',                'edge_line_columns'),
             ('set_indent_guides',                   'indent_guides'),
-            ('set_codecompletion_auto_enabled',     'codecompletion/auto'),
-            ('set_codecompletion_case_enabled',     'codecompletion/case_sensitive'),
-            ('set_codecompletion_enter_enabled',    'codecompletion/enter_key'),
-            ('set_calltips_enabled',                'calltips'),
-            ('set_go_to_definition_enabled',        'go_to_definition'),
             ('set_focus_to_editor',                 'focus_to_editor'),
             ('set_run_cell_copy',                   'run_cell_copy'),
             ('set_close_parentheses_enabled',       'close_parentheses'),
@@ -2505,16 +2496,6 @@ class Editor(SpyderPluginWidget):
             converteolto_o = self.get_option(converteolto_n)
             runcellcopy_n = 'run_cell_copy'
             runcellcopy_o = self.get_option(runcellcopy_n)
-            autocomp_n = 'codecompletion/auto'
-            autocomp_o = self.get_option(autocomp_n)
-            case_comp_n = 'codecompletion/case_sensitive'
-            case_comp_o = self.get_option(case_comp_n)
-            enter_key_n = 'codecompletion/enter_key'
-            enter_key_o = self.get_option(enter_key_n)
-            calltips_n = 'calltips'
-            calltips_o = self.get_option(calltips_n)
-            gotodef_n = 'go_to_definition'
-            gotodef_o = self.get_option(gotodef_n)
             closepar_n = 'close_parentheses'
             closepar_o = self.get_option(closepar_n)
             close_quotes_n = 'close_quotes'
@@ -2531,14 +2512,6 @@ class Editor(SpyderPluginWidget):
             help_o = CONF.get('help', 'connect/editor')
             todo_n = 'todo_list'
             todo_o = self.get_option(todo_n)
-            pyflakes_n = 'code_analysis/pyflakes'
-            pyflakes_o = self.get_option(pyflakes_n)
-            pep8_n = 'code_analysis/pep8'
-            pep8_o = self.get_option(pep8_n)
-            rt_analysis_n = 'realtime_analysis'
-            rt_analysis_o = self.get_option(rt_analysis_n)
-            rta_timeout_n = 'realtime_analysis/timeout'
-            rta_timeout_o = self.get_option(rta_timeout_n)
 
             finfo = self.get_current_finfo()
 
@@ -2567,16 +2540,6 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_convert_eol_on_save_to(converteolto_o)
                 if runcellcopy_n in options:
                     editorstack.set_run_cell_copy(runcellcopy_o)
-                if autocomp_n in options:
-                    editorstack.set_codecompletion_auto_enabled(autocomp_o)
-                if case_comp_n in options:
-                    editorstack.set_codecompletion_case_enabled(case_comp_o)
-                if enter_key_n in options:
-                    editorstack.set_codecompletion_enter_enabled(enter_key_o)
-                if calltips_n in options:
-                    editorstack.set_calltips_enabled(calltips_o)
-                if gotodef_n in options:
-                    editorstack.set_go_to_definition_enabled(gotodef_o)
                 if closepar_n in options:
                     editorstack.set_close_parentheses_enabled(closepar_o)
                 if close_quotes_n in options:
@@ -2594,15 +2557,6 @@ class Editor(SpyderPluginWidget):
                 if todo_n in options:
                     editorstack.set_todolist_enabled(todo_o,
                                                      current_finfo=finfo)
-                if pyflakes_n in options:
-                    editorstack.set_pyflakes_enabled(pyflakes_o,
-                                                     current_finfo=finfo)
-                if pep8_n in options:
-                    editorstack.set_pep8_enabled(pep8_o, current_finfo=finfo)
-                if rt_analysis_n in options:
-                    editorstack.set_realtime_analysis_enabled(rt_analysis_o)
-                if rta_timeout_n in options:
-                    editorstack.set_realtime_analysis_timeout(rta_timeout_o)
 
             for name, action in self.checkable_actions.items():
                 if name in options:
@@ -2619,12 +2573,9 @@ class Editor(SpyderPluginWidget):
             # (otherwise, code analysis buttons state would correspond to the
             #  last editor instead of showing the one of the current editor)
             if finfo is not None:
+                # TODO: Connect this to the LSP
                 if todo_n in options and todo_o:
                     finfo.run_todo_finder()
-                if pyflakes_n in options or pep8_n in options:
-                    # TODO: Connect this to the LSP
-                    #finfo.run_code_analysis(pyflakes_o, pep8_o)
-                    pass
 
     # --- Open files
     def get_open_filenames(self):

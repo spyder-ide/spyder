@@ -106,30 +106,6 @@ class EditorConfigPage(PluginConfigPage):
         run_cell_box = newcb(_("Copy full cell contents to the console when "
                                "running code cells"), 'run_cell_copy')
 
-        introspection_group = QGroupBox(_("Introspection"))
-        rope_is_installed = programs.is_module_installed('rope')
-        if rope_is_installed:
-            completion_box = newcb(_("Automatic code completion"),
-                                   'codecompletion/auto')
-            case_comp_box = newcb(_("Case sensitive code completion"),
-                                  'codecompletion/case_sensitive')
-            comp_enter_box = newcb(_("Enter key selects completion"),
-                                   'codecompletion/enter_key')
-            calltips_box = newcb(_("Display balloon tips"), 'calltips')
-            gotodef_box = newcb(
-                _("Link to object definition"),
-                'go_to_definition',
-                tip=_("If this option is enabled, clicking on an object\n"
-                      "name (left-click + Ctrl key) will go to this object\n"
-                      "definition (if resolved)."))
-        else:
-            rope_label = QLabel(_("<b>Warning:</b><br>"
-                                  "The Python module <i>rope</i> is not "
-                                  "installed on this computer: calltips, "
-                                  "code completion and go-to-definition "
-                                  "features won't be available."))
-            rope_label.setWordWrap(True)
-
         sourcecode_group = QGroupBox(_("Source code"))
         closepar_box = newcb(_("Automatic insertion of parentheses, braces "
                                "and brackets"),
@@ -186,50 +162,9 @@ class EditorConfigPage(PluginConfigPage):
                                                'docstring_type')
 
         analysis_group = QGroupBox(_("Analysis"))
-        pep_url = '<a href="https://www.python.org/dev/peps/pep-0008">PEP8</a>'
-        pep8_label = QLabel(_("<i>(Refer to the {} page)</i>").format(pep_url))
-        pep8_label.setOpenExternalLinks(True)
-        is_pyflakes = codeanalysis.is_pyflakes_installed()
-        is_pep8 = codeanalysis.get_checker_executable(
-                'pycodestyle') is not None
-        pyflakes_box = newcb(
-            _("Real-time code analysis"),
-            'code_analysis/pyflakes', default=True,
-            tip=_("<p>If enabled, Python source code will be analyzed "
-                  "using pyflakes, and lines containing errors or "
-                  "warnings will be highlighted.</p>"
-                  "<p><u>Note</u>: Add <b>analysis:ignore</b> in a "
-                  "comment to ignore code analysis warnings.</p>"))
-        pyflakes_box.setEnabled(is_pyflakes)
-        if not is_pyflakes:
-            pyflakes_box.setToolTip(_("Code analysis requires pyflakes %s+") %
-                                    codeanalysis.PYFLAKES_REQVER)
-        pep8_box = newcb(
-            _("Real-time code style analysis"),
-            'code_analysis/pep8', default=False,
-            tip=_("<p>If enabled, Python source code will be analyzed "
-                  "using pycodestyle, and lines that are not following "
-                  "the PEP 8 style guide will be highlighted.</p>"
-                  "<p><u>Note</u>: Add <b>analysis:ignore</b> in a "
-                  "comment to ignore style analysis warnings.</p>"))
-        pep8_box.setEnabled(is_pep8)
         todolist_box = newcb(_("Code annotations (TODO, FIXME, XXX, HINT, TIP,"
                                " @todo, HACK, BUG, OPTIMIZE, !!!, ???)"),
                              'todo_list', default=True)
-        realtime_radio = self.create_radiobutton(
-            _("Perform analysis when "
-              "saving file and every"),
-            'realtime_analysis', True)
-        saveonly_radio = self.create_radiobutton(
-            _("Perform analysis only "
-              "when saving file"),
-            'onsave_analysis')
-        af_spin = self.create_spinbox("", _(" ms"),
-                                      'realtime_analysis/timeout',
-                                      min_=100, max_=1000000, step=100)
-        af_layout = QHBoxLayout()
-        af_layout.addWidget(realtime_radio)
-        af_layout.addWidget(af_spin)
 
         run_layout = QVBoxLayout()
         run_layout.addWidget(saveall_box)
@@ -240,26 +175,8 @@ class EditorConfigPage(PluginConfigPage):
         run_selection_layout.addWidget(run_cell_box)
         run_selection_group.setLayout(run_selection_layout)
 
-        introspection_layout = QVBoxLayout()
-        if rope_is_installed:
-            introspection_layout.addWidget(calltips_box)
-            introspection_layout.addWidget(completion_box)
-            introspection_layout.addWidget(case_comp_box)
-            introspection_layout.addWidget(comp_enter_box)
-            introspection_layout.addWidget(gotodef_box)
-        else:
-            introspection_layout.addWidget(rope_label)
-        introspection_group.setLayout(introspection_layout)
-
         analysis_layout = QVBoxLayout()
-        analysis_layout.addWidget(pyflakes_box)
-        analysis_pep_layout = QHBoxLayout()
-        analysis_pep_layout.addWidget(pep8_box)
-        analysis_pep_layout.addWidget(pep8_label)
-        analysis_layout.addLayout(analysis_pep_layout)
         analysis_layout.addWidget(todolist_box)
-        analysis_layout.addLayout(af_layout)
-        analysis_layout.addWidget(saveonly_radio)
         analysis_group.setLayout(analysis_layout)
 
         sourcecode_layout = QVBoxLayout()
@@ -337,11 +254,9 @@ class EditorConfigPage(PluginConfigPage):
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(interface_group, display_group),
                     _("Display"))
-        tabs.addTab(self.create_tab(introspection_group, analysis_group),
-                    _("Code Introspection/Analysis"))
         tabs.addTab(self.create_tab(template_btn, run_group,
                                     run_selection_group, sourcecode_group,
-                                    eol_group, autosave_group),
+                                    eol_group, autosave_group, analysis_group),
                     _("Advanced settings"))
 
         vlayout = QVBoxLayout()
