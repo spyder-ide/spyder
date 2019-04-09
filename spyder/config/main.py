@@ -170,7 +170,11 @@ DEFAULTS = [
               'in_prompt': '',
               'out_prompt': '',
               'show_elapsed_time': False,
-              'ask_before_restart': True
+              'ask_before_restart': True,
+              # This is True because there are libraries like Pyomo
+              # that generate a lot of Command Prompts while running,
+              # and that's extremely annoying for Windows users.
+              'hide_cmd_windows': True
               }),
             ('variable_explorer',
              {
