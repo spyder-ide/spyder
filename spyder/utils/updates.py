@@ -32,10 +32,10 @@ from spyder.utils.programs import check_version
 
 
 if PY3:
-    from urllib.request import urlopen
+    from urllib.request import Request, urlopen
     from urllib.error import URLError, HTTPError
 else:
-    from urllib2 import urlopen, URLError, HTTPError
+    from urllib2 import Request, urlopen, URLError, HTTPError
 
 
 logger = logging.getLogger(__name__)
@@ -52,7 +52,7 @@ def get_encoding(headers, raw_data):
         results = chardet.detect(raw_data)
         if results.get('encoding') is None:
             if os.name == 'nt':
-                encoding = 'cp-1252'
+                encoding = 'cp-1252'  # 'iso-8859-1'
             else:
                 encoding = 'utf-8'
         else:
@@ -63,13 +63,26 @@ def get_encoding(headers, raw_data):
 # TODO: This could be moved to a dowloand and url handling module/utils?
 def download(url):
     """Download and decode data from url."""
+    headers = {
+        'User-Agent': ('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 '
+                       '(KHTML, like Gecko) Chrome/23.0.1271.64 '
+                       'Safari/537.11'),
+        'Accept': ('text/html,application/xhtml+xml,'
+                   'application/xml;q=0.9,*/*;q=0.8'),
+        'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
+        'Accept-Encoding': 'none',
+        'Accept-Language': 'en-US,en;q=0.8',
+        'Connection': 'keep-alive',
+    }
+    req = Request(url, headers=headers)
+
     if hasattr(ssl, '_create_unverified_context'):
         # Fix for issue #2685 [Works only with Python >=2.7.9]
         # More info: https://www.python.org/dev/peps/pep-0476/#opting-out
         context = ssl._create_unverified_context()
-        page = urlopen(url, context=context)
+        page = urlopen(req, context=context)
     else:
-        page = urlopen(url)
+        page = urlopen(req)
 
     raw_data = page.read()
 
