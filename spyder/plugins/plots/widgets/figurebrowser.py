@@ -709,6 +709,7 @@ class ThumbnailScrollBar(QFrame):
             index = self._thumbnails.index(self.current_thumbnail) - 1
             index = index if index >= 0 else len(self._thumbnails) - 1
             self.set_current_index(index)
+            self.scroll_to_select_item(index)
 
     def go_next_thumbnail(self):
         """Select thumbnail next to the currently selected one."""
@@ -716,17 +717,19 @@ class ThumbnailScrollBar(QFrame):
             index = self._thumbnails.index(self.current_thumbnail) + 1
             index = 0 if index >= len(self._thumbnails) else index
             self.set_current_index(index)
+            self.scroll_to_select_item(index)
 
-    def scroll_to_select_item(self):
+    def scroll_to_select_item(self, index):
+        """Scroll to the selected item of ThumbnailScrollBar."""
         space_item = self.scene.verticalSpacing()
         height_view = self.scrollarea.viewport().height()
-        height_item = self.scene.itemAt(self.idx).sizeHint().height()
+        height_item = self.scene.itemAt(index).sizeHint().height()
         height_remain = height_view - height_item
         if height_remain < 0:
             height_remain = 0
 
         height_items_up = space_item
-        for i in range(self.idx):
+        for i in range(index):
             item = self.scene.itemAt(i)
             height_items_up += item.sizeHint().height()
             height_items_up += space_item
