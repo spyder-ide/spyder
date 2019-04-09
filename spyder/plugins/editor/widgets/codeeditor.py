@@ -607,7 +607,7 @@ class CodeEditor(TextEditBaseWidget):
                      intelligent_backspace=True, highlight_current_line=True,
                      highlight_current_cell=True, occurrence_highlighting=True,
                      scrollflagarea=True, edge_line=True, edge_line_columns=(79,),
-                     codecompletion_auto=False, codecompletion_case=True,
+                     codecompletion_case=True,
                      codecompletion_enter=False, show_blanks=False,
                      calltips=None, go_to_definition=False,
                      close_parentheses=True, close_quotes=False,
@@ -617,7 +617,6 @@ class CodeEditor(TextEditBaseWidget):
                      indent_guides=False, scroll_past_end=False):
 
         # Code completion and calltips
-        self.set_codecompletion_auto(codecompletion_auto)
         self.set_codecompletion_case(codecompletion_case)
         self.set_codecompletion_enter(codecompletion_enter)
         self.set_calltips(calltips)
@@ -2886,14 +2885,6 @@ class CodeEditor(TextEditBaseWidget):
                     cursor.removeSelectedText()
                 else:
                     TextEditBaseWidget.keyPressEvent(self, event)
-        # elif key == Qt.Key_Period:
-        #     self.insert_text(text)
-        #     if (self.is_python_like()) and not \
-        #       self.in_comment_or_string() and self.codecompletion_auto:
-        #         # Enable auto-completion only if last token isn't a float
-        #         last_obj = getobj(self.get_text('sol', 'cursor'))
-        #         if last_obj and not last_obj.isdigit():
-        #             self.do_completion(automatic=True)
         elif key == Qt.Key_Home:
             self.stdkey_home(shift, ctrl)
         elif key == Qt.Key_End:
@@ -2902,7 +2893,7 @@ class CodeEditor(TextEditBaseWidget):
             self.stdkey_end(shift, ctrl)
         elif text in self.auto_completion_characters:
             self.insert_text(text)
-            if not self.in_comment_or_string() and self.codecompletion_auto:
+            if not self.in_comment_or_string():
                 last_obj = getobj(self.get_text('sol', 'cursor'))
                 if last_obj and not last_obj.isdigit():
                     self.do_completion(automatic=True)
