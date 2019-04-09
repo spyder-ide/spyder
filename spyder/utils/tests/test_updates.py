@@ -21,10 +21,22 @@ import pytest
 from spyder.config.utils import is_anaconda
 from spyder.utils.updates import (check_update_available, check_updates,
                                   download, get_updates_url, process_releases,
-                                  urlopen)
+                                  urlopen, Request)
 
 
 # Example data
+HEADERS = {
+    'User-Agent': ('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 '
+                    '(KHTML, like Gecko) Chrome/23.0.1271.64 '
+                    'Safari/537.11'),
+    'Accept': ('text/html,application/xhtml+xml,'
+                'application/xml;q=0.9,*/*;q=0.8'),
+    'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
+    'Accept-Encoding': 'none',
+    'Accept-Language': 'en-US,en;q=0.8',
+    'Connection': 'keep-alive',
+}
+
 ANACONDA_RELEASES = ['3.2.3', '3.2.4', '3.2.5', '3.2.6', '3.2.7', '3.2.8',
                      '3.3.0', '3.3.1', '3.3.2', '3.3.3']
 
@@ -71,7 +83,9 @@ def test_get_updates_url():
     """Check that the urls for anaconda and github are valid."""
     for value in [True, False]:
         url = get_updates_url(anaconda=value)
-        response = urlopen(url)
+        # This is needed to avoid 403 errors on some servers
+        req = Request(url, headers=HEADERS)
+        response = urlopen(req)
         info = dict(response.info())
         content_type = info.get('Content-Type', info.get('content-type', ''))
         assert content_type.lower().startswith('application/json')

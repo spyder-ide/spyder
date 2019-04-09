@@ -74,6 +74,7 @@ def download(url):
         'Accept-Language': 'en-US,en;q=0.8',
         'Connection': 'keep-alive',
     }
+    # This is needed to avoid 403 errors on some servers
     req = Request(url, headers=headers)
 
     if hasattr(ssl, '_create_unverified_context'):
