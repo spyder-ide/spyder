@@ -47,7 +47,6 @@ class CompletionWidget(QListWidget):
         self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint)
         self.textedit = parent
         self.completion_list = None
-        self.enter_select = None
         self.hide()
         self.itemActivated.connect(self.item_selected)
         self.currentRowChanged.connect(self.row_changed)
@@ -171,8 +170,7 @@ class CompletionWidget(QListWidget):
         shift = event.modifiers() & Qt.ShiftModifier
         ctrl = event.modifiers() & Qt.ControlModifier
         modifier = shift or ctrl or alt
-        if (key in (Qt.Key_Return, Qt.Key_Enter) and self.enter_select) \
-           or key == Qt.Key_Tab:
+        if key in (Qt.Key_Return, Qt.Key_Enter) or key == Qt.Key_Tab:
             self.item_selected()
         elif key == Qt.Key_Escape:
             self.hide()
@@ -291,8 +289,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         self.completion_widget = CompletionWidget(self, parent)
         self.codecompletion_auto = False
-        self.codecompletion_case = True
-        self.codecompletion_enter = False
         self.setup_completion()
 
         self.calltip_widget = CallTipWidget(self, hide_timer_on=False)
@@ -546,11 +542,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     def set_codecompletion_auto(self, state):
         """Set code completion state"""
         self.codecompletion_auto = state
-
-    def set_codecompletion_enter(self, state):
-        """Enable Enter key to select completion"""
-        self.codecompletion_enter = state
-        self.completion_widget.enter_select = state
 
     def set_calltips(self, state):
         """Set calltips state"""

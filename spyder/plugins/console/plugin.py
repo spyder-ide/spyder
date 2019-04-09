@@ -180,17 +180,12 @@ class Console(SpyderPluginWidget):
                                           _("Automatic code completion"),
                                           toggled=self.toggle_codecompletion)
         codecompletion_action.setChecked(self.get_option('codecompletion/auto'))
-        codecompenter_action = create_action(self,
-                                    _("Enter key selects completion"),
-                                    toggled=self.toggle_codecompletion_enter)
-        codecompenter_action.setChecked(self.get_option(
-                                                    'codecompletion/enter_key'))
         
         option_menu = QMenu(_('Internal console settings'), self)
         option_menu.setIcon(ima.icon('tooloptions'))
         add_actions(option_menu, (buffer_action, wrap_action,
                                   calltips_action, codecompletion_action,
-                                  codecompenter_action, exteditor_action))
+                                  exteditor_action))
                     
         plugin_actions = [None, run_action, environ_action, syspath_action,
                           option_menu, MENU_SEPARATOR, quit_action,
@@ -344,13 +339,7 @@ class Console(SpyderPluginWidget):
         """Toggle automatic code completion"""
         self.shell.set_codecompletion_auto(checked)
         self.set_option('codecompletion/auto', checked)
-    
-    @Slot(bool)
-    def toggle_codecompletion_enter(self, checked):
-        """Toggle Enter key for code completion"""
-        self.shell.set_codecompletion_enter(checked)
-        self.set_option('codecompletion/enter_key', checked)
-                
+
     #----Drag and drop                    
     def dragEnterEvent(self, event):
         """Reimplement Qt method

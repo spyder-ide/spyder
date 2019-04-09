@@ -607,7 +607,7 @@ class CodeEditor(TextEditBaseWidget):
                      intelligent_backspace=True, highlight_current_line=True,
                      highlight_current_cell=True, occurrence_highlighting=True,
                      scrollflagarea=True, edge_line=True, edge_line_columns=(79,),
-                     codecompletion_enter=False, show_blanks=False,
+                     show_blanks=False,
                      calltips=None, go_to_definition=False,
                      close_parentheses=True, close_quotes=False,
                      add_colons=True, auto_unindent=True, indent_chars=" "*4,
@@ -616,7 +616,6 @@ class CodeEditor(TextEditBaseWidget):
                      indent_guides=False, scroll_past_end=False):
 
         # Code completion and calltips
-        self.set_codecompletion_enter(codecompletion_enter)
         self.set_calltips(calltips)
         self.set_go_to_definition_enabled(go_to_definition)
         self.set_close_parentheses_enabled(close_parentheses)
@@ -2833,8 +2832,7 @@ class CodeEditor(TextEditBaseWidget):
                     self.insert_text(':' + self.get_line_separator())
                     self.fix_indent()
                     self.textCursor().endEditBlock()
-                elif self.is_completion_widget_visible() \
-                   and self.codecompletion_enter:
+                elif self.is_completion_widget_visible():
                     self.select_completion_list()
                 else:
                     # Check if we're in a comment or a string at the
