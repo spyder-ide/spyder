@@ -722,6 +722,8 @@ class ThumbnailScrollBar(QFrame):
         height_view = self.scrollarea.viewport().height()
         height_item = self.scene.itemAt(self.idx).sizeHint().height()
         height_remain = height_view - height_item
+        if height_remain < 0:
+            height_remain = 0
 
         height_items_up = space_item
         for i in range(self.idx):
