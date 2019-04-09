@@ -1008,13 +1008,6 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 finfo.editor.indent_guides.set_enabled(state)
 
-    def set_codecompletion_case_enabled(self, state):
-        # Necessary for the console plugin
-        self.codecompletion_case_enabled = state
-        if self.data:
-            for finfo in self.data:
-                finfo.editor.set_codecompletion_case(state)
-
     def set_close_parentheses_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'close_parentheses')
         self.close_parentheses_enabled = state

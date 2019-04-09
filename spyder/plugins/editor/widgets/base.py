@@ -47,7 +47,6 @@ class CompletionWidget(QListWidget):
         self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint)
         self.textedit = parent
         self.completion_list = None
-        self.case_sensitive = False
         self.enter_select = None
         self.hide()
         self.itemActivated.connect(self.item_selected)
@@ -217,10 +216,6 @@ class CompletionWidget(QListWidget):
                 else:
                     completion_label = completion[0]
 
-                if not self.case_sensitive:
-                    print(completion_text)  # spyder: test-skip
-                    completion_label = completion.lower()
-                    completion_text = completion_text.lower()
                 if completion_label.startswith(completion_text):
                     self.setCurrentRow(row)
                     self.scrollTo(self.currentIndex(),
@@ -551,11 +546,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     def set_codecompletion_auto(self, state):
         """Set code completion state"""
         self.codecompletion_auto = state
-
-    def set_codecompletion_case(self, state):
-        """Case sensitive completion"""
-        self.codecompletion_case = state
-        self.completion_widget.case_sensitive = state
 
     def set_codecompletion_enter(self, state):
         """Enable Enter key to select completion"""
