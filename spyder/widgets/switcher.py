@@ -1,22 +1,22 @@
 # -*- coding: utf-8 -*-
-#
+# -----------------------------------------------------------------------------
 # Copyright © Spyder Project Contributors
+#
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
+"""Switcher widget interface."""
 
 # Standard library imports
 from __future__ import print_function
-from collections import OrderedDict
 import os
-import re
 import sys
 
 # Third party imports
 from qtpy.QtCore import (QEvent, QObject, QSize, QSortFilterProxyModel, Qt,
                          Signal, Slot)
-from qtpy.QtGui import QIcon, QStandardItem, QStandardItemModel
-from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLineEdit,
-                            QListWidget, QListWidgetItem, QVBoxLayout,
+from qtpy.QtGui import QStandardItem, QStandardItemModel
+from qtpy.QtWidgets import (QDialog, QLineEdit, QListWidgetItem, QVBoxLayout,
                             QListView)
 
 # Local imports
@@ -174,8 +174,9 @@ class SwitcherItem(SwitcherBaseItem):
     """
     Switcher item with title, description, shortcut and section.
 
-    Based on HTML delegate.
+    SwitcherItem: [title description    <shortcut> section]
 
+    Based on HTML delegate.
     See: https://doc.qt.io/qt-5/richtext-html-subset.html
     """
     _FONT_SIZE = CONF.get('appearance', 'rich_font/size', 10)
@@ -404,7 +405,17 @@ class SwitcherProxyModel(QSortFilterProxyModel):
 # --- Widgets
 # ----------------------------------------------------------------------------
 class Switcher(QDialog):
-    """A multi purpose switcher."""
+    """
+    A multi purpose switcher.
+
+    Example
+    -------
+      SwitcherItem:      [title description    <shortcut> section]
+      SwitcherItem:      [title description    <shortcut> section]
+      SwitcherSeparator: [---------------------------------------]
+      SwitcherItem:      [title description    <shortcut> section]
+      SwitcherItem:      [title description    <shortcut> section]
+    """
 
     # Search/Filter text changes
     sig_text_changed = Signal(TEXT_TYPES[-1])
@@ -442,10 +453,8 @@ class Switcher(QDialog):
         self.list.setModel(self.proxy)
 
         # Layout
-        edit_layout = QHBoxLayout()
-        edit_layout.addWidget(self.edit)
         layout = QVBoxLayout()
-        layout.addLayout(edit_layout)
+        layout.addWidget(self.edit)
         layout.addWidget(self.list)
         self.setLayout(layout)
 
@@ -481,8 +490,11 @@ class Switcher(QDialog):
         self.edit.setPlaceholderText(text)
 
     def add_mode(self, token, description):
-        """Addd mode by token key and description."""
-        self._modes[token] = description
+        """Add mode by token key and description."""
+        if len(token)== 1:
+            self._modes[token] = description
+        else:
+            raise Exception('Token must be of length 1!')
 
     def remove_mode(self, token):
         """Remove mode by token key."""
@@ -490,14 +502,13 @@ class Switcher(QDialog):
             self._modes.pop(token)
 
     def clear_modes(self):
-        """Delete all modes setpreviously ."""
+        """Delete all modes spreviously defined."""
         del self._modes
         self._modes = {}
 
     def add_item(self, icon=None, title=None, description=None, shortcut=None,
                  section=None, data=None, tool_tip=None, action_item=False):
         """Add switcher list item."""
-        # TODO: Add caching
         item = SwitcherItem(
             parent=self.list,
             icon=icon,
@@ -621,12 +632,10 @@ class Switcher(QDialog):
             mode = self._mode_on
             self.sig_item_selected.emit(item, mode,
                                         self.search_text()[len(mode):])
-        self.accept()
 
     def accept(self):
         """Override Qt method."""
-        # self.clear()
-        # super(Switcher, self).accept()
+        super(Switcher, self).accept()
 
     def resizeEvent(self, event):
         """Override Qt method."""
@@ -765,21 +774,22 @@ def test():  # pragma: no cover
     sw.add_mode('>', _('Commands'))
     sw.add_mode('?', _('Help'))
     sw.add_mode(':', _('Go to Line'))
-    sw.add_mode('@', _('Go to Symbol'))
+    sw.add_mode('@', _('Go to Symbol in File'))
 
     def handle_modes(mode):
         if mode == '>':
             create_options_example_switcher(sw)
-        if mode == '?':
+        elif mode == '?':
             create_help_example_switcher(sw)
-        if mode == ':':
+        elif mode == ':':
             create_line_example_switcher(sw)
-        if mode == '@':
+        elif mode == '@':
             create_symbol_example_switcher(sw)
         elif mode == '':
             create_vcs_example_switcher(sw)
 
     def item_selected(item, mode, search_text):
+        print([item, mode, search_text])  # spyder: test-skip
         print([item.get_title(), mode, search_text])  # spyder: test-skip
 
     sw.sig_mode_selected.connect(handle_modes)
