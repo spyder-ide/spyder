@@ -12,6 +12,7 @@ import os.path as osp
 # Third party imports
 import pytest
 import pytestqt
+import random
 try:
     from unittest.mock import Mock
 except ImportError:
@@ -97,6 +98,41 @@ def test_space_completion(setup_editor):
     # enter should accept first completion
     qtbot.keyPress(completion, Qt.Key_Enter, delay=1000)
     assert code_editor.toPlainText() == 'from numpy import\n'
+
+
+# @pytest.mark.slow
+def test_hide_widget_completion(setup_editor):
+    """Validate hiding completion widget after a delimeter or operator."""
+    editor, qtbot = setup_editor
+    code_editor = editor.get_focus_widget()
+    completion = code_editor.completion_widget
+
+    delimiters = ['(', ')', '[', ']', '{', '}', ',', ':', ';', '@', '=', '->',
+                  '+=', '-=', '*=', '/=', '//=', '%=', '@=', '&=', '|=', '^=',
+                  '>>=', '<<=', '**=']
+    # Set cursor to start
+    code_editor.go_to_line(1)
+
+    # Complete from numpy --> from numpy import
+    qtbot.keyClicks(code_editor, 'from numpy ')
+    qtbot.wait(20000)
+
+    # press tab and get completions
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+
+    # Check the completion widget is visible
+    assert completion.isHidden() is False
+
+    # Write a random delimeter on the code editor
+    delimeter = random.choice(delimiters)
+    qtbot.keyClicks(code_editor, delimeter)
+
+    # Check the completion widget is not visible
+    assert completion.isHidden() is True
+
+    qtbot.keyPress(code_editor, Qt.Key_Enter)
 
 
 @pytest.mark.slow

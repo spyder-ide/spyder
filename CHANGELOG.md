@@ -194,6 +194,66 @@ In this release 104 pull requests were closed.
 ----
 
 
+## Version 3.3.4 (2019-03-31)
+
+### New features
+
+* Fix several incompatibilities with PyQt5 5.12.
+* Avoid errors when running `turtle` programs in the IPython console
+  multiple times.
+* Avoid the UMR to reload modules installed in the user site-packages
+  directory.
+
+### Issues Closed
+
+* [Issue 8978](https://github.com/spyder-ide/spyder/issues/8978) - Github login window is resizing automatically ([PR 8993](https://github.com/spyder-ide/spyder/pull/8993))
+* [Issue 8934](https://github.com/spyder-ide/spyder/issues/8934) - IOError raised when completion plugins fail to start ([PR 8950](https://github.com/spyder-ide/spyder/pull/8950))
+* [Issue 8927](https://github.com/spyder-ide/spyder/issues/8927) - Change "Clear variables" to "Remove variables" in French translation ([PR 8951](https://github.com/spyder-ide/spyder/pull/8951))
+* [Issue 8878](https://github.com/spyder-ide/spyder/issues/8878) - Error when try to type opening bracket in console ([PR 8879](https://github.com/spyder-ide/spyder/pull/8879))
+* [Issue 8841](https://github.com/spyder-ide/spyder/issues/8841) - Static Code Analysis can be attempted without selected file ([PR 8921](https://github.com/spyder-ide/spyder/pull/8921))
+* [Issue 8807](https://github.com/spyder-ide/spyder/issues/8807) - Error when saving LANG_FILE ([PR 8808](https://github.com/spyder-ide/spyder/pull/8808))
+* [Issue 8789](https://github.com/spyder-ide/spyder/issues/8789) - spyder_io_hdf5 plugin no longer available ([PR 8790](https://github.com/spyder-ide/spyder/pull/8790))
+* [Issue 8776](https://github.com/spyder-ide/spyder/issues/8776) - Problem with debugfile() in version >= 3.3.0
+* [Issue 8764](https://github.com/spyder-ide/spyder/issues/8764) - VersionConflict when opening a file in the Editor ([PR 8781](https://github.com/spyder-ide/spyder/pull/8781))
+* [Issue 8762](https://github.com/spyder-ide/spyder/issues/8762) - Text written in help pane gets automatically selected and replaced with every keystroke ([PR 8907](https://github.com/spyder-ide/spyder/pull/8907))
+* [Issue 8748](https://github.com/spyder-ide/spyder/issues/8748) - spyder 3.3.3 icon theme Spyder 3 problem with PyQt 5.12 ([PR 8896](https://github.com/spyder-ide/spyder/pull/8896))
+* [Issue 8747](https://github.com/spyder-ide/spyder/issues/8747) - Spyder should depend on QtWebEngine for pyqt >= 5.12 ([PR 8753](https://github.com/spyder-ide/spyder/pull/8753))
+* [Issue 6278](https://github.com/spyder-ide/spyder/issues/6278) - Problems with running turtle programs in Spyder
+
+In this release 13 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 9073](https://github.com/spyder-ide/spyder/pull/9073) - PR: Increase minimal required version of spyder-kernels to 0.4.3
+* [PR 9041](https://github.com/spyder-ide/spyder/pull/9041) - PR: Fix a recurrrent error with our IPython console tests
+* [PR 9023](https://github.com/spyder-ide/spyder/pull/9023) - PR: Fix warning and todo action menu entries
+* [PR 9020](https://github.com/spyder-ide/spyder/pull/9020) - PR: Fix our tests on Windows/Python 3.7
+* [PR 8996](https://github.com/spyder-ide/spyder/pull/8996) - PR: Generate PyPI long description from README.md
+* [PR 8993](https://github.com/spyder-ide/spyder/pull/8993) - PR: Fix over-height resize of the Github login dialog ([8978](https://github.com/spyder-ide/spyder/issues/8978))
+* [PR 8953](https://github.com/spyder-ide/spyder/pull/8953) - PR: Compile French translation po file
+* [PR 8951](https://github.com/spyder-ide/spyder/pull/8951) - PR: Change 'Supprimer' for 'Effacer' in remove variables text for French translation ([8927](https://github.com/spyder-ide/spyder/issues/8927))
+* [PR 8950](https://github.com/spyder-ide/spyder/pull/8950) - PR: Don't raise an error if completion plugins fail to start ([8934](https://github.com/spyder-ide/spyder/issues/8934))
+* [PR 8928](https://github.com/spyder-ide/spyder/pull/8928) - PR: Use generic Qt name instead of Qt4 when switching backend for Mayavi
+* [PR 8921](https://github.com/spyder-ide/spyder/pull/8921) - PR: Set enabled value of start_button with is_valid (Static Code Analysis) ([8841](https://github.com/spyder-ide/spyder/issues/8841))
+* [PR 8910](https://github.com/spyder-ide/spyder/pull/8910) - PR: Fix tests on Windows/Python 3.7
+* [PR 8907](https://github.com/spyder-ide/spyder/pull/8907) - PR: Fix force_refresh to only force with valid object entries (Help plugin) ([8762](https://github.com/spyder-ide/spyder/issues/8762))
+* [PR 8899](https://github.com/spyder-ide/spyder/pull/8899) - PR: Run our tests with pip on Windows/Python 3.7
+* [PR 8896](https://github.com/spyder-ide/spyder/pull/8896) - PR: Increase minimal QtAwesome version to 0.5.7 ([8748](https://github.com/spyder-ide/spyder/issues/8748))
+* [PR 8895](https://github.com/spyder-ide/spyder/pull/8895) - PR: Remove Appveyor support and stop testing on Windows/Python 2
+* [PR 8879](https://github.com/spyder-ide/spyder/pull/8879) - PR: Don't fail on UnicodeEncodeError when saving Help's search history to disk ([8878](https://github.com/spyder-ide/spyder/issues/8878))
+* [PR 8808](https://github.com/spyder-ide/spyder/pull/8808) - PR: Avoid errors when trying to save LANG_FILE ([8807](https://github.com/spyder-ide/spyder/issues/8807))
+* [PR 8802](https://github.com/spyder-ide/spyder/pull/8802) - PR: Upgrade Travis config to use Xenial image
+* [PR 8790](https://github.com/spyder-ide/spyder/pull/8790) - PR: Fix missing spyder_io_hdf5 plugin ([8789](https://github.com/spyder-ide/spyder/issues/8789))
+* [PR 8781](https://github.com/spyder-ide/spyder/pull/8781) - PR: Avoid errors when using Pygments to detect the lexer used to highlight a file ([8764](https://github.com/spyder-ide/spyder/issues/8764))
+* [PR 8756](https://github.com/spyder-ide/spyder/pull/8756) - PR: Fix PyQt5 pinning restrictions in setup.py
+* [PR 8753](https://github.com/spyder-ide/spyder/pull/8753) - PR: Add pyqtwebengine as a new dependency ([8747](https://github.com/spyder-ide/spyder/issues/8747))
+
+In this release 23 pull requests were closed.
+
+
+----
+
+
 ## Version 3.3.3 (2019-02-09)
 
 ### New features

@@ -47,8 +47,6 @@ class CompletionWidget(QListWidget):
         self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint)
         self.textedit = parent
         self.completion_list = None
-        self.case_sensitive = False
-        self.enter_select = None
         self.hide()
         self.itemActivated.connect(self.item_selected)
         self.currentRowChanged.connect(self.row_changed)
@@ -59,8 +57,6 @@ class CompletionWidget(QListWidget):
         self.setFont(font)
 
     def show_list(self, completion_list, position):
-        # Completions are handled differently for the Internal
-        # console.
         if position is None:
             # Somehow the position was not saved.
             # Hope that the current position is still valid
@@ -71,6 +67,8 @@ class CompletionWidget(QListWidget):
         else:
             self.position = position
 
+        # Completions are handled differently for the Internal
+        # console.
         if not isinstance(completion_list[0], dict):
             self.is_internal_console = True
         self.completion_list = completion_list
@@ -172,8 +170,7 @@ class CompletionWidget(QListWidget):
         shift = event.modifiers() & Qt.ShiftModifier
         ctrl = event.modifiers() & Qt.ControlModifier
         modifier = shift or ctrl or alt
-        if (key in (Qt.Key_Return, Qt.Key_Enter) and self.enter_select) \
-           or key == Qt.Key_Tab:
+        if key in (Qt.Key_Return, Qt.Key_Enter) or key == Qt.Key_Tab:
             self.item_selected()
         elif key == Qt.Key_Escape:
             self.hide()
@@ -217,10 +214,6 @@ class CompletionWidget(QListWidget):
                 else:
                     completion_label = completion[0]
 
-                if not self.case_sensitive:
-                    print(completion_text)  # spyder: test-skip
-                    completion_label = completion.lower()
-                    completion_text = completion_text.lower()
                 if completion_label.startswith(completion_text):
                     self.setCurrentRow(row)
                     self.scrollTo(self.currentIndex(),
@@ -296,12 +289,9 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         self.completion_widget = CompletionWidget(self, parent)
         self.codecompletion_auto = False
-        self.codecompletion_case = True
-        self.codecompletion_enter = False
         self.setup_completion()
 
         self.calltip_widget = CallTipWidget(self, hide_timer_on=False)
-        self.calltips = True
         self.calltip_position = None
 
         self.has_cell_separators = False
@@ -551,20 +541,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     def set_codecompletion_auto(self, state):
         """Set code completion state"""
         self.codecompletion_auto = state
-
-    def set_codecompletion_case(self, state):
-        """Case sensitive completion"""
-        self.codecompletion_case = state
-        self.completion_widget.case_sensitive = state
-
-    def set_codecompletion_enter(self, state):
-        """Enable Enter key to select completion"""
-        self.codecompletion_enter = state
-        self.completion_widget.enter_select = state
-
-    def set_calltips(self, state):
-        """Set calltips state"""
-        self.calltips = state
 
     def set_wrap_mode(self, mode=None):
         """

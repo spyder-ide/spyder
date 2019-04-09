@@ -214,8 +214,6 @@ class ShortcutEditor(QDialog):
         self.label_warning = QLabel()
         self.label_warning.setWordWrap(True)
         self.label_warning.setAlignment(Qt.AlignTop | Qt.AlignLeft)
-        self.label_warning.setMinimumHeight(
-            3 * self.label_warning.sizeHint().height())
 
         self.button_default = QPushButton(_('Default'))
         self.button_ok = QPushButton(_('Ok'))
@@ -281,7 +279,7 @@ class ShortcutEditor(QDialog):
         self.setLayout(layout)
 
         # Signals
-        self.button_ok.clicked.connect(self.accept)
+        self.button_ok.clicked.connect(self.accept_override)
         self.button_clear.clicked.connect(self.unbind_shortcut)
         self.button_cancel.clicked.connect(self.reject)
         self.button_default.clicked.connect(self.set_sequence_to_default)
@@ -405,13 +403,16 @@ class ShortcutEditor(QDialog):
             icon = QIcon()
         elif conflicts:
             warning = SEQUENCE_CONFLICT
-            template = '<i>{0}<b>{1}</b></i>'
+            template = '<i>{0}<b>{1}</b>{2}</i>'
             tip_title = _('The new shortcut conflicts with:') + '<br>'
             tip_body = ''
             for s in conflicts:
                 tip_body += ' - {0}: {1}<br>'.format(s.context, s.name)
             tip_body = tip_body[:-4]  # Removing last <br>
-            tip = template.format(tip_title, tip_body)
+            tip_override = '<br>Press <b>OK</b> to unbind '
+            tip_override += 'it' if len(conflicts) == 1 else 'them'
+            tip_override += ' and assign it to <b>{}</b>'.format(self.name)
+            tip = template.format(tip_title, tip_body, tip_override)
             icon = get_std_icon('MessageBoxWarning')
         elif new_sequence in BLACKLIST:
             warning = IN_BLACKLIST
@@ -437,8 +438,12 @@ class ShortcutEditor(QDialog):
         self.conflicts = conflicts
 
         self.helper_button.setIcon(icon)
-        self.button_ok.setEnabled(self.warning == NO_WARNING)
+        self.button_ok.setEnabled(
+            self.warning in [NO_WARNING, SEQUENCE_CONFLICT])
         self.label_warning.setText(tip)
+        # Everytime after update warning message, update the label height
+        new_height = self.label_warning.sizeHint().height()
+        self.label_warning.setMaximumHeight(new_height)
 
     def set_sequence_from_str(self, sequence):
         """
@@ -468,6 +473,14 @@ class ShortcutEditor(QDialog):
     def unbind_shortcut(self):
         """Unbind the shortcut."""
         self._qsequences = []
+        self.accept()
+
+    def accept_override(self):
+        """Unbind all conflicted shortcuts, and accept the new one"""
+        conflicts = self.check_conflicts()
+        if conflicts:
+            for shortcut in conflicts:
+                shortcut.key = ''
         self.accept()
 
 

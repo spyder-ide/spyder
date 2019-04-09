@@ -146,9 +146,13 @@ class DirView(QTreeView):
 
     def __init__(self, parent=None):
         super(DirView, self).__init__(parent)
-        self.name_filters = ['*.py']
         self.parent_widget = parent
+
+        # Options
+        self.name_filters = ['*.py']
         self.show_all = None
+        self.single_click_to_open = False
+
         self.menu = None
         self.common_actions = None
         self.__expanded_state = None
@@ -183,7 +187,13 @@ class DirView(QTreeView):
         self.reset_icon_provider()
         # Disable the view of .spyproject. 
         self.filter_directories()
-        
+
+    def set_single_click_to_open(self, value):
+        """Set single click to open items."""
+        self.single_click_to_open = value
+        self.parent_widget.sig_option_changed.emit('single_click_to_open',
+                                                   value)
+
     def set_name_filters(self, name_filters):
         """Set name filters"""
         self.name_filters = name_filters
@@ -225,12 +235,14 @@ class DirView(QTreeView):
                 return osp.dirname(fname)
         
     #---- Tree view widget
-    def setup(self, name_filters=['*.py', '*.pyw'], show_all=False):
+    def setup(self, name_filters=['*.py', '*.pyw'], show_all=False,
+              single_click_to_open=False):
         """Setup tree widget"""
         self.setup_view()
 
         self.set_name_filters(name_filters)
         self.show_all = show_all
+        self.single_click_to_open = single_click_to_open
         
         # Setup context menu
         self.menu = QMenu(self)
@@ -253,8 +265,15 @@ class DirView(QTreeView):
                                    toggled=self.toggle_all)
         all_action.setChecked(self.show_all)
         self.toggle_all(self.show_all)
-        
-        return [filters_action, all_action]
+
+        # Show all files
+        single_click_to_open = create_action(
+            self,
+            _("Single click to open"),
+            toggled=self.set_single_click_to_open,
+        )
+        single_click_to_open.setChecked(self.single_click_to_open)
+        return [filters_action, all_action, single_click_to_open]
 
     @Slot()
     def edit_filter(self):
@@ -485,6 +504,12 @@ class DirView(QTreeView):
         """Reimplement Qt method"""
         QTreeView.mouseDoubleClickEvent(self, event)
         self.clicked()
+
+    def mouseReleaseEvent(self, event):
+        """Reimplement Qt method."""
+        QTreeView.mouseReleaseEvent(self, event)
+        if self.single_click_to_open:
+            self.clicked()
 
     @Slot()
     def clicked(self):
@@ -1214,7 +1239,7 @@ class ExplorerTreeWidget(DirView):
     
     def __init__(self, parent=None, show_cd_only=None):
         DirView.__init__(self, parent)
-                
+
         self.history = []
         self.histindex = None
 
@@ -1227,7 +1252,7 @@ class ExplorerTreeWidget(DirView):
         
         # Enable drag events
         self.setDragEnabled(True)
-        
+
     #---- Context menu
     def setup_common_actions(self):
         """Setup context menu common actions"""
@@ -1368,6 +1393,7 @@ class ExplorerWidget(QWidget):
 
     def __init__(self, parent=None, name_filters=['*.py', '*.pyw'],
                  show_all=False, show_cd_only=None, show_icontext=True,
+                 single_click_to_open=False,
                  options_button=None):
         QWidget.__init__(self, parent)
 
@@ -1394,7 +1420,11 @@ class ExplorerWidget(QWidget):
                             triggered=self.treewidget.go_to_parent_directory)
 
         # Setup widgets
-        self.treewidget.setup(name_filters=name_filters, show_all=show_all)
+        self.treewidget.setup(
+            name_filters=name_filters,
+            show_all=show_all,
+            single_click_to_open=single_click_to_open,
+        )
         self.treewidget.chdir(getcwd_or_home())
         self.treewidget.common_actions += [None, icontext_action]
 
