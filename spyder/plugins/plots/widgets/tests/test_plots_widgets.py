@@ -238,7 +238,7 @@ def test_go_prev_next_thumbnail(figbrowser, tmpdir, fmt):
 def test_scroll_to_select_item(figbrowser, tmpdir, qtbot):
     """Test scroll to select item of ThumbnailScrollBar."""
     nfig = 10
-    figs = add_figures_to_browser(figbrowser, nfig, tmpdir, 'image/png')
+    add_figures_to_browser(figbrowser, nfig, tmpdir, 'image/png')
     figbrowser.setFixedSize(500, 500)
 
     for __ in range(nfig // 2):
