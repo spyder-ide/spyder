@@ -22,6 +22,7 @@ import sys
 # Third party imports
 from qtpy.QtCore import QObject, Signal
 import chardet
+import requests
 
 # Local imports
 from spyder import __version__
@@ -29,13 +30,6 @@ from spyder.config.base import _, is_stable_version
 from spyder.py3compat import PY3, is_text_string
 from spyder.config.utils import is_anaconda
 from spyder.utils.programs import check_version
-
-
-if PY3:
-    from urllib.request import Request, urlopen
-    from urllib.error import URLError, HTTPError
-else:
-    from urllib2 import Request, urlopen, URLError, HTTPError
 
 
 logger = logging.getLogger(__name__)
@@ -60,40 +54,15 @@ def get_encoding(headers, raw_data):
     return encoding
 
 
-# TODO: This could be moved to a dowloand and url handling module/utils?
 def download(url):
-    """Download and decode data from url."""
-    headers = {
-        'User-Agent': ('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 '
-                       '(KHTML, like Gecko) Chrome/23.0.1271.64 '
-                       'Safari/537.11'),
-        'Accept': ('text/html,application/xhtml+xml,'
-                   'application/xml;q=0.9,*/*;q=0.8'),
-        'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
-        'Accept-Encoding': 'none',
-        'Accept-Language': 'en-US,en;q=0.8',
-        'Connection': 'keep-alive',
-    }
-    # This is needed to avoid 403 errors on some servers
-    req = Request(url, headers=headers)
+    """
+    Download and return the response object from requests.
 
-    if hasattr(ssl, '_create_unverified_context'):
-        # Fix for issue #2685 [Works only with Python >=2.7.9]
-        # More info: https://www.python.org/dev/peps/pep-0476/#opting-out
-        context = ssl._create_unverified_context()
-        page = urlopen(req, context=context)
-    else:
-        page = urlopen(req)
-
-    raw_data = page.read()
-
-    # Needed step for Python 3 compatibility
-    if not is_text_string(raw_data):
-        headers = dict(page.info())
-        encoding = get_encoding(headers, raw_data)
-        raw_data = raw_data.decode(encoding)
-
-    return raw_data
+    Adds headers to avoid 403 errors.
+    """
+    headers = {'User-Agent': 'Mozilla/5.0'}
+    response = requests.get(url, headers=headers)
+    return response
 
 
 def check_update_available(version, releases):
@@ -120,11 +89,11 @@ def get_updates_url(anaconda=True):
         url = 'https://repo.anaconda.com/pkgs/main'
         # We could use .bz2 files but encoding is not provided
         if os.name == 'nt':
-            url += '/win-64/repodata.json'
+            url += '/win-64/repodata.json.bz2'
         elif sys.platform == 'darwin':
-            url += '/osx-64/repodata.json'
+            url += '/osx-64/repodata.json.bz2'
         else:
-            url += '/linux-64/repodata.json'
+            url += '/linux-64/repodata.json.bz2'
     else:
         url = 'https://api.github.com/repos/spyder-ide/spyder/releases'
 
@@ -162,7 +131,8 @@ def check_updates(version=None, releases=None):
         anaconda = is_anaconda()
         url = get_updates_url(anaconda)
         try:
-            raw_data = download(url)
+            response = download(url)
+            raw_data = response.content
             if anaconda and url.endswith('.bz2'):
                 raw_data = bz2.decompress(raw_data)
 
