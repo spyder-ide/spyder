@@ -57,8 +57,6 @@ class CompletionWidget(QListWidget):
         self.setFont(font)
 
     def show_list(self, completion_list, position):
-        # Completions are handled differently for the Internal
-        # console.
         if position is None:
             # Somehow the position was not saved.
             # Hope that the current position is still valid
@@ -69,6 +67,8 @@ class CompletionWidget(QListWidget):
         else:
             self.position = position
 
+        # Completions are handled differently for the Internal
+        # console.
         if not isinstance(completion_list[0], dict):
             self.is_internal_console = True
         self.completion_list = completion_list
