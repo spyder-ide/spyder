@@ -717,6 +717,23 @@ class ThumbnailScrollBar(QFrame):
             index = 0 if index >= len(self._thumbnails) else index
             self.set_current_index(index)
 
+    def scroll_to_select_item(self):
+        space_item = self.scene.verticalSpacing()
+        height_view = self.scrollarea.viewport().height()
+        height_item = self.scene.itemAt(self.idx).sizeHint().height()
+        height_remain = height_view - height_item
+
+        height_items_up = space_item
+        for i in range(self.idx):
+            item = self.scene.itemAt(i)
+            height_items_up += item.sizeHint().height()
+            height_items_up += space_item
+
+        height_items_up -= height_remain // 2
+
+        vsb = self.scrollarea.verticalScrollBar()
+        vsb.setValue(height_items_up)
+
     # ---- ScrollBar Handlers
     def go_up(self):
         """Scroll the scrollbar of the scrollarea up by a single step."""
