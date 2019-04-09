@@ -608,7 +608,7 @@ class CodeEditor(TextEditBaseWidget):
                      highlight_current_cell=True, occurrence_highlighting=True,
                      scrollflagarea=True, edge_line=True, edge_line_columns=(79,),
                      show_blanks=False,
-                     calltips=None, go_to_definition=False,
+                     go_to_definition=False,
                      close_parentheses=True, close_quotes=False,
                      add_colons=True, auto_unindent=True, indent_chars=" "*4,
                      tab_stop_width_spaces=4, cloned_from=None, filename=None,
@@ -616,7 +616,6 @@ class CodeEditor(TextEditBaseWidget):
                      indent_guides=False, scroll_past_end=False):
 
         # Code completion and calltips
-        self.set_calltips(calltips)
         self.set_go_to_definition_enabled(go_to_definition)
         self.set_close_parentheses_enabled(close_parentheses)
         self.set_close_quotes_enabled(close_quotes)
@@ -858,7 +857,7 @@ class CodeEditor(TextEditBaseWidget):
     def handle_hover_response(self, contents):
         text = contents['params']
         self.sig_display_signature.emit(text)
-        self.show_calltip(_("Hint"), text, at_point=self.mouse_point)
+        self.show_calltip(_("Hint"), text)
         # QTimer.singleShot(20000, lambda: QToolTip.hideText())
 
     # ------------- LSP: Go To Definition ----------------------------

@@ -292,7 +292,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.setup_completion()
 
         self.calltip_widget = CallTipWidget(self, hide_timer_on=False)
-        self.calltips = True
         self.calltip_position = None
 
         self.has_cell_separators = False
@@ -542,10 +541,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     def set_codecompletion_auto(self, state):
         """Set code completion state"""
         self.codecompletion_auto = state
-
-    def set_calltips(self, state):
-        """Set calltips state"""
-        self.calltips = state
 
     def set_wrap_mode(self, mode=None):
         """
