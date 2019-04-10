@@ -19,12 +19,13 @@ Editor widget based on QtGui.QPlainTextEdit
 
 # Standard library imports
 from __future__ import division
+
+import logging
 import os.path as osp
 import re
 import sre_constants
 import sys
 import time
-import logging
 from unicodedata import category
 
 # Third party imports
@@ -784,7 +785,10 @@ class CodeEditor(TextEditBaseWidget):
 
     @handles(LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
     def linting_diagnostics(self, params):
-        self.process_code_analysis(params['params'])
+        try:
+            self.process_code_analysis(params['params'])
+        except Exception:
+            logger.error("Error when processing linting", exc_info=True)
 
     # ------------- LSP: Completion ---------------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_COMPLETION)
@@ -803,11 +807,15 @@ class CodeEditor(TextEditBaseWidget):
     @handles(LSPRequestTypes.DOCUMENT_COMPLETION)
     def process_completion(self, params):
         """Handle completion response."""
-        completions = params['params']
-        if completions is not None and len(completions) > 0:
-            completion_list = sorted(completions, key=lambda x: x['sortText'])
-            position = self.last_completion_position
-            self.completion_widget.show_list(completion_list, position)
+        try:
+            completions = params['params']
+            if completions is not None and len(completions) > 0:
+                completion_list = sorted(completions,
+                                         key=lambda x: x['sortText'])
+                position = self.last_completion_position
+                self.completion_widget.show_list(completion_list, position)
+        except Exception:
+            logger.error("Error when processing completions", exc_info=True)
 
     # ------------- LSP: Signature Hints ------------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_SIGNATURE)
@@ -823,39 +831,42 @@ class CodeEditor(TextEditBaseWidget):
 
     @handles(LSPRequestTypes.DOCUMENT_SIGNATURE)
     def process_signatures(self, params):
-        signature = params['params']
-        if (signature is not None and
-                'activeParameter' in signature):
-            self.sig_signature_invoked.emit()
-            line, _ = self.get_cursor_line_column()
-            active_parameter_idx = signature['activeParameter']
-            signature = signature['signatures']
-            func_doc = signature['documentation']
-            func_signature = signature['label']
-            parameters = signature['parameters']
-            parameter = parameters[active_parameter_idx]
+        try:
+            signature = params['params']
+            if (signature is not None and
+                    'activeParameter' in signature):
+                self.sig_signature_invoked.emit()
+                line, _ = self.get_cursor_line_column()
+                active_parameter_idx = signature['activeParameter']
+                signature = signature['signatures']
+                func_doc = signature['documentation']
+                func_signature = signature['label']
+                parameters = signature['parameters']
+                parameter = parameters[active_parameter_idx]
 
-            font = self.font()
-            size = font.pointSize()
-            family = font.family()
+                font = self.font()
+                size = font.pointSize()
+                family = font.family()
 
-            parameter_str = ''
-            color_change_str = ('<span style=\'font-family: "{0}"; '
-                                'font-size: {1}pt; color: {2}\'>')
-            if (parameter['documentation'] is not None and
-                    len(parameter['documentation']) > 0):
-                parameter_fmt = ('{0}<b>{1}</b></span>: {2}\n')
-                parameter_str = parameter_fmt.format(
-                    color_change_str.format(family, size, '#daa520'),
-                    parameter['label'], parameter['documentation'])
+                parameter_str = ''
+                color_change_str = ('<span style=\'font-family: "{0}"; '
+                                    'font-size: {1}pt; color: {2}\'>')
+                if (parameter['documentation'] is not None and
+                        len(parameter['documentation']) > 0):
+                    parameter_fmt = ('{0}<b>{1}</b></span>: {2}\n')
+                    parameter_str = parameter_fmt.format(
+                        color_change_str.format(family, size, '#daa520'),
+                        parameter['label'], parameter['documentation'])
 
-            title = func_signature.replace(
-                parameter['label'], '{0}{1}</span>'.format(
-                    color_change_str.format(family, size, '#daa520'),
-                    parameter['label']))
-            tooltip_text = "{0}{1}".format(parameter_str, func_doc)
-            self.show_calltip(
-                title, tooltip_text, color='#999999')
+                title = func_signature.replace(
+                    parameter['label'], '{0}{1}</span>'.format(
+                        color_change_str.format(family, size, '#daa520'),
+                        parameter['label']))
+                tooltip_text = "{0}{1}".format(parameter_str, func_doc)
+                self.show_calltip(
+                    title, tooltip_text, color='#999999')
+        except Exception:
+            logger.error("Error when processing signature", exc_info=True)
 
     # ------------- LSP: Hover ---------------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_HOVER)
@@ -869,10 +880,13 @@ class CodeEditor(TextEditBaseWidget):
 
     @handles(LSPRequestTypes.DOCUMENT_HOVER)
     def handle_hover_response(self, contents):
-        text = contents['params']
-        self.sig_display_signature.emit(text)
-        self.show_calltip(_("Hint"), text)
-        # QTimer.singleShot(20000, lambda: QToolTip.hideText())
+        try:
+            text = contents['params']
+            self.sig_display_signature.emit(text)
+            self.show_calltip(_("Hint"), text)
+            # QTimer.singleShot(20000, lambda: QToolTip.hideText())
+        except Exception:
+            logger.error("Error when processing hover", exc_info=True)
 
     # ------------- LSP: Go To Definition ----------------------------
     @Slot()
@@ -899,16 +913,23 @@ class CodeEditor(TextEditBaseWidget):
 
     @handles(LSPRequestTypes.DOCUMENT_DEFINITION)
     def handle_go_to_definition(self, position):
-        position = position['params']
-        if position is not None:
-            def_range = position['range']
-            start = def_range['start']
-            if self.filename == position['file']:
-                self.go_to_line(start['line'] + 1, start['character'],
-                                None, word=None)
-            else:
-                self.go_to_definition.emit(position['file'], start['line'] + 1,
-                                           start['character'])
+        try:
+            position = position['params']
+            if position is not None:
+                def_range = position['range']
+                start = def_range['start']
+                if self.filename == position['file']:
+                    self.go_to_line(start['line'] + 1,
+                                    start['character'],
+                                    None,
+                                    word=None)
+                else:
+                    self.go_to_definition.emit(position['file'],
+                                               start['line'] + 1,
+                                               start['character'])
+        except Exception:
+            logger.error("Error when processing go to definition",
+                         exc_info=True)
 
     # ------------- LSP: Save/close file -----------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_DID_SAVE,
