@@ -759,7 +759,7 @@ class CodeEditor(TextEditBaseWidget):
 
     @request(method=LSPRequestTypes.DOCUMENT_DID_OPEN, requires_response=False)
     def document_did_open(self):
-        """Send textDocument/didOpen request to server."""
+        """Send textDocument/didOpen request to the server."""
         self.document_opened = True
         params = {
             'file': self.filename,
@@ -774,7 +774,7 @@ class CodeEditor(TextEditBaseWidget):
     @request(
         method=LSPRequestTypes.DOCUMENT_DID_CHANGE, requires_response=False)
     def document_did_change(self, text=None):
-        """Send textDocument/didChange request to server."""
+        """Send textDocument/didChange request to the server."""
         self.text_version += 1
         params = {
             'file': self.filename,
@@ -785,6 +785,7 @@ class CodeEditor(TextEditBaseWidget):
 
     @handles(LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
     def linting_diagnostics(self, params):
+        """Handle linting response."""
         try:
             self.process_code_analysis(params['params'])
         except Exception:
@@ -793,7 +794,7 @@ class CodeEditor(TextEditBaseWidget):
     # ------------- LSP: Completion ---------------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_COMPLETION)
     def do_completion(self, automatic=False):
-        """Trigger completion"""
+        """Trigger completion."""
         self.document_did_change('')
         line, column = self.get_cursor_line_column()
         params = {
@@ -820,6 +821,7 @@ class CodeEditor(TextEditBaseWidget):
     # ------------- LSP: Signature Hints ------------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_SIGNATURE)
     def request_signature(self):
+        """Ask for signature."""
         self.document_did_change('')
         line, column = self.get_cursor_line_column()
         params = {
@@ -831,6 +833,7 @@ class CodeEditor(TextEditBaseWidget):
 
     @handles(LSPRequestTypes.DOCUMENT_SIGNATURE)
     def process_signatures(self, params):
+        """Handle signature response."""
         try:
             signature = params['params']
             if (signature is not None and
@@ -871,6 +874,7 @@ class CodeEditor(TextEditBaseWidget):
     # ------------- LSP: Hover ---------------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_HOVER)
     def request_hover(self, line, col):
+        """Request hover information."""
         params = {
             'file': self.filename,
             'line': line,
@@ -880,6 +884,7 @@ class CodeEditor(TextEditBaseWidget):
 
     @handles(LSPRequestTypes.DOCUMENT_HOVER)
     def handle_hover_response(self, contents):
+        """Handle hover response."""
         try:
             text = contents['params']
             self.sig_display_signature.emit(text)
@@ -913,6 +918,7 @@ class CodeEditor(TextEditBaseWidget):
 
     @handles(LSPRequestTypes.DOCUMENT_DEFINITION)
     def handle_go_to_definition(self, position):
+        """Handle go to definition response."""
         try:
             position = position['params']
             if position is not None:
@@ -935,6 +941,7 @@ class CodeEditor(TextEditBaseWidget):
     @request(method=LSPRequestTypes.DOCUMENT_DID_SAVE,
              requires_response=False)
     def notify_save(self):
+        """Send save request"""
         # self.document_did_change()
         params = {'file': self.filename}
         if self.save_include_text:
@@ -944,6 +951,7 @@ class CodeEditor(TextEditBaseWidget):
     @request(method=LSPRequestTypes.DOCUMENT_DID_CLOSE,
              requires_response=False)
     def notify_close(self):
+        """Send close request."""
         if self.lsp_ready:
             params = {
                 'file': self.filename,
