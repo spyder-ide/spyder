@@ -990,7 +990,8 @@ class MainWindow(QMainWindow):
                     self.thirdparty_plugins.append(plugin)
                     plugin.register_plugin()
             except Exception as error:
-                print("%s: %s" % (mod, str(error)), file=STDERR)
+                print("%s: %s" % (mod, str(error)),  # spyder: test-skip
+                      file=STDERR)  # spyder: test-skip
                 traceback.print_exc(file=STDERR)
 
         self.set_splash(_("Setting up main window..."))
@@ -1531,7 +1532,8 @@ class MainWindow(QMainWindow):
             try:
                 plugin.initialize_plugin_in_mainwindow_layout()
             except Exception as error:
-                print("%s: %s" % (plugin, str(error)), file=STDERR)
+                print("%s: %s" % (plugin, str(error)),  # spyder: test-skip
+                      file=STDERR)  # spyder: test-skip
                 traceback.print_exc(file=STDERR)
 
     def setup_default_layouts(self, index, settings):
@@ -2295,6 +2297,7 @@ class MainWindow(QMainWindow):
         if self.toolbars_visible:
             self.save_visible_toolbars()
         self.lspmanager.shutdown()
+        self.workermanager.shutdown_managers()
         self.already_closed = True
         return True
 
@@ -3152,15 +3155,19 @@ class MainWindow(QMainWindow):
         """
         Check for spyder updates on github/anaconda using the worker manager.
         """
-        from spyder.utils.updates import check_updates
-        worker = self.workermanager.create_python_worker(check_updates)
-        worker.startup = startup
-        worker.sig_finished.connect(self._check_updates_finished)
+        # Do not check for updates if runninig on the AZURE CI test servers
+        # Sometimes the QThread that runs the update checks is terminated
+        # prematurely causing segfaults on windows systems
+        if not (os.environ.get('AZURE', None) and os.environ.get('CI', None)):
+            from spyder.utils.updates import check_updates
+            worker = self.workermanager.create_python_worker(check_updates)
+            worker.startup = startup
+            worker.sig_finished.connect(self._check_updates_finished)
 
-        # Disable check_updates_action while the thread is working
-        self.check_updates_action.setDisabled(True)
+            # Disable check_updates_action while the thread is working
+            self.check_updates_action.setDisabled(True)
 
-        worker.start()
+            worker.start()
 
     # --- For OpenGL
     def _test_setting_opengl(self, option):
@@ -3337,9 +3344,10 @@ def main():
 
     # **** Handle hide_console option ****
     if options.show_console:
-        print("(Deprecated) --show console does nothing, now the default "
-              " behavior is to show the console, use --hide-console if you "
-              "want to hide it")
+        print("(Deprecated) --show console does nothing,"  # spyder: test-skip
+              " now the default behavior is to show the "  # spyder: test-skip
+              "console, use --hide-console if you "  # spyder: test-skip
+              "want to hide it")  # spyder: test-skip
 
     if set_attached_console_visible is not None:
         set_attached_console_visible(not options.hide_console

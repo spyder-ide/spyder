@@ -210,6 +210,7 @@ class ProcessWorker(QObject):
                 self._process.terminate()
             except Exception:
                 pass
+
         self._fired = True
 
     def start(self):

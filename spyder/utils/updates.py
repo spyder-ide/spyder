@@ -35,32 +35,23 @@ from spyder.utils.programs import check_version
 logger = logging.getLogger(__name__)
 
 
-def get_encoding(headers, raw_data):
-    """Get encoding from headers."""
-    content_type = headers.get('Content-Type',
-                               headers.get('content-type', ''))
-    content_type = content_type.lower()
-    if 'charset=' in content_type:
-        encoding = content_type.split('charset=')[-1].strip()
-    else:
-        results = chardet.detect(raw_data)
-        if results.get('encoding') is None:
-            if os.name == 'nt':
-                encoding = 'cp-1252'  # 'iso-8859-1'
-            else:
-                encoding = 'utf-8'
-        else:
-            encoding = results.get('encoding')
-    return encoding
-
-
 def download(url):
     """
     Download and return the response object from requests.
 
     Adds headers to avoid 403 errors.
     """
-    headers = {'User-Agent': 'Mozilla/5.0'}
+    headers = {
+        'User-Agent': ('Mozilla/5.0 (X11; Linux x86_64) ' 
+                       'AppleWebKit/537.11 (KHTML, like Gecko) '
+                       'Chrome/23.0.1271.64 Safari/537.11'),
+        'Accept': ('text/html,application/xhtml+xml,'
+                   'application/xml;q=0.9,*/*;q=0.8'),
+        'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
+        'Accept-Encoding': 'none',
+        'Accept-Language': 'en-US,en;q=0.8',
+        'Connection': 'keep-alive',
+    }
     response = requests.get(url, headers=headers)
     return response
 
@@ -89,11 +80,11 @@ def get_updates_url(anaconda=True):
         url = 'https://repo.anaconda.com/pkgs/main'
         # We could use .bz2 files but encoding is not provided
         if os.name == 'nt':
-            url += '/win-64/repodata.json.bz2'
+            url += '/win-64/repodata.json'
         elif sys.platform == 'darwin':
             url += '/osx-64/repodata.json.bz2'
         else:
-            url += '/linux-64/repodata.json.bz2'
+            url += '/linux-64/repodata.json'
     else:
         url = 'https://api.github.com/repos/spyder-ide/spyder/releases'
 

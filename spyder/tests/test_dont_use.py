@@ -49,6 +49,7 @@ def test_dont_use(pattern, exclude_patterns, message):
                 with codecs.open(file, encoding="utf-8") as f:
                     for i, line in enumerate(f):
                         for match in re.finditer(pattern, line):
+                            print(file)
                             print("{}\nline:{}, {}".format(file, i + 1, line))
                             found += 1
 
