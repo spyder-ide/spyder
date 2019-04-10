@@ -888,7 +888,7 @@ class CodeEditor(TextEditBaseWidget):
                         parameter['label']))
                 tooltip_text = "{0}{1}".format(parameter_str, func_doc)
                 self.show_calltip(
-                    title, tooltip_text, color='#999999')
+                    title, tooltip_text, color='#999999', signature=True)
         except Exception:
             self.log_lsp_handle_errors("Error when processing signature")
 
