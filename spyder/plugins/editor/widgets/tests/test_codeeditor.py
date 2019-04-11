@@ -6,7 +6,7 @@
 
 # Third party imports
 from qtpy.QtCore import Qt
-from qtpy.QtGui import QFont, QTextCursor  
+from qtpy.QtGui import QFont, QTextCursor
 from pytestqt import qtbot
 import pytest
 
