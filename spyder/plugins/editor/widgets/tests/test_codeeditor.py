@@ -80,4 +80,6 @@ def test_editor_log_lsp_handle_errors(editorbot, capsys):
 
     widget.process_signatures(params)
     captured = capsys.readouterr()
-    assert "codec can't decode byte 0x81" in captured.out
+    test_1 = "Error when processing signature" in captured.err
+    test_2 = "codec can't decode byte 0x81" in captured.err
+    assert test_1 or test_2
