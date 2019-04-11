@@ -59,7 +59,7 @@ def test_editor_lower_to_upper(editorbot):
 
 
 @pytest.mark.skipif(PY3, reason='Test only makes sense on Python 2.')
-def test_editor_log_lsp_handle_errors(editorbot):
+def test_editor_log_lsp_handle_errors(editorbot, capsys):
     """Test the lsp error handling / dialog report Python 2."""
     qtbot, widget = editorbot
     params = {
@@ -78,7 +78,6 @@ def test_editor_log_lsp_handle_errors(editorbot):
         }
     }
 
-    with pytest.raises(UnicodeDecodeError) as excinfo:
-        widget.process_signatures(params)
-
-    assert "codec can't decode byte 0x81" in str(excinfo.value)
+    widget.process_signatures(params)
+    captured = capsys.readouterr()
+    assert "codec can't decode byte 0x81" in captured.out
