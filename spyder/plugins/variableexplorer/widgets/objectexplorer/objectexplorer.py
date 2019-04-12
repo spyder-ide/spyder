@@ -564,7 +564,11 @@ def test():
                'date': datetime.date(1945, 5, 8),
                'datetime': datetime.datetime(1945, 5, 8),
                'foobar': foobar}
-    ObjectExplorer.create_explorer(example, 'Example', refresh_rate=2)
+    ObjectExplorer.create_explorer(example, 'Example',
+                                   show_callable_attributes=True,
+                                   show_special_attributes=True,
+                                   auto_refresh=False,
+                                   refresh_rate=2)
 
 
 if __name__ == "__main__":
