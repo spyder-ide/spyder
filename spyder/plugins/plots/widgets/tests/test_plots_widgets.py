@@ -247,8 +247,16 @@ def test_scroll_to_select_item(figbrowser, tmpdir, qtbot):
         figbrowser.go_next_thumbnail()
         qtbot.wait(500)
 
+    scene = figbrowser.thumbnails_sb.scene
+
+    spacing = scene.verticalSpacing()
+    height = scene.itemAt(0).sizeHint().height()
+    height_view = figbrowser.thumbnails_sb.scrollarea.viewport().height()
+
+    expected = (spacing * 5) + (height * 4) - ((height_view - height) // 2)
+
     vsb = figbrowser.thumbnails_sb.scrollarea.verticalScrollBar()
-    assert vsb.value() == 134
+    assert vsb.value() == expected
 
 
 @pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
