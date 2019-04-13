@@ -721,23 +721,23 @@ class ThumbnailScrollBar(QFrame):
 
     def scroll_to_select_item(self, index):
         """Scroll to the selected item of ThumbnailScrollBar."""
-        space_item = self.scene.verticalSpacing()
+        spacing_between_items = self.scene.verticalSpacing()
         height_view = self.scrollarea.viewport().height()
         height_item = self.scene.itemAt(index).sizeHint().height()
-        height_remain = height_view - height_item
-        if height_remain < 0:
-            height_remain = 0
+        height_view_excluding_item = height_view - height_item
+        if height_view_excluding_item < 0:
+            height_view_excluding_item = 0
 
-        height_items_up = space_item
+        height_of_top_items = spacing_between_items
         for i in range(index):
             item = self.scene.itemAt(i)
-            height_items_up += item.sizeHint().height()
-            height_items_up += space_item
+            height_of_top_items += item.sizeHint().height()
+            height_of_top_items += spacing_between_items
 
-        height_items_up -= height_remain // 2
+        pos_scroll = height_of_top_items - height_view_excluding_item // 2
 
         vsb = self.scrollarea.verticalScrollBar()
-        vsb.setValue(height_items_up)
+        vsb.setValue(pos_scroll)
 
     # ---- ScrollBar Handlers
     def go_up(self):
