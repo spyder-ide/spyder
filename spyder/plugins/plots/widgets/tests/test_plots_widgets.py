@@ -77,6 +77,8 @@ def add_figures_to_browser(figbrowser, nfig, tmpdir, fmt='image/png'):
         figs.append(create_figure(figname))
         figbrowser._handle_new_figure(figs[-1], fmt)
 
+    figbrowser.thumbnails_sb.scene.setVerticalSpacing(6)
+
     assert len(figbrowser.thumbnails_sb._thumbnails) == nfig
     assert figbrowser.thumbnails_sb.get_current_index() == nfig - 1
     assert figbrowser.thumbnails_sb.current_thumbnail.canvas.fig == figs[-1]
@@ -243,7 +245,7 @@ def test_scroll_to_select_item(figbrowser, tmpdir, qtbot):
 
     for __ in range(nfig // 2):
         figbrowser.go_next_thumbnail()
-        qtbot.wait(200)
+        qtbot.wait(500)
 
     vsb = figbrowser.thumbnails_sb.scrollarea.verticalScrollBar()
     assert vsb.value() == 134
