@@ -111,30 +111,57 @@ class EditorConfigPage(PluginConfigPage):
         run_widget = QWidget()
         run_widget.setLayout(run_layout)
 
-        sourcecode_group = QGroupBox(_("Source code"))
-        closepar_box = newcb(_("Automatic insertion of parentheses, braces "
-                               "and brackets"),
-                             'close_parentheses')
-        close_quotes_box = newcb(_("Automatic insertion of closing quotes"),
-                                 'close_quotes')
-        add_colons_box = newcb(_("Automatic insertion of colons after 'for', "
-                                 "'if', 'def', etc"),
-                               'add_colons')
-        autounindent_box = newcb(_("Automatic indentation after 'else', "
-                                   "'elif', etc."), 'auto_unindent')
-        indent_chars_box = self.create_combobox(_("Indentation characters: "),
-                                                ((_("2 spaces"), '*  *'),
-                                                 (_("3 spaces"), '*   *'),
-                                                 (_("4 spaces"), '*    *'),
-                                                 (_("5 spaces"), '*     *'),
-                                                 (_("6 spaces"), '*      *'),
-                                                 (_("7 spaces"), '*       *'),
-                                                 (_("8 spaces"), '*        *'),
-                                                 (_("Tabulations"), '*\t*')),
-                                                'indent_chars')
-        tabwidth_spin = self.create_spinbox(_("Tab stop width:"), _("spaces"),
-                                            'tab_stop_width_spaces',
-                                            4, 1, 8, 1)
+        # --- Source tab ---
+        closepar_box = newcb(
+            _("Automatic insertion of parentheses, braces and brackets"),
+            'close_parentheses')
+        close_quotes_box = newcb(
+            _("Automatic insertion of closing quotes"),
+            'close_quotes')
+        add_colons_box = newcb(
+            _("Automatic insertion of colons after 'for', 'if', 'def', etc"),
+            'add_colons')
+        autounindent_box = newcb(
+            _("Automatic indentation after 'else', 'elif', etc."),
+            'auto_unindent')
+        tab_mode_box = newcb(
+            _("Tab always indent"),
+            'tab_always_indent', default=False,
+            tip=_("If enabled, pressing Tab will always indent,\n"
+                  "even when the cursor is not at the beginning\n"
+                  "of a line (when this option is enabled, code\n"
+                  "completion may be triggered using the alternate\n"
+                  "shortcut: Ctrl+Space)"))
+        ibackspace_box = newcb(
+            _("Intelligent backspace"),
+            'intelligent_backspace',
+            default=True)
+        removetrail_box = newcb(
+            _("Automatically remove trailing spaces when saving files"),
+            'always_remove_trailing_spaces',
+            default=False)
+        docstring_combo_choices = ((_("Numpydoc"), 'Numpydoc'),
+                                   (_("Googledoc"), 'Googledoc'),)
+        docstring_combo = self.create_combobox("Docstring type",
+                                               docstring_combo_choices,
+                                               'docstring_type')
+
+        indent_chars_box = self.create_combobox(
+            _("Indentation characters: "),
+            ((_("2 spaces"), '*  *'),
+            (_("3 spaces"), '*   *'),
+            (_("4 spaces"), '*    *'),
+            (_("5 spaces"), '*     *'),
+            (_("6 spaces"), '*      *'),
+            (_("7 spaces"), '*       *'),
+            (_("8 spaces"), '*        *'),
+            (_("Tabulations"), '*\t*')),
+            'indent_chars')
+        tabwidth_spin = self.create_spinbox(
+            _("Tab stop width:"),
+            _("spaces"),
+            'tab_stop_width_spaces',
+            4, 1, 8, 1)
 
         def enable_tabwidth_spin(index):
             if index == 7:  # Tabulations
@@ -147,39 +174,6 @@ class EditorConfigPage(PluginConfigPage):
         indent_chars_box.combobox.currentIndexChanged.connect(
             enable_tabwidth_spin)
 
-        tab_mode_box = newcb(
-            _("Tab always indent"),
-            'tab_always_indent', default=False,
-            tip=_("If enabled, pressing Tab will always indent,\n"
-                  "even when the cursor is not at the beginning\n"
-                  "of a line (when this option is enabled, code\n"
-                  "completion may be triggered using the alternate\n"
-                  "shortcut: Ctrl+Space)"))
-        ibackspace_box = newcb(_("Intelligent backspace"),
-                               'intelligent_backspace', default=True)
-        removetrail_box = newcb(_("Automatically remove trailing spaces "
-                                  "when saving files"),
-                                'always_remove_trailing_spaces', default=False)
-        docstring_combo_choices = ((_("Numpydoc"), 'Numpydoc'),
-                                   (_("Googledoc"), 'Googledoc'),)
-        docstring_combo = self.create_combobox("Docstring type",
-                                               docstring_combo_choices,
-                                               'docstring_type')
-
-        analysis_group = QGroupBox(_("Analysis"))
-        todolist_box = newcb(_("Code annotations (TODO, FIXME, XXX, HINT, TIP,"
-                               " @todo, HACK, BUG, OPTIMIZE, !!!, ???)"),
-                             'todo_list', default=True)
-
-        analysis_layout = QVBoxLayout()
-        analysis_layout.addWidget(todolist_box)
-        analysis_group.setLayout(analysis_layout)
-
-        sourcecode_layout = QVBoxLayout()
-        sourcecode_layout.addWidget(closepar_box)
-        sourcecode_layout.addWidget(autounindent_box)
-        sourcecode_layout.addWidget(add_colons_box)
-        sourcecode_layout.addWidget(close_quotes_box)
         indent_tab_layout = QHBoxLayout()
         indent_tab_grid_layout = QGridLayout()
         indent_tab_grid_layout.addWidget(indent_chars_box.label, 0, 0)
@@ -189,12 +183,30 @@ class EditorConfigPage(PluginConfigPage):
         indent_tab_grid_layout.addWidget(tabwidth_spin.slabel, 1, 2)
         indent_tab_layout.addLayout(indent_tab_grid_layout)
         indent_tab_layout.addStretch(1)
-        sourcecode_layout.addLayout(indent_tab_layout)
+
+        sourcecode_layout = QVBoxLayout()
+        sourcecode_layout.addWidget(closepar_box)
+        sourcecode_layout.addWidget(autounindent_box)
+        sourcecode_layout.addWidget(add_colons_box)
+        sourcecode_layout.addWidget(close_quotes_box)
         sourcecode_layout.addWidget(tab_mode_box)
         sourcecode_layout.addWidget(ibackspace_box)
         sourcecode_layout.addWidget(removetrail_box)
         sourcecode_layout.addWidget(docstring_combo)
-        sourcecode_group.setLayout(sourcecode_layout)
+        sourcecode_layout.addLayout(indent_tab_layout)
+
+        sourcecode_widget = QWidget()
+        sourcecode_widget.setLayout(sourcecode_layout)
+
+        # --- Advanced tab ---
+        analysis_group = QGroupBox(_("Analysis"))
+        todolist_box = newcb(_("Code annotations (TODO, FIXME, XXX, HINT, TIP,"
+                               " @todo, HACK, BUG, OPTIMIZE, !!!, ???)"),
+                             'todo_list', default=True)
+
+        analysis_layout = QVBoxLayout()
+        analysis_layout.addWidget(todolist_box)
+        analysis_group.setLayout(analysis_layout)
 
         eol_group = QGroupBox(_("End-of-line characters"))
         eol_label = QLabel(_("When opening a text file containing "
@@ -249,8 +261,9 @@ class EditorConfigPage(PluginConfigPage):
 
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(display_widget), _("Display"))
+        tabs.addTab(self.create_tab(sourcecode_widget), _("Source code"))
         tabs.addTab(self.create_tab(run_widget), _('Run'))
-        tabs.addTab(self.create_tab(template_btn, sourcecode_group,
+        tabs.addTab(self.create_tab(template_btn,
                                     eol_group, autosave_group, analysis_group),
                     _("Advanced settings"))
 
