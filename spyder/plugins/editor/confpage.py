@@ -8,7 +8,7 @@
 
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
-                            QTabWidget, QVBoxLayout)
+                            QTabWidget, QVBoxLayout, QWidget)
 
 from spyder.api.preferences import PluginConfigPage
 from spyder.config.base import _
@@ -96,15 +96,21 @@ class EditorConfigPage(PluginConfigPage):
         display_h_layout.addStretch(1)
         display_group.setLayout(display_h_layout)
 
-        run_group = QGroupBox(_("Run"))
+        # --- Run tab ---
         saveall_box = newcb(_("Save all files before running script"),
                             'save_all_before_run')
-
-        run_selection_group = QGroupBox(_("Run selection"))
         focus_box = newcb(_("Maintain focus in the Editor after running cells "
                             "or selections"), 'focus_to_editor')
         run_cell_box = newcb(_("Copy full cell contents to the console when "
                                "running code cells"), 'run_cell_copy')
+
+        run_layout = QVBoxLayout()
+        run_layout.addWidget(saveall_box)
+        run_layout.addWidget(focus_box)
+        run_layout.addWidget(run_cell_box)
+
+        run_widget = QWidget()
+        run_widget.setLayout(run_layout)
 
         sourcecode_group = QGroupBox(_("Source code"))
         closepar_box = newcb(_("Automatic insertion of parentheses, braces "
@@ -165,15 +171,6 @@ class EditorConfigPage(PluginConfigPage):
         todolist_box = newcb(_("Code annotations (TODO, FIXME, XXX, HINT, TIP,"
                                " @todo, HACK, BUG, OPTIMIZE, !!!, ???)"),
                              'todo_list', default=True)
-
-        run_layout = QVBoxLayout()
-        run_layout.addWidget(saveall_box)
-        run_group.setLayout(run_layout)
-
-        run_selection_layout = QVBoxLayout()
-        run_selection_layout.addWidget(focus_box)
-        run_selection_layout.addWidget(run_cell_box)
-        run_selection_group.setLayout(run_selection_layout)
 
         analysis_layout = QVBoxLayout()
         analysis_layout.addWidget(todolist_box)
@@ -254,8 +251,8 @@ class EditorConfigPage(PluginConfigPage):
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(interface_group, display_group),
                     _("Display"))
-        tabs.addTab(self.create_tab(template_btn, run_group,
-                                    run_selection_group, sourcecode_group,
+        tabs.addTab(self.create_tab(run_widget), _('Run'))
+        tabs.addTab(self.create_tab(template_btn, sourcecode_group,
                                     eol_group, autosave_group, analysis_group),
                     _("Advanced settings"))
 
