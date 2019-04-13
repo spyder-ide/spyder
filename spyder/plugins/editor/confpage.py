@@ -26,41 +26,38 @@ class EditorConfigPage(PluginConfigPage):
     def setup_page(self):
         template_btn = self.create_button(_("Edit template for new modules"),
                                           self.plugin.edit_template)
-
-        interface_group = QGroupBox(_("Interface"))
         newcb = self.create_checkbox
+
+        # --- Display tab ---
         showtabbar_box = newcb(_("Show tab bar"), 'show_tab_bar')
         showclassfuncdropdown_box = newcb(
                 _("Show selector for classes and functions"),
                 'show_class_func_dropdown')
         showindentguides_box = newcb(_("Show Indent Guides"),
                                      'indent_guides')
-
-        interface_layout = QVBoxLayout()
-        interface_layout.addWidget(showtabbar_box)
-        interface_layout.addWidget(showclassfuncdropdown_box)
-        interface_layout.addWidget(showindentguides_box)
-        interface_group.setLayout(interface_layout)
-
-        display_group = QGroupBox(_("Source code"))
         linenumbers_box = newcb(_("Show line numbers"), 'line_numbers')
         blanks_box = newcb(_("Show blank spaces"), 'blank_spaces')
-        edgeline_box = newcb(_("Show vertical lines after"), 'edge_line')
-        edgeline_edit = self.create_lineedit("", 'edge_line_columns',
-                                             tip=("Enter values separated by "
-                                                  "commas ','"),
-                                             alignment=Qt.Horizontal,
-                                             regex="[0-9]+(,[0-9]+)*")
+        currentline_box = newcb(_("Highlight current line"),
+                                'highlight_current_line')
+        currentcell_box = newcb(_("Highlight current cell"),
+                                'highlight_current_cell')
+        wrap_mode_box = newcb(_("Wrap lines"), 'wrap')
+        scroll_past_end_box = newcb(_("Scroll past the end"),
+                                    'scroll_past_end')
+
+        edgeline_box = newcb(_("Show vertical lines at"), 'edge_line')
+        edgeline_edit = self.create_lineedit(
+            "",
+            'edge_line_columns',
+            tip=("Enter values separated by commas"),
+            alignment=Qt.Horizontal,
+            regex="[0-9]+(,[0-9]+)*")
         edgeline_edit_label = QLabel(_("characters"))
         edgeline_box.toggled.connect(edgeline_edit.setEnabled)
         edgeline_box.toggled.connect(edgeline_edit_label.setEnabled)
         edgeline_edit.setEnabled(self.get_option('edge_line'))
         edgeline_edit_label.setEnabled(self.get_option('edge_line'))
 
-        currentline_box = newcb(_("Highlight current line"),
-                                'highlight_current_line')
-        currentcell_box = newcb(_("Highlight current cell"),
-                                'highlight_current_cell')
         occurrence_box = newcb(_("Highlight occurrences after"),
                                'occurrence_highlighting')
         occurrence_spin = self.create_spinbox(
@@ -74,27 +71,29 @@ class EditorConfigPage(PluginConfigPage):
         occurrence_spin.slabel.setEnabled(
                 self.get_option('occurrence_highlighting'))
 
-        wrap_mode_box = newcb(_("Wrap lines"), 'wrap')
-        scroll_past_end_box = newcb(_("Scroll past the end"),
-                                    'scroll_past_end')
+        display_g_layout = QGridLayout()
+        display_g_layout.addWidget(edgeline_box, 1, 0)
+        display_g_layout.addWidget(edgeline_edit.textbox, 1, 1)
+        display_g_layout.addWidget(edgeline_edit_label, 1, 2)
+        display_g_layout.addWidget(occurrence_box, 2, 0)
+        display_g_layout.addWidget(occurrence_spin.spinbox, 2, 1)
+        display_g_layout.addWidget(occurrence_spin.slabel, 2, 2)
+        display_g_layout.setContentsMargins(0, 0, 250, 0)
 
-        display_layout = QGridLayout()
-        display_layout.addWidget(linenumbers_box, 0, 0)
-        display_layout.addWidget(blanks_box, 1, 0)
-        display_layout.addWidget(edgeline_box, 2, 0)
-        display_layout.addWidget(edgeline_edit, 2, 1)
-        display_layout.addWidget(edgeline_edit_label, 2, 2)
-        display_layout.addWidget(currentline_box, 3, 0)
-        display_layout.addWidget(currentcell_box, 4, 0)
-        display_layout.addWidget(occurrence_box, 5, 0)
-        display_layout.addWidget(occurrence_spin.spinbox, 5, 1)
-        display_layout.addWidget(occurrence_spin.slabel, 5, 2)
-        display_layout.addWidget(wrap_mode_box, 6, 0)
-        display_layout.addWidget(scroll_past_end_box, 7, 0)
-        display_h_layout = QHBoxLayout()
-        display_h_layout.addLayout(display_layout)
-        display_h_layout.addStretch(1)
-        display_group.setLayout(display_h_layout)
+        display_layout = QVBoxLayout()
+        display_layout.addWidget(showtabbar_box)
+        display_layout.addWidget(showclassfuncdropdown_box)
+        display_layout.addWidget(showindentguides_box)
+        display_layout.addWidget(linenumbers_box)
+        display_layout.addWidget(blanks_box)
+        display_layout.addWidget(currentline_box)
+        display_layout.addWidget(currentcell_box)
+        display_layout.addWidget(wrap_mode_box)
+        display_layout.addWidget(scroll_past_end_box)
+        display_layout.addLayout(display_g_layout)
+
+        display_widget = QWidget()
+        display_widget.setLayout(display_layout)
 
         # --- Run tab ---
         saveall_box = newcb(_("Save all files before running script"),
@@ -249,8 +248,7 @@ class EditorConfigPage(PluginConfigPage):
         autosave_group.setLayout(autosave_layout)
 
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(interface_group, display_group),
-                    _("Display"))
+        tabs.addTab(self.create_tab(display_widget), _("Display"))
         tabs.addTab(self.create_tab(run_widget), _('Run'))
         tabs.addTab(self.create_tab(template_btn, sourcecode_group,
                                     eol_group, autosave_group, analysis_group),
