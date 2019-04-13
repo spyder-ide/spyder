@@ -95,22 +95,6 @@ class EditorConfigPage(PluginConfigPage):
         display_widget = QWidget()
         display_widget.setLayout(display_layout)
 
-        # --- Run tab ---
-        saveall_box = newcb(_("Save all files before running script"),
-                            'save_all_before_run')
-        focus_box = newcb(_("Maintain focus in the Editor after running cells "
-                            "or selections"), 'focus_to_editor')
-        run_cell_box = newcb(_("Copy full cell contents to the console when "
-                               "running code cells"), 'run_cell_copy')
-
-        run_layout = QVBoxLayout()
-        run_layout.addWidget(saveall_box)
-        run_layout.addWidget(focus_box)
-        run_layout.addWidget(run_cell_box)
-
-        run_widget = QWidget()
-        run_widget.setLayout(run_layout)
-
         # --- Source tab ---
         closepar_box = newcb(
             _("Automatic insertion of parentheses, braces and brackets"),
@@ -197,6 +181,22 @@ class EditorConfigPage(PluginConfigPage):
 
         sourcecode_widget = QWidget()
         sourcecode_widget.setLayout(sourcecode_layout)
+
+        # --- Run tab ---
+        saveall_box = newcb(_("Save all files before running script"),
+                            'save_all_before_run')
+        focus_box = newcb(_("Maintain focus in the Editor after running cells "
+                            "or selections"), 'focus_to_editor')
+        run_cell_box = newcb(_("Copy full cell contents to the console when "
+                               "running code cells"), 'run_cell_copy')
+
+        run_layout = QVBoxLayout()
+        run_layout.addWidget(saveall_box)
+        run_layout.addWidget(focus_box)
+        run_layout.addWidget(run_cell_box)
+
+        run_widget = QWidget()
+        run_widget.setLayout(run_layout)
 
         # --- Advanced tab ---
         analysis_group = QGroupBox(_("Analysis"))
