@@ -1586,106 +1586,119 @@ class MainWindow(QMainWindow):
         # Layout definition
         # --------------------------------------------------------------------
         # Layouts are organized by columns, each column is organized by rows
-        # width has to add 1.0, height per column has to add 1.0
+        # width have to add 1.0 (except if hidden), height per column has to
+        # add 1.0
 
         # Spyder Default Initial Layout
-        s_layout = {'widgets': [
-                    # column 0
-                    [[explorer_project]],
-                    # column 1
-                    [[editor]],
-                    # column 2
-                    [[outline]],
-                    # column 3
-                    [[help_plugin, explorer_variable, plots, helper,
-                      explorer_file, finder] + plugins,
-                     [console_int, console_ipy, history]]
-                    ],
-                    'width fraction': [0.05,            # Column 0 width
-                                       0.55,            # Column 1 width
-                                       0.05,            # Column 2 width
-                                       0.45],           # Column 3 width
-                    'height fraction': [[1.0],          # Column 0, row heights
-                                        [1.0],          # Column 1, row heights
-                                        [1.0],          # Column 2, row heights
-                                        [0.46, 0.54]],  # Column 3, row heights
-                    'hidden widgets': [outline],
-                    'hidden toolbars': [],
-                    }
-        r_layout = {'widgets': [
-                    # column 0
-                    [[editor],                            # Row 0
-                     [console_ipy, console_int]],         # Row 1
-                    # column 1
-                    [[explorer_variable, plots, history,  # Row 0
-                      outline, finder] + plugins,
-                     [explorer_file, explorer_project,    # Row 1
-                      help_plugin, helper]]
-                    ],
-                    'width fraction': [0.55,            # Column 0 width
-                                       0.45],           # Column 1 width
-                    'height fraction': [[0.55, 0.45],   # Column 0, row heights
-                                        [0.55, 0.45]],  # Column 1, row heights
-                    'hidden widgets': [outline],
-                    'hidden toolbars': [],
-                    }
+        s_layout = {
+            'widgets': [
+                # Column 0
+                [[explorer_project]],
+                # Column 1
+                [[editor]],
+                # Column 2
+                [[outline]],
+                # Column 3
+                [[help_plugin, explorer_variable, plots,     # Row 0
+                  helper, explorer_file, finder] + plugins,
+                 [console_int, console_ipy, history]]        # Row 1
+                ],
+            'width fraction': [0.05,            # Column 0 width
+                               0.55,            # Column 1 width
+                               0.05,            # Column 2 width
+                               0.45],           # Column 3 width
+            'height fraction': [[1.0],          # Column 0, row heights
+                                [1.0],          # Column 1, row heights
+                                [1.0],          # Column 2, row heights
+                                [0.46, 0.54]],  # Column 3, row heights
+            'hidden widgets': [outline],
+            'hidden toolbars': [],
+        }
+
+        # RStudio
+        r_layout = {
+            'widgets': [
+                # column 0
+                [[editor],                            # Row 0
+                 [console_ipy, console_int]],         # Row 1
+                # column 1
+                [[explorer_variable, plots, history,  # Row 0
+                  outline, finder] + plugins,
+                 [explorer_file, explorer_project,    # Row 1
+                  help_plugin, helper]]
+                ],
+            'width fraction': [0.55,            # Column 0 width
+                               0.45],           # Column 1 width
+            'height fraction': [[0.55, 0.45],   # Column 0, row heights
+                                [0.55, 0.45]],  # Column 1, row heights
+            'hidden widgets': [outline],
+            'hidden toolbars': [],
+        }
+
         # Matlab
-        m_layout = {'widgets': [
-                    # column 0
-                    [[explorer_file, explorer_project],
-                     [outline]],
-                    # column 1
-                    [[editor],
-                     [console_ipy, console_int]],
-                    # column 2
-                    [[explorer_variable, plots, finder] + plugins,
-                     [history, help_plugin, helper]]
-                    ],
-                    'width fraction': [0.10,            # Column 0 width
-                                       0.45,            # Column 1 width
-                                       0.45],           # Column 2 width
-                    'height fraction': [[0.55, 0.45],   # Column 0, row heights
-                                        [0.55, 0.45],   # Column 1, row heights
-                                        [0.55, 0.45]],  # Column 2, row heights
-                    'hidden widgets': [],
-                    'hidden toolbars': [],
-                    }
+        m_layout = {
+            'widgets': [
+            # column 0
+            [[explorer_file, explorer_project],
+             [outline]],
+            # column 1
+            [[editor],
+             [console_ipy, console_int]],
+            # column 2
+            [[explorer_variable, plots, finder] + plugins,
+             [history, help_plugin, helper]]
+            ],
+        'width fraction': [0.10,            # Column 0 width
+                           0.45,            # Column 1 width
+                           0.45],           # Column 2 width
+        'height fraction': [[0.55, 0.45],   # Column 0, row heights
+                            [0.55, 0.45],   # Column 1, row heights
+                            [0.55, 0.45]],  # Column 2, row heights
+        'hidden widgets': [],
+        'hidden toolbars': [],
+        }
+
         # Vertically split
-        v_layout = {'widgets': [
-                    # column 0
-                    [[editor],
-                     [console_ipy, console_int, explorer_file,
-                      explorer_project, help_plugin, explorer_variable, plots,
-                      history, outline, finder, helper] + plugins]
-                    ],
-                    'width fraction': [1.0],            # Column 0 width
-                    'height fraction': [[0.55, 0.45]],  # Column 0, row heights
-                    'hidden widgets': [outline],
-                    'hidden toolbars': [],
-                    }
+        v_layout = {
+            'widgets': [
+                # column 0
+                [[editor],
+                    [console_ipy, console_int, explorer_file,
+                    explorer_project, help_plugin, explorer_variable, plots,
+                    history, outline, finder, helper] + plugins]
+                ],
+            'width fraction': [1.0],            # Column 0 width
+            'height fraction': [[0.55, 0.45]],  # Column 0, row heights
+            'hidden widgets': [outline],
+            'hidden toolbars': [],
+        }
+
         # Horizontally split
-        h_layout = {'widgets': [
-                    # column 0
-                    [[editor]],
-                    # column 1
-                    [[console_ipy, console_int, explorer_file,
-                      explorer_project, help_plugin, explorer_variable, plots,
-                      history, outline, finder, helper] + plugins]
-                    ],
-                    'width fraction': [0.55,      # Column 0 width
-                                       0.45],     # Column 1 width
-                    'height fraction': [[1.0],    # Column 0, row heights
-                                        [1.0]],   # Column 1, row heights
-                    'hidden widgets': [outline],
-                    'hidden toolbars': []
-                    }
+        h_layout = {
+            'widgets': [
+                # column 0
+                [[editor]],
+                # column 1
+                [[console_ipy, console_int, explorer_file,
+                  explorer_project, help_plugin, explorer_variable, plots,
+                  history, outline, finder, helper] + plugins]
+                ],
+            'width fraction': [0.55,      # Column 0 width
+                               0.45],     # Column 1 width
+            'height fraction': [[1.0],    # Column 0, row heights
+                                [1.0]],   # Column 1, row heights
+            'hidden widgets': [outline],
+            'hidden toolbars': []
+        }
 
         # Layout selection
-        layouts = {'default': s_layout,
-                   RSTUDIO: r_layout,
-                   MATLAB: m_layout,
-                   VERTICAL: v_layout,
-                   HORIZONTAL: h_layout}
+        layouts = {
+            'default': s_layout,
+            RSTUDIO: r_layout,
+            MATLAB: m_layout,
+            VERTICAL: v_layout,
+            HORIZONTAL: h_layout,
+        }
 
         layout = layouts[index]
 
@@ -1696,9 +1709,12 @@ class MainWindow(QMainWindow):
             clean_col = []
             for row in column:
                 clean_row = [w for w in row if w is not None]
-                clean_col.append(clean_row)
-            widgets_layout_clean.append(clean_col)
+                if clean_row:
+                    clean_col.append(clean_row)
+            if clean_col:
+                widgets_layout_clean.append(clean_col)
 
+        # Flatten widgets list
         widgets = []
         for column in widgets_layout_clean:
             for row in column:
@@ -1712,24 +1728,24 @@ class MainWindow(QMainWindow):
             action.setChecked(widget.dockwidget.isVisible())
 
         # Set the widgets horizontally
-        for i in range(len(widgets) - 1):
-            first, second = widgets[i], widgets[i+1]
+        for idx in range(len(widgets) - 1):
+            first, second = widgets[idx], widgets[idx+1]
             if first is not None and second is not None:
                 self.splitDockWidget(first.dockwidget, second.dockwidget,
                                      Qt.Horizontal)
 
         # Arrange rows vertically
         for column in widgets_layout_clean:
-            for i in range(len(column) - 1):
-                first_row, second_row = column[i], column[i+1]
+            for idx in range(len(column) - 1):
+                first_row, second_row = column[idx], column[idx+1]
                 self.splitDockWidget(first_row[0].dockwidget,
                                      second_row[0].dockwidget,
                                      Qt.Vertical)
         # Tabify
         for column in widgets_layout_clean:
             for row in column:
-                for i in range(len(row) - 1):
-                    first, second = row[i], row[i+1]
+                for idx in range(len(row) - 1):
+                    first, second = row[idx], row[idx+1]
                     self.tabify_plugins(first, second)
 
                 # Raise front widget per row
@@ -1746,12 +1762,12 @@ class MainWindow(QMainWindow):
             self.resizeDocks(_widgets, width_fractions, Qt.Horizontal)
 
         height_fractions = layout['height fraction']
-        for i, column in enumerate(widgets_layout_clean):
+        for idx, column in enumerate(widgets_layout_clean):
             if len(column) > 1:
                 _widgets = [row[0].dockwidget for row in column]
-                if height_fractions[i] < 0:
+                if height_fractions[idx] < 0:
                     print(i, column)
-                self.resizeDocks(_widgets, height_fractions[i], Qt.Vertical)
+                self.resizeDocks(_widgets, height_fractions[idx], Qt.Vertical)
 
         # Hide toolbars
         hidden_toolbars = global_hidden_toolbars + layout['hidden toolbars']
@@ -1768,7 +1784,6 @@ class MainWindow(QMainWindow):
         self.setBaseSize(base_size)
         self.setMaximumSize(max_size)
         self.setMinimumSize(min_size)
-
         self.setUpdatesEnabled(True)
 
     @Slot()
