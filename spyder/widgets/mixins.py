@@ -68,9 +68,12 @@ class BaseEditMixin(object):
     #------Calltips
     def _format_signature(self, text):
         formatted_lines = []
-        name = text.split('(')[0]
-        rows = textwrap.wrap(text, width=50,
-                             subsequent_indent=' '*(len(name)+1))
+        # This code was assuming the text included the signature, which is
+        # no longer the case
+        # name = text.split('(')[0]
+        # rows = textwrap.wrap(text, width=50,
+        #                      subsequent_indent=' '*(len(name)+1))
+        rows = text.split('\n')
         for r in rows:
             r = escape(r) # Escape most common html chars
             r = r.replace(' ', '&nbsp;')

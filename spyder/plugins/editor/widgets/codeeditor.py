@@ -863,8 +863,9 @@ class CodeEditor(TextEditBaseWidget):
                 line, _ = self.get_cursor_line_column()
                 active_parameter_idx = signature['activeParameter']
                 signature = signature['signatures']
-                func_doc = signature['documentation'].replace(u'\xa0', ' ')
-                print(func_doc)
+
+                func_doc = signature['documentation']
+                func_doc = func_doc.replace(u'\xa0', ' ')
                 func_signature = signature['label']
                 parameters = signature['parameters']
                 parameter = parameters[active_parameter_idx]
@@ -890,8 +891,7 @@ class CodeEditor(TextEditBaseWidget):
                 tooltip_text = "{0}{1}".format(parameter_str, func_doc)
                 self.show_calltip(
                     title, tooltip_text, color='#999999', signature=True)
-        except Exception as e:
-            print(e)
+        except Exception:
             self.log_lsp_handle_errors("Error when processing signature")
 
     # ------------- LSP: Hover ---------------------------------------
