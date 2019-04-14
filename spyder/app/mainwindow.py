@@ -1633,34 +1633,34 @@ class MainWindow(QMainWindow):
         # Matlab
         m_layout = {
             'widgets': [
-            # column 0
-            [[explorer_file, explorer_project],
-             [outline]],
-            # column 1
-            [[editor],
-             [console_ipy, console_int]],
-            # column 2
-            [[explorer_variable, plots, finder] + plugins,
-             [history, help_plugin, helper]]
-            ],
-        'width fraction': [0.10,            # Column 0 width
-                           0.45,            # Column 1 width
-                           0.45],           # Column 2 width
-        'height fraction': [[0.55, 0.45],   # Column 0, row heights
-                            [0.55, 0.45],   # Column 1, row heights
-                            [0.55, 0.45]],  # Column 2, row heights
-        'hidden widgets': [],
-        'hidden toolbars': [],
+                # column 0
+                [[explorer_file, explorer_project],
+                 [outline]],
+                # column 1
+                [[editor],
+                 [console_ipy, console_int]],
+                # column 2
+                [[explorer_variable, plots, finder] + plugins,
+                 [history, help_plugin, helper]]
+                ],
+            'width fraction': [0.10,            # Column 0 width
+                               0.45,            # Column 1 width
+                               0.45],           # Column 2 width
+            'height fraction': [[0.55, 0.45],   # Column 0, row heights
+                                [0.55, 0.45],   # Column 1, row heights
+                                [0.55, 0.45]],  # Column 2, row heights
+            'hidden widgets': [],
+            'hidden toolbars': [],
         }
 
         # Vertically split
         v_layout = {
             'widgets': [
                 # column 0
-                [[editor],
-                    [console_ipy, console_int, explorer_file,
-                    explorer_project, help_plugin, explorer_variable, plots,
-                    history, outline, finder, helper] + plugins]
+                [[editor],                                  # Row 0
+                 [console_ipy, console_int, explorer_file,  # Row 1
+                  explorer_project, help_plugin, explorer_variable, plots,
+                  history, outline, finder, helper] + plugins]
                 ],
             'width fraction': [1.0],            # Column 0 width
             'height fraction': [[0.55, 0.45]],  # Column 0, row heights
@@ -1672,9 +1672,9 @@ class MainWindow(QMainWindow):
         h_layout = {
             'widgets': [
                 # column 0
-                [[editor]],
+                [[editor]],                                 # Row 0
                 # column 1
-                [[console_ipy, console_int, explorer_file,
+                [[console_ipy, console_int, explorer_file,  # Row 0
                   explorer_project, help_plugin, explorer_variable, plots,
                   history, outline, finder, helper] + plugins]
                 ],
