@@ -12,8 +12,14 @@ from qtpy.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
 
 from spyder.api.preferences import PluginConfigPage
 from spyder.config.base import _
+from spyder.config.main import CONF
 import spyder.utils.icon_manager as ima
 from spyder.utils import codeanalysis, programs
+
+
+NUMPYDOC = "https://numpydoc.readthedocs.io/en/latest/format.html"
+GOOGLEDOC = "https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html"
+DOCSTRING_SHORTCUT = CONF.get('shortcuts', 'editor/docstring')
 
 
 class EditorConfigPage(PluginConfigPage):
@@ -24,8 +30,6 @@ class EditorConfigPage(PluginConfigPage):
         return ima.icon('edit')
 
     def setup_page(self):
-        template_btn = self.create_button(_("Edit template for new modules"),
-                                          self.plugin.edit_template)
         newcb = self.create_checkbox
 
         # --- Display tab ---
@@ -98,7 +102,7 @@ class EditorConfigPage(PluginConfigPage):
         display_widget = QWidget()
         display_widget.setLayout(display_layout)
 
-        # --- Source tab ---
+        # --- Source code tab ---
         closepar_box = newcb(
             _("Automatic insertion of parentheses, braces and brackets"),
             'close_parentheses')
@@ -127,11 +131,6 @@ class EditorConfigPage(PluginConfigPage):
             _("Automatically remove trailing spaces when saving files"),
             'always_remove_trailing_spaces',
             default=False)
-        docstring_combo_choices = ((_("Numpydoc"), 'Numpydoc'),
-                                   (_("Googledoc"), 'Googledoc'),)
-        docstring_combo = self.create_combobox("Docstring type",
-                                               docstring_combo_choices,
-                                               'docstring_type')
 
         indent_chars_box = self.create_combobox(
             _("Indentation characters: "),
@@ -180,13 +179,12 @@ class EditorConfigPage(PluginConfigPage):
         sourcecode_layout.addWidget(tab_mode_box)
         sourcecode_layout.addWidget(ibackspace_box)
         sourcecode_layout.addWidget(removetrail_box)
-        sourcecode_layout.addWidget(docstring_combo)
         sourcecode_layout.addLayout(indent_tab_layout)
 
         sourcecode_widget = QWidget()
         sourcecode_widget.setLayout(sourcecode_layout)
 
-        # --- Run tab ---
+        # --- Run code tab ---
         saveall_box = newcb(_("Save all files before running script"),
                             'save_all_before_run')
         focus_box = newcb(_("Maintain focus in the Editor after running cells "
@@ -203,15 +201,71 @@ class EditorConfigPage(PluginConfigPage):
         run_widget.setLayout(run_layout)
 
         # --- Advanced tab ---
-        analysis_group = QGroupBox(_("Analysis"))
-        todolist_box = newcb(_("Code annotations (TODO, FIXME, XXX, HINT, TIP,"
-                               " @todo, HACK, BUG, OPTIMIZE, !!!, ???)"),
-                             'todo_list', default=True)
+        # -- Templates
+        template_btn = self.create_button(_("Edit template for new files"),
+                                          self.plugin.edit_template)
 
-        analysis_layout = QVBoxLayout()
-        analysis_layout.addWidget(todolist_box)
-        analysis_group.setLayout(analysis_layout)
+        # -- Autosave
+        autosave_group = QGroupBox(_('Autosave'))
+        autosave_checkbox = newcb(
+            _('Automatically save a copy of files with unsaved changes'),
+            'autosave_enabled')
+        autosave_spinbox = self.create_spinbox(
+            _('Autosave interval: '),
+            _('seconds'),
+            'autosave_interval',
+            min_=1, max_=3600)
+        autosave_checkbox.toggled.connect(autosave_spinbox.setEnabled)
 
+        autosave_layout = QVBoxLayout()
+        autosave_layout.addWidget(autosave_checkbox)
+        autosave_layout.addWidget(autosave_spinbox)
+        autosave_group.setLayout(autosave_layout)
+
+        # -- Docstring
+        docstring_group = QGroupBox(_('Docstring type'))
+
+        numpy_url = "<a href='{}'>Numpy</a>".format(NUMPYDOC)
+        googledoc_url = "<a href='{}'>Google</a>".format(GOOGLEDOC)
+        docstring_label = QLabel(
+            _("Here you can select the type of docstrings ({} or {}) you "
+              "want the editor to automatically introduce when pressing "
+              "<tt>{}</tt> after a function/method/class "
+              "declaration.").format(
+                  numpy_url, googledoc_url, DOCSTRING_SHORTCUT))
+        docstring_label.setOpenExternalLinks(True)
+        docstring_label.setWordWrap(True)
+
+        docstring_combo_choices = ((_("Numpy"), 'Numpydoc'),
+                                   (_("Google"), 'Googledoc'),)
+        docstring_combo = self.create_combobox(
+            "Type:",
+            docstring_combo_choices,
+            'docstring_type')
+
+        docstring_layout = QVBoxLayout()
+        docstring_layout.addWidget(docstring_label)
+        docstring_layout.addWidget(docstring_combo)
+        docstring_group.setLayout(docstring_layout)
+
+        # -- Annotations
+        annotations_group = QGroupBox(_("Annotations"))
+        annotations_label = QLabel(
+            _("Display a marker to the left of line numbers when the "
+              "following annotations appear at the beginning of a comment: "
+              "<tt>TODO, FIXME, XXX, HINT, TIP, @todo, HACK, BUG, OPTIMIZE, "
+              "!!!, ???</tt>"))
+        annotations_label.setWordWrap(True)
+        todolist_box = newcb(
+            _("Display code annotations"),
+            'todo_list')
+
+        annotations_layout = QVBoxLayout()
+        annotations_layout.addWidget(annotations_label)
+        annotations_layout.addWidget(todolist_box)
+        annotations_group.setLayout(annotations_layout)
+
+        # -- EOL
         eol_group = QGroupBox(_("End-of-line characters"))
         eol_label = QLabel(_("When opening a text file containing "
                              "mixed end-of-line characters (this may "
@@ -249,26 +303,14 @@ class EditorConfigPage(PluginConfigPage):
         eol_layout.addLayout(eol_on_save_layout)
         eol_group.setLayout(eol_layout)
 
-        autosave_group = QGroupBox(_('Autosave'))
-        autosave_checkbox = newcb(
-                _('Automatically save a copy of files with unsaved changes'),
-                'autosave_enabled', default=True)
-        autosave_spinbox = self.create_spinbox(
-                _('Autosave interval: '), _('seconds'), 'autosave_interval',
-                min_=1, max_=3600)
-        autosave_checkbox.toggled.connect(autosave_spinbox.setEnabled)
-
-        autosave_layout = QVBoxLayout()
-        autosave_layout.addWidget(autosave_checkbox)
-        autosave_layout.addWidget(autosave_spinbox)
-        autosave_group.setLayout(autosave_layout)
-
+        # --- Tabs ---
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(display_widget), _("Display"))
         tabs.addTab(self.create_tab(sourcecode_widget), _("Source code"))
         tabs.addTab(self.create_tab(run_widget), _('Run Code'))
-        tabs.addTab(self.create_tab(template_btn,
-                                    eol_group, autosave_group, analysis_group),
+        tabs.addTab(self.create_tab(template_btn, autosave_group,
+                                    docstring_group, annotations_group,
+                                    eol_group),
                     _("Advanced settings"))
 
         vlayout = QVBoxLayout()
