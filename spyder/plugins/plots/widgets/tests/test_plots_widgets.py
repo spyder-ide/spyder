@@ -77,8 +77,6 @@ def add_figures_to_browser(figbrowser, nfig, tmpdir, fmt='image/png'):
         figs.append(create_figure(figname))
         figbrowser._handle_new_figure(figs[-1], fmt)
 
-    figbrowser.thumbnails_sb.scene.setVerticalSpacing(6)
-
     assert len(figbrowser.thumbnails_sb._thumbnails) == nfig
     assert figbrowser.thumbnails_sb.get_current_index() == nfig - 1
     assert figbrowser.thumbnails_sb.current_thumbnail.canvas.fig == figs[-1]
@@ -237,8 +235,8 @@ def test_go_prev_next_thumbnail(figbrowser, tmpdir, fmt):
     assert figbrowser.figviewer.figcanvas.fig == figs[1]
 
 
-def test_scroll_to_select_item(figbrowser, tmpdir, qtbot):
-    """Test scroll to select item of ThumbnailScrollBar."""
+def test_scroll_to_item(figbrowser, tmpdir, qtbot):
+    """Test scroll to the item of ThumbnailScrollBar."""
     nfig = 10
     add_figures_to_browser(figbrowser, nfig, tmpdir, 'image/png')
     figbrowser.setFixedSize(500, 500)
