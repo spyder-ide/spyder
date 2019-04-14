@@ -72,13 +72,16 @@ class EditorConfigPage(PluginConfigPage):
                 self.get_option('occurrence_highlighting'))
 
         display_g_layout = QGridLayout()
-        display_g_layout.addWidget(edgeline_box, 1, 0)
-        display_g_layout.addWidget(edgeline_edit.textbox, 1, 1)
-        display_g_layout.addWidget(edgeline_edit_label, 1, 2)
-        display_g_layout.addWidget(occurrence_box, 2, 0)
-        display_g_layout.addWidget(occurrence_spin.spinbox, 2, 1)
-        display_g_layout.addWidget(occurrence_spin.slabel, 2, 2)
-        display_g_layout.setContentsMargins(0, 0, 250, 0)
+        display_g_layout.addWidget(edgeline_box, 0, 0)
+        display_g_layout.addWidget(edgeline_edit.textbox, 0, 1)
+        display_g_layout.addWidget(edgeline_edit_label, 0, 2)
+        display_g_layout.addWidget(occurrence_box, 1, 0)
+        display_g_layout.addWidget(occurrence_spin.spinbox, 1, 1)
+        display_g_layout.addWidget(occurrence_spin.slabel, 1, 2)
+
+        display_h_layout = QHBoxLayout()
+        display_h_layout.addLayout(display_g_layout)
+        display_h_layout.addStretch(1)
 
         display_layout = QVBoxLayout()
         display_layout.addWidget(showtabbar_box)
@@ -90,7 +93,7 @@ class EditorConfigPage(PluginConfigPage):
         display_layout.addWidget(currentcell_box)
         display_layout.addWidget(wrap_mode_box)
         display_layout.addWidget(scroll_past_end_box)
-        display_layout.addLayout(display_g_layout)
+        display_layout.addLayout(display_h_layout)
 
         display_widget = QWidget()
         display_widget.setLayout(display_layout)
@@ -158,13 +161,14 @@ class EditorConfigPage(PluginConfigPage):
         indent_chars_box.combobox.currentIndexChanged.connect(
             enable_tabwidth_spin)
 
-        indent_tab_layout = QHBoxLayout()
         indent_tab_grid_layout = QGridLayout()
         indent_tab_grid_layout.addWidget(indent_chars_box.label, 0, 0)
         indent_tab_grid_layout.addWidget(indent_chars_box.combobox, 0, 1)
         indent_tab_grid_layout.addWidget(tabwidth_spin.plabel, 1, 0)
         indent_tab_grid_layout.addWidget(tabwidth_spin.spinbox, 1, 1)
         indent_tab_grid_layout.addWidget(tabwidth_spin.slabel, 1, 2)
+
+        indent_tab_layout = QHBoxLayout()
         indent_tab_layout.addLayout(indent_tab_grid_layout)
         indent_tab_layout.addStretch(1)
 
@@ -262,7 +266,7 @@ class EditorConfigPage(PluginConfigPage):
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(display_widget), _("Display"))
         tabs.addTab(self.create_tab(sourcecode_widget), _("Source code"))
-        tabs.addTab(self.create_tab(run_widget), _('Run'))
+        tabs.addTab(self.create_tab(run_widget), _('Run Code'))
         tabs.addTab(self.create_tab(template_btn,
                                     eol_group, autosave_group, analysis_group),
                     _("Advanced settings"))
