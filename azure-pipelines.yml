@@ -10,6 +10,8 @@ jobs:
   pool:
     vmImage: 'macOS-10.13'
 
+  timeoutInMinutes: 100
+
   variables:
     USE_CONDA: "yes"
     CI: True
@@ -76,6 +78,8 @@ jobs:
 
   pool:
     vmImage: 'vs2017-win2016'
+
+  timeoutInMinutes: 100
 
   variables:
     CI: True

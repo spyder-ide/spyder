@@ -576,12 +576,15 @@ class MainWindow(QMainWindow):
         color_scheme = CONF.get('appearance', 'selected')
 
         if ui_theme == 'dark':
-            self.setStyleSheet(qdarkstyle.load_stylesheet_from_environment())
+            dark_qss = qdarkstyle.load_stylesheet_from_environment()
+            self.setStyleSheet(dark_qss)
+            self.statusBar().setStyleSheet(dark_qss)
             css_path = DARK_CSS_PATH
         elif ui_theme == 'automatic':
             if not is_dark_font_color(color_scheme):
-                self.setStyleSheet(
-                        qdarkstyle.load_stylesheet_from_environment())
+                dark_qss = qdarkstyle.load_stylesheet_from_environment()
+                self.setStyleSheet(dark_qss)
+                self.statusBar().setStyleSheet(dark_qss)
                 css_path = DARK_CSS_PATH
             else:
                 css_path = CSS_PATH

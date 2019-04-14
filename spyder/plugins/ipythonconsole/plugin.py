@@ -103,8 +103,8 @@ class IPythonConsole(SpyderPluginWidget):
                              "required to create IPython consoles. Please "
                              "make it writable.")
 
-    def __init__(self, parent, test_dir=None, test_no_stderr=False,
-                 css_path=None):
+    def __init__(self, parent, testing=False, test_dir=None,
+                 test_no_stderr=False, css_path=None):
         """Ipython Console constructor."""
         SpyderPluginWidget.__init__(self, parent)
 
@@ -120,6 +120,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.interrupt_action = None
 
         # Attrs for testing
+        self.testing = testing
         self.test_dir = test_dir
         self.test_no_stderr = test_no_stderr
 
@@ -736,8 +737,13 @@ class IPythonConsole(SpyderPluginWidget):
             client.show_kernel_error(km)
             return
 
-        kc.started_channels.connect(lambda c=client: self.process_started(c))
-        kc.stopped_channels.connect(lambda c=client: self.process_finished(c))
+        # This avoids a recurrent, spurious NameError when running our
+        # tests in our CIs
+        if not self.testing:
+            kc.started_channels.connect(
+                lambda c=client: self.process_started(c))
+            kc.stopped_channels.connect(
+                lambda c=client: self.process_finished(c))
         kc.start_channels(shell=True, iopub=True)
 
         shellwidget = client.shellwidget

@@ -1,5 +1,4 @@
-![Spyder — The Scientific Python Development Environment](
-./img_src/spyder_readme_banner.png)
+![Spyder — The Scientific Python Development Environment](https://raw.githubusercontent.com/spyder-ide/spyder/master/img_src/spyder_readme_banner.png)
 
 *Copyright © 2009–2019 [Spyder Project Contributors](
 https://github.com/spyder-ide/spyder/graphs/contributors)*
@@ -22,7 +21,7 @@ https://github.com/spyder-ide/spyder/graphs/contributors)*
 [![Coverage Status](https://coveralls.io/repos/github/spyder-ide/spyder/badge.svg?branch=master)](https://coveralls.io/github/spyder-ide/spyder?branch=master)
 [![codecov](https://codecov.io/gh/spyder-ide/spyder/branch/master/graph/badge.svg)](https://codecov.io/gh/spyder-ide/spyder)
 
-![Screenshot of Spyder's main window](./img_src/screenshot.png)
+![Screenshot of Spyder's main window](https://raw.githubusercontent.com/spyder-ide/spyder/master/img_src/screenshot.png)
 
 ----
 
@@ -234,7 +233,7 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 * **Pylint**: Static code analysis.
 * **Psutil**: CPU and memory usage on the status bar.
 * **Nbconvert**: Manipulation of notebooks in the Editor.
-* **Qtawesome** 0.5.2+: To have an icon theme based on FontAwesome.
+* **Qtawesome** 0.5.7+: To have an icon theme based on FontAwesome.
 * **Pickleshare**: Show import completions on the Python consoles.
 * **PyZMQ**: Client for the language server protocol (LSP).
 * **QtPy** 1.5.0+: Abstraction layer for Python Qt bindings so that Spyder
@@ -242,7 +241,7 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 * **Chardet**: Character encoding auto-detection in Python.
 * **Numpydoc**: Used by Jedi to get function return types from Numpydocstrings.
 * **Cloudpickle**: Serialize variables in the IPython kernel to send to Spyder.
-* **spyder-kernels** 1.0+: Jupyter kernels for the Spyder console.
+* **spyder-kernels** 1.2.0+: Jupyter kernels for the Spyder console.
 * **keyring**: Save Github credentials to report errors securely.
 * **QDarkStyle** 2.6.4+: A dark stylesheet for Qt applications, used for Spyder's dark theme.
 * **atomicwrites**: Atomic file writes.
@@ -256,6 +255,7 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 * **SymPy**: Symbolic mathematics in the IPython console.
 * **SciPy**: Import Matlab workspace files in the Variable Explorer.
 * **Cython**: Run Cython files in the IPython console.
+
 
 ## Sponsors
 

@@ -151,7 +151,7 @@ _qtaargs = {
     'todo_list':               [('fa.th-list', 'fa.check'), {'options': [{'color': '#999999'}, {'offset': (0.0, 0.2), 'color': '#3775a9', 'color_disabled': '#748fa6'}]}],
     'wng_list':                [('fa.th-list', 'fa.warning'), {'options': [{'color': '#999999'}, {'offset': (0.0, 0.2), 'scale_factor': 0.75, 'color': 'orange', 'color_disabled': '#face7e'}]}],
     'prev_wng':                [('fa.arrow-left', 'fa.warning'), {'options': [{'color': '#999999'}, {'offset': (0.0, 0.2), 'scale_factor': 0.75, 'color': 'orange', 'color_disabled': '#face7e'}]}],
-    'next_wng':                [('fa.arrow-right', 'fa.warning'), {'options': [{'color': '999999'}, {'offset': (0.0, 0.2), 'scale_factor': 0.75, 'color': 'orange', 'color_disabled': '#face7e'}]}],
+    'next_wng':                [('fa.arrow-right', 'fa.warning'), {'options': [{'color': '#999999'}, {'offset': (0.0, 0.2), 'scale_factor': 0.75, 'color': 'orange', 'color_disabled': '#face7e'}]}],
     'last_edit_location':      [('fa.caret-up',), {'color': MAIN_FG_COLOR}],
     'prev_cursor':             [('fa.hand-o-left',), {'color': MAIN_FG_COLOR}],
     'next_cursor':             [('fa.hand-o-right',), {'color': MAIN_FG_COLOR}],
@@ -338,6 +338,8 @@ _qtaargs = {
     'dependency_ok':           [('fa.check',), {'color': MAIN_FG_COLOR}],
     'dependency_warning':      [('fa.warning',), {'color': 'orange'}],
     'dependency_error':        [('fa.warning',), {'color': 'darkred'}],
+    # --- Status bar --------------------------------------------------------
+    'code_fork':               [('fa.code-fork',), {'color': MAIN_FG_COLOR}],
 }
 
 

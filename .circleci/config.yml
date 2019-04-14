@@ -5,7 +5,7 @@ main: &main
     steps:
       - checkout
       - run:
-          command: docker pull dorowu/ubuntu-desktop-lxde-vnc:trusty
+          command: docker pull dorowu/ubuntu-desktop-lxde-vnc:xenial
       - run:
           name: Install system packages
           command: |
