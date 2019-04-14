@@ -135,13 +135,13 @@ class EditorConfigPage(PluginConfigPage):
         indent_chars_box = self.create_combobox(
             _("Indentation characters: "),
             ((_("2 spaces"), '*  *'),
-            (_("3 spaces"), '*   *'),
-            (_("4 spaces"), '*    *'),
-            (_("5 spaces"), '*     *'),
-            (_("6 spaces"), '*      *'),
-            (_("7 spaces"), '*       *'),
-            (_("8 spaces"), '*        *'),
-            (_("Tabulations"), '*\t*')),
+             (_("3 spaces"), '*   *'),
+             (_("4 spaces"), '*    *'),
+             (_("5 spaces"), '*     *'),
+             (_("6 spaces"), '*      *'),
+             (_("7 spaces"), '*       *'),
+             (_("8 spaces"), '*        *'),
+             (_("Tabulations"), '*\t*')),
             'indent_chars')
         tabwidth_spin = self.create_spinbox(
             _("Tab stop width:"),
