@@ -68,7 +68,8 @@ if os.name == 'nt':
 from qtpy import API, PYQT5
 from qtpy.compat import from_qvariant
 from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
-                         QThread, QTimer, QUrl, Signal, Slot)
+                         QThread, QTimer, QUrl, Signal, Slot,
+                         qInstallMessageHandler)
 from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QDockWidget, QMainWindow,
                             QMenu, QMessageBox, QShortcut, QSplashScreen,
@@ -246,6 +247,28 @@ def setup_logging(cli_options):
                             filename=log_file,
                             filemode='w+')
 
+
+def qt_message_handler(msg_type, msg_log_context, msg_string):
+    """
+    Qt warning messages are intercepted by this handler.
+
+    On some oprating systems, warning messages might be displayed
+    even if the actual message does not apply. This filter adds a
+    blacklist for messages that are being printed for no apparent
+    reason. Anything else will get printed in the internal console.
+
+    On DEV mode, all messages are printed.
+    """
+    BLACKLIST = [
+        'QMainWidget::resizeDocks: all sizes need to be larger than 0',
+    ]
+    if DEV or msg_string not in BLACKLIST:
+        print(msg_string)  # spyder: test-skip
+
+
+qInstallMessageHandler(qt_message_handler)
+
+
 # =============================================================================
 # Dependencies
 # =============================================================================
@@ -298,7 +321,6 @@ class MainWindow(QMainWindow):
             # Enabling scaling for high dpi
             qapp.setAttribute(Qt.AA_UseHighDpiPixmaps)
         self.default_style = str(qapp.style().objectName())
-
         self.dialog_manager = DialogManager()
 
         self.init_workdir = options.working_directory
@@ -1579,30 +1601,31 @@ class MainWindow(QMainWindow):
                       explorer_file, finder] + plugins,
                      [console_int, console_ipy, history]]
                     ],
-                    'width fraction': [0.01,            # column 0 width
-                                       0.55,            # column 1 width
-                                       0.01,            # column 2 width
-                                       0.45],           # column 3 width
-                    'height fraction': [[1.0],          # column 0, row heights
-                                        [1.0],          # column 1, row heights
-                                        [1.0],          # column 2, row heights
-                                        [0.46, 0.54]],  # column 3, row heights
+                    'width fraction': [0.05,            # Column 0 width
+                                       0.55,            # Column 1 width
+                                       0.05,            # Column 2 width
+                                       0.45],           # Column 3 width
+                    'height fraction': [[1.0],          # Column 0, row heights
+                                        [1.0],          # Column 1, row heights
+                                        [1.0],          # Column 2, row heights
+                                        [0.46, 0.54]],  # Column 3, row heights
                     'hidden widgets': [outline],
                     'hidden toolbars': [],
                     }
         r_layout = {'widgets': [
                     # column 0
-                    [[editor],
-                     [console_ipy, console_int]],
+                    [[editor],                            # Row 0
+                     [console_ipy, console_int]],         # Row 1
                     # column 1
-                    [[explorer_variable, plots, history, outline,
-                      finder] + plugins,
-                     [explorer_file, explorer_project, help_plugin, helper]]
+                    [[explorer_variable, plots, history,  # Row 0
+                      outline, finder] + plugins,
+                     [explorer_file, explorer_project,    # Row 1
+                      help_plugin, helper]]
                     ],
-                    'width fraction': [0.55,            # column 0 width
-                                       0.45],           # column 1 width
-                    'height fraction': [[0.55, 0.45],   # column 0, row heights
-                                        [0.55, 0.45]],  # column 1, row heights
+                    'width fraction': [0.55,            # Column 0 width
+                                       0.45],           # Column 1 width
+                    'height fraction': [[0.55, 0.45],   # Column 0, row heights
+                                        [0.55, 0.45]],  # Column 1, row heights
                     'hidden widgets': [outline],
                     'hidden toolbars': [],
                     }
@@ -1618,12 +1641,12 @@ class MainWindow(QMainWindow):
                     [[explorer_variable, plots, finder] + plugins,
                      [history, help_plugin, helper]]
                     ],
-                    'width fraction': [0.10,            # column 0 width
-                                       0.45,            # column 1 width
-                                       0.45],           # column 2 width
-                    'height fraction': [[0.55, 0.45],   # column 0, row heights
-                                        [0.55, 0.45],   # column 1, row heights
-                                        [0.55, 0.45]],  # column 2, row heights
+                    'width fraction': [0.10,            # Column 0 width
+                                       0.45,            # Column 1 width
+                                       0.45],           # Column 2 width
+                    'height fraction': [[0.55, 0.45],   # Column 0, row heights
+                                        [0.55, 0.45],   # Column 1, row heights
+                                        [0.55, 0.45]],  # Column 2, row heights
                     'hidden widgets': [],
                     'hidden toolbars': [],
                     }
@@ -1635,8 +1658,8 @@ class MainWindow(QMainWindow):
                       explorer_project, help_plugin, explorer_variable, plots,
                       history, outline, finder, helper] + plugins]
                     ],
-                    'width fraction': [1.0],            # column 0 width
-                    'height fraction': [[0.55, 0.45]],  # column 0, row heights
+                    'width fraction': [1.0],            # Column 0 width
+                    'height fraction': [[0.55, 0.45]],  # Column 0, row heights
                     'hidden widgets': [outline],
                     'hidden toolbars': [],
                     }
@@ -1649,10 +1672,10 @@ class MainWindow(QMainWindow):
                       explorer_project, help_plugin, explorer_variable, plots,
                       history, outline, finder, helper] + plugins]
                     ],
-                    'width fraction': [0.55,      # column 0 width
-                                       0.45],     # column 1 width
-                    'height fraction': [[1.0],    # column 0, row heights
-                                        [1.0]],   # column 1, row heights
+                    'width fraction': [0.55,      # Column 0 width
+                                       0.45],     # Column 1 width
+                    'height fraction': [[1.0],    # Column 0, row heights
+                                        [1.0]],   # Column 1, row heights
                     'hidden widgets': [outline],
                     'hidden toolbars': []
                     }
@@ -1718,14 +1741,16 @@ class MainWindow(QMainWindow):
         if len(width_fractions) > 1:
             # TODO: get the first col[i] that is not None
             _widgets = [col[0][0].dockwidget for col in widgets_layout]
-            print(_widgets, width_fractions, Qt.Horizontal)
+            if width_fractions < 0:
+                print(_widgets)
             self.resizeDocks(_widgets, width_fractions, Qt.Horizontal)
 
         height_fractions = layout['height fraction']
         for i, column in enumerate(widgets_layout_clean):
             if len(column) > 1:
                 _widgets = [row[0].dockwidget for row in column]
-                print(_widgets, height_fractions[i])
+                if height_fractions[i] < 0:
+                    print(i, column)
                 self.resizeDocks(_widgets, height_fractions[i], Qt.Vertical)
 
         # Hide toolbars
