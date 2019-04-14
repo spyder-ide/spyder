@@ -235,6 +235,29 @@ def test_go_prev_next_thumbnail(figbrowser, tmpdir, fmt):
     assert figbrowser.figviewer.figcanvas.fig == figs[1]
 
 
+def test_scroll_to_item(figbrowser, tmpdir, qtbot):
+    """Test scroll to the item of ThumbnailScrollBar."""
+    nfig = 10
+    add_figures_to_browser(figbrowser, nfig, tmpdir, 'image/png')
+    figbrowser.setFixedSize(500, 500)
+
+    for __ in range(nfig // 2):
+        figbrowser.go_next_thumbnail()
+        qtbot.wait(500)
+
+    scene = figbrowser.thumbnails_sb.scene
+
+    spacing = scene.verticalSpacing()
+    height = scene.itemAt(0).sizeHint().height()
+    height_view = figbrowser.thumbnails_sb.scrollarea.viewport().height()
+
+    expected = (spacing * (nfig // 2)) + (height * (nfig // 2 - 1)) - \
+               ((height_view - height) // 2)
+
+    vsb = figbrowser.thumbnails_sb.scrollarea.verticalScrollBar()
+    assert vsb.value() == expected
+
+
 @pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
 def test_mouse_clicking_thumbnails(figbrowser, tmpdir, qtbot, fmt):
     """
