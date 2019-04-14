@@ -1553,11 +1553,6 @@ class MainWindow(QMainWindow):
         """Setup default layouts when run for the first time."""
         self.setUpdatesEnabled(False)
 
-        base_size = self.size()
-        max_size = self.maximumSize()
-        min_size = self.minimumSize()
-
-        self.setFixedSize(base_size)
         self.maximize_dockwidget(restore=True)
         self.set_window_settings(*settings)
 
@@ -1752,21 +1747,17 @@ class MainWindow(QMainWindow):
                 row[0].dockwidget.show()
                 row[0].dockwidget.raise_()
 
-        # Set widths and heights
+        # Set dockwidget widths
         width_fractions = layout['width fraction']
         if len(width_fractions) > 1:
-            # TODO: get the first col[i] that is not None
             _widgets = [col[0][0].dockwidget for col in widgets_layout]
-            if width_fractions < 0:
-                print(_widgets)
             self.resizeDocks(_widgets, width_fractions, Qt.Horizontal)
 
+        # Set dockwidget heights
         height_fractions = layout['height fraction']
         for idx, column in enumerate(widgets_layout_clean):
             if len(column) > 1:
                 _widgets = [row[0].dockwidget for row in column]
-                if height_fractions[idx] < 0:
-                    print(i, column)
                 self.resizeDocks(_widgets, height_fractions[idx], Qt.Vertical)
 
         # Hide toolbars
@@ -1781,9 +1772,6 @@ class MainWindow(QMainWindow):
             if widget is not None:
                 widget.dockwidget.close()
 
-        self.setBaseSize(base_size)
-        self.setMaximumSize(max_size)
-        self.setMinimumSize(min_size)
         self.setUpdatesEnabled(True)
 
     @Slot()
