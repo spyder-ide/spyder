@@ -724,9 +724,7 @@ class ThumbnailScrollBar(QFrame):
         spacing_between_items = self.scene.verticalSpacing()
         height_view = self.scrollarea.viewport().height()
         height_item = self.scene.itemAt(index).sizeHint().height()
-        height_view_excluding_item = height_view - height_item
-        if height_view_excluding_item < 0:
-            height_view_excluding_item = 0
+        height_view_excluding_item = max(0, height_view - height_item)
 
         height_of_top_items = spacing_between_items
         for i in range(index):
