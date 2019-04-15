@@ -613,14 +613,14 @@ class LSPManagerConfigPage(GeneralConfigPage):
     def setup_page(self):
         newcb = self.create_checkbox
 
-        # --- Code completion ---
+        # --- Introspection ---
         # Introspection group
         introspection_group = QGroupBox(_("Introspection"))
         completion_box = newcb(_("Enable code completion"), 'code_completion')
         goto_definition_box = newcb(
-            _("Go to definitions"),
+            _("Enable Go to definition"),
             'jedi_definition',
-            tip=_("If this option is enabled, doing a left mouse click on\n"
+            tip=_("If this option is enabled, left-clicking on\n"
                   "an object name while pressing the Ctrl key will go to\n"
                   "that object's definition (if resolved)."))
         follow_imports_box = newcb(_("Follow imports when going to a "
@@ -795,7 +795,7 @@ class LSPManagerConfigPage(GeneralConfigPage):
             placeholder=_("Example codes: D413, D414"))
         docstring_style_ignore = self.create_lineedit(
             _("Ignore the following errors:"),
-            'pydocstyle/select', alignment=Qt.Horizontal, word_wrap=False,
+            'pydocstyle/ignore', alignment=Qt.Horizontal, word_wrap=False,
             placeholder=_("Example codes: D107, D402"))
         self.docstring_style_match = self.create_lineedit(
             _("Only check filenames matching these patterns:"),
@@ -895,8 +895,8 @@ class LSPManagerConfigPage(GeneralConfigPage):
         # Section label
         servers_label = QLabel(
             _("Spyder uses the <a href=\"{lsp_url}\">Language Server "
-              "Protocol</a> technology to provide code completion and linting "
-              "for its Editor. Here you can setup and configure LSP servers "
+              "Protocol</a> to provide code completion and linting "
+              "for its Editor. Here, you can setup and configure LSP servers "
               "for languages other than Python, so Spyder can provide such "
               "features for those languages as well."
               ).format(lsp_url=LSP_URL))
@@ -913,7 +913,7 @@ class LSPManagerConfigPage(GeneralConfigPage):
 
         # Buttons
         self.reset_btn = QPushButton(_("Reset to default values"))
-        self.new_btn = QPushButton(_("Setup a new server"))
+        self.new_btn = QPushButton(_("Set up a new server"))
         self.delete_btn = QPushButton(_("Delete currently selected server"))
         self.delete_btn.setEnabled(False)
 
@@ -944,7 +944,7 @@ class LSPManagerConfigPage(GeneralConfigPage):
         # --- Tabs organization ---
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(introspection_group, advanced_group),
-                    _('Code completion'))
+                    _('Introspection'))
         tabs.addTab(self.create_tab(linting_widget), _('Linting'))
         tabs.addTab(self.create_tab(code_style_widget), _('Code style'))
         tabs.addTab(self.create_tab(docstring_style_widget),
@@ -993,14 +993,14 @@ class LSPManagerConfigPage(GeneralConfigPage):
         # Check regex of docstring style options
         try:
             docstring_style_match = (
-                self.docstring_style_match.textbox.text().split(","))
+                self.docstring_style_match.textbox.text())
             re.compile(docstring_style_match)
         except re.error:
             self.set_option('pydocstyle/match', '')
 
         try:
             docstring_style_match_dir = (
-                self.docstring_style_match.textbox.text().split(","))
+                self.docstring_style_match.textbox.text())
             re.compile(docstring_style_match_dir)
         except re.error:
             self.set_option('pydocstyle/match_dir', '')
