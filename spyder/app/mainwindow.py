@@ -1590,8 +1590,9 @@ class MainWindow(QMainWindow):
         helper = self.onlinehelp
         plugins = self.thirdparty_plugins
 
+        # Stored for tests
         global_hidden_widgets = [finder, console_int, explorer_project,
-                                 helper] + plugins
+                                       helper] + plugins
         global_hidden_toolbars = [self.source_toolbar, self.edit_toolbar,
                                   self.search_toolbar]
         # Layout definition
@@ -1622,7 +1623,7 @@ class MainWindow(QMainWindow):
                                 [1.0],          # Column 1, row heights
                                 [1.0],          # Column 2, row heights
                                 [0.46, 0.54]],  # Column 3, row heights
-            'hidden widgets': [outline],
+            'hidden widgets': [outline] + global_hidden_widgets,
             'hidden toolbars': [],
         }
 
@@ -1642,7 +1643,7 @@ class MainWindow(QMainWindow):
                                0.45],           # Column 1 width
             'height fraction': [[0.55, 0.45],   # Column 0, row heights
                                 [0.55, 0.45]],  # Column 1, row heights
-            'hidden widgets': [outline],
+            'hidden widgets': [outline] + global_hidden_widgets,
             'hidden toolbars': [],
         }
 
@@ -1665,7 +1666,7 @@ class MainWindow(QMainWindow):
             'height fraction': [[0.55, 0.45],   # Column 0, row heights
                                 [0.55, 0.45],   # Column 1, row heights
                                 [0.55, 0.45]],  # Column 2, row heights
-            'hidden widgets': [],
+            'hidden widgets': global_hidden_widgets,
             'hidden toolbars': [],
         }
 
@@ -1680,7 +1681,7 @@ class MainWindow(QMainWindow):
                 ],
             'width fraction': [1.0],            # Column 0 width
             'height fraction': [[0.55, 0.45]],  # Column 0, row heights
-            'hidden widgets': [outline],
+            'hidden widgets': [outline] + global_hidden_widgets,
             'hidden toolbars': [],
         }
 
@@ -1698,7 +1699,7 @@ class MainWindow(QMainWindow):
                                0.45],     # Column 1 width
             'height fraction': [[1.0],    # Column 0, row heights
                                 [1.0]],   # Column 1, row heights
-            'hidden widgets': [outline],
+            'hidden widgets': [outline] + global_hidden_widgets,
             'hidden toolbars': []
         }
 
@@ -1783,13 +1784,13 @@ class MainWindow(QMainWindow):
                 toolbar.close()
 
         # Hide widgets
-        hidden_widgets = global_hidden_widgets + layout['hidden widgets']
+        hidden_widgets = layout['hidden widgets']
         for widget in hidden_widgets:
             if widget is not None:
                 widget.dockwidget.close()
 
         if first_spyder_run:
-            pass
+            self.first_spyder_run = False
         else:
             self.setMaximumSize(max_size)
             self.setMinimumSize(min_size)

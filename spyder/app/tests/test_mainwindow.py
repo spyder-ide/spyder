@@ -1792,28 +1792,32 @@ def test_render_issue():
     assert test_traceback in test_issue_2
 
 
-# @pytest.mark.slow
-@flaky(max_runs=1)
-@pytest.mark.boo
+@flaky(max_runs=3)
 def test_custom_layouts(main_window, qtbot):
-    """Test that render issue works without errors and returns text."""
+    """Test that layout are showing the expected widgets visible."""
     mw = main_window
     mw.first_spyder_run = False
-    settings = mw.load_window_settings(prefix='window' + '/', default=True)
+    prefix = 'window' + '/'
+    settings = mw.load_window_settings(prefix=prefix, default=True)
 
     # Test layout changes
     for layout_idx in ['default'] + list(range(4)):
         with qtbot.waitSignal(mw.sig_layout_setup_ready, timeout=5000):
             layout = mw.setup_default_layouts(layout_idx, settings=settings)
 
-            with qtbot.waitSignal(None, timeout=1000, raising=False):
+            with qtbot.waitSignal(None, timeout=500, raising=False):
                 # Add a wait to see changes
                 pass
 
-            layout['widgets']
-
-            # Add test
-            print(layout)
+            widgets_layout = layout['widgets']
+            hidden_widgets = layout['hidden widgets']
+            for column in widgets_layout:
+                for row in column:
+                    for idx, widget in enumerate(row):
+                        if idx == 0:
+                            if widget not in hidden_widgets:
+                                print(widget)
+                                assert widget.isVisible()
 
 
 if __name__ == "__main__":
