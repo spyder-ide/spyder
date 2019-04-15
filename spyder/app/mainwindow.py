@@ -252,12 +252,12 @@ def qt_message_handler(msg_type, msg_log_context, msg_string):
     """
     Qt warning messages are intercepted by this handler.
 
-    On some oprating systems, warning messages might be displayed
+    On some operating systems, warning messages might be displayed
     even if the actual message does not apply. This filter adds a
     blacklist for messages that are being printed for no apparent
     reason. Anything else will get printed in the internal console.
 
-    On DEV mode, all messages are printed.
+    In DEV mode, all messages are printed.
     """
     BLACKLIST = [
         'QMainWidget::resizeDocks: all sizes need to be larger than 0',
@@ -1592,14 +1592,14 @@ class MainWindow(QMainWindow):
 
         # Stored for tests
         global_hidden_widgets = [finder, console_int, explorer_project,
-                                       helper] + plugins
+                                 helper] + plugins
         global_hidden_toolbars = [self.source_toolbar, self.edit_toolbar,
                                   self.search_toolbar]
         # Layout definition
         # --------------------------------------------------------------------
-        # Layouts are organized by columns, each column is organized by rows
-        # width have to add 1.0 (except if hidden), height per column has to
-        # add 1.0
+        # Layouts are organized by columns, each column is organized by rows.
+        # Widths have to add 1.0 (except if hidden), height per column has to
+        # add 1.0 as well
 
         # Spyder Default Initial Layout
         s_layout = {
