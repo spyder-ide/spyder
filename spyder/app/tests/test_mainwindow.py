@@ -156,7 +156,11 @@ def main_window(request):
 
     # Check if we need to use introspection in a given test
     # (it's faster and less memory consuming not to use it!)
-    use_introspection = request.node.get_marker('use_introspection')
+    try:
+        use_introspection = request.node.get_marker('use_introspection')
+    except AttributeError:
+        use_introspection = False
+
     if use_introspection:
         os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
     else:
@@ -166,7 +170,11 @@ def main_window(request):
             pass
 
     # Only use single_instance mode for tests that require it
-    single_instance = request.node.get_marker('single_instance')
+    try:
+        single_instance = request.node.get_marker('single_instance')
+    except AttributeError:
+        single_instance = False
+
     if single_instance:
         CONF.set('main', 'single_instance', True)
     else:
@@ -1782,6 +1790,30 @@ def test_render_issue():
     assert len(test_issue_2) > 100
     assert test_description in test_issue_2
     assert test_traceback in test_issue_2
+
+
+# @pytest.mark.slow
+@flaky(max_runs=1)
+@pytest.mark.boo
+def test_custom_layouts(main_window, qtbot):
+    """Test that render issue works without errors and returns text."""
+    mw = main_window
+    mw.first_spyder_run = False
+    settings = mw.load_window_settings(prefix='window' + '/', default=True)
+
+    # Test layout changes
+    for layout_idx in ['default'] + list(range(4)):
+        with qtbot.waitSignal(mw.sig_layout_setup_ready, timeout=5000):
+            layout = mw.setup_default_layouts(layout_idx, settings=settings)
+
+            with qtbot.waitSignal(None, timeout=1000, raising=False):
+                # Add a wait to see changes
+                pass
+
+            layout['widgets']
+
+            # Add test
+            print(layout)
 
 
 if __name__ == "__main__":

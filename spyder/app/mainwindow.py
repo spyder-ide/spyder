@@ -310,8 +310,9 @@ class MainWindow(QMainWindow):
     all_actions_defined = Signal()
     sig_pythonpath_changed = Signal()
     sig_open_external_file = Signal(str)
-    sig_resized = Signal("QResizeEvent")  # related to interactive tour
-    sig_moved = Signal("QMoveEvent")      # related to interactive tour
+    sig_resized = Signal("QResizeEvent")     # Related to interactive tour
+    sig_moved = Signal("QMoveEvent")         # Related to interactive tour
+    sig_layout_setup_ready = Signal(object)  # Related to default layouts
 
     def __init__(self, options=None):
         QMainWindow.__init__(self)
@@ -1553,8 +1554,23 @@ class MainWindow(QMainWindow):
         """Setup default layouts when run for the first time."""
         self.setUpdatesEnabled(False)
 
-        self.maximize_dockwidget(restore=True)
-        self.set_window_settings(*settings)
+        first_spyder_run = bool(self.first_spyder_run)  # Store copy
+
+        if first_spyder_run:
+            self.set_window_settings(*settings)
+        else:
+            if self.last_plugin:
+                if self.last_plugin.ismaximized:
+                    self.maximize_dockwidget(restore=True)
+
+            if not self.isMaximized():
+                self.showMaximized()
+
+            base_size = self.size()
+            min_size = self.minimumSize()
+            max_size = self.maximumSize()
+            self.setMinimumSize(base_size)
+            self.setMaximumSize(base_size)
 
         # IMPORTANT: order has to be the same as defined in the config file
         MATLAB, RSTUDIO, VERTICAL, HORIZONTAL = range(self.DEFAULT_LAYOUTS)
@@ -1772,7 +1788,19 @@ class MainWindow(QMainWindow):
             if widget is not None:
                 widget.dockwidget.close()
 
+        if first_spyder_run:
+            pass
+        else:
+            self.setMaximumSize(max_size)
+            self.setMinimumSize(min_size)
+            self.setBaseSize(base_size)
+
+            if not self.isMaximized():
+                self.showMaximized()
+
         self.setUpdatesEnabled(True)
+        self.sig_layout_setup_ready.emit(layout)
+        return layout
 
     @Slot()
     def toggle_previous_layout(self):
