@@ -47,6 +47,7 @@ class BaseEditMixin(object):
     _PARAMETER_HIGHLIGHT_COLOR = '#DAA520'
     _DEFAULT_TITLE_COLOR = '#2D62FF'
     _CHAR_HIGHLIGHT_COLOR = 'red'
+    _DEFAULT_TEXT_COLOR = '#999999'
 
     def __init__(self):
         self.eol_chars = None
@@ -121,7 +122,7 @@ class BaseEditMixin(object):
             <hr>
             <div style=\'font-family: "{font_family}";
                         font-size: {text_size}pt;
-                        color: {color}\'>
+                        color: {color_text}\'>
                 {text}
             </div>
         '''
@@ -147,6 +148,7 @@ class BaseEditMixin(object):
             title_size=title_size,
             text_size=text_size,
             color=color,
+            color_text=self._DEFAULT_TEXT_COLOR,
             title=title,
             text=text,
         )
@@ -155,11 +157,11 @@ class BaseEditMixin(object):
 
     def _format_signature(self, signature, doc='', parameter='',
                           parameter_doc='', color=_DEFAULT_TITLE_COLOR):
-        """This is some docs."""
+        """"""
         active_parameter_template = (
-            '<span style=\'font-family: "{font_family}";'
-            'font-size: {font_size}pt;'
-            'color: {color}\'>'
+            '<span style=\'font-family:"{font_family}";'
+            'font-size:{font_size}pt;'
+            'color:{color}\'>'
             '<b>{parameter}</b>'
             '</span>'
         )
@@ -169,28 +171,46 @@ class BaseEditMixin(object):
             '</span>'
         )
 
+        def handle_sub(matchobj):
+            match = matchobj.group(0)
+            new = match.replace(parameter, active_parameter_template)
+            return new
+
         # Wrap signature lines and add color to special characters
+        pattern = r'[\*|(|\s](' + parameter + r')[,|)|\s|=]'
         formatted_lines = []
         name = signature.split('(')[0]
         indent = ' ' * (len(name) + 1)
         rows = textwrap.wrap(signature, width=50, subsequent_indent=indent)
         for row in rows:
+            # Add template to highlight the active parameter
+            row = re.sub(pattern, handle_sub, row)
             row = row.replace(' ', '&nbsp;')
-            for char in ['=', ',', '(', ')', '*', '**']:
-                new_char = chars_template.format(char=char)
-                row = row.replace(char, new_char)
+            row = row.replace('span&nbsp;', 'span ')
             formatted_lines.append(row)
-        title = '<br>'.join(formatted_lines)
-
-        # Add template to highlight the active parameter
-        signature_template = title.replace(parameter,
-                                           active_parameter_template)
+        title_template = '<br>'.join(formatted_lines)
 
         # Add parameter documentation to template
-        # if parameter_doc is not None and len(parameter_doc) > 0:
-        #     parameter_doc_template = '{parameter}:&nbsp;{parameter_doc}<br>'
-        # else:
-        #     parameter_doc_template = '{parameter}{parameter_doc}'
+        if parameter_doc is not None and len(parameter_doc) > 0:
+            text_prefix = 'param: ' + parameter
+            text = parameter_doc
+        elif doc is not None and len(doc) > 0:
+            text_prefix = ''
+            text = doc
+        else:
+            text_prefix = ''
+            text = ''
+
+        formatted_lines = []
+        rows = textwrap.wrap(text, width=60)
+        for row in rows:
+            row = row.replace(' ', '&nbsp;')
+
+        if text_prefix:
+            text = text_prefix + '<br><br>' + '<br>'.join(rows) 
+        else:
+            text = '<br>'.join(rows)
+        text += '<br>'
 
         # Get current font properties
         font = self.font()
@@ -198,25 +218,14 @@ class BaseEditMixin(object):
         font_family = font.family()
 
         # Format title to display active parameter
-        title_template = signature_template
-
         title = title_template.format(
             font_size=font_size,
             font_family=font_family,
             color=self._PARAMETER_HIGHLIGHT_COLOR,
             parameter=parameter,
-            parameter_doc=parameter_doc,
         )
 
-        #
-        # text = title.replace(' ', '&nbsp;')
-            # row = escape(row)  # Escape most common html chars
-        #     for char in ['=', ',', '(', ')', '*', '**']:
-        #         new_char = chars_template.format(char=char)
-        #         row = row.replace(char, new_char)
-
-        
-        tiptext = self._format_text(title, doc.replace(' ', '&nbsp;'), color)
+        tiptext = self._format_text(title, text.replace(' ', '&nbsp;'), color)
 
         return tiptext, rows
 

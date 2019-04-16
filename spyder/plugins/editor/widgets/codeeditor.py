@@ -766,7 +766,7 @@ class CodeEditor(TextEditBaseWidget):
         self.auto_completion_characters = (
             completion_options['triggerCharacters'])
         self.signature_completion_characters = (
-            signature_options['triggerCharacters'])
+            signature_options['triggerCharacters'] + ['='])  # FIXME:
         self.go_to_definition_enabled = config['definitionProvider']
         self.find_references_enabled = config['referencesProvider']
         self.highlight_enabled = config['documentHighlightProvider']
@@ -857,6 +857,9 @@ class CodeEditor(TextEditBaseWidget):
         """Handle signature response."""
         try:
             signature_params = params['params']
+            # import json
+            # print(json.dumps(signature_params, sort_keys=True,
+            #                  indent=4, separators=(',', ': ')))
 
             if (signature_params is not None and
                     'activeParameter' in signature_params):
@@ -2958,6 +2961,7 @@ class CodeEditor(TextEditBaseWidget):
                     self.do_completion(automatic=True)
         elif (text != '(' and text in self.signature_completion_characters and
                 not self.has_selected_text()):
+            print(text)
             self.insert_text(text)
             self.request_signature()
         elif key == Qt.Key_Colon and not has_selection \
