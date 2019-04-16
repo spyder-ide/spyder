@@ -172,16 +172,21 @@ class BaseEditMixin(object):
         )
 
         def handle_sub(matchobj):
+            """
+            Handle substitution of active parameter template.
+
+            This ensures the correct highlight of the active parameter.
+            """
             match = matchobj.group(0)
             new = match.replace(parameter, active_parameter_template)
             return new
 
-        # Wrap signature lines and add color to special characters
+        # Process signature template
         pattern = r'[\*|(|\s](' + parameter + r')[,|)|\s|=]'
         formatted_lines = []
         name = signature.split('(')[0]
         indent = ' ' * (len(name) + 1)
-        rows = textwrap.wrap(signature, width=50, subsequent_indent=indent)
+        rows = textwrap.wrap(signature, width=60, subsequent_indent=indent)
         for row in rows:
             # Add template to highlight the active parameter
             row = re.sub(pattern, handle_sub, row)
@@ -190,7 +195,20 @@ class BaseEditMixin(object):
             formatted_lines.append(row)
         title_template = '<br>'.join(formatted_lines)
 
-        # Add parameter documentation to template
+        # Get current font properties
+        font = self.font()
+        font_size = font.pointSize()
+        font_family = font.family()
+
+        # Format title to display active parameter
+        title = title_template.format(
+            font_size=font_size,
+            font_family=font_family,
+            color=self._PARAMETER_HIGHLIGHT_COLOR,
+            parameter=parameter,
+        )
+
+        # Process documentation
         if parameter_doc is not None and len(parameter_doc) > 0:
             text_prefix = 'param: ' + parameter
             text = parameter_doc
@@ -212,19 +230,7 @@ class BaseEditMixin(object):
             text = '<br>'.join(rows)
         text += '<br>'
 
-        # Get current font properties
-        font = self.font()
-        font_size = font.pointSize()
-        font_family = font.family()
-
-        # Format title to display active parameter
-        title = title_template.format(
-            font_size=font_size,
-            font_family=font_family,
-            color=self._PARAMETER_HIGHLIGHT_COLOR,
-            parameter=parameter,
-        )
-
+        # Format text
         tiptext = self._format_text(title, text.replace(' ', '&nbsp;'), color)
 
         return tiptext, rows
