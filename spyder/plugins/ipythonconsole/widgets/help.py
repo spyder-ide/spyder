@@ -125,5 +125,4 @@ class HelpWidget(RichJupyterWidget):
             if content.get('status') == 'ok' and content.get('found', False):
                 signature = self.get_signature(content)
                 if signature:
-                    self._control.show_calltip(_("Arguments"), signature,
-                                               signature=True, color='#2D62FF')
+                    self._control.show_calltip(signature, color='#2D62FF')

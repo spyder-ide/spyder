@@ -44,6 +44,10 @@ else:
 
 class BaseEditMixin(object):
 
+    _PARAMETER_HIGHLIGHT_COLOR = '#DAA520'
+    _DEFAULT_TITLE_COLOR = '#2D62FF'
+    _CHAR_HIGHLIGHT_COLOR = 'red'
+
     def __init__(self):
         self.eol_chars = None
         self.calltip_size = 600
@@ -54,7 +58,6 @@ class BaseEditMixin(object):
         # Implemented in CodeEditor, but needed for calltip/completion widgets
         return 0
 
-
     def calculate_real_position(self, point):
         """
         Add offset to a point, to take into account the Editor panels.
@@ -64,75 +67,204 @@ class BaseEditMixin(object):
         """
         return point
 
-
-    #------Calltips
-    def _format_signature(self, text):
-        formatted_lines = []
-        # This code was assuming the text included the signature, which is
-        # no longer the case
-        # name = text.split('(')[0]
-        # rows = textwrap.wrap(text, width=50,
-        #                      subsequent_indent=' '*(len(name)+1))
-        rows = text.split('\n')
-        for r in rows:
-            r = escape(r) # Escape most common html chars
-            r = r.replace(' ', '&nbsp;')
-            for char in ['=', ',', '(', ')', '*', '**']:
-                r = r.replace(char,
-                       '<span style=\'color: red; font-weight: bold\'>' + \
-                       char + '</span>')
-            formatted_lines.append(r)
-        signature = '<br>'.join(formatted_lines)
-        return signature, rows
-
-    def show_calltip(self, title, text, signature=False, color='#2D62FF',
-                     at_line=None, at_position=None, at_point=None):
-        """Show calltip"""
-        if text is None or len(text) == 0:
-            return
+    # --- Tooltips and Calltips
+    def _calculate_position(self, at_line=None, at_position=None,
+                            at_point=None):
+        """
+        Calculate a global point position `QPoint(x, y)`, for a given
+        line, local cursor position, or local point.
+        """
+        # Check that no option or only one option is given:
+        if [at_line, at_position, at_point].count(None) < 2:
+            raise Exception('Provide no argument or only one argument!')
 
         # Saving cursor position:
         if at_position is None:
             at_position = self.get_position('cursor')
+
+        # FIXME: What id this used for?
         self.calltip_position = at_position
 
-        # Preparing text:
-        if signature:
-            text, wrapped_textlines = self._format_signature(text)
-        else:
-            if isinstance(text, list):
-                text = "\n    ".join(text)
-            text = text.replace('\n', '<br>')
-            if len(text) > self.calltip_size:
-                text = text[:self.calltip_size] + " ..."
-
-        # Formatting text
-        font = self.font()
-        size = font.pointSize()
-        family = font.family()
-        format1 = '<div style=\'font-family: "%s"; font-size: %spt; color: %s\'>'\
-                  % (family, size, color)
-        format2 = '<div style=\'font-family: "%s"; font-size: %spt\'>'\
-                  % (family, size-1 if size > 9 else size)
-        tiptext = format1 + ('<b>%s</b></div>' % title) + '<hr>' + \
-                  format2 + text + "</div>"
-
-        # Showing tooltip at cursor position:
-        cx, cy = self.get_coordinates('cursor')
         if at_point is not None:
+            # Showing tooltip at point position
             cx, cy = at_point.x(), at_point.y()
-        if at_line is not None:
+        elif at_line is not None:
+            # Showing tooltip at line
             cx = 5
             cursor = QTextCursor(self.document().findBlockByNumber(at_line-1))
             cy = self.cursorRect(cursor).top()
+        else:
+            # Showing tooltip at cursor position
+            # FIXME: why is at_position not being used to calculate the
+            # coordinates?
+            cx, cy = self.get_coordinates('cursor')
+
+        # Calculate vertical delta
+        font = self.font()
+        delta = font.pointSize() + 5
+
+        # Map to global coordinates
         point = self.mapToGlobal(QPoint(cx, cy))
         point = self.calculate_real_position(point)
-        point.setY(point.y()+font.pointSize()+5)
-        if signature:
-            self.calltip_widget.show_tip(point, tiptext, wrapped_textlines)
-        else:
-            QToolTip.showText(point, tiptext)
+        point.setY(point.y() + delta)
 
+        return point
+
+    def _format_text(self, title, text, color, ellide=False):
+        """"""
+        template = '''
+            <div style=\'font-family: "{font_family}";
+                        font-size: {title_size}pt;
+                        color: {color}\'>
+                <b>{title}</b>
+            </div>
+            <hr>
+            <div style=\'font-family: "{font_family}";
+                        font-size: {text_size}pt;
+                        color: {color}\'>
+                {text}
+            </div>
+        '''
+
+        # Prepare text
+        if isinstance(text, list):
+            text = "\n    ".join(text)
+
+        text = text.replace('\n', '<br>')
+
+        # Ellide the text if it is too long
+        if ellide and len(text) > self.calltip_size:
+            text = text[:self.calltip_size] + " ..."
+
+        # Get current font properties
+        font = self.font()
+        font_family = font.family()
+        title_size = font.pointSize()
+        text_size = title_size - 1 if title_size > 9 else title_size
+
+        tiptext = template.format(
+            font_family=font_family,
+            title_size=title_size,
+            text_size=text_size,
+            color=color,
+            title=title,
+            text=text,
+        )
+
+        return tiptext
+
+    def _format_signature(self, signature, doc='', parameter='',
+                          parameter_doc='', color=_DEFAULT_TITLE_COLOR):
+        """This is some docs."""
+        active_parameter_template = (
+            '<span style=\'font-family: "{font_family}";'
+            'font-size: {font_size}pt;'
+            'color: {color}\'>'
+            '<b>{parameter}</b>'
+            '</span>'
+        )
+        chars_template = (
+            '<span style="color:{0};'.format(self._CHAR_HIGHLIGHT_COLOR) +
+            'font-weight:bold">{char}'
+            '</span>'
+        )
+
+        # Wrap signature lines and add color to special characters
+        formatted_lines = []
+        name = signature.split('(')[0]
+        indent = ' ' * (len(name) + 1)
+        rows = textwrap.wrap(signature, width=50, subsequent_indent=indent)
+        for row in rows:
+            row = row.replace(' ', '&nbsp;')
+            for char in ['=', ',', '(', ')', '*', '**']:
+                new_char = chars_template.format(char=char)
+                row = row.replace(char, new_char)
+            formatted_lines.append(row)
+        title = '<br>'.join(formatted_lines)
+
+        # Add template to highlight the active parameter
+        signature_template = title.replace(parameter,
+                                           active_parameter_template)
+
+        # Add parameter documentation to template
+        # if parameter_doc is not None and len(parameter_doc) > 0:
+        #     parameter_doc_template = '{parameter}:&nbsp;{parameter_doc}<br>'
+        # else:
+        #     parameter_doc_template = '{parameter}{parameter_doc}'
+
+        # Get current font properties
+        font = self.font()
+        font_size = font.pointSize()
+        font_family = font.family()
+
+        # Format title to display active parameter
+        title_template = signature_template
+
+        title = title_template.format(
+            font_size=font_size,
+            font_family=font_family,
+            color=self._PARAMETER_HIGHLIGHT_COLOR,
+            parameter=parameter,
+            parameter_doc=parameter_doc,
+        )
+
+        #
+        # text = title.replace(' ', '&nbsp;')
+            # row = escape(row)  # Escape most common html chars
+        #     for char in ['=', ',', '(', ')', '*', '**']:
+        #         new_char = chars_template.format(char=char)
+        #         row = row.replace(char, new_char)
+
+        
+        tiptext = self._format_text(title, doc.replace(' ', '&nbsp;'), color)
+
+        return tiptext, rows
+
+    def show_calltip(self, signature, doc='', parameter='', parameter_doc='',
+                     color=_DEFAULT_TITLE_COLOR):
+        """
+        Show calltip.
+
+        Calltips look like tooltips but will not disappear if mouse hovers
+        them. They are useful for displaying signature information on methods
+        and functions.
+        """
+        # Find position of calltip
+        point = self._calculate_position()
+
+        # Format text
+        tiptext, wrapped_lines = self._format_signature(
+            signature,
+            doc,
+            parameter,
+            parameter_doc,
+            color,
+        )
+
+        # Show calltip
+        self.calltip_widget.show_tip(point, tiptext, wrapped_lines)
+
+    def show_tooltip(self, title, text, color=_DEFAULT_TITLE_COLOR,
+                     at_line=None, at_position=None, at_point=None):
+        """
+        Show tooltip.
+
+        Tooltips will disappear if mouse hovers them. They are meant for quick
+        inspections. 
+        """
+        if text is not None and len(text) != 0:
+            # Find position of calltip
+            point = self._calculate_position(
+                at_line=at_line,
+                at_position=at_position,
+                at_point=at_point,
+            )
+
+            # Format text
+            tip = self._format_text(title, text, color, ellide=True)
+
+            # Display tooltip
+            QToolTip.showText(point, tip)
 
     #------EOL characters
     def set_eol_chars(self, text):
@@ -758,7 +890,7 @@ class GetHelpMixin(object):
                             tiptext = name + argspec
                         else:
                             tiptext = signature
-                        self.show_calltip(_("Arguments"), tiptext,
+                        self.show_tooltip(_("Arguments"), tiptext,
                                           signature=True, color='#2D62FF')
 
     def get_last_obj(self, last=False):
