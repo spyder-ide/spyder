@@ -20,6 +20,7 @@ import sre_constants
 import textwrap
 
 # Third party imports
+import qdarkstyle
 from qtpy.QtCore import QPoint, Qt
 from qtpy.QtGui import QCursor, QTextCursor, QTextDocument
 from qtpy.QtWidgets import QApplication, QToolTip
@@ -29,6 +30,7 @@ from spyder_kernels.utils.dochelpers import (getargspecfromtext, getobj,
 
 # Local imports
 from spyder.config.base import _
+from spyder.config.gui import is_dark_interface
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding, sourcecode, programs
 from spyder.utils.misc import get_error_match
@@ -111,6 +113,16 @@ class BaseEditMixin(object):
 
         return point
 
+    def _update_stylesheet(self):
+        """"""
+        if is_dark_interface():
+            css = qdarkstyle.load_stylesheet_from_environment()
+            tooltip = getattr(self, 'tooltip_widget', None)
+            self.calltip_widget.setStyleSheet(css)
+
+            if tooltip:
+                tooltip.setStyleSheet(css)
+
     def _format_text(self, title, text, color, ellide=False):
         """"""
         template = '''
@@ -156,7 +168,8 @@ class BaseEditMixin(object):
         return tiptext
 
     def _format_signature(self, signature, doc='', parameter='',
-                          parameter_doc='', color=_DEFAULT_TITLE_COLOR):
+                          parameter_doc='', color=_DEFAULT_TITLE_COLOR,
+                          is_python=False):
         """"""
         active_parameter_template = (
             '<span style=\'font-family:"{font_family}";'
@@ -192,6 +205,10 @@ class BaseEditMixin(object):
             row = re.sub(pattern, handle_sub, row)
             row = row.replace(' ', '&nbsp;')
             row = row.replace('span&nbsp;', 'span ')
+            if is_python:
+                for char in ['(', ')', ',', '*', '**']:
+                    new_char = chars_template.format(char=char)
+                    row = row.replace(char, new_char)
             formatted_lines.append(row)
         title_template = '<br>'.join(formatted_lines)
 
@@ -236,7 +253,7 @@ class BaseEditMixin(object):
         return tiptext, rows
 
     def show_calltip(self, signature, doc='', parameter='', parameter_doc='',
-                     color=_DEFAULT_TITLE_COLOR):
+                     color=_DEFAULT_TITLE_COLOR, is_python=False):
         """
         Show calltip.
 
@@ -254,7 +271,10 @@ class BaseEditMixin(object):
             parameter,
             parameter_doc,
             color,
+            is_python,
         )
+
+        self._update_stylesheet()
 
         # Show calltip
         self.calltip_widget.show_tip(point, tiptext, wrapped_lines)
@@ -276,10 +296,13 @@ class BaseEditMixin(object):
             )
 
             # Format text
-            tip = self._format_text(title, text, color, ellide=True)
+            tiptext = self._format_text(title, text, color, ellide=True)
+
+            self._update_stylesheet()
 
             # Display tooltip
-            QToolTip.showText(point, tip)
+            self.tooltip_widget.show_tip(point, tiptext)
+            self.tooltip_widget.show()
 
     #------EOL characters
     def set_eol_chars(self, text):
@@ -879,7 +902,7 @@ class GetHelpMixin(object):
                             # focus back to shell
 
         # Show calltip
-        if call and self.calltips:
+        if call and getattr(self, 'calltips', None):
             # Display argument list if this is a function call
             iscallable = self.iscallable(text)
             if iscallable is not None:

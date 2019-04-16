@@ -886,6 +886,7 @@ class CodeEditor(TextEditBaseWidget):
                     parameter,
                     parameter_documentation,
                     color='#999999',
+                    is_python=self.is_python()
                 )
         except Exception:
             self.log_lsp_handle_errors("Error when processing signature")
@@ -1734,6 +1735,10 @@ class CodeEditor(TextEditBaseWidget):
         self.setUpdatesEnabled(True)
         self.linenumberarea.update()
         self.classfuncdropdown.update()
+
+    def hide_tooltip(self):
+        """"""
+        self.tooltip_widget.hide()
 
     def show_code_analysis_results(self, line_number, block_data):
         """Show warning/error messages."""
