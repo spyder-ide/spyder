@@ -1563,14 +1563,12 @@ class MainWindow(QMainWindow):
                 if self.last_plugin.ismaximized:
                     self.maximize_dockwidget(restore=True)
 
-            if not self.isMaximized():
+            if not (self.isMaximized() or self.maximized_flag):
                 self.showMaximized()
 
-            base_size = self.size()
-            min_size = self.minimumSize()
-            max_size = self.maximumSize()
-            self.setMinimumSize(base_size)
-            self.setMaximumSize(base_size)
+            min_width = self.minimumWidth()
+            max_width = self.maximumWidth()
+            self.setFixedWidth(self.width())
 
         # IMPORTANT: order has to be the same as defined in the config file
         MATLAB, RSTUDIO, VERTICAL, HORIZONTAL = range(self.DEFAULT_LAYOUTS)
@@ -1792,11 +1790,10 @@ class MainWindow(QMainWindow):
         if first_spyder_run:
             self.first_spyder_run = False
         else:
-            self.setMaximumSize(max_size)
-            self.setMinimumSize(min_size)
-            self.setBaseSize(base_size)
+            self.setMinimumWidth(min_width)
+            self.setMaximumWidth(max_width)
 
-            if not self.isMaximized():
+            if not (self.isMaximized() or self.maximized_flag):
                 self.showMaximized()
 
         self.setUpdatesEnabled(True)

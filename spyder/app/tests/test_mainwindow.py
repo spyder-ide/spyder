@@ -1792,6 +1792,7 @@ def test_render_issue():
     assert test_traceback in test_issue_2
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 def test_custom_layouts(main_window, qtbot):
     """Test that layout are showing the expected widgets visible."""
@@ -1816,7 +1817,7 @@ def test_custom_layouts(main_window, qtbot):
                     for idx, widget in enumerate(row):
                         if idx == 0:
                             if widget not in hidden_widgets:
-                                print(widget)
+                                print(widget)  # spyder: test-skip
                                 assert widget.isVisible()
 
 
