@@ -1745,7 +1745,7 @@ class CodeEditor(TextEditBaseWidget):
         self.show_tooltip(
             _("Code analysis"),
             msglist,
-            color='#129625', 
+            color='#129625',
             at_line=line_number,
         )
         self.highlight_line_warning(block_data)
@@ -2961,7 +2961,6 @@ class CodeEditor(TextEditBaseWidget):
                     self.do_completion(automatic=True)
         elif (text != '(' and text in self.signature_completion_characters and
                 not self.has_selected_text()):
-            print(text)
             self.insert_text(text)
             self.request_signature()
         elif key == Qt.Key_Colon and not has_selection \

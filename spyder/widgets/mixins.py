@@ -207,7 +207,7 @@ class BaseEditMixin(object):
             row = row.replace(' ', '&nbsp;')
 
         if text_prefix:
-            text = text_prefix + '<br><br>' + '<br>'.join(rows) 
+            text = text_prefix + '<br><br>' + '<br>'.join(rows)
         else:
             text = '<br>'.join(rows)
         text += '<br>'
@@ -259,7 +259,7 @@ class BaseEditMixin(object):
         Show tooltip.
 
         Tooltips will disappear if mouse hovers them. They are meant for quick
-        inspections. 
+        inspections.
         """
         if text is not None and len(text) != 0:
             # Find position of calltip
