@@ -753,6 +753,8 @@ class Help(SpyderPluginWidget):
             self.rich_text.webview.load(QUrl(url))
 
     # ------ Public API -------------------------------------------------------
+    @Slot()
+    @Slot(bool)
     @Slot(bool, bool)
     def force_refresh(self, valid=True, editing=True):
         if valid:
