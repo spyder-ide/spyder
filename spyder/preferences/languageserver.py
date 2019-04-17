@@ -782,16 +782,6 @@ class LSPManagerConfigPage(GeneralConfigPage):
              ("PEP 257", 'pep257'),
              ("Custom", 'custom')),
             'pydocstyle/convention')
-        self.docstring_style_add_select = self.create_lineedit(
-            _("Display the following errors in addition to the "
-              "specified convention:"),
-            'pydocstyle/add_select', alignment=Qt.Horizontal, word_wrap=False,
-            placeholder=_("Example codes: D100, D200"))
-        self.docstring_style_add_ignore = self.create_lineedit(
-            _("Ignore the following errors in addition to "
-              "the specified convention:").format(code_style_codes),
-            'pydocstyle/add_ignore', alignment=Qt.Horizontal, word_wrap=False,
-            placeholder=_("Example codes: D400, D405"))
         self.docstring_style_select = self.create_lineedit(
             _("Select the following errors to show:"),
             'pydocstyle/select', alignment=Qt.Horizontal, word_wrap=False,
@@ -822,29 +812,21 @@ class LSPManagerConfigPage(GeneralConfigPage):
         docstring_style_g_layout.addWidget(
             docstring_style_convention.combobox, 1, 1)
         docstring_style_g_layout.addWidget(
-            self.docstring_style_add_select.label, 2, 0)
+            self.docstring_style_select.label, 2, 0)
         docstring_style_g_layout.addWidget(
-            self.docstring_style_add_select.textbox, 2, 1)
+            self.docstring_style_select.textbox, 2, 1)
         docstring_style_g_layout.addWidget(
-            self.docstring_style_add_ignore.label, 3, 0)
+            self.docstring_style_ignore.label, 3, 0)
         docstring_style_g_layout.addWidget(
-            self.docstring_style_add_ignore.textbox, 3, 1)
+            self.docstring_style_ignore.textbox, 3, 1)
         docstring_style_g_layout.addWidget(
-            self.docstring_style_select.label, 4, 0)
+            self.docstring_style_match.label, 4, 0)
         docstring_style_g_layout.addWidget(
-            self.docstring_style_select.textbox, 4, 1)
+            self.docstring_style_match.textbox, 4, 1)
         docstring_style_g_layout.addWidget(
-            self.docstring_style_ignore.label, 5, 0)
+            self.docstring_style_match_dir.label, 5, 0)
         docstring_style_g_layout.addWidget(
-            self.docstring_style_ignore.textbox, 5, 1)
-        docstring_style_g_layout.addWidget(
-            self.docstring_style_match.label, 6, 0)
-        docstring_style_g_layout.addWidget(
-            self.docstring_style_match.textbox, 6, 1)
-        docstring_style_g_layout.addWidget(
-            self.docstring_style_match_dir.label, 7, 0)
-        docstring_style_g_layout.addWidget(
-            self.docstring_style_match_dir.textbox, 7, 1)
+            self.docstring_style_match_dir.textbox, 5, 1)
 
         # Set Docstring style options enabled/disabled
         docstring_style_g_widget = QWidget()
@@ -970,29 +952,17 @@ class LSPManagerConfigPage(GeneralConfigPage):
     def setup_docstring_style_convention(self, text):
         """Handle convention changes."""
         if text == 'Custom':
-            # Show select and ignore options
-            self.docstring_style_select.label.setVisible(True)
-            self.docstring_style_select.textbox.setVisible(True)
-            self.docstring_style_ignore.label.setVisible(True)
-            self.docstring_style_ignore.textbox.setVisible(True)
-
-            # Hide add_select and add_ignore options
-            self.docstring_style_add_select.label.setVisible(False)
-            self.docstring_style_add_select.textbox.setVisible(False)
-            self.docstring_style_add_ignore.label.setVisible(False)
-            self.docstring_style_add_ignore.textbox.setVisible(False)
+            self.docstring_style_select.label.setText(
+                _("Show the following errors:"))
+            self.docstring_style_ignore.label.setText(
+                _("Ignore the following errors:"))
         else:
-            # Hide select and ignore options
-            self.docstring_style_select.label.setVisible(False)
-            self.docstring_style_select.textbox.setVisible(False)
-            self.docstring_style_ignore.label.setVisible(False)
-            self.docstring_style_ignore.textbox.setVisible(False)
-
-            # Show add_select and add_ignore options
-            self.docstring_style_add_select.label.setVisible(True)
-            self.docstring_style_add_select.textbox.setVisible(True)
-            self.docstring_style_add_ignore.label.setVisible(True)
-            self.docstring_style_add_ignore.textbox.setVisible(True)
+            self.docstring_style_select.label.setText(
+                _("Show the following errors in addition "
+                  "to the specified convention:"))
+            self.docstring_style_ignore.label.setText(
+                _("Ignore the following errors in addition "
+                  "to the specified convention:"))
 
     def reset_to_default(self):
         CONF.reset_to_defaults(section='lsp-server')
