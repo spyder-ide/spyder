@@ -54,7 +54,10 @@ logger = logging.getLogger(__name__)
 @class_register
 class LSPClient(QObject, LSPMethodProviderMixIn):
     """Language Server Protocol v3.0 client implementation."""
-    initialized = Signal()
+    # Signals
+    sig_document_event = Signal(dict, str)
+
+    # Constants
     external_server_fmt = ('--server-host %(host)s '
                            '--server-port %(port)s '
                            '--external-server')
@@ -80,7 +83,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.ready_to_close = False
         self.request_seq = 1
         self.req_status = {}
-        self.plugin_registry = {}
+        self.event_registry = []
         self.watched_files = {}
         self.req_reply = {}
 
@@ -257,11 +260,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                     self.req_reply[_id] = params['response_codeeditor']
             return _id
 
-    # ------ Spyder plugin registration --------------------------------
-    def register_plugin_type(self, plugin_type, notification_sig):
-        if plugin_type not in self.plugin_registry:
-            self.plugin_registry[plugin_type] = []
-        self.plugin_registry[plugin_type].append(notification_sig)
+    # ------ Event registration --------------------------------
+    def register_event_type(self, event_type):
+        if event_type not in self.event_registry:
+            self.event_registry.append(event_type)
 
     # ------ LSP initialization methods --------------------------------
     @handles(SERVER_READY)
@@ -304,8 +306,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
         self.server_capabilites.update(server_capabilites)
 
-        for sig in self.plugin_registry[LSPEventTypes.DOCUMENT]:
-            sig.emit(self.server_capabilites, self.language)
+        for event_type in self.event_registry:
+            if event_type == LSPEventTypes.DOCUMENT:
+                self.sig_document_event.emit(self.server_capabilites,
+                                             self.language)
 
     @send_request(method=LSPRequestTypes.WORKSPACE_CONFIGURATION_CHANGE,
                   requires_response=False)

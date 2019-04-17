@@ -95,7 +95,6 @@ class Editor(SpyderPluginWidget):
     breakpoints_saved = Signal()
     run_in_current_extconsole = Signal(str, str, str, bool, bool)
     open_file_update = Signal(str)
-    sig_lsp_notification = Signal(dict, str)
 
     def __init__(self, parent, ignore_last_opened_files=False):
         SpyderPluginWidget.__init__(self, parent)
@@ -162,7 +161,6 @@ class Editor(SpyderPluginWidget):
         self.__ignore_cursor_position = True
 
         # LSP setup
-        self.sig_lsp_notification.connect(self.document_server_settings)
         self.lsp_editor_settings = {}
 
         # Setup new windows:
@@ -947,10 +945,9 @@ class Editor(SpyderPluginWidget):
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.main.lspmanager.register_plugin_type(LSPEventTypes.DOCUMENT,
-                                                  self.sig_lsp_notification)
+        self.main.lspmanager.register_event_type(LSPEventTypes.DOCUMENT)
         self.main.restore_scrollbar_position.connect(
-                                               self.restore_scrollbar_position)
+            self.restore_scrollbar_position)
         self.main.console.edit_goto.connect(self.load)
         self.exec_in_extconsole.connect(self.main.execute_in_external_console)
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)

@@ -40,7 +40,7 @@ class LSPManager(QObject):
         QObject.__init__(self)
         self.main = parent
 
-        self.lsp_plugins = {}
+        self.lsp_event_types = []
         self.clients = {}
         self.requests = {}
         self.register_queue = {}
@@ -55,8 +55,9 @@ class LSPManager(QObject):
             }
             self.register_queue[language] = []
 
-    def register_plugin_type(self, type, sig):
-        self.lsp_plugins[type] = sig
+    def register_event_type(self, event_type):
+        """Register LSPEventTypes that clients can handle."""
+        self.lsp_event_types.append(event_type)
 
     def register_file(self, language, filename, signal):
         if language in self.clients:
@@ -163,9 +164,14 @@ class LSPManager(QObject):
                     language=language
                 )
 
-                for plugin in self.lsp_plugins:
-                    language_client['instance'].register_plugin_type(
-                        plugin, self.lsp_plugins[plugin])
+                # Connect signals emitted by the client to the methods that
+                # can handle them
+                language_client['instance'].sig_document_event.connect(
+                    self.main.editor.document_server_settings)
+
+                for event_type in self.lsp_event_types:
+                    language_client['instance'].register_event_type(
+                        event_type)
 
                 logger.info("Starting LSP client for {}...".format(language))
                 language_client['instance'].start()
