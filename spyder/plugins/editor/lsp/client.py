@@ -170,9 +170,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
         fid = self.zmq_in_socket.getsockopt(zmq.FD)
         self.notifier = QSocketNotifier(fid, QSocketNotifier.Read, self)
-        # self.notifier.activated.connect(self.debug_print)
         self.notifier.activated.connect(self.on_msg_received)
-        # self.initialize()
+
+        # This is necessary for test to pass locally
+        logger.debug('LSP {} client started!'.format(self.language))
 
     def stop(self):
         # self.shutdown()

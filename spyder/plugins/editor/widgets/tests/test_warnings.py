@@ -21,7 +21,7 @@ from spyder.plugins.editor.lsp import LSPEventTypes
 
 class LSPWrapper(QObject):
     """
-    Wrapper to start the LSP services in a CodeEditor instance, once we
+    Wrapper to start the LSP services in a CodeEditor instance, once
     an LSP Python client was started.
     """
     sig_lsp_services_started = Signal()
