@@ -266,13 +266,14 @@ def test_filter_numpy_warning(main_window, qtbot):
     CONF.set('variable_explorer', 'minmax', False)
 
 
+@pytest.mark.slow
+@flaky(max_runs=3)
 @pytest.mark.use_introspection
 def test_get_help_combo(main_window, qtbot):
     """
     Test that Help works when called from the Editor and the IPython console.
     """
     shell = main_window.ipyconsole.get_current_shellwidget()
-    control = shell._control
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
