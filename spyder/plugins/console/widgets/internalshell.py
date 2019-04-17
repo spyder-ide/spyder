@@ -157,9 +157,7 @@ class InternalShell(PythonShellWidget):
         
         # Code completion / calltips
         getcfg = lambda option: CONF.get('internal_console', option)
-        case_sensitive = getcfg('codecompletion/case_sensitive')
-        self.set_codecompletion_case(case_sensitive)
-        
+
         # keyboard events management
         self.eventqueue = []
 

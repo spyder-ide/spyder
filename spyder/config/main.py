@@ -116,13 +116,9 @@ DEFAULTS = [
               'working_dir_history': 30,
               'working_dir_adjusttocontents': False,
               'wrap': True,
-              'calltips': True,
               'codecompletion/auto': False,
-              'codecompletion/enter_key': True,
-              'codecompletion/case_sensitive': True,
               'external_editor/path': 'SciTE',
               'external_editor/gotoline': '-goto:',
-              'light_background': True,
               }),
             ('main_interpreter',
              {
@@ -161,7 +157,11 @@ DEFAULTS = [
               'in_prompt': '',
               'out_prompt': '',
               'show_elapsed_time': False,
-              'ask_before_restart': True
+              'ask_before_restart': True,
+              # This is True because there are libraries like Pyomo
+              # that generate a lot of Command Prompts while running,
+              # and that's extremely annoying for Windows users.
+              'hide_cmd_windows': True
               }),
             ('variable_explorer',
              {
@@ -202,17 +202,12 @@ DEFAULTS = [
               'indent_guides': False,
               'scroll_past_end': False,
               'toolbox_panel': True,
-              'calltips': True,
-              'go_to_definition': True,
               'close_parentheses': True,
               'close_quotes': True,
               'add_colons': True,
               'auto_unindent': True,
               'indent_chars': '*    *',
               'tab_stop_width_spaces': 4,
-              'codecompletion/auto': True,
-              'codecompletion/enter_key': True,
-              'codecompletion/case_sensitive': True,
               'check_eol_chars': True,
               'convert_eol_on_save': False,
               'convert_eol_on_save_to': 'LF',
@@ -282,6 +277,7 @@ DEFAULTS = [
               'show_hidden': True,
               'show_all': True,
               'show_icontext': False,
+              'single_click_to_open': False,
               }),
             ('find_in_files',
              {

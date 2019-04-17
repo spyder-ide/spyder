@@ -64,8 +64,8 @@ class RemoteEnvDialog(CollectionsEditor):
 
 class EnvDialog(RemoteEnvDialog):
     """Environment variables Dialog"""
-    def __init__(self):
-        RemoteEnvDialog.__init__(self, dict(os.environ))
+    def __init__(self, parent=None):
+        RemoteEnvDialog.__init__(self, dict(os.environ), parent=parent)
 
 
 # For Windows only
