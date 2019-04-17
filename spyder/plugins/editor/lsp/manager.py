@@ -166,8 +166,9 @@ class LSPManager(QObject):
 
                 # Connect signals emitted by the client to the methods that
                 # can handle them
-                language_client['instance'].sig_document_event.connect(
-                    self.main.editor.document_server_settings)
+                if self.main is not None and self.main.editor is not None:
+                    language_client['instance'].sig_document_event.connect(
+                        self.main.editor.document_server_settings)
 
                 for event_type in self.lsp_event_types:
                     language_client['instance'].register_event_type(
