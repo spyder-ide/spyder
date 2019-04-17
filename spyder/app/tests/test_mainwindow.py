@@ -269,6 +269,8 @@ def test_filter_numpy_warning(main_window, qtbot):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.use_introspection
+@pytest.mark.skipif(PY2,
+                    reason="Times out in PY2")
 def test_get_help_combo(main_window, qtbot):
     """
     Test that Help works when called from the Editor and the IPython console.
