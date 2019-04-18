@@ -18,7 +18,7 @@ import os.path as osp
 from qtpy.QtCore import QObject, Slot
 
 # Local imports
-from spyder.config.base import get_conf_path
+from spyder.config.base import get_conf_path, running_under_pytest
 from spyder.config.lsp import PYTHON_CONFIG
 from spyder.config.main import CONF
 from spyder.utils.misc import select_port, getcwd_or_home
@@ -141,11 +141,11 @@ class LSPManager(QObject):
             language_client = self.clients[language]
             queue = self.register_queue[language]
 
-            # Don't start LSP services in our CIs unless we demand
+            # Don't start LSP services when testing unless we demand
             # them.
-            if (os.environ.get('CI', False) and
-                    not os.environ.get('SPY_TEST_USE_INTROSPECTION')):
-                return started
+            if running_under_pytest():
+                if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
+                    return started
 
             # Start client
             started = language_client['status'] == self.RUNNING
