@@ -16,7 +16,6 @@ from qtpy.QtCore import QObject, Signal, Slot
 from spyder.config.main import CONF
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.lsp.manager import LSPManager
-from spyder.plugins.editor.lsp import LSPEventTypes
 
 
 class LSPWrapper(QObject):
@@ -66,13 +65,12 @@ def build_lsp_editor(qtbot):
     lsp_wrapper = LSPWrapper(editor, lsp_manager)
 
     # Start LSP Python client
-    lsp_manager.register_event_type(LSPEventTypes.DOCUMENT)
     with qtbot.waitSignal(lsp_wrapper.sig_lsp_services_started, timeout=30000):
         editor.filename = 'test.py'
         editor.language = 'Python'
         lsp_manager.start_client('python')
         python_client = lsp_manager.clients['python']['instance']
-        python_client.sig_document_event.connect(lsp_wrapper.start_lsp_services)
+        python_client.sig_initialize.connect(lsp_wrapper.start_lsp_services)
 
     # Set the following text on editor
     text = ("def some_function():\n"  # D100, D103: Missing docstring

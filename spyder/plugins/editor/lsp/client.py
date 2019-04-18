@@ -29,7 +29,7 @@ from spyder.config.base import get_conf_path, get_debug_level
 from spyder.plugins.editor.lsp import (
     CLIENT_CAPABILITES, SERVER_CAPABILITES, TRACE,
     TEXT_DOCUMENT_SYNC_OPTIONS, LSPRequestTypes,
-    LSPEventTypes, ClientConstants)
+    ClientConstants)
 from spyder.plugins.editor.lsp.decorators import (
     send_request, class_register, handles)
 from spyder.plugins.editor.lsp.providers import LSPMethodProviderMixIn
@@ -55,7 +55,7 @@ logger = logging.getLogger(__name__)
 class LSPClient(QObject, LSPMethodProviderMixIn):
     """Language Server Protocol v3.0 client implementation."""
     # Signals
-    sig_document_event = Signal(dict, str)
+    sig_initialize = Signal(dict, str)
 
     # Constants
     external_server_fmt = ('--server-host %(host)s '
@@ -83,7 +83,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.ready_to_close = False
         self.request_seq = 1
         self.req_status = {}
-        self.event_registry = []
         self.watched_files = {}
         self.req_reply = {}
 
@@ -261,11 +260,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                     self.req_reply[_id] = params['response_codeeditor']
             return _id
 
-    # ------ Event registration --------------------------------
-    def register_event_type(self, event_type):
-        if event_type not in self.event_registry:
-            self.event_registry.append(event_type)
-
     # ------ LSP initialization methods --------------------------------
     @handles(SERVER_READY)
     @send_request(method=LSPRequestTypes.INITIALIZE)
@@ -307,10 +301,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
         self.server_capabilites.update(server_capabilites)
 
-        for event_type in self.event_registry:
-            if event_type == LSPEventTypes.DOCUMENT:
-                self.sig_document_event.emit(self.server_capabilites,
-                                             self.language)
+        self.sig_initialize.emit(self.server_capabilites, self.language)
 
     @send_request(method=LSPRequestTypes.WORKSPACE_CONFIGURATION_CHANGE,
                   requires_response=False)

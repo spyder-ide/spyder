@@ -56,7 +56,6 @@ from spyder.api.plugins import SpyderPluginWidget
 from spyder.preferences.runconfig import (ALWAYS_OPEN_FIRST_RUN_OPTION,
                                           get_run_configuration,
                                           RunConfigDialog, RunConfigOneDialog)
-from spyder.plugins.editor.lsp import LSPEventTypes
 
 
 logger = logging.getLogger(__name__)
@@ -292,10 +291,11 @@ class Editor(SpyderPluginWidget):
                 editor.lsp_ready = False
 
     @Slot(dict, str)
-    def document_server_settings(self, settings, language):
-        """Update LSP server settings for textDocument requests."""
+    def register_lsp_server_settings(self, settings, language):
+        """Register LSP server settings."""
         self.lsp_editor_settings[language] = settings
-        logger.debug('LSP Language Settings: %r' % self.lsp_editor_settings)
+        logger.debug('LSP server settings for {!s} are: {!r}'.format(
+            language, settings))
         self.lsp_server_ready(language, self.lsp_editor_settings[language])
 
     def lsp_server_ready(self, language, configuration):
@@ -945,7 +945,6 @@ class Editor(SpyderPluginWidget):
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.main.lspmanager.register_event_type(LSPEventTypes.DOCUMENT)
         self.main.restore_scrollbar_position.connect(
             self.restore_scrollbar_position)
         self.main.console.edit_goto.connect(self.load)

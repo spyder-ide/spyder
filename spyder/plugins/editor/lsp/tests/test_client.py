@@ -13,8 +13,7 @@ from qtpy.QtCore import QObject, Signal, Slot
 
 from spyder.config.lsp import PYTHON_CONFIG
 from spyder.plugins.editor.lsp.client import LSPClient
-from spyder.plugins.editor.lsp import (SERVER_CAPABILITES,
-    LSPRequestTypes, LSPEventTypes)
+from spyder.plugins.editor.lsp import LSPRequestTypes, SERVER_CAPABILITES
 
 
 class LSPEditor(QObject):
@@ -34,7 +33,6 @@ def lsp_client_and_editor():
     client = LSPClient(parent=None,
                        server_settings=PYTHON_CONFIG,
                        language='python')
-    client.register_event_type(LSPEventTypes.DOCUMENT)
 
     yield client, editor
 
@@ -49,7 +47,7 @@ def test_initialization(lsp_client_and_editor, qtbot):
     client, editor = lsp_client_and_editor
 
     # Wait for the client to be started
-    with qtbot.waitSignal(client.sig_document_event, timeout=10000) as blocker:
+    with qtbot.waitSignal(client.sig_initialize, timeout=10000) as blocker:
         client.start()
     options, _ = blocker.args
 
@@ -64,7 +62,7 @@ def test_get_signature(lsp_client_and_editor, qtbot):
     client, editor = lsp_client_and_editor
 
     # Wait for the client to be started
-    with qtbot.waitSignal(client.sig_document_event, timeout=10000):
+    with qtbot.waitSignal(client.sig_initialize, timeout=10000):
         client.start()
 
     # Parameters to perform a textDocument/didOpen request
@@ -107,7 +105,7 @@ def test_get_completions(lsp_client_and_editor, qtbot):
     client, editor = lsp_client_and_editor
 
     # Wait for the client to be started
-    with qtbot.waitSignal(client.sig_document_event, timeout=10000):
+    with qtbot.waitSignal(client.sig_initialize, timeout=10000):
         client.start()
 
     # Parameters to perform a textDocument/didOpen request
@@ -151,7 +149,7 @@ def test_go_to_definition(lsp_client_and_editor, qtbot):
     client, editor = lsp_client_and_editor
 
     # Wait for the client to be started
-    with qtbot.waitSignal(client.sig_document_event, timeout=10000):
+    with qtbot.waitSignal(client.sig_initialize, timeout=10000):
         client.start()
 
     # Parameters to perform a textDocument/didOpen request
@@ -195,7 +193,7 @@ def test_local_signature(lsp_client_and_editor, qtbot):
     client, editor = lsp_client_and_editor
 
     # Wait for the client to be started
-    with qtbot.waitSignal(client.sig_document_event, timeout=10000):
+    with qtbot.waitSignal(client.sig_initialize, timeout=10000):
         client.start()
 
     # Parameters to perform a textDocument/didOpen request
