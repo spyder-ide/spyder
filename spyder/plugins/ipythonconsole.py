@@ -444,6 +444,10 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                   "When enabled, can cause discrepancies\n"
                   "between the image displayed inline and\n"
                   "that created using savefig."))
+        high_resolution_box = newcb(
+            _("Display images in high resolution"),
+            'pylab/inline/high_resolution',
+            tip=_("Display images in high resolution."))
 
         inline_v_layout = QVBoxLayout()
         inline_v_layout.addWidget(inline_label)
@@ -460,6 +464,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         inline_layout.addWidget(height_spin.spinbox, 4, 1)
         inline_layout.addWidget(height_spin.slabel, 4, 2)
         inline_layout.addWidget(bbox_inches_box, 5, 0, 1, 4)
+        inline_layout.addWidget(high_resolution_box, 6, 0, 1, 4)
 
         inline_h_layout = QHBoxLayout()
         inline_h_layout.addLayout(inline_layout)

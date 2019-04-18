@@ -160,6 +160,7 @@ DEFAULTS = [
               'pylab/inline/width': 6,
               'pylab/inline/height': 4,
               'pylab/inline/bbox_inches': True,
+              'pylab/inline/high_resolution': False,
               'startup/run_lines': '',
               'startup/use_run_file': False,
               'startup/run_file': '',

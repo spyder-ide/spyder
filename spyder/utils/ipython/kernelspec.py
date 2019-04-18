@@ -107,6 +107,8 @@ class SpyderKernelSpec(KernelSpec):
                                           'pylab/inline/bbox_inches'),
             'SPY_RESOLUTION_O': CONF.get('ipython_console',
                                          'pylab/inline/resolution'),
+            'SPY_HIGH_RESOLUTION_O': CONF.get('ipython_console',
+                                              'pylab/inline/high_resolution'),
             'SPY_WIDTH_O': CONF.get('ipython_console', 'pylab/inline/width'),
             'SPY_HEIGHT_O': CONF.get('ipython_console', 'pylab/inline/height'),
             'SPY_USE_FILE_O': CONF.get('ipython_console',
