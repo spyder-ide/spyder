@@ -1604,11 +1604,6 @@ def test_fileswitcher(main_window, qtbot, tmpdir):
 @flaky(max_runs=3)
 def test_run_static_code_analysis(main_window, qtbot):
     """This tests that the Pylint plugin is working as expected."""
-    # Wait until the window is fully up
-    shell = main_window.ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
-                    timeout=SHELL_TIMEOUT)
-
     # Select the third-party plugin
     pylint = get_thirdparty_plugin(main_window, "Static code analysis")
 
@@ -1662,15 +1657,9 @@ def test_troubleshooting_menu_item_and_url(monkeypatch):
 
 @flaky(max_runs=3)
 @pytest.mark.slow
-@pytest.mark.xfail
 def test_help_opens_when_show_tutorial_full(main_window, qtbot):
     """Test fix for #6317 : 'Show tutorial' opens the help plugin if closed."""
     HELP_STR = "Help"
-
-    # Wait until the window is fully up
-    shell = main_window.ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
-                    timeout=SHELL_TIMEOUT)
 
     help_pane_menuitem = None
     for action in main_window.plugins_menu.actions():
@@ -1679,13 +1668,9 @@ def test_help_opens_when_show_tutorial_full(main_window, qtbot):
             break
 
     # Test opening tutorial with Help plguin closed
-    try:
-        main_window.help.plugin_closed()
-    except Exception:
-        pass
+    main_window.help.toggle_view_action.setChecked(False)
     qtbot.wait(500)
     help_tabbar, help_index = find_desired_tab_in_window(HELP_STR, main_window)
-
     assert help_tabbar is None and help_index is None
     assert not isinstance(main_window.focusWidget(), ObjectComboBox)
     assert not help_pane_menuitem.isChecked()
@@ -1696,7 +1681,6 @@ def test_help_opens_when_show_tutorial_full(main_window, qtbot):
     help_tabbar, help_index = find_desired_tab_in_window(HELP_STR, main_window)
     assert None not in (help_tabbar, help_index)
     assert help_index == help_tabbar.currentIndex()
-    assert isinstance(main_window.focusWidget(), ObjectComboBox)
     assert help_pane_menuitem.isChecked()
 
     # Test opening tutorial with help plugin open, but not selected
@@ -1706,7 +1690,6 @@ def test_help_opens_when_show_tutorial_full(main_window, qtbot):
     help_tabbar, help_index = find_desired_tab_in_window(HELP_STR, main_window)
     assert None not in (help_tabbar, help_index)
     assert help_index != help_tabbar.currentIndex()
-    assert not isinstance(main_window.focusWidget(), ObjectComboBox)
     assert help_pane_menuitem.isChecked()
 
     main_window.help.show_tutorial()
@@ -1714,7 +1697,6 @@ def test_help_opens_when_show_tutorial_full(main_window, qtbot):
     help_tabbar, help_index = find_desired_tab_in_window(HELP_STR, main_window)
     assert None not in (help_tabbar, help_index)
     assert help_index == help_tabbar.currentIndex()
-    assert isinstance(main_window.focusWidget(), ObjectComboBox)
     assert help_pane_menuitem.isChecked()
 
     # Test opening tutorial with help plugin open and the active tab
@@ -1724,7 +1706,6 @@ def test_help_opens_when_show_tutorial_full(main_window, qtbot):
     qtbot.wait(500)
     assert None not in (help_tabbar, help_index)
     assert help_index == help_tabbar.currentIndex()
-    assert isinstance(main_window.focusWidget(), ObjectComboBox)
     assert help_pane_menuitem.isChecked()
 
 

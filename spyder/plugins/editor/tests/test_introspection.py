@@ -100,7 +100,7 @@ def test_space_completion(setup_editor):
     assert code_editor.toPlainText() == 'from numpy import\n'
 
 
-# @pytest.mark.slow
+@pytest.mark.slow
 def test_hide_widget_completion(setup_editor):
     """Validate hiding completion widget after a delimeter or operator."""
     editor, qtbot = setup_editor
