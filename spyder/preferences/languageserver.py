@@ -616,8 +616,8 @@ class LSPManagerConfigPage(GeneralConfigPage):
         newcb = self.create_checkbox
 
         # --- Introspection ---
-        # Introspection group
-        introspection_group = QGroupBox(_("Introspection"))
+        # Basic features group
+        basic_features_group = QGroupBox(_("Basic features"))
         completion_box = newcb(_("Enable code completion"), 'code_completion')
         goto_definition_box = newcb(
             _("Enable Go to definition"),
@@ -628,20 +628,20 @@ class LSPManagerConfigPage(GeneralConfigPage):
         follow_imports_box = newcb(_("Follow imports when going to a "
                                      "definition"),
                                    'jedi_definition/follow_imports')
-        show_signature_box = newcb(_("Show signature"), 'jedi_signature_help')
+        show_signature_box = newcb(_("Show calltips"), 'jedi_signature_help')
 
-        introspection_layout = QVBoxLayout()
-        introspection_layout.addWidget(completion_box)
-        introspection_layout.addWidget(goto_definition_box)
-        introspection_layout.addWidget(follow_imports_box)
-        introspection_layout.addWidget(show_signature_box)
-        introspection_group.setLayout(introspection_layout)
+        basic_features_layout = QVBoxLayout()
+        basic_features_layout.addWidget(completion_box)
+        basic_features_layout.addWidget(goto_definition_box)
+        basic_features_layout.addWidget(follow_imports_box)
+        basic_features_layout.addWidget(show_signature_box)
+        basic_features_group.setLayout(basic_features_layout)
 
         # Advanced group
         advanced_group = QGroupBox(_("Advanced"))
         modules_textedit = self.create_textedit(
             _("Preload the following modules to make completion faster "
-              "or more accurate:"),
+              "and more accurate:"),
             'preload_modules'
         )
         if is_dark_interface():
@@ -655,13 +655,13 @@ class LSPManagerConfigPage(GeneralConfigPage):
 
         # --- Linting ---
         # Linting options
-        linting_label = QLabel(_("Here you can decide if you want to get "
-                                 "syntax errors and informative warnings "
-                                 "about the code you write in the editor."))
+        linting_label = QLabel(_("Spyder can optionally highlight syntax "
+                                 "errors and possible problems with your "
+                                 "code in the editor."))
         linting_label.setOpenExternalLinks(True)
         linting_label.setWordWrap(True)
         linting_check = self.create_checkbox(
-            _("Enable linting"),
+            _("Enable basic linting"),
             'pyflakes')
 
         linting_complexity_box = self.create_checkbox(
@@ -679,16 +679,15 @@ class LSPManagerConfigPage(GeneralConfigPage):
         # --- Code style tab ---
         # Code style label
         pep_url = (
-            '<a href="https://www.python.org/dev/peps/pep-0008">PEP8</a>')
-        code_style_codes = _(
-            "<a href='http://pycodestyle.pycqa.org/en/latest"
-            "/intro.html#error-codes'>page</a>")
+            '<a href="https://www.python.org/dev/peps/pep-0008">PEP 8</a>')
+        code_style_codes_url = _(
+            "<a href='http://pycodestyle.pycqa.org/en/stable"
+            "/intro.html#error-codes'>pycodestyle error codes</a>")
         code_style_label = QLabel(
-            _("Here you can decide if you want to perform style analysis on "
-              "your code according to the {} convention. You can also "
-              "decide if you want to show or ignore specific errors or "
-              "warnings of that convention, according to the codes "
-              "found on this {}.").format(pep_url, code_style_codes))
+            _("Spyder can use pycodestyle to analyze your code for "
+              "conformance to the {} convention. You can also "
+              "manually show or hide specific warnings by their "
+              "{}.").format(pep_url, code_style_codes_url))
         code_style_label.setOpenExternalLinks(True)
         code_style_label.setWordWrap(True)
 
@@ -707,8 +706,8 @@ class LSPManagerConfigPage(GeneralConfigPage):
             'pycodestyle/exclude', alignment=Qt.Horizontal, word_wrap=False,
             placeholder=_("Exclude all test files: (?!test_).*\\.py"))
         code_style_select = self.create_lineedit(
-            _("Select the following error or warnings to show:").format(
-                code_style_codes),
+            _("Show the following errors or warnings:").format(
+                code_style_codes_url),
             'pycodestyle/select', alignment=Qt.Horizontal, word_wrap=False,
             placeholder=_("Example codes: E113, W391"))
         code_style_ignore = self.create_lineedit(
@@ -757,7 +756,7 @@ class LSPManagerConfigPage(GeneralConfigPage):
             "<a href='https://numpydoc.readthedocs.io/en/"
             "latest/format.html'>Numpy</a>")
         pep257_url = (
-            "<a href='https://www.python.org/dev/peps/pep-0257/'>Pep 257</a>")
+            "<a href='https://www.python.org/dev/peps/pep-0257/'>PEP 257</a>")
         docstring_style_codes = _(
             "<a href='http://www.pydocstyle.org/en/stable"
             "/error_codes.html'>page</a>")
@@ -783,7 +782,7 @@ class LSPManagerConfigPage(GeneralConfigPage):
              ("Custom", 'custom')),
             'pydocstyle/convention')
         self.docstring_style_select = self.create_lineedit(
-            _("Select the following errors to show:"),
+            _("Show the following errors:"),
             'pydocstyle/select', alignment=Qt.Horizontal, word_wrap=False,
             placeholder=_("Example codes: D413, D414"))
         self.docstring_style_ignore = self.create_lineedit(
@@ -848,7 +847,7 @@ class LSPManagerConfigPage(GeneralConfigPage):
         # Advanced label
         advanced_label = QLabel(
             _("Please don't modify these values unless "
-              "you know what you're doing"))
+              "you know what you're doing!"))
         advanced_label.setWordWrap(True)
         advanced_label.setAlignment(Qt.AlignJustify)
 
@@ -934,7 +933,7 @@ class LSPManagerConfigPage(GeneralConfigPage):
 
         # --- Tabs organization ---
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(introspection_group, advanced_group),
+        tabs.addTab(self.create_tab(basic_features_group, advanced_group),
                     _('Introspection'))
         tabs.addTab(self.create_tab(linting_widget), _('Linting'))
         tabs.addTab(self.create_tab(code_style_widget), _('Code style'))
