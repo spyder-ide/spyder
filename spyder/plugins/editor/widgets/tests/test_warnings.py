@@ -13,6 +13,7 @@ import pytest
 from qtpy.QtCore import Signal, QObject
 
 # Local imports
+from spyder.config.main import CONF
 from spyder.utils.qthelpers import qapplication
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.py3compat import to_binary_string
@@ -44,7 +45,10 @@ class LSPEditorWrapper(QObject):
 # -----------------------------------------------------------------------------
 @pytest.fixture
 def construct_editor(qtbot, *args, **kwargs):
+    CONF.set('lsp-server', 'pycodestyle', True)
+    CONF.set('lsp-server', 'pydocstyle', True)
     os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
+
     app = qapplication()
     lsp_manager = LSPManager(parent=None)
     editor = CodeEditor(parent=None)
@@ -72,6 +76,8 @@ def construct_editor(qtbot, *args, **kwargs):
 
     yield editor, lsp_manager
     os.environ['SPY_TEST_USE_INTROSPECTION'] = 'False'
+    CONF.set('lsp-server', 'pycodestyle', False)
+    CONF.set('lsp-server', 'pydocstyle', False)
     lsp_manager.shutdown()
 
 
@@ -93,13 +99,12 @@ def test_adding_warnings(qtbot, construct_editor):
         block = block.next()
 
     print(warnings)
-    expected_warnings = {# 1: ['D100', 'D103'],
+    expected_warnings = {1: ['D100', 'D103'],
                          2: ['W293'],
-                         3: ['E261'], 5: ['undefined name']}
+                         3: ['E261'],
+                         5: ['undefined name']}
     for i, warning in warnings:
-            assert any([expected in warning
-                        for expected in expected_warnings[i]])
-            # assert expected in warning
+        assert any([expected in warning for expected in expected_warnings[i]])
 
 
 @pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
@@ -120,11 +125,10 @@ def test_move_warnings(qtbot, construct_editor):
     # Test cycling behaviour
     editor.go_to_line(5)
     editor.go_to_next_warning()
-    assert 2 == editor.get_cursor_line_number()
+    assert 1 == editor.get_cursor_line_number()
 
     editor.go_to_previous_warning()
     assert 5 == editor.get_cursor_line_number()
-    lsp_manager.close_client('python')
 
 
 @pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
@@ -135,7 +139,9 @@ def test_menu_show_warnings(qtbot, construct_editor):
     # Get current warnings
     warnings = editor.get_current_warnings()
 
-    expected = [['W293 blank line contains whitespace', 2],
+    expected = [['D100: Missing docstring in public module', 1],
+                ['D103: Missing docstring in public function', 1],
+                ['W293 blank line contains whitespace', 2],
                 ['E261 at least two spaces before inline comment', 3],
                 ["undefined name 's'", 5]]
 

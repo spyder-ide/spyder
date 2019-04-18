@@ -19,8 +19,10 @@ from qtpy.QtCore import QObject, Slot
 
 # Local imports
 from spyder.config.base import get_conf_path, running_under_pytest
+from spyder.config.lsp import PYTHON_CONFIG
 from spyder.config.main import CONF
 from spyder.utils.misc import select_port, getcwd_or_home
+from spyder.plugins.editor.lsp import LSP_LANGUAGES
 from spyder.plugins.editor.lsp.client import LSPClient
 
 
@@ -31,6 +33,8 @@ class LSPManager(QObject):
     """Language Server Protocol manager."""
     STOPPED = 'stopped'
     RUNNING = 'running'
+    CONF_SECTION = 'lsp-server'
+    LOCALHOST = ['127.0.0.1', 'localhost']
 
     def __init__(self, parent):
         QObject.__init__(self)
@@ -40,16 +44,13 @@ class LSPManager(QObject):
         self.clients = {}
         self.requests = {}
         self.register_queue = {}
-
-        # Get configurations for all LSP servers registered through
-        # our Preferences
-        self.configurations_for_servers = CONF.options('lsp-server')
+        self.python_config = PYTHON_CONFIG.copy()
 
         # Register languages to create clients for
-        for language in self.configurations_for_servers:
+        for language in self.get_languages():
             self.clients[language] = {
                 'status': self.STOPPED,
-                'config': CONF.get('lsp-server', language),
+                'config': self.get_language_config(language),
                 'instance': None
             }
             self.register_queue[language] = []
@@ -64,6 +65,30 @@ class LSPManager(QObject):
                 self.register_queue[language].append((filename, signal))
             else:
                 language_client.register_file(filename, signal)
+
+    def get_option(self, option):
+        """Get an option from our config system."""
+        return CONF.get(self.CONF_SECTION, option)
+
+    def get_languages(self):
+        """
+        Get the list of languages we need to start servers and create
+        clients for.
+        """
+        languages = ['python']
+        all_options = CONF.options(self.CONF_SECTION)
+        for option in all_options:
+            if option in [l.lower() for l in LSP_LANGUAGES]:
+                languages.append(option)
+        return languages
+
+    def get_language_config(self, language):
+        """Get language configuration options from our config system."""
+        if language == 'python':
+            self.update_python_config()
+            return self.python_config
+        else:
+            return self.get_option(language)
 
     def get_root_path(self, language):
         """
@@ -135,7 +160,8 @@ class LSPManager(QObject):
                     parent=self,
                     server_settings=config,
                     folder=self.get_root_path(language),
-                    language=language)
+                    language=language
+                )
 
                 for plugin in self.lsp_plugins:
                     language_client['instance'].register_plugin_type(
@@ -155,9 +181,9 @@ class LSPManager(QObject):
             self.close_client(language)
 
     def update_server_list(self):
-        for language in self.configurations_for_servers:
+        for language in self.get_languages():
             config = {'status': self.STOPPED,
-                      'config': CONF.get('lsp-server', language),
+                      'config': self.get_language_config(language),
                       'instance': None}
             if language not in self.clients:
                 self.clients[language] = config
@@ -204,3 +230,95 @@ class LSPManager(QObject):
             if language_client['status'] == self.RUNNING:
                 client = self.clients[language]['instance']
                 client.perform_request(request, params)
+
+    def update_python_config(self):
+        """
+        Update Python server configuration with the options saved in our
+        config system.
+        """
+        # Server options
+        cmd = self.get_option('advanced/command_launch')
+        host = self.get_option('advanced/host')
+        port = self.get_option('advanced/port')
+
+        # Pycodestyle
+        cs_exclude = self.get_option('pycodestyle/exclude').split(',')
+        cs_filename = self.get_option('pycodestyle/filename').split(',')
+        cs_select = self.get_option('pycodestyle/select').split(',')
+        cs_ignore = self.get_option('pycodestyle/ignore').split(',')
+        cs_max_line_length = self.get_option('pycodestyle/max_line_length')
+
+        pycodestyle = {
+            'enabled': self.get_option('pycodestyle'),
+            'exclude': [exclude.strip() for exclude in cs_exclude],
+            'filename': [filename.strip() for filename in cs_filename],
+            'select': [select.strip() for select in cs_select],
+            'ignore': [ignore.strip() for ignore in cs_ignore],
+            'hangClosing': False,
+            'maxLineLength': cs_max_line_length
+        }
+
+        # Linting - Pyflakes
+        pyflakes = {
+            'enabled': self.get_option('pyflakes')
+        }
+
+        # Pydocstyle
+        convention = self.get_option('pydocstyle/convention')
+
+        if convention == 'Custom':
+            ds_ignore = self.get_option('pydocstyle/ignore').split(',')
+            ds_select = self.get_option('pydocstyle/select').split(',')
+            ds_add_ignore = []
+            ds_add_select = []
+        else:
+            ds_ignore = []
+            ds_select = []
+            ds_add_ignore = self.get_option('pydocstyle/ignore').split(',')
+            ds_add_select = self.get_option('pydocstyle/select').split(',')
+
+        pydocstyle = {
+            'enabled': self.get_option('pydocstyle'),
+            'convention': convention,
+            'addIgnore': [ignore.strip() for ignore in ds_add_ignore],
+            'addSelect': [select.strip() for select in ds_add_select],
+            'ignore': [ignore.strip() for ignore in ds_ignore],
+            'select': [select.strip() for select in ds_select],
+            'match': self.get_option('pydocstyle/match'),
+            'matchDir': self.get_option('pydocstyle/match_dir')
+        }
+
+        # Code completion
+        jedi_completion = {
+            'enabled': self.get_option('code_completion'),
+            'include_params': False
+        }
+
+        jedi_signature_help = {
+            'enabled': self.get_option('jedi_signature_help')
+        }
+
+        jedi_definition = {
+            'enabled': self.get_option('jedi_definition'),
+            'follow_imports': self.get_option('jedi_definition/follow_imports')
+        }
+
+        # Setup options in json
+        self.python_config['cmd'] = cmd
+        if host in self.LOCALHOST:
+            self.python_config['args'] = '--host {host} --port {port} --tcp'
+            self.python_config['external'] = False
+        else:
+            self.python_config['args'] = ''
+            self.python_config['external'] = True
+        self.python_config['host'] = host
+        self.python_config['port'] = port
+
+        plugins = self.python_config['configurations']['pyls']['plugins']
+        plugins['pycodestyle'] = pycodestyle
+        plugins['pyflakes'] = pyflakes
+        plugins['pydocstyle'] = pydocstyle
+        plugins['jedi_completion'] = jedi_completion
+        plugins['jedi_signature_help'] = jedi_signature_help
+        plugins['preload']['modules'] = self.get_option('preload_modules')
+        plugins['jedi_definition'] = jedi_definition

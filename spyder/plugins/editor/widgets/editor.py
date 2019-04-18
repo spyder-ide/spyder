@@ -893,6 +893,7 @@ class EditorStack(QWidget):
         line, col = editor.get_cursor_line_column()
         editor.request_hover(line, col)
 
+    @Slot(str)
     def display_signature_help(self, signature):
         editor = self.get_current_editor()
         name = editor.get_current_word()

@@ -22,6 +22,7 @@ from spyder.config.fonts import MEDIUM, MONOSPACE, SANS_SERIF, SMALL
 from spyder.config.user import UserConfig
 from spyder.config.utils import IMPORT_EXT
 from spyder.utils import codeanalysis
+from spyder.utils.introspection.module_completion import PREFERRED_MODULES
 
 
 # =============================================================================
@@ -33,20 +34,16 @@ EXCLUDE_PATTERNS = ['*.csv, *.dat, *.log, *.tmp, *.bak, *.orig']
 # Extensions that should be visible in Spyder's file/project explorers
 SHOW_EXT = ['.py', '.ipynb', '.txt', '.dat', '.pdf', '.png', '.svg']
 
-
 # Extensions supported by Spyder (Editor or Variable explorer)
 USEFUL_EXT = IMPORT_EXT + SHOW_EXT
-
 
 # Name filters for file/project explorers (excluding files without extension)
 NAME_FILTERS = ['README', 'INSTALL', 'LICENSE', 'CHANGELOG'] + \
                ['*' + _ext for _ext in USEFUL_EXT if _ext]
 
-
 # Port used to detect if there is a running instance and to communicate with
 # it to open external files
 OPEN_FILES_PORT = 21128
-
 
 # OS Specific
 WIN = os.name == 'nt'
@@ -61,6 +58,9 @@ else:
     RUN_CELL_SHORTCUT = 'Ctrl+Return'
 RE_RUN_LAST_CELL_SHORTCUT = 'Alt+Return'
 RUN_CELL_AND_ADVANCE_SHORTCUT = 'Shift+Return'
+
+# Modules to be preloaded for Rope and Jedi
+PRELOAD_MDOULES = ', '.join(PREFERRED_MODULES)
 
 
 # =============================================================================
@@ -674,82 +674,31 @@ DEFAULTS = [
               'solarized/dark/number':     ('#cb4b16', False, False),
               'solarized/dark/instance':   ('#b58900', False, True)
              }),
-            ('lsp-server', {
-                'python': {
-                    'index': 0,
-                    'cmd': 'pyls',
-                    'args': '--host {host} --port {port} --tcp',
-                    'host': '127.0.0.1',
-                    'port': 2087,
-                    'external': False,
-                    'configurations': {
-                        'pyls': {
-                            'configurationSources': [
-                                "pycodestyle", "pyflakes"],
-                            'plugins': {
-                                'pycodestyle': {
-                                    'enabled': True,
-                                    'exclude': [],
-                                    'filename': [],
-                                    'select': [],
-                                    'ignore': [],
-                                    'hangClosing': False,
-                                    'maxLineLength': 79
-                                },
-                                'pyflakes': {
-                                    'enabled': True
-                                },
-                                'yapf': {
-                                    'enabled': False
-                                },
-                                'pydocstyle': {
-                                    'enabled': False,
-                                    'convention': 'pep257',
-                                    'addIgnore': [],
-                                    'addSelect': [],
-                                    'ignore': [],
-                                    'select': [],
-                                    'match': "(?!test_).*\\.py",
-                                    'matchDir': '[^\\.].*',
-                                },
-                                'rope': {
-                                    'extensionModules': None,
-                                    'ropeFolder': None,
-                                },
-                                'rope_completion': {
-                                    'enabled': False
-                                },
-                                'jedi_completion': {
-                                    'enabled': True,
-                                    'include_params': False
-                                },
-                                'jedi_hover': {
-                                    'enabled': True
-                                },
-                                'jedi_references': {
-                                    'enabled': True
-                                },
-                                'jedi_signature_help': {
-                                    'enabled': True
-                                },
-                                'jedi_symbols': {
-                                    'enabled': True,
-                                    'all_scopes': True
-                                },
-                                'mccabe': {
-                                    'enabled': False,
-                                    'threshold': 15
-                                },
-                                'preload': {
-                                    'enabled': True,
-                                    'modules': []
-                                }
-                            },
-
-                        }
-                    }
-                }
-            })
+            ('lsp-server',
+             {
+              'code_completion': True,
+              'jedi_definition': True,
+              'jedi_definition/follow_imports': True,
+              'jedi_signature_help': True,
+              'preload_modules': PRELOAD_MDOULES,
+              'pyflakes': True,
+              'mccabe': False,
+              'pycodestyle': False,
+              'pycodestyle/filename': '',
+              'pycodestyle/exclude': '',
+              'pycodestyle/select': '',
+              'pycodestyle/ignore': '',
+              'pycodestyle/max_line_length': 79,
+              'pydocstyle': False,
+              'pydocstyle/convention': 'numpy',
+              'pydocstyle/select': '',
+              'pydocstyle/ignore': '',
+              'pydocstyle/match': '(?!test_).*\\.py',
+              'pydocstyle/match_dir': '[^\\.].*',
+              'advanced/command_launch': 'pyls',
+              'advanced/host': '127.0.0.1',
+              'advanced/port': 2087,
+             })
             ]
 
 
@@ -763,7 +712,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '48.0.0'
+CONF_VERSION = '49.0.0'
 
 
 # Main configuration instance

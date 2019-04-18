@@ -11,10 +11,10 @@ from flaky import flaky
 import pytest
 from qtpy.QtCore import QObject, Signal, Slot
 
-from spyder.config.main import CONF
+from spyder.config.lsp import PYTHON_CONFIG
 from spyder.plugins.editor.lsp.client import LSPClient
-from spyder.plugins.editor.lsp import (
-    SERVER_CAPABILITES, LSPRequestTypes, LSPEventTypes)
+from spyder.plugins.editor.lsp import (SERVER_CAPABILITES,
+    LSPRequestTypes, LSPEventTypes)
 
 
 class LSPEditor(QObject):
@@ -28,10 +28,9 @@ class LSPEditor(QObject):
 
 @pytest.fixture
 def lsp_client(qtbot):
-    config = CONF.get('lsp-server', 'python')
     lsp_editor = LSPEditor()
     lsp = LSPClient(parent=None,
-                    server_settings=config,
+                    server_settings=PYTHON_CONFIG,
                     language='python')
     lsp.register_plugin_type(
         LSPEventTypes.DOCUMENT, lsp_editor.sig_lsp_notification)
