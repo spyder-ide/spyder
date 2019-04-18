@@ -70,10 +70,6 @@ class LSPManager(QObject):
         """Get an option from our config system."""
         return CONF.get(self.CONF_SECTION, option)
 
-    def set_option(self, option, value):
-        """Set an option from our config system."""
-        CONF.set(self.CONF_SECTION, option, value)
-
     def get_languages(self):
         """
         Get the list of languages we need to start servers and create
@@ -269,22 +265,17 @@ class LSPManager(QObject):
 
         # Pydocstyle
         convention = self.get_option('pydocstyle/convention')
-        ds_ignore = self.get_option('pydocstyle/ignore')
-        ds_select = self.get_option('pydocstyle/select')
 
         if convention == 'Custom':
-            self.set_option('pydocstyle/add_ignore', '')
-            self.set_option('pydocstyle/add_select', '')
             ds_ignore = self.get_option('pydocstyle/ignore').split(',')
             ds_select = self.get_option('pydocstyle/select').split(',')
+            ds_add_ignore = []
+            ds_add_select = []
         else:
-            self.set_option('pydocstyle/add_ignore', ds_ignore)
-            self.set_option('pydocstyle/add_select', ds_select)
             ds_ignore = []
             ds_select = []
-
-        ds_add_ignore = self.get_option('pydocstyle/add_ignore').split(',')
-        ds_add_select = self.get_option('pydocstyle/add_select').split(',')
+            ds_add_ignore = self.get_option('pydocstyle/ignore').split(',')
+            ds_add_select = self.get_option('pydocstyle/select').split(',')
 
         pydocstyle = {
             'enabled': self.get_option('pydocstyle'),

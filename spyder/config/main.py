@@ -691,8 +691,6 @@ DEFAULTS = [
               'pycodestyle/max_line_length': 79,
               'pydocstyle': False,
               'pydocstyle/convention': 'numpy',
-              'pydocstyle/add_select': '',
-              'pydocstyle/add_ignore': '',
               'pydocstyle/select': '',
               'pydocstyle/ignore': '',
               'pydocstyle/match': '(?!test_).*\\.py',
