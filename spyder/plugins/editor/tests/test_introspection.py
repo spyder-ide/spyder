@@ -52,6 +52,8 @@ def setup_editor(qtbot, monkeypatch):
                 return []
             if attr == 'lspmanager':
                 return self.lspmanager
+            elif attr == 'editor':
+                return None
             else:
                 return Mock()
 
@@ -62,12 +64,13 @@ def setup_editor(qtbot, monkeypatch):
     editor.register_plugin()
     qtbot.addWidget(editor)
     editor.show()
-    with qtbot.waitSignal(editor.sig_lsp_notification, timeout=30000):
+
+    lsp_client = editor.main.lspmanager.clients['python']['instance']
+    with qtbot.waitSignal(lsp_client.sig_initialize, timeout=30000) as blocker:
         editor.new(fname="test.py", text="")
-    # editor.introspector.set_editor_widget(editor.editorstacks[0])
-    code_editor = editor.get_focus_widget()
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
-        code_editor.document_did_open()
+
+    settings, language = blocker.args
+    editor.register_lsp_server_settings(settings, language)
 
     yield editor, qtbot
     # teardown

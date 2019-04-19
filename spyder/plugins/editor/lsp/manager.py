@@ -161,7 +161,7 @@ class LSPManager(QObject):
 
                 # Connect signals emitted by the client to the methods that
                 # can handle them
-                if self.main is not None and self.main.editor is not None:
+                if self.main and self.main.editor:
                     language_client['instance'].sig_initialize.connect(
                         self.main.editor.register_lsp_server_settings)
 
