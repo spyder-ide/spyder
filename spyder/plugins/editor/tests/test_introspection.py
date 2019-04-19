@@ -90,7 +90,8 @@ def test_space_completion(setup_editor):
 
     # Complete from numpy --> from numpy import
     qtbot.keyClicks(code_editor, 'from numpy ')
-    qtbot.wait(20000)
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.document_did_change()
 
     # press tab and get completions
     with qtbot.waitSignal(completion.sig_show_completions,
@@ -99,7 +100,7 @@ def test_space_completion(setup_editor):
     assert "import" in [x['label'] for x in sig.args[0]]
 
     # enter should accept first completion
-    qtbot.keyPress(completion, Qt.Key_Enter, delay=1000)
+    qtbot.keyPress(completion, Qt.Key_Enter, delay=300)
     assert code_editor.toPlainText() == 'from numpy import\n'
 
 
@@ -118,7 +119,8 @@ def test_hide_widget_completion(setup_editor):
 
     # Complete from numpy --> from numpy import
     qtbot.keyClicks(code_editor, 'from numpy ')
-    qtbot.wait(20000)
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.document_did_change()
 
     # press tab and get completions
     with qtbot.waitSignal(completion.sig_show_completions,
@@ -153,7 +155,8 @@ def test_introspection(setup_editor):
 
     # Complete import mat--> import math
     qtbot.keyClicks(code_editor, 'import mat')
-    qtbot.wait(20000)
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.document_did_change()
 
     # press tab and get completions
     with qtbot.waitSignal(completion.sig_show_completions,
@@ -162,84 +165,94 @@ def test_introspection(setup_editor):
     assert "math" in [x['label'] for x in sig.args[0]]
 
     # enter should accept first completion
-    qtbot.keyPress(completion, Qt.Key_Enter, delay=1000)
+    qtbot.keyPress(completion, Qt.Key_Enter, delay=300)
     assert code_editor.toPlainText() == 'import math\n'
 
     # enter for new line
-    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
 
     # Complete math.d() -> math.degrees()
     qtbot.keyClicks(code_editor, 'math.d')
-    qtbot.wait(20000)
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.document_did_change()
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
     assert "degrees(x)" in [x['label'] for x in sig.args[0]]
 
-    qtbot.keyPress(completion, Qt.Key_Enter, delay=1000)
+    qtbot.keyPress(completion, Qt.Key_Enter, delay=300)
     assert code_editor.toPlainText() == 'import math\nmath.degrees\n'
 
     # enter for new line
-    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
 
     # Complete math.d() -> math.degrees()
     qtbot.keyClicks(code_editor, 'math.d(')
-    qtbot.keyPress(code_editor, Qt.Key_Left, delay=1000)
+    qtbot.keyPress(code_editor, Qt.Key_Left, delay=300)
     qtbot.keyClicks(code_editor, 'e')
-    qtbot.wait(20000)
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.document_did_change()
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
     assert "degrees(x)" in [x['label'] for x in sig.args[0]]
 
-    qtbot.keyPress(completion, Qt.Key_Enter, delay=1000)
+    qtbot.keyPress(completion, Qt.Key_Enter, delay=300)
 
     # right for () + enter for new line
-    qtbot.keyPress(code_editor, Qt.Key_Right, delay=1000)
-    qtbot.keyPress(code_editor, Qt.Key_Right, delay=1000)
-    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
+    qtbot.keyPress(code_editor, Qt.Key_Right, delay=300)
+    qtbot.keyPress(code_editor, Qt.Key_Right, delay=300)
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
 
     # Complete math.a <tab> ... s <enter> to math.asin
     qtbot.keyClicks(code_editor, 'math.a')
-    qtbot.wait(20000)
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.document_did_change()
+
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
     assert "asin(x)" in [x['label'] for x in sig.args[0]]
     qtbot.keyClicks(completion, 's')
-    qtbot.keyPress(completion, Qt.Key_Enter, delay=1000)
+    qtbot.keyPress(completion, Qt.Key_Enter, delay=300)
 
     # enter for new line
-    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
 
     # Complete math.a <tab><enter> ... <enter> to math.acos
     qtbot.keyClicks(code_editor, 'math.a')
-    qtbot.wait(20000)
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.document_did_change()
+
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
         qtbot.keyPress(code_editor, Qt.Key_Enter)
     assert "acos(x)" in [x['label'] for x in sig.args[0]]
-    qtbot.keyPress(completion, Qt.Key_Enter, delay=1000)
+    qtbot.keyPress(completion, Qt.Key_Enter, delay=300)
 
-    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
 
     # Complete math.a <tab> s ...<enter> to math.asin
     qtbot.keyClicks(code_editor, 'math.a')
-    qtbot.wait(20000)
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.document_did_change()
+
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
         qtbot.keyPress(code_editor, 's')
     assert "asin(x)" in [x['label'] for x in sig.args[0]]
-    qtbot.keyPress(completion, Qt.Key_Enter, delay=1000)
+    qtbot.keyPress(completion, Qt.Key_Enter, delay=300)
 
     # Check math.a <tab> <backspace> doesn't emit sig_show_completions
-    qtbot.keyPress(code_editor, Qt.Key_Right, delay=1000)
+    qtbot.keyPress(code_editor, Qt.Key_Right, delay=300)
     qtbot.keyClicks(code_editor, 'math.a')
-    qtbot.wait(20000)
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.document_did_change()
+
     try:
         with qtbot.waitSignal(completion.sig_show_completions,
                               timeout=10000) as sig:
