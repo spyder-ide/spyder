@@ -171,7 +171,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.notifier = QSocketNotifier(fid, QSocketNotifier.Read, self)
         self.notifier.activated.connect(self.on_msg_received)
 
-        # This is necessary for test to pass locally
+        # This is necessary for tests to pass locally!
         logger.debug('LSP {} client started!'.format(self.language))
 
     def stop(self):
