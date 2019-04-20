@@ -1,12 +1,13 @@
-mock
 pytest <4.1
 pytest-mock
 pytest-cov
+pytest-qt
+pytest-ordering
+mock
 pandas
 scipy
 sympy
 pillow
 matplotlib
 cython
-pytest-qt
 flaky
