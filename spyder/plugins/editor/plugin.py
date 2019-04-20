@@ -761,12 +761,17 @@ class Editor(SpyderPluginWidget):
                 _("Show code style warnings (pep8)"),
                 'code_analysis/pep8', 'set_pep8_enabled')
 
+        show_docstring_warnings_action = self._create_checkable_action(
+            _("Show docstring style warnings"), 'show_docstring_warnings',
+            'set_docstring_warnings')
+
         self.checkable_actions = {
                 'blank_spaces': showblanks_action,
                 'scroll_past_end': scrollpastend_action,
                 'indent_guides': showindentguides_action,
                 'show_class_func_dropdown': show_classfunc_dropdown_action,
-                'code_analysis/pep8': showcode_analysis_pep8_action}
+                'code_analysis/pep8': showcode_analysis_pep8_action,
+                'show_docstring_warnings': show_docstring_warnings_action}
 
         fixindentation_action = create_action(self, _("Fix indentation"),
                       tip=_("Replace tab characters by space characters"),
@@ -890,6 +895,7 @@ class Editor(SpyderPluginWidget):
                                showindentguides_action,
                                show_classfunc_dropdown_action,
                                showcode_analysis_pep8_action,
+                               show_docstring_warnings_action,
                                trailingspaces_action,
                                fixindentation_action,
                                MENU_SEPARATOR,
@@ -1010,10 +1016,9 @@ class Editor(SpyderPluginWidget):
                 if editorstack_method == 'set_pep8_enabled':
                     CONF.set('lsp-server', 'pycodestyle', checked)
                     self.main.lspmanager.update_server_list()
-                    for finfo in editorstack.data:
-                            if not checked:
-                                finfo.editor.cleanup_code_analysis()
-                            finfo.editor.document_did_change()
+                elif editorstack_method == 'set_docstring_warnings':
+                    CONF.set('lsp-server', 'pydocstyle', checked)
+                    self.main.lspmanager.update_server_list()
         CONF.set('editor', conf_name, checked)
 
     def received_sig_option_changed(self, option, value):

@@ -191,6 +191,7 @@ DEFAULTS = [
               'wrapflag': True,
               'code_analysis/pyflakes': True,
               'code_analysis/pep8': False,
+              'show_docstring_warnings': False,
               'todo_list': True,
               'realtime_analysis': True,
               'realtime_analysis/timeout': 2500,
