@@ -18,6 +18,7 @@ except ImportError:
 # Third party imports
 import pytest
 from qtpy.QtCore import QObject, Signal, Slot
+from qtpy.QtGui import QFont
 
 # Local imports
 from spyder.config.main import CONF
@@ -69,7 +70,7 @@ def setup_editor(qtbot):
 
 @pytest.fixture
 def lsp_codeeditor(qtbot):
-    """Build CodeEditor instance with LSP services."""
+    """CodeEditor instance with LSP services activated."""
     # Activate pycodestyle and pydocstyle
     CONF.set('lsp-server', 'pycodestyle', True)
     CONF.set('lsp-server', 'pydocstyle', True)
@@ -82,7 +83,12 @@ def lsp_codeeditor(qtbot):
 
     # Create a CodeEditor instance
     editor = CodeEditor(parent=None)
-    editor.setup_editor(language='Python', tab_mode=False)
+    editor.setup_editor(language='Python',
+                        tab_mode=False,
+                        markers=True,
+                        color_scheme='spyder/dark',
+                        font=QFont("Monospace", 10))
+    editor.resize(640, 480)
     qtbot.addWidget(editor)
     editor.show()
 
