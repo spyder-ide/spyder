@@ -1007,18 +1007,13 @@ class Editor(SpyderPluginWidget):
         """
         if self.editorstacks:
             for editorstack in self.editorstacks:
-                try:
-                    editorstack.__getattribute__(editorstack_method)(checked)
-                except AttributeError as e:
-                    logger.error(e, exc_info=True)
-                # Run code analysis when `set_pep8_enabled` is toggled
                 if editorstack_method == 'set_pep8_enabled':
-                    # TODO: Connect this to the LSP
-                    #for finfo in editorstack.data:
-                    #    finfo.run_code_analysis(
-                    #            self.get_option('code_analysis/pyflakes'),
-                    #            checked)
-                    pass
+                    CONF.set('lsp-server', 'pycodestyle', checked)
+                    self.main.lspmanager.update_server_list()
+                    for finfo in editorstack.data:
+                            if not checked:
+                                finfo.editor.cleanup_code_analysis()
+                            finfo.editor.document_did_change()
         CONF.set('editor', conf_name, checked)
 
     def received_sig_option_changed(self, option, value):
