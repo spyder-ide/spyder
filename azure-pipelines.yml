@@ -95,9 +95,9 @@ jobs:
       Python36:
         python.version: '3.6'
         use.conda: "yes"
-      #Python37:
-      #  python.version: '3.7'
-      #  use.conda: "no"
+      Python37_pip:
+        python.version: '3.7'
+        use.conda: "no"
     maxParallel: 4
 
   steps:
