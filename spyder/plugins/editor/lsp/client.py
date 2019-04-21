@@ -140,6 +140,21 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             if os.name == 'nt':
                 creation_flags = (subprocess.CREATE_NEW_PROCESS_GROUP
                                   | 0x08000000)  # CREATE_NO_WINDOW
+
+            if os.environ.get('CI') and os.name == 'nt':
+                # The following patching avoids:
+                #
+                # OSError: [WinError 6] The handle is invalid
+                #
+                # while running our tests in CI services on Windows
+                # (they run fine locally).
+                # See this comment for an explanation:
+                # https://stackoverflow.com/q/43966523/
+                # 438386#comment74964124_43966523
+                def patched_cleanup():
+                    pass
+                subprocess._cleanup = patched_cleanup
+
             self.lsp_server = subprocess.Popen(
                 self.server_args,
                 stdout=server_log,

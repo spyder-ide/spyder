@@ -88,9 +88,6 @@ def test_hide_widget_completion(lsp_codeeditor, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.first
-@pytest.mark.skipif(PY2, reason="Segfaults with other tests on Py2.")
-@pytest.mark.skipif(os.name == 'nt' and not PY2,
-                    reason="Times out on AppVeyor and fails on PY3")
 def test_completions(lsp_codeeditor, qtbot):
     """Exercise code completion in several ways."""
     code_editor = lsp_codeeditor
