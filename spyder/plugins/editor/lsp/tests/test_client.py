@@ -7,7 +7,6 @@
 import os
 from textwrap import dedent
 
-from flaky import flaky
 import pytest
 from qtpy.QtCore import QObject, Signal, Slot
 
@@ -36,18 +35,16 @@ def lsp_client_and_editor():
 
     yield client, editor
 
-    if os.name != 'nt':
-        client.stop()
+    # Teardown
+    client.stop()
 
 
 @pytest.mark.slow
-@flaky(max_runs=5)
-@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_initialization(lsp_client_and_editor, qtbot):
     client, editor = lsp_client_and_editor
 
     # Wait for the client to be started
-    with qtbot.waitSignal(client.sig_initialize, timeout=10000) as blocker:
+    with qtbot.waitSignal(client.sig_initialize, timeout=30000) as blocker:
         client.start()
     options, _ = blocker.args
 
@@ -56,13 +53,11 @@ def test_initialization(lsp_client_and_editor, qtbot):
 
 
 @pytest.mark.slow
-@flaky(max_runs=5)
-@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_get_signature(lsp_client_and_editor, qtbot):
     client, editor = lsp_client_and_editor
 
     # Wait for the client to be started
-    with qtbot.waitSignal(client.sig_initialize, timeout=10000):
+    with qtbot.waitSignal(client.sig_initialize, timeout=30000):
         client.start()
 
     # Parameters to perform a textDocument/didOpen request
@@ -76,7 +71,7 @@ def test_get_signature(lsp_client_and_editor, qtbot):
     }
 
     # Perform the request
-    with qtbot.waitSignal(editor.sig_response, timeout=10000) as blocker:
+    with qtbot.waitSignal(editor.sig_response, timeout=30000) as blocker:
         client.perform_request(LSPRequestTypes.DOCUMENT_DID_OPEN, open_params)
 
     # Parameters to perform a textDocument/signatureHelp request
@@ -89,7 +84,7 @@ def test_get_signature(lsp_client_and_editor, qtbot):
     }
 
     # Perform the request
-    with qtbot.waitSignal(editor.sig_response, timeout=10000) as blocker:
+    with qtbot.waitSignal(editor.sig_response, timeout=30000) as blocker:
         client.perform_request(LSPRequestTypes.DOCUMENT_SIGNATURE,
                                signature_params)
     _, response = blocker.args
@@ -99,13 +94,11 @@ def test_get_signature(lsp_client_and_editor, qtbot):
 
 
 @pytest.mark.slow
-@flaky(max_runs=5)
-@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_get_completions(lsp_client_and_editor, qtbot):
     client, editor = lsp_client_and_editor
 
     # Wait for the client to be started
-    with qtbot.waitSignal(client.sig_initialize, timeout=10000):
+    with qtbot.waitSignal(client.sig_initialize, timeout=30000):
         client.start()
 
     # Parameters to perform a textDocument/didOpen request
@@ -119,7 +112,7 @@ def test_get_completions(lsp_client_and_editor, qtbot):
     }
 
     # Perform the request
-    with qtbot.waitSignal(editor.sig_response, timeout=10000) as blocker:
+    with qtbot.waitSignal(editor.sig_response, timeout=30000) as blocker:
         client.perform_request(LSPRequestTypes.DOCUMENT_DID_OPEN, open_params)
 
     # Parameters to perform a textDocument/completion request
@@ -132,7 +125,7 @@ def test_get_completions(lsp_client_and_editor, qtbot):
     }
 
     # Perform the request
-    with qtbot.waitSignal(editor.sig_response, timeout=10000) as blocker:
+    with qtbot.waitSignal(editor.sig_response, timeout=30000) as blocker:
         client.perform_request(LSPRequestTypes.DOCUMENT_COMPLETION,
                                completion_params)
     _, response = blocker.args
@@ -143,13 +136,11 @@ def test_get_completions(lsp_client_and_editor, qtbot):
 
 
 @pytest.mark.slow
-@flaky(max_runs=5)
-@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_go_to_definition(lsp_client_and_editor, qtbot):
     client, editor = lsp_client_and_editor
 
     # Wait for the client to be started
-    with qtbot.waitSignal(client.sig_initialize, timeout=10000):
+    with qtbot.waitSignal(client.sig_initialize, timeout=30000):
         client.start()
 
     # Parameters to perform a textDocument/didOpen request
@@ -163,7 +154,7 @@ def test_go_to_definition(lsp_client_and_editor, qtbot):
     }
 
     # Perform the request
-    with qtbot.waitSignal(editor.sig_response, timeout=10000) as blocker:
+    with qtbot.waitSignal(editor.sig_response, timeout=30000) as blocker:
         client.perform_request(LSPRequestTypes.DOCUMENT_DID_OPEN, open_params)
 
     # Parameters to perform a textDocument/definition request
@@ -176,7 +167,7 @@ def test_go_to_definition(lsp_client_and_editor, qtbot):
     }
 
     # Perform the request
-    with qtbot.waitSignal(editor.sig_response, timeout=10000) as blocker:
+    with qtbot.waitSignal(editor.sig_response, timeout=30000) as blocker:
         client.perform_request(LSPRequestTypes.DOCUMENT_DEFINITION,
                                go_to_definition_params)
     _, response = blocker.args
@@ -187,13 +178,11 @@ def test_go_to_definition(lsp_client_and_editor, qtbot):
 
 
 @pytest.mark.slow
-@flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_local_signature(lsp_client_and_editor, qtbot):
     client, editor = lsp_client_and_editor
 
     # Wait for the client to be started
-    with qtbot.waitSignal(client.sig_initialize, timeout=10000):
+    with qtbot.waitSignal(client.sig_initialize, timeout=30000):
         client.start()
 
     # Parameters to perform a textDocument/didOpen request
@@ -212,7 +201,7 @@ def test_local_signature(lsp_client_and_editor, qtbot):
     }
 
     # Perform the request
-    with qtbot.waitSignal(editor.sig_response, timeout=10000) as blocker:
+    with qtbot.waitSignal(editor.sig_response, timeout=30000) as blocker:
         client.perform_request(LSPRequestTypes.DOCUMENT_DID_OPEN, open_params)
 
     # Parameters to perform a textDocument/hover request
@@ -225,7 +214,7 @@ def test_local_signature(lsp_client_and_editor, qtbot):
     }
 
     # Perform the request
-    with qtbot.waitSignal(editor.sig_response, timeout=10000) as blocker:
+    with qtbot.waitSignal(editor.sig_response, timeout=30000) as blocker:
         client.perform_request(LSPRequestTypes.DOCUMENT_HOVER,
                                signature_params)
     _, response = blocker.args
