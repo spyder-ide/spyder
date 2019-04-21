@@ -24,6 +24,7 @@ TEXT = ("def some_function():\n"  # D100, D103: Missing docstring
         "    return a\n")
 
 
+@pytest.mark.first
 @pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
                     reason="Times out on AppVeyor")
 def test_adding_warnings(qtbot, lsp_codeeditor):
@@ -56,6 +57,7 @@ def test_adding_warnings(qtbot, lsp_codeeditor):
         assert any([expected in warning for expected in expected_warnings[i]])
 
 
+@pytest.mark.first
 @pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
                     reason="Times out on AppVeyor")
 def test_move_warnings(qtbot, lsp_codeeditor):
@@ -88,6 +90,7 @@ def test_move_warnings(qtbot, lsp_codeeditor):
     assert 5 == editor.get_cursor_line_number()
 
 
+@pytest.mark.slow
 @pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
                     reason="Times out on AppVeyor")
 def test_get_warnings(qtbot, lsp_codeeditor):

@@ -27,6 +27,7 @@ LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
 
 
 @pytest.mark.slow
+@pytest.mark.first
 def test_space_completion(lsp_codeeditor, qtbot):
     """Validate completion's space character handling."""
     code_editor = lsp_codeeditor
@@ -52,6 +53,7 @@ def test_space_completion(lsp_codeeditor, qtbot):
 
 
 @pytest.mark.slow
+@pytest.mark.first
 def test_hide_widget_completion(lsp_codeeditor, qtbot):
     """Validate hiding completion widget after a delimeter or operator."""
     code_editor = lsp_codeeditor
@@ -85,6 +87,7 @@ def test_hide_widget_completion(lsp_codeeditor, qtbot):
 
 
 @pytest.mark.slow
+@pytest.mark.first
 @pytest.mark.skipif(PY2, reason="Segfaults with other tests on Py2.")
 @pytest.mark.skipif(os.name == 'nt' and not PY2,
                     reason="Times out on AppVeyor and fails on PY3")
