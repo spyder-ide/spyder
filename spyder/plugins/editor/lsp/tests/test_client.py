@@ -7,160 +7,185 @@
 import os
 from textwrap import dedent
 
-from flaky import flaky
 import pytest
 from qtpy.QtCore import QObject, Signal, Slot
 
 from spyder.config.lsp import PYTHON_CONFIG
 from spyder.plugins.editor.lsp.client import LSPClient
-from spyder.plugins.editor.lsp import (SERVER_CAPABILITES,
-    LSPRequestTypes, LSPEventTypes)
+from spyder.plugins.editor.lsp import LSPRequestTypes, SERVER_CAPABILITES
 
 
 class LSPEditor(QObject):
-    sig_response_signal = Signal(str, dict)
-    sig_lsp_notification = Signal(dict, str)
+    """Dummy editor that can handle the responses of an LSP client."""
+    sig_response = Signal(str, dict)
 
     @Slot(str, dict)
     def handle_response(self, method, params):
-        self.sig_response_signal.emit(method, params)
+        self.sig_response.emit(method, params)
 
 
 @pytest.fixture
-def lsp_client(qtbot):
-    lsp_editor = LSPEditor()
-    lsp = LSPClient(parent=None,
-                    server_settings=PYTHON_CONFIG,
-                    language='python')
-    lsp.register_plugin_type(
-        LSPEventTypes.DOCUMENT, lsp_editor.sig_lsp_notification)
-    yield lsp, lsp_editor
-    if os.name != 'nt':
-        lsp.stop()
+def lsp_client_and_editor():
+    """Create an LSP client/editor pair."""
+
+    editor = LSPEditor()
+    client = LSPClient(parent=None,
+                       server_settings=PYTHON_CONFIG,
+                       language='python')
+
+    yield client, editor
+
+    # Teardown
+    client.stop()
 
 
 @pytest.mark.slow
-@flaky(max_runs=5)
-@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
-def test_initialization(qtbot, lsp_client):
-    lsp, lsp_editor = lsp_client
-    with qtbot.waitSignal(lsp_editor.sig_lsp_notification, timeout=10000) as blocker:
-        lsp.start()
+def test_initialization(lsp_client_and_editor, qtbot):
+    client, editor = lsp_client_and_editor
+
+    # Wait for the client to be started
+    with qtbot.waitSignal(client.sig_initialize, timeout=30000) as blocker:
+        client.start()
     options, _ = blocker.args
+
+    # Assert the response has what we expect
     assert all([option in SERVER_CAPABILITES for option in options.keys()])
 
 
 @pytest.mark.slow
-@flaky(max_runs=5)
-@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
-def test_get_signature(qtbot, lsp_client):
-    lsp, lsp_editor = lsp_client
-    with qtbot.waitSignal(lsp_editor.sig_lsp_notification, timeout=10000):
-        lsp.start()
+def test_get_signature(lsp_client_and_editor, qtbot):
+    client, editor = lsp_client_and_editor
+
+    # Wait for the client to be started
+    with qtbot.waitSignal(client.sig_initialize, timeout=30000):
+        client.start()
+
+    # Parameters to perform a textDocument/didOpen request
     open_params = {
         'file': 'test.py',
         'language': 'python',
         'version': 1,
         'text': "import os\nos.walk(\n",
-        'codeeditor': lsp_editor,
+        'codeeditor': editor,
         'requires_response': False
     }
 
-    with qtbot.waitSignal(lsp_editor.sig_response_signal, timeout=10000) as blocker:
-        lsp.perform_request(LSPRequestTypes.DOCUMENT_DID_OPEN, open_params)
+    # Perform the request
+    with qtbot.waitSignal(editor.sig_response, timeout=30000) as blocker:
+        client.perform_request(LSPRequestTypes.DOCUMENT_DID_OPEN, open_params)
 
+    # Parameters to perform a textDocument/signatureHelp request
     signature_params = {
         'file': 'test.py',
         'line': 1,
         'column': 10,
         'requires_response': True,
-        'response_codeeditor': lsp_editor
+        'response_codeeditor': editor
     }
 
-    with qtbot.waitSignal(lsp_editor.sig_response_signal, timeout=10000) as blocker:
-        lsp.perform_request(
-            LSPRequestTypes.DOCUMENT_SIGNATURE, signature_params)
+    # Perform the request
+    with qtbot.waitSignal(editor.sig_response, timeout=30000) as blocker:
+        client.perform_request(LSPRequestTypes.DOCUMENT_SIGNATURE,
+                               signature_params)
     _, response = blocker.args
+
+    # Assert the response has what we expect
     assert response['params']['signatures']['label'].startswith('walk')
 
 
 @pytest.mark.slow
-@flaky(max_runs=5)
-@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
-def test_get_completions(qtbot, lsp_client):
-    lsp, lsp_editor = lsp_client
-    with qtbot.waitSignal(lsp_editor.sig_lsp_notification, timeout=10000):
-        lsp.start()
+def test_get_completions(lsp_client_and_editor, qtbot):
+    client, editor = lsp_client_and_editor
+
+    # Wait for the client to be started
+    with qtbot.waitSignal(client.sig_initialize, timeout=30000):
+        client.start()
+
+    # Parameters to perform a textDocument/didOpen request
     open_params = {
         'file': 'test.py',
         'language': 'python',
         'version': 1,
         'text': "import o",
-        'codeeditor': lsp_editor,
+        'codeeditor': editor,
         'requires_response': False
     }
 
-    with qtbot.waitSignal(lsp_editor.sig_response_signal, timeout=10000) as blocker:
-        lsp.perform_request(LSPRequestTypes.DOCUMENT_DID_OPEN, open_params)
+    # Perform the request
+    with qtbot.waitSignal(editor.sig_response, timeout=30000) as blocker:
+        client.perform_request(LSPRequestTypes.DOCUMENT_DID_OPEN, open_params)
 
+    # Parameters to perform a textDocument/completion request
     completion_params = {
         'file': 'test.py',
         'line': 0,
         'column': 8,
         'requires_response': True,
-        'response_codeeditor': lsp_editor
+        'response_codeeditor': editor
     }
 
-    with qtbot.waitSignal(lsp_editor.sig_response_signal, timeout=10000) as blocker:
-        lsp.perform_request(
-            LSPRequestTypes.DOCUMENT_COMPLETION, completion_params)
+    # Perform the request
+    with qtbot.waitSignal(editor.sig_response, timeout=30000) as blocker:
+        client.perform_request(LSPRequestTypes.DOCUMENT_COMPLETION,
+                               completion_params)
     _, response = blocker.args
+
+    # Assert the response has what we expect
     completions = response['params']
     assert 'os' in [x['label'] for x in completions]
 
 
 @pytest.mark.slow
-@flaky(max_runs=5)
-@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
-def test_go_to_definition(qtbot, lsp_client):
-    lsp, lsp_editor = lsp_client
-    with qtbot.waitSignal(lsp_editor.sig_lsp_notification, timeout=10000):
-        lsp.start()
+def test_go_to_definition(lsp_client_and_editor, qtbot):
+    client, editor = lsp_client_and_editor
+
+    # Wait for the client to be started
+    with qtbot.waitSignal(client.sig_initialize, timeout=30000):
+        client.start()
+
+    # Parameters to perform a textDocument/didOpen request
     open_params = {
         'file': 'test.py',
         'language': 'python',
         'version': 1,
         'text': "import os\nos.walk\n",
-        'codeeditor': lsp_editor,
+        'codeeditor': editor,
         'requires_response': False
     }
 
-    with qtbot.waitSignal(lsp_editor.sig_response_signal, timeout=10000) as blocker:
-        lsp.perform_request(LSPRequestTypes.DOCUMENT_DID_OPEN, open_params)
+    # Perform the request
+    with qtbot.waitSignal(editor.sig_response, timeout=30000) as blocker:
+        client.perform_request(LSPRequestTypes.DOCUMENT_DID_OPEN, open_params)
 
+    # Parameters to perform a textDocument/definition request
     go_to_definition_params = {
         'file': 'test.py',
         'line': 0,
         'column': 19,
         'requires_response': True,
-        'response_codeeditor': lsp_editor
+        'response_codeeditor': editor
     }
 
-    with qtbot.waitSignal(lsp_editor.sig_response_signal, timeout=10000) as blocker:
-        lsp.perform_request(
-            LSPRequestTypes.DOCUMENT_DEFINITION, go_to_definition_params)
+    # Perform the request
+    with qtbot.waitSignal(editor.sig_response, timeout=30000) as blocker:
+        client.perform_request(LSPRequestTypes.DOCUMENT_DEFINITION,
+                               go_to_definition_params)
     _, response = blocker.args
+
+    # Assert the response has what we expect
     definition = response['params']
     assert 'os.py' in definition['file']
 
 
 @pytest.mark.slow
-@flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
-def test_local_signature(qtbot, lsp_client):
-    lsp, lsp_editor = lsp_client
-    with qtbot.waitSignal(lsp_editor.sig_lsp_notification, timeout=10000):
-        lsp.start()
+def test_local_signature(lsp_client_and_editor, qtbot):
+    client, editor = lsp_client_and_editor
+
+    # Wait for the client to be started
+    with qtbot.waitSignal(client.sig_initialize, timeout=30000):
+        client.start()
+
+    # Parameters to perform a textDocument/didOpen request
     text = dedent('''
     def test(a, b):
         """Test docstring"""
@@ -171,24 +196,29 @@ def test_local_signature(qtbot, lsp_client):
         'language': 'python',
         'version': 1,
         'text': text,
-        'codeeditor': lsp_editor,
+        'codeeditor': editor,
         'requires_response': False
     }
 
-    with qtbot.waitSignal(lsp_editor.sig_response_signal, timeout=10000) as blocker:
-        lsp.perform_request(LSPRequestTypes.DOCUMENT_DID_OPEN, open_params)
+    # Perform the request
+    with qtbot.waitSignal(editor.sig_response, timeout=30000) as blocker:
+        client.perform_request(LSPRequestTypes.DOCUMENT_DID_OPEN, open_params)
 
+    # Parameters to perform a textDocument/hover request
     signature_params = {
         'file': 'test.py',
         'line': 4,
         'column': 0,
         'requires_response': True,
-        'response_codeeditor': lsp_editor
+        'response_codeeditor': editor
     }
 
-    with qtbot.waitSignal(lsp_editor.sig_response_signal, timeout=10000) as blocker:
-        lsp.perform_request(
-            LSPRequestTypes.DOCUMENT_HOVER, signature_params)
+    # Perform the request
+    with qtbot.waitSignal(editor.sig_response, timeout=30000) as blocker:
+        client.perform_request(LSPRequestTypes.DOCUMENT_HOVER,
+                               signature_params)
     _, response = blocker.args
+
+    # Assert the response has what we expect
     definition = response['params']
     assert 'Test docstring' in definition

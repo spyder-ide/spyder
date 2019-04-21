@@ -1386,8 +1386,7 @@ class CodeEditor(TextEditBaseWidget):
 
         return line_number
 
-    def select_lines(self, linenumber_pressed,
-                                    linenumber_released):
+    def select_lines(self, linenumber_pressed, linenumber_released):
         """Select line(s) after a mouse press/mouse press drag event"""
         find_block_by_line_number = self.document().findBlockByLineNumber
         move_n_blocks = (linenumber_released - linenumber_pressed)

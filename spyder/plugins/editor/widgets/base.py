@@ -231,7 +231,12 @@ class CompletionWidget(QListWidget):
             if event.reason() != Qt.ActiveWindowFocusReason:
                 self.hide()
         else:
-            self.hide()
+            # Avoid an error when running tests that show
+            # the completion widget
+            try:
+                self.hide()
+            except RuntimeError:
+                pass
 
     def item_selected(self, item=None):
         if item is None:

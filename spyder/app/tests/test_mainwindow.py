@@ -205,8 +205,8 @@ def test_calltip(main_window, qtbot):
     """Test that the calltip in editor is hidden when matching ')' is found."""
     # Load test file
     text = 'a = [1,2,3]\n(max'
-    with qtbot.waitSignal(main_window.editor.sig_lsp_notification,
-                          timeout=30000):
+    lsp_client = main_window.lspmanager.clients['python']['instance']
+    with qtbot.waitSignal(lsp_client.sig_initialize, timeout=30000):
         main_window.editor.new(fname="test.py", text=text)
     code_editor = main_window.editor.get_focus_widget()
 
@@ -341,7 +341,6 @@ def test_filter_numpy_warning(main_window, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
                     reason="Times out on AppVeyor")
-@pytest.mark.use_introspection
 def test_get_help_ipython_console(main_window, qtbot):
     """Test that Help works when called from the IPython console."""
     shell = main_window.ipyconsole.get_current_shellwidget()

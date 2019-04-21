@@ -29,7 +29,7 @@ from spyder.config.base import get_conf_path, get_debug_level
 from spyder.plugins.editor.lsp import (
     CLIENT_CAPABILITES, SERVER_CAPABILITES, TRACE,
     TEXT_DOCUMENT_SYNC_OPTIONS, LSPRequestTypes,
-    LSPEventTypes, ClientConstants)
+    ClientConstants)
 from spyder.plugins.editor.lsp.decorators import (
     send_request, class_register, handles)
 from spyder.plugins.editor.lsp.providers import LSPMethodProviderMixIn
@@ -54,7 +54,10 @@ logger = logging.getLogger(__name__)
 @class_register
 class LSPClient(QObject, LSPMethodProviderMixIn):
     """Language Server Protocol v3.0 client implementation."""
-    initialized = Signal()
+    # Signals
+    sig_initialize = Signal(dict, str)
+
+    # Constants
     external_server_fmt = ('--server-host %(host)s '
                            '--server-port %(port)s '
                            '--external-server')
@@ -80,7 +83,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.ready_to_close = False
         self.request_seq = 1
         self.req_status = {}
-        self.plugin_registry = {}
         self.watched_files = {}
         self.req_reply = {}
 
@@ -138,6 +140,21 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             if os.name == 'nt':
                 creation_flags = (subprocess.CREATE_NEW_PROCESS_GROUP
                                   | 0x08000000)  # CREATE_NO_WINDOW
+
+            if os.environ.get('CI') and os.name == 'nt':
+                # The following patching avoids:
+                #
+                # OSError: [WinError 6] The handle is invalid
+                #
+                # while running our tests in CI services on Windows
+                # (they run fine locally).
+                # See this comment for an explanation:
+                # https://stackoverflow.com/q/43966523/
+                # 438386#comment74964124_43966523
+                def patched_cleanup():
+                    pass
+                subprocess._cleanup = patched_cleanup
+
             self.lsp_server = subprocess.Popen(
                 self.server_args,
                 stdout=server_log,
@@ -167,9 +184,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
         fid = self.zmq_in_socket.getsockopt(zmq.FD)
         self.notifier = QSocketNotifier(fid, QSocketNotifier.Read, self)
-        # self.notifier.activated.connect(self.debug_print)
         self.notifier.activated.connect(self.on_msg_received)
-        # self.initialize()
+
+        # This is necessary for tests to pass locally!
+        logger.debug('LSP {} client started!'.format(self.language))
 
     def stop(self):
         # self.shutdown()
@@ -257,12 +275,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                     self.req_reply[_id] = params['response_codeeditor']
             return _id
 
-    # ------ Spyder plugin registration --------------------------------
-    def register_plugin_type(self, plugin_type, notification_sig):
-        if plugin_type not in self.plugin_registry:
-            self.plugin_registry[plugin_type] = []
-        self.plugin_registry[plugin_type].append(notification_sig)
-
     # ------ LSP initialization methods --------------------------------
     @handles(SERVER_READY)
     @send_request(method=LSPRequestTypes.INITIALIZE)
@@ -304,8 +316,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
         self.server_capabilites.update(server_capabilites)
 
-        for sig in self.plugin_registry[LSPEventTypes.DOCUMENT]:
-            sig.emit(self.server_capabilites, self.language)
+        self.sig_initialize.emit(self.server_capabilites, self.language)
 
     @send_request(method=LSPRequestTypes.WORKSPACE_CONFIGURATION_CHANGE,
                   requires_response=False)

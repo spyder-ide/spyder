@@ -237,6 +237,7 @@ extras_require = {
              'pytest-mock',
              'pytest-cov',
              'pytest-xvfb',
+             'pytest-ordering',
              'mock',
              'flaky',
              'pandas',
