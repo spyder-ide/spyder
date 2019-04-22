@@ -12,7 +12,9 @@ from qtpy.QtCore import QObject, Signal, Slot
 
 from spyder.config.lsp import PYTHON_CONFIG
 from spyder.plugins.editor.lsp.client import LSPClient
-from spyder.plugins.editor.lsp import LSPRequestTypes, SERVER_CAPABILITES
+from spyder.plugins.editor.lsp import LSPRequestTypes
+from spyder.plugins.editor.widgets.tests.fixtures import (
+    lsp_manager, qtbot_module)
 
 
 class LSPEditor(QObject):
@@ -24,44 +26,43 @@ class LSPEditor(QObject):
         self.sig_response.emit(method, params)
 
 
-@pytest.fixture
-def lsp_client_and_editor():
+@pytest.fixture(scope='module')
+def lsp_client_and_editor(lsp_manager):
     """Create an LSP client/editor pair."""
-
     editor = LSPEditor()
-    client = LSPClient(parent=None,
-                       server_settings=PYTHON_CONFIG,
-                       language='python')
-
-    yield client, editor
-
-    # Teardown
-    client.stop()
+    client = lsp_manager.clients['python']['instance']
+    return client, editor
 
 
 @pytest.mark.slow
-def test_initialization(lsp_client_and_editor, qtbot):
+def test_didOpen(lsp_client_and_editor, qtbot):
     client, editor = lsp_client_and_editor
 
+    # Parameters to perform a textDocument/didOpen request
+    params = {
+        'file': 'test.py',
+        'language': 'python',
+        'version': 1,
+        'text': "",
+        'codeeditor': editor,
+        'requires_response': False
+    }
+
     # Wait for the client to be started
-    with qtbot.waitSignal(client.sig_initialize, timeout=30000) as blocker:
-        client.start()
-    options, _ = blocker.args
+    with qtbot.waitSignal(editor.sig_response, timeout=30000) as blocker:
+        client.perform_request(LSPRequestTypes.DOCUMENT_DID_OPEN, params)
+    response, _ = blocker.args
 
     # Assert the response has what we expect
-    assert all([option in SERVER_CAPABILITES for option in options.keys()])
+    assert response == 'textDocument/publishDiagnostics'
 
 
 @pytest.mark.slow
 def test_get_signature(lsp_client_and_editor, qtbot):
     client, editor = lsp_client_and_editor
 
-    # Wait for the client to be started
-    with qtbot.waitSignal(client.sig_initialize, timeout=30000):
-        client.start()
-
-    # Parameters to perform a textDocument/didOpen request
-    open_params = {
+    # Parameters to perform a textDocument/didChange request
+    params = {
         'file': 'test.py',
         'language': 'python',
         'version': 1,
@@ -71,8 +72,8 @@ def test_get_signature(lsp_client_and_editor, qtbot):
     }
 
     # Perform the request
-    with qtbot.waitSignal(editor.sig_response, timeout=30000) as blocker:
-        client.perform_request(LSPRequestTypes.DOCUMENT_DID_OPEN, open_params)
+    with qtbot.waitSignal(editor.sig_response, timeout=30000):
+        client.perform_request(LSPRequestTypes.DOCUMENT_DID_CHANGE, params)
 
     # Parameters to perform a textDocument/signatureHelp request
     signature_params = {
@@ -97,12 +98,8 @@ def test_get_signature(lsp_client_and_editor, qtbot):
 def test_get_completions(lsp_client_and_editor, qtbot):
     client, editor = lsp_client_and_editor
 
-    # Wait for the client to be started
-    with qtbot.waitSignal(client.sig_initialize, timeout=30000):
-        client.start()
-
-    # Parameters to perform a textDocument/didOpen request
-    open_params = {
+    # Parameters to perform a textDocument/didChange request
+    params = {
         'file': 'test.py',
         'language': 'python',
         'version': 1,
@@ -112,8 +109,8 @@ def test_get_completions(lsp_client_and_editor, qtbot):
     }
 
     # Perform the request
-    with qtbot.waitSignal(editor.sig_response, timeout=30000) as blocker:
-        client.perform_request(LSPRequestTypes.DOCUMENT_DID_OPEN, open_params)
+    with qtbot.waitSignal(editor.sig_response, timeout=30000):
+        client.perform_request(LSPRequestTypes.DOCUMENT_DID_CHANGE, params)
 
     # Parameters to perform a textDocument/completion request
     completion_params = {
@@ -139,12 +136,8 @@ def test_get_completions(lsp_client_and_editor, qtbot):
 def test_go_to_definition(lsp_client_and_editor, qtbot):
     client, editor = lsp_client_and_editor
 
-    # Wait for the client to be started
-    with qtbot.waitSignal(client.sig_initialize, timeout=30000):
-        client.start()
-
-    # Parameters to perform a textDocument/didOpen request
-    open_params = {
+    # Parameters to perform a textDocument/didChange request
+    params = {
         'file': 'test.py',
         'language': 'python',
         'version': 1,
@@ -154,8 +147,8 @@ def test_go_to_definition(lsp_client_and_editor, qtbot):
     }
 
     # Perform the request
-    with qtbot.waitSignal(editor.sig_response, timeout=30000) as blocker:
-        client.perform_request(LSPRequestTypes.DOCUMENT_DID_OPEN, open_params)
+    with qtbot.waitSignal(editor.sig_response, timeout=30000):
+        client.perform_request(LSPRequestTypes.DOCUMENT_DID_CHANGE, params)
 
     # Parameters to perform a textDocument/definition request
     go_to_definition_params = {
@@ -181,17 +174,13 @@ def test_go_to_definition(lsp_client_and_editor, qtbot):
 def test_local_signature(lsp_client_and_editor, qtbot):
     client, editor = lsp_client_and_editor
 
-    # Wait for the client to be started
-    with qtbot.waitSignal(client.sig_initialize, timeout=30000):
-        client.start()
-
     # Parameters to perform a textDocument/didOpen request
     text = dedent('''
     def test(a, b):
         """Test docstring"""
         pass
     test''')
-    open_params = {
+    params = {
         'file': 'test.py',
         'language': 'python',
         'version': 1,
@@ -202,7 +191,7 @@ def test_local_signature(lsp_client_and_editor, qtbot):
 
     # Perform the request
     with qtbot.waitSignal(editor.sig_response, timeout=30000) as blocker:
-        client.perform_request(LSPRequestTypes.DOCUMENT_DID_OPEN, open_params)
+        client.perform_request(LSPRequestTypes.DOCUMENT_DID_CHANGE, params)
 
     # Parameters to perform a textDocument/hover request
     signature_params = {

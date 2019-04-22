@@ -22,6 +22,7 @@ from qtpy.QtGui import QFont
 
 # Local imports
 from spyder.config.main import CONF
+from spyder.plugins.editor.lsp import SERVER_CAPABILITES
 from spyder.plugins.editor.lsp.manager import LSPManager
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editor import EditorStack
@@ -69,6 +70,7 @@ def lsp_manager(qtbot_module):
         manager.start_client('python')
 
     settings, language = blocker.args
+    assert all([option in SERVER_CAPABILITES for option in settings.keys()])
     manager.clients[language]['server_settings'] = settings
 
     yield manager
