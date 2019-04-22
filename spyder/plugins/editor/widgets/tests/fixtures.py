@@ -17,7 +17,7 @@ except ImportError:
 
 # Third party imports
 import pytest
-from qtpy.QtCore import QObject, Signal, Slot
+from pytestqt.plugin import QtBot
 from qtpy.QtGui import QFont
 
 # Local imports
@@ -26,27 +26,6 @@ from spyder.plugins.editor.lsp.manager import LSPManager
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editor import EditorStack
 from spyder.widgets.findreplace import FindReplace
-
-
-class LSPWrapper(QObject):
-    """
-    Wrapper to start the LSP services in a CodeEditor instance, once
-    an LSP Python client was started.
-    """
-    sig_lsp_services_started = Signal()
-
-    def __init__(self, editor, lsp_manager):
-        QObject.__init__(self)
-        self.editor = editor
-        self.lsp_manager = lsp_manager
-
-    @Slot(dict, str)
-    def start_lsp_services(self, settings, language):
-        """Start LSP services in editor."""
-        self.lsp_manager.register_file(
-            'python', 'test.py', self.editor)
-        self.editor.start_lsp_services(settings)
-        self.sig_lsp_services_started.emit()
 
 
 @pytest.fixture
@@ -68,19 +47,42 @@ def setup_editor(qtbot):
     return editorStack, finfo.editor
 
 
-@pytest.fixture
-def lsp_codeeditor(qtbot):
-    """CodeEditor instance with LSP services activated."""
+@pytest.fixture(scope="module")
+def qtbot_module(qapp, request):
+    """Module fixture for qtbot."""
+    result = QtBot(request)
+    return result
+
+
+@pytest.fixture(scope="module")
+def lsp_manager(qtbot_module):
+    """Create an LSP manager instance."""
     # Activate pycodestyle and pydocstyle
     CONF.set('lsp-server', 'pycodestyle', True)
     CONF.set('lsp-server', 'pydocstyle', True)
 
-    # Tell CodeEditor to use introspection
+    # Create the manager
     os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
+    manager = LSPManager(parent=None)
 
-    # Create an LSPManager instance to be able to start an LSP client
-    lsp_manager = LSPManager(parent=None)
+    with qtbot_module.waitSignal(manager.sig_initialize, timeout=30000) as blocker:
+        manager.start_client('python')
 
+    settings, language = blocker.args
+    manager.clients[language]['server_settings'] = settings
+
+    yield manager
+
+    # Tear down operations
+    manager.shutdown()
+    os.environ['SPY_TEST_USE_INTROSPECTION'] = 'False'
+    CONF.set('lsp-server', 'pycodestyle', False)
+    CONF.set('lsp-server', 'pydocstyle', False)
+
+
+@pytest.fixture
+def lsp_codeeditor(lsp_manager, qtbot_module):
+    """CodeEditor instance with LSP services activated."""
     # Create a CodeEditor instance
     editor = CodeEditor(parent=None)
     editor.setup_editor(language='Python',
@@ -89,31 +91,22 @@ def lsp_codeeditor(qtbot):
                         color_scheme='spyder/dark',
                         font=QFont("Monospace", 10))
     editor.resize(640, 480)
-    qtbot.addWidget(editor)
+    qtbot_module.addWidget(editor)
     editor.show()
 
     # Redirect editor LSP requests to lsp_manager
     editor.sig_perform_lsp_request.connect(lsp_manager.send_request)
 
-    # Create wrapper
-    lsp_wrapper = LSPWrapper(editor, lsp_manager)
+    editor.filename = 'test.py'
+    editor.language = 'Python'
+    lsp_manager.register_file('python', 'test.py', editor)
+    editor.start_lsp_services(lsp_manager.clients['python']['server_settings'])
 
-    # Start LSP Python client
-    with qtbot.waitSignal(lsp_wrapper.sig_lsp_services_started, timeout=30000):
-        editor.filename = 'test.py'
-        editor.language = 'Python'
-        lsp_manager.start_client('python')
-        python_client = lsp_manager.clients['python']['instance']
-        python_client.sig_initialize.connect(lsp_wrapper.start_lsp_services)
-
-    # Send a textDocument/didOpen request to the server
-    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
+    with qtbot_module.waitSignal(editor.lsp_response_signal, timeout=30000):
         editor.document_did_open()
 
     yield editor
 
-    # Tear down operations
-    os.environ['SPY_TEST_USE_INTROSPECTION'] = 'False'
-    CONF.set('lsp-server', 'pycodestyle', False)
-    CONF.set('lsp-server', 'pydocstyle', False)
-    lsp_manager.shutdown()
+    # Teardown operations
+    editor.hide()
+    editor.completion_widget.hide()

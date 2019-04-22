@@ -15,7 +15,7 @@ import os
 import os.path as osp
 
 # Third-party imports
-from qtpy.QtCore import QObject, Slot
+from qtpy.QtCore import QObject, Signal, Slot
 
 # Local imports
 from spyder.config.base import get_conf_path, running_under_pytest
@@ -35,6 +35,9 @@ class LSPManager(QObject):
     RUNNING = 'running'
     CONF_SECTION = 'lsp-server'
     LOCALHOST = ['127.0.0.1', 'localhost']
+
+    # For testing
+    sig_initialize = Signal(dict, str)
 
     def __init__(self, parent):
         QObject.__init__(self)
@@ -164,6 +167,9 @@ class LSPManager(QObject):
                 if self.main and self.main.editor:
                     language_client['instance'].sig_initialize.connect(
                         self.main.editor.register_lsp_server_settings)
+                elif running_under_pytest():
+                    language_client['instance'].sig_initialize.connect(
+                        self.sig_initialize.emit)
 
                 logger.info("Starting LSP client for {}...".format(language))
                 language_client['instance'].start()

@@ -13,7 +13,8 @@ import os
 import pytest
 
 # Local imports
-from spyder.plugins.editor.widgets.tests.fixtures import lsp_codeeditor
+from spyder.plugins.editor.widgets.tests.fixtures import (lsp_codeeditor,
+    lsp_manager, qtbot_module)
 
 
 TEXT = ("def some_function():\n"  # D100, D103: Missing docstring
