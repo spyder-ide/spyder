@@ -44,7 +44,7 @@ def setup_editor(qtbot):
 
 
 @pytest.fixture
-def lsp_codeeditor(lsp_manager, qtbot_module):
+def lsp_codeeditor(lsp_manager, qtbot_module, request):
     """CodeEditor instance with LSP services activated."""
     # Create a CodeEditor instance
     editor = CodeEditor(parent=None)
@@ -68,8 +68,9 @@ def lsp_codeeditor(lsp_manager, qtbot_module):
     with qtbot_module.waitSignal(editor.lsp_response_signal, timeout=30000):
         editor.document_did_open()
 
-    yield editor, lsp_manager
+    def teardown():
+        editor.hide()
+        editor.completion_widget.hide()
 
-    # Teardown operations
-    editor.hide()
-    editor.completion_widget.hide()
+    request.addfinalizer(teardown)
+    return editor, lsp_manager

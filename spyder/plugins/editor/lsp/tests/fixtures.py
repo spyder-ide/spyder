@@ -22,7 +22,7 @@ def qtbot_module(qapp, request):
 
 
 @pytest.fixture(scope="module")
-def lsp_manager(qtbot_module):
+def lsp_manager(qtbot_module, request):
     """Create an LSP manager instance."""
     # Activate pycodestyle and pydocstyle
     CONF.set('lsp-server', 'pycodestyle', True)
@@ -39,10 +39,11 @@ def lsp_manager(qtbot_module):
     assert all([option in SERVER_CAPABILITES for option in settings.keys()])
     manager.clients[language]['server_settings'] = settings
 
-    yield manager
+    def teardown():
+        manager.shutdown()
+        os.environ['SPY_TEST_USE_INTROSPECTION'] = 'False'
+        CONF.set('lsp-server', 'pycodestyle', False)
+        CONF.set('lsp-server', 'pydocstyle', False)
 
-    # Tear down operations
-    manager.shutdown()
-    os.environ['SPY_TEST_USE_INTROSPECTION'] = 'False'
-    CONF.set('lsp-server', 'pycodestyle', False)
-    CONF.set('lsp-server', 'pydocstyle', False)
+    request.addfinalizer(teardown)
+    return manager
