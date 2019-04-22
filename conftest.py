@@ -12,16 +12,16 @@ import os
 import os.path as osp
 import shutil
 
+# To activate/deactivate certain things for pytest's only
+# NOTE: Please leave this before any other import here!!
+os.environ['SPYDER_PYTEST'] = 'True'
+
 import pytest
 
 # Local imports
 from spyder.tests.fixtures.file_fixtures import create_folders_files
 from spyder.tests.fixtures.bookmark_fixtures import (code_editor_bot,
                                                      setup_editor)
-
-
-# To activate/deactivate certain things for pytest's only
-os.environ['SPYDER_PYTEST'] = 'True'
 
 # Remove temp conf_dir before starting the tests
 from spyder.config.base import get_conf_path
