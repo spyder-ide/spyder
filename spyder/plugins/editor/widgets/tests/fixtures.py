@@ -105,7 +105,7 @@ def lsp_codeeditor(lsp_manager, qtbot_module):
     with qtbot_module.waitSignal(editor.lsp_response_signal, timeout=30000):
         editor.document_did_open()
 
-    yield editor
+    yield editor, lsp_manager
 
     # Teardown operations
     editor.hide()
