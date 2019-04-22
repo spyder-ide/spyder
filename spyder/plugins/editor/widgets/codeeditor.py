@@ -857,10 +857,6 @@ class CodeEditor(TextEditBaseWidget):
         """Handle signature response."""
         try:
             signature_params = params['params']
-            # import json
-            # print(json.dumps(signature_params, sort_keys=True,
-            #                  indent=4, separators=(',', ': ')))
-
             if (signature_params is not None and
                     'activeParameter' in signature_params):
                 self.sig_signature_invoked.emit()

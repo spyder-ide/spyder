@@ -131,13 +131,16 @@ class BaseEditMixin(object):
                         color: {color}\'>
                 <b>{title}</b>
             </div>
+        '''
+        if text:
+            template += '''
             <hr>
             <div style=\'font-family: "{font_family}";
                         font-size: {text_size}pt;
                         color: {color_text}\'>
                 {text}
             </div>
-        '''
+            '''
 
         # Prepare text
         if isinstance(text, list):
@@ -194,6 +197,12 @@ class BaseEditMixin(object):
             new = match.replace(parameter, active_parameter_template)
             return new
 
+        # Remove duplicate spaces
+        signature = ' '.join(signature.split())
+
+        # Replace ay initial spaces
+        signature = signature.replace('( ', '(')
+
         # Process signature template
         pattern = r'[\*|(|\s](' + parameter + r')[,|)|\s|=]'
         formatted_lines = []
@@ -226,29 +235,38 @@ class BaseEditMixin(object):
         )
 
         # Process documentation
-        if parameter_doc is not None and len(parameter_doc) > 0:
-            text_prefix = 'param: ' + parameter
-            text = parameter_doc
-        elif doc is not None and len(doc) > 0:
-            text_prefix = ''
-            text = doc
-        else:
-            text_prefix = ''
-            text = ''
+        # TODO: To be included in a separate PR
+        # active = active_parameter_template.format(
+        #     font_size=font_size,
+        #     font_family=font_family,
+        #     color=self._PARAMETER_HIGHLIGHT_COLOR,
+        #     parameter=parameter,
+        # )
+        # if doc is not None and len(doc) > 0:
+        #     text_doc = doc.split('\n')[0]
+        # else:
+        #     text_doc = ''
 
-        formatted_lines = []
-        rows = textwrap.wrap(text, width=60)
-        for row in rows:
-            row = row.replace(' ', '&nbsp;')
+        # if parameter_doc is not None and len(parameter_doc) > 0:
+        #     text_prefix = text_doc + '<br><hr><br>param: ' + active
+        #     text = parameter_doc
+        # else:
+        #     text_prefix = ''
+        #     text = ''
 
-        if text_prefix:
-            text = text_prefix + '<br><br>' + '<br>'.join(rows)
-        else:
-            text = '<br>'.join(rows)
-        text += '<br>'
+        # formatted_lines = []
+        # rows = textwrap.wrap(text, width=60)
+        # for row in rows:
+        #     row = row.replace(' ', '&nbsp;')
+
+        # if text_prefix:
+        #     text = text_prefix + '<br><br>' + '<br>'.join(rows)
+        # else:
+        #     text = '<br>'.join(rows)
+        # text += '<br>'
 
         # Format text
-        tiptext = self._format_text(title, text.replace(' ', '&nbsp;'), color)
+        tiptext = self._format_text(title, '', color)
 
         return tiptext, rows
 
@@ -928,8 +946,8 @@ class GetHelpMixin(object):
                             tiptext = name + argspec
                         else:
                             tiptext = signature
-                        self.show_tooltip(_("Arguments"), tiptext,
-                                          signature=True, color='#2D62FF')
+                        # TODO: Select language and pass it to call
+                        self.show_calltip(tiptext, color='#2D62FF', is_python=True)
 
     def get_last_obj(self, last=False):
         """
