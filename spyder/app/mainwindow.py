@@ -1568,7 +1568,8 @@ class MainWindow(QMainWindow):
 
             min_width = self.minimumWidth()
             max_width = self.maximumWidth()
-            self.setFixedWidth(self.width())
+            base_width = self.width()
+            self.setFixedWidth(base_width)
 
         # IMPORTANT: order has to be the same as defined in the config file
         MATLAB, RSTUDIO, VERTICAL, HORIZONTAL = range(self.DEFAULT_LAYOUTS)
@@ -1734,23 +1735,28 @@ class MainWindow(QMainWindow):
         # Make every widget visible
         for widget in widgets:
             widget.toggle_view(True)
-            action = widget.toggle_view_action
-            action.setChecked(widget.dockwidget.isVisible())
+            widget.toggle_view_action.setChecked(True)
 
-        # Set the widgets horizontally
-        for idx in range(len(widgets) - 1):
-            first, second = widgets[idx], widgets[idx+1]
-            if first is not None and second is not None:
-                self.splitDockWidget(first.dockwidget, second.dockwidget,
-                                     Qt.Horizontal)
+        # We use both directions to ensure proper update when moving from
+        # 'Horizontal Split' to 'Spyder Default'
+        # This also seems to help on random cases where the display seems
+        # 'empty'
+        for direction in (Qt.Vertical, Qt.Horizontal):
+            # Arrange the widgets in one direction
+            for idx in range(len(widgets) - 1):
+                first, second = widgets[idx], widgets[idx+1]
+                if first is not None and second is not None:
+                    self.splitDockWidget(first.dockwidget, second.dockwidget,
+                                         direction)
 
-        # Arrange rows vertically
+        # Arrange the widgets in the other direction
         for column in widgets_layout_clean:
             for idx in range(len(column) - 1):
                 first_row, second_row = column[idx], column[idx+1]
                 self.splitDockWidget(first_row[0].dockwidget,
                                      second_row[0].dockwidget,
                                      Qt.Vertical)
+
         # Tabify
         for column in widgets_layout_clean:
             for row in column:
@@ -1798,6 +1804,7 @@ class MainWindow(QMainWindow):
 
         self.setUpdatesEnabled(True)
         self.sig_layout_setup_ready.emit(layout)
+
         return layout
 
     @Slot()
