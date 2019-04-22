@@ -13,8 +13,6 @@ from qtpy.QtCore import QObject, Signal, Slot
 from spyder.config.lsp import PYTHON_CONFIG
 from spyder.plugins.editor.lsp.client import LSPClient
 from spyder.plugins.editor.lsp import LSPRequestTypes
-from spyder.plugins.editor.widgets.tests.fixtures import (
-    lsp_manager, qtbot_module)
 
 
 class LSPEditor(QObject):
@@ -35,6 +33,7 @@ def lsp_client_and_editor(lsp_manager):
 
 
 @pytest.mark.slow
+@pytest.mark.third
 def test_didOpen(lsp_client_and_editor, qtbot):
     client, editor = lsp_client_and_editor
 
@@ -58,6 +57,7 @@ def test_didOpen(lsp_client_and_editor, qtbot):
 
 
 @pytest.mark.slow
+@pytest.mark.third
 def test_get_signature(lsp_client_and_editor, qtbot):
     client, editor = lsp_client_and_editor
 
@@ -95,6 +95,7 @@ def test_get_signature(lsp_client_and_editor, qtbot):
 
 
 @pytest.mark.slow
+@pytest.mark.third
 def test_get_completions(lsp_client_and_editor, qtbot):
     client, editor = lsp_client_and_editor
 
@@ -133,6 +134,7 @@ def test_get_completions(lsp_client_and_editor, qtbot):
 
 
 @pytest.mark.slow
+@pytest.mark.third
 def test_go_to_definition(lsp_client_and_editor, qtbot):
     client, editor = lsp_client_and_editor
 
@@ -171,6 +173,7 @@ def test_go_to_definition(lsp_client_and_editor, qtbot):
 
 
 @pytest.mark.slow
+@pytest.mark.third
 def test_local_signature(lsp_client_and_editor, qtbot):
     client, editor = lsp_client_and_editor
 

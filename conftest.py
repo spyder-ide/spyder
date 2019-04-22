@@ -22,6 +22,8 @@ import pytest
 from spyder.tests.fixtures.file_fixtures import create_folders_files
 from spyder.tests.fixtures.bookmark_fixtures import (code_editor_bot,
                                                      setup_editor)
+from spyder.plugins.editor.lsp.tests.fixtures import lsp_manager, qtbot_module
+from spyder.plugins.editor.widgets.tests.fixtures import lsp_codeeditor
 
 # Remove temp conf_dir before starting the tests
 from spyder.config.base import get_conf_path

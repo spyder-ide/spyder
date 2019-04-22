@@ -19,8 +19,6 @@ from qtpy.QtCore import Qt
 
 # Local imports
 from spyder.py3compat import PY2
-from spyder.plugins.editor.widgets.tests.fixtures import (
-    lsp_codeeditor, lsp_manager, qtbot_module)
 
 
 # Location of this file

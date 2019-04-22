@@ -9,7 +9,6 @@ Testing utilities to be used with pytest.
 """
 
 # Stdlib imports
-import os
 try:
     from unittest.mock import Mock
 except ImportError:
@@ -17,13 +16,9 @@ except ImportError:
 
 # Third party imports
 import pytest
-from pytestqt.plugin import QtBot
 from qtpy.QtGui import QFont
 
 # Local imports
-from spyder.config.main import CONF
-from spyder.plugins.editor.lsp import SERVER_CAPABILITES
-from spyder.plugins.editor.lsp.manager import LSPManager
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editor import EditorStack
 from spyder.widgets.findreplace import FindReplace
@@ -46,40 +41,6 @@ def setup_editor(qtbot):
     finfo = editorStack.new('foo.py', 'utf-8', text)
     qtbot.addWidget(editorStack)
     return editorStack, finfo.editor
-
-
-@pytest.fixture(scope="module")
-def qtbot_module(qapp, request):
-    """Module fixture for qtbot."""
-    result = QtBot(request)
-    return result
-
-
-@pytest.fixture(scope="module")
-def lsp_manager(qtbot_module):
-    """Create an LSP manager instance."""
-    # Activate pycodestyle and pydocstyle
-    CONF.set('lsp-server', 'pycodestyle', True)
-    CONF.set('lsp-server', 'pydocstyle', True)
-
-    # Create the manager
-    os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
-    manager = LSPManager(parent=None)
-
-    with qtbot_module.waitSignal(manager.sig_initialize, timeout=30000) as blocker:
-        manager.start_client('python')
-
-    settings, language = blocker.args
-    assert all([option in SERVER_CAPABILITES for option in settings.keys()])
-    manager.clients[language]['server_settings'] = settings
-
-    yield manager
-
-    # Tear down operations
-    manager.shutdown()
-    os.environ['SPY_TEST_USE_INTROSPECTION'] = 'False'
-    CONF.set('lsp-server', 'pycodestyle', False)
-    CONF.set('lsp-server', 'pydocstyle', False)
 
 
 @pytest.fixture

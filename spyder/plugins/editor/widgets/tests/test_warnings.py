@@ -14,8 +14,6 @@ import pytest
 
 # Local imports
 from spyder.config.main import CONF
-from spyder.plugins.editor.widgets.tests.fixtures import (
-    lsp_codeeditor, lsp_manager, qtbot_module)
 
 
 TEXT = ("def some_function():\n"  # D100, D103: Missing docstring
@@ -27,7 +25,7 @@ TEXT = ("def some_function():\n"  # D100, D103: Missing docstring
 
 
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.second
 @pytest.mark.xfail
 def test_ignore_warnings(qtbot, lsp_codeeditor):
     """Test that the editor is ignoring some warnings."""
@@ -61,7 +59,7 @@ def test_ignore_warnings(qtbot, lsp_codeeditor):
 
 
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.second
 def test_adding_warnings(qtbot, lsp_codeeditor):
     """Test that warnings are saved in the editor blocks."""
     editor, _ = lsp_codeeditor
@@ -93,7 +91,7 @@ def test_adding_warnings(qtbot, lsp_codeeditor):
 
 
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.second
 def test_move_warnings(qtbot, lsp_codeeditor):
     """Test that moving to next/previous warnings is working."""
     editor, _ = lsp_codeeditor
@@ -125,7 +123,7 @@ def test_move_warnings(qtbot, lsp_codeeditor):
 
 
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.second
 def test_get_warnings(qtbot, lsp_codeeditor):
     """Test that the editor is returning the right list of warnings."""
     editor, _ = lsp_codeeditor
