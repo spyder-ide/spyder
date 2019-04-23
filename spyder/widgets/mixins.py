@@ -113,15 +113,22 @@ class BaseEditMixin(object):
 
         return point
 
-    def _update_stylesheet(self):
-        """"""
+    def _update_stylesheet(self, widget):
+        """Update the background stylesheet to make it lighter."""
         if is_dark_interface():
             css = qdarkstyle.load_stylesheet_from_environment()
-            tooltip = getattr(self, 'tooltip_widget', None)
-            self.calltip_widget.setStyleSheet(css)
-
-            if tooltip:
-                tooltip.setStyleSheet(css)
+            widget.setStyleSheet(css)
+            palette = widget.palette()
+            background = palette.color(palette.Window).lighter(150).name()
+            border = palette.color(palette.Window).lighter(200).name()
+            name = widget.__class__.__name__
+            widget.setObjectName(name)
+            extra_css = '''
+                {0}#{0} {{
+                    background-color:{1};
+                    border: 1px solid {2};
+                }}'''.format(name, background, border)
+            widget.setStyleSheet(css + extra_css)
 
     def _format_text(self, title, text, color, ellide=False):
         """"""
@@ -292,7 +299,7 @@ class BaseEditMixin(object):
             is_python,
         )
 
-        self._update_stylesheet()
+        self._update_stylesheet(self.calltip_widget)
 
         # Show calltip
         self.calltip_widget.show_tip(point, tiptext, wrapped_lines)
@@ -316,7 +323,7 @@ class BaseEditMixin(object):
             # Format text
             tiptext = self._format_text(title, text, color, ellide=True)
 
-            self._update_stylesheet()
+            self._update_stylesheet(self.tooltip_widget)
 
             # Display tooltip
             self.tooltip_widget.show_tip(point, tiptext)
