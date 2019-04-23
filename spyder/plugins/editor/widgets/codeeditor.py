@@ -906,7 +906,8 @@ class CodeEditor(TextEditBaseWidget):
         try:
             text = contents['params']
             self.sig_display_signature.emit(text)
-            self.show_tooltip(_("Hint"), text)
+            self.show_tooltip(_('Hint'), text, at_point=self._last_point,
+                              help_button=self._last_word)
         except Exception:
             self.log_lsp_handle_errors("Error when processing hover")
 
@@ -3061,12 +3062,22 @@ class CodeEditor(TextEditBaseWidget):
             QApplication.restoreOverrideCursor()
             self.__cursor_changed = False
             self.clear_extra_selections('ctrl_click')
-        # TODO: LSP addition - Define hover expected behaviour and UI element
-        # else:
-        #     cursor = self.cursorForPosition(event.pos())
-        #     line, col = cursor.blockNumber(), cursor.columnNumber()
-        #     if self.enable_hover:
-        #         self.request_hover(line, col)
+        else:
+            pos = event.pos()
+            text = self.get_word_at(pos)
+            cursor = self.cursorForPosition(pos)
+            cursor_rect = self.cursorRect(cursor)
+            fm = self.fontMetrics()
+            cursor_rect.setWidth(fm.width('M'))  # FIXME:
+            if self.enable_hover:
+                if text and cursor_rect.contains(pos):
+                    line, col = cursor.blockNumber(), cursor.columnNumber()
+                    self.request_hover(line, col)
+                    self._last_point = pos
+                    self._last_word = text
+                else:
+                    self._last_word = ''
+                    # self._last_point = None
         TextEditBaseWidget.mouseMoveEvent(self, event)
 
     def setPlainText(self, txt):
@@ -3106,10 +3117,13 @@ class CodeEditor(TextEditBaseWidget):
         elif event.button() == Qt.LeftButton and alt:
             self.sig_alt_left_mouse_pressed.emit(event)
         else:
-            # cursor = self.cursorForPosition(event.pos())
-            # line, col = cursor.blockNumber(), cursor.columnNumber()
-            # if self.enable_hover:
-            #     self.request_hover(line, col)
+            cursor = self.cursorForPosition(event.pos())
+            line, col = cursor.blockNumber(), cursor.columnNumber()
+            if self.enable_hover:
+                self._last_point = event.pos()
+                self.request_hover(line, col)
+            else:
+                self._last_point = None
             TextEditBaseWidget.mousePressEvent(self, event)
 
     def contextMenuEvent(self, event):

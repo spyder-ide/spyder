@@ -130,7 +130,8 @@ class BaseEditMixin(object):
                 }}'''.format(name, background, border)
             widget.setStyleSheet(css + extra_css)
 
-    def _format_text(self, title, text, color, ellide=False):
+    def _format_text(self, title, text, color, ellide=False,
+                     help_button=''):
         """
         Create HTML template for calltips and tooltips.
 
@@ -153,6 +154,14 @@ class BaseEditMixin(object):
                 {text}
             </div>
             '''
+        if help_button:
+            template += '''
+            <hr>
+            <div>
+                <a href="{0}"><span style="color: white;">Press for more help</span></a>
+            </div>
+            '''.format(help_button)
+
 
         # Prepare text
         if isinstance(text, list):
@@ -315,7 +324,8 @@ class BaseEditMixin(object):
         self.calltip_widget.show_tip(point, tiptext, wrapped_lines)
 
     def show_tooltip(self, title, text, color=_DEFAULT_TITLE_COLOR,
-                     at_line=None, at_position=None, at_point=None):
+                     at_line=None, at_position=None, at_point=None,
+                     help_button=''):
         """
         Show tooltip.
 
@@ -331,9 +341,17 @@ class BaseEditMixin(object):
             )
 
             # Format text
-            tiptext = self._format_text(title, text, color, ellide=True)
+            tiptext = self._format_text(title, text, color, ellide=True,
+                                        help_button=help_button)
 
             self._update_stylesheet(self.tooltip_widget)
+
+            try:
+                self.tooltip_widget.disconnect()
+            except Exception as e:
+                print(e)
+
+            self.tooltip_widget.linkActivated.connect(lambda x: print([x]))
 
             # Display tooltip
             self.tooltip_widget.show_tip(point, tiptext)
