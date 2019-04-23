@@ -60,6 +60,10 @@ class HelpWidget(RichJupyterWidget):
                 signature = name + argspec
             else:
                 signature = getsignaturefromtext(text, name)
+
+            # Remove docstring for uniformity with editor
+            signature = signature.split('Docstring:')[0]
+
             return signature
         else:
             return ''
@@ -125,5 +129,6 @@ class HelpWidget(RichJupyterWidget):
             if content.get('status') == 'ok' and content.get('found', False):
                 signature = self.get_signature(content)
                 if signature:
-                    self._control.show_calltip(_("Arguments"), signature,
-                                               signature=True, color='#2D62FF')
+                    # TODO: Pass the language from the Console to the calltip
+                    self._control.show_calltip(signature, color='#999999',
+                                               is_python=True)

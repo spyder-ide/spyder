@@ -766,7 +766,7 @@ class CodeEditor(TextEditBaseWidget):
         self.auto_completion_characters = (
             completion_options['triggerCharacters'])
         self.signature_completion_characters = (
-            signature_options['triggerCharacters'])
+            signature_options['triggerCharacters'] + ['='])  # FIXME:
         self.go_to_definition_enabled = config['definitionProvider']
         self.find_references_enabled = config['referencesProvider']
         self.highlight_enabled = config['documentHighlightProvider']
@@ -856,39 +856,36 @@ class CodeEditor(TextEditBaseWidget):
     def process_signatures(self, params):
         """Handle signature response."""
         try:
-            signature = params['params']
-            if (signature is not None and
-                    'activeParameter' in signature):
+            signature_params = params['params']
+            if (signature_params is not None and
+                    'activeParameter' in signature_params):
                 self.sig_signature_invoked.emit()
-                line, _ = self.get_cursor_line_column()
-                active_parameter_idx = signature['activeParameter']
-                signature = signature['signatures']
-                func_doc = signature['documentation']
-                func_signature = signature['label']
-                parameters = signature['parameters']
-                parameter = parameters[active_parameter_idx]
 
-                font = self.font()
-                size = font.pointSize()
-                family = font.family()
+                signature_data = signature_params['signatures']
+                documentation = signature_data['documentation']
 
-                parameter_str = ''
-                color_change_str = ('<span style=\'font-family: "{0}"; '
-                                    'font-size: {1}pt; color: {2}\'>')
-                if (parameter['documentation'] is not None and
-                        len(parameter['documentation']) > 0):
-                    parameter_fmt = ('{0}<b>{1}</b></span>: {2}\n')
-                    parameter_str = parameter_fmt.format(
-                        color_change_str.format(family, size, '#daa520'),
-                        parameter['label'], parameter['documentation'])
+                if PY2:
+                    # The language server is returning encoded text with
+                    # spaces defined as `\xa0`
+                    documentation = documentation.replace(u'\xa0', ' ')
 
-                title = func_signature.replace(
-                    parameter['label'], '{0}{1}</span>'.format(
-                        color_change_str.format(family, size, '#daa520'),
-                        parameter['label']))
-                tooltip_text = "{0}{1}".format(parameter_str, func_doc)
+                parameter_idx = signature_params['activeParameter']
+                parameters = signature_data['parameters']
+                parameter_data = parameters[parameter_idx]
+
+                signature = signature_data['label']
+                parameter = parameter_data['label']
+                parameter_documentation = parameter_data['documentation']
+
+                # This method is part of spyder/widgets/mixins
                 self.show_calltip(
-                    title, tooltip_text, color='#999999')
+                    signature,
+                    documentation,
+                    parameter,
+                    parameter_documentation,
+                    color='#999999',
+                    is_python=self.is_python()
+                )
         except Exception:
             self.log_lsp_handle_errors("Error when processing signature")
 
@@ -909,8 +906,7 @@ class CodeEditor(TextEditBaseWidget):
         try:
             text = contents['params']
             self.sig_display_signature.emit(text)
-            self.show_calltip(_("Hint"), text)
-            # QTimer.singleShot(20000, lambda: QToolTip.hideText())
+            self.show_tooltip(_("Hint"), text)
         except Exception:
             self.log_lsp_handle_errors("Error when processing hover")
 
@@ -922,12 +918,16 @@ class CodeEditor(TextEditBaseWidget):
         if (not self.go_to_definition_enabled or
                 self.in_comment_or_string()):
             return
+
         if cursor is None:
             cursor = self.textCursor()
+
         text = to_text_string(cursor.selectedText())
+
         if len(text) == 0:
             cursor.select(QTextCursor.WordUnderCursor)
             text = to_text_string(cursor.selectedText())
+
         if text is not None:
             line, column = self.get_cursor_line_column()
             params = {
@@ -1734,13 +1734,30 @@ class CodeEditor(TextEditBaseWidget):
         self.linenumberarea.update()
         self.classfuncdropdown.update()
 
+    def hide_tooltip(self):
+        """
+        Hide the tooltip widget.
+
+        The tooltip widget is a special QLabel that looks like a tooltip,
+        this method is here so it can be hidden as necessary. For example,
+        when the user leaves the Linenumber area when hovering over lint
+        warnings and errors.
+        """
+        self.tooltip_widget.hide()
+
     def show_code_analysis_results(self, line_number, block_data):
-        """Show warning/error messages"""
+        """Show warning/error messages."""
         code_analysis = block_data.code_analysis
-        msglist = ['{0} [{1}]: {2}'.format(
-            src, code, msg) for src, code, _sev, msg in code_analysis]
-        self.show_calltip(_("Code analysis"), msglist,
-                          color='#129625', at_line=line_number)
+        template = '{0} [{1}]: {2}'
+        msglist = [template.format(src, code, msg) for src, code, _sev, msg
+                   in code_analysis]
+
+        self.show_tooltip(
+            _("Code analysis"),
+            msglist,
+            color='#129625',
+            at_line=line_number,
+        )
         self.highlight_line_warning(block_data)
 
     def highlight_line_warning(self, block_data):
@@ -1821,8 +1838,13 @@ class CodeEditor(TextEditBaseWidget):
                 break
         line_number = block.blockNumber()+1
         self.go_to_line(line_number)
-        self.show_calltip(_("To do"), data.todo,
-                          color='#3096FC', at_line=line_number)
+        self.show_tooltip(
+            _("To do"),
+            data.todo,
+            color='#3096FC',
+            at_line=line_number,
+        )
+
         return self.get_position('cursor')
 
     def process_todo(self, todo_results):

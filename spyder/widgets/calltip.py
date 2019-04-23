@@ -29,6 +29,85 @@ from qtpy.QtWidgets import (QFrame, QLabel, QTextEdit, QPlainTextEdit, QStyle,
 from spyder.py3compat import to_text_string
 
 
+class ToolTipWidget(QLabel):
+    """
+    Shows tooltips that can be styled with the different themes.
+    """
+
+    def __init__(self, parent=None, as_tooltip=False):
+        """
+        Shows tooltips that can be styled with the different themes.
+        """
+        super(ToolTipWidget, self).__init__(parent, Qt.ToolTip)
+
+        # Variables
+        self.app = QCoreApplication.instance()
+        self.as_tooltip = as_tooltip
+        self.tip = None
+
+        # Setup
+        self.setForegroundRole(QPalette.ToolTipText)
+        self.setBackgroundRole(QPalette.ToolTipBase)
+        self.setPalette(QToolTip.palette())
+        self.setAlignment(Qt.AlignLeft)
+        self.setIndent(1)
+        self.setFrameStyle(QFrame.NoFrame)
+        style = self.style()
+        delta_margin = style.pixelMetric(QStyle.PM_ToolTipLabelFrameWidth,
+                                         None, self)
+        self.setMargin(1 + delta_margin)
+
+    def paintEvent(self, event):
+        """Reimplemented to paint the background panel."""
+        painter = QStylePainter(self)
+        option = QStyleOptionFrame()
+        option.initFrom(self)
+        painter.drawPrimitive(QStyle.PE_PanelTipLabel, option)
+        painter.end()
+
+        super(ToolTipWidget, self).paintEvent(event)
+
+    # ------------------------------------------------------------------------
+    # --- 'ToolTipWidget' interface
+    # ------------------------------------------------------------------------
+    def show_tip(self, point, tip):
+        """
+        Attempts to show the specified tip at the current cursor location.
+        """
+        # Don't attempt to show it if it's already visible and the text
+        # to be displayed is the same as the one displayed before.
+        if self.isVisible():
+            if self.tip == tip:
+                return True
+            else:
+                self.hide()
+
+        # Set the text and resize the widget accordingly.
+        self.tip = tip
+        self.setText(tip)
+        self.resize(self.sizeHint())
+        self.move(point)
+        self.show()
+        return True
+
+    def focusInEvent(self, event):
+        """
+        Reimplemented to hide it when focus goes out of the main window.
+        """
+        self.hide()
+
+    def focusOutEvent(self, event):
+        """
+        Reimplemented to hide it when focus goes out of the main window.
+        """
+        self.hide()
+
+    def leaveEvent(self, event):
+        """Override Qt method to hide the tooltip on leave."""
+        super(ToolTipWidget, self).leaveEvent(event)
+        self.hide()
+
+
 class CallTipWidget(QLabel):
     """ Shows call tips by parsing the current text of Q[Plain]TextEdit.
     """
@@ -37,13 +116,14 @@ class CallTipWidget(QLabel):
     # 'QObject' interface
     #--------------------------------------------------------------------------
 
-    def __init__(self, text_edit, hide_timer_on=False):
+    def __init__(self, text_edit, hide_timer_on=False, as_tooltip=False):
         """ Create a call tip manager that is attached to the specified Qt
             text edit widget.
         """
         assert isinstance(text_edit, (QTextEdit, QPlainTextEdit))
         super(CallTipWidget, self).__init__(None, Qt.ToolTip)
         self.app = QCoreApplication.instance()
+        self.as_tooltip = as_tooltip
 
         self.hide_timer_on = hide_timer_on
         self.tip = None
@@ -110,6 +190,9 @@ class CallTipWidget(QLabel):
         """ Reimplemented to cancel the hide timer.
         """
         super(CallTipWidget, self).enterEvent(event)
+        if self.as_tooltip:
+            self.hide()
+
         if (self._hide_timer.isActive() and
           self.app.topLevelAt(QCursor.pos()) == self):
             self._hide_timer.stop()
