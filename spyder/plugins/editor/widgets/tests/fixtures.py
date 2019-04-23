@@ -63,7 +63,8 @@ def lsp_codeeditor(lsp_manager, qtbot_module, request):
     editor.filename = 'test.py'
     editor.language = 'Python'
     lsp_manager.register_file('python', 'test.py', editor)
-    editor.start_lsp_services(lsp_manager.clients['python']['server_settings'])
+    server_settings = lsp_manager.main.editor.lsp_editor_settings['python']
+    editor.start_lsp_services(server_settings)
 
     with qtbot_module.waitSignal(editor.lsp_response_signal, timeout=30000):
         editor.document_did_open()
