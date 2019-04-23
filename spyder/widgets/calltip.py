@@ -31,12 +31,12 @@ from spyder.py3compat import to_text_string
 
 class ToolTipWidget(QLabel):
     """
-    Shows tooltips that can be styled with the different themings.
+    Shows tooltips that can be styled with the different themes.
     """
 
     def __init__(self, parent=None, as_tooltip=False):
         """
-        Shows tooltips that can be styled with the different themings.
+        Shows tooltips that can be styled with the different themes.
         """
         super(ToolTipWidget, self).__init__(parent, Qt.ToolTip)
 
@@ -104,12 +104,7 @@ class ToolTipWidget(QLabel):
         self.hide()
 
     def leaveEvent(self, event):
-        """"""
-        super(ToolTipWidget, self).leaveEvent(event)
-        self.hide()
-
-    def leaveEvent(self, event):
-        """"""
+        """Override Qt method to hide the tooltip on leave."""
         super(ToolTipWidget, self).leaveEvent(event)
         self.hide()
 

@@ -131,7 +131,12 @@ class BaseEditMixin(object):
             widget.setStyleSheet(css + extra_css)
 
     def _format_text(self, title, text, color, ellide=False):
-        """"""
+        """
+        Create HTML template for calltips and tooltips.
+
+        This will display title and text as separate sections and add `...`
+        if `ellide` is True and the text is too long.
+        """
         template = '''
             <div style=\'font-family: "{font_family}";
                         font-size: {title_size}pt;
@@ -180,7 +185,12 @@ class BaseEditMixin(object):
     def _format_signature(self, signature, doc='', parameter='',
                           parameter_doc='', color=_DEFAULT_TITLE_COLOR,
                           is_python=False):
-        """"""
+        """
+        Create HTML template for signature.
+
+        This template will include indent after the method name, a highlight
+        color for the active parameter and highlights for special chars.
+        """
         active_parameter_template = (
             '<span style=\'font-family:"{font_family}";'
             'font-size:{font_size}pt;'

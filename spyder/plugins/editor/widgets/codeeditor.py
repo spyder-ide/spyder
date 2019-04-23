@@ -865,6 +865,8 @@ class CodeEditor(TextEditBaseWidget):
                 documentation = signature_data['documentation']
 
                 if PY2:
+                    # The language server is returning encoded text with
+                    # spaces defined as `\xa0`
                     documentation = documentation.replace(u'\xa0', ' ')
 
                 parameter_idx = signature_params['activeParameter']
@@ -1733,7 +1735,14 @@ class CodeEditor(TextEditBaseWidget):
         self.classfuncdropdown.update()
 
     def hide_tooltip(self):
-        """"""
+        """
+        Hide the tooltip widget.
+
+        The tooltip widget is a special QLabel that looks like a tooltip,
+        this method is here so it can be hidden as necessary. For example,
+        when the user leaves the Linenumber area when hovering over lint
+        warnings and errors.
+        """
         self.tooltip_widget.hide()
 
     def show_code_analysis_results(self, line_number, block_data):
