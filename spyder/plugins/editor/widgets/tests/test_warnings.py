@@ -13,7 +13,7 @@ import os
 import pytest
 
 # Local imports
-from spyder.plugins.editor.widgets.tests.fixtures import lsp_codeeditor
+from spyder.config.main import CONF
 
 
 TEXT = ("def some_function():\n"  # D100, D103: Missing docstring
@@ -25,10 +25,44 @@ TEXT = ("def some_function():\n"  # D100, D103: Missing docstring
 
 
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.second
+@pytest.mark.xfail
+def test_ignore_warnings(qtbot, lsp_codeeditor):
+    """Test that the editor is ignoring some warnings."""
+    editor, manager = lsp_codeeditor
+
+    # Set text in editor
+    editor.set_text(TEXT)
+
+    CONF.set('lsp-server', 'pydocstyle/ignore', 'D100')
+    CONF.set('lsp-server', 'pycodestyle/ignore', 'E261')
+    manager.update_server_list()
+    qtbot.wait(2000)
+
+    # Notify changes
+    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
+        editor.document_did_change()
+
+    # Get current warnings
+    warnings = editor.get_current_warnings()
+
+    expected = [['D103: Missing docstring in public function', 1],
+                ['W293 blank line contains whitespace', 2],
+                ["undefined name 's'", 5]]
+
+    CONF.set('lsp-server', 'pydocstyle/ignore', '')
+    CONF.set('lsp-server', 'pycodestyle/ignore', '')
+    manager.update_server_list()
+    qtbot.wait(2000)
+
+    assert warnings == expected
+
+
+@pytest.mark.slow
+@pytest.mark.second
 def test_adding_warnings(qtbot, lsp_codeeditor):
     """Test that warnings are saved in the editor blocks."""
-    editor = lsp_codeeditor
+    editor, _ = lsp_codeeditor
 
     # Set text in editor
     editor.set_text(TEXT)
@@ -57,10 +91,10 @@ def test_adding_warnings(qtbot, lsp_codeeditor):
 
 
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.second
 def test_move_warnings(qtbot, lsp_codeeditor):
     """Test that moving to next/previous warnings is working."""
-    editor = lsp_codeeditor
+    editor, _ = lsp_codeeditor
 
     # Set text in editor
     editor.set_text(TEXT)
@@ -89,10 +123,10 @@ def test_move_warnings(qtbot, lsp_codeeditor):
 
 
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.second
 def test_get_warnings(qtbot, lsp_codeeditor):
     """Test that the editor is returning the right list of warnings."""
-    editor = lsp_codeeditor
+    editor, _ = lsp_codeeditor
 
     # Set text in editor
     editor.set_text(TEXT)

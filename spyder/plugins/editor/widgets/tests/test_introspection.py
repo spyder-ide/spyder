@@ -19,7 +19,6 @@ from qtpy.QtCore import Qt
 
 # Local imports
 from spyder.py3compat import PY2
-from spyder.plugins.editor.widgets.tests.fixtures import lsp_codeeditor
 
 
 # Location of this file
@@ -30,7 +29,7 @@ LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
 @pytest.mark.first
 def test_space_completion(lsp_codeeditor, qtbot):
     """Validate completion's space character handling."""
-    code_editor = lsp_codeeditor
+    code_editor, _ = lsp_codeeditor
     completion = code_editor.completion_widget
 
     # Set cursor to start
@@ -56,7 +55,7 @@ def test_space_completion(lsp_codeeditor, qtbot):
 @pytest.mark.first
 def test_hide_widget_completion(lsp_codeeditor, qtbot):
     """Validate hiding completion widget after a delimeter or operator."""
-    code_editor = lsp_codeeditor
+    code_editor, _ = lsp_codeeditor
     completion = code_editor.completion_widget
 
     delimiters = ['(', ')', '[', ']', '{', '}', ',', ':', ';', '@', '=', '->',
@@ -90,7 +89,7 @@ def test_hide_widget_completion(lsp_codeeditor, qtbot):
 @pytest.mark.first
 def test_completions(lsp_codeeditor, qtbot):
     """Exercise code completion in several ways."""
-    code_editor = lsp_codeeditor
+    code_editor, _ = lsp_codeeditor
     completion = code_editor.completion_widget
 
     # Set cursor to start
