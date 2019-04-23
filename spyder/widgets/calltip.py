@@ -58,8 +58,7 @@ class ToolTipWidget(QLabel):
         self.setMargin(1 + delta_margin)
 
     def paintEvent(self, event):
-        """ Reimplemented to paint the background panel.
-        """
+        """Reimplemented to paint the background panel."""
         painter = QStylePainter(self)
         option = QStyleOptionFrame()
         option.initFrom(self)
