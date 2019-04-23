@@ -3068,16 +3068,13 @@ class CodeEditor(TextEditBaseWidget):
             cursor = self.cursorForPosition(pos)
             cursor_rect = self.cursorRect(cursor)
             fm = self.fontMetrics()
-            cursor_rect.setWidth(fm.width('M'))  # FIXME:
+            cursor_rect.setWidth(fm.width('MM'))  # FIXME:
             if self.enable_hover:
                 if text and cursor_rect.contains(pos):
                     line, col = cursor.blockNumber(), cursor.columnNumber()
                     self.request_hover(line, col)
                     self._last_point = pos
                     self._last_word = text
-                else:
-                    self._last_word = ''
-                    # self._last_point = None
         TextEditBaseWidget.mouseMoveEvent(self, event)
 
     def setPlainText(self, txt):
@@ -3123,7 +3120,7 @@ class CodeEditor(TextEditBaseWidget):
                 self._last_point = event.pos()
                 self.request_hover(line, col)
             else:
-                self._last_point = None
+                self.tooltip_widget.hide()
             TextEditBaseWidget.mousePressEvent(self, event)
 
     def contextMenuEvent(self, event):
