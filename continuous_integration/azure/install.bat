@@ -6,10 +6,6 @@ if %USE_CONDA% == yes (
     conda install -q -y -c spyder-ide --file requirements/tests.txt
     if errorlevel 1 exit 1
 ) else (
-    :: Update pip and setuptools
-    pip install -U pip setuptools
-    if errorlevel 1 exit 1
-
     :: Install Spyder and its dependencies from our setup.py
     pip install -e .[test]
     if errorlevel 1 exit 1
