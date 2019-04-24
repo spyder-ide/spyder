@@ -268,12 +268,10 @@ def test_filter_numpy_warning(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.use_introspection
-@pytest.mark.skipif(PY2,
-                    reason="Times out in PY2")
+@pytest.mark.skipif(PY2, reason="Times out in PY2")
 def test_get_help_combo(main_window, qtbot):
     """
-    Test that Help works when called from the Editor and the IPython console.
+    Test that Help can display docstrings for names typed in its combobox.
     """
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
