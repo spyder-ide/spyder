@@ -299,6 +299,14 @@ class CodeEditor(TextEditBaseWidget):
 
         self._panels = PanelsManager(self)
 
+        # Mouse moving timer / Hover hints handling
+        self._last_point = None
+        self._last_word = None
+        self._timer_hover = None
+        self._timer_mouse_moving = QTimer(self)
+        self._timer_mouse_moving.setInterval(280)
+        self._timer_mouse_moving.timeout.connect(lambda: self._handle_hover())
+
         # 79-col edge line
         self.edge_line = self.panels.register(EdgeLine(self),
                                               Panel.Position.FLOATING)
@@ -884,30 +892,44 @@ class CodeEditor(TextEditBaseWidget):
                     parameter,
                     parameter_documentation,
                     color='#999999',
-                    is_python=self.is_python()
+                    is_python=self.is_python(),
+                    help_button=signature.split('(')[0],
                 )
         except Exception:
             self.log_lsp_handle_errors("Error when processing signature")
 
     # ------------- LSP: Hover ---------------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_HOVER)
-    def request_hover(self, line, col):
+    def request_hover(self, line, col, show_hint=True):
         """Request hover information."""
         params = {
             'file': self.filename,
             'line': line,
             'column': col
         }
+        self._show_hint = show_hint
         return params
 
     @handles(LSPRequestTypes.DOCUMENT_HOVER)
     def handle_hover_response(self, contents):
         """Handle hover response."""
         try:
-            text = contents['params']
-            self.sig_display_signature.emit(text)
-            self.show_tooltip(_('Hint'), text, at_point=self._last_point,
-                              help_button=self._last_word)
+            content = contents['params']
+            if content:
+                # TODO: Move this to the mixins
+                lines = content.split('\n')
+                max_lines = 12
+                text = '\n'.join(lines[:max_lines])
+
+                if len(lines) > max_lines:
+                     text += '  ...'
+
+                self.sig_display_signature.emit(text)
+                if self._show_hint:
+                    if self._last_point:
+                        point = self.get_word_start_pos(self._last_point)
+                        self.show_tooltip(_('Hint'), text, at_point=point,
+                                        help_button=self._last_word)
         except Exception:
             self.log_lsp_handle_errors("Error when processing hover")
 
@@ -1466,6 +1488,7 @@ class CodeEditor(TextEditBaseWidget):
     #-----Code introspection
     def show_object_info(self, position):
         """Trigger a calltip"""
+        print(['help'])
         self.sig_show_object_info.emit(position)
 
     # -----blank spaces
@@ -1744,6 +1767,8 @@ class CodeEditor(TextEditBaseWidget):
         when the user leaves the Linenumber area when hovering over lint
         warnings and errors.
         """
+        self._last_word = None
+        self._last_point = None
         self.tooltip_widget.hide()
 
     def show_code_analysis_results(self, line_number, block_data):
@@ -2872,6 +2897,7 @@ class CodeEditor(TextEditBaseWidget):
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
         # Send the signal to the editor's extension.
+        self.hide_tooltip()
         event.ignore()
         self.sig_key_pressed.emit(event)
 
@@ -3030,8 +3056,11 @@ class CodeEditor(TextEditBaseWidget):
 
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""
-        self.mouse_point = event.pos()
-        QToolTip.hideText()
+        self._timer_mouse_moving.start()
+
+        pos = event.pos()
+        self._last_point = pos
+
         if event.modifiers() & Qt.AltModifier:
             self.sig_alt_mouse_moved.emit(event)
             event.accept()
@@ -3040,6 +3069,7 @@ class CodeEditor(TextEditBaseWidget):
         if self.has_selected_text():
             TextEditBaseWidget.mouseMoveEvent(self, event)
             return
+
         if (self.go_to_definition_enabled and
                 event.modifiers() & Qt.ControlModifier):
             text = self.get_word_at(event.pos())
@@ -3058,24 +3088,53 @@ class CodeEditor(TextEditBaseWidget):
                     underline_style=QTextCharFormat.SingleUnderline)
                 event.accept()
                 return
+
         if self.__cursor_changed:
             QApplication.restoreOverrideCursor()
             self.__cursor_changed = False
             self.clear_extra_selections('ctrl_click')
         else:
-            pos = event.pos()
-            text = self.get_word_at(pos)
-            cursor = self.cursorForPosition(pos)
-            cursor_rect = self.cursorRect(cursor)
-            fm = self.fontMetrics()
-            cursor_rect.setWidth(fm.width('MM'))  # FIXME:
-            if self.enable_hover:
-                if text and cursor_rect.contains(pos):
-                    line, col = cursor.blockNumber(), cursor.columnNumber()
-                    self.request_hover(line, col)
-                    self._last_point = pos
-                    self._last_word = text
+            if not self._should_display_hover(pos):
+                self.hide_tooltip()
+
         TextEditBaseWidget.mouseMoveEvent(self, event)
+
+    def _should_display_hover(self, pos):
+        """FIXME:"""
+        value = False
+
+        if self.enable_hover and pos:
+            text = self.get_word_at(pos)
+            value = text and self.is_position_inside_word_rect(pos)
+
+        return value
+
+    def _handle_hover(self):
+        """FIXME:"""
+        self._timer_mouse_moving.stop()
+        pos = self._last_point
+
+        # These are textual characters but should not trigger a completion
+        # FIXME: update per language
+        ignore_chars = ['(', ')', '.']
+
+        if self._should_display_hover(pos):
+            text = self.get_word_at(pos)
+            # print('IN')
+            cursor = self.cursorForPosition(pos)
+            line, col = cursor.blockNumber(), cursor.columnNumber()
+
+            self._last_point = pos
+            # print(text, self._last_word)
+            if text and self._last_word != text:
+                if all(char not in text for char in ignore_chars):
+                    # print('FIRE')
+                    self._last_word = text
+                    self.request_hover(line, col)
+                else:
+                    self.hide_tooltip()
+        else:
+            self.hide_tooltip()
 
     def setPlainText(self, txt):
         """
@@ -3107,20 +3166,15 @@ class CodeEditor(TextEditBaseWidget):
         """Reimplement Qt method"""
         ctrl = event.modifiers() & Qt.ControlModifier
         alt = event.modifiers() & Qt.AltModifier
+        pos = event.pos()
         if event.button() == Qt.LeftButton and ctrl:
             TextEditBaseWidget.mousePressEvent(self, event)
-            cursor = self.cursorForPosition(event.pos())
+            cursor = self.cursorForPosition(pos)
             self.go_to_definition_from_cursor(cursor)
         elif event.button() == Qt.LeftButton and alt:
             self.sig_alt_left_mouse_pressed.emit(event)
         else:
-            cursor = self.cursorForPosition(event.pos())
-            line, col = cursor.blockNumber(), cursor.columnNumber()
-            if self.enable_hover:
-                self._last_point = event.pos()
-                self.request_hover(line, col)
-            else:
-                self.tooltip_widget.hide()
+            # self._handle_hover(pos)
             TextEditBaseWidget.mousePressEvent(self, event)
 
     def contextMenuEvent(self, event):

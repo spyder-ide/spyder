@@ -891,7 +891,7 @@ class EditorStack(QWidget):
         editor = self.get_current_editor()
         editor.sig_display_signature.connect(self.display_signature_help)
         line, col = editor.get_cursor_line_column()
-        editor.request_hover(line, col)
+        editor.request_hover(line, col, show_hint=True)
 
     @Slot(str)
     def display_signature_help(self, signature):
@@ -899,6 +899,7 @@ class EditorStack(QWidget):
         name = editor.get_current_word()
         self.help.switch_to_editor_source()
         editor.sig_display_signature.disconnect(self.display_signature_help)
+        print(name, signature)
         self.send_to_help(name, signature, force=True)
 
     #------ Editor Widget Settings

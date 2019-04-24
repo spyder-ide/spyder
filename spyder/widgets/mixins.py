@@ -12,6 +12,7 @@ IPython console plugin.
 """
 
 # Standard library imports
+from __future__ import print_function
 from xml.sax.saxutils import escape
 import os
 import os.path as osp
@@ -78,8 +79,8 @@ class BaseEditMixin(object):
         line, local cursor position, or local point.
         """
         # Check that no option or only one option is given:
-        if [at_line, at_position, at_point].count(None) < 2:
-            raise Exception('Provide no argument or only one argument!')
+        # if [at_line, at_position, at_point].count(None) < 2:
+            # raise Exception('Provide no argument or only one argument!')
 
         # Saving cursor position:
         if at_position is None:
@@ -94,7 +95,7 @@ class BaseEditMixin(object):
         elif at_line is not None:
             # Showing tooltip at line
             cx = 5
-            cursor = QTextCursor(self.document().findBlockByNumber(at_line-1))
+            cursor = QTextCursor(self.document().findBlockByNumber(at_line - 1))
             cy = self.cursorRect(cursor).top()
         else:
             # Showing tooltip at cursor position
@@ -138,11 +139,20 @@ class BaseEditMixin(object):
         This will display title and text as separate sections and add `...`
         if `ellide` is True and the text is too long.
         """
+        shortcut = 'Ctrl+I'  # FIXME:
+        help_link = ''
+        if help_button:
+            help_link = (
+            '<a href="{0}"><small>'
+            '<span style="float:right;color:white;">'
+            '(For more information, click here or press {1})'
+            '</span></small></a>'.format(help_button, shortcut))
+
         template = '''
             <div style=\'font-family: "{font_family}";
                         font-size: {title_size}pt;
                         color: {color}\'>
-                <b>{title}</b>
+                <b>{title}</b> ''' + help_link + '''
             </div>
         '''
         if text:
@@ -154,14 +164,6 @@ class BaseEditMixin(object):
                 {text}
             </div>
             '''
-        if help_button:
-            template += '''
-            <hr>
-            <div>
-                <a href="{0}"><span style="color: white;">Press for more help</span></a>
-            </div>
-            '''.format(help_button)
-
 
         # Prepare text
         if isinstance(text, list):
@@ -193,7 +195,7 @@ class BaseEditMixin(object):
 
     def _format_signature(self, signature, doc='', parameter='',
                           parameter_doc='', color=_DEFAULT_TITLE_COLOR,
-                          is_python=False):
+                          is_python=False, help_button=''):
         """
         Create HTML template for signature.
 
@@ -292,12 +294,13 @@ class BaseEditMixin(object):
         # text += '<br>'
 
         # Format text
-        tiptext = self._format_text(title, '', color)
+        tiptext = self._format_text(title, '', color, help_button=help_button)
 
         return tiptext, rows
 
     def show_calltip(self, signature, doc='', parameter='', parameter_doc='',
-                     color=_DEFAULT_TITLE_COLOR, is_python=False):
+                     color=_DEFAULT_TITLE_COLOR, is_python=False,
+                     help_button=''):
         """
         Show calltip.
 
@@ -316,6 +319,7 @@ class BaseEditMixin(object):
             parameter_doc,
             color,
             is_python,
+            help_button=help_button,
         )
 
         self._update_stylesheet(self.calltip_widget)
@@ -388,7 +392,6 @@ class BaseEditMixin(object):
             txt += linesep
         return txt
 
-
     #------Positions, coordinates (cursor, EOF, ...)
     def get_position(self, subject):
         """Get offset in character for the given subject from the start of
@@ -415,6 +418,26 @@ class BaseEditMixin(object):
         cursor.setPosition(position)
         point = self.cursorRect(cursor).center()
         return point.x(), point.y()
+
+    def is_position_inside_word_rect(self, position):
+        """FIXME:"""
+        cursor = self.cursorForPosition(position)
+        cursor.movePosition(QTextCursor.StartOfWord, QTextCursor.MoveAnchor)
+        start_rect = self.cursorRect(cursor)
+        cursor.movePosition(QTextCursor.EndOfWord, QTextCursor.MoveAnchor)
+        end_rect = self.cursorRect(cursor)
+        bounding_rect = start_rect.united(end_rect)
+        # TODO: add a bit of y padding to this rect so cursor does not have to
+        # be exactly centered (at least vertically)
+        return bounding_rect.contains(position)
+
+    def get_word_start_pos(self, position):
+        """FIXME:"""
+        cursor = self.cursorForPosition(position)
+        cursor.movePosition(QTextCursor.StartOfWord, QTextCursor.MoveAnchor)
+        rect = self.cursorRect(cursor)
+        pos = QPoint(rect.left() + 4, rect.top())
+        return pos
 
     def get_cursor_line_column(self):
         """Return cursor (line, column) numbers"""
