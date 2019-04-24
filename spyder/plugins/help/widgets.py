@@ -53,21 +53,24 @@ class ObjectComboBox(EditableComboBox):
         if not re.search(r'^[a-zA-Z0-9_\.]*$', str(qstr), 0):
             return False
         objtxt = to_text_string(qstr)
+        shell_is_defined = False
         if self.help.get_option('automatic_import'):
             shell = self.help.internal_shell
             if shell is not None:
-                return shell.is_defined(objtxt, force_import=True)
-        shell = self.help.get_shell()
-        if shell is not None:
-            try:
-                return shell.is_defined(objtxt)
-            except socket.error:
-                shell = self.help.get_shell()
+                shell_is_defined = shell.is_defined(objtxt, force_import=True)
+        if not shell_is_defined:
+            shell = self.help.get_shell()
+            if shell is not None:
                 try:
-                    return shell.is_defined(objtxt)
+                    shell_is_defined = shell.is_defined(objtxt)
                 except socket.error:
-                    # Well... too bad!
-                    pass
+                    shell = self.help.get_shell()
+                    try:
+                        shell_is_defined = shell.is_defined(objtxt)
+                    except socket.error:
+                        # Well... too bad!
+                        pass
+        return shell_is_defined
 
     def validate_current_text(self):
         self.validate(self.currentText())
@@ -76,7 +79,7 @@ class ObjectComboBox(EditableComboBox):
         """Reimplemented to avoid formatting actions"""
         valid = self.is_valid(qstr)
         if self.hasFocus() and valid is not None:
-            if editing:
+            if editing and not valid:
                 # Combo box text is being modified: invalidate the entry
                 self.show_tip(self.tips[valid])
                 self.valid.emit(False, False)

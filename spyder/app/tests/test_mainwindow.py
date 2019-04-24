@@ -348,6 +348,58 @@ def test_filter_numpy_warning(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(PY2, reason="Times out in PY2")
+def test_get_help_combo(main_window, qtbot):
+    """
+    Test that Help can display docstrings for names typed in its combobox.
+    """
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    help_plugin = main_window.help
+    webview = help_plugin.rich_text.webview._webview
+    if WEBENGINE:
+        webpage = webview.page()
+    else:
+        webpage = webview.page().mainFrame()
+
+    # --- From the console ---
+    # Write some object in the console
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('import numpy as np')
+
+    # Get help - numpy
+    help_plugin.combo.setFocus()
+
+    qtbot.keyClicks(help_plugin.combo, 'numpy', delay=100)
+
+    # Check that a expected text is part of the page
+    qtbot.waitUntil(lambda: check_text(webpage, "NumPy"), timeout=6000)
+
+    # Get help - numpy.arange
+    qtbot.keyClick(help_plugin.combo, Qt.Key_Right)
+    qtbot.keyClicks(help_plugin.combo, '.arange', delay=100)
+
+    # Check that a expected text is part of the page
+    qtbot.waitUntil(lambda: check_text(webpage, "arange"), timeout=6000)
+
+    # Get help - np
+    qtbot.keyClicks(help_plugin.combo, 'np', delay=100)
+
+    # Check that a expected text is part of the page
+    qtbot.waitUntil(lambda: check_text(webpage, "NumPy"), timeout=6000)
+
+    # Get help - np.arange
+    qtbot.keyClick(help_plugin.combo, Qt.Key_Right)
+    qtbot.keyClicks(help_plugin.combo, '.arange', delay=100)
+
+    # Check that a expected text is part of the page
+    qtbot.waitUntil(lambda: check_text(webpage, "arange"), timeout=6000)
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
                     reason="Times out on AppVeyor")
 def test_get_help_ipython_console(main_window, qtbot):
