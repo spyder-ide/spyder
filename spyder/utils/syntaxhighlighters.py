@@ -280,7 +280,11 @@ class BaseSH(QSyntaxHighlighter):
     def rehighlight(self):
         self.outlineexplorer_data = {}
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+        # rehighlight() triggers the textChanged signal, which in our editor
+        # switches changed_since_autosave to True; we need to prevent this.
+        old_changed = getattr(self.document(), 'changed_since_autosave', False)
         QSyntaxHighlighter.rehighlight(self)
+        self.document().changed_since_autosave = old_changed
         QApplication.restoreOverrideCursor()
 
 

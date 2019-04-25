@@ -644,16 +644,21 @@ def test_autosave_does_not_save_new_files(editor_bot, mocker):
     editor_stack._write_to_file.assert_not_called()
 
 
-def test_autosave_does_not_save_after_open(base_editor_bot, mocker):
+@pytest.mark.parametrize('filename', ['ham.py', 'ham.txt'])
+def test_autosave_does_not_save_after_open(base_editor_bot, mocker, qtbot,
+                                           filename):
     """
     Test that autosave() does not save files immediately after opening.
 
     Files should only be autosaved after the user made changes.
+    Editors use different highlighters depending on the filename, so we test
+    both Python and text files. The latter covers issue #8654.
     """
     editor_stack = base_editor_bot
     txt = 'spam\n'
-    editor_stack.create_new_editor('ham.py', 'ascii', txt, set_current=True)
+    editor_stack.create_new_editor(filename, 'ascii', txt, set_current=True)
     mocker.patch.object(editor_stack, '_write_to_file')
+    qtbot.wait(100)  # Wait for PygmentsSH.makeCharlist() if applicable
     editor_stack.autosave.autosave(0)
     editor_stack._write_to_file.assert_not_called()
 
@@ -672,9 +677,7 @@ def test_autosave_does_not_save_after_reload(base_editor_bot, mocker):
     mocker.patch.object(editor_stack, '_write_to_file')
     mocker.patch('spyder.plugins.editor.widgets.editor.encoding.read',
                  return_value=(txt, 'ascii'))
-    print(editor_stack.data[0].editor.document().changed_since_autosave)
     editor_stack.reload(0)
-    print(editor_stack.data[0].editor.document().changed_since_autosave)
     editor_stack.autosave.autosave(0)
     editor_stack._write_to_file.assert_not_called()
 
