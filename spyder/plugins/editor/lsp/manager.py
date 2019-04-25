@@ -301,14 +301,16 @@ class LSPManager(QObject):
             'follow_imports': self.get_option('jedi_definition/follow_imports')
         }
 
+        # Advanced
+        advanced_external = self.get_option('advanced/external')
+
         # Setup options in json
         self.python_config['cmd'] = cmd
         if host in self.LOCALHOST:
             self.python_config['args'] = '--host {host} --port {port} --tcp'
-            self.python_config['external'] = False
         else:
             self.python_config['args'] = ''
-            self.python_config['external'] = True
+        self.python_config['external'] = advanced_external
         self.python_config['host'] = host
         self.python_config['port'] = port
 
