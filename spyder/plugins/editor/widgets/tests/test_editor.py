@@ -24,7 +24,6 @@ from qtpy.QtGui import QTextCursor
 
 # Local imports
 from spyder.config.base import get_conf_path
-from spyder.plugins.editor.widgets.tests.fixtures import setup_editor
 from spyder.plugins.editor.widgets.editor import EditorStack
 from spyder.widgets.findreplace import FindReplace
 from spyder.py3compat import PY2
@@ -677,9 +676,7 @@ def test_autosave_does_not_save_after_reload(base_editor_bot, mocker):
     mocker.patch.object(editor_stack, '_write_to_file')
     mocker.patch('spyder.plugins.editor.widgets.editor.encoding.read',
                  return_value=(txt, 'ascii'))
-    print(editor_stack.data[0].editor.document().changed_since_autosave)
     editor_stack.reload(0)
-    print(editor_stack.data[0].editor.document().changed_since_autosave)
     editor_stack.autosave.autosave(0)
     editor_stack._write_to_file.assert_not_called()
 
