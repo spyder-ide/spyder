@@ -43,7 +43,6 @@ class LSPManager(QObject):
         self.clients = {}
         self.requests = {}
         self.register_queue = {}
-        self.python_config = PYTHON_CONFIG.copy()
 
         # Register languages to create clients for
         for language in self.get_languages():
@@ -81,8 +80,7 @@ class LSPManager(QObject):
     def get_language_config(self, language):
         """Get language configuration options from our config system."""
         if language == 'python':
-            self.update_python_config()
-            return self.python_config
+            return self.generate_python_config()
         else:
             return self.get_option(language)
 
@@ -229,11 +227,13 @@ class LSPManager(QObject):
                 client = self.clients[language]['instance']
                 client.perform_request(request, params)
 
-    def update_python_config(self):
+    def generate_python_config(self):
         """
         Update Python server configuration with the options saved in our
         config system.
         """
+        python_config = PYTHON_CONFIG.copy()
+
         # Server options
         cmd = self.get_option('advanced/command_launch')
         host = self.get_option('advanced/host')
@@ -301,18 +301,20 @@ class LSPManager(QObject):
             'follow_imports': self.get_option('jedi_definition/follow_imports')
         }
 
-        # Setup options in json
-        self.python_config['cmd'] = cmd
-        if host in self.LOCALHOST:
-            self.python_config['args'] = '--host {host} --port {port} --tcp'
-            self.python_config['external'] = False
-        else:
-            self.python_config['args'] = ''
-            self.python_config['external'] = True
-        self.python_config['host'] = host
-        self.python_config['port'] = port
+        # Advanced
+        external_server = self.get_option('advanced/external')
 
-        plugins = self.python_config['configurations']['pyls']['plugins']
+        # Setup options in json
+        python_config['cmd'] = cmd
+        if host in self.LOCALHOST:
+            python_config['args'] = '--host {host} --port {port} --tcp'
+        else:
+            python_config['args'] = ''
+        python_config['external'] = external_server
+        python_config['host'] = host
+        python_config['port'] = port
+
+        plugins = python_config['configurations']['pyls']['plugins']
         plugins['pycodestyle'] = pycodestyle
         plugins['pyflakes'] = pyflakes
         plugins['pydocstyle'] = pydocstyle
@@ -320,3 +322,5 @@ class LSPManager(QObject):
         plugins['jedi_signature_help'] = jedi_signature_help
         plugins['preload']['modules'] = self.get_option('preload_modules')
         plugins['jedi_definition'] = jedi_definition
+
+        return python_config
