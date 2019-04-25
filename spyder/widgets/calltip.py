@@ -46,6 +46,8 @@ class ToolTipWidget(QLabel):
         self.tip = None
 
         # Setup
+        self.setTextInteractionFlags(Qt.TextBrowserInteraction)
+        self.setOpenExternalLinks(False)
         self.setForegroundRole(QPalette.ToolTipText)
         self.setBackgroundRole(QPalette.ToolTipBase)
         self.setPalette(QToolTip.palette())
@@ -57,6 +59,8 @@ class ToolTipWidget(QLabel):
                                          None, self)
         self.setMargin(1 + delta_margin)
 
+        self.linkHovered.connect(self._update_hover_html_link_style)
+
     def paintEvent(self, event):
         """Reimplemented to paint the background panel."""
         painter = QStylePainter(self)
@@ -66,6 +70,24 @@ class ToolTipWidget(QLabel):
         painter.end()
 
         super(ToolTipWidget, self).paintEvent(event)
+
+    def _update_hover_html_link_style(self, url):
+        """"""
+        link = 'text-decoration:none;'
+        link_hovered = 'text-decoration:underline;'
+
+        if url:
+            new_text, old_text = link_hovered, link
+        else:
+            new_text, old_text = link, link_hovered
+
+        text = self.text()
+        new_text = text.replace(old_text, new_text)
+
+        print(new_text)
+
+        self.setText(new_text)
+
 
     # ------------------------------------------------------------------------
     # --- 'ToolTipWidget' interface
@@ -91,12 +113,12 @@ class ToolTipWidget(QLabel):
         self.show()
         return True
 
-    def mousePressEvent(self, event):
-        """
-        Reimplemented to hide it when focus goes out of the main window.
-        """
-        super(ToolTipWidget, self).mousePressEvent(event)
-        self.hide()
+    # def mousePressEvent(self, event):
+    #     """
+    #     Reimplemented to hide it when focus goes out of the main window.
+    #     """
+    #     super(ToolTipWidget, self).mousePressEvent(event)
+    #     self.hide()
 
     # def focusInEvent(self, event):
     #     """
