@@ -302,9 +302,8 @@ class CodeEditor(TextEditBaseWidget):
         # Mouse moving timer / Hover hints handling
         self._last_point = None
         self._last_word = None
-        self._timer_hover = None
         self._timer_mouse_moving = QTimer(self)
-        self._timer_mouse_moving.setInterval(280)
+        self._timer_mouse_moving.setInterval(400)
         self._timer_mouse_moving.timeout.connect(lambda: self._handle_hover())
 
         # 79-col edge line
@@ -883,17 +882,12 @@ class CodeEditor(TextEditBaseWidget):
 
                 signature = signature_data['label']
                 parameter = parameter_data['label']
-                parameter_documentation = parameter_data['documentation']
+                # parameter_documentation = parameter_data['documentation']
 
                 # This method is part of spyder/widgets/mixins
                 self.show_calltip(
-                    signature,
-                    documentation,
-                    parameter,
-                    parameter_documentation,
-                    color='#999999',
-                    is_python=self.is_python(),
-                    help_button=signature.split('(')[0],
+                    signature=signature,
+                    parameter=parameter,
                 )
         except Exception:
             self.log_lsp_handle_errors("Error when processing signature")
@@ -916,20 +910,11 @@ class CodeEditor(TextEditBaseWidget):
         try:
             content = contents['params']
             if content:
-                # TODO: Move this to the mixins
-                lines = content.split('\n')
-                max_lines = 12
-                text = '\n'.join(lines[:max_lines])
-
-                if len(lines) > max_lines:
-                     text += '  ...'
-
-                self.sig_display_signature.emit(text)
-                if self._show_hint:
-                    if self._last_point:
-                        point = self.get_word_start_pos(self._last_point)
-                        self.show_tooltip(_('Hint'), text, at_point=point,
-                                        help_button=self._last_word)
+                self.sig_display_signature.emit(content)
+                if self._show_hint and self._last_point:
+                    # This is located in spyder/widgets/mixins.py
+                    self.show_hint(content, inspect_word=self._last_word,
+                                   at_point=self._last_point)
         except Exception:
             self.log_lsp_handle_errors("Error when processing hover")
 
@@ -1779,9 +1764,9 @@ class CodeEditor(TextEditBaseWidget):
                    in code_analysis]
 
         self.show_tooltip(
-            _("Code analysis"),
-            msglist,
-            color='#129625',
+            title=_("Code analysis"),
+            text='\n'.join(msglist),
+            title_color='#129625',
             at_line=line_number,
         )
         self.highlight_line_warning(block_data)
@@ -1865,9 +1850,9 @@ class CodeEditor(TextEditBaseWidget):
         line_number = block.blockNumber()+1
         self.go_to_line(line_number)
         self.show_tooltip(
-            _("To do"),
-            data.todo,
-            color='#3096FC',
+            title=_("To do"),
+            text=data.todo,
+            title_color='#3096FC',
             at_line=line_number,
         )
 
@@ -2897,7 +2882,6 @@ class CodeEditor(TextEditBaseWidget):
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
         # Send the signal to the editor's extension.
-        self.hide_tooltip()
         event.ignore()
         self.sig_key_pressed.emit(event)
 
@@ -2925,6 +2909,10 @@ class CodeEditor(TextEditBaseWidget):
                      '&', '|', '^', '~', '<', '>', '<=', '>=', '==', '!='}
         delimiters = {',', ':', ';', '@', '=', '->', '+=', '-=', '*=', '/=',
                       '//=', '%=', '@=', '&=', '|=', '^=', '>>=', '<<=', '**='}
+
+        if not shift and not ctrl:
+            self.hide_tooltip()
+
         if text in operators or text in delimiters:
             self.completion_widget.hide()
         if key in (Qt.Key_Enter, Qt.Key_Return):
