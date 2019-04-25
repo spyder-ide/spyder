@@ -862,7 +862,7 @@ class LSPManagerConfigPage(GeneralConfigPage):
             word_wrap=False)
         advanced_port = self.create_spinbox(
             ":", "", 'advanced/port', min_=1, max_=65535, step=1)
-        advanced_external = self.create_checkbox(
+        external_server = self.create_checkbox(
             _("This is an external server"),
             'advanced/external')
 
@@ -882,7 +882,7 @@ class LSPManagerConfigPage(GeneralConfigPage):
         advanced_layout = QVBoxLayout()
         advanced_layout.addWidget(advanced_label)
         advanced_layout.addLayout(advanced_g_layout)
-        advanced_layout.addWidget(advanced_external)
+        advanced_layout.addWidget(external_server)
         advanced_widget.setLayout(advanced_layout)
 
         # --- Other servers tab ---
