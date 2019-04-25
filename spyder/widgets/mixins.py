@@ -139,8 +139,8 @@ class BaseEditMixin(object):
         # FIXME: This works, but there isprobably a cleaner way.
         # This need to be defined on the console and on the editor
         # For now only on the editor (eventually on the notebook)
-        shortcut_editor = getattr(app, 'shortcut_inspect_editor')
-        shortcut_console = getattr(app, 'shortcut_inspect_console')
+        shortcut_editor = getattr(app, 'shortcut_inspect_editor', None)
+        shortcut_console = getattr(app, 'shortcut_inspect_console', None)
         shortcut = shortcut_editor or shortcut_console
 
         if shortcut:
@@ -174,7 +174,7 @@ class BaseEditMixin(object):
             <div style=\'font-family: "{font_family}";
                         font-size: {size}pt;
                         color: {color}\'>
-                {text}
+                {main_text}
             </div>
         '''
         # Get current font properties
@@ -190,7 +190,7 @@ class BaseEditMixin(object):
                 font_family=font_family,
                 size=title_size,
                 color=title_color,
-                text=title,
+                main_text=title,
             )
 
             if text or signature:
@@ -201,8 +201,9 @@ class BaseEditMixin(object):
                 font_family=font_family,
                 size=text_size,
                 color=text_color,
-                text=signature,
+                main_text=signature,
             )
+        print([signature])
 
         if text:
             # TODO: Check max_lines
@@ -216,8 +217,10 @@ class BaseEditMixin(object):
                 font_family=font_family,
                 size=text_size,
                 color=text_color,
-                text=text,
+                main_text=text,
             )
+
+        print([text])
 
         help_text = ''
         if inspect_word:
@@ -395,7 +398,7 @@ class BaseEditMixin(object):
 
             # Display tooltip
             self.tooltip_widget.show_tip(point, tiptext)
-            self.tooltip_widget.show()
+            # self.tooltip_widget.show()
 
     def show_hint(self, text, inspect_word, at_point):
         """Show code hint and crop text as needed."""
@@ -406,20 +409,42 @@ class BaseEditMixin(object):
             is_signature = '(' in lines[0]
 
         # Split signature and the rest
-        signature, additional_text = '', text
-        for i, line in enumerate(lines):
-            if line.strip() == '':
-                signature = '\n'.join(lines[:i])
-                additional_text = '\n'.join(lines[i:])
-                break
 
-        html_signature = self._format_signature(signature)
+        signature, additional_text = None, text
+        if is_signature:
+            for i, line in enumerate(lines):
+                if line.strip() == '':
+                    signature = '\n'.join(lines[:i])
+                    additional_text = '\n'.join(lines[i:])
+                    break
+
+            signature = self._format_signature(signature)
 
         # Check if signature and format
         point = self.get_word_start_pos(at_point)
-        self.show_tooltip(signature=html_signature, text=additional_text,
+
+        # This is needed to get hover hints
+        cursor = self.cursorForPosition(at_point)
+        cursor.movePosition(QTextCursor.StartOfWord, QTextCursor.MoveAnchor)
+        self._last_hover_cursor = cursor
+
+        self.show_tooltip(signature=signature, text=additional_text,
                           at_point=point, inspect_word=inspect_word,
                           display_link=True, max_lines=10)
+
+    def hide_tooltip(self):
+        """
+        Hide the tooltip widget.
+
+        The tooltip widget is a special QLabel that looks like a tooltip,
+        this method is here so it can be hidden as necessary. For example,
+        when the user leaves the Linenumber area when hovering over lint
+        warnings and errors.
+        """
+        self._last_hover_cursor = None
+        self._last_hover_word = None
+        self._last_point = None
+        self.tooltip_widget.hide()
 
     #------EOL characters
     def set_eol_chars(self, text):
@@ -503,9 +528,23 @@ class BaseEditMixin(object):
         pos = QPoint(rect.left() + 4, rect.top())
         return pos
 
-    def get_cursor_line_column(self):
-        """Return cursor (line, column) numbers"""
-        cursor = self.textCursor()
+    def get_last_hover_word(self):
+        """Return the last (or active) hover word."""
+        return self._last_hover_word
+
+    def get_last_hover_cursor(self):
+        """Return the last (or active) hover cursor."""
+        return self._last_hover_cursor
+
+    def get_cursor_line_column(self, cursor=None):
+        """
+        Return `cursor` (line, column) numbers.
+
+        If no `cursor` is provided, use the current text cursor.
+        """
+        if cursor is None:
+            cursor = self.textCursor()
+
         return cursor.blockNumber(), cursor.columnNumber()
 
     def get_cursor_line_number(self):
@@ -705,6 +744,10 @@ class BaseEditMixin(object):
         ret = self.get_current_word_and_position(completion)
         if ret is not None:
             return ret[0]
+
+    def get_hover_word(self):
+        """"""
+        return self._last_hover_word
 
     def get_current_line(self):
         """Return current line's text"""

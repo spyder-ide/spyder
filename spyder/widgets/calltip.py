@@ -20,10 +20,11 @@ Now located at qtconsole/call_tip_widget.py as part of the
 from unicodedata import category
 
 # Third party imports
-from qtpy.QtCore import QBasicTimer, QCoreApplication, QEvent, Qt
+from qtpy.QtCore import QBasicTimer, QCoreApplication, QEvent, Qt, Signal
 from qtpy.QtGui import QCursor, QPalette
-from qtpy.QtWidgets import (QFrame, QLabel, QTextEdit, QPlainTextEdit, QStyle,
-                            QStyleOptionFrame, QStylePainter, QToolTip)
+from qtpy.QtWidgets import (QApplication, QFrame, QLabel, QTextEdit,
+                            QPlainTextEdit, QStyle, QStyleOptionFrame,
+                            QStylePainter, QToolTip)
 
 # Local imports
 from spyder.py3compat import to_text_string
@@ -34,6 +35,8 @@ class ToolTipWidget(QLabel):
     Shows tooltips that can be styled with the different themes.
     """
 
+    sig_help_requested = Signal(str)
+
     def __init__(self, parent=None, as_tooltip=False):
         """
         Shows tooltips that can be styled with the different themes.
@@ -41,11 +44,13 @@ class ToolTipWidget(QLabel):
         super(ToolTipWidget, self).__init__(parent, Qt.ToolTip)
 
         # Variables
+        self._url = ''
         self.app = QCoreApplication.instance()
         self.as_tooltip = as_tooltip
         self.tip = None
 
         # Setup
+        self.setWindowFlags(Qt.SplashScreen)
         self.setTextInteractionFlags(Qt.TextBrowserInteraction)
         self.setOpenExternalLinks(False)
         self.setForegroundRole(QPalette.ToolTipText)
@@ -75,16 +80,20 @@ class ToolTipWidget(QLabel):
         """"""
         link = 'text-decoration:none;'
         link_hovered = 'text-decoration:underline;'
+        self._url = url
 
         if url:
+            QApplication.setOverrideCursor(QCursor(Qt.PointingHandCursor))
             new_text, old_text = link_hovered, link
         else:
             new_text, old_text = link, link_hovered
+            QApplication.restoreOverrideCursor()
 
         text = self.text()
         new_text = text.replace(old_text, new_text)
 
         self.setText(new_text)
+
 
     # ------------------------------------------------------------------------
     # --- 'ToolTipWidget' interface
@@ -109,6 +118,29 @@ class ToolTipWidget(QLabel):
         self.show()
         return True
 
+    def mousePressEvent(self, event):
+        """
+        Reimplemented to hide it when focus goes out of the main window.
+        """
+        QApplication.restoreOverrideCursor()
+
+        if self._url:
+            self.sig_help_requested.emit(self._url)
+
+        super(ToolTipWidget, self).mousePressEvent(event)
+        self.hide()
+
+    def focusOutEvent(self, event):
+        """
+        Reimplemented to hide it when focus goes out of the main window.
+        """
+        self.hide()
+
+    def leaveEvent(self, event):
+        """Override Qt method to hide the tooltip on leave."""
+        super(ToolTipWidget, self).leaveEvent(event)
+        self.hide()
+
 
 class CallTipWidget(QLabel):
     """ Shows call tips by parsing the current text of Q[Plain]TextEdit.
@@ -132,6 +164,7 @@ class CallTipWidget(QLabel):
         self._hide_timer = QBasicTimer()
         self._text_edit = text_edit
 
+        self.setWindowFlags(Qt.SplashScreen)
         self.setFont(text_edit.document().defaultFont())
         self.setForegroundRole(QPalette.ToolTipText)
         self.setBackgroundRole(QPalette.ToolTipBase)

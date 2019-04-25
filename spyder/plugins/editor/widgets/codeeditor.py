@@ -268,7 +268,8 @@ class CodeEditor(TextEditBaseWidget):
     # LSP Signals
     sig_perform_lsp_request = Signal(str, str, dict)
     lsp_response_signal = Signal(str, dict)
-    sig_display_signature = Signal(str)
+    sig_display_signature = Signal(str)      # This emits textual object info
+    sig_display_hover_info = Signal(object)  # This emits a QTextCursor
     sig_signature_invoked = Signal()
 
     def __init__(self, parent=None):
@@ -301,10 +302,14 @@ class CodeEditor(TextEditBaseWidget):
 
         # Mouse moving timer / Hover hints handling
         # See: mouseMoveEvent
+        self._last_hover_cursor = None
+        self.tooltip_widget.sig_help_requested.connect(
+            self.show_object_info)
         self._last_point = None
-        self._last_word = None
+        self._last_hover_word = None
+        self._last_hover_cursor = None
         self._timer_mouse_moving = QTimer(self)
-        self._timer_mouse_moving.setInterval(400)
+        self._timer_mouse_moving.setInterval(500)
         self._timer_mouse_moving.timeout.connect(lambda: self._handle_hover())
 
         # 79-col edge line
@@ -499,6 +504,44 @@ class CodeEditor(TextEditBaseWidget):
 
         self.editor_extensions.add(CloseQuotesExtension())
         self.editor_extensions.add(CloseBracketsExtension())
+
+    # --- Helper private methods
+    # ------------------------------------------------------------------------
+
+    # --- Hover/Hints
+    def _should_display_hover(self, pos):
+        """Check if a hover hint should be displayed:"""
+        value = False
+
+        if self.enable_hover and pos:
+            text = self.get_word_at(pos)
+            value = text and self.is_position_inside_word_rect(pos)
+
+        return value
+
+    def _handle_hover(self):
+        """Handle hover hint trigger after delay."""
+        self._timer_mouse_moving.stop()
+        pos = self._last_point
+
+        # These are textual characters but should not trigger a completion
+        # FIXME: update per language
+        ignore_chars = ['(', ')', '.']
+
+        if self._should_display_hover(pos):
+            text = self.get_word_at(pos)
+            cursor = self.cursorForPosition(pos)
+            line, col = cursor.blockNumber(), cursor.columnNumber()
+
+            self._last_point = pos
+            if text and self._last_hover_word != text:
+                if all(char not in text for char in ignore_chars):
+                    self._last_hover_word = text
+                    self.request_hover(line, col)
+                else:
+                    self.hide_tooltip()
+        else:
+            self.hide_tooltip()
 
     # ---- Keyboard Shortcuts
 
@@ -711,7 +754,8 @@ class CodeEditor(TextEditBaseWidget):
         self.classfuncdropdown.setVisible(show_class_func_dropdown
                                           and self.is_python_like())
 
-    # ------------- LSP-related methods ---------------------------------------
+    # --- Language Server Protocol methods -----------------------------------
+    # ------------------------------------------------------------------------
     @Slot(str, dict)
     def handle_response(self, method, params):
         if method in self.handler_registry:
@@ -914,8 +958,11 @@ class CodeEditor(TextEditBaseWidget):
                 self.sig_display_signature.emit(content)
                 if self._show_hint and self._last_point:
                     # This is located in spyder/widgets/mixins.py
-                    self.show_hint(content, inspect_word=self._last_word,
+                    word = self._last_hover_word,
+                    self.show_hint(content, inspect_word=word,
                                    at_point=self._last_point)
+                    self._last_point = None
+
         except Exception:
             self.log_lsp_handle_errors("Error when processing hover")
 
@@ -1474,7 +1521,6 @@ class CodeEditor(TextEditBaseWidget):
     #-----Code introspection
     def show_object_info(self, position):
         """Trigger a calltip"""
-        print(['help'])
         self.sig_show_object_info.emit(position)
 
     # -----blank spaces
@@ -1743,19 +1789,6 @@ class CodeEditor(TextEditBaseWidget):
         self.setUpdatesEnabled(True)
         self.linenumberarea.update()
         self.classfuncdropdown.update()
-
-    def hide_tooltip(self):
-        """
-        Hide the tooltip widget.
-
-        The tooltip widget is a special QLabel that looks like a tooltip,
-        this method is here so it can be hidden as necessary. For example,
-        when the user leaves the Linenumber area when hovering over lint
-        warnings and errors.
-        """
-        self._last_word = None
-        self._last_point = None
-        self.tooltip_widget.hide()
 
     def show_code_analysis_results(self, line_number, block_data):
         """Show warning/error messages."""
@@ -3090,40 +3123,6 @@ class CodeEditor(TextEditBaseWidget):
 
         TextEditBaseWidget.mouseMoveEvent(self, event)
 
-    def _should_display_hover(self, pos):
-        """Check if a hover hint should be displayed:"""
-        value = False
-
-        if self.enable_hover and pos:
-            text = self.get_word_at(pos)
-            value = text and self.is_position_inside_word_rect(pos)
-
-        return value
-
-    def _handle_hover(self):
-        """Handle hover hint trigger after delay."""
-        self._timer_mouse_moving.stop()
-        pos = self._last_point
-
-        # These are textual characters but should not trigger a completion
-        # FIXME: update per language
-        ignore_chars = ['(', ')', '.']
-
-        if self._should_display_hover(pos):
-            text = self.get_word_at(pos)
-            cursor = self.cursorForPosition(pos)
-            line, col = cursor.blockNumber(), cursor.columnNumber()
-
-            self._last_point = pos
-            if text and self._last_word != text:
-                if all(char not in text for char in ignore_chars):
-                    self._last_word = text
-                    self.request_hover(line, col)
-                else:
-                    self.hide_tooltip()
-        else:
-            self.hide_tooltip()
-
     def setPlainText(self, txt):
         """
         Extends setPlainText to emit the new_text_set signal.
@@ -3162,7 +3161,6 @@ class CodeEditor(TextEditBaseWidget):
         elif event.button() == Qt.LeftButton and alt:
             self.sig_alt_left_mouse_pressed.emit(event)
         else:
-            # self._handle_hover(pos)
             TextEditBaseWidget.mousePressEvent(self, event)
 
     def contextMenuEvent(self, event):

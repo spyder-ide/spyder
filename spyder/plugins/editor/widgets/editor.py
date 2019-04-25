@@ -166,6 +166,7 @@ class FileInfo(QObject):
     edit_goto = Signal(str, int, str)
     send_to_help = Signal(str, str, str, str, bool)
     sig_filename_changed = Signal(str)
+    sig_show_object_info = Signal(int)
 
     def __init__(self, filename, encoding, editor, new, threadmanager):
         QObject.__init__(self)
@@ -183,6 +184,7 @@ class FileInfo(QObject):
 
         self.editor.textChanged.connect(self.text_changed)
         self.editor.sig_bookmarks_changed.connect(self.bookmarks_changed)
+        self.editor.sig_show_object_info.connect(self.sig_show_object_info)
         self.sig_filename_changed.connect(self.editor.sig_filename_changed)
 
     @property
@@ -889,21 +891,28 @@ class EditorStack(QWidget):
             editor = self.get_current_editor()
             editor.add_bookmark(slot_num)
 
-    def inspect_current_object(self):
+    def inspect_current_object(self, pos=None):
         """Inspect current object in the Help plugin"""
         editor = self.get_current_editor()
         editor.sig_display_signature.connect(self.display_signature_help)
-        line, col = editor.get_cursor_line_column()
-        editor.request_hover(line, col, show_hint=True)
+        cursor = editor.get_last_hover_cursor()
+        print('last hover cursor', cursor)
+        line, col = editor.get_cursor_line_column(cursor)
+        editor.request_hover(line, col, show_hint=False)
 
     @Slot(str)
     def display_signature_help(self, signature):
         editor = self.get_current_editor()
-        name = editor.get_current_word()
+
+        if editor.get_last_hover_cursor():
+            name = editor.get_last_hover_word()
+        else:
+            name = editor.get_current_word()
+
         self.help.switch_to_editor_source()
         editor.sig_display_signature.disconnect(self.display_signature_help)
-        print(name, signature)
         self.send_to_help(name, signature, force=True)
+        editor.hide_tooltip()
 
     #------ Editor Widget Settings
     def set_closable(self, state):
@@ -2236,6 +2245,7 @@ class EditorStack(QWidget):
 
         self.add_to_data(finfo, set_current, add_where)
         finfo.send_to_help.connect(self.send_to_help)
+        finfo.sig_show_object_info.connect(self.inspect_current_object)
         finfo.todo_results_changed.connect(
                                       lambda: self.todo_results_changed.emit())
         finfo.edit_goto.connect(lambda fname, lineno, name:
