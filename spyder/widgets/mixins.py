@@ -79,10 +79,6 @@ class BaseEditMixin(object):
         Calculate a global point position `QPoint(x, y)`, for a given
         line, local cursor position, or local point.
         """
-        # Check that no option or only one option is given:
-        # if [at_line, at_position, at_point].count(None) < 2:
-            # raise Exception('Provide no argument or only one argument!')
-
         # Saving cursor position:
         if at_position is None:
             at_position = self.get_position('cursor')
@@ -96,7 +92,8 @@ class BaseEditMixin(object):
         elif at_line is not None:
             # Showing tooltip at line
             cx = 5
-            cursor = QTextCursor(self.document().findBlockByNumber(at_line - 1))
+            line = at_line - 1
+            cursor = QTextCursor(self.document().findBlockByNumber(line))
             cy = self.cursorRect(cursor).top()
         else:
             # Showing tooltip at cursor position
@@ -133,13 +130,19 @@ class BaseEditMixin(object):
             widget.setStyleSheet(css + extra_css)
 
     def _get_inspect_shortcut(self):
-        """"""
+        """
+        Queries the application for the inspect shortcut defined by the
+        editor.
+        """
         value = ''
         app = QCoreApplication.instance()
         # FIXME: This works, but there isprobably a cleaner way.
         # This need to be defined on the console and on the editor
         # For now only on the editor (eventually on the notebook)
-        shortcut = getattr(app, 'shortcut_inspect', None)
+        shortcut_editor = getattr(app, 'shortcut_inspect_editor')
+        shortcut_console = getattr(app, 'shortcut_inspect_console')
+        shortcut = shortcut_editor or shortcut_console
+
         if shortcut:
             key_sequence = shortcut.data[0].key()
             if key_sequence:
@@ -207,7 +210,7 @@ class BaseEditMixin(object):
                 lines = text.split('\n')
                 if len(lines) > max_lines:
                     text = '\n'.join(lines[:max_lines]) + ' ...'
-            
+
             text = text.replace('\n', '<br>')
             template += BASE_TEMPLATE.format(
                 font_family=font_family,
@@ -223,28 +226,34 @@ class BaseEditMixin(object):
             else:
                 shortcut = self._get_inspect_shortcut()
                 if shortcut:
-                    base_style = ('background-color:#fafbfc;color:#444d56;'
-                                  'font-size:11px;')
-                    help_text = ('Press '
+                    base_style = (
+                        'background-color:#fafbfc;color:#444d56;'
+                        'font-size:11px;'
+                    )
+                    help_text = (
+                        'Press '
                         '<kbd style="{1}">[</kbd>'
                         '<kbd style="{1}text-decoration:underline;">'
                         '{0}</kbd><kbd style="{1}">]</kbd> for aditional help'
-                        ''.format(shortcut, base_style))
+                        ''.format(shortcut, base_style)
+                    )
 
         if help_text and inspect_word:
             if display_link:
                 template += (
-                '<hr>'
-                '<div align="left">'
-                '<a href="{0}">'
-                '<span style="color:#148CD2;text-decoration:none;">'
-                ''.format(inspect_word)) + help_text + '</span></a></div>'
+                    '<hr>'
+                    '<div align="left">'
+                    '<a href="{0}">'
+                    '<span style="color:#148CD2;text-decoration:none;">'
+                    ''.format(inspect_word)
+                    ) + help_text + '</span></a></div>'
             else:
                 template += (
-                '<hr>'
-                '<div align="left">'
-                '<span style="color:white;text-decoration:none;">'
-                '' + help_text + '</span></div>')
+                    '<hr>'
+                    '<div align="left">'
+                    '<span style="color:white;text-decoration:none;">'
+                    '' + help_text + '</span></div>'
+                )
 
         return template
 
@@ -358,7 +367,7 @@ class BaseEditMixin(object):
         # Show calltip
         self.calltip_widget.show_tip(point, text, [])
 
-    def show_tooltip(self, title=None, signature=None ,text=None,
+    def show_tooltip(self, title=None, signature=None, text=None,
                      inspect_word=None, title_color=_DEFAULT_TITLE_COLOR,
                      at_line=None, at_position=None, at_point=None,
                      display_link=False, max_lines=10):
@@ -378,7 +387,7 @@ class BaseEditMixin(object):
                 text=text,
                 title_color=title_color,
                 inspect_word=inspect_word,
-                display_link=display_link, 
+                display_link=display_link,
                 max_lines=max_lines,
             )
 
@@ -389,7 +398,7 @@ class BaseEditMixin(object):
             self.tooltip_widget.show()
 
     def show_hint(self, text, inspect_word, at_point):
-        """"""
+        """Show code hint and crop text as needed."""
         # Check language
         lines = text.split('\n')
         is_signature = False
@@ -471,7 +480,9 @@ class BaseEditMixin(object):
         return point.x(), point.y()
 
     def is_position_inside_word_rect(self, position):
-        """FIXME:"""
+        """
+        Check if the mouse is within the rect of the cursor current word.
+        """
         cursor = self.cursorForPosition(position)
         cursor.movePosition(QTextCursor.StartOfWord, QTextCursor.MoveAnchor)
         start_rect = self.cursorRect(cursor)
@@ -483,7 +494,9 @@ class BaseEditMixin(object):
         return bounding_rect.contains(position)
 
     def get_word_start_pos(self, position):
-        """FIXME:"""
+        """
+        Find start position (lower bottom) of a word being hovered by mouse.
+        """
         cursor = self.cursorForPosition(position)
         cursor.movePosition(QTextCursor.StartOfWord, QTextCursor.MoveAnchor)
         rect = self.cursorRect(cursor)

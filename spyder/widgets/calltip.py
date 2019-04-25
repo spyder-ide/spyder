@@ -84,10 +84,7 @@ class ToolTipWidget(QLabel):
         text = self.text()
         new_text = text.replace(old_text, new_text)
 
-        print(new_text)
-
         self.setText(new_text)
-
 
     # ------------------------------------------------------------------------
     # --- 'ToolTipWidget' interface
@@ -107,35 +104,10 @@ class ToolTipWidget(QLabel):
         # Set the text and resize the widget accordingly.
         self.tip = tip
         self.setText(tip)
-        self.repaint() # ??
         self.resize(self.sizeHint())
         self.move(point)
         self.show()
         return True
-
-    # def mousePressEvent(self, event):
-    #     """
-    #     Reimplemented to hide it when focus goes out of the main window.
-    #     """
-    #     super(ToolTipWidget, self).mousePressEvent(event)
-    #     self.hide()
-
-    # def focusInEvent(self, event):
-    #     """
-    #     Reimplemented to hide it when focus goes out of the main window.
-    #     """
-    #     self.hide()
-
-    # def focusOutEvent(self, event):
-    #     """
-    #     Reimplemented to hide it when focus goes out of the main window.
-    #     """
-    #     self.hide()
-
-    # def leaveEvent(self, event):
-    #     """Override Qt method to hide the tooltip on leave."""
-    #     super(ToolTipWidget, self).leaveEvent(event)
-    #     self.hide()
 
 
 class CallTipWidget(QLabel):

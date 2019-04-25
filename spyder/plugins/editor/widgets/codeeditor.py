@@ -300,6 +300,7 @@ class CodeEditor(TextEditBaseWidget):
         self._panels = PanelsManager(self)
 
         # Mouse moving timer / Hover hints handling
+        # See: mouseMoveEvent
         self._last_point = None
         self._last_word = None
         self._timer_mouse_moving = QTimer(self)
@@ -3044,6 +3045,8 @@ class CodeEditor(TextEditBaseWidget):
 
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""
+        # Restart timer every time the mouse is moved
+        # This is needed to correctly handle hover hints with a delay
         self._timer_mouse_moving.start()
 
         pos = event.pos()
@@ -3088,7 +3091,7 @@ class CodeEditor(TextEditBaseWidget):
         TextEditBaseWidget.mouseMoveEvent(self, event)
 
     def _should_display_hover(self, pos):
-        """FIXME:"""
+        """Check if a hover hint should be displayed:"""
         value = False
 
         if self.enable_hover and pos:
@@ -3098,7 +3101,7 @@ class CodeEditor(TextEditBaseWidget):
         return value
 
     def _handle_hover(self):
-        """FIXME:"""
+        """Handle hover hint trigger after delay."""
         self._timer_mouse_moving.stop()
         pos = self._last_point
 
@@ -3108,15 +3111,12 @@ class CodeEditor(TextEditBaseWidget):
 
         if self._should_display_hover(pos):
             text = self.get_word_at(pos)
-            # print('IN')
             cursor = self.cursorForPosition(pos)
             line, col = cursor.blockNumber(), cursor.columnNumber()
 
             self._last_point = pos
-            # print(text, self._last_word)
             if text and self._last_word != text:
                 if all(char not in text for char in ignore_chars):
-                    # print('FIRE')
                     self._last_word = text
                     self.request_hover(line, col)
                 else:

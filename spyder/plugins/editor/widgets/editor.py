@@ -599,9 +599,9 @@ class EditorStack(QWidget):
         # --- Configurable shortcuts
         inspect = config_shortcut(self.inspect_current_object, context='Editor',
                                   name='Inspect current object', parent=self)
-        # FIXME:
+        # TODO: Cleaner way to do this?
         app = QCoreApplication.instance()
-        app.shortcut_inspect = inspect
+        app.shortcut_inspect_editor = inspect
         set_breakpoint = config_shortcut(self.set_or_clear_breakpoint,
                                          context='Editor', name='Breakpoint',
                                          parent=self)
