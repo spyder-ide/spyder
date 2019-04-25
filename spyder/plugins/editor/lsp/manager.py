@@ -82,7 +82,7 @@ class LSPManager(QObject):
         """Get language configuration options from our config system."""
         if language == 'python':
             self.update_python_config()
-            return self.python_config
+            return self.python_config.copy()
         else:
             return self.get_option(language)
 
