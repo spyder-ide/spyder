@@ -896,7 +896,6 @@ class EditorStack(QWidget):
         editor = self.get_current_editor()
         editor.sig_display_signature.connect(self.display_signature_help)
         cursor = editor.get_last_hover_cursor()
-        print('last hover cursor', cursor)
         line, col = editor.get_cursor_line_column(cursor)
         editor.request_hover(line, col, show_hint=False)
 

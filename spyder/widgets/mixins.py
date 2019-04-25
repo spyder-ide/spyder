@@ -203,7 +203,6 @@ class BaseEditMixin(object):
                 color=text_color,
                 main_text=signature,
             )
-        print([signature])
 
         if text:
             # TODO: Check max_lines
@@ -219,8 +218,6 @@ class BaseEditMixin(object):
                 color=text_color,
                 main_text=text,
             )
-
-        print([text])
 
         help_text = ''
         if inspect_word:
