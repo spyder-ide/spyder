@@ -24,6 +24,7 @@ from qtpy.QtGui import QTextCursor
 
 # Local imports
 from spyder.config.base import get_conf_path
+from spyder.plugins.editor.widgets.tests.fixtures import setup_editor
 from spyder.plugins.editor.widgets.editor import EditorStack
 from spyder.widgets.findreplace import FindReplace
 from spyder.py3compat import PY2
