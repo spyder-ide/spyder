@@ -17,6 +17,10 @@ import re
 import weakref
 
 # Third party imports
+from pygments.lexer import RegexLexer, bygroups
+from pygments.lexers import get_lexer_by_name
+from pygments.token import (Text, Other, Keyword, Name, String, Number,
+                            Comment, Generic, Token)
 from qtpy.QtCore import Qt
 from qtpy.QtGui import (QColor, QCursor, QFont, QSyntaxHighlighter,
                         QTextCharFormat, QTextOption)
@@ -701,7 +705,6 @@ class OpenCLSH(CppSH):
 #==============================================================================
 # Fortran Syntax Highlighter
 #==============================================================================
-
 def make_fortran_patterns():
     "Strongly inspired from idlelib.ColorDelegator.make_pat"
     kwstr = 'access action advance allocatable allocate apostrophe assign assignment associate asynchronous backspace bind blank blockdata call case character class close common complex contains continue cycle data deallocate decimal delim default dimension direct do dowhile double doubleprecision else elseif elsewhere encoding end endassociate endblockdata enddo endfile endforall endfunction endif endinterface endmodule endprogram endselect endsubroutine endtype endwhere entry eor equivalence err errmsg exist exit external file flush fmt forall form format formatted function go goto id if implicit in include inout integer inquire intent interface intrinsic iomsg iolength iostat kind len logical module name named namelist nextrec nml none nullify number only open opened operator optional out pad parameter pass pause pending pointer pos position precision print private program protected public quote read readwrite real rec recl recursive result return rewind save select selectcase selecttype sequential sign size stat status stop stream subroutine target then to type unformatted unit use value volatile wait where while write'
@@ -775,7 +778,6 @@ class Fortran77SH(FortranSH):
 # Contribution from Stuart Mumford (Littlemumford) - 2012-02-02
 # See Issue #850
 #==============================================================================
-
 def make_idl_patterns():
     """Strongly inspired by idlelib.ColorDelegator.make_pat."""
     kwstr = 'begin of pro function endfor endif endwhile endrep endcase endswitch end if then else for do while repeat until break case switch common continue exit return goto help message print read retall stop'
@@ -803,7 +805,6 @@ class IdlSH(GenericSH):
 #==============================================================================
 # Diff/Patch highlighter
 #==============================================================================
-
 class DiffSH(BaseSH):
     """Simple Diff/Patch Syntax Highlighter Class"""
     def highlight_block(self, text):
@@ -825,7 +826,6 @@ class DiffSH(BaseSH):
 #==============================================================================
 # NSIS highlighter
 #==============================================================================
-
 def make_nsis_patterns():
     "Strongly inspired from idlelib.ColorDelegator.make_pat"
     kwstr1 = 'Abort AddBrandingImage AddSize AllowRootDirInstall AllowSkipFiles AutoCloseWindow BGFont BGGradient BrandingText BringToFront Call CallInstDLL Caption ClearErrors CompletedText ComponentText CopyFiles CRCCheck CreateDirectory CreateFont CreateShortCut Delete DeleteINISec DeleteINIStr DeleteRegKey DeleteRegValue DetailPrint DetailsButtonText DirText DirVar DirVerify EnableWindow EnumRegKey EnumRegValue Exec ExecShell ExecWait Exch ExpandEnvStrings File FileBufSize FileClose FileErrorText FileOpen FileRead FileReadByte FileSeek FileWrite FileWriteByte FindClose FindFirst FindNext FindWindow FlushINI Function FunctionEnd GetCurInstType GetCurrentAddress GetDlgItem GetDLLVersion GetDLLVersionLocal GetErrorLevel GetFileTime GetFileTimeLocal GetFullPathName GetFunctionAddress GetInstDirError GetLabelAddress GetTempFileName Goto HideWindow ChangeUI CheckBitmap Icon IfAbort IfErrors IfFileExists IfRebootFlag IfSilent InitPluginsDir InstallButtonText InstallColors InstallDir InstallDirRegKey InstProgressFlags InstType InstTypeGetText InstTypeSetText IntCmp IntCmpU IntFmt IntOp IsWindow LangString LicenseBkColor LicenseData LicenseForceSelection LicenseLangString LicenseText LoadLanguageFile LogSet LogText MessageBox MiscButtonText Name OutFile Page PageCallbacks PageEx PageExEnd Pop Push Quit ReadEnvStr ReadINIStr ReadRegDWORD ReadRegStr Reboot RegDLL Rename ReserveFile Return RMDir SearchPath Section SectionEnd SectionGetFlags SectionGetInstTypes SectionGetSize SectionGetText SectionIn SectionSetFlags SectionSetInstTypes SectionSetSize SectionSetText SendMessage SetAutoClose SetBrandingImage SetCompress SetCompressor SetCompressorDictSize SetCtlColors SetCurInstType SetDatablockOptimize SetDateSave SetDetailsPrint SetDetailsView SetErrorLevel SetErrors SetFileAttributes SetFont SetOutPath SetOverwrite SetPluginUnload SetRebootFlag SetShellVarContext SetSilent ShowInstDetails ShowUninstDetails ShowWindow SilentInstall SilentUnInstall Sleep SpaceTexts StrCmp StrCpy StrLen SubCaption SubSection SubSectionEnd UninstallButtonText UninstallCaption UninstallIcon UninstallSubCaption UninstallText UninstPage UnRegDLL Var VIAddVersionKey VIProductVersion WindowIcon WriteINIStr WriteRegBin WriteRegDWORD WriteRegExpandStr WriteRegStr WriteUninstaller XPStyle'
@@ -848,7 +848,6 @@ class NsisSH(CppSH):
 #==============================================================================
 # gettext highlighter
 #==============================================================================
-
 def make_gettext_patterns():
     "Strongly inspired from idlelib.ColorDelegator.make_pat"
     kwstr = 'msgid msgstr'
@@ -874,7 +873,6 @@ class GetTextSH(GenericSH):
 #==============================================================================
 # yaml highlighter
 #==============================================================================
-
 def make_yaml_patterns():
     "Strongly inspired from sublime highlighter "
     kw = any("keyword", [r":|>|-|\||\[|\]|[A-Za-z][\w\s\-\_ ]+(?=:)"])
@@ -899,7 +897,6 @@ class YamlSH(GenericSH):
 #==============================================================================
 # HTML highlighter
 #==============================================================================
-
 class BaseWebSH(BaseSH):
     """Base class for CSS and HTML syntax highlighters"""
     NORMAL  = 0
@@ -978,7 +975,6 @@ class HtmlSH(BaseWebSH):
 # =============================================================================
 # Markdown highlighter
 # =============================================================================
-
 def make_md_patterns():
     h1 = '^#[^#]+'
     h2 = '^##[^#]+'
@@ -1106,7 +1102,6 @@ class MarkdownSH(BaseSH):
 #==============================================================================
 # Pygments based omni-parser
 #==============================================================================
-
 # IMPORTANT NOTE:
 # --------------
 # Do not be tempted to generalize the use of PygmentsSH (that is tempting 
@@ -1125,11 +1120,6 @@ class PygmentsSH(BaseSH):
     # Syntax highlighting states (from one text block to another):
     NORMAL = 0
     def __init__(self, parent, font=None, color_scheme=None):
-        # Warning: do not move out those import statements
-        # (pygments is an optional dependency)
-        from pygments.lexers import get_lexer_by_name
-        from pygments.token import (Text, Other, Keyword, Name, String, Number,
-                                    Comment, Generic, Token)
         # Map Pygments tokens to Spyder tokens
         self._tokmap = {Text: "normal", 
                         Generic: "normal", 
@@ -1230,6 +1220,37 @@ class PygmentsSH(BaseSH):
             self.highlight_spaces(text)
 
 
+class PythonLoggingLexer(RegexLexer):
+    """
+    A lexer for logs generated by the Python builtin 'logging' library.
+
+    Taken from
+    https://bitbucket.org/birkenfeld/pygments-main/pull-requests/451/
+    add-python-logging-lexer
+    """
+
+    name = 'Python Logging'
+    aliases = ['pylog', 'pythonlogging']
+    filenames = ['*.log']
+    tokens = {
+        'root': [
+            (r'^(\d{4}-\d\d-\d\d \d\d:\d\d:\d\d\.?\d*)(\s\d+)',
+             bygroups(Number.Integer, Comment.Preproc), 'message'),
+            (r'.*', Generic)
+        ],
+
+        'message': [
+            (r'(\sDEBUG)(\s.+)', bygroups(Number, Keyword.Type), '#pop'),
+            (r'(\sINFO\w*)(\s.+)', bygroups(Generic.Heading, Comment), '#pop'),
+            (r'(\sWARN\w*)(\s.+)', bygroups(String, String), '#pop'),
+            (r'(\sERROR)(\s.+)', bygroups(Generic.Error, Name.Constant), '#pop'),
+            (r'(\sCRITICAL)(\s.+)', bygroups(Generic.Error, Name.Constant), '#pop'),
+            (r'(\sTRACE)(\s.+)', bygroups(Generic.Error, Name.Constant), '#pop'),
+            (r'(\s\w+)(\s.+)', bygroups(Comment, Generic.Output), '#pop'),
+        ],
+    }
+
+
 def guess_pygments_highlighter(filename):
     """Factory to generate syntax highlighter for the given filename.
 
@@ -1249,6 +1270,8 @@ def guess_pygments_highlighter(filename):
             lexer = get_lexer_by_name(custom_extension_lexer_mapping[ext])
         except Exception:
             return TextSH
+    elif ext == '.log':
+        lexer = PythonLoggingLexer()
     else:
         try:
             lexer = get_lexer_for_filename(filename)
