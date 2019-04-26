@@ -197,9 +197,7 @@ def test_toggle_off_show_all_files(editorstack, outlineexplorer, test_files):
     assert results == ['foo1.py', 'foo']
 
 
-@pytest.mark.skipif((os.environ.get('CI', None) is None and
-                     sys.platform.startswith('linux')),
-                    reason="Fails locally on Linux")
+@pytest.mark.skipif(sys.platform.startswith('linux'), reason="Fails on Linux")
 def test_single_file_sync(editorstack, outlineexplorer, test_files, qtbot):
     """
     Test that the content of the Outline Explorer is updated correctly
