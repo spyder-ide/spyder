@@ -1473,7 +1473,7 @@ class Editor(SpyderPluginWidget):
         results = editor.get_current_warnings()
         # Update code analysis buttons
         state = CONF.get('lsp-server', 'code_completion') \
-                and results is not None and len(results)
+            and results is not None and len(results)
         for action in (self.warning_list_action, self.previous_warning_action,
                        self.next_warning_action):
             if state is not None:
@@ -2559,7 +2559,7 @@ class Editor(SpyderPluginWidget):
                 if todo_n in options:
                     editorstack.set_todolist_enabled(todo_o,
                                                      current_finfo=finfo)
-            
+
             for name, action in self.checkable_actions.items():
                 if name in options:
                     state = self.get_option(name)
