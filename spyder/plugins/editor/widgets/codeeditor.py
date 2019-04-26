@@ -268,8 +268,7 @@ class CodeEditor(TextEditBaseWidget):
     # LSP Signals
     sig_perform_lsp_request = Signal(str, str, dict)
     lsp_response_signal = Signal(str, dict)
-    sig_display_signature = Signal(str)      # This emits textual object info
-    sig_display_hover_info = Signal(object)  # This emits a QTextCursor
+    sig_display_signature = Signal(str)
     sig_signature_invoked = Signal()
 
     def __init__(self, parent=None):
@@ -954,8 +953,8 @@ class CodeEditor(TextEditBaseWidget):
         """Handle hover response."""
         try:
             content = contents['params']
+            self.sig_display_signature.emit(content)
             if content:
-                self.sig_display_signature.emit(content)
                 if self._show_hint and self._last_point:
                     # This is located in spyder/widgets/mixins.py
                     word = self._last_hover_word,
