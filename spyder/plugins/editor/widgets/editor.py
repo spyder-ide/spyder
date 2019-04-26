@@ -2476,6 +2476,18 @@ class EditorStack(QWidget):
                       .get_last_cell_as_executable_code())
         self._run_cell_text(text, block)
 
+    def _get_cell_name(self, block):
+        """Get the cell name from the block"""
+        oe_data = block.userData()
+        if oe_data and oe_data.oedata:
+            cell_name = oe_data.oedata.def_name
+        else:
+            if block.firstLineNumber() == 0:
+                cell_name = 'Cell at line 0'
+            else:
+                raise RuntimeError('Not a cell?')
+        return cell_name
+
     def _run_cell_text(self, text, block):
         """Run cell code in the console.
 
@@ -2492,14 +2504,7 @@ class EditorStack(QWidget):
         """
         finfo = self.get_current_finfo()
         editor = self.get_current_editor()
-        oe_data = block.userData()
-        if oe_data and oe_data.oedata:
-            cell_name = oe_data.oedata.def_name
-        else:
-            if block.firstLineNumber() == 0:
-                cell_name = 'Cell at line 0'
-            else:
-                raise RuntimeError('Not a cell?')
+        cell_name = self._get_cell_name(block)
         if finfo.editor.is_python() and text:
             self.run_cell_in_ipyclient.emit(text, cell_name,
                                             finfo.filename,
