@@ -758,8 +758,8 @@ class Editor(SpyderPluginWidget):
                 'show_class_func_dropdown', 'set_classfunc_dropdown_visible')
 
         showcode_analysis_pep8_action = self._create_checkable_action(
-                _("Show code style warnings (pep8)"),
-                'code_analysis/pep8', 'set_pep8_enabled')
+                _("Show code style warnings"),
+                'show_code_analysis', 'set_pep8_enabled')
 
         show_docstring_warnings_action = self._create_checkable_action(
             _("Show docstring style warnings"), 'show_docstring_warnings',
@@ -770,7 +770,7 @@ class Editor(SpyderPluginWidget):
                 'scroll_past_end': scrollpastend_action,
                 'indent_guides': showindentguides_action,
                 'show_class_func_dropdown': show_classfunc_dropdown_action,
-                'code_analysis/pep8': showcode_analysis_pep8_action,
+                'show_code_analysis': showcode_analysis_pep8_action,
                 'show_docstring_warnings': show_docstring_warnings_action}
 
         fixindentation_action = create_action(self, _("Fix indentation"),
@@ -996,7 +996,6 @@ class Editor(SpyderPluginWidget):
             self._toggle_checkable_action(checked, editorstack_method,
                                           conf_name)
         action = create_action(self, text, toggled=toogle)
-        action.setChecked(CONF.get('editor', conf_name))
         return action
 
     @Slot(bool, str, str)
@@ -1013,6 +1012,10 @@ class Editor(SpyderPluginWidget):
         """
         if self.editorstacks:
             for editorstack in self.editorstacks:
+                try:
+                    editorstack.__getattribute__(editorstack_method)(checked)
+                except AttributeError as e:
+                    logger.error(e, exc_info=True)
                 if editorstack_method == 'set_pep8_enabled':
                     CONF.set('lsp-server', 'pycodestyle', checked)
                     self.main.lspmanager.update_server_list()
@@ -1469,9 +1472,8 @@ class Editor(SpyderPluginWidget):
             return
         results = editor.get_current_warnings()
         # Update code analysis buttons
-        state = (self.get_option('code_analysis/pyflakes') \
-                 or self.get_option('code_analysis/pep8')) \
-                 and results is not None and len(results)
+        state = CONF.get('lsp-server', 'code_completion') \
+                and results is not None and len(results)
         for action in (self.warning_list_action, self.previous_warning_action,
                        self.next_warning_action):
             if state is not None:
@@ -2557,7 +2559,7 @@ class Editor(SpyderPluginWidget):
                 if todo_n in options:
                     editorstack.set_todolist_enabled(todo_o,
                                                      current_finfo=finfo)
-
+            
             for name, action in self.checkable_actions.items():
                 if name in options:
                     state = self.get_option(name)
