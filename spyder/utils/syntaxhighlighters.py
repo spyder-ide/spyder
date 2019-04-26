@@ -30,6 +30,7 @@ from spyder.py3compat import (builtins, is_text_string, to_text_string, PY3,
                               PY36_OR_MORE)
 from spyder.plugins.editor.utils.languages import CELL_LANGUAGES
 from spyder.plugins.editor.utils.editor import TextBlockHelper as tbh
+from spyder.plugins.editor.utils.editor import BlockUserData
 from spyder.utils.workers import WorkerManager
 from spyder.plugins.outlineexplorer.api import OutlineExplorerData
 
@@ -419,7 +420,6 @@ class PythonSH(BaseSH):
     
     def __init__(self, parent, font=None, color_scheme='Spyder'):
         BaseSH.__init__(self, parent, font, color_scheme)
-        self.import_statements = {}
         self.found_cell_separators = False
         self.cell_separators = CELL_LANGUAGES['Python']
 
@@ -489,12 +489,7 @@ class PythonSH(BaseSH):
                                     oedata.cell_level = len(cell_head) - 2
                                 oedata.fold_level = start
                                 oedata.def_type = OutlineExplorerData.CELL
-                                cell_name = get_code_cell_name(text)
-                                if cell_name == '':
-                                    cell_name = 'Unnamed cell, line {}'.format(
-                                        self.currentBlock().firstLineNumber()
-                                        + 1)
-                                oedata.def_name = cell_name
+                                oedata.def_name = get_code_cell_name(text)
                             elif self.OECOMMENT.match(text.lstrip()):
                                 oedata = OutlineExplorerData()
                                 oedata.text = to_text_string(text).strip()
@@ -554,18 +549,32 @@ class PythonSH(BaseSH):
         self.highlight_spaces(text, offset)
         
         if oedata is not None:
-            block_nb = self.currentBlock().blockNumber()
-            self.outlineexplorer_data[block_nb] = oedata
+            block = self.currentBlock()
+            data = block.userData()
+            if not data:
+                data = BlockUserData(self.editor)
+            data.oedata = oedata
+            block.setUserData(data)
             self.outlineexplorer_data['found_cell_separators'] = self.found_cell_separators
         if import_stmt is not None:
-            block_nb = self.currentBlock().blockNumber()
-            self.import_statements[block_nb] = import_stmt
+            block = self.currentBlock()
+            data = block.userData()
+            if not data:
+                data = BlockUserData(self.editor)
+            data.import_statement = import_stmt
+            block.setUserData(data)
             
     def get_import_statements(self):
-        return list(self.import_statements.values())
+        block = self.document().firstBlock()
+        statments = []
+        while block.isValid():
+            data = block.userData()
+            if data and data.import_statement:
+                statments.append(data.import_statement)
+            block = block.next()
+        return statments
             
     def rehighlight(self):
-        self.import_statements = {}
         self.found_cell_separators = False
         BaseSH.rehighlight(self)
 

@@ -396,10 +396,15 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         prev_cell_level = None
         prev_cell_item = None
 
-        oe_data = editor.get_outlineexplorer_data()
-        for block_nb in range(editor.get_line_count()):
-            line_nb = block_nb+1
-            data = oe_data.get(block_nb)
+        block = self.document().firstBlock()
+        statments = []
+        while block.isValid():
+            data = block.userData()
+            if data and data.oedata:
+                data = data.oedata
+            else:
+                continue
+            line_nb = block.firstLineNumber()
             level = None if data is None else data.fold_level
             citem, clevel, _d = tree_cache.get(line_nb, (None, None, ""))
             
@@ -524,6 +529,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             tree_cache[line_nb] = (item, level, debug)
             previous_level = level
             previous_item = item
+
+            block = block.next()
             
         return tree_cache
 

@@ -63,6 +63,8 @@ class BlockUserData(QTextBlockUserData):
         self.selection = cursor
         self.color = color
         self.editor.blockuserdata_list.append(self)
+        self.oedata = None
+        self.import_statement = None
 
     def is_empty(self):
         """Return whether the block of user data is empty."""

@@ -91,7 +91,6 @@ def _get_fold_levels(editor):
         A list of all the class or function defintion fold points.
     """
     block = editor.document().firstBlock()
-    oed = editor.get_outlineexplorer_data()
 
     folds = []
     parents = []
@@ -100,7 +99,11 @@ def _get_fold_levels(editor):
     while block.isValid():
         if TextBlockHelper.is_fold_trigger(block):
             try:
-                data = oed[block.firstLineNumber()]
+                data = block.userData()
+                if not data:
+                    continue
+                data = data.oedata
+                
 
                 if data.def_type in (OED.CLASS, OED.FUNCTION):
                     fsh = FoldScopeHelper(FoldScope(block), data)
