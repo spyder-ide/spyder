@@ -1472,8 +1472,9 @@ class Editor(SpyderPluginWidget):
             return
         results = editor.get_current_warnings()
         # Update code analysis buttons
-        state = CONF.get('lsp-server', 'code_completion') \
-            and results is not None and len(results)
+        state = (CONF.get('lsp-server', 'code_completion')
+                 and results is not None and len(results)
+                 and results is not None and len(results))
         for action in (self.warning_list_action, self.previous_warning_action,
                        self.next_warning_action):
             if state is not None:
