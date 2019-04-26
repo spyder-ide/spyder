@@ -45,15 +45,6 @@ class OutlineExplorerProxy(object):
         OutlineExplorerWidget."""
         raise NotImplementedError
 
-    def get_outlineexplorer_data(self):
-        """Return a dict of OutlineExplorerData objects.
-
-        {block_number: OutlineExplorerData}
-
-        Note: block numbers start in 0
-        """
-        raise NotImplementedError
-
     def get_line_count(self):
         """Return the number of lines of the editor (int)."""
         raise NotImplementedError
@@ -68,7 +59,7 @@ class OutlineExplorerData(object):
     FUNCTION_TOKEN = 'def'
     CLASS_TOKEN = 'class'
 
-    def __init__(self, text=None, fold_level=None, def_type=None,
+    def __init__(self, block, text=None, fold_level=None, def_type=None,
                  def_name=None, color=None):
         """
         Args:
@@ -83,6 +74,7 @@ class OutlineExplorerData(object):
         self.def_type = def_type
         self.def_name = def_name
         self.color = color
+        self.block = block
 
     def is_not_class_nor_function(self):
         return self.def_type not in (self.CLASS, self.FUNCTION)
@@ -108,3 +100,42 @@ class OutlineExplorerData(object):
             token = self.CLASS_TOKEN
 
         return token
+
+    @property
+    def def_name(self):
+        """Get the cell name"""
+        if self.def_type != self.CELL:
+            return self._def_name
+        def blocks():
+            block = self.block
+            while block.isValid():
+                yield block
+                block = block.previous()
+        N = 0
+        for block in blocks():
+            data = block.userData()
+            if data and data.oedata:
+                if data.oedata._def_name == self._def_name:
+                    N += 1
+        name = self._def_name
+        if N > 1:
+            return name + ', #{}'.format(N)
+        elif N == 1:
+            # Check for similarly named cells
+            def blocks():
+                block = self.block.next()
+                while block.isValid():
+                    yield block
+                    block = block.next()
+
+            for block in blocks():
+                data = block.userData()
+                if data and data.oedata:
+                    if data.oedata._def_name == self._def_name:
+                        return name + ', #1'
+
+        return name
+
+    @def_name.setter
+    def def_name(self, value):
+        self._def_name = value

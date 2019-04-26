@@ -2442,8 +2442,8 @@ class EditorStack(QWidget):
 
     def run_cell(self):
         """Run current cell."""
-        text, line = self.get_current_editor().get_cell_as_executable_code()
-        self._run_cell_text(text, line)
+        text, block = self.get_current_editor().get_cell_as_executable_code()
+        self._run_cell_text(text, block)
 
     def run_cell_and_advance(self):
         """Run current cell and advance to the next one"""
@@ -2472,11 +2472,11 @@ class EditorStack(QWidget):
 
     def re_run_last_cell(self):
         """Run the previous cell again."""
-        text, line = (self.get_current_editor()
+        text, block = (self.get_current_editor()
                       .get_last_cell_as_executable_code())
-        self._run_cell_text(text, line)
+        self._run_cell_text(text, block)
 
-    def _run_cell_text(self, text, line):
+    def _run_cell_text(self, text, block):
         """Run cell code in the console.
 
         Cell code is run in the console by copying it to the console if
@@ -2492,11 +2492,14 @@ class EditorStack(QWidget):
         """
         finfo = self.get_current_finfo()
         editor = self.get_current_editor()
-        oe_data = editor.highlighter.get_outlineexplorer_data()
-        try:
-            cell_name = oe_data.get(line-1).def_name
-        except AttributeError:
-            cell_name = ''
+        oe_data = block.userData()
+        if oe_data and oe_data.oedata:
+            cell_name = oe_data.oedata.def_name
+        else:
+            if block.firstLineNumber() == 0:
+                cell_name = 'Cell at line 0'
+            else:
+                raise RuntimeError('Not a cell?')
         if finfo.editor.is_python() and text:
             self.run_cell_in_ipyclient.emit(text, cell_name,
                                             finfo.filename,

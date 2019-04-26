@@ -300,7 +300,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.calltip_position = None
         self.tooltip_widget = ToolTipWidget(parent, as_tooltip=True)
 
-        self.has_cell_separators = False
         self.highlight_current_cell_enabled = False
 
         # The color values may be overridden by the syntax highlighter
@@ -445,7 +444,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if whole_file_selected:
             self.clear_extra_selections('current_cell')
         elif whole_screen_selected:
-            if self.has_cell_separators:
+            if self.highlighter.found_cell_separators:
                 self.set_extra_selections('current_cell', [selection])
                 self.update_extra_selections()
             else:
@@ -664,12 +663,13 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         cursor, whole_file_selected = self.select_current_cell()
         self.setTextCursor(cursor)
         line_from, line_to = self.get_selection_bounds()
+        block = self.get_selection_first_block()
         text = self.get_selection_as_executable_code()
         self.last_cursor_cell = init_cursor
         self.__restore_selection(start_pos, end_pos)
         if text is not None:
             text = ls * line_from + text
-        return text, line_from
+        return text, block
 
     def get_cell_as_executable_code(self):
         """Return cell contents as executable code"""
@@ -680,8 +680,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if self.last_cursor_cell:
             self.setTextCursor(self.last_cursor_cell)
             self.highlight_current_cell()
-            text, line = self.__exec_cell()
-        return text, line
+            text, block = self.__exec_cell()
+        return text, block
 
     def is_cell_separator(self, cursor=None, block=None):
         """Return True if cursor (or text block) is on a block separator"""

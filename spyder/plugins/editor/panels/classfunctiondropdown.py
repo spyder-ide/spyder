@@ -24,7 +24,7 @@ from spyder.plugins.outlineexplorer.api import OutlineExplorerData as OED
 from spyder.utils import icon_manager as ima
 
 
-DUMMY_OED = OED()
+DUMMY_OED = OED(None)
 DUMMY_OED.fold_level = 0
 DUMMY_OED.text = "<None>"
 
@@ -90,20 +90,26 @@ def _get_fold_levels(editor):
     folds : list of :class:`FoldScopeHelper`
         A list of all the class or function defintion fold points.
     """
-    block = editor.document().firstBlock()
+
 
     folds = []
     parents = []
     prev = None
 
-    while block.isValid():
+    def blocks():
+        block = editor.document().firstBlock()
+        while block.isValid():
+            yield block
+            block = block.next()
+
+    for block in blocks():
         if TextBlockHelper.is_fold_trigger(block):
             try:
                 data = block.userData()
-                if not data:
-                    continue
-                data = data.oedata
-                
+                if data and data.oedata:
+                    data = data.oedata
+                else:
+                    continue                
 
                 if data.def_type in (OED.CLASS, OED.FUNCTION):
                     fsh = FoldScopeHelper(FoldScope(block), data)
@@ -118,7 +124,7 @@ def _get_fold_levels(editor):
             except KeyError:
                 pass
 
-        block = block.next()
+
 
     return folds
 

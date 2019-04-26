@@ -599,10 +599,16 @@ class FileSwitcher(QDialog):
     # --- Helper methods: Outline explorer
     def get_symbol_list(self):
         """Get the list of symbols present in the file."""
-        try:
-            oedata = self.get_widget().get_outlineexplorer_data()
-        except AttributeError:
-            oedata = {}
+        def blocks():
+            block = self.get_widget().document().firstBlock()
+            while block.isValid():
+                yield block
+                block = block.next()
+        oedata = {}
+        for block in blocks():
+            data = block.userData()
+            if data and data.oedata:
+                oedata[block.firstLineNumber()] = data.oedata
         return oedata
 
     # --- Handlers

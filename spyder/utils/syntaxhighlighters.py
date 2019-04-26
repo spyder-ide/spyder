@@ -114,8 +114,6 @@ class BaseSH(QSyntaxHighlighter):
     def __init__(self, parent, font=None, color_scheme='Spyder'):
         QSyntaxHighlighter.__init__(self, parent)
 
-        self.outlineexplorer_data = {}
-
         self.font = font
         if is_text_string(color_scheme):
             self.color_scheme = get_color_scheme(color_scheme)
@@ -274,12 +272,8 @@ class BaseSH(QSyntaxHighlighter):
                 color_foreground.setAlphaF(alpha_new)
                 self.setFormat(start, end-start, color_foreground)
                 match = self.BLANKPROG.search(text, match.end())
-    
-    def get_outlineexplorer_data(self):
-        return self.outlineexplorer_data
 
     def rehighlight(self):
-        self.outlineexplorer_data = {}
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         # rehighlight() triggers the textChanged signal, which in our editor
         # switches changed_since_autosave to True; we need to prevent this.
@@ -477,7 +471,8 @@ class PythonSH(BaseSH):
                         if key == "comment":
                             if text.lstrip().startswith(self.cell_separators):
                                 self.found_cell_separators = True
-                                oedata = OutlineExplorerData()
+                                oedata = OutlineExplorerData(
+                                        self.currentBlock())
                                 oedata.text = to_text_string(text).strip()
                                 # cell_head: string contaning the first group
                                 # of '%'s in the cell header
@@ -489,9 +484,13 @@ class PythonSH(BaseSH):
                                     oedata.cell_level = len(cell_head) - 2
                                 oedata.fold_level = start
                                 oedata.def_type = OutlineExplorerData.CELL
-                                oedata.def_name = get_code_cell_name(text)
+                                def_name = get_code_cell_name(text)
+                                if not def_name.strip():
+                                    def_name = 'Unnamed Cell'
+                                oedata.def_name = def_name
                             elif self.OECOMMENT.match(text.lstrip()):
-                                oedata = OutlineExplorerData()
+                                oedata = OutlineExplorerData(
+                                        self.currentBlock())
                                 oedata.text = to_text_string(text).strip()
                                 oedata.fold_level = start
                                 oedata.def_type = OutlineExplorerData.COMMENT
@@ -503,7 +502,8 @@ class PythonSH(BaseSH):
                                     start1, end1 = match1.span(1)
                                     self.setFormat(start1, end1-start1,
                                                    self.formats["definition"])
-                                    oedata = OutlineExplorerData()
+                                    oedata = OutlineExplorerData(
+                                            self.currentBlock())
                                     oedata.text = to_text_string(text)
                                     oedata.fold_level = (len(text)
                                                          - len(text.lstrip()))
@@ -515,7 +515,8 @@ class PythonSH(BaseSH):
                                            "for", "if", "try", "while",
                                            "with"):
                                 if text.lstrip().startswith(value):
-                                    oedata = OutlineExplorerData()
+                                    oedata = OutlineExplorerData(
+                                            self.currentBlock())
                                     oedata.text = to_text_string(text).strip()
                                     oedata.fold_level = start
                                     oedata.def_type = \
@@ -555,7 +556,6 @@ class PythonSH(BaseSH):
                 data = BlockUserData(self.editor)
             data.oedata = oedata
             block.setUserData(data)
-            self.outlineexplorer_data['found_cell_separators'] = self.found_cell_separators
         if import_stmt is not None:
             block = self.currentBlock()
             data = block.userData()
