@@ -187,10 +187,10 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
     @current_editor.setter
     def current_editor(self, value):
-        #Disconnect previous editor
+        # Disconnect previous editor
         self.connect_current_editor(False)
         self._current_editor = value
-        #Connect new editor
+        # Connect new editor
         self.connect_current_editor(True)
 
     def get_actions_from_items(self, items):
