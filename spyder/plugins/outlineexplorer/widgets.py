@@ -175,11 +175,23 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.editor_tree_cache = {}
         self.editor_ids = {}
         self.ordered_editor_ids = []
-        self.current_editor = None
+        self._current_editor = None
         title = _("Outline")
         self.set_title(title)
         self.setWindowTitle(title)
         self.setUniformRowHeights(True)
+
+    @property
+    def current_editor(self):
+        return self._current_editor
+
+    @current_editor.setter
+    def current_editor(self, value):
+        #Disconnect previous editor
+        self.connect_current_editor(False)
+        self._current_editor = value
+        #Connect new editor
+        self.connect_current_editor(True)
 
     def get_actions_from_items(self, items):
         """Reimplemented OneColumnTree method"""
@@ -274,17 +286,19 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     def toggle_follow_cursor(self, state):
         """Follow the cursor"""
         self.follow_cursor = state
+        self.connect_current_editor(state)
 
+    def connect_current_editor(self, state):
+        """Connect or disconnect the editor from signals"""
         if self.current_editor is None:
             return
-
-        if self.follow_cursor:
+        if not state:
+            self.current_editor._editor.sig_cursor_position_changed.disconnect(
+                self.go_to_follow_cursor)
+        elif state and self.follow_cursor:
             self.current_editor._editor.sig_cursor_position_changed.connect(
                 self.go_to_follow_cursor)
             self.go_to_follow_cursor()
-        else:
-            self.current_editor._editor.sig_cursor_position_changed.disconnect(
-                self.go_to_follow_cursor)
 
     def clear(self):
         """Reimplemented Qt method"""
