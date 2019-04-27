@@ -5,9 +5,10 @@
 
 ## Description of Changes
 
+<!--- Remember that an image/animation is word a thousand words! --->
 * [ ] Wrote at least one-line docstrings (for any new functions)
 * [ ] Added unit test(s) covering the changes (if testable)
-* [ ] Included a screenshot (if affecting the UI)
+* [ ] Included a screenshot or animation (if affecting the UI, see [Licecap](https://www.cockos.com/licecap/))
 
 <!--- Explain what you've done and why --->
 
