@@ -292,7 +292,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         """Connect or disconnect the editor from signals"""
         if self.current_editor is None:
             return
-        if not state:
+        if not state and self.follow_cursor:
             self.current_editor._editor.sig_cursor_position_changed.disconnect(
                 self.go_to_follow_cursor)
         elif state and self.follow_cursor:
