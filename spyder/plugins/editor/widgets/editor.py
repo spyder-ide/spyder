@@ -559,7 +559,7 @@ class EditorStack(QWidget):
         # Real-time code analysis
         self.analysis_timer = QTimer(self)
         self.analysis_timer.setSingleShot(True)
-        self.analysis_timer.setInterval(2000)
+        self.analysis_timer.setInterval(1000)
         self.analysis_timer.timeout.connect(self.analyze_script)
 
         # Update filename label
@@ -1909,9 +1909,11 @@ class EditorStack(QWidget):
     #------ Update UI
     def start_stop_analysis_timer(self):
         self.is_analysis_done = False
+        self.analysis_timer.stop()
+        self.analysis_timer.start()
 
     def analyze_script(self, index=None):
-        """Analyze current script with todos"""
+        """Analyze current script for TODOs."""
         if self.is_analysis_done:
             return
         if index is None:
@@ -2240,7 +2242,7 @@ class EditorStack(QWidget):
         self.add_to_data(finfo, set_current, add_where)
         finfo.send_to_help.connect(self.send_to_help)
         finfo.todo_results_changed.connect(
-                                      lambda: self.todo_results_changed.emit())
+            lambda: self.todo_results_changed.emit())
         finfo.edit_goto.connect(lambda fname, lineno, name:
                                 self.edit_goto.emit(fname, lineno, name))
         finfo.sig_save_bookmarks.connect(lambda s1, s2:
@@ -2387,6 +2389,7 @@ class EditorStack(QWidget):
             self.msgbox.exec_()
             self.set_os_eol_chars(index)
         self.is_analysis_done = False
+        self.analyze_script(index)
         return finfo
 
     def set_os_eol_chars(self, index=None, osname=None):
