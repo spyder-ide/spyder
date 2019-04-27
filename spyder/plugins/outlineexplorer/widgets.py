@@ -162,10 +162,11 @@ def remove_from_tree_cache(tree_cache, line=None, item=None):
 class OutlineExplorerTreeWidget(OneColumnTree):
     def __init__(self, parent, show_fullpath=False, show_all_files=True,
                  group_cells=True, show_comments=True,
-                 sort_files_alphabetically=False):
+                 sort_files_alphabetically=False, follow_cursor=False):
         self.show_fullpath = show_fullpath
         self.show_all_files = show_all_files
         self.group_cells = group_cells
+        self.follow_cursor = follow_cursor
         self.show_comments = show_comments
         self.sort_files_alphabetically = sort_files_alphabetically
         OneColumnTree.__init__(self, parent)
@@ -197,13 +198,17 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         group_cells_act = create_action(self, text=_('Group code cells'),
                                         toggled=self.toggle_group_cells)
         group_cells_act.setChecked(self.group_cells)
+        follow_cursor_act = create_action(self, text=_('Follow Cursor'),
+                                          toggled=self.toggle_follow_cursor)
+        follow_cursor_act.setChecked(self.follow_cursor)
         sort_files_alphabetically_act = create_action(
             self, text=_('Sort files alphabetically'),
             toggled=self.toggle_sort_files_alphabetically)
         sort_files_alphabetically_act.setChecked(
             self.sort_files_alphabetically)
         actions = [fullpath_act, allfiles_act, group_cells_act, comment_act,
-                   sort_files_alphabetically_act, fromcursor_act]
+                   sort_files_alphabetically_act, fromcursor_act,
+                   follow_cursor_act]
         return actions
 
     @Slot(bool)
@@ -258,7 +263,27 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             item = item_at_line(root_item, line)
             self.setCurrentItem(item)
             self.scrollToItem(item)
-                
+
+    @Slot()
+    def go_to_follow_cursor(self):
+        self.collapseAll()
+        self.go_to_cursor_position()
+
+    @Slot(bool)
+    def toggle_follow_cursor(self, state):
+        """Follow the cursor"""
+        self.follow_cursor = state
+
+        if self.current_editor is None:
+            return
+
+        if self.follow_cursor:
+            self.current_editor._editor.sig_cursor_position_changed.connect(
+                self.go_to_follow_cursor)
+        else:
+            self.current_editor._editor.sig_cursor_position_changed.disconnect(
+                self.go_to_follow_cursor)
+
     def clear(self):
         """Reimplemented Qt method"""
         self.set_title('')
@@ -292,8 +317,6 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             self.ordered_editor_ids.append(editor_id)
             self.__sort_toplevel_items()
         self.current_editor = editor
-        editor.sig_cursor_position_changed.connect(
-                                self.go_to_cursor_position)
 
     def file_renamed(self, editor, new_filename):
         """File was renamed, updating outline explorer tree"""
@@ -592,8 +615,6 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 for editor, _id in list(self.editor_ids.items()):
                     if _id == editor_id and editor.parent() is parent:
                         self.current_editor = editor
-                        editor.sig_cursor_position_changed.connect(
-                                self.go_to_cursor_position)
                         break
                 break
 
