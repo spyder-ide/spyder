@@ -1012,6 +1012,13 @@ class LSPManagerConfigPage(GeneralConfigPage):
             self.set_option('pydocstyle/match_dir', '')
 
         self.table.save_servers()
+
+        # Update entries in the source menu
+        for name, action in self.main.editor.checkable_actions.items():
+            if name in options:
+                state = self.get_option(name)
+                action.setChecked(state)
+                action.trigger()
+
         # TODO: Reset Manager
         self.main.lspmanager.update_server_list()
-        self.main.apply_settings()

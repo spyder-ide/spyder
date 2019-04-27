@@ -769,8 +769,8 @@ class Editor(SpyderPluginWidget):
                 'scroll_past_end': scrollpastend_action,
                 'indent_guides': showindentguides_action,
                 'show_class_func_dropdown': show_classfunc_dropdown_action,
-                'show_code_analysis': showcode_analysis_pep8_action,
-                'show_docstring_warnings': show_docstring_warnings_action}
+                'pycodestyle': showcode_analysis_pep8_action,
+                'pydocstyle': show_docstring_warnings_action}
 
         fixindentation_action = create_action(self, _("Fix indentation"),
                       tip=_("Replace tab characters by space characters"),
