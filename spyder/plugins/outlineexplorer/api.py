@@ -106,11 +106,13 @@ class OutlineExplorerData(object):
         """Get the cell name"""
         if self.def_type != self.CELL:
             return self._def_name
+
         def blocks():
             block = self.block
             while block.isValid():
                 yield block
                 block = block.previous()
+
         N = 0
         for block in blocks():
             data = block.userData()
@@ -120,8 +122,9 @@ class OutlineExplorerData(object):
         name = self._def_name
         if N > 1:
             return name + ', #{}'.format(N)
-        elif N == 1:
+        if N == 1:
             # Check for similarly named cells
+
             def blocks():
                 block = self.block.next()
                 while block.isValid():

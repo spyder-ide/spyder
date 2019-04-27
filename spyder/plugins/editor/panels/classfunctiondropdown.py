@@ -109,7 +109,7 @@ def _get_fold_levels(editor):
                 if data and data.oedata:
                     data = data.oedata
                 else:
-                    continue                
+                    continue
 
                 if data.def_type in (OED.CLASS, OED.FUNCTION):
                     fsh = FoldScopeHelper(FoldScope(block), data)
