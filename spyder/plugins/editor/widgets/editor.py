@@ -2253,6 +2253,8 @@ class EditorStack(QWidget):
         editor.sig_re_run_last_cell.connect(self.re_run_last_cell)
         editor.sig_new_file.connect(self.sig_new_file.emit)
         editor.sig_breakpoints_saved.connect(self.sig_breakpoints_saved)
+        editor.sig_process_code_analysis.connect(
+            lambda: self.update_code_analysis_actions.emit())
         language = get_file_language(fname, txt)
         editor.setup_editor(
                 linenumbers=self.linenumbers_enabled,
@@ -2283,8 +2285,8 @@ class EditorStack(QWidget):
             editor.document().setModified(False)
         editor.document().changed_since_autosave = False
         finfo.text_changed_at.connect(
-                                    lambda fname, position:
-                                    self.text_changed_at.emit(fname, position))
+            lambda fname, position:
+            self.text_changed_at.emit(fname, position))
         editor.sig_cursor_position_changed.connect(
                                            self.editor_cursor_position_changed)
         editor.textChanged.connect(self.start_stop_analysis_timer)
@@ -2292,13 +2294,14 @@ class EditorStack(QWidget):
             lambda lang, method, params: self.perform_lsp_request.emit(
                 lang, method, params))
         editor.modificationChanged.connect(
-                     lambda state: self.modification_changed(state,
-                                                    editor_id=id(editor)))
+            lambda state: self.modification_changed(state,
+                editor_id=id(editor)))
         editor.focus_in.connect(self.focus_changed)
         editor.zoom_in.connect(lambda: self.zoom_in.emit())
         editor.zoom_out.connect(lambda: self.zoom_out.emit())
         editor.zoom_reset.connect(lambda: self.zoom_reset.emit())
-        editor.sig_eol_chars_changed.connect(lambda eol_chars: self.refresh_eol_chars(eol_chars))
+        editor.sig_eol_chars_changed.connect(
+            lambda eol_chars: self.refresh_eol_chars(eol_chars))
 
         self.find_widget.set_editor(editor)
 

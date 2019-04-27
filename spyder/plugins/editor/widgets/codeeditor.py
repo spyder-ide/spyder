@@ -270,6 +270,7 @@ class CodeEditor(TextEditBaseWidget):
     lsp_response_signal = Signal(str, dict)
     sig_display_signature = Signal(str)
     sig_signature_invoked = Signal()
+    sig_process_code_analysis = Signal()
 
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
@@ -805,7 +806,7 @@ class CodeEditor(TextEditBaseWidget):
         return params
 
     @handles(LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
-    def linting_diagnostics(self, params):
+    def process_diagnostics(self, params):
         """Handle linting response."""
         try:
             self.process_code_analysis(params['params'])
@@ -1685,16 +1686,14 @@ class CodeEditor(TextEditBaseWidget):
         self.sig_flags_changed.emit()
         self.linenumberarea.update()
 
-    def process_code_analysis(self, check_results):
-        """Analyze filename code with pyflakes"""
+    def process_code_analysis(self, results):
+        """Process all linting results."""
         self.cleanup_code_analysis()
-        # if check_results is None:
-        #     # Not able to compile module
-        #     return
         self.setUpdatesEnabled(False)
         cursor = self.textCursor()
         document = self.document()
-        for diagnostic in check_results:
+
+        for diagnostic in results:
             source = diagnostic.get('source', '')
             msg_range = diagnostic['range']
             start = msg_range['start']
@@ -1730,6 +1729,7 @@ class CodeEditor(TextEditBaseWidget):
             block.selection = QTextCursor(cursor)
             block.color = color
 
+        self.sig_process_code_analysis.emit()
         self.update_extra_selections()
         self.setUpdatesEnabled(True)
         self.linenumberarea.update()
@@ -3310,15 +3310,6 @@ def test(fname):
     win.show()
     win.load(fname)
     win.resize(900, 700)
-
-    # from spyder.utils.codeanalysis import (check_with_pyflakes,
-    # check_with_pep8)
-    source_code = to_text_string(win.editor.toPlainText())
-    # results = check_with_pyflakes(source_code, fname) + \
-    # check_with_pep8(source_code, fname)
-    results = win.editor.document_did_change()
-    # win.editor.process_code_analysis(results)
-
     sys.exit(app.exec_())
 
 
