@@ -281,6 +281,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         if self.follow_cursor:
             self.current_editor._editor.sig_cursor_position_changed.connect(
                 self.go_to_follow_cursor)
+            self.go_to_follow_cursor()
         else:
             self.current_editor._editor.sig_cursor_position_changed.disconnect(
                 self.go_to_follow_cursor)
