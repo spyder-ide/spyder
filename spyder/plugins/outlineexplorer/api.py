@@ -49,9 +49,13 @@ class OutlineExplorerProxy(object):
         """Return the number of lines of the editor (int)."""
         raise NotImplementedError
 
-    def parent():
+    def parent(self):
         """This is used for diferenciate editors in multi-window mode."""
         return None
+
+    def outlineexplorer_data_list(self):
+        """Returns a list of outline explorer data"""
+        raise NotImplementedError
 
 
 class OutlineExplorerData(object):

@@ -395,8 +395,6 @@ class CodeEditor(TextEditBaseWidget):
         self._kill_ring = QtKillRing(self)
 
         # Block user data
-        self.blockuserdata_list = []
-
         self.blockCountChanged.connect(self.update_bookmarks)
 
         # Highlight using Pygments highlighter timer
@@ -491,6 +489,38 @@ class CodeEditor(TextEditBaseWidget):
 
         self.editor_extensions.add(CloseQuotesExtension())
         self.editor_extensions.add(CloseBracketsExtension())
+
+    @property
+    def blockuserdata_list(self):
+        """Get the list of all user data in document"""
+        def blocks():
+            block = self.document().firstBlock()
+            while block.isValid():
+                yield block
+                block = block.next()
+
+        ret = []
+        for block in blocks():
+            data = block.userData()
+            if data:
+                ret.append(data)
+        return ret
+    
+    def outlineexplorer_data_list(self):
+        """Get the list of all user data in document"""
+        def blocks():
+            block = self.document().firstBlock()
+            while block.isValid():
+                yield block
+                block = block.next()
+
+        ret = []
+        for block in blocks():
+            data = block.userData()
+            if data and data.oedata:
+                ret.append(data.oedata)
+        return ret
+
 
     # ---- Keyboard Shortcuts
 
@@ -1446,11 +1476,6 @@ class CodeEditor(TextEditBaseWidget):
         self.bookmarks = {}
         for data in self.blockuserdata_list[:]:
             data.bookmarks = []
-            if data.is_empty():
-                # This is not calling the __del__ in BlockUserData.  Not
-                # sure if it's supposed to or not, but that seems to be the
-                # intent.
-                del data
 
     def set_bookmarks(self, bookmarks):
         """Set bookmarks when opening file."""
@@ -1671,8 +1696,7 @@ class CodeEditor(TextEditBaseWidget):
         self.clear_extra_selections('code_analysis')
         for data in self.blockuserdata_list[:]:
             data.code_analysis = []
-            if data.is_empty():
-                del data
+
         self.setUpdatesEnabled(True)
         # When the new code analysis results are empty, it is necessary
         # to update manually the scrollflag and linenumber areas (otherwise,
@@ -1847,8 +1871,7 @@ class CodeEditor(TextEditBaseWidget):
         """Process todo finder results"""
         for data in self.blockuserdata_list[:]:
             data.todo = ''
-            if data.is_empty():
-                del data
+
         for message, line_number in todo_results:
             block = self.document().findBlockByNumber(line_number-1)
             data = block.userData()

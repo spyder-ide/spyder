@@ -32,3 +32,6 @@ class OutlineExplorerProxyEditor(OutlineExplorerProxy):
 
     def parent(self):
         return self._editor.parent()
+
+    def outlineexplorer_data_list(self):
+        return self._editor.outlineexplorer_data_list()

@@ -30,6 +30,12 @@ oe_data = [
     [63, 'if __name__ == "__main__":', 0, 2, 'if __name__ == "__main__":']
 ]
 
+class testBlock():
+    def __init__(self, line_number):
+        self._line = line_number - 1
+
+    def firstLineNumber(self):
+        return self._line
 
 class OutlineExplorerProxyTest(OutlineExplorerProxy):
     def __init__(self, fname, oe_data):
@@ -45,18 +51,19 @@ class OutlineExplorerProxyTest(OutlineExplorerProxy):
     def give_focus(self):
         pass
 
-    def get_outlineexplorer_data(self):
-        oe_dict = {}
-        for block_number, text, fold_level, def_type, def_name in self.oe_data:
-            oe_dict[block_number] = OutlineExplorerData(text, fold_level,
-                                                       def_type, def_name)
-        return oe_dict
-
     def get_line_count(self):
         return 50
 
     def parent(self):
         return None
+    
+    def outlineexplorer_data_list(self):
+        oe_list = []
+        for block_number, text, fold_level, def_type, def_name in self.oe_data:
+            oe_list.append(OutlineExplorerData(
+                    testBlock(block_number),
+                    text, fold_level, def_type, def_name))
+        return oe_list
 
 
 def click_item(treewidget, item, qtbot):
