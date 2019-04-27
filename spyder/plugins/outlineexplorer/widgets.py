@@ -292,6 +292,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             self.ordered_editor_ids.append(editor_id)
             self.__sort_toplevel_items()
         self.current_editor = editor
+        editor.sig_cursor_position_changed.connect(
+                                self.go_to_cursor_position)
 
     def file_renamed(self, editor, new_filename):
         """File was renamed, updating outline explorer tree"""
@@ -590,6 +592,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 for editor, _id in list(self.editor_ids.items()):
                     if _id == editor_id and editor.parent() is parent:
                         self.current_editor = editor
+                        editor.sig_cursor_position_changed.connect(
+                                self.go_to_cursor_position)
                         break
                 break
 
