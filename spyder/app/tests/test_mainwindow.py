@@ -374,11 +374,6 @@ def test_get_help_editor(main_window, qtbot):
     webview = help_plugin.rich_text.webview._webview
     webpage = webview.page() if WEBENGINE else webview.page().mainFrame()
 
-    # config_status = main_window.lspmanager.clients['python']['status']
-    # if config_status == main_window.lspmanager.RUNNING:
-    #     main_window.lspmanager.close_client('python')
-    # with qtbot.waitSignal(main_window.editor.sig_lsp_notification,
-    #                       timeout=30000):
     main_window.editor.new(fname="test.py", text="")
     code_editor = main_window.editor.get_focus_widget()
     editorstack = main_window.editor.get_current_editorstack()
@@ -392,7 +387,7 @@ def test_get_help_editor(main_window, qtbot):
         code_editor.document_did_change()
 
     # Get help
-    with qtbot.waitSignal(code_editor.sig_display_signature, timeout=30000):
+    with qtbot.waitSignal(code_editor.sig_display_help, timeout=30000):
         editorstack.inspect_current_object()
 
     # Check that a expected text is part of the page

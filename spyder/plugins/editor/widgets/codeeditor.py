@@ -265,11 +265,23 @@ class CodeEditor(TextEditBaseWidget):
     #: Signal emitted when a new text is set on the widget
     new_text_set = Signal()
 
-    # LSP Signals
+    # -- LSP signals
+    #: Signal emitted when an LSP request is sent to the LSP manager
     sig_perform_lsp_request = Signal(str, str, dict)
+
+    #: Signal emitted when a response is received from an LSP server
+    # For now it's only used on tests, but it could be used to track
+    # and profile LSP diagnostics.
     lsp_response_signal = Signal(str, dict)
-    sig_display_signature = Signal(str)
+
+    #: Signal to display object information on the Help plugin
+    sig_display_object_info = Signal(str)
+
+    #: Signal only used for tests
+    # TODO: Remove it!
     sig_signature_invoked = Signal()
+
+    #: Signal emmited when processing code analysis warnings is finished
     sig_process_code_analysis = Signal()
 
     def __init__(self, parent=None):
@@ -711,8 +723,6 @@ class CodeEditor(TextEditBaseWidget):
             handler_name = self.handler_registry[method]
             handler = getattr(self, handler_name)
             handler(params)
-            # This signal is only used on tests.
-            # It could be used to track and profile LSP diagnostics.
             self.lsp_response_signal.emit(method, params)
 
     def emit_request(self, method, params, requires_response):
@@ -909,9 +919,8 @@ class CodeEditor(TextEditBaseWidget):
         """Handle hover response."""
         try:
             text = contents['params']
-            self.sig_display_signature.emit(text)
+            self.sig_display_object_info.emit(text)
             self.show_calltip(_("Hint"), text)
-            # QTimer.singleShot(20000, lambda: QToolTip.hideText())
         except Exception:
             self.log_lsp_handle_errors("Error when processing hover")
 
