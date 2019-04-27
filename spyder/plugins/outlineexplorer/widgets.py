@@ -33,17 +33,17 @@ class FileRootItem(QTreeWidgetItem):
             0, ima.icon('python') if is_python else ima.icon('TextFileIcon'))
         self.setToolTip(0, path)
         set_item_user_text(self, path)
-        
+
     def set_path(self, path, fullpath):
         self.path = path
         self.set_text(fullpath)
-        
+
     def set_text(self, fullpath):
         self.setText(0, self.path if fullpath else osp.basename(self.path))
-        
+
 class TreeItem(QTreeWidgetItem):
     """Class browser item base class"""
-    def __init__(self, name, line, parent, preceding):
+    def __init__(self, name, block, parent, preceding):
         if preceding is None:
             QTreeWidgetItem.__init__(self, parent, QTreeWidgetItem.Type)
         else:
@@ -63,13 +63,17 @@ class TreeItem(QTreeWidgetItem):
         parent_text = from_qvariant(parent.data(0, Qt.UserRole),
                                     to_text_string)
         set_item_user_text(self, parent_text+'/'+name)
-        self.line = line
+        self.block = block
         
     def set_icon(self, icon):
         self.setIcon(0, icon)
         
     def setup(self):
         self.setToolTip(0, _("Line %s") % str(self.line))
+
+    @property
+    def line(self):
+        return self.block.firstLineNumber() + 1
 
 class ClassItem(TreeItem):
     def setup(self):
@@ -96,9 +100,9 @@ class FunctionItem(TreeItem):
                                  ) % str(self.line))
 
 class CommentItem(TreeItem):
-    def __init__(self, name, line, parent, preceding):
+    def __init__(self, name, block, parent, preceding):
         name = name.lstrip("# ")
-        TreeItem.__init__(self, name, line, parent, preceding)
+        TreeItem.__init__(self, name, block, parent, preceding)
 
     def setup(self):
         self.set_icon(ima.icon('blockcomment'))
@@ -108,8 +112,8 @@ class CommentItem(TreeItem):
         self.setToolTip(0, _("Line %s") % str(self.line))
 
 class CellItem(TreeItem):
-    def __init__(self, name, line, parent, preceding):
-        TreeItem.__init__(self, name, line, parent, preceding)
+    def __init__(self, name, block, parent, preceding):
+        TreeItem.__init__(self, name, block, parent, preceding)
 
     def setup(self):
         self.set_icon(ima.icon('cell'))
@@ -380,15 +384,20 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         """
         if tree_cache is None:
             tree_cache = {}
-        
-        # Removing cached items for which line is > total line nb
+
         for _l in list(tree_cache.keys()):
+            # Checking if key is still in tree cache in case one of its 
+            # ancestors was deleted in the meantime (deleting all children):
+            if _l not in tree_cache:
+                continue
+
+            # Removing cached items for which line is > total line nb
             if _l >= editor.get_line_count():
-                # Checking if key is still in tree cache in case one of its 
-                # ancestors was deleted in the meantime (deleting all children):
-                if _l in tree_cache:
-                    remove_from_tree_cache(tree_cache, line=_l)
-                    
+                remove_from_tree_cache(tree_cache, line=_l)
+            # Removing cached items whose line is not valid
+            elif _l != tree_cache[_l][0].line:
+                remove_from_tree_cache(tree_cache, line=_l)
+
         ancestors = [(root_item, 0)]
         cell_ancestors = [(root_item, 0)]
         previous_item = None
@@ -464,7 +473,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                         continue
                     else:
                         remove_from_tree_cache(tree_cache, line=line_nb)
-                item = CellItem(data.def_name, line_nb, parent, preceding)
+                item = CellItem(data.def_name, block, parent, preceding)
                 item.setup()
                 debug = "%s -- %s/%s" % (str(item.line).rjust(6),
                                          to_text_string(item.parent().text(0)),
@@ -502,9 +511,9 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                     else:
                         remove_from_tree_cache(tree_cache, line=line_nb)
                 if data.def_type == data.CELL:
-                    item = CellItem(data.def_name, line_nb, parent, preceding)
+                    item = CellItem(data.def_name, block, parent, preceding)
                 else:
-                    item = CommentItem(data.text, line_nb, parent, preceding)
+                    item = CommentItem(data.text, block, parent, preceding)
             elif class_name is not None:
                 if citem is not None:
                     if (class_name == cname and level == clevel and
@@ -514,7 +523,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                         continue
                     else:
                         remove_from_tree_cache(tree_cache, line=line_nb)
-                item = ClassItem(class_name, line_nb, parent, preceding)
+                item = ClassItem(class_name, block, parent, preceding)
             else:
                 if citem is not None:
                     if (func_name == cname and level == clevel and
@@ -524,7 +533,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                         continue
                     else:
                         remove_from_tree_cache(tree_cache, line=line_nb)
-                item = FunctionItem(func_name, line_nb, parent, preceding)
+                item = FunctionItem(func_name, block, parent, preceding)
                 
             item.setup()
             debug = "%s -- %s/%s" % (str(item.line).rjust(6),
