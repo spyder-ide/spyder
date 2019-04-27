@@ -16,7 +16,13 @@ from spyder.plugins.outlineexplorer.api import OutlineExplorerData
 
 from spyder.utils.qthelpers import qapplication
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
-from spyder.plugins.outlineexplorer.tests.test_outline_explorer import testBlock
+
+class testBlock():
+    def __init__(self, line_number):
+        self._line = line_number - 1
+
+    def firstLineNumber(self):
+        return self._line
 
 text = ('# test file\n'
         'class a():\n'
@@ -28,10 +34,10 @@ text = ('# test file\n'
 
 expected_oe_list = [
     OutlineExplorerData(
-            testBlock(1), 'class a():', 0,
+            testBlock(2), 'class a():', 0,
             OutlineExplorerData.CLASS, 'a'),
     OutlineExplorerData(
-            testBlock(5), '    def some_method(self):', 4,
+            testBlock(6), '    def some_method(self):', 4,
             OutlineExplorerData.FUNCTION, 'some_method')
 ]
 
@@ -82,9 +88,7 @@ def test_editor_outline_explorer(editor_outline_explorer_bot):
 
     # Assert Treewidget Items
     items = outline_explorer.treewidget.get_items()
-    oedata_texts = [l
-                    for k, l in sorted([[i, j.def_name] for i, j in
-                                        expected_oe_data.items()])]
+    oedata_texts = [j.def_name for j in expected_oe_list]
     for item, oe_item in zip(items, oedata_texts):
         assert item.text(0) == oe_item
 

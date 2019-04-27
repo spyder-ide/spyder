@@ -86,18 +86,18 @@ def test_clear_bookmarks(code_editor_bot):
     """Test CodeEditor.clear_bookmarks. Remove bookmarks from all blocks."""
     editor, __ = code_editor_bot
 
-    assert len(editor.blockuserdata_list) == 0
+    assert len(editor.blockuserdata_list) == 1
 
     bm = {1: ('filename', 1, 0), 2: ('filename', 3, 5)}
     editor.set_bookmarks(bm)
     assert editor.get_bookmarks() == {1: [1, 0], 2: [3, 5]}
-    assert len(editor.blockuserdata_list) == 2
+    assert len(editor.blockuserdata_list) == 3
 
     editor.clear_bookmarks()
     assert editor.get_bookmarks() == {}
     # Even though there is a 'del data' that would pop the item from the
     # list, the __del__ funcion isn't called.
-    assert len(editor.blockuserdata_list) == 2
+    assert len(editor.blockuserdata_list) == 3
     for data in editor.blockuserdata_list:
         assert not data.bookmarks
 

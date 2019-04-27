@@ -291,7 +291,7 @@ def test_code_cell_grouping(create_outlineexplorer):
         ('function6', FunctionItem, 'MGroup3', 'MGroup3', False),
         ('MGroup4', CellItem, 'MGroup3', 'test_file.py'),
         ('Unnamed Cell, #1', CellItem, 'test_file.py',
-         'test_file.py')
+         'test_file.py'),
         ('Unnamed Cell, #2', CellItem, 'test_file.py',
          'test_file.py')
         ]

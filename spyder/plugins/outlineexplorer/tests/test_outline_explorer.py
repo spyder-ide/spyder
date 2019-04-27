@@ -30,6 +30,8 @@ oe_data = [
     [63, 'if __name__ == "__main__":', 0, 2, 'if __name__ == "__main__":']
 ]
 
+oe_data_filtered = [oe_data[i] for i in [0, 1, 2, 3, 4, 6, 7, 8, 9]]
+
 class testBlock():
     def __init__(self, line_number):
         self._line = line_number - 1
@@ -52,7 +54,7 @@ class OutlineExplorerProxyTest(OutlineExplorerProxy):
         pass
 
     def get_line_count(self):
-        return 50
+        return max([oe[0] for oe in self.oe_data]) + 1
 
     def parent(self):
         return None
@@ -103,7 +105,7 @@ def test_outline_explorer(setup_outline_explorer):
 
     # Assert Items
     items = outline_explorer.treewidget.get_items()
-    oedata_texts = [oe[4] for oe in oe_data]
+    oedata_texts = [oe[4] for oe in oe_data_filtered]
     for item, oe_item in zip(items, oedata_texts):
         assert item.text(0) == oe_item
 

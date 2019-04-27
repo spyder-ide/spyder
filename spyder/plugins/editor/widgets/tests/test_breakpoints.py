@@ -100,7 +100,6 @@ def test_add_remove_breakpoint(code_editor_bot, mocker):
     reset_emits(editor)
     arb()
     assert block  # Block exists.
-    assert not block.userData()  # But user data not added to it.
     if version_info > (4, ):
         editor.sig_flags_changed.emit.assert_not_called()
     editor.sig_breakpoints_changed.emit.assert_not_called()
@@ -218,7 +217,7 @@ def test_clear_breakpoints(code_editor_bot):
     """Test CodeEditor.clear_breakpoints."""
     editor, qtbot = code_editor_bot
 
-    assert len(editor.blockuserdata_list) == 0
+    assert len(editor.blockuserdata_list) == 1
 
     bp = [(1, None), (4, None)]
     editor.debugger.set_breakpoints(bp)
