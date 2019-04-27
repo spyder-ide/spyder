@@ -752,13 +752,13 @@ class Editor(SpyderPluginWidget):
             'set_scrollpastend_enabled')
 
         showindentguides_action = self._create_checkable_action(
-            _("Show indent guides."), 'indent_guides', 'set_indent_guides')
+            _("Show indent guides"), 'indent_guides', 'set_indent_guides')
 
         show_classfunc_dropdown_action = self._create_checkable_action(
-            _("Show selector for classes and functions."),
+            _("Show selector for classes and functions"),
             'show_class_func_dropdown', 'set_classfunc_dropdown_visible')
 
-        showcode_analysis_pep8_action = self._create_checkable_action(
+        show_codestyle_warnings_action = self._create_checkable_action(
             _("Show code style warnings"), 'pycodestyle',)
 
         show_docstring_warnings_action = self._create_checkable_action(
@@ -769,7 +769,7 @@ class Editor(SpyderPluginWidget):
                 'scroll_past_end': scrollpastend_action,
                 'indent_guides': showindentguides_action,
                 'show_class_func_dropdown': show_classfunc_dropdown_action,
-                'pycodestyle': showcode_analysis_pep8_action,
+                'pycodestyle': show_codestyle_warnings_action,
                 'pydocstyle': show_docstring_warnings_action}
 
         fixindentation_action = create_action(self, _("Fix indentation"),
@@ -892,7 +892,7 @@ class Editor(SpyderPluginWidget):
                                scrollpastend_action,
                                showindentguides_action,
                                show_classfunc_dropdown_action,
-                               showcode_analysis_pep8_action,
+                               show_codestyle_warnings_action,
                                show_docstring_warnings_action,
                                MENU_SEPARATOR,
                                self.todo_list_action,
