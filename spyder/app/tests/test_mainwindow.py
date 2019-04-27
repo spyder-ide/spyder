@@ -447,7 +447,7 @@ def test_get_help_editor(main_window, qtbot):
         code_editor.document_did_change()
 
     # Get help
-    with qtbot.waitSignal(code_editor.sig_display_help, timeout=30000):
+    with qtbot.waitSignal(code_editor.sig_display_object_info, timeout=30000):
         editorstack.inspect_current_object()
 
     # Check that a expected text is part of the page
