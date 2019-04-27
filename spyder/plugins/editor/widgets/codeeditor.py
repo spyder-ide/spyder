@@ -505,7 +505,7 @@ class CodeEditor(TextEditBaseWidget):
             if data:
                 ret.append(data)
         return ret
-    
+
     def outlineexplorer_data_list(self):
         """Get the list of all user data in document"""
         def blocks():

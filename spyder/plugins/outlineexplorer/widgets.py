@@ -386,7 +386,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             tree_cache = {}
 
         for _l in list(tree_cache.keys()):
-            # Checking if key is still in tree cache in case one of its 
+            # Checking if key is still in tree cache in case one of its
             # ancestors was deleted in the meantime (deleting all children):
             if _l not in tree_cache:
                 continue

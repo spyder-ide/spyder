@@ -32,12 +32,14 @@ oe_data = [
 
 oe_data_filtered = [oe_data[i] for i in [0, 1, 2, 3, 4, 6, 7, 8, 9]]
 
+
 class testBlock():
     def __init__(self, line_number):
         self._line = line_number - 1
 
     def firstLineNumber(self):
         return self._line
+
 
 class OutlineExplorerProxyTest(OutlineExplorerProxy):
     def __init__(self, fname, oe_data):
@@ -58,13 +60,13 @@ class OutlineExplorerProxyTest(OutlineExplorerProxy):
 
     def parent(self):
         return None
-    
+
     def outlineexplorer_data_list(self):
         oe_list = []
         for block_number, text, fold_level, def_type, def_name in self.oe_data:
             oe_list.append(OutlineExplorerData(
-                    testBlock(block_number),
-                    text, fold_level, def_type, def_name))
+                testBlock(block_number),
+                text, fold_level, def_type, def_name))
         return oe_list
 
 

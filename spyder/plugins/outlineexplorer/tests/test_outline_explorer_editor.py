@@ -17,12 +17,14 @@ from spyder.plugins.outlineexplorer.api import OutlineExplorerData
 from spyder.utils.qthelpers import qapplication
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 
+
 class testBlock():
     def __init__(self, line_number):
         self._line = line_number - 1
 
     def firstLineNumber(self):
         return self._line
+
 
 text = ('# test file\n'
         'class a():\n'

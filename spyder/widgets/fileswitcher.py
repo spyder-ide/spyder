@@ -588,7 +588,7 @@ class FileSwitcher(QDialog):
     def get_symbol_list(self):
         """
         Get the list of symbols present in the file
-        
+
         Returns a list with line number, definition name, fold and token.
         """
         def blocks():
