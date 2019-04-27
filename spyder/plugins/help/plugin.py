@@ -116,7 +116,7 @@ class Help(SpyderPluginWidget):
         self.combo.setMaxCount(self.get_option('max_history_entries'))
         self.combo.addItems( self.load_history() )
         self.combo.setItemText(0, '')
-        self.combo.valid.connect(lambda valid: self.force_refresh(valid))
+        self.combo.valid.connect(self.force_refresh)
 
         # Plain text docstring option
         self.docstring = True
@@ -469,8 +469,11 @@ class Help(SpyderPluginWidget):
         else:
             self.rich_text.webview.load(QUrl(url))
 
-    #------ Public API ---------------------------------------------------------
-    def force_refresh(self, valid=True):
+    # ------ Public API -------------------------------------------------------
+    @Slot()
+    @Slot(bool)
+    @Slot(bool, bool)
+    def force_refresh(self, valid=True, editing=True):
         if valid:
             if self.source_is_console():
                 self.set_object_text(None, force_refresh=True)

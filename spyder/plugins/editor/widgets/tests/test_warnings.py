@@ -3,89 +3,73 @@
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
 #
-'''
-Tests for editor codeanalysis warnings.
-'''
+
+"""Tests for editor codeanalysis warnings."""
+
+# Stdlib imports
+import os
 
 # Third party imports
-import os
 import pytest
-from qtpy.QtCore import Signal, QObject
 
 # Local imports
 from spyder.config.main import CONF
-from spyder.utils.qthelpers import qapplication
-from spyder.plugins.editor.widgets.codeeditor import CodeEditor
-from spyder.py3compat import to_binary_string
-from spyder.utils.codeanalysis import check_with_pyflakes, check_with_pep8
-from spyder.plugins.editor.lsp.manager import LSPManager
-from spyder.plugins.editor.lsp import LSPEventTypes
-from spyder.py3compat import PY2
 
 
-class LSPEditorWrapper(QObject):
-    sig_initialize = Signal(dict, str)
+TEXT = ("def some_function():\n"  # D100, D103: Missing docstring
+        "    \n"  # W293 trailing spaces
+        "    a = 1 # a comment\n"  # E261 two spaces before inline comment
+        "\n"
+        "    a += s\n"  # Undefined variable s
+        "    return a\n")
 
-    def __init__(self, parent, editor, lsp_manager):
-        QObject.__init__(self, parent)
-        self.editor = editor
-        self.lsp_manager = lsp_manager
-        self.editor.sig_perform_lsp_request.connect(self.perform_request)
-        self.sig_initialize.connect(self.initialize_callback)
 
-    def initialize_callback(self, settings, language):
-        self.lsp_manager.register_file(
-            'python', 'test.py', self.editor)
-        self.editor.start_lsp_services(settings)
+@pytest.mark.slow
+@pytest.mark.second
+@pytest.mark.xfail
+def test_ignore_warnings(qtbot, lsp_codeeditor):
+    """Test that the editor is ignoring some warnings."""
+    editor, manager = lsp_codeeditor
 
-    def perform_request(self, language, request, params):
-        self.lsp_manager.send_request(language, request, params)
+    # Set text in editor
+    editor.set_text(TEXT)
 
-# --- Fixtures
-# -----------------------------------------------------------------------------
-@pytest.fixture
-def construct_editor(qtbot, *args, **kwargs):
-    CONF.set('lsp-server', 'pycodestyle', True)
-    CONF.set('lsp-server', 'pydocstyle', True)
-    os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
+    CONF.set('lsp-server', 'pydocstyle/ignore', 'D100')
+    CONF.set('lsp-server', 'pycodestyle/ignore', 'E261')
+    manager.update_server_list()
+    qtbot.wait(2000)
 
-    app = qapplication()
-    lsp_manager = LSPManager(parent=None)
-    editor = CodeEditor(parent=None)
-    kwargs['language'] = 'Python'
-    editor.setup_editor(*args, **kwargs)
-    wrapper = LSPEditorWrapper(None, editor, lsp_manager)
-
-    lsp_manager.register_plugin_type(
-        LSPEventTypes.DOCUMENT, wrapper.sig_initialize)
-    with qtbot.waitSignal(wrapper.sig_initialize, timeout=30000):
-        editor.filename = 'test.py'
-        editor.language = 'Python'
-        lsp_manager.start_client('python')
-
-    text = ("def some_function():\n"  # D100, D103: Missing docstring
-            "    \n"  # W293 trailing spaces
-            "    a = 1 # a comment\n"  # E261 two spaces before inline comment
-            "\n"
-            "    a += s\n"  # Undefined variable s
-            "    return a\n"
-            )
-    editor.set_text(text)
+    # Notify changes
     with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
-        editor.document_did_open()
+        editor.document_did_change()
 
-    yield editor, lsp_manager
-    os.environ['SPY_TEST_USE_INTROSPECTION'] = 'False'
-    CONF.set('lsp-server', 'pycodestyle', False)
-    CONF.set('lsp-server', 'pydocstyle', False)
-    lsp_manager.shutdown()
+    # Get current warnings
+    warnings = editor.get_current_warnings()
+
+    expected = [['D103: Missing docstring in public function', 1],
+                ['W293 blank line contains whitespace', 2],
+                ["undefined name 's'", 5]]
+
+    CONF.set('lsp-server', 'pydocstyle/ignore', '')
+    CONF.set('lsp-server', 'pycodestyle/ignore', '')
+    manager.update_server_list()
+    qtbot.wait(2000)
+
+    assert warnings == expected
 
 
-@pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
-                    reason="Times out on AppVeyor")
-def test_adding_warnings(qtbot, construct_editor):
-    """Test that warning are saved in the blocks of the editor."""
-    editor, lsp_manager = construct_editor
+@pytest.mark.slow
+@pytest.mark.second
+def test_adding_warnings(qtbot, lsp_codeeditor):
+    """Test that warnings are saved in the editor blocks."""
+    editor, _ = lsp_codeeditor
+
+    # Set text in editor
+    editor.set_text(TEXT)
+
+    # Notify changes
+    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
+        editor.document_did_change()
 
     block = editor.textCursor().block()
     line_count = editor.document().blockCount()
@@ -98,7 +82,6 @@ def test_adding_warnings(qtbot, construct_editor):
                 warnings.append((i+1, analysis[-1]))
         block = block.next()
 
-    print(warnings)
     expected_warnings = {1: ['D100', 'D103'],
                          2: ['W293'],
                          3: ['E261'],
@@ -107,10 +90,18 @@ def test_adding_warnings(qtbot, construct_editor):
         assert any([expected in warning for expected in expected_warnings[i]])
 
 
-@pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
-                    reason="Times out on AppVeyor")
-def test_move_warnings(qtbot, construct_editor):
-    editor, lsp_manager = construct_editor
+@pytest.mark.slow
+@pytest.mark.second
+def test_move_warnings(qtbot, lsp_codeeditor):
+    """Test that moving to next/previous warnings is working."""
+    editor, _ = lsp_codeeditor
+
+    # Set text in editor
+    editor.set_text(TEXT)
+
+    # Notify changes
+    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
+        editor.document_did_change()
 
     # Move between warnings
     editor.go_to_next_warning()
@@ -131,10 +122,18 @@ def test_move_warnings(qtbot, construct_editor):
     assert 5 == editor.get_cursor_line_number()
 
 
-@pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
-                    reason="Times out on AppVeyor")
-def test_menu_show_warnings(qtbot, construct_editor):
-    editor, lsp_manager = construct_editor
+@pytest.mark.slow
+@pytest.mark.second
+def test_get_warnings(qtbot, lsp_codeeditor):
+    """Test that the editor is returning the right list of warnings."""
+    editor, _ = lsp_codeeditor
+
+    # Set text in editor
+    editor.set_text(TEXT)
+
+    # Notify changes
+    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
+        editor.document_did_change()
 
     # Get current warnings
     warnings = editor.get_current_warnings()

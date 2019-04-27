@@ -1704,6 +1704,7 @@ class EditorStack(QWidget):
                                  finfo.filename, finfo.filename)
 
             finfo.editor.document().setModified(False)
+            finfo.editor.document().changed_since_autosave = False
             self.modification_changed(index=index)
             self.analyze_script(index)
 
@@ -1713,10 +1714,6 @@ class EditorStack(QWidget):
             # patterns instead of only searching for class/def patterns which
             # would be sufficient for outline explorer data.
             finfo.editor.rehighlight()
-
-            # rehighlight() calls textChanged(), so the change_since_autosave
-            # flag should be cleared after rehighlight()
-            finfo.editor.document().changed_since_autosave = False
 
             self._refresh_outlineexplorer(index)
 
@@ -2192,6 +2189,7 @@ class EditorStack(QWidget):
         position = finfo.editor.get_position('cursor')
         finfo.editor.set_text(txt)
         finfo.editor.document().setModified(False)
+        finfo.editor.document().changed_since_autosave = False
         finfo.editor.set_cursor_position(position)
 
         #XXX CodeEditor-only: re-scan the whole text to rebuild outline
@@ -2200,10 +2198,6 @@ class EditorStack(QWidget):
         # patterns instead of only searching for class/def patterns which
         # would be sufficient for outline explorer data.
         finfo.editor.rehighlight()
-
-        # rehighlight() calls textChanged(), so the change_since_autosave
-        # flag should be cleared after rehighlight()
-        finfo.editor.document().changed_since_autosave = False
 
         self._refresh_outlineexplorer(index)
 
@@ -2283,7 +2277,7 @@ class EditorStack(QWidget):
         if cloned_from is None:
             editor.set_text(txt)
             editor.document().setModified(False)
-        editor.document().changed_since_autosave = False
+            editor.document().changed_since_autosave = False
         finfo.text_changed_at.connect(
             lambda fname, position:
             self.text_changed_at.emit(fname, position))

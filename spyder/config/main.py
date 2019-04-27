@@ -696,6 +696,7 @@ DEFAULTS = [
               'advanced/command_launch': 'pyls',
               'advanced/host': '127.0.0.1',
               'advanced/port': 2087,
+              'advanced/external': False
              })
             ]
 

@@ -71,6 +71,9 @@ class TextDecorationsManager(Manager):
             return True
         except ValueError:
             return False
+        except RuntimeError:
+            # This is needed to fix issue 9173
+            pass
 
     def clear(self):
         """Removes all text decoration from the editor."""

@@ -111,7 +111,8 @@ def get_hg_revision(repopath):
         # output is now: ('eba7273c69df+ 2015+ default\n', None)
         # Split 2 times max to allow spaces in branch names.
         return tuple(output.decode().strip().split(None, 2))
-    except (subprocess.CalledProcessError, AssertionError, AttributeError):
+    except (subprocess.CalledProcessError, AssertionError, AttributeError,
+            OSError):
         return (None, None, None)
 
 
@@ -145,7 +146,8 @@ def get_git_revision(repopath):
             branch = active_branch[0].split(None, 1)[1]
 
         return commit, branch
-    except (subprocess.CalledProcessError, AssertionError, AttributeError):
+    except (subprocess.CalledProcessError, AssertionError, AttributeError,
+            OSError):
         return None, None
 
 
@@ -162,6 +164,7 @@ def get_git_refs(repopath):
         repopath = os.path.dirname(repopath)
 
     try:
+
         git = programs.find_program('git')
 
         # Files modified
@@ -201,7 +204,7 @@ def get_git_refs(repopath):
 
             branches.append(line)
 
-    except (subprocess.CalledProcessError, AttributeError):
+    except (subprocess.CalledProcessError, AttributeError, OSError):
         pass
 
     return branches + tags, branch, files_modifed

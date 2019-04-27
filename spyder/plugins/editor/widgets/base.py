@@ -30,7 +30,7 @@ from spyder.config.gui import get_font
 from spyder.config.main import CONF
 from spyder.py3compat import PY3, to_text_string
 from spyder.utils import icon_manager as ima
-from spyder.widgets.calltip import CallTipWidget
+from spyder.widgets.calltip import CallTipWidget, ToolTipWidget
 from spyder.widgets.mixins import BaseEditMixin
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
@@ -231,7 +231,12 @@ class CompletionWidget(QListWidget):
             if event.reason() != Qt.ActiveWindowFocusReason:
                 self.hide()
         else:
-            self.hide()
+            # Avoid an error when running tests that show
+            # the completion widget
+            try:
+                self.hide()
+            except RuntimeError:
+                pass
 
     def item_selected(self, item=None):
         if item is None:
@@ -293,6 +298,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         self.calltip_widget = CallTipWidget(self, hide_timer_on=False)
         self.calltip_position = None
+        self.tooltip_widget = ToolTipWidget(parent, as_tooltip=True)
 
         self.has_cell_separators = False
         self.highlight_current_cell_enabled = False
