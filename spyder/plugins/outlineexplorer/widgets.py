@@ -266,6 +266,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
     @Slot()
     def go_to_follow_cursor(self):
+        """Collapse all and go to cursor position"""
         self.collapseAll()
         self.go_to_cursor_position()
 
