@@ -738,32 +738,31 @@ class Editor(SpyderPluginWidget):
         eol_menu = QMenu(_("Convert end-of-line characters"), self)
         add_actions(eol_menu, eol_actions)
 
-        trailingspaces_action = create_action(self,
-                                      _("Remove trailing spaces"),
-                                      triggered=self.remove_trailing_spaces)
+        trailingspaces_action = create_action(
+            self,
+            _("Remove trailing spaces"),
+            triggered=self.remove_trailing_spaces)
 
         # Checkable actions
         showblanks_action = self._create_checkable_action(
-                _("Show blank spaces"), 'blank_spaces', 'set_blanks_enabled')
+            _("Show blank spaces"), 'blank_spaces', 'set_blanks_enabled')
 
         scrollpastend_action = self._create_checkable_action(
-                 _("Scroll past the end"), 'scroll_past_end',
-                 'set_scrollpastend_enabled')
+            _("Scroll past the end"), 'scroll_past_end',
+            'set_scrollpastend_enabled')
 
         showindentguides_action = self._create_checkable_action(
-                _("Show indent guides."), 'indent_guides', 'set_indent_guides')
+            _("Show indent guides."), 'indent_guides', 'set_indent_guides')
 
         show_classfunc_dropdown_action = self._create_checkable_action(
-                _("Show selector for classes and functions."),
-                'show_class_func_dropdown', 'set_classfunc_dropdown_visible')
+            _("Show selector for classes and functions."),
+            'show_class_func_dropdown', 'set_classfunc_dropdown_visible')
 
         showcode_analysis_pep8_action = self._create_checkable_action(
-                _("Show code style warnings"),
-                'show_code_analysis', 'set_pep8_enabled')
+            _("Show code style warnings"), 'pycodestyle',)
 
         show_docstring_warnings_action = self._create_checkable_action(
-            _("Show docstring style warnings"), 'show_docstring_warnings',
-            'set_docstring_warnings')
+            _("Show docstring style warnings"), 'pydocstyle')
 
         self.checkable_actions = {
                 'blank_spaces': showblanks_action,
@@ -982,47 +981,56 @@ class Editor(SpyderPluginWidget):
                 comp_widget = finfo.editor.completion_widget
                 comp_widget.setup_appearance(completion_size, font)
 
-    def _create_checkable_action(self, text, conf_name, editorstack_method):
+    def _create_checkable_action(self, text, conf_name, method=''):
         """Helper function to create a checkable action.
 
         Args:
             text (str): Text to be displayed in the action.
-            conf_name (str): configuration setting associated with the action
-            editorstack_method (str): name of EditorStack class that will be
-                used to update the changes in each editorstack.
+            conf_name (str): configuration setting associated with the
+                action
+            method (str): name of EditorStack class that will be used
+                to update the changes in each editorstack.
         """
         def toogle(checked):
             self.switch_to_plugin()
-            self._toggle_checkable_action(checked, editorstack_method,
-                                          conf_name)
+            self._toggle_checkable_action(checked, method, conf_name)
         action = create_action(self, text, toggled=toogle)
+
+        if conf_name not in ['pycodestyle', 'pydocstyle']:
+            action.setChecked(self.get_option(conf_name))
+        else:
+            action.setChecked(CONF.get('lsp-server', conf_name))
+
         return action
 
     @Slot(bool, str, str)
-    def _toggle_checkable_action(self, checked, editorstack_method, conf_name):
-        """Handle the toogle of a checkable action.
+    def _toggle_checkable_action(self, checked, method, conf_name):
+        """
+        Handle the toogle of a checkable action.
 
-        Update editorstacks and the configuration.
+        Update editorstacks, PyLS and CONF.
 
         Args:
             checked (bool): State of the action.
-            editorstack_method (str): name of EditorStack class that will be
-                used to update the changes in each editorstack.
-            conf_name (str): configuration setting associated with the action.
+            method (str): name of EditorStack class that will be used
+                to update the changes in each editorstack.
+            conf_name (str): configuration setting associated with the
+                action.
         """
-        if self.editorstacks:
-            for editorstack in self.editorstacks:
-                try:
-                    editorstack.__getattribute__(editorstack_method)(checked)
-                except AttributeError as e:
-                    logger.error(e, exc_info=True)
-                if editorstack_method == 'set_pep8_enabled':
-                    CONF.set('lsp-server', 'pycodestyle', checked)
-                    self.main.lspmanager.update_server_list()
-                elif editorstack_method == 'set_docstring_warnings':
-                    CONF.set('lsp-server', 'pydocstyle', checked)
-                    self.main.lspmanager.update_server_list()
-        CONF.set('editor', conf_name, checked)
+        if method:
+            if self.editorstacks:
+                for editorstack in self.editorstacks:
+                    try:
+                        editorstack.__getattribute__(method)(checked)
+                    except AttributeError as e:
+                        logger.error(e, exc_info=True)
+            self.set_option(conf_name, checked)
+        else:
+            if conf_name == 'pycodestyle':
+                CONF.set('lsp-server', 'pycodestyle', checked)
+            elif conf_name == 'pydocstyle':
+                CONF.set('lsp-server', 'pydocstyle', checked)
+            self.main.lspmanager.update_server_list()
 
     def received_sig_option_changed(self, option, value):
         """
