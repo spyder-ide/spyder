@@ -888,15 +888,12 @@ class Editor(SpyderPluginWidget):
         self.main.debug_toolbar_actions += debug_toolbar_actions
 
         # ---- Source menu/toolbar construction ----
-        source_menu_actions = [eol_menu,
-                               showblanks_action,
+        source_menu_actions = [showblanks_action,
                                scrollpastend_action,
                                showindentguides_action,
                                show_classfunc_dropdown_action,
                                showcode_analysis_pep8_action,
                                show_docstring_warnings_action,
-                               trailingspaces_action,
-                               fixindentation_action,
                                MENU_SEPARATOR,
                                self.todo_list_action,
                                self.warning_list_action,
@@ -905,7 +902,11 @@ class Editor(SpyderPluginWidget):
                                MENU_SEPARATOR,
                                self.previous_edit_cursor_action,
                                self.previous_cursor_action,
-                               self.next_cursor_action]
+                               self.next_cursor_action,
+                               MENU_SEPARATOR,
+                               eol_menu,
+                               trailingspaces_action,
+                               fixindentation_action]
         self.main.source_menu_actions += source_menu_actions
 
         source_toolbar_actions = [self.todo_list_action,
