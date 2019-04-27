@@ -1192,9 +1192,9 @@ class Editor(SpyderPluginWidget):
         editorstack.perform_lsp_request.connect(self.send_lsp_request)
         editorstack.todo_results_changed.connect(self.todo_results_changed)
         editorstack.update_code_analysis_actions.connect(
-                                             self.update_code_analysis_actions)
+            self.update_code_analysis_actions)
         editorstack.update_code_analysis_actions.connect(
-                                                      self.update_todo_actions)
+            self.update_todo_actions)
         editorstack.refresh_file_dependent_actions.connect(
                                            self.refresh_file_dependent_actions)
         editorstack.refresh_save_all_action.connect(self.refresh_save_all_action)
@@ -1480,10 +1480,8 @@ class Editor(SpyderPluginWidget):
         if editor is None:
             return
         results = editor.get_current_warnings()
-        # Update code analysis buttons
-        state = (CONF.get('lsp-server', 'code_completion')
-                 and results is not None and len(results)
-                 and results is not None and len(results))
+        # Update code analysis actions
+        state = results is not None and len(results)
         for action in (self.warning_list_action, self.previous_warning_action,
                        self.next_warning_action):
             if state is not None:
