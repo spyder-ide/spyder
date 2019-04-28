@@ -180,10 +180,6 @@ class BasePluginWidgetMixin(object):
                         "and cannot be set directly on the plugin."
                         "This method is deprecated.")
 
-    def show_message(self, message, timeout=0):
-        """Show message in main window's status bar"""
-        self.main.statusBar().showMessage(message, timeout)
-
     def create_toggle_view_action(self):
         """Associate a toggle view action with each plugin"""
         title = self.get_plugin_title()
