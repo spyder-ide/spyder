@@ -279,3 +279,20 @@ class BasePluginWidgetMixin(object):
         # Create actions list
         self.plugin_actions = self.get_plugin_actions() + additional_actions
         add_actions(self.options_menu, self.plugin_actions)
+
+    def initialize_plugin(self):
+        """
+        Initialize plugin: connect signals, setup actions, etc.
+
+        It must be called at the end of the plugin's __init__
+        """
+        self.create_toggle_view_action()
+
+        self.plugin_actions = self.get_plugin_actions() + [MENU_SEPARATOR,
+                                                           self.undock_action]
+        add_actions(self.options_menu, self.plugin_actions)
+        self.options_button.setMenu(self.options_menu)
+        self.options_menu.aboutToShow.connect(self.refresh_actions)
+
+        self.sig_update_plugin_title.connect(self.update_plugin_title)
+        self.setWindowTitle(self.get_plugin_title())

@@ -192,24 +192,16 @@ class BasePluginWidget(QWidget, BasePlugin, BasePluginWidgetMixin):
         # to raise and focus the plugin with it.
         self.toggle_view_action = None
 
+        self.sig_show_message.connect(self.__show_message)
+        self.sig_option_changed.connect(self.__set_option)
+
     def initialize_plugin(self):
         """
         Initialize plugin: connect signals, setup actions, etc.
 
         It must be called at the end of the plugin's __init__
         """
-        self.create_toggle_view_action()
-
-        self.plugin_actions = self.get_plugin_actions() + [MENU_SEPARATOR,
-                                                           self.undock_action]
-        add_actions(self.options_menu, self.plugin_actions)
-        self.options_button.setMenu(self.options_menu)
-        self.options_menu.aboutToShow.connect(self.refresh_actions)
-
-        self.sig_show_message.connect(self.__show_message)
-        self.sig_option_changed.connect(self.set_option)
-        self.sig_update_plugin_title.connect(self.update_plugin_title)
-        self.setWindowTitle(self.get_plugin_title())
+        super(BasePluginWidget, self).initialize_plugin()
 
     def register_shortcut(self, qaction_or_qshortcut, context, name,
                           add_sc_to_tip=False):
@@ -244,15 +236,14 @@ class BasePluginWidget(QWidget, BasePlugin, BasePluginWidgetMixin):
         super(BasePluginWidget, self).refresh_actions()
 
     # -- BasePlugin slots
-    # These are needed because Qt doesn't support multiple inheritance for
-    # signals and slots.
+    # These are needed because Qt doesn't support multiple inheritance.
     @Slot(str)
     @Slot(str, int)
     def __show_message(self, message, timeout=0):
         super(BasePluginWidget, self).__show_message(message, timeout)
 
     @Slot(str, object)
-    def set_option(self, option, value):
+    def __set_option(self, option, value):
         super(BasePluginWidget, self).set_option(option, value)
 
 
