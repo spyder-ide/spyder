@@ -294,15 +294,24 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
     def connect_current_editor(self, state):
         """Connect or disconnect the editor from signals"""
-        if self.current_editor is None:
+        editor = self.current_editor
+        if editor is None:
             return
+
+        # Connect follow_cursor
+        sig = editor.sig_cursor_position_changed
         if not state and self.follow_cursor:
-            self.current_editor._editor.sig_cursor_position_changed.disconnect(
-                self.go_to_follow_cursor)
+            sig.disconnect(self.go_to_follow_cursor)
         elif state and self.follow_cursor:
-            self.current_editor._editor.sig_cursor_position_changed.connect(
-                self.go_to_follow_cursor)
+            sig.connect(self.go_to_follow_cursor)
             self.go_to_follow_cursor()
+
+        # Connect syntax highlighter
+        sig = editor.sig_outline_explorer_changed
+        if state:
+            sig.connect(self.update_all)
+        else:
+            sig.disconnect(self.update_all)
 
     def clear(self):
         """Reimplemented Qt method"""
@@ -350,7 +359,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             root_item = self.editor_items[editor_id]
             root_item.set_path(new_filename, fullpath=self.show_fullpath)
             self.__sort_toplevel_items()
-        
+
+    @Slot()
     def update_all(self):
         self.save_expanded_state()
         for editor, editor_id in list(self.editor_ids.items()):
