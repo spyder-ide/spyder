@@ -64,6 +64,9 @@ class BlockUserData(QTextBlockUserData):
         self.color = color
         self.oedata = None
         self.import_statement = None
+        
+        # HACK: Create a refloop to prevent a segmentation fault
+        self.refloop = self
 
 
 class DelayJobRunner(object):
