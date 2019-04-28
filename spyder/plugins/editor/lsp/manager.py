@@ -300,6 +300,9 @@ class LSPManager(QObject):
             'enabled': self.get_option('jedi_definition'),
             'follow_imports': self.get_option('jedi_definition/follow_imports')
         }
+        jedi_hover = {
+            'enabled': self.get_option('jedi_hover'),
+        }
 
         # Advanced
         external_server = self.get_option('advanced/external')
@@ -322,5 +325,6 @@ class LSPManager(QObject):
         plugins['jedi_signature_help'] = jedi_signature_help
         plugins['preload']['modules'] = self.get_option('preload_modules')
         plugins['jedi_definition'] = jedi_definition
+        plugins['jedi_hover'] = jedi_hover
 
         return python_config

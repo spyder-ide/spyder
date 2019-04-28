@@ -681,6 +681,7 @@ DEFAULTS = [
               'jedi_definition': True,
               'jedi_definition/follow_imports': True,
               'jedi_signature_help': True,
+              'jedi_hover': True,
               'preload_modules': PRELOAD_MDOULES,
               'pyflakes': True,
               'mccabe': False,

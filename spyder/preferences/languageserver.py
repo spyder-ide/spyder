@@ -625,6 +625,12 @@ class LSPManagerConfigPage(GeneralConfigPage):
             tip=_("If this option is enabled, left-clicking on\n"
                   "an object name while pressing the {} key will go to\n"
                   "that object's definition (if resolved).".format(self.CTRL)))
+        hover_hints_box = newcb(
+            _("Enable hover hints"),
+            'jedi_hover',
+            tip=_("If this option is enabled, hovering the mouse \n"
+                  "pointer over an object name will display a hint of\n"
+                  "that object's definition (if resolved)."))
         follow_imports_box = newcb(_("Follow imports when going to a "
                                      "definition"),
                                    'jedi_definition/follow_imports')
@@ -633,6 +639,7 @@ class LSPManagerConfigPage(GeneralConfigPage):
         basic_features_layout = QVBoxLayout()
         basic_features_layout.addWidget(completion_box)
         basic_features_layout.addWidget(goto_definition_box)
+        basic_features_layout.addWidget(hover_hints_box)
         basic_features_layout.addWidget(follow_imports_box)
         basic_features_layout.addWidget(show_signature_box)
         basic_features_group.setLayout(basic_features_layout)
