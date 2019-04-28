@@ -17,7 +17,7 @@ import re
 import weakref
 
 # Third party imports
-from qtpy.QtCore import Qt
+from qtpy.QtCore import Qt, Signal
 from qtpy.QtGui import (QColor, QCursor, QFont, QSyntaxHighlighter,
                         QTextCharFormat, QTextOption)
 from qtpy.QtWidgets import QApplication
@@ -110,6 +110,8 @@ class BaseSH(QSyntaxHighlighter):
     NORMAL = 0
     # Syntax highlighting parameters.
     BLANK_ALPHA_FACTOR = 0.31
+
+    sig_outline_explorer_changed = Signal()
 
     def __init__(self, parent, font=None, color_scheme='Spyder'):
         QSyntaxHighlighter.__init__(self, parent)
@@ -556,6 +558,7 @@ class PythonSH(BaseSH):
                 data = BlockUserData(self.editor)
             data.oedata = oedata
             block.setUserData(data)
+            self.sig_outline_explorer_changed.emit()
         if import_stmt is not None:
             block = self.currentBlock()
             data = block.userData()
