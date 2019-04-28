@@ -44,7 +44,7 @@ class PluginWindow(QMainWindow):
         self.plugin.undocked_window = None
 
 
-class BasePluginMixin(object):
+class BasePluginWidgetMixin(object):
     """Basic functionality for Spyder plugin widgets."""
 
     ALLOWED_AREAS = Qt.AllDockWidgetAreas
@@ -52,7 +52,7 @@ class BasePluginMixin(object):
     FEATURES = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetMovable
 
     def __init__(self, parent=None):
-        super(BasePluginMixin, self).__init__()
+        super(BasePluginWidgetMixin, self).__init__()
 
         # Additional actions
         self.dock_action = create_action(self,

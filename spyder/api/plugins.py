@@ -26,16 +26,16 @@ from spyder.config.base import _
 from spyder.config.gui import get_color_scheme, is_dark_interface
 from spyder.config.main import CONF
 from spyder.config.user import NoDefault
-from spyder.plugins.base import BasePluginMixin
+from spyder.plugins.base import BasePluginWidgetMixin
 from spyder.py3compat import configparser
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_toolbutton,
                                     MENU_SEPARATOR, toggle_actions)
 
 
-class PluginWidget(QWidget, BasePluginMixin):
+class BasePluginWidget(QWidget, BasePluginWidgetMixin):
     """
-    Public interface for Spyder plugins.
+    Public interface for Spyder plugin widgets.
 
     Warning: Don't override any methods present here!
 
@@ -53,7 +53,7 @@ class PluginWidget(QWidget, BasePluginMixin):
 
     def __init__(self, main=None):
         """Bind widget to a QMainWindow instance."""
-        super(PluginWidget, self).__init__(main)
+        super(BasePluginWidget, self).__init__(main)
         assert self.CONF_SECTION is not None
 
         self.dockwidget = None
@@ -227,7 +227,7 @@ class PluginWidget(QWidget, BasePluginMixin):
         add_actions(self.options_menu, self.plugin_actions)
 
 
-class SpyderPluginWidget(PluginWidget):
+class SpyderPluginWidget(BasePluginWidget):
     """
     Spyder plugin widget class.
 
