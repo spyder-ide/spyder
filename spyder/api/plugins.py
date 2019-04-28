@@ -18,22 +18,21 @@ import os
 # Third party imports
 from qtpy.QtCore import QObject, Qt, Signal, Slot
 from qtpy.QtGui import QCursor
-from qtpy.QtWidgets import (QApplication, QMenu, QMessageBox, QToolButton,
-                            QWidget)
+from qtpy.QtWidgets import QApplication, QMenu, QToolButton, QWidget
 
 # Local imports
 from spyder.config.base import _
 from spyder.config.gui import get_color_scheme, is_dark_interface
 from spyder.config.main import CONF
 from spyder.config.user import NoDefault
-from spyder.plugins.base import BasePluginWidgetMixin
+from spyder.plugins.base import BasePluginMixin, BasePluginWidgetMixin
 from spyder.py3compat import configparser
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_toolbutton,
                                     MENU_SEPARATOR)
 
 
-class BasePlugin(QObject):
+class BasePlugin(QObject, BasePluginMixin):
     """Spyder plugin without an associated dockwidget."""
 
     # ---------------------------- ATTRIBUTES ---------------------------------
@@ -47,7 +46,7 @@ class BasePlugin(QObject):
     #sig_show_message = Signal(str, int)
 
     def __init__(self, parent=None):
-        QObject.__init__(self, parent)
+        super(BasePlugin, self).__init__(parent)
 
         # This is the plugin parent, which corresponds to the main
         # window.
@@ -62,7 +61,7 @@ class BasePlugin(QObject):
         # Check compatibility
         check_compatibility, message = self.check_compatibility()
         if not check_compatibility:
-            self.__show_compatibility_message(message)
+            self.show_compatibility_message(message)
 
     @Slot(str, object)
     def set_option(self, option, value):
@@ -86,7 +85,7 @@ class BasePlugin(QObject):
 
         This also changes mouse cursor to Qt.WaitCursor
         """
-        self.__show_message(message)
+        self.show_message(message)
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         QApplication.processEvents()
 
@@ -95,7 +94,7 @@ class BasePlugin(QObject):
         Clear main window's status bar and restore mouse cursor.
         """
         QApplication.restoreOverrideCursor()
-        self.__show_message(message, timeout=2000)
+        self.show_message(message, timeout=2000)
         QApplication.processEvents()
 
     def check_compatibility(self):
@@ -109,23 +108,6 @@ class BasePlugin(QObject):
         message = ''
         valid = True
         return valid, message
-
-    # --- Private methods
-    @Slot(str)
-    @Slot(str, int)
-    def __show_message(self, message, timeout=0):
-        """Show message in main window's status bar"""
-        self.main.statusBar().showMessage(message, timeout)
-
-    def __show_compatibility_message(self, message):
-        """Show a compatibility message."""
-        messageBox = QMessageBox(self)
-        messageBox.setWindowModality(Qt.NonModal)
-        messageBox.setAttribute(Qt.WA_DeleteOnClose)
-        messageBox.setWindowTitle('Compatibility Check')
-        messageBox.setText(message)
-        messageBox.setStandardButtons(QMessageBox.Ok)
-        messageBox.show()
 
 
 class BasePluginWidget(QWidget, BasePlugin, BasePluginWidgetMixin):
@@ -235,12 +217,13 @@ class BasePluginWidget(QWidget, BasePlugin, BasePluginWidgetMixin):
         """Refresh options menu."""
         super(BasePluginWidget, self).refresh_actions()
 
-    # -- BasePlugin slots
-    # These are needed because Qt doesn't support multiple inheritance.
+    # -- Private API
+    # These are needed because Qt doesn't support multiple inheritance, so
+    # we can't connect to the BasePlugin slots directly.
     @Slot(str)
     @Slot(str, int)
     def __show_message(self, message, timeout=0):
-        super(BasePluginWidget, self).__show_message(message, timeout)
+        super(BasePluginWidget, self).show_message(message, timeout)
 
     @Slot(str, object)
     def __set_option(self, option, value):

@@ -12,7 +12,7 @@ Base plugin class
 import qdarkstyle
 from qtpy.QtCore import Qt, Slot
 from qtpy.QtGui import QKeySequence
-from qtpy.QtWidgets import QDockWidget, QMainWindow, QShortcut
+from qtpy.QtWidgets import QDockWidget, QMainWindow, QMessageBox, QShortcut
 
 # Local imports
 from spyder.config.base import _
@@ -23,6 +23,29 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_action, MENU_SEPARATOR,
                                     toggle_actions)
 from spyder.widgets.dock import SpyderDockWidget
+
+
+class BasePluginMixin(object):
+    """Basic functionality for Spyder plugins."""
+
+    def __init__(self, parent=None):
+        super(BasePluginMixin, self).__init__()
+
+    @Slot(str)
+    @Slot(str, int)
+    def show_message(self, message, timeout=0):
+        """Show message in main window's status bar"""
+        self.main.statusBar().showMessage(message, timeout)
+
+    def show_compatibility_message(self, message):
+        """Show a compatibility message."""
+        messageBox = QMessageBox(self)
+        messageBox.setWindowModality(Qt.NonModal)
+        messageBox.setAttribute(Qt.WA_DeleteOnClose)
+        messageBox.setWindowTitle('Compatibility Check')
+        messageBox.setText(message)
+        messageBox.setStandardButtons(QMessageBox.Ok)
+        messageBox.show()
 
 
 class PluginWindow(QMainWindow):
