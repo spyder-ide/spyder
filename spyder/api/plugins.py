@@ -30,7 +30,7 @@ from spyder.plugins.base import BasePluginWidgetMixin
 from spyder.py3compat import configparser
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_toolbutton,
-                                    MENU_SEPARATOR, toggle_actions)
+                                    MENU_SEPARATOR)
 
 
 class BasePlugin(QObject):
@@ -232,47 +232,16 @@ class BasePluginWidget(QWidget, BasePlugin, BasePluginWidgetMixin):
             self.register_shortcut(qshortcut, context, name)
 
     def visibility_changed(self, enable):
-        """
-        Dock widget visibility has changed.
-        """
-        if self.dockwidget is None:
-            return
-        if enable:
-            self.dockwidget.raise_()
-            widget = self.get_focus_widget()
-            if widget is not None and self.undocked_window is not None:
-                widget.setFocus()
-        visible = self.dockwidget.isVisible() or self.ismaximized
-        if self.DISABLE_ACTIONS_WHEN_HIDDEN:
-            toggle_actions(self.plugin_actions, visible)
-        self.isvisible = enable and visible
-        if self.isvisible:
-            self.refresh_plugin()   # To give focus to the plugin's widget
+        """Dock widget visibility has changed."""
+        super(BasePluginWidget, self).visibility_changed(enable)
 
     def get_color_scheme(self):
-        """
-        Get current color scheme.
-        """
+        """Get current color scheme."""
         return get_color_scheme(CONF.get('appearance', 'selected'))
 
     def refresh_actions(self):
-        """
-        Refresh options menu.
-        """
-        self.options_menu.clear()
-
-        # Decide what additional actions to show
-        if self.undocked_window is None:
-            additional_actions = [MENU_SEPARATOR,
-                                  self.undock_action,
-                                  self.close_plugin_action]
-        else:
-            additional_actions = [MENU_SEPARATOR,
-                                  self.dock_action]
-
-        # Create actions list
-        self.plugin_actions = self.get_plugin_actions() + additional_actions
-        add_actions(self.options_menu, self.plugin_actions)
+        """Refresh options menu."""
+        super(BasePluginWidget, self).refresh_actions()
 
     # -- BasePlugin slots
     # These are needed because Qt doesn't support multiple inheritance for

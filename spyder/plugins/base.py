@@ -20,7 +20,8 @@ from spyder.config.gui import is_dark_interface, get_font
 from spyder.config.main import CONF
 from spyder.py3compat import is_text_string
 from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import create_action
+from spyder.utils.qthelpers import (add_actions, create_action, MENU_SEPARATOR,
+                                    toggle_actions)
 from spyder.widgets.dock import SpyderDockWidget
 
 
@@ -243,3 +244,38 @@ class BasePluginWidgetMixin(object):
             self.undock_action.setDisabled(True)
         else:
             self.undock_action.setDisabled(False)
+
+    # -- Public API
+    # The methods below are exposed in spyder/api/plugins.py
+    def visibility_changed(self, enable):
+        """Dock widget visibility has changed."""
+        if self.dockwidget is None:
+            return
+        if enable:
+            self.dockwidget.raise_()
+            widget = self.get_focus_widget()
+            if widget is not None and self.undocked_window is not None:
+                widget.setFocus()
+        visible = self.dockwidget.isVisible() or self.ismaximized
+        if self.DISABLE_ACTIONS_WHEN_HIDDEN:
+            toggle_actions(self.plugin_actions, visible)
+        self.isvisible = enable and visible
+        if self.isvisible:
+            self.refresh_plugin()   # To give focus to the plugin's widget
+
+    def refresh_actions(self):
+        """Refresh options menu."""
+        self.options_menu.clear()
+
+        # Decide what additional actions to show
+        if self.undocked_window is None:
+            additional_actions = [MENU_SEPARATOR,
+                                  self.undock_action,
+                                  self.close_plugin_action]
+        else:
+            additional_actions = [MENU_SEPARATOR,
+                                  self.dock_action]
+
+        # Create actions list
+        self.plugin_actions = self.get_plugin_actions() + additional_actions
+        add_actions(self.options_menu, self.plugin_actions)
