@@ -166,10 +166,11 @@ def remove_from_tree_cache(tree_cache, line=None, item=None):
 class OutlineExplorerTreeWidget(OneColumnTree):
     def __init__(self, parent, show_fullpath=False, show_all_files=True,
                  group_cells=True, show_comments=True,
-                 sort_files_alphabetically=False):
+                 sort_files_alphabetically=False, follow_cursor=False):
         self.show_fullpath = show_fullpath
         self.show_all_files = show_all_files
         self.group_cells = group_cells
+        self.follow_cursor = follow_cursor
         self.show_comments = show_comments
         self.sort_files_alphabetically = sort_files_alphabetically
         OneColumnTree.__init__(self, parent)
@@ -178,11 +179,23 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.editor_tree_cache = {}
         self.editor_ids = {}
         self.ordered_editor_ids = []
-        self.current_editor = None
+        self._current_editor = None
         title = _("Outline")
         self.set_title(title)
         self.setWindowTitle(title)
         self.setUniformRowHeights(True)
+
+    @property
+    def current_editor(self):
+        return self._current_editor
+
+    @current_editor.setter
+    def current_editor(self, value):
+        # Disconnect previous editor
+        self.connect_current_editor(False)
+        self._current_editor = value
+        # Connect new editor
+        self.connect_current_editor(True)
 
     def get_actions_from_items(self, items):
         """Reimplemented OneColumnTree method"""
@@ -201,13 +214,17 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         group_cells_act = create_action(self, text=_('Group code cells'),
                                         toggled=self.toggle_group_cells)
         group_cells_act.setChecked(self.group_cells)
+        follow_cursor_act = create_action(self, text=_('Follow Cursor'),
+                                          toggled=self.toggle_follow_cursor)
+        follow_cursor_act.setChecked(self.follow_cursor)
         sort_files_alphabetically_act = create_action(
             self, text=_('Sort files alphabetically'),
             toggled=self.toggle_sort_files_alphabetically)
         sort_files_alphabetically_act.setChecked(
             self.sort_files_alphabetically)
         actions = [fullpath_act, allfiles_act, group_cells_act, comment_act,
-                   sort_files_alphabetically_act, fromcursor_act]
+                   sort_files_alphabetically_act, fromcursor_act,
+                   follow_cursor_act]
         return actions
 
     @Slot(bool)
@@ -262,7 +279,31 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             item = item_at_line(root_item, line)
             self.setCurrentItem(item)
             self.scrollToItem(item)
-                
+
+    @Slot()
+    def go_to_follow_cursor(self):
+        """Collapse all and go to cursor position"""
+        self.collapseAll()
+        self.go_to_cursor_position()
+
+    @Slot(bool)
+    def toggle_follow_cursor(self, state):
+        """Follow the cursor"""
+        self.follow_cursor = state
+        self.connect_current_editor(state)
+
+    def connect_current_editor(self, state):
+        """Connect or disconnect the editor from signals"""
+        if self.current_editor is None:
+            return
+        if not state and self.follow_cursor:
+            self.current_editor._editor.sig_cursor_position_changed.disconnect(
+                self.go_to_follow_cursor)
+        elif state and self.follow_cursor:
+            self.current_editor._editor.sig_cursor_position_changed.connect(
+                self.go_to_follow_cursor)
+            self.go_to_follow_cursor()
+
     def clear(self):
         """Reimplemented Qt method"""
         self.set_title('')
