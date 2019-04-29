@@ -301,7 +301,10 @@ class LSPManager(QObject):
             'follow_imports': self.get_option('jedi_definition/follow_imports')
         }
         jedi_hover = {
-            'enabled': self.get_option('jedi_hover'),
+            # This option needs to be True always so that we can request
+            # information for the Object Inspection Help Pane
+            # TODO: Something similar might be needed for other languages 
+            'enabled': True,
         }
 
         # Advanced

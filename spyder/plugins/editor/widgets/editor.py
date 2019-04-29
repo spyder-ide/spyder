@@ -552,6 +552,7 @@ class EditorStack(QWidget):
         self.run_cell_copy = False
         self.create_new_file_if_empty = True
         self.indent_guides = False
+        self.hover_hints = True
         ccs = 'Spyder'
         if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
             ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
@@ -984,6 +985,13 @@ class EditorStack(QWidget):
                 if state and current_finfo is not None:
                     if current_finfo is not finfo:
                         finfo.run_todo_finder()
+
+    def set_hover_hints_enabled(self, state, current_finfo=None):
+        # CONF.get(self.CONF_SECTION, 'show_hover_hints')
+        self.hover_hints = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_hover_hints(state)
 
     def set_linenumbers_enabled(self, state, current_finfo=None):
         # CONF.get(self.CONF_SECTION, 'line_numbers')
@@ -2259,29 +2267,31 @@ class EditorStack(QWidget):
         editor.sig_breakpoints_saved.connect(self.sig_breakpoints_saved)
         language = get_file_language(fname, txt)
         editor.setup_editor(
-                linenumbers=self.linenumbers_enabled,
-                show_blanks=self.blanks_enabled,
-                scroll_past_end=self.scrollpastend_enabled,
-                edge_line=self.edgeline_enabled,
-                edge_line_columns=self.edgeline_columns, language=language,
-                markers=self.has_markers(), font=self.default_font,
-                color_scheme=self.color_scheme,
-                wrap=self.wrap_enabled, tab_mode=self.tabmode_enabled,
-                intelligent_backspace=self.intelligent_backspace_enabled,
-                highlight_current_line=self.highlight_current_line_enabled,
-                highlight_current_cell=self.highlight_current_cell_enabled,
-                occurrence_highlighting=self.occurrence_highlighting_enabled,
-                occurrence_timeout=self.occurrence_highlighting_timeout,
-                close_parentheses=self.close_parentheses_enabled,
-                close_quotes=self.close_quotes_enabled,
-                add_colons=self.add_colons_enabled,
-                auto_unindent=self.auto_unindent_enabled,
-                indent_chars=self.indent_chars,
-                tab_stop_width_spaces=self.tab_stop_width_spaces,
-                cloned_from=cloned_from,
-                filename=fname,
-                show_class_func_dropdown=self.show_class_func_dropdown,
-                indent_guides=self.indent_guides)
+            linenumbers=self.linenumbers_enabled,
+            show_blanks=self.blanks_enabled,
+            scroll_past_end=self.scrollpastend_enabled,
+            edge_line=self.edgeline_enabled,
+            edge_line_columns=self.edgeline_columns, language=language,
+            markers=self.has_markers(), font=self.default_font,
+            color_scheme=self.color_scheme,
+            wrap=self.wrap_enabled, tab_mode=self.tabmode_enabled,
+            intelligent_backspace=self.intelligent_backspace_enabled,
+            highlight_current_line=self.highlight_current_line_enabled,
+            highlight_current_cell=self.highlight_current_cell_enabled,
+            occurrence_highlighting=self.occurrence_highlighting_enabled,
+            occurrence_timeout=self.occurrence_highlighting_timeout,
+            close_parentheses=self.close_parentheses_enabled,
+            close_quotes=self.close_quotes_enabled,
+            add_colons=self.add_colons_enabled,
+            auto_unindent=self.auto_unindent_enabled,
+            indent_chars=self.indent_chars,
+            tab_stop_width_spaces=self.tab_stop_width_spaces,
+            cloned_from=cloned_from,
+            filename=fname,
+            show_class_func_dropdown=self.show_class_func_dropdown,
+            indent_guides=self.indent_guides,
+            hover_hints=self.hover_hints,
+        )
         if cloned_from is None:
             editor.set_text(txt)
             editor.document().setModified(False)

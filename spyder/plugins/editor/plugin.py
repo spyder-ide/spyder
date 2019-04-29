@@ -2509,6 +2509,8 @@ class Editor(SpyderPluginWidget):
             help_o = CONF.get('help', 'connect/editor')
             todo_n = 'todo_list'
             todo_o = self.get_option(todo_n)
+            hover_hints_n = 'show_hover_hints'
+            hover_hints_o = self.get_option(hover_hints_n)
 
             finfo = self.get_current_finfo()
 
@@ -2554,6 +2556,9 @@ class Editor(SpyderPluginWidget):
                 if todo_n in options:
                     editorstack.set_todolist_enabled(todo_o,
                                                      current_finfo=finfo)
+                if hover_hints_n in options:
+                    editorstack.set_hover_hints_enabled(hover_hints_o)
+
 
             for name, action in self.checkable_actions.items():
                 if name in options:
