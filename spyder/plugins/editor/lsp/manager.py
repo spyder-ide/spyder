@@ -248,10 +248,11 @@ class LSPManager(QObject):
 
         pycodestyle = {
             'enabled': self.get_option('pycodestyle'),
-            'exclude': [exclude.strip() for exclude in cs_exclude],
-            'filename': [filename.strip() for filename in cs_filename],
-            'select': [select.strip() for select in cs_select],
-            'ignore': [ignore.strip() for ignore in cs_ignore],
+            'exclude': [exclude.strip() for exclude in cs_exclude if exclude],
+            'filename': [filename.strip()
+                         for filename in cs_filename if filename],
+            'select': [select.strip() for select in cs_select if select],
+            'ignore': [ignore.strip() for ignore in cs_ignore if ignore],
             'hangClosing': False,
             'maxLineLength': cs_max_line_length
         }
@@ -278,10 +279,12 @@ class LSPManager(QObject):
         pydocstyle = {
             'enabled': self.get_option('pydocstyle'),
             'convention': convention,
-            'addIgnore': [ignore.strip() for ignore in ds_add_ignore],
-            'addSelect': [select.strip() for select in ds_add_select],
-            'ignore': [ignore.strip() for ignore in ds_ignore],
-            'select': [select.strip() for select in ds_select],
+            'addIgnore': [ignore.strip()
+                          for ignore in ds_add_ignore if ignore],
+            'addSelect': [select.strip()
+                          for select in ds_add_select if select],
+            'ignore': [ignore.strip() for ignore in ds_ignore if ignore],
+            'select': [select.strip() for select in ds_select if select],
             'match': self.get_option('pydocstyle/match'),
             'matchDir': self.get_option('pydocstyle/match_dir')
         }
