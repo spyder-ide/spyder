@@ -245,7 +245,10 @@ class PylintWidget(QWidget):
         self.filecombo.selected()
 
     def analyze(self, filename=None):
-        """Code analysis of filename, defaults to the current filename in combobox"""
+        """
+        Code analysis of filename, defaults to the current filename in
+        combobox
+        """
         if filename is not None:
             self.set_filename(filename)
 
