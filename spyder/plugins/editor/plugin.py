@@ -19,21 +19,19 @@ import re
 import time
 
 # Third party imports
-from qtpy.compat import from_qvariant, getopenfilenames, to_qvariant
+from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import QByteArray, Qt, Signal, Slot
 from qtpy.QtGui import QKeySequence
 from qtpy.QtPrintSupport import QAbstractPrintDialog, QPrintDialog, QPrinter
 from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
-                            QFileDialog, QInputDialog, QMenu, QSplitter,
-                            QToolBar, QVBoxLayout, QWidget)
+                            QInputDialog, QMenu, QSplitter, QToolBar,
+                            QVBoxLayout, QWidget)
 
 # Local imports
 from spyder import dependencies
 from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
                                 RUN_CELL_AND_ADVANCE_SHORTCUT)
-from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
-                                 get_filter)
 from spyder.py3compat import PY2, qbytearray_to_str, to_text_string
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils import icon_manager as ima
@@ -94,6 +92,9 @@ class Editor(SpyderPluginWidget):
     breakpoints_saved = Signal()
     run_in_current_extconsole = Signal(str, str, str, bool, bool)
     open_file_update = Signal(str)
+
+    # Public API
+    can_save_files = True
 
     def __init__(self, parent, ignore_last_opened_files=False):
         SpyderPluginWidget.__init__(self, parent)
@@ -214,10 +215,6 @@ class Editor(SpyderPluginWidget):
         # Parameters of last file execution:
         self.__last_ic_exec = None # internal console
         self.__last_ec_exec = None # external console
-
-        # File types and filters used by the Open dialog
-        self.edit_filetypes = None
-        self.edit_filters = None
 
         self.__ignore_cursor_position = False
         current_editor = self.get_current_editor()
@@ -403,23 +400,9 @@ class Editor(SpyderPluginWidget):
         self.register_shortcut(self.open_last_closed_action, context="Editor",
                                name="Open last closed")
 
-        self.open_action = create_action(self, _("&Open..."),
-                icon=ima.icon('fileopen'), tip=_("Open file"),
-                triggered=self.load,
-                context=Qt.WidgetShortcut)
-        self.register_shortcut(self.open_action, context="Editor",
-                               name="Open file", add_sc_to_tip=True)
-
         self.revert_action = create_action(self, _("&Revert"),
                 icon=ima.icon('revert'), tip=_("Revert file from disk"),
                 triggered=self.revert)
-
-        self.save_action = create_action(self, _("&Save"),
-                icon=ima.icon('filesave'), tip=_("Save file"),
-                triggered=self.save,
-                context=Qt.WidgetShortcut)
-        self.register_shortcut(self.save_action, context="Editor",
-                               name="Save file", add_sc_to_tip=True)
 
         self.save_all_action = create_action(self, _("Sav&e all"),
                 icon=ima.icon('save_all'), tip=_("Save all files"),
@@ -797,12 +780,11 @@ class Editor(SpyderPluginWidget):
 
         file_menu_actions = [self.new_action,
                              MENU_SEPARATOR,
-                             self.open_action,
+                             self.main.open_action,
                              self.open_last_closed_action,
                              self.recent_file_menu,
                              MENU_SEPARATOR,
-                             MENU_SEPARATOR,
-                             self.save_action,
+                             self.main.save_action,
                              self.save_all_action,
                              save_as_action,
                              save_copy_as_action,
@@ -816,8 +798,8 @@ class Editor(SpyderPluginWidget):
                              MENU_SEPARATOR]
 
         self.main.file_menu_actions += file_menu_actions
-        file_toolbar_actions = ([self.new_action, self.open_action,
-                                self.save_action, self.save_all_action] +
+        file_toolbar_actions = ([self.new_action, self.main.open_action,
+                                self.main.save_action, self.save_all_action] +
                                 self.main.file_toolbar_actions)
 
         self.main.file_toolbar_actions = file_toolbar_actions
@@ -933,7 +915,7 @@ class Editor(SpyderPluginWidget):
                                              self.winpdb_action]
         self.cythonfile_compatible_actions = [run_action, configure_action]
         self.file_dependent_actions = self.pythonfile_dependent_actions + \
-                [self.save_action, save_as_action, save_copy_as_action,
+                [self.main.save_action, save_as_action, save_copy_as_action,
                  print_preview_action, self.print_action,
                  self.save_all_action, gotoline_action, workdir_action,
                  self.close_action, self.close_all_action,
@@ -971,6 +953,10 @@ class Editor(SpyderPluginWidget):
             for finfo in editorstack.data:
                 comp_widget = finfo.editor.completion_widget
                 comp_widget.setup_appearance(completion_size, font)
+
+    def save_file(self):
+        """Save the currently focused file."""
+        self.save()
 
     def _create_checkable_action(self, text, conf_name, editorstack_method):
         """Helper function to create a checkable action.
@@ -1097,8 +1083,8 @@ class Editor(SpyderPluginWidget):
         editorstack.autosave_mapping \
             = CONF.get('editor', 'autosave_mapping', {})
         editorstack.set_help(self.help)
-        editorstack.set_io_actions(self.new_action, self.open_action,
-                                   self.save_action, self.revert_action)
+        editorstack.set_io_actions(self.new_action, self.main.open_action,
+                                   self.main.save_action, self.revert_action)
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
 
         settings = (
@@ -1709,46 +1695,12 @@ class Editor(SpyderPluginWidget):
             filename0 = self.get_current_filename()
         else:
             position0, filename0 = None, None
+
         if not filenames:
             # Recent files action
             action = self.sender()
             if isinstance(action, QAction):
                 filenames = from_qvariant(action.data(), to_text_string)
-        if not filenames:
-            basedir = getcwd_or_home()
-            if self.edit_filetypes is None:
-                self.edit_filetypes = get_edit_filetypes()
-            if self.edit_filters is None:
-                self.edit_filters = get_edit_filters()
-
-            c_fname = self.get_current_filename()
-            if c_fname is not None and c_fname != self.TEMPFILE_PATH:
-                basedir = osp.dirname(c_fname)
-            self.redirect_stdio.emit(False)
-            parent_widget = self.get_current_editorstack()
-            if filename0 is not None:
-                selectedfilter = get_filter(self.edit_filetypes,
-                                            osp.splitext(filename0)[1])
-            else:
-                selectedfilter = ''
-            if not running_under_pytest():
-                filenames, _sf = getopenfilenames(
-                                    parent_widget,
-                                    _("Open file"), basedir,
-                                    self.edit_filters,
-                                    selectedfilter=selectedfilter,
-                                    options=QFileDialog.HideNameFilterDetails)
-            else:
-                # Use a Qt (i.e. scriptable) dialog for pytest
-                dialog = QFileDialog(parent_widget, _("Open file"),
-                                     options=QFileDialog.DontUseNativeDialog)
-                if dialog.exec_():
-                    filenames = dialog.selectedFiles()
-            self.redirect_stdio.emit(True)
-            if filenames:
-                filenames = [osp.normpath(fname) for fname in filenames]
-            else:
-                return
 
         focus_widget = QApplication.focusWidget()
         if self.editorwindows and not self.dockwidget.isVisible():
@@ -1760,8 +1712,8 @@ class Editor(SpyderPluginWidget):
             editorwindow.setFocus()
             editorwindow.raise_()
         elif (self.dockwidget and not self.ismaximized
-              and not self.dockwidget.isAncestorOf(focus_widget)
-              and not isinstance(focus_widget, CodeEditor)):
+                and not self.dockwidget.isAncestorOf(focus_widget)
+                and not isinstance(focus_widget, CodeEditor)):
             self.dockwidget.setVisible(True)
             self.dockwidget.setFocus()
             self.dockwidget.raise_()

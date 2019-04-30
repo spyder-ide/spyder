@@ -314,7 +314,7 @@ DEFAULTS = [
             ('shortcuts',
              {
               # ---- Global ----
-              # -- In app/spyder.py
+              # -- In app/mainwindow.py
               '_/close pane': "Shift+Ctrl+F4",
               '_/lock unlock panes': "Shift+Ctrl+F5",
               '_/use next layout': "Shift+Alt+PgDown",
@@ -328,6 +328,8 @@ DEFAULTS = [
               '_/spyder documentation': "F1",
               '_/restart': "Shift+Alt+R",
               '_/quit': "Ctrl+Q",
+              '_/open file': "Ctrl+O",
+              '_/save file': "Ctrl+S",
               # -- In plugins/editor
               '_/file switcher': 'Ctrl+P',
               '_/symbol finder': 'Ctrl+Alt+P',
@@ -412,8 +414,6 @@ DEFAULTS = [
               'editor/cycle to next file': 'Ctrl+PgDown',
               'editor/new file': "Ctrl+N",
               'editor/open last closed':"Ctrl+Shift+T",
-              'editor/open file': "Ctrl+O",
-              'editor/save file': "Ctrl+S",
               'editor/save all': "Ctrl+Alt+S",
               'editor/save as': 'Ctrl+Shift+S',
               'editor/close all': "Ctrl+Shift+W",

@@ -8,7 +8,7 @@
 Spyder, the Scientific Python Development Environment
 =====================================================
 
-Developped and maintained by the Spyder Project
+Developed and maintained by the Spyder Project
 Contributors
 
 Copyright © Spyder Project Contributors
@@ -66,14 +66,15 @@ if os.name == 'nt':
 # Qt imports
 #==============================================================================
 from qtpy import API, PYQT5
-from qtpy.compat import from_qvariant
+from qtpy.compat import from_qvariant, getopenfilenames
 from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
                          QThread, QTimer, QUrl, Signal, Slot,
                          qInstallMessageHandler)
 from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QDockWidget, QMainWindow,
                             QMenu, QMessageBox, QShortcut, QSplashScreen,
-                            QStyleFactory, QWidget, QDesktopWidget)
+                            QStyleFactory, QWidget, QDesktopWidget,
+                            QFileDialog)
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -143,7 +144,8 @@ from spyder.config.base import (get_conf_path, get_module_source_path, STDERR,
                                 running_in_mac_app, get_module_path,
                                 reset_config_files)
 from spyder.config.main import OPEN_FILES_PORT
-from spyder.config.utils import IMPORT_EXT, is_gtk_desktop
+from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
+                                 get_filter, IMPORT_EXT, is_gtk_desktop)
 from spyder.app.cli_options import get_options
 from spyder import dependencies
 from spyder.py3compat import (is_text_string, to_text_string,
@@ -550,6 +552,10 @@ class MainWindow(QMainWindow):
         self.last_focused_widget = None
         self.previous_focused_widget = None
 
+        # For load_files
+        self.edit_filetypes = None
+        self.edit_filters = None
+
         # Server to open external files on a single instance
         # This is needed in order to handle socket creation problems.
         # See issue 4132
@@ -643,22 +649,41 @@ class MainWindow(QMainWindow):
                                "Use next layout")
         self.register_shortcut(self.toggle_previous_layout_action, "_",
                                "Use previous layout")
-        # File switcher shortcuts
+
+        # File toolbar actions
+        self.open_action = create_action(
+            self,
+            _("&Open..."),
+            icon=ima.icon('fileopen'),
+            tip=_("Open file"),
+            triggered=self.load_files,
+            context=Qt.ApplicationShortcut)
+        self.register_shortcut(self.open_action, context="_",
+                               name="Open file", add_sc_to_tip=True)
+        self.save_action = create_action(
+            self,
+            _("&Save"),
+            icon=ima.icon('filesave'),
+            tip=_("Save file"),
+            triggered=self.save_file,
+            context=Qt.ApplicationShortcut)
+        self.register_shortcut(self.save_action, context="_",
+                               name="Save file", add_sc_to_tip=True)
         self.file_switcher_action = create_action(
-                                    self,
-                                    _('File switcher...'),
-                                    icon=ima.icon('filelist'),
-                                    tip=_('Fast switch between files'),
-                                    triggered=self.open_fileswitcher,
-                                    context=Qt.ApplicationShortcut)
+            self,
+            _('File switcher...'),
+            icon=ima.icon('filelist'),
+            tip=_('Fast switch between files'),
+            triggered=self.open_fileswitcher,
+            context=Qt.ApplicationShortcut)
         self.register_shortcut(self.file_switcher_action, context="_",
-                               name="File switcher")
+                               name="File switcher", add_sc_to_tip=True)
         self.symbol_finder_action = create_action(
-                                    self, _('Symbol finder...'),
-                                    icon=ima.icon('symbol_find'),
-                                    tip=_('Fast symbol search in file'),
-                                    triggered=self.open_symbolfinder,
-                                    context=Qt.ApplicationShortcut)
+            self, _('Symbol finder...'),
+            icon=ima.icon('symbol_find'),
+            tip=_('Fast symbol search in file'),
+            triggered=self.open_symbolfinder,
+            context=Qt.ApplicationShortcut)
         self.register_shortcut(self.symbol_finder_action, context="_",
                                name="symbol finder", add_sc_to_tip=True)
         self.file_toolbar_actions = [self.file_switcher_action,
@@ -2738,14 +2763,91 @@ class MainWindow(QMainWindow):
         if focus_to_editor:
             self.editor.switch_to_plugin()
 
+    @Slot()
+    def load_files(self):
+        """Load files into Spyder using an 'Open files' dialog."""
+        basedir = getcwd_or_home()
+        if self.edit_filetypes is None:
+            self.edit_filetypes = get_edit_filetypes()
+        if self.edit_filters is None:
+            self.edit_filters = get_edit_filters()
+
+        # Try to get the current filename from the currently focused
+        # third-party plugin (if any)
+        c_fname = None
+        for plugin in self.thirdparty_plugins:
+            if plugin.isAncestorOf(self.last_focused_widget):
+                c_fname = plugin.get_current_filename()
+                break
+
+        # If we couldn't get it from them, then use the Editor
+        if c_fname is None:
+            c_fname = self.editor.get_current_filename()
+
+        # Switch basedir to the current filename one
+        if c_fname != self.editor.TEMPFILE_PATH:
+            basedir = osp.dirname(c_fname)
+
+        # Select filter for the dialog according to c_fname extension
+        if c_fname is not None:
+            selectedfilter = get_filter(self.edit_filetypes,
+                                        osp.splitext(c_fname)[1])
+        else:
+            selectedfilter = ''
+
+        # Open file dialog
+        self.redirect_internalshell_stdio(False)
+        if not running_under_pytest():
+            filenames, _sf = getopenfilenames(
+                self,
+                _("Open file"),
+                basedir,
+                self.edit_filters,
+                selectedfilter=selectedfilter,
+                options=QFileDialog.HideNameFilterDetails)
+        else:
+            # Use a Qt (i.e. scriptable) dialog for pytest
+            dialog = QFileDialog(
+                self,
+                _("Open file"),
+                options=QFileDialog.DontUseNativeDialog)
+            if dialog.exec_():
+                filenames = dialog.selectedFiles()
+        self.redirect_internalshell_stdio(True)
+
+        # Normalize returned filenames
+        if filenames:
+            filenames = [osp.normpath(fname) for fname in filenames]
+        else:
+            return
+
+        # Open filenames
+        for fname in filenames:
+            self.open_file(fname)
+
     def open_file(self, fname, external=False):
         """
-        Open filename with the appropriate application
-        Redirect to the right widget (txt -> editor, spydata -> workspace, ...)
-        or open file outside Spyder (if extension is not supported)
+        Open fname with the appropriate plugin.
+
+        This is the order we follow to do it:
+        1. We check all third-party plugin to see if one can open fname.
+        2. If fname is a plain text file, we open it with the Editor.
+        3. If fname is a type that can be imported in the Variable
+           Explorer, we open it there.
+        4. If none of the above applies, we use the OS application
+           registered to handle fname.
         """
         fname = to_text_string(fname)
         ext = osp.splitext(fname)[1]
+
+        # Go through third party plugins first
+        for plugin in self.thirdparty_plugins:
+            if ext in plugin.file_extensions:
+                plugin.open_file(fname)
+                return
+
+        # Open file with the editor, the variable explorer or with
+        # an external program
         if encoding.is_text_file(fname):
             self.editor.load(fname)
         elif self.variableexplorer is not None and ext in IMPORT_EXT:
@@ -2764,6 +2866,14 @@ class MainWindow(QMainWindow):
             self.open_file(fname, external=True)
         elif osp.isfile(osp.join(CWD, fname)):
             self.open_file(osp.join(CWD, fname), external=True)
+
+    def save_file(self):
+        """Save currently focused file."""
+        for plugin in (self.widgetlist + self.thirdparty_plugins):
+            if (plugin.isAncestorOf(self.last_focused_widget) and
+                    plugin.can_save_files):
+                plugin.save_file()
+                return
 
     # ---- PYTHONPATH management, etc.
     def get_spyder_pythonpath(self):

@@ -235,7 +235,6 @@ class SpyderPluginWidget(PluginWidget):
     """
 
     # ---------------------------- ATTRIBUTES ---------------------------------
-
     # Name of the configuration section that's going to be
     # used to record the plugin's permanent data in Spyder
     # config system (i.e. in spyder.ini)
@@ -268,8 +267,17 @@ class SpyderPluginWidget(PluginWidget):
     # Status: Optional
     shortcut = None
 
-    # ------------------------------ METHODS ----------------------------------
+    # Registered file extesions that the plugin can open
+    # inside it.
+    # Example: ['.ipynb'] for spyder-notebook
+    # Status: Optional
+    file_extensions = []
 
+    # Declare if the plugin is able to save files
+    # Status: Optional
+    can_save_files = False
+
+    # ------------------------------ METHODS ----------------------------------
     def get_plugin_title(self):
         """
         Return plugin title.
@@ -352,3 +360,25 @@ class SpyderPluginWidget(PluginWidget):
         message = ''
         valid = True
         return valid, message
+
+    def open_file(self, filename):
+        """
+        Open filename inside the plugin.
+
+        To be able to use this method you need to define `file_extensions` for
+        your plugin too.
+        """
+        raise NotImplementedError
+
+    def save_file(self):
+        """Save current file."""
+        pass
+
+    def get_current_filename(self):
+        """
+        Get the currently focused file name.
+
+        This applies to plugins that can handle files in a QTabWiget, like
+        the Editor or spyder-notebook.
+        """
+        return None
