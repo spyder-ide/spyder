@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Source code analysis utilities
+Source code analysis utilities.
 """
 
 import sys
@@ -13,18 +13,19 @@ import re
 import os
 
 # Local import
-from spyder.config.base import _, get_debug_level
+from spyder.config.base import get_debug_level
+
 DEBUG_EDITOR = get_debug_level() >= 3
 
-#==============================================================================
+# =============================================================================
 # Find tasks - TODOs
-#==============================================================================
+# =============================================================================
 TASKS_PATTERN = r"(^|#)[ ]*(TODO|FIXME|XXX|HINT|TIP|@todo|" \
                 r"HACK|BUG|OPTIMIZE|!!!|\?\?\?)([^#]*)"
 
-#TODO: this is a test for the following function
+
 def find_tasks(source_code):
-    """Find tasks in source code (TODO, FIXME, XXX, ...)"""
+    """Find tasks in source code (TODO, FIXME, XXX, ...)."""
     results = []
     for line, text in enumerate(source_code.splitlines()):
         for todo in re.findall(TASKS_PATTERN, text):
@@ -35,7 +36,6 @@ def find_tasks(source_code):
 
 
 if __name__ == '__main__':
-#    fname = __file__
     fname = os.path.join(os.path.dirname(__file__),
                          os.pardir, os.pardir, 'bootstrap.py')
     code = open(fname).read()
