@@ -1665,7 +1665,7 @@ def test_fileswitcher(main_window, qtbot, tmpdir):
 def test_run_static_code_analysis(main_window, qtbot):
     """This tests that the Pylint plugin is working as expected."""
     # Select the third-party plugin
-    pylint = get_thirdparty_plugin(main_window, "Code analysis")
+    pylint = get_thirdparty_plugin(main_window, "Code Analysis")
 
     # Do an analysis
     test_file = osp.join(LOCATION, 'script_pylint.py')
