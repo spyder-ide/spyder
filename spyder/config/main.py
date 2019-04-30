@@ -180,6 +180,7 @@ DEFAULTS = [
              {
               'mute_inline_plotting': True,
               'show_plot_outline': False,
+              'auto_fit_plotting': True
              }),
             ('editor',
              {
