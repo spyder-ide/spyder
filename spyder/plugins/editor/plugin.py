@@ -1658,9 +1658,10 @@ class Editor(SpyderPluginWidget):
         self.recent_file_menu.clear()
         if recent_files:
             for fname in recent_files:
-                action = create_action(self, fname,
-                                       icon=ima.get_icon_by_extension(fname, scale_factor=1.0),
-                                       triggered=self.load)
+                action = create_action(
+                    self, fname,
+                    icon=ima.get_icon_by_extension(fname, scale_factor=1.0),
+                    triggered=self.load)
                 action.setData(to_qvariant(fname))
                 self.recent_file_menu.addAction(action)
         self.clear_recent_action.setEnabled(len(recent_files) > 0)
