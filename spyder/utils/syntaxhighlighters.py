@@ -1241,10 +1241,14 @@ class PythonLoggingLexer(RegexLexer):
             (r'(\sDEBUG)(\s.+)', bygroups(Number, Keyword.Type), '#pop'),
             (r'(\sINFO\w*)(\s.+)', bygroups(Generic.Heading, Comment), '#pop'),
             (r'(\sWARN\w*)(\s.+)', bygroups(String, String), '#pop'),
-            (r'(\sERROR)(\s.+)', bygroups(Generic.Error, Name.Constant), '#pop'),
-            (r'(\sCRITICAL)(\s.+)', bygroups(Generic.Error, Name.Constant), '#pop'),
-            (r'(\sTRACE)(\s.+)', bygroups(Generic.Error, Name.Constant), '#pop'),
-            (r'(\s\w+)(\s.+)', bygroups(Comment, Generic.Output), '#pop'),
+            (r'(\sERROR)(\s.+)',
+             bygroups(Generic.Error, Name.Constant), '#pop'),
+            (r'(\sCRITICAL)(\s.+)',
+             bygroups(Generic.Error, Name.Constant), '#pop'),
+            (r'(\sTRACE)(\s.+)',
+             bygroups(Generic.Error, Name.Constant), '#pop'),
+            (r'(\s\w+)(\s.+)',
+             bygroups(Comment, Generic.Output), '#pop'),
         ],
     }
 
