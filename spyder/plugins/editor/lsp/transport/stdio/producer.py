@@ -33,14 +33,19 @@ class StdioLanguageServerClient(LanguageServerClient):
     def __init__(self, zmq_in_port=7000, zmq_out_port=7001):
         super(StdioLanguageServerClient, self).__init__(
             zmq_in_port, zmq_out_port)
+        self.req_status = {}
         self.stdin = sys.stdin
         self.stdout = sys.stdout
         # self.request_seq = 1
         logger.info('Connecting to language server on stdio')
         super(StdioLanguageServerClient, self).finalize_initialization()
         self.reading_thread = StdioIncomingMessageThread()
-        self.reading_thread.initialize(self.stdin, self.zmq_out_socket,
+        self.reading_thread.initialize(self.stdin.buffer, self.zmq_out_socket,
                                        self.req_status)
+        self.stdout.buffer.write(b'0')
+        self.stdout.buffer.write(b'0')
+        self.stdout.buffer.write(b'0')
+        self.stdout.buffer.write(b'0')
 
     def start(self):
         self.reading_thread.start()
@@ -54,15 +59,15 @@ class StdioLanguageServerClient(LanguageServerClient):
         logger.debug('Exit routine should be complete')
 
     def transport_send(self, content_length, body):
-        self.stdout.write(content_length)
-        self.stdout.write(body)
+        self.stdout.buffer.write(content_length)
+        self.stdout.buffer.write(body)
 
     def is_server_alive(self):
         """This method verifies if stdout is broken."""
         connected = False
         connection_error = None
         try:
-            self.stdout.write('test')
+            self.stdout.buffer.write(b'0')
             connected = True
         except Exception as e:
             connection_error = e

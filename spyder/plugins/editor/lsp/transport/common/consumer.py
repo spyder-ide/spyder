@@ -47,9 +47,9 @@ class IncomingMessageThread(Thread):
         self.expect = None
         self.read_incoming = self.expect_windows
         logger.info('Reading thread initialized')
-        if not os.name == 'nt':
-            self.read_incoming = self.read_posix
-            self.expect = fdspawn(self.fd)
+        # if not os.name == 'nt':
+        #     self.read_incoming = self.read_posix
+        #     self.expect = fdspawn(self.fd)
         self.zmq_sock = zmq_sock
         self.req_status = req_status
 
@@ -76,6 +76,7 @@ class IncomingMessageThread(Thread):
         while continue_reading:
             try:
                 buffer += self.read_num_bytes(1)
+                logger.debug(f'Buffer: {buffer}')
                 if b'\r\n\r\n' in buffer:
                     split = buffer.split(b'\r\n\r\n')
                     if len(split) == 2:

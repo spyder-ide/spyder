@@ -958,13 +958,13 @@ class LSPManagerConfigPage(GeneralConfigPage):
 
     def disable_tcp(self, state):
         if state == Qt.Checked:
-            self.advanced_command_launch.textbox.setEnabled(False)
+            # self.advanced_command_launch.textbox.setEnabled(False)
             self.advanced_host.textbox.setEnabled(False)
             self.advanced_port.spinbox.setEnabled(False)
             self.external_server.setChecked(False)
             self.external_server.setEnabled(False)
         else:
-            self.advanced_command_launch.textbox.setEnabled(True)
+            # self.advanced_command_launch.textbox.setEnabled(True)
             self.advanced_host.textbox.setEnabled(True)
             self.advanced_port.spinbox.setEnabled(True)
             self.external_server.setChecked(False)

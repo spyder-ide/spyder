@@ -107,7 +107,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         if language == 'python':
             self.server_args += [sys.executable, '-m']
         self.server_args += [server_settings['cmd']]
-        self.server_args += server_args.split(' ')
+        if len(server_args) > 0:
+            self.server_args += server_args.split(' ')
 
         self.transport_args += transport_args.split(' ')
         self.transport_args += ['--folder', folder]
