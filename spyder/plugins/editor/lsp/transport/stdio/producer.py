@@ -31,13 +31,13 @@ class StdioLanguageServerClient(LanguageServerClient):
     """Implementation of a v3.0 compilant language server stdio client."""
 
     def __init__(self, zmq_in_port=7000, zmq_out_port=7001):
+        super(StdioLanguageServerClient, self).__init__(
+            zmq_in_port, zmq_out_port)
         self.stdin = sys.stdin
         self.stdout = sys.stdout
         # self.request_seq = 1
         logger.info('Connecting to language server on stdio')
-        super(StdioLanguageServerClient, self).__init__(
-            zmq_in_port, zmq_out_port)
-
+        super(StdioLanguageServerClient, self).finalize_initialization()
         self.reading_thread = StdioIncomingMessageThread()
         self.reading_thread.initialize(self.stdin, self.zmq_out_socket,
                                        self.req_status)
@@ -53,7 +53,7 @@ class StdioLanguageServerClient(LanguageServerClient):
         self.reading_thread.join()
         logger.debug('Exit routine should be complete')
 
-    def __transport_send(self, content_length, body):
+    def transport_send(self, content_length, body):
         self.stdout.write(content_length)
         self.stdout.write(body)
 

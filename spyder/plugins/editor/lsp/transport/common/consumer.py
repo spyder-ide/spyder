@@ -46,6 +46,7 @@ class IncomingMessageThread(Thread):
         self.fd = fd
         self.expect = None
         self.read_incoming = self.expect_windows
+        logger.info('Reading thread initialized')
         if not os.name == 'nt':
             self.read_incoming = self.read_posix
             self.expect = fdspawn(self.fd)

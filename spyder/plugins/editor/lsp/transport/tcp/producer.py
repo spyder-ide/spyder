@@ -34,6 +34,7 @@ class TCPLanguageServerClient(LanguageServerClient):
 
     def __init__(self, host='127.0.0.1', port=2087, zmq_in_port=7000,
                  zmq_out_port=7001):
+        LanguageServerClient.__init__(self, zmq_in_port, zmq_out_port)
         self.req_status = {}
         self.host = host
         self.port = port
@@ -41,9 +42,8 @@ class TCPLanguageServerClient(LanguageServerClient):
         # self.request_seq = 1
         logger.info('Connecting to language server at {0}:{1}'.format(
             self.host, self.port))
-        super(TCPLanguageServerClient, self).__init__(
-            zmq_in_port, zmq_out_port)
-
+        super(TCPLanguageServerClient, self).finalize_initialization()
+        self.socket.setblocking(True)
         self.reading_thread = TCPIncomingMessageThread()
         self.reading_thread.initialize(self.socket, self.zmq_out_socket,
                                        self.req_status)
@@ -61,7 +61,8 @@ class TCPLanguageServerClient(LanguageServerClient):
         self.reading_thread.join()
         logger.debug('Exit routine should be complete')
 
-    def __transport_send(self, content_length, body):
+    def transport_send(self, content_length, body):
+        logger.debug('Sending message via TCP')
         self.socket.send(content_length)
         self.socket.send(body)
 

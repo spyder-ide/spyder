@@ -34,6 +34,13 @@ class LanguageServerClient:
     CONTENT_LENGTH = 'Content-Length: {0}\r\n\r\n'
 
     def __init__(self, zmq_in_port=7000, zmq_out_port=7001):
+        self.zmq_in_port = zmq_in_port
+        self.zmq_out_port = zmq_out_port
+        self.context = None
+        self.zmq_in_socket = None
+        self.zmq_out_socket = None
+
+    def finalize_initialization(self):
         connected, connection_error = self.is_server_alive()
 
         if not connected:
@@ -49,9 +56,11 @@ class LanguageServerClient:
         logger.info('Starting ZMQ connection...')
         self.context = zmq.Context()
         self.zmq_in_socket = self.context.socket(zmq.PAIR)
-        self.zmq_in_socket.connect("tcp://localhost:{0}".format(zmq_in_port))
+        self.zmq_in_socket.connect("tcp://localhost:{0}".format(
+            self.zmq_in_port))
         self.zmq_out_socket = self.context.socket(zmq.PAIR)
-        self.zmq_out_socket.connect("tcp://localhost:{0}".format(zmq_out_port))
+        self.zmq_out_socket.connect("tcp://localhost:{0}".format(
+            self.zmq_out_port))
         logger.info('Sending server_ready...')
         self.zmq_out_socket.send_pyobj({'id': -1, 'method': 'server_ready',
                                         'params': {}})
@@ -88,20 +97,20 @@ class LanguageServerClient:
 
         content_length = self.CONTENT_LENGTH.format(
             content_length).encode('utf-8')
-        self.__transport_send(bytes(content_length), content)
+        self.transport_send(bytes(content_length), content)
 
-    def __transport_send(self, content_length, body):
+    def transport_send(self, content_length, body):
         """Subclasses should override this method"""
-        pass
+        raise NotImplementedError("Not implemented")
 
     def is_server_alive(self):
         """Subclasses should override this method"""
-        return False
+        raise NotImplementedError("Not implemented")
 
     def start(self):
         """Subclasses should override this method."""
-        pass
+        raise NotImplementedError("Not implemented")
 
     def stop(self):
         """Subclasses should override this method."""
-        pass
+        raise NotImplementedError("Not implemented")
