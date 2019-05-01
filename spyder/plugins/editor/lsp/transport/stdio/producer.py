@@ -16,36 +16,43 @@ LSP server via stdio pipes.
 """
 
 # Standard library imports
+import os
+import time
 import logging
-import sys
 
 # Local imports
 from spyder.plugins.editor.lsp.transport.stdio.consumer import (
     StdioIncomingMessageThread)
 from spyder.plugins.editor.lsp.transport.common import LanguageServerClient
 
+
+if os.name == 'nt':
+    from pywinpty import PtyProcess
+else:
+    from pexpect import popen_spawn
+
 logger = logging.getLogger(__name__)
 
 
 class StdioLanguageServerClient(LanguageServerClient):
     """Implementation of a v3.0 compilant language server stdio client."""
+    MAX_TIMEOUT_TIME = 20000
 
-    def __init__(self, zmq_in_port=7000, zmq_out_port=7001):
+    def __init__(self, server_args='', zmq_in_port=7000, zmq_out_port=7001):
         super(StdioLanguageServerClient, self).__init__(
             zmq_in_port, zmq_out_port)
         self.req_status = {}
-        self.stdin = sys.stdin
-        self.stdout = sys.stdout
-        # self.request_seq = 1
+        self.process = None
+        if not os.name == 'nt':
+            logger.debug(server_args)
+            self.process = popen_spawn.PopenSpawn(server_args)
+        else:
+            self.process = PtyProcess.spawn(server_args)
         logger.info('Connecting to language server on stdio')
         super(StdioLanguageServerClient, self).finalize_initialization()
         self.reading_thread = StdioIncomingMessageThread()
-        self.reading_thread.initialize(self.stdin.buffer, self.zmq_out_socket,
-                                       self.req_status)
-        self.stdout.buffer.write(b'0')
-        self.stdout.buffer.write(b'0')
-        self.stdout.buffer.write(b'0')
-        self.stdout.buffer.write(b'0')
+        self.reading_thread.initialize(self.process, self.zmq_out_socket,
+                                       self.req_status, expectable=True)
 
     def start(self):
         self.reading_thread.start()
@@ -59,16 +66,20 @@ class StdioLanguageServerClient(LanguageServerClient):
         logger.debug('Exit routine should be complete')
 
     def transport_send(self, content_length, body):
-        self.stdout.buffer.write(content_length)
-        self.stdout.buffer.write(body)
+        self.process.write(content_length)
+        self.process.write(body)
 
     def is_server_alive(self):
         """This method verifies if stdout is broken."""
         connected = False
         connection_error = None
+        initial_time = time.time()
         try:
-            self.stdout.buffer.write(b'0')
-            connected = True
+            while not connected:
+                connected = not self.process.proc.poll()
+                if time.time() - initial_time > self.MAX_TIMEOUT_TIME:
+                    connection_error = 'Timeout communication period exceeded'
+                    break
         except Exception as e:
             connection_error = e
         return connected, connection_error

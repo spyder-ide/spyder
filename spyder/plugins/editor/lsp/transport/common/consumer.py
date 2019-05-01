@@ -42,14 +42,17 @@ class IncomingMessageThread(Thread):
         self.expect_body = False
         self.mutex = Lock()
 
-    def initialize(self, fd, zmq_sock, req_status):
+    def initialize(self, fd, zmq_sock, req_status, expectable=False):
         self.fd = fd
         self.expect = None
-        self.read_incoming = self.expect_windows
+        self.expectable = expectable
         logger.info('Reading thread initialized')
-        # if not os.name == 'nt':
-        #     self.read_incoming = self.read_posix
-        #     self.expect = fdspawn(self.fd)
+        self.read_incoming = self.expect_windows
+        if not os.name == 'nt':
+            self.read_incoming = self.read_posix
+            self.expect = self.fd
+            if not expectable:
+                self.expect = fdspawn(self.fd)
         self.zmq_sock = zmq_sock
         self.req_status = req_status
 
@@ -76,7 +79,6 @@ class IncomingMessageThread(Thread):
         while continue_reading:
             try:
                 buffer += self.read_num_bytes(1)
-                logger.debug(f'Buffer: {buffer}')
                 if b'\r\n\r\n' in buffer:
                     split = buffer.split(b'\r\n\r\n')
                     if len(split) == 2:

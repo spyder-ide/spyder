@@ -50,9 +50,6 @@ parser.add_argument('--folder',
                     default=getcwd(),
                     help="Initial current working directory used to "
                          "initialize ls-server")
-parser.add_argument('--server',
-                    default='pyls',
-                    help='Instruction executed to start the language server')
 parser.add_argument('--external-server',
                     action="store_true",
                     help="Do not start a local server")
@@ -116,13 +113,17 @@ class SignalManager:
 
 if __name__ == '__main__':
     logger_init(args.transport_debug)
+    unknownargs = [x for x in unknownargs if len(x) > 0]
+    unknownargs = ' '.join(unknownargs)
+    logger.debug(unknownargs)
     process = psutil.Process()
     sig_manager = SignalManager()
     LanguageServerClient = partial(TCPLanguageServerClient,
                                    host=args.server_host,
                                    port=args.server_port)
     if args.stdio_server:
-        LanguageServerClient = StdioLanguageServerClient
+        LanguageServerClient = partial(StdioLanguageServerClient,
+                                       server_args=unknownargs)
     client = LanguageServerClient(zmq_in_port=args.zmq_in_port,
                                   zmq_out_port=args.zmq_out_port)
     client.start()
