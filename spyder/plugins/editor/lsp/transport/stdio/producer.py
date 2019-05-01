@@ -20,7 +20,7 @@ import logging
 import sys
 
 # Local imports
-from spyder.plugins.editor.lsp.transport.tcp.consumer import (
+from spyder.plugins.editor.lsp.transport.stdio.consumer import (
     StdioIncomingMessageThread)
 from spyder.plugins.editor.lsp.transport.common import LanguageServerClient
 
