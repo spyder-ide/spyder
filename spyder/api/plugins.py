@@ -17,18 +17,15 @@ import os
 
 # Third party imports
 from qtpy.QtCore import Signal, Slot
-from qtpy.QtWidgets import QMenu, QToolButton, QWidget
+from qtpy.QtWidgets import QWidget
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import get_color_scheme, is_dark_interface
+from spyder.config.gui import get_color_scheme
 from spyder.config.main import CONF
 from spyder.config.user import NoDefault
 from spyder.plugins.base import BasePluginMixin, BasePluginWidgetMixin
-from spyder.py3compat import configparser
 from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import (add_actions, create_toolbutton,
-                                    MENU_SEPARATOR)
 
 
 class BasePlugin(BasePluginMixin):
@@ -110,6 +107,8 @@ class SpyderPlugin(BasePlugin):
     # Status: Required
     CONF_SECTION = None
 
+    # ------------------------------ METHODS ----------------------------------
+
     def check_compatibility(self):
         """
         This method can be implemented to check compatibility of a plugin
@@ -133,50 +132,7 @@ class BasePluginWidget(SpyderPlugin, QWidget, BasePluginWidgetMixin):
     sig_update_plugin_title = Signal()
 
     def __init__(self, main=None):
-        """Bind widget to a QMainWindow instance."""
         super(BasePluginWidget, self).__init__(main)
-
-        # Dockwidget for the plugin, i.e. the pane that's going to be
-        # visible in Spyder
-        self.dockwidget = None
-
-        # Attribute to keep track if the plugin is undocked in a
-        # separate window
-        self.undocked_window = None
-
-        self.default_margins = None
-        self.plugin_actions = None
-        self.ismaximized = False
-        self.isvisible = False
-
-        # Options button and menu
-        self.options_button = create_toolbutton(self, text=_('Options'),
-                                                icon=ima.icon('tooloptions'))
-        self.options_button.setPopupMode(QToolButton.InstantPopup)
-
-        # Don't show menu arrow and remove padding
-        if is_dark_interface():
-            self.options_button.setStyleSheet(
-                ("QToolButton::menu-indicator{image: none;}\n"
-                 "QToolButton{padding: 3px;}"))
-        else:
-            self.options_button.setStyleSheet(
-                "QToolButton::menu-indicator{image: none;}")
-        self.options_menu = QMenu(self)
-
-        # NOTE: Don't use the default option of CONF.get to assign a
-        # None shortcut to plugins that don't have one. That will mess
-        # the creation of our Keyboard Shortcuts prefs page
-        try:
-            self.shortcut = CONF.get('shortcuts', '_/switch to %s' %
-                                     self.CONF_SECTION)
-        except configparser.NoOptionError:
-            pass
-
-        # We decided to create our own toggle action instead of using
-        # the one that comes with dockwidget because it's not possible
-        # to raise and focus the plugin with it.
-        self.toggle_view_action = None
 
     def initialize_plugin(self):
         """
@@ -326,4 +282,3 @@ class SpyderPluginWidget(BasePluginWidget):
         This must be reimplemented by plugins that need to adjust their fonts.
         """
         pass
-

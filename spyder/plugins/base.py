@@ -12,23 +12,24 @@ Base plugin class
 import qdarkstyle
 from qtpy.QtCore import Qt, Slot
 from qtpy.QtGui import QCursor, QKeySequence
-from qtpy.QtWidgets import (QApplication, QDockWidget, QMainWindow,
-                            QMessageBox, QShortcut)
+from qtpy.QtWidgets import (QApplication, QDockWidget, QMainWindow, QMenu,
+                            QMessageBox, QShortcut, QToolButton)
 
 # Local imports
 from spyder.config.base import _
 from spyder.config.gui import is_dark_interface, get_font
 from spyder.config.main import CONF
 from spyder.config.user import NoDefault
-from spyder.py3compat import is_text_string
+from spyder.py3compat import configparser, is_text_string
 from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import (add_actions, create_action, MENU_SEPARATOR,
-                                    toggle_actions)
+from spyder.utils.qthelpers import (
+    add_actions, create_action, create_toolbutton, MENU_SEPARATOR,
+    toggle_actions)
 from spyder.widgets.dock import SpyderDockWidget
 
 
 class BasePluginMixin(object):
-    """Basic functionality for Spyder plugins."""
+    """Implementation of the basic functionality for Spyder plugins."""
 
     def __init__(self, parent=None):
         super(BasePluginMixin, self).__init__()
@@ -99,7 +100,9 @@ class PluginWindow(QMainWindow):
 
 
 class BasePluginWidgetMixin(object):
-    """Basic functionality for Spyder plugin widgets."""
+    """
+    Implementation of the basic functionality for Spyder plugin widgets.
+    """
 
     ALLOWED_AREAS = Qt.AllDockWidgetAreas
     LOCATION = Qt.LeftDockWidgetArea
@@ -108,7 +111,51 @@ class BasePluginWidgetMixin(object):
     def __init__(self, parent=None):
         super(BasePluginWidgetMixin, self).__init__()
 
-        # Additional actions
+        # Dockwidget for the plugin, i.e. the pane that's going to be
+        # visible in Spyder
+        self.dockwidget = None
+
+        # Attribute to keep track if the plugin is undocked in a
+        # separate window
+        self.undocked_window = None
+
+        self.default_margins = None
+        self.plugin_actions = None
+        self.ismaximized = False
+        self.isvisible = False
+
+        # Options buttons
+        self.options_button = create_toolbutton(self, text=_('Options'),
+                                                icon=ima.icon('tooloptions'))
+        self.options_button.setPopupMode(QToolButton.InstantPopup)
+
+        # Don't show menu arrow and remove padding
+        if is_dark_interface():
+            self.options_button.setStyleSheet(
+                ("QToolButton::menu-indicator{image: none;}\n"
+                 "QToolButton{padding: 3px;}"))
+        else:
+            self.options_button.setStyleSheet(
+                "QToolButton::menu-indicator{image: none;}")
+
+        # Options menu
+        self.options_menu = QMenu(self)
+
+        # NOTE: Don't use the default option of CONF.get to assign a
+        # None shortcut to plugins that don't have one. That will mess
+        # the creation of our Keyboard Shortcuts prefs page
+        try:
+            self.shortcut = CONF.get('shortcuts', '_/switch to %s' %
+                                     self.CONF_SECTION)
+        except configparser.NoOptionError:
+            pass
+
+        # We decided to create our own toggle action instead of using
+        # the one that comes with dockwidget because it's not possible
+        # to raise and focus the plugin with it.
+        self.toggle_view_action = None
+
+        # Default actions for Options menu
         self.dock_action = create_action(self,
                                          _("Dock"),
                                          icon=ima.icon('dock'),
