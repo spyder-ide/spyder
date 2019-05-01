@@ -32,8 +32,12 @@ from spyder.utils.qthelpers import (add_actions, create_toolbutton,
                                     MENU_SEPARATOR)
 
 
-class BasePlugin(QObject, BasePluginMixin):
-    """Spyder plugin without an associated dockwidget."""
+class BasePlugin(BasePluginMixin):
+    """
+    Basic functionality for Spyder plugins.
+
+    WARNING: Don't override any methods present here!
+    """
 
     # ---------------------------- ATTRIBUTES ---------------------------------
 
@@ -43,7 +47,12 @@ class BasePlugin(QObject, BasePluginMixin):
     # Status: Required
     CONF_SECTION = None
 
-    #sig_show_message = Signal(str, int)
+    # Use this signal to display a message in the status bar
+    sig_show_message = Signal(str, int)
+
+    # Use this signal to inform another plugin that a configuration
+    # value has changed.
+    sig_option_changed = Signal(str, object)
 
     def __init__(self, parent=None):
         super(BasePlugin, self).__init__(parent)
@@ -62,6 +71,10 @@ class BasePlugin(QObject, BasePluginMixin):
         check_compatibility, message = self.check_compatibility()
         if not check_compatibility:
             self.show_compatibility_message(message)
+
+        # Connect signals to slots.
+        self.sig_show_message.connect(self.show_message)
+        self.sig_option_changed.connect(self.set_option)
 
     @Slot(str, object)
     def set_option(self, option, value):
@@ -110,22 +123,13 @@ class BasePlugin(QObject, BasePluginMixin):
         return valid, message
 
 
-class BasePluginWidget(QWidget, BasePlugin, BasePluginWidgetMixin):
+class BasePluginWidget(BasePlugin, QWidget, BasePluginWidgetMixin):
     """
-    Public interface for Spyder plugin widgets.
+    Basic functionality for Spyder plugin widgets.
 
-    Warning: Don't override any methods present here!
-
-    Signals:
-      * sig_option_changed
-          Example:
-            plugin.sig_option_changed.emit('show_all', checked)
-      * sig_show_message
-      * sig_update_plugin_title
+    WARNING: Don't override any methods present here!
     """
 
-    sig_option_changed = Signal(str, object)
-    sig_show_message = Signal(str, int)
     sig_update_plugin_title = Signal()
 
     def __init__(self, main=None):
@@ -174,9 +178,6 @@ class BasePluginWidget(QWidget, BasePlugin, BasePluginWidgetMixin):
         # to raise and focus the plugin with it.
         self.toggle_view_action = None
 
-        self.sig_show_message.connect(self.__show_message)
-        self.sig_option_changed.connect(self.__set_option)
-
     def initialize_plugin(self):
         """
         Initialize plugin: connect signals, setup actions, etc.
@@ -217,24 +218,12 @@ class BasePluginWidget(QWidget, BasePlugin, BasePluginWidgetMixin):
         """Refresh options menu."""
         super(BasePluginWidget, self).refresh_actions()
 
-    # -- Private API
-    # These are needed because Qt doesn't support multiple inheritance, so
-    # we can't connect to the BasePlugin slots directly.
-    @Slot(str)
-    @Slot(str, int)
-    def __show_message(self, message, timeout=0):
-        super(BasePluginWidget, self).show_message(message, timeout)
-
-    @Slot(str, object)
-    def __set_option(self, option, value):
-        super(BasePluginWidget, self).set_option(option, value)
-
 
 class SpyderPluginWidget(BasePluginWidget):
     """
     Spyder plugin widget class.
 
-    All plugin widgets must inherit this class and reimplement its interface.
+    All plugin widgets *must* inherit this class and reimplement its interface.
     """
 
     # ---------------------------- ATTRIBUTES ---------------------------------
