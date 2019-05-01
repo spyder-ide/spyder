@@ -11,13 +11,15 @@ Base plugin class
 # Third party imports
 import qdarkstyle
 from qtpy.QtCore import Qt, Slot
-from qtpy.QtGui import QKeySequence
-from qtpy.QtWidgets import QDockWidget, QMainWindow, QMessageBox, QShortcut
+from qtpy.QtGui import QCursor, QKeySequence
+from qtpy.QtWidgets import (QApplication, QDockWidget, QMainWindow,
+                            QMessageBox, QShortcut)
 
 # Local imports
 from spyder.config.base import _
 from spyder.config.gui import is_dark_interface, get_font
 from spyder.config.main import CONF
+from spyder.config.user import NoDefault
 from spyder.py3compat import is_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_action, MENU_SEPARATOR,
@@ -31,10 +33,24 @@ class BasePluginMixin(object):
     def __init__(self, parent=None):
         super(BasePluginMixin, self).__init__()
 
-    @Slot(str)
-    @Slot(str, int)
+        # Assert the plugin has CONF_SECTION
+        assert self.CONF_SECTION is not None
+
+        # Check compatibility
+        check_compatibility, message = self.check_compatibility()
+        if not check_compatibility:
+            self.show_compatibility_message(message)
+
+    def set_option(self, option, value):
+        """Set option in spyder.ini"""
+        CONF.set(self.CONF_SECTION, str(option), value)
+
+    def get_option(self, option, default=NoDefault):
+        """Get option from spyder.ini."""
+        return CONF.get(self.CONF_SECTION, option, default)
+
     def show_message(self, message, timeout=0):
-        """Show message in main window's status bar"""
+        """Show message in main window's status bar."""
         self.main.statusBar().showMessage(message, timeout)
 
     def show_compatibility_message(self, message):
@@ -46,6 +62,20 @@ class BasePluginMixin(object):
         messageBox.setText(message)
         messageBox.setStandardButtons(QMessageBox.Ok)
         messageBox.show()
+
+    def starting_long_process(self, message):
+        """Show message in main window's status bar."""
+        self.show_message(message)
+        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+        QApplication.processEvents()
+
+    def ending_long_process(self, message=""):
+        """
+        Clear main window's status bar and restore mouse cursor.
+        """
+        QApplication.restoreOverrideCursor()
+        self.show_message(message, timeout=2000)
+        QApplication.processEvents()
 
 
 class PluginWindow(QMainWindow):

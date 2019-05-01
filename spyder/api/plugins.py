@@ -16,9 +16,8 @@ import inspect
 import os
 
 # Third party imports
-from qtpy.QtCore import QObject, Qt, Signal, Slot
-from qtpy.QtGui import QCursor
-from qtpy.QtWidgets import QApplication, QMenu, QToolButton, QWidget
+from qtpy.QtCore import Signal, Slot
+from qtpy.QtWidgets import QMenu, QToolButton, QWidget
 
 # Local imports
 from spyder.config.base import _
@@ -39,14 +38,6 @@ class BasePlugin(BasePluginMixin):
     WARNING: Don't override any methods present here!
     """
 
-    # ---------------------------- ATTRIBUTES ---------------------------------
-
-    # Name of the configuration section that's going to be
-    # used to record the plugin's permanent data in Spyder
-    # config system (i.e. in spyder.ini)
-    # Status: Required
-    CONF_SECTION = None
-
     # Use this signal to display a message in the status bar
     sig_show_message = Signal(str, int)
 
@@ -61,54 +52,63 @@ class BasePlugin(BasePluginMixin):
         # window.
         self.main = parent
 
-        # Assert the plugin has CONF_SECTION
-        assert self.CONF_SECTION is not None
-
         # Filesystem path to this plugin
         self.PLUGIN_PATH = os.path.dirname(inspect.getfile(self.__class__))
-
-        # Check compatibility
-        check_compatibility, message = self.check_compatibility()
-        if not check_compatibility:
-            self.show_compatibility_message(message)
 
         # Connect signals to slots.
         self.sig_show_message.connect(self.show_message)
         self.sig_option_changed.connect(self.set_option)
 
+    @Slot(str)
+    @Slot(str, int)
+    def show_message(self, message, timeout=0):
+        """Show message in main window's status bar."""
+        super(BasePlugin, self).show_message(message, timeout)
+
     @Slot(str, object)
     def set_option(self, option, value):
         """
-        Set a plugin option in configuration file.
+        Set an option in CONF_SECTION of Spyder configuration file.
 
         Note: Use sig_option_changed to call it from widgets of the
               same or another plugin.
         """
-        CONF.set(self.CONF_SECTION, str(option), value)
+        super(BasePlugin, self).set_option(option, value)
 
     def get_option(self, option, default=NoDefault):
-        """
-        Get a plugin's option from configuration file.
-        """
-        return CONF.get(self.CONF_SECTION, option, default)
+        """Get an option from our configuration system."""
+        return super(BasePlugin, self).get_option(option, default)
 
     def starting_long_process(self, message):
         """
-        Showing message in main window's status bar.
+        Showing message in main window's status bar when starting a
+        long process.
 
         This also changes mouse cursor to Qt.WaitCursor
         """
-        self.show_message(message)
-        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
-        QApplication.processEvents()
+        super(BasePlugin, self).starting_long_process(message)
 
     def ending_long_process(self, message=""):
         """
-        Clear main window's status bar and restore mouse cursor.
+        Clear main window's status bar after a long process and restore
+        mouse cursor.
         """
-        QApplication.restoreOverrideCursor()
-        self.show_message(message, timeout=2000)
-        QApplication.processEvents()
+        super(BasePlugin, self).ending_long_process(message)
+
+
+class SpyderPlugin(BasePlugin):
+    """
+    Spyder plugin class.
+
+    All plugins *must* inherit this class and reimplement its interface.
+    """
+    # ---------------------------- ATTRIBUTES ---------------------------------
+
+    # Name of the configuration section that's going to be
+    # used to record the plugin's permanent data in Spyder
+    # config system (i.e. in spyder.ini)
+    # Status: Required
+    CONF_SECTION = None
 
     def check_compatibility(self):
         """
@@ -123,7 +123,7 @@ class BasePlugin(BasePluginMixin):
         return valid, message
 
 
-class BasePluginWidget(BasePlugin, QWidget, BasePluginWidgetMixin):
+class BasePluginWidget(SpyderPlugin, QWidget, BasePluginWidgetMixin):
     """
     Basic functionality for Spyder plugin widgets.
 
