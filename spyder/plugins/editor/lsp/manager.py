@@ -303,14 +303,16 @@ class LSPManager(QObject):
 
         # Advanced
         external_server = self.get_option('advanced/external')
+        stdio = self.get_option('advanced/stdio')
 
         # Setup options in json
         python_config['cmd'] = cmd
-        if host in self.LOCALHOST:
+        if host in self.LOCALHOST and not stdio:
             python_config['args'] = '--host {host} --port {port} --tcp'
         else:
             python_config['args'] = ''
         python_config['external'] = external_server
+        python_config['stdio'] = stdio
         python_config['host'] = host
         python_config['port'] = port
 

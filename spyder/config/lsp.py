@@ -26,6 +26,7 @@ PYTHON_CONFIG = {
     'host': '127.0.0.1',
     'port': 2087,
     'external': False,
+    'stdio': False,
     'configurations': {
         'pyls': {
             'configurationSources': [

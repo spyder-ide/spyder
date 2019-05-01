@@ -145,7 +145,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         server_stdin = subprocess.PIPE
         server_stdout = server_log
         if self.stdio:
-            server_stdin, server_stdout = os.pipe()
+            server_stdout = subprocess.PIPE
+        #     server_stdin, server_stdout = os.pipe()
+        #     # server_stdin = os.fdopen(server_stdin, 'wr')
+        #     # server_stdout = os.fdopen(server_stdout, 'wr')
 
         if not self.external_server:
             logger.info('Starting server: {0}'.format(
@@ -195,8 +198,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         transport_stdout = subprocess.PIPE
         transport_stdin = subprocess.PIPE
         if self.stdio:
-            transport_stdin = server_stdout
-            transport_stdout = server_stdin
+            transport_stdin = self.lsp_server.stdout
+            transport_stdout = self.lsp_server.stdin
         self.transport_client = subprocess.Popen(self.transport_args,
                                                  stdout=transport_stdout,
                                                  stdin=transport_stdin,

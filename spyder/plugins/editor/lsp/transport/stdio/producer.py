@@ -58,11 +58,11 @@ class StdioLanguageServerClient(LanguageServerClient):
         self.stdout.write(body)
 
     def is_server_alive(self):
-        """This method verifies if stdin is broken."""
+        """This method verifies if stdout is broken."""
         connected = False
         connection_error = None
         try:
-            self.stdin.write('test')
+            self.stdout.write('test')
             connected = True
         except Exception as e:
             connection_error = e

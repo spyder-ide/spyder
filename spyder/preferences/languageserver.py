@@ -852,37 +852,42 @@ class LSPManagerConfigPage(GeneralConfigPage):
         advanced_label.setAlignment(Qt.AlignJustify)
 
         # Advanced options
-        advanced_command_launch = self.create_lineedit(
+        self.advanced_command_launch = self.create_lineedit(
             _("Command to launch the Python language server: "),
             'advanced/command_launch', alignment=Qt.Horizontal,
             word_wrap=False)
-        advanced_host = self.create_lineedit(
+        self.advanced_host = self.create_lineedit(
             _("IP Address and port to bind the server to: "),
             'advanced/host', alignment=Qt.Horizontal,
             word_wrap=False)
-        advanced_port = self.create_spinbox(
+        self.advanced_port = self.create_spinbox(
             ":", "", 'advanced/port', min_=1, max_=65535, step=1)
-        external_server = self.create_checkbox(
+        self.external_server = self.create_checkbox(
             _("This is an external server"),
             'advanced/external')
+        self.use_stdio = self.create_checkbox(
+            _("Use stdio pipes to communicate with server"),
+            'advanced/stdio')
+        self.use_stdio.stateChanged.connect(self.disable_tcp)
 
         # Advanced layout
         advanced_g_layout = QGridLayout()
-        advanced_g_layout.addWidget(advanced_command_launch.label, 1, 0)
-        advanced_g_layout.addWidget(advanced_command_launch.textbox, 1, 1)
-        advanced_g_layout.addWidget(advanced_host.label, 2, 0)
+        advanced_g_layout.addWidget(self.advanced_command_launch.label, 1, 0)
+        advanced_g_layout.addWidget(self.advanced_command_launch.textbox, 1, 1)
+        advanced_g_layout.addWidget(self.advanced_host.label, 2, 0)
 
         advanced_host_port_g_layout = QGridLayout()
-        advanced_host_port_g_layout.addWidget(advanced_host.textbox, 1, 0)
-        advanced_host_port_g_layout.addWidget(advanced_port.plabel, 1, 1)
-        advanced_host_port_g_layout.addWidget(advanced_port.spinbox, 1, 2)
+        advanced_host_port_g_layout.addWidget(self.advanced_host.textbox, 1, 0)
+        advanced_host_port_g_layout.addWidget(self.advanced_port.plabel, 1, 1)
+        advanced_host_port_g_layout.addWidget(self.advanced_port.spinbox, 1, 2)
         advanced_g_layout.addLayout(advanced_host_port_g_layout, 2, 1)
 
         advanced_widget = QWidget()
         advanced_layout = QVBoxLayout()
         advanced_layout.addWidget(advanced_label)
         advanced_layout.addLayout(advanced_g_layout)
-        advanced_layout.addWidget(external_server)
+        advanced_layout.addWidget(self.external_server)
+        advanced_layout.addWidget(self.use_stdio)
         advanced_widget.setLayout(advanced_layout)
 
         # --- Other servers tab ---
@@ -950,6 +955,20 @@ class LSPManagerConfigPage(GeneralConfigPage):
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)
         self.setLayout(vlayout)
+
+    def disable_tcp(self, state):
+        if state == Qt.Checked:
+            self.advanced_command_launch.textbox.setEnabled(False)
+            self.advanced_host.textbox.setEnabled(False)
+            self.advanced_port.spinbox.setEnabled(False)
+            self.external_server.setChecked(False)
+            self.external_server.setEnabled(False)
+        else:
+            self.advanced_command_launch.textbox.setEnabled(True)
+            self.advanced_host.textbox.setEnabled(True)
+            self.advanced_port.spinbox.setEnabled(True)
+            self.external_server.setChecked(False)
+            self.external_server.setEnabled(True)
 
     @Slot(str)
     def setup_docstring_style_convention(self, text):

@@ -51,8 +51,6 @@ class LanguageServerClient:
                             "client to connect to the Language Server! The "
                             "error was\n\n{}".format(connection_error))
 
-        self.socket.setblocking(True)
-
         logger.info('Starting ZMQ connection...')
         self.context = zmq.Context()
         self.zmq_in_socket = self.context.socket(zmq.PAIR)
