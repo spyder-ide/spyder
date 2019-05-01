@@ -19,9 +19,13 @@ import logging
 import os
 import psutil
 import signal
+from functools import partial
 
 # Local imports
-from spyder.plugins.editor.lsp.transport.producer import LanguageServerClient
+from spyder.plugins.editor.lsp.transport.tcp.producer import (
+    TCPLanguageServerClient)
+from spyder.plugins.editor.lsp.transport.stdio.producer import (
+    StdioLanguageServerClient)
 from spyder.py3compat import getcwd
 
 
@@ -52,6 +56,9 @@ parser.add_argument('--server',
 parser.add_argument('--external-server',
                     action="store_true",
                     help="Do not start a local server")
+parser.add_argument('--stdio-server',
+                    action="store_true",
+                    help='Server communication should use stdio pipes')
 parser.add_argument('--transport-debug',
                     default=0,
                     type=int,
@@ -111,14 +118,13 @@ if __name__ == '__main__':
     logger_init(args.transport_debug)
     process = psutil.Process()
     sig_manager = SignalManager()
-    client = LanguageServerClient(host=args.server_host,
-                                  port=args.server_port,
-                                  workspace=args.folder,
-                                  zmq_in_port=args.zmq_in_port,
-                                  zmq_out_port=args.zmq_out_port,
-                                  use_external_server=args.external_server,
-                                  server=args.server,
-                                  server_args=unknownargs)
+    LanguageServerClient = partial(TCPLanguageServerClient,
+                                   host=args.server_host,
+                                   port=args.server_port)
+    if args.stdio_server:
+        LanguageServerClient = StdioLanguageServerClient
+    client = LanguageServerClient(zmq_in_port=args.zmq_in_port,
+                                  zmq_out_port=args.zmq_out_port)
     client.start()
     try:
         while True:

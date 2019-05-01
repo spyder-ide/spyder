@@ -8,9 +8,9 @@
 
 
 """
-Spyder MS Language Server Protocol v3.0 transport proxy implementation.
+Spyder MS Language Server Protocol v3.0 base transport proxy implementation.
 
-This module handles and processes incoming TCP messages sent by an LSP server,
+This module handles and processes incoming messages sent by an LSP server,
 then it relays the information to the actual Spyder LSP client via ZMQ.
 """
 
@@ -33,8 +33,7 @@ logger = logging.getLogger(__name__)
 
 
 class IncomingMessageThread(Thread):
-    """TCP socket consumer."""
-    CHUNK_BYTE_SIZE = 4096
+    """Base LSP message consumer."""
 
     def __init__(self):
         Thread.__init__(self)
@@ -43,13 +42,13 @@ class IncomingMessageThread(Thread):
         self.expect_body = False
         self.mutex = Lock()
 
-    def initialize(self, sock, zmq_sock, req_status):
-        self.socket = sock
+    def initialize(self, fd, zmq_sock, req_status):
+        self.fd = fd
         self.expect = None
-        self.read_sock = self.expect_windows
+        self.read_incoming = self.expect_windows
         if not os.name == 'nt':
-            self.read_sock = self.read_posix
-            self.expect = fdspawn(self.socket)
+            self.read_incoming = self.read_posix
+            self.expect = fdspawn(self.fd)
         self.zmq_sock = zmq_sock
         self.req_status = req_status
 
@@ -75,7 +74,7 @@ class IncomingMessageThread(Thread):
         continue_reading = True
         while continue_reading:
             try:
-                buffer += self.socket.recv(1)
+                buffer += self.read_num_bytes(1)
                 if b'\r\n\r\n' in buffer:
                     split = buffer.split(b'\r\n\r\n')
                     if len(split) == 2:
@@ -90,7 +89,7 @@ class IncomingMessageThread(Thread):
         pending_bytes = content_length - len(buffer)
         while pending_bytes > 0:
             logger.debug('Pending bytes...' + str(pending_bytes))
-            recv = self.socket.recv(min(1024, pending_bytes))
+            recv = self.read_num_bytes(min(1024, pending_bytes))
             buffer += recv
             pending_bytes -= len(recv)
         return self.encode_body(buffer, headers)
@@ -102,7 +101,7 @@ class IncomingMessageThread(Thread):
                     logger.debug('Stopping Thread...')
                     break
             try:
-                body = self.read_sock()
+                body = self.read_incoming()
                 err = False
                 try:
                     body = json.loads(body)
@@ -126,3 +125,7 @@ class IncomingMessageThread(Thread):
     def stop(self):
         with self.mutex:
             self.stopped = True
+
+    def read_num_bytes(self, n):
+        """Subclasses should override this method"""
+        return b''

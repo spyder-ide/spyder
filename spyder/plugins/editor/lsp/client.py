@@ -59,11 +59,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
     # Constants
     external_server_fmt = ('--server-host %(host)s '
-                           '--server-port %(port)s '
-                           '--external-server')
-    local_server_fmt = ('--server-host %(host)s '
-                        '--server-port %(port)s '
-                        '--server %(cmd)s')
+                           '--server-port %(port)s ')
 
     def __init__(self, parent,
                  server_settings={},
@@ -89,6 +85,13 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.transport_args = [sys.executable, '-u',
                                osp.join(LOCATION, 'transport', 'main.py')]
         self.external_server = server_settings.get('external', False)
+        self.stdio = server_settings.get('stdio', False)
+        # Setting stdio on implies that external_server is off
+        if self.stdio and self.external_server:
+            error = ('If server is set to use stdio communication, '
+                     'then it cannot be an external server')
+            logger.error(error)
+            raise AssertionError(error)
 
         self.folder = folder
         self.plugin_configurations = server_settings.get('configurations', {})
@@ -98,15 +101,21 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
         server_args_fmt = server_settings.get('args', '')
         server_args = server_args_fmt.format(**server_settings)
-        # transport_args = self.local_server_fmt % (server_settings)
-        # if self.external_server:
         transport_args = self.external_server_fmt % (server_settings)
 
-        self.server_args = [sys.executable, '-m', server_settings['cmd']]
+        self.server_args = []
+        if language == 'python':
+            self.server_args += [sys.executable, '-m']
+        self.server_args += [server_settings['cmd']]
         self.server_args += server_args.split(' ')
+
         self.transport_args += transport_args.split(' ')
         self.transport_args += ['--folder', folder]
         self.transport_args += ['--transport-debug', str(get_debug_level())]
+        if not self.stdio:
+            self.transport_args += ['--external-server']
+        else:
+            self.transport_args += ['--stdio-server']
 
     def start(self):
         self.zmq_out_socket = self.context.socket(zmq.PAIR)
@@ -133,6 +142,11 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             elif get_debug_level() == 3:
                 self.server_args.append('-vv')
 
+        server_stdin = subprocess.PIPE
+        server_stdout = server_log
+        if self.stdio:
+            server_stdin, server_stdout = os.pipe()
+
         if not self.external_server:
             logger.info('Starting server: {0}'.format(
                 ' '.join(self.server_args)))
@@ -157,8 +171,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
             self.lsp_server = subprocess.Popen(
                 self.server_args,
-                stdout=server_log,
-                stderr=subprocess.STDOUT,
+                stdout=server_stdout,
+                stdin=server_stdin,
+                stderr=server_log,
                 creationflags=creation_flags)
 
         client_log = subprocess.PIPE
@@ -177,8 +192,14 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.transport_args = list(map(str, self.transport_args))
         logger.info('Starting transport: {0}'
                     .format(' '.join(self.transport_args)))
+        transport_stdout = subprocess.PIPE
+        transport_stdin = subprocess.PIPE
+        if self.stdio:
+            transport_stdin = server_stdout
+            transport_stdout = server_stdin
         self.transport_client = subprocess.Popen(self.transport_args,
-                                                 stdout=subprocess.PIPE,
+                                                 stdout=transport_stdout,
+                                                 stdin=transport_stdin,
                                                  stderr=client_log,
                                                  env=new_env)
 
