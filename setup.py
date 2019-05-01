@@ -226,7 +226,8 @@ install_requires = [
     'python-language-server[all]>=0.19.0',
     # Required to get SSH connections to remote kernels
     'pexpect;platform_system!="Windows"',
-    'paramiko;platform_system=="Windows"'
+    'paramiko;platform_system=="Windows"',
+    'pywinpty;platform_system=="Windows"'
 ]
 
 extras_require = {
