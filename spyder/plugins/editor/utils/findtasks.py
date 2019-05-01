@@ -8,9 +8,7 @@
 Source code analysis utilities.
 """
 
-import sys
 import re
-import os
 
 # Local import
 from spyder.config.base import get_debug_level
@@ -33,12 +31,3 @@ def find_tasks(source_code):
                          else todo[-2])
             results.append((todo_text, line + 1))
     return results
-
-
-if __name__ == '__main__':
-    fname = os.path.join(os.path.dirname(__file__),
-                         os.pardir, os.pardir, 'bootstrap.py')
-    code = open(fname).read()
-    check_results = find_tasks(code)
-    for message, line in check_results:
-        sys.stdout.write("Message: %s -- Line: %s\n" % (message, line))
