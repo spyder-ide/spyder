@@ -21,7 +21,7 @@ from spyder.config.base import (CHECK_ALL, EXCLUDED_NAMES, get_home_dir,
 from spyder.config.fonts import MEDIUM, MONOSPACE, SANS_SERIF, SMALL
 from spyder.config.user import UserConfig
 from spyder.config.utils import IMPORT_EXT
-from spyder.plugins.editor.utils.findtodos import TASKS_PATTERN
+from spyder.plugins.editor.utils.findtasks import TASKS_PATTERN
 from spyder.utils.introspection.module_completion import PREFERRED_MODULES
 
 
