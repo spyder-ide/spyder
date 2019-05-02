@@ -26,7 +26,6 @@ TEXT = ("def some_function():\n"  # D100, D103: Missing docstring
 
 @pytest.mark.slow
 @pytest.mark.second
-@pytest.mark.xfail
 def test_ignore_warnings(qtbot, lsp_codeeditor):
     """Test that the editor is ignoring some warnings."""
     editor, manager = lsp_codeeditor
