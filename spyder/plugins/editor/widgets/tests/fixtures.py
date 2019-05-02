@@ -8,6 +8,7 @@
 Testing utilities to be used with pytest.
 """
 
+# Stdlib imports
 try:
     from unittest.mock import Mock
 except ImportError:
@@ -15,8 +16,10 @@ except ImportError:
 
 # Third party imports
 import pytest
+from qtpy.QtGui import QFont
 
 # Local imports
+from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editor import EditorStack
 from spyder.widgets.findreplace import FindReplace
 
@@ -38,3 +41,37 @@ def setup_editor(qtbot):
     finfo = editorStack.new('foo.py', 'utf-8', text)
     qtbot.addWidget(editorStack)
     return editorStack, finfo.editor
+
+
+@pytest.fixture
+def lsp_codeeditor(lsp_manager, qtbot_module, request):
+    """CodeEditor instance with LSP services activated."""
+    # Create a CodeEditor instance
+    editor = CodeEditor(parent=None)
+    editor.setup_editor(language='Python',
+                        tab_mode=False,
+                        markers=True,
+                        color_scheme='spyder/dark',
+                        font=QFont("Monospace", 10))
+    editor.resize(640, 480)
+    qtbot_module.addWidget(editor)
+    editor.show()
+
+    # Redirect editor LSP requests to lsp_manager
+    editor.sig_perform_lsp_request.connect(lsp_manager.send_request)
+
+    editor.filename = 'test.py'
+    editor.language = 'Python'
+    lsp_manager.register_file('python', 'test.py', editor)
+    server_settings = lsp_manager.main.editor.lsp_editor_settings['python']
+    editor.start_lsp_services(server_settings)
+
+    with qtbot_module.waitSignal(editor.lsp_response_signal, timeout=30000):
+        editor.document_did_open()
+
+    def teardown():
+        editor.hide()
+        editor.completion_widget.hide()
+
+    request.addfinalizer(teardown)
+    return editor, lsp_manager

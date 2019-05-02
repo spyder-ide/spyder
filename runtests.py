@@ -13,6 +13,10 @@ import os
 import sys
 import argparse
 
+# To activate/deactivate certain things for pytest's only
+# NOTE: Please leave this before any other import here!!
+os.environ['SPYDER_PYTEST'] = 'True'
+
 # Third party imports
 import pytest
 

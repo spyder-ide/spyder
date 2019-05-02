@@ -37,6 +37,7 @@ class CloseBracketsExtension(EditorExtension):
 
         key = event.key()
         if key in self.BRACKETS_CHAR and self.enabled:
+            self.editor.completion_widget.hide()
             self._autoinsert_brackets(key)
             event.accept()
 

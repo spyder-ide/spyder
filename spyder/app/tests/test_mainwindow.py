@@ -70,7 +70,7 @@ else:
 LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
 
 # Time to wait until the IPython console is ready to receive input
-# (in miliseconds)
+# (in milliseconds)
 SHELL_TIMEOUT = 20000
 
 # Need longer EVAL_TIMEOUT, because need to cythonize and C compile ".pyx" file
@@ -78,7 +78,7 @@ SHELL_TIMEOUT = 20000
 COMPILE_AND_EVAL_TIMEOUT = 30000
 
 # Time to wait for the IPython console to evaluate something (in
-# miliseconds)
+# milliseconds)
 EVAL_TIMEOUT = 3000
 
 
@@ -156,7 +156,11 @@ def main_window(request):
 
     # Check if we need to use introspection in a given test
     # (it's faster and less memory consuming not to use it!)
-    use_introspection = request.node.get_marker('use_introspection')
+    try:
+        use_introspection = request.node.get_marker('use_introspection')
+    except AttributeError:
+        use_introspection = False
+
     if use_introspection:
         os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
     else:
@@ -166,7 +170,11 @@ def main_window(request):
             pass
 
     # Only use single_instance mode for tests that require it
-    single_instance = request.node.get_marker('single_instance')
+    try:
+        single_instance = request.node.get_marker('single_instance')
+    except AttributeError:
+        single_instance = False
+
     if single_instance:
         CONF.set('main', 'single_instance', True)
     else:
@@ -205,8 +213,8 @@ def test_calltip(main_window, qtbot):
     """Test that the calltip in editor is hidden when matching ')' is found."""
     # Load test file
     text = 'a = [1,2,3]\n(max'
-    with qtbot.waitSignal(main_window.editor.sig_lsp_notification,
-                          timeout=30000):
+    lsp_client = main_window.lspmanager.clients['python']['instance']
+    with qtbot.waitSignal(lsp_client.sig_initialize, timeout=30000):
         main_window.editor.new(fname="test.py", text=text)
     code_editor = main_window.editor.get_focus_widget()
 
@@ -216,20 +224,21 @@ def test_calltip(main_window, qtbot):
     #     code_editor.document_did_change()
     code_editor.set_text(text)
     code_editor.go_to_line(2)
-    code_editor.move_cursor(5)
-    # calltip = code_editor.calltip_widget
-    assert not QToolTip.isVisible()
+    code_editor.move_cursor(4)
+    calltip = code_editor.calltip_widget
+    assert not calltip.isVisible()
 
     with qtbot.waitSignal(code_editor.sig_signature_invoked, timeout=30000):
         qtbot.keyPress(code_editor, Qt.Key_ParenLeft, delay=3000)
         # qtbot.keyPress(code_editor, Qt.Key_A, delay=1000)
+
     # qtbot.wait(1000)
     # print(calltip.isVisible())
-    qtbot.waitUntil(lambda: QToolTip.isVisible(), timeout=3000)
+    qtbot.waitUntil(lambda: calltip.isVisible(), timeout=3000)
 
     qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
     qtbot.keyPress(code_editor, Qt.Key_Space)
-    qtbot.waitUntil(lambda: not QToolTip.isVisible(), timeout=3000)
+    qtbot.waitUntil(lambda: not calltip.isVisible(), timeout=3000)
     assert not QToolTip.isVisible()
     qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
@@ -339,9 +348,60 @@ def test_filter_numpy_warning(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(PY2, reason="Times out in PY2")
+def test_get_help_combo(main_window, qtbot):
+    """
+    Test that Help can display docstrings for names typed in its combobox.
+    """
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    help_plugin = main_window.help
+    webview = help_plugin.rich_text.webview._webview
+    if WEBENGINE:
+        webpage = webview.page()
+    else:
+        webpage = webview.page().mainFrame()
+
+    # --- From the console ---
+    # Write some object in the console
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('import numpy as np')
+
+    # Get help - numpy
+    help_plugin.combo.setFocus()
+
+    qtbot.keyClicks(help_plugin.combo, 'numpy', delay=100)
+
+    # Check that a expected text is part of the page
+    qtbot.waitUntil(lambda: check_text(webpage, "NumPy"), timeout=6000)
+
+    # Get help - numpy.arange
+    qtbot.keyClick(help_plugin.combo, Qt.Key_Right)
+    qtbot.keyClicks(help_plugin.combo, '.arange', delay=100)
+
+    # Check that a expected text is part of the page
+    qtbot.waitUntil(lambda: check_text(webpage, "arange"), timeout=6000)
+
+    # Get help - np
+    qtbot.keyClicks(help_plugin.combo, 'np', delay=100)
+
+    # Check that a expected text is part of the page
+    qtbot.waitUntil(lambda: check_text(webpage, "NumPy"), timeout=6000)
+
+    # Get help - np.arange
+    qtbot.keyClick(help_plugin.combo, Qt.Key_Right)
+    qtbot.keyClicks(help_plugin.combo, '.arange', delay=100)
+
+    # Check that a expected text is part of the page
+    qtbot.waitUntil(lambda: check_text(webpage, "arange"), timeout=6000)
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
                     reason="Times out on AppVeyor")
-@pytest.mark.use_introspection
 def test_get_help_ipython_console(main_window, qtbot):
     """Test that Help works when called from the IPython console."""
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -1604,13 +1664,8 @@ def test_fileswitcher(main_window, qtbot, tmpdir):
 @flaky(max_runs=3)
 def test_run_static_code_analysis(main_window, qtbot):
     """This tests that the Pylint plugin is working as expected."""
-    # Wait until the window is fully up
-    shell = main_window.ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
-                    timeout=SHELL_TIMEOUT)
-
     # Select the third-party plugin
-    pylint = get_thirdparty_plugin(main_window, "Static code analysis")
+    pylint = get_thirdparty_plugin(main_window, "Code Analysis")
 
     # Do an analysis
     test_file = osp.join(LOCATION, 'script_pylint.py')
@@ -1662,15 +1717,9 @@ def test_troubleshooting_menu_item_and_url(monkeypatch):
 
 @flaky(max_runs=3)
 @pytest.mark.slow
-@pytest.mark.xfail
 def test_help_opens_when_show_tutorial_full(main_window, qtbot):
     """Test fix for #6317 : 'Show tutorial' opens the help plugin if closed."""
     HELP_STR = "Help"
-
-    # Wait until the window is fully up
-    shell = main_window.ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
-                    timeout=SHELL_TIMEOUT)
 
     help_pane_menuitem = None
     for action in main_window.plugins_menu.actions():
@@ -1679,13 +1728,9 @@ def test_help_opens_when_show_tutorial_full(main_window, qtbot):
             break
 
     # Test opening tutorial with Help plguin closed
-    try:
-        main_window.help.plugin_closed()
-    except Exception:
-        pass
+    main_window.help.toggle_view_action.setChecked(False)
     qtbot.wait(500)
     help_tabbar, help_index = find_desired_tab_in_window(HELP_STR, main_window)
-
     assert help_tabbar is None and help_index is None
     assert not isinstance(main_window.focusWidget(), ObjectComboBox)
     assert not help_pane_menuitem.isChecked()
@@ -1696,7 +1741,6 @@ def test_help_opens_when_show_tutorial_full(main_window, qtbot):
     help_tabbar, help_index = find_desired_tab_in_window(HELP_STR, main_window)
     assert None not in (help_tabbar, help_index)
     assert help_index == help_tabbar.currentIndex()
-    assert isinstance(main_window.focusWidget(), ObjectComboBox)
     assert help_pane_menuitem.isChecked()
 
     # Test opening tutorial with help plugin open, but not selected
@@ -1706,7 +1750,6 @@ def test_help_opens_when_show_tutorial_full(main_window, qtbot):
     help_tabbar, help_index = find_desired_tab_in_window(HELP_STR, main_window)
     assert None not in (help_tabbar, help_index)
     assert help_index != help_tabbar.currentIndex()
-    assert not isinstance(main_window.focusWidget(), ObjectComboBox)
     assert help_pane_menuitem.isChecked()
 
     main_window.help.show_tutorial()
@@ -1714,7 +1757,6 @@ def test_help_opens_when_show_tutorial_full(main_window, qtbot):
     help_tabbar, help_index = find_desired_tab_in_window(HELP_STR, main_window)
     assert None not in (help_tabbar, help_index)
     assert help_index == help_tabbar.currentIndex()
-    assert isinstance(main_window.focusWidget(), ObjectComboBox)
     assert help_pane_menuitem.isChecked()
 
     # Test opening tutorial with help plugin open and the active tab
@@ -1724,7 +1766,6 @@ def test_help_opens_when_show_tutorial_full(main_window, qtbot):
     qtbot.wait(500)
     assert None not in (help_tabbar, help_index)
     assert help_index == help_tabbar.currentIndex()
-    assert isinstance(main_window.focusWidget(), ObjectComboBox)
     assert help_pane_menuitem.isChecked()
 
 
@@ -1782,6 +1823,35 @@ def test_render_issue():
     assert len(test_issue_2) > 100
     assert test_description in test_issue_2
     assert test_traceback in test_issue_2
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_custom_layouts(main_window, qtbot):
+    """Test that layout are showing the expected widgets visible."""
+    mw = main_window
+    mw.first_spyder_run = False
+    prefix = 'window' + '/'
+    settings = mw.load_window_settings(prefix=prefix, default=True)
+
+    # Test layout changes
+    for layout_idx in ['default'] + list(range(4)):
+        with qtbot.waitSignal(mw.sig_layout_setup_ready, timeout=5000):
+            layout = mw.setup_default_layouts(layout_idx, settings=settings)
+
+            with qtbot.waitSignal(None, timeout=500, raising=False):
+                # Add a wait to see changes
+                pass
+
+            widgets_layout = layout['widgets']
+            hidden_widgets = layout['hidden widgets']
+            for column in widgets_layout:
+                for row in column:
+                    for idx, widget in enumerate(row):
+                        if idx == 0:
+                            if widget not in hidden_widgets:
+                                print(widget)  # spyder: test-skip
+                                assert widget.isVisible()
 
 
 if __name__ == "__main__":

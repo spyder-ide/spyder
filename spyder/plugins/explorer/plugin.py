@@ -33,11 +33,13 @@ class Explorer(SpyderPluginWidget):
         SpyderPluginWidget.__init__(self, parent)
 
         self.fileexplorer = ExplorerWidget(
-                                self,
-                                name_filters=self.get_option('name_filters'),
-                                show_all=self.get_option('show_all'),
-                                show_icontext=self.get_option('show_icontext'),
-                                options_button=self.options_button)
+            self,
+            name_filters=self.get_option('name_filters'),
+            show_all=self.get_option('show_all'),
+            show_icontext=self.get_option('show_icontext'),
+            options_button=self.options_button,
+            single_click_to_open=self.get_option('single_click_to_open'),
+        )
 
         # Initialize plugin
         self.initialize_plugin()
@@ -46,10 +48,13 @@ class Explorer(SpyderPluginWidget):
         layout.addWidget(self.fileexplorer)
         self.setLayout(layout)
 
+        self.fileexplorer.sig_option_changed.connect(
+            self._update_config_options)
+
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
-        return _("File explorer")
+        return _("Files")
     
     def get_focus_widget(self):
         """
@@ -118,3 +123,7 @@ class Explorer(SpyderPluginWidget):
     def chdir(self, directory):
         """Set working directory"""
         self.fileexplorer.treewidget.chdir(directory)
+
+    def _update_config_options(self, option, value):
+        """Update the config options of the explorer to make them permanent."""
+        self.set_option(option, value)

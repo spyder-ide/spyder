@@ -1,38 +1,25 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 3.3.2 is released!
+**Subject**: [ANN] Spyder 3.3.4 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **3.3.2** has been released and is available for
+I'm pleased to announce that Spyder **3.3.4** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes three months and a half after version 3.3.1 and it adds the
+This release comes seven weeks after version 3.3.2 and it adds the
 following new features:
 
-- Main Window
-    * Add new German and Hungarian translations.
+* Fix several incompatibilities with PyQt5 5.12.
+* Avoid errors when running `turtle` programs in the IPython console
+  multiple times.
+* Avoid the UMR to reload modules installed in the user site-packages
+  directory.
 
-- Preferences
-    * Give users the ability to select the OpenGL implementation
-      used by Qt. This option can be changed in
-      `General > Advanced Settings > Rendering engine`.
-
-- Find in files
-    * Simplify the way to exclude files from search.
-    * Fix error that prevented to stop a search when it was in
-      progress.
-    * Save its options when Spyder is closed.
-
-- Under the hood
-    * Don't remove Spyder's temporary directory when Spyder is
-      closed. This avoids conflicts when multiple Spyder
-      instances are running.
-
-In this release we fixed 45 issues and merged 69 pull requests that amount
-to more than 340 commits. For a full list of fixes, please see our
+In this release we fixed 13 issues and merged 23 pull requests that amount
+to 57 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/3.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's

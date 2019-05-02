@@ -107,6 +107,10 @@ class LineNumberArea(Panel):
                 if data.todo:
                     draw_pixmap(top, self.todo_pixmap)
 
+    def leaveEvent(self, event):
+        """Override Qt method."""
+        self.editor.hide_tooltip()
+
     def mouseMoveEvent(self, event):
         """Override Qt method.
 
@@ -122,6 +126,8 @@ class LineNumberArea(Panel):
         if data and data.code_analysis and check:
             self.editor.show_code_analysis_results(line_number,
                                                    data)
+        else:
+            self.editor.hide_tooltip()
 
         if event.buttons() == Qt.LeftButton:
             self._released = line_number

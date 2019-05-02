@@ -45,15 +45,17 @@ from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
 from spyder.plugins.editor.widgets.editor import (EditorMainWindow, Printer,
                                                   EditorSplitter, EditorStack,)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+from spyder.plugins.editor.utils.bookmarks import (load_bookmarks,
+                                                   save_bookmarks)
 from spyder.plugins.editor.utils.debugger import (clear_all_breakpoints,
                                                   clear_breakpoint)
-from spyder.widgets.status import (CursorPositionStatus, EncodingStatus,
-                                   EOLStatus, ReadWriteStatus)
+from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
+                                                  EncodingStatus, EOLStatus,
+                                                  ReadWriteStatus, VCSStatus)
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.preferences.runconfig import (ALWAYS_OPEN_FIRST_RUN_OPTION,
                                           get_run_configuration,
                                           RunConfigDialog, RunConfigOneDialog)
-from spyder.plugins.editor.lsp import LSPEventTypes
 
 
 logger = logging.getLogger(__name__)
@@ -92,7 +94,6 @@ class Editor(SpyderPluginWidget):
     breakpoints_saved = Signal()
     run_in_current_extconsole = Signal(str, str, str, bool, bool)
     open_file_update = Signal(str)
-    sig_lsp_notification = Signal(dict, str)
 
     def __init__(self, parent, ignore_last_opened_files=False):
         SpyderPluginWidget.__init__(self, parent)
@@ -141,11 +142,12 @@ class Editor(SpyderPluginWidget):
         # Configuration dialog size
         self.dialog_size = None
 
-        statusbar = self.main.statusBar()
-        self.readwrite_status = ReadWriteStatus(self, statusbar)
-        self.eol_status = EOLStatus(self, statusbar)
-        self.encoding_status = EncodingStatus(self, statusbar)
+        statusbar = parent.statusBar()  # Create a status bar
+        self.vcs_status = VCSStatus(self, statusbar)
         self.cursorpos_status = CursorPositionStatus(self, statusbar)
+        self.encoding_status = EncodingStatus(self, statusbar)
+        self.eol_status = EOLStatus(self, statusbar)
+        self.readwrite_status = ReadWriteStatus(self, statusbar)
 
         layout = QVBoxLayout()
         self.dock_toolbar = QToolBar(self)
@@ -158,7 +160,6 @@ class Editor(SpyderPluginWidget):
         self.__ignore_cursor_position = True
 
         # LSP setup
-        self.sig_lsp_notification.connect(self.document_server_settings)
         self.lsp_editor_settings = {}
 
         # Setup new windows:
@@ -277,7 +278,7 @@ class Editor(SpyderPluginWidget):
         logger.debug('Call LSP for %s' % filename)
         language = options['language']
         callback = options['codeeditor']
-        stat = self.main.lspmanager.start_lsp_client(language.lower())
+        stat = self.main.lspmanager.start_client(language.lower())
         self.main.lspmanager.register_file(
             language.lower(), filename, callback)
         if stat:
@@ -290,10 +291,11 @@ class Editor(SpyderPluginWidget):
                 editor.lsp_ready = False
 
     @Slot(dict, str)
-    def document_server_settings(self, settings, language):
-        """Update LSP server settings for textDocument requests."""
+    def register_lsp_server_settings(self, settings, language):
+        """Register LSP server settings."""
         self.lsp_editor_settings[language] = settings
-        logger.debug('LSP Language Settings: %r' % self.lsp_editor_settings)
+        logger.debug('LSP server settings for {!s} are: {!r}'.format(
+            language, settings))
         self.lsp_server_ready(language, self.lsp_editor_settings[language])
 
     def lsp_server_ready(self, language, configuration):
@@ -610,6 +612,7 @@ class Editor(SpyderPluginWidget):
                       "HACK/BUG/OPTIMIZE/!!!/???)"),
                 triggered=self.go_to_next_todo)
         self.todo_menu = QMenu(self)
+        self.todo_menu.setStyleSheet("QMenu {menu-scrollable: 1;}")
         self.todo_list_action.setMenu(self.todo_menu)
         self.todo_menu.aboutToShow.connect(self.update_todo_menu)
 
@@ -618,6 +621,7 @@ class Editor(SpyderPluginWidget):
                 tip=_("Show code analysis warnings/errors"),
                 triggered=self.go_to_next_warning)
         self.warning_menu = QMenu(self)
+        self.warning_menu.setStyleSheet("QMenu {menu-scrollable: 1;}")
         self.warning_list_action.setMenu(self.warning_menu)
         self.warning_menu.aboutToShow.connect(self.update_warning_menu)
         self.previous_warning_action = create_action(self,
@@ -941,10 +945,8 @@ class Editor(SpyderPluginWidget):
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.main.lspmanager.register_plugin_type(LSPEventTypes.DOCUMENT,
-                                                  self.sig_lsp_notification)
         self.main.restore_scrollbar_position.connect(
-                                               self.restore_scrollbar_position)
+            self.restore_scrollbar_position)
         self.main.console.edit_goto.connect(self.load)
         self.exec_in_extconsole.connect(self.main.execute_in_external_console)
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
@@ -1080,12 +1082,17 @@ class Editor(SpyderPluginWidget):
             editorstack.reset_statusbar.connect(self.encoding_status.hide)
             editorstack.reset_statusbar.connect(self.cursorpos_status.hide)
             editorstack.readonly_changed.connect(
-                                        self.readwrite_status.readonly_changed)
+                                        self.readwrite_status.update_readonly)
             editorstack.encoding_changed.connect(
-                                         self.encoding_status.encoding_changed)
+                                         self.encoding_status.update_encoding)
             editorstack.sig_editor_cursor_position_changed.connect(
-                                 self.cursorpos_status.cursor_position_changed)
-            editorstack.sig_refresh_eol_chars.connect(self.eol_status.eol_changed)
+                                 self.cursorpos_status.update_cursor_position)
+            editorstack.sig_refresh_eol_chars.connect(
+                self.eol_status.update_eol)
+            editorstack.current_file_changed.connect(
+                self.vcs_status.update_vcs)
+            editorstack.file_saved.connect(
+                self.vcs_status.update_vcs_state)
 
         editorstack.autosave_mapping \
             = CONF.get('editor', 'autosave_mapping', {})
@@ -1095,22 +1102,13 @@ class Editor(SpyderPluginWidget):
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
 
         settings = (
-            ('set_pyflakes_enabled',                'code_analysis/pyflakes'),
-            ('set_pep8_enabled',                    'code_analysis/pep8'),
             ('set_todolist_enabled',                'todo_list'),
-            ('set_realtime_analysis_enabled',       'realtime_analysis'),
-            ('set_realtime_analysis_timeout',       'realtime_analysis/timeout'),
             ('set_blanks_enabled',                  'blank_spaces'),
             ('set_scrollpastend_enabled',           'scroll_past_end'),
             ('set_linenumbers_enabled',             'line_numbers'),
             ('set_edgeline_enabled',                'edge_line'),
             ('set_edgeline_columns',                'edge_line_columns'),
             ('set_indent_guides',                   'indent_guides'),
-            ('set_codecompletion_auto_enabled',     'codecompletion/auto'),
-            ('set_codecompletion_case_enabled',     'codecompletion/case_sensitive'),
-            ('set_codecompletion_enter_enabled',    'codecompletion/enter_key'),
-            ('set_calltips_enabled',                'calltips'),
-            ('set_go_to_definition_enabled',        'go_to_definition'),
             ('set_focus_to_editor',                 'focus_to_editor'),
             ('set_run_cell_copy',                   'run_cell_copy'),
             ('set_close_parentheses_enabled',       'close_parentheses'),
@@ -1197,6 +1195,9 @@ class Editor(SpyderPluginWidget):
         editorstack.sig_next_cursor.connect(self.go_to_next_cursor_position)
         editorstack.sig_prev_warning.connect(self.go_to_previous_warning)
         editorstack.sig_next_warning.connect(self.go_to_next_warning)
+        editorstack.sig_save_bookmark.connect(self.save_bookmark)
+        editorstack.sig_load_bookmark.connect(self.load_bookmark)
+        editorstack.sig_save_bookmarks.connect(self.save_bookmarks)
 
     def unregister_editorstack(self, editorstack):
         """Removing editorstack only if it's not the last remaining"""
@@ -1379,20 +1380,15 @@ class Editor(SpyderPluginWidget):
 
     def update_warning_menu(self):
         """Update warning list menu"""
-        # TODO: COnnect this to the LSP!
-        editorstack = self.get_current_editorstack()
-        check_results = [] #editorstack.get_analysis_results()
+        editor = self.get_current_editor()
+        check_results = editor.get_current_warnings()
         self.warning_menu.clear()
         filename = self.get_current_filename()
         for message, line_number in check_results:
             error = 'syntax' in message
             text = message[:1].upper() + message[1:]
             icon = ima.icon('error') if error else ima.icon('warning')
-
-            def slot():
-                self.switch_to_plugin()
-                self.load(filename, goto=line_number)
-
+            slot = lambda _checked, _l=line_number: self.load(filename, goto=_l)
             action = create_action(self, text=text, icon=icon, triggered=slot)
             self.warning_menu.addAction(action)
 
@@ -1404,11 +1400,7 @@ class Editor(SpyderPluginWidget):
         filename = self.get_current_filename()
         for text, line0 in results:
             icon = ima.icon('todo')
-
-            def slot():
-                self.switch_to_plugin()
-                self.load(filename, goto=line0)
-
+            slot = lambda _checked, _l=line0: self.load(filename, goto=_l)
             action = create_action(self, text=text, icon=icon, triggered=slot)
             self.todo_menu.addAction(action)
         self.update_todo_actions()
@@ -1466,10 +1458,12 @@ class Editor(SpyderPluginWidget):
             self.open_file_update.emit(self.get_current_filename())
 
     def update_code_analysis_actions(self):
-        # TODO: Connect this to the LSP!
-        editorstack = self.get_current_editorstack()
-        results = None #editorstack.get_analysis_results()
-
+        """Update actions in the warnings menu."""
+        editor = self.get_current_editor()
+        # To fix an error at startup
+        if editor is None:
+            return
+        results = editor.get_current_warnings()
         # Update code analysis buttons
         state = (self.get_option('code_analysis/pyflakes') \
                  or self.get_option('code_analysis/pep8')) \
@@ -1510,6 +1504,14 @@ class Editor(SpyderPluginWidget):
         save_breakpoints(filename, breakpoints)
         self.breakpoints_saved.emit()
 
+    # ------ Bookmarks
+    def save_bookmarks(self, filename, bookmarks):
+        """Receive bookmark changes and save them."""
+        filename = to_text_string(filename)
+        bookmarks = to_text_string(bookmarks)
+        filename = osp.normpath(osp.abspath(filename))
+        bookmarks = eval(bookmarks)
+        save_bookmarks(filename, bookmarks)
 
     #------ File I/O
     def __load_temp_file(self):
@@ -1651,14 +1653,15 @@ class Editor(SpyderPluginWidget):
         """Update recent file menu"""
         recent_files = []
         for fname in self.recent_files:
-            if self.is_file_opened(fname) is None and osp.isfile(fname):
+            if osp.isfile(fname):
                 recent_files.append(fname)
         self.recent_file_menu.clear()
         if recent_files:
             for fname in recent_files:
-                action = create_action(self, fname,
-                                       icon=ima.icon('FileIcon'),
-                                       triggered=self.load)
+                action = create_action(
+                    self, fname,
+                    icon=ima.get_icon_by_extension(fname, scale_factor=1.0),
+                    triggered=self.load)
                 action.setData(to_qvariant(fname))
                 self.recent_file_menu.addAction(action)
         self.clear_recent_action.setEnabled(len(recent_files) > 0)
@@ -1695,6 +1698,12 @@ class Editor(SpyderPluginWidget):
         end of this method (set to False to prevent keyboard events from
         creeping through to the editor during debugging)
         """
+        # Switch to editor before trying to load a file
+        try:
+            self.switch_to_plugin()
+        except AttributeError:
+            pass
+
         editor0 = self.get_current_editor()
         if editor0 is not None:
             position0 = editor0.get_position('cursor')
@@ -1798,6 +1807,7 @@ class Editor(SpyderPluginWidget):
                 current_editor = current_es.set_current_filename(filename,
                                                                  focus=focus)
                 current_editor.debugger.load_breakpoints()
+                current_editor.set_bookmarks(load_bookmarks(filename))
                 self.register_widget_shortcuts(current_editor)
                 current_es.analyze_script()
                 self.__add_recent_file(filename)
@@ -1814,6 +1824,9 @@ class Editor(SpyderPluginWidget):
             else:
                 # processevents is false only when calling from debugging
                 current_editor.sig_debug_stop.emit(goto[index])
+                current_sw = self.main.ipyconsole.get_current_shellwidget()
+                current_sw.sig_prompt_ready.connect(
+                    current_editor.sig_debug_stop[()].emit)
 
     @Slot()
     def print_file(self):
@@ -2311,6 +2324,9 @@ class Editor(SpyderPluginWidget):
     def debug_file(self):
         """Debug current script"""
         self.switch_to_plugin()
+        current_editor = self.get_current_editor()
+        if current_editor is not None:
+            current_editor.sig_debug_start.emit()
         self.run_file(debug=True)
 
     @Slot()
@@ -2355,6 +2371,46 @@ class Editor(SpyderPluginWidget):
         """Run last executed cell."""
         editorstack = self.get_current_editorstack()
         editorstack.re_run_last_cell()
+
+    # ------ Code bookmarks
+    @Slot(int)
+    def save_bookmark(self, slot_num):
+        """Save current line and position as bookmark."""
+        bookmarks = CONF.get('editor', 'bookmarks')
+        editorstack = self.get_current_editorstack()
+        if slot_num in bookmarks:
+            filename, line_num, column = bookmarks[slot_num]
+            if osp.isfile(filename):
+                index = editorstack.has_filename(filename)
+                if index is not None:
+                    block = (editorstack.tabs.widget(index).document()
+                             .findBlockByNumber(line_num))
+                    block.userData().bookmarks.remove((slot_num, column))
+        if editorstack is not None:
+            self.switch_to_plugin()
+            editorstack.set_bookmark(slot_num)
+
+    @Slot(int)
+    def load_bookmark(self, slot_num):
+        """Set cursor to bookmarked file and position."""
+        bookmarks = CONF.get('editor', 'bookmarks')
+        if slot_num in bookmarks:
+            filename, line_num, column = bookmarks[slot_num]
+        else:
+            return
+        if not osp.isfile(filename):
+            self.last_edit_cursor_pos = None
+            return
+        self.load(filename)
+        editor = self.get_current_editor()
+        if line_num < editor.document().lineCount():
+            linelength = len(editor.document()
+                             .findBlockByNumber(line_num).text())
+            if column <= linelength:
+                editor.go_to_line(line_num + 1, column)
+            else:
+                # Last column
+                editor.go_to_line(line_num + 1, linelength)
 
     #------ Zoom in/out/reset
     def zoom(self, factor):
@@ -2437,16 +2493,6 @@ class Editor(SpyderPluginWidget):
             converteolto_o = self.get_option(converteolto_n)
             runcellcopy_n = 'run_cell_copy'
             runcellcopy_o = self.get_option(runcellcopy_n)
-            autocomp_n = 'codecompletion/auto'
-            autocomp_o = self.get_option(autocomp_n)
-            case_comp_n = 'codecompletion/case_sensitive'
-            case_comp_o = self.get_option(case_comp_n)
-            enter_key_n = 'codecompletion/enter_key'
-            enter_key_o = self.get_option(enter_key_n)
-            calltips_n = 'calltips'
-            calltips_o = self.get_option(calltips_n)
-            gotodef_n = 'go_to_definition'
-            gotodef_o = self.get_option(gotodef_n)
             closepar_n = 'close_parentheses'
             closepar_o = self.get_option(closepar_n)
             close_quotes_n = 'close_quotes'
@@ -2463,14 +2509,6 @@ class Editor(SpyderPluginWidget):
             help_o = CONF.get('help', 'connect/editor')
             todo_n = 'todo_list'
             todo_o = self.get_option(todo_n)
-            pyflakes_n = 'code_analysis/pyflakes'
-            pyflakes_o = self.get_option(pyflakes_n)
-            pep8_n = 'code_analysis/pep8'
-            pep8_o = self.get_option(pep8_n)
-            rt_analysis_n = 'realtime_analysis'
-            rt_analysis_o = self.get_option(rt_analysis_n)
-            rta_timeout_n = 'realtime_analysis/timeout'
-            rta_timeout_o = self.get_option(rta_timeout_n)
 
             finfo = self.get_current_finfo()
 
@@ -2499,16 +2537,6 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_convert_eol_on_save_to(converteolto_o)
                 if runcellcopy_n in options:
                     editorstack.set_run_cell_copy(runcellcopy_o)
-                if autocomp_n in options:
-                    editorstack.set_codecompletion_auto_enabled(autocomp_o)
-                if case_comp_n in options:
-                    editorstack.set_codecompletion_case_enabled(case_comp_o)
-                if enter_key_n in options:
-                    editorstack.set_codecompletion_enter_enabled(enter_key_o)
-                if calltips_n in options:
-                    editorstack.set_calltips_enabled(calltips_o)
-                if gotodef_n in options:
-                    editorstack.set_go_to_definition_enabled(gotodef_o)
                 if closepar_n in options:
                     editorstack.set_close_parentheses_enabled(closepar_o)
                 if close_quotes_n in options:
@@ -2526,15 +2554,6 @@ class Editor(SpyderPluginWidget):
                 if todo_n in options:
                     editorstack.set_todolist_enabled(todo_o,
                                                      current_finfo=finfo)
-                if pyflakes_n in options:
-                    editorstack.set_pyflakes_enabled(pyflakes_o,
-                                                     current_finfo=finfo)
-                if pep8_n in options:
-                    editorstack.set_pep8_enabled(pep8_o, current_finfo=finfo)
-                if rt_analysis_n in options:
-                    editorstack.set_realtime_analysis_enabled(rt_analysis_o)
-                if rta_timeout_n in options:
-                    editorstack.set_realtime_analysis_timeout(rta_timeout_o)
 
             for name, action in self.checkable_actions.items():
                 if name in options:
@@ -2551,12 +2570,9 @@ class Editor(SpyderPluginWidget):
             # (otherwise, code analysis buttons state would correspond to the
             #  last editor instead of showing the one of the current editor)
             if finfo is not None:
+                # TODO: Connect this to the LSP
                 if todo_n in options and todo_o:
                     finfo.run_todo_finder()
-                if pyflakes_n in options or pep8_n in options:
-                    # TODO: Connect this to the LSP
-                    #finfo.run_code_analysis(pyflakes_o, pep8_o)
-                    pass
 
     # --- Open files
     def get_open_filenames(self):

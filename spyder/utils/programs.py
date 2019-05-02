@@ -20,6 +20,7 @@ import sys
 import tempfile
 
 # Local imports
+from spyder.config.base import is_stable_version
 from spyder.config.utils import is_anaconda
 from spyder.utils import encoding
 from spyder.utils.misc import get_python_executable
@@ -336,23 +337,6 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
         # TODO: Add a fallback to OSX
     else:
         raise NotImplementedError
-
-
-def is_stable_version(version):
-    """
-    A stable version has no letters in the final component, but only numbers.
-
-    Stable version example: 1.2, 1.3.4, 1.0.5
-    Not stable version: 1.2alpha, 1.3.4beta, 0.1.0rc1, 3.0.0dev
-    """
-    if not isinstance(version, tuple):
-        version = version.split('.')
-    last_part = version[-1]
-
-    if not re.search(r'[a-zA-Z]', last_part):
-        return True
-    else:
-        return False
 
 
 def check_version(actver, version, cmp_op):

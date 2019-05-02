@@ -1675,6 +1675,39 @@ spyder/images/notebook_light.svg
 spyder/images/notebook_dark.svg
 
 
+-------------------------------------------------------------------------------
+
+
+
+Latex Logo
+----------
+
+
+Copyright (c) 2016 Roberto Huertas
+
+
+Author: Roberto Huertas | https://github.com/vscode-icons/vscode-icons
+Site: https://github.com/vscode-icons  
+Source: https://github.com/vscode-icons
+License: The MIT License (MIT)
+https://opensource.org/licenses/MIT
+
+
+Distributed under the terms of The MIT License (MIT)
+
+
+See below for the full text of The MIT License (MIT).
+
+The current version of the original file can be viewed at:
+https://github.com/vscode-icons/vscode-icons/blob/master/icons/file_type_tex.svg
+
+
+Files covered:
+
+spyder/images/file_type_light_tex.svg
+spyder/images/file_type_tex.svg
+
+
 ===============================================================================
 
 

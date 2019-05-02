@@ -15,9 +15,7 @@ import pytest
 from qtpy.QtWidgets import QMainWindow
 
 # Local imports
-from spyder.widgets.status import (ReadWriteStatus, EOLStatus, EncodingStatus,
-                                   CursorPositionStatus, MemoryStatus,
-                                   CPUStatus)
+from spyder.widgets.status import MemoryStatus, CPUStatus
 
 
 @pytest.fixture
@@ -35,12 +33,11 @@ def test_status_bar(status_bar, qtbot):
     """Run StatusBarWidget."""
     win, statusbar = status_bar
     swidgets = []
-    for klass in (ReadWriteStatus, EOLStatus, EncodingStatus,
-                  CursorPositionStatus, MemoryStatus, CPUStatus):
+    for klass in (MemoryStatus, CPUStatus):
         swidget = klass(win, statusbar)
         swidgets.append(swidget)
     assert win
-    assert len(swidgets) == 6
+    assert len(swidgets) == 2
 
 
 if __name__ == "__main__":

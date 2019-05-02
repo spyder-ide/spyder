@@ -18,3 +18,5 @@ FORMAT_NAME = "HDF5"
 FORMAT_EXT  = ".h5"
 FORMAT_LOAD = load_hdf5
 FORMAT_SAVE = save_hdf5
+
+PLUGIN_CLASS = True

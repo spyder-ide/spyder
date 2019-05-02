@@ -14,13 +14,14 @@ import os.path as osp
 
 # Third party imports
 import pytest
+from qtpy.QtCore import Qt, QPoint, QEvent
+from qtpy.QtGui import QMouseEvent
 from qtpy.QtWidgets import QApplication
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
 from spyder.plugins.explorer.widgets import (FileExplorerTest,
                                              ProjectExplorerTest)
-from spyder.py3compat import to_text_string
 from spyder.plugins.projects.widgets.explorer import ProjectExplorerTest as \
     ProjectExplorerTest2
 
@@ -41,41 +42,7 @@ def project_explorer(qtbot):
     return widget
 
 
-@pytest.fixture(params=[['script.py', 'dir1/dir2/dir3/dir4'],
-                        ['script.py', 'script1.py', 'testdir/dir1/script2.py'],
-                        ['subdir/innerdir/dir3/text.txt', 'dir1/dir2/dir3',
-                         'dir1/dir2/dir3/file.txt',
-                         'dir1/dir2/dir3/dir4/python.py']])
-def create_folders_files(tmpdir, request):
-    """A project directory with dirs and files for testing."""
-    project_dir = to_text_string(tmpdir.mkdir('project'))
-    destination_dir = to_text_string(tmpdir.mkdir('destination'))
-    top_folder = osp.join(project_dir, 'top_folder_in_proj')
-    if not osp.exists(top_folder):
-        os.mkdir(top_folder)
-    list_paths = []
-    for item in request.param:
-        if osp.splitext(item)[1]:
-            if osp.split(item)[0]:
-                dirs, fname = osp.split(item)
-                dirpath = osp.join(top_folder, dirs)
-                if not osp.exists(dirpath):
-                    os.makedirs(dirpath)
-                    item_path = osp.join(dirpath, fname)
-            else:
-                item_path = osp.join(top_folder, item)
-        else:
-            dirpath = osp.join(top_folder, item)
-            if not osp.exists(dirpath):
-                os.makedirs(dirpath)
-                item_path = dirpath
-        if not osp.isdir(item_path):
-            with open(item_path, 'w') as fh:
-                fh.write("File Path:\n" + str(item_path).replace(os.sep, '/'))
-        list_paths.append(item_path)
-    return list_paths, project_dir, destination_dir, top_folder
-
-
+@pytest.mark.usefixtures("create_folders_files")
 @pytest.fixture(params=[FileExplorerTest, ProjectExplorerTest2])
 def explorer_with_files(qtbot, create_folders_files, request):
     """Setup Project/File Explorer widget."""
@@ -160,6 +127,50 @@ def test_delete_file(explorer_with_files, mocker):
     mocker.patch.object(QMessageBox, 'warning', return_value=QMessageBox.Yes)
     project.explorer.treewidget.delete(fnames=[top_folder])
     assert not osp.exists(top_folder)
+
+
+def test_single_click_to_open(qtbot, file_explorer):
+    """Test single and double click open option for the file explorer."""
+    file_explorer.show()
+
+    treewidget = file_explorer.explorer.treewidget
+    model = treewidget.model()
+    cwd = os.getcwd()
+    qtbot.keyClick(treewidget, Qt.Key_Up)  # To focus and select the 1st item
+    initial_index = treewidget.currentIndex()  # To keep a reference
+
+    def run_test_helper(single_click, initial_index):
+        # Reset the widget
+        treewidget.setCurrentIndex(initial_index)
+        file_explorer.label3.setText('')
+        file_explorer.label1.setText('')
+
+        for i in range(4):  # 4 items inside `/spyder/plugins/explorer/`
+            qtbot.keyClick(treewidget, Qt.Key_Down)        
+            index = treewidget.currentIndex()
+            path = model.data(index)
+            if path:
+                full_path = os.path.join(cwd, path)
+                # Skip folder to avoid changing the view for single click case
+                if os.path.isfile(full_path):
+                    rect = treewidget.visualRect(index)
+                    pos = rect.center()
+                    qtbot.mouseClick(treewidget.viewport(), Qt.LeftButton, pos=pos)
+
+                    if single_click:
+                        assert full_path == file_explorer.label1.text()
+                    else:
+                        assert full_path != file_explorer.label1.text()
+
+    # Test single click to open
+    treewidget.set_single_click_to_open(True)
+    assert 'True' in file_explorer.label3.text()
+    run_test_helper(single_click=True, initial_index=initial_index)
+
+    # Test double click to open
+    treewidget.set_single_click_to_open(False)
+    assert 'False' in file_explorer.label3.text()
+    run_test_helper(single_click=False, initial_index=initial_index)
 
 
 if __name__ == "__main__":

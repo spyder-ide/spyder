@@ -7,12 +7,12 @@
 # Third party imports
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QFont, QTextCursor
-                            
 from pytestqt import qtbot
 import pytest
 
 # Local imports
 from spyder.plugins.editor.widgets.editor import codeeditor
+from spyder.py3compat import PY3
 
 
 # --- Fixtures
@@ -56,3 +56,30 @@ def test_editor_lower_to_upper(editorbot):
     widget.transform_to_uppercase()
     new_text = widget.get_text('sof', 'eof')
     assert text != new_text
+
+
+@pytest.mark.skipif(PY3, reason='Test only makes sense on Python 2.')
+def test_editor_log_lsp_handle_errors(editorbot, capsys):
+    """Test the lsp error handling / dialog report Python 2."""
+    qtbot, widget = editorbot
+    params = {
+        'params': {
+            'activeParameter': 'boo',
+            'signatures': {
+                'documentation': b'\x81',
+                'label': 'foo',
+                'parameters': {
+                    'boo': {
+                        'documentation': b'\x81',
+                        'label': 'foo',
+                    },
+                }
+            }
+        }
+    }
+
+    widget.process_signatures(params)
+    captured = capsys.readouterr()
+    test_1 = "Error when processing signature" in captured.err
+    test_2 = "codec can't decode byte 0x81" in captured.err
+    assert test_1 or test_2

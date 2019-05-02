@@ -70,7 +70,7 @@ class Pylint(SpyderPluginWidget):
     #------ SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
-        return _("Static code analysis")
+        return _("Code Analysis")
 
     def get_plugin_icon(self):
         """Return widget icon"""

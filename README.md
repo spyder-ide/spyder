@@ -1,5 +1,4 @@
-![Spyder — The Scientific Python Development Environment](
-./img_src/spyder_readme_banner.png)
+![Spyder — The Scientific Python Development Environment](https://raw.githubusercontent.com/spyder-ide/spyder/master/img_src/spyder_readme_banner.png)
 
 *Copyright © 2009–2019 [Spyder Project Contributors](
 https://github.com/spyder-ide/spyder/graphs/contributors)*
@@ -17,13 +16,12 @@ https://github.com/spyder-ide/spyder/graphs/contributors)*
 [![Join the chat at https://gitter.im/spyder-ide/public](https://badges.gitter.im/spyder-ide/spyder.svg)](https://gitter.im/spyder-ide/public)<br>
 [![PyPI status](https://img.shields.io/pypi/status/spyder.svg)](https://github.com/spyder-ide/spyder)
 [![Travis status](https://travis-ci.org/spyder-ide/spyder.svg?branch=master)](https://travis-ci.org/spyder-ide/spyder)
-[![AppVeyor status](https://ci.appveyor.com/api/projects/status/tvjcqa4kf53br8s0/branch/master?svg=true)](https://ci.appveyor.com/project/spyder-ide/spyder/branch/master)
 [![CircleCI](https://circleci.com/gh/spyder-ide/spyder.svg?style=shield)](https://circleci.com/gh/spyder-ide/spyder)
 [![Azure](https://dev.azure.com/spyder-ide/spyder/_apis/build/status/spyder-ide.spyder?branchName=master)](https://dev.azure.com/spyder-ide/spyder/_build/latest?definitionId=1?branchName=master)
 [![Coverage Status](https://coveralls.io/repos/github/spyder-ide/spyder/badge.svg?branch=master)](https://coveralls.io/github/spyder-ide/spyder?branch=master)
 [![codecov](https://codecov.io/gh/spyder-ide/spyder/branch/master/graph/badge.svg)](https://codecov.io/gh/spyder-ide/spyder)
 
-![Screenshot of Spyder's main window](./img_src/screenshot.png)
+![Screenshot of Spyder's main window](https://raw.githubusercontent.com/spyder-ide/spyder/master/img_src/screenshot.png)
 
 ----
 
@@ -235,7 +233,7 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 * **Pylint**: Static code analysis.
 * **Psutil**: CPU and memory usage on the status bar.
 * **Nbconvert**: Manipulation of notebooks in the Editor.
-* **Qtawesome** 0.5.2+: To have an icon theme based on FontAwesome.
+* **Qtawesome** 0.5.7+: To have an icon theme based on FontAwesome.
 * **Pickleshare**: Show import completions on the Python consoles.
 * **PyZMQ**: Client for the language server protocol (LSP).
 * **QtPy** 1.5.0+: Abstraction layer for Python Qt bindings so that Spyder
@@ -243,7 +241,7 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 * **Chardet**: Character encoding auto-detection in Python.
 * **Numpydoc**: Used by Jedi to get function return types from Numpydocstrings.
 * **Cloudpickle**: Serialize variables in the IPython kernel to send to Spyder.
-* **spyder-kernels** 1.0+: Jupyter kernels for the Spyder console.
+* **spyder-kernels** 1.2.0+: Jupyter kernels for the Spyder console.
 * **keyring**: Save Github credentials to report errors securely.
 * **QDarkStyle** 2.6.4+: A dark stylesheet for Qt applications, used for Spyder's dark theme.
 * **atomicwrites**: Atomic file writes.
@@ -259,16 +257,15 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 * **Cython**: Run Cython files in the IPython console.
 
 
-## Backers
-
-Support us with a monthly donation and help us continue our activities.
-
-[![Backers](https://opencollective.com/spyder/backers.svg)](https://opencollective.com/spyder#support)
-
-
 ## Sponsors
 
-Become a sponsor to get your logo on our README on Github.
+Spyder is funded thanks to the generous support of
+
+
+[![Quansight](https://static.wixstatic.com/media/095d2c_2508c560e87d436ea00357abc404cf1d~mv2.png/v1/crop/x_0,y_9,w_915,h_329/fill/w_380,h_128,al_c,usm_0.66_1.00_0.01/095d2c_2508c560e87d436ea00357abc404cf1d~mv2.png)](https://www.quansight.com/)[![Numfocus](https://i2.wp.com/numfocus.org/wp-content/uploads/2017/07/NumFocus_LRG.png?fit=320%2C148&ssl=1)](https://numfocus.org/)
+
+
+and the donations we have received from our users around the world through [Open Collective](https://opencollective.com/spyder/):
 
 [![Sponsors](https://opencollective.com/spyder/sponsors.svg)](https://opencollective.com/spyder#support)
 

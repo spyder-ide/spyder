@@ -54,6 +54,7 @@ class CloseQuotesExtension(EditorExtension):
 
         key = event.key()
         if key in (Qt.Key_QuoteDbl, Qt.Key_Apostrophe) and self.enabled:
+            self.editor.completion_widget.hide()
             self._autoinsert_quotes(key)
             event.accept()
 
@@ -103,6 +104,7 @@ class CloseQuotesExtension(EditorExtension):
         # probably the user wants to write a docstring
         elif last_two == 2*char:
             self.editor.insert_text(char)
+            self.editor.delayed_popup_docstring()
         # Automatic insertion of quotes
         else:
             self.editor.insert_text(2*char)

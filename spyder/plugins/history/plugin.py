@@ -84,7 +84,7 @@ class HistoryLog(SpyderPluginWidget):
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
         """Return widget title."""
-        return _('History log')
+        return _('History')
     
     def get_plugin_icon(self):
         """Return widget icon."""
@@ -200,13 +200,23 @@ class HistoryLog(SpyderPluginWidget):
         editor.set_font( self.get_plugin_font(), color_scheme )
         editor.toggle_wrap_mode( self.get_option('wrap') )
 
-        text, _ = encoding.read(filename)
+        # Avoid a possible error when reading the history file
+        try:
+            text, _ = encoding.read(filename)
+        except (IOError, OSError):
+            text = "# Previous history could not be read from disk, sorry\n\n"
         text = normalize_eols(text)
         linebreaks = [m.start() for m in re.finditer('\n', text)]
         maxNline = self.get_option('max_entries')
         if len(linebreaks) > maxNline:
             text = text[linebreaks[-maxNline - 1] + 1:]
-            encoding.write(text, filename)
+            # Avoid an error when trying to write the trimmed text to
+            # disk.
+            # See issue 9093
+            try:
+                encoding.write(text, filename)
+            except (IOError, OSError):
+                pass
         editor.set_text(text)
         editor.set_cursor_position('eof')
 

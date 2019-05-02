@@ -8,9 +8,11 @@
 from __future__ import print_function
 import os
 import os.path as osp
+import sys
 
 # Third party imports
-from qtpy.QtCore import Signal, QEvent, QObject, QRegExp, QSize, Qt
+from qtpy.QtCore import (Signal, Slot, QEvent, QFileInfo, QObject, QRegExp,
+                         QSize, Qt)
 from qtpy.QtGui import (QIcon, QRegExpValidator, QTextCursor)
 from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLabel, QLineEdit,
                             QListWidget, QListWidgetItem, QVBoxLayout,
@@ -19,6 +21,7 @@ from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLabel, QLineEdit,
 # Local imports
 from spyder.config.base import _
 from spyder.py3compat import iteritems, to_text_string
+from spyder.config.utils import is_ubuntu
 from spyder.utils import icon_manager as ima
 from spyder.utils.stringmatching import get_search_scores
 from spyder.widgets.helperwidgets import HelperToolButton, HTMLDelegate
@@ -193,6 +196,7 @@ class KeyPressFilter(QObject):
 
     sig_up_key_pressed = Signal()
     sig_down_key_pressed = Signal()
+    sig_enter_key_pressed = Signal()
 
     def eventFilter(self, src, e):
         if e.type() == QEvent.KeyPress:
@@ -200,7 +204,8 @@ class KeyPressFilter(QObject):
                 self.sig_up_key_pressed.emit()
             elif e.key() == Qt.Key_Down:
                 self.sig_down_key_pressed.emit()
-
+            elif (e.key() == Qt.Key_Return):
+                self.sig_enter_key_pressed.emit()
         return super(KeyPressFilter, self).eventFilter(src, e)
 
 
@@ -322,6 +327,8 @@ class FileSwitcher(QDialog):
         self.setWindowOpacity(0.95)
         self.edit.installEventFilter(self.filter)
         self.edit.setValidator(regex_validator)
+        self.edit.setPlaceholderText(_("Start typing the name of an open file "
+                                       "or console to switch to it"))
         self.help.setToolTip(help_text)
         self.list.setItemDelegate(HTMLDelegate(self))
 
@@ -338,6 +345,8 @@ class FileSwitcher(QDialog):
         self.rejected.connect(self.restore_initial_state)
         self.filter.sig_up_key_pressed.connect(self.previous_row)
         self.filter.sig_down_key_pressed.connect(self.next_row)
+        self.filter.sig_enter_key_pressed.connect(self.enter)
+        self.list.itemClicked.connect(self.enter)
         self.edit.returnPressed.connect(self.accept)
         self.edit.textChanged.connect(self.setup)
         self.list.itemSelectionChanged.connect(self.item_selection_changed)
@@ -508,11 +517,11 @@ class FileSwitcher(QDialog):
             self.list.setMinimumWidth(relative_width)
 
             # Height
-            if len(content) < 8:
+            if len(content) < 15:
                 max_entries = len(content)
             else:
-                max_entries = 8
-            max_height = height * max_entries * 2.5
+                max_entries = 15
+            max_height = height * max_entries * 1.7
             self.list.setMinimumHeight(max_height)
 
             # Resize
@@ -657,13 +666,6 @@ class FileSwitcher(QDialog):
                 try:
                     stack_index = self.paths.index(self.filtered_path[row])
                     self.plugin = self.widgets[stack_index][1]
-                    plugin_index = self.plugins_instances.index(self.plugin)
-                    # Count the real index in the tabWidget of the
-                    # current plugin
-                    real_index = self.get_stack_index(stack_index,
-                                                      plugin_index)
-                    self.sig_goto_file.emit(real_index,
-                                            self.plugin.get_current_tab_manager())
                     self.goto_line(self.line_number)
                     try:
                         self.plugin.switch_to_plugin()
@@ -678,6 +680,20 @@ class FileSwitcher(QDialog):
                 line_number = self.filtered_symbol_lines[row]
                 self.goto_line(line_number)
 
+    @Slot()
+    @Slot(QListWidgetItem)
+    def enter(self, itemClicked=None):
+        row = self.current_row()
+        stack_index = self.paths.index(self.filtered_path[row])
+        self.plugin = self.widgets[stack_index][1]
+        plugin_index = self.plugins_instances.index(self.plugin)
+        # Count the real index in the tabWidget of the
+        # current plugin
+        real_index = self.get_stack_index(stack_index,
+                                          plugin_index)
+        self.sig_goto_file.emit(real_index,
+                                self.plugin.get_current_tab_manager())
+        self.accept()
 
     def setup_file_list(self, filter_text, current_path):
         """Setup list widget content for file list display."""
@@ -707,6 +723,20 @@ class FileSwitcher(QDialog):
         self.fix_size(paths)
 
         # Build the text that will appear on the list widget
+        rich_font = CONF.get('appearance', 'rich_font/size', 10)
+        if sys.platform == 'darwin':
+            path_text_font_size = rich_font
+            filename_text_font_size = path_text_font_size + 2
+        elif os.name == 'nt':
+            path_text_font_size = rich_font
+            filename_text_font_size = path_text_font_size + 1
+        elif is_ubuntu():
+            path_text_font_size = rich_font - 2
+            filename_text_font_size = path_text_font_size + 1
+        else:
+            path_text_font_size = rich_font
+            filename_text_font_size = path_text_font_size + 1
+
         for index, score in enumerate(scores):
             text, rich_text, score_value = score
             linecount = ""
@@ -741,7 +771,15 @@ class FileSwitcher(QDialog):
         for result in sorted(results):
             index = result[1]
             path = paths[index]
-            icon = icons[index]
+            if sys.platform == 'darwin':
+                scale_factor = 0.9
+            elif os.name == 'nt':
+                scale_factor = 0.8
+            elif is_ubuntu():
+                scale_factor = 0.6
+            else:
+                scale_factor = 0.9
+            icon = ima.get_icon_by_extension(path, scale_factor)
             text = ''
             try:
                 title = self.widgets[index][1].get_plugin_title().split(' - ')
