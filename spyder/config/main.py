@@ -229,7 +229,6 @@ DEFAULTS = [
               'autosave_enabled': True,
               'autosave_interval': 60,
               'docstring_type': 'Numpydoc',
-              'show_hover_hints': True,
               }),
             ('historylog',
              {
@@ -678,6 +677,9 @@ DEFAULTS = [
              }),
             ('lsp-server',
              {
+              # This option is not used with the LSP server config
+              # It is used to disable hover hints on the editor
+              'enable_hover_hints': True,
               'code_completion': True,
               'jedi_definition': True,
               'jedi_definition/follow_imports': True,

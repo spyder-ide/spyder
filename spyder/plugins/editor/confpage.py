@@ -39,12 +39,6 @@ class EditorConfigPage(PluginConfigPage):
                 'show_class_func_dropdown')
         showindentguides_box = newcb(_("Show Indent Guides"),
                                      'indent_guides')
-        show_hover_hints_box = newcb(
-            _("Show hover hints"),
-            'show_hover_hints',
-            tip=_("If this option is enabled, hovering the mouse \n"
-                  "pointer over an object name will display a hint of\n"
-                  "that object's definition (if resolved)."))
         linenumbers_box = newcb(_("Show line numbers"), 'line_numbers')
         blanks_box = newcb(_("Show blank spaces"), 'blank_spaces')
         currentline_box = newcb(_("Highlight current line"),
@@ -95,7 +89,6 @@ class EditorConfigPage(PluginConfigPage):
 
         display_layout = QVBoxLayout()
         display_layout.addWidget(showtabbar_box)
-        display_layout.addWidget(show_hover_hints_box)
         display_layout.addWidget(showclassfuncdropdown_box)
         display_layout.addWidget(showindentguides_box)
         display_layout.addWidget(linenumbers_box)

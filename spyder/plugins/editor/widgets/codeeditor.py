@@ -301,8 +301,6 @@ class CodeEditor(TextEditBaseWidget):
 
         # Mouse moving timer / Hover hints handling
         # See: mouseMoveEvent
-        self._enable_hover_hints = True
-        self._last_hover_cursor = None
         self.tooltip_widget.sig_help_requested.connect(
             self.show_object_info)
         self._last_point = None
@@ -512,7 +510,7 @@ class CodeEditor(TextEditBaseWidget):
         """Check if a hover hint should be displayed:"""
         value = False
 
-        if self._enable_hover_hints and pos:
+        if CONF.get('lsp-server', 'enable_hover_hints') and pos:
             text = self.get_word_at(pos)
             value = text and self.is_position_inside_word_rect(pos)
 
@@ -722,9 +720,6 @@ class CodeEditor(TextEditBaseWidget):
         self.filename = filename
         self.set_language(language, filename)
 
-        # Hover hints
-        self.set_hover_hints(hover_hints)
-
         # Highlight current cell
         self.set_highlight_current_cell(highlight_current_cell)
 
@@ -818,6 +813,7 @@ class CodeEditor(TextEditBaseWidget):
         self.will_save_notify = sync_options['willSave']
         self.will_save_until_notify = sync_options['willSaveWaitUntil']
         self.save_include_text = sync_options['save']['includeText']
+        self.enable_hover = config['hoverProvider']
         self.auto_completion_characters = (
             completion_options['triggerCharacters'])
         self.signature_completion_characters = (
@@ -930,7 +926,6 @@ class CodeEditor(TextEditBaseWidget):
 
                 signature = signature_data['label']
                 parameter = parameter_data['label']
-                # parameter_documentation = parameter_data['documentation']
 
                 # This method is part of spyder/widgets/mixins
                 self.show_calltip(
@@ -959,7 +954,7 @@ class CodeEditor(TextEditBaseWidget):
             content = contents['params']
             self.sig_display_signature.emit(content)
 
-            if self._enable_hover_hints and content:
+            if CONF.get('lsp-server', 'enable_hover_hints') and content:
                 if self._show_hint and self._last_point:
                     # This is located in spyder/widgets/mixins.py
                     word = self._last_hover_word,
@@ -1090,10 +1085,6 @@ class CodeEditor(TextEditBaseWidget):
             self.highlight_current_line()
         else:
             self.unhighlight_current_line()
-
-    def set_hover_hints(self, enable):
-        """Enable/disable hover hints."""
-        self._enable_hover_hints = enable
 
     def set_highlight_current_cell(self, enable):
         """Enable/disable current line highlighting"""

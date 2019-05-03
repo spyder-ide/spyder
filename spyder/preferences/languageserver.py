@@ -619,6 +619,12 @@ class LSPManagerConfigPage(GeneralConfigPage):
         # Basic features group
         basic_features_group = QGroupBox(_("Basic features"))
         completion_box = newcb(_("Enable code completion"), 'code_completion')
+        enable_hover_hints_box = newcb(
+            _("Enable hover hints"),
+            'enable_hover_hints',
+            tip=_("If this option is enabled, hovering the mouse \n"
+                  "pointer over an object name will display a hint of\n"
+                  "that object's definition (if resolved)."))
         goto_definition_box = newcb(
             _("Enable Go to definition"),
             'jedi_definition',
@@ -632,6 +638,7 @@ class LSPManagerConfigPage(GeneralConfigPage):
 
         basic_features_layout = QVBoxLayout()
         basic_features_layout.addWidget(completion_box)
+        basic_features_layout.addWidget(enable_hover_hints_box)
         basic_features_layout.addWidget(goto_definition_box)
         basic_features_layout.addWidget(follow_imports_box)
         basic_features_layout.addWidget(show_signature_box)

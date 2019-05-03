@@ -73,6 +73,8 @@ PYTHON_CONFIG = {
                     'follow_builtin_imports': True
                 },
                 'jedi_hover': {
+                    # This option needs to be True always so that we can
+                    # request information for the Object Inspection Help Pane
                     'enabled': True
                 },
                 'jedi_references': {
