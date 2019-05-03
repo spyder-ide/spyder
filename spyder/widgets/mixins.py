@@ -33,6 +33,7 @@ from spyder_kernels.utils.dochelpers import (getargspecfromtext, getobj,
 # Local imports
 from spyder.config.base import _
 from spyder.config.gui import is_dark_interface
+from spyder.config.main import CONF
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding, sourcecode, programs
 from spyder.utils.misc import get_error_match
@@ -131,22 +132,11 @@ class BaseEditMixin(object):
 
     def _get_inspect_shortcut(self):
         """
-        Queries the application for the inspect shortcut defined by the
+        Queries the configuration for the inspect shortcut defined by the
         editor.
         """
-        value = ''
-        app = QCoreApplication.instance()
-        # FIXME: This works, but there isprobably a cleaner way.
-        # This need to be defined on the console and on the editor
-        # For now only on the editor (eventually on the notebook)
-        shortcut_editor = getattr(app, 'shortcut_inspect_editor', None)
-        shortcut_console = getattr(app, 'shortcut_inspect_console', None)
-        shortcut = shortcut_editor or shortcut_console
-
-        if shortcut:
-            key_sequence = shortcut.data[0].key()
-            if key_sequence:
-                value = key_sequence.toString()
+        value = CONF.get('shortcuts', 'editor/inspect current object')
+        if value:
             if sys.platform == "darwin":
                 value = value.replace('Ctrl', 'Cmd')
         return value
