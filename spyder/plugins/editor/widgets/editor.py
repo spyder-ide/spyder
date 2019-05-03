@@ -986,13 +986,6 @@ class EditorStack(QWidget):
                     if current_finfo is not finfo:
                         finfo.run_todo_finder()
 
-    def set_hover_hints_enabled(self, state, current_finfo=None):
-        # CONF.get(self.CONF_SECTION, 'show_hover_hints')
-        self.hover_hints = state
-        if self.data:
-            for finfo in self.data:
-                finfo.editor.set_hover_hints(state)
-
     def set_linenumbers_enabled(self, state, current_finfo=None):
         # CONF.get(self.CONF_SECTION, 'line_numbers')
         self.linenumbers_enabled = state
