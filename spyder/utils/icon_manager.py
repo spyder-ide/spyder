@@ -432,6 +432,13 @@ def get_icon_by_extension(fname, scale_factor):
                 else:
                     icon_by_extension = QIcon(
                         get_image_path('notebook_light.svg'))
+            elif extension == '.tex':
+                if is_dark_interface():
+                    icon_by_extension = QIcon(
+                        get_image_path('file_type_tex.svg'))
+                else:
+                    icon_by_extension = QIcon(
+                        get_image_path('file_type_light_tex.svg'))
             elif mime_type is not None:
                 try:
                     # Fix for issue 5080. Even though
