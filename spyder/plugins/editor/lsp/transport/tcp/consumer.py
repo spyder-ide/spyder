@@ -14,7 +14,8 @@ then it relays the information to the actual Spyder LSP client via ZMQ.
 """
 
 import logging
-from spyder.plugins.editor.lsp.transport.common import IncomingMessageThread
+from spyder.plugins.editor.lsp.transport.common.consumer import (
+    IncomingMessageThread)
 
 logger = logging.getLogger(__name__)
 

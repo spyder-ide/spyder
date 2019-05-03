@@ -23,7 +23,8 @@ import logging
 # Local imports
 from spyder.plugins.editor.lsp.transport.stdio.consumer import (
     StdioIncomingMessageThread)
-from spyder.plugins.editor.lsp.transport.common import LanguageServerClient
+from spyder.plugins.editor.lsp.transport.common.producer import (
+    LanguageServerClient)
 
 
 if os.name == 'nt':
@@ -38,13 +39,15 @@ class StdioLanguageServerClient(LanguageServerClient):
     """Implementation of a v3.0 compilant language server stdio client."""
     MAX_TIMEOUT_TIME = 20000
 
-    def __init__(self, server_args='', zmq_in_port=7000, zmq_out_port=7001):
+    def __init__(self, server_args='', log_file='',
+                 zmq_in_port=7000, zmq_out_port=7001):
         super(StdioLanguageServerClient, self).__init__(
             zmq_in_port, zmq_out_port)
         self.req_status = {}
         self.process = None
+        logger.debug(server_args)
+        logger.debug('Redirect stderr to {0}'.format(log_file))
         if not os.name == 'nt':
-            logger.debug(server_args)
             self.process = popen_spawn.PopenSpawn(server_args)
         else:
             self.process = PtyProcess.spawn(server_args)

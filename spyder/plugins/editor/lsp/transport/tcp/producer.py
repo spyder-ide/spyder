@@ -23,7 +23,8 @@ import time
 # Local imports
 from spyder.plugins.editor.lsp.transport.tcp.consumer import (
     TCPIncomingMessageThread)
-from spyder.plugins.editor.lsp.transport.common import LanguageServerClient
+from spyder.plugins.editor.lsp.transport.common.producer import (
+    LanguageServerClient)
 
 logger = logging.getLogger(__name__)
 

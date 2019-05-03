@@ -208,11 +208,11 @@ class LSPServerEditor(QDialog):
         self.external_cb.setChecked(external)
         self.external_cb.stateChanged.connect(self.set_local_options)
 
-        self.stdio_cb = QCheckBox(_('Use stdio'), self)
+        self.stdio_cb = QCheckBox(_('Use stdio pipes for communication'), self)
         self.stdio_cb.setToolTip(_('Check if the server communicates '
                                    'using stdin/out pipes'))
-        self.stdio_cb.setChecked(stdio)
         self.stdio_cb.stateChanged.connect(self.set_stdio_options)
+        self.stdio_cb.setChecked(stdio)
 
         hlayout = QHBoxLayout()
         general_vlayout = QVBoxLayout()

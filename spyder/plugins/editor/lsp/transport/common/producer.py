@@ -29,7 +29,7 @@ TIMEOUT = 5000
 logger = logging.getLogger(__name__)
 
 
-class LanguageServerClient:
+class LanguageServerClient(object):
     """Base implementation of a v3.0 compilant language server client."""
     CONTENT_LENGTH = 'Content-Length: {0}\r\n\r\n'
 

@@ -46,6 +46,9 @@ parser.add_argument('--server-host',
 parser.add_argument('--server-port',
                     default=2087,
                     help="Deployment port of the ls-server")
+parser.add_argument('--server-log-file',
+                    default=None,
+                    help="Log file to register ls-server activity")
 parser.add_argument('--folder',
                     default=getcwd(),
                     help="Initial current working directory used to "
@@ -123,7 +126,8 @@ if __name__ == '__main__':
                                    port=args.server_port)
     if args.stdio_server:
         LanguageServerClient = partial(StdioLanguageServerClient,
-                                       server_args=unknownargs)
+                                       server_args=unknownargs,
+                                       log_file=args.server_log_file)
     client = LanguageServerClient(zmq_in_port=args.zmq_in_port,
                                   zmq_out_port=args.zmq_out_port)
     client.start()

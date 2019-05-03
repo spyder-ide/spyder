@@ -139,7 +139,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             server_log = open(server_log_file, 'w')
             if self.stdio:
                 server_log.close()
-                self.server_args += ['--log-file', server_log_file]
+                self.transport_args += ['--server-log-file', server_log_file]
 
             # Start server with logging options
             if get_debug_level() == 2:
@@ -150,11 +150,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         server_stdin = subprocess.PIPE
         server_stdout = server_log
         server_stderr = subprocess.STDOUT
-
-        # server_stderr = server_log
-        #     server_stdin, server_stdout = os.pipe()
-        #     # server_stdin = os.fdopen(server_stdin, 'wr')
-        #     # server_stdout = os.fdopen(server_stdout, 'wr')
 
         if not self.external_server:
             logger.info('Starting server: {0}'.format(
@@ -201,14 +196,15 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.transport_args = list(map(str, self.transport_args))
         logger.info('Starting transport: {0}'
                     .format(' '.join(self.transport_args)))
-        transport_stdout = client_log
-        transport_stdin = subprocess.PIPE
-        transport_stderr = subprocess.STDOUT
         if self.stdio:
             transport_stdin = subprocess.PIPE
             transport_stdout = subprocess.PIPE
             transport_stderr = client_log
             self.transport_args += self.server_args
+        else:
+            transport_stdout = client_log
+            transport_stdin = subprocess.PIPE
+            transport_stderr = subprocess.STDOUT
         self.transport_client = subprocess.Popen(self.transport_args,
                                                  stdout=transport_stdout,
                                                  stdin=transport_stdin,
