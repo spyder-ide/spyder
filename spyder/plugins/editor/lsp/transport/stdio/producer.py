@@ -50,9 +50,9 @@ class StdioLanguageServerClient(LanguageServerClient):
         if not os.name == 'nt':
             self.process = popen_spawn.PopenSpawn(server_args)
         else:
-            self.process = PtyProcess.spawn(server_args)
             # Set an exaggerate window size on windows
-            self.process.setwinsize(1, 2147483647)
+            win_dims = (1, 2147483647)
+            self.process = PtyProcess.spawn(server_args, dimensions=win_dims)
         logger.info('Connecting to language server on stdio')
         super(StdioLanguageServerClient, self).finalize_initialization()
         self.reading_thread = StdioIncomingMessageThread()
