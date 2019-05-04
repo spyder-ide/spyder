@@ -52,7 +52,7 @@ class StdioLanguageServerClient(LanguageServerClient):
         else:
             self.process = PtyProcess.spawn(server_args)
             # Set an exaggerate window size on windows
-            self.process.setwinsize(1, 9999999999)
+            self.process.setwinsize(1, 2147483647)
         logger.info('Connecting to language server on stdio')
         super(StdioLanguageServerClient, self).finalize_initialization()
         self.reading_thread = StdioIncomingMessageThread()
