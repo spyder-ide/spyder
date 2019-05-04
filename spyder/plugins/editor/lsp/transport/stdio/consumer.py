@@ -25,4 +25,4 @@ class StdioIncomingMessageThread(IncomingMessageThread):
     """Stdio socket consumer."""
 
     def read_num_bytes(self, n):
-        return self.fd.read(n)
+        return self.fd.read(n).encode('utf-8')

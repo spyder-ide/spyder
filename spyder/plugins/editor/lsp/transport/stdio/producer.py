@@ -69,6 +69,9 @@ class StdioLanguageServerClient(LanguageServerClient):
         logger.debug('Exit routine should be complete')
 
     def transport_send(self, content_length, body):
+        if os.name == 'nt':
+            content_length = content_length.decode('utf-8')
+            body = body.decode('utf-8')
         self.process.write(content_length)
         self.process.write(body)
 
