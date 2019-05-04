@@ -121,13 +121,14 @@ if __name__ == '__main__':
     logger.debug(unknownargs)
     process = psutil.Process()
     sig_manager = SignalManager()
-    LanguageServerClient = partial(TCPLanguageServerClient,
-                                   host=args.server_host,
-                                   port=args.server_port)
     if args.stdio_server:
         LanguageServerClient = partial(StdioLanguageServerClient,
                                        server_args=unknownargs,
                                        log_file=args.server_log_file)
+    else:
+        LanguageServerClient = partial(TCPLanguageServerClient,
+                                       host=args.server_host,
+                                       port=args.server_port)
     client = LanguageServerClient(zmq_in_port=args.zmq_in_port,
                                   zmq_out_port=args.zmq_out_port)
     client.start()

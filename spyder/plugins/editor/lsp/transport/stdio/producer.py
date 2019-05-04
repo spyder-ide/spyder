@@ -28,7 +28,7 @@ from spyder.plugins.editor.lsp.transport.common.producer import (
 
 
 if os.name == 'nt':
-    from pywinpty import PtyProcess
+    from winpty import PtyProcess
 else:
     from pexpect import popen_spawn
 
