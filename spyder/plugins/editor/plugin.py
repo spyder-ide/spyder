@@ -1030,7 +1030,7 @@ class Editor(SpyderPluginWidget):
         return action
 
     @Slot(bool, str, str)
-    def _toggle_checkable_action(self, checked, method, conf_name):
+    def _toggle_checkable_action(self, checked, method_name, conf_name):
         """
         Handle the toogle of a checkable action.
 
@@ -1038,16 +1038,17 @@ class Editor(SpyderPluginWidget):
 
         Args:
             checked (bool): State of the action.
-            method (str): name of EditorStack class that will be used
+            method_name (str): name of EditorStack class that will be used
                 to update the changes in each editorstack.
             conf_name (str): configuration setting associated with the
                 action.
         """
-        if method:
+        if method_name:
             if self.editorstacks:
                 for editorstack in self.editorstacks:
                     try:
-                        editorstack.__getattribute__(method)(checked)
+                        method = getattr(editorstack, method_name)
+                        method(checked)
                     except AttributeError as e:
                         logger.error(e, exc_info=True)
             self.set_option(conf_name, checked)
