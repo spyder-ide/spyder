@@ -866,85 +866,114 @@ class Editor(SpyderPluginWidget):
         # NOTE: 'list_breakpoints' is used by the breakpoints
         # plugin to add its "List breakpoints" action to this
         # menu
-        debug_menu_actions = [debug_action,
-                              debug_next_action,
-                              debug_step_action,
-                              debug_return_action,
-                              debug_continue_action,
-                              debug_exit_action,
-                              MENU_SEPARATOR,
-                              set_clear_breakpoint_action,
-                              set_cond_breakpoint_action,
-                              clear_all_breakpoints_action,
-                              'list_breakpoints',
-                              MENU_SEPARATOR,
-                              self.winpdb_action]
+        debug_menu_actions = [
+            debug_action,
+            debug_next_action,
+            debug_step_action,
+            debug_return_action,
+            debug_continue_action,
+            debug_exit_action,
+            MENU_SEPARATOR,
+            set_clear_breakpoint_action,
+            set_cond_breakpoint_action,
+            clear_all_breakpoints_action,
+            'list_breakpoints',
+            MENU_SEPARATOR,
+            self.winpdb_action
+        ]
         self.main.debug_menu_actions += debug_menu_actions
-        debug_toolbar_actions = [debug_action, debug_next_action,
-                                 debug_step_action, debug_return_action,
-                                 debug_continue_action, debug_exit_action]
+        debug_toolbar_actions = [
+            debug_action,
+            debug_next_action,
+            debug_step_action,
+            debug_return_action,
+            debug_continue_action,
+            debug_exit_action
+        ]
         self.main.debug_toolbar_actions += debug_toolbar_actions
 
         # ---- Source menu/toolbar construction ----
-        source_menu_actions = [showblanks_action,
-                               scrollpastend_action,
-                               showindentguides_action,
-                               show_classfunc_dropdown_action,
-                               show_codestyle_warnings_action,
-                               show_docstring_warnings_action,
-                               MENU_SEPARATOR,
-                               self.todo_list_action,
-                               self.warning_list_action,
-                               self.previous_warning_action,
-                               self.next_warning_action,
-                               MENU_SEPARATOR,
-                               self.previous_edit_cursor_action,
-                               self.previous_cursor_action,
-                               self.next_cursor_action,
-                               MENU_SEPARATOR,
-                               eol_menu,
-                               trailingspaces_action,
-                               fixindentation_action]
+        source_menu_actions = [
+            showblanks_action,
+            scrollpastend_action,
+            showindentguides_action,
+            show_classfunc_dropdown_action,
+            show_codestyle_warnings_action,
+            show_docstring_warnings_action,
+            MENU_SEPARATOR,
+            self.todo_list_action,
+            self.warning_list_action,
+            self.previous_warning_action,
+            self.next_warning_action,
+            MENU_SEPARATOR,
+            self.previous_edit_cursor_action,
+            self.previous_cursor_action,
+            self.next_cursor_action,
+            MENU_SEPARATOR,
+            eol_menu,
+            trailingspaces_action,
+            fixindentation_action
+        ]
         self.main.source_menu_actions += source_menu_actions
 
-        source_toolbar_actions = [self.todo_list_action,
-                                  self.warning_list_action,
-                                  self.previous_warning_action,
-                                  self.next_warning_action,
-                                  MENU_SEPARATOR,
-                                  self.previous_edit_cursor_action,
-                                  self.previous_cursor_action,
-                                  self.next_cursor_action]
+        source_toolbar_actions = [
+            self.todo_list_action,
+            self.warning_list_action,
+            self.previous_warning_action,
+            self.next_warning_action,
+            MENU_SEPARATOR,
+            self.previous_edit_cursor_action,
+            self.previous_cursor_action,
+            self.next_cursor_action
+        ]
         self.main.source_toolbar_actions += source_toolbar_actions
 
         # ---- Dock widget and file dependent actions ----
-        self.dock_toolbar_actions = (file_toolbar_actions +
-                                     [MENU_SEPARATOR] +
-                                     source_toolbar_actions +
-                                     [MENU_SEPARATOR] +
-                                     run_toolbar_actions +
-                                     [MENU_SEPARATOR] +
-                                     debug_toolbar_actions +
-                                     [MENU_SEPARATOR] +
-                                     edit_toolbar_actions)
-        self.pythonfile_dependent_actions = [run_action, configure_action,
-                                             set_clear_breakpoint_action,
-                                             set_cond_breakpoint_action,
-                                             debug_action, run_selected_action,
-                                             run_cell_action,
-                                             run_cell_advance_action,
-                                             re_run_last_cell_action,
-                                             blockcomment_action,
-                                             unblockcomment_action,
-                                             self.winpdb_action]
+        self.dock_toolbar_actions = (
+            file_toolbar_actions +
+            [MENU_SEPARATOR] +
+            source_toolbar_actions +
+            [MENU_SEPARATOR] +
+            run_toolbar_actions +
+            [MENU_SEPARATOR] +
+            debug_toolbar_actions +
+            [MENU_SEPARATOR] +
+            edit_toolbar_actions
+        )
+        self.pythonfile_dependent_actions = [
+            run_action,
+            configure_action,
+            set_clear_breakpoint_action,
+            set_cond_breakpoint_action,
+            debug_action,
+            run_selected_action,
+            run_cell_action,
+            run_cell_advance_action,
+            re_run_last_cell_action,
+            blockcomment_action,
+            unblockcomment_action,
+            self.winpdb_action
+        ]
         self.cythonfile_compatible_actions = [run_action, configure_action]
-        self.file_dependent_actions = self.pythonfile_dependent_actions + \
-                [self.save_action, save_as_action, save_copy_as_action,
-                 print_preview_action, self.print_action,
-                 self.save_all_action, gotoline_action, workdir_action,
-                 self.close_action, self.close_all_action,
-                 self.toggle_comment_action, self.revert_action,
-                 self.indent_action, self.unindent_action]
+        self.file_dependent_actions = (
+            self.pythonfile_dependent_actions +
+            [
+                self.save_action,
+                save_as_action,
+                save_copy_as_action,
+                print_preview_action,
+                self.print_action,
+                self.save_all_action,
+                gotoline_action,
+                workdir_action,
+                self.close_action,
+                self.close_all_action,
+                self.toggle_comment_action,
+                self.revert_action,
+                self.indent_action,
+                self.unindent_action
+            ]
+        )
         self.stack_menu_actions = [gotoline_action, workdir_action]
 
         return self.file_dependent_actions
