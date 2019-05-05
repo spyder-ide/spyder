@@ -2676,6 +2676,11 @@ class MainWindow(QMainWindow):
                 url.setQuery(query)
                 QDesktopServices.openUrl(url)
 
+    def report_lsp_error(self, message):
+        """Report a LSP error in the main window"""
+        # TODO: Display error message in a Qt widget
+        pass
+
     @Slot()
     def trouble_guide(self):
         """Open Spyder troubleshooting guide in a web browser."""
