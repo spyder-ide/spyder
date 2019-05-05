@@ -21,7 +21,7 @@ from spyder.config.base import (CHECK_ALL, EXCLUDED_NAMES, get_home_dir,
 from spyder.config.fonts import MEDIUM, MONOSPACE, SANS_SERIF, SMALL
 from spyder.config.user import UserConfig
 from spyder.config.utils import IMPORT_EXT
-from spyder.utils import codeanalysis
+from spyder.plugins.editor.utils.findtasks import TASKS_PATTERN
 from spyder.utils.introspection.module_completion import PREFERRED_MODULES
 
 
@@ -180,6 +180,7 @@ DEFAULTS = [
              {
               'mute_inline_plotting': True,
               'show_plot_outline': False,
+              'auto_fit_plotting': True
              }),
             ('editor',
              {
@@ -285,7 +286,7 @@ DEFAULTS = [
               'exclude_regexp': False,
               'search_text_regexp': False,
               'search_text': [''],
-              'search_text_samples': [codeanalysis.TASKS_PATTERN],
+              'search_text_samples': [TASKS_PATTERN],
               'more_options': True,
               'case_sensitive': False
               }),

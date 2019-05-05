@@ -84,7 +84,7 @@ class HistoryLog(SpyderPluginWidget):
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
         """Return widget title."""
-        return _('History log')
+        return _('History')
     
     def get_plugin_icon(self):
         """Return widget icon."""

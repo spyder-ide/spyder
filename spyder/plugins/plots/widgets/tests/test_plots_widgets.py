@@ -11,6 +11,7 @@ Tests for the widgets used in the Plots plugin.
 """
 
 # Standard library imports
+from __future__ import division
 import os.path as osp
 try:
     from unittest.mock import Mock
@@ -39,7 +40,8 @@ def figbrowser(qtbot):
     """An empty figure browser widget fixture."""
     figbrowser = FigureBrowser()
     figbrowser.set_shellwidget(Mock())
-    figbrowser.setup(mute_inline_plotting=True, show_plot_outline=False)
+    figbrowser.setup(mute_inline_plotting=True, show_plot_outline=False,
+                     auto_fit_plotting=False)
     qtbot.addWidget(figbrowser)
     figbrowser.show()
     figbrowser.setMinimumSize(700, 500)
@@ -355,6 +357,9 @@ def test_zoom_figure_viewer(figbrowser, tmpdir, fmt):
     fig = add_figures_to_browser(figbrowser, 1, tmpdir, fmt)[0]
     figcanvas = figbrowser.figviewer.figcanvas
 
+    # Set `Fit plots to windows` to False before the test.
+    figbrowser.change_auto_fit_plotting(False)
+
     # Calculate original figure size in pixels.
     qpix = QPixmap()
     qpix.loadFromData(fig, fmt.upper())
@@ -378,6 +383,40 @@ def test_zoom_figure_viewer(figbrowser, tmpdir, fmt):
         assert figbrowser.zoom_disp.value() == np.floor(scale * 100)
         assert figcanvas.width() == np.floor(fwidth * scale)
         assert figcanvas.height() == np.floor(fheight * scale)
+
+
+@pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
+def test_autofit_figure_viewer(figbrowser, tmpdir, fmt):
+    """
+    Test figure diplayed when `Fit plots to window` is True.
+    """
+    fig = add_figures_to_browser(figbrowser, 1, tmpdir, fmt)[0]
+    figviewer = figbrowser.figviewer
+    figcanvas = figviewer.figcanvas
+
+    # Calculate original figure size in pixels.
+    qpix = QPixmap()
+    qpix.loadFromData(fig, fmt.upper())
+    fwidth, fheight = qpix.width(), qpix.height()
+
+    # Test when `Fit plots to window` is set to True.
+    # Otherwise, test should fall into `test_zoom_figure_viewer`
+    figbrowser.change_auto_fit_plotting(True)
+    size = figviewer.size()
+
+    scrollbar_width = figviewer.verticalScrollBar().sizeHint().width()
+    width = size.width() - scrollbar_width
+    scrollbar_height = figviewer.horizontalScrollBar().sizeHint().height()
+    height = size.height() - scrollbar_height
+    if (fwidth / fheight) > (width / height):
+        new_width = int(width)
+        new_height = int(width / fwidth * fheight)
+    else:
+        new_height = int(height)
+        new_width = int(height / fheight * fwidth)
+
+    assert figcanvas.width() == new_width
+    assert figcanvas.height() == new_height
 
 
 if __name__ == "__main__":

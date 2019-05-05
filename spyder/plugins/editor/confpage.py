@@ -14,7 +14,6 @@ from spyder.api.preferences import PluginConfigPage
 from spyder.config.base import _
 from spyder.config.main import CONF
 import spyder.utils.icon_manager as ima
-from spyder.utils import codeanalysis, programs
 
 
 NUMPYDOC = "https://numpydoc.readthedocs.io/en/latest/format.html"
