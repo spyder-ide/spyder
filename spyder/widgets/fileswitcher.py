@@ -233,13 +233,17 @@ class FileSwitcher(QDialog):
     # Constants that define the mode in which the list widget is working
     # FILE_MODE is for a list of files, SYMBOL_MODE if for a list of symbols
     # in a given file when using the '@' symbol.
-    path_text_font_size = CONF.get('appearance', 'rich_font/size', 11)
-    filename_text_font_size = path_text_font_size + 2
+    path_text_font_size = CONF.get('appearance', 'rich_font/size')
+    if sys.platform == 'darwin':
+        text_diff = 2
+    else:
+        text_diff = 1
+    filename_text_font_size = path_text_font_size + text_diff
     FILE_MODE, SYMBOL_MODE = [1, 2]
     MAX_WIDTH = 600
     PATH_FG_COLOR = 'rgb(153, 153, 153)'
     SECTION_COLOR = 'rgb(70, 179, 239)'
-    _FONT_SIZE = CONF.get('appearance', 'rich_font/size', 10)
+    _FONT_SIZE = CONF.get('appearance', 'rich_font/size')
     _HEIGHT = 20
     _PADDING = 0
     _MIN_WIDTH = 500
@@ -276,7 +280,7 @@ class FileSwitcher(QDialog):
   </tr>
 </table>'''
     _SEPARATOR = '_'
-    _HEIGHT_SEP = 15
+    _HEIGHT_SEP = 0
     _STYLES_SEP = {
         'color': 'black',
         'font_size': CONF.get('appearance', 'rich_font/size', 10),
@@ -284,7 +288,7 @@ class FileSwitcher(QDialog):
     _TEMPLATE_SEP = \
         '''<table cellpadding="0" cellspacing="0" width="{width}"
                   height="{height}" border="0">
-  <tr><td valign="top" align="center"><hr></td></tr>
+  <tr><td valign="top" align="center"></td></tr>
 </table>'''
 
     def __init__(self, parent, plugin, tabs, data, icon):
@@ -776,7 +780,7 @@ class FileSwitcher(QDialog):
             elif os.name == 'nt':
                 scale_factor = 0.8
             elif is_ubuntu():
-                scale_factor = 0.6
+                scale_factor = 0.7
             else:
                 scale_factor = 0.9
             icon = ima.get_icon_by_extension(path, scale_factor)
