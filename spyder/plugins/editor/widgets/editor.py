@@ -559,7 +559,7 @@ class EditorStack(QWidget):
         # Real-time code analysis
         self.analysis_timer = QTimer(self)
         self.analysis_timer.setSingleShot(True)
-        self.analysis_timer.setInterval(2000)
+        self.analysis_timer.setInterval(1000)
         self.analysis_timer.timeout.connect(self.analyze_script)
 
         # Update filename label
@@ -889,17 +889,17 @@ class EditorStack(QWidget):
     def inspect_current_object(self):
         """Inspect current object in the Help plugin"""
         editor = self.get_current_editor()
-        editor.sig_display_signature.connect(self.display_signature_help)
+        editor.sig_display_object_info.connect(self.display_help)
         line, col = editor.get_cursor_line_column()
         editor.request_hover(line, col)
 
     @Slot(str)
-    def display_signature_help(self, signature):
+    def display_help(self, help_text):
         editor = self.get_current_editor()
         name = editor.get_current_word()
         self.help.switch_to_editor_source()
-        editor.sig_display_signature.disconnect(self.display_signature_help)
-        self.send_to_help(name, signature, force=True)
+        editor.sig_display_object_info.disconnect(self.display_help)
+        self.send_to_help(name, help_text, force=True)
 
     #------ Editor Widget Settings
     def set_closable(self, state):
@@ -1906,9 +1906,11 @@ class EditorStack(QWidget):
     #------ Update UI
     def start_stop_analysis_timer(self):
         self.is_analysis_done = False
+        self.analysis_timer.stop()
+        self.analysis_timer.start()
 
     def analyze_script(self, index=None):
-        """Analyze current script with todos"""
+        """Analyze current script for TODOs."""
         if self.is_analysis_done:
             return
         if index is None:
@@ -2130,6 +2132,7 @@ class EditorStack(QWidget):
             editor = finfo.editor
             editor.setFocus()
             self._refresh_outlineexplorer(index, update=False)
+            self.update_code_analysis_actions.emit()
             self.__refresh_statusbar(index)
             self.__refresh_readonly(index)
             self.__check_file_status(index)
@@ -2233,7 +2236,7 @@ class EditorStack(QWidget):
         self.add_to_data(finfo, set_current, add_where)
         finfo.send_to_help.connect(self.send_to_help)
         finfo.todo_results_changed.connect(
-                                      lambda: self.todo_results_changed.emit())
+            lambda: self.todo_results_changed.emit())
         finfo.edit_goto.connect(lambda fname, lineno, name:
                                 self.edit_goto.emit(fname, lineno, name))
         finfo.sig_save_bookmarks.connect(lambda s1, s2:
@@ -2244,6 +2247,8 @@ class EditorStack(QWidget):
         editor.sig_re_run_last_cell.connect(self.re_run_last_cell)
         editor.sig_new_file.connect(self.sig_new_file.emit)
         editor.sig_breakpoints_saved.connect(self.sig_breakpoints_saved)
+        editor.sig_process_code_analysis.connect(
+            lambda: self.update_code_analysis_actions.emit())
         language = get_file_language(fname, txt)
         editor.setup_editor(
                 linenumbers=self.linenumbers_enabled,
@@ -2274,8 +2279,8 @@ class EditorStack(QWidget):
             editor.document().setModified(False)
             editor.document().changed_since_autosave = False
         finfo.text_changed_at.connect(
-                                    lambda fname, position:
-                                    self.text_changed_at.emit(fname, position))
+            lambda fname, position:
+            self.text_changed_at.emit(fname, position))
         editor.sig_cursor_position_changed.connect(
                                            self.editor_cursor_position_changed)
         editor.textChanged.connect(self.start_stop_analysis_timer)
@@ -2283,13 +2288,14 @@ class EditorStack(QWidget):
             lambda lang, method, params: self.perform_lsp_request.emit(
                 lang, method, params))
         editor.modificationChanged.connect(
-                     lambda state: self.modification_changed(state,
-                                                    editor_id=id(editor)))
+            lambda state: self.modification_changed(state,
+                editor_id=id(editor)))
         editor.focus_in.connect(self.focus_changed)
         editor.zoom_in.connect(lambda: self.zoom_in.emit())
         editor.zoom_out.connect(lambda: self.zoom_out.emit())
         editor.zoom_reset.connect(lambda: self.zoom_reset.emit())
-        editor.sig_eol_chars_changed.connect(lambda eol_chars: self.refresh_eol_chars(eol_chars))
+        editor.sig_eol_chars_changed.connect(
+            lambda eol_chars: self.refresh_eol_chars(eol_chars))
 
         self.find_widget.set_editor(editor)
 
@@ -2380,6 +2386,7 @@ class EditorStack(QWidget):
             self.msgbox.exec_()
             self.set_os_eol_chars(index)
         self.is_analysis_done = False
+        self.analyze_script(index)
         return finfo
 
     def set_os_eol_chars(self, index=None, osname=None):

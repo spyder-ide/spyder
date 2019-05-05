@@ -265,11 +265,24 @@ class CodeEditor(TextEditBaseWidget):
     #: Signal emitted when a new text is set on the widget
     new_text_set = Signal()
 
-    # LSP Signals
+    # -- LSP signals
+    #: Signal emitted when an LSP request is sent to the LSP manager
     sig_perform_lsp_request = Signal(str, str, dict)
+
+    #: Signal emitted when a response is received from an LSP server
+    # For now it's only used on tests, but it could be used to track
+    # and profile LSP diagnostics.
     lsp_response_signal = Signal(str, dict)
-    sig_display_signature = Signal(str)
+
+    #: Signal to display object information on the Help plugin
+    sig_display_object_info = Signal(str)
+
+    #: Signal only used for tests
+    # TODO: Remove it!
     sig_signature_invoked = Signal()
+
+    #: Signal emmited when processing code analysis warnings is finished
+    sig_process_code_analysis = Signal()
 
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
@@ -710,8 +723,6 @@ class CodeEditor(TextEditBaseWidget):
             handler_name = self.handler_registry[method]
             handler = getattr(self, handler_name)
             handler(params)
-            # This signal is only used on tests.
-            # It could be used to track and profile LSP diagnostics.
             self.lsp_response_signal.emit(method, params)
 
     def emit_request(self, method, params, requires_response):
@@ -805,7 +816,7 @@ class CodeEditor(TextEditBaseWidget):
         return params
 
     @handles(LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
-    def linting_diagnostics(self, params):
+    def process_diagnostics(self, params):
         """Handle linting response."""
         try:
             self.process_code_analysis(params['params'])
@@ -905,7 +916,7 @@ class CodeEditor(TextEditBaseWidget):
         """Handle hover response."""
         try:
             text = contents['params']
-            self.sig_display_signature.emit(text)
+            self.sig_display_object_info.emit(text)
             self.show_tooltip(_("Hint"), text)
         except Exception:
             self.log_lsp_handle_errors("Error when processing hover")
@@ -1684,16 +1695,14 @@ class CodeEditor(TextEditBaseWidget):
         self.sig_flags_changed.emit()
         self.linenumberarea.update()
 
-    def process_code_analysis(self, check_results):
-        """Analyze filename code with pyflakes"""
+    def process_code_analysis(self, results):
+        """Process all linting results."""
         self.cleanup_code_analysis()
-        # if check_results is None:
-        #     # Not able to compile module
-        #     return
         self.setUpdatesEnabled(False)
         cursor = self.textCursor()
         document = self.document()
-        for diagnostic in check_results:
+
+        for diagnostic in results:
             source = diagnostic.get('source', '')
             msg_range = diagnostic['range']
             start = msg_range['start']
@@ -1729,6 +1738,7 @@ class CodeEditor(TextEditBaseWidget):
             block.selection = QTextCursor(cursor)
             block.color = color
 
+        self.sig_process_code_analysis.emit()
         self.update_extra_selections()
         self.setUpdatesEnabled(True)
         self.linenumberarea.update()
@@ -3331,10 +3341,6 @@ def test(fname):
     win.show()
     win.load(fname)
     win.resize(900, 700)
-
-    source_code = to_text_string(win.editor.toPlainText())
-    results = win.editor.document_did_change()
-
     sys.exit(app.exec_())
 
 
