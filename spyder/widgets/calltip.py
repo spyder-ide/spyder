@@ -50,7 +50,8 @@ class ToolTipWidget(QLabel):
         self.tip = None
 
         # Setup
-        self.setWindowFlags(Qt.SplashScreen)
+        self.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        self.setWindowFlags(Qt.SplashScreen)  # This is needed on OSX
         self.setTextInteractionFlags(Qt.TextBrowserInteraction)
         self.setOpenExternalLinks(False)
         self.setForegroundRole(QPalette.ToolTipText)
