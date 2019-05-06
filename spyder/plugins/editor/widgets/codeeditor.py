@@ -926,10 +926,9 @@ class CodeEditor(TextEditBaseWidget):
                 signature_data = signature_params['signatures']
                 documentation = signature_data['documentation']
 
-                if PY2:
-                    # The language server is returning encoded text with
-                    # spaces defined as `\xa0`
-                    documentation = documentation.replace(u'\xa0', ' ')
+                # The language server is returning encoded text with
+                # spaces defined as `\xa0`
+                documentation = documentation.replace(u'\xa0', ' ')
 
                 parameter_idx = signature_params['activeParameter']
                 parameters = signature_data['parameters']

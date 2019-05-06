@@ -18,6 +18,7 @@ Now located at qtconsole/call_tip_widget.py as part of the
 
 # Standard library imports
 from unicodedata import category
+import os
 
 # Third party imports
 from qtpy.QtCore import QBasicTimer, QCoreApplication, QEvent, Qt, Signal
@@ -51,7 +52,11 @@ class ToolTipWidget(QLabel):
 
         # Setup
         self.setTextInteractionFlags(Qt.TextSelectableByMouse)
-        self.setWindowFlags(Qt.SplashScreen)  # This is needed on OSX
+        if os.name == 'nt':
+            self.setWindowFlags(Qt.Tool | Qt.FramelessWindowHint)
+        else:
+            self.setWindowFlags(Qt.SplashScreen)
+
         self.setTextInteractionFlags(Qt.TextBrowserInteraction)
         self.setOpenExternalLinks(False)
         self.setForegroundRole(QPalette.ToolTipText)
@@ -129,7 +134,7 @@ class ToolTipWidget(QLabel):
         #     self.sig_help_requested.emit(self._url)
 
         super(ToolTipWidget, self).mousePressEvent(event)
-        # self.hide()
+        self.hide()
 
     def focusOutEvent(self, event):
         """
@@ -170,7 +175,12 @@ class CallTipWidget(QLabel):
         self._hide_timer = QBasicTimer()
         self._text_edit = text_edit
 
-        self.setWindowFlags(Qt.SplashScreen)
+        # Setup
+        self.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        if os.name != 'nt':
+            self.setWindowFlags(Qt.SplashScreen)  # This is needed on OSX
+        else:
+            pass
         self.setFont(text_edit.document().defaultFont())
         self.setForegroundRole(QPalette.ToolTipText)
         self.setBackgroundRole(QPalette.ToolTipBase)

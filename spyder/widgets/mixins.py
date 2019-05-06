@@ -346,7 +346,6 @@ class BaseEditMixin(object):
         )
 
         inspect_word = signature.split('(')[0]
-
         text = self._format_text(
             signature=html_signature,
             inspect_word=inspect_word,
@@ -357,6 +356,7 @@ class BaseEditMixin(object):
 
         # Show calltip
         self.calltip_widget.show_tip(point, text, [])
+        self.calltip_widget.show()
 
     def show_tooltip(self, title=None, signature=None, text=None,
                      inspect_word=None, title_color=_DEFAULT_TITLE_COLOR,
