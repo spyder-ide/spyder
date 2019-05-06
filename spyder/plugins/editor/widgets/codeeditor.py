@@ -307,7 +307,7 @@ class CodeEditor(TextEditBaseWidget):
         self._last_hover_word = None
         self._last_hover_cursor = None
         self._timer_mouse_moving = QTimer(self)
-        self._timer_mouse_moving.setInterval(500)
+        self._timer_mouse_moving.setInterval(350)
         self._timer_mouse_moving.timeout.connect(lambda: self._handle_hover())
 
         # 79-col edge line

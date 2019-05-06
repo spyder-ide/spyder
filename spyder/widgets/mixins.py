@@ -405,7 +405,8 @@ class BaseEditMixin(object):
                     additional_text = '\n'.join(lines[i:])
                     break
 
-            signature = self._format_signature(signature)
+            if signature:
+                signature = self._format_signature(signature)
 
         # Check if signature and format
         point = self.get_word_start_pos(at_point)

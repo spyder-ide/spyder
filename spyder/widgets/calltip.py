@@ -141,6 +141,11 @@ class ToolTipWidget(QLabel):
         super(ToolTipWidget, self).leaveEvent(event)
         self.hide()
 
+    def hide(self):
+        """Override Qt method to restore cursor."""
+        QApplication.restoreOverrideCursor()
+        super(ToolTipWidget, self).hide()
+
 
 class CallTipWidget(QLabel):
     """ Shows call tips by parsing the current text of Q[Plain]TextEdit.
