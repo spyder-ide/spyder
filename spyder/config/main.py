@@ -190,8 +190,6 @@ DEFAULTS = [
               'printer_header/font/bold': False,
               'wrap': False,
               'wrapflag': True,
-              'code_analysis/pyflakes': True,
-              'code_analysis/pep8': False,
               'todo_list': True,
               'realtime_analysis': True,
               'realtime_analysis/timeout': 2500,
@@ -717,7 +715,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '49.0.0'
+CONF_VERSION = '50.0.0'
 
 
 # Main configuration instance

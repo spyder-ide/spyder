@@ -36,7 +36,7 @@ class EditorConfigPage(PluginConfigPage):
         showclassfuncdropdown_box = newcb(
                 _("Show selector for classes and functions"),
                 'show_class_func_dropdown')
-        showindentguides_box = newcb(_("Show Indent Guides"),
+        showindentguides_box = newcb(_("Show indent guides"),
                                      'indent_guides')
         linenumbers_box = newcb(_("Show line numbers"), 'line_numbers')
         blanks_box = newcb(_("Show blank spaces"), 'blank_spaces')

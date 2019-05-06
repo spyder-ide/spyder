@@ -265,11 +265,24 @@ class CodeEditor(TextEditBaseWidget):
     #: Signal emitted when a new text is set on the widget
     new_text_set = Signal()
 
-    # LSP Signals
+    # -- LSP signals
+    #: Signal emitted when an LSP request is sent to the LSP manager
     sig_perform_lsp_request = Signal(str, str, dict)
+
+    #: Signal emitted when a response is received from an LSP server
+    # For now it's only used on tests, but it could be used to track
+    # and profile LSP diagnostics.
     lsp_response_signal = Signal(str, dict)
-    sig_display_signature = Signal(str)
+
+    #: Signal to display object information on the Help plugin
+    sig_display_object_info = Signal(str)
+
+    #: Signal only used for tests
+    # TODO: Remove it!
     sig_signature_invoked = Signal()
+
+    #: Signal emmited when processing code analysis warnings is finished
+    sig_process_code_analysis = Signal()
 
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
@@ -485,6 +498,7 @@ class CodeEditor(TextEditBaseWidget):
         self.sync_mode = TextDocumentSyncKind.FULL
         self.will_save_notify = False
         self.will_save_until_notify = False
+        self.enable_hover = False
         self.auto_completion_characters = []
         self.signature_completion_characters = []
         self.go_to_definition_enabled = False
@@ -678,9 +692,7 @@ class CodeEditor(TextEditBaseWidget):
                      occurrence_timeout=1500,
                      show_class_func_dropdown=False,
                      indent_guides=False,
-                     scroll_past_end=False,
-                     hover_hints=True,
-            ):
+                     scroll_past_end=False):
 
         self.set_close_parentheses_enabled(close_parentheses)
         self.set_close_quotes_enabled(close_quotes)
@@ -856,7 +868,7 @@ class CodeEditor(TextEditBaseWidget):
         return params
 
     @handles(LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
-    def linting_diagnostics(self, params):
+    def process_diagnostics(self, params):
         """Handle linting response."""
         try:
             self.process_code_analysis(params['params'])
@@ -952,7 +964,7 @@ class CodeEditor(TextEditBaseWidget):
         """Handle hover response."""
         try:
             content = contents['params']
-            self.sig_display_signature.emit(content)
+            self.sig_display_object_info.emit(content)
 
             if CONF.get('lsp-server', 'enable_hover_hints') and content:
                 if self._show_hint and self._last_point:
@@ -1739,16 +1751,14 @@ class CodeEditor(TextEditBaseWidget):
         self.sig_flags_changed.emit()
         self.linenumberarea.update()
 
-    def process_code_analysis(self, check_results):
-        """Analyze filename code with pyflakes"""
+    def process_code_analysis(self, results):
+        """Process all linting results."""
         self.cleanup_code_analysis()
-        # if check_results is None:
-        #     # Not able to compile module
-        #     return
         self.setUpdatesEnabled(False)
         cursor = self.textCursor()
         document = self.document()
-        for diagnostic in check_results:
+
+        for diagnostic in results:
             source = diagnostic.get('source', '')
             msg_range = diagnostic['range']
             start = msg_range['start']
@@ -1784,10 +1794,22 @@ class CodeEditor(TextEditBaseWidget):
             block.selection = QTextCursor(cursor)
             block.color = color
 
+        self.sig_process_code_analysis.emit()
         self.update_extra_selections()
         self.setUpdatesEnabled(True)
         self.linenumberarea.update()
         self.classfuncdropdown.update()
+
+    def hide_tooltip(self):
+        """
+        Hide the tooltip widget.
+
+        The tooltip widget is a special QLabel that looks like a tooltip,
+        this method is here so it can be hidden as necessary. For example,
+        when the user leaves the Linenumber area when hovering over lint
+        warnings and errors.
+        """
+        self.tooltip_widget.hide()
 
     def show_code_analysis_results(self, line_number, block_data):
         """Show warning/error messages."""
@@ -3381,10 +3403,6 @@ def test(fname):
     win.show()
     win.load(fname)
     win.resize(900, 700)
-
-    source_code = to_text_string(win.editor.toPlainText())
-    results = win.editor.document_did_change()
-
     sys.exit(app.exec_())
 
 
