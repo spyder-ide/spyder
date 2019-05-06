@@ -194,25 +194,26 @@ class BaseEditMixin(object):
                 main_text=signature,
             )
 
-        if text:
-            # TODO: Check max_lines
-            if max_lines:
-                lines = text.split('\n')
-                if len(lines) > max_lines:
-                    text = '\n'.join(lines[:max_lines]) + ' ...'
+        if not text:
+            text = '\n<i>No further documentation available</i>\n'
 
-            text = text.replace('\n', '<br>')
-            template += BASE_TEMPLATE.format(
-                font_family=font_family,
-                size=text_size,
-                color=text_color,
-                main_text=text,
-            )
+        if max_lines:
+            lines = text.split('\n')
+            if len(lines) > max_lines:
+                text = '\n'.join(lines[:max_lines]) + ' ...'
+
+        text = text.replace('\n', '<br>')
+        template += BASE_TEMPLATE.format(
+            font_family=font_family,
+            size=text_size,
+            color=text_color,
+            main_text=text,
+        )
 
         help_text = ''
         if inspect_word:
             if display_link:
-                help_text = 'Click here for additional help'
+                help_text = 'Click for additional help'
             else:
                 shortcut = self._get_inspect_shortcut()
                 if shortcut:
@@ -362,30 +363,28 @@ class BaseEditMixin(object):
                      at_line=None, at_position=None, at_point=None,
                      display_link=False, max_lines=10):
         """Show tooltip."""
-        if text is not None and len(text) != 0:
-            # Find position of calltip
-            point = self._calculate_position(
-                at_line=at_line,
-                at_position=at_position,
-                at_point=at_point,
-            )
+        # Find position of calltip
+        point = self._calculate_position(
+            at_line=at_line,
+            at_position=at_position,
+            at_point=at_point,
+        )
 
-            # Format text
-            tiptext = self._format_text(
-                title=title,
-                signature=signature,
-                text=text,
-                title_color=title_color,
-                inspect_word=inspect_word,
-                display_link=display_link,
-                max_lines=max_lines,
-            )
+        # Format text
+        tiptext = self._format_text(
+            title=title,
+            signature=signature,
+            text=text,
+            title_color=title_color,
+            inspect_word=inspect_word,
+            display_link=display_link,
+            max_lines=max_lines,
+        )
 
-            self._update_stylesheet(self.tooltip_widget)
+        self._update_stylesheet(self.tooltip_widget)
 
-            # Display tooltip
-            self.tooltip_widget.show_tip(point, tiptext)
-            # self.tooltip_widget.show()
+        # Display tooltip
+        self.tooltip_widget.show_tip(point, tiptext)
 
     def show_hint(self, text, inspect_word, at_point):
         """Show code hint and crop text as needed."""
@@ -396,14 +395,17 @@ class BaseEditMixin(object):
             is_signature = '(' in lines[0]
 
         # Split signature and the rest
-
         signature, additional_text = None, text
         if is_signature:
             for i, line in enumerate(lines):
                 if line.strip() == '':
-                    signature = '\n'.join(lines[:i])
-                    additional_text = '\n'.join(lines[i:])
                     break
+            if i == 0:
+                signature = lines[0]
+                additional_text = None
+            else:
+                signature = '\n'.join(lines[:i])
+                additional_text = '\n'.join(lines[i:])
 
             if signature:
                 signature = self._format_signature(signature)

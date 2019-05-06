@@ -123,12 +123,12 @@ class ToolTipWidget(QLabel):
         Reimplemented to hide it when focus goes out of the main window.
         """
         QApplication.restoreOverrideCursor()
-
-        if self._url:
-            self.sig_help_requested.emit(self._url)
+        self.sig_help_requested.emit(self._url)
+        # if self._url:
+        #     self.sig_help_requested.emit(self._url)
 
         super(ToolTipWidget, self).mousePressEvent(event)
-        self.hide()
+        # self.hide()
 
     def focusOutEvent(self, event):
         """
