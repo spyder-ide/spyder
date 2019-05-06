@@ -523,7 +523,6 @@ class CodeEditor(TextEditBaseWidget):
     def _should_display_hover(self, pos):
         """Check if a hover hint should be displayed:"""
         value = False
-
         if CONF.get('lsp-server', 'enable_hover_hints') and pos:
             text = self.get_word_at(pos)
             value = text and self.is_position_inside_word_rect(pos)
@@ -1809,6 +1808,7 @@ class CodeEditor(TextEditBaseWidget):
         when the user leaves the Linenumber area when hovering over lint
         warnings and errors.
         """
+        self._last_hover_word = None
         self.tooltip_widget.hide()
 
     def show_code_analysis_results(self, line_number, block_data):

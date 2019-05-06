@@ -552,7 +552,6 @@ class EditorStack(QWidget):
         self.run_cell_copy = False
         self.create_new_file_if_empty = True
         self.indent_guides = False
-        self.hover_hints = True
         ccs = 'Spyder'
         if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
             ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
