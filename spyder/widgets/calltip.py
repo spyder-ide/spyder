@@ -21,7 +21,8 @@ from unicodedata import category
 import os
 
 # Third party imports
-from qtpy.QtCore import QBasicTimer, QCoreApplication, QEvent, Qt, Signal
+from qtpy.QtCore import (QBasicTimer, QCoreApplication, QEvent, Qt, QTimer,
+                         Signal)
 from qtpy.QtGui import QCursor, QPalette
 from qtpy.QtWidgets import (QApplication, QFrame, QLabel, QTextEdit,
                             QPlainTextEdit, QStyle, QStyleOptionFrame,
@@ -49,8 +50,10 @@ class ToolTipWidget(QLabel):
         self.app = QCoreApplication.instance()
         self.as_tooltip = as_tooltip
         self.tip = None
+        self._timer_hide = QTimer()
 
         # Setup
+        self._timer_hide.setInterval(500)
         self.setTextInteractionFlags(Qt.TextSelectableByMouse)
         if os.name == 'nt':
             self.setWindowFlags(Qt.Tool | Qt.FramelessWindowHint)
@@ -70,7 +73,9 @@ class ToolTipWidget(QLabel):
                                          None, self)
         self.setMargin(1 + delta_margin)
 
+        # Signals
         self.linkHovered.connect(self._update_hover_html_link_style)
+        self._timer_hide.timeout.connect(self.hide)
 
     def paintEvent(self, event):
         """Reimplemented to paint the background panel."""
@@ -83,7 +88,7 @@ class ToolTipWidget(QLabel):
         super(ToolTipWidget, self).paintEvent(event)
 
     def _update_hover_html_link_style(self, url):
-        """"""
+        """Update style of labels that include rich text and html links."""
         link = 'text-decoration:none;'
         link_hovered = 'text-decoration:underline;'
         self._url = url
@@ -99,7 +104,6 @@ class ToolTipWidget(QLabel):
         new_text = text.replace(old_text, new_text)
 
         self.setText(new_text)
-
 
     # ------------------------------------------------------------------------
     # --- 'ToolTipWidget' interface
@@ -130,11 +134,8 @@ class ToolTipWidget(QLabel):
         """
         QApplication.restoreOverrideCursor()
         self.sig_help_requested.emit(self._url)
-        # if self._url:
-        #     self.sig_help_requested.emit(self._url)
-
         super(ToolTipWidget, self).mousePressEvent(event)
-        self.hide()
+        self._hide()
 
     def focusOutEvent(self, event):
         """
@@ -147,10 +148,16 @@ class ToolTipWidget(QLabel):
         super(ToolTipWidget, self).leaveEvent(event)
         self.hide()
 
-    def hide(self):
-        """Override Qt method to restore cursor."""
+    def _hide(self):
+        """Hide method helper."""
         QApplication.restoreOverrideCursor()
+        self._timer_hide.start()
+
+    def hide(self):
+        """Override Qt method to add timer and restore cursor."""
         super(ToolTipWidget, self).hide()
+        self._timer_hide.stop()
+
 
 
 class CallTipWidget(QLabel):

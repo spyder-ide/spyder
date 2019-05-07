@@ -132,8 +132,7 @@ class BaseEditMixin(object):
 
     def _get_inspect_shortcut(self):
         """
-        Queries the configuration for the inspect shortcut defined by the
-        editor.
+        Queries the editor's config to get the current "Inspect" shortcut.
         """
         value = CONF.get('shortcuts', 'editor/inspect current object')
         if value:
@@ -195,7 +194,7 @@ class BaseEditMixin(object):
             )
 
         if not text:
-            text = '\n<i>No further documentation available</i>\n'
+            text = '\n<i>No documentation available</i>\n'
 
         if max_lines:
             lines = text.split('\n')
@@ -213,7 +212,8 @@ class BaseEditMixin(object):
         help_text = ''
         if inspect_word:
             if display_link:
-                help_text = 'Click for additional help'
+                help_text = ('Click anywhere in this tooltip for '
+                             'additional help')
             else:
                 shortcut = self._get_inspect_shortcut()
                 if shortcut:
@@ -234,10 +234,9 @@ class BaseEditMixin(object):
                 template += (
                     '<hr>'
                     '<div align="left">'
-                    '<a href="{0}">'
-                    '<span style="color:#148CD2;text-decoration:none;">'
+                    '<span style="color:#148CD2;text-decoration:none;"><i>'
                     ''.format(inspect_word)
-                    ) + help_text + '</span></a></div>'
+                    ) + help_text + '</i></span></div>'
             else:
                 template += (
                     '<hr>'
@@ -736,7 +735,7 @@ class BaseEditMixin(object):
             return ret[0]
 
     def get_hover_word(self):
-        """"""
+        """Return the last hover word that requested a hover hint."""
         return self._last_hover_word
 
     def get_current_line(self):

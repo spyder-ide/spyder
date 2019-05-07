@@ -676,7 +676,7 @@ DEFAULTS = [
             ('lsp-server',
              {
               # This option is not used with the LSP server config
-              # It is used to disable hover hints on the editor
+              # It is used to disable hover hints in the editor
               'enable_hover_hints': True,
               'code_completion': True,
               'jedi_definition': True,

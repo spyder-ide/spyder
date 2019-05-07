@@ -926,7 +926,7 @@ class CodeEditor(TextEditBaseWidget):
                 signature_data = signature_params['signatures']
                 documentation = signature_data['documentation']
 
-                # The language server is returning encoded text with
+                # The language server returns encoded text with
                 # spaces defined as `\xa0`
                 documentation = documentation.replace(u'\xa0', ' ')
 
