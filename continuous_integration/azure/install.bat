@@ -34,7 +34,3 @@ if errorlevel 1 exit 1
 :: Install codecov
 pip install -q codecov
 if errorlevel 1 exit 1
-
-:: Install pywinpty
-pip install -q pywinpty
-if errorlevel 1 exit 1
