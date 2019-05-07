@@ -2910,6 +2910,8 @@ class MainWindow(QMainWindow):
                         if widget is not None:
                             dlg.add_page(widget)
                     except Exception:
+                        # Avoid a crash at startup if a plugin's config
+                        # page fails to load.
                         traceback.print_exc(file=sys.stderr)
 
             if self.prefs_index is not None:
