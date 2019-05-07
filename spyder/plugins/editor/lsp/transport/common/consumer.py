@@ -132,4 +132,4 @@ class IncomingMessageThread(Thread):
 
     def read_num_bytes(self, n):
         """Subclasses should override this method"""
-        return b''
+        return NotImplementedError("Not implemented")
