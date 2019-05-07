@@ -1632,6 +1632,9 @@ class CodeEditor(TextEditBaseWidget):
         """Set the text of the editor"""
         self.setPlainText(text)
         self.set_eol_chars(text)
+
+        if isinstance(self.highlighter, sh.PygmentsSH):
+            self.highlighter.make_charlist()
         #if self.supported_language:
             #self.highlighter.rehighlight()
 
