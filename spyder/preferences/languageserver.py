@@ -619,12 +619,18 @@ class LSPManagerConfigPage(GeneralConfigPage):
         # Basic features group
         basic_features_group = QGroupBox(_("Basic features"))
         completion_box = newcb(_("Enable code completion"), 'code_completion')
+        enable_hover_hints_box = newcb(
+            _("Enable hover hints"),
+            'enable_hover_hints',
+            tip=_("If enabled, hovering the mouse pointer over an object\n"
+                  "name will display that object's signature and/or\n"
+                  "docstring (if present)."))
         goto_definition_box = newcb(
             _("Enable Go to definition"),
             'jedi_definition',
-            tip=_("If this option is enabled, left-clicking on\n"
-                  "an object name while pressing the {} key will go to\n"
-                  "that object's definition (if resolved).".format(self.CTRL)))
+            tip=_("If enabled, left-clicking on an object name while \n"
+                  "pressing the {} key will go to that object's definition\n"
+                  "(if resolved).".format(self.CTRL)))
         follow_imports_box = newcb(_("Follow imports when going to a "
                                      "definition"),
                                    'jedi_definition/follow_imports')
@@ -632,6 +638,7 @@ class LSPManagerConfigPage(GeneralConfigPage):
 
         basic_features_layout = QVBoxLayout()
         basic_features_layout.addWidget(completion_box)
+        basic_features_layout.addWidget(enable_hover_hints_box)
         basic_features_layout.addWidget(goto_definition_box)
         basic_features_layout.addWidget(follow_imports_box)
         basic_features_layout.addWidget(show_signature_box)

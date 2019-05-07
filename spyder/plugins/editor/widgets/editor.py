@@ -24,7 +24,7 @@ import unicodedata
 import qdarkstyle
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import (QByteArray, QFileInfo, QObject, QPoint, QSize, Qt,
-                         QThread, QTimer, Signal, Slot)
+                         QThread, QTimer, Signal, Slot, QCoreApplication)
 from qtpy.QtGui import QFont
 from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
                             QLabel, QMainWindow, QMessageBox, QMenu,
@@ -166,6 +166,7 @@ class FileInfo(QObject):
     edit_goto = Signal(str, int, str)
     send_to_help = Signal(str, str, str, str, bool)
     sig_filename_changed = Signal(str)
+    sig_show_object_info = Signal(int)
 
     def __init__(self, filename, encoding, editor, new, threadmanager):
         QObject.__init__(self)
@@ -183,6 +184,7 @@ class FileInfo(QObject):
 
         self.editor.textChanged.connect(self.text_changed)
         self.editor.sig_bookmarks_changed.connect(self.bookmarks_changed)
+        self.editor.sig_show_object_info.connect(self.sig_show_object_info)
         self.sig_filename_changed.connect(self.editor.sig_filename_changed)
 
     @property
@@ -599,6 +601,8 @@ class EditorStack(QWidget):
         # --- Configurable shortcuts
         inspect = config_shortcut(self.inspect_current_object, context='Editor',
                                   name='Inspect current object', parent=self)
+        # TODO: Cleaner way to do this?
+        app = QCoreApplication.instance()
         set_breakpoint = config_shortcut(self.set_or_clear_breakpoint,
                                          context='Editor', name='Breakpoint',
                                          parent=self)
@@ -886,17 +890,23 @@ class EditorStack(QWidget):
             editor = self.get_current_editor()
             editor.add_bookmark(slot_num)
 
-    def inspect_current_object(self):
+    def inspect_current_object(self, pos=None):
         """Inspect current object in the Help plugin"""
         editor = self.get_current_editor()
         editor.sig_display_object_info.connect(self.display_help)
-        line, col = editor.get_cursor_line_column()
-        editor.request_hover(line, col)
+        cursor = editor.get_last_hover_cursor()
+        line, col = editor.get_cursor_line_column(cursor)
+        editor.request_hover(line, col, show_hint=False)
 
     @Slot(str)
     def display_help(self, help_text):
         editor = self.get_current_editor()
-        name = editor.get_current_word()
+
+        if editor.get_last_hover_cursor():
+            name = editor.get_last_hover_word()
+        else:
+            name = editor.get_current_word()
+
         self.help.switch_to_editor_source()
         editor.sig_display_object_info.disconnect(self.display_help)
         self.send_to_help(name, help_text, force=True)
@@ -2235,6 +2245,7 @@ class EditorStack(QWidget):
 
         self.add_to_data(finfo, set_current, add_where)
         finfo.send_to_help.connect(self.send_to_help)
+        finfo.sig_show_object_info.connect(self.inspect_current_object)
         finfo.todo_results_changed.connect(
             lambda: self.todo_results_changed.emit())
         finfo.edit_goto.connect(lambda fname, lineno, name:
@@ -2251,29 +2262,30 @@ class EditorStack(QWidget):
             lambda: self.update_code_analysis_actions.emit())
         language = get_file_language(fname, txt)
         editor.setup_editor(
-                linenumbers=self.linenumbers_enabled,
-                show_blanks=self.blanks_enabled,
-                scroll_past_end=self.scrollpastend_enabled,
-                edge_line=self.edgeline_enabled,
-                edge_line_columns=self.edgeline_columns, language=language,
-                markers=self.has_markers(), font=self.default_font,
-                color_scheme=self.color_scheme,
-                wrap=self.wrap_enabled, tab_mode=self.tabmode_enabled,
-                intelligent_backspace=self.intelligent_backspace_enabled,
-                highlight_current_line=self.highlight_current_line_enabled,
-                highlight_current_cell=self.highlight_current_cell_enabled,
-                occurrence_highlighting=self.occurrence_highlighting_enabled,
-                occurrence_timeout=self.occurrence_highlighting_timeout,
-                close_parentheses=self.close_parentheses_enabled,
-                close_quotes=self.close_quotes_enabled,
-                add_colons=self.add_colons_enabled,
-                auto_unindent=self.auto_unindent_enabled,
-                indent_chars=self.indent_chars,
-                tab_stop_width_spaces=self.tab_stop_width_spaces,
-                cloned_from=cloned_from,
-                filename=fname,
-                show_class_func_dropdown=self.show_class_func_dropdown,
-                indent_guides=self.indent_guides)
+            linenumbers=self.linenumbers_enabled,
+            show_blanks=self.blanks_enabled,
+            scroll_past_end=self.scrollpastend_enabled,
+            edge_line=self.edgeline_enabled,
+            edge_line_columns=self.edgeline_columns, language=language,
+            markers=self.has_markers(), font=self.default_font,
+            color_scheme=self.color_scheme,
+            wrap=self.wrap_enabled, tab_mode=self.tabmode_enabled,
+            intelligent_backspace=self.intelligent_backspace_enabled,
+            highlight_current_line=self.highlight_current_line_enabled,
+            highlight_current_cell=self.highlight_current_cell_enabled,
+            occurrence_highlighting=self.occurrence_highlighting_enabled,
+            occurrence_timeout=self.occurrence_highlighting_timeout,
+            close_parentheses=self.close_parentheses_enabled,
+            close_quotes=self.close_quotes_enabled,
+            add_colons=self.add_colons_enabled,
+            auto_unindent=self.auto_unindent_enabled,
+            indent_chars=self.indent_chars,
+            tab_stop_width_spaces=self.tab_stop_width_spaces,
+            cloned_from=cloned_from,
+            filename=fname,
+            show_class_func_dropdown=self.show_class_func_dropdown,
+            indent_guides=self.indent_guides,
+        )
         if cloned_from is None:
             editor.set_text(txt)
             editor.document().setModified(False)

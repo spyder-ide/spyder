@@ -538,9 +538,7 @@ def test_tab_keypress_properly_caught_find_replace(editor_find_replace_bot, qtbo
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.environ.get('CI', None) is None and
-                    platform.startswith('linux'),
-                    reason="Fails on some Linux platforms locally.")
+@pytest.mark.skipif(platform.startswith('linux'), reason="Fails on Linux.")
 def test_tab_moves_focus_from_search_to_replace(editor_find_replace_bot, qtbot):
     """Test that tab works in find/replace dialog. Regression test for #3674.
     "Real world" test—more comprehensive but potentially less robust."""

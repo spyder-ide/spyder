@@ -312,6 +312,17 @@ class CodeEditor(TextEditBaseWidget):
 
         self._panels = PanelsManager(self)
 
+        # Mouse moving timer / Hover hints handling
+        # See: mouseMoveEvent
+        self.tooltip_widget.sig_help_requested.connect(
+            self.show_object_info)
+        self._last_point = None
+        self._last_hover_word = None
+        self._last_hover_cursor = None
+        self._timer_mouse_moving = QTimer(self)
+        self._timer_mouse_moving.setInterval(350)
+        self._timer_mouse_moving.timeout.connect(lambda: self._handle_hover())
+
         # 79-col edge line
         self.edge_line = self.panels.register(EdgeLine(self),
                                               Panel.Position.FLOATING)
@@ -504,6 +515,43 @@ class CodeEditor(TextEditBaseWidget):
 
         self.editor_extensions.add(CloseQuotesExtension())
         self.editor_extensions.add(CloseBracketsExtension())
+
+    # --- Helper private methods
+    # ------------------------------------------------------------------------
+
+    # --- Hover/Hints
+    def _should_display_hover(self, pos):
+        """Check if a hover hint should be displayed:"""
+        value = False
+        if CONF.get('lsp-server', 'enable_hover_hints') and pos:
+            text = self.get_word_at(pos)
+            value = text and self.is_position_inside_word_rect(pos)
+
+        return value
+
+    def _handle_hover(self):
+        """Handle hover hint trigger after delay."""
+        self._timer_mouse_moving.stop()
+        pos = self._last_point
+
+        # These are textual characters but should not trigger a completion
+        # FIXME: update per language
+        ignore_chars = ['(', ')', '.']
+
+        if self._should_display_hover(pos):
+            text = self.get_word_at(pos)
+            cursor = self.cursorForPosition(pos)
+            line, col = cursor.blockNumber(), cursor.columnNumber()
+
+            self._last_point = pos
+            if text and self._last_hover_word != text:
+                if all(char not in text for char in ignore_chars):
+                    self._last_hover_word = text
+                    self.request_hover(line, col)
+                else:
+                    self.hide_tooltip()
+        else:
+            self.hide_tooltip()
 
     # ---- Keyboard Shortcuts
 
@@ -716,13 +764,16 @@ class CodeEditor(TextEditBaseWidget):
         self.classfuncdropdown.setVisible(show_class_func_dropdown
                                           and self.is_python_like())
 
-    # ------------- LSP-related methods ---------------------------------------
+    # --- Language Server Protocol methods -----------------------------------
+    # ------------------------------------------------------------------------
     @Slot(str, dict)
     def handle_response(self, method, params):
         if method in self.handler_registry:
             handler_name = self.handler_registry[method]
             handler = getattr(self, handler_name)
             handler(params)
+            # This signal is only used on tests.
+            # It could be used to track and profile LSP diagnostics.
             self.lsp_response_signal.emit(method, params)
 
     def emit_request(self, method, params, requires_response):
@@ -875,10 +926,9 @@ class CodeEditor(TextEditBaseWidget):
                 signature_data = signature_params['signatures']
                 documentation = signature_data['documentation']
 
-                if PY2:
-                    # The language server is returning encoded text with
-                    # spaces defined as `\xa0`
-                    documentation = documentation.replace(u'\xa0', ' ')
+                # The language server returns encoded text with
+                # spaces defined as `\xa0`
+                documentation = documentation.replace(u'\xa0', ' ')
 
                 parameter_idx = signature_params['activeParameter']
                 parameters = signature_data['parameters']
@@ -886,38 +936,42 @@ class CodeEditor(TextEditBaseWidget):
 
                 signature = signature_data['label']
                 parameter = parameter_data['label']
-                parameter_documentation = parameter_data['documentation']
 
                 # This method is part of spyder/widgets/mixins
                 self.show_calltip(
-                    signature,
-                    documentation,
-                    parameter,
-                    parameter_documentation,
-                    color='#999999',
-                    is_python=self.is_python()
+                    signature=signature,
+                    parameter=parameter,
                 )
         except Exception:
             self.log_lsp_handle_errors("Error when processing signature")
 
     # ------------- LSP: Hover ---------------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_HOVER)
-    def request_hover(self, line, col):
+    def request_hover(self, line, col, show_hint=True):
         """Request hover information."""
         params = {
             'file': self.filename,
             'line': line,
             'column': col
         }
+        self._show_hint = show_hint
         return params
 
     @handles(LSPRequestTypes.DOCUMENT_HOVER)
     def handle_hover_response(self, contents):
         """Handle hover response."""
         try:
-            text = contents['params']
-            self.sig_display_object_info.emit(text)
-            self.show_tooltip(_("Hint"), text)
+            content = contents['params']
+            self.sig_display_object_info.emit(content)
+
+            if CONF.get('lsp-server', 'enable_hover_hints') and content:
+                if self._show_hint and self._last_point:
+                    # This is located in spyder/widgets/mixins.py
+                    word = self._last_hover_word,
+                    self.show_hint(content, inspect_word=word,
+                                   at_point=self._last_point)
+                    self._last_point = None
+
         except Exception:
             self.log_lsp_handle_errors("Error when processing hover")
 
@@ -1753,6 +1807,7 @@ class CodeEditor(TextEditBaseWidget):
         when the user leaves the Linenumber area when hovering over lint
         warnings and errors.
         """
+        self._last_hover_word = None
         self.tooltip_widget.hide()
 
     def show_code_analysis_results(self, line_number, block_data):
@@ -1763,9 +1818,9 @@ class CodeEditor(TextEditBaseWidget):
                    in code_analysis]
 
         self.show_tooltip(
-            _("Code analysis"),
-            msglist,
-            color='#129625',
+            title=_("Code analysis"),
+            text='\n'.join(msglist),
+            title_color='#129625',
             at_line=line_number,
         )
         self.highlight_line_warning(block_data)
@@ -1849,9 +1904,9 @@ class CodeEditor(TextEditBaseWidget):
         line_number = block.blockNumber()+1
         self.go_to_line(line_number)
         self.show_tooltip(
-            _("To do"),
-            data.todo,
-            color='#3096FC',
+            title=_("To do"),
+            text=data.todo,
+            title_color='#3096FC',
             at_line=line_number,
         )
 
@@ -2908,6 +2963,10 @@ class CodeEditor(TextEditBaseWidget):
                      '&', '|', '^', '~', '<', '>', '<=', '>=', '==', '!='}
         delimiters = {',', ':', ';', '@', '=', '->', '+=', '-=', '*=', '/=',
                       '//=', '%=', '@=', '&=', '|=', '^=', '>>=', '<<=', '**='}
+
+        if not shift and not ctrl:
+            self.hide_tooltip()
+
         if text in operators or text in delimiters:
             self.completion_widget.hide()
         if key in (Qt.Key_Enter, Qt.Key_Return):
@@ -3039,8 +3098,13 @@ class CodeEditor(TextEditBaseWidget):
 
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""
-        self.mouse_point = event.pos()
-        QToolTip.hideText()
+        # Restart timer every time the mouse is moved
+        # This is needed to correctly handle hover hints with a delay
+        self._timer_mouse_moving.start()
+
+        pos = event.pos()
+        self._last_point = pos
+
         if event.modifiers() & Qt.AltModifier:
             self.sig_alt_mouse_moved.emit(event)
             event.accept()
@@ -3049,6 +3113,7 @@ class CodeEditor(TextEditBaseWidget):
         if self.has_selected_text():
             TextEditBaseWidget.mouseMoveEvent(self, event)
             return
+
         if (self.go_to_definition_enabled and
                 event.modifiers() & Qt.ControlModifier):
             text = self.get_word_at(event.pos())
@@ -3067,16 +3132,15 @@ class CodeEditor(TextEditBaseWidget):
                     underline_style=QTextCharFormat.SingleUnderline)
                 event.accept()
                 return
+
         if self.__cursor_changed:
             QApplication.restoreOverrideCursor()
             self.__cursor_changed = False
             self.clear_extra_selections('ctrl_click')
-        # TODO: LSP addition - Define hover expected behaviour and UI element
-        # else:
-        #     cursor = self.cursorForPosition(event.pos())
-        #     line, col = cursor.blockNumber(), cursor.columnNumber()
-        #     if self.enable_hover:
-        #         self.request_hover(line, col)
+        else:
+            if not self._should_display_hover(pos):
+                self.hide_tooltip()
+
         TextEditBaseWidget.mouseMoveEvent(self, event)
 
     def setPlainText(self, txt):
@@ -3109,17 +3173,14 @@ class CodeEditor(TextEditBaseWidget):
         """Reimplement Qt method"""
         ctrl = event.modifiers() & Qt.ControlModifier
         alt = event.modifiers() & Qt.AltModifier
+        pos = event.pos()
         if event.button() == Qt.LeftButton and ctrl:
             TextEditBaseWidget.mousePressEvent(self, event)
-            cursor = self.cursorForPosition(event.pos())
+            cursor = self.cursorForPosition(pos)
             self.go_to_definition_from_cursor(cursor)
         elif event.button() == Qt.LeftButton and alt:
             self.sig_alt_left_mouse_pressed.emit(event)
         else:
-            # cursor = self.cursorForPosition(event.pos())
-            # line, col = cursor.blockNumber(), cursor.columnNumber()
-            # if self.enable_hover:
-            #     self.request_hover(line, col)
             TextEditBaseWidget.mousePressEvent(self, event)
 
     def contextMenuEvent(self, event):

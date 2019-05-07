@@ -18,12 +18,15 @@ Now located at qtconsole/call_tip_widget.py as part of the
 
 # Standard library imports
 from unicodedata import category
+import os
 
 # Third party imports
-from qtpy.QtCore import QBasicTimer, QCoreApplication, QEvent, Qt
+from qtpy.QtCore import (QBasicTimer, QCoreApplication, QEvent, Qt, QTimer,
+                         Signal)
 from qtpy.QtGui import QCursor, QPalette
-from qtpy.QtWidgets import (QFrame, QLabel, QTextEdit, QPlainTextEdit, QStyle,
-                            QStyleOptionFrame, QStylePainter, QToolTip)
+from qtpy.QtWidgets import (QApplication, QFrame, QLabel, QTextEdit,
+                            QPlainTextEdit, QStyle, QStyleOptionFrame,
+                            QStylePainter, QToolTip)
 
 # Local imports
 from spyder.py3compat import to_text_string
@@ -34,6 +37,8 @@ class ToolTipWidget(QLabel):
     Shows tooltips that can be styled with the different themes.
     """
 
+    sig_help_requested = Signal(str)
+
     def __init__(self, parent=None, as_tooltip=False):
         """
         Shows tooltips that can be styled with the different themes.
@@ -41,11 +46,22 @@ class ToolTipWidget(QLabel):
         super(ToolTipWidget, self).__init__(parent, Qt.ToolTip)
 
         # Variables
+        self._url = ''
         self.app = QCoreApplication.instance()
         self.as_tooltip = as_tooltip
         self.tip = None
+        self._timer_hide = QTimer()
 
         # Setup
+        self._timer_hide.setInterval(500)
+        self.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        if os.name == 'nt':
+            self.setWindowFlags(Qt.Tool | Qt.FramelessWindowHint)
+        else:
+            self.setWindowFlags(Qt.SplashScreen)
+
+        self.setTextInteractionFlags(Qt.TextBrowserInteraction)
+        self.setOpenExternalLinks(False)
         self.setForegroundRole(QPalette.ToolTipText)
         self.setBackgroundRole(QPalette.ToolTipBase)
         self.setPalette(QToolTip.palette())
@@ -57,6 +73,10 @@ class ToolTipWidget(QLabel):
                                          None, self)
         self.setMargin(1 + delta_margin)
 
+        # Signals
+        self.linkHovered.connect(self._update_hover_html_link_style)
+        self._timer_hide.timeout.connect(self.hide)
+
     def paintEvent(self, event):
         """Reimplemented to paint the background panel."""
         painter = QStylePainter(self)
@@ -66,6 +86,24 @@ class ToolTipWidget(QLabel):
         painter.end()
 
         super(ToolTipWidget, self).paintEvent(event)
+
+    def _update_hover_html_link_style(self, url):
+        """Update style of labels that include rich text and html links."""
+        link = 'text-decoration:none;'
+        link_hovered = 'text-decoration:underline;'
+        self._url = url
+
+        if url:
+            QApplication.setOverrideCursor(QCursor(Qt.PointingHandCursor))
+            new_text, old_text = link_hovered, link
+        else:
+            new_text, old_text = link, link_hovered
+            QApplication.restoreOverrideCursor()
+
+        text = self.text()
+        new_text = text.replace(old_text, new_text)
+
+        self.setText(new_text)
 
     # ------------------------------------------------------------------------
     # --- 'ToolTipWidget' interface
@@ -90,11 +128,14 @@ class ToolTipWidget(QLabel):
         self.show()
         return True
 
-    def focusInEvent(self, event):
+    def mousePressEvent(self, event):
         """
         Reimplemented to hide it when focus goes out of the main window.
         """
-        self.hide()
+        QApplication.restoreOverrideCursor()
+        self.sig_help_requested.emit(self._url)
+        super(ToolTipWidget, self).mousePressEvent(event)
+        self._hide()
 
     def focusOutEvent(self, event):
         """
@@ -106,6 +147,17 @@ class ToolTipWidget(QLabel):
         """Override Qt method to hide the tooltip on leave."""
         super(ToolTipWidget, self).leaveEvent(event)
         self.hide()
+
+    def _hide(self):
+        """Hide method helper."""
+        QApplication.restoreOverrideCursor()
+        self._timer_hide.start()
+
+    def hide(self):
+        """Override Qt method to add timer and restore cursor."""
+        super(ToolTipWidget, self).hide()
+        self._timer_hide.stop()
+
 
 
 class CallTipWidget(QLabel):
@@ -130,6 +182,12 @@ class CallTipWidget(QLabel):
         self._hide_timer = QBasicTimer()
         self._text_edit = text_edit
 
+        # Setup
+        self.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        if os.name != 'nt':
+            self.setWindowFlags(Qt.SplashScreen)  # This is needed on OSX
+        else:
+            pass
         self.setFont(text_edit.document().defaultFont())
         self.setForegroundRole(QPalette.ToolTipText)
         self.setBackgroundRole(QPalette.ToolTipBase)
