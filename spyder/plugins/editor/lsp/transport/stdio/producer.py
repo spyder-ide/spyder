@@ -75,10 +75,7 @@ class StdioLanguageServerClient(LanguageServerClient):
         initial_time = time.time()
         try:
             while not connected:
-                if os.name != 'nt':
-                    connected = not self.process.proc.poll()
-                else:
-                    connected = self.process.isalive()
+                connected = not self.process.proc.poll()
                 if time.time() - initial_time > self.MAX_TIMEOUT_TIME:
                     connection_error = 'Timeout communication period exceeded'
                     break
