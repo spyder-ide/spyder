@@ -421,6 +421,7 @@ class MainWindow(QMainWindow):
                               RunConfigPage, LSPManagerConfigPage]
         self.prefs_index = None
         self.prefs_dialog_size = None
+        self.prefs_dialog_instance = None
 
         # Quick Layouts and Dialogs
         from spyder.preferences.layoutdialog import (LayoutSaveDialog,
@@ -2874,32 +2875,52 @@ class MainWindow(QMainWindow):
     def edit_preferences(self):
         """Edit Spyder preferences"""
         from spyder.preferences.configdialog import ConfigDialog
-        dlg = ConfigDialog(self)
-        dlg.size_change.connect(self.set_prefs_size)
-        if self.prefs_dialog_size is not None:
-            dlg.resize(self.prefs_dialog_size)
-        for PrefPageClass in self.general_prefs:
-            widget = PrefPageClass(dlg, main=self)
-            widget.initialize()
-            dlg.add_page(widget)
-        for plugin in [self.workingdirectory, self.editor,
-                       self.projects, self.ipyconsole,
-                       self.historylog, self.help, self.variableexplorer,
-                       self.onlinehelp, self.explorer, self.findinfiles
-                       ]+self.thirdparty_plugins:
-            if plugin is not None:
-                try:
-                    widget = plugin.create_configwidget(dlg)
-                    if widget is not None:
-                        dlg.add_page(widget)
-                except Exception:
-                    traceback.print_exc(file=sys.stderr)
-        if self.prefs_index is not None:
-            dlg.set_current_index(self.prefs_index)
-        dlg.show()
-        dlg.check_all_settings()
-        dlg.pages_widget.currentChanged.connect(self.__preference_page_changed)
-        dlg.exec_()
+
+        def _dialog_finished(result_code):
+            """Restore preferences dialog instance variable."""
+            self.prefs_dialog_instance = None
+
+        if self.prefs_dialog_instance is None:
+            dlg = ConfigDialog(self)
+            self.prefs_dialog_instance = dlg
+
+            # Signals
+            dlg.finished.connect(_dialog_finished)
+            dlg.pages_widget.currentChanged.connect(
+                self.__preference_page_changed)
+            dlg.size_change.connect(self.set_prefs_size)
+
+            # Setup
+            if self.prefs_dialog_size is not None:
+                dlg.resize(self.prefs_dialog_size)
+
+            for PrefPageClass in self.general_prefs:
+                widget = PrefPageClass(dlg, main=self)
+                widget.initialize()
+                dlg.add_page(widget)
+
+            for plugin in [self.workingdirectory, self.editor,
+                           self.projects, self.ipyconsole,
+                           self.historylog, self.help, self.variableexplorer,
+                           self.onlinehelp, self.explorer, self.findinfiles
+                           ] + self.thirdparty_plugins:
+                if plugin is not None:
+                    try:
+                        widget = plugin.create_configwidget(dlg)
+                        if widget is not None:
+                            dlg.add_page(widget)
+                    except Exception:
+                        # Avoid a crash at startup if a plugin's config
+                        # page fails to load.
+                        traceback.print_exc(file=sys.stderr)
+
+            if self.prefs_index is not None:
+                dlg.set_current_index(self.prefs_index)
+
+            # Check settings and show dialog
+            dlg.show()
+            dlg.check_all_settings()
+            dlg.exec_()
 
     def __preference_page_changed(self, index):
         """Preference page index has changed"""
