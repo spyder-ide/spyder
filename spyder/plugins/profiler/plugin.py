@@ -98,13 +98,7 @@ class Profiler(SpyderPluginWidget):
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         return True
-            
-    def apply_plugin_settings(self, options):
-        """Apply configuration file's plugin settings"""
-        # The history depth option will be applied at 
-        # next Spyder startup, which is soon enough
-        pass
-        
+
     #------ Public API ---------------------------------------------------------        
     def run_profiler(self):
         """Run profiler"""

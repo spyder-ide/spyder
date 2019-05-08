@@ -285,9 +285,9 @@ class SpyderPluginWidget(SpyderPlugin, BasePluginWidget):
 
     def apply_plugin_settings(self, options):
         """
-        What to do to apply configuration plugin settings.
+        Determine what to do to apply configuration plugin settings.
         """
-        raise NotImplementedError
+        pass
 
     def update_font(self):
         """

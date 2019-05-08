@@ -94,11 +94,7 @@ class Breakpoints(SpyderPluginWidget):
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         return True
-            
-    def apply_plugin_settings(self, options):
-        """Apply configuration file's plugin settings"""
-        pass
-        
+
     def show(self):
         """Show the breakpoints dockwidget"""
         self.switch_to_plugin()

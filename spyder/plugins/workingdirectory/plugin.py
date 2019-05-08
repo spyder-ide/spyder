@@ -144,10 +144,6 @@ class WorkingDirectory(SpyderPluginWidget):
         self.set_next_enabled.emit(self.histindex is not None and \
                                    self.histindex < len(self.history)-1)
 
-    def apply_plugin_settings(self, options):
-        """Apply configuration file's plugin settings"""
-        pass
-        
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         return True
