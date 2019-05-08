@@ -86,7 +86,3 @@ class OnlineHelp(SpyderPluginWidget):
         self.set_option('zoom_factor',
                         self.pydocbrowser.webview.get_zoom_factor())
         return True
-
-    def register_plugin(self):
-        """Register plugin in Spyder's main window"""
-        self.main.add_dockwidget(self)

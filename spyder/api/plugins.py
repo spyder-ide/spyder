@@ -266,8 +266,11 @@ class SpyderPluginWidget(SpyderPlugin, BasePluginWidget):
     def register_plugin(self):
         """
         Register plugin in Spyder's main window.
+
+        Note: Here is the minimal call to register a plugin. If you
+        override this method, you need to make that call by yourself.
         """
-        raise NotImplementedError
+        self.main.add_dockwidget(self)
 
     def on_first_registration(self):
         """
