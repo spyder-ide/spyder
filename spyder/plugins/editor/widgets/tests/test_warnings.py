@@ -144,3 +144,32 @@ def test_get_warnings(qtbot, lsp_codeeditor):
                 ["undefined name 's'", 5]]
 
     assert warnings == expected
+
+
+def test_update_warnings_after_delete_line(qtbot, lsp_codeeditor):
+    """
+    Test that code style warnings are correctly updated after deleting a line
+    in the Editor.
+
+    Regression test for #9299 .
+    """
+    editor, _ = lsp_codeeditor
+    editor.set_text(TEXT)
+
+    # Notify changes
+    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
+        editor.document_did_change()
+
+    # Delete the blank line that is causing the W293 warning on line 2.
+    editor.go_to_line(2)
+    editor.delete_line()
+
+    # Wait for the lsp_response_signal.
+    qtbot.waitSignal(editor.lsp_response_signal, timeout=30000)
+
+    # Assert that the W293 warning is gone.
+    expected = [['D100: Missing docstring in public module', 1],
+                ['D103: Missing docstring in public function', 1],
+                ['E261 at least two spaces before inline comment', 2],
+                ["undefined name 's'", 4]]
+    assert editor.get_current_warnings() == expected
