@@ -1034,6 +1034,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         cursor.removeSelectedText()
         cursor.endEditBlock()
         self.ensureCursorVisible()
+        self.document_did_change()
 
     def set_selection(self, start, end):
         cursor = self.textCursor()
