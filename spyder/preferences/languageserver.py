@@ -103,8 +103,8 @@ class LSPServerEditor(QDialog):
     DEFAULT_EXTERNAL = False
     HOST_REGEX = re.compile(r'^\w+([.]\w+)*$')
     NON_EMPTY_REGEX = re.compile(r'^\S+$')
-    JSON_VALID = _('JSON valid')
-    JSON_INVALID = _('JSON invalid')
+    JSON_VALID = _('Valid JSON')
+    JSON_INVALID = _('Invalid JSON')
     MIN_SIZE = QSize(800, 600)
     INVALID_CSS = "QLineEdit {border: 1px solid red;}"
     VALID_CSS = "QLineEdit {border: 1px solid green;}"
@@ -118,11 +118,11 @@ class LSPServerEditor(QDialog):
             'To create a new server configuration, you need to select a '
             'programming language and the server hostname/IP and port to '
             'use. If starting a local server, also provide the command to '
-            'execute it and any command-line that should be passed to the it '
-            'on startup.'
-            '<br><br>You can use the placeholders <tt>{host}</tt> and '
+            'execute it and any arguments that should be passed on startup.'
+            '<br><br>'
+            'You can use the placeholders <tt>{host}</tt> and '
             '<tt>{port}</tt> in the server arguments field to '
-            'automatically  fill in the respective values.<br>'
+            'automatically fill in the respective values.<br>'
         )
         self.parent = parent
         self.external = external
@@ -181,7 +181,7 @@ class LSPServerEditor(QDialog):
         self.args_input.setToolTip(
             _('Additional arguments required to start the server'))
         self.args_input.setText(args)
-        self.args_input.setPlaceholderText('--host %(host)s --port %(port)s  --tcp')
+        self.args_input.setPlaceholderText(r'--host {host} --port {port}')
 
         self.conf_input.setup_editor(
             language='json',
@@ -196,7 +196,7 @@ class LSPServerEditor(QDialog):
             filename='config.json',
         )
         self.conf_input.set_language('json', 'config.json')
-        self.conf_input.setToolTip(_('Additional LSP server configurations '
+        self.conf_input.setToolTip(_('Additional LSP server configuration '
                                      'set at runtime. JSON required'))
         try:
             conf_text = json.dumps(configurations, indent=4, sort_keys=True)
@@ -249,7 +249,7 @@ class LSPServerEditor(QDialog):
         conf_layout.addWidget(self.json_label)
 
         vlayout.addStretch()
-        hlayout.addLayout(vlayout, 2)
+        hlayout.addLayout(vlayout, 1)
         hlayout.addLayout(conf_layout, 3)
         general_vlayout.addLayout(hlayout)
 
