@@ -129,8 +129,8 @@ class LSPManager(QObject):
                 instance.initialize()
 
     @Slot(str)
-    def receive_error(self, value):
-        """Receive the LSP message error and redirect to the main window."""
+    def report_server_error(self, value):
+        """Report server errors in our error report dialog."""
         self.main.report_lsp_error(value)
 
     def start_client(self, language):
@@ -168,7 +168,7 @@ class LSPManager(QObject):
                     language_client['instance'].sig_initialize.connect(
                         self.main.editor.register_lsp_server_settings)
                     language_client['instance'].sig_lsp_error.connect(
-                        self.receive_error)
+                        self.report_server_error)
 
                 logger.info("Starting LSP client for {}...".format(language))
                 language_client['instance'].start()

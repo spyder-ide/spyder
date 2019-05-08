@@ -57,7 +57,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     # Signals
     sig_initialize = Signal(dict, str)
 
-    sig_lsp_error = Signal(str)
+    # This signal is used to report internal server errors through
+    # Spyder's facilities.
+    sig_server_error = Signal(str)
 
     # Constants
     external_server_fmt = ('--server-host %(host)s '
@@ -242,7 +244,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                     logger.debug('{} Response error: {}'
                                  .format(self.language, repr(resp['error'])))
                     if self.language == 'python':
-                        self.sig_lsp_error.emit(repr(resp['error']))
+                        self.sig_server_error.emit(repr(resp['error']))
 
                 if 'method' in resp:
                     if resp['method'][0] != '$':
