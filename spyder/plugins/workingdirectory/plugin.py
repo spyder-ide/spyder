@@ -125,11 +125,7 @@ class WorkingDirectory(SpyderPluginWidget):
     def get_plugin_icon(self):
         """Return widget icon"""
         return ima.icon('DirOpenIcon')
-        
-    def get_plugin_actions(self):
-        """Setup actions"""
-        return [None, None]
-    
+
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)

@@ -65,10 +65,6 @@ class Breakpoints(SpyderPluginWidget):
         this plugin's dockwidget is raised on top-level
         """
         return self.breakpoints.dictwidget
-    
-    def get_plugin_actions(self):
-        """Return a list of actions related to plugin"""
-        return []
 
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""

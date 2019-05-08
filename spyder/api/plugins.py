@@ -261,7 +261,7 @@ class SpyderPluginWidget(SpyderPlugin, BasePluginWidget):
 
         Note: These actions will be shown in the plugins Options menu.
         """
-        raise NotImplementedError
+        return []
 
     def register_plugin(self):
         """

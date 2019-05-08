@@ -87,10 +87,6 @@ class OnlineHelp(SpyderPluginWidget):
                         self.pydocbrowser.webview.get_zoom_factor())
         return True
 
-    def get_plugin_actions(self):
-        """Return a list of actions related to plugin"""
-        return []
-
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.main.add_dockwidget(self)
