@@ -78,7 +78,7 @@ class BasePlugin(BasePluginMixin):
 
     def starting_long_process(self, message):
         """
-        Showing message in main window's status bar when starting a
+        Show a message in main window's status bar when starting a
         long process.
 
         This also changes mouse cursor to Qt.WaitCursor
@@ -114,8 +114,8 @@ class SpyderPlugin(BasePlugin):
         This method can be implemented to check compatibility of a plugin
         for a given condition.
 
-        `message` should give information in case of non compatibility:
-        For example: 'This plugin does not work with Qt4'
+        `message` should give information in case of incompatibility. For
+        example: 'This plugin does not work with Qt4'
         """
         message = ''
         valid = True
