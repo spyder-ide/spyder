@@ -222,7 +222,7 @@ class SpyderErrorDialog(QDialog):
 
         # Main layout
         layout = QVBoxLayout()
-        layout.addWidget(main_label)
+        layout.addWidget(self.main_label)
         layout.addSpacing(20)
         layout.addLayout(form_layout)
         layout.addWidget(self.title_chars_label)
