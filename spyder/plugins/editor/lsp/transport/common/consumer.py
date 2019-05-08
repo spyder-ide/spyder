@@ -52,7 +52,8 @@ class IncomingMessageThread(Thread):
         if not expectable:
             if os.name == 'nt':
                 self.read_incoming = self.expect_windows
-            self.expect = fdspawn(self.fd)
+            else:
+                self.expect = fdspawn(self.fd)
         self.zmq_sock = zmq_sock
         self.req_status = req_status
 
