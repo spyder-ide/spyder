@@ -46,7 +46,7 @@ from spyder_kernels.utils.dochelpers import getobj
 
 # Local imports
 from spyder.api.panel import Panel
-from spyder.config.base import _, get_debug_level
+from spyder.config.base import _, get_debug_level, running_under_pytest
 from spyder.config.gui import get_shortcut, config_shortcut
 from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
                                 RUN_CELL_AND_ADVANCE_SHORTCUT)
@@ -1633,10 +1633,9 @@ class CodeEditor(TextEditBaseWidget):
         self.setPlainText(text)
         self.set_eol_chars(text)
 
-        if isinstance(self.highlighter, sh.PygmentsSH):
+        if (isinstance(self.highlighter, sh.PygmentsSH)
+                and not running_under_pytest()):
             self.highlighter.make_charlist()
-        #if self.supported_language:
-            #self.highlighter.rehighlight()
 
     def set_text_from_file(self, filename, language=None):
         """Set the text of the editor from file *fname*"""

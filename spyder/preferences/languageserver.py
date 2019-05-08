@@ -116,9 +116,10 @@ class LSPServerEditor(QDialog):
             'To create a new configuration, you need to select a programming '
             'language, along with a executable name for the server to '
             'execute (If the instance is local), and the host and port. '
-            'Finally, you need to provide the arguments that the server '
+            'Then you will need to provide the arguments that the server '
             'accepts. <br><br>The placeholders <tt>{host}</tt> and '
             '<tt>{port}</tt> refer to the host and the port, respectively.'
+            '<br>'
         )
         self.parent = parent
         self.external = external
@@ -147,11 +148,7 @@ class LSPServerEditor(QDialog):
 
         # Widget setup
         self.setMinimumSize(self.MIN_SIZE)
-        self.setWindowTitle(_('Preferences')
-                            + ': '
-                            + _('Completion and linting')
-                            + ' - '
-                            + _('LSP server editor'))
+        self.setWindowTitle(_('LSP server editor'))
 
         self.server_settings_description.setWordWrap(True)
 
@@ -168,6 +165,7 @@ class LSPServerEditor(QDialog):
 
         self.host_input.setToolTip(
             _('Name of the host that will provide access to the server'))
+        self.host_input.setPlaceholderText('127.0.0.1')
         self.host_input.setText(host)
         self.host_input.textChanged.connect(lambda x: self.validate())
 
@@ -179,10 +177,12 @@ class LSPServerEditor(QDialog):
         self.cmd_input.setToolTip(
             _('Command used to start the LSP server locally'))
         self.cmd_input.setText(cmd)
+        self.cmd_input.setPlaceholderText('/path/to/command')
 
         self.args_input.setToolTip(
             _('Additional arguments required to start the server'))
         self.args_input.setText(args)
+        self.args_input.setPlaceholderText('/path/to/command')
 
         self.conf_input.setup_editor(
             language='json',
@@ -607,8 +607,6 @@ class LSPServerTable(QTableView):
             self.parent().reset_btn.setFocus()
         elif key in [Qt.Key_Up, Qt.Key_Down, Qt.Key_Left, Qt.Key_Right]:
             super(LSPServerTable, self).keyPressEvent(event)
-        # elif key in [Qt.Key_Escape]:
-        #     self.finder.keyPressEvent(event)
         else:
             super(LSPServerTable, self).keyPressEvent(event)
 
