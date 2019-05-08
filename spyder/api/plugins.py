@@ -25,6 +25,9 @@ from spyder.plugins.base import BasePluginMixin, BasePluginWidgetMixin
 from spyder.utils import icon_manager as ima
 
 
+# =============================================================================
+# SpyderPlugin
+# =============================================================================
 class BasePlugin(BasePluginMixin):
     """
     Basic functionality for Spyder plugins.
@@ -119,6 +122,9 @@ class SpyderPlugin(BasePlugin):
         return valid, message
 
 
+# =============================================================================
+# SpyderPluginWidget
+# =============================================================================
 class BasePluginWidget(SpyderPlugin, QWidget, BasePluginWidgetMixin):
     """
     Basic functionality for Spyder plugin widgets.
