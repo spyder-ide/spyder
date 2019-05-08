@@ -244,7 +244,11 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                     logger.debug('{} Response error: {}'
                                  .format(self.language, repr(resp['error'])))
                     if self.language == 'python':
-                        self.sig_server_error.emit(repr(resp['error']))
+                        traceback = (resp['error'].get('data', {}).
+                                     get('traceback'))
+                        if traceback:
+                            traceback = ''.join(traceback)
+                            self.sig_server_error.emit(traceback)
                 elif 'method' in resp:
                     if resp['method'][0] != '$':
                         if resp['method'] in self.handler_registry:
