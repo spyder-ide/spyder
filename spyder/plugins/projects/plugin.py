@@ -165,10 +165,6 @@ class Projects(SpyderPluginWidget):
         self.sig_pythonpath_changed.connect(self.main.pythonpath_changed)
         self.main.editor.set_projects(self)
 
-    def refresh_plugin(self):
-        """Refresh project explorer widget"""
-        pass
-
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         self.save_config()

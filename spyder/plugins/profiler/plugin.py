@@ -97,7 +97,8 @@ class Profiler(SpyderPluginWidget):
     def refresh_plugin(self):
         """Refresh profiler widget"""
         #self.remove_obsolete_items()  # FIXME: not implemented yet
-        
+        pass
+
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         return True

@@ -184,10 +184,6 @@ class VariableExplorer(SpyderPluginWidget):
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         return True
-        
-    def refresh_plugin(self):
-        """Refresh widget"""
-        pass
 
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""

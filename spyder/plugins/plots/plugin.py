@@ -133,10 +133,6 @@ class Plots(SpyderPluginWidget):
         """Perform actions before parent main window is closed"""
         return True
 
-    def refresh_plugin(self):
-        """Refresh widget"""
-        pass
-
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         return self.current_widget().actions if self.current_widget() else []

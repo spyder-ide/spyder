@@ -95,10 +95,6 @@ class Breakpoints(SpyderPluginWidget):
         self.main.debug_menu_actions.insert(pos, list_action)
         self.main.editor.pythonfile_dependent_actions += [list_action]
 
-    def refresh_plugin(self):
-        """Refresh widget"""
-        pass
-        
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         return True

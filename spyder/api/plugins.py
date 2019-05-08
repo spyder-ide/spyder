@@ -223,7 +223,7 @@ class SpyderPluginWidget(SpyderPlugin, BasePluginWidget):
 
     def get_plugin_title(self):
         """
-        Return plugin title.
+        Return plugin's title as string
         """
         raise NotImplementedError
 
@@ -252,8 +252,8 @@ class SpyderPluginWidget(SpyderPlugin, BasePluginWidget):
         return True
 
     def refresh_plugin(self):
-        """Refresh widget."""
-        raise NotImplementedError
+        """Refresh plugin after receiving focus."""
+        pass
 
     def get_plugin_actions(self):
         """

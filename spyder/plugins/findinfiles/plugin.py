@@ -159,11 +159,7 @@ class FindInFiles(SpyderPluginWidget):
         self.main.search_toolbar_actions += [MENU_SEPARATOR,
                                              findinfiles_action]
         self.refreshdir()
-    
-    def refresh_plugin(self):
-        """Refresh widget"""
-        pass
-        
+
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         self.findinfiles.closing_widget()  # stop search thread and clean-up

@@ -81,11 +81,7 @@ class OutlineExplorer(SpyderPluginWidget):
         self.main.restore_scrollbar_position.connect(
                                                self.restore_scrollbar_position)
         self.main.add_dockwidget(self)
-        
-    def refresh_plugin(self):
-        """Refresh project explorer widget"""
-        pass
-        
+
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         self.save_config()

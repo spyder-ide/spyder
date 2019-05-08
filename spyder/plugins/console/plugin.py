@@ -136,10 +136,7 @@ class Console(SpyderPluginWidget):
         self.dialog_manager.close_all()
         self.shell.exit_interpreter()
         return True
-        
-    def refresh_plugin(self):
-        pass
-    
+
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         quit_action = create_action(self, _("&Quit"),
