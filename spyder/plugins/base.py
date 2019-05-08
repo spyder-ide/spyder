@@ -34,9 +34,6 @@ class BasePluginMixin(object):
     def __init__(self, parent=None):
         super(BasePluginMixin, self).__init__()
 
-        # Assert the plugin has CONF_SECTION
-        assert self.CONF_SECTION is not None
-
         # Check compatibility
         check_compatibility, message = self.check_compatibility()
         if not check_compatibility:

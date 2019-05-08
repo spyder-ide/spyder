@@ -101,7 +101,7 @@ class SpyderPlugin(BasePlugin):
     # Name of the configuration section that's going to be
     # used to record the plugin's permanent data in Spyder
     # config system (i.e. in spyder.ini)
-    # Status: Required
+    # Status: Optional
     CONF_SECTION = None
 
     # ------------------------------ METHODS ----------------------------------
