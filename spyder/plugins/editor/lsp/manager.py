@@ -167,7 +167,7 @@ class LSPManager(QObject):
                 if self.main and self.main.editor:
                     language_client['instance'].sig_initialize.connect(
                         self.main.editor.register_lsp_server_settings)
-                    language_client['instance'].sig_lsp_error.connect(
+                    language_client['instance'].sig_server_error.connect(
                         self.report_server_error)
 
                 logger.info("Starting LSP client for {}...".format(language))
