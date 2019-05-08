@@ -106,6 +106,8 @@ class LSPServerEditor(QDialog):
     JSON_VALID = _('JSON valid')
     JSON_INVALID = _('JSON invalid')
     MIN_SIZE = QSize(800, 600)
+    INVALID_CSS = "QLineEdit {border: 1px solid red;}"
+    VALID_CSS = "QLineEdit {border: 1px solid green;}"
 
     def __init__(self, parent, language=None, cmd='', host='127.0.0.1',
                  port=2084, args='', external=False, configurations={},
@@ -113,13 +115,14 @@ class LSPServerEditor(QDialog):
         super(LSPServerEditor, self).__init__(parent)
 
         description = _(
-            'To create a new configuration, you need to select a programming '
-            'language, along with a executable name for the server to '
-            'execute (If the instance is local), and the host and port. '
-            'Then you will need to provide the arguments that the server '
-            'accepts. <br><br>The placeholders <tt>{host}</tt> and '
-            '<tt>{port}</tt> refer to the host and the port, respectively.'
-            '<br>'
+            'To create a new server configuration, you need to select a '
+            'programming language and the server hostname/IP and port to '
+            'use. If starting a local server, also provide the command to '
+            'execute it and any command-line that should be passed to the it '
+            'on startup.'
+            '<br><br>You can use the placeholders <tt>{host}</tt> and '
+            '<tt>{port}</tt> in the server arguments field to '
+            'automatically  fill in the respective values.<br>'
         )
         self.parent = parent
         self.external = external
@@ -138,7 +141,7 @@ class LSPServerEditor(QDialog):
         self.args_label = QLabel(_('Server arguments:'))
         self.args_input = QLineEdit(self)
         self.json_label = QLabel(self.JSON_VALID, self)
-        self.conf_label = QLabel(_('LSP Server Configurations:'))
+        self.conf_label = QLabel(_('LSP Server Configuration:'))
         self.conf_input = CodeEditor(None)
 
         self.bbox = QDialogButtonBox(QDialogButtonBox.Ok |
@@ -163,8 +166,6 @@ class LSPServerEditor(QDialog):
             self.lang_cb.setCurrentIndex(idx + 1)
             self.button_ok.setEnabled(True)
 
-        self.host_input.setToolTip(
-            _('Name of the host that will provide access to the server'))
         self.host_input.setPlaceholderText('127.0.0.1')
         self.host_input.setText(host)
         self.host_input.textChanged.connect(lambda x: self.validate())
@@ -174,15 +175,13 @@ class LSPServerEditor(QDialog):
         self.port_spinner.setMaximum(60000)
         self.port_spinner.setValue(port)
 
-        self.cmd_input.setToolTip(
-            _('Command used to start the LSP server locally'))
         self.cmd_input.setText(cmd)
-        self.cmd_input.setPlaceholderText('/path/to/command')
+        self.cmd_input.setPlaceholderText('/absolute/path/to/command')
 
         self.args_input.setToolTip(
             _('Additional arguments required to start the server'))
         self.args_input.setText(args)
-        self.args_input.setPlaceholderText('/path/to/command')
+        self.args_input.setPlaceholderText('--host %(host)s --port %(port)s  --tcp')
 
         self.conf_input.setup_editor(
             language='json',
@@ -250,7 +249,7 @@ class LSPServerEditor(QDialog):
         conf_layout.addWidget(self.json_label)
 
         vlayout.addStretch()
-        hlayout.addLayout(vlayout, 1)
+        hlayout.addLayout(vlayout, 2)
         hlayout.addLayout(conf_layout, 3)
         general_vlayout.addLayout(hlayout)
 
@@ -276,37 +275,41 @@ class LSPServerEditor(QDialog):
     def validate(self):
         host_text = self.host_input.text()
         cmd_text = self.cmd_input.text()
+
         if not self.HOST_REGEX.match(host_text):
             self.button_ok.setEnabled(False)
-            self.host_input.setStyleSheet("QLineEdit{border: 1px solid red;}")
-            self.host_input.setToolTip('Hostname must be valid')
-            return
+            self.host_input.setStyleSheet(self.INVALID_CSS)
+            if bool(host_text):
+                self.host_input.setToolTip(_('Hostname must be valid'))
+            else:
+                self.host_input.setToolTip(
+                    _('Hostname or IP address of the host on which the server '
+                      'is running. Must be non empty.'))
         else:
-            self.host_input.setStyleSheet(
-                "QLineEdit{border: 1px solid green;}")
-            self.host_input.setToolTip('Hostname is valid')
+            self.host_input.setStyleSheet(self.VALID_CSS)
+            self.host_input.setToolTip(_('Hostname is valid'))
             self.button_ok.setEnabled(True)
 
         if not self.external:
             if not self.NON_EMPTY_REGEX.match(cmd_text):
                 self.button_ok.setEnabled(False)
-                self.cmd_input.setStyleSheet(
-                    "QLineEdit{border: 1px solid red;}")
-                self.cmd_input.setToolTip('Command must be non empty')
+                self.cmd_input.setStyleSheet(self.INVALID_CSS)
+                self.cmd_input.setToolTip(
+                    _('Command used to start the LSP server locally. Must be '
+                      'non empty'))
                 return
 
             if find_program(cmd_text) is None:
                 self.button_ok.setEnabled(False)
-                self.cmd_input.setStyleSheet(
-                    "QLineEdit{border: 1px solid red;}")
-                self.cmd_input.setToolTip('Program was not found '
-                                          'on your system')
-                return
+                self.cmd_input.setStyleSheet(self.INVALID_CSS)
+                self.cmd_input.setToolTip(_('Program was not found '
+                                            'on your system'))
             else:
-                self.cmd_input.setStyleSheet(
-                    "QLineEdit{border: 1px solid green;}")
-                self.cmd_input.setToolTip('Program was found on your system')
+                self.cmd_input.setStyleSheet(self.VALID_CSS)
+                self.cmd_input.setToolTip(_('Program was found on your '
+                                            'system'))
                 self.button_ok.setEnabled(True)
+
         try:
             json.loads(self.conf_input.toPlainText())
             try:
