@@ -630,13 +630,21 @@ class CodeEditor(TextEditBaseWidget):
                      occurrence_timeout=1500,
                      show_class_func_dropdown=False,
                      indent_guides=False,
-                     scroll_past_end=False):
+                     scroll_past_end=False, 
+                     debug_panel=True,
+                     folding=True):
 
         self.set_close_parentheses_enabled(close_parentheses)
         self.set_close_quotes_enabled(close_quotes)
         self.set_add_colons_enabled(add_colons)
         self.set_auto_unindent_enabled(auto_unindent)
         self.set_indent_chars(indent_chars)
+
+        # Hide debug panel depending on the language
+        self.set_debug_panel(debug_panel, language)
+
+        # Hide folding panel depending on the language
+        self.set_folding_panel(folding, language)
 
         # Scrollbar flag area
         self.scrollflagarea.set_enabled(scrollflagarea)
@@ -981,6 +989,22 @@ class CodeEditor(TextEditBaseWidget):
             return params
 
     # -------------------------------------------------------------------------
+    def set_debug_panel(self, debug_panel, language):
+        """Enable/disable debug panel"""
+        debugger_panel = self.panels.get(DebuggerPanel)
+        if language == 'py':
+            debugger_panel.setVisible(True)
+        else:
+            debugger_panel.setVisible(False)
+
+    def set_folding_panel(self, folding, language):
+        """Enable/disable debug panel"""
+        folding_panel = self.panels.get(FoldingPanel)
+        if language == 'py':
+            folding_panel.setVisible(True)
+        else:
+            folding_panel.setVisible(False)
+
     def set_tab_mode(self, enable):
         """
         enabled = tab always indent
@@ -1066,6 +1090,7 @@ class CodeEditor(TextEditBaseWidget):
             if self.support_language:
                 self.language = sh_class._lexer.name
         self._set_highlighter(sh_class)
+        print(language)
 
     def _set_highlighter(self, sh_class):
         self.highlighter_class = sh_class
@@ -1647,6 +1672,7 @@ class CodeEditor(TextEditBaseWidget):
         If not, return None"""
         block = self.document().findBlockByNumber(block_nb)
         return self.get_block_data(block).fold_level
+
 
 # =============================================================================
 #    High-level editor features
