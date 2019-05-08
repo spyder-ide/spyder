@@ -246,7 +246,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                     if self.language == 'python':
                         self.sig_server_error.emit(repr(resp['error']))
 
-                if 'method' in resp:
+                elif 'method' in resp:
                     if resp['method'][0] != '$':
                         if resp['method'] in self.handler_registry:
                             handler_name = (
