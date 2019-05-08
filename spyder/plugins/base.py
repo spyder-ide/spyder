@@ -17,7 +17,7 @@ from qtpy.QtWidgets import (QApplication, QDockWidget, QMainWindow, QMenu,
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import is_dark_interface, get_font
+from spyder.config.gui import get_color_scheme, get_font, is_dark_interface
 from spyder.config.main import CONF
 from spyder.config.user import NoDefault
 from spyder.py3compat import configparser, is_text_string
@@ -364,7 +364,7 @@ class BasePluginWidgetMixin(object):
             self.refresh_plugin()   # To give focus to the plugin's widget
 
     def refresh_actions(self):
-        """Refresh options menu."""
+        """Refresh Options menu."""
         self.options_menu.clear()
 
         # Decide what additional actions to show
@@ -382,9 +382,7 @@ class BasePluginWidgetMixin(object):
 
     def initialize_plugin(self):
         """
-        Initialize plugin: connect signals, setup actions, etc.
-
-        It must be called at the end of the plugin's __init__
+        Setup Options menu, create toggle action and connect some signals.
         """
         self.create_toggle_view_action()
 
@@ -396,3 +394,13 @@ class BasePluginWidgetMixin(object):
 
         self.sig_update_plugin_title.connect(self.update_plugin_title)
         self.setWindowTitle(self.get_plugin_title())
+
+    def register_shortcut(self, qaction_or_qshortcut, context, name,
+                          add_sc_to_tip=False):
+        """Register a shortcut associated to a QAction or QShortcut."""
+        self.main.register_shortcut(qaction_or_qshortcut, context,
+                                    name, add_sc_to_tip)
+
+    def get_color_scheme(self):
+        """Get the current color scheme."""
+        return get_color_scheme(CONF.get('appearance', 'selected'))

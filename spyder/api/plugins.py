@@ -20,9 +20,6 @@ from qtpy.QtCore import Signal, Slot
 from qtpy.QtWidgets import QWidget
 
 # Local imports
-from spyder.config.base import _
-from spyder.config.gui import get_color_scheme
-from spyder.config.main import CONF
 from spyder.config.user import NoDefault
 from spyder.plugins.base import BasePluginMixin, BasePluginWidgetMixin
 from spyder.utils import icon_manager as ima
@@ -32,7 +29,7 @@ class BasePlugin(BasePluginMixin):
     """
     Basic functionality for Spyder plugins.
 
-    WARNING: Don't override any methods present here!
+    WARNING: Don't override any methods or attributes present here!
     """
 
     # Use this signal to display a message in the status bar
@@ -126,7 +123,7 @@ class BasePluginWidget(SpyderPlugin, QWidget, BasePluginWidgetMixin):
     """
     Basic functionality for Spyder plugin widgets.
 
-    WARNING: Don't override any methods present here!
+    WARNING: Don't override any methods or attributes present here!
     """
 
     sig_update_plugin_title = Signal()
@@ -136,9 +133,7 @@ class BasePluginWidget(SpyderPlugin, QWidget, BasePluginWidgetMixin):
 
     def initialize_plugin(self):
         """
-        Initialize plugin: connect signals, setup actions, etc.
-
-        It must be called at the end of the plugin's __init__
+        This method *must* be called at the end of the plugin's __init__
         """
         super(BasePluginWidget, self).initialize_plugin()
 
@@ -147,17 +142,25 @@ class BasePluginWidget(SpyderPlugin, QWidget, BasePluginWidgetMixin):
         """
         Register QAction or QShortcut to Spyder main application.
 
-        if add_sc_to_tip is True, the shortcut is added to the
-        action's tooltip
+        context: The name of the plugin (e.g. 'Editor') or '_' to be
+            applied to the entire application.
+        name: Name of the action the shortcut refers to (e.g.
+            'Debug exit').
+        add_sc_to_tip: If True, the shortcut is added to the
+            action's tooltip.
         """
-        self.main.register_shortcut(qaction_or_qshortcut, context,
-                                    name, add_sc_to_tip)
+        super(BasePluginWidget, self).register_shortcut(
+            qaction_or_qshortcut,
+            context,
+            name,
+            add_sc_to_tip)
 
     def register_widget_shortcuts(self, widget):
         """
-        Register widget shortcuts.
+        Register shortcuts for a plugin's widget.
 
-        Widget interface must have a method called 'get_shortcut_data'
+        The Widget interface must have a method called
+        'get_shortcut_data'.
         """
         for qshortcut, context, name in widget.get_shortcut_data():
             self.register_shortcut(qshortcut, context, name)
@@ -167,8 +170,8 @@ class BasePluginWidget(SpyderPlugin, QWidget, BasePluginWidgetMixin):
         super(BasePluginWidget, self).visibility_changed(enable)
 
     def get_color_scheme(self):
-        """Get current color scheme."""
-        return get_color_scheme(CONF.get('appearance', 'selected'))
+        """Get the current color scheme."""
+        return super(BasePluginWidget, self).get_color_scheme()
 
     def refresh_actions(self):
         """Refresh options menu."""
