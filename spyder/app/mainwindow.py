@@ -2680,12 +2680,13 @@ class MainWindow(QMainWindow):
         """Report a PyLS internal error in our report dialog."""
         from spyder.widget.reporterror import SpyderErrorDialog
         error_dialog = SpyderErrorDialog(self, is_report=True)
-        title = _("Internal Python Language Server error")
-        description = _("An error has occurred with the code completion and "
-                        "linting services provided by the Python Language "
-                        "Server. Please submit this report to Github if you "
-                        "want to see this fixed.")
-        error_dialog.set_title_description(title, description)
+        title = "Internal Python Language Server error"
+        description = ("An error has occurred with the code completion and "
+                       "linting services provided by the Python Language "
+                       "Server. Please submit this report to Github if you "
+                       "want to see this fixed.")
+        error_dialog.set_title(title)
+        error_dialog.set_description(description)
         error_dialog.append_traceback(message)
         error_dialog.show()
 
