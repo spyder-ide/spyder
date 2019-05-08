@@ -318,12 +318,15 @@ class BaseEditMixin(object):
         font_family = font.family()
 
         # Format title to display active parameter
-        title = title_template.format(
-            font_size=font_size,
-            font_family=font_family,
-            color=parameter_color,
-            parameter=parameter,
-        )
+        if parameter:
+            title = title_template.format(
+                font_size=font_size,
+                font_family=font_family,
+                color=parameter_color,
+                parameter=parameter,
+            )
+        else:
+            title = title_template
 
         return title
 
@@ -335,6 +338,7 @@ class BaseEditMixin(object):
         them. They are useful for displaying signature information on methods
         and functions.
         """
+        print([signature], parameter)
         # Find position of calltip
         point = self._calculate_position()
 
