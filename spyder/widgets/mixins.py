@@ -327,7 +327,7 @@ class BaseEditMixin(object):
 
         return title
 
-    def show_calltip(self, signature, parameter=None):
+    def show_calltip(self, signature, parameter=None, language="python"):
         """
         Show calltip.
 
@@ -1101,7 +1101,7 @@ class GetHelpMixin(object):
                         else:
                             tiptext = signature
                         # TODO: Select language and pass it to call
-                        self.show_calltip(tiptext, color='#2D62FF', is_python=True)
+                        self.show_calltip(tiptext)
 
     def get_last_obj(self, last=False):
         """

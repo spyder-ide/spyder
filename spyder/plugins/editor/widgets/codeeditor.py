@@ -941,6 +941,7 @@ class CodeEditor(TextEditBaseWidget):
                 self.show_calltip(
                     signature=signature,
                     parameter=parameter,
+                    language=self.language
                 )
         except Exception:
             self.log_lsp_handle_errors("Error when processing signature")
