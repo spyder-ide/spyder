@@ -125,7 +125,7 @@ class SpyderPlugin(BasePlugin):
 # =============================================================================
 # SpyderPluginWidget
 # =============================================================================
-class BasePluginWidget(SpyderPlugin, QWidget, BasePluginWidgetMixin):
+class BasePluginWidget(QWidget, BasePluginWidgetMixin):
     """
     Basic functionality for Spyder plugin widgets.
 
@@ -184,7 +184,7 @@ class BasePluginWidget(SpyderPlugin, QWidget, BasePluginWidgetMixin):
         super(BasePluginWidget, self).refresh_actions()
 
 
-class SpyderPluginWidget(BasePluginWidget):
+class SpyderPluginWidget(SpyderPlugin, BasePluginWidget):
     """
     Spyder plugin widget class.
 
