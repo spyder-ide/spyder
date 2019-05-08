@@ -131,7 +131,7 @@ class LSPManager(QObject):
     @Slot(str)
     def report_server_error(self, value):
         """Report server errors in our error report dialog."""
-        self.main.report_lsp_error(value)
+        self.main.report_pyls_error(value)
 
     def start_client(self, language):
         """Start an LSP client for a given language."""

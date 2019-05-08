@@ -2678,7 +2678,7 @@ class MainWindow(QMainWindow):
 
     def report_pyls_error(self, message):
         """Report a PyLS internal error in our report dialog."""
-        from spyder.widget.reporterror import SpyderErrorDialog
+        from spyder.widgets.reporterror import SpyderErrorDialog
         error_dialog = SpyderErrorDialog(self, is_report=True)
         title = "Internal Python Language Server error"
         description = ("An error has occurred with the code completion and "
