@@ -19,6 +19,7 @@ Now located at qtconsole/call_tip_widget.py as part of the
 # Standard library imports
 from unicodedata import category
 import os
+import sys
 
 # Third party imports
 from qtpy.QtCore import (QBasicTimer, QCoreApplication, QEvent, Qt, QTimer,
@@ -53,13 +54,14 @@ class ToolTipWidget(QLabel):
         self._timer_hide = QTimer()
 
         # Setup
+        if sys.platform == 'darwin':
+            # This keeps the hints below other applications
+            self.setWindowFlags(Qt.SplashScreen)
+        else:
+            self.setWindowFlags(Qt.Tool | Qt.FramelessWindowHint)
+
         self._timer_hide.setInterval(500)
         self.setTextInteractionFlags(Qt.TextSelectableByMouse)
-        if os.name == 'nt':
-            self.setWindowFlags(Qt.Tool | Qt.FramelessWindowHint)
-        else:
-            self.setWindowFlags(Qt.SplashScreen)
-
         self.setTextInteractionFlags(Qt.TextBrowserInteraction)
         self.setOpenExternalLinks(False)
         self.setForegroundRole(QPalette.ToolTipText)
@@ -183,11 +185,13 @@ class CallTipWidget(QLabel):
         self._text_edit = text_edit
 
         # Setup
-        self.setTextInteractionFlags(Qt.TextSelectableByMouse)
-        if os.name != 'nt':
-            self.setWindowFlags(Qt.SplashScreen)  # This is needed on OSX
+        if sys.platform == 'darwin':
+            # This keeps the hints below other applications
+            self.setWindowFlags(Qt.SplashScreen)
         else:
-            pass
+            self.setWindowFlags(Qt.Tool | Qt.FramelessWindowHint)
+
+        self.setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.setFont(text_edit.document().defaultFont())
         self.setForegroundRole(QPalette.ToolTipText)
         self.setBackgroundRole(QPalette.ToolTipBase)
