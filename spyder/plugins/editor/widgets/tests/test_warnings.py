@@ -151,12 +151,12 @@ def test_update_warnings_after_delete_line(qtbot, lsp_codeeditor):
     Test that code style warnings are correctly updated after deleting a line
     in the Editor.
 
-    Regression test for #9299 .
+    Regression test for #9299.
     """
     editor, _ = lsp_codeeditor
     editor.set_text(TEXT)
 
-    # Notify changes
+    # Notify changes.
     with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
         editor.document_did_change()
 
