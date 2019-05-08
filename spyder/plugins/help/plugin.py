@@ -224,10 +224,6 @@ class Help(SpyderPluginWidget):
         self.internal_shell = self.main.console.shell
         self.console = self.main.console
 
-    def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        return True
-
     def refresh_plugin(self):
         """Refresh widget"""
         if self._starting_up:

@@ -91,10 +91,6 @@ class Breakpoints(SpyderPluginWidget):
         self.main.debug_menu_actions.insert(pos, list_action)
         self.main.editor.pythonfile_dependent_actions += [list_action]
 
-    def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        return True
-
     def show(self):
         """Show the breakpoints dockwidget"""
         self.switch_to_plugin()

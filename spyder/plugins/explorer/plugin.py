@@ -110,10 +110,6 @@ class Explorer(SpyderPluginWidget):
         self.fileexplorer.treewidget.update_history(new_path)
         self.fileexplorer.treewidget.refresh(new_path,
                                              force_current=force_current)
-        
-    def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        return True
 
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""

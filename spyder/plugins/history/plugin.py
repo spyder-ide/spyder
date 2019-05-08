@@ -96,10 +96,6 @@ class HistoryLog(SpyderPluginWidget):
         this plugin's dockwidget is raised on top-level
         """
         return self.tabwidget.currentWidget()
-        
-    def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        return True
 
     def refresh_plugin(self):
         """Refresh tabwidget"""

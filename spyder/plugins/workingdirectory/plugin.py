@@ -144,10 +144,6 @@ class WorkingDirectory(SpyderPluginWidget):
         self.set_next_enabled.emit(self.histindex is not None and \
                                    self.histindex < len(self.history)-1)
 
-    def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        return True
-        
     #------ Public API ---------------------------------------------------------
     def load_wdhistory(self, workdir=None):
         """Load history from a text file in user home directory"""

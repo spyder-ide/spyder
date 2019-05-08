@@ -180,10 +180,6 @@ class VariableExplorer(SpyderPluginWidget):
         this plugin's dockwidget is raised on top-level
         """
         return self.current_widget()
-        
-    def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        return True
 
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""

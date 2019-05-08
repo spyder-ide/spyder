@@ -95,10 +95,6 @@ class Profiler(SpyderPluginWidget):
         #self.remove_obsolete_items()  # FIXME: not implemented yet
         pass
 
-    def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        return True
-
     #------ Public API ---------------------------------------------------------        
     def run_profiler(self):
         """Run profiler"""

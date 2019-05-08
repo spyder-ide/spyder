@@ -245,9 +245,10 @@ class SpyderPluginWidget(SpyderPlugin, BasePluginWidget):
         """
         Perform actions before parent main window is closed.
 
-        Return True or False whether the plugin may be closed immediately or
-        not.
-        Note: returned value is ignored if *cancelable* is False
+        Returns True or False whether the plugin may be closed
+        immediately or not.
+
+        Note: The returned value is ignored if *cancelable* is False.
         """
         return True
 
