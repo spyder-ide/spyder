@@ -330,6 +330,58 @@ class BaseEditMixin(object):
 
         return title
 
+    def _check_signature_and_format(self, signature_or_text, parameter=None):
+        """
+        LSP hints might provide docstrings instead of signatures.
+
+        This method will check for multiple signatures (dict, type etc...) and
+        format the text accordingly.
+        """
+        open_func_char = ''
+        has_signature = False
+        has_multisignature = False
+        language = getattr(self, 'language', '').lower()
+        lines = signature_or_text.split('\n')
+
+        if language == 'python':
+            open_func_char = '('
+            idx = signature_or_text.find(open_func_char)
+            inspect_word = signature_or_text[:idx]
+            name_plus_char = inspect_word + open_func_char
+
+            # Signature type
+            count = signature_or_text.count(name_plus_char)
+            has_signature = open_func_char in lines[0]
+            has_multisignature = count > 1
+
+        if has_signature and not has_multisignature:
+            for i, line in enumerate(lines):
+                if line.strip() == '':
+                    break
+
+            if i == 0:
+                signature = lines[0]
+                extra_text = None
+            else:
+                signature = '\n'.join(lines[:i])
+                extra_text = '\n'.join(lines[i:])
+
+            if signature:
+                html_signature = self._format_signature(
+                    signature=signature,
+                    parameter=parameter,
+                )
+        elif has_multisignature:
+            signature = signature_or_text.replace(name_plus_char,
+                                                  '<br>' + name_plus_char)
+            html_signature = signature[4:]
+            extra_text = None
+        else:
+            html_signature = None
+            extra_text = signature_or_text
+
+        return html_signature, extra_text, inspect_word
+
     def show_calltip(self, signature, parameter=None):
         """
         Show calltip.
@@ -338,23 +390,17 @@ class BaseEditMixin(object):
         them. They are useful for displaying signature information on methods
         and functions.
         """
-        print([signature], parameter)
         # Find position of calltip
         point = self._calculate_position()
 
-        # Format signature
-        html_signature = self._format_signature(
-            signature=signature,
-            parameter=parameter,
-        )
-
-        inspect_word = signature.split('(')[0]
+        # Format
+        res = self._check_signature_and_format(signature, parameter)
+        html_signature, _, inspect_word = res
         text = self._format_text(
             signature=html_signature,
             inspect_word=inspect_word,
             display_link=False,
         )
-
         self._update_stylesheet(self.calltip_widget)
 
         # Show calltip
@@ -391,29 +437,9 @@ class BaseEditMixin(object):
 
     def show_hint(self, text, inspect_word, at_point):
         """Show code hint and crop text as needed."""
-        # Check language
-        lines = text.split('\n')
-        is_signature = False
-        if 'python' in self.language.lower():
-            is_signature = '(' in lines[0]
-
-        # Split signature and the rest
-        signature, additional_text = None, text
-        if is_signature:
-            for i, line in enumerate(lines):
-                if line.strip() == '':
-                    break
-            if i == 0:
-                signature = lines[0]
-                additional_text = None
-            else:
-                signature = '\n'.join(lines[:i])
-                additional_text = '\n'.join(lines[i:])
-
-            if signature:
-                signature = self._format_signature(signature)
-
         # Check if signature and format
+        res = self._check_signature_and_format(text)
+        html_signature, extra_text, _ = res
         point = self.get_word_start_pos(at_point)
 
         # This is needed to get hover hints
@@ -421,7 +447,7 @@ class BaseEditMixin(object):
         cursor.movePosition(QTextCursor.StartOfWord, QTextCursor.MoveAnchor)
         self._last_hover_cursor = cursor
 
-        self.show_tooltip(signature=signature, text=additional_text,
+        self.show_tooltip(signature=html_signature, text=extra_text,
                           at_point=point, inspect_word=inspect_word,
                           display_link=True, max_lines=10)
 
