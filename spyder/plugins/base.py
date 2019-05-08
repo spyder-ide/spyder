@@ -36,7 +36,10 @@ class BasePluginMixin(object):
 
         # Check compatibility
         check_compatibility, message = self.check_compatibility()
+
+        self.is_compatible = True
         if not check_compatibility:
+            self.is_compatible = False
             self.show_compatibility_message(message)
 
     def set_option(self, option, value):

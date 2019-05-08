@@ -132,6 +132,7 @@ class BasePluginWidget(QWidget, BasePluginWidgetMixin):
     WARNING: Don't override any methods or attributes present here!
     """
 
+    # Signal used to update the plugin title when it's undocked
     sig_update_plugin_title = Signal()
 
     def __init__(self, main=None):
