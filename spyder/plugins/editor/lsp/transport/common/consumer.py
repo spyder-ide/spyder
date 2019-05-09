@@ -47,11 +47,12 @@ class IncomingMessageThread(Thread):
         self.expect = None
         self.expectable = expectable
         logger.info('Reading thread initialized')
-        self.read_incoming = self.expect_windows
-        if not os.name == 'nt':
-            self.read_incoming = self.read_posix
-            self.expect = self.fd
-            if not expectable:
+        self.read_incoming = self.read_posix
+        self.expect = self.fd
+        if not expectable:
+            if os.name == 'nt':
+                self.read_incoming = self.expect_windows
+            else:
                 self.expect = fdspawn(self.fd)
         self.zmq_sock = zmq_sock
         self.req_status = req_status
@@ -132,4 +133,4 @@ class IncomingMessageThread(Thread):
 
     def read_num_bytes(self, n):
         """Subclasses should override this method"""
-        return b''
+        return NotImplementedError("Not implemented")

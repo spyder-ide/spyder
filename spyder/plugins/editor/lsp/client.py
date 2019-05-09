@@ -139,6 +139,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             server_log = open(server_log_file, 'w')
             if self.stdio:
                 server_log.close()
+                if self.language == 'python':
+                    self.server_args += ['--log-file', server_log_file]
                 self.transport_args += ['--server-log-file', server_log_file]
 
             # Start server with logging options

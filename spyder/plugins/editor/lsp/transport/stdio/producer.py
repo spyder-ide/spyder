@@ -26,11 +26,7 @@ from spyder.plugins.editor.lsp.transport.stdio.consumer import (
 from spyder.plugins.editor.lsp.transport.common.producer import (
     LanguageServerClient)
 
-
-if os.name == 'nt':
-    from winpty import PtyProcess
-else:
-    from pexpect import popen_spawn
+from pexpect import popen_spawn
 
 logger = logging.getLogger(__name__)
 
@@ -47,12 +43,7 @@ class StdioLanguageServerClient(LanguageServerClient):
         self.process = None
         logger.debug(server_args)
         logger.debug('Redirect stderr to {0}'.format(log_file))
-        if not os.name == 'nt':
-            self.process = popen_spawn.PopenSpawn(server_args)
-        else:
-            # Set an exaggerate window size on windows
-            win_dims = (1, 2147483647)
-            self.process = PtyProcess.spawn(server_args, dimensions=win_dims)
+        self.process = popen_spawn.PopenSpawn(server_args)
         logger.info('Connecting to language server on stdio')
         super(StdioLanguageServerClient, self).finalize_initialization()
         self.reading_thread = StdioIncomingMessageThread()
@@ -84,10 +75,7 @@ class StdioLanguageServerClient(LanguageServerClient):
         initial_time = time.time()
         try:
             while not connected:
-                if os.name != 'nt':
-                    connected = not self.process.proc.poll()
-                else:
-                    connected = self.process.isalive()
+                connected = not self.process.proc.poll()
                 if time.time() - initial_time > self.MAX_TIMEOUT_TIME:
                     connection_error = 'Timeout communication period exceeded'
                     break

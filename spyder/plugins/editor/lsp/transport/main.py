@@ -63,7 +63,7 @@ parser.add_argument('--transport-debug',
                     default=0,
                     type=int,
                     help='Verbosity level for log messages')
-args, unknownargs = parser.parse_known_args()
+args, extra_args = parser.parse_known_args()
 
 
 def logger_init(level):
@@ -116,14 +116,14 @@ class SignalManager:
 
 if __name__ == '__main__':
     logger_init(args.transport_debug)
-    unknownargs = [x for x in unknownargs if len(x) > 0]
-    unknownargs = ' '.join(unknownargs)
-    logger.debug(unknownargs)
+    extra_args = [x for x in extra_args if len(x) > 0]
+    extra_args = ' '.join(extra_args)
+    logger.debug(extra_args)
     process = psutil.Process()
     sig_manager = SignalManager()
     if args.stdio_server:
         LanguageServerClient = partial(StdioLanguageServerClient,
-                                       server_args=unknownargs,
+                                       server_args=extra_args,
                                        log_file=args.server_log_file)
     else:
         LanguageServerClient = partial(TCPLanguageServerClient,
