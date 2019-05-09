@@ -59,6 +59,9 @@ class OutlineExplorerProxyTest(OutlineExplorerProxy):
     def parent(self):
         return None
 
+    def get_cursor_line_number(self):
+        return 1
+
 
 def click_item(treewidget, item, qtbot):
     """Click an item in a treewidget."""

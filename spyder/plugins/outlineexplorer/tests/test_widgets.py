@@ -132,14 +132,14 @@ CODE = """# -*- coding: utf-8 -*-
 # ---- Qt Test Fixtures
 @pytest.fixture
 def create_outlineexplorer(qtbot):
-    def _create_outlineexplorer(code, filename):
+    def _create_outlineexplorer(code, filename, follow_cursor=False):
         code_editor = CodeEditor(None)
         code_editor.set_language('py', filename)
         code_editor.set_text(code)
 
         editor = OutlineExplorerProxyEditor(code_editor, filename)
 
-        outlineexplorer = OutlineExplorerWidget()
+        outlineexplorer = OutlineExplorerWidget(follow_cursor=follow_cursor)
         outlineexplorer.set_current_editor(editor, False, False)
         outlineexplorer.show()
         outlineexplorer.setFixedSize(400, 350)
@@ -194,7 +194,6 @@ def test_go_to_cursor_position(create_outlineexplorer, qtbot):
     Regression test for issue #7729.
     """
     outlineexplorer = create_outlineexplorer(TEXT, 'test.py')
-
     # Move the mouse cursor in the editor to line 31 :
     editor = outlineexplorer.treewidget.current_editor
     editor._editor.go_to_line(31)
@@ -204,6 +203,29 @@ def test_go_to_cursor_position(create_outlineexplorer, qtbot):
     # toolbar :
     assert outlineexplorer.treewidget.currentItem() is None
     qtbot.mouseClick(outlineexplorer.fromcursor_btn, Qt.LeftButton)
+    assert outlineexplorer.treewidget.currentItem().text(0) == 'method1'
+
+
+def test_follow_cursor(create_outlineexplorer, qtbot):
+    """
+    Test that the cursor is followed.
+    """
+    outlineexplorer = create_outlineexplorer(TEXT, 'test.py',
+                                             follow_cursor=True)
+    # Move the mouse cursor in the editor to line 31 :
+    editor = outlineexplorer.treewidget.current_editor
+    editor._editor.go_to_line(31)
+    assert editor._editor.get_text_line(31) == "        if False:"
+    # method1 is collapsed
+    assert outlineexplorer.treewidget.currentItem().text(0) == 'test.py'
+
+    # Go to cursor to open the cursor
+    qtbot.mouseClick(outlineexplorer.fromcursor_btn, Qt.LeftButton)
+
+    # Check if follows
+    editor._editor.go_to_line(1)
+    assert outlineexplorer.treewidget.currentItem().text(0) == 'test.py'
+    editor._editor.go_to_line(31)
     assert outlineexplorer.treewidget.currentItem().text(0) == 'method1'
 
 

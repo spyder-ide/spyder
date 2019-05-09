@@ -67,6 +67,10 @@ class OutlineExplorerProxy(QObject):
         """This is used for diferenciate editors in multi-window mode."""
         return None
 
+    def get_cursor_line_number(self):
+        """Return the cursor line number."""
+        raise NotImplementedError
+
 
 class OutlineExplorerData(object):
     CLASS, FUNCTION, STATEMENT, COMMENT, CELL = list(range(5))

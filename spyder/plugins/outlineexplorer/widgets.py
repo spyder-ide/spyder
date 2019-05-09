@@ -162,10 +162,11 @@ def remove_from_tree_cache(tree_cache, line=None, item=None):
 class OutlineExplorerTreeWidget(OneColumnTree):
     def __init__(self, parent, show_fullpath=False, show_all_files=True,
                  group_cells=True, show_comments=True,
-                 sort_files_alphabetically=False):
+                 sort_files_alphabetically=False, follow_cursor=True):
         self.show_fullpath = show_fullpath
         self.show_all_files = show_all_files
         self.group_cells = group_cells
+        self.follow_cursor = follow_cursor
         self.show_comments = show_comments
         self.sort_files_alphabetically = sort_files_alphabetically
         OneColumnTree.__init__(self, parent)
@@ -266,15 +267,32 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.__sort_toplevel_items()
 
     @Slot()
-    def go_to_cursor_position(self):
+    def go_to_cursor_position(self, expand=True):
         if self.current_editor is not None:
             line = self.current_editor.get_cursor_line_number()
             editor_id = self.editor_ids[self.current_editor]
             root_item = self.editor_items[editor_id]
             item = item_at_line(root_item, line)
+            if not expand:
+                # Look for a non expanded item
+                tree_iter = item
+                while tree_iter:
+                    if not tree_iter.isExpanded():
+                        item = tree_iter
+                    tree_iter = tree_iter.parent()
             self.setCurrentItem(item)
             self.scrollToItem(item)
 
+    @Slot()
+    def do_follow_cursor(self):
+        """Go to cursor position without expending."""
+        if self.follow_cursor:
+            self.go_to_cursor_position(expand=False)
+
+    @Slot(bool)
+    def toggle_follow_cursor(self, state):
+        """Follow the cursor."""
+        self.follow_cursor = state
 
     def connect_current_editor(self, state):
         """Connect or disconnect the editor from signals."""
@@ -284,10 +302,15 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
         # Connect syntax highlighter
         sig_update = editor.sig_outline_explorer_data_changed
+        sig_move = editor.sig_cursor_position_changed
         if state:
             sig_update.connect(self.update_all)
+            sig_move.connect(self.do_follow_cursor)
+            self.do_follow_cursor()
         else:
             sig_update.disconnect(self.update_all)
+            sig_move.disconnect(self.do_follow_cursor)
+
     def clear(self):
         """Reimplemented Qt method"""
         self.set_title('')
@@ -343,6 +366,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             tree_cache = self.editor_tree_cache[editor_id]
             self.populate_branch(editor, item, tree_cache)
         self.restore_expanded_state()
+        self.do_follow_cursor()
 
     def remove_editor(self, editor):
         if editor in self.editor_ids:
@@ -639,16 +663,19 @@ class OutlineExplorerWidget(QWidget):
     def __init__(self, parent=None, show_fullpath=True, show_all_files=True,
                  group_cells=True, show_comments=True,
                  sort_files_alphabetically=False,
+                 follow_cursor=True,
                  options_button=None):
         QWidget.__init__(self, parent)
 
         self.treewidget = OutlineExplorerTreeWidget(
-                self,
-                show_fullpath=show_fullpath,
-                show_all_files=show_all_files,
-                group_cells=group_cells,
-                show_comments=show_comments,
-                sort_files_alphabetically=sort_files_alphabetically)
+            self,
+            show_fullpath=show_fullpath,
+            show_all_files=show_all_files,
+            group_cells=group_cells,
+            show_comments=show_comments,
+            sort_files_alphabetically=sort_files_alphabetically,
+            follow_cursor=follow_cursor,
+            )
 
         self.visibility_action = create_action(self,
                                            _("Show/hide outline explorer"),
