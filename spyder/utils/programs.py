@@ -291,7 +291,8 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
     p_args += get_python_args(fname, python_args, interact, debug, args)
 
     if os.name == 'nt':
-        cmd = 'start cmd.exe /c "cd %s && ' % wdir + ' '.join(p_args) + '"'
+        cmd = ('start cmd.exe /K "cd %s && ' % wdir + ' '.join(p_args) +
+               '"' + ' ^&^& exit')
         # Command line and cwd have to be converted to the filesystem
         # encoding before passing them to subprocess, but only for
         # Python 2.
