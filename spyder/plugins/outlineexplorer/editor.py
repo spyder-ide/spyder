@@ -11,8 +11,15 @@ from spyder.plugins.outlineexplorer.api import OutlineExplorerProxy
 
 class OutlineExplorerProxyEditor(OutlineExplorerProxy):
     def __init__(self, editor, fname):
+        super(OutlineExplorerProxyEditor, self).__init__()
         self._editor = editor
         self.fname = fname
+        editor.sig_cursor_position_changed.connect(
+            self.sig_cursor_position_changed)
+        editor.highlighter.sig_outline_explorer_data_changed.connect(
+            self.sig_outline_explorer_data_changed)
+        editor.blockCountChanged.connect(
+            self.sig_outline_explorer_data_changed)
 
     def is_python(self):
         return self._editor.is_python()

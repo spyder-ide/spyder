@@ -33,6 +33,7 @@ oe_data = [
 
 class OutlineExplorerProxyTest(OutlineExplorerProxy):
     def __init__(self, fname, oe_data):
+        super(OutlineExplorerProxyTest, self).__init__()
         self.fname = fname
         self.oe_data = oe_data
 

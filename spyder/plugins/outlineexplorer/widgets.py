@@ -174,11 +174,27 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.editor_tree_cache = {}
         self.editor_ids = {}
         self.ordered_editor_ids = []
-        self.current_editor = None
+        self._current_editor = None
         title = _("Outline")
         self.set_title(title)
         self.setWindowTitle(title)
         self.setUniformRowHeights(True)
+
+    @property
+    def current_editor(self):
+        """Get current editor."""
+        return self._current_editor
+
+    @current_editor.setter
+    def current_editor(self, value):
+        """Set current editor and connect the necessary signals."""
+        if self._current_editor == value:
+            return
+        # Disconnect previous editor
+        self.connect_current_editor(False)
+        self._current_editor = value
+        # Connect new editor
+        self.connect_current_editor(True)
 
     def get_actions_from_items(self, items):
         """Reimplemented OneColumnTree method"""
@@ -258,7 +274,20 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             item = item_at_line(root_item, line)
             self.setCurrentItem(item)
             self.scrollToItem(item)
-                
+
+
+    def connect_current_editor(self, state):
+        """Connect or disconnect the editor from signals."""
+        editor = self.current_editor
+        if editor is None:
+            return
+
+        # Connect syntax highlighter
+        sig_update = editor.sig_outline_explorer_data_changed
+        if state:
+            sig_update.connect(self.update_all)
+        else:
+            sig_update.disconnect(self.update_all)
     def clear(self):
         """Reimplemented Qt method"""
         self.set_title('')
@@ -305,7 +334,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             root_item = self.editor_items[editor_id]
             root_item.set_path(new_filename, fullpath=self.show_fullpath)
             self.__sort_toplevel_items()
-        
+
+    @Slot()
     def update_all(self):
         self.save_expanded_state()
         for editor, editor_id in list(self.editor_ids.items()):
@@ -605,7 +635,7 @@ class OutlineExplorerWidget(QWidget):
     edit_goto = Signal(str, int, str)
     edit = Signal(str)
     is_visible = Signal()
-    
+
     def __init__(self, parent=None, show_fullpath=True, show_all_files=True,
                  group_cells=True, show_comments=True,
                  sort_files_alphabetically=False,
@@ -685,7 +715,7 @@ class OutlineExplorerWidget(QWidget):
                 self.treewidget.sort_files_alphabetically),
             expanded_state=self.treewidget.get_expanded_state(),
             scrollbar_position=self.treewidget.get_scrollbar_position(),
-            visibility=self.isVisible()
+            visibility=self.isVisible(),
             )
 
     def update(self):

@@ -207,6 +207,29 @@ def test_go_to_cursor_position(create_outlineexplorer, qtbot):
     assert outlineexplorer.treewidget.currentItem().text(0) == 'method1'
 
 
+def test_outlineexplorer_updates(create_outlineexplorer, qtbot):
+    """
+    Test that the cursor is followed
+    """
+    outlineexplorer = create_outlineexplorer(TEXT, 'test.py',
+                                             follow_cursor=True)
+    # Move the mouse cursor in the editor to line 5 :
+    editor = outlineexplorer.treewidget.current_editor
+    editor._editor.go_to_line(4)
+    assert editor._editor.get_text_line(4) == ""
+    # Go to cursor to open the cursor
+    qtbot.mouseClick(outlineexplorer.fromcursor_btn, Qt.LeftButton)
+
+    newcell_txt = "# %% newcell"
+    with qtbot.waitSignal(editor.sig_outline_explorer_data_changed):
+        qtbot.keyClicks(editor._editor, newcell_txt)
+
+    # editor._editor.go_to_line(3)
+    assert editor._editor.get_text_line(3) == newcell_txt
+    # check the outline explorer is up to date
+    assert outlineexplorer.treewidget.currentItem().text(0) == 'newcell'
+
+
 def test_go_to_cursor_position_with_new_file(create_outlineexplorer, qtbot):
     """
     Test that clicking on the 'Go to cursor position' button located in the
