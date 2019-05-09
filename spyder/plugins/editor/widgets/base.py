@@ -397,7 +397,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.calltip_position = None
         self.tooltip_widget = ToolTipWidget(self, as_tooltip=True)
 
-        self.has_cell_separators = False
         self.highlight_current_cell_enabled = False
 
         # The color values may be overridden by the syntax highlighter
@@ -539,7 +538,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if whole_file_selected:
             self.clear_extra_selections('current_cell')
         elif whole_screen_selected:
-            if self.has_cell_separators:
+            if self.highlighter.found_cell_separators:
                 self.set_extra_selections('current_cell', [selection])
                 self.update_extra_selections()
             else:

@@ -573,6 +573,13 @@ class CodeEditor(TextEditBaseWidget):
             if data:
                 yield data
             block = block.next()
+
+    def outlineexplorer_data_list(self):
+        """Get the list of all user data in document."""
+        for data in self.blockuserdata_list():
+            if data.oedata:
+                yield data.oedata
+
     # ---- Keyboard Shortcuts
 
     def create_cursor_callback(self, attr):
@@ -1661,10 +1668,6 @@ class CodeEditor(TextEditBaseWidget):
                 self.set_color_scheme(color_scheme)
             else:
                 self.highlighter.rehighlight()
-
-    def get_outlineexplorer_data(self):
-        """Get data provided by the Outline Explorer"""
-        return self.highlighter.get_outlineexplorer_data()
 
     def set_font(self, font, color_scheme=None):
         """Set font"""

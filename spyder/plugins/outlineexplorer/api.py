@@ -50,15 +50,6 @@ class OutlineExplorerProxy(QObject):
         OutlineExplorerWidget."""
         raise NotImplementedError
 
-    def get_outlineexplorer_data(self):
-        """Return a dict of OutlineExplorerData objects.
-
-        {block_number: OutlineExplorerData}
-
-        Note: block numbers start in 0
-        """
-        raise NotImplementedError
-
     def get_line_count(self):
         """Return the number of lines of the editor (int)."""
         raise NotImplementedError
@@ -71,13 +62,17 @@ class OutlineExplorerProxy(QObject):
         """Return the cursor line number."""
         raise NotImplementedError
 
+    def outlineexplorer_data_list(self):
+        """Returns a list of outline explorer data."""
+        raise NotImplementedError
 
-class OutlineExplorerData(object):
+
+class OutlineExplorerData(QObject):
     CLASS, FUNCTION, STATEMENT, COMMENT, CELL = list(range(5))
     FUNCTION_TOKEN = 'def'
     CLASS_TOKEN = 'class'
 
-    def __init__(self, text=None, fold_level=None, def_type=None,
+    def __init__(self, block, text=None, fold_level=None, def_type=None,
                  def_name=None, color=None):
         """
         Args:
@@ -87,11 +82,13 @@ class OutlineExplorerData(object):
             def_name (str)
             color (PyQt.QtGui.QTextCharFormat)
         """
+        super(OutlineExplorerData, self).__init__()
         self.text = text
         self.fold_level = fold_level
         self.def_type = def_type
         self.def_name = def_name
         self.color = color
+        self.block = block
 
     def is_not_class_nor_function(self):
         return self.def_type not in (self.CLASS, self.FUNCTION)

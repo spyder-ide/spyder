@@ -65,7 +65,7 @@ def test_editor_outline_explorer(editor_outline_explorer_bot):
     assert file_root.text(0) == oe_proxy.fname
 
     # Assert OEData
-    oedata = oe_proxy.get_outlineexplorer_data()
+    oedata = oe_proxy.outlineexplorer_data_list()
 
     for index, oeitem in expected_oe_data.items():
         a = oeitem.__dict__
