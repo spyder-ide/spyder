@@ -2800,9 +2800,7 @@ class EditorSplitter(QSplitter):
 
 
 class EditorWidget(QSplitter):
-    def __init__(self, parent, plugin, menu_actions, show_fullpath,
-                 show_all_files, group_cells, show_comments,
-                 sort_files_alphabetically):
+    def __init__(self, parent, plugin, menu_actions, outline_explorer_options):
         QSplitter.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
@@ -2821,12 +2819,14 @@ class EditorWidget(QSplitter):
         self.plugin.register_widget_shortcuts(self.find_widget)
         self.find_widget.hide()
         self.outlineexplorer = OutlineExplorerWidget(
-                self,
-                show_fullpath=show_fullpath,
-                show_all_files=show_all_files,
-                group_cells=group_cells,
-                show_comments=show_comments,
-                sort_files_alphabetically=sort_files_alphabetically)
+            self,
+            show_fullpath=outline_explorer_options['show_fullpath'],
+            show_all_files=outline_explorer_options['show_all_files'],
+            group_cells=outline_explorer_options['group_cells'],
+            show_comments=outline_explorer_options['show_comments'],
+            sort_files_alphabetically=outline_explorer_options[
+                'sort_files_alphabetically'],
+            )
         self.outlineexplorer.edit_goto.connect(
                      lambda filenames, goto, word:
                      plugin.load(filenames=filenames, goto=goto, word=word,
@@ -2891,8 +2891,7 @@ class EditorWidget(QSplitter):
 
 class EditorMainWindow(QMainWindow):
     def __init__(self, plugin, menu_actions, toolbar_list, menu_list,
-                 show_fullpath, show_all_files, group_cells, show_comments,
-                 sort_files_alphabetically):
+                 outline_explorer_options):
         QMainWindow.__init__(self)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
@@ -2900,9 +2899,7 @@ class EditorMainWindow(QMainWindow):
         self.window_size = None
 
         self.editorwidget = EditorWidget(self, plugin, menu_actions,
-                                         show_fullpath, show_all_files,
-                                         group_cells, show_comments,
-                                         sort_files_alphabetically)
+                                         outline_explorer_options)
         self.setCentralWidget(self.editorwidget)
 
         # Setting interface theme
