@@ -114,3 +114,12 @@ class OutlineExplorerData(QObject):
             token = self.CLASS_TOKEN
 
         return token
+
+    def is_valid(self):
+        """Check if the oedata has a valid block attached."""
+        block = self.block
+        return (block
+                and block.isValid()
+                and block.userData()
+                and block.userData().oedata == self
+                )
