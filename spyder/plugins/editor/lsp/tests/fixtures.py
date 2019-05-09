@@ -58,30 +58,36 @@ def qtbot_module(qapp, request):
     return result
 
 
-@pytest.fixture(scope="module")
-def lsp_manager(qtbot_module, request):
-    """LSP manager instance for tests."""
-    # Activate pycodestyle and pydocstyle
-    CONF.set('lsp-server', 'pycodestyle', True)
-    CONF.set('lsp-server', 'pydocstyle', True)
+def lsp_context(stdio):
+    @pytest.fixture(scope='module')
+    def wrapper(qtbot_module, request):
+        # Activate pycodestyle and pydocstyle
+        CONF.set('lsp-server', 'pycodestyle', True)
+        CONF.set('lsp-server', 'pydocstyle', True)
+        CONF.set('lsp-server', 'stdio', stdio)
 
-    # Create the manager
-    os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
-    manager = LSPManager(parent=MainWindowMock())
+        # Create the manager
+        os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
+        manager = LSPManager(parent=MainWindowMock())
+        # Wait for the client to be started
+        editor = manager.main.editor
+        with qtbot_module.waitSignal(
+                editor.sig_lsp_initialized, timeout=30000):
+            manager.start_client('python')
 
-    # Wait for the client to be started
-    editor = manager.main.editor
-    with qtbot_module.waitSignal(editor.sig_lsp_initialized, timeout=30000):
-        manager.start_client('python')
+        settings = editor.lsp_editor_settings['python']
+        assert all([option in SERVER_CAPABILITES for option in settings.keys()])
 
-    settings = editor.lsp_editor_settings['python']
-    assert all([option in SERVER_CAPABILITES for option in settings.keys()])
+        def teardown():
+            manager.shutdown()
+            os.environ['SPY_TEST_USE_INTROSPECTION'] = 'False'
+            CONF.set('lsp-server', 'pycodestyle', False)
+            CONF.set('lsp-server', 'pydocstyle', False)
 
-    def teardown():
-        manager.shutdown()
-        os.environ['SPY_TEST_USE_INTROSPECTION'] = 'False'
-        CONF.set('lsp-server', 'pycodestyle', False)
-        CONF.set('lsp-server', 'pydocstyle', False)
+        request.addfinalizer(teardown)
+        return manager
+    return wrapper
 
-    request.addfinalizer(teardown)
-    return manager
+
+lsp_manager = lsp_context(False)
+lsp_stdio_manager = lsp_context(True)
