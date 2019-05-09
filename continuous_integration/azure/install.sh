@@ -8,6 +8,9 @@ if [ "$USE_CONDA" = "yes" ]; then
     # Install test ones
     conda install -q -y -c spyder-ide --file requirements/tests.txt
 
+    # Install pytest-lazy-fixture
+    pip install -q pytest-lazy-fixture
+
     # Install spyder-kernels from Github with no deps
     pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels
 

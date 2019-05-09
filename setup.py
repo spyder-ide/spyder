@@ -238,6 +238,7 @@ extras_require = {
              'pytest-cov',
              'pytest-xvfb',
              'pytest-ordering',
+             'pytest-lazy-fixture',
              'mock',
              'flaky',
              'pandas',
