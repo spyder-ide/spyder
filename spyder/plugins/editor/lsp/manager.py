@@ -189,7 +189,8 @@ class LSPManager(QObject):
                     self.clients[language]['config'] != config['config'])
                 current_config = self.clients[language]['config']
                 new_config = config['config']
-                restart_diff = ['cmd', 'args', 'host', 'port', 'external']
+                restart_diff = ['cmd', 'args', 'host',
+                                'port', 'external', 'stdio']
                 restart = any([current_config[x] != new_config[x]
                                for x in restart_diff])
                 if restart:
