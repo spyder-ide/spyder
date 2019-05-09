@@ -76,7 +76,8 @@ def lsp_context(stdio):
             manager.start_client('python')
 
         settings = editor.lsp_editor_settings['python']
-        assert all([option in SERVER_CAPABILITES for option in settings.keys()])
+        assert all(
+            [option in SERVER_CAPABILITES for option in settings.keys()])
 
         def teardown():
             manager.shutdown()
