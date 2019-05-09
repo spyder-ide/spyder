@@ -348,7 +348,8 @@ def test_filter_numpy_warning(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(PY2, reason="Times out in PY2")
+@pytest.mark.skipif(PY2 or sys.platform.startswith('linux'),
+                    reason="Times out in PY2 and fails on second run on Linux")
 def test_get_help_combo(main_window, qtbot):
     """
     Test that Help can display docstrings for names typed in its combobox.

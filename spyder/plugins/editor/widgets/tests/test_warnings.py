@@ -146,6 +146,8 @@ def test_get_warnings(qtbot, lsp_codeeditor):
     assert warnings == expected
 
 
+@pytest.mark.slow
+@pytest.mark.second
 def test_update_warnings_after_delete_line(qtbot, lsp_codeeditor):
     """
     Test that code style warnings are correctly updated after deleting a line
