@@ -1015,7 +1015,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.setTextCursor(cursor)
 
     def delete_line(self):
-        """Delete current line"""
+        """Delete current line."""
         cursor = self.textCursor()
         if self.has_selected_text():
             self.extend_selection_to_complete_lines()
@@ -1034,6 +1034,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         cursor.removeSelectedText()
         cursor.endEditBlock()
         self.ensureCursorVisible()
+        self.document_did_change()
 
     def set_selection(self, start, end):
         cursor = self.textCursor()
