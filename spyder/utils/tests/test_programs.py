@@ -61,9 +61,9 @@ def test_run_python_script_in_terminal(tmpdir, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif((os.name == 'nt' or os.environ.get('CI', None) is None or
-                     sys.platform == 'darwin'),
-                    reason='gets stuck on Windows and fails in macOS and sometimes locally') # FIXME
+@pytest.mark.skipif(
+    os.environ.get('CI', None) is None or sys.platform == 'darwin',
+    reason='fails in macOS and sometimes locally')
 def test_run_python_script_in_terminal_with_wdir_empty(tmpdir, qtbot):
     scriptpath = tmpdir.join('write-done.py')
     outfilepath = tmpdir.join('out.txt')
