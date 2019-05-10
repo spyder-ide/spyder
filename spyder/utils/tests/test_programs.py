@@ -36,6 +36,21 @@ else:
     INVALID_INTERPRETER = os.path.join(home_dir, 'miniconda', 'bin', 'ipython')
 
 
+# =============================================================================
+# ---- Fixtures
+# =============================================================================
+@pytest.fixture
+def scriptpath(tmpdir):
+    script = ("with open('out.txt', 'w') as f:\n"
+              "    f.write('done')\n")
+    scriptpath = tmpdir.join('write-done.py')
+    scriptpath.write(script)
+    return scriptpath
+
+
+# =============================================================================
+# ---- Tests
+# =============================================================================
 @pytest.mark.skipif((sys.platform.startswith('linux') or
                      os.environ.get('CI', None) is None),
                     reason='It only runs in CI services and '
@@ -48,17 +63,11 @@ def test_is_valid_w_interpreter():
 @pytest.mark.skipif(
     os.environ.get('CI', None) is None or sys.platform == 'darwin',
     reason='fails in macOS and sometimes locally')
-def test_run_python_script_in_terminal(tmpdir, qtbot):
-    # Create the Python script file.
-    script = ("with open('out.txt', 'w') as f:\n"
-              "    f.write('done')\n")
-    scriptpath = tmpdir.join('write-done.py')
-    scriptpath.write(script)
-
+def test_run_python_script_in_terminal(scriptpath, qtbot):
     # Run the script.
-    outfilepath = osp.join(tmpdir.strpath, 'out.txt')
+    outfilepath = osp.join(scriptpath.dirname, 'out.txt')
     run_python_script_in_terminal(
-        scriptpath.strpath, tmpdir.strpath, '', False, False, '')
+        scriptpath.strpath, scriptpath.dirname, '', False, False, '')
     qtbot.waitUntil(lambda: osp.exists(outfilepath), timeout=1000)
 
     # Assert the result.
@@ -71,13 +80,7 @@ def test_run_python_script_in_terminal(tmpdir, qtbot):
 @pytest.mark.skipif(
     os.environ.get('CI', None) is None or sys.platform == 'darwin',
     reason='fails in macOS and sometimes locally')
-def test_run_python_script_in_terminal_with_wdir_empty(tmpdir, qtbot):
-    # Create the Python script file.
-    script = ("with open('out.txt', 'w') as f:\n"
-              "    f.write('done')\n")
-    scriptpath = tmpdir.join('write-done.py')
-    scriptpath.write(script)
-
+def test_run_python_script_in_terminal_with_wdir_empty(scriptpath, qtbot):
     # Run the script.
     outfilepath = osp.join(os.getcwd(), 'out.txt')
     run_python_script_in_terminal(scriptpath.strpath, '', '', False, False, '')
