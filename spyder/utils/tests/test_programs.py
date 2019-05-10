@@ -6,6 +6,7 @@
 """Tests for programs.py"""
 
 import os
+import os.path as osp
 import sys
 
 from flaky import flaky
@@ -65,14 +66,20 @@ def test_run_python_script_in_terminal(tmpdir, qtbot):
     os.environ.get('CI', None) is None or sys.platform == 'darwin',
     reason='fails in macOS and sometimes locally')
 def test_run_python_script_in_terminal_with_wdir_empty(tmpdir, qtbot):
+    # Create the Python script file.
+    script = ("with open('out.txt', 'w') as f:\n"
+              "    f.write('done')\n")
     scriptpath = tmpdir.join('write-done.py')
-    outfilepath = tmpdir.join('out.txt')
-    script = ("with open('{}', 'w') as f:\n"
-              "    f.write('done')\n").format(outfilepath.strpath)
     scriptpath.write(script)
+
+    # Run the script.
+    outfilepath = osp.join(os.getcwd(), 'out.txt')
     run_python_script_in_terminal(scriptpath.strpath, '', '', False, False, '')
-    qtbot.wait(1000) # wait for script to finish
-    res = outfilepath.read()
+    qtbot.waitUntil(lambda: osp.exists(outfilepath), timeout=1000)
+
+    # Assert the result.
+    with open(outfilepath, 'r') as txtfile:
+        res = txtfile.read()
     assert res == 'done'
 
 
