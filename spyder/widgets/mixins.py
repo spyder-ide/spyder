@@ -74,18 +74,12 @@ class BaseEditMixin(object):
         return point
 
     # --- Tooltips and Calltips
-    def _calculate_position(self, at_line=None, at_position=None,
-                            at_point=None):
+    def _calculate_position(self, at_line=None, at_point=None):
         """
         Calculate a global point position `QPoint(x, y)`, for a given
         line, local cursor position, or local point.
         """
-        # Saving cursor position:
-        if at_position is None:
-            at_position = self.get_position('cursor')
-
-        # FIXME: What id this used for?
-        self.calltip_position = at_position
+        font = self.font()
 
         if at_point is not None:
             # Showing tooltip at point position
@@ -98,13 +92,18 @@ class BaseEditMixin(object):
             cy = self.cursorRect(cursor).top()
         else:
             # Showing tooltip at cursor position
-            # FIXME: why is at_position not being used to calculate the
-            # coordinates?
             cx, cy = self.get_coordinates('cursor')
+            cy = cy - font.pointSize() / 2
 
         # Calculate vertical delta
-        font = self.font()
-        delta = font.pointSize() + 5
+        # The needed delta changes with font size, so we use a power law
+        if sys.platform == 'darwin':
+            delta = int((font.pointSize() * 1.20) ** 0.98) + 4.5
+        elif os.name == 'nt':
+            delta = int((font.pointSize() * 1.20) ** 1.05) + 7
+        else:
+            delta = int((font.pointSize() * 1.20) ** 0.98) + 7
+        # delta = font.pointSize() + 5
 
         # Map to global coordinates
         point = self.mapToGlobal(QPoint(cx, cy))
@@ -200,6 +199,7 @@ class BaseEditMixin(object):
             lines = text.split('\n')
             if len(lines) > max_lines:
                 text = '\n'.join(lines[:max_lines]) + ' ...'
+            text = '\n' + text
 
         text = text.replace('\n', '<br>')
         template += BASE_TEMPLATE.format(
@@ -221,13 +221,14 @@ class BaseEditMixin(object):
                         'background-color:#fafbfc;color:#444d56;'
                         'font-size:11px;'
                     )
-                    help_text = (
-                        'Press '
-                        '<kbd style="{1}">[</kbd>'
-                        '<kbd style="{1}text-decoration:underline;">'
-                        '{0}</kbd><kbd style="{1}">]</kbd> for aditional help'
-                        ''.format(shortcut, base_style)
-                    )
+                    help_text = ''
+                    # (
+                    #     'Press '
+                    #     '<kbd style="{1}">[</kbd>'
+                    #     '<kbd style="{1}text-decoration:underline;">'
+                    #     '{0}</kbd><kbd style="{1}">]</kbd> for aditional '
+                    #     'help'.format(shortcut, base_style)
+                    # )
 
         if help_text and inspect_word:
             if display_link:
@@ -327,7 +328,7 @@ class BaseEditMixin(object):
 
         return title
 
-    def show_calltip(self, signature, parameter=None):
+    def show_calltip(self, signature, parameter=None, documentation=None):
         """
         Show calltip.
 
@@ -349,6 +350,8 @@ class BaseEditMixin(object):
             signature=html_signature,
             inspect_word=inspect_word,
             display_link=False,
+            text=documentation,
+            max_lines=10,
         )
 
         self._update_stylesheet(self.calltip_widget)
@@ -359,13 +362,12 @@ class BaseEditMixin(object):
 
     def show_tooltip(self, title=None, signature=None, text=None,
                      inspect_word=None, title_color=_DEFAULT_TITLE_COLOR,
-                     at_line=None, at_position=None, at_point=None,
-                     display_link=False, max_lines=10):
+                     at_line=None, at_point=None, display_link=False,
+                     max_lines=10):
         """Show tooltip."""
         # Find position of calltip
         point = self._calculate_position(
             at_line=at_line,
-            at_position=at_position,
             at_point=at_point,
         )
 
@@ -404,7 +406,7 @@ class BaseEditMixin(object):
                 additional_text = None
             else:
                 signature = '\n'.join(lines[:i])
-                additional_text = '\n'.join(lines[i:])
+                additional_text = '\n'.join(lines[i + 1:])
 
             if signature:
                 signature = self._format_signature(signature)
@@ -493,19 +495,17 @@ class BaseEditMixin(object):
         point = self.cursorRect(cursor).center()
         return point.x(), point.y()
 
-    def is_position_inside_word_rect(self, position):
+    def _is_point_inside_word_rect(self, point):
         """
         Check if the mouse is within the rect of the cursor current word.
         """
-        cursor = self.cursorForPosition(position)
+        cursor = self.cursorForPosition(point)
         cursor.movePosition(QTextCursor.StartOfWord, QTextCursor.MoveAnchor)
         start_rect = self.cursorRect(cursor)
         cursor.movePosition(QTextCursor.EndOfWord, QTextCursor.MoveAnchor)
         end_rect = self.cursorRect(cursor)
         bounding_rect = start_rect.united(end_rect)
-        # TODO: add a bit of y padding to this rect so cursor does not have to
-        # be exactly centered (at least vertically)
-        return bounding_rect.contains(position)
+        return bounding_rect.contains(point)
 
     def get_word_start_pos(self, position):
         """
@@ -763,7 +763,12 @@ class BaseEditMixin(object):
         """Return word at *coordinates* (QPoint)"""
         cursor = self.cursorForPosition(coordinates)
         cursor.select(QTextCursor.WordUnderCursor)
-        return to_text_string(cursor.selectedText())
+        if self._is_point_inside_word_rect(coordinates):
+            word = to_text_string(cursor.selectedText())
+        else:
+            word = ''
+
+        return word
 
     def get_block_indentation(self, block_nb):
         """Return line indentation (character number)"""

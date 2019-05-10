@@ -39,6 +39,7 @@ class ToolTipWidget(QLabel):
     """
 
     sig_help_requested = Signal(str)
+    sig_closed = Signal()
 
     def __init__(self, parent=None, as_tooltip=False):
         """
@@ -54,9 +55,11 @@ class ToolTipWidget(QLabel):
         self._timer_hide = QTimer()
 
         # Setup
+        # This keeps the hints below other applications
         if sys.platform == 'darwin':
-            # This keeps the hints below other applications
             self.setWindowFlags(Qt.SplashScreen)
+        elif os.name == 'nt':
+            self.setWindowFlags(Qt.ToolTip | Qt.FramelessWindowHint)
         else:
             self.setWindowFlags(Qt.Tool | Qt.FramelessWindowHint)
 
@@ -189,7 +192,7 @@ class CallTipWidget(QLabel):
             # This keeps the hints below other applications
             self.setWindowFlags(Qt.SplashScreen)
         else:
-            self.setWindowFlags(Qt.Tool | Qt.FramelessWindowHint)
+            self.setWindowFlags(Qt.ToolTip | Qt.FramelessWindowHint)
 
         self.setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.setFont(text_edit.document().defaultFont())
@@ -363,7 +366,7 @@ class CallTipWidget(QLabel):
         # Locate and show the widget. Place the tip below the current line
         # unless it would be off the screen.  In that case, decide the best
         # location based trying to minimize the  area that goes off-screen.
-        padding = 3 # Distance in pixels between cursor bounds and tip box.
+        padding = 0  # Distance in pixels between cursor bounds and tip box.
         cursor_rect = text_edit.cursorRect(cursor)
         screen_rect = self.app.desktop().screenGeometry(text_edit)
         point.setY(point.y() + padding)
