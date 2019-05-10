@@ -41,6 +41,7 @@ else:
 # =============================================================================
 @pytest.fixture
 def scriptpath(tmpdir):
+    """Save a basic Python script in a file."""
     script = ("with open('out.txt', 'w') as f:\n"
               "    f.write('done')\n")
     scriptpath = tmpdir.join('write-done.py')
@@ -64,6 +65,10 @@ def test_is_valid_w_interpreter():
     os.environ.get('CI', None) is None or sys.platform == 'darwin',
     reason='fails in macOS and sometimes locally')
 def test_run_python_script_in_terminal(scriptpath, qtbot):
+    """
+    Test running a Python script in an external terminal when specifying
+    explicitely the working directory.
+    """
     # Run the script.
     outfilepath = osp.join(scriptpath.dirname, 'out.txt')
     run_python_script_in_terminal(
@@ -81,6 +86,10 @@ def test_run_python_script_in_terminal(scriptpath, qtbot):
     os.environ.get('CI', None) is None or sys.platform == 'darwin',
     reason='fails in macOS and sometimes locally')
 def test_run_python_script_in_terminal_with_wdir_empty(scriptpath, qtbot):
+    """
+    Test running a Python script in an external terminal without specifying
+    the working directory.
+    """
     # Run the script.
     outfilepath = osp.join(os.getcwd(), 'out.txt')
     run_python_script_in_terminal(scriptpath.strpath, '', '', False, False, '')
