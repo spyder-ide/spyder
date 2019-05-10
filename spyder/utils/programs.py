@@ -303,7 +303,10 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
             cmd = encoding.to_fs_from_unicode(cmd)
             wdir = encoding.to_fs_from_unicode(wdir)
         try:
-            run_shell_command(cmd, cwd=wdir)
+            if wdir:
+                run_shell_command(cmd, cwd=wdir)
+            else:
+                run_shell_command(cmd)
         except WindowsError:
             from qtpy.QtWidgets import QMessageBox
             from spyder.config.base import _
