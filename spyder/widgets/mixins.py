@@ -247,7 +247,7 @@ class BaseEditMixin(object):
 
         return template
 
-    def _format_signature(self, signature, parameter=None,
+    def _format_signature(self, signatures, parameter=None,
                           parameter_color=_PARAMETER_HIGHLIGHT_COLOR,
                           char_color=_CHAR_HIGHLIGHT_COLOR):
         """
@@ -281,54 +281,60 @@ class BaseEditMixin(object):
             new = match.replace(parameter, active_parameter_template)
             return new
 
-        # Remove duplicate spaces
-        signature = ' '.join(signature.split())
+        if not isinstance(signatures, list):
+            signatures = [signatures]
 
-        # Replace ay initial spaces
-        signature = signature.replace('( ', '(')
+        new_signatures = []
+        for signature in signatures:
+            # Remove duplicate spaces
+            signature = ' '.join(signature.split())
 
-        # Process signature template
-        if parameter:
-            pattern = r'[\*|(|\s](' + parameter + r')[,|)|\s|=]'
+            # Replace initial spaces
+            signature = signature.replace('( ', '(')
 
-        formatted_lines = []
-        name = signature.split('(')[0]
-        indent = ' ' * (len(name) + 1)
-        rows = textwrap.wrap(signature, width=60, subsequent_indent=indent)
-        for row in rows:
+            # Process signature template
             if parameter:
-                # Add template to highlight the active parameter
-                row = re.sub(pattern, handle_sub, row)
+                pattern = r'[\*|(|\s](' + parameter + r')[,|)|\s|=]'
 
-            row = row.replace(' ', '&nbsp;')
-            row = row.replace('span&nbsp;', 'span ')
+            formatted_lines = []
+            name = signature.split('(')[0]
+            indent = ' ' * (len(name) + 1)
+            rows = textwrap.wrap(signature, width=60, subsequent_indent=indent)
+            for row in rows:
+                if parameter:
+                    # Add template to highlight the active parameter
+                    row = re.sub(pattern, handle_sub, row)
 
-            language = getattr(self, 'language', None)
-            if language and 'python' == language.lower():
-                for char in ['(', ')', ',', '*', '**']:
-                    new_char = chars_template.format(char=char)
-                    row = row.replace(char, new_char)
+                row = row.replace(' ', '&nbsp;')
+                row = row.replace('span&nbsp;', 'span ')
 
-            formatted_lines.append(row)
-        title_template = '<br>'.join(formatted_lines)
+                language = getattr(self, 'language', None)
+                if language and 'python' == language.lower():
+                    for char in ['(', ')', ',', '*', '**']:
+                        new_char = chars_template.format(char=char)
+                        row = row.replace(char, new_char)
 
-        # Get current font properties
-        font = self.font()
-        font_size = font.pointSize()
-        font_family = font.family()
+                formatted_lines.append(row)
+            title_template = '<br>'.join(formatted_lines)
 
-        # Format title to display active parameter
-        if parameter:
-            title = title_template.format(
-                font_size=font_size,
-                font_family=font_family,
-                color=parameter_color,
-                parameter=parameter,
-            )
-        else:
-            title = title_template
+            # Get current font properties
+            font = self.font()
+            font_size = font.pointSize()
+            font_family = font.family()
 
-        return title
+            # Format title to display active parameter
+            if parameter:
+                title = title_template.format(
+                    font_size=font_size,
+                    font_family=font_family,
+                    color=parameter_color,
+                    parameter=parameter,
+                )
+            else:
+                title = title_template
+            new_signatures.append(title)
+
+        return '<br><br>'.join(new_signatures)
 
     def _check_signature_and_format(self, signature_or_text, parameter=None):
         """
@@ -367,20 +373,29 @@ class BaseEditMixin(object):
                 extra_text = '\n'.join(lines[i:])
 
             if signature:
-                html_signature = self._format_signature(
-                    signature=signature,
+                new_signature = self._format_signature(
+                    signatures=signature,
                     parameter=parameter,
                 )
         elif has_multisignature:
             signature = signature_or_text.replace(name_plus_char,
                                                   '<br>' + name_plus_char)
-            html_signature = signature[4:]
+            signature = signature[4:]  # Remove the first line break
+            signature = signature.replace('\n', ' ')
+            signature = signature.replace('<br>', '\n')
+            signatures = signature.split('\n')
+            signatures = [sig for sig in signatures if sig]  # Remove empty
+
+            new_signature = self._format_signature(
+                signatures=signatures,
+                parameter=parameter,
+            )
             extra_text = None
         else:
-            html_signature = None
+            new_signature = None
             extra_text = signature_or_text
 
-        return html_signature, extra_text, inspect_word
+        return new_signature, extra_text, inspect_word
 
     def show_calltip(self, signature, parameter=None):
         """
@@ -395,9 +410,10 @@ class BaseEditMixin(object):
 
         # Format
         res = self._check_signature_and_format(signature, parameter)
-        html_signature, _, inspect_word = res
+        new_signature, text, inspect_word = res
         text = self._format_text(
-            signature=html_signature,
+            signature=new_signature,
+            text=text,
             inspect_word=inspect_word,
             display_link=False,
         )
