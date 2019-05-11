@@ -189,7 +189,7 @@ def test_update_warnings_after_closequotes(qtbot, lsp_codeeditor):
     editor, _ = lsp_codeeditor
     editor.textCursor().insertText("print('test)\n")
 
-    expected = [['pyflakes [E]: EOL while scanning string literal', 1]]
+    expected = [['EOL while scanning string literal', 1]]
 
     # Notify changes.
     with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
@@ -208,3 +208,34 @@ def test_update_warnings_after_closequotes(qtbot, lsp_codeeditor):
     expected = []
     assert editor.get_current_warnings() == expected
 
+
+@pytest.mark.slow
+@pytest.mark.second
+def test_update_warnings_after_closebrackets(qtbot, lsp_codeeditor):
+    """
+    Test that code errors are correctly updated after activating closebrackets
+    in the Editor.
+
+    Regression test for #9323.
+    """
+    editor, _ = lsp_codeeditor
+    editor.textCursor().insertText("print'test')\n")
+
+    expected = [['invalid syntax', 1]]
+
+    # Notify changes.
+    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
+        editor.document_did_change()
+
+    assert editor.get_current_warnings() == expected
+
+    # Add a single quote to fix the error
+    editor.move_cursor(-8)
+    qtbot.keyClicks(editor, "(")
+
+    # Wait for the lsp_response_signal.
+    qtbot.waitSignal(editor.lsp_response_signal, timeout=30000)
+
+    # Assert that the error is gone.
+    expected = []
+    assert editor.get_current_warnings() == expected
