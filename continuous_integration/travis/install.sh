@@ -26,6 +26,9 @@ if [ "$USE_CONDA" = "yes" ]; then
     # Install coveralls
     pip install -q coveralls
 
+    # Install diff-match-patch
+    pip install -q diff-match-patch
+
     # Install spyder-kernels from Github with no deps
     pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels
 else
