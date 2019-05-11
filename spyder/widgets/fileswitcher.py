@@ -757,14 +757,14 @@ class FileSwitcher(QDialog):
                 title = self.widgets[index][1].get_plugin_title().split(
                     ' - ')[0]
 
-            text_item = self._TEMPLATE.format(
-                width=self._MIN_WIDTH, height=self._HEIGHT, title=fileName,
-                section=title, description=path, padding=self._PADDING,
-                shortcut=linecount, **self._STYLES)
+                text_item = self._TEMPLATE.format(
+                    width=self._MIN_WIDTH, height=self._HEIGHT, title=fileName,
+                    section=title, description=path, padding=self._PADDING,
+                    shortcut=linecount, **self._STYLES)
 
-            if (trying_for_line_number and self.line_count[index] != 0 or
-                    not trying_for_line_number):
-                results.append((score_value, index, text_item))
+                if ((trying_for_line_number and self.line_count[index] != 0)
+                        or not trying_for_line_number):
+                    results.append((score_value, index, text_item))
 
         # Sort the obtained scores and populate the list widget
         self.filtered_path = []
