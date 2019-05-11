@@ -382,6 +382,8 @@ class BaseEditMixin(object):
                                                   '<br>' + name_plus_char)
             signature = signature[4:]  # Remove the first line break
             signature = signature.replace('\n', ' ')
+            signature = signature.replace(r'\\*', '*')
+            signature = signature.replace(r'\*', '*')
             signature = signature.replace('<br>', '\n')
             signatures = signature.split('\n')
             signatures = [sig for sig in signatures if sig]  # Remove empty
