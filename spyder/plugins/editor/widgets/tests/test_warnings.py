@@ -200,6 +200,7 @@ def test_update_warnings_after_closequotes(qtbot, lsp_codeeditor):
     # Add a single quote to fix the error
     editor.move_cursor(-2)
     qtbot.keyClicks(editor, "'")
+    assert editor.toPlainText() == "print('test')\n"
 
     # Wait for the lsp_response_signal.
     qtbot.waitSignal(editor.lsp_response_signal, timeout=30000)
@@ -232,6 +233,7 @@ def test_update_warnings_after_closebrackets(qtbot, lsp_codeeditor):
     # Add a single quote to fix the error
     editor.move_cursor(-8)
     qtbot.keyClicks(editor, "(")
+    assert editor.toPlainText() == "print('test')\n"
 
     # Wait for the lsp_response_signal.
     qtbot.waitSignal(editor.lsp_response_signal, timeout=30000)
