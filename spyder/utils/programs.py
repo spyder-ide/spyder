@@ -292,7 +292,10 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
     p_args += get_python_args(fname, python_args, interact, debug, args)
 
     if os.name == 'nt':
-        cmd = 'start cmd.exe /c "cd %s && ' % wdir + ' '.join(p_args) + '"'
+        cmd = 'start cmd.exe /K "'
+        if wdir:
+            cmd += 'cd ' + wdir + ' && '
+        cmd += ' '.join(p_args) + '"' + ' ^&^& exit'
         # Command line and cwd have to be converted to the filesystem
         # encoding before passing them to subprocess, but only for
         # Python 2.
@@ -301,7 +304,10 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
             cmd = encoding.to_fs_from_unicode(cmd)
             wdir = encoding.to_fs_from_unicode(wdir)
         try:
-            run_shell_command(cmd, cwd=wdir)
+            if wdir:
+                run_shell_command(cmd, cwd=wdir)
+            else:
+                run_shell_command(cmd)
         except WindowsError:
             from qtpy.QtWidgets import QMessageBox
             from spyder.config.base import _
