@@ -56,6 +56,6 @@ def test_autosave_remove_autosave_file(mocker, exception):
     fileinfo.filename = 'orig'
     addon = AutosaveForStack(mock_stack)
     addon.name_mapping = {'orig': 'autosave'}
-    addon.remove_autosave_file(fileinfo)
+    addon.remove_autosave_file(fileinfo.filename)
     mock_remove.assert_called_with('autosave')
     assert mock_dialog.called == exception

@@ -722,7 +722,7 @@ def test_remove_autosave_file(editor_bot, mocker, qtbot):
     assert autosave.name_mapping == expected
     assert blocker.args == ['autosave_mapping', expected]
     with qtbot.wait_signal(editor_stack.sig_option_changed) as blocker:
-        autosave.remove_autosave_file(editor_stack.data[0])
+        autosave.remove_autosave_file(editor_stack.data[0].filename)
     assert not os.access(autosave_filename, os.R_OK)
     assert autosave.name_mapping == {}
     assert blocker.args == ['autosave_mapping', {}]
