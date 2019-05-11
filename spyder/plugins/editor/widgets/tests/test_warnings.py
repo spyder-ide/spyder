@@ -175,3 +175,36 @@ def test_update_warnings_after_delete_line(qtbot, lsp_codeeditor):
                 ['E261 at least two spaces before inline comment', 2],
                 ["undefined name 's'", 4]]
     assert editor.get_current_warnings() == expected
+
+
+@pytest.mark.slow
+@pytest.mark.second
+def test_update_warnings_after_closequotes(qtbot, lsp_codeeditor):
+    """
+    Test that code errors are correctly updated after activating closequotes
+    in the Editor.
+
+    Regression test for #9323.
+    """
+    editor, _ = lsp_codeeditor
+    editor.textCursor().insertText("print('test)\n")
+
+    expected = [['pyflakes [E]: EOL while scanning string literal', 1]]
+
+    # Notify changes.
+    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
+        editor.document_did_change()
+
+    assert editor.get_current_warnings() == expected
+
+    # Add a single quote to fix the error
+    editor.move_cursor(-2)
+    qtbot.keyClicks(editor, "'")
+
+    # Wait for the lsp_response_signal.
+    qtbot.waitSignal(editor.lsp_response_signal, timeout=30000)
+
+    # Assert that the error is gone.
+    expected = []
+    assert editor.get_current_warnings() == expected
+
