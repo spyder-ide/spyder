@@ -708,7 +708,7 @@ def test_autosave_handles_error(editor_bot, mocker):
 
 def test_remove_autosave_file(editor_bot, mocker, qtbot):
     """
-    Test that remove_autosave_file() removes the autosave file
+    Test that remove_autosave_file() removes the autosave file.
 
     Also, test that it updates `name_mapping`.
     """

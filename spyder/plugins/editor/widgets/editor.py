@@ -1505,6 +1505,10 @@ class EditorStack(QWidget):
 
             self.add_last_closed_file(finfo.filename)
 
+            # Remove autosave on successful close to work around issue #9265.
+            # Probably a good idea in general to mitigate any other bugs.
+            self.autosave.remove_autosave_file(finfo)
+
         if self.get_stack_count() == 0 and self.create_new_file_if_empty:
             self.sig_new_file[()].emit()
             return False
