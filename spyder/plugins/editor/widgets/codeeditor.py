@@ -508,7 +508,7 @@ class CodeEditor(TextEditBaseWidget):
         self.range_formatting_enabled = False
         self.formatting_characters = []
         self.rename_support = False
-        self.last_completion_position = None
+        self.completion_args = None
 
         # Editor Extensions
         self.editor_extensions = EditorExtensionsManager(self)
@@ -885,19 +885,25 @@ class CodeEditor(TextEditBaseWidget):
             'line': line,
             'column': column
         }
-        self.last_completion_position = self.textCursor().position()
+        self.completion_args = (self.textCursor().position(), automatic)
         return params
 
     @handles(LSPRequestTypes.DOCUMENT_COMPLETION)
     def process_completion(self, params):
         """Handle completion response."""
+        args = self.completion_args
+        if args is None:
+            # This should not happen
+            return
+        self.completion_args = None
+        position, automatic = args
         try:
             completions = params['params']
             if completions is not None and len(completions) > 0:
                 completion_list = sorted(completions,
                                          key=lambda x: x['sortText'])
-                position = self.last_completion_position
-                self.completion_widget.show_list(completion_list, position)
+                self.completion_widget.show_list(
+                        completion_list, position, automatic)
         except Exception:
             self.log_lsp_handle_errors('Error when processing completions')
 
