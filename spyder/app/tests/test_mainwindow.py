@@ -1629,31 +1629,47 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot, tmpdir):
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(not sys.platform.startswith('linux'),
-                    reason="Doesn't run correctly on Windows and macOS")
 def test_fileswitcher(main_window, qtbot, tmpdir):
     """Test the use of shorten paths when necessary in the fileswitcher."""
+    fileswitcher = main_window.fileswitcher
+
     # Assert that the full path of a file is shown in the fileswitcher
-    file_a = tmpdir.join("a.py")
-    file_a.write('foo')
+    file_a = tmpdir.join('test_file_a.py')
+    file_a.write('foo\n')
     main_window.editor.load(str(file_a))
 
     main_window.open_fileswitcher()
-    item_text = main_window.fileswitcher.list.currentItem().text()
-    assert str(file_a) in item_text
+    fileswitcher_paths = fileswitcher.paths
+    assert file_a in fileswitcher_paths
+    fileswitcher.close()
 
     # Assert that long paths are shortened in the fileswitcher
     dir_b = tmpdir
     for _ in range(3):
         dir_b = dir_b.mkdir(str(uuid.uuid4()))
-    file_b = dir_b.join("b.py")
-    file_b.write('bar')
+    file_b = dir_b.join('test_file_b.py')
+    file_b.write('bar\n')
     main_window.editor.load(str(file_b))
 
-    main_window.fileswitcher.close()
     main_window.open_fileswitcher()
-    item_text = main_window.fileswitcher.list.currentItem().text()
-    assert '...' in item_text
+    file_b_text = fileswitcher.list.item(
+        fileswitcher.list.count() - 1).text()
+    assert '...' in file_b_text
+    fileswitcher.close()
+
+    # Assert search works correctly
+    search_texts = ['test_file_a', 'file_b', 'foo_spam']
+    expected_paths = [file_a, file_b, None]
+    for search_text, expected_path in zip(search_texts, expected_paths):
+        main_window.open_fileswitcher()
+        qtbot.keyClicks(fileswitcher.edit, search_text)
+        qtbot.wait(200)
+        assert fileswitcher.count() == 2 * bool(expected_path)
+        if expected_path:
+            assert fileswitcher.filtered_path[0] == expected_path
+        else:
+            assert not fileswitcher.filtered_path
+        fileswitcher.close()
 
 
 @pytest.mark.slow
