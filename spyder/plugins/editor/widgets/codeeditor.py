@@ -279,7 +279,7 @@ class CodeEditor(TextEditBaseWidget):
 
     #: Signal only used for tests
     # TODO: Remove it!
-    sig_signature_invoked = Signal()
+    sig_signature_invoked = Signal(dict)
 
     #: Signal emmited when processing code analysis warnings is finished
     sig_process_code_analysis = Signal()
@@ -921,8 +921,7 @@ class CodeEditor(TextEditBaseWidget):
             signature_params = params['params']
             if (signature_params is not None and
                     'activeParameter' in signature_params):
-                self.sig_signature_invoked.emit()
-
+                self.sig_signature_invoked.emit(signature_params)
                 signature_data = signature_params['signatures']
                 documentation = signature_data['documentation']
 
@@ -962,12 +961,14 @@ class CodeEditor(TextEditBaseWidget):
         """Handle hover response."""
         try:
             content = contents['params']
-            self.sig_display_object_info.emit(content)
 
-            if CONF.get('lsp-server', 'enable_hover_hints') and content:
-                if self._show_hint and self._last_point:
+            if CONF.get('lsp-server', 'enable_hover_hints'):
+                self.sig_display_object_info.emit(content)
+
+                if self._show_hint and self._last_point and content:
                     # This is located in spyder/widgets/mixins.py
                     word = self._last_hover_word,
+                    content = content.replace(u'\xa0', ' ')
                     self.show_hint(content, inspect_word=word,
                                    at_point=self._last_point)
                     self._last_point = None
@@ -1632,6 +1633,7 @@ class CodeEditor(TextEditBaseWidget):
         """Set the text of the editor"""
         self.setPlainText(text)
         self.set_eol_chars(text)
+        self.document_did_change(text)
         #if self.supported_language:
             #self.highlighter.rehighlight()
 
