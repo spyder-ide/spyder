@@ -630,7 +630,7 @@ class CodeEditor(TextEditBaseWidget):
                      occurrence_timeout=1500,
                      show_class_func_dropdown=False,
                      indent_guides=False,
-                     scroll_past_end=False, 
+                     scroll_past_end=False,
                      debug_panel=True,
                      folding=True):
 
