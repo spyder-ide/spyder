@@ -640,11 +640,11 @@ class CodeEditor(TextEditBaseWidget):
         self.set_auto_unindent_enabled(auto_unindent)
         self.set_indent_chars(indent_chars)
 
-        # Hide debug panel depending on the language
+        # Show/hide the debug panel depending on the language and parameter
         self.set_debug_panel(debug_panel, language)
 
-        # Hide folding panel depending on the language
-        self.set_folding_panel(folding, language)
+        # Show/hide folding panel depending on parameter
+        self.set_folding_panel(folding)
 
         # Scrollbar flag area
         self.scrollflagarea.set_enabled(scrollflagarea)
@@ -990,20 +990,17 @@ class CodeEditor(TextEditBaseWidget):
 
     # -------------------------------------------------------------------------
     def set_debug_panel(self, debug_panel, language):
-        """Enable/disable debug panel"""
+        """Enable/disable debug panel."""
         debugger_panel = self.panels.get(DebuggerPanel)
-        if language == 'py':
+        if language == 'py' and debug_panel:
             debugger_panel.setVisible(True)
         else:
             debugger_panel.setVisible(False)
 
-    def set_folding_panel(self, folding, language):
-        """Enable/disable debug panel"""
+    def set_folding_panel(self, folding):
+        """Enable/disable folding panel."""
         folding_panel = self.panels.get(FoldingPanel)
-        if language == 'py':
-            folding_panel.setVisible(True)
-        else:
-            folding_panel.setVisible(False)
+        folding_panel.setVisible(folding)
 
     def set_tab_mode(self, enable):
         """
@@ -1090,7 +1087,6 @@ class CodeEditor(TextEditBaseWidget):
             if self.support_language:
                 self.language = sh_class._lexer.name
         self._set_highlighter(sh_class)
-        print(language)
 
     def _set_highlighter(self, sh_class):
         self.highlighter_class = sh_class
@@ -1672,7 +1668,6 @@ class CodeEditor(TextEditBaseWidget):
         If not, return None"""
         block = self.document().findBlockByNumber(block_nb)
         return self.get_block_data(block).fold_level
-
 
 # =============================================================================
 #    High-level editor features
