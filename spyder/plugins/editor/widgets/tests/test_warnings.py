@@ -11,6 +11,7 @@ import os
 
 # Third party imports
 import pytest
+from qtpy.QtCore import Qt
 
 # Local imports
 from spyder.config.main import CONF
@@ -199,7 +200,8 @@ def test_update_warnings_after_closequotes(qtbot, lsp_codeeditor):
 
     # Add a single quote to fix the error
     editor.move_cursor(-2)
-    qtbot.keyClicks(editor, "'")
+    qtbot.keyPress(editor, Qt.Key_Apostrophe, delay=1000)
+
     assert editor.toPlainText() == "print('test')\n"
 
     # Wait for the lsp_response_signal.
@@ -232,7 +234,8 @@ def test_update_warnings_after_closebrackets(qtbot, lsp_codeeditor):
 
     # Add a bracket to fix the error
     editor.move_cursor(-8)
-    qtbot.keyClicks(editor, "(")
+    qtbot.keyPress(editor, Qt.Key_ParenLeft, delay=1000)
+
     assert editor.toPlainText() == "print('test')\n"
 
     # Wait for the lsp_response_signal.
