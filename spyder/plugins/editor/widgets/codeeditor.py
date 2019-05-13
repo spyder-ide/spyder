@@ -41,6 +41,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QLineEdit, QMenu, QMessageBox, QSplitter,
                             QToolTip, QVBoxLayout, QScrollBar)
 from spyder_kernels.utils.dochelpers import getobj
+from diff_match_patch import diff_match_patch
 
 # %% This line is for cell execution testing
 
@@ -276,7 +277,7 @@ class CodeEditor(TextEditBaseWidget):
 
     # -- Fallback Signal
     #: Signal emitted to get fallback completions
-    sig_perform_fallback_request = Signal(str)
+    sig_perform_fallback_request = Signal(dict)
 
     #: Signal to display object information on the Help plugin
     sig_display_object_info = Signal(str)
@@ -519,6 +520,10 @@ class CodeEditor(TextEditBaseWidget):
 
         self.editor_extensions.add(CloseQuotesExtension())
         self.editor_extensions.add(CloseBracketsExtension())
+
+        # Text diffs across versions
+        self.differ = diff_match_patch()
+        self.previous_text = ''
 
     # --- Helper private methods
     # ------------------------------------------------------------------------
@@ -863,11 +868,13 @@ class CodeEditor(TextEditBaseWidget):
     def document_did_change(self, text=None):
         """Send textDocument/didChange request to the server."""
         self.text_version += 1
+        text = self.toPlainText()
         params = {
             'file': self.filename,
             'version': self.text_version,
-            'text': self.toPlainText()
+            'text': text
         }
+        self.update_fallback(text)
         return params
 
     @handles(LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
@@ -890,6 +897,7 @@ class CodeEditor(TextEditBaseWidget):
             'column': column
         }
         self.last_completion_position = self.textCursor().position()
+        self.request_fallback()
         return params
 
     @handles(LSPRequestTypes.DOCUMENT_COMPLETION)
@@ -1048,6 +1056,34 @@ class CodeEditor(TextEditBaseWidget):
                 'codeeditor': self
             }
             return params
+
+    # ------------- Fallback completions ------------------------------------
+    def update_fallback(self, text):
+        # Invoke fallback update
+        patch = self.differ.patch_make(self.previous_text, text)
+        self.previous_text = text
+        fallback_request = {
+            'file': self.filename,
+            'type': 'update',
+            'editor': self,
+            'msg': {
+                'language': self.language,
+                'diff': patch
+            }
+        }
+        self.sig_perform_fallback_request.emit(fallback_request)
+
+    def request_fallback(self):
+        request = {
+            'file': self.filename,
+            'type': 'retrieve',
+            'editor': self,
+            'msg': None
+        }
+        self.sig_perform_fallback_reques.emit(request)
+
+    def recieve_text_tokens(self, tokens):
+        logger.debug(tokens)
 
     # -------------------------------------------------------------------------
     def set_tab_mode(self, enable):

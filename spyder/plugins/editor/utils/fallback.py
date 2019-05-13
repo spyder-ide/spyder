@@ -75,12 +75,13 @@ class FallbackActor(QThread):
                         'text': '', 'language': msg['language']}
                 diff = msg['diff']
                 text = self.file_tokens[file]
-                patches = self.diff_patch.patch_fromText(diff)
+                # patches = self.diff_patch.patch_fromText(diff)
                 self.file_tokens[file], _ = self.diff_patch.patch_apply(
-                    patches, text)
+                    diff, text)
             elif msg_type == 'retrieve':
                 tokens = []
                 if file in self.file_tokens:
-                    text = self.file_tokens[file]
-                    tokens = list(self.tokenize(text))
+                    text_info = self.file_tokens[file]
+                    tokens = list(self.tokenize(
+                        text_info['text'], text_info['language']))
                 editor.recieve_text_tokens(tokens)
