@@ -51,6 +51,8 @@ def lsp_codeeditor(lsp_manager, qtbot_module, request):
     editor.setup_editor(language='Python',
                         tab_mode=False,
                         markers=True,
+                        close_quotes=True,
+                        close_parentheses=True,
                         color_scheme='spyder/dark',
                         font=QFont("Monospace", 10))
     editor.resize(640, 480)

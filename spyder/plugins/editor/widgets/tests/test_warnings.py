@@ -187,19 +187,14 @@ def test_update_warnings_after_closequotes(qtbot, lsp_codeeditor):
     Regression test for #9323.
     """
     editor, _ = lsp_codeeditor
-    
-    kwargs = {}
-    kwargs['language'] = 'Python'
-    kwargs['close_quotes'] = True
-    editor.setup_editor(**kwargs)
-    
+
     # Test closing when following character is a right parentheses
     editor.textCursor().insertText('foo()')
     editor.move_cursor(-1)
     qtbot.keyClicks(editor, '"')
     assert editor.toPlainText() == 'foo("")'
     assert editor.textCursor().columnNumber() == 5
-    
+
     editor.textCursor().insertText("\nprint('test)\n")
 
     expected = [['EOL while scanning string literal', 2]]
