@@ -884,6 +884,12 @@ class MainWindow(QMainWindow):
         from spyder.plugins.editor.lsp.manager import LSPManager
         self.lspmanager = LSPManager(self)
 
+        # Fallback completion thread
+        self.set_splash(_("Starting fallback completion engine"))
+        from spyder.plugins.editor.utils.fallback import FallbackActor
+        self.fallback = FallbackActor(self)
+        self.fallback.start()
+
         # Working directory plugin
         logger.info("Loading working directory...")
         from spyder.plugins.workingdirectory.plugin import WorkingDirectory
@@ -2331,6 +2337,7 @@ class MainWindow(QMainWindow):
         if self.toolbars_visible:
             self.save_visible_toolbars()
         self.lspmanager.shutdown()
+        self.fallback.stop()
         self.already_closed = True
         return True
 

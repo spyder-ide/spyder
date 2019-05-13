@@ -134,7 +134,7 @@ class Editor(SpyderPluginWidget):
         self.editorwindows_to_be_created = []
         self.toolbar_list = None
         self.menu_list = None
-        
+
         # Initialize plugin
         self.initialize_plugin()
         self.options_button.hide()
@@ -306,6 +306,9 @@ class Editor(SpyderPluginWidget):
     def send_lsp_request(self, language, request, params):
         logger.debug("LSP request: %r" %request)
         self.main.lspmanager.send_request(language, request, params)
+
+    def send_fallback_request(self, msg):
+        self.main.fallback.mailbox.put(msg)
 
 
     #------ SpyderPluginWidget API ---------------------------------------------
@@ -1216,6 +1219,8 @@ class Editor(SpyderPluginWidget):
             lambda fname, line, col: self.load(
                 fname, line, start_column=col))
         editorstack.perform_lsp_request.connect(self.send_lsp_request)
+        editorstack.perform_fallback_request.connect(
+            self.send_fallback_request)
         editorstack.todo_results_changed.connect(self.todo_results_changed)
         editorstack.update_code_analysis_actions.connect(
             self.update_code_analysis_actions)

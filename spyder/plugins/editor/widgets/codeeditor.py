@@ -274,6 +274,10 @@ class CodeEditor(TextEditBaseWidget):
     # and profile LSP diagnostics.
     lsp_response_signal = Signal(str, dict)
 
+    # -- Fallback Signal
+    #: Signal emitted to get fallback completions
+    sig_perform_fallback_request = Signal(str)
+
     #: Signal to display object information on the Help plugin
     sig_display_object_info = Signal(str)
 
