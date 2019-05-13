@@ -248,7 +248,7 @@ class BaseEditMixin(object):
 
         return template
 
-    def _format_signature(self, signature, parameter=None,
+    def _format_signature(self, signatures, parameter=None,
                           parameter_color=_PARAMETER_HIGHLIGHT_COLOR,
                           char_color=_CHAR_HIGHLIGHT_COLOR):
         """
@@ -282,51 +282,123 @@ class BaseEditMixin(object):
             new = match.replace(parameter, active_parameter_template)
             return new
 
-        # Remove duplicate spaces
-        signature = ' '.join(signature.split())
+        if not isinstance(signatures, list):
+            signatures = [signatures]
 
-        # Replace ay initial spaces
-        signature = signature.replace('( ', '(')
+        new_signatures = []
+        for signature in signatures:
+            # Remove duplicate spaces
+            signature = ' '.join(signature.split())
 
-        # Process signature template
-        if parameter:
-            pattern = r'[\*|(|\s](' + parameter + r')[,|)|\s|=]'
+            # Replace initial spaces
+            signature = signature.replace('( ', '(')
 
-        formatted_lines = []
-        name = signature.split('(')[0]
-        indent = ' ' * (len(name) + 1)
-        rows = textwrap.wrap(signature, width=60, subsequent_indent=indent)
-        for row in rows:
+            # Process signature template
             if parameter:
-                # Add template to highlight the active parameter
-                row = re.sub(pattern, handle_sub, row)
+                pattern = r'[\*|(|\s](' + parameter + r')[,|)|\s|=]'
 
-            row = row.replace(' ', '&nbsp;')
-            row = row.replace('span&nbsp;', 'span ')
+            formatted_lines = []
+            name = signature.split('(')[0]
+            indent = ' ' * (len(name) + 1)
+            rows = textwrap.wrap(signature, width=60, subsequent_indent=indent)
+            for row in rows:
+                if parameter:
+                    # Add template to highlight the active parameter
+                    row = re.sub(pattern, handle_sub, row)
 
-            language = getattr(self, 'language', None)
-            if language and 'python' == language.lower():
-                for char in ['(', ')', ',', '*', '**']:
-                    new_char = chars_template.format(char=char)
-                    row = row.replace(char, new_char)
+                row = row.replace(' ', '&nbsp;')
+                row = row.replace('span&nbsp;', 'span ')
 
-            formatted_lines.append(row)
-        title_template = '<br>'.join(formatted_lines)
+                language = getattr(self, 'language', None)
+                if language and 'python' == language.lower():
+                    for char in ['(', ')', ',', '*', '**']:
+                        new_char = chars_template.format(char=char)
+                        row = row.replace(char, new_char)
 
-        # Get current font properties
-        font = self.font()
-        font_size = font.pointSize()
-        font_family = font.family()
+                formatted_lines.append(row)
+            title_template = '<br>'.join(formatted_lines)
 
-        # Format title to display active parameter
-        title = title_template.format(
-            font_size=font_size,
-            font_family=font_family,
-            color=parameter_color,
-            parameter=parameter,
-        )
+            # Get current font properties
+            font = self.font()
+            font_size = font.pointSize()
+            font_family = font.family()
 
-        return title
+            # Format title to display active parameter
+            if parameter:
+                title = title_template.format(
+                    font_size=font_size,
+                    font_family=font_family,
+                    color=parameter_color,
+                    parameter=parameter,
+                )
+            else:
+                title = title_template
+            new_signatures.append(title)
+
+        return '<br><br>'.join(new_signatures)
+
+    def _check_signature_and_format(self, signature_or_text, parameter=None):
+        """
+        LSP hints might provide docstrings instead of signatures.
+
+        This method will check for multiple signatures (dict, type etc...) and
+        format the text accordingly.
+        """
+        open_func_char = ''
+        has_signature = False
+        has_multisignature = False
+        language = getattr(self, 'language', '').lower()
+        lines = signature_or_text.split('\n')
+
+        if language == 'python':
+            open_func_char = '('
+            idx = signature_or_text.find(open_func_char)
+            inspect_word = signature_or_text[:idx]
+            name_plus_char = inspect_word + open_func_char
+
+            # Signature type
+            count = signature_or_text.count(name_plus_char)
+            has_signature = open_func_char in lines[0]
+            has_multisignature = count > 1
+
+        if has_signature and not has_multisignature:
+            for i, line in enumerate(lines):
+                if line.strip() == '':
+                    break
+
+            if i == 0:
+                signature = lines[0]
+                extra_text = None
+            else:
+                signature = '\n'.join(lines[:i])
+                extra_text = '\n'.join(lines[i:])
+
+            if signature:
+                new_signature = self._format_signature(
+                    signatures=signature,
+                    parameter=parameter,
+                )
+        elif has_multisignature:
+            signature = signature_or_text.replace(name_plus_char,
+                                                  '<br>' + name_plus_char)
+            signature = signature[4:]  # Remove the first line break
+            signature = signature.replace('\n', ' ')
+            signature = signature.replace(r'\\*', '*')
+            signature = signature.replace(r'\*', '*')
+            signature = signature.replace('<br>', '\n')
+            signatures = signature.split('\n')
+            signatures = [sig for sig in signatures if sig]  # Remove empty
+
+            new_signature = self._format_signature(
+                signatures=signatures,
+                parameter=parameter,
+            )
+            extra_text = None
+        else:
+            new_signature = None
+            extra_text = signature_or_text
+
+        return new_signature, extra_text, inspect_word
 
     def show_calltip(self, signature, parameter=None, documentation=None):
         """
@@ -339,15 +411,11 @@ class BaseEditMixin(object):
         # Find position of calltip
         point = self._calculate_position()
 
-        # Format signature
-        html_signature = self._format_signature(
-            signature=signature,
-            parameter=parameter,
-        )
-
-        inspect_word = signature.split('(')[0]
+        # Format
+        res = self._check_signature_and_format(signature, parameter)
+        new_signature, text, inspect_word = res
         text = self._format_text(
-            signature=html_signature,
+            signature=new_signature,
             inspect_word=inspect_word,
             display_link=False,
             text=documentation,
@@ -389,29 +457,9 @@ class BaseEditMixin(object):
 
     def show_hint(self, text, inspect_word, at_point):
         """Show code hint and crop text as needed."""
-        # Check language
-        lines = text.split('\n')
-        is_signature = False
-        if 'python' in self.language.lower():
-            is_signature = '(' in lines[0]
-
-        # Split signature and the rest
-        signature, additional_text = None, text
-        if is_signature:
-            for i, line in enumerate(lines):
-                if line.strip() == '':
-                    break
-            if i == 0:
-                signature = lines[0]
-                additional_text = None
-            else:
-                signature = '\n'.join(lines[:i])
-                additional_text = '\n'.join(lines[i + 1:])
-
-            if signature:
-                signature = self._format_signature(signature)
-
         # Check if signature and format
+        res = self._check_signature_and_format(text)
+        html_signature, extra_text, _ = res
         point = self.get_word_start_pos(at_point)
 
         # This is needed to get hover hints
@@ -419,7 +467,7 @@ class BaseEditMixin(object):
         cursor.movePosition(QTextCursor.StartOfWord, QTextCursor.MoveAnchor)
         self._last_hover_cursor = cursor
 
-        self.show_tooltip(signature=signature, text=additional_text,
+        self.show_tooltip(signature=html_signature, text=extra_text,
                           at_point=point, inspect_word=inspect_word,
                           display_link=True, max_lines=10)
 

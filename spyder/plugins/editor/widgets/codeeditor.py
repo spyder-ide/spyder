@@ -30,7 +30,7 @@ from unicodedata import category
 
 # Third party imports
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import QRegExp, Qt, QTimer, Signal, Slot, QEvent, QPoint
+from qtpy.QtCore import QRegExp, Qt, QTimer, Signal, Slot, QEvent
 from qtpy.QtGui import (QColor, QCursor, QFont, QIntValidator,
                         QKeySequence, QPaintEvent, QPainter, QMouseEvent,
                         QTextCharFormat, QTextCursor,
@@ -279,7 +279,7 @@ class CodeEditor(TextEditBaseWidget):
 
     #: Signal only used for tests
     # TODO: Remove it!
-    sig_signature_invoked = Signal()
+    sig_signature_invoked = Signal(dict)
 
     #: Signal emmited when processing code analysis warnings is finished
     sig_process_code_analysis = Signal()
@@ -508,7 +508,7 @@ class CodeEditor(TextEditBaseWidget):
         self.range_formatting_enabled = False
         self.formatting_characters = []
         self.rename_support = False
-        self.last_completion_position = None
+        self.completion_args = None
 
         # Editor Extensions
         self.editor_extensions = EditorExtensionsManager(self)
@@ -881,19 +881,25 @@ class CodeEditor(TextEditBaseWidget):
             'line': line,
             'column': column
         }
-        self.last_completion_position = self.textCursor().position()
+        self.completion_args = (self.textCursor().position(), automatic)
         return params
 
     @handles(LSPRequestTypes.DOCUMENT_COMPLETION)
     def process_completion(self, params):
         """Handle completion response."""
+        args = self.completion_args
+        if args is None:
+            # This should not happen
+            return
+        self.completion_args = None
+        position, automatic = args
         try:
             completions = params['params']
             if completions is not None and len(completions) > 0:
                 completion_list = sorted(completions,
                                          key=lambda x: x['sortText'])
-                position = self.last_completion_position
-                self.completion_widget.show_list(completion_list, position)
+                self.completion_widget.show_list(
+                        completion_list, position, automatic)
         except Exception:
             self.log_lsp_handle_errors('Error when processing completions')
 
@@ -917,8 +923,7 @@ class CodeEditor(TextEditBaseWidget):
             signature_params = params['params']
             if (signature_params is not None and
                     'activeParameter' in signature_params):
-                self.sig_signature_invoked.emit()
-
+                self.sig_signature_invoked.emit(signature_params)
                 signature_data = signature_params['signatures']
                 documentation = signature_data['documentation']
 
@@ -960,13 +965,14 @@ class CodeEditor(TextEditBaseWidget):
         """Handle hover response."""
         try:
             content = contents['params']
-            self.sig_display_object_info.emit(content,
-                                              self._request_hover_clicked)
 
-            if CONF.get('lsp-server', 'enable_hover_hints') and content:
-                if self._show_hint and self._last_point:
+            if CONF.get('lsp-server', 'enable_hover_hints'):
+                self.sig_display_object_info.emit(content,
+                                                  self._request_hover_clicked)
+                if self._show_hint and self._last_point and content:
                     # This is located in spyder/widgets/mixins.py
                     word = self._last_hover_word,
+                    content = content.replace(u'\xa0', ' ')
                     self.show_hint(content, inspect_word=word,
                                    at_point=self._last_point)
                     self._last_point = None
@@ -1631,6 +1637,7 @@ class CodeEditor(TextEditBaseWidget):
         """Set the text of the editor"""
         self.setPlainText(text)
         self.set_eol_chars(text)
+        self.document_did_change(text)
         #if self.supported_language:
             #self.highlighter.rehighlight()
 

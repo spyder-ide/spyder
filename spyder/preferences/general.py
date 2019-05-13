@@ -199,6 +199,7 @@ class MainConfigPage(GeneralConfigPage):
                                            "these options (in "
                                            "English).").format(HDPI_QT_PAGE))
         screen_resolution_label.setWordWrap(True)
+        screen_resolution_label.setOpenExternalLinks(True)
 
         normal_radio = self.create_radiobutton(
                                 _("Normal"),
