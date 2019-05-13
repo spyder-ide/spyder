@@ -187,17 +187,9 @@ def test_update_warnings_after_closequotes(qtbot, lsp_codeeditor):
     Regression test for #9323.
     """
     editor, _ = lsp_codeeditor
+    editor.textCursor().insertText("print('test)\n")
 
-    # Test closing when following character is a right parentheses
-    editor.textCursor().insertText('foo()')
-    editor.move_cursor(-1)
-    qtbot.keyClicks(editor, '"')
-    assert editor.toPlainText() == 'foo("")'
-    assert editor.textCursor().columnNumber() == 5
-
-    editor.textCursor().insertText("\nprint('test)\n")
-
-    expected = [['EOL while scanning string literal', 2]]
+    expected = [['EOL while scanning string literal', 1]]
 
     # Notify changes.
     with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
@@ -238,7 +230,7 @@ def test_update_warnings_after_closebrackets(qtbot, lsp_codeeditor):
 
     assert editor.get_current_warnings() == expected
 
-    # Add a single quote to fix the error
+    # Add a bracket to fix the error
     editor.move_cursor(-8)
     qtbot.keyClicks(editor, "(")
     assert editor.toPlainText() == "print('test')\n"
