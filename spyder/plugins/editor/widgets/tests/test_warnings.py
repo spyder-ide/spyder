@@ -199,7 +199,7 @@ def test_update_warnings_after_closequotes(qtbot, lsp_codeeditor):
 
     # Add a single quote to fix the error
     editor.move_cursor(-2)
-    qtbot.keyClicks(editor, '"')
+    qtbot.keyClicks(editor, "'")
     assert editor.toPlainText() == "print('test')\n"
 
     # Wait for the lsp_response_signal.
