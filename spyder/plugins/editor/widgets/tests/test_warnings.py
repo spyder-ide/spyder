@@ -188,6 +188,11 @@ def test_update_warnings_after_closequotes(qtbot, lsp_codeeditor):
     """
     editor, _ = lsp_codeeditor
     
+    kwargs = {}
+    kwargs['language'] = 'Python'
+    kwargs['close_quotes'] = True
+    editor.setup_editor(**kwargs)
+    
     # Test closing when following character is a right parentheses
     editor.textCursor().insertText('foo()')
     editor.move_cursor(-1)
