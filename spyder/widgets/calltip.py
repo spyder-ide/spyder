@@ -39,7 +39,6 @@ class ToolTipWidget(QLabel):
     """
 
     sig_help_requested = Signal(str)
-    sig_closed = Signal()
 
     def __init__(self, parent=None, as_tooltip=False):
         """
