@@ -158,7 +158,10 @@ class LSPServerEditor(QDialog):
         self.lang_cb.setToolTip(
             _('Programming language provided by the LSP server'))
         self.lang_cb.addItem(_('Select a language'))
-        self.lang_cb.addItems(LSP_LANGUAGES)
+        languages = LSP_LANGUAGES[:]
+        # Even if users add a new Python config there, we will not use it
+        languages.remove('Python')
+        self.lang_cb.addItems(languages)
 
         self.button_ok.setEnabled(False)
         if language is not None:
@@ -316,7 +319,7 @@ class LSPServerEditor(QDialog):
                 self.json_label.setText(self.JSON_VALID)
             except Exception:
                 pass
-        except (ValueError, json.decoder.JSONDecodeError):
+        except ValueError:
             try:
                 self.json_label.setText(self.JSON_INVALID)
                 self.button_ok.setEnabled(False)
