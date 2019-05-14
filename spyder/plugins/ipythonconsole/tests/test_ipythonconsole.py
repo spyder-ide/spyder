@@ -151,6 +151,30 @@ def ipyconsole(qtbot, request):
 # =============================================================================
 @pytest.mark.slow
 @flaky(max_runs=3)
+def test_get_calltips(ipyconsole, qtbot):
+    """Test that calltips work."""
+    shell = ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Write an object in the console that should generate a calltip
+    # and wait for the kernel to send its response.
+    with qtbot.waitSignal(shell.kernel_client.shell_channel.message_received):
+        qtbot.keyClicks(control, 'range(')
+
+    # Wait a little bit for the calltip to appear
+    qtbot.wait(500)
+
+    # Assert we displayed a calltip
+    assert control.calltip_widget.isVisible()
+
+    # Hide the calltip to avoid focus problems on Linux
+    control.calltip_widget.hide()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
 @pytest.mark.auto_backend
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_auto_backend(ipyconsole, qtbot):
