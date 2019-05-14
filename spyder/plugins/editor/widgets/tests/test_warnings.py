@@ -179,7 +179,7 @@ def test_update_warnings_after_delete_line(qtbot, lsp_codeeditor):
     assert editor.get_current_warnings() == expected
 
 
-@pytest.mark.slow
+#@pytest.mark.slow
 @pytest.mark.second
 def test_update_warnings_after_closequotes(qtbot, lsp_codeeditor):
     """
@@ -199,21 +199,19 @@ def test_update_warnings_after_closequotes(qtbot, lsp_codeeditor):
 
     assert editor.get_current_warnings() == expected
 
-    # Add a single quote to fix the error
-    editor.move_cursor(-2)
-    qtbot.keyPress(editor, Qt.Key_Apostrophe)
-    assert editor.toPlainText() == "print('test')\n"
-
     # Wait for the lsp_response_signal.
     with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
-        sleep(1)
+        # Add a single quote to fix the error
+        editor.move_cursor(-2)
+        qtbot.keyPress(editor, Qt.Key_Apostrophe)
+        assert editor.toPlainText() == "print('test')\n"
 
     # Assert that the error is gone.
     expected = [['D100: Missing docstring in public module', 1]]
     assert editor.get_current_warnings() == expected
 
 
-@pytest.mark.slow
+#@pytest.mark.slow
 @pytest.mark.second
 def test_update_warnings_after_closebrackets(qtbot, lsp_codeeditor):
     """
@@ -233,14 +231,12 @@ def test_update_warnings_after_closebrackets(qtbot, lsp_codeeditor):
 
     assert editor.get_current_warnings() == expected
 
-    # Add a bracket to fix the error
-    editor.move_cursor(-1)
-    qtbot.keyPress(editor, Qt.Key_ParenRight)
-    assert editor.toPlainText() == "print('test')\n"
-
     # Wait for the lsp_response_signal.
     with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
-        sleep(1)
+        # Add a bracket to fix the error
+        editor.move_cursor(-1)
+        qtbot.keyPress(editor, Qt.Key_ParenRight)
+        assert editor.toPlainText() == "print('test')\n"
 
     # Assert that the error is gone.
     expected = [['D100: Missing docstring in public module', 1]]
