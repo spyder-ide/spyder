@@ -894,21 +894,22 @@ class EditorStack(QWidget):
         """Inspect current object in the Help plugin"""
         editor = self.get_current_editor()
         editor.sig_display_object_info.connect(self.display_help)
-        cursor = editor.get_last_hover_cursor()
+        cursor = None
+        if pos:
+            cursor = editor.get_last_hover_cursor()
         line, col = editor.get_cursor_line_column(cursor)
-        editor.request_hover(line, col, show_hint=False)
+        editor.request_hover(line, col, show_hint=False, clicked=bool(pos))
 
-    @Slot(str)
-    def display_help(self, help_text):
+    @Slot(str, bool)
+    def display_help(self, help_text, clicked):
         editor = self.get_current_editor()
-
-        if editor.get_last_hover_cursor():
+        if clicked:
             name = editor.get_last_hover_word()
         else:
             name = editor.get_current_word()
 
-        self.help.switch_to_editor_source()
         editor.sig_display_object_info.disconnect(self.display_help)
+        self.help.switch_to_editor_source()
         self.send_to_help(name, help_text, force=True)
 
     #------ Editor Widget Settings
@@ -1505,6 +1506,10 @@ class EditorStack(QWidget):
 
             self.add_last_closed_file(finfo.filename)
 
+            # Remove autosave on successful close to work around issue #9265.
+            # Probably a good idea in general to mitigate any other bugs.
+            self.autosave.remove_autosave_file(finfo.filename)
+
         if self.get_stack_count() == 0 and self.create_new_file_if_empty:
             self.sig_new_file[()].emit()
             return False
@@ -1616,7 +1621,7 @@ class EditorStack(QWidget):
                 if not self.save(index):
                     return False
             elif no_all:
-                self.autosave.remove_autosave_file(finfo)
+                self.autosave.remove_autosave_file(finfo.filename)
             elif (finfo.editor.document().isModified() and
                   self.save_dialog_on_tests):
 
@@ -1634,13 +1639,13 @@ class EditorStack(QWidget):
                     if not self.save(index):
                         return False
                 elif answer == QMessageBox.No:
-                    self.autosave.remove_autosave_file(finfo)
+                    self.autosave.remove_autosave_file(finfo.filename)
                 elif answer == QMessageBox.YesToAll:
                     if not self.save(index):
                         return False
                     yes_all = True
                 elif answer == QMessageBox.NoToAll:
-                    self.autosave.remove_autosave_file(finfo)
+                    self.autosave.remove_autosave_file(finfo.filename)
                     no_all = True
                 elif answer == QMessageBox.Cancel:
                     return False
@@ -1699,7 +1704,7 @@ class EditorStack(QWidget):
             self.set_os_eol_chars(osname=osname)
         try:
             self._write_to_file(finfo, finfo.filename)
-            self.autosave.remove_autosave_file(finfo)
+            self.autosave.remove_autosave_file(finfo.filename)
             finfo.newly_created = False
             self.encoding_changed.emit(finfo.encoding)
             finfo.lastmodified = QFileInfo(finfo.filename).lastModified()

@@ -275,11 +275,11 @@ class CodeEditor(TextEditBaseWidget):
     lsp_response_signal = Signal(str, dict)
 
     #: Signal to display object information on the Help plugin
-    sig_display_object_info = Signal(str)
+    sig_display_object_info = Signal(str, bool)
 
     #: Signal only used for tests
     # TODO: Remove it!
-    sig_signature_invoked = Signal()
+    sig_signature_invoked = Signal(dict)
 
     #: Signal emmited when processing code analysis warnings is finished
     sig_process_code_analysis = Signal()
@@ -508,7 +508,7 @@ class CodeEditor(TextEditBaseWidget):
         self.range_formatting_enabled = False
         self.formatting_characters = []
         self.rename_support = False
-        self.last_completion_position = None
+        self.completion_args = None
 
         # Editor Extensions
         self.editor_extensions = EditorExtensionsManager(self)
@@ -520,14 +520,10 @@ class CodeEditor(TextEditBaseWidget):
     # ------------------------------------------------------------------------
 
     # --- Hover/Hints
-    def _should_display_hover(self, pos):
+    def _should_display_hover(self, point):
         """Check if a hover hint should be displayed:"""
-        value = False
-        if CONF.get('lsp-server', 'enable_hover_hints') and pos:
-            text = self.get_word_at(pos)
-            value = text and self.is_position_inside_word_rect(pos)
-
-        return value
+        return (CONF.get('lsp-server', 'enable_hover_hints') and point
+                and self.get_word_at(point))
 
     def _handle_hover(self):
         """Handle hover hint trigger after delay."""
@@ -691,13 +687,21 @@ class CodeEditor(TextEditBaseWidget):
                      occurrence_timeout=1500,
                      show_class_func_dropdown=False,
                      indent_guides=False,
-                     scroll_past_end=False):
+                     scroll_past_end=False,
+                     debug_panel=True,
+                     folding=True):
 
         self.set_close_parentheses_enabled(close_parentheses)
         self.set_close_quotes_enabled(close_quotes)
         self.set_add_colons_enabled(add_colons)
         self.set_auto_unindent_enabled(auto_unindent)
         self.set_indent_chars(indent_chars)
+
+        # Show/hide the debug panel depending on the language and parameter
+        self.set_debug_panel(debug_panel, language)
+
+        # Show/hide folding panel depending on parameter
+        self.set_folding_panel(folding)
 
         # Scrollbar flag area
         self.scrollflagarea.set_enabled(scrollflagarea)
@@ -885,19 +889,25 @@ class CodeEditor(TextEditBaseWidget):
             'line': line,
             'column': column
         }
-        self.last_completion_position = self.textCursor().position()
+        self.completion_args = (self.textCursor().position(), automatic)
         return params
 
     @handles(LSPRequestTypes.DOCUMENT_COMPLETION)
     def process_completion(self, params):
         """Handle completion response."""
+        args = self.completion_args
+        if args is None:
+            # This should not happen
+            return
+        self.completion_args = None
+        position, automatic = args
         try:
             completions = params['params']
             if completions is not None and len(completions) > 0:
                 completion_list = sorted(completions,
                                          key=lambda x: x['sortText'])
-                position = self.last_completion_position
-                self.completion_widget.show_list(completion_list, position)
+                self.completion_widget.show_list(
+                        completion_list, position, automatic)
         except Exception:
             self.log_lsp_handle_errors('Error when processing completions')
 
@@ -921,8 +931,7 @@ class CodeEditor(TextEditBaseWidget):
             signature_params = params['params']
             if (signature_params is not None and
                     'activeParameter' in signature_params):
-                self.sig_signature_invoked.emit()
-
+                self.sig_signature_invoked.emit(signature_params)
                 signature_data = signature_params['signatures']
                 documentation = signature_data['documentation']
 
@@ -941,13 +950,14 @@ class CodeEditor(TextEditBaseWidget):
                 self.show_calltip(
                     signature=signature,
                     parameter=parameter,
+                    documentation=documentation,
                 )
         except Exception:
             self.log_lsp_handle_errors("Error when processing signature")
 
     # ------------- LSP: Hover ---------------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_HOVER)
-    def request_hover(self, line, col, show_hint=True):
+    def request_hover(self, line, col, show_hint=True, clicked=True):
         """Request hover information."""
         params = {
             'file': self.filename,
@@ -955,6 +965,7 @@ class CodeEditor(TextEditBaseWidget):
             'column': col
         }
         self._show_hint = show_hint
+        self._request_hover_clicked = clicked
         return params
 
     @handles(LSPRequestTypes.DOCUMENT_HOVER)
@@ -964,10 +975,13 @@ class CodeEditor(TextEditBaseWidget):
             content = contents['params']
             self.sig_display_object_info.emit(content)
 
-            if CONF.get('lsp-server', 'enable_hover_hints') and content:
-                if self._show_hint and self._last_point:
+            if CONF.get('lsp-server', 'enable_hover_hints'):
+                self.sig_display_object_info.emit(content,
+                                                  self._request_hover_clicked)
+                if self._show_hint and self._last_point and content:
                     # This is located in spyder/widgets/mixins.py
                     word = self._last_hover_word,
+                    content = content.replace(u'\xa0', ' ')
                     self.show_hint(content, inspect_word=word,
                                    at_point=self._last_point)
                     self._last_point = None
@@ -1046,6 +1060,19 @@ class CodeEditor(TextEditBaseWidget):
             return params
 
     # -------------------------------------------------------------------------
+    def set_debug_panel(self, debug_panel, language):
+        """Enable/disable debug panel."""
+        debugger_panel = self.panels.get(DebuggerPanel)
+        if language == 'py' and debug_panel:
+            debugger_panel.setVisible(True)
+        else:
+            debugger_panel.setVisible(False)
+
+    def set_folding_panel(self, folding):
+        """Enable/disable folding panel."""
+        folding_panel = self.panels.get(FoldingPanel)
+        folding_panel.setVisible(folding)
+
     def set_tab_mode(self, enable):
         """
         enabled = tab always indent
@@ -1632,6 +1659,7 @@ class CodeEditor(TextEditBaseWidget):
         """Set the text of the editor"""
         self.setPlainText(text)
         self.set_eol_chars(text)
+        self.document_did_change(text)
 
         if (isinstance(self.highlighter, sh.PygmentsSH)
                 and not running_under_pytest()):
