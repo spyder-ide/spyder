@@ -129,9 +129,9 @@ class LSPManager(QObject):
                 instance.initialize()
 
     @Slot(str)
-    def report_server_error(self, value):
+    def report_server_error(self, error):
         """Report server errors in our error report dialog."""
-        self.main.console.exception_occurred(value, is_traceback=True,
+        self.main.console.exception_occurred(error, is_traceback=True,
                                              is_pyls_error=True)
 
     def start_client(self, language):
