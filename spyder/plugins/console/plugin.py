@@ -215,16 +215,7 @@ class Console(SpyderPluginWidget):
                 self.error_dlg.details.go_to_error.connect(self.go_to_error)
             if is_pyls_error:
                 title = "Internal Python Language Server error"
-                description = (
-                    "An error has occurred with the code completion and "
-                    "linting services provided by the Python Language "
-                    "Server.\n\n"
-                    "Please submit this report to Github if you want "
-                    "to see it fixed."
-                )
-                self.error_dlg.main_label.hide()
                 self.error_dlg.set_title(title)
-                self.error_dlg.set_description(description)
             self.error_dlg.append_traceback(text)
             self.error_dlg.show()
         elif DEV or get_debug_level():
