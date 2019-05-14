@@ -151,28 +151,42 @@ class AutosaveForStack(object):
                 autosave_filename = osp.join(autosave_dir, autosave_basename)
         return autosave_filename
 
-    def remove_autosave_file(self, fileinfo):
+    def remove_autosave_file(self, filename, errors='raise'):
         """
         Remove autosave file for specified file.
 
         This function also updates `self.autosave_mapping` and clears the
         `changed_since_autosave` flag.
         """
-        filename = fileinfo.filename
         if filename not in self.name_mapping:
             return
         autosave_filename = self.name_mapping[filename]
         try:
             os.remove(autosave_filename)
         except EnvironmentError as error:
-            action = (_('Error while removing autosave file {}')
-                      .format(autosave_filename))
-            msgbox = AutosaveErrorDialog(action, error)
-            msgbox.exec_if_enabled()
+            error_message = (_('{} while removing autosave file {}')
+                             .format(type(error), autosave_filename))
+            if errors == 'ignore':
+                logger.debug('%s : %s', error_message, str(error))
+            else:
+                msgbox = AutosaveErrorDialog(error_message, error)
+                msgbox.exec_if_enabled()
         del self.name_mapping[filename]
         self.stack.sig_option_changed.emit(
-                'autosave_mapping', self.name_mapping)
-        logger.debug('Removing autosave file %s', autosave_filename)
+            'autosave_mapping', self.name_mapping)
+        logger.debug('Removed autosave file %s', autosave_filename)
+
+    def remove_all_autosave_files(self, errors='raise'):
+        """
+        Remove all autosave files stored in this componet's mapping.
+
+        Args:
+            errors (str, optional): "raise" (default) or "ignore" errors.
+        """
+        if not self.name_mapping:
+            return
+        for filename in list(self.name_mapping):
+            self.remove_autosave_file(filename, errors=errors)
 
     def get_autosave_filename(self, filename):
         """

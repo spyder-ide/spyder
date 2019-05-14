@@ -357,7 +357,7 @@ class Editor(SpyderPluginWidget):
 
         active_project_path = None
         if self.projects is not None:
-             active_project_path = self.projects.get_active_project_path()
+            active_project_path = self.projects.get_active_project_path()
         if not active_project_path:
             self.set_open_filenames()
         else:
@@ -380,6 +380,14 @@ class Editor(SpyderPluginWidget):
             else:
                 for win in self.editorwindows[:]:
                     win.close()
+                # Remove autosave on successful close to avoid issue #9265.
+                # Probably a good idea anyway to mitigate autosave issues.
+                # Ignore errors resulting from file being open in > 2
+                # editorstacks or another Spyder being closed first and
+                # removing the spurious files.
+                for editorstack_split in self.editorstacks:
+                    editorstack_split.autosave.remove_all_autosave_files(
+                        errors="ignore")
                 return True
         except IndexError:
             return True

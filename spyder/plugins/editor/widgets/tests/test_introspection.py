@@ -46,9 +46,8 @@ def test_space_completion(lsp_codeeditor, qtbot):
         qtbot.keyPress(code_editor, Qt.Key_Tab)
     assert "import" in [x['label'] for x in sig.args[0]]
 
-    # enter should accept first completion
-    qtbot.keyPress(completion, Qt.Key_Enter, delay=1000)
     assert code_editor.toPlainText() == 'from numpy import'
+    assert not completion.isVisible()
 
 
 @pytest.mark.slow
@@ -64,8 +63,8 @@ def test_hide_widget_completion(lsp_codeeditor, qtbot):
     # Set cursor to start
     code_editor.go_to_line(1)
 
-    # Complete from numpy --> from numpy import
-    qtbot.keyClicks(code_editor, 'from numpy ')
+    # Complete from numpy import --> from numpy import ?
+    qtbot.keyClicks(code_editor, 'from numpy import ')
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
 
@@ -123,7 +122,6 @@ def test_completions(lsp_codeeditor, qtbot):
         qtbot.keyPress(code_editor, Qt.Key_Tab)
     assert "degrees(x)" in [x['label'] for x in sig.args[0]]
 
-    qtbot.keyPress(completion, Qt.Key_Enter, delay=300)
     assert code_editor.toPlainText() == 'import math\nmath.degrees'
 
     # enter for new line
@@ -141,8 +139,6 @@ def test_completions(lsp_codeeditor, qtbot):
         qtbot.keyPress(code_editor, Qt.Key_Tab)
     assert "degrees(x)" in [x['label'] for x in sig.args[0]]
 
-    qtbot.keyPress(completion, Qt.Key_Enter, delay=300)
-
     # right for () + enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Right, delay=300)
     qtbot.keyPress(code_editor, Qt.Key_Right, delay=300)
@@ -157,24 +153,31 @@ def test_completions(lsp_codeeditor, qtbot):
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
     assert "asin(x)" in [x['label'] for x in sig.args[0]]
+    # Test if the list is updated
+    assert "acos(x)" == completion.completion_list[0]['label']
     qtbot.keyClicks(completion, 's')
+    assert "asin" == completion.item(0).text()
     qtbot.keyPress(completion, Qt.Key_Enter, delay=300)
 
     # enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
 
-    # Complete math.a <tab><enter> ... <enter> to math.acos
-    qtbot.keyClicks(code_editor, 'math.a')
+    # Check can get list back
+    qtbot.keyClicks(code_editor, 'math.c')
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
-        qtbot.keyPress(code_editor, Qt.Key_Enter)
-    assert "acos(x)" in [x['label'] for x in sig.args[0]]
-    qtbot.keyPress(completion, Qt.Key_Enter, delay=300)
+    assert completion.count() == 4
+    assert "ceil(x)" in [x['label'] for x in sig.args[0]]
+    qtbot.keyClicks(completion, 'e')
+    assert completion.count() == 1
+    qtbot.keyPress(completion, Qt.Key_Backspace)
+    assert completion.count() == 4
 
+    # enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
 
     # Complete math.a <tab> s ...<enter> to math.asin
@@ -190,23 +193,36 @@ def test_completions(lsp_codeeditor, qtbot):
     qtbot.keyPress(completion, Qt.Key_Enter, delay=300)
 
     # Check math.a <tab> <backspace> doesn't emit sig_show_completions
-    qtbot.keyPress(code_editor, Qt.Key_Right, delay=300)
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
     qtbot.keyClicks(code_editor, 'math.a')
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
 
     try:
         with qtbot.waitSignal(completion.sig_show_completions,
-                              timeout=10000) as sig:
+                              timeout=5000) as sig:
             qtbot.keyPress(code_editor, Qt.Key_Tab)
             qtbot.keyPress(code_editor, Qt.Key_Backspace)
         raise RuntimeError("The signal should not have been received!")
     except pytestqt.exceptions.TimeoutError:
         pass
 
+    try:
+        with qtbot.waitSignal(completion.sig_show_completions,
+                              timeout=5000) as sig:
+            qtbot.keyPress(code_editor, Qt.Key_Tab)
+            qtbot.keyPress(code_editor, Qt.Key_Return)
+        raise RuntimeError("The signal should not have been received!")
+    except pytestqt.exceptions.TimeoutError:
+        pass
+
     assert code_editor.toPlainText() == 'import math\nmath.degrees\n'\
                                         'math.degrees()\nmath.asin\n'\
-                                        'math.acos\nmath.asin\nmath.'
+                                        'math.c\nmath.asin\nmath.\n'
+
+
+if __name__ == '__main__':
+    pytest.main(['test_introspection.py', '--run-slow'])
 
     # Modify PYTHONPATH
     # editor.introspector.change_extra_path([LOCATION])
