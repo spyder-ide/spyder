@@ -184,14 +184,20 @@ def find_lexer_for_filename(filename):
 def get_keywords(lexer):
     """Get the keywords for a given lexer.
     """
+    search_attrs = ('builtin', 'keyword', 'word')
+    keywords = []
+    for attr in dir(lexer):
+        for search_attr in search_attrs:
+            if attr.lower().startswith(search_attr):
+                keywords += getattr(lexer, attr)
+
     if not hasattr(lexer, 'tokens'):
-        return []
+        return keywords
     if 'keywords' in lexer.tokens:
         try:
             return lexer.tokens['keywords'][0][0].words
         except:
             pass
-    keywords = []
     for vals in lexer.tokens.values():
         for val in vals:
             try:

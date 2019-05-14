@@ -20,7 +20,13 @@ from queue import Queue
 from qtpy.QtCore import QThread, QMutex, QMutexLocker, Signal
 
 # Other imports
+from pygments.lexers import get_lexer_by_name
 from diff_match_patch import diff_match_patch
+
+# Local imports
+from spyder.plugins.editor.lsp import CompletionItemKind
+from spyder.utils.introspection.utils import get_keywords
+
 
 logger = logging.getLogger(__name__)
 
@@ -56,8 +62,27 @@ class FallbackActor(QThread):
         self.diff_patch = diff_match_patch()
 
     def tokenize(self, text, language):
+        lexer = get_lexer_by_name(language)
+        keywords = get_keywords(lexer)
+        keyword_set = set(keywords)
+        keywords = [{'kind': CompletionItemKind.KEYWORD,
+                     'insertText': keyword,
+                     'sortText': keyword[0].lower(),
+                     'filterText': keyword, 'documentation': ''}
+                    for keyword in keywords]
+        # logger.debug(keywords)
+        # tokens = list(lexer.get_tokens(text))
+        # logger.debug(tokens)
         regex = self.LANGUAGE_REGEX.get(language.lower(), all_regex)
-        return {x for x in regex.findall(text) if x != ''}
+        tokens = list({x for x in regex.findall(text) if x != ''})
+        tokens = [{'kind': CompletionItemKind.TEXT, 'insertText': token,
+                   'sortText': token[0].lower(),
+                   'filterText': token, 'documentation': ''}
+                  for token in tokens]
+        for token in tokens:
+            if token['insertText'] not in keyword_set:
+                keywords.append(token)
+        return keywords
 
     def stop(self):
         with QMutexLocker(self.mutex):
@@ -86,10 +111,6 @@ class FallbackActor(QThread):
                 tokens = []
                 if file in self.file_tokens:
                     text_info = self.file_tokens[file]
-                    tokens = list(self.tokenize(
-                        text_info['text'], text_info['language']))
-                    tokens = [{'kind': 'no_match', 'insertText': token,
-                               'sortText': token[0].lower(),
-                               'filterText': token, 'documentation': ''}
-                              for token in tokens]
+                    tokens = self.tokenize(
+                        text_info['text'], text_info['language'])
                 editor.recieve_text_tokens(tokens)

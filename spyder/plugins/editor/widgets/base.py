@@ -184,7 +184,9 @@ class CompletionWidget(QListWidget):
                      CompletionItemKind.CLASS: 'class',
                      CompletionItemKind.MODULE: 'module',
                      CompletionItemKind.CONSTRUCTOR: 'method',
-                     CompletionItemKind.REFERENCE: 'attribute'}
+                     CompletionItemKind.REFERENCE: 'attribute',
+                     CompletionItemKind.KEYWORD: 'keyword',
+                     CompletionItemKind.TEXT: 'text'}
 
         for completion in self.completion_list:
             if not self.is_internal_console:
