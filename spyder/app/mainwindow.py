@@ -885,10 +885,9 @@ class MainWindow(QMainWindow):
         self.lspmanager = LSPManager(self)
 
         # Fallback completion thread
-        self.set_splash(_("Starting fallback completion engine"))
+        self.set_splash(_("Creating fallback completion engine"))
         from spyder.plugins.editor.utils.fallback import FallbackActor
         self.fallback = FallbackActor(self)
-        self.fallback.start()
 
         # Working directory plugin
         logger.info("Loading working directory...")
@@ -920,6 +919,10 @@ class MainWindow(QMainWindow):
         # Start LSP client
         self.set_splash(_("Launching LSP Client for Python..."))
         self.lspmanager.start_client(language='python')
+
+        # Start fallback plugin
+        self.set_splash(_('Launching fallback autocompletion engine'))
+        self.fallback.start()
 
         # Populating file menu entries
         quit_action = create_action(self, _("&Quit"),

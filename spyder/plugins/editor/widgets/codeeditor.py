@@ -1078,6 +1078,10 @@ class CodeEditor(TextEditBaseWidget):
             return params
 
     # ------------- Fallback completions ------------------------------------
+    def start_fallback(self):
+        self.previous_text = ''
+        self.update_fallback(self.toPlainText())
+
     def update_fallback(self, text):
         # Invoke fallback update
         patch = self.differ.patch_make(self.previous_text, text)
@@ -1105,6 +1109,7 @@ class CodeEditor(TextEditBaseWidget):
     def recieve_text_tokens(self, tokens):
         self.word_tokens = tokens
         if not self.lsp_ready:
+            logger.debug(tokens)
             self.completion_args = (self.textCursor().position(), False)
             self.process_completion({'params': tokens})
 

@@ -228,6 +228,10 @@ class Editor(SpyderPluginWidget):
         self.update_cursorpos_actions()
         self.set_path()
 
+        self.fallback_up = False
+        # Know when the fallback completion engine is up
+        self.main.fallback.sig_fallback_ready.connect(self.fallback_ready)
+
     def set_projects(self, projects):
         self.projects = projects
 
@@ -289,6 +293,8 @@ class Editor(SpyderPluginWidget):
             else:
                 editor = self.get_current_editor()
                 editor.lsp_ready = False
+        if self.fallback_up:
+            self.fallback_ready()
 
     @Slot(dict, str)
     def register_lsp_server_settings(self, settings, language):
@@ -310,6 +316,12 @@ class Editor(SpyderPluginWidget):
     def send_fallback_request(self, msg):
         self.main.fallback.mailbox.put(msg)
 
+    def fallback_ready(self):
+        """Notify all stackeditors about fallback availability."""
+        logger.debug('Fallback is available')
+        self.fallback_up = True
+        for editorstack in self.editorstacks:
+            editorstack.notify_fallback_ready()
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):

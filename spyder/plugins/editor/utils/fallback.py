@@ -17,7 +17,7 @@ import logging
 from queue import Queue
 
 # Qt imports
-from qtpy.QtCore import QThread, QMutex, QMutexLocker
+from qtpy.QtCore import QThread, QMutex, QMutexLocker, Signal
 
 # Other imports
 from diff_match_patch import diff_match_patch
@@ -43,6 +43,9 @@ class FallbackActor(QThread):
         'xml': kebab_regex
     }
 
+    #: Signal emitted when the Thread is ready
+    sig_fallback_ready = Signal()
+
     def __init__(self, parent):
         QThread.__init__(self, parent)
         self.mailbox = Queue()
@@ -62,6 +65,7 @@ class FallbackActor(QThread):
 
     def run(self):
         logger.debug('Fallback plugin starting...')
+        self.sig_fallback_ready.emit()
         while True:
             with QMutexLocker(self.mutex):
                 if self.stopped:
@@ -75,7 +79,6 @@ class FallbackActor(QThread):
                         'text': '', 'language': msg['language']}
                 diff = msg['diff']
                 text = self.file_tokens[file]
-                # patches = self.diff_patch.patch_fromText(diff)
                 text, _ = self.diff_patch.patch_apply(
                     diff, text['text'])
                 self.file_tokens[file]['text'] = text
