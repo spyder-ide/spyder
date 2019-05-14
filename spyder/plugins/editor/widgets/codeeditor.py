@@ -973,8 +973,6 @@ class CodeEditor(TextEditBaseWidget):
         """Handle hover response."""
         try:
             content = contents['params']
-            self.sig_display_object_info.emit(content)
-
             if CONF.get('lsp-server', 'enable_hover_hints'):
                 self.sig_display_object_info.emit(content,
                                                   self._request_hover_clicked)
