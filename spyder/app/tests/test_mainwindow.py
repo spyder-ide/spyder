@@ -428,6 +428,24 @@ def test_get_help_ipython_console(main_window, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
                     reason="Times out on AppVeyor")
+def test_get_calltip_ipython_console(main_window, qtbot):
+    """Test that calltip works when called from the IPython console."""
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Write some object in the console
+    qtbot.keyClicks(control, 'type(')
+    qtbot.wait(1000)
+
+    assert control.calltip_widget.isVisible()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
+                    reason="Times out on AppVeyor")
 @pytest.mark.use_introspection
 def test_get_help_editor(main_window, qtbot):
     """ Test that Help works when called from the Editor."""
