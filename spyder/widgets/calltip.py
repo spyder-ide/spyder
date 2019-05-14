@@ -129,9 +129,14 @@ class ToolTipWidget(QLabel):
         self.tip = tip
         self.setText(tip)
         self.resize(self.sizeHint())
+
         padding = 0
         text_edit = self._text_edit
-        cursor_rect = text_edit.cursorRect(cursor)
+        if cursor is None:
+            cursor_rect = text_edit.cursorRect()
+        else:
+            cursor_rect = text_edit.cursorRect(cursor)
+
         screen_rect = self.app.desktop().screenGeometry(text_edit)
         point.setY(point.y() + padding)
         tip_height = self.size().height()
@@ -169,7 +174,11 @@ class ToolTipWidget(QLabel):
         adjusted_point = text_edit.mapToGlobal(pos())
 
         if vertical == 'top':
-            padding = -4.5
+            if os.name == 'nt':
+                padding = -7
+            else:
+                padding = -4.5
+
             point.setY(adjusted_point.y() - tip_height - padding)
 
         if horizontal == 'Left':
@@ -449,7 +458,11 @@ class CallTipWidget(QLabel):
         adjusted_point = text_edit.mapToGlobal(pos())
 
         if vertical == 'top':
-            padding = -4.5
+            if os.name == 'nt':
+                padding = -7
+            else:
+                padding = -4.5
+
             point.setY(adjusted_point.y() - tip_height - padding)
         if horizontal == 'Left':
             point.setX(adjusted_point.x() - tip_width - padding)
