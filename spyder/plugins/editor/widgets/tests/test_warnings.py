@@ -179,7 +179,7 @@ def test_update_warnings_after_delete_line(qtbot, lsp_codeeditor):
     assert editor.get_current_warnings() == expected
 
 
-#@pytest.mark.slow
+@pytest.mark.slow
 @pytest.mark.second
 def test_update_warnings_after_closequotes(qtbot, lsp_codeeditor):
     """
@@ -211,7 +211,7 @@ def test_update_warnings_after_closequotes(qtbot, lsp_codeeditor):
     assert editor.get_current_warnings() == expected
 
 
-#@pytest.mark.slow
+@pytest.mark.slow
 @pytest.mark.second
 def test_update_warnings_after_closebrackets(qtbot, lsp_codeeditor):
     """
