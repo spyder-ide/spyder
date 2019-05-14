@@ -85,4 +85,8 @@ class FallbackActor(QThread):
                     text_info = self.file_tokens[file]
                     tokens = list(self.tokenize(
                         text_info['text'], text_info['language']))
+                    tokens = [{'kind': 'no_match', 'insertText': token,
+                               'sortText': token[0].lower(),
+                               'filterText': token, 'documentation': ''}
+                              for token in tokens]
                 editor.recieve_text_tokens(tokens)

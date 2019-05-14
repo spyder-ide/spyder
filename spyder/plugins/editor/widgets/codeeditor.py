@@ -524,6 +524,7 @@ class CodeEditor(TextEditBaseWidget):
         # Text diffs across versions
         self.differ = diff_match_patch()
         self.previous_text = ''
+        self.word_tokens = []
 
     # --- Helper private methods
     # ------------------------------------------------------------------------
@@ -906,6 +907,10 @@ class CodeEditor(TextEditBaseWidget):
         try:
             completions = params['params']
             if completions is not None and len(completions) > 0:
+                available_completions = {x['insertText'] for x in completions}
+                for entry in self.word_tokens:
+                    if entry['insertText'] not in available_completions:
+                        completions.append(entry)
                 completion_list = sorted(completions,
                                          key=lambda x: x['sortText'])
                 position = self.last_completion_position
@@ -1083,7 +1088,9 @@ class CodeEditor(TextEditBaseWidget):
         self.sig_perform_fallback_request.emit(request)
 
     def recieve_text_tokens(self, tokens):
-        logger.debug(tokens)
+        self.word_tokens = tokens
+        if not self.lsp_ready:
+            self.process_completion({'params': tokens})
 
     # -------------------------------------------------------------------------
     def set_tab_mode(self, enable):
