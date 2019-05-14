@@ -151,6 +151,7 @@ def ipyconsole(qtbot, request):
 # =============================================================================
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform == 'darwin', reason="Times out on macOS")
 def test_get_calltips(ipyconsole, qtbot):
     """Test that calltips work."""
     shell = ipyconsole.get_current_shellwidget()
