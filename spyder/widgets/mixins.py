@@ -192,9 +192,14 @@ class BaseEditMixin(object):
                 main_text=signature,
             )
 
+        # Documentation/text handling
         if not text:
             text = '\n<i>No documentation available</i>\n'
 
+        # Remove empty lines at the beginning
+        lines = [l for l in text.split('\n') if l.strip()]
+
+        # Limit max number of text displayed
         if max_lines:
             lines = text.split('\n')
             if len(lines) > max_lines:
@@ -235,8 +240,10 @@ class BaseEditMixin(object):
                 template += (
                     '<hr>'
                     '<div align="left">'
-                    '<span style="color:#148CD2;text-decoration:none;"><i>'
-                    ''.format(inspect_word)
+                    '<span style="color:#148CD2;text-decoration:none;'
+                    'font-family:"{font_family}";font-size:{size}pt;><i>'
+                    ''.format(font_family=font_family,
+                              size=text_size)
                     ) + help_text + '</i></span></div>'
             else:
                 template += (
@@ -359,7 +366,10 @@ class BaseEditMixin(object):
             # Signature type
             count = signature_or_text.count(name_plus_char)
             has_signature = open_func_char in lines[0]
-            has_multisignature = count > 1
+            if len(lines) > 1:
+                has_multisignature = count > 1 and name_plus_char in lines[1]
+            else:
+                has_multisignature = False
 
         if has_signature and not has_multisignature:
             for i, line in enumerate(lines):
@@ -411,6 +421,9 @@ class BaseEditMixin(object):
         # Find position of calltip
         point = self._calculate_position()
 
+        # Remove duplicate signature inside documentation
+        documentation = documentation.replace(signature + '\n', '')
+
         # Format
         res = self._check_signature_and_format(signature, parameter)
         new_signature, text, inspect_word = res
@@ -431,7 +444,7 @@ class BaseEditMixin(object):
     def show_tooltip(self, title=None, signature=None, text=None,
                      inspect_word=None, title_color=_DEFAULT_TITLE_COLOR,
                      at_line=None, at_point=None, display_link=False,
-                     max_lines=10):
+                     max_lines=10, cursor=None):
         """Show tooltip."""
         # Find position of calltip
         point = self._calculate_position(
@@ -453,7 +466,7 @@ class BaseEditMixin(object):
         self._update_stylesheet(self.tooltip_widget)
 
         # Display tooltip
-        self.tooltip_widget.show_tip(point, tiptext)
+        self.tooltip_widget.show_tip(point, tiptext, cursor=cursor)
 
     def show_hint(self, text, inspect_word, at_point):
         """Show code hint and crop text as needed."""
@@ -469,7 +482,7 @@ class BaseEditMixin(object):
 
         self.show_tooltip(signature=html_signature, text=extra_text,
                           at_point=point, inspect_word=inspect_word,
-                          display_link=True, max_lines=10)
+                          display_link=True, max_lines=10, cursor=cursor)
 
     def hide_tooltip(self):
         """
