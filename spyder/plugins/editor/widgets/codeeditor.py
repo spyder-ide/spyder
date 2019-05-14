@@ -1080,7 +1080,7 @@ class CodeEditor(TextEditBaseWidget):
             'editor': self,
             'msg': None
         }
-        self.sig_perform_fallback_reques.emit(request)
+        self.sig_perform_fallback_request.emit(request)
 
     def recieve_text_tokens(self, tokens):
         logger.debug(tokens)

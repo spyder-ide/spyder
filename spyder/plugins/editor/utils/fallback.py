@@ -54,7 +54,7 @@ class FallbackActor(QThread):
 
     def tokenize(self, text, language):
         regex = self.LANGUAGE_REGEX.get(language, all_regex)
-        return {x for x in regex.split(text) if x != ''}
+        return {x for x in regex.findall(text) if x != ''}
 
     def stop(self):
         with QMutexLocker(self.mutex):
@@ -76,8 +76,9 @@ class FallbackActor(QThread):
                 diff = msg['diff']
                 text = self.file_tokens[file]
                 # patches = self.diff_patch.patch_fromText(diff)
-                self.file_tokens[file], _ = self.diff_patch.patch_apply(
-                    diff, text)
+                text, _ = self.diff_patch.patch_apply(
+                    diff, text['text'])
+                self.file_tokens[file]['text'] = text
             elif msg_type == 'retrieve':
                 tokens = []
                 if file in self.file_tokens:
