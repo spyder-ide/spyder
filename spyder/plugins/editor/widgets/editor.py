@@ -894,21 +894,22 @@ class EditorStack(QWidget):
         """Inspect current object in the Help plugin"""
         editor = self.get_current_editor()
         editor.sig_display_object_info.connect(self.display_help)
-        cursor = editor.get_last_hover_cursor()
+        cursor = None
+        if pos:
+            cursor = editor.get_last_hover_cursor()
         line, col = editor.get_cursor_line_column(cursor)
-        editor.request_hover(line, col, show_hint=False)
+        editor.request_hover(line, col, show_hint=False, clicked=bool(pos))
 
-    @Slot(str)
-    def display_help(self, help_text):
+    @Slot(str, bool)
+    def display_help(self, help_text, clicked):
         editor = self.get_current_editor()
-
-        if editor.get_last_hover_cursor():
+        if clicked:
             name = editor.get_last_hover_word()
         else:
             name = editor.get_current_word()
 
-        self.help.switch_to_editor_source()
         editor.sig_display_object_info.disconnect(self.display_help)
+        self.help.switch_to_editor_source()
         self.send_to_help(name, help_text, force=True)
 
     #------ Editor Widget Settings

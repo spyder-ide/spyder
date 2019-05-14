@@ -275,7 +275,7 @@ class CodeEditor(TextEditBaseWidget):
     lsp_response_signal = Signal(str, dict)
 
     #: Signal to display object information on the Help plugin
-    sig_display_object_info = Signal(str)
+    sig_display_object_info = Signal(str, bool)
 
     #: Signal only used for tests
     # TODO: Remove it!
@@ -520,14 +520,10 @@ class CodeEditor(TextEditBaseWidget):
     # ------------------------------------------------------------------------
 
     # --- Hover/Hints
-    def _should_display_hover(self, pos):
+    def _should_display_hover(self, point):
         """Check if a hover hint should be displayed:"""
-        value = False
-        if CONF.get('lsp-server', 'enable_hover_hints') and pos:
-            text = self.get_word_at(pos)
-            value = text and self.is_position_inside_word_rect(pos)
-
-        return value
+        return (CONF.get('lsp-server', 'enable_hover_hints') and point
+                and self.get_word_at(point))
 
     def _handle_hover(self):
         """Handle hover hint trigger after delay."""
@@ -954,13 +950,14 @@ class CodeEditor(TextEditBaseWidget):
                 self.show_calltip(
                     signature=signature,
                     parameter=parameter,
+                    documentation=documentation,
                 )
         except Exception:
             self.log_lsp_handle_errors("Error when processing signature")
 
     # ------------- LSP: Hover ---------------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_HOVER)
-    def request_hover(self, line, col, show_hint=True):
+    def request_hover(self, line, col, show_hint=True, clicked=True):
         """Request hover information."""
         params = {
             'file': self.filename,
@@ -968,6 +965,7 @@ class CodeEditor(TextEditBaseWidget):
             'column': col
         }
         self._show_hint = show_hint
+        self._request_hover_clicked = clicked
         return params
 
     @handles(LSPRequestTypes.DOCUMENT_HOVER)
@@ -977,8 +975,8 @@ class CodeEditor(TextEditBaseWidget):
             content = contents['params']
 
             if CONF.get('lsp-server', 'enable_hover_hints'):
-                self.sig_display_object_info.emit(content)
-
+                self.sig_display_object_info.emit(content,
+                                                  self._request_hover_clicked)
                 if self._show_hint and self._last_point and content:
                     # This is located in spyder/widgets/mixins.py
                     word = self._last_hover_word,

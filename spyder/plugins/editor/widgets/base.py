@@ -395,7 +395,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         self.calltip_widget = CallTipWidget(self, hide_timer_on=False)
         self.calltip_position = None
-        self.tooltip_widget = ToolTipWidget(parent, as_tooltip=True)
+        self.tooltip_widget = ToolTipWidget(self, as_tooltip=True)
 
         self.has_cell_separators = False
         self.highlight_current_cell_enabled = False

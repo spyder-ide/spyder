@@ -74,18 +74,12 @@ class BaseEditMixin(object):
         return point
 
     # --- Tooltips and Calltips
-    def _calculate_position(self, at_line=None, at_position=None,
-                            at_point=None):
+    def _calculate_position(self, at_line=None, at_point=None):
         """
         Calculate a global point position `QPoint(x, y)`, for a given
         line, local cursor position, or local point.
         """
-        # Saving cursor position:
-        if at_position is None:
-            at_position = self.get_position('cursor')
-
-        # FIXME: What id this used for?
-        self.calltip_position = at_position
+        font = self.font()
 
         if at_point is not None:
             # Showing tooltip at point position
@@ -98,13 +92,18 @@ class BaseEditMixin(object):
             cy = self.cursorRect(cursor).top()
         else:
             # Showing tooltip at cursor position
-            # FIXME: why is at_position not being used to calculate the
-            # coordinates?
             cx, cy = self.get_coordinates('cursor')
+            cy = cy - font.pointSize() / 2
 
         # Calculate vertical delta
-        font = self.font()
-        delta = font.pointSize() + 5
+        # The needed delta changes with font size, so we use a power law
+        if sys.platform == 'darwin':
+            delta = int((font.pointSize() * 1.20) ** 0.98) + 4.5
+        elif os.name == 'nt':
+            delta = int((font.pointSize() * 1.20) ** 1.05) + 7
+        else:
+            delta = int((font.pointSize() * 1.20) ** 0.98) + 7
+        # delta = font.pointSize() + 5
 
         # Map to global coordinates
         point = self.mapToGlobal(QPoint(cx, cy))
@@ -193,13 +192,19 @@ class BaseEditMixin(object):
                 main_text=signature,
             )
 
+        # Documentation/text handling
         if not text:
             text = '\n<i>No documentation available</i>\n'
 
+        # Remove empty lines at the beginning
+        lines = [l for l in text.split('\n') if l.strip()]
+
+        # Limit max number of text displayed
         if max_lines:
             lines = text.split('\n')
             if len(lines) > max_lines:
                 text = '\n'.join(lines[:max_lines]) + ' ...'
+            text = '\n' + text
 
         text = text.replace('\n', '<br>')
         template += BASE_TEMPLATE.format(
@@ -221,21 +226,24 @@ class BaseEditMixin(object):
                         'background-color:#fafbfc;color:#444d56;'
                         'font-size:11px;'
                     )
-                    help_text = (
-                        'Press '
-                        '<kbd style="{1}">[</kbd>'
-                        '<kbd style="{1}text-decoration:underline;">'
-                        '{0}</kbd><kbd style="{1}">]</kbd> for aditional help'
-                        ''.format(shortcut, base_style)
-                    )
+                    help_text = ''
+                    # (
+                    #     'Press '
+                    #     '<kbd style="{1}">[</kbd>'
+                    #     '<kbd style="{1}text-decoration:underline;">'
+                    #     '{0}</kbd><kbd style="{1}">]</kbd> for aditional '
+                    #     'help'.format(shortcut, base_style)
+                    # )
 
         if help_text and inspect_word:
             if display_link:
                 template += (
                     '<hr>'
                     '<div align="left">'
-                    '<span style="color:#148CD2;text-decoration:none;"><i>'
-                    ''.format(inspect_word)
+                    '<span style="color:#148CD2;text-decoration:none;'
+                    'font-family:"{font_family}";font-size:{size}pt;><i>'
+                    ''.format(font_family=font_family,
+                              size=text_size)
                     ) + help_text + '</i></span></div>'
             else:
                 template += (
@@ -358,7 +366,10 @@ class BaseEditMixin(object):
             # Signature type
             count = signature_or_text.count(name_plus_char)
             has_signature = open_func_char in lines[0]
-            has_multisignature = count > 1
+            if len(lines) > 1:
+                has_multisignature = count > 1 and name_plus_char in lines[1]
+            else:
+                has_multisignature = False
 
         if has_signature and not has_multisignature:
             for i, line in enumerate(lines):
@@ -399,7 +410,7 @@ class BaseEditMixin(object):
 
         return new_signature, extra_text, inspect_word
 
-    def show_calltip(self, signature, parameter=None):
+    def show_calltip(self, signature, parameter=None, documentation=None):
         """
         Show calltip.
 
@@ -410,15 +421,21 @@ class BaseEditMixin(object):
         # Find position of calltip
         point = self._calculate_position()
 
+        # Remove duplicate signature inside documentation
+        if documentation:
+            documentation = documentation.replace(signature + '\n', '')
+
         # Format
         res = self._check_signature_and_format(signature, parameter)
         new_signature, text, inspect_word = res
         text = self._format_text(
             signature=new_signature,
-            text=text,
             inspect_word=inspect_word,
             display_link=False,
+            text=documentation,
+            max_lines=10,
         )
+
         self._update_stylesheet(self.calltip_widget)
 
         # Show calltip
@@ -427,13 +444,12 @@ class BaseEditMixin(object):
 
     def show_tooltip(self, title=None, signature=None, text=None,
                      inspect_word=None, title_color=_DEFAULT_TITLE_COLOR,
-                     at_line=None, at_position=None, at_point=None,
-                     display_link=False, max_lines=10):
+                     at_line=None, at_point=None, display_link=False,
+                     max_lines=10, cursor=None):
         """Show tooltip."""
         # Find position of calltip
         point = self._calculate_position(
             at_line=at_line,
-            at_position=at_position,
             at_point=at_point,
         )
 
@@ -451,7 +467,7 @@ class BaseEditMixin(object):
         self._update_stylesheet(self.tooltip_widget)
 
         # Display tooltip
-        self.tooltip_widget.show_tip(point, tiptext)
+        self.tooltip_widget.show_tip(point, tiptext, cursor=cursor)
 
     def show_hint(self, text, inspect_word, at_point):
         """Show code hint and crop text as needed."""
@@ -467,7 +483,7 @@ class BaseEditMixin(object):
 
         self.show_tooltip(signature=html_signature, text=extra_text,
                           at_point=point, inspect_word=inspect_word,
-                          display_link=True, max_lines=10)
+                          display_link=True, max_lines=10, cursor=cursor)
 
     def hide_tooltip(self):
         """
@@ -541,19 +557,17 @@ class BaseEditMixin(object):
         point = self.cursorRect(cursor).center()
         return point.x(), point.y()
 
-    def is_position_inside_word_rect(self, position):
+    def _is_point_inside_word_rect(self, point):
         """
         Check if the mouse is within the rect of the cursor current word.
         """
-        cursor = self.cursorForPosition(position)
+        cursor = self.cursorForPosition(point)
         cursor.movePosition(QTextCursor.StartOfWord, QTextCursor.MoveAnchor)
         start_rect = self.cursorRect(cursor)
         cursor.movePosition(QTextCursor.EndOfWord, QTextCursor.MoveAnchor)
         end_rect = self.cursorRect(cursor)
         bounding_rect = start_rect.united(end_rect)
-        # TODO: add a bit of y padding to this rect so cursor does not have to
-        # be exactly centered (at least vertically)
-        return bounding_rect.contains(position)
+        return bounding_rect.contains(point)
 
     def get_word_start_pos(self, position):
         """
@@ -811,7 +825,12 @@ class BaseEditMixin(object):
         """Return word at *coordinates* (QPoint)"""
         cursor = self.cursorForPosition(coordinates)
         cursor.select(QTextCursor.WordUnderCursor)
-        return to_text_string(cursor.selectedText())
+        if self._is_point_inside_word_rect(coordinates):
+            word = to_text_string(cursor.selectedText())
+        else:
+            word = ''
+
+        return word
 
     def get_block_indentation(self, block_nb):
         """Return line indentation (character number)"""
