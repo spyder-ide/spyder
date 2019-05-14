@@ -8,6 +8,7 @@
 
 # Stdlib imports
 import os
+from time import sleep
 
 # Third party imports
 import pytest
@@ -200,12 +201,12 @@ def test_update_warnings_after_closequotes(qtbot, lsp_codeeditor):
 
     # Add a single quote to fix the error
     editor.move_cursor(-2)
-    qtbot.keyPress(editor, Qt.Key_Apostrophe, delay=1000)
-
+    qtbot.keyPress(editor, Qt.Key_Apostrophe)
     assert editor.toPlainText() == "print('test')\n"
 
     # Wait for the lsp_response_signal.
-    qtbot.waitSignal(editor.lsp_response_signal, timeout=30000)
+    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
+        sleep(1)
 
     # Assert that the error is gone.
     expected = []
@@ -222,9 +223,9 @@ def test_update_warnings_after_closebrackets(qtbot, lsp_codeeditor):
     Regression test for #9323.
     """
     editor, _ = lsp_codeeditor
-    editor.textCursor().insertText("print'test')\n")
+    editor.textCursor().insertText("print('test'\n")
 
-    expected = [['invalid syntax', 1]]
+    expected = [['unexpected EOF while parsing', 1]]
 
     # Notify changes.
     with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
@@ -233,13 +234,13 @@ def test_update_warnings_after_closebrackets(qtbot, lsp_codeeditor):
     assert editor.get_current_warnings() == expected
 
     # Add a bracket to fix the error
-    editor.move_cursor(-8)
-    qtbot.keyPress(editor, Qt.Key_ParenLeft, delay=1000)
-
+    editor.move_cursor(-1)
+    qtbot.keyPress(editor, Qt.Key_ParenRight)
     assert editor.toPlainText() == "print('test')\n"
 
     # Wait for the lsp_response_signal.
-    qtbot.waitSignal(editor.lsp_response_signal, timeout=30000)
+    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
+        sleep(1)
 
     # Assert that the error is gone.
     expected = []
