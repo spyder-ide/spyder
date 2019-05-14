@@ -422,7 +422,8 @@ class BaseEditMixin(object):
         point = self._calculate_position()
 
         # Remove duplicate signature inside documentation
-        documentation = documentation.replace(signature + '\n', '')
+        if documentation:
+            documentation = documentation.replace(signature + '\n', '')
 
         # Format
         res = self._check_signature_and_format(signature, parameter)
