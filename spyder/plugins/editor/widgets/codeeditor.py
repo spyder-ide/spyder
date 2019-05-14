@@ -1836,6 +1836,7 @@ class CodeEditor(TextEditBaseWidget):
             block.setUserData(data)
             block.selection = QTextCursor(cursor)
             block.color = color
+            print((source, code, severity, message))
 
         self.sig_process_code_analysis.emit()
         self.update_extra_selections()
@@ -1857,10 +1858,17 @@ class CodeEditor(TextEditBaseWidget):
 
     def show_code_analysis_results(self, line_number, block_data):
         """Show warning/error messages."""
+        from spyder.config.base import get_image_path
+        path = get_image_path('vcs_commit')
         code_analysis = block_data.code_analysis
-        template = '{0} [{1}]: {2}'
-        msglist = [template.format(src, code, msg) for src, code, _sev, msg
-                   in code_analysis]
+        template = '<img src="{}" height="8" width="8" /> {} <i>({} code {})</i>'
+
+        msglist = []
+        # Remove extra redundant info from pyling messages
+        for src, code, _sev, msg in code_analysis:
+            if '[' in msg and ']' in msg:
+                msg = msg.split(']')[-1]
+            msglist.append(template.format(path, msg, src, code))
 
         self.show_tooltip(
             title=_("Code analysis"),
