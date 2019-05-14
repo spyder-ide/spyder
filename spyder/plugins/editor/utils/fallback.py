@@ -56,7 +56,7 @@ class FallbackActor(QThread):
         self.diff_patch = diff_match_patch()
 
     def tokenize(self, text, language):
-        regex = self.LANGUAGE_REGEX.get(language, all_regex)
+        regex = self.LANGUAGE_REGEX.get(language.lower(), all_regex)
         return {x for x in regex.findall(text) if x != ''}
 
     def stop(self):

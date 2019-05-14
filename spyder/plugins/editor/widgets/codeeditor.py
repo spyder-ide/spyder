@@ -1109,7 +1109,6 @@ class CodeEditor(TextEditBaseWidget):
     def recieve_text_tokens(self, tokens):
         self.word_tokens = tokens
         if not self.lsp_ready:
-            logger.debug(tokens)
             self.completion_args = (self.textCursor().position(), False)
             self.process_completion({'params': tokens})
 
