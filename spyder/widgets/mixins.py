@@ -356,6 +356,7 @@ class BaseEditMixin(object):
         has_multisignature = False
         language = getattr(self, 'language', '').lower()
         lines = signature_or_text.split('\n')
+        inspect_word = None
 
         if language == 'python':
             open_func_char = '('
