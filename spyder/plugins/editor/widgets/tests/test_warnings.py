@@ -209,7 +209,7 @@ def test_update_warnings_after_closequotes(qtbot, lsp_codeeditor):
         sleep(1)
 
     # Assert that the error is gone.
-    expected = []
+    expected = [['D100: Missing docstring in public module', 1]]
     assert editor.get_current_warnings() == expected
 
 
@@ -243,5 +243,5 @@ def test_update_warnings_after_closebrackets(qtbot, lsp_codeeditor):
         sleep(1)
 
     # Assert that the error is gone.
-    expected = []
+    expected = [['D100: Missing docstring in public module', 1]]
     assert editor.get_current_warnings() == expected
