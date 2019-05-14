@@ -2676,22 +2676,6 @@ class MainWindow(QMainWindow):
                 url.setQuery(query)
                 QDesktopServices.openUrl(url)
 
-    def report_pyls_error(self, message):
-        """Report a PyLS internal error in our report dialog."""
-        from spyder.widgets.reporterror import SpyderErrorDialog
-        error_dialog = SpyderErrorDialog(self)
-        title = "Internal Python Language Server error"
-        description = ("An error has occurred with the code completion and "
-                       "linting services provided by the Python Language "
-                       "Server.\n\n"
-                       "Please submit this report to Github if you want "
-                       "to see it fixed.")
-        error_dialog.main_label.hide()
-        error_dialog.set_title(title)
-        error_dialog.set_description(description)
-        error_dialog.append_traceback(message)
-        error_dialog.show()
-
     @Slot()
     def trouble_guide(self):
         """Open Spyder troubleshooting guide in a web browser."""
