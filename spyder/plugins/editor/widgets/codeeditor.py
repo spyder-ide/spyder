@@ -1859,16 +1859,24 @@ class CodeEditor(TextEditBaseWidget):
     def show_code_analysis_results(self, line_number, block_data):
         """Show warning/error messages."""
         from spyder.config.base import get_image_path
-        path = get_image_path('vcs_commit')
+        # DiagnosticSeverity
+        icons = {
+            1: get_image_path('error'),
+            2: get_image_path('warning'),
+            3: get_image_path('help'),
+            4: get_image_path('chevron-right'),
+        }
         code_analysis = block_data.code_analysis
+        # Size must be adapted from font
         template = '<img src="{}" height="8" width="8" /> {} <i>({} code {})</i>'
 
         msglist = []
-        # Remove extra redundant info from pyling messages
-        for src, code, _sev, msg in code_analysis:
+        for src, code, sev, msg in code_analysis:
             if '[' in msg and ']' in msg:
+                # Remove extra redundant info from pyling messages
                 msg = msg.split(']')[-1]
-            msglist.append(template.format(path, msg, src, code))
+
+            msglist.append(template.format(icons[sev], msg, src, code))
 
         self.show_tooltip(
             title=_("Code analysis"),
