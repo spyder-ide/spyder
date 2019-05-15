@@ -128,6 +128,12 @@ class LSPManager(QObject):
                 instance.folder = folder
                 instance.initialize()
 
+    @Slot(str)
+    def report_server_error(self, error):
+        """Report server errors in our error report dialog."""
+        self.main.console.exception_occurred(error, is_traceback=True,
+                                             is_pyls_error=True)
+
     def start_client(self, language):
         """Start an LSP client for a given language."""
         started = False
@@ -157,11 +163,7 @@ class LSPManager(QObject):
                     language=language
                 )
 
-                # Connect signals emitted by the client to the methods that
-                # can handle them
-                if self.main and self.main.editor:
-                    language_client['instance'].sig_initialize.connect(
-                        self.main.editor.register_lsp_server_settings)
+                self.register_client_instance(language_client['instance'])
 
                 logger.info("Starting LSP client for {}...".format(language))
                 language_client['instance'].start()
@@ -170,6 +172,15 @@ class LSPManager(QObject):
                     language_client.register_file(*entry)
                 self.register_queue[language] = []
         return started
+
+    def register_client_instance(self, instance):
+        """Register signals emmited by a client instance."""
+        if self.main:
+            if self.main.editor:
+                instance.sig_initialize.connect(
+                    self.main.editor.register_lsp_server_settings)
+            if self.main.console:
+                instance.sig_server_error.connect(self.report_server_error)
 
     def shutdown(self):
         logger.info("Shutting down LSP manager...")
