@@ -138,7 +138,7 @@ class SpyderErrorDialog(QDialog):
             title = _("Please fill the following information")
         else:
             title = _("Spyder has encountered an internal problem!")
-        self.main_label = QLabel(
+        main_label = QLabel(
             _("<h3>{title}</h3>"
               "Before reporting this problem, <i>please</i> consult our "
               "comprehensive "
@@ -149,10 +149,10 @@ class SpyderErrorDialog(QDialog):
               "quicker solution."
               ).format(title=title, trouble_url=__trouble_url__,
                        project_url=__project_url__))
-        self.main_label.setOpenExternalLinks(True)
-        self.main_label.setWordWrap(True)
-        self.main_label.setAlignment(Qt.AlignJustify)
-        self.main_label.setStyleSheet('font-size: 12px;')
+        main_label.setOpenExternalLinks(True)
+        main_label.setWordWrap(True)
+        main_label.setAlignment(Qt.AlignJustify)
+        main_label.setStyleSheet('font-size: 12px;')
 
         # Issue title
         self.title = QLineEdit()
@@ -222,7 +222,7 @@ class SpyderErrorDialog(QDialog):
 
         # Main layout
         layout = QVBoxLayout()
-        layout.addWidget(self.main_label)
+        layout.addWidget(main_label)
         layout.addSpacing(20)
         layout.addLayout(form_layout)
         layout.addWidget(self.title_chars_label)
