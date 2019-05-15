@@ -54,11 +54,12 @@ logger = logging.getLogger(__name__)
 @class_register
 class LSPClient(QObject, LSPMethodProviderMixIn):
     """Language Server Protocol v3.0 client implementation."""
-    # Signals
+    #: Signal to inform the editor plugin that the client has
+    #  started properly and it's ready to be used.
     sig_initialize = Signal(dict, str)
 
-    # This signal is used to report internal server errors through
-    # Spyder's facilities.
+    #: Signal to report internal server errors through Spyder's
+    #  facilities.
     sig_server_error = Signal(str)
 
     # Constants
