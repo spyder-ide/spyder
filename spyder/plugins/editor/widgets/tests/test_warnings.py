@@ -8,7 +8,6 @@
 
 # Stdlib imports
 import os
-from time import sleep
 
 # Third party imports
 import pytest
