@@ -25,7 +25,7 @@ from spyder.widgets.findreplace import FindReplace
 
 
 @pytest.fixture
-def setup_editor(qtbot_module, request):
+def setup_editor(qtbot):
     """
     Set up EditorStack with CodeEditor containing some Python code.
     The cursor is at the empty line below the code.
@@ -39,7 +39,7 @@ def setup_editor(qtbot_module, request):
     editorStack.set_find_widget(FindReplace(editorStack))
     editorStack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     finfo = editorStack.new('foo.py', 'utf-8', text)
-    qtbot_module.addWidget(editorStack)
+    qtbot.addWidget(editorStack)
     return editorStack, finfo.editor
 
 

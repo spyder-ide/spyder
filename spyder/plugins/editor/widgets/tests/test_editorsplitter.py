@@ -122,7 +122,6 @@ def editor_splitter_layout_bot(editor_splitter_bot):
 
 
 # ---- Tests
-
 def test_init(editor_splitter_bot):
     """"Test __init__."""
     es = editor_splitter_bot
@@ -390,6 +389,8 @@ def test_set_layout_settings_goto(editor_splitter_layout_bot):
                                              (False, 'foo.py', [1, 1, 1])]
 
 
+@pytest.mark.slow
+@pytest.mark.first
 def test_lsp_splitter_close(editor_splitter_lsp):
     """Test for issue #9341"""
     editorsplitter, lsp_manager = editor_splitter_lsp
