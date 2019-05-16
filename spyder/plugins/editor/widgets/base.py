@@ -446,7 +446,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 (self.objectName(), background.name(), foreground.name())
         self.setStyleSheet(style)
 
-    #------Extra selections
+    # ---- Extra selections
     def get_extra_selections(self, key):
         """Return editor extra selections.
 
