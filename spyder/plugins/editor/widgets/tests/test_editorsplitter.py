@@ -11,10 +11,11 @@ Tests for EditorSplitter class in editor.py
 # Standard library imports
 try:
     from unittest.mock import Mock
+    import pathlib
 except ImportError:
     from mock import Mock  # Python 2
+    import pathlib2 as pathlib
 
-import pathlib
 import os.path as osp
 from functools import partial
 
@@ -392,7 +393,7 @@ def test_set_layout_settings_goto(editor_splitter_layout_bot):
 def test_lsp_splitter_close(editor_splitter_lsp):
     """Test for issue #9341"""
     editorsplitter, lsp_manager = editor_splitter_lsp
-    # assert False
+
     editorsplitter.split()
     lsp_files = lsp_manager.clients['python']['instance'].watched_files
     editor = editorsplitter.editorstack.get_current_editor()
