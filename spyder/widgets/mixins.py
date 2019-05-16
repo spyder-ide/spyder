@@ -40,6 +40,8 @@ from spyder.utils.misc import get_error_match
 from spyder.widgets.arraybuilder import NumpyArrayDialog
 
 QT55_VERSION = programs.check_version(QT_VERSION, "5.5", ">=")
+# FIXME: improve pattern
+URI_PATTERN = re.compile(r"((?i)https?:\/\/[^ ]+\.[^ ]+)")
 
 if QT55_VERSION:
     from qtpy.QtCore import QRegularExpression
@@ -848,6 +850,44 @@ class BaseEditMixin(object):
 
         return word
 
+    def get_uri_at(self, coordinates):
+        """"""
+        return self.get_patterns_cursor_at([URI_PATTERN], coordinates)
+
+    def join_patterns(self, alternates):
+        return "(" + "|".join(alternates) + ")"
+
+    def get_pattern_cursor_at(self, pattern, coordinates):
+        """."""
+        # Check if the pattern is in line
+        line = self.get_line_at(coordinates)
+        match = pattern.search(line)
+        uri = None
+        cursor = None
+        while match:
+            start, end = match.span()
+
+            # Get cursor selection if pattern found
+            cursor = self.cursorForPosition(coordinates)
+            cursor.movePosition(QTextCursor.StartOfBlock)
+            line_start_position = cursor.position()
+
+            cursor.setPosition(line_start_position + start, cursor.MoveAnchor)
+            start_rect = self.cursorRect(cursor)
+            cursor.setPosition(line_start_position + end, cursor.MoveAnchor)
+            end_rect = self.cursorRect(cursor)
+            bounding_rect = start_rect.united(end_rect)
+
+            # Check if coordinates are located within the selection rect
+            if bounding_rect.contains(coordinates):
+                uri = line[start:end]
+                cursor.setPosition(line_start_position + start, cursor.KeepAnchor)
+                break
+            else:
+                match = pattern.search(line, end)
+
+        return uri, cursor
+
     def get_block_indentation(self, block_nb):
         """Return line indentation (character number)"""
         text = to_text_string(self.document().findBlockByNumber(block_nb).text())
@@ -861,7 +901,6 @@ class BaseEditMixin(object):
         block_start = self.document().findBlock(start)
         block_end = self.document().findBlock(end)
         return sorted([block_start.blockNumber(), block_end.blockNumber()])
-
 
     #------Text selection
     def has_selected_text(self):
@@ -1298,3 +1337,6 @@ class BrowseHistoryMixin(object):
     def reset_search_pos(self):
         """Reset the position from which to search the history"""
         self.histidx = None
+
+# Lunes 14-16
+# Lunes 16-18

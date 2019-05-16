@@ -109,6 +109,8 @@ class BaseSH(QSyntaxHighlighter):
     # Syntax highlighting rules:
     PROG = None
     BLANKPROG = re.compile(r"\s+")
+    # https://code.tutsplus.com/tutorials/8-regular-expressions-you-should-know--net-6149
+    URI = re.compile(r"^((?i)https?:\/\/[^ ]+\.[^ ]+)")
     # Syntax highlighting states (from one text block to another):
     NORMAL = 0
     # Syntax highlighting parameters.
@@ -248,6 +250,18 @@ class BaseSH(QSyntaxHighlighter):
         """
         raise NotImplementedError()
 
+    def highlight_uris(self, text, offset=0):
+        """"""
+        match = self.URI.search(text, offset)
+        while match:
+            start, end = match.span()
+            start = max([0, start+offset])
+            end = max([0, end+offset])
+            font = QTextCharFormat(self.formats['string'])
+            font.setUnderlineStyle(True)
+            self.setFormat(start, end - start, font)
+            match = self.URI.search(text, end)
+
     def highlight_spaces(self, text, offset=0):
         """
         Make blank space less apparent by setting the foreground alpha.
@@ -277,7 +291,9 @@ class BaseSH(QSyntaxHighlighter):
                 color_foreground.setAlphaF(alpha_new)
                 self.setFormat(start, end-start, color_foreground)
                 match = self.BLANKPROG.search(text, match.end())
-    
+
+        self.highlight_uris(text, offset)
+
     def get_outlineexplorer_data(self):
         return self.outlineexplorer_data
 
@@ -451,7 +467,7 @@ class PythonSH(BaseSH):
         import_stmt = None
 
         self.setFormat(0, len(text), self.formats["normal"])
-        
+
         state = self.NORMAL
         match = self.PROG.search(text)
         while match:
@@ -542,16 +558,16 @@ class PythonSH(BaseSH):
                                     start, end = match1.span(1)
                                     self.setFormat(start, end-start,
                                                    self.formats["keyword"])
-                    
-            match = self.PROG.search(text, match.end())
-        
+
+                    match = self.PROG.search(text, match.end())
+
         tbh.set_state(self.currentBlock(), state)
         
         # Use normal format for indentation and trailing spaces.
         self.formats['leading'] = self.formats['normal']
         self.formats['trailing'] = self.formats['normal']
         self.highlight_spaces(text, offset)
-        
+
         if oedata is not None:
             block_nb = self.currentBlock().blockNumber()
             self.outlineexplorer_data[block_nb] = oedata

@@ -3113,28 +3113,47 @@ class CodeEditor(TextEditBaseWidget):
         # Restart timer every time the mouse is moved
         # This is needed to correctly handle hover hints with a delay
         self._timer_mouse_moving.start()
-
+        # https://google.com
         pos = event.pos()
         self._last_point = pos
+        alt = event.modifiers() & Qt.AltModifier
+        ctrl = event.modifiers() & Qt.ControlModifier
+        shift = event.modifiers() & Qt.ShiftModifier
 
-        if event.modifiers() & Qt.AltModifier:
+        if alt:
             self.sig_alt_mouse_moved.emit(event)
             event.accept()
             return
+
+        if ctrl:
+            uri, cursor = self.get_uri_at(pos)
+            if uri and cursor:
+                color = QColor(Qt.red)
+                self.__highlight_selection(
+                    'ctrl_click', cursor, update=True,
+                    foreground_color=color,
+                    underline_color=self.ctrl_click_color,
+                    underline_style=QTextCharFormat.SingleUnderline)
+                if not self.__cursor_changed:
+                    QApplication.setOverrideCursor(
+                        QCursor(Qt.PointingHandCursor))
+                    self.__cursor_changed = True
+                event.accept()
+                print(uri)
+                return
 
         if self.has_selected_text():
             TextEditBaseWidget.mouseMoveEvent(self, event)
             return
 
-        if (self.go_to_definition_enabled and
-                event.modifiers() & Qt.ControlModifier):
-            text = self.get_word_at(event.pos())
+        if self.go_to_definition_enabled and ctrl:
+            text = self.get_word_at(pos)
             if (text and not sourcecode.is_keyword(to_text_string(text))):
                 if not self.__cursor_changed:
                     QApplication.setOverrideCursor(
                                                 QCursor(Qt.PointingHandCursor))
                     self.__cursor_changed = True
-                cursor = self.cursorForPosition(event.pos())
+                cursor = self.cursorForPosition(pos)
                 cursor.select(QTextCursor.WordUnderCursor)
                 self.clear_extra_selections('ctrl_click')
                 self.__highlight_selection(
