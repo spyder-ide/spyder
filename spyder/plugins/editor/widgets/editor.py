@@ -2649,7 +2649,7 @@ class EditorSplitter(QSplitter):
             self.unregister_editorstack_cb(self.editorstack)
             self.editorstack = None
             close_splitter = self.count() == 1
-        except RuntimeError:
+        except (RuntimeError, AttributeError):
             # editorsplitter has been destroyed (happens when closing a
             # EditorMainWindow instance)
             return
