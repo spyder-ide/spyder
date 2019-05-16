@@ -93,6 +93,7 @@ def editor_splitter_lsp(qtbot_module, lsp_manager, request):
 
     def teardown():
         editorsplitter.hide()
+        editorsplitter.close()
 
     request.addfinalizer(teardown)
     return editorsplitter, lsp_manager
