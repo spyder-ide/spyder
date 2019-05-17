@@ -28,7 +28,6 @@ from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import add_actions, create_action, MENU_SEPARATOR
 from spyder.utils.misc import getcwd_or_home
-from spyder.plugins.projects.confpage import ProjectConfigPage
 from spyder.plugins.projects.widgets.explorer import ProjectExplorerWidget
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
 from spyder.plugins.projects.widgets import EmptyProject
@@ -38,7 +37,6 @@ class Projects(SpyderPluginWidget):
     """Projects plugin."""
 
     CONF_SECTION = 'project_explorer'
-    CONFIGWIDGET_CLASS = ProjectConfigPage
     sig_pythonpath_changed = Signal()
     sig_project_created = Signal(object, object, object)
     sig_project_loaded = Signal(object)

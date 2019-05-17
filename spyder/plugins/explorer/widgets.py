@@ -1321,7 +1321,7 @@ class ExplorerTreeWidget(DirView):
     
     def __init__(self, parent=None, show_cd_only=None):
         DirView.__init__(self, parent)
-                
+
         self.history = []
         self.histindex = None
 
@@ -1331,7 +1331,7 @@ class ExplorerTreeWidget(DirView):
 
         self.menu = None
         self.common_actions = None
-        
+
         # Enable drag events
         self.setDragEnabled(True)
         
