@@ -149,6 +149,10 @@ class ColorModel(QFileSystemModel):
         self.use_vcs = CONF.get('project_explorer', 'use_version_control')
         self.func = lambda p, f, l: self.new_row(p, f, l)
         super(ColorModel, self).__init__(*args, **kwargs)
+        self.vcs_state_timer = QTimer(self)
+        self.vcs_state_timer.timeout.connect(self.set_vcs_state)
+        if self.use_vcs:
+            self.vcs_state_timer.start(2000)
 
     def set_color(self, n, name):
         """Set a specific color of the color_array"""
@@ -157,6 +161,10 @@ class ColorModel(QFileSystemModel):
     def set_highlighting(self, state):
         """Enable/Disable the highlighting"""
         self.use_vcs = state
+        if self.use_vcs:
+            self.vcs_state_timer.start(2000)
+        else:
+            self.vcs_state_timer.stop()
         if state and not self.vcs_state:
             self.set_vcs_state()
         self.dataChanged.emit(QModelIndex(), QModelIndex())
