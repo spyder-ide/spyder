@@ -289,22 +289,6 @@ class CodeEditor(TextEditBaseWidget):
 
         self.setFocusPolicy(Qt.StrongFocus)
 
-        # We use these object names to set the right background
-        # color when changing color schemes or creating new
-        # Editor windows. This seems to be a Qt bug.
-        # Fixes issues 2028 and 8069
-        plugin_name = repr(parent)
-        if 'editor' in plugin_name.lower():
-            self.setObjectName('editor')
-        elif 'help' in plugin_name.lower():
-            self.setObjectName('help')
-        elif 'historylog' in plugin_name.lower():
-            self.setObjectName('historylog')
-        elif 'configdialog' in plugin_name.lower():
-            self.setObjectName('configdialog')
-        elif 'errordialog' in plugin_name.lower():
-            self.setObjectName('errordialog')
-
         # Caret (text cursor)
         self.setCursorWidth( CONF.get('main', 'cursor/width') )
 
