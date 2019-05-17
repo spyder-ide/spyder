@@ -302,6 +302,9 @@ class BaseEditMixin(object):
 
             # Process signature template
             if parameter:
+                # '*' has a meaning in regex so needs to be escaped
+                if '*' in parameter:
+                    parameter = parameter.replace('*', '\\*')
                 pattern = r'[\*|(|\s](' + parameter + r')[,|)|\s|=]'
 
             formatted_lines = []
@@ -355,6 +358,7 @@ class BaseEditMixin(object):
         has_signature = False
         has_multisignature = False
         language = getattr(self, 'language', '').lower()
+        signature_or_text = signature_or_text.replace('\\*', '*')
         lines = signature_or_text.split('\n')
         inspect_word = None
 
@@ -422,8 +426,19 @@ class BaseEditMixin(object):
         # Find position of calltip
         point = self._calculate_position()
 
+        language = getattr(self, 'language', '').lower()
+        if language == 'python':
+            # Check if documentation is better than signature, sometimes
+            # signature has \n stripped for functions like print, type etc
+            check_doc = ' '.join(documentation.split()).replace('\\*', '*')
+            check_sig = ' '.join(signature.split())
+            if check_doc == check_sig:
+                signature = documentation
+                documentation = ''
+
         # Remove duplicate signature inside documentation
         if documentation:
+            documentation = documentation.replace('\\*', '*')
             documentation = documentation.replace(signature + '\n', '')
 
         # Format

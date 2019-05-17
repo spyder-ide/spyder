@@ -31,6 +31,7 @@ some_function""".format(SIG=TEST_SIG, DOC=TEST_DOCSTRING)
             # Parameter, Expected Output
             ('dict', 'dict'),
             ('type', 'type'),
+            ('"".format', '-> str'),
             (TEST_TEXT, TEST_SIG)
         ]
     )
@@ -68,6 +69,7 @@ def test_get_calltips(qtbot, lsp_codeeditor, params):
             # Parameter, Expected Output
             ('dict', '' if PY2 else 'dict'),
             ('type', 'type'),
+            ('"".format', '-> str'),
             ('import math', 'module'),
             (TEST_TEXT, TEST_DOCSTRING)
         ]
