@@ -324,6 +324,9 @@ class MainWindow(QMainWindow):
         self.default_style = str(qapp.style().objectName())
         self.dialog_manager = DialogManager()
 
+        # help Windows registry shortcuts integration
+        if os.name == "nt" and options.working_directory[-1] == r'\':
+            options.working_directory = options.working_directory[:-1]    
         self.init_workdir = options.working_directory
         self.profile = options.profile
         self.multithreaded = options.multithreaded
