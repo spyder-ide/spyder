@@ -126,7 +126,7 @@ QTabBar::close-button{
 
 
 QTabBar::close-button:hover{
-    background-image: url($IMAGE_PATH/CloseButtonHover.png);
+    background-color: darkgrey;
 }
 
 
