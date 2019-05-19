@@ -53,13 +53,13 @@ class LSPManager(QObject):
             }
             self.register_queue[language] = []
 
-    def register_file(self, language, filename, signal):
+    def register_file(self, language, filename, codeeditor):
         if language in self.clients:
             language_client = self.clients[language]['instance']
             if language_client is None:
-                self.register_queue[language].append((filename, signal))
+                self.register_queue[language].append((filename, codeeditor))
             else:
-                language_client.register_file(filename, signal)
+                language_client.register_file(filename, codeeditor)
 
     def get_option(self, option):
         """Get an option from our config system."""
