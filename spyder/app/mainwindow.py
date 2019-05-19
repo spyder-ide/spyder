@@ -886,8 +886,8 @@ class MainWindow(QMainWindow):
 
         # Fallback completion thread
         self.set_splash(_("Creating fallback completion engine"))
-        from spyder.plugins.editor.utils.fallback import FallbackActor
-        self.fallback = FallbackActor(self)
+        from spyder.plugins.editor.fallback.actor import FallbackActor
+        self.fallback_completions = FallbackActor(self)
 
         # Working directory plugin
         logger.info("Loading working directory...")
@@ -922,7 +922,7 @@ class MainWindow(QMainWindow):
 
         # Start fallback plugin
         self.set_splash(_('Launching fallback autocompletion engine'))
-        self.fallback.start()
+        self.fallback_completions.start()
 
         # Populating file menu entries
         quit_action = create_action(self, _("&Quit"),
@@ -2341,7 +2341,7 @@ class MainWindow(QMainWindow):
         if self.toolbars_visible:
             self.save_visible_toolbars()
         self.lspmanager.shutdown()
-        self.fallback.stop()
+        self.fallback_completions.stop()
         self.already_closed = True
         return True
 

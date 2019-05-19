@@ -117,8 +117,8 @@ class CodeInfo(object):
                     self.context = context
                     break
 
-        if (self.name in ['info', 'definition'] and (not self.context in Token.Name)
-                and self.is_python_like):
+        if (self.name in ['info', 'definition'] and
+                (self.context not in Token.Name) and self.is_python_like):
             func_call = re.findall(self.func_call_regex, self.line)
             if func_call:
                 self.obj = func_call[-1]
@@ -195,8 +195,8 @@ def get_keywords(lexer):
         return keywords
     if 'keywords' in lexer.tokens:
         try:
-            return lexer.tokens['keywords'][0][0].words
-        except:
+            return keywords + lexer.tokens['keywords'][0][0].words
+        except Exception:
             pass
     for vals in lexer.tokens.values():
         for val in vals:
@@ -216,6 +216,7 @@ def get_keywords(lexer):
                 continue
     return keywords
 
+
 def get_words(file_path=None, content=None, extension=None):
     """
     Extract all words from a source code file to be used in code completion.
@@ -224,7 +225,7 @@ def get_words(file_path=None, content=None, extension=None):
     to carry out the inline completion similar to VSCode.
     """
     if (file_path is None and (content is None or extension is None) or
-                    file_path and content and extension):
+            file_path and content and extension):
         error_msg = ('Must provide `file_path` or `content` and `extension`')
         raise Exception(error_msg)
 
@@ -242,6 +243,7 @@ def get_words(file_path=None, content=None, extension=None):
 
     words = sorted(set(regex.sub(r' ', content).split()))
     return words
+
 
 @memoize
 def get_parent_until(path):

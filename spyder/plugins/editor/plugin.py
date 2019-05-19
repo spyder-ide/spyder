@@ -230,7 +230,8 @@ class Editor(SpyderPluginWidget):
 
         self.fallback_up = False
         # Know when the fallback completion engine is up
-        self.main.fallback.sig_fallback_ready.connect(self.fallback_ready)
+        self.main.fallback_completions.sig_fallback_ready.connect(
+            self.fallback_ready)
 
     def set_projects(self, projects):
         self.projects = projects
@@ -314,7 +315,7 @@ class Editor(SpyderPluginWidget):
         self.main.lspmanager.send_request(language, request, params)
 
     def send_fallback_request(self, msg):
-        self.main.fallback.mailbox.put(msg)
+        self.main.fallback_completions.mailbox.put(msg)
 
     def fallback_ready(self):
         """Notify all stackeditors about fallback availability."""

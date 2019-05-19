@@ -25,7 +25,7 @@ from diff_match_patch import diff_match_patch
 
 # Local imports
 from spyder.plugins.editor.lsp import CompletionItemKind
-from spyder.utils.introspection.utils import get_keywords
+from spyder.plugins.editor.fallback.utils import get_keywords
 
 
 logger = logging.getLogger(__name__)
@@ -107,6 +107,8 @@ class FallbackActor(QThread):
                 text, _ = self.diff_patch.patch_apply(
                     diff, text['text'])
                 self.file_tokens[file]['text'] = text
+            elif msg_type == 'close':
+                self.file_tokens.pop(file, {})
             elif msg_type == 'retrieve':
                 tokens = []
                 if file in self.file_tokens:

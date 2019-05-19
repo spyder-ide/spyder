@@ -6,7 +6,7 @@
 """Tests for programs.py."""
 
 from os.path import dirname, abspath, splitext, join
-from spyder.utils.introspection.utils import get_words
+from spyder.plugins.editor.fallback.utils import get_words
 
 HERE = dirname(abspath(__file__))
 TEST_DATA_PATH = join(HERE, 'data')
@@ -20,7 +20,7 @@ def get_words_by_content(filename):
     ext = splitext(f_in)[1]
     with open(f_in, 'r') as infile:
         content = infile.read()
-    return  get_words(content=content, extension=ext)
+    return get_words(content=content, extension=ext)
 
 def get_words_by_filename(filename):
     """Test get_words from  filepath."""

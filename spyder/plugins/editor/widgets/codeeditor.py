@@ -1076,11 +1076,21 @@ class CodeEditor(TextEditBaseWidget):
                 'codeeditor': self
             }
             return params
+        self.close_fallback()
 
     # ------------- Fallback completions ------------------------------------
     def start_fallback(self):
         self.previous_text = ''
         self.update_fallback(self.toPlainText())
+
+    def close_fallback(self):
+        fallback_request = {
+            'file': self.filename,
+            'type': 'close',
+            'editor': None,
+            'msg': {}
+        }
+        self.sig_perform_fallback_request.emit(fallback_request)
 
     def update_fallback(self, text):
         # Invoke fallback update
