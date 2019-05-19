@@ -197,7 +197,7 @@ class Console(SpyderPluginWidget):
         # Connecting the following signal once the dockwidget has been created:
         self.shell.exception_occurred.connect(self.exception_occurred)
     
-    def exception_occurred(self, text, is_traceback):
+    def exception_occurred(self, text, is_traceback, is_pyls_error=False):
         """
         Exception ocurred in the internal console.
 
@@ -213,11 +213,14 @@ class Console(SpyderPluginWidget):
                 self.error_dlg.close_btn.clicked.connect(self.close_error_dlg)
                 self.error_dlg.rejected.connect(self.remove_error_dlg)
                 self.error_dlg.details.go_to_error.connect(self.go_to_error)
-                self.error_dlg.show()
+            if is_pyls_error:
+                title = "Internal Python Language Server error"
+                self.error_dlg.set_title(title)
+                self.error_dlg.title.setEnabled(False)
             self.error_dlg.append_traceback(text)
+            self.error_dlg.show()
         elif DEV or get_debug_level():
-            self.dockwidget.show()
-            self.dockwidget.raise_()
+            self.switch_to_plugin()
 
     def close_error_dlg(self):
         """Close error dialog."""

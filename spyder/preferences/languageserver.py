@@ -15,7 +15,7 @@ import sys
 
 # Third party imports
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import (Qt, Slot, QAbstractTableModel, QModelIndex)
+from qtpy.QtCore import Qt, Slot, QAbstractTableModel, QModelIndex, QSize
 from qtpy.QtWidgets import (QAbstractItemView, QCheckBox,
                             QComboBox, QDialog, QDialogButtonBox, QGroupBox,
                             QGridLayout, QHBoxLayout, QLabel, QLineEdit,
@@ -103,82 +103,92 @@ class LSPServerEditor(QDialog):
     DEFAULT_EXTERNAL = False
     HOST_REGEX = re.compile(r'^\w+([.]\w+)*$')
     NON_EMPTY_REGEX = re.compile(r'^\S+$')
-    JSON_VALID = _('JSON valid')
-    JSON_INVALID = _('JSON invalid')
+    JSON_VALID = _('Valid JSON')
+    JSON_INVALID = _('Invalid JSON')
+    MIN_SIZE = QSize(800, 600)
+    INVALID_CSS = "QLineEdit {border: 1px solid red;}"
+    VALID_CSS = "QLineEdit {border: 1px solid green;}"
 
     def __init__(self, parent, language=None, cmd='', host='127.0.0.1',
                  port=2084, args='', external=False, configurations={},
                  **kwargs):
         super(LSPServerEditor, self).__init__(parent)
+
+        description = _(
+            'To create a new server configuration, you need to select a '
+            'programming language and the server hostname/IP and port to '
+            'use. If starting a local server, also provide the command to '
+            'execute it and any arguments that should be passed on startup.'
+            '<br><br>'
+            'You can use the placeholders <tt>{host}</tt> and '
+            '<tt>{port}</tt> in the server arguments field to '
+            'automatically fill in the respective values.<br>'
+        )
         self.parent = parent
         self.external = external
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        self.button_ok = bbox.button(QDialogButtonBox.Ok)
-        self.button_cancel = bbox.button(QDialogButtonBox.Cancel)
-        self.button_ok.setEnabled(False)
 
-        description = _('To create a new configuration, '
-                        'you need to select a programming '
-                        'language, along with a executable '
-                        'name for the server to execute '
-                        '(If the instance is local), '
-                        'and the host and port. Finally, '
-                        'you need to provide the '
-                        'arguments that the server accepts. '
-                        'The placeholders <tt>{host}</tt> and '
-                        '<tt>{port}</tt> refer to the host '
-                        'and the port, respectively.')
-        server_settings_description = QLabel(description)
-        server_settings_description.setWordWrap(True)
-
-        lang_label = QLabel(_('Language:'))
+        # Widgets
+        self.server_settings_description = QLabel(description)
+        self.lang_label = QLabel(_('Language:'))
         self.lang_cb = QComboBox(self)
-        self.lang_cb.setToolTip(_('Programming language provided '
-                                  'by the LSP server'))
-        self.lang_cb.addItem(_('Select a language'))
-        self.lang_cb.addItems(LSP_LANGUAGES)
+        self.external_cb = QCheckBox(_('External server'), self)
+        self.host_label = QLabel(_('Host:'))
+        self.host_input = QLineEdit(self)
+        self.port_label = QLabel(_('Port:'))
+        self.port_spinner = QSpinBox(self)
+        self.cmd_label = QLabel(_('Command to execute:'))
+        self.cmd_input = QLineEdit(self)
+        self.args_label = QLabel(_('Server arguments:'))
+        self.args_input = QLineEdit(self)
+        self.json_label = QLabel(self.JSON_VALID, self)
+        self.conf_label = QLabel(_('LSP Server Configuration:'))
+        self.conf_input = CodeEditor(None)
 
+        self.bbox = QDialogButtonBox(QDialogButtonBox.Ok |
+                                     QDialogButtonBox.Cancel)
+        self.button_ok = self.bbox.button(QDialogButtonBox.Ok)
+        self.button_cancel = self.bbox.button(QDialogButtonBox.Cancel)
+
+        # Widget setup
+        self.setMinimumSize(self.MIN_SIZE)
+        self.setWindowTitle(_('LSP server editor'))
+
+        self.server_settings_description.setWordWrap(True)
+
+        self.lang_cb.setToolTip(
+            _('Programming language provided by the LSP server'))
+        self.lang_cb.addItem(_('Select a language'))
+        languages = LSP_LANGUAGES[:]
+        # Even if users add a new Python config there, we will not use it
+        languages.remove('Python')
+        self.lang_cb.addItems(languages)
+
+        self.button_ok.setEnabled(False)
         if language is not None:
             idx = LSP_LANGUAGES.index(language)
             self.lang_cb.setCurrentIndex(idx + 1)
             self.button_ok.setEnabled(True)
 
-        host_label = QLabel(_('Host:'))
-        self.host_input = QLineEdit(self)
-        self.host_input.setToolTip(_('Name of the host that will provide '
-                                     'access to the server'))
+        self.host_input.setPlaceholderText('127.0.0.1')
         self.host_input.setText(host)
         self.host_input.textChanged.connect(lambda x: self.validate())
 
-        port_label = QLabel(_('Port:'))
-        self.port_spinner = QSpinBox(self)
         self.port_spinner.setToolTip(_('TCP port number of the server'))
         self.port_spinner.setMinimum(1)
         self.port_spinner.setMaximum(60000)
         self.port_spinner.setValue(port)
 
-        cmd_label = QLabel(_('Command to execute:'))
-        self.cmd_input = QLineEdit(self)
-        self.cmd_input.setToolTip(_('Command used to start the '
-                                    'LSP server locally'))
         self.cmd_input.setText(cmd)
+        self.cmd_input.setPlaceholderText('/absolute/path/to/command')
 
-        if not external:
-            self.cmd_input.textChanged.connect(lambda x: self.validate())
-
-        args_label = QLabel(_('Server arguments:'))
-        self.args_input = QLineEdit(self)
-        self.args_input.setToolTip(_('Additional arguments required to '
-                                     'start the server'))
+        self.args_input.setToolTip(
+            _('Additional arguments required to start the server'))
         self.args_input.setText(args)
+        self.args_input.setPlaceholderText(r'--host {host} --port {port}')
 
-        conf_label = QLabel(_('LSP Server Configurations:'))
-        self.conf_input = CodeEditor(None)
-        self.conf_input.textChanged.connect(self.validate)
-        color_scheme = CONF.get('appearance', 'selected')
         self.conf_input.setup_editor(
-            language='JSON',
-            color_scheme=color_scheme,
+            language='json',
+            color_scheme=CONF.get('appearance', 'selected'),
             wrap=False,
             edge_line=True,
             highlight_current_line=True,
@@ -186,43 +196,39 @@ class LSPServerEditor(QDialog):
             occurrence_highlighting=True,
             auto_unindent=True,
             font=get_font(),
-            filename='config.json')
-        self.conf_input.setToolTip(_('Additional LSP server configurations '
+            filename='config.json',
+        )
+        self.conf_input.set_language('json', 'config.json')
+        self.conf_input.setToolTip(_('Additional LSP server configuration '
                                      'set at runtime. JSON required'))
-        conf_text = '{}'
         try:
             conf_text = json.dumps(configurations, indent=4, sort_keys=True)
         except Exception:
-            pass
+            conf_text = '{}'
         self.conf_input.set_text(conf_text)
-        self.json_label = QLabel(self.JSON_VALID, self)
 
-        self.external_cb = QCheckBox(_('External server'), self)
-        self.external_cb.setToolTip(_('Check if the server runs '
-                                      'on a remote location'))
+        self.external_cb.setToolTip(
+            _('Check if the server runs on a remote location'))
         self.external_cb.setChecked(external)
-        self.external_cb.stateChanged.connect(self.set_local_options)
 
+        # Layout setup
         hlayout = QHBoxLayout()
         general_vlayout = QVBoxLayout()
-        general_vlayout.addWidget(server_settings_description)
+        general_vlayout.addWidget(self.server_settings_description)
 
         vlayout = QVBoxLayout()
         lang_layout = QVBoxLayout()
-        lang_layout.addWidget(lang_label)
+        lang_layout.addWidget(self.lang_label)
         lang_layout.addWidget(self.lang_cb)
-
-        # layout2 = QHBoxLayout()
-        # layout2.addLayout(lang_layout)
         lang_layout.addWidget(self.external_cb)
         vlayout.addLayout(lang_layout)
 
         host_layout = QVBoxLayout()
-        host_layout.addWidget(host_label)
+        host_layout.addWidget(self.host_label)
         host_layout.addWidget(self.host_input)
 
         port_layout = QVBoxLayout()
-        port_layout.addWidget(port_label)
+        port_layout.addWidget(self.port_label)
         port_layout.addWidget(self.port_spinner)
 
         conn_info_layout = QHBoxLayout()
@@ -231,31 +237,39 @@ class LSPServerEditor(QDialog):
         vlayout.addLayout(conn_info_layout)
 
         cmd_layout = QVBoxLayout()
-        cmd_layout.addWidget(cmd_label)
+        cmd_layout.addWidget(self.cmd_label)
         cmd_layout.addWidget(self.cmd_input)
         vlayout.addLayout(cmd_layout)
 
         args_layout = QVBoxLayout()
-        args_layout.addWidget(args_label)
+        args_layout.addWidget(self.args_label)
         args_layout.addWidget(self.args_input)
         vlayout.addLayout(args_layout)
 
         conf_layout = QVBoxLayout()
-        conf_layout.addWidget(conf_label)
+        conf_layout.addWidget(self.conf_label)
         conf_layout.addWidget(self.conf_input)
         conf_layout.addWidget(self.json_label)
 
-        hlayout.addLayout(vlayout)
-        hlayout.addLayout(conf_layout)
+        vlayout.addStretch()
+        hlayout.addLayout(vlayout, 1)
+        hlayout.addLayout(conf_layout, 3)
         general_vlayout.addLayout(hlayout)
 
-        general_vlayout.addWidget(bbox)
+        general_vlayout.addWidget(self.bbox)
         self.setLayout(general_vlayout)
-        bbox.accepted.connect(self.accept)
-        bbox.rejected.connect(self.reject)
-        self.lang_cb.currentIndexChanged.connect(
-            self.lang_selection_changed)
         self.form_status(False)
+
+        # Signals
+        if not external:
+            self.cmd_input.textChanged.connect(lambda x: self.validate())
+        self.external_cb.stateChanged.connect(self.set_local_options)
+        self.lang_cb.currentIndexChanged.connect(self.lang_selection_changed)
+        self.conf_input.textChanged.connect(self.validate)
+        self.bbox.accepted.connect(self.accept)
+        self.bbox.rejected.connect(self.reject)
+
+        # Final setup
         if language is not None:
             self.form_status(True)
             self.validate()
@@ -264,44 +278,48 @@ class LSPServerEditor(QDialog):
     def validate(self):
         host_text = self.host_input.text()
         cmd_text = self.cmd_input.text()
+
         if not self.HOST_REGEX.match(host_text):
             self.button_ok.setEnabled(False)
-            self.host_input.setStyleSheet("QLineEdit{border: 1px solid red;}")
-            self.host_input.setToolTip('Hostname must be valid')
-            return
+            self.host_input.setStyleSheet(self.INVALID_CSS)
+            if bool(host_text):
+                self.host_input.setToolTip(_('Hostname must be valid'))
+            else:
+                self.host_input.setToolTip(
+                    _('Hostname or IP address of the host on which the server '
+                      'is running. Must be non empty.'))
         else:
-            self.host_input.setStyleSheet(
-                "QLineEdit{border: 1px solid green;}")
-            self.host_input.setToolTip('Hostname is valid')
+            self.host_input.setStyleSheet(self.VALID_CSS)
+            self.host_input.setToolTip(_('Hostname is valid'))
             self.button_ok.setEnabled(True)
 
         if not self.external:
             if not self.NON_EMPTY_REGEX.match(cmd_text):
                 self.button_ok.setEnabled(False)
-                self.cmd_input.setStyleSheet(
-                    "QLineEdit{border: 1px solid red;}")
-                self.cmd_input.setToolTip('Command must be non empty')
+                self.cmd_input.setStyleSheet(self.INVALID_CSS)
+                self.cmd_input.setToolTip(
+                    _('Command used to start the LSP server locally. Must be '
+                      'non empty'))
                 return
 
             if find_program(cmd_text) is None:
                 self.button_ok.setEnabled(False)
-                self.cmd_input.setStyleSheet(
-                    "QLineEdit{border: 1px solid red;}")
-                self.cmd_input.setToolTip('Program was not found '
-                                          'on your system')
-                return
+                self.cmd_input.setStyleSheet(self.INVALID_CSS)
+                self.cmd_input.setToolTip(_('Program was not found '
+                                            'on your system'))
             else:
-                self.cmd_input.setStyleSheet(
-                    "QLineEdit{border: 1px solid green;}")
-                self.cmd_input.setToolTip('Program was found on your system')
+                self.cmd_input.setStyleSheet(self.VALID_CSS)
+                self.cmd_input.setToolTip(_('Program was found on your '
+                                            'system'))
                 self.button_ok.setEnabled(True)
+
         try:
             json.loads(self.conf_input.toPlainText())
             try:
                 self.json_label.setText(self.JSON_VALID)
             except Exception:
                 pass
-        except (ValueError, json.decoder.JSONDecodeError):
+        except ValueError:
             try:
                 self.json_label.setText(self.JSON_INVALID)
                 self.button_ok.setEnabled(False)
@@ -595,8 +613,6 @@ class LSPServerTable(QTableView):
             self.parent().reset_btn.setFocus()
         elif key in [Qt.Key_Up, Qt.Key_Down, Qt.Key_Left, Qt.Key_Right]:
             super(LSPServerTable, self).keyPressEvent(event)
-        elif key in [Qt.Key_Escape]:
-            self.finder.keyPressEvent(event)
         else:
             super(LSPServerTable, self).keyPressEvent(event)
 
@@ -908,6 +924,7 @@ class LSPManagerConfigPage(GeneralConfigPage):
         # Servers table
         table_group = QGroupBox(_('Available servers:'))
         self.table = LSPServerTable(self, text_color=ima.MAIN_FG_COLOR)
+        self.table.setMaximumHeight(150)
         table_layout = QVBoxLayout()
         table_layout.addWidget(self.table)
         table_group.setLayout(table_layout)

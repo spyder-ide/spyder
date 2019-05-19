@@ -148,7 +148,7 @@ class SpyderErrorDialog(QDialog):
               "matching your error message or problem description for a "
               "quicker solution."
               ).format(title=title, trouble_url=__trouble_url__,
-                          project_url=__project_url__))
+                       project_url=__project_url__))
         main_label.setOpenExternalLinks(True)
         main_label.setWordWrap(True)
         main_label.setAlignment(Qt.AlignJustify)
@@ -344,6 +344,14 @@ class SpyderErrorDialog(QDialog):
         submission_enabled = (desc_chars >= DESC_MIN_CHARS and
                               title_chars >= TITLE_MIN_CHARS)
         self.submit_btn.setEnabled(submission_enabled)
+
+    def set_title(self, title):
+        """Set the title for the report."""
+        self.title.setText(title)
+
+    def set_description(self, description):
+        """Set the description for the report."""
+        self.input_description.setPlainText(description)
 
 
 def test():

@@ -397,7 +397,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         self.calltip_widget = CallTipWidget(self, hide_timer_on=False)
         self.calltip_position = None
-        self.tooltip_widget = ToolTipWidget(parent, as_tooltip=True)
+        self.tooltip_widget = ToolTipWidget(self, as_tooltip=True)
 
         self.has_cell_separators = False
         self.highlight_current_cell_enabled = False
@@ -437,21 +437,18 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         Set text editor palette colors:
         background color and caret (text cursor) color
         """
-        palette = QPalette()
-        palette.setColor(QPalette.Base, background)
-        palette.setColor(QPalette.Text, foreground)
-        self.setPalette(palette)
+        # Because QtStylsheet overrides QPalette and because some style do not
+        # use the palette for all drawing (e.g. macOS styles), the background
+        # and foreground color of each TextEditBaseWidget instance must be set
+        # with a stylesheet extended with an ID Selector.
+        # Fixes Issue 2028, 8069 and 9248.
+        if not self.objectName():
+            self.setObjectName(self.__class__.__name__ + str(id(self)))
+        style = "QPlainTextEdit#%s {background: %s; color: %s;}" % \
+                (self.objectName(), background.name(), foreground.name())
+        self.setStyleSheet(style)
 
-        # Set the right background color when changing color schemes
-        # or creating new Editor windows. This seems to be a Qt bug.
-        # Fixes Issue 2028 and 8069
-        if self.objectName():
-            style = "QPlainTextEdit#%s {background: %s; color: %s;}" % \
-                    (self.objectName(), background.name(), foreground.name())
-            self.setStyleSheet(style)
-
-
-    #------Extra selections
+    # ---- Extra selections
     def get_extra_selections(self, key):
         """Return editor extra selections.
 

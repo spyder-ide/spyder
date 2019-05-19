@@ -47,7 +47,7 @@ from diff_match_patch import diff_match_patch
 
 # Local imports
 from spyder.api.panel import Panel
-from spyder.config.base import _, get_debug_level
+from spyder.config.base import _, get_debug_level, running_under_pytest
 from spyder.config.gui import get_shortcut, config_shortcut
 from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
                                 RUN_CELL_AND_ADVANCE_SHORTCUT)
@@ -280,7 +280,7 @@ class CodeEditor(TextEditBaseWidget):
     sig_perform_fallback_request = Signal(dict)
 
     #: Signal to display object information on the Help plugin
-    sig_display_object_info = Signal(str)
+    sig_display_object_info = Signal(str, bool)
 
     #: Signal only used for tests
     # TODO: Remove it!
@@ -293,22 +293,6 @@ class CodeEditor(TextEditBaseWidget):
         TextEditBaseWidget.__init__(self, parent)
 
         self.setFocusPolicy(Qt.StrongFocus)
-
-        # We use these object names to set the right background
-        # color when changing color schemes or creating new
-        # Editor windows. This seems to be a Qt bug.
-        # Fixes issues 2028 and 8069
-        plugin_name = repr(parent)
-        if 'editor' in plugin_name.lower():
-            self.setObjectName('editor')
-        elif 'help' in plugin_name.lower():
-            self.setObjectName('help')
-        elif 'historylog' in plugin_name.lower():
-            self.setObjectName('historylog')
-        elif 'configdialog' in plugin_name.lower():
-            self.setObjectName('configdialog')
-        elif 'errordialog' in plugin_name.lower():
-            self.setObjectName('errordialog')
 
         # Caret (text cursor)
         self.setCursorWidth( CONF.get('main', 'cursor/width') )
@@ -530,14 +514,10 @@ class CodeEditor(TextEditBaseWidget):
     # ------------------------------------------------------------------------
 
     # --- Hover/Hints
-    def _should_display_hover(self, pos):
+    def _should_display_hover(self, point):
         """Check if a hover hint should be displayed:"""
-        value = False
-        if CONF.get('lsp-server', 'enable_hover_hints') and pos:
-            text = self.get_word_at(pos)
-            value = text and self.is_position_inside_word_rect(pos)
-
-        return value
+        return (CONF.get('lsp-server', 'enable_hover_hints') and point
+                and self.get_word_at(point))
 
     def _handle_hover(self):
         """Handle hover hint trigger after delay."""
@@ -971,13 +951,14 @@ class CodeEditor(TextEditBaseWidget):
                 self.show_calltip(
                     signature=signature,
                     parameter=parameter,
+                    documentation=documentation,
                 )
         except Exception:
             self.log_lsp_handle_errors("Error when processing signature")
 
     # ------------- LSP: Hover ---------------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_HOVER)
-    def request_hover(self, line, col, show_hint=True):
+    def request_hover(self, line, col, show_hint=True, clicked=True):
         """Request hover information."""
         params = {
             'file': self.filename,
@@ -985,6 +966,7 @@ class CodeEditor(TextEditBaseWidget):
             'column': col
         }
         self._show_hint = show_hint
+        self._request_hover_clicked = clicked
         return params
 
     @handles(LSPRequestTypes.DOCUMENT_HOVER)
@@ -992,10 +974,9 @@ class CodeEditor(TextEditBaseWidget):
         """Handle hover response."""
         try:
             content = contents['params']
-
             if CONF.get('lsp-server', 'enable_hover_hints'):
-                self.sig_display_object_info.emit(content)
-
+                self.sig_display_object_info.emit(content,
+                                                  self._request_hover_clicked)
                 if self._show_hint and self._last_point and content:
                     # This is located in spyder/widgets/mixins.py
                     word = self._last_hover_word,
@@ -1723,8 +1704,10 @@ class CodeEditor(TextEditBaseWidget):
         self.setPlainText(text)
         self.set_eol_chars(text)
         self.document_did_change(text)
-        #if self.supported_language:
-            #self.highlighter.rehighlight()
+
+        if (isinstance(self.highlighter, sh.PygmentsSH)
+                and not running_under_pytest()):
+            self.highlighter.make_charlist()
 
     def set_text_from_file(self, filename, language=None):
         """Set the text of the editor from file *fname*"""
