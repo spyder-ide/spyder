@@ -58,13 +58,13 @@ def qtbot_module(qapp, request):
     return result
 
 
-def lsp_context(stdio):
+def lsp_context(is_stdio):
     @pytest.fixture(scope='module')
     def wrapper(qtbot_module, request):
         # Activate pycodestyle and pydocstyle
         CONF.set('lsp-server', 'pycodestyle', True)
         CONF.set('lsp-server', 'pydocstyle', True)
-        CONF.set('lsp-server', 'stdio', stdio)
+        CONF.set('lsp-server', 'stdio', is_stdio)
 
         # Create the manager
         os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
@@ -90,5 +90,5 @@ def lsp_context(stdio):
     return wrapper
 
 
-lsp_manager = lsp_context(False)
-lsp_stdio_manager = lsp_context(True)
+lsp_manager = lsp_context(is_stdio=False)
+lsp_stdio_manager = lsp_context(is_stdio=True)
