@@ -12,16 +12,18 @@ IPython console plugin.
 """
 
 # Standard library imports
+from __future__ import print_function
 from xml.sax.saxutils import escape
 import os
 import os.path as osp
 import re
 import sre_constants
+import sys
 import textwrap
 
 # Third party imports
 import qdarkstyle
-from qtpy.QtCore import QPoint, Qt
+from qtpy.QtCore import QPoint, Qt, QCoreApplication
 from qtpy.QtGui import QCursor, QTextCursor, QTextDocument
 from qtpy.QtWidgets import QApplication, QToolTip
 from qtpy import QT_VERSION
@@ -31,6 +33,7 @@ from spyder_kernels.utils.dochelpers import (getargspecfromtext, getobj,
 # Local imports
 from spyder.config.base import _
 from spyder.config.gui import is_dark_interface
+from spyder.config.main import CONF
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding, sourcecode, programs
 from spyder.utils.misc import get_error_match
@@ -71,22 +74,12 @@ class BaseEditMixin(object):
         return point
 
     # --- Tooltips and Calltips
-    def _calculate_position(self, at_line=None, at_position=None,
-                            at_point=None):
+    def _calculate_position(self, at_line=None, at_point=None):
         """
         Calculate a global point position `QPoint(x, y)`, for a given
         line, local cursor position, or local point.
         """
-        # Check that no option or only one option is given:
-        if [at_line, at_position, at_point].count(None) < 2:
-            raise Exception('Provide no argument or only one argument!')
-
-        # Saving cursor position:
-        if at_position is None:
-            at_position = self.get_position('cursor')
-
-        # FIXME: What id this used for?
-        self.calltip_position = at_position
+        font = self.font()
 
         if at_point is not None:
             # Showing tooltip at point position
@@ -94,17 +87,23 @@ class BaseEditMixin(object):
         elif at_line is not None:
             # Showing tooltip at line
             cx = 5
-            cursor = QTextCursor(self.document().findBlockByNumber(at_line-1))
+            line = at_line - 1
+            cursor = QTextCursor(self.document().findBlockByNumber(line))
             cy = self.cursorRect(cursor).top()
         else:
             # Showing tooltip at cursor position
-            # FIXME: why is at_position not being used to calculate the
-            # coordinates?
             cx, cy = self.get_coordinates('cursor')
+            cy = cy - font.pointSize() / 2
 
         # Calculate vertical delta
-        font = self.font()
-        delta = font.pointSize() + 5
+        # The needed delta changes with font size, so we use a power law
+        if sys.platform == 'darwin':
+            delta = int((font.pointSize() * 1.20) ** 0.98) + 4.5
+        elif os.name == 'nt':
+            delta = int((font.pointSize() * 1.20) ** 1.05) + 7
+        else:
+            delta = int((font.pointSize() * 1.20) ** 0.98) + 7
+        # delta = font.pointSize() + 5
 
         # Map to global coordinates
         point = self.mapToGlobal(QPoint(cx, cy))
@@ -130,66 +129,142 @@ class BaseEditMixin(object):
                 }}'''.format(name, background, border)
             widget.setStyleSheet(css + extra_css)
 
-    def _format_text(self, title, text, color, ellide=False):
+    def _get_inspect_shortcut(self):
+        """
+        Queries the editor's config to get the current "Inspect" shortcut.
+        """
+        value = CONF.get('shortcuts', 'editor/inspect current object')
+        if value:
+            if sys.platform == "darwin":
+                value = value.replace('Ctrl', 'Cmd')
+        return value
+
+    def _format_text(self, title=None, signature=None, text=None,
+                     inspect_word=None, title_color=None, max_lines=None,
+                     display_link=False):
         """
         Create HTML template for calltips and tooltips.
 
         This will display title and text as separate sections and add `...`
-        if `ellide` is True and the text is too long.
+
+        ----------------------------------------
+        | `title` (with `title_color`)         |
+        ----------------------------------------
+        | `signature`                          |
+        |                                      |
+        | `text` (ellided to `max_lines`)      |
+        |                                      |
+        ----------------------------------------
+        | Link or shortcut with `inspect_word` |
+        ----------------------------------------
         """
-        template = '''
+        BASE_TEMPLATE = '''
             <div style=\'font-family: "{font_family}";
-                        font-size: {title_size}pt;
+                        font-size: {size}pt;
                         color: {color}\'>
-                <b>{title}</b>
+                {main_text}
             </div>
         '''
-        if text:
-            template += '''
-            <hr>
-            <div style=\'font-family: "{font_family}";
-                        font-size: {text_size}pt;
-                        color: {color_text}\'>
-                {text}
-            </div>
-            '''
-
-        # Prepare text
-        if isinstance(text, list):
-            text = "\n    ".join(text)
-
-        text = text.replace('\n', '<br>')
-
-        # Ellide the text if it is too long
-        if ellide and len(text) > self.calltip_size:
-            text = text[:self.calltip_size] + " ..."
-
         # Get current font properties
         font = self.font()
         font_family = font.family()
         title_size = font.pointSize()
         text_size = title_size - 1 if title_size > 9 else title_size
+        text_color = self._DEFAULT_TEXT_COLOR
 
-        tiptext = template.format(
+        template = ''
+        if title:
+            template += BASE_TEMPLATE.format(
+                font_family=font_family,
+                size=title_size,
+                color=title_color,
+                main_text=title,
+            )
+
+            if text or signature:
+                template += '<hr>'
+
+        if signature:
+            template += BASE_TEMPLATE.format(
+                font_family=font_family,
+                size=text_size,
+                color=text_color,
+                main_text=signature,
+            )
+
+        # Documentation/text handling
+        if not text:
+            text = '\n<i>No documentation available</i>\n'
+
+        # Remove empty lines at the beginning
+        lines = [l for l in text.split('\n') if l.strip()]
+
+        # Limit max number of text displayed
+        if max_lines:
+            lines = text.split('\n')
+            if len(lines) > max_lines:
+                text = '\n'.join(lines[:max_lines]) + ' ...'
+            text = '\n' + text
+
+        text = text.replace('\n', '<br>')
+        template += BASE_TEMPLATE.format(
             font_family=font_family,
-            title_size=title_size,
-            text_size=text_size,
-            color=color,
-            color_text=self._DEFAULT_TEXT_COLOR,
-            title=title,
-            text=text,
+            size=text_size,
+            color=text_color,
+            main_text=text,
         )
 
-        return tiptext
+        help_text = ''
+        if inspect_word:
+            if display_link:
+                help_text = ('Click anywhere in this tooltip for '
+                             'additional help')
+            else:
+                shortcut = self._get_inspect_shortcut()
+                if shortcut:
+                    base_style = (
+                        'background-color:#fafbfc;color:#444d56;'
+                        'font-size:11px;'
+                    )
+                    help_text = ''
+                    # (
+                    #     'Press '
+                    #     '<kbd style="{1}">[</kbd>'
+                    #     '<kbd style="{1}text-decoration:underline;">'
+                    #     '{0}</kbd><kbd style="{1}">]</kbd> for aditional '
+                    #     'help'.format(shortcut, base_style)
+                    # )
 
-    def _format_signature(self, signature, doc='', parameter='',
-                          parameter_doc='', color=_DEFAULT_TITLE_COLOR,
-                          is_python=False):
+        if help_text and inspect_word:
+            if display_link:
+                template += (
+                    '<hr>'
+                    '<div align="left">'
+                    '<span style="color:#148CD2;text-decoration:none;'
+                    'font-family:"{font_family}";font-size:{size}pt;><i>'
+                    ''.format(font_family=font_family,
+                              size=text_size)
+                    ) + help_text + '</i></span></div>'
+            else:
+                template += (
+                    '<hr>'
+                    '<div align="left">'
+                    '<span style="color:white;text-decoration:none;">'
+                    '' + help_text + '</span></div>'
+                )
+
+        return template
+
+    def _format_signature(self, signatures, parameter=None,
+                          parameter_color=_PARAMETER_HIGHLIGHT_COLOR,
+                          char_color=_CHAR_HIGHLIGHT_COLOR):
         """
         Create HTML template for signature.
 
         This template will include indent after the method name, a highlight
         color for the active parameter and highlights for special chars.
+
+        Special chars depend on the language.
         """
         active_parameter_template = (
             '<span style=\'font-family:"{font_family}";'
@@ -214,81 +289,133 @@ class BaseEditMixin(object):
             new = match.replace(parameter, active_parameter_template)
             return new
 
-        # Remove duplicate spaces
-        signature = ' '.join(signature.split())
+        if not isinstance(signatures, list):
+            signatures = [signatures]
 
-        # Replace ay initial spaces
-        signature = signature.replace('( ', '(')
+        new_signatures = []
+        for signature in signatures:
+            # Remove duplicate spaces
+            signature = ' '.join(signature.split())
 
-        # Process signature template
-        pattern = r'[\*|(|\s](' + parameter + r')[,|)|\s|=]'
-        formatted_lines = []
-        name = signature.split('(')[0]
-        indent = ' ' * (len(name) + 1)
-        rows = textwrap.wrap(signature, width=60, subsequent_indent=indent)
-        for row in rows:
-            # Add template to highlight the active parameter
-            row = re.sub(pattern, handle_sub, row)
-            row = row.replace(' ', '&nbsp;')
-            row = row.replace('span&nbsp;', 'span ')
-            if is_python:
-                for char in ['(', ')', ',', '*', '**']:
-                    new_char = chars_template.format(char=char)
-                    row = row.replace(char, new_char)
-            formatted_lines.append(row)
-        title_template = '<br>'.join(formatted_lines)
+            # Replace initial spaces
+            signature = signature.replace('( ', '(')
 
-        # Get current font properties
-        font = self.font()
-        font_size = font.pointSize()
-        font_family = font.family()
+            # Process signature template
+            if parameter:
+                # '*' has a meaning in regex so needs to be escaped
+                if '*' in parameter:
+                    parameter = parameter.replace('*', '\\*')
+                pattern = r'[\*|(|\s](' + parameter + r')[,|)|\s|=]'
 
-        # Format title to display active parameter
-        title = title_template.format(
-            font_size=font_size,
-            font_family=font_family,
-            color=self._PARAMETER_HIGHLIGHT_COLOR,
-            parameter=parameter,
-        )
+            formatted_lines = []
+            name = signature.split('(')[0]
+            indent = ' ' * (len(name) + 1)
+            rows = textwrap.wrap(signature, width=60, subsequent_indent=indent)
+            for row in rows:
+                if parameter:
+                    # Add template to highlight the active parameter
+                    row = re.sub(pattern, handle_sub, row)
 
-        # Process documentation
-        # TODO: To be included in a separate PR
-        # active = active_parameter_template.format(
-        #     font_size=font_size,
-        #     font_family=font_family,
-        #     color=self._PARAMETER_HIGHLIGHT_COLOR,
-        #     parameter=parameter,
-        # )
-        # if doc is not None and len(doc) > 0:
-        #     text_doc = doc.split('\n')[0]
-        # else:
-        #     text_doc = ''
+                row = row.replace(' ', '&nbsp;')
+                row = row.replace('span&nbsp;', 'span ')
 
-        # if parameter_doc is not None and len(parameter_doc) > 0:
-        #     text_prefix = text_doc + '<br><hr><br>param: ' + active
-        #     text = parameter_doc
-        # else:
-        #     text_prefix = ''
-        #     text = ''
+                language = getattr(self, 'language', None)
+                if language and 'python' == language.lower():
+                    for char in ['(', ')', ',', '*', '**']:
+                        new_char = chars_template.format(char=char)
+                        row = row.replace(char, new_char)
 
-        # formatted_lines = []
-        # rows = textwrap.wrap(text, width=60)
-        # for row in rows:
-        #     row = row.replace(' ', '&nbsp;')
+                formatted_lines.append(row)
+            title_template = '<br>'.join(formatted_lines)
 
-        # if text_prefix:
-        #     text = text_prefix + '<br><br>' + '<br>'.join(rows)
-        # else:
-        #     text = '<br>'.join(rows)
-        # text += '<br>'
+            # Get current font properties
+            font = self.font()
+            font_size = font.pointSize()
+            font_family = font.family()
 
-        # Format text
-        tiptext = self._format_text(title, '', color)
+            # Format title to display active parameter
+            if parameter:
+                title = title_template.format(
+                    font_size=font_size,
+                    font_family=font_family,
+                    color=parameter_color,
+                    parameter=parameter,
+                )
+            else:
+                title = title_template
+            new_signatures.append(title)
 
-        return tiptext, rows
+        return '<br><br>'.join(new_signatures)
 
-    def show_calltip(self, signature, doc='', parameter='', parameter_doc='',
-                     color=_DEFAULT_TITLE_COLOR, is_python=False):
+    def _check_signature_and_format(self, signature_or_text, parameter=None):
+        """
+        LSP hints might provide docstrings instead of signatures.
+
+        This method will check for multiple signatures (dict, type etc...) and
+        format the text accordingly.
+        """
+        open_func_char = ''
+        has_signature = False
+        has_multisignature = False
+        language = getattr(self, 'language', '').lower()
+        signature_or_text = signature_or_text.replace('\\*', '*')
+        lines = signature_or_text.split('\n')
+        inspect_word = None
+
+        if language == 'python':
+            open_func_char = '('
+            idx = signature_or_text.find(open_func_char)
+            inspect_word = signature_or_text[:idx]
+            name_plus_char = inspect_word + open_func_char
+
+            # Signature type
+            count = signature_or_text.count(name_plus_char)
+            has_signature = open_func_char in lines[0]
+            if len(lines) > 1:
+                has_multisignature = count > 1 and name_plus_char in lines[1]
+            else:
+                has_multisignature = False
+
+        if has_signature and not has_multisignature:
+            for i, line in enumerate(lines):
+                if line.strip() == '':
+                    break
+
+            if i == 0:
+                signature = lines[0]
+                extra_text = None
+            else:
+                signature = '\n'.join(lines[:i])
+                extra_text = '\n'.join(lines[i:])
+
+            if signature:
+                new_signature = self._format_signature(
+                    signatures=signature,
+                    parameter=parameter,
+                )
+        elif has_multisignature:
+            signature = signature_or_text.replace(name_plus_char,
+                                                  '<br>' + name_plus_char)
+            signature = signature[4:]  # Remove the first line break
+            signature = signature.replace('\n', ' ')
+            signature = signature.replace(r'\\*', '*')
+            signature = signature.replace(r'\*', '*')
+            signature = signature.replace('<br>', '\n')
+            signatures = signature.split('\n')
+            signatures = [sig for sig in signatures if sig]  # Remove empty
+
+            new_signature = self._format_signature(
+                signatures=signatures,
+                parameter=parameter,
+            )
+            extra_text = None
+        else:
+            new_signature = None
+            extra_text = signature_or_text
+
+        return new_signature, extra_text, inspect_word
+
+    def show_calltip(self, signature, parameter=None, documentation=None):
         """
         Show calltip.
 
@@ -299,45 +426,94 @@ class BaseEditMixin(object):
         # Find position of calltip
         point = self._calculate_position()
 
-        # Format text
-        tiptext, wrapped_lines = self._format_signature(
-            signature,
-            doc,
-            parameter,
-            parameter_doc,
-            color,
-            is_python,
+        language = getattr(self, 'language', '').lower()
+        if language == 'python':
+            # Check if documentation is better than signature, sometimes
+            # signature has \n stripped for functions like print, type etc
+            check_doc = ' '.join(documentation.split()).replace('\\*', '*')
+            check_sig = ' '.join(signature.split())
+            if check_doc == check_sig:
+                signature = documentation
+                documentation = ''
+
+        # Remove duplicate signature inside documentation
+        if documentation:
+            documentation = documentation.replace('\\*', '*')
+            documentation = documentation.replace(signature + '\n', '')
+
+        # Format
+        res = self._check_signature_and_format(signature, parameter)
+        new_signature, text, inspect_word = res
+        text = self._format_text(
+            signature=new_signature,
+            inspect_word=inspect_word,
+            display_link=False,
+            text=documentation,
+            max_lines=10,
         )
 
         self._update_stylesheet(self.calltip_widget)
 
         # Show calltip
-        self.calltip_widget.show_tip(point, tiptext, wrapped_lines)
+        self.calltip_widget.show_tip(point, text, [])
+        self.calltip_widget.show()
 
-    def show_tooltip(self, title, text, color=_DEFAULT_TITLE_COLOR,
-                     at_line=None, at_position=None, at_point=None):
+    def show_tooltip(self, title=None, signature=None, text=None,
+                     inspect_word=None, title_color=_DEFAULT_TITLE_COLOR,
+                     at_line=None, at_point=None, display_link=False,
+                     max_lines=10, cursor=None):
+        """Show tooltip."""
+        # Find position of calltip
+        point = self._calculate_position(
+            at_line=at_line,
+            at_point=at_point,
+        )
+
+        # Format text
+        tiptext = self._format_text(
+            title=title,
+            signature=signature,
+            text=text,
+            title_color=title_color,
+            inspect_word=inspect_word,
+            display_link=display_link,
+            max_lines=max_lines,
+        )
+
+        self._update_stylesheet(self.tooltip_widget)
+
+        # Display tooltip
+        self.tooltip_widget.show_tip(point, tiptext, cursor=cursor)
+
+    def show_hint(self, text, inspect_word, at_point):
+        """Show code hint and crop text as needed."""
+        # Check if signature and format
+        res = self._check_signature_and_format(text)
+        html_signature, extra_text, _ = res
+        point = self.get_word_start_pos(at_point)
+
+        # This is needed to get hover hints
+        cursor = self.cursorForPosition(at_point)
+        cursor.movePosition(QTextCursor.StartOfWord, QTextCursor.MoveAnchor)
+        self._last_hover_cursor = cursor
+
+        self.show_tooltip(signature=html_signature, text=extra_text,
+                          at_point=point, inspect_word=inspect_word,
+                          display_link=True, max_lines=10, cursor=cursor)
+
+    def hide_tooltip(self):
         """
-        Show tooltip.
+        Hide the tooltip widget.
 
-        Tooltips will disappear if mouse hovers them. They are meant for quick
-        inspections.
+        The tooltip widget is a special QLabel that looks like a tooltip,
+        this method is here so it can be hidden as necessary. For example,
+        when the user leaves the Linenumber area when hovering over lint
+        warnings and errors.
         """
-        if text is not None and len(text) != 0:
-            # Find position of calltip
-            point = self._calculate_position(
-                at_line=at_line,
-                at_position=at_position,
-                at_point=at_point,
-            )
-
-            # Format text
-            tiptext = self._format_text(title, text, color, ellide=True)
-
-            self._update_stylesheet(self.tooltip_widget)
-
-            # Display tooltip
-            self.tooltip_widget.show_tip(point, tiptext)
-            self.tooltip_widget.show()
+        self._last_hover_cursor = None
+        self._last_hover_word = None
+        self._last_point = None
+        self.tooltip_widget.hide()
 
     #------EOL characters
     def set_eol_chars(self, text):
@@ -370,7 +546,6 @@ class BaseEditMixin(object):
             txt += linesep
         return txt
 
-
     #------Positions, coordinates (cursor, EOF, ...)
     def get_position(self, subject):
         """Get offset in character for the given subject from the start of
@@ -398,9 +573,45 @@ class BaseEditMixin(object):
         point = self.cursorRect(cursor).center()
         return point.x(), point.y()
 
-    def get_cursor_line_column(self):
-        """Return cursor (line, column) numbers"""
-        cursor = self.textCursor()
+    def _is_point_inside_word_rect(self, point):
+        """
+        Check if the mouse is within the rect of the cursor current word.
+        """
+        cursor = self.cursorForPosition(point)
+        cursor.movePosition(QTextCursor.StartOfWord, QTextCursor.MoveAnchor)
+        start_rect = self.cursorRect(cursor)
+        cursor.movePosition(QTextCursor.EndOfWord, QTextCursor.MoveAnchor)
+        end_rect = self.cursorRect(cursor)
+        bounding_rect = start_rect.united(end_rect)
+        return bounding_rect.contains(point)
+
+    def get_word_start_pos(self, position):
+        """
+        Find start position (lower bottom) of a word being hovered by mouse.
+        """
+        cursor = self.cursorForPosition(position)
+        cursor.movePosition(QTextCursor.StartOfWord, QTextCursor.MoveAnchor)
+        rect = self.cursorRect(cursor)
+        pos = QPoint(rect.left() + 4, rect.top())
+        return pos
+
+    def get_last_hover_word(self):
+        """Return the last (or active) hover word."""
+        return self._last_hover_word
+
+    def get_last_hover_cursor(self):
+        """Return the last (or active) hover cursor."""
+        return self._last_hover_cursor
+
+    def get_cursor_line_column(self, cursor=None):
+        """
+        Return `cursor` (line, column) numbers.
+
+        If no `cursor` is provided, use the current text cursor.
+        """
+        if cursor is None:
+            cursor = self.textCursor()
+
         return cursor.blockNumber(), cursor.columnNumber()
 
     def get_cursor_line_number(self):
@@ -601,6 +812,10 @@ class BaseEditMixin(object):
         if ret is not None:
             return ret[0]
 
+    def get_hover_word(self):
+        """Return the last hover word that requested a hover hint."""
+        return self._last_hover_word
+
     def get_current_line(self):
         """Return current line's text"""
         cursor = self.textCursor()
@@ -626,7 +841,12 @@ class BaseEditMixin(object):
         """Return word at *coordinates* (QPoint)"""
         cursor = self.cursorForPosition(coordinates)
         cursor.select(QTextCursor.WordUnderCursor)
-        return to_text_string(cursor.selectedText())
+        if self._is_point_inside_word_rect(coordinates):
+            word = to_text_string(cursor.selectedText())
+        else:
+            word = ''
+
+        return word
 
     def get_block_indentation(self, block_nb):
         """Return line indentation (character number)"""

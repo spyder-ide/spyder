@@ -54,8 +54,13 @@ logger = logging.getLogger(__name__)
 @class_register
 class LSPClient(QObject, LSPMethodProviderMixIn):
     """Language Server Protocol v3.0 client implementation."""
-    # Signals
+    #: Signal to inform the editor plugin that the client has
+    #  started properly and it's ready to be used.
     sig_initialize = Signal(dict, str)
+
+    #: Signal to report internal server errors through Spyder's
+    #  facilities.
+    sig_server_error = Signal(str)
 
     # Constants
     external_server_fmt = ('--server-host %(host)s '
@@ -270,8 +275,13 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 if 'error' in resp:
                     logger.debug('{} Response error: {}'
                                  .format(self.language, repr(resp['error'])))
-
-                if 'method' in resp:
+                    if self.language == 'python':
+                        traceback = (resp['error'].get('data', {}).
+                                     get('traceback'))
+                        if traceback:
+                            traceback = ''.join(traceback)
+                            self.sig_server_error.emit(traceback)
+                elif 'method' in resp:
                     if resp['method'][0] != '$':
                         if resp['method'] in self.handler_registry:
                             handler_name = (

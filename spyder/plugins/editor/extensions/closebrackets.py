@@ -39,6 +39,7 @@ class CloseBracketsExtension(EditorExtension):
         if key in self.BRACKETS_CHAR and self.enabled:
             self.editor.completion_widget.hide()
             self._autoinsert_brackets(key)
+            self.editor.document_did_change()
             event.accept()
 
     def unmatched_brackets_in_line(self, text, closing_brackets_type=None):

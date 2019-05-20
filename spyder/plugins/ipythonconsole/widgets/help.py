@@ -129,6 +129,6 @@ class HelpWidget(RichJupyterWidget):
             if content.get('status') == 'ok' and content.get('found', False):
                 signature = self.get_signature(content)
                 if signature:
-                    # TODO: Pass the language from the Console to the calltip
-                    self._control.show_calltip(signature, color='#999999',
-                                               is_python=True)
+                    self._control.show_calltip(
+                        signature,
+                    )

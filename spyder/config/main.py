@@ -21,7 +21,7 @@ from spyder.config.base import (CHECK_ALL, EXCLUDED_NAMES, get_home_dir,
 from spyder.config.fonts import MEDIUM, MONOSPACE, SANS_SERIF, SMALL
 from spyder.config.user import UserConfig
 from spyder.config.utils import IMPORT_EXT
-from spyder.utils import codeanalysis
+from spyder.plugins.editor.utils.findtasks import TASKS_PATTERN
 from spyder.utils.introspection.module_completion import PREFERRED_MODULES
 
 
@@ -190,8 +190,6 @@ DEFAULTS = [
               'printer_header/font/bold': False,
               'wrap': False,
               'wrapflag': True,
-              'code_analysis/pyflakes': True,
-              'code_analysis/pep8': False,
               'todo_list': True,
               'realtime_analysis': True,
               'realtime_analysis/timeout': 2500,
@@ -288,7 +286,7 @@ DEFAULTS = [
               'exclude_regexp': False,
               'search_text_regexp': False,
               'search_text': [''],
-              'search_text_samples': [codeanalysis.TASKS_PATTERN],
+              'search_text_samples': [TASKS_PATTERN],
               'more_options': True,
               'case_sensitive': False
               }),
@@ -677,6 +675,9 @@ DEFAULTS = [
              }),
             ('lsp-server',
              {
+              # This option is not used with the LSP server config
+              # It is used to disable hover hints in the editor
+              'enable_hover_hints': True,
               'code_completion': True,
               'jedi_definition': True,
               'jedi_definition/follow_imports': True,
@@ -715,7 +716,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '49.0.0'
+CONF_VERSION = '50.0.0'
 
 
 # Main configuration instance

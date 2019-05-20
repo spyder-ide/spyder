@@ -233,9 +233,63 @@ class FileSwitcher(QDialog):
     # Constants that define the mode in which the list widget is working
     # FILE_MODE is for a list of files, SYMBOL_MODE if for a list of symbols
     # in a given file when using the '@' symbol.
+    path_text_font_size = CONF.get('appearance', 'rich_font/size')
+    if sys.platform == 'darwin':
+        text_diff = 2
+    else:
+        text_diff = 1
+    filename_text_font_size = path_text_font_size + text_diff
     FILE_MODE, SYMBOL_MODE = [1, 2]
     MAX_WIDTH = 600
     PATH_FG_COLOR = 'rgb(153, 153, 153)'
+    SECTION_COLOR = 'rgb(70, 179, 239)'
+    _FONT_SIZE = CONF.get('appearance', 'rich_font/size')
+    _HEIGHT = 20
+    _PADDING = 0
+    _MIN_WIDTH = 500
+    _STYLES = {
+        'title_color': ima.MAIN_FG_COLOR,
+        'description_color': 'rgb(153, 153, 153)',
+        'section_color': SECTION_COLOR,
+        'shortcut_color': 'rgb(153, 153, 153)',
+        'title_font_size': filename_text_font_size,
+        'description_font_size': path_text_font_size,
+        'section_font_size': path_text_font_size,
+        'shortcut_font_size': path_text_font_size,
+    }
+    _TEMPLATE = '''<table width="{width}" height="{height}"
+                          cellpadding="{padding}">
+  <tr>
+    <td valign="middle">
+      <span style="color:{title_color};font-size:{title_font_size}pt">
+        {title}
+      </span>&nbsp;
+      <span
+       style="color:{description_color};font-size:{description_font_size}pt">
+        {description}
+      </span>
+    </td>
+    <td valign="middle" align="right" float="right">
+      <span style="color:{shortcut_color};font-size:{shortcut_font_size}pt">
+         <span><code><i>{shortcut}</i></code></span>
+      </span>&nbsp;
+      <span style="color:{section_color};font-size:{section_font_size}pt">
+         {section}
+      </span>
+    </td>
+  </tr>
+</table>'''
+    _SEPARATOR = '_'
+    _HEIGHT_SEP = 0
+    _STYLES_SEP = {
+        'color': 'black',
+        'font_size': CONF.get('appearance', 'rich_font/size', 10),
+    }
+    _TEMPLATE_SEP = \
+        '''<table cellpadding="0" cellspacing="0" width="{width}"
+                  height="{height}" border="0">
+  <tr><td valign="top" align="center"></td></tr>
+</table>'''
 
     def __init__(self, parent, plugin, tabs, data, icon):
         QDialog.__init__(self, parent)
@@ -689,33 +743,35 @@ class FileSwitcher(QDialog):
 
         for index, score in enumerate(scores):
             text, rich_text, score_value = score
+            linecount = ""
             if score_value != -1:
-                text_item = ("<span style='color:{0:}; font-size:{1:}pt'>{2:}"
-                             "</span>").format(ima.MAIN_FG_COLOR,
-                                               filename_text_font_size,
-                                               rich_text.replace('&', ''))
+                fileName = rich_text.replace('&', '')
                 if trying_for_line_number:
-                    text_item += " [{0:} {1:}]".format(self.line_count[index],
-                                                       _("lines"))
+                    linecount = "[{0:} {1:}]".format(self.line_count[index],
+                                                     _("lines"))
                 if max_width > self.list.width():
-                    text_item += (u" &nbsp; <span style='color:{0:};"
-                                  "font-size:{1:}pt'>{2:}"
-                                  "</span>").format(self.PATH_FG_COLOR,
-                                                    path_text_font_size,
-                                                    short_paths[index])
+                    path = short_paths[index]
                 else:
-                    text_item += (u" &nbsp; <span style='color:{0:};"
-                                  "font-size:{1:}pt'>{2:}"
-                                  "</span>").format(self.PATH_FG_COLOR,
-                                                    path_text_font_size,
-                                                    paths[index])
-                if (trying_for_line_number and self.line_count[index] != 0 or
-                        not trying_for_line_number):
+                    path = paths[index]
+
+                title = self.widgets[index][1].get_plugin_title().split(
+                    ' - ')[0]
+
+                text_item = self._TEMPLATE.format(
+                    width=self._MIN_WIDTH, height=self._HEIGHT, title=fileName,
+                    section=title, description=path, padding=self._PADDING,
+                    shortcut=linecount, **self._STYLES)
+
+                if ((trying_for_line_number and self.line_count[index] != 0)
+                        or not trying_for_line_number):
                     results.append((score_value, index, text_item))
 
         # Sort the obtained scores and populate the list widget
         self.filtered_path = []
         plugin = None
+        separator = self._TEMPLATE_SEP.format(
+            width=self.list.width()-20, height=self._HEIGHT_SEP,
+            **self._STYLES_SEP)
         for result in sorted(results):
             index = result[1]
             path = paths[index]
@@ -724,7 +780,7 @@ class FileSwitcher(QDialog):
             elif os.name == 'nt':
                 scale_factor = 0.8
             elif is_ubuntu():
-                scale_factor = 0.6
+                scale_factor = 0.7
             else:
                 scale_factor = 0.9
             icon = ima.get_icon_by_extension(path, scale_factor)
@@ -733,9 +789,7 @@ class FileSwitcher(QDialog):
                 title = self.widgets[index][1].get_plugin_title().split(' - ')
                 if plugin != title[0]:
                     plugin = title[0]
-                    text += ("<br><big style='color:{0:}'>"
-                             "<b>{1:}</b></big><br>").format(ima.MAIN_FG_COLOR,
-                                                             plugin)
+                    text = separator
                     item = QListWidgetItem(text)
                     item.setToolTip(path)
                     item.setSizeHint(QSize(0, 25))
