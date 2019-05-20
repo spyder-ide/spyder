@@ -46,6 +46,9 @@ dependencies.add("pygments", _("Syntax highlighting for Matlab, Julia and "
 # =============================================================================
 # Constants
 # =============================================================================
+URL_PATTERN = r"https?://([\da-z\.-]+)\.([a-z\.]{2,6})([/\w\.-]*)[^ ^'^\"]+"
+FILE_PATTERN = r"file:///?(\S*)"
+MAILTO_PATTERN = r"mailto:\s*([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})"
 COLOR_SCHEME_KEYS = {
                       "background":     _("Background:"),
                       "currentline":    _("Current line:"),
@@ -101,6 +104,16 @@ def get_color_scheme(name):
     return scheme
 
 
+def any(name, alternates):
+    "Return a named group pattern matching list of alternates."
+    return "(?P<%s>" % name + "|".join(alternates) + ")"
+
+
+URI_PATTERNS = re.compile(
+    any('uri', [URL_PATTERN, FILE_PATTERN, MAILTO_PATTERN])
+)
+
+
 #==============================================================================
 # Syntax highlighting color schemes
 #==============================================================================
@@ -109,8 +122,6 @@ class BaseSH(QSyntaxHighlighter):
     # Syntax highlighting rules:
     PROG = None
     BLANKPROG = re.compile(r"\s+")
-    # https://code.tutsplus.com/tutorials/8-regular-expressions-you-should-know--net-6149
-    URI = re.compile(r"^((?i)https?:\/\/[^ ]+\.[^ ]+)")
     # Syntax highlighting states (from one text block to another):
     NORMAL = 0
     # Syntax highlighting parameters.
@@ -251,16 +262,16 @@ class BaseSH(QSyntaxHighlighter):
         raise NotImplementedError()
 
     def highlight_uris(self, text, offset=0):
-        """"""
-        match = self.URI.search(text, offset)
-        while match:
-            start, end = match.span()
-            start = max([0, start+offset])
-            end = max([0, end+offset])
-            font = QTextCharFormat(self.formats['string'])
-            font.setUnderlineStyle(True)
-            self.setFormat(start, end - start, font)
-            match = self.URI.search(text, end)
+        """Highlight URI and mailto: patterns"""
+        # match = URL_PATTERN.search(text, offset)
+        # while match:
+        #     start, end = match.span()
+        #     start = max([0, start+offset])
+        #     end = max([0, end+offset])
+        #     font = QTextCharFormat(self.formats['string'])
+        #     font.setUnderlineStyle(True)
+        #     self.setFormat(start, end - start, font)
+        #     match = URL_PATTERN.search(text, end)
 
     def highlight_spaces(self, text, offset=0):
         """
@@ -342,10 +353,6 @@ class GenericSH(BaseSH):
 #==============================================================================
 # Python syntax highlighter
 #==============================================================================
-def any(name, alternates):
-    "Return a named group pattern matching list of alternates."
-    return "(?P<%s>" % name + "|".join(alternates) + ")"
-
 def make_python_patterns(additional_keywords=[], additional_builtins=[]):
     "Strongly inspired from idlelib.ColorDelegator.make_pat"
     kwlist = keyword.kwlist + additional_keywords

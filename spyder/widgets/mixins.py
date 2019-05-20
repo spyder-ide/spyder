@@ -37,12 +37,10 @@ from spyder.config.main import CONF
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding, sourcecode, programs
 from spyder.utils.misc import get_error_match
+from spyder.utils.syntaxhighlighters import URI_PATTERNS
 from spyder.widgets.arraybuilder import NumpyArrayDialog
 
 QT55_VERSION = programs.check_version(QT_VERSION, "5.5", ">=")
-# FIXME: improve pattern
-URI_PATTERN = re.compile(r"((?i)https?:\/\/[^ ]+\.[^ ]+)")
-
 if QT55_VERSION:
     from qtpy.QtCore import QRegularExpression
 else:
@@ -852,18 +850,20 @@ class BaseEditMixin(object):
 
     def get_uri_at(self, coordinates):
         """"""
-        return self.get_patterns_cursor_at([URI_PATTERN], coordinates)
-
-    def join_patterns(self, alternates):
-        return "(" + "|".join(alternates) + ")"
+        return self.get_pattern_cursor_at(URI_PATTERNS, coordinates)
 
     def get_pattern_cursor_at(self, pattern, coordinates):
-        """."""
+        """
+        Find pattern located at the line where the coordinate is located.
+
+        This returns the actual match and the cursor that selects the text.
+        """
         # Check if the pattern is in line
         line = self.get_line_at(coordinates)
         match = pattern.search(line)
         uri = None
         cursor = None
+
         while match:
             start, end = match.span()
 
@@ -881,7 +881,8 @@ class BaseEditMixin(object):
             # Check if coordinates are located within the selection rect
             if bounding_rect.contains(coordinates):
                 uri = line[start:end]
-                cursor.setPosition(line_start_position + start, cursor.KeepAnchor)
+                cursor.setPosition(line_start_position + start,
+                                   cursor.KeepAnchor)
                 break
             else:
                 match = pattern.search(line, end)

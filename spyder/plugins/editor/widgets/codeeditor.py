@@ -30,10 +30,10 @@ from unicodedata import category
 
 # Third party imports
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import QRegExp, Qt, QTimer, Signal, Slot, QEvent
+from qtpy.QtCore import QRegExp, Qt, QTimer, QUrl, Signal, Slot, QEvent
 from qtpy.QtGui import (QColor, QCursor, QFont, QIntValidator,
                         QKeySequence, QPaintEvent, QPainter, QMouseEvent,
-                        QTextCharFormat, QTextCursor,
+                        QTextCharFormat, QTextCursor, QDesktopServices,
                         QKeyEvent, QTextDocument, QTextFormat, QTextOption)
 from qtpy.QtPrintSupport import QPrinter
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
@@ -306,6 +306,9 @@ class CodeEditor(TextEditBaseWidget):
         self._timer_mouse_moving = QTimer(self)
         self._timer_mouse_moving.setInterval(350)
         self._timer_mouse_moving.timeout.connect(lambda: self._handle_hover())
+
+        # Goto uri
+        self._last_hover_uri = None
 
         # 79-col edge line
         self.edge_line = self.panels.register(EdgeLine(self),
@@ -2934,6 +2937,7 @@ class CodeEditor(TextEditBaseWidget):
         """Override Qt method."""
         self.sig_key_released.emit(event)
         self.timer_syntax_highlight.start()
+        self._last_hover_uri = None
         super(CodeEditor, self).keyReleaseEvent(event)
         event.ignore()
 
@@ -2965,6 +2969,10 @@ class CodeEditor(TextEditBaseWidget):
         if key in [Qt.Key_Control, Qt.Key_Shift, Qt.Key_Alt,
                    Qt.Key_Meta, Qt.KeypadModifier]:
             # The user pressed only a modifier key.
+            if Qt.Key_Control:
+                # Handle goto and uris
+                # Check if goto or check if uri and handle accordingly
+                pass
             return
 
         # ---- Handle hard coded and builtin actions
@@ -3128,19 +3136,28 @@ class CodeEditor(TextEditBaseWidget):
         if ctrl:
             uri, cursor = self.get_uri_at(pos)
             if uri and cursor:
-                color = QColor(Qt.red)
+                color = self.ctrl_click_color
+
+                if uri.startswith('file://'):
+                    fname = uri.replace('file://', '')
+                    if not osp.isfile(fname):
+                        color = QColor('red')
+
+                self.clear_extra_selections('ctrl_click')
                 self.__highlight_selection(
                     'ctrl_click', cursor, update=True,
                     foreground_color=color,
-                    underline_color=self.ctrl_click_color,
+                    underline_color=color,
                     underline_style=QTextCharFormat.SingleUnderline)
                 if not self.__cursor_changed:
                     QApplication.setOverrideCursor(
                         QCursor(Qt.PointingHandCursor))
                     self.__cursor_changed = True
+                self._last_hover_uri = uri
                 event.accept()
-                print(uri)
                 return
+            else:
+                self._last_hover_uri = uri
 
         if self.has_selected_text():
             TextEditBaseWidget.mouseMoveEvent(self, event)
@@ -3198,17 +3215,33 @@ class CodeEditor(TextEditBaseWidget):
             QApplication.restoreOverrideCursor()
             self.__cursor_changed = False
             self.clear_extra_selections('ctrl_click')
+            self._last_hover_uri = None
         TextEditBaseWidget.leaveEvent(self, event)
 
     def mousePressEvent(self, event):
-        """Reimplement Qt method"""
+        """Override Qt method."""
         ctrl = event.modifiers() & Qt.ControlModifier
         alt = event.modifiers() & Qt.AltModifier
         pos = event.pos()
         if event.button() == Qt.LeftButton and ctrl:
             TextEditBaseWidget.mousePressEvent(self, event)
             cursor = self.cursorForPosition(pos)
-            self.go_to_definition_from_cursor(cursor)
+            if self._last_hover_uri:
+                uri = self._last_hover_uri
+                if uri.startswith('file://'):
+                    fname = uri.replace('file://', '')
+                    if osp.isfile(fname) and encoding.is_text_file(fname):
+                        # Open in editor
+                        self.go_to_definition.emit(fname, 0, 0)
+                    else:
+                        # Use external program
+                        quri = QUrl.fromLocalFile(fname)
+                        QDesktopServices.openUrl(quri)
+                else:
+                    quri = QUrl(uri)
+                    QDesktopServices.openUrl(quri)
+            else:
+                self.go_to_definition_from_cursor(cursor)
         elif event.button() == Qt.LeftButton and alt:
             self.sig_alt_left_mouse_pressed.emit(event)
         else:
