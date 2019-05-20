@@ -1,16 +1,19 @@
 /*
  *  /MathJax/jax/output/SVG/autoload/mglyph.js
- *  
- *  Copyright (c) 2012 Design Science, Inc.
  *
- *  Part of the MathJax library.
- *  See http://www.mathjax.org for details.
- * 
- *  Licensed under the Apache License, Version 2.0;
+ *  Copyright (c) 2009-2018 The MathJax Consortium
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 
-MathJax.Hub.Register.StartupHook("SVG Jax Ready",function(){var d="2.0";var a=MathJax.ElementJax.mml,e=MathJax.OutputJax.SVG,b=e.BBOX;var c="http://www.w3.org/1999/xlink";b.MGLYPH=b.Subclass({type:"image",removeable:false,Init:function(i,m,j,k,o,f){if(f==null){f={}}var g=i.width*1000/e.em,n=i.height*1000/e.em,l=0;if(m!==""){g=e.length2em(m,o,g)}if(j!==""){n=e.length2em(j,o,n)}if(k!==""&&k.match(/\d/)){l=e.length2em(k,o);f.y=-l}f.height=Math.floor(n);f.width=Math.floor(g);f.transform="translate(0,"+n+") matrix(1 0 0 -1 0 0)";f.preserveAspectRatio="none";this.SUPER(arguments).Init.call(this,f);this.element.setAttributeNS(c,"href",i.src);this.w=this.r=g;this.h=this.H=n+l;this.d=this.D=-l;this.l=0}});a.mglyph.Augment({toSVG:function(j,m){this.SVGgetStyles();var i=this.SVG(),h,k;this.SVGhandleSpace(i);var g=this.getValues("src","width","height","valign","alt");if(g.src===""){g=this.getValues("index","fontfamily");if(g.index){if(!m){m=this.SVGgetScale()}var l={};if(g.fontfamily){l["font-family"]=g.fontfamily}i.Add(b.TEXT(m,String.fromCharCode(g.index),l))}}else{if(!this.img){this.img=a.mglyph.GLYPH[g.src]}if(!this.img){this.img=a.mglyph.GLYPH[g.src]={img:new Image(),status:"pending"};h=this.img.img;h.onload=MathJax.Callback(["SVGimgLoaded",this]);h.onerror=MathJax.Callback(["SVGimgError",this]);h.src=g.src;MathJax.Hub.RestartAfter(h.onload)}if(this.img.status!=="OK"){k=a.merror("Bad mglyph: "+g.src).With({mathsize:"75%"});this.Append(k);i=k.toSVG();this.data.pop()}else{var f=this.SVGgetMu(i);i.Add(b.MGLYPH(this.img.img,g.width,g.height,g.valign,f,{src:g.src,alt:g.alt,title:g.alt}))}}i.Clean();this.SVGhandleColor(i);this.SVGsaveData(i);return i},SVGimgLoaded:function(g,f){if(typeof(g)==="string"){f=g}this.img.status=(f||"OK")},SVGimgError:function(){this.img.img.onload("error")}},{GLYPH:{}});MathJax.Hub.Startup.signal.Post("SVG mglyph Ready");MathJax.Ajax.loadComplete(e.autoloadDir+"/mglyph.js")});
-
+MathJax.Hub.Register.StartupHook("SVG Jax Ready",function(){var d="2.7.5";var a=MathJax.ElementJax.mml,f=MathJax.OutputJax.SVG,b=f.BBOX,e=MathJax.Localization;var c="http://www.w3.org/1999/xlink";b.MGLYPH=b.Subclass({type:"image",removeable:false,Init:function(j,o,k,l,r,g){if(g==null){g={}}var i=j.width*1000/f.em,p=j.height*1000/f.em;var q=i,n=p,m=0;if(o!==""){i=f.length2em(o,r,q);p=(q?i/q*n:0)}if(k!==""){p=f.length2em(k,r,n);if(o===""){i=(n?p/n*q:0)}}if(l!==""&&l.match(/\d/)){m=f.length2em(l,r);g.y=-m}g.height=Math.floor(p);g.width=Math.floor(i);g.transform="translate(0,"+p+") matrix(1 0 0 -1 0 0)";g.preserveAspectRatio="none";this.SUPER(arguments).Init.call(this,g);this.element.setAttributeNS(c,"href",j.SRC);this.w=this.r=i;this.h=this.H=p+m;this.d=this.D=-m;this.l=0}});a.mglyph.Augment({toSVG:function(k,n){this.SVGgetStyles();var j=this.SVG(),i,l;this.SVGhandleSpace(j);var h=this.getValues("src","width","height","valign","alt");if(h.src===""){h=this.getValues("index","fontfamily");if(h.index){if(!n){n=this.SVGgetScale()}var m={};if(h.fontfamily){m["font-family"]=h.fontfamily}j.Add(b.TEXT(n,String.fromCharCode(h.index),m))}}else{if(!this.img){this.img=a.mglyph.GLYPH[h.src]}if(!this.img){this.img=a.mglyph.GLYPH[h.src]={img:new Image(),status:"pending"};i=this.img.img;i.onload=MathJax.Callback(["SVGimgLoaded",this]);i.onerror=MathJax.Callback(["SVGimgError",this]);i.src=i.SRC=h.src;MathJax.Hub.RestartAfter(i.onload)}if(this.img.status!=="OK"){l=a.Error(e._(["MathML","BadMglyph"],"Bad mglyph: %1",h.src),{mathsize:"75%"});this.Append(l);j=l.toSVG();this.data.pop()}else{var g=this.SVGgetMu(j);j.Add(b.MGLYPH(this.img.img,h.width,h.height,h.valign,g,{alt:h.alt,title:h.alt}))}}j.Clean();this.SVGhandleColor(j);this.SVGsaveData(j);return j},SVGimgLoaded:function(h,g){if(typeof(h)==="string"){g=h}this.img.status=(g||"OK")},SVGimgError:function(){this.img.img.onload("error")}},{GLYPH:{}});MathJax.Hub.Startup.signal.Post("SVG mglyph Ready");MathJax.Ajax.loadComplete(f.autoloadDir+"/mglyph.js")});
