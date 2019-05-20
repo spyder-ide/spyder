@@ -26,9 +26,6 @@ if [ "$USE_CONDA" = "yes" ]; then
     # Install coveralls
     pip install -q coveralls
 
-    # Install pytest-lazy-fixture
-    pip install -q pytest-lazy-fixture
-
     # Install spyder-kernels from Github with no deps
     pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels
 else
