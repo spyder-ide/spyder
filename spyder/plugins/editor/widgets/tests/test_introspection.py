@@ -14,10 +14,8 @@ import random
 # Third party imports
 import pytest
 import pytestqt
-from flaky import flaky
 
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QToolTip
 
 # Local imports
 from spyder.py3compat import PY2
