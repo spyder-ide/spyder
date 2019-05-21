@@ -929,7 +929,7 @@ class LSPManagerConfigPage(GeneralConfigPage):
         # --- Advanced tab ---
         # Advanced label
         advanced_label = QLabel(
-            _("<b>Warning</b>: Please don't modify these values unless "
+            _("<b>Warning</b>: Only modify these values if "
               "you know what you're doing!"))
         advanced_label.setWordWrap(True)
         advanced_label.setAlignment(Qt.AlignJustify)
