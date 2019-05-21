@@ -110,7 +110,7 @@ class LSPServerEditor(QDialog):
     NON_EMPTY_REGEX = re.compile(r'^\S+$')
     JSON_VALID = _('Valid JSON')
     JSON_INVALID = _('Invalid JSON')
-    MIN_SIZE = QSize(800, 600)
+    MIN_SIZE = QSize(850, 600)
     INVALID_CSS = "QLineEdit {border: 1px solid red;}"
     VALID_CSS = "QLineEdit {border: 1px solid green;}"
 
@@ -120,33 +120,34 @@ class LSPServerEditor(QDialog):
         super(LSPServerEditor, self).__init__(parent)
 
         description = _(
-            'To create a new server configuration, you need to select a '
-            'programming language and the server hostname/IP and port to '
-            'use. If starting a local server, also provide the command to '
-            'execute it and any arguments that should be passed on startup.'
-            '<br><br>'
-            'You can use the placeholders <tt>{host}</tt> and '
-            '<tt>{port}</tt> in the server arguments field to '
-            'automatically fill in the respective values.<br>'
+            "To create a new server configuration, you need to select a "
+            "programming language, set the command to start its associated "
+            "server and enter any arguments that should be passed to it on "
+            "startup. Additionally, you can set the server's hostname and "
+            "port if connecting to an external server, "
+            "or to a local one using TCP instead of stdio pipes."
+            "<br><br>"
+            "<i>Note</i>: You can use the placeholders <tt>{host}</tt> and "
+            "<tt>{port}</tt> in the server arguments field to automatically "
+            "fill in the respective values.<br>"
         )
         self.parent = parent
         self.external = external
 
         # Widgets
         self.server_settings_description = QLabel(description)
-        self.lang_label = QLabel(_('Language:'))
         self.lang_cb = QComboBox(self)
         self.external_cb = QCheckBox(_('External server'), self)
         self.host_label = QLabel(_('Host:'))
         self.host_input = QLineEdit(self)
         self.port_label = QLabel(_('Port:'))
         self.port_spinner = QSpinBox(self)
-        self.cmd_label = QLabel(_('Command to start the server:'))
+        self.cmd_label = QLabel(_('Command:'))
         self.cmd_input = QLineEdit(self)
-        self.args_label = QLabel(_('Server arguments:'))
+        self.args_label = QLabel(_('Arguments:'))
         self.args_input = QLineEdit(self)
         self.json_label = QLabel(self.JSON_VALID, self)
-        self.conf_label = QLabel(_('LSP Server Configuration:'))
+        self.conf_label = QLabel(_('<b>Server Configuration:</b>'))
         self.conf_input = CodeEditor(None)
 
         self.bbox = QDialogButtonBox(QDialogButtonBox.Ok |
@@ -199,6 +200,7 @@ class LSPServerEditor(QDialog):
             auto_unindent=True,
             font=get_font(),
             filename='config.json',
+            folding=False
         )
         self.conf_input.set_language('json', 'config.json')
         self.conf_input.setToolTip(_('Additional LSP server configuration '
@@ -224,13 +226,23 @@ class LSPServerEditor(QDialog):
         general_vlayout.addWidget(self.server_settings_description)
 
         vlayout = QVBoxLayout()
-        lang_layout = QVBoxLayout()
-        lang_layout.addWidget(self.lang_label)
-        lang_layout.addWidget(self.lang_cb)
-        lang_layout.addWidget(self.external_cb)
-        lang_layout.addWidget(self.stdio_cb)
-        vlayout.addLayout(lang_layout)
 
+        lang_group = QGroupBox(_('Language'))
+        lang_layout = QVBoxLayout()
+        lang_layout.addWidget(self.lang_cb)
+        lang_group.setLayout(lang_layout)
+        vlayout.addWidget(lang_group)
+
+        server_group = QGroupBox(_('Language server'))
+        server_layout = QGridLayout()
+        server_layout.addWidget(self.cmd_label, 0, 0)
+        server_layout.addWidget(self.cmd_input, 0, 1)
+        server_layout.addWidget(self.args_label, 1, 0)
+        server_layout.addWidget(self.args_input, 1, 1)
+        server_group.setLayout(server_layout)
+        vlayout.addWidget(server_group)
+
+        address_group = QGroupBox(_('Server address'))
         host_layout = QVBoxLayout()
         host_layout.addWidget(self.host_label)
         host_layout.addWidget(self.host_input)
@@ -242,17 +254,15 @@ class LSPServerEditor(QDialog):
         conn_info_layout = QHBoxLayout()
         conn_info_layout.addLayout(host_layout)
         conn_info_layout.addLayout(port_layout)
-        vlayout.addLayout(conn_info_layout)
+        address_group.setLayout(conn_info_layout)
+        vlayout.addWidget(address_group)
 
-        cmd_layout = QVBoxLayout()
-        cmd_layout.addWidget(self.cmd_label)
-        cmd_layout.addWidget(self.cmd_input)
-        vlayout.addLayout(cmd_layout)
-
-        args_layout = QVBoxLayout()
-        args_layout.addWidget(self.args_label)
-        args_layout.addWidget(self.args_input)
-        vlayout.addLayout(args_layout)
+        advanced_group = QGroupBox(_('Advanced'))
+        advanced_layout = QVBoxLayout()
+        advanced_layout.addWidget(self.external_cb)
+        advanced_layout.addWidget(self.stdio_cb)
+        advanced_group.setLayout(advanced_layout)
+        vlayout.addWidget(advanced_group)
 
         conf_layout = QVBoxLayout()
         conf_layout.addWidget(self.conf_label)
@@ -260,7 +270,7 @@ class LSPServerEditor(QDialog):
         conf_layout.addWidget(self.json_label)
 
         vlayout.addStretch()
-        hlayout.addLayout(vlayout, 1)
+        hlayout.addLayout(vlayout, 2)
         hlayout.addLayout(conf_layout, 3)
         general_vlayout.addLayout(hlayout)
 
@@ -282,6 +292,10 @@ class LSPServerEditor(QDialog):
         if language is not None:
             self.form_status(True)
             self.validate()
+            if stdio:
+                self.set_stdio_options(True)
+            if external:
+                self.set_local_options(True)
 
     @Slot()
     def validate(self):
@@ -917,7 +931,7 @@ class LSPManagerConfigPage(GeneralConfigPage):
         # --- Advanced tab ---
         # Advanced label
         advanced_label = QLabel(
-            _("Please don't modify these values unless "
+            _("<b>Warning</b>: Only modify these values if "
               "you know what you're doing!"))
         advanced_label.setWordWrap(True)
         advanced_label.setAlignment(Qt.AlignJustify)
@@ -957,6 +971,7 @@ class LSPManagerConfigPage(GeneralConfigPage):
         advanced_widget = QWidget()
         advanced_layout = QVBoxLayout()
         advanced_layout.addWidget(advanced_label)
+        advanced_layout.addSpacing(12)
         advanced_layout.addLayout(advanced_g_layout)
         advanced_layout.addWidget(self.external_server)
         advanced_layout.addWidget(self.use_stdio)
