@@ -110,7 +110,7 @@ class LSPServerEditor(QDialog):
     NON_EMPTY_REGEX = re.compile(r'^\S+$')
     JSON_VALID = _('Valid JSON')
     JSON_INVALID = _('Invalid JSON')
-    MIN_SIZE = QSize(800, 600)
+    MIN_SIZE = QSize(850, 600)
     INVALID_CSS = "QLineEdit {border: 1px solid red;}"
     VALID_CSS = "QLineEdit {border: 1px solid green;}"
 
@@ -142,7 +142,9 @@ class LSPServerEditor(QDialog):
         self.host_input = QLineEdit(self)
         self.port_label = QLabel(_('Port:'))
         self.port_spinner = QSpinBox(self)
+        self.cmd_label = QLabel(_('Command:'))
         self.cmd_input = QLineEdit(self)
+        self.args_label = QLabel(_('Arguments:'))
         self.args_input = QLineEdit(self)
         self.json_label = QLabel(self.JSON_VALID, self)
         self.conf_label = QLabel(_('<b>Server Configuration:</b>'))
@@ -231,17 +233,14 @@ class LSPServerEditor(QDialog):
         lang_group.setLayout(lang_layout)
         vlayout.addWidget(lang_group)
 
-        cmd_group = QGroupBox(_('Command to execute'))
-        cmd_layout = QVBoxLayout()
-        cmd_layout.addWidget(self.cmd_input)
-        cmd_group.setLayout(cmd_layout)
-        vlayout.addWidget(cmd_group)
-
-        args_group = QGroupBox(_('Server arguments'))
-        args_layout = QVBoxLayout()
-        args_layout.addWidget(self.args_input)
-        args_group.setLayout(args_layout)
-        vlayout.addWidget(args_group)
+        server_group = QGroupBox(_('Server configuration'))
+        server_layout = QGridLayout()
+        server_layout.addWidget(self.cmd_label, 0, 0)
+        server_layout.addWidget(self.cmd_input, 0, 1)
+        server_layout.addWidget(self.args_label, 1, 0)
+        server_layout.addWidget(self.args_input, 1, 1)
+        server_group.setLayout(server_layout)
+        vlayout.addWidget(server_group)
 
         address_group = QGroupBox(_('Server address'))
         host_layout = QVBoxLayout()
@@ -271,7 +270,7 @@ class LSPServerEditor(QDialog):
         conf_layout.addWidget(self.json_label)
 
         vlayout.addStretch()
-        hlayout.addLayout(vlayout, 1)
+        hlayout.addLayout(vlayout, 2)
         hlayout.addLayout(conf_layout, 3)
         general_vlayout.addLayout(hlayout)
 
