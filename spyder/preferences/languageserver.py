@@ -121,7 +121,7 @@ class LSPServerEditor(QDialog):
 
         description = _(
             "To create a new server configuration, you need to select a "
-            "programming language, the command to start its associated "
+            "programming language, set the command to start its associated "
             "server and any arguments that should be passed to it on "
             "startup. Additionally, you can set the server's hostname and "
             "port, if using a tcp connection to it or you want to "
