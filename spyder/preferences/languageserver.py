@@ -50,7 +50,7 @@ class LSPServer(object):
     """Convenience class to store LSP Server configuration values."""
 
     def __init__(self, language=None, cmd='', host='127.0.0.1',
-                 port=2084, args='', external=False,
+                 port=2084, args='', external=False, stdio=False,
                  configurations={}):
         self.index = 0
         self.language = language
@@ -62,11 +62,15 @@ class LSPServer(object):
         self.port = port
         self.host = host
         self.external = external
+        self.stdio = stdio
 
     def __repr__(self):
         base_str = '[{0}] {1} {2} ({3}:{4})'
         fmt_args = [self.language, self.cmd, self.args,
                     self.host, self.port]
+        if self.stdio:
+            base_str = '[{0}] {1} {2}'
+            fmt_args = [self.language, self.cmd, self.args]
         if self.external:
             base_str = '[{0}] {1}:{2}'
             fmt_args = [self.language, self.host, self.port]
@@ -101,6 +105,7 @@ class LSPServerEditor(QDialog):
     DEFAULT_ARGS = ''
     DEFAULT_CONFIGURATION = '{}'
     DEFAULT_EXTERNAL = False
+    DEFAULT_STDIO = False
     HOST_REGEX = re.compile(r'^\w+([.]\w+)*$')
     NON_EMPTY_REGEX = re.compile(r'^\S+$')
     JSON_VALID = _('Valid JSON')
@@ -110,8 +115,8 @@ class LSPServerEditor(QDialog):
     VALID_CSS = "QLineEdit {border: 1px solid green;}"
 
     def __init__(self, parent, language=None, cmd='', host='127.0.0.1',
-                 port=2084, args='', external=False, configurations={},
-                 **kwargs):
+                 port=2084, args='', external=False, stdio=False,
+                 configurations={}, **kwargs):
         super(LSPServerEditor, self).__init__(parent)
 
         description = _(
@@ -208,6 +213,11 @@ class LSPServerEditor(QDialog):
             _('Check if the server runs on a remote location'))
         self.external_cb.setChecked(external)
 
+        self.stdio_cb = QCheckBox(_('Use stdio pipes for communication'), self)
+        self.stdio_cb.setToolTip(_('Check if the server communicates '
+                                   'using stdin/out pipes'))
+        self.stdio_cb.setChecked(stdio)
+
         # Layout setup
         hlayout = QHBoxLayout()
         general_vlayout = QVBoxLayout()
@@ -218,6 +228,7 @@ class LSPServerEditor(QDialog):
         lang_layout.addWidget(self.lang_label)
         lang_layout.addWidget(self.lang_cb)
         lang_layout.addWidget(self.external_cb)
+        lang_layout.addWidget(self.stdio_cb)
         vlayout.addLayout(lang_layout)
 
         host_layout = QVBoxLayout()
@@ -261,6 +272,7 @@ class LSPServerEditor(QDialog):
         if not external:
             self.cmd_input.textChanged.connect(lambda x: self.validate())
         self.external_cb.stateChanged.connect(self.set_local_options)
+        self.stdio_cb.stateChanged.connect(self.set_stdio_options)
         self.lang_cb.currentIndexChanged.connect(self.lang_selection_changed)
         self.conf_input.textChanged.connect(self.validate)
         self.bbox.accepted.connect(self.accept)
@@ -327,6 +339,7 @@ class LSPServerEditor(QDialog):
         self.host_input.setEnabled(status)
         self.port_spinner.setEnabled(status)
         self.external_cb.setEnabled(status)
+        self.stdio_cb.setEnabled(status)
         self.cmd_input.setEnabled(status)
         self.args_input.setEnabled(status)
         self.conf_input.setEnabled(status)
@@ -346,6 +359,7 @@ class LSPServerEditor(QDialog):
                 self.host_input.setText(server.host)
                 self.port_spinner.setValue(server.port)
                 self.external_cb.setChecked(server.external)
+                self.stdio_cb.setChecked(server.stdio)
                 self.cmd_input.setText(server.cmd)
                 self.args_input.setText(server.args)
                 self.conf_input.set_text(json.dumps(server.configurations))
@@ -360,6 +374,7 @@ class LSPServerEditor(QDialog):
         self.host_input.setText(self.DEFAULT_HOST)
         self.port_spinner.setValue(self.DEFAULT_PORT)
         self.external_cb.setChecked(self.DEFAULT_EXTERNAL)
+        self.stdio_cb.setChecked(self.DEFAULT_STDIO)
         self.cmd_input.setText(self.DEFAULT_CMD)
         self.args_input.setText(self.DEFAULT_ARGS)
         self.conf_input.set_text(self.DEFAULT_CONFIGURATION)
@@ -375,6 +390,41 @@ class LSPServerEditor(QDialog):
             self.cmd_input.setEnabled(False)
             self.cmd_input.setStyleSheet('')
             self.args_input.setEnabled(False)
+            self.stdio_cb.stateChanged.disconnect()
+            self.stdio_cb.setChecked(False)
+            self.stdio_cb.setEnabled(False)
+        else:
+            self.cmd_input.setEnabled(True)
+            self.args_input.setEnabled(True)
+            self.stdio_cb.setEnabled(True)
+            self.stdio_cb.setChecked(False)
+            self.stdio_cb.stateChanged.connect(self.set_stdio_options)
+        try:
+            self.validate()
+        except Exception:
+            pass
+
+    @Slot(bool)
+    @Slot(int)
+    def set_stdio_options(self, enabled):
+        self.stdio = enabled
+        if enabled:
+            self.cmd_input.setEnabled(True)
+            self.args_input.setEnabled(True)
+            self.external_cb.stateChanged.disconnect()
+            self.external_cb.setChecked(False)
+            self.external_cb.setEnabled(False)
+            self.host_input.setStyleSheet('')
+            self.host_input.setEnabled(False)
+            self.port_spinner.setEnabled(False)
+        else:
+            self.cmd_input.setEnabled(True)
+            self.args_input.setEnabled(True)
+            self.external_cb.setChecked(False)
+            self.external_cb.setEnabled(True)
+            self.external_cb.stateChanged.connect(self.set_local_options)
+            self.host_input.setEnabled(True)
+            self.port_spinner.setEnabled(True)
         try:
             self.validate()
         except Exception:
@@ -386,12 +436,13 @@ class LSPServerEditor(QDialog):
         host = self.host_input.text()
         port = int(self.port_spinner.value())
         external = self.external_cb.isChecked()
+        stdio = self.stdio_cb.isChecked()
         args = self.args_input.text()
         cmd = self.cmd_input.text()
         configurations = json.loads(self.conf_input.toPlainText())
         server = LSPServer(language=language.lower(), cmd=cmd, args=args,
                            host=host, port=port, external=external,
-                           configurations=configurations)
+                           stdio=stdio, configurations=configurations)
         return server
 
 
@@ -872,37 +923,43 @@ class LSPManagerConfigPage(GeneralConfigPage):
         advanced_label.setAlignment(Qt.AlignJustify)
 
         # Advanced options
-        advanced_command_launch = self.create_lineedit(
+        self.advanced_command_launch = self.create_lineedit(
             _("Command to launch the Python language server: "),
             'advanced/command_launch', alignment=Qt.Horizontal,
             word_wrap=False)
-        advanced_host = self.create_lineedit(
+        self.advanced_host = self.create_lineedit(
             _("IP Address and port to bind the server to: "),
             'advanced/host', alignment=Qt.Horizontal,
             word_wrap=False)
-        advanced_port = self.create_spinbox(
+        self.advanced_port = self.create_spinbox(
             ":", "", 'advanced/port', min_=1, max_=65535, step=1)
-        external_server = self.create_checkbox(
+        self.external_server = self.create_checkbox(
             _("This is an external server"),
             'advanced/external')
+        self.use_stdio = self.create_checkbox(
+            _("Use stdio pipes to communicate with server"),
+            'advanced/stdio')
+        self.use_stdio.stateChanged.connect(self.disable_tcp)
+        self.external_server.stateChanged.connect(self.disable_stdio)
 
         # Advanced layout
         advanced_g_layout = QGridLayout()
-        advanced_g_layout.addWidget(advanced_command_launch.label, 1, 0)
-        advanced_g_layout.addWidget(advanced_command_launch.textbox, 1, 1)
-        advanced_g_layout.addWidget(advanced_host.label, 2, 0)
+        advanced_g_layout.addWidget(self.advanced_command_launch.label, 1, 0)
+        advanced_g_layout.addWidget(self.advanced_command_launch.textbox, 1, 1)
+        advanced_g_layout.addWidget(self.advanced_host.label, 2, 0)
 
         advanced_host_port_g_layout = QGridLayout()
-        advanced_host_port_g_layout.addWidget(advanced_host.textbox, 1, 0)
-        advanced_host_port_g_layout.addWidget(advanced_port.plabel, 1, 1)
-        advanced_host_port_g_layout.addWidget(advanced_port.spinbox, 1, 2)
+        advanced_host_port_g_layout.addWidget(self.advanced_host.textbox, 1, 0)
+        advanced_host_port_g_layout.addWidget(self.advanced_port.plabel, 1, 1)
+        advanced_host_port_g_layout.addWidget(self.advanced_port.spinbox, 1, 2)
         advanced_g_layout.addLayout(advanced_host_port_g_layout, 2, 1)
 
         advanced_widget = QWidget()
         advanced_layout = QVBoxLayout()
         advanced_layout.addWidget(advanced_label)
         advanced_layout.addLayout(advanced_g_layout)
-        advanced_layout.addWidget(external_server)
+        advanced_layout.addWidget(self.external_server)
+        advanced_layout.addWidget(self.use_stdio)
         advanced_widget.setLayout(advanced_layout)
 
         # --- Other servers tab ---
@@ -971,6 +1028,40 @@ class LSPManagerConfigPage(GeneralConfigPage):
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)
         self.setLayout(vlayout)
+
+    def disable_tcp(self, state):
+        if state == Qt.Checked:
+            # self.advanced_command_launch.textbox.setEnabled(False)
+            self.advanced_host.textbox.setEnabled(False)
+            self.advanced_port.spinbox.setEnabled(False)
+            self.external_server.stateChanged.disconnect()
+            self.external_server.setChecked(False)
+            self.external_server.setEnabled(False)
+        else:
+            # self.advanced_command_launch.textbox.setEnabled(True)
+            self.advanced_host.textbox.setEnabled(True)
+            self.advanced_port.spinbox.setEnabled(True)
+            self.external_server.setChecked(False)
+            self.external_server.setEnabled(True)
+            self.external_server.stateChanged.connect(self.disable_stdio)
+
+    def disable_stdio(self, state):
+        if state == Qt.Checked:
+            # self.advanced_command_launch.textbox.setEnabled(False)
+            self.advanced_host.textbox.setEnabled(True)
+            self.advanced_port.spinbox.setEnabled(True)
+            self.advanced_command_launch.textbox.setEnabled(False)
+            self.use_stdio.stateChanged.disconnect()
+            self.use_stdio.setChecked(False)
+            self.use_stdio.setEnabled(False)
+        else:
+            # self.advanced_command_launch.textbox.setEnabled(True)
+            self.advanced_host.textbox.setEnabled(True)
+            self.advanced_port.spinbox.setEnabled(True)
+            self.advanced_command_launch.textbox.setEnabled(True)
+            self.use_stdio.setChecked(False)
+            self.use_stdio.setEnabled(True)
+            self.use_stdio.stateChanged.connect(self.disable_tcp)
 
     @Slot(str)
     def setup_docstring_style_convention(self, text):

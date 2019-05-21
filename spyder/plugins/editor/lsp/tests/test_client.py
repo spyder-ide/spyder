@@ -24,11 +24,13 @@ class LSPEditor(QObject):
         self.sig_response.emit(method, params)
 
 
-@pytest.fixture(scope='module')
-def lsp_client_and_editor(lsp_manager):
+@pytest.fixture(scope='module', params=[
+    pytest.lazy_fixture('lsp_manager'),
+    pytest.lazy_fixture('lsp_stdio_manager')])
+def lsp_client_and_editor(request):
     """Create an LSP client/editor pair."""
     editor = LSPEditor()
-    client = lsp_manager.clients['python']['instance']
+    client = request.param.clients['python']['instance']
     return client, editor
 
 

@@ -202,50 +202,6 @@ def main_window(request):
 # =============================================================================
 # ---- Tests
 # =============================================================================
-# IMPORTANT NOTE: Please leave this test to be the first one here to
-# avoid possible timeouts in Appveyor
-@pytest.mark.slow
-@pytest.mark.use_introspection
-@flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or not PY2,
-                    reason="Times out on AppVeyor and fails on PY3/PyQt 5.6")
-def test_calltip(main_window, qtbot):
-    """Test that the calltip in editor is hidden when matching ')' is found."""
-    # Load test file
-    text = 'a = [1,2,3]\n(max'
-    lsp_client = main_window.lspmanager.clients['python']['instance']
-    with qtbot.waitSignal(lsp_client.sig_initialize, timeout=30000):
-        main_window.editor.new(fname="test.py", text=text)
-    code_editor = main_window.editor.get_focus_widget()
-
-    # Set text to start
-    # with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
-    #     code_editor.set_text(text)
-    #     code_editor.document_did_change()
-    code_editor.set_text(text)
-    code_editor.go_to_line(2)
-    code_editor.move_cursor(4)
-    calltip = code_editor.calltip_widget
-    assert not calltip.isVisible()
-
-    with qtbot.waitSignal(code_editor.sig_signature_invoked, timeout=30000):
-        qtbot.keyPress(code_editor, Qt.Key_ParenLeft, delay=3000)
-        # qtbot.keyPress(code_editor, Qt.Key_A, delay=1000)
-
-    # qtbot.wait(1000)
-    # print(calltip.isVisible())
-    qtbot.waitUntil(lambda: calltip.isVisible(), timeout=3000)
-
-    qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
-    qtbot.keyPress(code_editor, Qt.Key_Space)
-    qtbot.waitUntil(lambda: not calltip.isVisible(), timeout=3000)
-    assert not QToolTip.isVisible()
-    qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
-    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
-
-    main_window.editor.close_file()
-
-
 @pytest.mark.slow
 def test_lock_action(main_window):
     """Test the lock interface action."""

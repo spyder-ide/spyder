@@ -225,7 +225,7 @@ install_requires = [
     # Pyls with all its dependencies
     'python-language-server[all]>=0.19.0,<0.25',
     # Required to get SSH connections to remote kernels
-    'pexpect;platform_system!="Windows"',
+    'pexpect',
     'paramiko;platform_system=="Windows"'
 ]
 
@@ -238,6 +238,7 @@ extras_require = {
              'pytest-cov',
              'pytest-xvfb',
              'pytest-ordering',
+             'pytest-lazy-fixture',
              'mock',
              'flaky',
              'pandas',
