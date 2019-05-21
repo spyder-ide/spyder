@@ -141,7 +141,7 @@ class LSPServerEditor(QDialog):
         self.host_input = QLineEdit(self)
         self.port_label = QLabel(_('Port:'))
         self.port_spinner = QSpinBox(self)
-        self.cmd_label = QLabel(_('Command to execute:'))
+        self.cmd_label = QLabel(_('Command to start the server:'))
         self.cmd_input = QLineEdit(self)
         self.args_label = QLabel(_('Server arguments:'))
         self.args_input = QLineEdit(self)
@@ -181,7 +181,7 @@ class LSPServerEditor(QDialog):
         self.port_spinner.setValue(port)
 
         self.cmd_input.setText(cmd)
-        self.cmd_input.setPlaceholderText('Command to start the server')
+        self.cmd_input.setPlaceholderText('/absolute/path/to/command')
 
         self.args_input.setToolTip(
             _('Additional arguments required to start the server'))
