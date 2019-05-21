@@ -233,7 +233,7 @@ class LSPServerEditor(QDialog):
         lang_group.setLayout(lang_layout)
         vlayout.addWidget(lang_group)
 
-        server_group = QGroupBox(_('Server configuration'))
+        server_group = QGroupBox(_('Language server'))
         server_layout = QGridLayout()
         server_layout.addWidget(self.cmd_label, 0, 0)
         server_layout.addWidget(self.cmd_input, 0, 1)
