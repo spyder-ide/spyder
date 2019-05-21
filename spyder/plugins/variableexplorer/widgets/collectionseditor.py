@@ -24,6 +24,7 @@ import datetime
 import gc
 import sys
 import warnings
+import re
 
 # Third party imports
 import cloudpickle
@@ -54,8 +55,10 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     mimedata2url)
+from spyder.utils.stringmatching import get_search_scores
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
+from spyder.preferences.shortcuts import CustomSortFilterProxy
 
 if ndarray is not FakeObject:
     from spyder.plugins.variableexplorer.widgets.arrayeditor import (
@@ -124,6 +127,8 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         QAbstractTableModel.__init__(self, parent)
         if data is None:
             data = {}
+        self._parent = parent
+        self.scores = []
         self.names = names
         self.minmax = minmax
         self.dataframe_format = dataframe_format
@@ -139,7 +144,12 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         self.sizes = []
         self.types = []
         self.set_data(data)
-        
+
+    def current_index(self):
+        """Get the currently selected index in the parent table view."""
+        i = self._parent.proxy_model.mapToSource(self._parent.currentIndex())
+        return i
+
     def get_data(self):
         """Return model data"""
         return self._data
@@ -253,7 +263,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
                 self.sizes.sort(reverse=reverse)
             except:
                 pass
-        elif column == 3:
+        elif column == 3 or column == 4:
             values = [self._data[key] for key in self.keys]
             self.keys = sort_against(self.keys, values, reverse)
             self.sizes = sort_against(self.sizes, values, reverse)
@@ -263,7 +273,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
 
     def columnCount(self, qindex=QModelIndex()):
         """Array column number"""
-        return 4
+        return 5
 
     def rowCount(self, index=QModelIndex()):
         """Array row number"""
@@ -322,11 +332,30 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             color.setAlphaF(.3)
         return color
 
+    def update_search_letters(self, text):
+        """Update search letters with text input in search box."""
+        self.letters = text
+        names = self.keys
+        results = get_search_scores(text, names, template='<b>{0}</b>')
+        self.normal_text, self.rich_text, self.scores = zip(*results)
+        self.reset()
+
+    def row(self, row_num):
+        """Get row based on model index. Needed for the custom proxy model."""
+        return self.keys[row_num]
+
     def data(self, index, role=Qt.DisplayRole):
         """Cell content"""
         if not index.isValid():
             return to_qvariant()
         value = self.get_value(index)
+        if index.column() == 4 and role == Qt.DisplayRole:
+            # TODO: Check the effect of not hidding the column
+            # Treating search scores as a table column simplifies the
+            # sorting once a score for a specific string in the finder
+            # has been defined. This column however should always remain
+            # hidden.
+            return to_qvariant(self.scores[index.row()])
         if index.column() == 3 and self.remote:
             value = value['view']
         if index.column() == 3:
@@ -360,7 +389,8 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             return to_qvariant()
         i_column = int(section)
         if orientation == Qt.Horizontal:
-            headers = (self.header0, _("Type"), _("Size"), _("Value"))
+            headers = (self.header0, _("Type"), _("Size"), _("Value"),
+                       _("Score"))
             return to_qvariant( headers[i_column] )
         else:
             return to_qvariant()
@@ -1547,7 +1577,17 @@ class RemoteCollectionsEditorTableView(BaseTableView):
                                       minmax=minmax,
                                       dataframe_format=dataframe_format,
                                       remote=True)
-        self.setModel(self.model)
+
+        self.proxy_model = CollectionsCustomSortFilterProxy(self)
+        self.last_regex = ''
+
+        self.proxy_model.setSourceModel(self.model)
+        self.proxy_model.setDynamicSortFilter(True)
+        self.proxy_model.setFilterKeyColumn(0)  # Col 0 for Name
+        self.proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
+        self.setModel(self.proxy_model)
+
+        self.hideColumn(4)  # COl 4 for Score
 
         self.delegate = RemoteCollectionsDelegate(self)
         self.delegate.sig_free_memory.connect(self.sig_free_memory.emit)
@@ -1556,7 +1596,41 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.setup_table()
         self.menu = self.setup_menu(minmax)
 
-    #------ Remote/local API --------------------------------------------------
+    # ------ Remote/local API -------------------------------------------------
+    # TODO: Check for refactor and use base for shortcuts
+    # (set_regex, next, prev)
+    def set_regex(self, regex=None, reset=False):
+        """Update the regex text for the shortcut finder."""
+        if reset:
+            text = ''
+        else:
+            text = self.finder.text().replace(' ', '').lower()
+
+        self.proxy_model.set_filter(text)
+        self.model.update_search_letters(text)
+        # TODO: Use constants for column numbers
+        self.sortByColumn(4, Qt.DescendingOrder)  # Col 4 for score
+
+        if self.last_regex != regex:
+            self.selectRow(0)
+        self.last_regex = regex
+
+    def next_row(self):
+        """Move to next row from currently selected row."""
+        row = self.currentIndex().row()
+        rows = self.proxy_model.rowCount()
+        if row + 1 == rows:
+            row = -1
+        self.selectRow(row + 1)
+
+    def previous_row(self):
+        """Move to previous row from currently selected row."""
+        row = self.currentIndex().row()
+        rows = self.proxy_model.rowCount()
+        if row == 0:
+            row = rows
+        self.selectRow(row - 1)
+
     def get_value(self, name):
         """Get the value of a variable"""
         value = self.shellwidget.get_value(name)
@@ -1664,6 +1738,28 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         """Setup context menu."""
         menu = BaseTableView.setup_menu(self, minmax)
         return menu
+
+
+class CollectionsCustomSortFilterProxy(CustomSortFilterProxy):
+    """
+    Custom column filter based on regex and model data.
+
+    Reimplements the filterAcceptsRow to follow NamespaceBrowser model.
+    """
+    def filterAcceptsRow(self, row_num, parent):
+        """
+        Qt override.
+
+        Reimplemented from base class to allow the use of custom filtering.
+        """
+        model = self.sourceModel()
+        name = model.row(row_num)
+        r = re.search(self.pattern, name)
+
+        if r is None:
+            return False
+        else:
+            return True
 
 
 # =============================================================================

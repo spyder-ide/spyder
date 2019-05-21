@@ -18,7 +18,8 @@ from qtpy.compat import getsavefilename, getopenfilenames
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QCursor
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QInputDialog, QMenu,
-                            QMessageBox, QToolButton, QVBoxLayout, QWidget)
+                            QMessageBox, QLabel, QToolButton, QVBoxLayout,
+                            QWidget)
 
 from spyder_kernels.utils.iofuncs import iofunctions
 from spyder_kernels.utils.misc import fix_reference_name
@@ -38,6 +39,7 @@ from spyder.utils.qthelpers import (add_actions, create_action,
 from spyder.plugins.variableexplorer.widgets.collectionseditor import (
     RemoteCollectionsEditorTableView)
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
+from spyder.preferences.shortcuts import ShortcutFinder
 
 
 SUPPORTED_TYPES = get_supported_types()
@@ -137,6 +139,17 @@ class NamespaceBrowser(QWidget):
         # Setup layout.
 
         layout = create_plugin_layout(self.tools_layout, self.editor)
+
+        # Fuzzy search layout
+        finder_layout = QHBoxLayout()
+        label_finder = QLabel(_("Search: "))
+        text_finder = NamespacesBrowserFinder(self.editor,
+                                              self.editor.set_regex)
+        self.editor.finder = text_finder
+        finder_layout.addWidget(label_finder)
+        finder_layout.addWidget(text_finder)
+        layout.addLayout(finder_layout)
+
         self.setLayout(layout)
 
         self.sig_option_changed.connect(self.option_changed)
@@ -383,3 +396,20 @@ class NamespaceBrowser(QWidget):
                     '<br><br>Error message:<br>') + error_message
             QMessageBox.critical(self, _("Save data"), save_data_message)
         self.save_button.setEnabled(self.filename is not None)
+
+
+class NamespacesBrowserFinder(ShortcutFinder):
+    """Textbox for filtering listed variables in the table."""
+    # TODO: Refactor to use base class for shortcuts and namespacebrowser
+    def keyPressEvent(self, event):
+        """Qt Override."""
+        key = event.key()
+        if key in [Qt.Key_Up]:
+            self._parent.previous_row()
+        elif key in [Qt.Key_Down]:
+            self._parent.next_row()
+        elif key in [Qt.Key_Enter, Qt.Key_Return]:
+            # TODO: Check if an editor needs to be shown
+            pass
+        else:
+            super(ShortcutFinder, self).keyPressEvent(event)
