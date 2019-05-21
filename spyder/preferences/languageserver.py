@@ -215,12 +215,10 @@ class LSPServerEditor(QDialog):
         self.external_cb.setToolTip(
             _('Check if the server runs on a remote location'))
         self.external_cb.setChecked(external)
-        # self.external_cb.stateChanged.connect(self.set_local_options)
 
         self.stdio_cb = QCheckBox(_('Use stdio pipes for communication'), self)
         self.stdio_cb.setToolTip(_('Check if the server communicates '
                                    'using stdin/out pipes'))
-        # self.stdio_cb.stateChanged.connect(self.set_stdio_options)
         self.stdio_cb.setChecked(stdio)
 
         # Layout setup
@@ -422,11 +420,9 @@ class LSPServerEditor(QDialog):
             self.host_input.setStyleSheet('')
             self.host_input.setEnabled(False)
             self.port_spinner.setEnabled(False)
-            # self.external_cb.stateChanged.connect(self.set_local_options)
         else:
             self.cmd_input.setEnabled(True)
             self.args_input.setEnabled(True)
-            # self.external_cb.stateChanged.disconnect()
             self.external_cb.setChecked(False)
             self.external_cb.setEnabled(True)
             self.external_cb.stateChanged.connect(self.set_local_options)
