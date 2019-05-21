@@ -135,9 +135,8 @@ else:
 #==============================================================================
 # Files added to the package
 #==============================================================================
-EXTLIST = ['.mo', '.svg', '.png', '.css', '.html', '.js', '.chm', '.ini',
-           '.txt', '.rst', '.qss', '.ttf', '.json', '.c', '.cpp', '.java',
-           '.md', '.R', '.csv', '.pyx', '.ipynb', '.xml']
+EXTLIST = ['.pot', '.po', '.mo', '.svg', '.png', '.css', '.html', '.js',
+           '.ini', '.txt', '.qss', '.ttf', '.json']
 if os.name == 'nt':
     SCRIPTS += ['spyder.bat']
     EXTLIST += ['.ico']
@@ -167,7 +166,7 @@ setup_args = dict(
     keywords='PyQt5 editor console widgets IDE science data analysis IPython',
     platforms=["Windows", "Linux", "Mac OS-X"],
     packages=get_packages(),
-      package_data={LIBNAME: get_package_data(LIBNAME, EXTLIST)},
+    package_data={LIBNAME: get_package_data(LIBNAME, EXTLIST)},
     scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
     data_files=get_data_files(),
     classifiers=['License :: OSI Approved :: MIT License',
