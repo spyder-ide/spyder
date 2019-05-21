@@ -120,14 +120,17 @@ class LSPServerEditor(QDialog):
         super(LSPServerEditor, self).__init__(parent)
 
         description = _(
-            'To create a new server configuration, you need to select a '
-            'programming language and the server hostname/IP and port to '
-            'use. If starting a local server, also provide the command to '
-            'execute it and any arguments that should be passed on startup.'
-            '<br><br>'
-            'You can use the placeholders <tt>{host}</tt> and '
-            '<tt>{port}</tt> in the server arguments field to '
-            'automatically fill in the respective values.<br>'
+            "To create a new server configuration, you need to select a "
+            "programming language, the command to start its associated "
+            "server and any arguments that should be passed to it on "
+            "startup. Additionally, you can set the server's hostname and "
+            "port, if using a tcp connection to it or you want to "
+            "connect to an external server, or decide to use pipes for "
+            "communication instead."
+            "<br><br>"
+            "<i>Note</i>: You can use the placeholders <tt>{host}</tt> and "
+            "<tt>{port}</tt> in the server arguments field to automatically "
+            "fill in the respective values.<br>"
         )
         self.parent = parent
         self.external = external
