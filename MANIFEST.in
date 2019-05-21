@@ -1,6 +1,3 @@
-recursive-exclude spyder */tests/*.*
-recursive-exclude spyder */tests/*/*.*
-recursive-exclude spyder/tests *
 include scripts/*
 include img_src/*.ico
 include img_src/spyder.png

@@ -66,9 +66,11 @@ def get_package_data(name, extlist):
     # Workaround to replace os.path.relpath (not available until Python 2.6):
     offset = len(name)+len(os.pathsep)
     for dirpath, _dirnames, filenames in os.walk(name):
-        for fname in filenames:
-            if not fname.startswith('.') and osp.splitext(fname)[1] in extlist:
-                flist.append(osp.join(dirpath, fname)[offset:])
+        if 'tests' not in dirpath:
+            for fname in filenames:
+                if (not fname.startswith('.') and
+                        osp.splitext(fname)[1] in extlist):
+                    flist.append(osp.join(dirpath, fname)[offset:])
     return flist
 
 
@@ -76,8 +78,9 @@ def get_subpackages(name):
     """Return subpackages of package *name*"""
     splist = []
     for dirpath, _dirnames, _filenames in os.walk(name):
-        if osp.isfile(osp.join(dirpath, '__init__.py')):
-            splist.append(".".join(dirpath.split(os.sep)))
+        if 'tests' not in dirpath:
+            if osp.isfile(osp.join(dirpath, '__init__.py')):
+                splist.append(".".join(dirpath.split(os.sep)))
     return splist
 
 
@@ -101,7 +104,7 @@ def get_data_files():
 
 def get_packages():
     """Return package list"""
-    packages = (get_subpackages(LIBNAME))
+    packages = get_subpackages(LIBNAME)
     return packages
 
 
