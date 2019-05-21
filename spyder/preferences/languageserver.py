@@ -292,6 +292,10 @@ class LSPServerEditor(QDialog):
         if language is not None:
             self.form_status(True)
             self.validate()
+            if stdio:
+                self.set_stdio_options(True)
+            if external:
+                self.set_local_options(True)
 
     @Slot()
     def validate(self):
