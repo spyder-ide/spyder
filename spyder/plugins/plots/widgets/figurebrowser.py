@@ -430,6 +430,10 @@ class FigureViewer(QScrollArea):
                 return True
             else:
                 return False
+        
+        # ---- Scaling
+        elif event.type() == QEvent.Paint and self.auto_fit_plotting:
+            self.scale_image()
 
         # ---- Panning
         # Set ClosedHandCursor:
