@@ -137,19 +137,16 @@ class LSPServerEditor(QDialog):
 
         # Widgets
         self.server_settings_description = QLabel(description)
-        self.lang_label = QLabel(_('Language:'))
         self.lang_cb = QComboBox(self)
         self.external_cb = QCheckBox(_('External server'), self)
         self.host_label = QLabel(_('Host:'))
         self.host_input = QLineEdit(self)
         self.port_label = QLabel(_('Port:'))
         self.port_spinner = QSpinBox(self)
-        self.cmd_label = QLabel(_('Command to start the server:'))
         self.cmd_input = QLineEdit(self)
-        self.args_label = QLabel(_('Server arguments:'))
         self.args_input = QLineEdit(self)
         self.json_label = QLabel(self.JSON_VALID, self)
-        self.conf_label = QLabel(_('LSP Server Configuration:'))
+        self.conf_label = QLabel(_('<b>Server Configuration:</b>'))
         self.conf_input = CodeEditor(None)
 
         self.bbox = QDialogButtonBox(QDialogButtonBox.Ok |
@@ -202,6 +199,7 @@ class LSPServerEditor(QDialog):
             auto_unindent=True,
             font=get_font(),
             filename='config.json',
+            folding=False
         )
         self.conf_input.set_language('json', 'config.json')
         self.conf_input.setToolTip(_('Additional LSP server configuration '
@@ -227,13 +225,26 @@ class LSPServerEditor(QDialog):
         general_vlayout.addWidget(self.server_settings_description)
 
         vlayout = QVBoxLayout()
-        lang_layout = QVBoxLayout()
-        lang_layout.addWidget(self.lang_label)
-        lang_layout.addWidget(self.lang_cb)
-        lang_layout.addWidget(self.external_cb)
-        lang_layout.addWidget(self.stdio_cb)
-        vlayout.addLayout(lang_layout)
 
+        lang_group = QGroupBox(_('Language'))
+        lang_layout = QVBoxLayout()
+        lang_layout.addWidget(self.lang_cb)
+        lang_group.setLayout(lang_layout)
+        vlayout.addWidget(lang_group)
+
+        cmd_group = QGroupBox(_('Command to execute'))
+        cmd_layout = QVBoxLayout()
+        cmd_layout.addWidget(self.cmd_input)
+        cmd_group.setLayout(cmd_layout)
+        vlayout.addWidget(cmd_group)
+
+        args_group = QGroupBox(_('Server arguments'))
+        args_layout = QVBoxLayout()
+        args_layout.addWidget(self.args_input)
+        args_group.setLayout(args_layout)
+        vlayout.addWidget(args_group)
+
+        address_group = QGroupBox(_('Server address'))
         host_layout = QVBoxLayout()
         host_layout.addWidget(self.host_label)
         host_layout.addWidget(self.host_input)
@@ -245,17 +256,15 @@ class LSPServerEditor(QDialog):
         conn_info_layout = QHBoxLayout()
         conn_info_layout.addLayout(host_layout)
         conn_info_layout.addLayout(port_layout)
-        vlayout.addLayout(conn_info_layout)
+        address_group.setLayout(conn_info_layout)
+        vlayout.addWidget(address_group)
 
-        cmd_layout = QVBoxLayout()
-        cmd_layout.addWidget(self.cmd_label)
-        cmd_layout.addWidget(self.cmd_input)
-        vlayout.addLayout(cmd_layout)
-
-        args_layout = QVBoxLayout()
-        args_layout.addWidget(self.args_label)
-        args_layout.addWidget(self.args_input)
-        vlayout.addLayout(args_layout)
+        advanced_group = QGroupBox(_('Advanced'))
+        advanced_layout = QVBoxLayout()
+        advanced_layout.addWidget(self.external_cb)
+        advanced_layout.addWidget(self.stdio_cb)
+        advanced_group.setLayout(advanced_layout)
+        vlayout.addWidget(advanced_group)
 
         conf_layout = QVBoxLayout()
         conf_layout.addWidget(self.conf_label)
