@@ -929,7 +929,7 @@ class LSPManagerConfigPage(GeneralConfigPage):
         # --- Advanced tab ---
         # Advanced label
         advanced_label = QLabel(
-            _("Please don't modify these values unless "
+            _("<b>Warning</b>: Please don't modify these values unless "
               "you know what you're doing!"))
         advanced_label.setWordWrap(True)
         advanced_label.setAlignment(Qt.AlignJustify)
@@ -969,6 +969,7 @@ class LSPManagerConfigPage(GeneralConfigPage):
         advanced_widget = QWidget()
         advanced_layout = QVBoxLayout()
         advanced_layout.addWidget(advanced_label)
+        advanced_layout.addSpacing(12)
         advanced_layout.addLayout(advanced_g_layout)
         advanced_layout.addWidget(self.external_server)
         advanced_layout.addWidget(self.use_stdio)
