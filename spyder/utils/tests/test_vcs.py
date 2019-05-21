@@ -54,6 +54,7 @@ def test_get_git_refs():
     assert len(files_modified) >= 0
     assert any(['master' in b for b in braches_tags])
 
+
 def test_vcs_state(tmpdir):
     """Test the vcs state of a directory and subdirectories."""
     test_dir = os.getcwd()

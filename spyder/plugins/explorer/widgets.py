@@ -195,6 +195,8 @@ class ColorModel(QFileSystemModel):
         if not self.use_vcs:
             return
         if root_path is None:
+            if self.root_path is None:
+                return
             self.vcs_state = vcs.get_vcs_status(self.root_path)
         elif osp.isfile(root_path):
             # root_path is a file -> add the new state to vcs_state
@@ -1339,10 +1341,10 @@ class ExplorerTreeWidget(DirView):
 
         self.menu = None
         self.common_actions = None
-
+        
         # Enable drag events
         self.setDragEnabled(True)
-        
+
     #---- Context menu
     def setup_common_actions(self):
         """Setup context menu common actions"""

@@ -118,8 +118,9 @@ def test_project_vcs_color(project_explorer, qtbot):
         tree.fsmodel.on_project_loaded()
     with qtbot.waitSignal(tree.fsmodel.layoutChanged, raising=False):
         open(files[0], 'w').close()
-    ind0 = tree.fsmodel.index(tree.fsmodel.rootPath()).child(0, 0)
-    qtbot.waitUntil(lambda: tree.fsmodel.index(0, 0, ind0) is not None)
+    qtbot.waitSignal(tree.fsmodel.vcs_state_timer.timeout)
+    qtbot.waitSignal(tree.fsmodel.vcs_state_timer.timeout)
+    qtbot.wait(1000)
     for n in range(5):
         file_index = tree.fsmodel.index("file{0}.py".format(n), 0)
         assert file_index.data(Qt.TextColorRole).name() == pcolors[n].name()
