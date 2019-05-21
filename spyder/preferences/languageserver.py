@@ -176,7 +176,7 @@ class LSPServerEditor(QDialog):
         self.port_spinner.setValue(port)
 
         self.cmd_input.setText(cmd)
-        self.cmd_input.setPlaceholderText('/absolute/path/to/command')
+        self.cmd_input.setPlaceholderText('Command to start the server')
 
         self.args_input.setToolTip(
             _('Additional arguments required to start the server'))
