@@ -397,12 +397,25 @@ class FigureViewer(QScrollArea):
         self._sfmax = 10
         self._sfmin = -10
 
+        self.setup_figcanvas()
         self.auto_fit_plotting = False
 
         # An internal flag that tracks when the figure is being panned.
         self._ispanning = False
 
-        self.setup_figcanvas()
+    @property
+    def auto_fit_plotting(self):
+        return self._auto_fit_plotting
+
+    @auto_fit_plotting.setter
+    def auto_fit_plotting(self, value):
+        self._auto_fit_plotting = value
+        if value:
+            self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+            self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        else:
+            self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+            self.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
 
     def setup_figcanvas(self):
         """Setup the FigureCanvas."""
