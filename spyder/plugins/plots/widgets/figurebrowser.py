@@ -497,10 +497,13 @@ class FigureViewer(QScrollArea):
         # Scale the image to fit figviewer size while respect the ratio
         else:
             size = self.size()
-            scrollbar_width = self.verticalScrollBar().sizeHint().width()
-            width = size.width() - scrollbar_width
-            scrollbar_height = self.horizontalScrollBar().sizeHint().height()
-            height = size.height() - scrollbar_height
+            style = self.style()
+            width = (size.width() -
+                     style.pixelMetric(QStyle.PM_LayoutLeftMargin) -
+                     style.pixelMetric(QStyle.PM_LayoutRightMargin))
+            height = (size.height() -
+                      style.pixelMetric(QStyle.PM_LayoutTopMargin) -
+                      style.pixelMetric(QStyle.PM_LayoutBottomMargin))
             if (fwidth / fheight) > (width / height):
                 new_width = int(width)
                 new_height = int(width / fwidth * fheight)
