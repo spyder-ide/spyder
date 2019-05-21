@@ -141,7 +141,7 @@ class LSPServerEditor(QDialog):
         self.host_input = QLineEdit(self)
         self.port_label = QLabel(_('Port:'))
         self.port_spinner = QSpinBox(self)
-        self.cmd_label = QLabel(_('Command to execute:'))
+        self.cmd_label = QLabel(_('Command to start the server:'))
         self.cmd_input = QLineEdit(self)
         self.args_label = QLabel(_('Server arguments:'))
         self.args_input = QLineEdit(self)
@@ -163,10 +163,7 @@ class LSPServerEditor(QDialog):
         self.lang_cb.setToolTip(
             _('Programming language provided by the LSP server'))
         self.lang_cb.addItem(_('Select a language'))
-        languages = LSP_LANGUAGES[:]
-        # Even if users add a new Python config there, we will not use it
-        languages.remove('Python')
-        self.lang_cb.addItems(languages)
+        self.lang_cb.addItems(LSP_LANGUAGES)
 
         self.button_ok.setEnabled(False)
         if language is not None:
