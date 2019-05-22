@@ -14,6 +14,9 @@ from qtpy.QtCore import Qt, QPoint
 from qtpy.QtGui import QTextCursor
 import pytest
 
+# Local imports
+from spyder.plugins.editor.widgets.tests.test_codeeditor import editorbot
+
 # Constants
 TEST_FOLDER = os.path.abspath(os.path.dirname(__file__))
 _, TEMPFILE_PATH = tempfile.mkstemp()
@@ -33,9 +36,9 @@ TEST_FILE_TEXT = '"file://{}"\n'.format(TEMPFILE_PATH)
             ('# mailto:goanpeca@gmail.com\n', 'mailto:goanpeca@gmail.com'),
         ]
     )
-def test_goto_uri(qtbot, code_editor_bot, params):
+def test_goto_uri(qtbot, editorbot, params):
     """Test that the uri search is working correctly."""
-    code_editor, _ = code_editor_bot
+    _, code_editor = editorbot
     code_editor.show()
 
     param, expected_output_text = params
