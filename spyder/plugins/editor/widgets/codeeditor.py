@@ -836,7 +836,7 @@ class CodeEditor(TextEditBaseWidget):
         self.formatting_characters.append(
             range_formatting_options['firstTriggerCharacter'])
         self.formatting_characters += (
-            range_formatting_options['moreTriggerCharacter'])
+            range_formatting_options.get('moreTriggerCharacter', []))
 
     @request(method=LSPRequestTypes.DOCUMENT_DID_OPEN, requires_response=False)
     def document_did_open(self):
