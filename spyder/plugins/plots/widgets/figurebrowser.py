@@ -17,7 +17,7 @@ import os.path as osp
 # ---- Third library imports
 from qtconsole.svg import svg_to_image, svg_to_clipboard
 from qtpy.compat import getsavefilename, getexistingdirectory
-from qtpy.QtCore import Qt, Signal, QRect, QEvent, QPoint, QTimer, Slot
+from qtpy.QtCore import Qt, Signal, QRect, QEvent, QPoint, QSize, QTimer, Slot
 from qtpy.QtGui import QPixmap, QPainter, QKeySequence
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu,
                             QVBoxLayout, QWidget, QGridLayout, QFrame,
@@ -121,11 +121,6 @@ class FigureBrowser(QWidget):
         self.thumbnails_sb = ThumbnailScrollBar(
             self.figviewer, background_color=self.background_color)
 
-        # Option actions :
-        self.setup_option_actions(mute_inline_plotting,
-                                  show_plot_outline,
-                                  auto_fit_plotting)
-
         # Create the layout :
         main_widget = QSplitter()
         main_widget.addWidget(self.figviewer)
@@ -141,6 +136,11 @@ class FigureBrowser(QWidget):
 
         layout = create_plugin_layout(self.tools_layout, main_widget)
         self.setLayout(layout)
+
+        # Option actions :
+        self.setup_option_actions(mute_inline_plotting,
+                                  show_plot_outline,
+                                  auto_fit_plotting)
 
     def setup_toolbar(self):
         """Setup the toolbar"""
@@ -188,12 +188,12 @@ class FigureBrowser(QWidget):
         vsep2 = QFrame()
         vsep2.setFrameStyle(53)
 
-        zoom_out_btn = create_toolbutton(
+        self.zoom_out_btn = create_toolbutton(
                 self, icon=ima.icon('zoom_out'),
                 tip=_("Zoom out (Ctrl + mouse-wheel-down)"),
                 triggered=self.zoom_out)
 
-        zoom_in_btn = create_toolbutton(
+        self.zoom_in_btn = create_toolbutton(
                 self, icon=ima.icon('zoom_in'),
                 tip=_("Zoom in (Ctrl + mouse-wheel-up)"),
                 triggered=self.zoom_in)
@@ -211,8 +211,8 @@ class FigureBrowser(QWidget):
         layout = QHBoxLayout(zoom_pan)
         layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(zoom_out_btn)
-        layout.addWidget(zoom_in_btn)
+        layout.addWidget(self.zoom_out_btn)
+        layout.addWidget(self.zoom_in_btn)
         layout.addWidget(self.zoom_disp)
 
         return [savefig_btn, saveall_btn, copyfig_btn, closefig_btn,
@@ -311,6 +311,8 @@ class FigureBrowser(QWidget):
         """Change the auto_fit_plotting option and scale images."""
         self.option_changed('auto_fit_plotting', state)
         self.figviewer.auto_fit_plotting = state
+        self.zoom_out_btn.setEnabled(not state)
+        self.zoom_in_btn.setEnabled(not state)
 
     def set_shellwidget(self, shellwidget):
         """Bind the shellwidget instance to the figure browser"""
