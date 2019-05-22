@@ -120,15 +120,19 @@ class FigureBrowser(QWidget):
                                      "}")
         self.thumbnails_sb = ThumbnailScrollBar(
             self.figviewer, background_color=self.background_color)
+        
+        toolbar = self.setup_toolbar()
+        self.setup_option_actions(mute_inline_plotting,
+                                  show_plot_outline,
+                                  auto_fit_plotting)
 
-        # Create the layout :
+        # Create the layout.
         main_widget = QSplitter()
         main_widget.addWidget(self.figviewer)
         main_widget.addWidget(self.thumbnails_sb)
         main_widget.setFrameStyle(QScrollArea().frameStyle())
 
         self.tools_layout = QHBoxLayout()
-        toolbar = self.setup_toolbar()
         for widget in toolbar:
             self.tools_layout.addWidget(widget)
         self.tools_layout.addStretch()
@@ -136,11 +140,6 @@ class FigureBrowser(QWidget):
 
         layout = create_plugin_layout(self.tools_layout, main_widget)
         self.setLayout(layout)
-
-        # Option actions :
-        self.setup_option_actions(mute_inline_plotting,
-                                  show_plot_outline,
-                                  auto_fit_plotting)
 
     def setup_toolbar(self):
         """Setup the toolbar"""
