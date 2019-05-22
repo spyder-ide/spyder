@@ -7,11 +7,6 @@
 import json
 import os.path as osp
 
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from mock import Mock  # Python 2
-
 import pytest
 from qtpy.QtCore import QObject, Signal
 from diff_match_patch import diff_match_patch
@@ -28,6 +23,19 @@ extension_map = {
     'html': 'HTML', 'java': 'Java', 'jl': 'Julia', 'md': 'Markdown',
     'py': 'Python', 'R': 'R'
 }
+
+TEST_FILE = """
+# This is a test file
+a = 2
+"""
+
+TEST_FILE_UPDATE = """
+# This is a test file
+a = 2
+
+def func(args):
+    pass
+"""
 
 
 class CodeEditorMock(QObject):
@@ -74,11 +82,8 @@ def fallback_fixture(qtbot_module, request):
 
 def test_file_open_close(qtbot_module, fallback_fixture):
     fallback, editor, diff_match = fallback_fixture
-    test_file = """
-    # This is a test file
-    a = 2
-    """
-    diff = diff_match.patch_make('', test_file)
+
+    diff = diff_match.patch_make('', TEST_FILE)
     open_request = {
         'file': 'test.py',
         'type': 'update',
@@ -134,5 +139,53 @@ def test_tokenize(qtbot_module, fallback_fixture, file_fixture):
         fallback.mailbox.put(tokens_request)
     tokens = blocker.args
     tokens = {token['insertText'] for token in tokens[0]}
-    print(expected_tokens - tokens)
     assert len(tokens | expected_tokens) == len(tokens)
+
+
+def test_token_update(qtbot_module, fallback_fixture):
+    fallback, editor, diff_match = fallback_fixture
+
+    diff = diff_match.patch_make('', TEST_FILE)
+    open_request = {
+        'file': 'test.py',
+        'type': 'update',
+        'editor': editor,
+        'msg': {
+            'language': 'python',
+            'diff': diff
+        }
+    }
+
+    fallback.mailbox.put(open_request)
+    qtbot_module.wait(1000)
+    tokens_request = {
+        'file': 'test.py',
+        'type': 'retrieve',
+        'editor': editor,
+        'msg': None
+    }
+    with qtbot_module.waitSignal(editor.sig_recv_tokens,
+                                 timeout=3000) as blocker:
+        fallback.mailbox.put(tokens_request)
+    initial_tokens = blocker.args[0]
+    initial_tokens = {token['insertText'] for token in initial_tokens}
+    assert 'args' not in initial_tokens
+
+    diff = diff_match.patch_make(TEST_FILE, TEST_FILE_UPDATE)
+    update_request = {
+        'file': 'test.py',
+        'type': 'update',
+        'editor': editor,
+        'msg': {
+            'language': 'python',
+            'diff': diff
+        }
+    }
+    fallback.mailbox.put(update_request)
+    qtbot_module.wait(1000)
+    with qtbot_module.waitSignal(editor.sig_recv_tokens,
+                                 timeout=3000) as blocker:
+        fallback.mailbox.put(tokens_request)
+    updated_tokens = blocker.args[0]
+    updated_tokens = {token['insertText'] for token in updated_tokens}
+    assert 'args' in updated_tokens
