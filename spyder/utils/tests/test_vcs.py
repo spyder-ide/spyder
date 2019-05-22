@@ -47,10 +47,14 @@ def test_git_revision():
 
 
 def test_get_git_refs():
-    braches_tags, branch, files_modified = get_git_refs(__file__)
+    branch_tags, branch, files_modified = get_git_refs(__file__)
     assert bool(branch)  # This must always return a branch_name
     assert len(files_modified) >= 0
-    assert any(['master' in b for b in braches_tags])
+
+    # It seems when Travis run tests on tags, master doesn't
+    # appear among the list of git branches.
+    if not os.environ.get('TRAVIS_TAG'):
+        assert any(['master' in b for b in branch_tags])
 
 
 if __name__ == "__main__":

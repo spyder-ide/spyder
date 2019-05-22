@@ -21,8 +21,8 @@ if DEV:
 LSP_LANGUAGES = [
     'C#', 'CSS/LESS/SASS', 'Go', 'GraphQL', 'Groovy', 'Haxe', 'HTML',
     'Java', 'JavaScript', 'JSON', 'Julia', 'OCaml', 'PHP',
-    'Python', 'Rust', 'Scala', 'Swift', 'TypeScript', 'Erlang',
-    'Fortran'
+    'Rust', 'Scala', 'Swift', 'TypeScript', 'Erlang', 'Fortran',
+    'Elixir'
 ]
 
 # -------------------- CLIENT CONFIGURATION SETTINGS --------------------------
