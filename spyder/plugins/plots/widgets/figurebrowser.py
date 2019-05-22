@@ -439,7 +439,7 @@ class FigureViewer(QScrollArea):
         """A filter to control the zooming and panning of the figure canvas."""
 
         # ---- Zooming
-        if event.type() == QEvent.Wheel:
+        if event.type() == QEvent.Wheel and not self.auto_fit_plotting:
             modifiers = QApplication.keyboardModifiers()
             if modifiers == Qt.ControlModifier:
                 if event.angleDelta().y() > 0:
