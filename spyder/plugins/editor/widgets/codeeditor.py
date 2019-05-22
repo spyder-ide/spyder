@@ -230,6 +230,8 @@ class CodeEditor(TextEditBaseWidget):
     sig_bookmarks_changed = Signal()
     get_completions = Signal(bool)
     go_to_definition = Signal(str, int, int)
+    sig_go_to_uri = Signal(str)  # Used for testing
+    sig_uri_found = Signal(str)  # Used for testing
     sig_show_object_info = Signal(int)
     sig_run_selection = Signal()
     sig_run_cell_and_advance = Signal()
@@ -1442,8 +1444,14 @@ class CodeEditor(TextEditBaseWidget):
 
     def calculate_real_position(self, point):
         """Add offset to a point, to take into account the panels."""
-        point.setX(point.x()+self.panels.margin_size(Panel.Position.LEFT))
-        point.setY(point.y()+self.panels.margin_size(Panel.Position.TOP))
+        point.setX(point.x() + self.panels.margin_size(Panel.Position.LEFT))
+        point.setY(point.y() + self.panels.margin_size(Panel.Position.TOP))
+        return point
+
+    def calculate_real_position_from_global(self, point):
+        """Add offset to a point, to take into account the panels."""
+        point.setX(point.x() - self.panels.margin_size(Panel.Position.LEFT))
+        point.setY(point.y() + self.panels.margin_size(Panel.Position.TOP))
         return point
 
     def get_linenumber_from_mouse_event(self, event):
@@ -2937,6 +2945,7 @@ class CodeEditor(TextEditBaseWidget):
         """Override Qt method."""
         self.sig_key_released.emit(event)
         self.timer_syntax_highlight.start()
+        self.clear_extra_selections('ctrl_click')
         self._last_hover_uri = None
         super(CodeEditor, self).keyReleaseEvent(event)
         event.ignore()
@@ -2957,6 +2966,10 @@ class CodeEditor(TextEditBaseWidget):
 
         key = event.key()
         text = to_text_string(event.text())
+        has_selection = self.has_selected_text()
+        ctrl = event.modifiers() & Qt.ControlModifier
+        shift = event.modifiers() & Qt.ShiftModifier
+
         if text:
             self.__clear_occurrences()
         if QToolTip.isVisible():
@@ -2969,16 +2982,19 @@ class CodeEditor(TextEditBaseWidget):
         if key in [Qt.Key_Control, Qt.Key_Shift, Qt.Key_Alt,
                    Qt.Key_Meta, Qt.KeypadModifier]:
             # The user pressed only a modifier key.
-            if Qt.Key_Control:
-                # Handle goto and uris
-                # Check if goto or check if uri and handle accordingly
-                pass
+            if ctrl:
+                pos = self.mapFromGlobal(QCursor.pos())
+                pos = self.calculate_real_position_from_global(pos)
+                if self._handle_goto_uri_event(pos):
+                    event.accept()
+                    return
+
+                if self._handle_goto_definition_event(pos):
+                    event.accept()
+                    return
             return
 
         # ---- Handle hard coded and builtin actions
-        has_selection = self.has_selected_text()
-        ctrl = event.modifiers() & Qt.ControlModifier
-        shift = event.modifiers() & Qt.ShiftModifier
         operators = {'+', '-', '*', '**', '/', '//', '%', '@', '<<', '>>',
                      '&', '|', '^', '~', '<', '>', '<=', '>=', '==', '!='}
         delimiters = {',', ':', ';', '@', '=', '->', '+=', '-=', '*=', '/=',
@@ -3116,12 +3132,60 @@ class CodeEditor(TextEditBaseWidget):
         if isinstance(self.highlighter, sh.PygmentsSH):
             self.highlighter.make_charlist()
 
+    def _handle_goto_definition_event(self, pos):
+        """"""
+        text = self.get_word_at(pos)
+        if (text and not sourcecode.is_keyword(to_text_string(text))):
+            if not self.__cursor_changed:
+                QApplication.setOverrideCursor(
+                                            QCursor(Qt.PointingHandCursor))
+                self.__cursor_changed = True
+            cursor = self.cursorForPosition(pos)
+            cursor.select(QTextCursor.WordUnderCursor)
+            self.clear_extra_selections('ctrl_click')
+            self.__highlight_selection(
+                'ctrl_click', cursor, update=True,
+                foreground_color=self.ctrl_click_color,
+                underline_color=self.ctrl_click_color,
+                underline_style=QTextCharFormat.SingleUnderline)
+            return True
+        else:
+            return False
+
+    def _handle_goto_uri_event(self, pos):
+        """"""
+        uri, cursor = self.get_uri_at(pos)
+        if uri and cursor:
+            color = self.ctrl_click_color
+
+            if uri.startswith('file://'):
+                fname = uri.replace('file://', '')
+                if not osp.isfile(fname):
+                    color = QColor('red')
+
+            self.clear_extra_selections('ctrl_click')
+            self.__highlight_selection(
+                'ctrl_click', cursor, update=True,
+                foreground_color=color,
+                underline_color=color,
+                underline_style=QTextCharFormat.SingleUnderline)
+            if not self.__cursor_changed:
+                QApplication.setOverrideCursor(
+                    QCursor(Qt.PointingHandCursor))
+                self.__cursor_changed = True
+            self._last_hover_uri = uri
+            self.sig_uri_found.emit(uri)
+            return True
+        else:
+            self._last_hover_uri = uri
+            return False
+
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""
         # Restart timer every time the mouse is moved
         # This is needed to correctly handle hover hints with a delay
         self._timer_mouse_moving.start()
-        # https://google.com
+
         pos = event.pos()
         self._last_point = pos
         alt = event.modifiers() & Qt.AltModifier
@@ -3134,50 +3198,16 @@ class CodeEditor(TextEditBaseWidget):
             return
 
         if ctrl:
-            uri, cursor = self.get_uri_at(pos)
-            if uri and cursor:
-                color = self.ctrl_click_color
-
-                if uri.startswith('file://'):
-                    fname = uri.replace('file://', '')
-                    if not osp.isfile(fname):
-                        color = QColor('red')
-
-                self.clear_extra_selections('ctrl_click')
-                self.__highlight_selection(
-                    'ctrl_click', cursor, update=True,
-                    foreground_color=color,
-                    underline_color=color,
-                    underline_style=QTextCharFormat.SingleUnderline)
-                if not self.__cursor_changed:
-                    QApplication.setOverrideCursor(
-                        QCursor(Qt.PointingHandCursor))
-                    self.__cursor_changed = True
-                self._last_hover_uri = uri
+            if self._handle_goto_uri_event(pos):
                 event.accept()
                 return
-            else:
-                self._last_hover_uri = uri
 
         if self.has_selected_text():
             TextEditBaseWidget.mouseMoveEvent(self, event)
             return
 
         if self.go_to_definition_enabled and ctrl:
-            text = self.get_word_at(pos)
-            if (text and not sourcecode.is_keyword(to_text_string(text))):
-                if not self.__cursor_changed:
-                    QApplication.setOverrideCursor(
-                                                QCursor(Qt.PointingHandCursor))
-                    self.__cursor_changed = True
-                cursor = self.cursorForPosition(pos)
-                cursor.select(QTextCursor.WordUnderCursor)
-                self.clear_extra_selections('ctrl_click')
-                self.__highlight_selection(
-                    'ctrl_click', cursor, update=True,
-                    foreground_color=self.ctrl_click_color,
-                    underline_color=self.ctrl_click_color,
-                    underline_style=QTextCharFormat.SingleUnderline)
+            if self._handle_goto_definition_event(pos):
                 event.accept()
                 return
 
@@ -3226,6 +3256,7 @@ class CodeEditor(TextEditBaseWidget):
         if event.button() == Qt.LeftButton and ctrl:
             TextEditBaseWidget.mousePressEvent(self, event)
             cursor = self.cursorForPosition(pos)
+
             if self._last_hover_uri:
                 uri = self._last_hover_uri
                 if uri.startswith('file://'):
@@ -3240,6 +3271,7 @@ class CodeEditor(TextEditBaseWidget):
                 else:
                     quri = QUrl(uri)
                     QDesktopServices.openUrl(quri)
+                self.sig_go_to_uri.emit(uri)
             else:
                 self.go_to_definition_from_cursor(cursor)
         elif event.button() == Qt.LeftButton and alt:

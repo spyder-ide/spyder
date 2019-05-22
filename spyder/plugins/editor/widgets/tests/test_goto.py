@@ -6,7 +6,8 @@
 """Tests for editor URI and mailto go to handling."""
 
 # Standard library imports
-import sys
+import os
+import tempfile
 
 # Third party imports
 from qtpy.QtCore import Qt, QPoint
@@ -14,93 +15,52 @@ from qtpy.QtGui import QTextCursor
 import pytest
 
 # Constants
-PY2 = sys.version[0] == '2'
-TEST_SIG = 'some_function(hello=None)'
-TEST_DOCSTRING = "This is the test docstring."
-TEST_TEXT = """'''Testing something'''
-def {SIG}:
-    '''{DOC}'''
+TEST_FOLDER = os.path.abspath(os.path.dirname(__file__))
+_, TEMPFILE_PATH = tempfile.mkstemp()
+TEST_FILE_TEXT = '"file://{}"\n'.format(TEMPFILE_PATH)
 
 
-some_function""".format(SIG=TEST_SIG, DOC=TEST_DOCSTRING)
-
-
-@pytest.mark.slow
-@pytest.mark.second
+# @pytest.mark.slow
+# @pytest.mark.second
 @pytest.mark.parametrize('params', [
-            # Parameter, Expected Output
-            ('dict', 'dict'),
-            ('type', 'type'),
-            (TEST_TEXT, TEST_SIG)
+            # Parameter, Expected output
+            # --------------------------
+            # Urls
+            ('" https://google.com"\n', 'https://google.com'),  # String
+            ('# https://google.com"\n', 'https://google.com'),  # Comment
+            # Files that exist
+            (TEST_FILE_TEXT, TEMPFILE_PATH),  # File without spaces
+            # Mail to
+            ('" mailto:goanpeca@gmail.com"\n', 'mailto:goanpeca@gmail.com'),
+            ('# mailto:goanpeca@gmail.com\n', 'mailto:goanpeca@gmail.com'),
         ]
     )
-def test_get_calltips(qtbot, lsp_codeeditor, params):
-    """Test that the editor is returning hints."""
+def test_goto_uri(qtbot, lsp_codeeditor, params):
+    """Test that the uri search is working correctly."""
     code_editor, _ = lsp_codeeditor
 
     param, expected_output_text = params
 
     # Set text in editor
     code_editor.set_text(param)
+
+    # Get cursor coordinates
+    code_editor.moveCursor(QTextCursor.Start)
+    x, y = code_editor.get_coordinates('cursor')
+
+    # The `+ 23` is to put the mouse on top of the word
+    point = code_editor.calculate_real_position(QPoint(x + 23, y))
 
     # Move cursor to end of line
     code_editor.moveCursor(QTextCursor.End)
 
-    code_editor.calltip_widget.hide()
-    with qtbot.waitSignal(code_editor.sig_signature_invoked,
-                          timeout=30000) as blocker:
-        qtbot.keyPress(code_editor, Qt.Key_ParenLeft, delay=1000)
+    # Move mouse cursor on top of test word
+    qtbot.mouseMove(code_editor, point, delay=500)
 
-        # This is needed to leave time for the calltip to appear
-        # and make the tests succeed
-        qtbot.wait(2000)
-
+    with qtbot.waitSignal(code_editor.sig_uri_found, timeout=3000) as blocker:
+        qtbot.keyPress(code_editor, Qt.Key_Control, delay=500)
         args = blocker.args
-        print('args:', [args])
-        output_text = args[0]['signatures']['label']
-        assert expected_output_text in output_text
-        code_editor.calltip_widget.hide()
-
-
-@pytest.mark.slow
-@pytest.mark.second
-@pytest.mark.parametrize('params', [
-            # Parameter, Expected Output
-            ('dict', '' if PY2 else 'dict'),
-            ('type', 'type'),
-            ('import math', 'module'),
-            (TEST_TEXT, TEST_DOCSTRING)
-        ]
-    )
-def test_get_hints(qtbot, lsp_codeeditor, params):
-    """Test that the editor is returning hover hints."""
-    code_editor, _ = lsp_codeeditor
-    param, expected_output_text = params
-
-    # Set text in editor
-    code_editor.set_text(param)
-
-    # Moe cursor to end of line
-    code_editor.moveCursor(QTextCursor.End)
-
-    # Get cursor coordinates
-    x, y = code_editor.get_coordinates('cursor')
-    # The `- 5` is to put the mouse on top of the word
-    point = code_editor.calculate_real_position(QPoint(x - 5, y))
-
-    code_editor.tooltip_widget.hide()
-    with qtbot.waitSignal(code_editor.sig_display_object_info,
-                          timeout=30000) as blocker:
-        cursor = code_editor.cursorForPosition(point)
-        line, col = cursor.blockNumber(), cursor.columnNumber()
-        code_editor.request_hover(line, col)
-
-        # This is needed to leave time for the tooltip to appear
-        # and make the tests succeed
-        qtbot.wait(2000)
-
-        args = blocker.args
-        print('args:', [args])
+        print(param, expected_output_text)
+        print([args])
         output_text = args[0]
         assert expected_output_text in output_text
-        code_editor.tooltip_widget.hide()

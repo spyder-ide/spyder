@@ -1338,6 +1338,3 @@ class BrowseHistoryMixin(object):
     def reset_search_pos(self):
         """Reset the position from which to search the history"""
         self.histidx = None
-
-# Lunes 14-16
-# Lunes 16-18
