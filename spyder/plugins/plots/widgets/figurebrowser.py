@@ -492,7 +492,6 @@ class FigureViewer(QScrollArea):
             self._scalefactor += 1
             self.scale_image()
             self._adjust_scrollbar(self._scalestep)
-            self.sig_zoom_changed.emit(self.get_scaling())
 
     def zoom_out(self):
         """Scale the image down by one scale step."""
@@ -500,7 +499,6 @@ class FigureViewer(QScrollArea):
             self._scalefactor -= 1
             self.scale_image()
             self._adjust_scrollbar(1/self._scalestep)
-            self.sig_zoom_changed.emit(self.get_scaling())
 
     def scale_image(self):
         """Scale the image size."""
@@ -532,6 +530,7 @@ class FigureViewer(QScrollArea):
 
         if self.figcanvas.size() != QSize(new_width, new_height):
             self.figcanvas.setFixedSize(new_width, new_height)
+            self.sig_zoom_changed.emit(self.get_scaling())
 
     def get_scaling(self):
         """Get the current scaling of the figure in percent."""
