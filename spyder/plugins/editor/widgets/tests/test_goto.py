@@ -20,8 +20,8 @@ _, TEMPFILE_PATH = tempfile.mkstemp()
 TEST_FILE_TEXT = '"file://{}"\n'.format(TEMPFILE_PATH)
 
 
-# @pytest.mark.slow
-# @pytest.mark.second
+@pytest.mark.slow
+@pytest.mark.second
 @pytest.mark.parametrize('params', [
             # Parameter, Expected output
             # --------------------------

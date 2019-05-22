@@ -3133,7 +3133,7 @@ class CodeEditor(TextEditBaseWidget):
             self.highlighter.make_charlist()
 
     def _handle_goto_definition_event(self, pos):
-        """"""
+        """Check if goto definition can be applied and apply highlight."""
         text = self.get_word_at(pos)
         if (text and not sourcecode.is_keyword(to_text_string(text))):
             if not self.__cursor_changed:
@@ -3153,7 +3153,7 @@ class CodeEditor(TextEditBaseWidget):
             return False
 
     def _handle_goto_uri_event(self, pos):
-        """"""
+        """Check if go to uri can be applied and apply highlight."""
         uri, cursor = self.get_uri_at(pos)
         if uri and cursor:
             color = self.ctrl_click_color

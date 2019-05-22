@@ -849,7 +849,7 @@ class BaseEditMixin(object):
         return word
 
     def get_uri_at(self, coordinates):
-        """"""
+        """Return uri and cursor for if uri found at coordinates."""
         return self.get_pattern_cursor_at(URI_PATTERNS, coordinates)
 
     def get_pattern_cursor_at(self, pattern, coordinates):
