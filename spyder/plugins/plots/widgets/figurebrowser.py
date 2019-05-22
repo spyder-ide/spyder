@@ -536,7 +536,7 @@ class FigureViewer(QScrollArea):
 
     def get_scaling(self):
         """Get the current scaling of the figure in percent."""
-        return self._scalestep**self._scalefactor*100
+        return self.figcanvas.size().width() / self.figcanvas.fwidth * 100
 
     def reset_original_image(self):
         """Reset the image to its original size."""
