@@ -524,10 +524,25 @@ class CodeEditor(TextEditBaseWidget):
         ignore_chars = ['(', ')', '.']
 
         if self._should_display_hover(pos):
+            uri, cursor = self.get_uri_at(pos)
             text = self.get_word_at(pos)
+            if uri:
+                ctrl_text = ' Cmd' if sys.platform == "darwin" else ' Ctrl'
+
+                if uri.startswith('file://'):
+                    hint_text = ctrl_text + ' + click to open file \n'
+                elif uri.startswith('mailto:'):
+                    hint_text = ctrl_text + ' + click to send email \n'
+                elif uri.startswith('http'):
+                    hint_text = ctrl_text + ' + click to open url \n'
+                else:
+                    hint_text = ctrl_text + ' + click to open \n'
+
+                self.show_tooltip(text=hint_text, at_point=pos)
+                return
+
             cursor = self.cursorForPosition(pos)
             line, col = cursor.blockNumber(), cursor.columnNumber()
-
             self._last_point = pos
             if text and self._last_hover_word != text:
                 if all(char not in text for char in ignore_chars):

@@ -262,16 +262,16 @@ class BaseSH(QSyntaxHighlighter):
         raise NotImplementedError()
 
     def highlight_uris(self, text, offset=0):
-        """Highlight URI and mailto: patterns"""
-        # match = URL_PATTERN.search(text, offset)
-        # while match:
-        #     start, end = match.span()
-        #     start = max([0, start+offset])
-        #     end = max([0, end+offset])
-        #     font = QTextCharFormat(self.formats['string'])
-        #     font.setUnderlineStyle(True)
-        #     self.setFormat(start, end - start, font)
-        #     match = URL_PATTERN.search(text, end)
+        """Highlight URI and mailto: patterns."""
+        match = URI_PATTERNS.search(text, offset)
+        while match:
+            start, end = match.span()
+            start = max([0, start+offset])
+            end = max([0, end+offset])
+            font = self.format(start)
+            font.setUnderlineStyle(True)
+            self.setFormat(start, end - start, font)
+            match = URI_PATTERNS.search(text, end)
 
     def highlight_spaces(self, text, offset=0):
         """
