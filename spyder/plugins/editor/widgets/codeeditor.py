@@ -230,8 +230,6 @@ class CodeEditor(TextEditBaseWidget):
     sig_bookmarks_changed = Signal()
     get_completions = Signal(bool)
     go_to_definition = Signal(str, int, int)
-    sig_go_to_uri = Signal(str)  # Used for testing
-    sig_uri_found = Signal(str)  # Used for testing
     sig_show_object_info = Signal(int)
     sig_run_selection = Signal()
     sig_run_cell_and_advance = Signal()
@@ -285,6 +283,14 @@ class CodeEditor(TextEditBaseWidget):
 
     #: Signal emmited when processing code analysis warnings is finished
     sig_process_code_analysis = Signal()
+
+    # Used for testing. When the mouse moves with Ctrl/Cmd pressed and
+    # a URI is found, this signal is emmited
+    sig_uri_found = Signal(str)
+
+    # Used for testing. When the mouse moves with Ctrl/Cmd pressed and
+    # a URI and the mouse left button is pressed, this signal is emmited
+    sig_go_to_uri = Signal(str)
 
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
@@ -642,7 +648,7 @@ class CodeEditor(TextEditBaseWidget):
         """Set as clone editor"""
         self.setDocument(editor.document())
         self.document_id = editor.get_document_id()
-        self.highlighter = editor.highlighter
+        self.highlightter = editor.highlighter
         self.eol_chars = editor.eol_chars
         self._apply_highlighter_color_scheme()
 
@@ -3147,13 +3153,53 @@ class CodeEditor(TextEditBaseWidget):
         if isinstance(self.highlighter, sh.PygmentsSH):
             self.highlighter.make_charlist()
 
+    def get_uri_at(self, coordinates):
+        """Return uri and cursor for if uri found at coordinates."""
+        return self.get_pattern_cursor_at(sh.URI_PATTERNS, coordinates)
+
+    def get_pattern_cursor_at(self, pattern, coordinates):
+        """
+        Find pattern located at the line where the coordinate is located.
+
+        This returns the actual match and the cursor that selects the text.
+        """
+        # Check if the pattern is in line
+        line = self.get_line_at(coordinates)
+        match = pattern.search(line)
+        uri = None
+        cursor = None
+
+        while match:
+            start, end = match.span()
+
+            # Get cursor selection if pattern found
+            cursor = self.cursorForPosition(coordinates)
+            cursor.movePosition(QTextCursor.StartOfBlock)
+            line_start_position = cursor.position()
+
+            cursor.setPosition(line_start_position + start, cursor.MoveAnchor)
+            start_rect = self.cursorRect(cursor)
+            cursor.setPosition(line_start_position + end, cursor.MoveAnchor)
+            end_rect = self.cursorRect(cursor)
+            bounding_rect = start_rect.united(end_rect)
+
+            # Check if coordinates are located within the selection rect
+            if bounding_rect.contains(coordinates):
+                uri = line[start:end]
+                cursor.setPosition(line_start_position + start,
+                                   cursor.KeepAnchor)
+                break
+            else:
+                match = pattern.search(line, end)
+
+        return uri, cursor
+
     def _handle_goto_definition_event(self, pos):
         """Check if goto definition can be applied and apply highlight."""
         text = self.get_word_at(pos)
-        if (text and not sourcecode.is_keyword(to_text_string(text))):
+        if text and not sourcecode.is_keyword(to_text_string(text)):
             if not self.__cursor_changed:
-                QApplication.setOverrideCursor(
-                                            QCursor(Qt.PointingHandCursor))
+                QApplication.setOverrideCursor(QCursor(Qt.PointingHandCursor))
                 self.__cursor_changed = True
             cursor = self.cursorForPosition(pos)
             cursor.select(QTextCursor.WordUnderCursor)
@@ -3176,7 +3222,7 @@ class CodeEditor(TextEditBaseWidget):
             if uri.startswith('file://'):
                 fname = uri.replace('file://', '')
                 if not osp.isfile(fname):
-                    color = QColor('red')
+                    color = QColor(255, 80, 80)
 
             self.clear_extra_selections('ctrl_click')
             self.__highlight_selection(

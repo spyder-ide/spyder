@@ -20,8 +20,6 @@ _, TEMPFILE_PATH = tempfile.mkstemp()
 TEST_FILE_TEXT = '"file://{}"\n'.format(TEMPFILE_PATH)
 
 
-@pytest.mark.slow
-@pytest.mark.second
 @pytest.mark.parametrize('params', [
             # Parameter, Expected output
             # --------------------------
@@ -35,9 +33,10 @@ TEST_FILE_TEXT = '"file://{}"\n'.format(TEMPFILE_PATH)
             ('# mailto:goanpeca@gmail.com\n', 'mailto:goanpeca@gmail.com'),
         ]
     )
-def test_goto_uri(qtbot, lsp_codeeditor, params):
+def test_goto_uri(qtbot, code_editor_bot, params):
     """Test that the uri search is working correctly."""
-    code_editor, _ = lsp_codeeditor
+    code_editor, _ = code_editor_bot
+    code_editor.show()
 
     param, expected_output_text = params
 

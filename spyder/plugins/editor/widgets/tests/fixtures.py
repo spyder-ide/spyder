@@ -19,9 +19,29 @@ import pytest
 from qtpy.QtGui import QFont
 
 # Local imports
+from spyder import version_info
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editor import EditorStack
 from spyder.widgets.findreplace import FindReplace
+
+
+@pytest.fixture
+def code_editor_bot(qtbot):
+    """Create code editor with default Python code."""
+    editor = CodeEditor(parent=None)
+    indent_chars = ' ' * 4
+    tab_stop_width_spaces = 4
+    editor.setup_editor(language='Python', indent_chars=indent_chars,
+                        tab_stop_width_spaces=tab_stop_width_spaces)
+    # Mock the screen updates and signal emits to test when they've been
+    # called.
+    editor.linenumberarea = Mock()
+    if version_info > (4, ):
+        editor.sig_flags_changed = Mock()
+    else:
+        editor.get_linenumberarea_width = Mock(return_value=1)
+    editor.breakpoints_changed = Mock()
+    return editor, qtbot
 
 
 @pytest.fixture
