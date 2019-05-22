@@ -22,9 +22,9 @@ Collections (i.e. dictionary, list, set and tuple) editor widget and dialog.
 from __future__ import print_function
 import datetime
 import gc
+import re
 import sys
 import warnings
-import re
 
 # Third party imports
 import cloudpickle
@@ -201,6 +201,10 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             self.rows_loaded = self.total_rows
         self.sig_setting_data.emit()
         self.set_size_and_type()
+        if len(self.keys):
+            # Needed to update search scores when
+            # adding values to the namespace
+            self.update_search_letters()
         self.reset()
 
     def set_size_and_type(self, start=None, stop=None):
@@ -332,7 +336,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             color.setAlphaF(.3)
         return color
 
-    def update_search_letters(self, text):
+    def update_search_letters(self, text=""):
         """Update search letters with text input in search box."""
         self.letters = text
         names = self.keys
