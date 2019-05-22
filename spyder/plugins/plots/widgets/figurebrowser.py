@@ -405,10 +405,16 @@ class FigureViewer(QScrollArea):
 
     @property
     def auto_fit_plotting(self):
+        """
+        Return whether to automatically fit the plot to the scroll area size.
+        """
         return self._auto_fit_plotting
 
     @auto_fit_plotting.setter
     def auto_fit_plotting(self, value):
+        """
+        Set whether to automatically fit the plot to the scroll area size.
+        """
         self._auto_fit_plotting = value
         if value:
             self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -443,7 +449,7 @@ class FigureViewer(QScrollArea):
                 return True
             else:
                 return False
-        
+
         # ---- Scaling
         elif event.type() == QEvent.Paint and self.auto_fit_plotting:
             self.scale_image()
