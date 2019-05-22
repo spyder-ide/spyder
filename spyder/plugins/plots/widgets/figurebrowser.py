@@ -529,7 +529,9 @@ class FigureViewer(QScrollArea):
             else:
                 new_height = int(height)
                 new_width = int(height / fheight * fwidth)
-        self.figcanvas.setFixedSize(new_width, new_height)
+
+        if self.figcanvas.size() != QSize(new_width, new_height):
+            self.figcanvas.setFixedSize(new_width, new_height)
 
     def get_scaling(self):
         """Get the current scaling of the figure in percent."""
