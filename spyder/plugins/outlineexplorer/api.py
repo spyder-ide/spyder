@@ -22,14 +22,19 @@ outlineexplorer.set_current_editor(oe_proxy, update=True, clear=False)
 
 outlineexplorer.edit_goto.connect(handle_go_to)
 """
+from qtpy.QtCore import Signal, QObject
 
 
-class OutlineExplorerProxy(object):
+class OutlineExplorerProxy(QObject):
     """
     Proxy class between editors and OutlineExplorerWidget.
     """
 
+    sig_cursor_position_changed = Signal(int, int)
+    sig_outline_explorer_data_changed = Signal()
+
     def __init__(self):
+        super(OutlineExplorerProxy, self).__init__()
         self.fname = None
 
     def is_python(self):
@@ -58,9 +63,13 @@ class OutlineExplorerProxy(object):
         """Return the number of lines of the editor (int)."""
         raise NotImplementedError
 
-    def parent():
+    def parent(self):
         """This is used for diferenciate editors in multi-window mode."""
         return None
+
+    def get_cursor_line_number(self):
+        """Return the cursor line number."""
+        raise NotImplementedError
 
 
 class OutlineExplorerData(object):

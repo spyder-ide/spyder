@@ -33,6 +33,7 @@ oe_data = [
 
 class OutlineExplorerProxyTest(OutlineExplorerProxy):
     def __init__(self, fname, oe_data):
+        super(OutlineExplorerProxyTest, self).__init__()
         self.fname = fname
         self.oe_data = oe_data
 
@@ -57,6 +58,9 @@ class OutlineExplorerProxyTest(OutlineExplorerProxy):
 
     def parent(self):
         return None
+
+    def get_cursor_line_number(self):
+        return 1
 
 
 def click_item(treewidget, item, qtbot):
