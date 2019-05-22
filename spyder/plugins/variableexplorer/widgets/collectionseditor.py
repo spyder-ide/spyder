@@ -1587,7 +1587,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.setModel(self.proxy_model)
 
-        self.hideColumn(4)  # COl 4 for Score
+        self.hideColumn(4)  # Column 4 for Score
 
         self.delegate = RemoteCollectionsDelegate(self)
         self.delegate.sig_free_memory.connect(self.sig_free_memory.emit)
