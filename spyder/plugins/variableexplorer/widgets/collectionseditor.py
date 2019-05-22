@@ -263,7 +263,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
                 self.sizes.sort(reverse=reverse)
             except:
                 pass
-        elif column == 3 or column == 4:
+        elif column in [3, 4]:
             values = [self._data[key] for key in self.keys]
             self.keys = sort_against(self.keys, values, reverse)
             self.sizes = sort_against(self.sizes, values, reverse)
