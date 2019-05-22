@@ -26,6 +26,23 @@ from pygments.lexers import (get_lexer_for_filename, get_lexer_by_name,
 from pygments.token import Token
 
 
+# CamelCase and snake_case regex:
+# Get all valid tokens that start by a letter (Unicode) and are
+# followed by a sequence of letters, numbers or underscores of length > 0
+all_regex = re.compile(r'[^\W\d_]\w+')
+
+# CamelCase, snake_case and kebab-case regex:
+# Same as above, but it also considers words separated by "-"
+kebab_regex = re.compile(r'[^\W\d_]\w+[-\w]*')
+
+LANGUAGE_REGEX = {
+    'css': kebab_regex,
+    'scss': kebab_regex,
+    'html': kebab_regex,
+    'xml': kebab_regex
+}
+
+
 class CodeInfo(object):
 
     id_regex = re.compile(r'[^\d\W][\w\.]*', re.UNICODE)
@@ -217,32 +234,16 @@ def get_keywords(lexer):
     return keywords
 
 
-def get_words(file_path=None, content=None, extension=None):
+def get_words(text, language=None):
     """
     Extract all words from a source code file to be used in code completion.
 
     Extract the list of words that contains the file in the editor,
     to carry out the inline completion similar to VSCode.
     """
-    if (file_path is None and (content is None or extension is None) or
-            file_path and content and extension):
-        error_msg = ('Must provide `file_path` or `content` and `extension`')
-        raise Exception(error_msg)
-
-    if file_path and content is None and extension is None:
-        extension = os.path.splitext(file_path)[1]
-        with open(file_path) as infile:
-            content = infile.read()
-
-    if extension in ['.css']:
-        regex = re.compile(r'([^a-zA-Z-])')
-    elif extension in ['.R', '.c', '.md', '.cpp', '.java', '.py']:
-        regex = re.compile(r'([^a-zA-Z_])')
-    else:
-        regex = re.compile(r'([^a-zA-Z])')
-
-    words = sorted(set(regex.sub(r' ', content).split()))
-    return words
+    regex = LANGUAGE_REGEX.get(language.lower(), all_regex)
+    tokens = list({x for x in regex.findall(text) if x != ''})
+    return tokens
 
 
 @memoize

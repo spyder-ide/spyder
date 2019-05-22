@@ -20,35 +20,19 @@ from queue import Queue
 from qtpy.QtCore import QThread, QMutex, QMutexLocker, Signal
 
 # Other imports
+import pygments
 from pygments.lexers import get_lexer_by_name
 from diff_match_patch import diff_match_patch
 
 # Local imports
 from spyder.plugins.editor.lsp import CompletionItemKind
-from spyder.plugins.editor.fallback.utils import get_keywords
+from spyder.plugins.editor.fallback.utils import get_keywords, get_words
 
 
 logger = logging.getLogger(__name__)
 
-# CamelCase and snake_case regex:
-# Get all valid tokens that start by a letter (Unicode) and are
-# followed by a sequence of letters, numbers or underscores of length > 0
-all_regex = re.compile(r'[^\W\d_]\w+')
-
-# CamelCase, snake_case and kebab-case regex:
-# Same as above, but it also considers words separated by "-"
-kebab_regex = re.compile(r'[^\W\d_]\w+[-\w]*')
-
 
 class FallbackActor(QThread):
-    # Set of languages that allow kebab-case
-    LANGUAGE_REGEX = {
-        'css': kebab_regex,
-        'scss': kebab_regex,
-        'html': kebab_regex,
-        'xml': kebab_regex
-    }
-
     #: Signal emitted when the Thread is ready
     sig_fallback_ready = Signal()
 
@@ -62,8 +46,11 @@ class FallbackActor(QThread):
         self.diff_patch = diff_match_patch()
 
     def tokenize(self, text, language):
-        lexer = get_lexer_by_name(language)
-        keywords = get_keywords(lexer)
+        try:
+            lexer = get_lexer_by_name(language)
+            keywords = get_keywords(lexer)
+        except pygments.util.ClassNotFound:
+            keywords = []
         keyword_set = set(keywords)
         keywords = [{'kind': CompletionItemKind.KEYWORD,
                      'insertText': keyword,
@@ -73,8 +60,7 @@ class FallbackActor(QThread):
         # logger.debug(keywords)
         # tokens = list(lexer.get_tokens(text))
         # logger.debug(tokens)
-        regex = self.LANGUAGE_REGEX.get(language.lower(), all_regex)
-        tokens = list({x for x in regex.findall(text) if x != ''})
+        tokens = get_words(text, language)
         tokens = [{'kind': CompletionItemKind.TEXT, 'insertText': token,
                    'sortText': token[0].lower(),
                    'filterText': token, 'documentation': ''}
