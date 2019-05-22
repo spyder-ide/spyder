@@ -139,7 +139,7 @@ def test_tokenize(qtbot_module, fallback_fixture, file_fixture):
         fallback.mailbox.put(tokens_request)
     tokens = blocker.args
     tokens = {token['insertText'] for token in tokens[0]}
-    assert len(tokens | expected_tokens) == len(tokens)
+    assert len(expected_tokens - tokens) == 0
 
 
 def test_token_update(qtbot_module, fallback_fixture):
