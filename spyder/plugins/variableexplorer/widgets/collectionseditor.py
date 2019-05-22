@@ -147,7 +147,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
 
     def current_index(self):
         """Get the currently selected index in the parent table view."""
-        i = self._parent.proxy_model.mapToSource(self._parent.currentIndex())
+        idx = self._parent.proxy_model.mapToSource(self._parent.currentIndex())
         return i
 
     def get_data(self):
