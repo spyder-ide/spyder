@@ -27,9 +27,6 @@ if %USE_CONDA% == yes (
 ::    conda install -q -y python=3.6.8=h9f7ef89_0
 ::)
 
-:: Install diff-match-patch
-pip install -q diff-match-patch
-
 :: Install spyder-kernels from master
 pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels
 if errorlevel 1 exit 1
