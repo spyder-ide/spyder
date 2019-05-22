@@ -113,8 +113,6 @@ def test_file_open_close(qtbot_module, fallback_fixture):
 def test_tokenize(qtbot_module, fallback_fixture, file_fixture):
     filename, expected_tokens, contents = file_fixture
     _, ext = osp.splitext(filename)
-    print(filename)
-    print(expected_tokens)
     fallback, editor, diff_match = fallback_fixture
     diff = diff_match.patch_make('', contents)
     open_request = {
