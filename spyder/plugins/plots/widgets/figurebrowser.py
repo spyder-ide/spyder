@@ -311,7 +311,6 @@ class FigureBrowser(QWidget):
         """Change the auto_fit_plotting option and scale images."""
         self.option_changed('auto_fit_plotting', state)
         self.figviewer.auto_fit_plotting = state
-        self.figviewer.scale_image()
 
     def set_shellwidget(self, shellwidget):
         """Bind the shellwidget instance to the figure browser"""
@@ -422,6 +421,7 @@ class FigureViewer(QScrollArea):
         else:
             self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
             self.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.scale_image()
 
     def setup_figcanvas(self):
         """Setup the FigureCanvas."""
