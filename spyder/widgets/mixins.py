@@ -359,6 +359,11 @@ class BaseEditMixin(object):
         has_multisignature = False
         language = getattr(self, 'language', '').lower()
         signature_or_text = signature_or_text.replace('\\*', '*')
+
+        # Remove special symbols that could itefere with ''.format
+        signature_or_text = signature_or_text.replace('{', '&#123;')
+        signature_or_text = signature_or_text.replace('}', '&#125;')
+
         lines = signature_or_text.split('\n')
         inspect_word = None
 
