@@ -173,7 +173,8 @@ class ProjectExplorerWidget(QWidget):
     sig_open_file = Signal(str)
 
     def __init__(self, parent, name_filters=[],
-                 show_all=True, show_hscrollbar=True, options_button=None):
+                 show_all=True, show_hscrollbar=True, options_button=None,
+                 single_click_to_open=False):
         QWidget.__init__(self, parent)
 
         self.name_filters = name_filters
@@ -181,8 +182,11 @@ class ProjectExplorerWidget(QWidget):
         self.show_hscrollbar = show_hscrollbar
 
         self.treewidget = ExplorerTreeWidget(self, self.show_hscrollbar)
-        self.treewidget.setup(name_filters=self.name_filters,
-                              show_all=self.show_all)
+        self.treewidget.setup(
+            name_filters=self.name_filters,
+            show_all=self.show_all,
+            single_click_to_open=False,
+        )
         self.treewidget.setup_view()
         self.treewidget.hide()
 
