@@ -120,7 +120,7 @@ class FigureBrowser(QWidget):
                                      "}")
         self.thumbnails_sb = ThumbnailScrollBar(
             self.figviewer, background_color=self.background_color)
-        
+
         toolbar = self.setup_toolbar()
         self.setup_option_actions(mute_inline_plotting,
                                   show_plot_outline,
