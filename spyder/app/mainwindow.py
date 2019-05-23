@@ -465,7 +465,6 @@ class MainWindow(QMainWindow):
         # otherwise the external tools menu is lost after leaving setup method
         self.external_tools_menu_actions = []
         self.view_menu = None
-        self.hidden_menu = None
         self.plugins_menu = None
         self.plugins_menu_actions = []
         self.toolbars_menu = None
@@ -744,10 +743,6 @@ class MainWindow(QMainWindow):
         # Help menu
         self.help_menu = self.menuBar().addMenu(_("&Help"))
 
-        # Hidden menu
-        if sys.platform == 'darwin':
-            self.hidden_menu = self.menuBar().addMenu(_(""))
-
         # Status bar
         status = self.statusBar()
         status.setObjectName("StatusBar")
@@ -934,9 +929,16 @@ class MainWindow(QMainWindow):
                                        context=Qt.ApplicationShortcut)
         self.register_shortcut(restart_action, "_", "Restart")
 
-        self.file_menu_actions += [self.file_switcher_action,
-                                   self.symbol_finder_action, None,
-                                   restart_action, quit_action]
+        file_actions = [
+            self.file_switcher_action,
+            self.symbol_finder_action,
+            None,
+        ]
+        if sys.platform == 'darwin':
+            file_actions.extend(self.editor.tab_navigation_actions + [None])
+
+        file_actions.extend([restart_action, quit_action])
+        self.file_menu_actions += file_actions
         self.set_splash("")
 
         # Namespace browser
