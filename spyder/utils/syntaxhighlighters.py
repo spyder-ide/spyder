@@ -21,7 +21,7 @@ from pygments.lexer import RegexLexer, bygroups
 from pygments.lexers import get_lexer_by_name
 from pygments.token import (Text, Other, Keyword, Name, String, Number,
                             Comment, Generic, Token)
-from qtpy.QtCore import Qt
+from qtpy.QtCore import Qt, QTimer, Signal, Slot
 from qtpy.QtGui import (QColor, QCursor, QFont, QSyntaxHighlighter,
                         QTextCharFormat, QTextOption)
 from qtpy.QtWidgets import QApplication
@@ -126,6 +126,8 @@ class BaseSH(QSyntaxHighlighter):
     NORMAL = 0
     # Syntax highlighting parameters.
     BLANK_ALPHA_FACTOR = 0.31
+
+    sig_outline_explorer_data_changed = Signal()
 
     def __init__(self, parent, font=None, color_scheme='Spyder'):
         QSyntaxHighlighter.__init__(self, parent)
@@ -454,6 +456,11 @@ class PythonSH(BaseSH):
         self.import_statements = {}
         self.found_cell_separators = False
         self.cell_separators = CELL_LANGUAGES['Python']
+        # Avoid updating the outline explorer with every single letter typed
+        self.outline_explorer_data_update_timer = QTimer()
+        self.outline_explorer_data_update_timer.setSingleShot(True)
+        self.outline_explorer_data_update_timer.timeout.connect(
+            self.sig_outline_explorer_data_changed)
 
     def highlight_block(self, text):
         """Implement specific highlight for Python."""
@@ -584,6 +591,7 @@ class PythonSH(BaseSH):
             block_nb = self.currentBlock().blockNumber()
             self.outlineexplorer_data[block_nb] = oedata
             self.outlineexplorer_data['found_cell_separators'] = self.found_cell_separators
+            self.outline_explorer_data_update_timer.start(500)
         if import_stmt is not None:
             block_nb = self.currentBlock().blockNumber()
             self.import_statements[block_nb] = import_stmt

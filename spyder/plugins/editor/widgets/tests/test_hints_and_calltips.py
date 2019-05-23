@@ -15,7 +15,7 @@ import pytest
 
 # Constants
 PY2 = sys.version[0] == '2'
-TEST_SIG = 'some_function(hello=None)'
+TEST_SIG = 'some_function(foo={}, hello=None)'
 TEST_DOCSTRING = "This is the test docstring."
 TEST_TEXT = """'''Testing something'''
 def {SIG}:

@@ -397,12 +397,31 @@ class FigureViewer(QScrollArea):
         self._sfmax = 10
         self._sfmin = -10
 
+        self.setup_figcanvas()
         self.auto_fit_plotting = False
 
         # An internal flag that tracks when the figure is being panned.
         self._ispanning = False
 
-        self.setup_figcanvas()
+    @property
+    def auto_fit_plotting(self):
+        """
+        Return whether to automatically fit the plot to the scroll area size.
+        """
+        return self._auto_fit_plotting
+
+    @auto_fit_plotting.setter
+    def auto_fit_plotting(self, value):
+        """
+        Set whether to automatically fit the plot to the scroll area size.
+        """
+        self._auto_fit_plotting = value
+        if value:
+            self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+            self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        else:
+            self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+            self.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
 
     def setup_figcanvas(self):
         """Setup the FigureCanvas."""
@@ -430,6 +449,10 @@ class FigureViewer(QScrollArea):
                 return True
             else:
                 return False
+
+        # ---- Scaling
+        elif event.type() == QEvent.Paint and self.auto_fit_plotting:
+            self.scale_image()
 
         # ---- Panning
         # Set ClosedHandCursor:
@@ -493,10 +516,13 @@ class FigureViewer(QScrollArea):
         # Scale the image to fit figviewer size while respect the ratio
         else:
             size = self.size()
-            scrollbar_width = self.verticalScrollBar().sizeHint().width()
-            width = size.width() - scrollbar_width
-            scrollbar_height = self.horizontalScrollBar().sizeHint().height()
-            height = size.height() - scrollbar_height
+            style = self.style()
+            width = (size.width() -
+                     style.pixelMetric(QStyle.PM_LayoutLeftMargin) -
+                     style.pixelMetric(QStyle.PM_LayoutRightMargin))
+            height = (size.height() -
+                      style.pixelMetric(QStyle.PM_LayoutTopMargin) -
+                      style.pixelMetric(QStyle.PM_LayoutBottomMargin))
             if (fwidth / fheight) > (width / height):
                 new_width = int(width)
                 new_height = int(width / fwidth * fheight)
@@ -931,7 +957,7 @@ class FigureCanvas(QFrame):
         """Clear the figure that was painted on the widget."""
         self.fig = None
         self.fmt = None
-        self._qpix_buffer = []
+        self._qpix_scaled = None
         self.repaint()
 
     def load_figure(self, fig, fmt):
@@ -948,14 +974,14 @@ class FigureCanvas(QFrame):
         elif fmt == 'image/svg+xml':
             self._qpix_orig = QPixmap(svg_to_image(fig))
 
-        self._qpix_buffer = [self._qpix_orig]
+        self._qpix_scaled = self._qpix_orig
         self.fwidth = self._qpix_orig.width()
         self.fheight = self._qpix_orig.height()
 
     def paintEvent(self, event):
         """Qt method override to paint a custom image on the Widget."""
         super(FigureCanvas, self).paintEvent(event)
-        # Prepare the rect on which the image is going to be painted :
+        # Prepare the rect on which the image is going to be painted.
         fw = self.frameWidth()
         rect = QRect(0 + fw, 0 + fw,
                      self.size().width() - 2 * fw,
@@ -964,23 +990,19 @@ class FigureCanvas(QFrame):
         if self.fig is None or self._blink_flag:
             return
 
-        # Check/update the qpixmap buffer :
-        qpix2paint = None
-        for qpix in self._qpix_buffer:
-            if qpix.size().width() == rect.width():
-                qpix2paint = qpix
-                break
-        else:
+        # Prepare the scaled qpixmap to paint on the widget.
+        if (self._qpix_scaled is None or
+                self._qpix_scaled.size().width() != rect.width()):
             if self.fmt in ['image/png', 'image/jpeg']:
-                qpix2paint = self._qpix_orig.scaledToWidth(
+                self._qpix_scaled = self._qpix_orig.scaledToWidth(
                     rect.width(), mode=Qt.SmoothTransformation)
             elif self.fmt == 'image/svg+xml':
-                qpix2paint = QPixmap(svg_to_image(self.fig, rect.size()))
-            self._qpix_buffer.append(qpix2paint)
+                self._qpix_scaled = QPixmap(svg_to_image(
+                    self.fig, rect.size()))
 
-        if qpix2paint is not None:
-            # Paint the image on the widget :
+        if self._qpix_scaled is not None:
+            # Paint the image on the widget.
             qp = QPainter()
             qp.begin(self)
-            qp.drawPixmap(rect, qpix2paint)
+            qp.drawPixmap(rect, self._qpix_scaled)
             qp.end()
