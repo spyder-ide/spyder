@@ -59,6 +59,7 @@ from spyder.utils.stringmatching import get_search_scores
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.preferences.shortcuts import CustomSortFilterProxy
+from spyder.widgets.helperwidgets import HTMLDelegate
 
 if ndarray is not FakeObject:
     from spyder.plugins.variableexplorer.widgets.arrayeditor import (
@@ -346,7 +347,10 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
 
     def row(self, row_num):
         """Get row based on model index. Needed for the custom proxy model."""
-        return self.keys[row_num]
+        if self.rich_text:
+            return self.rich_text[row_num]
+        else:
+            return self.keys[row_num]
 
     def data(self, index, role=Qt.DisplayRole):
         """Cell content"""
@@ -370,7 +374,13 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             else:
                 display = to_text_string(value)
         if role == Qt.DisplayRole:
-            return to_qvariant(display)
+            if index.column() == 0 and self.rich_text:  # Name column
+                text = self.rich_text[index.row()]
+                text = '<p style="color:{0}">{1}</p>'.format(ima.MAIN_FG_COLOR,
+                                                             text)
+                return to_qvariant(text)
+            else:
+                return to_qvariant(display)
         elif role == Qt.EditRole:
             return to_qvariant(value_to_display(value))
         elif role == Qt.TextAlignmentRole:
@@ -1596,6 +1606,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.delegate = RemoteCollectionsDelegate(self)
         self.delegate.sig_free_memory.connect(self.sig_free_memory.emit)
         self.setItemDelegate(self.delegate)
+        self.setItemDelegateForColumn(0, HTMLDelegate(self, margin=5))
 
         self.setup_table()
         self.menu = self.setup_menu(minmax)
