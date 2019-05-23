@@ -20,20 +20,31 @@ from spyder.plugins.editor.widgets.tests.test_codeeditor import editorbot
 # Constants
 TEST_FOLDER = os.path.abspath(os.path.dirname(__file__))
 _, TEMPFILE_PATH = tempfile.mkstemp()
-TEST_FILE_TEXT = '"file://{}"\n'.format(TEMPFILE_PATH)
+TEST_FILE_ABS = [os.path.join(TEST_FOLDER, f) for f in
+                 os.listdir(TEST_FOLDER) if f.endswith('.py')][0]
+TEST_FILE_REL = [f for f in os.listdir(TEST_FOLDER) if f.endswith('.py')][0]
 
 
 @pytest.mark.parametrize('params', [
-            # Parameter, Expected output
-            # --------------------------
+            # Parameter, Expected output, Full file path (or None if not file)
+            # ----------------------------------------------------------------
+            # Files that exist with absolute paths
+            ('"file://{}/"\n'.format(TEMPFILE_PATH), TEMPFILE_PATH,
+             TEMPFILE_PATH),
+            ('"file://{}/"\n'.format(TEST_FILE_ABS), TEST_FILE_ABS,
+             TEST_FILE_ABS),
+            # Files that exist with relative paths
+            ('"file://./{}/"\n'.format(TEST_FILE_REL), TEST_FILE_REL,
+             os.path.join(TEST_FOLDER, TEST_FILE_REL)),
+            # Files that do not exist
+            ('"file:///not there/"', 'file:///not there/', '/not there/'),
+            ('"file:///not_there/"', 'file:///not_there/', '/not_there/'),
             # Urls
-            ('" https://google.com"\n', 'https://google.com'),  # String
-            ('# https://google.com"\n', 'https://google.com'),  # Comment
-            # Files that exist
-            (TEST_FILE_TEXT, TEMPFILE_PATH),  # File without spaces
+            ('" https://google.com"\n', 'https://google.com', None),
+            ('# https://google.com"\n', 'https://google.com', None),
             # Mail to
-            ('" mailto:goanpeca@gmail.com"\n', 'mailto:goanpeca@gmail.com'),
-            ('# mailto:goanpeca@gmail.com\n', 'mailto:goanpeca@gmail.com'),
+            ('" mailto:some@email.com"\n', 'mailto:some@email.com', None),
+            ('# mailto:some@email.com\n', 'mailto:some@email.com', None),
         ]
     )
 def test_goto_uri(qtbot, editorbot, params):
@@ -41,7 +52,9 @@ def test_goto_uri(qtbot, editorbot, params):
     _, code_editor = editorbot
     code_editor.show()
 
-    param, expected_output_text = params
+    param, expected_output_text, full_file_path = params
+    if full_file_path:
+        code_editor.filename = full_file_path
 
     # Set text in editor
     code_editor.set_text(param)

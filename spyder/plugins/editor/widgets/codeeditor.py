@@ -289,7 +289,7 @@ class CodeEditor(TextEditBaseWidget):
     sig_uri_found = Signal(str)
 
     # Used for testing. When the mouse moves with Ctrl/Cmd pressed and
-    # a URI and the mouse left button is pressed, this signal is emmited
+    # the mouse left button is pressed, this signal is emmited
     sig_go_to_uri = Signal(str)
 
     def __init__(self, parent=None):
@@ -3221,6 +3221,15 @@ class CodeEditor(TextEditBaseWidget):
 
             if uri.startswith('file://'):
                 fname = uri.replace('file://', '')
+                if fname[-1] == '/':
+                    fname = fname[:-1]
+
+                dirname = osp.dirname(osp.abspath(self.filename))
+                if osp.isdir(dirname):
+                    if not osp.isfile(fname):
+                        # Maybe relative?
+                        fname = osp.join(dirname, fname)
+
                 if not osp.isfile(fname):
                     color = QColor(255, 80, 80)
 
@@ -3322,6 +3331,14 @@ class CodeEditor(TextEditBaseWidget):
                 uri = self._last_hover_uri
                 if uri.startswith('file://'):
                     fname = uri.replace('file://', '')
+                    if fname[-1] == '/':
+                        fname = fname[:-1]
+                    dirname = osp.dirname(osp.abspath(self.filename))
+                    if osp.isdir(dirname):
+                        if not osp.isfile(fname):
+                            # Maybe relative
+                            fname = osp.join(dirname, fname)
+
                     if osp.isfile(fname) and encoding.is_text_file(fname):
                         # Open in editor
                         self.go_to_definition.emit(fname, 0, 0)
