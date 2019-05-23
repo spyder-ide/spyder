@@ -465,6 +465,7 @@ class MainWindow(QMainWindow):
         # otherwise the external tools menu is lost after leaving setup method
         self.external_tools_menu_actions = []
         self.view_menu = None
+        self.hidden_menu = None
         self.plugins_menu = None
         self.plugins_menu_actions = []
         self.toolbars_menu = None
@@ -742,6 +743,10 @@ class MainWindow(QMainWindow):
 
         # Help menu
         self.help_menu = self.menuBar().addMenu(_("&Help"))
+
+        # Hidden menu
+        if sys.platform == 'darwin':
+            self.hidden_menu = self.menuBar().addMenu(_(""))
 
         # Status bar
         status = self.statusBar()
