@@ -127,14 +127,9 @@ class DebuggerManager(Manager):
     def clear_breakpoints(self):
         """Clear breakpoints"""
         self.breakpoints = []
-        for data in self.editor.blockuserdata_list[:]:
+        for data in self.editor.blockuserdata_list():
             data.breakpoint = False
             # data.breakpoint_condition = None  # not necessary, but logical
-            if data.is_empty():
-                # This is not calling the __del__ in BlockUserData.  Not
-                # sure if it's supposed to or not, but that seems to be the
-                # intent.
-                del data
 
     def set_breakpoints(self, breakpoints):
         """Set breakpoints"""
