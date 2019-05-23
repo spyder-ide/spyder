@@ -30,8 +30,8 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
 # Local imports
 from spyder import dependencies
 from spyder.config.base import _, get_conf_path, running_under_pytest
-from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
-                                RUN_CELL_AND_ADVANCE_SHORTCUT)
+from spyder.config.main import CONF
+from spyder.config.gui import get_shortcut
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter)
 from spyder.py3compat import PY2, qbytearray_to_str, to_text_string
@@ -588,8 +588,8 @@ class Editor(SpyderPluginWidget):
         run_cell_action = create_action(self,
                             _("Run cell"),
                             icon=ima.icon('run_cell'),
-                            shortcut=QKeySequence(RUN_CELL_SHORTCUT),
-                            tip=_("Run current cell (Ctrl+Enter)\n"
+                            shortcut=get_shortcut('editor', 'run cell'),
+                            tip=_("Run current cell \n"
                                   "[Use #%% to create cells]"),
                             triggered=self.run_cell,
                             context=Qt.WidgetShortcut)
@@ -597,9 +597,8 @@ class Editor(SpyderPluginWidget):
         run_cell_advance_action = create_action(self,
                    _("Run cell and advance"),
                    icon=ima.icon('run_cell_advance'),
-                   shortcut=QKeySequence(RUN_CELL_AND_ADVANCE_SHORTCUT),
-                   tip=_("Run current cell and go to the next one "
-                         "(Shift+Enter)"),
+                   shortcut=get_shortcut('editor', 'run cell and advance'),
+                   tip=_("Run current cell and go to the next one "),
                    triggered=self.run_cell_and_advance,
                    context=Qt.WidgetShortcut)
 
