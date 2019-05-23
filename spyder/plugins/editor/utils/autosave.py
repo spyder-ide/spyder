@@ -19,10 +19,12 @@ from spyder.config.base import _, get_conf_path
 from spyder.config.main import CONF
 from spyder.plugins.editor.widgets.autosaveerror import AutosaveErrorDialog
 from spyder.plugins.editor.widgets.recover import RecoveryDialog
-
+from spyder.py3compat import PY2
 
 logger = logging.getLogger(__name__)
 
+if PY2:
+    FileNotFoundError = OSError
 
 class AutosaveForPlugin(object):
     """Component of editor plugin implementing autosave functionality."""
@@ -163,6 +165,8 @@ class AutosaveForStack(object):
         autosave_filename = self.name_mapping[filename]
         try:
             os.remove(autosave_filename)
+        except FileNotFoundError:
+            pass
         except EnvironmentError as error:
             error_message = (_('{} while removing autosave file {}')
                              .format(type(error), autosave_filename))
