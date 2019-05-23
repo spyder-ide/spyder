@@ -120,6 +120,9 @@ class AutosaveForStack(object):
     Attributes:
         stack (EditorStack): editor stack this component belongs to.
         name_mapping (dict): map between names of opened and autosave files.
+        file_hashes (dict): map between file names and hash of their contents.
+            This is used for both files opened in the editor and their
+            corresponding autosave files.
     """
 
     def __init__(self, editorstack):
@@ -131,6 +134,7 @@ class AutosaveForStack(object):
         """
         self.stack = editorstack
         self.name_mapping = {}
+        self.file_hashes = {}
 
     def create_unique_autosave_filename(self, filename, autosave_dir):
         """
@@ -225,8 +229,9 @@ class AutosaveForStack(object):
         Do nothing if the `changed_since_autosave` flag is not set or the file
         is newly created (and thus not named by the user). Otherwise, save a
         copy of the file with the name given by `self.get_autosave_filename()`
-        and clear the `changed_since_autosave` flag. Errors raised when saving
-        are silently ignored.
+        and clear the `changed_since_autosave` flag and update the cached hash
+        of the autosave file. An error dialog notifies the user of any errors
+        raised when saving.
 
         Args:
             index (int): index into self.stack.data
@@ -240,6 +245,8 @@ class AutosaveForStack(object):
         try:
             self.stack._write_to_file(finfo, autosave_filename)
             document.changed_since_autosave = False
+            autosave_hash = self.stack.compute_hash(finfo)
+            self.file_hashes[autosave_filename] = autosave_hash
         except EnvironmentError as error:
             action = (_('Error while autosaving {} to {}')
                       .format(finfo.filename, autosave_filename))

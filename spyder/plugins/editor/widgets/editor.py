@@ -1668,6 +1668,18 @@ class EditorStack(QWidget):
                     return False
         return True
 
+    def compute_hash(self, fileinfo):
+        """Compute hash of contents of editor.
+
+        Args:
+            fileinfo: FileInfo object associated to editor to be saved
+
+        Returns:
+            int: computed hash.
+        """
+        txt = to_text_string(fileinfo.editor.get_text_with_eol())
+        return hash(txt)
+
     def _write_to_file(self, fileinfo, filename):
         """Low-level function for writing text of editor to file.
 

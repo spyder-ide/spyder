@@ -42,6 +42,24 @@ def test_autosave_component_timer_if_enabled(qtbot, mocker, enabled):
         addon.do_autosave.assert_not_called()
 
 
+def test_autosave(mocker):
+    """Test that AutosaveForStack.autosave writes the contents to the autosave
+    file and updates the file_hashes."""
+    mock_editor = mocker.Mock()
+    mock_fileinfo = mocker.Mock(editor=mock_editor, filename='orig',
+                                newly_created=False)
+    mock_document = mocker.Mock(changed_since_autosave=True)
+    mock_fileinfo.editor.document.return_value = mock_document
+    mock_stack = mocker.Mock(data=[mock_fileinfo])
+    addon = AutosaveForStack(mock_stack)
+    addon.name_mapping = {'orig': 'autosave'}
+
+    addon.autosave(0)
+    mock_stack.compute_hash.assert_called_with(mock_fileinfo)
+    mock_hash = mock_stack.compute_hash.return_value
+    assert addon.file_hashes == {'autosave': mock_hash}
+
+
 @pytest.mark.parametrize('exception', [False, True])
 @pytest.mark.parametrize('errors', ['raise', 'ignore'])
 def test_autosave_remove_autosave_file(mocker, exception, errors):
