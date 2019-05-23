@@ -3194,6 +3194,18 @@ class CodeEditor(TextEditBaseWidget):
 
         return uri, cursor
 
+    def _preprocess_file_uri(self, uri):
+        """Format uri to conform to absolute or relative file paths."""
+        fname = uri.replace('file://', '')
+        if fname[-1] == '/':
+            fname = fname[:-1]
+        dirname = osp.dirname(osp.abspath(self.filename))
+        if osp.isdir(dirname):
+            if not osp.isfile(fname):
+                # Maybe relative
+                fname = osp.join(dirname, fname)
+        return fname
+
     def _handle_goto_definition_event(self, pos):
         """Check if goto definition can be applied and apply highlight."""
         text = self.get_word_at(pos)
@@ -3220,16 +3232,7 @@ class CodeEditor(TextEditBaseWidget):
             color = self.ctrl_click_color
 
             if uri.startswith('file://'):
-                fname = uri.replace('file://', '')
-                if fname[-1] == '/':
-                    fname = fname[:-1]
-
-                dirname = osp.dirname(osp.abspath(self.filename))
-                if osp.isdir(dirname):
-                    if not osp.isfile(fname):
-                        # Maybe relative?
-                        fname = osp.join(dirname, fname)
-
+                fname = self._preprocess_file_uri(uri)
                 if not osp.isfile(fname):
                     color = QColor(255, 80, 80)
 
@@ -3330,14 +3333,7 @@ class CodeEditor(TextEditBaseWidget):
             if self._last_hover_uri:
                 uri = self._last_hover_uri
                 if uri.startswith('file://'):
-                    fname = uri.replace('file://', '')
-                    if fname[-1] == '/':
-                        fname = fname[:-1]
-                    dirname = osp.dirname(osp.abspath(self.filename))
-                    if osp.isdir(dirname):
-                        if not osp.isfile(fname):
-                            # Maybe relative
-                            fname = osp.join(dirname, fname)
+                    fname = self._preprocess_file_uri(uri)
 
                     if osp.isfile(fname) and encoding.is_text_file(fname):
                         # Open in editor
