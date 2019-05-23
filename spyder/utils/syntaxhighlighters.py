@@ -571,7 +571,7 @@ class PythonSH(BaseSH):
                                     self.setFormat(start, end-start,
                                                    self.formats["keyword"])
 
-                    match = self.PROG.search(text, match.end())
+            match = self.PROG.search(text, match.end())
 
         tbh.set_state(self.currentBlock(), state)
         

@@ -72,10 +72,11 @@ from spyder.plugins.editor.utils.lsp import request, handles, class_register
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.outlineexplorer.languages import PythonCFM
 from spyder.py3compat import PY2, to_text_string
-from spyder.utils import encoding, sourcecode
+from spyder.utils import encoding, programs, sourcecode
 from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters as sh
-from spyder.utils.qthelpers import add_actions, create_action, mimedata2url
+from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
+                                    mimedata2url)
 
 
 try:
@@ -3340,8 +3341,8 @@ class CodeEditor(TextEditBaseWidget):
                         self.go_to_definition.emit(fname, 0, 0)
                     else:
                         # Use external program
-                        quri = QUrl.fromLocalFile(fname)
-                        QDesktopServices.openUrl(quri)
+                        fname = file_uri(fname)
+                        programs.start_file(fname)
                 else:
                     quri = QUrl(uri)
                     QDesktopServices.openUrl(quri)
