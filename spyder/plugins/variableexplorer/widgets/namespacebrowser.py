@@ -39,7 +39,7 @@ from spyder.utils.qthelpers import (add_actions, create_action,
 from spyder.plugins.variableexplorer.widgets.collectionseditor import (
     RemoteCollectionsEditorTableView)
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
-from spyder.preferences.shortcuts import ShortcutFinder
+from spyder.widgets.helperwidgets import FinderLineEdit
 
 
 SUPPORTED_TYPES = get_supported_types()
@@ -398,11 +398,11 @@ class NamespaceBrowser(QWidget):
         self.save_button.setEnabled(self.filename is not None)
 
 
-class NamespacesBrowserFinder(ShortcutFinder):
+class NamespacesBrowserFinder(FinderLineEdit):
     """Textbox for filtering listed variables in the table."""
-    # TODO: Refactor to use base class for shortcuts and namespacebrowser
+
     def keyPressEvent(self, event):
-        """Qt Override."""
+        """Qt and FilterLineEdit Override."""
         key = event.key()
         if key in [Qt.Key_Up]:
             self._parent.previous_row()
@@ -412,4 +412,4 @@ class NamespacesBrowserFinder(ShortcutFinder):
             # TODO: Check if an editor needs to be shown
             pass
         else:
-            super(ShortcutFinder, self).keyPressEvent(event)
+            super(NamespacesBrowserFinder, self).keyPressEvent(event)
