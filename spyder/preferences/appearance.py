@@ -15,7 +15,7 @@ from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QFontComboBox,
 from spyder.config.base import _
 from spyder.config.gui import (get_font, set_font, is_dark_font_color,
                                is_dark_interface)
-from spyder.config.main import CONF
+from spyder.config.main import CONF, TOOLBAR_ICON_SIZES
 from spyder.config.utils import is_gtk_desktop
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.preferences.configdialog import GeneralConfigPage
@@ -67,6 +67,11 @@ class AppearanceConfigPage(GeneralConfigPage):
         icons_combo = self.create_combobox(_('Icon theme'), icon_choices,
                                            'icon_theme', restart=True)
 
+        iconsize_choices = list(zip(
+            [str(size) for size in TOOLBAR_ICON_SIZES], TOOLBAR_ICON_SIZES))
+        iconsize_combo = self.create_combobox(
+            _('Icon size'), iconsize_choices, 'icon_size', restart=False)
+
         theme_comboboxes_layout = QGridLayout()
         theme_comboboxes_layout.addWidget(ui_theme_combo.label, 0, 0)
         theme_comboboxes_layout.addWidget(ui_theme_combo.combobox, 0, 1)
@@ -74,6 +79,8 @@ class AppearanceConfigPage(GeneralConfigPage):
         theme_comboboxes_layout.addWidget(self.style_combobox, 1, 1)
         theme_comboboxes_layout.addWidget(icons_combo.label, 2, 0)
         theme_comboboxes_layout.addWidget(icons_combo.combobox, 2, 1)
+        theme_comboboxes_layout.addWidget(iconsize_combo.label, 3, 0)
+        theme_comboboxes_layout.addWidget(iconsize_combo.combobox, 3, 1)
 
         theme_layout = QVBoxLayout()
         theme_layout.addLayout(theme_comboboxes_layout)
