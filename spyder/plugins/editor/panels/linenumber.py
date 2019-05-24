@@ -39,9 +39,13 @@ class LineNumberArea(Panel):
         # Markers
         self._markers_margin = True
         self._markers_margin_width = 15
-        self.error_pixmap = ima.icon('error').pixmap(QSize(14, 14))
-        self.warning_pixmap = ima.icon('warning').pixmap(QSize(14, 14))
-        self.todo_pixmap = ima.icon('todo').pixmap(QSize(14, 14))
+
+        # Icons
+        self.error_icon = ima.icon('error')
+        self.warning_icon = ima.icon('warning')
+        self.information_icon = ima.icon('information')
+        self.hint_icon = ima.icon('hint')
+        self.todo_icon = ima.icon('todo')
 
         # Line number area management
         self._margin = True
@@ -96,16 +100,32 @@ class LineNumberArea(Panel):
             data = block.userData()
             if self._markers_margin and data:
                 if data.code_analysis:
-                    for source, code, severity, message in data.code_analysis:
-                        error = severity == DiagnosticSeverity.ERROR
-                        if error:
-                            break
-                    if error:
-                        draw_pixmap(top, self.error_pixmap)
-                    else:
-                        draw_pixmap(top, self.warning_pixmap)
+                    errors = 0
+                    warnings = 0
+                    informations = 0
+                    hints = 0
+                    for _, _, severity, _ in data.code_analysis:
+                        errors += severity == DiagnosticSeverity.ERROR
+                        warnings += severity == DiagnosticSeverity.WARNING
+                        informations += severity == DiagnosticSeverity.INFORMATION
+                        hints += severity == DiagnosticSeverity.HINT
+
+                    icon_size = QSize(self._markers_margin_width - 1,
+                                      self._markers_margin_width - 1)
+
+                    if errors:
+                        draw_pixmap(top, self.error_icon.pixmap(icon_size))
+                    elif warnings:
+                        draw_pixmap(top, self.warning_icon.pixmap(icon_size))
+                    elif informations:
+                            draw_pixmap(
+                                top,
+                                self.information_icon.pixmap(icon_size))
+                    elif hints:
+                        draw_pixmap(top, self.hint_icon.pixmap(icon_size))
+
                 if data.todo:
-                    draw_pixmap(top, self.todo_pixmap)
+                    draw_pixmap(top, self.todo_icon.pixmap(icon_size))
 
     def leaveEvent(self, event):
         """Override Qt method."""
