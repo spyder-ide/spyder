@@ -204,7 +204,7 @@ class BaseEditMixin(object):
             lines = text.split('\n')
             if len(lines) > max_lines:
                 text = '\n'.join(lines[:max_lines]) + ' ...'
-    
+
         text = text.replace('\n', '<br>')
         template += BASE_TEMPLATE.format(
             font_family=font_family,

@@ -1454,7 +1454,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def __text_has_changed(self):
         """Text has changed, eventually clear found results highlighting"""
-        if self.found_results:  
+        if self.found_results:
             self.clear_found_results()
 
     def get_linenumberarea_width(self):

@@ -43,7 +43,7 @@ class LineNumberArea(Panel):
         # Icons
         self.error_icon = ima.icon('error')
         self.warning_icon = ima.icon('warning')
-        self.information_icon = ima.icon('information')
+        self.info_icon = ima.icon('information')
         self.hint_icon = ima.icon('hint')
         self.todo_icon = ima.icon('todo')
 
@@ -102,13 +102,13 @@ class LineNumberArea(Panel):
                 if data.code_analysis:
                     errors = 0
                     warnings = 0
-                    informations = 0
+                    infos = 0
                     hints = 0
-                    for _, _, severity, _ in data.code_analysis:
-                        errors += severity == DiagnosticSeverity.ERROR
-                        warnings += severity == DiagnosticSeverity.WARNING
-                        informations += severity == DiagnosticSeverity.INFORMATION
-                        hints += severity == DiagnosticSeverity.HINT
+                    for _, _, sev, _ in data.code_analysis:
+                        errors += sev == DiagnosticSeverity.ERROR
+                        warnings += sev == DiagnosticSeverity.WARNING
+                        infos += sev == DiagnosticSeverity.INFORMATION
+                        hints += sev == DiagnosticSeverity.HINT
 
                     icon_size = QSize(self._markers_margin_width - 1,
                                       self._markers_margin_width - 1)
@@ -117,10 +117,8 @@ class LineNumberArea(Panel):
                         draw_pixmap(top, self.error_icon.pixmap(icon_size))
                     elif warnings:
                         draw_pixmap(top, self.warning_icon.pixmap(icon_size))
-                    elif informations:
-                            draw_pixmap(
-                                top,
-                                self.information_icon.pixmap(icon_size))
+                    elif infos:
+                        draw_pixmap(top, self.info_icon.pixmap(icon_size))
                     elif hints:
                         draw_pixmap(top, self.hint_icon.pixmap(icon_size))
 
