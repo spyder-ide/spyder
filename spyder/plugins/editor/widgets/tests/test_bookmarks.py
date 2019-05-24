@@ -148,7 +148,7 @@ def test_save_bookmark(editor_plugin_open_files):
     Test saving of bookmarks by looking at data in blocks. Reassignment
     should remove data from old block and put it in new.
     """
-    editor, _, _  = editor_plugin_open_files(None, None)
+    editor, _, _ = editor_plugin_open_files(None, None)
 
     # Get current editorstack, active editor and cursor
     editorstack = editor.get_current_editorstack()
@@ -182,7 +182,7 @@ def test_load_bookmark(editor_plugin_open_files):
     Check this by saving and loading bookmarks and checking for cursor
     position. Also over multiple files.
     """
-    editor, _, _  = editor_plugin_open_files(None, None)
+    editor, _, _ = editor_plugin_open_files(None, None)
 
     # Get current editorstack, active editor and cursor
     editorstack = editor.get_current_editorstack()

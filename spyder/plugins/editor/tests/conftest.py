@@ -16,8 +16,6 @@ except ImportError:
 
 # This is needed to avoid an error because QtAwesome
 # needs a QApplication to work correctly.
-
-
 from spyder.utils.qthelpers import qapplication
 app = qapplication()
 
