@@ -23,7 +23,7 @@ from qtpy.QtGui import QFont, QFontDatabase, QKeySequence
 from qtpy.QtWidgets import QShortcut
 
 # Local imports
-from spyder.config.main import CONF
+from spyder.config.main import CONF, TOOLBAR_ICON_SIZES
 from spyder.config.user import NoDefault
 from spyder.py3compat import to_text_string
 from spyder.utils import syntaxhighlighters as sh
@@ -185,6 +185,27 @@ def is_dark_interface():
             return False
     else:
         return False
+
+
+def get_iconsize(panel=False):
+    """
+    Return the icon size in px that is sets in the config for the toolbars of
+    the main window if panel is False, else return the icon size for the
+    toolbar of the panels.
+    """
+    main_icon_size = CONF.get('appearance', 'icon_size')
+    if panel:
+        # Return a value for the panels that is one size smaller than that
+        # used for the toolbars of the main window.
+        # If the icon size for the main window corresponds to the smallest
+        # value, then use that value also for the panels.
+        for size in reversed(sorted(TOOLBAR_ICON_SIZES)):
+            if main_icon_size > size:
+                return size
+        else:
+            return main_icon_size
+    else:
+        return main_icon_size
 
 
 for _name in sh.COLOR_SCHEME_NAMES:
