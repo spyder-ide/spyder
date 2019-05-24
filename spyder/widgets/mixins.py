@@ -204,8 +204,7 @@ class BaseEditMixin(object):
             lines = text.split('\n')
             if len(lines) > max_lines:
                 text = '\n'.join(lines[:max_lines]) + ' ...'
-            text = '\n' + text
-
+    
         text = text.replace('\n', '<br>')
         template += BASE_TEMPLATE.format(
             font_family=font_family,
@@ -217,8 +216,13 @@ class BaseEditMixin(object):
         help_text = ''
         if inspect_word:
             if display_link:
-                help_text = ('Click anywhere in this tooltip for '
-                             'additional help')
+                help_text = (
+                    '<span style="font-size:{size}pt;">'
+                    'Click anywhere in this tooltip for additional help'
+                    '</span>'.format(
+                        size=title_size + 1,
+                    )
+                )
             else:
                 shortcut = self._get_inspect_shortcut()
                 if shortcut:

@@ -534,16 +534,18 @@ class CodeEditor(TextEditBaseWidget):
             uri, cursor = self.get_uri_at(pos)
             text = self.get_word_at(pos)
             if uri:
-                ctrl_text = ' Cmd' if sys.platform == "darwin" else ' Ctrl'
+                ctrl_text = 'Cmd' if sys.platform == "darwin" else 'Ctrl'
 
                 if uri.startswith('file://'):
-                    hint_text = ctrl_text + ' + click to open file \n'
+                    hint_text = ctrl_text + ' + click to open file'
                 elif uri.startswith('mailto:'):
-                    hint_text = ctrl_text + ' + click to send email \n'
+                    hint_text = ctrl_text + ' + click to send email'
                 elif uri.startswith('http'):
-                    hint_text = ctrl_text + ' + click to open url \n'
+                    hint_text = ctrl_text + ' + click to open url'
                 else:
-                    hint_text = ctrl_text + ' + click to open \n'
+                    hint_text = ctrl_text + ' + click to open'
+
+                hint_text = '<span>&nbsp;{}&nbsp;</span>'.format(hint_text)
 
                 self.show_tooltip(text=hint_text, at_point=pos)
                 return
@@ -1452,7 +1454,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def __text_has_changed(self):
         """Text has changed, eventually clear found results highlighting"""
-        if self.found_results:
+        if self.found_results:  
             self.clear_found_results()
 
     def get_linenumberarea_width(self):
@@ -1863,12 +1865,19 @@ class CodeEditor(TextEditBaseWidget):
         icons = {
             1: get_image_path('error'),
             2: get_image_path('warning'),
-            3: get_image_path('help'),
+            3: get_image_path('help.png'),
             4: get_image_path('chevron-right'),
         }
         code_analysis = block_data.code_analysis
+
         # Size must be adapted from font
-        template = '<img src="{}" height="8" width="8" /> {} <i>({} code {})</i>'
+        font = self.font()
+        fm = self.fontMetrics()
+        size = fm.height()
+        template = (
+            '<img src="{}" height="{size}" width="{size}" />'
+            ' {} <i>({} code {})</i>'
+        )
 
         msglist = []
         for src, code, sev, msg in code_analysis:
@@ -1876,7 +1885,8 @@ class CodeEditor(TextEditBaseWidget):
                 # Remove extra redundant info from pyling messages
                 msg = msg.split(']')[-1]
 
-            msglist.append(template.format(icons[sev], msg, src, code))
+            msglist.append(template.format(icons[sev], msg, src, code,
+                                           size=size))
 
         self.show_tooltip(
             title=_("Code analysis"),
