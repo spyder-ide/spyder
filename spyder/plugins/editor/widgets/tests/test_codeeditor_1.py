@@ -45,7 +45,6 @@ def code_editor_bot(qtbot):
     return editor, qtbot
 
 
-@pytest.mark.usefixtures("create_folders_files")
 @pytest.fixture
 def copy_files_clipboard(create_folders_files):
     """Fixture to copy files/folders into the clipboard"""

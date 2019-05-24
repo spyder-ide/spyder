@@ -18,6 +18,8 @@ import argparse
 os.environ['SPYDER_PYTEST'] = 'True'
 
 # Third party imports
+from qtpy import QtWebEngineWidgets # This needs to be imported
+                                    # before any QApplication
 import pytest
 
 
