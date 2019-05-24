@@ -97,6 +97,9 @@ class LineNumberArea(Panel):
                                  Qt.AlignRight | Qt.AlignBottom,
                                  to_text_string(line_number))
 
+            icon_size = QSize(self._markers_margin_width - 1,
+                              self._markers_margin_width - 1)
+
             data = block.userData()
             if self._markers_margin and data:
                 if data.code_analysis:
@@ -109,9 +112,6 @@ class LineNumberArea(Panel):
                         warnings += sev == DiagnosticSeverity.WARNING
                         infos += sev == DiagnosticSeverity.INFORMATION
                         hints += sev == DiagnosticSeverity.HINT
-
-                    icon_size = QSize(self._markers_margin_width - 1,
-                                      self._markers_margin_width - 1)
 
                     if errors:
                         draw_pixmap(top, self.error_icon.pixmap(icon_size))
