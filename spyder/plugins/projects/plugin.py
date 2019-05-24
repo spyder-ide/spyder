@@ -22,6 +22,7 @@ from qtpy.QtWidgets import QMenu, QMessageBox, QVBoxLayout
 
 # Local imports
 from spyder.config.base import _, get_home_dir
+from spyder.config.main import CONF
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
@@ -47,11 +48,13 @@ class Projects(SpyderPluginWidget):
         SpyderPluginWidget.__init__(self, parent)
 
         self.explorer = ProjectExplorerWidget(
-                            self,
-                            name_filters=self.get_option('name_filters'),
-                            show_all=self.get_option('show_all'),
-                            show_hscrollbar=self.get_option('show_hscrollbar'),
-                            options_button=self.options_button)
+            self,
+            name_filters=self.get_option('name_filters'),
+            show_all=self.get_option('show_all'),
+            show_hscrollbar=self.get_option('show_hscrollbar'),
+            options_button=self.options_button,
+            single_click_to_open=CONF.get('explorer', 'single_click_to_open'),
+        )
 
         layout = QVBoxLayout()
         layout.addWidget(self.explorer)
@@ -164,6 +167,16 @@ class Projects(SpyderPluginWidget):
                                                self.restore_scrollbar_position)
         self.sig_pythonpath_changed.connect(self.main.pythonpath_changed)
         self.main.editor.set_projects(self)
+
+        # Connect to file explorer to keep single click to open files in sync
+        self.main.explorer.fileexplorer.sig_option_changed.connect(
+            self.set_single_click_to_open
+        )
+
+    def set_single_click_to_open(self, option, value):
+        """Set single click to open files and directories."""
+        if option == 'single_click_to_open':
+            self.explorer.treewidget.set_single_click_to_open(value)
 
     def refresh_plugin(self):
         """Refresh project explorer widget"""

@@ -17,7 +17,7 @@ import os.path as osp
 # ---- Third library imports
 from qtconsole.svg import svg_to_image, svg_to_clipboard
 from qtpy.compat import getsavefilename, getexistingdirectory
-from qtpy.QtCore import Qt, Signal, QRect, QEvent, QPoint, QTimer, Slot
+from qtpy.QtCore import Qt, Signal, QRect, QEvent, QPoint, QSize, QTimer, Slot
 from qtpy.QtGui import QPixmap, QPainter, QKeySequence
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu,
                             QVBoxLayout, QWidget, QGridLayout, QFrame,
@@ -121,19 +121,18 @@ class FigureBrowser(QWidget):
         self.thumbnails_sb = ThumbnailScrollBar(
             self.figviewer, background_color=self.background_color)
 
-        # Option actions :
+        toolbar = self.setup_toolbar()
         self.setup_option_actions(mute_inline_plotting,
                                   show_plot_outline,
                                   auto_fit_plotting)
 
-        # Create the layout :
+        # Create the layout.
         main_widget = QSplitter()
         main_widget.addWidget(self.figviewer)
         main_widget.addWidget(self.thumbnails_sb)
         main_widget.setFrameStyle(QScrollArea().frameStyle())
 
         self.tools_layout = QHBoxLayout()
-        toolbar = self.setup_toolbar()
         for widget in toolbar:
             self.tools_layout.addWidget(widget)
         self.tools_layout.addStretch()
@@ -188,12 +187,12 @@ class FigureBrowser(QWidget):
         vsep2 = QFrame()
         vsep2.setFrameStyle(53)
 
-        zoom_out_btn = create_toolbutton(
+        self.zoom_out_btn = create_toolbutton(
                 self, icon=ima.icon('zoom_out'),
                 tip=_("Zoom out (Ctrl + mouse-wheel-down)"),
                 triggered=self.zoom_out)
 
-        zoom_in_btn = create_toolbutton(
+        self.zoom_in_btn = create_toolbutton(
                 self, icon=ima.icon('zoom_in'),
                 tip=_("Zoom in (Ctrl + mouse-wheel-up)"),
                 triggered=self.zoom_in)
@@ -211,8 +210,8 @@ class FigureBrowser(QWidget):
         layout = QHBoxLayout(zoom_pan)
         layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(zoom_out_btn)
-        layout.addWidget(zoom_in_btn)
+        layout.addWidget(self.zoom_out_btn)
+        layout.addWidget(self.zoom_in_btn)
         layout.addWidget(self.zoom_disp)
 
         return [savefig_btn, saveall_btn, copyfig_btn, closefig_btn,
@@ -311,7 +310,8 @@ class FigureBrowser(QWidget):
         """Change the auto_fit_plotting option and scale images."""
         self.option_changed('auto_fit_plotting', state)
         self.figviewer.auto_fit_plotting = state
-        self.figviewer.scale_image()
+        self.zoom_out_btn.setEnabled(not state)
+        self.zoom_in_btn.setEnabled(not state)
 
     def set_shellwidget(self, shellwidget):
         """Bind the shellwidget instance to the figure browser"""
@@ -397,12 +397,32 @@ class FigureViewer(QScrollArea):
         self._sfmax = 10
         self._sfmin = -10
 
+        self.setup_figcanvas()
         self.auto_fit_plotting = False
 
         # An internal flag that tracks when the figure is being panned.
         self._ispanning = False
 
-        self.setup_figcanvas()
+    @property
+    def auto_fit_plotting(self):
+        """
+        Return whether to automatically fit the plot to the scroll area size.
+        """
+        return self._auto_fit_plotting
+
+    @auto_fit_plotting.setter
+    def auto_fit_plotting(self, value):
+        """
+        Set whether to automatically fit the plot to the scroll area size.
+        """
+        self._auto_fit_plotting = value
+        if value:
+            self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+            self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        else:
+            self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+            self.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.scale_image()
 
     def setup_figcanvas(self):
         """Setup the FigureCanvas."""
@@ -420,7 +440,7 @@ class FigureViewer(QScrollArea):
         """A filter to control the zooming and panning of the figure canvas."""
 
         # ---- Zooming
-        if event.type() == QEvent.Wheel:
+        if event.type() == QEvent.Wheel and not self.auto_fit_plotting:
             modifiers = QApplication.keyboardModifiers()
             if modifiers == Qt.ControlModifier:
                 if event.angleDelta().y() > 0:
@@ -430,6 +450,10 @@ class FigureViewer(QScrollArea):
                 return True
             else:
                 return False
+
+        # ---- Scaling
+        elif event.type() == QEvent.Paint and self.auto_fit_plotting:
+            self.scale_image()
 
         # ---- Panning
         # Set ClosedHandCursor:
@@ -469,7 +493,6 @@ class FigureViewer(QScrollArea):
             self._scalefactor += 1
             self.scale_image()
             self._adjust_scrollbar(self._scalestep)
-            self.sig_zoom_changed.emit(self.get_scaling())
 
     def zoom_out(self):
         """Scale the image down by one scale step."""
@@ -477,7 +500,6 @@ class FigureViewer(QScrollArea):
             self._scalefactor -= 1
             self.scale_image()
             self._adjust_scrollbar(1/self._scalestep)
-            self.sig_zoom_changed.emit(self.get_scaling())
 
     def scale_image(self):
         """Scale the image size."""
@@ -493,21 +515,27 @@ class FigureViewer(QScrollArea):
         # Scale the image to fit figviewer size while respect the ratio
         else:
             size = self.size()
-            scrollbar_width = self.verticalScrollBar().sizeHint().width()
-            width = size.width() - scrollbar_width
-            scrollbar_height = self.horizontalScrollBar().sizeHint().height()
-            height = size.height() - scrollbar_height
+            style = self.style()
+            width = (size.width() -
+                     style.pixelMetric(QStyle.PM_LayoutLeftMargin) -
+                     style.pixelMetric(QStyle.PM_LayoutRightMargin))
+            height = (size.height() -
+                      style.pixelMetric(QStyle.PM_LayoutTopMargin) -
+                      style.pixelMetric(QStyle.PM_LayoutBottomMargin))
             if (fwidth / fheight) > (width / height):
                 new_width = int(width)
                 new_height = int(width / fwidth * fheight)
             else:
                 new_height = int(height)
                 new_width = int(height / fheight * fwidth)
-        self.figcanvas.setFixedSize(new_width, new_height)
+
+        if self.figcanvas.size() != QSize(new_width, new_height):
+            self.figcanvas.setFixedSize(new_width, new_height)
+            self.sig_zoom_changed.emit(self.get_scaling())
 
     def get_scaling(self):
         """Get the current scaling of the figure in percent."""
-        return self._scalestep**self._scalefactor*100
+        return self.figcanvas.width() / self.figcanvas.fwidth * 100
 
     def reset_original_image(self):
         """Reset the image to its original size."""
@@ -931,7 +959,7 @@ class FigureCanvas(QFrame):
         """Clear the figure that was painted on the widget."""
         self.fig = None
         self.fmt = None
-        self._qpix_buffer = []
+        self._qpix_scaled = None
         self.repaint()
 
     def load_figure(self, fig, fmt):
@@ -948,14 +976,14 @@ class FigureCanvas(QFrame):
         elif fmt == 'image/svg+xml':
             self._qpix_orig = QPixmap(svg_to_image(fig))
 
-        self._qpix_buffer = [self._qpix_orig]
+        self._qpix_scaled = self._qpix_orig
         self.fwidth = self._qpix_orig.width()
         self.fheight = self._qpix_orig.height()
 
     def paintEvent(self, event):
         """Qt method override to paint a custom image on the Widget."""
         super(FigureCanvas, self).paintEvent(event)
-        # Prepare the rect on which the image is going to be painted :
+        # Prepare the rect on which the image is going to be painted.
         fw = self.frameWidth()
         rect = QRect(0 + fw, 0 + fw,
                      self.size().width() - 2 * fw,
@@ -964,23 +992,19 @@ class FigureCanvas(QFrame):
         if self.fig is None or self._blink_flag:
             return
 
-        # Check/update the qpixmap buffer :
-        qpix2paint = None
-        for qpix in self._qpix_buffer:
-            if qpix.size().width() == rect.width():
-                qpix2paint = qpix
-                break
-        else:
+        # Prepare the scaled qpixmap to paint on the widget.
+        if (self._qpix_scaled is None or
+                self._qpix_scaled.size().width() != rect.width()):
             if self.fmt in ['image/png', 'image/jpeg']:
-                qpix2paint = self._qpix_orig.scaledToWidth(
+                self._qpix_scaled = self._qpix_orig.scaledToWidth(
                     rect.width(), mode=Qt.SmoothTransformation)
             elif self.fmt == 'image/svg+xml':
-                qpix2paint = QPixmap(svg_to_image(self.fig, rect.size()))
-            self._qpix_buffer.append(qpix2paint)
+                self._qpix_scaled = QPixmap(svg_to_image(
+                    self.fig, rect.size()))
 
-        if qpix2paint is not None:
-            # Paint the image on the widget :
+        if self._qpix_scaled is not None:
+            # Paint the image on the widget.
             qp = QPainter()
             qp.begin(self)
-            qp.drawPixmap(rect, qpix2paint)
+            qp.drawPixmap(rect, self._qpix_scaled)
             qp.end()

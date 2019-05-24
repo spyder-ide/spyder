@@ -30,10 +30,10 @@ from unicodedata import category
 
 # Third party imports
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import QRegExp, Qt, QTimer, Signal, Slot, QEvent
+from qtpy.QtCore import QRegExp, Qt, QTimer, QUrl, Signal, Slot, QEvent
 from qtpy.QtGui import (QColor, QCursor, QFont, QIntValidator,
                         QKeySequence, QPaintEvent, QPainter, QMouseEvent,
-                        QTextCharFormat, QTextCursor,
+                        QTextCharFormat, QTextCursor, QDesktopServices,
                         QKeyEvent, QTextDocument, QTextFormat, QTextOption)
 from qtpy.QtPrintSupport import QPrinter
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
@@ -72,10 +72,11 @@ from spyder.plugins.editor.utils.lsp import request, handles, class_register
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.outlineexplorer.languages import PythonCFM
 from spyder.py3compat import PY2, to_text_string
-from spyder.utils import encoding, sourcecode
+from spyder.utils import encoding, programs, sourcecode
 from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters as sh
-from spyder.utils.qthelpers import add_actions, create_action, mimedata2url
+from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
+                                    mimedata2url)
 
 
 try:
@@ -284,6 +285,14 @@ class CodeEditor(TextEditBaseWidget):
     #: Signal emmited when processing code analysis warnings is finished
     sig_process_code_analysis = Signal()
 
+    # Used for testing. When the mouse moves with Ctrl/Cmd pressed and
+    # a URI is found, this signal is emmited
+    sig_uri_found = Signal(str)
+
+    # Used for testing. When the mouse moves with Ctrl/Cmd pressed and
+    # the mouse left button is pressed, this signal is emmited
+    sig_go_to_uri = Signal(str)
+
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
 
@@ -306,6 +315,9 @@ class CodeEditor(TextEditBaseWidget):
         self._timer_mouse_moving = QTimer(self)
         self._timer_mouse_moving.setInterval(350)
         self._timer_mouse_moving.timeout.connect(lambda: self._handle_hover())
+
+        # Goto uri
+        self._last_hover_uri = None
 
         # 79-col edge line
         self.edge_line = self.panels.register(EdgeLine(self),
@@ -519,10 +531,25 @@ class CodeEditor(TextEditBaseWidget):
         ignore_chars = ['(', ')', '.']
 
         if self._should_display_hover(pos):
+            uri, cursor = self.get_uri_at(pos)
             text = self.get_word_at(pos)
+            if uri:
+                ctrl_text = ' Cmd' if sys.platform == "darwin" else ' Ctrl'
+
+                if uri.startswith('file://'):
+                    hint_text = ctrl_text + ' + click to open file \n'
+                elif uri.startswith('mailto:'):
+                    hint_text = ctrl_text + ' + click to send email \n'
+                elif uri.startswith('http'):
+                    hint_text = ctrl_text + ' + click to open url \n'
+                else:
+                    hint_text = ctrl_text + ' + click to open \n'
+
+                self.show_tooltip(text=hint_text, at_point=pos)
+                return
+
             cursor = self.cursorForPosition(pos)
             line, col = cursor.blockNumber(), cursor.columnNumber()
-
             self._last_point = pos
             if text and self._last_hover_word != text:
                 if all(char not in text for char in ignore_chars):
@@ -1439,8 +1466,14 @@ class CodeEditor(TextEditBaseWidget):
 
     def calculate_real_position(self, point):
         """Add offset to a point, to take into account the panels."""
-        point.setX(point.x()+self.panels.margin_size(Panel.Position.LEFT))
-        point.setY(point.y()+self.panels.margin_size(Panel.Position.TOP))
+        point.setX(point.x() + self.panels.margin_size(Panel.Position.LEFT))
+        point.setY(point.y() + self.panels.margin_size(Panel.Position.TOP))
+        return point
+
+    def calculate_real_position_from_global(self, point):
+        """Add offset to a point, to take into account the panels."""
+        point.setX(point.x() - self.panels.margin_size(Panel.Position.LEFT))
+        point.setY(point.y() + self.panels.margin_size(Panel.Position.TOP))
         return point
 
     def get_linenumber_from_mouse_event(self, event):
@@ -2934,6 +2967,8 @@ class CodeEditor(TextEditBaseWidget):
         """Override Qt method."""
         self.sig_key_released.emit(event)
         self.timer_syntax_highlight.start()
+        self.clear_extra_selections('ctrl_click')
+        self._last_hover_uri = None
         super(CodeEditor, self).keyReleaseEvent(event)
         event.ignore()
 
@@ -2953,6 +2988,10 @@ class CodeEditor(TextEditBaseWidget):
 
         key = event.key()
         text = to_text_string(event.text())
+        has_selection = self.has_selected_text()
+        ctrl = event.modifiers() & Qt.ControlModifier
+        shift = event.modifiers() & Qt.ShiftModifier
+
         if text:
             self.__clear_occurrences()
         if QToolTip.isVisible():
@@ -2965,12 +3004,19 @@ class CodeEditor(TextEditBaseWidget):
         if key in [Qt.Key_Control, Qt.Key_Shift, Qt.Key_Alt,
                    Qt.Key_Meta, Qt.KeypadModifier]:
             # The user pressed only a modifier key.
+            if ctrl:
+                pos = self.mapFromGlobal(QCursor.pos())
+                pos = self.calculate_real_position_from_global(pos)
+                if self._handle_goto_uri_event(pos):
+                    event.accept()
+                    return
+
+                if self._handle_goto_definition_event(pos):
+                    event.accept()
+                    return
             return
 
         # ---- Handle hard coded and builtin actions
-        has_selection = self.has_selected_text()
-        ctrl = event.modifiers() & Qt.ControlModifier
-        shift = event.modifiers() & Qt.ShiftModifier
         operators = {'+', '-', '*', '**', '/', '//', '%', '@', '<<', '>>',
                      '&', '|', '^', '~', '<', '>', '<=', '>=', '==', '!='}
         delimiters = {',', ':', ';', '@', '=', '->', '+=', '-=', '*=', '/=',
@@ -3108,6 +3154,106 @@ class CodeEditor(TextEditBaseWidget):
         if isinstance(self.highlighter, sh.PygmentsSH):
             self.highlighter.make_charlist()
 
+    def get_uri_at(self, coordinates):
+        """Return uri and cursor for if uri found at coordinates."""
+        return self.get_pattern_cursor_at(sh.URI_PATTERNS, coordinates)
+
+    def get_pattern_cursor_at(self, pattern, coordinates):
+        """
+        Find pattern located at the line where the coordinate is located.
+
+        This returns the actual match and the cursor that selects the text.
+        """
+        # Check if the pattern is in line
+        line = self.get_line_at(coordinates)
+        match = pattern.search(line)
+        uri = None
+        cursor = None
+
+        while match:
+            start, end = match.span()
+
+            # Get cursor selection if pattern found
+            cursor = self.cursorForPosition(coordinates)
+            cursor.movePosition(QTextCursor.StartOfBlock)
+            line_start_position = cursor.position()
+
+            cursor.setPosition(line_start_position + start, cursor.MoveAnchor)
+            start_rect = self.cursorRect(cursor)
+            cursor.setPosition(line_start_position + end, cursor.MoveAnchor)
+            end_rect = self.cursorRect(cursor)
+            bounding_rect = start_rect.united(end_rect)
+
+            # Check if coordinates are located within the selection rect
+            if bounding_rect.contains(coordinates):
+                uri = line[start:end]
+                cursor.setPosition(line_start_position + start,
+                                   cursor.KeepAnchor)
+                break
+            else:
+                match = pattern.search(line, end)
+
+        return uri, cursor
+
+    def _preprocess_file_uri(self, uri):
+        """Format uri to conform to absolute or relative file paths."""
+        fname = uri.replace('file://', '')
+        if fname[-1] == '/':
+            fname = fname[:-1]
+        dirname = osp.dirname(osp.abspath(self.filename))
+        if osp.isdir(dirname):
+            if not osp.isfile(fname):
+                # Maybe relative
+                fname = osp.join(dirname, fname)
+        return fname
+
+    def _handle_goto_definition_event(self, pos):
+        """Check if goto definition can be applied and apply highlight."""
+        text = self.get_word_at(pos)
+        if text and not sourcecode.is_keyword(to_text_string(text)):
+            if not self.__cursor_changed:
+                QApplication.setOverrideCursor(QCursor(Qt.PointingHandCursor))
+                self.__cursor_changed = True
+            cursor = self.cursorForPosition(pos)
+            cursor.select(QTextCursor.WordUnderCursor)
+            self.clear_extra_selections('ctrl_click')
+            self.__highlight_selection(
+                'ctrl_click', cursor, update=True,
+                foreground_color=self.ctrl_click_color,
+                underline_color=self.ctrl_click_color,
+                underline_style=QTextCharFormat.SingleUnderline)
+            return True
+        else:
+            return False
+
+    def _handle_goto_uri_event(self, pos):
+        """Check if go to uri can be applied and apply highlight."""
+        uri, cursor = self.get_uri_at(pos)
+        if uri and cursor:
+            color = self.ctrl_click_color
+
+            if uri.startswith('file://'):
+                fname = self._preprocess_file_uri(uri)
+                if not osp.isfile(fname):
+                    color = QColor(255, 80, 80)
+
+            self.clear_extra_selections('ctrl_click')
+            self.__highlight_selection(
+                'ctrl_click', cursor, update=True,
+                foreground_color=color,
+                underline_color=color,
+                underline_style=QTextCharFormat.SingleUnderline)
+            if not self.__cursor_changed:
+                QApplication.setOverrideCursor(
+                    QCursor(Qt.PointingHandCursor))
+                self.__cursor_changed = True
+            self._last_hover_uri = uri
+            self.sig_uri_found.emit(uri)
+            return True
+        else:
+            self._last_hover_uri = uri
+            return False
+
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""
         # Restart timer every time the mouse is moved
@@ -3116,32 +3262,26 @@ class CodeEditor(TextEditBaseWidget):
 
         pos = event.pos()
         self._last_point = pos
+        alt = event.modifiers() & Qt.AltModifier
+        ctrl = event.modifiers() & Qt.ControlModifier
+        shift = event.modifiers() & Qt.ShiftModifier
 
-        if event.modifiers() & Qt.AltModifier:
+        if alt:
             self.sig_alt_mouse_moved.emit(event)
             event.accept()
             return
+
+        if ctrl:
+            if self._handle_goto_uri_event(pos):
+                event.accept()
+                return
 
         if self.has_selected_text():
             TextEditBaseWidget.mouseMoveEvent(self, event)
             return
 
-        if (self.go_to_definition_enabled and
-                event.modifiers() & Qt.ControlModifier):
-            text = self.get_word_at(event.pos())
-            if (text and not sourcecode.is_keyword(to_text_string(text))):
-                if not self.__cursor_changed:
-                    QApplication.setOverrideCursor(
-                                                QCursor(Qt.PointingHandCursor))
-                    self.__cursor_changed = True
-                cursor = self.cursorForPosition(event.pos())
-                cursor.select(QTextCursor.WordUnderCursor)
-                self.clear_extra_selections('ctrl_click')
-                self.__highlight_selection(
-                    'ctrl_click', cursor, update=True,
-                    foreground_color=self.ctrl_click_color,
-                    underline_color=self.ctrl_click_color,
-                    underline_style=QTextCharFormat.SingleUnderline)
+        if self.go_to_definition_enabled and ctrl:
+            if self._handle_goto_definition_event(pos):
                 event.accept()
                 return
 
@@ -3179,17 +3319,36 @@ class CodeEditor(TextEditBaseWidget):
             QApplication.restoreOverrideCursor()
             self.__cursor_changed = False
             self.clear_extra_selections('ctrl_click')
+            self._last_hover_uri = None
         TextEditBaseWidget.leaveEvent(self, event)
 
     def mousePressEvent(self, event):
-        """Reimplement Qt method"""
+        """Override Qt method."""
         ctrl = event.modifiers() & Qt.ControlModifier
         alt = event.modifiers() & Qt.AltModifier
         pos = event.pos()
         if event.button() == Qt.LeftButton and ctrl:
             TextEditBaseWidget.mousePressEvent(self, event)
             cursor = self.cursorForPosition(pos)
-            self.go_to_definition_from_cursor(cursor)
+
+            if self._last_hover_uri:
+                uri = self._last_hover_uri
+                if uri.startswith('file://'):
+                    fname = self._preprocess_file_uri(uri)
+
+                    if osp.isfile(fname) and encoding.is_text_file(fname):
+                        # Open in editor
+                        self.go_to_definition.emit(fname, 0, 0)
+                    else:
+                        # Use external program
+                        fname = file_uri(fname)
+                        programs.start_file(fname)
+                else:
+                    quri = QUrl(uri)
+                    QDesktopServices.openUrl(quri)
+                self.sig_go_to_uri.emit(uri)
+            else:
+                self.go_to_definition_from_cursor(cursor)
         elif event.button() == Qt.LeftButton and alt:
             self.sig_alt_left_mouse_pressed.emit(event)
         else:
