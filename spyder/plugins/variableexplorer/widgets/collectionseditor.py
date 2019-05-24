@@ -863,7 +863,19 @@ class BaseTableView(QTableView):
                      None, resize_action, resize_columns_action])
         return menu
     
-    #------ Remote/local API --------------------------------------------------
+    # ------ Remote/local API -------------------------------------------------
+    def set_regex(self, regex=None, reset=False):
+        """Update the regex text for the shortcut finder."""
+        raise NotImplementedError
+
+    def next_row(self):
+        """Move to next row from currently selected row."""
+        raise NotImplementedError
+
+    def previous_row(self):
+        """Move to previous row from currently selected row."""
+        raise NotImplementedError
+
     def remove_values(self, keys):
         """Remove values from data"""
         raise NotImplementedError
@@ -1612,8 +1624,6 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.menu = self.setup_menu(minmax)
 
     # ------ Remote/local API -------------------------------------------------
-    # TODO: Check for refactor and use base for shortcuts
-    # (set_regex, next, prev)
     def set_regex(self, regex=None, reset=False):
         """Update the regex text for the shortcut finder."""
         if reset:
