@@ -63,8 +63,8 @@ def editor_plugin(qtbot, monkeypatch):
     qtbot.addWidget(window)
     window.show()
 
-    return editor
-    #editor.close()
+    yield editor
+    editor.close()
 
     CONF.remove_option('editor', 'autosave_mapping')
 

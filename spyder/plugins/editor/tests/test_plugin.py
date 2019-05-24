@@ -146,7 +146,6 @@ def test_editor_transmits_sig_option_changed(editor_plugin, qtbot):
     assert blocker.args == ['autosave_mapping', {1: 2}]
 
 
-@pytest.mark.skip
 def test_editor_sets_autosave_mapping_on_first_editorstack(editor_plugin):
     """Check that first editor stack gets autosave mapping from config."""
     editor = editor_plugin
@@ -154,7 +153,6 @@ def test_editor_sets_autosave_mapping_on_first_editorstack(editor_plugin):
     assert editorStack.autosave_mapping == {}
 
 
-@pytest.mark.skip
 def test_editor_syncs_autosave_mapping_among_editorstacks(editor_plugin, qtbot):
     """Check that when an editorstack emits a sig_option_changed for
     autosave_mapping, the autosave mapping of all other editorstacks is
