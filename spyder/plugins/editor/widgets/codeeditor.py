@@ -1838,7 +1838,6 @@ class CodeEditor(TextEditBaseWidget):
             block.setUserData(data)
             block.selection = QTextCursor(cursor)
             block.color = color
-            print((source, code, severity, message))
 
         self.sig_process_code_analysis.emit()
         self.update_extra_selections()
@@ -1861,13 +1860,14 @@ class CodeEditor(TextEditBaseWidget):
     def show_code_analysis_results(self, line_number, block_data):
         """Show warning/error messages."""
         from spyder.config.base import get_image_path
-        # DiagnosticSeverity
+        # Diagnostic severity
         icons = {
-            1: get_image_path('error'),
-            2: get_image_path('warning'),
-            3: get_image_path('help.png'),
-            4: get_image_path('chevron-right'),
+            DiagnosticSeverity.ERROR: 'error',
+            DiagnosticSeverity.WARNING: 'warning',
+            DiagnosticSeverity.INFORMATION: 'information',
+            DiagnosticSeverity.HINT: 'hint',
         }
+
         code_analysis = block_data.code_analysis
 
         # Size must be adapted from font
@@ -1875,25 +1875,28 @@ class CodeEditor(TextEditBaseWidget):
         fm = self.fontMetrics()
         size = fm.height()
         template = (
-            '<img src="{}" height="{size}" width="{size}" />'
+            '<img src="data:image/png;base64, {}"'
+            ' height="{size}" width="{size}" />'
             ' {} <i>({} code {})</i>'
         )
 
         msglist = []
-        for src, code, sev, msg in code_analysis:
+        sorted_code_analysis = sorted(code_analysis, key=lambda item: item[2])
+        for src, code, sev, msg in sorted_code_analysis:
             if '[' in msg and ']' in msg:
                 # Remove extra redundant info from pyling messages
                 msg = msg.split(']')[-1]
-
-            msglist.append(template.format(icons[sev], msg, src, code,
+            base_64 = ima.base64_from_icon(icons[sev], size, size)
+            msglist.append(template.format(base_64, msg, src, code,
                                            size=size))
 
-        self.show_tooltip(
-            title=_("Code analysis"),
-            text='\n'.join(msglist),
-            title_color='#129625',
-            at_line=line_number,
-        )
+        if msglist:
+            self.show_tooltip(
+                title=_("Code analysis"),
+                text='\n'.join(msglist),
+                title_color='#129625',
+                at_line=line_number,
+            )
         self.highlight_line_warning(block_data)
 
     def highlight_line_warning(self, block_data):
