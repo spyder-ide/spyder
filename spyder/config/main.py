@@ -41,6 +41,9 @@ USEFUL_EXT = IMPORT_EXT + SHOW_EXT
 NAME_FILTERS = ['README', 'INSTALL', 'LICENSE', 'CHANGELOG'] + \
                ['*' + _ext for _ext in USEFUL_EXT if _ext]
 
+# Toolbar icon sizes that can be selected by the user.
+TOOLBAR_ICON_SIZES = [16, 24, 32, 48, 64]
+
 # Port used to detect if there is a running instance and to communicate with
 # it to open external files
 OPEN_FILES_PORT = 21128
@@ -468,6 +471,7 @@ DEFAULTS = [
             ('appearance',
              {
               'icon_theme': 'spyder 3',
+              'icon_size': 24,
               # Global Spyder fonts
               'font/family': MONOSPACE,
               'font/size': MEDIUM,
