@@ -470,11 +470,11 @@ class CollectionsDelegate(QItemDelegate):
         
     def get_value(self, index):
         if index.isValid():
-            return index.model().get_value(index)
-    
+            return index.model().sourceModel().get_value(index)
+
     def set_value(self, index, value):
         if index.isValid():
-            index.model().set_value(index, value)
+            index.model().sourceModel().set_value(index, value)
 
     def show_warning(self, index):
         """
@@ -484,14 +484,14 @@ class CollectionsDelegate(QItemDelegate):
         This avoids getting the variables' value to know its
         size and type, using instead those already computed by
         the TableModel.
-        
+
         The problem is when a variable is too big, it can take a
         lot of time just to get its value
         """
         try:
-            val_size = index.model().sizes[index.row()]
-            val_type = index.model().types[index.row()]
-        except:
+            val_size = index.model().sourceModel().sizes[index.row()]
+            val_type = index.model().sourceModel().types[index.row()]
+        except Exception:
             return False
         if val_type in ['list', 'set', 'tuple', 'dict'] and \
                 int(val_size) > 1e5:
@@ -504,10 +504,11 @@ class CollectionsDelegate(QItemDelegate):
         if index.column() < 3:
             return None
         if self.show_warning(index):
-            answer = QMessageBox.warning(self.parent(), _("Warning"),
-                                      _("Opening this variable can be slow\n\n"
-                                        "Do you want to continue anyway?"),
-                                      QMessageBox.Yes | QMessageBox.No)
+            answer = QMessageBox.warning(
+                self.parent(), _("Warning"),
+                _("Opening this variable can be slow\n\n"
+                  "Do you want to continue anyway?"),
+                QMessageBox.Yes | QMessageBox.No)
             if answer == QMessageBox.No:
                 return None
         try:
@@ -515,12 +516,12 @@ class CollectionsDelegate(QItemDelegate):
             if value is None:
                 return None
         except Exception as msg:
-            QMessageBox.critical(self.parent(), _("Error"),
-                                 _("Spyder was unable to retrieve the value of "
-                                   "this variable from the console.<br><br>"
-                                   "The error mesage was:<br>"
-                                   "<i>%s</i>"
-                                   ) % to_text_string(msg))
+            QMessageBox.critical(
+                self.parent(), _("Error"),
+                _("Spyder was unable to retrieve the value of "
+                  "this variable from the console.<br><br>"
+                  "The error mesage was:<br>"
+                  "<i>%s</i>") % to_text_string(msg))
             return
         key = index.model().sourceModel().get_key(index)
         readonly = (isinstance(value, (tuple, set)) or self.parent().readonly
@@ -530,39 +531,44 @@ class CollectionsDelegate(QItemDelegate):
             editor = CollectionsEditor(parent=parent)
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
-            self.create_dialog(editor, dict(model=index.model(), editor=editor,
+            self.create_dialog(editor, dict(model=index.model().sourceModel(),
+                                            editor=editor,
                                             key=key, readonly=readonly))
             return None
         # ArrayEditor for a Numpy array
         elif isinstance(value, (ndarray, MaskedArray)) \
-          and ndarray is not FakeObject:
+                and ndarray is not FakeObject:
             editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(value, title=key, readonly=readonly):
                 return
-            self.create_dialog(editor, dict(model=index.model(), editor=editor,
+            self.create_dialog(editor, dict(model=index.model().sourceModel(),
+                                            editor=editor,
                                             key=key, readonly=readonly))
             return None
         # ArrayEditor for an images
         elif isinstance(value, Image) and ndarray is not FakeObject \
-          and Image is not FakeObject:
+                and Image is not FakeObject:
             arr = array(value)
             editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(arr, title=key, readonly=readonly):
                 return
             conv_func = lambda arr: Image.fromarray(arr, mode=value.mode)
-            self.create_dialog(editor, dict(model=index.model(), editor=editor,
+            self.create_dialog(editor, dict(model=index.model().sourceModel(),
+                                            editor=editor,
                                             key=key, readonly=readonly,
                                             conv=conv_func))
             return None
         # DataFrameEditor for a pandas dataframe, series or index
         elif isinstance(value, (DataFrame, Index, Series)) \
-          and DataFrame is not FakeObject:
+                and DataFrame is not FakeObject:
             editor = DataFrameEditor(parent=parent)
             if not editor.setup_and_check(value, title=key):
                 return
-            editor.dataModel.set_format(index.model().dataframe_format)
+            editor.dataModel.set_format(
+                index.model().sourceModel().dataframe_format)
             editor.sig_option_changed.connect(self.change_option)
-            self.create_dialog(editor, dict(model=index.model(), editor=editor,
+            self.create_dialog(editor, dict(model=index.model().sourceModel(),
+                                            editor=editor,
                                             key=key, readonly=readonly))
             return None
         # QDateEdit and QDateTimeEdit for a dates or datetime respectively
@@ -583,9 +589,10 @@ class CollectionsDelegate(QItemDelegate):
             if te.setup_and_check(value):
                 editor = TextEditor(value, key,
                                     readonly=readonly, parent=parent)
-                self.create_dialog(editor, dict(model=index.model(),
-                                                editor=editor, key=key,
-                                                readonly=readonly))
+                self.create_dialog(editor,
+                                   dict(model=index.model().sourceModel(),
+                                        editor=editor, key=key,
+                                        readonly=readonly))
             return None
         # QLineEdit for an individual value (int, float, short string, etc)
         elif is_editable_type(value):
@@ -606,7 +613,8 @@ class CollectionsDelegate(QItemDelegate):
             editor = CollectionsEditor(parent=parent)
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
-            self.create_dialog(editor, dict(model=index.model(), editor=editor,
+            self.create_dialog(editor, dict(model=index.model().sourceModel(),
+                                            editor=editor,
                                             key=key, readonly=readonly))
             return None
 
@@ -691,15 +699,17 @@ class CollectionsDelegate(QItemDelegate):
         elif isinstance(editor, QDateTimeEdit):
             editor.setDateTime(QDateTime(value.date(), value.time()))
 
+
     def setModelData(self, editor, model, index):
         """
         Overriding method setModelData
         Editor --> Model
         """
+        model = model.sourceModel()
         if not hasattr(model, "set_value"):
             # Read-only mode
             return
-        
+
         if isinstance(editor, QLineEdit):
             value = editor.text()
             try:
@@ -715,14 +725,14 @@ class CollectionsDelegate(QItemDelegate):
                 return
         elif isinstance(editor, QDateEdit):
             qdate = editor.date()
-            value = datetime.date( qdate.year(), qdate.month(), qdate.day() )
+            value = datetime.date(qdate.year(), qdate.month(), qdate.day())
         elif isinstance(editor, QDateTimeEdit):
             qdatetime = editor.dateTime()
             qdate = qdatetime.date()
             qtime = qdatetime.time()
-            value = datetime.datetime( qdate.year(), qdate.month(),
-                                       qdate.day(), qtime.hour(),
-                                       qtime.minute(), qtime.second() )
+            value = datetime.datetime(qdate.year(), qdate.month(),
+                                      qdate.day(), qtime.hour(),
+                                      qtime.minute(), qtime.second())
         else:
             # Should not happen...
             raise RuntimeError("Unsupported editor widget")
@@ -779,6 +789,7 @@ class BaseTableView(QTableView):
         self.minmax_action = None
         self.rename_action = None
         self.duplicate_action = None
+        self.last_regex = ''
         self.delegate = None
         self.setAcceptDrops(True)
         self.automatic_column_width = True
@@ -866,15 +877,35 @@ class BaseTableView(QTableView):
     # ------ Remote/local API -------------------------------------------------
     def set_regex(self, regex=None, reset=False):
         """Update the regex text for the shortcut finder."""
-        raise NotImplementedError
+        if reset:
+            text = ''
+        else:
+            text = self.finder.text().replace(' ', '').lower()
+
+        self.proxy_model.set_filter(text)
+        self.model.update_search_letters(text)
+        # TODO: Use constants for column numbers
+        self.sortByColumn(4, Qt.DescendingOrder)  # Col 4 for score
+
+        if self.last_regex != regex:
+            self.selectRow(0)
+        self.last_regex = regex
 
     def next_row(self):
         """Move to next row from currently selected row."""
-        raise NotImplementedError
+        row = self.currentIndex().row()
+        rows = self.proxy_model.rowCount()
+        if row + 1 == rows:
+            row = -1
+        self.selectRow(row + 1)
 
     def previous_row(self):
         """Move to previous row from currently selected row."""
-        raise NotImplementedError
+        row = self.currentIndex().row()
+        rows = self.proxy_model.rowCount()
+        if row == 0:
+            row = rows
+        self.selectRow(row - 1)
 
     def remove_values(self, keys):
         """Remove values from data"""
@@ -1319,7 +1350,17 @@ class CollectionsEditorTableView(BaseTableView):
                                 else CollectionsModel
         self.model = CollectionsModelClass(self, data, title, names=names,
                                            minmax=minmax)
-        self.setModel(self.model)
+        self.proxy_model = CollectionsCustomSortFilterProxy(self)
+
+        self.proxy_model.setSourceModel(self.model)
+        self.proxy_model.setDynamicSortFilter(True)
+        self.proxy_model.setFilterKeyColumn(0)  # Col 0 for Name
+        self.proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
+        self.setModel(self.proxy_model)
+
+        self.hideColumn(4)  # Column 4 for Score
+
+        self.setItemDelegateForColumn(0, HTMLDelegate(self, margin=5))
         self.delegate = CollectionsDelegate(self)
         self.setItemDelegate(self.delegate)
 
@@ -1585,186 +1626,6 @@ class RemoteCollectionsDelegate(CollectionsDelegate):
             name = index.model().sourceModel().keys[index.row()]
             self.parent().new_value(name, value)
 
-    def show_warning(self, index):
-        """
-        Decide if showing a warning when the user is trying to view
-        a big variable associated to a Tablemodel index
-
-        This avoids getting the variables' value to know its
-        size and type, using instead those already computed by
-        the TableModel.
-
-        The problem is when a variable is too big, it can take a
-        lot of time just to get its value
-        """
-        try:
-            val_size = index.model().sourceModel().sizes[index.row()]
-            val_type = index.model().sourceModel().types[index.row()]
-        except Exception:
-            return False
-        if val_type in ['list', 'set', 'tuple', 'dict'] and \
-                int(val_size) > 1e5:
-            return True
-        else:
-            return False
-
-    def createEditor(self, parent, option, index):
-        """Overriding method createEditor"""
-        if index.column() < 3:
-            return None
-        if self.show_warning(index):
-            answer = QMessageBox.warning(
-                self.parent(), _("Warning"),
-                _("Opening this variable can be slow\n\n"
-                  "Do you want to continue anyway?"),
-                QMessageBox.Yes | QMessageBox.No)
-            if answer == QMessageBox.No:
-                return None
-        try:
-            value = self.get_value(index)
-            if value is None:
-                return None
-        except Exception as msg:
-            QMessageBox.critical(
-                self.parent(), _("Error"),
-                _("Spyder was unable to retrieve the value of "
-                  "this variable from the console.<br><br>"
-                  "The error mesage was:<br>"
-                  "<i>%s</i>") % to_text_string(msg))
-            return
-        key = index.model().sourceModel().get_key(index)
-        readonly = (isinstance(value, (tuple, set)) or self.parent().readonly
-                    or not is_known_type(value))
-        # CollectionsEditor for a list, tuple, dict, etc.
-        if isinstance(value, (list, set, tuple, dict)):
-            editor = CollectionsEditor(parent=parent)
-            editor.setup(value, key, icon=self.parent().windowIcon(),
-                         readonly=readonly)
-            self.create_dialog(editor, dict(model=index.model().sourceModel(),
-                                            editor=editor,
-                                            key=key, readonly=readonly))
-            return None
-        # ArrayEditor for a Numpy array
-        elif isinstance(value, (ndarray, MaskedArray)) \
-                and ndarray is not FakeObject:
-            editor = ArrayEditor(parent=parent)
-            if not editor.setup_and_check(value, title=key, readonly=readonly):
-                return
-            self.create_dialog(editor, dict(model=index.model().sourceModel(),
-                                            editor=editor,
-                                            key=key, readonly=readonly))
-            return None
-        # ArrayEditor for an images
-        elif isinstance(value, Image) and ndarray is not FakeObject \
-                and Image is not FakeObject:
-            arr = array(value)
-            editor = ArrayEditor(parent=parent)
-            if not editor.setup_and_check(arr, title=key, readonly=readonly):
-                return
-            conv_func = lambda arr: Image.fromarray(arr, mode=value.mode)
-            self.create_dialog(editor, dict(model=index.model().sourceModel(),
-                                            editor=editor,
-                                            key=key, readonly=readonly,
-                                            conv=conv_func))
-            return None
-        # DataFrameEditor for a pandas dataframe, series or index
-        elif isinstance(value, (DataFrame, Index, Series)) \
-                and DataFrame is not FakeObject:
-            editor = DataFrameEditor(parent=parent)
-            if not editor.setup_and_check(value, title=key):
-                return
-            editor.dataModel.set_format(
-                index.model().sourceModel().dataframe_format)
-            editor.sig_option_changed.connect(self.change_option)
-            self.create_dialog(editor, dict(model=index.model().sourceModel(),
-                                            editor=editor,
-                                            key=key, readonly=readonly))
-            return None
-        # QDateEdit and QDateTimeEdit for a dates or datetime respectively
-        elif isinstance(value, datetime.date):
-            if readonly:
-                return None
-            else:
-                if isinstance(value, datetime.datetime):
-                    editor = QDateTimeEdit(value, parent=parent)
-                else:
-                    editor = QDateEdit(value, parent=parent)
-                editor.setCalendarPopup(True)
-                editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
-                return editor
-        # TextEditor for a long string
-        elif is_text_string(value) and len(value) > 40:
-            te = TextEditor(None, parent=parent)
-            if te.setup_and_check(value):
-                editor = TextEditor(value, key,
-                                    readonly=readonly, parent=parent)
-                self.create_dialog(editor,
-                                   dict(model=index.model().sourceModel(),
-                                        editor=editor, key=key,
-                                        readonly=readonly))
-            return None
-        # QLineEdit for an individual value (int, float, short string, etc)
-        elif is_editable_type(value):
-            if readonly:
-                return None
-            else:
-                editor = QLineEdit(parent=parent)
-                editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
-                editor.setAlignment(Qt.AlignLeft)
-                # This is making Spyder crash because the QLineEdit that it's
-                # been modified is removed and a new one is created after
-                # evaluation. So the object on which this method is trying to
-                # act doesn't exist anymore.
-                # editor.returnPressed.connect(self.commitAndCloseEditor)
-                return editor
-        # CollectionsEditor for an arbitrary Python object
-        else:
-            editor = CollectionsEditor(parent=parent)
-            editor.setup(value, key, icon=self.parent().windowIcon(),
-                         readonly=readonly)
-            self.create_dialog(editor, dict(model=index.model().sourceModel(),
-                                            editor=editor,
-                                            key=key, readonly=readonly))
-            return None
-
-    def setModelData(self, editor, model, index):
-        """
-        Overriding method setModelData
-        Editor --> Model
-        """
-        model = model.sourceModel()
-        if not hasattr(model, "set_value"):
-            # Read-only mode
-            return
-
-        if isinstance(editor, QLineEdit):
-            value = editor.text()
-            try:
-                value = display_to_value(to_qvariant(value),
-                                         self.get_value(index),
-                                         ignore_errors=False)
-            except Exception as msg:
-                raise
-                QMessageBox.critical(editor, _("Edit item"),
-                                     _("<b>Unable to assign data to item.</b>"
-                                       "<br><br>Error message:<br>%s"
-                                       ) % str(msg))
-                return
-        elif isinstance(editor, QDateEdit):
-            qdate = editor.date()
-            value = datetime.date(qdate.year(), qdate.month(), qdate.day())
-        elif isinstance(editor, QDateTimeEdit):
-            qdatetime = editor.dateTime()
-            qdate = qdatetime.date()
-            qtime = qdatetime.time()
-            value = datetime.datetime(qdate.year(), qdate.month(),
-                                      qdate.day(), qtime.hour(),
-                                      qtime.minute(), qtime.second())
-        else:
-            # Should not happen...
-            raise RuntimeError("Unsupported editor widget")
-        self.set_value(index, value)
-
 
 class RemoteCollectionsEditorTableView(BaseTableView):
     """DictEditor table view"""
@@ -1785,7 +1646,6 @@ class RemoteCollectionsEditorTableView(BaseTableView):
                                       remote=True)
 
         self.proxy_model = CollectionsCustomSortFilterProxy(self)
-        self.last_regex = ''
 
         self.proxy_model.setSourceModel(self.model)
         self.proxy_model.setDynamicSortFilter(True)
@@ -1804,38 +1664,6 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.menu = self.setup_menu(minmax)
 
     # ------ Remote/local API -------------------------------------------------
-    def set_regex(self, regex=None, reset=False):
-        """Update the regex text for the shortcut finder."""
-        if reset:
-            text = ''
-        else:
-            text = self.finder.text().replace(' ', '').lower()
-
-        self.proxy_model.set_filter(text)
-        self.model.update_search_letters(text)
-        # TODO: Use constants for column numbers
-        self.sortByColumn(4, Qt.DescendingOrder)  # Col 4 for score
-
-        if self.last_regex != regex:
-            self.selectRow(0)
-        self.last_regex = regex
-
-    def next_row(self):
-        """Move to next row from currently selected row."""
-        row = self.currentIndex().row()
-        rows = self.proxy_model.rowCount()
-        if row + 1 == rows:
-            row = -1
-        self.selectRow(row + 1)
-
-    def previous_row(self):
-        """Move to previous row from currently selected row."""
-        row = self.currentIndex().row()
-        rows = self.proxy_model.rowCount()
-        if row == 0:
-            row = rows
-        self.selectRow(row - 1)
-
     def get_value(self, name):
         """Get the value of a variable"""
         value = self.shellwidget.get_value(name)
