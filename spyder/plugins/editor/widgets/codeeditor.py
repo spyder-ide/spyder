@@ -1875,8 +1875,8 @@ class CodeEditor(TextEditBaseWidget):
         size = fm.height()
         template = (
             '<img src="data:image/png;base64, {}"'
-            ' height="{size}" width="{size}" />'
-            ' {} <i>({} code {})</i>'
+            ' height="{size}" width="{size}" />&nbsp;'
+            '{} <i>({} {})</i>'
         )
 
         msglist = []
@@ -1885,6 +1885,10 @@ class CodeEditor(TextEditBaseWidget):
             if '[' in msg and ']' in msg:
                 # Remove extra redundant info from pyling messages
                 msg = msg.split(']')[-1]
+
+            msg = msg.strip()
+            # Avoid messing TODO, FIXME
+            msg = msg[0].upper() + msg[1:]
             base_64 = ima.base64_from_icon(icons[sev], size, size)
             msglist.append(template.format(base_64, msg, src,
                                            code, size=size))
