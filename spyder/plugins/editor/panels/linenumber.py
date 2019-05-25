@@ -38,7 +38,6 @@ class LineNumberArea(Panel):
 
         # Markers
         self._markers_margin = True
-        self._markers_margin_width = 15
 
         # Icons
         self.error_icon = ima.icon('error')
@@ -72,13 +71,13 @@ class LineNumberArea(Panel):
         active_block = self.editor.textCursor().block()
         active_line_number = active_block.blockNumber() + 1
 
-        def draw_pixmap(ytop, pixmap):
+        def draw_pixmap(xleft, ytop, pixmap):
             if not QT55_VERSION:
                 pixmap_height = pixmap.height()
             else:
                 # scale pixmap height to device independent pixels
                 pixmap_height = pixmap.height() / pixmap.devicePixelRatio()
-            painter.drawPixmap(0, ytop + (font_height-pixmap_height) / 2,
+            painter.drawPixmap(xleft, ytop + (font_height-pixmap_height) / 2,
                                pixmap)
 
         for top, line_number, block in self.editor.visible_blocks:
@@ -97,8 +96,8 @@ class LineNumberArea(Panel):
                                  Qt.AlignRight | Qt.AlignBottom,
                                  to_text_string(line_number))
 
-            icon_size = QSize(self._markers_margin_width - 1,
-                              self._markers_margin_width - 1)
+            size = self.get_markers_margin() - 2
+            icon_size = QSize(size, size)
 
             data = block.userData()
             if self._markers_margin and data:
@@ -114,16 +113,16 @@ class LineNumberArea(Panel):
                         hints += sev == DiagnosticSeverity.HINT
 
                     if errors:
-                        draw_pixmap(top, self.error_icon.pixmap(icon_size))
+                        draw_pixmap(1, top, self.error_icon.pixmap(icon_size))
                     elif warnings:
-                        draw_pixmap(top, self.warning_icon.pixmap(icon_size))
+                        draw_pixmap(1, top, self.warning_icon.pixmap(icon_size))
                     elif infos:
-                        draw_pixmap(top, self.info_icon.pixmap(icon_size))
+                        draw_pixmap(1, top, self.info_icon.pixmap(icon_size))
                     elif hints:
-                        draw_pixmap(top, self.hint_icon.pixmap(icon_size))
+                        draw_pixmap(1, top, self.hint_icon.pixmap(icon_size))
 
                 if data.todo:
-                    draw_pixmap(top, self.todo_icon.pixmap(icon_size))
+                    draw_pixmap(1, top, self.todo_icon.pixmap(icon_size))
 
     def leaveEvent(self, event):
         """Override Qt method."""
@@ -191,7 +190,8 @@ class LineNumberArea(Panel):
 
     def get_markers_margin(self):
         if self._markers_margin:
-            return self._markers_margin_width
+            font_height = self.editor.fontMetrics().height() + 2
+            return font_height
         else:
             return 0
 

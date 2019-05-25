@@ -1871,7 +1871,6 @@ class CodeEditor(TextEditBaseWidget):
         code_analysis = block_data.code_analysis
 
         # Size must be adapted from font
-        font = self.font()
         fm = self.fontMetrics()
         size = fm.height()
         template = (
@@ -1881,14 +1880,14 @@ class CodeEditor(TextEditBaseWidget):
         )
 
         msglist = []
-        sorted_code_analysis = sorted(code_analysis, key=lambda item: item[2])
+        sorted_code_analysis = sorted(code_analysis, key=lambda i: i[2])
         for src, code, sev, msg in sorted_code_analysis:
             if '[' in msg and ']' in msg:
                 # Remove extra redundant info from pyling messages
                 msg = msg.split(']')[-1]
             base_64 = ima.base64_from_icon(icons[sev], size, size)
-            msglist.append(template.format(base_64, msg, src, code,
-                                           size=size))
+            msglist.append(template.format(base_64, msg, src,
+                                           code, size=size))
 
         if msglist:
             self.show_tooltip(
@@ -1897,7 +1896,7 @@ class CodeEditor(TextEditBaseWidget):
                 title_color='#129625',
                 at_line=line_number,
             )
-        self.highlight_line_warning(block_data)
+            self.highlight_line_warning(block_data)
 
     def highlight_line_warning(self, block_data):
         self.clear_extra_selections('code_analysis')
