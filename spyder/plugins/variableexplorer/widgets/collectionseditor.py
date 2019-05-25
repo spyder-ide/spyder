@@ -340,7 +340,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
     def update_search_letters(self, text=""):
         """Update search letters with text input in search box."""
         self.letters = text
-        names = self.keys
+        names = [str(key) for key in self.keys]
         results = get_search_scores(text, names, template='<b>{0}</b>')
         self.normal_text, self.rich_text, self.scores = zip(*results)
         self.reset()
