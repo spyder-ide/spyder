@@ -81,6 +81,8 @@ def lsp_context(is_stdio):
 
         def teardown():
             manager.shutdown()
+            qtbot_module.wait(1500)
+
             os.environ['SPY_TEST_USE_INTROSPECTION'] = 'False'
             CONF.set('lsp-server', 'pycodestyle', False)
             CONF.set('lsp-server', 'pydocstyle', False)

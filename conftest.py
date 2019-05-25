@@ -6,6 +6,9 @@
 
 """
 Configuration file for Pytest
+
+NOTE: DO NOT add fixtures here. It could generate problems with
+      QtAwesome being called before a QApplication is created.
 """
 
 import os
@@ -17,14 +20,6 @@ import shutil
 os.environ['SPYDER_PYTEST'] = 'True'
 
 import pytest
-
-# Local imports
-from spyder.tests.fixtures.file_fixtures import create_folders_files
-from spyder.tests.fixtures.bookmark_fixtures import (code_editor_bot,
-                                                     setup_editor)
-from spyder.plugins.editor.lsp.tests.fixtures import (
-    lsp_manager, qtbot_module, lsp_stdio_manager)
-from spyder.plugins.editor.widgets.tests.fixtures import lsp_codeeditor
 
 # Remove temp conf_dir before starting the tests
 from spyder.config.base import get_conf_path

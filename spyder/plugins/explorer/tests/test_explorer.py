@@ -22,8 +22,7 @@ from qtpy.QtWidgets import QMessageBox
 # Local imports
 from spyder.plugins.explorer.widgets import (FileExplorerTest,
                                              ProjectExplorerTest)
-from spyder.plugins.projects.widgets.explorer import ProjectExplorerTest as \
-    ProjectExplorerTest2
+from spyder.plugins.projects.widgets.explorer import ProjectExplorerTest as ProjectExplorerTest2
 
 
 @pytest.fixture
@@ -42,7 +41,6 @@ def project_explorer(qtbot):
     return widget
 
 
-@pytest.mark.usefixtures("create_folders_files")
 @pytest.fixture(params=[FileExplorerTest, ProjectExplorerTest2])
 def explorer_with_files(qtbot, create_folders_files, request):
     """Setup Project/File Explorer widget."""
