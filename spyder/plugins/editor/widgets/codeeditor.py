@@ -483,6 +483,13 @@ class CodeEditor(TextEditBaseWidget):
 
         self.oe_proxy = None
 
+        # Line stripping
+        self.last_change_position = None
+        self.last_position = None
+        self.last_auto_indent = None
+        self.skip_rstrip = False
+        self.strip_automatic_spaces_only = False
+
         # Language Server
         self.lsp_requests = {}
         self.document_opened = False
@@ -1290,8 +1297,10 @@ class CodeEditor(TextEditBaseWidget):
             # We do the following rather than using self.setPlainText
             # to benefit from QTextEdit's undo/redo feature.
             self.selectAll()
+            self.skip_rstrip = True
             self.insertPlainText(text_after)
             self.document_did_change()
+            self.skip_rstrip = False
 
     def get_current_object(self):
         """Return current object (string) """
@@ -1346,6 +1355,9 @@ class CodeEditor(TextEditBaseWidget):
         if self.occurrence_highlighting:
             self.occurrence_timer.stop()
             self.occurrence_timer.start()
+
+        # Strip if needed
+        self.strip_trailing_spaces()
 
     def __clear_occurrences(self):
         """Clear occurrence markers"""
@@ -1452,6 +1464,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def __text_has_changed(self):
         """Text has changed, eventually clear found results highlighting"""
+        self.last_change_position = self.textCursor().position()
         if self.found_results:
             self.clear_found_results()
 
@@ -1728,24 +1741,30 @@ class CodeEditor(TextEditBaseWidget):
         if len(text.splitlines()) > 1:
             eol_chars = self.get_line_separator()
             text = eol_chars.join((text + eol_chars).splitlines())
+        self.skip_rstrip = True
         TextEditBaseWidget.insertPlainText(self, text)
         self.document_did_change(text)
+        self.skip_rstrip = False
 
     @Slot()
     def undo(self):
         """Reimplement undo to decrease text version number."""
         if self.document().isUndoAvailable():
             self.text_version -= 1
+            self.skip_rstrip = True
             TextEditBaseWidget.undo(self)
             self.document_did_change('')
+            self.skip_rstrip = False
 
     @Slot()
     def redo(self):
         """Reimplement redo to increase text version number."""
         if self.document().isRedoAvailable():
             self.text_version += 1
+            self.skip_rstrip = True
             TextEditBaseWidget.redo(self)
             self.document_did_change('text')
+            self.skip_rstrip = False
 
     def get_block_data(self, block):
         """Return block data (from syntax highlighter)"""
@@ -2176,10 +2195,11 @@ class CodeEditor(TextEditBaseWidget):
     def fix_indent(self, *args, **kwargs):
         """Indent line according to the preferences"""
         if self.is_python_like():
-            return self.fix_indent_smart(*args, **kwargs)
+            ret = self.fix_indent_smart(*args, **kwargs)
         else:
-            return self.simple_indentation(*args, **kwargs)
+            ret = self.simple_indentation(*args, **kwargs)
         self.document_did_change()
+        return ret
 
     def simple_indentation(self, forward=True, **kwargs):
         """
@@ -2393,7 +2413,9 @@ class CodeEditor(TextEditBaseWidget):
             # We do the following rather than using self.setPlainText
             # to benefit from QTextEdit's undo/redo feature.
             self.selectAll()
+            self.skip_rstrip = True
             self.insertPlainText(nbformat.writes(nb))
+            self.skip_rstrip = False
         except Exception as e:
             QMessageBox.critical(self, _('Removal error'),
                            _("It was not possible to remove outputs from "
@@ -2852,10 +2874,21 @@ class CodeEditor(TextEditBaseWidget):
         next_char = to_text_string(cursor.selectedText())
         return next_char
 
-    def in_comment(self):
+    def in_comment(self, cursor=None):
         if self.highlighter:
-            current_color = self.__get_current_color()
+            current_color = self.__get_current_color(cursor)
             comment_color = self.highlighter.get_color_name('comment')
+            if current_color == comment_color:
+                return True
+            else:
+                return False
+        else:
+            return False
+
+    def in_string(self, cursor=None):
+        if self.highlighter:
+            current_color = self.__get_current_color(cursor)
+            comment_color = self.highlighter.get_color_name('string')
             if current_color == comment_color:
                 return True
             else:
@@ -3033,7 +3066,7 @@ class CodeEditor(TextEditBaseWidget):
                   self.autoinsert_colons():
                     self.textCursor().beginEditBlock()
                     self.insert_text(':' + self.get_line_separator())
-                    self.fix_indent()
+                    self.fix_and_strip_indent()
                     self.textCursor().endEditBlock()
                 elif self.is_completion_widget_visible():
                     self.select_completion_list()
@@ -3054,7 +3087,7 @@ class CodeEditor(TextEditBaseWidget):
 
                     self.textCursor().beginEditBlock()
                     TextEditBaseWidget.keyPressEvent(self, event)
-                    self.fix_indent(comment_or_string=cmt_or_str)
+                    self.fix_and_strip_indent(comment_or_string=cmt_or_str)
                     self.textCursor().endEditBlock()
         elif key == Qt.Key_Insert and not shift and not ctrl:
             self.setOverwriteMode(not self.overwriteMode())
@@ -3148,6 +3181,21 @@ class CodeEditor(TextEditBaseWidget):
             # Modifiers should be passed to the parent because they
             # could be shortcuts
             event.accept()
+
+    def fix_and_strip_indent(self, comment_or_string=False):
+        """Automatically fix indent and strip previous automatic indent."""
+        # Fix indent
+        cursor_before = self.textCursor().position()
+        # A change just occured on the last line (return was pressed)
+        if cursor_before > 0:
+            self.last_change_position = cursor_before - 1
+        self.fix_indent(comment_or_string=comment_or_string)
+        cursor_after = self.textCursor().position()
+        # Remove previous spaces and update last_auto_indent
+        nspaces_removed = self.strip_trailing_spaces()
+        self.last_auto_indent = (cursor_before - nspaces_removed,
+                                 cursor_after - nspaces_removed)
+        self.document_did_change()
 
     def run_pygments_highlighter(self):
         """Run pygments highlighter."""
@@ -3253,6 +3301,92 @@ class CodeEditor(TextEditBaseWidget):
         else:
             self._last_hover_uri = uri
             return False
+
+    def line_range(self, position):
+        """
+        Get line range from position
+        """
+        if position is None:
+            return None
+        if position >= self.document().characterCount():
+            return None
+        # Check if still on the line
+        cursor = self.textCursor()
+        cursor.setPosition(position)
+        line_range = (cursor.block().position(),
+                      cursor.block().position()
+                      + cursor.block().length() - 1)
+        return line_range
+
+    def strip_trailing_spaces(self):
+        """
+        Strip trailing spaces if needed.
+
+        Remove trailing whitespace on leaving a non-string line containing it.
+        returns the number of removed spaces
+        """
+        # Update current position
+        current_position = self.textCursor().position()
+        last_position = self.last_position
+        self.last_position = current_position
+
+        if self.skip_rstrip:
+            return 0
+
+        line_range = self.line_range(last_position)
+        if line_range is None:
+            # Doesn't apply
+            return 0
+
+        def pos_in_line(pos):
+            """Check if pos is in last line."""
+            if pos is None:
+                return False
+            return line_range[0] <= pos <= line_range[1]
+
+        if pos_in_line(current_position):
+            # Check if still on the line
+            return 0
+
+        if self.strip_automatic_spaces_only:
+            if self.last_auto_indent is None:
+                return 0
+            elif (self.last_auto_indent !=
+                  self.line_range(self.last_auto_indent[0])):
+                # line not empty
+                self.last_auto_indent = None
+                return 0
+            line_range = self.last_auto_indent
+            self.last_auto_indent = None
+        elif not pos_in_line(self.last_change_position):
+            # Should process if pressed return or made a change on the line:
+            return 0
+
+        # Check if end of line in string
+        cursor = self.textCursor()
+        cursor.setPosition(line_range[1])
+        if self.in_string(cursor=cursor):
+            return 0
+
+        cursor.setPosition(line_range[0])
+        cursor.setPosition(line_range[1],
+                           QTextCursor.KeepAnchor)
+        # remove spaces on the right
+        text = cursor.selectedText()
+        strip = text.rstrip()
+
+        if line_range[0] + len(strip) < line_range[1]:
+            # Select text to remove
+            cursor.setPosition(line_range[0] + len(strip))
+            cursor.setPosition(line_range[1],
+                               QTextCursor.KeepAnchor)
+            cursor.removeSelectedText()
+            self.document_did_change()
+            # Correct last change position
+            self.last_change_position = line_range[1]
+            return line_range[1] - (line_range[0] + len(strip))
+        return 0
+
 
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""
