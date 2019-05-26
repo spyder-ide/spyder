@@ -126,10 +126,29 @@ CODE = """# -*- coding: utf-8 -*-
             return x
     # %%% MGroup4
         x = 'test'
+    # %% Unnamed Cell
+
+    # %%%
+
+    # %% Unnamed Cell
+
+    # %% Unnamed Cell, #1
+
+    # %%% Unnamed Cell, #1
+
     # %%
-        test = 'text'
-    # %%
-        test = 'text'
+
+    # %% a
+
+    def a():
+        pass
+
+    # %% a
+
+    # %% b
+
+    def b():
+        pass
 """
 
 
@@ -335,10 +354,18 @@ def test_code_cell_grouping(create_outlineexplorer):
         ('MGroup3', CellItem, 'test_file.py', 'test_file.py'),
         ('function6', FunctionItem, 'MGroup3', 'MGroup3', False),
         ('MGroup4', CellItem, 'MGroup3', 'test_file.py'),
-        ('Unnamed Cell, #1', CellItem, 'test_file.py',
+        ('Unnamed Cell, #2', CellItem, 'test_file.py', 'test_file.py'),
+        ('Unnamed Cell, #3', CellItem, 'Unnamed Cell, #2', 'test_file.py'),
+        ('Unnamed Cell, #4', CellItem, 'test_file.py', 'test_file.py'),
+        ('Unnamed Cell, #1, #1', CellItem, 'test_file.py', 'test_file.py'),
+        ('Unnamed Cell, #1, #2', CellItem, 'Unnamed Cell, #1, #1',
          'test_file.py'),
-        ('Unnamed Cell, #2', CellItem, 'test_file.py',
-         'test_file.py')
+        ('Unnamed Cell, #5', CellItem, 'test_file.py', 'test_file.py'),
+        ('a, #1', CellItem, 'test_file.py', 'test_file.py'),
+        ('a', FunctionItem, 'a, #1', 'test_file.py', False),
+        ('a, #2', CellItem, 'test_file.py', 'test_file.py'),
+        ('b', CellItem, 'test_file.py', 'test_file.py'),
+        ('b', FunctionItem, 'b', 'test_file.py', False),
         ]
 
     outlineexplorer.treewidget.expandAll()
