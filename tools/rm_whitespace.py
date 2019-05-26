@@ -45,13 +45,23 @@ def git_files(file_types):
         }
 
     for file_type in file_types:
-        status_output = subprocess.run(git_commands[file_type],
-                                       stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE,
-                                       encoding="utf-8")
+        try:
+            status_output = subprocess.run(git_commands[file_type],
+                                           stdout=subprocess.PIPE,
+                                           stderr=subprocess.PIPE,
+                                           check=True,
+                                           encoding="utf-8")
+        # If not inside the repo or git otherwise runs into a problem
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError("Must be in the root of a Git repo") from e
+        # If subprocess.run doesn't exist or doesn't have the encoding arg
+        except (TypeError, AttributeError):
+            raise RuntimeError("Python >=3.6 required to run script.")
         if status_output.stdout:
             files_final = files_final.union(
                 set(status_output.stdout.strip("\0").split("\0")))
+        else:
+            files_final = set()
     return files_final
 
 
@@ -121,7 +131,17 @@ def get_pr_merge_conflicts(prs_tocheck, branch_to_compare="master"):
     previous_branch = checkout_branch(branch=branch_to_compare)
 
     for pr in prs_tocheck:
-        subprocess.run(["git", "pr", str(pr["number"])])
+        try:
+            subprocess.run(["git", "pr", str(pr["number"])], check=True)
+        except subprocess.CalledProcessError:
+            warnings.warn("git pr failed; installing git pr alias.")
+            subprocess.run(
+                ["git", "config", "--local", "alias.pr",
+                 ("!f() { git fetch -fu "
+                  "${2:-$(git remote |grep ^upstream || echo origin)} "
+                  "refs/pull/$1/head:pr/$1 && git checkout pr/$1; }; f")])
+            subprocess.run(["git", "pr", str(pr["number"])], check=True)
+
         subprocess.run(["git", "checkout", branch_to_compare])
         subprocess.run(["git", "merge", "--no-commit", "--no-ff",
                         "pr/" + str(pr["number"])])
@@ -136,6 +156,16 @@ def get_pr_merge_conflicts(prs_tocheck, branch_to_compare="master"):
         subprocess.run(["git", "merge", "--abort"])
         merge_conflicts_bypr[pr["number"]] = merge_conflicts
 
+    try:
+        subprocess.run(["git", "pr-clean"], check=True)
+    except subprocess.CalledProcessError:
+        warnings.warn("git pr-clean failed; installing git pr-clean alias.")
+        subprocess.run(
+            ["git", "config", "--local", "alias.pr-clean",
+             ("!git for-each-ref refs/heads/pr/* --format='%(refname)' "
+              "| while read ref ; do branch=${ref#refs/heads/} ; "
+              "git branch -D $branch ; done")])
+        subprocess.run(["git", "pr-clean"])
     subprocess.run(["git", "checkout", previous_branch])
     return merge_conflicts_bypr
 
@@ -253,12 +283,12 @@ def generate_arg_parser():
               "lines, and 'both' to remove both (the default)."))
 
     arg_parser.add_argument(
-        "--file-types", default=["staged", "unstaged", "untracked"],
-        nargs="*", help=("Type(s) of files to process, as determined by git. "
-                         "Options are 'staged', 'unstaged', 'untracked' and "
-                         "'index' (to process the entire git index). "
-                         "By default, does the first three to capture all "
-                         "modified files, whether or not they are staged."))
+        "--file-types", default=["staged", "unstaged", "untracked"], nargs="*",
+        help=("Type(s) of files to process, as determined by git. "
+              "Options are 'staged', 'unstaged', 'untracked' and 'index' "
+              "(to process the entire git index). "
+              "By default, does the first 3 to capture all modified files, "
+              "whether or not they are staged."))
 
     arg_parser.add_argument(
         "--warn-only", action="store_true",
@@ -280,7 +310,7 @@ def generate_arg_parser():
         help=("If passed, will check the changes to see if they cause "
               "merge conflicts on any open PRs on the repo, and only "
               "make them in the files that do not result in such. "
-              "Can be very time-consuming; not for normal use."))
+              "Installs the ``pr`` and ``pr-clean`` git alises if not found."))
 
     return arg_parser
 
