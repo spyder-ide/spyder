@@ -61,7 +61,7 @@ class TreeItem(QTreeWidgetItem):
                                          QTreeWidgetItem.Type)
         self.parent_item = parent
         self.oedata = oedata
-
+        oedata.sig_update.connect(self.update)
         self.update()
 
     def level(self):

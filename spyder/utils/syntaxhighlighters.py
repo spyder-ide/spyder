@@ -618,6 +618,8 @@ class PythonSH(BaseSH):
 
         # Try updating
         update = False
+        if oedata and data and data.oedata:
+            update = data.oedata.update(oedata)
 
         if data and not update:
             data.oedata = oedata

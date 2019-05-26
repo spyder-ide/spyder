@@ -22,7 +22,10 @@ outlineexplorer.set_current_editor(oe_proxy, update=True, clear=False)
 
 outlineexplorer.edit_goto.connect(handle_go_to)
 """
+import re
+
 from qtpy.QtCore import Signal, QObject
+from spyder.config.base import _
 
 
 class OutlineExplorerProxy(QObject):
@@ -72,6 +75,8 @@ class OutlineExplorerData(QObject):
     FUNCTION_TOKEN = 'def'
     CLASS_TOKEN = 'class'
 
+    sig_update = Signal()
+
     def __init__(self, block, text=None, fold_level=None, def_type=None,
                  def_name=None, color=None):
         """
@@ -115,6 +120,107 @@ class OutlineExplorerData(QObject):
 
         return token
 
+    @property
+    def def_name(self):
+        """Get the cell name."""
+        # Non cell don't need unique names.
+        if self.def_type != self.CELL:
+            return self._def_name
+
+        def get_name(oedata):
+            name = oedata._def_name
+            if not name:
+                name = _('Unnamed Cell')
+            return name
+
+        self_name = get_name(self)
+
+        existing_numbers = []
+
+        def check_match(oedata):
+            # Look for "string"
+            other_name = get_name(oedata)
+            pattern = '^' + re.escape(self_name) + r'(?:, #(\d+))?$'
+            match = re.match(pattern, other_name)
+            if match:
+                # Check if already has a number
+                number = match.groups()[0]
+                if number:
+                    existing_numbers.append(int(number))
+                return True
+            return False
+
+        # Count cells
+        N_prev = 0
+        for oedata in self._document_cells(forward=False):
+            if check_match(oedata):
+                N_prev += 1
+        N_fix_previous = len(existing_numbers)
+
+        N_next = 0
+        for oedata in self._document_cells(forward=True):
+            if check_match(oedata):
+                N_next += 1
+
+        # Get the remaining indexeswe can use
+        free_indexes = [idx for idx in range(N_prev + N_next + 1)
+                        if idx + 1 not in existing_numbers]
+
+        idx = free_indexes[N_prev - N_fix_previous]
+
+        if N_prev + N_next > 0:
+            return self_name + ', #{}'.format(idx + 1)
+
+        return self_name
+
+    @def_name.setter
+    def def_name(self, value):
+        """Set name."""
+        self._def_name = value
+
+    def _document_cells(self, forward=True):
+        """
+        Get all cells oedata in the document.
+
+        Parameters
+        ----------
+        forward : bool, optional
+            should the iteration move forward or backwards
+            from the current block.
+        """
+        if forward:
+            block = self.block.next()
+        else:
+            block = self.block.previous()
+
+        while block.isValid():
+            data = block.userData()
+            if data and data.oedata and data.oedata.def_type == self.CELL:
+                yield data.oedata
+            if forward:
+                block = block.next()
+            else:
+                block = block.previous()
+
+    def update(self, other):
+        """Try to update to avoid reloading everything."""
+        if (self.def_type == other.def_type and
+                self.fold_level == other.fold_level):
+            self.text = other.text
+            old_def_name = self._def_name
+            self._def_name = other._def_name
+            self.color = other.color
+            self.sig_update.emit()
+            if self.def_type == self.CELL:
+                if self.cell_level != other.cell_level:
+                    return False
+                # Must update all other cells whose name has changed.
+                for oedata in self._document_cells(forward=True):
+                    if oedata._def_name in [self._def_name, old_def_name]:
+                        oedata.sig_update.emit()
+            return True
+        return False
+
     def is_valid(self):
         """Check if the oedata has a valid block attached."""
         block = self.block
@@ -123,3 +229,17 @@ class OutlineExplorerData(QObject):
                 and block.userData()
                 and block.userData().oedata == self
                 )
+
+    def cell_index(self):
+        """Get the cell index."""
+        if self.def_type != self.CELL:
+            raise RuntimeError("This is not a cell.")
+        # Cell 0 has no header
+        return len(list(self._document_cells(forward=False))) + 1
+
+    def has_name(self):
+        """Check if has a name"""
+        if self._def_name:
+            return True
+        else:
+            return False
