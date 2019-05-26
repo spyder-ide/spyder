@@ -144,4 +144,3 @@ def log_methods_calls(fname, some_class, prefix=None):
             return newfunc
 
     some_class.__getattribute__ = __getattribute__
-

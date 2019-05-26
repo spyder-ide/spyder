@@ -376,8 +376,8 @@ class DirView(QTreeView):
             text=_("Show in Finder")
         else:
             text=_("Show in Folder")
-        external_fileexp_action = create_action(self, text,
-                                triggered=self.show_in_external_file_explorer)
+        external_fileexp_action = create_action(
+            self, text, triggered=self.show_in_external_file_explorer)
         actions += [delete_action, rename_action]
         basedir = fixpath(osp.dirname(fnames[0]))
         if all([fixpath(osp.dirname(_fn)) == basedir for _fn in fnames]):

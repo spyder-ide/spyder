@@ -333,4 +333,3 @@ has the same effect as typing a particular string at the help> prompt.
     def resetbuffer(self):
         """Remove any unhandled source text from the input buffer"""
         InteractiveConsole.resetbuffer(self)
-

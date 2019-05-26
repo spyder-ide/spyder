@@ -214,4 +214,3 @@ class OneColumnTree(QTreeWidget):
         """Override Qt method"""
         self.update_menu()
         self.menu.popup(event.globalPos())
-

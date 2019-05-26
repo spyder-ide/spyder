@@ -815,8 +815,7 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
             # Standard paste
             ShellBaseWidget.paste(self)
 
-
-    #------ Code Completion / Calltips
+    # ------ Code Completion / Calltips
     # Methods implemented in child class:
     # (e.g. InternalShell)
     def get_dir(self, objtxt):
