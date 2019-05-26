@@ -488,7 +488,7 @@ class CodeEditor(TextEditBaseWidget):
         self.last_position = None
         self.last_auto_indent = None
         self.skip_rstrip = False
-        self.strip_automatic_spaces_only = False
+        self.strip_trailing_spaces_on_modify = True
 
         # Language Server
         self.lsp_requests = {}
@@ -686,6 +686,7 @@ class CodeEditor(TextEditBaseWidget):
                      color_scheme=None,
                      wrap=False,
                      tab_mode=True,
+                     strip_mode=False,
                      intelligent_backspace=True,
                      highlight_current_line=True,
                      highlight_current_cell=True,
@@ -785,6 +786,8 @@ class CodeEditor(TextEditBaseWidget):
         # Class/Function dropdown will be disabled if we're not in a Python file.
         self.classfuncdropdown.setVisible(show_class_func_dropdown
                                           and self.is_python_like())
+
+        self.set_strip_mode(strip_mode)
 
     # --- Language Server Protocol methods -----------------------------------
     # ------------------------------------------------------------------------
@@ -1095,6 +1098,12 @@ class CodeEditor(TextEditBaseWidget):
         (otherwise tab indents only when cursor is at the beginning of a line)
         """
         self.tab_mode = enable
+
+    def set_strip_mode(self, enable):
+        """
+        Strip all trailing spaces if enabled, else only strip on auto-indents.
+        """
+        self.strip_trailing_spaces_on_modify = enable
 
     def toggle_intelligent_backspace(self, state):
         self.intelligent_backspace = state
@@ -3304,7 +3313,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def line_range(self, position):
         """
-        Get line range from position
+        Get line range from position.
         """
         if position is None:
             return None
@@ -3323,7 +3332,7 @@ class CodeEditor(TextEditBaseWidget):
         Strip trailing spaces if needed.
 
         Remove trailing whitespace on leaving a non-string line containing it.
-        returns the number of removed spaces
+        Return the number of removed spaces.
         """
         # Update current position
         current_position = self.textCursor().position()
@@ -3348,7 +3357,7 @@ class CodeEditor(TextEditBaseWidget):
             # Check if still on the line
             return 0
 
-        if self.strip_automatic_spaces_only:
+        if not self.strip_trailing_spaces_on_modify:
             if self.last_auto_indent is None:
                 return 0
             elif (self.last_auto_indent !=

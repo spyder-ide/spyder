@@ -1205,6 +1205,7 @@ class Editor(SpyderPluginWidget):
             ('set_tab_stop_width_spaces',           'tab_stop_width_spaces'),
             ('set_wrap_enabled',                    'wrap'),
             ('set_tabmode_enabled',                 'tab_always_indent'),
+            ('set_stripmode_enabled',               'strip_trailing_spaces_on_modify'),
             ('set_intelligent_backspace_enabled',   'intelligent_backspace'),
             ('set_highlight_current_line_enabled',  'highlight_current_line'),
             ('set_highlight_current_cell_enabled',  'highlight_current_cell'),
@@ -2562,6 +2563,8 @@ class Editor(SpyderPluginWidget):
             indentguides_o = self.get_option(indentguides_n)
             tabindent_n = 'tab_always_indent'
             tabindent_o = self.get_option(tabindent_n)
+            stripindent_n = 'strip_trailing_spaces_on_modify'
+            stripindent_o = self.get_option(stripindent_n)
             ibackspace_n = 'intelligent_backspace'
             ibackspace_o = self.get_option(ibackspace_n)
             removetrail_n = 'always_remove_trailing_spaces'
@@ -2606,6 +2609,8 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_wrap_enabled(wrap_o)
                 if tabindent_n in options:
                     editorstack.set_tabmode_enabled(tabindent_o)
+                if stripindent_n in options:
+                    editorstack.set_stripmode_enabled(stripindent_o)
                 if ibackspace_n in options:
                     editorstack.set_intelligent_backspace_enabled(ibackspace_o)
                 if removetrail_n in options:

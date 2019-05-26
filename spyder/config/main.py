@@ -227,6 +227,7 @@ DEFAULTS = [
               'autosave_enabled': True,
               'autosave_interval': 60,
               'docstring_type': 'Numpydoc',
+              'strip_trailing_spaces_on_modify': True,
               }),
             ('historylog',
              {
