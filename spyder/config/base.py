@@ -227,7 +227,7 @@ def get_module_path(modname):
 def get_module_data_path(modname, relpath=None, attr_name='DATAPATH'):
     """Return module *modname* data path
     Note: relpath is ignored if module has an attribute named *attr_name*
-    
+
     Handles py2exe/cx_Freeze distributions"""
     datapath = getattr(sys.modules[modname], attr_name, '')
     if datapath:
@@ -249,10 +249,10 @@ def get_module_source_path(modname, basename=None):
     """Return module *modname* source path
     If *basename* is specified, return *modname.basename* path where 
     *modname* is a package containing the module *basename*
-    
+
     *basename* is a filename (not a module name), so it must include the
     file extension: .py or .pyw
-    
+
     Handles py2exe/cx_Freeze distributions"""
     srcpath = get_module_path(modname)
     parentdir = osp.join(srcpath, osp.pardir)
@@ -446,7 +446,7 @@ def get_translation(modname, dirname=None):
             return translate_dumb
     else:
         os.environ["LANGUAGE"] = language  # Works on Linux
- 
+
     import gettext
     try:
         _trans = gettext.translation(modname, locale_path, codeset="utf-8")

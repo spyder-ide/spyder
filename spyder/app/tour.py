@@ -82,7 +82,7 @@ def get_tours(index=None):
 def get_tour(index):
     """
     This function generates a list of tours.
-    
+
     The index argument is used to retrieve a particular tour. If None is
     passed, it will return the full list of tours. If instead -1 is given,
     this function will return a test tour
@@ -171,7 +171,7 @@ def get_tour(index):
               'widgets': [sw.ipython_console],
               'run': ["li = list(range(100))", "d = {'a': 1, 'b': 2}"]
               },
-              
+
              {'title': _("The Variable Explorer"),
               'content': _("In this pane you can view and edit the variables "
                            "generated during the execution of a program, or "
@@ -449,9 +449,9 @@ class FadingCanvas(FadingDialog):
                     width, height = geo.width(), geo.height()
                     point = widget.mapTo(self.parent, QPoint(0, 0))
                     x, y = point.x(), point.y()
-    
+
                     temp_path.addRect(QRectF(x, y, width, height))
-    
+
                     temp_region = QRegion(x, y, width, height)
 
                 if self.interaction_on:
@@ -608,11 +608,11 @@ class FadingTipBox(FadingDialog):
                              subcontrol-position: top left;
                              border-width: 0px;
                              }}
-                             
+
                              QComboBox::down-arrow {{
                              image: url({});
                              }}
-                             
+
                              '''.format(self.combobox_background.name(), arrow)
         # Windows fix, slashes should be always in unix-style
         self.stylesheet = self.stylesheet.replace('\\', '/')
@@ -848,7 +848,7 @@ class AnimatedTour(QWidget):
         QWidget.__init__(self, parent)
 
         self.parent = parent
-        
+
         # Variables to adjust 
         self.duration_canvas = [666, 666]
         self.duration_tips = [333, 333]
@@ -1080,13 +1080,13 @@ class AnimatedTour(QWidget):
             if dockwidgets[0] is not None:
                 geo = dockwidgets[0].geometry()
                 x, y, width, height = geo.x(), geo.y(), geo.width(), geo.height()
-    
+
                 point = dockwidgets[0].mapToGlobal(QPoint(0, 0))
                 x_glob, y_glob = point.x(), point.y()
-    
+
                 # Check if is too tall and put to the side
                 y_fac = (height / self.height_main) * 100
-    
+
                 if y_fac > 60:  # FIXME:
                     if x < self.tips.width():
                         x = x_glob + width + delta

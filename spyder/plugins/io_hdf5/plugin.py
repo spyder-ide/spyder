@@ -40,7 +40,7 @@ try:
     import imp
     imp.find_module('h5py')
     import numpy as np
-    
+
     def load_hdf5(filename):
         import h5py
         def get_group(group):
@@ -53,7 +53,7 @@ try:
                     contents[name] = get_group(obj)
                 # other objects such as links are ignored
             return contents
-            
+
         try:
             f = h5py.File(filename, 'r')
             contents = get_group(f)
@@ -61,7 +61,7 @@ try:
             return contents, None
         except Exception as error:
             return None, str(error)
-            
+
     def save_hdf5(data, filename):
         import h5py
         try:

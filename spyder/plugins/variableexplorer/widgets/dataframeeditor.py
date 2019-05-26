@@ -128,7 +128,7 @@ class DataFrameModel(QAbstractTableModel):
         self._format = format
         self.complex_intran = None
         self.display_error_idxs = []
-        
+
         self.total_rows = self.df.shape[0]
         self.total_cols = self.df.shape[1]
         size = self.total_rows * self.total_cols

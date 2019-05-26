@@ -32,7 +32,7 @@ def environ_dialog(qtbot):
         from spyder.utils.environ import EnvDialog
         dialog = EnvDialog()
     qtbot.addWidget(dialog)
-    
+
     return dialog
 
 

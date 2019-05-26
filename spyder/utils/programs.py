@@ -110,7 +110,7 @@ def alter_subprocess_kwargs_by_platform(**kwargs):
 def run_shell_command(cmdstr, **subprocess_kwargs):
     """
     Execute the given shell command.
-    
+
     Note that *args and **kwargs will be passed to the subprocess call.
 
     If 'shell' is given in subprocess_kwargs it must be True,
@@ -353,7 +353,7 @@ def check_version(actver, version, cmp_op):
     it is assumed that the dependency is satisfied.
     Users on dev branches are responsible for keeping their own packages up to
     date.
-    
+
     Copyright (C) 2013  The IPython Development Team
 
     Distributed under the terms of the BSD License.
@@ -478,7 +478,7 @@ def is_module_installed(module_name, version=None, installed_version=None,
             assert symb in ('>=', '>', '=', '<', '<='),\
                     "Invalid version condition '%s'" % symb
             version = version[match.start():]
-            
+
             return check_version(actver, version, symb)
 
 def is_python_interpreter_valid_name(filename):

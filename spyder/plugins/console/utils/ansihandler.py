@@ -55,7 +55,7 @@ class ANSIEscapeCodeHandler(object):
         self.background_color = None
         self.default_foreground_color = 30
         self.default_background_color = 47
-        
+
     def set_code(self, code):
         assert isinstance(code, int)
         if code == 0:
@@ -96,7 +96,7 @@ class ANSIEscapeCodeHandler(object):
             # Default background color
             self.background_color = self.default_background_color
         self.set_style()
-        
+
     def set_style(self):
         """
         Set font style with the following attributes:
@@ -104,7 +104,7 @@ class ANSIEscapeCodeHandler(object):
         'bold' and 'underline'
         """
         raise NotImplementedError
-        
+
     def reset(self):
         self.current_format = None
         self.intensity = 0

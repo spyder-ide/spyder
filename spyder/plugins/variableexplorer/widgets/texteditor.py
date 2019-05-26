@@ -29,16 +29,16 @@ class TextEditor(QDialog):
     def __init__(self, text, title='', font=None, parent=None,
                  readonly=False, size=(400, 300)):
         QDialog.__init__(self, parent)
-        
+
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
         # (e.g. the editor's analysis thread in Spyder), thus leading to
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
-        
+
         self.text = None
         self.btn_save_and_close = None
-        
+
         # Display text as unicode if it comes as bytes, so users see 
         # its right representation
         if is_binary_string(text):
@@ -46,7 +46,7 @@ class TextEditor(QDialog):
             text = to_text_string(text, 'utf8')
         else:
             self.is_binary = False
-        
+
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
 
@@ -79,7 +79,7 @@ class TextEditor(QDialog):
 
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
-        
+
         self.setWindowIcon(ima.icon('edit'))
         if title:
             try:

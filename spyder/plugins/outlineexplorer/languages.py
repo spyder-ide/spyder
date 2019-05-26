@@ -25,9 +25,9 @@ class PythonCFM(object):
         match = re.match(r'[\ ]*%s ([a-zA-Z0-9_]*)[\ ]*[\(|\:]' % statmt, text)
         if match is not None:
             return match.group(1)
-        
+
     def get_function_name(self, text):
         return self.__get_name('def', text)
-    
+
     def get_class_name(self, text):
         return self.__get_name('class', text)

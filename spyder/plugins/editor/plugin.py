@@ -136,7 +136,7 @@ class Editor(SpyderPluginWidget):
         self.editorwindows_to_be_created = []
         self.toolbar_list = None
         self.menu_list = None
-        
+
         # Initialize plugin
         self.initialize_plugin()
         self.options_button.hide()

@@ -62,7 +62,7 @@ def fix_indentation(text, indent_chars):
     """Replace tabs by spaces"""
     return text.replace('\t', indent_chars)
 
-    
+
 def is_builtin(text):
     """Test if passed string is the name of a Python builtin object"""
     from spyder.py3compat import builtins
@@ -74,7 +74,7 @@ def is_keyword(text):
     """Test if passed string is the name of a Python keyword"""
     import keyword
     return text in keyword.kwlist
-    
+
     
 def get_primary_at(source_code, offset, retry=True):
     """Return Python object in *source_code* at *offset*
@@ -137,7 +137,7 @@ def path_components(path):
 def differentiate_prefix(path_components0, path_components1):
     """
     Return the differentiated prefix of the given two iterables. 
-     
+
     Taken from https://stackoverflow.com/q/21498939/438386
     """
     longest_prefix = []
@@ -201,7 +201,7 @@ def get_same_name_files(files_path_list, filename):
         if filename == os.path.basename(fname):
             same_name_files.append(path_components(fname))
     return same_name_files
-    
+
 def shortest_path(files_path_list):
     """Shortest path between files in the list."""
     if len(files_path_list) > 0:

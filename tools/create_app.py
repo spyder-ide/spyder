@@ -45,10 +45,10 @@ def get_stdlib_modules():
     """
     Returns a list containing the names of all the modules available in the
     standard library.
-    
+
     Based on the function get_root_modules from the IPython project.
     Present in IPython.core.completerlib in v0.13.1
-    
+
     Copyright (C) 2010-2011 The IPython Development Team.
     Distributed under the terms of the BSD License.
     """
@@ -56,7 +56,7 @@ def get_stdlib_modules():
     for path in sys.path[1:]:
         if 'site-packages' not in path:
             modules += module_list(path)
-    
+
     modules = set(modules)
     if '__init__' in modules:
         modules.remove('__init__')

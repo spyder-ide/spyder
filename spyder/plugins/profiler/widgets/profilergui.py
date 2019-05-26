@@ -66,13 +66,13 @@ class ProfilerWidget(QWidget):
     DATAPATH = get_conf_path('profiler.results')
     VERSION = '0.0.1'
     redirect_stdio = Signal(bool)
-    
+
     def __init__(self, parent, max_entries=100, options_button=None,
                  text_color=None):
         QWidget.__init__(self, parent)
-        
+
         self.setWindowTitle("Profiler")
-        
+
         self.output = None
         self.error_output = None
 
@@ -81,9 +81,9 @@ class ProfilerWidget(QWidget):
         self._last_wdir = None
         self._last_args = None
         self._last_pythonpath = None
-        
+
         self.filecombo = PythonModulesComboBox(self)
-        
+
         self.start_button = create_toolbutton(self, icon=ima.icon('run'),
                                     text=_("Profile"),
                                     tip=_("Run profiler"),
@@ -123,7 +123,7 @@ class ProfilerWidget(QWidget):
                                                triggered=lambda dD:
                                                self.datatree.change_view(1),
                                                tip=_('Expand one level down'))
-                                
+
         self.save_button = create_toolbutton(self, text_beside_icon=True,
                                              text=_("Save data"),
                                              icon=ima.icon('filesave'),
@@ -157,13 +157,13 @@ class ProfilerWidget(QWidget):
         hlayout2.addWidget(self.save_button)
         hlayout2.addWidget(self.load_button)
         hlayout2.addWidget(self.clear_button)
-        
+
         layout = QVBoxLayout()
         layout.addLayout(hlayout1)
         layout.addLayout(hlayout2)
         layout.addWidget(self.datatree)
         self.setLayout(layout)
-        
+
         self.process = None
         self.set_running_state(False)
         self.start_button.setEnabled(False)
@@ -182,7 +182,7 @@ class ProfilerWidget(QWidget):
             self.datelabel.setText(text)
         else:
             pass # self.show_data()
-            
+
     def save_data(self):
         """Save data"""
         title = _( "Save profiler result")
@@ -191,7 +191,7 @@ class ProfilerWidget(QWidget):
                 _("Profiler result")+" (*.Result)")
         if filename:
             self.datatree.save_data(filename)
-            
+
     def compare(self):
         filename, _selfilter = getopenfilename(
                 self, _("Select script to compare"),
@@ -223,7 +223,7 @@ class ProfilerWidget(QWidget):
             if wdir is None:
                 wdir = osp.dirname(filename)
             self.start(wdir, args, pythonpath)
-            
+
     def select_file(self):
         self.redirect_stdio.emit(False)
         filename, _selfilter = getopenfilename(
@@ -232,12 +232,12 @@ class ProfilerWidget(QWidget):
         self.redirect_stdio.emit(True)
         if filename:
             self.analyze(filename)
-        
+
     def show_log(self):
         if self.output:
             TextEditor(self.output, title=_("Profiler output"),
                        readonly=True, size=(700, 500), parent=self).exec_()
-    
+
     def show_errorlog(self):
         if self.error_output:
             TextEditor(self.error_output, title=_("Profiler output"),
@@ -258,9 +258,9 @@ class ProfilerWidget(QWidget):
         self._last_wdir = wdir
         self._last_args = args
         self._last_pythonpath = pythonpath
-        
+
         self.datelabel.setText(_('Profiling, please wait...'))
-        
+
         self.process = QProcess(self)
         self.process.setProcessChannelMode(QProcess.SeparateChannels)
         self.process.setWorkingDirectory(wdir)
@@ -280,11 +280,11 @@ class ProfilerWidget(QWidget):
                 envName, separator, envValue = envItem.partition('=')
                 processEnvironment.insert(envName, envValue)
             self.process.setProcessEnvironment(processEnvironment)
-        
+
         self.output = ''
         self.error_output = ''
         self.stopped = False
-        
+
         p_args = ['-m', 'cProfile', '-o', self.DATAPATH]
         if os.name == 'nt':
             # On Windows, one has to replace backslashes by slashes to avoid 
@@ -300,7 +300,7 @@ class ProfilerWidget(QWidget):
             # py2exe distribution
             executable = "python.exe"
         self.process.start(executable, p_args)
-        
+
         running = self.process.waitForStarted()
         self.set_running_state(running)
         if not running:
@@ -315,7 +315,7 @@ class ProfilerWidget(QWidget):
     def set_running_state(self, state=True):
         self.start_button.setEnabled(not state)
         self.stop_button.setEnabled(state)
-        
+
     def read_output(self, error=False):
         if error:
             self.process.setReadChannel(QProcess.StandardError)
@@ -332,7 +332,7 @@ class ProfilerWidget(QWidget):
             self.error_output += text
         else:
             self.output += text
-        
+
     def finished(self, exit_code, exit_status):
         self.set_running_state(False)
         self.show_errorlog()  # If errors occurred, show them.
@@ -340,13 +340,13 @@ class ProfilerWidget(QWidget):
         # FIXME: figure out if show_data should be called here or
         #        as a signal from the combobox
         self.show_data(justanalyzed=True)
-                
+
     def kill_if_running(self):
         if self.process is not None:
             if self.process.state() == QProcess.Running:
                 self.process.kill()
                 self.process.waitForFinished()
-        
+
     def show_data(self, justanalyzed=False):
         if not justanalyzed:
             self.output = None
@@ -405,7 +405,7 @@ def gettime_s(text):
 class TreeWidgetItem( QTreeWidgetItem ):
     def __init__(self, parent=None):
         QTreeWidgetItem.__init__(self, parent)
-    
+
     def __lt__(self, otherItem):
         column = self.treeWidget().sortColumn()
         try:
@@ -414,7 +414,7 @@ class TreeWidgetItem( QTreeWidgetItem ):
                 t1 = gettime_s(otherItem.text(column))
                 if t0 is not None and t1 is not None:
                     return t0 > t1
-            
+
             return float( self.text(column) ) > float( otherItem.text(column) )
         except ValueError:
             return self.text(column) > otherItem.text(column)
@@ -468,7 +468,7 @@ class ProfilerDataTree(QTreeWidget):
     def set_item_data(self, item, filename, line_number):
         """Set tree item user data: filename (string) and line_number (int)"""
         set_item_user_text(item, '%s%s%d' % (filename, self.SEP, line_number))
-    
+
     def get_item_data(self, item):
         """Get tree item user data: (filename, line_number)"""
         filename, line_number_str = get_item_user_text(item).split(self.SEP)
@@ -490,7 +490,7 @@ class ProfilerDataTree(QTreeWidget):
         except (OSError, IOError):
             return
         self.profdata = stats_indi[0]
-        
+
         if self.compare_file is not None:
             try:
                 stats_indi.append(pstats.Stats(self.compare_file))
@@ -504,15 +504,15 @@ class ProfilerDataTree(QTreeWidget):
         self.profdata.calc_callees()
         self.stats1 = stats_indi
         self.stats = stats_indi[0].stats
-        
+
     def compare(self,filename):
         self.hide_diff_cols(False)
         self.compare_file = filename
-        
+
     def hide_diff_cols(self, hide):
         for i in (2,4,6):
             self.setColumnHidden(i, hide)
-    
+
     def save_data(self, filename):
         """"""
         self.stats1[0].dump_stats(filename)
@@ -526,7 +526,7 @@ class ProfilerDataTree(QTreeWidget):
                 # This skips the profiler function at the top of the list
                 # it does only occur in Python 3
                 return func
-    
+
     def find_callees(self, parent):
         """Find all functions called by (parent) function."""
         # FIXME: This implementation is very inneficient, because it
@@ -657,7 +657,7 @@ class ProfilerDataTree(QTreeWidget):
                                        '(including sub-functions)'))
             child_item.setData(1, Qt.DisplayRole, cum_time)
             child_item.setTextAlignment(1, Qt.AlignRight)
-            
+
             child_item.setData(2, Qt.DisplayRole, cum_time_dif[0])
             child_item.setForeground(2, QColor(cum_time_dif[1]))
             child_item.setTextAlignment(2, Qt.AlignLeft)
@@ -667,7 +667,7 @@ class ProfilerDataTree(QTreeWidget):
 
             child_item.setData(3, Qt.DisplayRole, loc_time)
             child_item.setTextAlignment(3, Qt.AlignRight)
-            
+
             child_item.setData(4, Qt.DisplayRole, loc_time_dif[0])
             child_item.setForeground(4, QColor(loc_time_dif[1]))
             child_item.setTextAlignment(4, Qt.AlignLeft)
@@ -677,7 +677,7 @@ class ProfilerDataTree(QTreeWidget):
 
             child_item.setData(5, Qt.DisplayRole, total_calls)
             child_item.setTextAlignment(5, Qt.AlignRight)
-            
+
             child_item.setData(6, Qt.DisplayRole, total_calls_dif[0])
             child_item.setForeground(6, QColor(total_calls_dif[1]))
             child_item.setTextAlignment(6, Qt.AlignLeft)
@@ -697,16 +697,16 @@ class ProfilerDataTree(QTreeWidget):
                     child_item.setChildIndicatorPolicy(child_item.ShowIndicator)
                     self.items_to_be_shown[id(child_item)] = callees
             self.item_depth -= 1
-        
+
     def item_activated(self, item):
         filename, line_number = self.get_item_data(item)
         self.sig_edit_goto.emit(filename, line_number, '')
-            
+
     def item_expanded(self, item):
         if item.childCount() == 0 and id(item) in self.items_to_be_shown:
             callees = self.items_to_be_shown[id(item)]
             self.populate_tree(item, callees)
-    
+
     def is_recursive(self, child_item):
         """Returns True is a function is a descendant of itself."""
         ancestor = child_item.parent()
@@ -720,11 +720,11 @@ class ProfilerDataTree(QTreeWidget):
             else:
                 ancestor = ancestor.parent()
         return False
-    
+
     def get_top_level_items(self):
         """Iterate over top level items"""
         return [self.topLevelItem(_i) for _i in range(self.topLevelItemCount())]
-    
+
     def get_items(self, maxlevel):
         """Return all items with a level <= `maxlevel`"""
         itemlist = []
@@ -740,7 +740,7 @@ class ProfilerDataTree(QTreeWidget):
             if maxlevel > 0:
                 add_to_itemlist(tlitem, maxlevel=maxlevel)
         return itemlist
-            
+
     def change_view(self, change_in_depth):
         """Change the view depth by expand or collapsing all same-level nodes"""
         self.current_view_depth += change_in_depth
@@ -750,7 +750,7 @@ class ProfilerDataTree(QTreeWidget):
         if self.current_view_depth > 0:
             for item in self.get_items(maxlevel=self.current_view_depth-1):
                 item.setExpanded(True)
-    
+
 
 #==============================================================================
 # Tests
@@ -793,7 +793,7 @@ def test():
         f.write("# -*- coding: utf-8 -*-" + "\n\n")
         f.write(primes_sc + "\n\n")
         f.write("primes(100000)")
-    
+
     app = qapplication(test_time=5)
     widget = ProfilerWidget(None)
     widget.resize(800, 600)

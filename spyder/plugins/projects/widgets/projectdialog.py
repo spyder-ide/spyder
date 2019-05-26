@@ -175,9 +175,9 @@ class ProjectDialog(QDialog):
         else:
             self.button_create.setEnabled(False)
             path = self.location
-        
+
         self.text_location.setText(path)
-        
+
     def create_project(self):
         """Create project."""
         packages = ['python={0}'.format(self.combo_python_version.currentText())]
@@ -186,7 +186,7 @@ class ProjectDialog(QDialog):
             self.combo_project_type.currentText(),
             packages)
         self.accept()
-        
+
 
 def test():        
     """Local test."""

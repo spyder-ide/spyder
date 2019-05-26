@@ -80,7 +80,7 @@ class PythonWorker(QObject):
             self.sig_finished.emit(self, output, error)
         self._is_finished = True
 
-        
+
 class ProcessWorker(QObject):
     """Process worker based on a QProcess for non blocking UI."""
 
@@ -324,7 +324,7 @@ def ready_print(worker, output, error):  # pragma: no cover
     """Print worker output for tests."""
     print(worker, output, error)  # spyder: test-skip
 
-    
+
 def sleeping_func(arg, secs=10, result_queue=None):
     """This methods illustrates how the workers can be used."""
     import time
