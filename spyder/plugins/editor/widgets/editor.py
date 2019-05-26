@@ -539,6 +539,7 @@ class EditorStack(QWidget):
         self.default_font = None
         self.wrap_enabled = False
         self.tabmode_enabled = False
+        self.stripmode_enabled = False
         self.intelligent_backspace_enabled = True
         self.highlight_current_line_enabled = False
         self.highlight_current_cell_enabled = False
@@ -1099,6 +1100,13 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_tab_mode(state)
+
+    def set_stripmode_enabled(self, state):
+        # CONF.get(self.CONF_SECTION, 'strip_trailing_spaces_on_modify')
+        self.stripmode_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_strip_mode(state)
 
     def set_intelligent_backspace_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'intelligent_backspace')
@@ -2277,6 +2285,7 @@ class EditorStack(QWidget):
             markers=self.has_markers(), font=self.default_font,
             color_scheme=self.color_scheme,
             wrap=self.wrap_enabled, tab_mode=self.tabmode_enabled,
+            strip_mode=self.stripmode_enabled,
             intelligent_backspace=self.intelligent_backspace_enabled,
             highlight_current_line=self.highlight_current_line_enabled,
             highlight_current_cell=self.highlight_current_cell_enabled,
