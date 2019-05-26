@@ -157,5 +157,51 @@ def test_editor_rstrip_keypress(
     assert widget.toPlainText() == expected_text
 
 
+@pytest.mark.parametrize(
+    "input_text, expected_state", [
+        ("'string ", [True, False]),
+        ('"string ', [True, False]),
+        ("'string \\", [True, True]),
+        ('"string \\', [True, True]),
+        ("'string \\ ", [True, False]),
+        ('"string \\ ', [True, False]),
+        ("'string ' ", [False, False]),
+        ('"string " ', [False, False]),
+        ("'string \"", [True, False]),
+        ('"string \'', [True, False]),
+        ("'string \" ", [True, False]),
+        ('"string \' ', [True, False]),
+        ("'''string ", [True, True]),
+        ('"""string ', [True, True]),
+        ("'''string \\", [True, True]),
+        ('"""string \\', [True, True]),
+        ("'''string \\ ", [True, True]),
+        ('"""string \\ ', [True, True]),
+        ("'''string ''' ", [False, False]),
+        ('"""string """ ', [False, False]),
+        ("'''string \"\"\"", [True, True]),
+        ('"""string \'\'\'', [True, True]),
+        ("'''string \"\"\" ", [True, True]),
+        ('"""string \'\'\' ', [True, True]),
+    ])
+def test_in_string(editorbot, input_text, expected_state):
+    """
+    Test that in_string works correctly.
+    """
+    qtbot, widget = editorbot
+    widget.set_text(input_text + '\n  ')
+    cursor = widget.textCursor()
+
+    for blanks_enabled in [True, False]:
+        widget.set_blanks_enabled(blanks_enabled)
+
+        cursor.setPosition(len(input_text))
+        assert cursor.position() == len(input_text)
+        assert widget.in_string(cursor) == expected_state[0]
+
+        cursor.setPosition(len(input_text) + 3)
+        assert widget.in_string(cursor) == expected_state[1]
+
+
 if __name__ == '__main__':
     pytest.main(['test_codeeditor.py'])

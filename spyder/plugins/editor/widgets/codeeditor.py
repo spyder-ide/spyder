@@ -2897,8 +2897,8 @@ class CodeEditor(TextEditBaseWidget):
     def in_string(self, cursor=None):
         if self.highlighter:
             current_color = self.__get_current_color(cursor)
-            comment_color = self.highlighter.get_color_name('string')
-            if current_color == comment_color:
+            string_color = self.highlighter.get_color_name('string')
+            if current_color == string_color:
                 return True
             else:
                 return False

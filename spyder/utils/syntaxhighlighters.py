@@ -388,6 +388,8 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
     dqstring =     r'(\b(%s))?"[^"\\\n]*(\\.[^"\\\n]*)*"?' % prefix
     uf_sqstring =  r"(\b(%s))?'[^'\\\n]*(\\.[^'\\\n]*)*(\\)$(?!')$" % prefix
     uf_dqstring =  r'(\b(%s))?"[^"\\\n]*(\\.[^"\\\n]*)*(\\)$(?!")$' % prefix
+    ufe_sqstring = r"(\b(%s))?'[^'\\\n]*(\\.[^'\\\n]*)*(?!\\)$(?!')$" % prefix
+    ufe_dqstring = r'(\b(%s))?"[^"\\\n]*(\\.[^"\\\n]*)*(?!\\)$(?!")$' % prefix
     sq3string =    r"(\b(%s))?'''[^'\\]*((\\.|'(?!''))[^'\\]*)*(''')?" % prefix
     dq3string =    r'(\b(%s))?"""[^"\\]*((\\.|"(?!""))[^"\\]*)*(""")?' % prefix
     uf_sq3string = r"(\b(%s))?'''[^'\\]*((\\.|'(?!''))[^'\\]*)*(\\)?(?!''')$" \
@@ -418,9 +420,11 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
     ufstring2 = any("uf_dqstring", [uf_dqstring])
     ufstring3 = any("uf_sq3string", [uf_sq3string])
     ufstring4 = any("uf_dq3string", [uf_dq3string])
+    ufstring5 = any("ufe_sqstring", [ufe_sqstring])
+    ufstring6 = any("ufe_dqstring", [ufe_dqstring])
     return "|".join([instance, kw, builtin, comment,
-                     ufstring1, ufstring2, ufstring3, ufstring4, string,
-                     number, any("SYNC", [r"\n"])])
+                     ufstring1, ufstring2, ufstring3, ufstring4, ufstring5,
+                     ufstring6, string, number, any("SYNC", [r"\n"])])
 
 
 def get_code_cell_name(text):
@@ -445,7 +449,8 @@ class PythonSH(BaseSH):
     ASPROG = re.compile(r".*?\b(as)\b")
     # Syntax highlighting states (from one text block to another):
     (NORMAL, INSIDE_SQ3STRING, INSIDE_DQ3STRING,
-     INSIDE_SQSTRING, INSIDE_DQSTRING) = list(range(5))
+     INSIDE_SQSTRING, INSIDE_DQSTRING,
+     INSIDE_NON_MULTILINE_STRING) = list(range(6))
     DEF_TYPES = {"def": OutlineExplorerData.FUNCTION,
                  "class": OutlineExplorerData.CLASS}
     # Comments suitable for Outline Explorer
@@ -511,6 +516,10 @@ class PythonSH(BaseSH):
                         self.setFormat(start, end-start,
                                        self.formats["string"])
                         state = self.INSIDE_DQSTRING
+                    elif key in ["ufe_sqstring", "ufe_dqstring"]:
+                        self.setFormat(start, end-start,
+                                       self.formats["string"])
+                        state = self.INSIDE_NON_MULTILINE_STRING
                     else:
                         self.setFormat(start, end-start, self.formats[key])
                         if key == "comment":
@@ -582,9 +591,19 @@ class PythonSH(BaseSH):
 
         tbh.set_state(self.currentBlock(), state)
         
-        # Use normal format for indentation and trailing spaces.
+        # Use normal format for indentation and trailing spaces
+        # Unless we are in a string
+        states_multiline_string = [
+            self.INSIDE_DQ3STRING, self.INSIDE_SQ3STRING,
+            self.INSIDE_DQSTRING, self.INSIDE_SQSTRING]
+        states_string = states_multiline_string + [
+            self.INSIDE_NON_MULTILINE_STRING]
         self.formats['leading'] = self.formats['normal']
+        if prev_state in states_multiline_string:
+            self.formats['leading'] = self.formats["string"]
         self.formats['trailing'] = self.formats['normal']
+        if state in states_string:
+            self.formats['trailing'] = self.formats['string']
         self.highlight_extras(text, offset)
 
         if oedata is not None:
