@@ -185,8 +185,7 @@ class OutlineExplorerData(QObject):
         Parameters
         ----------
         forward : bool, optional
-            should the iteration move forward or backwards
-            from the current block.
+            Whether to iterate forward or backward from the current block.
         """
         if forward:
             block = self.block.next()
@@ -238,7 +237,7 @@ class OutlineExplorerData(QObject):
         return len(list(self._document_cells(forward=False))) + 1
 
     def has_name(self):
-        """Check if has a name"""
+        """Check if cell has a name."""
         if self._def_name:
             return True
         else:

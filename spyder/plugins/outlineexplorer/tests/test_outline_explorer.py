@@ -30,7 +30,7 @@ oe_data = [
     [63, 'if __name__ == "__main__":', 0, 2, 'if __name__ == "__main__":']
 ]
 
-oe_data_filtered = [oe_data[i] for i in [0, 1, 2, 3, 4, 6, 7, 8, 9]]
+oe_data_filtered = [oe_data[idx] for idx in [0, 1, 2, 3, 4, 6, 7, 8, 9]]
 
 
 class testBlock():

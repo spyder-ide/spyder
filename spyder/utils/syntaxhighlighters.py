@@ -523,7 +523,7 @@ class PythonSH(BaseSH):
                             if text.lstrip().startswith(self.cell_separators):
                                 self.found_cell_separators = True
                                 oedata = OutlineExplorerData(
-                                        self.currentBlock())
+                                    self.currentBlock())
                                 oedata.text = to_text_string(text).strip()
                                 # cell_head: string contaning the first group
                                 # of '%'s in the cell header
@@ -539,7 +539,7 @@ class PythonSH(BaseSH):
                                 oedata.def_name = def_name
                             elif self.OECOMMENT.match(text.lstrip()):
                                 oedata = OutlineExplorerData(
-                                        self.currentBlock())
+                                    self.currentBlock())
                                 oedata.text = to_text_string(text).strip()
                                 oedata.fold_level = start
                                 oedata.def_type = OutlineExplorerData.COMMENT
@@ -552,7 +552,7 @@ class PythonSH(BaseSH):
                                     self.setFormat(start1, end1-start1,
                                                    self.formats["definition"])
                                     oedata = OutlineExplorerData(
-                                            self.currentBlock())
+                                        self.currentBlock())
                                     oedata.text = to_text_string(text)
                                     oedata.fold_level = (len(text)
                                                          - len(text.lstrip()))
@@ -565,7 +565,7 @@ class PythonSH(BaseSH):
                                            "with"):
                                 if text.lstrip().startswith(value):
                                     oedata = OutlineExplorerData(
-                                            self.currentBlock())
+                                        self.currentBlock())
                                     oedata.text = to_text_string(text).strip()
                                     oedata.fold_level = start
                                     oedata.def_type = \

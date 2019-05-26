@@ -36,11 +36,11 @@ text = ('# test file\n'
 
 expected_oe_list = [
     OutlineExplorerData(
-            testBlock(2), 'class a():', 0,
-            OutlineExplorerData.CLASS, 'a'),
+        testBlock(2), 'class a():', 0,
+        OutlineExplorerData.CLASS, 'a'),
     OutlineExplorerData(
-            testBlock(6), '    def some_method(self):', 4,
-            OutlineExplorerData.FUNCTION, 'some_method')
+        testBlock(6), '    def some_method(self):', 4,
+        OutlineExplorerData.FUNCTION, 'some_method')
 ]
 
 
@@ -90,7 +90,7 @@ def test_editor_outline_explorer(editor_outline_explorer_bot):
 
     # Assert Treewidget Items
     items = outline_explorer.treewidget.get_items()
-    oedata_texts = [j.def_name for j in expected_oe_list]
+    oedata_texts = [oe.def_name for oe in expected_oe_list]
     for item, oe_item in zip(items, oedata_texts):
         assert item.text(0) == oe_item
 

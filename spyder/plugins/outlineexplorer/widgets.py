@@ -89,7 +89,7 @@ class TreeItem(QTreeWidgetItem):
         self.setText(0, name)
         parent_text = from_qvariant(self.parent_item.data(0, Qt.UserRole),
                                     to_text_string)
-        set_item_user_text(self, parent_text+'/'+name)
+        set_item_user_text(self, parent_text + '/' + name)
         self.setup()
 
 class ClassItem(TreeItem):
