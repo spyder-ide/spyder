@@ -78,7 +78,7 @@ def to_unicode_from_fs(string):
 
 def to_fs_from_unicode(unic):
     """
-    Return a byte string version of unic encoded using the file 
+    Return a byte string version of unic encoded using the file
     system encoding.
     """
     if is_unicode(unic):

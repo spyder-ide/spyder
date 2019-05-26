@@ -1396,7 +1396,7 @@ class IPythonConsole(SpyderPluginWidget):
             cf_filename = osp.basename(connection_file)
             # To change a possible empty string to None
             cf_path = cf_path if cf_path else None
-            connection_file = find_connection_file(filename=cf_filename, 
+            connection_file = find_connection_file(filename=cf_filename,
                                                    path=cf_path)
         except (IOError, UnboundLocalError):
             QMessageBox.critical(self, _('IPython'),

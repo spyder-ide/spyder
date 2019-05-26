@@ -50,11 +50,11 @@ keeper = DialogKeeper()
 
 def create_dialog(obj, obj_name):
     """Creates the editor dialog and returns a tuple (dialog, func) where func
-    is the function to be called with the dialog instance as argument, after 
+    is the function to be called with the dialog instance as argument, after
     quitting the dialog box
 
     The role of this intermediate function is to allow easy monkey-patching.
-    (uschmitt suggested this indirection here so that he can monkey patch 
+    (uschmitt suggested this indirection here so that he can monkey patch
     oedit to show eMZed related data)
     """
     # Local import

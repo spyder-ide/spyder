@@ -76,7 +76,7 @@ class FindReplace(QWidget):
 
         self.return_shift_pressed.connect(
                 lambda:
-                self.find(changed=False, forward=False, rehighlight=False, 
+                self.find(changed=False, forward=False, rehighlight=False,
                           multiline_replace_check = False))
 
         self.return_pressed.connect(
@@ -366,7 +366,7 @@ class FindReplace(QWidget):
         return state
 
     def text_has_been_edited(self, text):
-        """Find text has been edited (this slot won't be triggered when 
+        """Find text has been edited (this slot won't be triggered when
         setting the search pattern combo box text programmatically)"""
         self.find(changed=True, forward=True, start_highlight_timer=True)
 
@@ -387,7 +387,7 @@ class FindReplace(QWidget):
     def find(self, changed=True, forward=True,
              rehighlight=True, start_highlight_timer=False, multiline_replace_check=True):
         """Call the find function"""
-        # When several lines are selected in the editor and replace box is activated, 
+        # When several lines are selected in the editor and replace box is activated,
         # dynamic search is deactivated to prevent changing the selection. Otherwise
         # we show matching items.
         if multiline_replace_check and self.replace_widgets[0].isVisible() and \
@@ -485,7 +485,7 @@ class FindReplace(QWidget):
                         else:
                             if not self.find(changed=False, forward=True,
                                              rehighlight=False):
-                                break   
+                                break
                     first = False
                     wrapped = False
                     position = self.editor.get_position('cursor')

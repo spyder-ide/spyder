@@ -172,13 +172,13 @@ def test_move_current_line_up(editor_bot):
     assert editor.toPlainText() == expected_new_text
 
     # Move fourth line up when part of the line is selected.
-    editor.go_to_line(4)    
+    editor.go_to_line(4)
     editor.moveCursor(QTextCursor.Right, QTextCursor.MoveAnchor)
     for i in range(2):
         editor.moveCursor(QTextCursor.Right, QTextCursor.KeepAnchor)
     editor.move_line_up()
     expected_new_text = ('print(a)\n'
-                         'a = 1\n'                         
+                         'a = 1\n'
                          'x = 2\n'
                          '\n')
     assert editor.toPlainText()[:] == expected_new_text
@@ -230,7 +230,7 @@ def test_move_multiple_lines_up(editor_bot):
                          '\n'
                          'a = 1\n'
                          'x = 2\n')
-    assert editor.toPlainText() == expected_new_text     
+    assert editor.toPlainText() == expected_new_text
 
     # Move first and second lines up (to test already at top condition).
     editor.move_line_up()

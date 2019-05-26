@@ -215,9 +215,9 @@ class TabBar(QTabBar):
         if int(mimeData.data("tabbar-id")) != id(self):
             tabwidget_from = to_text_string(mimeData.data("tabwidget-id"))
 
-            # We pass self object ID as a QString, because otherwise it would 
-            # depend on the platform: long for 64bit, int for 32bit. Replacing 
-            # by long all the time is not working on some 32bit platforms 
+            # We pass self object ID as a QString, because otherwise it would
+            # depend on the platform: long for 64bit, int for 32bit. Replacing
+            # by long all the time is not working on some 32bit platforms
             # (see Issue 1094, Issue 1098)
             self.sig_move_tab[(str, int, int)].emit(tabwidget_from, index_from,
                                                     index_to)
@@ -471,9 +471,9 @@ class Tabs(BaseTabs):
                                         index_from, index_to):
         """Move tab from a tabwidget to another"""
 
-        # We pass self object IDs as QString objs, because otherwise it would 
-        # depend on the platform: long for 64bit, int for 32bit. Replacing 
-        # by long all the time is not working on some 32bit platforms 
+        # We pass self object IDs as QString objs, because otherwise it would
+        # depend on the platform: long for 64bit, int for 32bit. Replacing
+        # by long all the time is not working on some 32bit platforms
         # (see Issue 1094, Issue 1098)
         self.sig_move_tab.emit(tabwidget_from, to_text_string(id(self)),
                                index_from, index_to)

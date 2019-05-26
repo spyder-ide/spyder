@@ -2,7 +2,7 @@
 #
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
-# (see spyder/__init__.py for details)    
+# (see spyder/__init__.py for details)
 
 """
 This module provides user configuration file management features for Spyder
@@ -267,7 +267,7 @@ class UserConfig(DefaultsConfig):
             path = get_module_source_path('spyder')
         else:
             path = osp.dirname(self.filename())
-        path = osp.join(path, 'defaults') 
+        path = osp.join(path, 'defaults')
         old_defaults.read(osp.join(path, 'defaults-'+old_version+'.ini'))
         return old_defaults
 

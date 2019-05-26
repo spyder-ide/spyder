@@ -72,7 +72,7 @@ class PathManager(QDialog):
         bottom_layout = QHBoxLayout()
         layout.addLayout(bottom_layout)
         self.sync_button = None
-        self.toolbar_widgets2 = self.setup_bottom_toolbar(bottom_layout, sync)        
+        self.toolbar_widgets2 = self.setup_bottom_toolbar(bottom_layout, sync)
 
         # Buttons configuration
         bbox = QDialogButtonBox(QDialogButtonBox.Close)
@@ -235,7 +235,7 @@ class PathManager(QDialog):
             else:
                 new_index = 0
         else:
-            new_index = index + relative        
+            new_index = index + relative
         new_index = max(0, min(len(self.pathlist)-1, new_index))
         path = self.pathlist.pop(index)
         self.pathlist.insert(new_index, path)

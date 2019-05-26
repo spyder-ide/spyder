@@ -221,7 +221,7 @@ class InternalShell(PythonShellWidget):
         if external_editor:
             self.external_editor(filename)
         else:
-            self.parent().edit_script(filename)            
+            self.parent().edit_script(filename)
 
     def stdout_avail(self):
         """Data is available in stdout, let's empty the queue and write it!"""
@@ -236,7 +236,7 @@ class InternalShell(PythonShellWidget):
             self.write(data, error=True)
             self.flush(error=True)
 
-    
+
     #------Raw input support
     def wait_input(self, prompt=''):
         """Wait for input (raw_input support)"""
@@ -420,7 +420,7 @@ class InternalShell(PythonShellWidget):
         else:
             self.interpreter.stdin_write.write(to_binary_string(cmd + '\n'))
 
-    
+
     #------ Code completion / Calltips
     def _eval(self, text):
         """Is text a valid object?"""

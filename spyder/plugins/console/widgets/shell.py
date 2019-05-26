@@ -157,9 +157,9 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
         self.cut_action.setEnabled(state)
         self.delete_action.setEnabled(state)
         self.menu.popup(event.globalPos())
-        event.accept()        
+        event.accept()
 
-        
+
     #------ Input buffer
     def get_current_line_from_cursor(self):
         return self.get_text('cursor', 'eof')
@@ -200,7 +200,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
 
     input_buffer = Property("QString", _get_input_buffer, _set_input_buffer)
 
-        
+
     #------ Prompt
     def new_prompt(self, prompt):
         """
@@ -224,7 +224,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
         else:
             self.truncate_selection(self.current_prompt_pos)
 
-        
+
     #------ Copy / Keyboard interrupt
     @Slot()
     def copy(self):
@@ -456,7 +456,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
             # Let the parent widget handle the key press event
             ConsoleBaseWidget.keyPressEvent(self, event)
 
-                
+
     #------ Key handlers
     def _key_enter(self):
         command = self.input_buffer
@@ -546,7 +546,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
 
     def flush(self, error=False, prompt=False):
         """Flush buffer, write text to console"""
-        # Fix for Issue 2452 
+        # Fix for Issue 2452
         if PY3:
             try:
                 text = "".join(self.__buffer)
@@ -709,7 +709,7 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         text = os.linesep.join(lines)
         QApplication.clipboard().setText(text)
 
-    
+
     #------ Key handlers
     def postprocess_keyevent(self, event):
         """Process keypress event"""
@@ -815,8 +815,8 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
             # Standard paste
             ShellBaseWidget.paste(self)
 
-  
-    #------ Code Completion / Calltips        
+
+    #------ Code Completion / Calltips
     # Methods implemented in child class:
     # (e.g. InternalShell)
     def get_dir(self, objtxt):
@@ -998,7 +998,7 @@ class TerminalWidget(ShellBaseWidget):
         """Action for '.'"""
         self.insert_text(text)
 
-            
+
     #------ Drag'n Drop
     def drop_pathlist(self, pathlist):
         """Drop path list"""

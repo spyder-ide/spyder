@@ -402,7 +402,7 @@ class PylintWidget(QWidget):
                 i_prun_end = self.output.find('/10', i_prun)
                 previous = self.output[i_prun+len(txt_prun):i_prun_end]
 
-        
+
         filename = to_text_string(self.filecombo.currentText())
         self.set_data(filename, (time.localtime(), rate, previous, results))
         self.output = self.error_output + self.output

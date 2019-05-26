@@ -28,7 +28,7 @@ def environ_dialog(qtbot):
     if os.name == 'nt':
         from spyder.utils.environ import WinUserEnvDialog
         dialog = WinUserEnvDialog()
-    else:        
+    else:
         from spyder.utils.environ import EnvDialog
         dialog = EnvDialog()
     qtbot.addWidget(dialog)

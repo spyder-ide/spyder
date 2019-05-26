@@ -86,7 +86,7 @@ class RunConfiguration(object):
                            CONF.get('run', 'post_mortem', False))
         self.python_args = options.get('python_args', '')
         self.python_args_enabled = options.get('python_args/enabled', False)
-        self.clear_namespace = options.get('clear_namespace',  
+        self.clear_namespace = options.get('clear_namespace',
                                     CONF.get('run', 'clear_namespace', False))
         self.file_dir = options.get('file_dir',
                            CONF.get('run', WDIR_USE_SCRIPT_DIR_OPTION, True))
@@ -503,7 +503,7 @@ class RunConfigPage(GeneralConfigPage):
 
         general_group = QGroupBox(_("General settings"))
         post_mortem = self.create_checkbox(POST_MORTEM, 'post_mortem', False)
-        clear_variables = self.create_checkbox(CLEAR_ALL_VARIABLES, 
+        clear_variables = self.create_checkbox(CLEAR_ALL_VARIABLES,
             'clear_namespace', False)
 
         general_layout = QVBoxLayout()

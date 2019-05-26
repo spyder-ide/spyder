@@ -499,7 +499,7 @@ class ArrayView(QTableView):
         row_min, row_max, col_min, col_max = get_idx_rect(cell_range)
         if col_min == 0 and col_max == (self.model().cols_loaded-1):
             # we've selected a whole column. It isn't possible to
-            # select only the first part of a column without loading more, 
+            # select only the first part of a column without loading more,
             # so we can treat it as intentional and copy the whole thing
             col_max = self.model().total_cols-1
         if row_min == 0 and row_max == (self.model().rows_loaded-1):
@@ -567,7 +567,7 @@ class ArrayEditorWidget(QWidget):
 
         layout = QVBoxLayout()
         layout.addWidget(self.view)
-        layout.addLayout(btn_layout)        
+        layout.addLayout(btn_layout)
         self.setLayout(layout)
 
     def accept_changes(self):
@@ -595,11 +595,11 @@ class ArrayEditorWidget(QWidget):
                 QMessageBox.critical(self, _("Error"),
                                      _("Format (%s) is incorrect") % format)
                 return
-            self.model.set_format(format)    
+            self.model.set_format(format)
 
 
 class ArrayEditor(QDialog):
-    """Array Editor Dialog"""    
+    """Array Editor Dialog"""
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
 
@@ -712,7 +712,7 @@ class ArrayEditor(QDialog):
                 names = [str(i) for i in range(3)]
                 ra_combo = QComboBox(self)
                 ra_combo.addItems(names)
-                ra_combo.currentIndexChanged.connect(self.current_dim_changed)    
+                ra_combo.currentIndexChanged.connect(self.current_dim_changed)
                 # Adding the widgets to layout
                 label = QLabel(_("Axis:"))
                 btn_layout.addWidget(label)

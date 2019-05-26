@@ -260,7 +260,7 @@ def get_python_args(fname, python_args, interact, debug, end_args):
     if fname is not None:
         if os.name == 'nt' and debug:
             # When calling pdb on Windows, one has to replace backslashes by
-            # slashes to avoid confusion with escape characters (otherwise, 
+            # slashes to avoid confusion with escape characters (otherwise,
             # for example, '\t' will be interpreted as a tabulation):
             p_args.append(osp.normpath(fname).replace(os.sep, '/'))
         else:
@@ -414,8 +414,8 @@ def is_module_installed(module_name, version=None, installed_version=None,
             stable_ver = inspect.getsource(is_stable_version)
             ismod_inst = inspect.getsource(is_module_installed)
 
-            f = tempfile.NamedTemporaryFile('wt', suffix='.py', 
-                                            dir=get_temp_dir(), delete=False) 
+            f = tempfile.NamedTemporaryFile('wt', suffix='.py',
+                                            dir=get_temp_dir(), delete=False)
             try:
                 script = f.name
                 f.write("# -*- coding: utf-8 -*-" + "\n\n")
@@ -492,7 +492,7 @@ def is_python_interpreter_valid_name(filename):
 def is_python_interpreter(filename):
     """Evaluate wether a file is a python interpreter or not."""
     real_filename = os.path.realpath(filename)  # To follow symlink if existent
-    if (not osp.isfile(real_filename) or 
+    if (not osp.isfile(real_filename) or
         not is_python_interpreter_valid_name(filename)):
         return False
     elif is_pythonw(filename):

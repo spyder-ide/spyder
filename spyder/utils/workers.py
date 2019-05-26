@@ -84,7 +84,7 @@ class PythonWorker(QObject):
 class ProcessWorker(QObject):
     """Process worker based on a QProcess for non blocking UI."""
 
-    sig_started = Signal(object)        
+    sig_started = Signal(object)
     sig_finished = Signal(object, object, object)
     sig_partial = Signal(object, object, object)
 

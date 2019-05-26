@@ -53,10 +53,10 @@ def apply():
     # Patching pycore.PyCore...
     from rope.base import pycore
     class PatchedPyCore(pycore.PyCore):
-        # [2] ...so that forced builtin modules (i.e. modules that were 
+        # [2] ...so that forced builtin modules (i.e. modules that were
         # declared as 'extension_modules' in rope preferences) will be indeed
         # recognized as builtins by rope, as expected
-        # 
+        #
         # This patch is included in rope 0.9.4+ but applying it anyway is ok
         def get_module(self, name, folder=None):
             """Returns a `PyObject` if the module was found."""
@@ -89,7 +89,7 @@ def apply():
                     return module.get_child(packages[-1] + '.py')
     pycore.PyCore = PatchedPyCore
 
-    # [2] Patching BuiltinName for the go to definition feature to simply work 
+    # [2] Patching BuiltinName for the go to definition feature to simply work
     # with forced builtins
     from rope.base import builtins, libutils, pyobjects
     import inspect

@@ -247,7 +247,7 @@ def get_module_data_path(modname, relpath=None, attr_name='DATAPATH'):
 
 def get_module_source_path(modname, basename=None):
     """Return module *modname* source path
-    If *basename* is specified, return *modname.basename* path where 
+    If *basename* is specified, return *modname.basename* path where
     *modname* is a package containing the module *basename*
 
     *basename* is a filename (not a module name), so it must include the

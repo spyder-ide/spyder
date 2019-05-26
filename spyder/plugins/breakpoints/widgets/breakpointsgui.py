@@ -52,7 +52,7 @@ class BreakpointTableModel(QAbstractTableModel):
             data = {}
         self._data = None
         self.breakpoints = None
-        self.set_data(data)    
+        self.set_data(data)
 
     def set_data(self, data):
         """Set model data"""
@@ -64,7 +64,7 @@ class BreakpointTableModel(QAbstractTableModel):
             if bp_list:
                 for item in data[key]:
                     self.breakpoints.append((key, item[0], item[1], ""))
-        self.reset()   
+        self.reset()
 
     def rowCount(self, qindex=QModelIndex()):
         """Array row number"""
@@ -102,7 +102,7 @@ class BreakpointTableModel(QAbstractTableModel):
 
     def get_value(self, index):
         """Return current value"""
-        return self.breakpoints[index.row()][index.column()] 
+        return self.breakpoints[index.row()][index.column()]
 
     def data(self, index, role=Qt.DisplayRole):
         """Return data at table index"""
@@ -161,7 +161,7 @@ class BreakpointTableView(QTableView):
     def adjust_columns(self):
         """Resize three first columns to contents"""
         for col in range(3):
-            self.resizeColumnToContents(col)    
+            self.resizeColumnToContents(col)
 
     def mouseDoubleClickEvent(self, event):
         """Reimplement Qt method"""
@@ -177,7 +177,7 @@ class BreakpointTableView(QTableView):
         index_clicked = self.indexAt(event.pos())
         actions = []
         self.popup_menu = QMenu(self)
-        clear_all_breakpoints_action = create_action(self, 
+        clear_all_breakpoints_action = create_action(self,
             _("Clear breakpoints in all files"),
             triggered=lambda: self.clear_all_breakpoints.emit())
         actions.append(clear_all_breakpoints_action)
@@ -207,7 +207,7 @@ class BreakpointTableView(QTableView):
                     _("Edit this breakpoint"),
                     triggered=edit_slot)
             actions.append(edit_breakpoint_action)
-        add_actions(self.popup_menu, actions)        
+        add_actions(self.popup_menu, actions)
         self.popup_menu.popup(event.globalPos())
         event.accept()
 
@@ -225,8 +225,8 @@ class BreakpointWidget(QWidget):
     def __init__(self, parent, options_button=None):
         QWidget.__init__(self, parent)
 
-        self.setWindowTitle("Breakpoints")        
-        self.dictwidget = BreakpointTableView(self, 
+        self.setWindowTitle("Breakpoints")
+        self.dictwidget = BreakpointTableView(self,
                                self._load_all_breakpoints())
         if options_button:
             btn_layout = QHBoxLayout()
@@ -252,7 +252,7 @@ class BreakpointWidget(QWidget):
         for filename in list(bp_dict.keys()):
             if not osp.isfile(filename):
                 bp_dict.pop(filename)
-        return bp_dict    
+        return bp_dict
 
     def get_data(self):
         pass

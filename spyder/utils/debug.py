@@ -17,7 +17,7 @@ import inspect
 import traceback
 import time
 
-from spyder.py3compat import PY2 
+from spyder.py3compat import PY2
 
 
 def log_time(fd):
@@ -67,7 +67,7 @@ def caller_name(skip=2):
     start = 0 + skip
     if len(stack) < start + 1:
       return ''
-    parentframe = stack[start][0]    
+    parentframe = stack[start][0]
 
     name = []
     module = inspect.getmodule(parentframe)

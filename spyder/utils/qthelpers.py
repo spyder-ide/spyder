@@ -492,7 +492,7 @@ class ShowStdIcons(QWidget):
                 col_layout.addLayout(icon_layout)
                 cindex = (cindex+1) % row_nb
                 if cindex == 0:
-                    layout.addLayout(col_layout)                    
+                    layout.addLayout(col_layout)
         self.setLayout(layout)
         self.setWindowTitle('Standard Platform Icons')
         self.setWindowIcon(get_std_icon('TitleBarMenuButton'))

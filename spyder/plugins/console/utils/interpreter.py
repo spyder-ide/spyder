@@ -76,7 +76,7 @@ class Interpreter(InteractiveConsole, threading.Thread):
         self.namespace['raw_input'] = self.raw_input_replacement
         self.namespace['help'] = self.help_replacement
 
-        # Capture all interactive input/output 
+        # Capture all interactive input/output
         self.initial_stdout = sys.stdout
         self.initial_stderr = sys.stderr
         self.initial_stdin = sys.stdin
@@ -260,7 +260,7 @@ has the same effect as typing a particular string at the help> prompt.
         else:
             return False
 
-            
+
     def closing(self):
         """Actions to be done before restarting this interpreter"""
         pass
@@ -319,13 +319,13 @@ has the same effect as typing a particular string at the help> prompt.
         """
         Push a line of source text to the interpreter
 
-        The line should not have a trailing newline; it may have internal 
-        newlines. The line is appended to a buffer and the interpreter’s 
-        runsource() method is called with the concatenated contents of the 
-        buffer as source. If this indicates that the command was executed 
-        or invalid, the buffer is reset; otherwise, the command is incomplete, 
-        and the buffer is left as it was after the line was appended. 
-        The return value is True if more input is required, False if the line 
+        The line should not have a trailing newline; it may have internal
+        newlines. The line is appended to a buffer and the interpreter’s
+        runsource() method is called with the concatenated contents of the
+        buffer as source. If this indicates that the command was executed
+        or invalid, the buffer is reset; otherwise, the command is incomplete,
+        and the buffer is left as it was after the line was appended.
+        The return value is True if more input is required, False if the line
         was dealt with in some way (this is the same as runsource()).
         """
         return InteractiveConsole.push(self, "#coding=utf-8\n" + line)

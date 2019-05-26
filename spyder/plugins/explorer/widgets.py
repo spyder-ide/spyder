@@ -185,7 +185,7 @@ class DirView(QTreeView):
         self.sortByColumn(0, Qt.AscendingOrder)
         self.fsmodel.modelReset.connect(self.reset_icon_provider)
         self.reset_icon_provider()
-        # Disable the view of .spyproject. 
+        # Disable the view of .spyproject.
         self.filter_directories()
 
     def set_single_click_to_open(self, value):
@@ -220,7 +220,7 @@ class DirView(QTreeView):
         if self.selectionMode() == self.ExtendedSelection:
             if self.selectionModel() is None:
                 return []
-            return [self.get_filename(idx) for idx in 
+            return [self.get_filename(idx) for idx in
                     self.selectionModel().selectedRows()]
         else:
             return [self.get_filename(self.currentIndex())]
@@ -298,7 +298,7 @@ class DirView(QTreeView):
         """Return actions for submenu 'New...'"""
         if not fnames:
             return []
-        new_file_act = create_action(self, _("File..."), 
+        new_file_act = create_action(self, _("File..."),
                                      icon=ima.icon('filenew'),
                                      triggered=lambda:
                                      self.new_file(fnames[-1]))
@@ -342,7 +342,7 @@ class DirView(QTreeView):
         rename_action = create_action(self, _("Rename..."),
                                       icon=ima.icon('rename'),
                                       triggered=self.rename)
-        open_external_action = create_action(self, _("Open With OS"), 
+        open_external_action = create_action(self, _("Open With OS"),
                                              triggered=self.open_external)
         ipynb_convert_action = create_action(self, _("Convert to Python script"),
                                              icon=ima.icon('python'),
@@ -376,8 +376,8 @@ class DirView(QTreeView):
             text=_("Show in Finder")
         else:
             text=_("Show in Folder")
-        external_fileexp_action = create_action(self, text, 
-                                triggered=self.show_in_external_file_explorer)        
+        external_fileexp_action = create_action(self, text,
+                                triggered=self.show_in_external_file_explorer)
         actions += [delete_action, rename_action]
         basedir = fixpath(osp.dirname(fnames[0]))
         if all([fixpath(osp.dirname(_fn)) == basedir for _fn in fnames]):
@@ -465,8 +465,8 @@ class DirView(QTreeView):
         """Reimplement Qt method"""
 
         # Prevent Qt from crashing or showing warnings like:
-        # "QSortFilterProxyModel: index from wrong model passed to 
-        # mapFromSource", probably due to the fact that the file system model 
+        # "QSortFilterProxyModel: index from wrong model passed to
+        # mapFromSource", probably due to the fact that the file system model
         # is being built. See Issue 1250.
         #
         # This workaround was inspired by the following KDE bug:
@@ -475,7 +475,7 @@ class DirView(QTreeView):
         # Apparently, this is a bug from Qt itself.
         self.executeDelayedItemsLayout()
 
-        return QTreeView.viewportEvent(self, event)        
+        return QTreeView.viewportEvent(self, event)
 
     def contextMenuEvent(self, event):
         """Override Qt method"""
@@ -652,7 +652,7 @@ class DirView(QTreeView):
                                         " the project, please go to "
                                         "<b>Projects</b> &raquo; <b>Delete "
                                         "Project</b>"))
-            else:    
+            else:
                 yes_to_all = self.delete_file(fname, multiple, yes_to_all)
                 if yes_to_all is not None and not yes_to_all:
                     # Canceled
@@ -660,10 +660,10 @@ class DirView(QTreeView):
 
     def convert_notebook(self, fname):
         """Convert an IPython notebook to a Python script in editor"""
-        try: 
+        try:
             script = nbexporter().from_filename(fname)[0]
         except Exception as e:
-            QMessageBox.critical(self, _('Conversion error'), 
+            QMessageBox.critical(self, _('Conversion error'),
                                  _("It was not possible to convert this "
                                  "notebook. The error is:\n\n") + \
                                  to_text_string(e))
@@ -1224,7 +1224,7 @@ class FilteredDirView(DirView):
         for i in [1, 2, 3]:
             self.hideColumn(i)
         self.setHeaderHidden(True)
-        # Disable the view of .spyproject. 
+        # Disable the view of .spyproject.
         self.filter_directories()
 
 
@@ -1309,7 +1309,7 @@ class ExplorerTreeWidget(DirView):
                              self.histindex is not None and self.histindex > 0)
         self.set_next_enabled.emit(self.histindex is not None and \
                                    self.histindex < len(self.history)-1)
-        # Disable the view of .spyproject. 
+        # Disable the view of .spyproject.
         self.filter_directories()
 
     #---- Events

@@ -39,7 +39,7 @@ class TextEditor(QDialog):
         self.text = None
         self.btn_save_and_close = None
 
-        # Display text as unicode if it comes as bytes, so users see 
+        # Display text as unicode if it comes as bytes, so users see
         # its right representation
         if is_binary_string(text):
             self.is_binary = True

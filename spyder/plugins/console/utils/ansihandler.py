@@ -64,7 +64,7 @@ class ANSIEscapeCodeHandler(object):
         elif code == 1:
             # Text color intensity
             self.intensity = 1
-            # The following line is commented because most terminals won't 
+            # The following line is commented because most terminals won't
             # change the font weight, against ANSI standard recommendation:
 #            self.bold = True
         elif code == 3:

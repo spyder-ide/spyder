@@ -849,7 +849,7 @@ class AnimatedTour(QWidget):
 
         self.parent = parent
 
-        # Variables to adjust 
+        # Variables to adjust
         self.duration_canvas = [666, 666]
         self.duration_tips = [333, 333]
         self.opacity_canvas = [0.0, 0.7]
@@ -1190,7 +1190,7 @@ class AnimatedTour(QWidget):
         self.canvas.hide()
 
         try:
-            # set the last played frame by updating the available tours in 
+            # set the last played frame by updating the available tours in
             # parent. This info will be lost on restart.
             self.parent.tours_available[self.active_tour_index]['last'] =\
                 self.step_current
@@ -1244,13 +1244,13 @@ class AnimatedTour(QWidget):
 
     def gain_focus(self):
         """Confirm if the tour regains focus and unhides the tips."""
-        if (self.is_running and self.any_has_focus() and 
+        if (self.is_running and self.any_has_focus() and
             not self.setting_data and self.hidden):
             self.unhide_tips()
 
     def any_has_focus(self):
         """Returns if tour or any of its components has focus."""
-        f = (self.hasFocus() or self.parent.hasFocus() or 
+        f = (self.hasFocus() or self.parent.hasFocus() or
              self.tips.hasFocus() or self.canvas.hasFocus())
         return f
 

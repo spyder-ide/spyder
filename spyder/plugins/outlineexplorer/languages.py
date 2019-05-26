@@ -17,7 +17,7 @@ class PythonCFM(object):
     """
     Collection of helpers to match functions and classes
     for Python language
-    This has to be reimplemented for other languages for the outline explorer 
+    This has to be reimplemented for other languages for the outline explorer
     to be supported (not implemented yet: outline explorer won't be populated
     unless the current script is a Python script)
     """

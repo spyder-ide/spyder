@@ -97,7 +97,7 @@ class ProfilerWidget(QWidget):
         self.filecombo.valid.connect(self.start_button.setEnabled)
         #self.connect(self.filecombo, SIGNAL('valid(bool)'), self.show_data)
         # FIXME: The combobox emits this signal on almost any event
-        #        triggering show_data() too early, too often. 
+        #        triggering show_data() too early, too often.
 
         browse_button = create_toolbutton(self, icon=ima.icon('fileopen'),
                                           tip=_('Select Python script'),
@@ -170,8 +170,8 @@ class ProfilerWidget(QWidget):
         self.clear_button.setEnabled(False)
 
         if not is_profiler_installed():
-            # This should happen only on certain GNU/Linux distributions 
-            # or when this a home-made Python build because the Python 
+            # This should happen only on certain GNU/Linux distributions
+            # or when this a home-made Python build because the Python
             # profilers are included in the Python standard library
             for widget in (self.datatree, self.filecombo,
                            self.start_button, self.stop_button):
@@ -287,8 +287,8 @@ class ProfilerWidget(QWidget):
 
         p_args = ['-m', 'cProfile', '-o', self.DATAPATH]
         if os.name == 'nt':
-            # On Windows, one has to replace backslashes by slashes to avoid 
-            # confusion with escape characters (otherwise, for example, '\t' 
+            # On Windows, one has to replace backslashes by slashes to avoid
+            # confusion with escape characters (otherwise, for example, '\t'
             # will be interpreted as a tabulation):
             p_args.append(osp.normpath(filename).replace(os.sep, '/'))
         else:
@@ -421,10 +421,10 @@ class TreeWidgetItem( QTreeWidgetItem ):
 
 class ProfilerDataTree(QTreeWidget):
     """
-    Convenience tree widget (with built-in model) 
+    Convenience tree widget (with built-in model)
     to store and view profiler data.
 
-    The quantities calculated by the profiler are as follows 
+    The quantities calculated by the profiler are as follows
     (from profile.Profile):
     [0] = The number of times this function was called, not counting direct
           or indirect recursion,
@@ -561,7 +561,7 @@ class ProfilerDataTree(QTreeWidget):
             node_type = 'builtin'
         else:
             if function_name == '__init__':
-                node_type = 'constructor'                
+                node_type = 'constructor'
             file_and_line = '%s : %d' % (filename, line_number)
         return filename, line_number, function_name, file_and_line, node_type
 

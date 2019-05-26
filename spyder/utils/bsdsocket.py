@@ -117,7 +117,7 @@ def communicate(sock, command, settings=[]):
 #        write_packet(sock, option)
 #    if timeout == 0.:
 #        # non blocking socket is not really supported:
-#        # setting timeout to 0. here is equivalent (in current monitor's 
+#        # setting timeout to 0. here is equivalent (in current monitor's
 #        # implementation) to say 'I don't need to receive anything in return'
 #        return
 #    while True:
@@ -170,7 +170,7 @@ if __name__ == '__main__':
         # accsock, addr = server.accept()
         #socket.error: [Errno 11] Resource temporarily unavailable
 
-    
+
         print("-- Testing BSD socket write_packet/read_packet --")  # spyder: test-skip
 
         write_packet(client, "a tiny piece of data")

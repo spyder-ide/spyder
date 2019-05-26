@@ -283,7 +283,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         raise NotImplementedError
 
     def check_settings(self):
-        """This method is called to check settings after configuration 
+        """This method is called to check settings after configuration
         dialog has been shown"""
         pass
 
@@ -488,7 +488,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         return radiobutton
 
     def create_lineedit(self, text, option, default=NoDefault,
-                        tip=None, alignment=Qt.Vertical, regex=None, 
+                        tip=None, alignment=Qt.Vertical, regex=None,
                         restart=False, word_wrap=True, placeholder=None):
         label = QLabel(text)
         label.setWordWrap(word_wrap)
@@ -771,7 +771,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
 
         widget = QWidget(self)
         widget.fontlabel = fontlabel
-        widget.sizelabel = sizelabel        
+        widget.sizelabel = sizelabel
         widget.fontbox = fontbox
         widget.sizebox = sizebox
         widget.setLayout(layout)

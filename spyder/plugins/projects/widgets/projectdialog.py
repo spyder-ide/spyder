@@ -104,7 +104,7 @@ class ProjectDialog(QDialog):
         self.label_python_version.setVisible(False)
         self.combo_python_version.setVisible(False)
 
-        # Layouts        
+        # Layouts
         layout_top = QHBoxLayout()
         layout_top.addWidget(self.radio_new_dir)
         layout_top.addWidget(self.radio_from_dir)
@@ -188,7 +188,7 @@ class ProjectDialog(QDialog):
         self.accept()
 
 
-def test():        
+def test():
     """Local test."""
     from spyder.utils.qthelpers import qapplication
     app = qapplication()
