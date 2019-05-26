@@ -21,11 +21,16 @@ import warnings
 import requests
 
 
-EXTENSIONS_INCLUDE = {"bat", "c", "cpp", "css", "csv", "gitignore",
+PR_DATE_CUTOFF = datetime.datetime(2018, 12, 8, 0)
+INCLUDE_EXTENSIONS = {"bat", "c", "cpp", "css", "csv", "gitignore",
                       "gitattributes", "html", "in", "ini", "js", "md", "py",
                       "pyx", "qss", "R", "rst", "sh", "txt", "xml", "yml"}
-PATHS_EXCLUDE = "/tests?/(?!(tests?_|__init__|fixture))|/mathjax/"
-PR_DATE_CUTOFF = datetime.datetime(2018, 12, 8, 0)
+EXCLUDE_PATHS = [
+    "/tests?/(?!(tests?_|__init__|fixture))",  # Skip all test datafiles
+    "/mathjax/",  # Mathjax is vendored code and should be left as is
+    r"^\.github/ISSUE_TEMPLATE\.md$",  # Ws needed before bullets
+    r"^spyder/defaults/.*\.ini$",  # Could break ancient Spyder versions
+    ]
 
 
 def git_files(file_types):
@@ -50,14 +55,14 @@ def git_files(file_types):
     return files_final
 
 
-def filter_files(file_paths, extensions_include=EXTENSIONS_INCLUDE,
-                 paths_exclude=PATHS_EXCLUDE):
+def filter_files(file_paths, include_extensions=INCLUDE_EXTENSIONS,
+                 exclude_paths=EXCLUDE_PATHS):
     """Filter files by extension and path."""
     filtered_paths = {file_path for file_path in file_paths
-                      if file_path.split(".")[-1] in extensions_include}
-    paths_exclude_regex = re.compile(PATHS_EXCLUDE)
+                      if file_path.split(".")[-1] in include_extensions}
+    exclude_paths_regex = re.compile("|".join(exclude_paths))
     filtered_paths = {file_path for file_path in filtered_paths
-                      if not paths_exclude_regex.search(file_path)}
+                      if not exclude_paths_regex.search(file_path)}
     return filtered_paths
 
 
