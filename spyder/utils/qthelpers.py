@@ -11,7 +11,7 @@ import os
 import os.path as osp
 import re
 import sys
-
+import logging
 # Third party imports
 from qtpy.compat import to_qvariant, from_qvariant
 from qtpy.QtCore import (QEvent, QLibraryInfo, QLocale, QObject, Qt, QTimer,
@@ -39,6 +39,7 @@ from spyder.py3compat import is_text_string, to_text_string
 #    self.connect(self.listwidget, SIGNAL('option_changed'),
 #                 lambda *args: self.emit(SIGNAL('option_changed'), *args))
 
+logger = logging.getLogger(__name__)
 
 
 def get_image_label(name, default="not_found.png"):
@@ -280,6 +281,9 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
 
 def add_shortcut_to_tooltip(action, context, name):
     """Add the shortcut associated with a given action to its tooltip"""
+    logger.debug(name)
+    logger.debug(action)
+    logger.debug(get_shortcut(context=context, name=name))
     action.setToolTip(action.toolTip() + ' (%s)' %
                       get_shortcut(context=context, name=name))
 

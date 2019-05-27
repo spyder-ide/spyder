@@ -421,7 +421,7 @@ DEFAULTS = [
               'editor/zoom reset': "Ctrl+0",
               'editor/close file 1': "Ctrl+W",
               'editor/close file 2': "Ctrl+F4",
-              'editor/run cell': 'Meta+Return' if MAC else 'Ctrl+Return',
+              'editor/run cell': CTRL + '+Return',
               'editor/run cell and advance': 'Shift+Return',
               'editor/go to next cell': 'Ctrl+Down',
               'editor/go to previous cell': 'Ctrl+Up',

@@ -2972,8 +2972,11 @@ class MainWindow(QMainWindow):
         for index, (qobject, context, name,
                     add_sc_to_tip) in enumerate(self.shortcut_data):
             keyseq = QKeySequence( get_shortcut(context, name) )
+            logger.debug('&&&&&')
+            logger.debug(name)
             try:
                 if isinstance(qobject, QAction):
+                    logger.debug('QAction******')
                     if sys.platform == 'darwin' and \
                       qobject._shown_shortcut == 'missing':
                         qobject._shown_shortcut = keyseq
@@ -2982,6 +2985,7 @@ class MainWindow(QMainWindow):
                     if add_sc_to_tip:
                         add_shortcut_to_tooltip(qobject, context, name)
                 elif isinstance(qobject, QShortcut):
+                    logger.debug('QShortcut!!!!')
                     qobject.setKey(keyseq)
             except RuntimeError:
                 # Object has been deleted
