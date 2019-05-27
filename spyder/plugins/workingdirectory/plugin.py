@@ -22,6 +22,7 @@ from qtpy.QtWidgets import QToolBar
 
 # Local imports
 from spyder.config.base import _, get_conf_path, get_home_dir
+from spyder.config.gui import get_iconsize
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import to_text_string
 from spyder.utils.misc import getcwd_or_home
@@ -129,15 +130,15 @@ class WorkingDirectory(SpyderPluginWidget):
     def get_plugin_actions(self):
         """Setup actions"""
         return [None, None]
-    
+
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
         self.main.console.shell.refresh.connect(self.refresh_plugin)
-        iconsize = 24 
+        iconsize = get_iconsize()
         self.toolbar.setIconSize(QSize(iconsize, iconsize))
         self.main.addToolBar(self.toolbar)
-        
+
     def refresh_plugin(self):
         """Refresh widget"""
         curdir = getcwd_or_home()
