@@ -470,6 +470,7 @@ class PythonSH(BaseSH):
     def highlight_block(self, text):
         """Implement specific highlight for Python."""
         text = to_text_string(text)
+        self.found_cell_separators = False
         prev_state = tbh.get_state(self.currentBlock().previous())
         if prev_state == self.INSIDE_DQ3STRING:
             offset = -4
