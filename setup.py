@@ -241,7 +241,7 @@ install_requires = [
     'pyqt5<5.13;python_version>="3"',
     # pyqt5 5.12 split WebEngine into the
     # pyqtwebengine module
-    'pyqtwebengine<5.13;python_version>="3"''
+    'pyqtwebengine<5.13;python_version>="3"'
 ]
 
 extras_require = {
