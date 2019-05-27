@@ -64,7 +64,9 @@ def test_autosave(mocker):
 @pytest.mark.parametrize('errors', ['raise', 'ignore'])
 def test_autosave_remove_autosave_file(mocker, exception, errors):
     """Test that AutosaveForStack.remove_autosave_file removes the autosave
-    file and that an error dialog is displayed if an exception is raised."""
+    file, that an error dialog is displayed if an exception is raised,
+    and that the autosave file is removed from `name_mapping` and
+    `file_hashes`."""
     mock_remove = mocker.patch('os.remove')
     if exception:
         mock_remove.side_effect = EnvironmentError()
@@ -75,9 +77,11 @@ def test_autosave_remove_autosave_file(mocker, exception, errors):
     fileinfo.filename = 'orig'
     addon = AutosaveForStack(mock_stack)
     addon.name_mapping = {'orig': 'autosave'}
+    addon.file_hashes = {'autosave': 42}
 
     addon.remove_autosave_file(fileinfo.filename, errors=errors)
     assert addon.name_mapping == {}
+    assert addon.file_hashes == {}
     mock_remove.assert_called_with('autosave')
     assert mock_dialog.called == (exception and errors == 'raise')
 
@@ -101,6 +105,7 @@ def test_autosave_remove_all_autosave_files(mocker, exception, errors):
     addon.name_mapping = {}
     for idx in range(3):
         addon.name_mapping['orig_' + str(idx)] = 'autosave_' + str(idx)
+    addon.file_hashes = mocker.MagicMock()
 
     addon.remove_all_autosave_files(errors=errors)
     assert addon.name_mapping == {}

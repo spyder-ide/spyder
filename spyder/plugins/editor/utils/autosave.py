@@ -176,6 +176,7 @@ class AutosaveForStack(object):
                 msgbox = AutosaveErrorDialog(error_message, error)
                 msgbox.exec_if_enabled()
         del self.name_mapping[filename]
+        del self.file_hashes[autosave_filename]
         self.stack.sig_option_changed.emit(
             'autosave_mapping', self.name_mapping)
         logger.debug('Removed autosave file %s', autosave_filename)
