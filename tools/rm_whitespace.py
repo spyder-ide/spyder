@@ -30,6 +30,7 @@ EXCLUDE_PATHS = [
     "/mathjax/",  # Mathjax is vendored code and should be left as is
     r"^\.github/ISSUE_TEMPLATE\.md$",  # Ws needed before bullets
     r"^spyder/defaults/.*\.ini$",  # Could break ancient Spyder versions
+    "^CHANGELOG.md$",  # Don't remove ws in the changelog, for some reason
     ]
 
 
