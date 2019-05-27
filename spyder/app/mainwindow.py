@@ -171,7 +171,7 @@ from spyder.utils.qthelpers import (create_action, add_actions, get_icon,
                                     create_module_bookmark_actions,
                                     create_program_action, DialogManager,
                                     create_python_script_action, file_uri)
-from spyder.config.gui import get_shortcut
+from spyder.config.gui import get_shortcut, get_iconsize
 from spyder.otherplugins import get_spyderplugins_mods
 from spyder.app import tour
 
@@ -582,11 +582,12 @@ class MainWindow(QMainWindow):
 
         logger.info("End of MainWindow constructor")
 
-    #---- Window setup
-    def create_toolbar(self, title, object_name, iconsize=24):
+    # ---- Window setup
+    def create_toolbar(self, title, object_name, iconsize=None):
         """Create and return toolbar with *title* and *object_name*"""
         toolbar = self.addToolBar(title)
         toolbar.setObjectName(object_name)
+        iconsize = get_iconsize() if iconsize is None else iconsize
         toolbar.setIconSize(QSize(iconsize, iconsize))
         self.toolbarslist.append(toolbar)
         return toolbar
