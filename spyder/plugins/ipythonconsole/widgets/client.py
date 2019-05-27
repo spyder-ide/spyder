@@ -495,7 +495,11 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     def shutdown(self):
         """Shutdown kernel"""
         if self.get_kernel() is not None and not self.slave:
-            self.shellwidget.kernel_manager.shutdown_kernel(now=True)
+            now = True
+            # This avoids some flakyness with our Cython tests
+            if running_under_pytest():
+                now = False
+            self.shellwidget.kernel_manager.shutdown_kernel(now=now)
         if self.shellwidget.kernel_client is not None:
             background(self.shellwidget.kernel_client.stop_channels)
 
