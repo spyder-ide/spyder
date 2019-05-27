@@ -14,8 +14,8 @@ import sys
 
 # Third party imports
 from qtpy.compat import to_qvariant, from_qvariant
-from qtpy.QtCore import (QEvent, QLibraryInfo, QLocale, QObject, Qt, QTimer,
-                         QTranslator, Signal, Slot)
+from qtpy.QtCore import (QEvent, QLibraryInfo, QLocale, QObject, QSize,
+                         Qt, QTimer, QTranslator, Signal, Slot)
 from qtpy.QtGui import QIcon, QKeyEvent, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QLabel,
                             QLineEdit, QMenu, QStyle, QToolBar, QToolButton,
@@ -189,7 +189,7 @@ def restore_keyevent(event):
 
 def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
                       toggled=None, triggered=None,
-                      autoraise=True, text_beside_icon=False):
+                      autoraise=True, text_beside_icon=False, iconsize=None):
     """Create a QToolButton"""
     button = QToolButton(parent)
     if text is not None:
@@ -210,6 +210,8 @@ def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
         button.setCheckable(True)
     if shortcut is not None:
         button.setShortcut(shortcut)
+    if iconsize is not None:
+        button.setIconSize(QSize(iconsize, iconsize))
     return button
 
 
