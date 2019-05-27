@@ -284,6 +284,15 @@ class SpyderPluginWidget(PluginWidget):
         """
         return ima.icon('outline_explorer')
 
+    def set_plugin_icon_size(self, iconsize):
+        """
+        Set the icon size of plugin.
+
+        This must be reimplemented by plugins that need to adjust the icon
+        size of their toolbar.
+        """
+        pass
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to.
