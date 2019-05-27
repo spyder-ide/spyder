@@ -2869,11 +2869,21 @@ class MainWindow(QMainWindow):
 
         self.apply_panes_settings()
         self.apply_statusbar_settings()
+        self.apply_iconsize_settings()
 
         if CONF.get('main', 'use_custom_cursor_blinking'):
             qapp.setCursorFlashTime(CONF.get('main', 'custom_cursor_blinking'))
         else:
             qapp.setCursorFlashTime(self.CURSORBLINK_OSDEFAULT)
+
+    def apply_iconsize_settings(self):
+        """Update main and panel toolbar icon size."""
+        iconsize = get_iconsize()
+        for toolbar in self.toolbarslist:
+            toolbar.setIconSize(QSize(iconsize, iconsize))
+        iconsize = get_iconsize(panel=True)
+        for plugin in (self.widgetlist + self.thirdparty_plugins):
+            plugin.set_plugin_icon_size(iconsize)
 
     def apply_panes_settings(self):
         """Update dockwidgets features settings"""
