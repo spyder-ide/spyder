@@ -250,7 +250,7 @@ extras_require = {
              'pytest-qt',
              'pytest-mock',
              'pytest-cov',
-             'pytest-xvfb',
+             'pytest-xvfb;platform_system=="Linux"',
              'mock',
              'flaky',
              'pandas',
