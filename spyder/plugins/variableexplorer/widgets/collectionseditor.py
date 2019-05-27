@@ -883,7 +883,7 @@ class BaseTableView(QTableView):
             text = self.finder.text().replace(' ', '').lower()
 
         self.proxy_model.set_filter(text)
-        self.model.update_search_letters(text)
+        self.source_model.update_search_letters(text)
         # TODO: Use constants for column numbers
         self.sortByColumn(4, Qt.DescendingOrder)  # Col 4 for score
 
@@ -974,7 +974,7 @@ class BaseTableView(QTableView):
         
     def refresh_plot_entries(self, index):
         if index.isValid():
-            key = self.model.get_key(index)
+            key = self.source_model.get_key(index)
             is_list = self.is_list(key)
             is_array = self.is_array(key) and self.get_len(key) != 0
             condition_plot = (is_array and len(self.get_array_shape(key)) <= 2)
@@ -1007,7 +1007,7 @@ class BaseTableView(QTableView):
     def set_data(self, data):
         """Set table data"""
         if data is not None:
-            self.model.set_data(data, self.dictfilter)
+            self.source_model.set_data(data, self.dictfilter)
             self.sortByColumn(0, Qt.AscendingOrder)
 
     def mousePressEvent(self, event):
@@ -1052,7 +1052,7 @@ class BaseTableView(QTableView):
         
     def contextMenuEvent(self, event):
         """Reimplement Qt method"""
-        if self.model.showndata:
+        if self.source_model.showndata:
             self.refresh_menu()
             self.menu.popup(event.globalPos())
             event.accept()
@@ -1089,7 +1089,7 @@ class BaseTableView(QTableView):
     def toggle_minmax(self, state):
         """Toggle min/max display for numpy arrays"""
         self.sig_option_changed.emit('minmax', state)
-        self.model.minmax = state
+        self.source_model.minmax = state
 
     @Slot(str)
     def set_dataframe_format(self, new_format):
@@ -1100,7 +1100,7 @@ class BaseTableView(QTableView):
             new_format (string): e.g. "%.3f"
         """
         self.sig_option_changed.emit('dataframe_format', new_format)
-        self.model.dataframe_format = new_format
+        self.source_model.dataframe_format = new_format
 
     @Slot()
     def edit_item(self):
@@ -1127,7 +1127,7 @@ class BaseTableView(QTableView):
                                       QMessageBox.Yes | QMessageBox.No)
         if answer == QMessageBox.Yes:
             idx_rows = unsorted_unique([idx.row() for idx in indexes])
-            keys = [ self.model.keys[idx_row] for idx_row in idx_rows ]
+            keys = [ self.source_model.keys[idx_row] for idx_row in idx_rows ]
             self.remove_values(keys)
 
     def copy_item(self, erase_original=False):
@@ -1138,14 +1138,14 @@ class BaseTableView(QTableView):
         idx_rows = unsorted_unique([idx.row() for idx in indexes])
         if len(idx_rows) > 1 or not indexes[0].isValid():
             return
-        orig_key = self.model.keys[idx_rows[0]]
+        orig_key = self.source_model.keys[idx_rows[0]]
         if erase_original:
             title = _('Rename')
             field_text = _('New variable name:')
         else:
             title = _('Duplicate')
             field_text = _('Variable name:')
-        data = self.model.get_data()
+        data = self.source_model.get_data()
         if isinstance(data, (list, set)):
             new_key, valid = len(data), True
         else:
@@ -1174,10 +1174,10 @@ class BaseTableView(QTableView):
         """Insert item"""
         index = self.currentIndex()
         if not index.isValid():
-            row = self.model.rowCount()
+            row = self.source_model.rowCount()
         else:
             row = index.row()
-        data = self.model.get_data()
+        data = self.source_model.get_data()
         if isinstance(data, list):
             key = row
             data.insert(row, '')
@@ -1214,7 +1214,7 @@ class BaseTableView(QTableView):
         """Plot item"""
         index = self.currentIndex()
         if self.__prepare_plot():
-            key = self.model.get_key(index)
+            key = self.source_model.get_key(index)
             try:
                 self.plot(key, funcname)
             except (ValueError, TypeError) as error:
@@ -1228,7 +1228,7 @@ class BaseTableView(QTableView):
         """Imshow item"""
         index = self.currentIndex()
         if self.__prepare_plot():
-            key = self.model.get_key(index)
+            key = self.source_model.get_key(index)
             try:
                 if self.is_image(key):
                     self.show_image(key)
@@ -1313,7 +1313,7 @@ class BaseTableView(QTableView):
 
     def import_from_string(self, text, title=None):
         """Import data from string"""
-        data = self.model.get_data()
+        data = self.source_model.get_data()
         # Check if data is a dict
         if not hasattr(data, "keys"):
             return
@@ -1348,11 +1348,11 @@ class CollectionsEditorTableView(BaseTableView):
         self.readonly = readonly or isinstance(data, (tuple, set))
         CollectionsModelClass = ReadOnlyCollectionsModel if self.readonly \
                                 else CollectionsModel
-        self.model = CollectionsModelClass(self, data, title, names=names,
+        self.source_model = CollectionsModelClass(self, data, title, names=names,
                                            minmax=minmax)
         self.proxy_model = CollectionsCustomSortFilterProxy(self)
 
-        self.proxy_model.setSourceModel(self.model)
+        self.proxy_model.setSourceModel(self.source_model)
         self.proxy_model.setDynamicSortFilter(True)
         self.proxy_model.setFilterKeyColumn(0)  # Col 0 for Name
         self.proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
@@ -1373,14 +1373,14 @@ class CollectionsEditorTableView(BaseTableView):
     #------ Remote/local API --------------------------------------------------
     def remove_values(self, keys):
         """Remove values from data"""
-        data = self.model.get_data()
+        data = self.source_model.get_data()
         for key in sorted(keys, reverse=True):
             data.pop(key)
             self.set_data(data)
 
     def copy_value(self, orig_key, new_key):
         """Copy value"""
-        data = self.model.get_data()
+        data = self.source_model.get_data()
         if isinstance(data, list):
             data.append(data[orig_key])
         if isinstance(data, set):
@@ -1391,60 +1391,60 @@ class CollectionsEditorTableView(BaseTableView):
     
     def new_value(self, key, value):
         """Create new value in data"""
-        data = self.model.get_data()
+        data = self.source_model.get_data()
         data[key] = value
         self.set_data(data)
         
     def is_list(self, key):
         """Return True if variable is a list or a tuple"""
-        data = self.model.get_data()
+        data = self.source_model.get_data()
         return isinstance(data[key], (tuple, list))
 
     def is_set(self, key):
         """Return True if variable is a set"""
-        data = self.model.get_data()
+        data = self.source_model.get_data()
         return isinstance(data[key], set)
 
     def get_len(self, key):
         """Return sequence length"""
-        data = self.model.get_data()
+        data = self.source_model.get_data()
         return len(data[key])
         
     def is_array(self, key):
         """Return True if variable is a numpy array"""
-        data = self.model.get_data()
+        data = self.source_model.get_data()
         return isinstance(data[key], (ndarray, MaskedArray))
         
     def is_image(self, key):
         """Return True if variable is a PIL.Image image"""
-        data = self.model.get_data()
+        data = self.source_model.get_data()
         return isinstance(data[key], Image)
     
     def is_dict(self, key):
         """Return True if variable is a dictionary"""
-        data = self.model.get_data()
+        data = self.source_model.get_data()
         return isinstance(data[key], dict)
         
     def get_array_shape(self, key):
         """Return array's shape"""
-        data = self.model.get_data()
+        data = self.source_model.get_data()
         return data[key].shape
         
     def get_array_ndim(self, key):
         """Return array's ndim"""
-        data = self.model.get_data()
+        data = self.source_model.get_data()
         return data[key].ndim
 
     def oedit(self, key):
         """Edit item"""
-        data = self.model.get_data()
+        data = self.source_model.get_data()
         from spyder.plugins.variableexplorer.widgets.objecteditor import (
                 oedit)
         oedit(data[key])
 
     def plot(self, key, funcname):
         """Plot item"""
-        data = self.model.get_data()
+        data = self.source_model.get_data()
         import spyder.pyplot as plt
         plt.figure()
         getattr(plt, funcname)(data[key])
@@ -1452,7 +1452,7 @@ class CollectionsEditorTableView(BaseTableView):
     
     def imshow(self, key):
         """Show item's image"""
-        data = self.model.get_data()
+        data = self.source_model.get_data()
         import spyder.pyplot as plt
         plt.figure()
         plt.imshow(data[key])
@@ -1460,13 +1460,13 @@ class CollectionsEditorTableView(BaseTableView):
             
     def show_image(self, key):
         """Show image (item is a PIL image)"""
-        data = self.model.get_data()
+        data = self.source_model.get_data()
         data[key].show()
     #--------------------------------------------------------------------------
 
     def refresh_menu(self):
         """Refresh context menu"""
-        data = self.model.get_data()
+        data = self.source_model.get_data()
         index = self.currentIndex()
         condition = (not isinstance(data, (tuple, set))) and index.isValid() \
                     and not self.readonly
@@ -1502,7 +1502,7 @@ class CollectionsEditorWidget(QWidget):
         
     def get_title(self):
         """Get model title"""
-        return self.editor.model.title
+        return self.editor.source_model.title
 
 
 class CollectionsEditor(QDialog):
@@ -1552,7 +1552,7 @@ class CollectionsEditor(QDialog):
         self.widget = CollectionsEditorWidget(self, self.data_copy,
                                               title=title, readonly=readonly,
                                               remote=remote)
-        self.widget.editor.model.sig_setting_data.connect(
+        self.widget.editor.source_model.sig_setting_data.connect(
                                                     self.save_and_close_enable)
         layout = QVBoxLayout()
         layout.addWidget(self.widget)
@@ -1637,17 +1637,17 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.var_properties = {}
 
         self.dictfilter = None
-        self.model = None
+        self.source_model = None
         self.delegate = None
         self.readonly = False
-        self.model = CollectionsModel(self, data, names=True,
+        self.source_model = CollectionsModel(self, data, names=True,
                                       minmax=minmax,
                                       dataframe_format=dataframe_format,
                                       remote=True)
 
         self.proxy_model = CollectionsCustomSortFilterProxy(self)
 
-        self.proxy_model.setSourceModel(self.model)
+        self.proxy_model.setSourceModel(self.source_model)
         self.proxy_model.setDynamicSortFilter(True)
         self.proxy_model.setFilterKeyColumn(0)  # Col 0 for Name
         self.proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
