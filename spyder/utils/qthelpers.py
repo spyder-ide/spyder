@@ -215,6 +215,22 @@ def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
     return button
 
 
+def set_iconsize_recursively(iconsize, layout):
+    """Set the icon size of all toolbuttons of a layout recursively."""
+    for i in range(layout.count()):
+        widget = layout.itemAt(i).widget()
+        if widget is None:
+            continue
+
+        if widget.layout():
+            set_iconsize_recursively(iconsize, widget.layout())
+        else:
+            try:
+                widget.setIconSize(QSize(iconsize, iconsize))
+            except AttributeError:
+                pass
+
+
 def action2button(action, autoraise=True, text_beside_icon=False, parent=None):
     """Create a QToolButton directly from a QAction object"""
     if parent is None:
