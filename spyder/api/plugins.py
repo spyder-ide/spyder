@@ -16,7 +16,7 @@ import inspect
 import os
 
 # Third party imports
-from qtpy.QtCore import Qt, Signal
+from qtpy.QtCore import QSize, Qt, Signal
 from qtpy.QtGui import QCursor
 from qtpy.QtWidgets import (QApplication, QMenu, QMessageBox, QToolButton,
                             QWidget)
@@ -291,7 +291,10 @@ class SpyderPluginWidget(PluginWidget):
         This must be reimplemented by plugins that need to adjust the icon
         size of their toolbar.
         """
-        pass
+        try:
+            self.options_button.setIconSize(QSize(iconsize, iconsize))
+        except AttributeError:
+            pass
 
     def get_focus_widget(self):
         """
