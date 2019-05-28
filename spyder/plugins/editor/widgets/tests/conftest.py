@@ -19,8 +19,13 @@ import pytest
 from qtpy.QtGui import QFont
 
 # Local imports
+from spyder.plugins.editor.tests.conftest import (
+    editor_plugin, editor_plugin_open_files, python_files)
+from spyder.plugins.editor.lsp.tests.conftest import (
+    lsp_manager, qtbot_module)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editor import EditorStack
+from spyder.plugins.explorer.tests.conftest import create_folders_files
 from spyder.widgets.findreplace import FindReplace
 
 

@@ -16,6 +16,7 @@ import logging
 import os
 import os.path as osp
 import re
+import sys
 import time
 
 # Third party imports
@@ -30,6 +31,7 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
 # Local imports
 from spyder import dependencies
 from spyder.config.base import _, get_conf_path, running_under_pytest
+from spyder.config.gui import get_shortcut
 from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
                                 RUN_CELL_AND_ADVANCE_SHORTCUT)
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
@@ -803,29 +805,63 @@ class Editor(SpyderPluginWidget):
             _("Clear this list"), tip=_("Clear recent files list"),
             triggered=self.clear_recent_files)
 
+        # Fixes issue 6055
+        # See: https://bugreports.qt.io/browse/QTBUG-8596
+        self.tab_navigation_actions = []
+        if sys.platform == 'darwin':
+            self.go_to_next_file_action = create_action(
+                self,
+                _("Go to next file"),
+                shortcut=get_shortcut('editor', 'go to previous file'),
+                triggered=self.go_to_next_file,
+            )
+            self.go_to_previous_file_action = create_action(
+                self,
+                _("Go to previous file"),
+                shortcut=get_shortcut('editor', 'go to next file'),
+                triggered=self.go_to_previous_file,
+            )
+            self.register_shortcut(
+                self.go_to_next_file_action,
+                context="Editor",
+                name="Go to next file",
+            )
+            self.register_shortcut(
+                self.go_to_previous_file_action,
+                context="Editor",
+                name="Go to previous file",
+            )
+            self.tab_navigation_actions = [
+                MENU_SEPARATOR,
+                self.go_to_previous_file_action,
+                self.go_to_next_file_action,
+            ]
+
         # ---- File menu/toolbar construction ----
         self.recent_file_menu = QMenu(_("Open &recent"), self)
         self.recent_file_menu.aboutToShow.connect(self.update_recent_file_menu)
 
-        file_menu_actions = [self.new_action,
-                             MENU_SEPARATOR,
-                             self.open_action,
-                             self.open_last_closed_action,
-                             self.recent_file_menu,
-                             MENU_SEPARATOR,
-                             MENU_SEPARATOR,
-                             self.save_action,
-                             self.save_all_action,
-                             save_as_action,
-                             save_copy_as_action,
-                             self.revert_action,
-                             MENU_SEPARATOR,
-                             print_preview_action,
-                             self.print_action,
-                             MENU_SEPARATOR,
-                             self.close_action,
-                             self.close_all_action,
-                             MENU_SEPARATOR]
+        file_menu_actions = [
+            self.new_action,
+            MENU_SEPARATOR,
+            self.open_action,
+            self.open_last_closed_action,
+            self.recent_file_menu,
+            MENU_SEPARATOR,
+            MENU_SEPARATOR,
+            self.save_action,
+            self.save_all_action,
+            save_as_action,
+            save_copy_as_action,
+            self.revert_action,
+            MENU_SEPARATOR,
+            print_preview_action,
+            self.print_action,
+            MENU_SEPARATOR,
+            self.close_action,
+            self.close_all_action,
+            MENU_SEPARATOR,
+        ]
 
         self.main.file_menu_actions += file_menu_actions
         file_toolbar_actions = ([self.new_action, self.open_action,
@@ -1169,6 +1205,7 @@ class Editor(SpyderPluginWidget):
             ('set_tab_stop_width_spaces',           'tab_stop_width_spaces'),
             ('set_wrap_enabled',                    'wrap'),
             ('set_tabmode_enabled',                 'tab_always_indent'),
+            ('set_stripmode_enabled',               'strip_trailing_spaces_on_modify'),
             ('set_intelligent_backspace_enabled',   'intelligent_backspace'),
             ('set_highlight_current_line_enabled',  'highlight_current_line'),
             ('set_highlight_current_cell_enabled',  'highlight_current_cell'),
@@ -2526,6 +2563,8 @@ class Editor(SpyderPluginWidget):
             indentguides_o = self.get_option(indentguides_n)
             tabindent_n = 'tab_always_indent'
             tabindent_o = self.get_option(tabindent_n)
+            stripindent_n = 'strip_trailing_spaces_on_modify'
+            stripindent_o = self.get_option(stripindent_n)
             ibackspace_n = 'intelligent_backspace'
             ibackspace_o = self.get_option(ibackspace_n)
             removetrail_n = 'always_remove_trailing_spaces'
@@ -2570,6 +2609,8 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_wrap_enabled(wrap_o)
                 if tabindent_n in options:
                     editorstack.set_tabmode_enabled(tabindent_o)
+                if stripindent_n in options:
+                    editorstack.set_stripmode_enabled(stripindent_o)
                 if ibackspace_n in options:
                     editorstack.set_intelligent_backspace_enabled(ibackspace_o)
                 if removetrail_n in options:
@@ -2717,3 +2758,16 @@ class Editor(SpyderPluginWidget):
         """Change the value of create_new_file_if_empty"""
         for editorstack in self.editorstacks:
             editorstack.create_new_file_if_empty = value
+
+    # --- File Menu actions (Mac only)
+    @Slot()
+    def go_to_next_file(self):
+        """Switch to next file tab on the current editor stack."""
+        editorstack = self.get_current_editorstack()
+        editorstack.tabs.tab_navigate(+1)
+
+    @Slot()
+    def go_to_previous_file(self):
+        """Switch to previous file tab on the current editor stack."""
+        editorstack = self.get_current_editorstack()
+        editorstack.tabs.tab_navigate(-1)

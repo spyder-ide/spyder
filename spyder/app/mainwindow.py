@@ -930,9 +930,16 @@ class MainWindow(QMainWindow):
                                        context=Qt.ApplicationShortcut)
         self.register_shortcut(restart_action, "_", "Restart")
 
-        self.file_menu_actions += [self.file_switcher_action,
-                                   self.symbol_finder_action, None,
-                                   restart_action, quit_action]
+        file_actions = [
+            self.file_switcher_action,
+            self.symbol_finder_action,
+            None,
+        ]
+        if sys.platform == 'darwin':
+            file_actions.extend(self.editor.tab_navigation_actions + [None])
+
+        file_actions.extend([restart_action, quit_action])
+        self.file_menu_actions += file_actions
         self.set_splash("")
 
         # Namespace browser
