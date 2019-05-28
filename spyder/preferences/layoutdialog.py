@@ -203,7 +203,7 @@ class LayoutSettingsDialog(QDialog):
         self.table.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.setColumnHidden(1, True)
-        
+
         # need to keep a reference for pyside not to segfault!
         self._selection_model = self.table.selectionModel()
 

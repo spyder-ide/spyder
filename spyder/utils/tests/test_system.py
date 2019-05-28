@@ -24,7 +24,7 @@ def test_system():
         assert windows_memory_usage() > 0
     else:
         assert memory_usage() > 0
-    
+
 
 
 if __name__ == "__main__":

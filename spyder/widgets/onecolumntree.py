@@ -30,22 +30,22 @@ class OneColumnTree(QTreeWidget):
         self.expand_all_action = None
         self.expand_selection_action = None
         self.common_actions = self.setup_common_actions()
-        
+
         self.__expanded_state = None
 
         self.itemSelectionChanged.connect(self.item_selection_changed)
         self.item_selection_changed()
-                     
+
     def activated(self, item):
         """Double-click event"""
         raise NotImplementedError
-        
+
     def clicked(self, item):
         pass
-                     
+
     def set_title(self, title):
         self.setHeaderLabels([title])
-                     
+
     def setup_common_actions(self):
         """Setup context menu common actions"""
         self.collapse_all_action = create_action(self,
@@ -72,7 +72,7 @@ class OneColumnTree(QTreeWidget):
         return [self.collapse_all_action, self.expand_all_action,
                 self.restore_action, None,
                 self.collapse_selection_action, self.expand_selection_action]
-                     
+
     def get_menu_actions(self):
         """Returns a list of menu actions"""
         items = self.selectedItems()
@@ -97,19 +97,19 @@ class OneColumnTree(QTreeWidget):
         self.collapseAll()
         for item in self.get_top_level_items():
             self.expandItem(item)
-        
+
     def is_item_expandable(self, item):
         """To be reimplemented in child class
         See example in project explorer widget"""
         return True
-        
+
     def __expand_item(self, item):
         if self.is_item_expandable(item):
             self.expandItem(item)
             for index in range(item.childCount()):
                 child = item.child(index)
                 self.__expand_item(child)
-    
+
     @Slot()
     def expand_selection(self):
         items = self.selectedItems()
@@ -119,7 +119,7 @@ class OneColumnTree(QTreeWidget):
             self.__expand_item(item)
         if items:
             self.scrollToItem(items[0])
-        
+
     def __collapse_item(self, item):
         self.collapseItem(item)
         for index in range(item.childCount()):
@@ -135,17 +135,17 @@ class OneColumnTree(QTreeWidget):
             self.__collapse_item(item)
         if items:
             self.scrollToItem(items[0])
-            
+
     def item_selection_changed(self):
         """Item selection has changed"""
         is_selection = len(self.selectedItems()) > 0
         self.expand_selection_action.setEnabled(is_selection)
         self.collapse_selection_action.setEnabled(is_selection)
-    
+
     def get_top_level_items(self):
         """Iterate over top level items"""
         return [self.topLevelItem(_i) for _i in range(self.topLevelItemCount())]
-    
+
     def get_items(self):
         """Return items (excluding top level items)"""
         itemlist = []
@@ -157,24 +157,24 @@ class OneColumnTree(QTreeWidget):
         for tlitem in self.get_top_level_items():
             add_to_itemlist(tlitem)
         return itemlist
-    
+
     def get_scrollbar_position(self):
         return (self.horizontalScrollBar().value(),
                 self.verticalScrollBar().value())
-        
+
     def set_scrollbar_position(self, position):
         hor, ver = position
         self.horizontalScrollBar().setValue(hor)
         self.verticalScrollBar().setValue(ver)
-        
+
     def get_expanded_state(self):
         self.save_expanded_state()
         return self.__expanded_state
-    
+
     def set_expanded_state(self, state):
         self.__expanded_state = state
         self.restore_expanded_state()
-    
+
     def save_expanded_state(self):
         """Save all items expanded state"""
         self.__expanded_state = {}
@@ -190,7 +190,7 @@ class OneColumnTree(QTreeWidget):
                 browse_children(citem)
         for tlitem in self.get_top_level_items():
             browse_children(tlitem)
-    
+
     def restore_expanded_state(self):
         """Restore all items expanded state"""
         if self.__expanded_state is None:
@@ -209,9 +209,8 @@ class OneColumnTree(QTreeWidget):
         for index, item in enumerate(items):
             self.insertTopLevelItem(index, item)
         self.restore_expanded_state()
-                     
+
     def contextMenuEvent(self, event):
         """Override Qt method"""
         self.update_menu()
         self.menu.popup(event.globalPos())
-        

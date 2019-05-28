@@ -269,7 +269,7 @@ def test():
     # Full results
     for r in a:
         print(r)  # spyder: test-skip
-    
+
     # Ordered and filtered results
     print('\n')  # spyder: test-skip
 

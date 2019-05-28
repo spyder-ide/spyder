@@ -8,7 +8,7 @@
 
 //============================================================================
 // On document ready
-//============================================================================ 
+//============================================================================
 
 {% if right_sphinx_version and math_on %}
 
@@ -30,7 +30,7 @@ $(document).ready(function () {
         "SVG": {
             blacker: 1
         },
-        
+
         {% if platform == 'win32' %}
         // Change math preview size so that it doesn't look too big while
         // redendered
@@ -42,7 +42,7 @@ $(document).ready(function () {
         }
         {% endif %}
     });
-    
+
     // MathJax Hooks
     // -------------
     // Put here any code that needs to be evaluated after MathJax has been
@@ -51,7 +51,7 @@ $(document).ready(function () {
         // Eliminate unnecessary margin-bottom for inline math
         $('span.math svg').css('margin-bottom', '0px');
     });
-    
+
     {% if platform == 'win32' %}
     // Windows fix
     // -----------
