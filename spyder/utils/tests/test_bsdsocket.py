@@ -24,7 +24,7 @@ from spyder.utils.bsdsocket import write_packet, read_packet
 def test_bsdsockets():
     """Test write-read packet methods."""
     # socket read/write testing - client and server in one thread
-        
+
     # (techtonik): the stuff below is placed into public domain
     address = ("127.0.0.1", 9999)
 

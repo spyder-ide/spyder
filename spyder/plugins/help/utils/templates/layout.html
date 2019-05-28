@@ -23,13 +23,13 @@
     <link rel="stylesheet" href="file:///{{css_path}}/default.css" type="text/css" />
     <link rel="stylesheet" href="file:///{{css_path}}/pygments.css" type="text/css" />
     <script type="text/javascript" src="file:///{{jquery_path}}/jquery.js"></script>
-    
+
     {% if right_sphinx_version and math_on %}
     {# DON'T try to load MathJax from the net. It's slow and sometimes gives
        errors. See this thread for more info:
        https://tex.stackexchange.com/questions/2692/comparing-mathjax-and-mathml
     #}
-    <script type="text/javascript" 
+    <script type="text/javascript"
     src="file:///{{mathjax_path}}/MathJax.js?config=TeX-AMS-MML_SVG-full">
     </script>
     {% endif %}
@@ -73,7 +73,7 @@
     {% endif %}
 
     {% endif %}
-    
+
     {# Docstring text #}
     <div class="docstring">
         {% block body %}{% endblock %}

@@ -84,7 +84,7 @@ BACKGROUND_NUMBER_MINHUE = 0.66 # hue for largest number
 BACKGROUND_NUMBER_HUERANGE = 0.33 # (hue for smallest) minus (hue for largest)
 BACKGROUND_NUMBER_SATURATION = 0.7
 BACKGROUND_NUMBER_VALUE = 1.0
-BACKGROUND_NUMBER_ALPHA = 0.6 
+BACKGROUND_NUMBER_ALPHA = 0.6
 BACKGROUND_NONNUMBER_COLOR = Qt.lightGray
 BACKGROUND_INDEX_ALPHA = 0.8
 BACKGROUND_STRING_ALPHA = 0.05
@@ -128,7 +128,7 @@ class DataFrameModel(QAbstractTableModel):
         self._format = format
         self.complex_intran = None
         self.display_error_idxs = []
-        
+
         self.total_rows = self.df.shape[0]
         self.total_cols = self.df.shape[1]
         size = self.total_rows * self.total_cols
@@ -215,12 +215,12 @@ class DataFrameModel(QAbstractTableModel):
         Determines the maximum and minimum number in each column.
 
         The result is a list whose k-th entry is [vmax, vmin], where vmax and
-        vmin denote the maximum and minimum of the k-th column (ignoring NaN). 
+        vmin denote the maximum and minimum of the k-th column (ignoring NaN).
         This list is stored in self.max_min_col.
 
         If the k-th column has a non-numerical dtype, then the k-th entry
         is set to None. If the dtype is complex, then compute the maximum and
-        minimum of the absolute values. If vmax equals vmin, then vmin is 
+        minimum of the absolute values. If vmax equals vmin, then vmin is
         decreased by one.
         """
         if self.df.shape[0] == 0: # If no rows to compute max/min then return
