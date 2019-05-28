@@ -50,7 +50,7 @@ class ScrollFlagArea(Panel):
         """This property holds the vertical offset of the scroll flag area
         relative to the top of the text editor."""
         vsb = self.editor.verticalScrollBar()
-        style = vsb.style()
+        style = QApplication.instance().style()
         opt = QStyleOptionSlider()
         vsb.initStyleOption(opt)
 
@@ -172,7 +172,7 @@ class ScrollFlagArea(Panel):
         """Return the pixel span height of the scrollbar area in which
         the slider handle may move"""
         vsb = self.editor.verticalScrollBar()
-        style = vsb.style()
+        style = QApplication.instance().style()
         opt = QStyleOptionSlider()
         vsb.initStyleOption(opt)
 
