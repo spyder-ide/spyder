@@ -64,6 +64,12 @@ class OutlineExplorer(SpyderPluginWidget):
     def get_plugin_icon(self):
         """Return widget icon"""
         return ima.icon('outline_explorer')
+
+    def set_plugin_icon_size(self, iconsize):
+        """
+        Set the icon size of plugin.
+        """
+        self.explorer.toolbar.set_iconsize(iconsize)
     
     def get_focus_widget(self):
         """
