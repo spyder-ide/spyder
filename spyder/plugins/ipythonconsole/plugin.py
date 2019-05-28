@@ -240,7 +240,13 @@ class IPythonConsole(SpyderPluginWidget):
     def get_plugin_icon(self):
         """Return widget icon"""
         return ima.icon('ipython_console')
-    
+
+    def set_plugin_icon_size(self, iconsize):
+        """
+        Set the icon size of plugin.
+        """
+        self.tabwidget.set_iconsize(iconsize)
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
