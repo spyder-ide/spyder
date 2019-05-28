@@ -363,7 +363,7 @@ class BaseTabs(QTabWidget):
                     clayout.addWidget(widget)
             cwidget.setLayout(clayout)
             cwidget.show()
-            
+
     def add_corner_widgets(self, widgets, corner=Qt.TopRightCorner):
         self.set_corner_widgets({corner:
                                  self.corner_widgets.get(corner, [])+widgets})
@@ -492,3 +492,33 @@ class Tabs(BaseTabs):
         # (see Issue 1094, Issue 1098)
         self.sig_move_tab.emit(tabwidget_from, to_text_string(id(self)),
                                index_from, index_to)
+
+    def set_iconsize(self, iconsize):
+        """
+        Set the icon size of the corner widgets.
+        """
+        # Set the height of the tabs.
+        # NOTE: We cannot use the iconsize value directly because depending of
+        # the theme, the size of the toolbuttons is bigger than that of their
+        # respective icon.
+        style = QApplication.instance().style()
+        opt = QStyleOptionToolButton()
+        QToolButton().initStyleOption(opt)
+        opt.rect.setSize(QSize(iconsize, iconsize))
+        size = style.sizeFromContents(
+            QStyle.CT_ToolButton, opt, QSize(iconsize, iconsize), self
+            ).expandedTo(QApplication.globalStrut())
+        self.tabBar().set_tabheight(size.height())
+
+        # Set the icon size of the corner widgets.
+        for loc in (Qt.TopLeftCorner, Qt.TopRightCorner):
+            widgets = self.corner_widgets[loc]
+            for widget in widgets:
+                if not isinstance(widget, int):
+                    if widget.layout():
+                        set_iconsize_recursively(iconsize, widget.layout())
+                    else:
+                        try:
+                            widget.setIconSize(QSize(iconsize, iconsize))
+                        except AttributeError:
+                            pass
