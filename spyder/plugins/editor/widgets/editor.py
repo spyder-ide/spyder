@@ -1672,7 +1672,8 @@ class EditorStack(QWidget):
         """Compute hash of contents of editor.
 
         Args:
-            fileinfo: FileInfo object associated to editor to be saved
+            fileinfo: FileInfo object associated to editor whose hash needs
+                to be computed.
 
         Returns:
             int: computed hash.
@@ -2407,6 +2408,9 @@ class EditorStack(QWidget):
     def load(self, filename, set_current=True, add_where='end'):
         """
         Load filename, create an editor instance and return it
+
+        This also sets the hash of the loaded file in the autosave component.
+
         *Warning* This is loading file, creating editor but not executing
         the source code analysis -- the analysis must be done by the editor
         plugin (in case multiple editorstack instances are handled)
@@ -2414,6 +2418,7 @@ class EditorStack(QWidget):
         filename = osp.abspath(to_text_string(filename))
         self.starting_long_process.emit(_("Loading %s...") % filename)
         text, enc = encoding.read(filename)
+        self.autosave.file_hashes[filename] = hash(text)
         finfo = self.create_new_editor(filename, enc, text, set_current,
                                        add_where=add_where)
         index = self.data.index(finfo)

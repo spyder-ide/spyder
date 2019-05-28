@@ -661,6 +661,16 @@ def test_autosave_does_not_save_new_files(editor_bot, mocker):
     editor_stack._write_to_file.assert_not_called()
 
 
+def test_opening_sets_file_hash(editor_bot, mocker):
+    """Test that opening a file sets the file hash."""
+    editor_stack, editor = editor_bot
+    mocker.patch('spyder.plugins.editor.widgets.editor.encoding.read',
+                 return_value=('my text', 42))
+    editor_stack.load('/mock-filename')
+    expected = {'/mock-filename': hash('my text')}
+    assert editor_stack.autosave.file_hashes == expected
+
+
 @pytest.mark.parametrize('filename', ['ham.py', 'ham.txt'])
 def test_autosave_does_not_save_after_open(base_editor_bot, mocker, qtbot,
                                            filename):
