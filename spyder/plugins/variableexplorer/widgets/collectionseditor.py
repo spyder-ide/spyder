@@ -803,7 +803,7 @@ class BaseTableView(QTableView):
         self.adjust_columns()
         # Sorting columns
         self.setSortingEnabled(True)
-        self.sortByColumn(0, Qt.AscendingOrder)
+        self.sortByColumn(4, Qt.DescendingOrder)
     
     def setup_menu(self, minmax):
         """Setup context menu"""
@@ -1008,7 +1008,7 @@ class BaseTableView(QTableView):
         """Set table data"""
         if data is not None:
             self.source_model.set_data(data, self.dictfilter)
-            self.sortByColumn(0, Qt.AscendingOrder)
+            self.sortByColumn(4, Qt.DescendingOrder)
 
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
