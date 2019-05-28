@@ -123,6 +123,13 @@ class Plots(SpyderPluginWidget):
         """Return plugin icon"""
         return ima.icon('hist')
 
+    def set_plugin_icon_size(self, iconsize):
+        """
+        Set the icon size of plugin.
+        """
+        for fig_browser in list(self.shellwidgets.values()):
+            fig_browser.toolbar.set_iconsize(iconsize)
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
