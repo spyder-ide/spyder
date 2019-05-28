@@ -106,7 +106,7 @@ def get_color(value, alpha):
 class ContentsWidget(QWidget):
     """Import wizard contents widget"""
     asDataChanged = Signal(bool)
-    
+
     def __init__(self, parent, text):
         QWidget.__init__(self, parent)
 

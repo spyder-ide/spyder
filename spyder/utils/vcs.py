@@ -119,7 +119,7 @@ def get_hg_revision(repopath):
 def get_git_revision(repopath):
     """
     Return Git revision for the repository located at repopath
-    
+
     Result is a tuple (latest commit hash, branch), with None values on
     error
     """

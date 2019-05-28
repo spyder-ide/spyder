@@ -37,9 +37,9 @@ def test_split_source():
 
 def test_path_components():
     if not os.name == 'nt':
-        path_components0 = ['','','documents','test','test.py']        
+        path_components0 = ['', '', 'documents', 'test', 'test.py']
     else:
-        path_components0 = ['c:','','documents','test','test.py']        
+        path_components0 = ['c:', '', 'documents', 'test', 'test.py']
     path0 = os.path.join(*path_components0)
     assert sourcecode.path_components(path0) == path_components0
 
