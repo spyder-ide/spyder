@@ -278,7 +278,7 @@ class NamespaceBrowser(QWidget):
 
     def set_data(self, data):
         """Set data."""
-        if data != self.editor.model.get_data():
+        if data != self.editor.source_model.get_data():
             self.editor.set_data(data)
             self.editor.adjust_columns()
         
