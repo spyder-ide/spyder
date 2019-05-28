@@ -25,7 +25,7 @@ def test_setup_sets_dataframe_format(qtbot):
     browser.setup(exclude_private=True, exclude_uppercase=True,
                   exclude_capitalized=True, exclude_unsupported=True,
                   minmax=False, dataframe_format='%10.5f')
-    assert browser.editor.model.dataframe_format == '%10.5f'
+    assert browser.editor.source_model.dataframe_format == '%10.5f'
 
 
 def test_automatic_column_width(qtbot):

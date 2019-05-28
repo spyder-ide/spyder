@@ -108,7 +108,7 @@ def reset_run_code(qtbot, shell, code_editor, nsb):
     """Reset state after a run code test"""
     with qtbot.waitSignal(shell.executed):
         shell.execute('%reset -f')
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 0, timeout=EVAL_TIMEOUT)
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 0, timeout=EVAL_TIMEOUT)
     code_editor.setFocus()
     qtbot.keyClick(code_editor, Qt.Key_Home, modifier=Qt.ControlModifier)
 
@@ -617,7 +617,7 @@ def test_dedicated_consoles(main_window, qtbot):
     assert main_window.ipyconsole.filenames == ['', test_file]
     assert main_window.ipyconsole.tabwidget.tabText(1) == 'script.py/A'
     qtbot.wait(500)
-    assert nsb.editor.model.rowCount() == 4
+    assert nsb.editor.source_model.rowCount() == 4
 
     # --- Assert only runfile text is present and there's no banner text ---
     # See PR #5301
@@ -657,7 +657,7 @@ def test_connection_to_external_kernel(main_window, qtbot):
     main_window.variableexplorer.visibility_changed(True)
     nsb = main_window.variableexplorer.get_focus_widget()
     qtbot.wait(500)
-    assert nsb.editor.model.rowCount() == 0
+    assert nsb.editor.source_model.rowCount() == 0
 
     # Test with a kernel from Spyder
     spykm, spykc = start_new_kernel(spykernel=True)
@@ -672,7 +672,7 @@ def test_connection_to_external_kernel(main_window, qtbot):
     main_window.variableexplorer.visibility_changed(True)
     nsb = main_window.variableexplorer.get_focus_widget()
     qtbot.wait(500)
-    assert nsb.editor.model.rowCount() == 1
+    assert nsb.editor.source_model.rowCount() == 1
 
     # Shutdown the kernels
     spykm.shutdown_kernel(now=True)
@@ -693,7 +693,7 @@ def test_change_types_in_varexp(main_window, qtbot):
     # Edit object
     main_window.variableexplorer.visibility_changed(True)
     nsb = main_window.variableexplorer.get_focus_widget()
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() > 0, timeout=EVAL_TIMEOUT)
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() > 0, timeout=EVAL_TIMEOUT)
     nsb.editor.setFocus()
     nsb.editor.edit_item()
 
@@ -789,7 +789,7 @@ def test_run_cython_code(main_window, qtbot):
     nsb = main_window.variableexplorer.get_focus_widget()
 
     # Wait until an object appears
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 1,
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 1,
                     timeout=COMPILE_AND_EVAL_TIMEOUT)
 
     # Verify result
@@ -808,7 +808,7 @@ def test_run_cython_code(main_window, qtbot):
     qtbot.keyClick(code_editor, Qt.Key_F5)
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 1,
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 1,
                     timeout=COMPILE_AND_EVAL_TIMEOUT)
 
     # Verify result
@@ -935,7 +935,7 @@ def test_run_code(main_window, qtbot, tmpdir):
     qtbot.keyClick(code_editor, Qt.Key_F5)
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 4,
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 4,
                     timeout=EVAL_TIMEOUT)
 
     # Verify result
@@ -953,7 +953,7 @@ def test_run_code(main_window, qtbot, tmpdir):
         qtbot.wait(200)
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 4,
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 4,
                     timeout=EVAL_TIMEOUT)
 
     # Verify result
@@ -975,7 +975,7 @@ def test_run_code(main_window, qtbot, tmpdir):
     assert 'Error:' not in shell._control.toPlainText()
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 4,
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 4,
                     timeout=EVAL_TIMEOUT)
 
     # Verify result
@@ -992,7 +992,7 @@ def test_run_code(main_window, qtbot, tmpdir):
     qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ControlModifier)
 
     # Wait until the object has appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 1,
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 1,
                     timeout=EVAL_TIMEOUT)
 
     # Verify result
@@ -1001,7 +1001,7 @@ def test_run_code(main_window, qtbot, tmpdir):
     # Press Ctrl+Enter a second time to verify that we're *not* advancing
     # to the next cell
     qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ControlModifier)
-    assert nsb.editor.model.rowCount() == 1
+    assert nsb.editor.source_model.rowCount() == 1
 
     reset_run_code(qtbot, shell, code_editor, nsb)
 
@@ -1012,7 +1012,7 @@ def test_run_code(main_window, qtbot, tmpdir):
     qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
 
     # Wait until objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 2,
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 2,
                     timeout=EVAL_TIMEOUT)
 
     # Clean namespace
@@ -1020,14 +1020,14 @@ def test_run_code(main_window, qtbot, tmpdir):
         shell.execute('%reset -f')
 
     # Wait until there are no objects in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 0,
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 0,
                     timeout=EVAL_TIMEOUT)
 
     # Re-run last cell
     qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.AltModifier)
 
     # Wait until the object has appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 1,
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 1,
                     timeout=EVAL_TIMEOUT)
     assert shell.get_value('li') == [1, 2, 3]
 
@@ -1077,7 +1077,7 @@ def test_run_cell_copy(main_window, qtbot, tmpdir):
     assert 'Error:' not in shell._control.toPlainText()
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 4,
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 4,
                     timeout=EVAL_TIMEOUT)
 
     # Verify result
@@ -1181,7 +1181,7 @@ def test_issue_4066(main_window, qtbot):
 
     # Open editor associated with that object and get a reference to it
     nsb = main_window.variableexplorer.get_focus_widget()
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() > 0, timeout=EVAL_TIMEOUT)
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() > 0, timeout=EVAL_TIMEOUT)
     nsb.editor.setFocus()
     nsb.editor.edit_item()
     obj_editor_id = list(nsb.editor.delegate._editors.keys())[0]
@@ -1191,7 +1191,7 @@ def test_issue_4066(main_window, qtbot):
     main_window.ipyconsole.get_focus_widget().setFocus()
     with qtbot.waitSignal(shell.executed):
         shell.execute('del myobj')
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 0, timeout=EVAL_TIMEOUT)
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 0, timeout=EVAL_TIMEOUT)
 
     # Close editor
     ok_widget = obj_editor.btn_close
@@ -1222,7 +1222,7 @@ def test_varexp_edit_inline(main_window, qtbot):
     # Edit object
     main_window.variableexplorer.visibility_changed(True)
     nsb = main_window.variableexplorer.get_focus_widget()
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() > 0, timeout=EVAL_TIMEOUT)
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() > 0, timeout=EVAL_TIMEOUT)
     nsb.editor.setFocus()
     nsb.editor.edit_item()
 
@@ -1267,13 +1267,13 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
     qtbot.keyClicks(control, 'c')
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.wait(500)
-    assert nsb.editor.model.rowCount() == 1
+    assert nsb.editor.source_model.rowCount() == 1
 
     # Verify that n works
     qtbot.keyClicks(control, 'n')
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.wait(500)
-    assert nsb.editor.model.rowCount() == 2
+    assert nsb.editor.source_model.rowCount() == 2
 
     # Verify that doesn't go to sitecustomize.py with next and stops
     # the debugging session.
@@ -1285,7 +1285,7 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.wait(500)
 
-    assert nsb.editor.model.rowCount() == 3
+    assert nsb.editor.source_model.rowCount() == 3
 
     qtbot.keyClicks(control, 'n')
     qtbot.keyClick(control, Qt.Key_Enter)
@@ -1343,7 +1343,7 @@ def test_stop_dbg(main_window, qtbot):
     qtbot.wait(1000)
 
     # Assert that there is only one entry in the Variable Explorer
-    assert nsb.editor.model.rowCount() == 1
+    assert nsb.editor.source_model.rowCount() == 1
 
     # Remove breakpoint and close test file
     main_window.editor.clear_all_breakpoints()
