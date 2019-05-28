@@ -12,12 +12,13 @@ import sys
 import re
 
 # Third party imports
-from qtpy.QtCore import Signal, Slot
+from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import (QHBoxLayout, QInputDialog,
                             QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import _
+from spyder.config.gui import get_iconsize
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
@@ -70,7 +71,9 @@ class HistoryLog(SpyderPluginWidget):
             layout.addWidget(self.tabwidget)
 
         # Menu as corner widget
-        self.tabwidget.setCornerWidget(self.options_button)
+        self.tabwidget.set_corner_widgets(
+            {Qt.TopRightCorner: [self.options_button]})
+        self.set_plugin_icon_size(get_iconsize(panel=True))
 
         # Find/replace widget
         self.find_widget = FindReplace(self)
@@ -89,7 +92,13 @@ class HistoryLog(SpyderPluginWidget):
     def get_plugin_icon(self):
         """Return widget icon."""
         return ima.icon('history')
-    
+
+    def set_plugin_icon_size(self, iconsize):
+        """
+        Set the icon size of plugin.
+        """
+        self.tabwidget.set_iconsize(iconsize)
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
@@ -241,7 +250,7 @@ class HistoryLog(SpyderPluginWidget):
         if self.get_option('go_to_eof'):
             self.editors[index].set_cursor_position('eof')
         self.tabwidget.setCurrentIndex(index)
-    
+
     @Slot()
     def change_history_depth(self):
         "Change history max entries"""
