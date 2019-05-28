@@ -80,7 +80,7 @@ def test_arrayeditor_format(qtbot):
     qtbot.keyClick(dlg.arraywidget.view, Qt.Key_Down, modifier=Qt.ShiftModifier)
     contents = dlg.arraywidget.view._sel_to_text(dlg.arraywidget.view.selectedIndexes())
     assert contents == "1.000000000000000000e+00\n2.000000000000000000e+00\n"
-    
+
 
 def test_arrayeditor_with_string_array(qtbot):
     arr = np.array(["kjrekrjkejr"])

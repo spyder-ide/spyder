@@ -29,7 +29,7 @@ from spyder.plugins.explorer.widgets import FilteredDirView
 
 class ExplorerTreeWidget(FilteredDirView):
     """Explorer tree widget"""
-    
+
     sig_delete_project = Signal()
 
     def __init__(self, parent, show_hscrollbar=True):

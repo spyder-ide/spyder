@@ -144,7 +144,7 @@ def test_single_click_to_open(qtbot, file_explorer):
         file_explorer.label1.setText('')
 
         for i in range(4):  # 4 items inside `/spyder/plugins/explorer/`
-            qtbot.keyClick(treewidget, Qt.Key_Down)        
+            qtbot.keyClick(treewidget, Qt.Key_Down)
             index = treewidget.currentIndex()
             path = model.data(index)
             if path:

@@ -86,7 +86,7 @@ class RunConfiguration(object):
                            CONF.get('run', 'post_mortem', False))
         self.python_args = options.get('python_args', '')
         self.python_args_enabled = options.get('python_args/enabled', False)
-        self.clear_namespace = options.get('clear_namespace',  
+        self.clear_namespace = options.get('clear_namespace',
                                     CONF.get('run', 'clear_namespace', False))
         self.file_dir = options.get('file_dir',
                            CONF.get('run', WDIR_USE_SCRIPT_DIR_OPTION, True))
@@ -114,7 +114,7 @@ class RunConfiguration(object):
                 'fixed_dir': self.fixed_dir,
                 'dir': self.dir
                 }
-        
+
     def get_working_directory(self):
        return self.dir
 
@@ -123,13 +123,13 @@ class RunConfiguration(object):
             return self.args
         else:
             return ''
-        
+
     def get_python_arguments(self):
         if self.python_args_enabled:
             return self.python_args
         else:
             return ''
-        
+
 
 def _get_run_configurations():
     history_count = CONF.get('run', 'history', 20)
@@ -325,10 +325,10 @@ class RunConfigOptions(QWidget):
 class BaseRunConfigDialog(QDialog):
     """Run configuration dialog box, base widget"""
     size_change = Signal(QSize)
-    
+
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
-        
+
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
         # (e.g. the editor's analysis thread in Spyder), thus leading to
@@ -338,7 +338,7 @@ class BaseRunConfigDialog(QDialog):
         self.setWindowIcon(ima.icon('run_settings'))
         layout = QVBoxLayout()
         self.setLayout(layout)
-    
+
     def add_widgets(self, *widgets_or_spacings):
         """Add widgets/spacing to dialog vertical layout"""
         layout = self.layout()
@@ -347,7 +347,7 @@ class BaseRunConfigDialog(QDialog):
                 layout.addSpacing(widget_or_spacing)
             else:
                 layout.addWidget(widget_or_spacing)
-    
+
     def add_button_box(self, stdbtns):
         """Create dialog button box and add it to the dialog layout"""
         bbox = QDialogButtonBox(stdbtns)
@@ -359,7 +359,7 @@ class BaseRunConfigDialog(QDialog):
         btnlayout.addStretch(1)
         btnlayout.addWidget(bbox)
         self.layout().addLayout(btnlayout)
-    
+
     def resizeEvent(self, event):
         """
         Reimplement Qt method to be able to save the widget's size from the
@@ -367,11 +367,11 @@ class BaseRunConfigDialog(QDialog):
         """
         QDialog.resizeEvent(self, event)
         self.size_change.emit(self.size())
-    
+
     def run_btn_clicked(self):
         """Run button was just clicked"""
         pass
-        
+
     def setup(self, fname):
         """Setup Run Configuration dialog with filename *fname*"""
         raise NotImplementedError
@@ -383,7 +383,7 @@ class RunConfigOneDialog(BaseRunConfigDialog):
         BaseRunConfigDialog.__init__(self, parent)
         self.filename = None
         self.runconfigoptions = None
-        
+
     def setup(self, fname):
         """Setup Run Configuration dialog with filename *fname*"""
         self.filename = fname
@@ -392,7 +392,7 @@ class RunConfigOneDialog(BaseRunConfigDialog):
         self.add_widgets(self.runconfigoptions)
         self.add_button_box(QDialogButtonBox.Cancel)
         self.setWindowTitle(_("Run settings for %s") % osp.basename(fname))
-    
+
     @Slot()
     def accept(self):
         """Reimplement Qt method"""
@@ -402,7 +402,7 @@ class RunConfigOneDialog(BaseRunConfigDialog):
         configurations.insert(0, (self.filename, self.runconfigoptions.get()))
         _set_run_configurations(configurations)
         QDialog.accept(self)
-    
+
     def get_configuration(self):
         # It is import to avoid accessing Qt C++ object as it has probably
         # already been destroyed, due to the Qt.WA_DeleteOnClose attribute
@@ -416,11 +416,11 @@ class RunConfigDialog(BaseRunConfigDialog):
         self.file_to_run = None
         self.combo = None
         self.stack = None
-        
+
     def run_btn_clicked(self):
         """Run button was just clicked"""
         self.file_to_run = to_text_string(self.combo.currentText())
-        
+
     def setup(self, fname):
         """Setup Run Configuration dialog with filename *fname*"""
         combo_label = QLabel(_("Select a run configuration:"))
@@ -428,7 +428,7 @@ class RunConfigDialog(BaseRunConfigDialog):
         self.combo.setMaxVisibleItems(20)
         self.combo.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
         self.combo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        
+
         self.stack = QStackedWidget()
 
         configurations = _get_run_configurations()
@@ -453,7 +453,7 @@ class RunConfigDialog(BaseRunConfigDialog):
         self.add_button_box(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
 
         self.setWindowTitle(_("Run configuration per file"))
-        
+
     def accept(self):
         """Reimplement Qt method"""
         configurations = []
@@ -475,7 +475,7 @@ class RunConfigPage(GeneralConfigPage):
 
     NAME = _("Run")
     ICON = ima.icon('run')
-    
+
     def setup_page(self):
         about_label = QLabel(_("The following are the default options for "
                                "running files.These options may be overriden "
@@ -500,10 +500,10 @@ class RunConfigPage(GeneralConfigPage):
         interpreter_layout.addWidget(self.current_radio)
         interpreter_layout.addWidget(self.dedicated_radio)
         interpreter_layout.addWidget(self.systerm_radio)
-        
+
         general_group = QGroupBox(_("General settings"))
         post_mortem = self.create_checkbox(POST_MORTEM, 'post_mortem', False)
-        clear_variables = self.create_checkbox(CLEAR_ALL_VARIABLES, 
+        clear_variables = self.create_checkbox(CLEAR_ALL_VARIABLES,
             'clear_namespace', False)
 
         general_layout = QVBoxLayout()
@@ -555,7 +555,7 @@ class RunConfigPage(GeneralConfigPage):
         firstrun_cb = self.create_checkbox(
                             ALWAYS_OPEN_FIRST_RUN % _("Run Settings dialog"),
                             ALWAYS_OPEN_FIRST_RUN_OPTION, False)
-        
+
         vlayout = QVBoxLayout()
         vlayout.addWidget(about_label)
         vlayout.addSpacing(10)

@@ -49,7 +49,7 @@ def get_fold_levels():
 # --- Tests
 # -----------------------------------------------------------------------------
 def test_simple_folding(get_fold_levels):
-    assert get_fold_levels == [[2, 0, 'V'], 
+    assert get_fold_levels == [[2, 0, 'V'],
                                  [6, 1, 'V'],
                                  [9, 1, 'V'],
                                  [12, 2, 'V']]
