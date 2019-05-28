@@ -32,7 +32,8 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, create_plugin_layout,
                                     MENU_SEPARATOR)
 from spyder.utils.misc import getcwd_or_home
-from spyder.config.gui import config_shortcut, get_shortcut
+from spyder.config.gui import config_shortcut, get_shortcut, get_iconsize
+from spyder.api.toolbar import SpyderPluginToolbar
 
 
 def save_figure_tofile(fig, fmt, fname):
@@ -132,13 +133,13 @@ class FigureBrowser(QWidget):
         main_widget.addWidget(self.thumbnails_sb)
         main_widget.setFrameStyle(QScrollArea().frameStyle())
 
-        self.tools_layout = QHBoxLayout()
+        self.toolbar = SpyderPluginToolbar()
         for widget in toolbar:
-            self.tools_layout.addWidget(widget)
-        self.tools_layout.addStretch()
+            self.toolbar.add_widget(widget)
         self.setup_options_button()
+        self.toolbar.set_iconsize(get_iconsize(panel=True))
 
-        layout = create_plugin_layout(self.tools_layout, main_widget)
+        layout = create_plugin_layout(self.toolbar, main_widget)
         self.setLayout(layout)
 
     def setup_toolbar(self):
@@ -169,9 +170,6 @@ class FigureBrowser(QWidget):
                 tip=_("Remove all images from the explorer"),
                 triggered=self.close_all_figures)
 
-        vsep1 = QFrame()
-        vsep1.setFrameStyle(53)
-
         goback_btn = create_toolbutton(
                 self, icon=ima.icon('ArrowBack'),
                 tip=_("Previous Figure ({})".format(
@@ -183,9 +181,6 @@ class FigureBrowser(QWidget):
                 tip=_("Next Figure ({})".format(
                       get_shortcut('plots', 'next figure'))),
                 triggered=self.go_next_thumbnail)
-
-        vsep2 = QFrame()
-        vsep2.setFrameStyle(53)
 
         self.zoom_out_btn = create_toolbutton(
                 self, icon=ima.icon('zoom_out'),
@@ -215,7 +210,7 @@ class FigureBrowser(QWidget):
         layout.addWidget(self.zoom_disp)
 
         return [savefig_btn, saveall_btn, copyfig_btn, closefig_btn,
-                closeall_btn, vsep1, goback_btn, gonext_btn, vsep2, zoom_pan]
+                closeall_btn, None, goback_btn, gonext_btn, None, zoom_pan]
 
     def setup_option_actions(self, mute_inline_plotting, show_plot_outline,
                              auto_fit_plotting):
@@ -261,12 +256,7 @@ class FigureBrowser(QWidget):
             self.options_menu = QMenu(self)
             add_actions(self.options_menu, actions)
             self.options_button.setMenu(self.options_menu)
-
-        if self.tools_layout.itemAt(self.tools_layout.count() - 1) is None:
-            self.tools_layout.insertWidget(
-                self.tools_layout.count() - 1, self.options_button)
-        else:
-            self.tools_layout.addWidget(self.options_button)
+        self.toolbar.add_options_button(self.options_button)
 
     def create_shortcuts(self):
         """Create shortcuts for this widget."""
