@@ -17,11 +17,12 @@ import sys
 
 # Third party imports
 from qtpy import PYQT5
-from qtpy.QtCore import (QByteArray, QEvent, QMimeData, QPoint, Qt, Signal,
-                         Slot)
+from qtpy.QtCore import (QByteArray, QEvent, QMimeData, QPoint, QSize, Qt,
+                         Signal, Slot)
 from qtpy.QtGui import QDrag
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu, QTabBar,
-                            QTabWidget, QWidget, QLineEdit)
+                            QTabWidget, QWidget, QLineEdit,
+                            QStyleOptionToolButton, QStyle, QToolButton)
 
 # Local imports
 from spyder.config.base import _
@@ -30,7 +31,8 @@ from spyder.py3compat import PY2, to_binary_string, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import get_common_path
 from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton)
+                                    create_toolbutton,
+                                    set_iconsize_recursively)
 
 
 class EditTabNamePopup(QLineEdit):
@@ -136,11 +138,12 @@ class TabBar(QTabBar):
     """Tabs base class with drag and drop support"""
     sig_move_tab = Signal((int, int), (str, int, int))
     sig_change_name = Signal(str)
-    
+
     def __init__(self, parent, ancestor, rename_tabs=False, split_char='',
                  split_index=0):
         QTabBar.__init__(self, parent)
         self.ancestor = ancestor
+        self._tabheight = None
 
         # To style tabs on Mac
         if sys.platform == 'darwin':
@@ -240,7 +243,19 @@ class TabBar(QTabBar):
             # Event is not interesting, raise to parent
             QTabBar.mouseDoubleClickEvent(self, event)
 
-        
+    def set_tabheight(self, height):
+        """Set the height of the tabs."""
+        self._tabheight = height
+        self.repaint()
+
+    def tabSizeHint(self, index):
+        if self._tabheight is None:
+            return QTabBar.tabSizeHint(self, index)
+        else:
+            return QSize(QTabBar.tabSizeHint(self, index).width(),
+                         self._tabheight)
+
+
 class BaseTabs(QTabWidget):
     """TabWidget with context menu and corner widgets"""
     sig_close_tab = Signal(int)
