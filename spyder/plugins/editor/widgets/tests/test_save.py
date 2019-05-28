@@ -172,6 +172,7 @@ def test_save(editor_bot, mocker):
     assert save(index=0) is True
     assert not editor.encoding.write.called
     assert not editor_stack.autosave.remove_autosave_file.called
+    assert editor_stack.autosave.file_hashes == {}
 
     # File modified.
     editor_stack.data[0].editor.document().setModified(True)
@@ -183,6 +184,7 @@ def test_save(editor_bot, mocker):
     editor_stack.save_as.assert_called_with(index=0)
     assert not editor.encoding.write.called
     assert not editor_stack.autosave.remove_autosave_file.called
+    assert editor_stack.autosave.file_hashes == {}
 
     # Force save.
     editor.os.path.isfile.return_value = True
@@ -192,6 +194,8 @@ def test_save(editor_bot, mocker):
         str(id(editor_stack)), 'foo.py', 'foo.py')
     editor_stack.autosave.remove_autosave_file.assert_called_with(
         editor_stack.data[0].filename)
+    expected = {'foo.py': hash('a = 1\nprint(a)\n\nx = 2\n')}
+    assert editor_stack.autosave.file_hashes == expected
 
     editor_stack.file_saved = save_file_saved
 

@@ -671,6 +671,32 @@ def test_opening_sets_file_hash(editor_bot, mocker):
     assert editor_stack.autosave.file_hashes == expected
 
 
+def test_reloading_updates_file_hash(editor_bot, mocker):
+    """Test that reloading a file updates the file hash."""
+    editor_stack, editor = editor_bot
+    mocker.patch('spyder.plugins.editor.widgets.editor.encoding.read',
+                 side_effect=[('my text', 42), ('new text', 42)])
+    finfo = editor_stack.load('/mock-filename')
+    index = editor_stack.data.index(finfo)
+    editor_stack.reload(index)
+    expected = {'/mock-filename': hash('new text')}
+    assert editor_stack.autosave.file_hashes == expected
+
+
+def test_closing_removes_file_hash(editor_bot, mocker):
+    """Test that closing a file removes the file hash."""
+    editor_stack, editor = editor_bot
+    # Closing a tab without file should not cause an error
+    editor_stack.close_file() 
+
+    mocker.patch('spyder.plugins.editor.widgets.editor.encoding.read',
+                 return_value=('my text', 42))
+    finfo = editor_stack.load('/mock-filename')
+    index = editor_stack.data.index(finfo)
+    editor_stack.close_file(index)
+    assert editor_stack.autosave.file_hashes == {}
+
+
 @pytest.mark.parametrize('filename', ['ham.py', 'ham.txt'])
 def test_autosave_does_not_save_after_open(base_editor_bot, mocker, qtbot,
                                            filename):

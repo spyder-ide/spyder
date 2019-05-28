@@ -1519,6 +1519,8 @@ class EditorStack(QWidget):
             # Remove autosave on successful close to work around issue #9265.
             # Probably a good idea in general to mitigate any other bugs.
             self.autosave.remove_autosave_file(finfo.filename)
+            if finfo.filename in self.autosave.file_hashes:
+                del self.autosave.file_hashes[finfo.filename]
 
         if self.get_stack_count() == 0 and self.create_new_file_if_empty:
             self.sig_new_file[()].emit()
@@ -1734,6 +1736,8 @@ class EditorStack(QWidget):
             self.set_os_eol_chars(osname=osname)
         try:
             self._write_to_file(finfo, finfo.filename)
+            file_hash = self.compute_hash(finfo)
+            self.autosave.file_hashes[finfo.filename] = file_hash
             self.autosave.remove_autosave_file(finfo.filename)
             finfo.newly_created = False
             self.encoding_changed.emit(finfo.encoding)
@@ -2235,6 +2239,7 @@ class EditorStack(QWidget):
         finfo.editor.set_text(txt)
         finfo.editor.document().setModified(False)
         finfo.editor.document().changed_since_autosave = False
+        self.autosave.file_hashes[finfo.filename] = hash(txt)
         finfo.editor.set_cursor_position(position)
 
         #XXX CodeEditor-only: re-scan the whole text to rebuild outline
