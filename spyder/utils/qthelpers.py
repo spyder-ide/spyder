@@ -579,13 +579,14 @@ def create_plugin_layout(tools_layout, main_widget=None):
     """
     layout = QVBoxLayout()
     layout.setContentsMargins(0, 0, 0, 0)
-    spacing = calc_tools_spacing(tools_layout)
-    if spacing is not None:
-        layout.setSpacing(spacing)
-
-    layout.addLayout(tools_layout)
+    layout.setSpacing(0)
+    try:
+        layout.addLayout(tools_layout)
+    except TypeError:
+        layout.addWidget(tools_layout)
     if main_widget is not None:
         layout.addWidget(main_widget)
+    layout.setStretch(1, 1)
     return layout
 
 
