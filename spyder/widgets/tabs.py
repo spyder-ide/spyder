@@ -252,11 +252,15 @@ class TabBar(QTabBar):
             self.repaint()
 
     def tabSizeHint(self, index):
+        """Qt method override."""
         if self._tabheight is None:
             return QTabBar.tabSizeHint(self, index)
         else:
-            return QSize(QTabBar.tabSizeHint(self, index).width(),
-                         self._tabheight)
+            return QSize(
+                QTabBar.tabSizeHint(self, index).width(),
+                max(QTabBar().tabSizeHint(index).height(), self._tabheight)
+                )
+
 
 
 class BaseTabs(QTabWidget):
