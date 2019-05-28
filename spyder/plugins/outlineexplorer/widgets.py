@@ -18,11 +18,13 @@ from qtpy.QtWidgets import (QHBoxLayout, QTreeWidgetItem, QVBoxLayout, QWidget,
 
 # Local imports
 from spyder.config.base import _, STDOUT
+from spyder.config.gui import get_iconsize
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (create_action, create_toolbutton,
                                     set_item_user_text, create_plugin_layout)
 from spyder.widgets.onecolumntree import OneColumnTree
+from spyder.api.toolbar import SpyderPluginToolbar
 
 
 class FileRootItem(QTreeWidgetItem):
@@ -683,16 +685,15 @@ class OutlineExplorerWidget(QWidget):
                                            toggled=self.toggle_visibility)
         self.visibility_action.setChecked(True)
         
-        btn_layout = QHBoxLayout()
+        self.toolbar = SpyderPluginToolbar()
         for btn in self.setup_buttons():
             btn.setAutoRaise(True)
-            btn.setIconSize(QSize(16, 16))
-            btn_layout.addWidget(btn)
+            self.toolbar.add_widget(btn)
         if options_button:
-            btn_layout.addStretch()
-            btn_layout.addWidget(options_button, Qt.AlignRight)
+            self.toolbar.add_options_button(options_button)
+        self.toolbar.set_iconsize(get_iconsize(panel=True))
 
-        layout = create_plugin_layout(btn_layout, self.treewidget)
+        layout = create_plugin_layout(self.toolbar, self.treewidget)
         self.setLayout(layout)
 
     @Slot(bool)
