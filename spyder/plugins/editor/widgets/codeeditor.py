@@ -686,7 +686,7 @@ class CodeEditor(TextEditBaseWidget):
                      color_scheme=None,
                      wrap=False,
                      tab_mode=True,
-                     strip_mode=False,
+                     strip_mode=True,
                      intelligent_backspace=True,
                      highlight_current_line=True,
                      highlight_current_cell=True,
