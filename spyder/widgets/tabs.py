@@ -246,7 +246,10 @@ class TabBar(QTabBar):
     def set_tabheight(self, height):
         """Set the height of the tabs."""
         self._tabheight = height
-        self.repaint()
+        if self.parent():
+            self.parent().repaint()
+        else:
+            self.repaint()
 
     def tabSizeHint(self, index):
         if self._tabheight is None:
