@@ -37,7 +37,7 @@ from zmq.ssh import tunnel as zmqtunnel
 # Local imports
 from spyder import dependencies
 from spyder.config.base import _, get_conf_path, get_home_dir
-from spyder.config.gui import get_font, is_dark_interface
+from spyder.config.gui import get_font, is_dark_interface, get_iconsize
 from spyder.config.main import CONF
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import is_string, PY2, to_text_string
@@ -296,6 +296,7 @@ class IPythonConsole(SpyderPluginWidget):
             widgets = []
         self.find_widget.set_editor(control)
         self.tabwidget.set_corner_widgets({Qt.TopRightCorner: widgets})
+        self.set_plugin_icon_size(get_iconsize(panel=True))
         if client:
             sw = client.shellwidget
             self.main.variableexplorer.set_shellwidget_from_id(id(sw))
