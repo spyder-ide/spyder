@@ -11,6 +11,7 @@ import os
 import os.path as osp
 import re
 import sys
+import logging
 
 # Third party imports
 from qtpy.compat import to_qvariant, from_qvariant
@@ -38,7 +39,7 @@ from spyder.py3compat import is_text_string, to_text_string
 # (self.listwidget is widget *a* and self is widget *b*)
 #    self.connect(self.listwidget, SIGNAL('option_changed'),
 #                 lambda *args: self.emit(SIGNAL('option_changed'), *args))
-
+logger = logging.getLogger(__name__)
 
 
 def get_image_label(name, default="not_found.png"):
