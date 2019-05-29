@@ -75,6 +75,7 @@ class OutlineExplorerData(QObject):
     FUNCTION_TOKEN = 'def'
     CLASS_TOKEN = 'class'
 
+    # Emitted if the OutlineExplorerData was changed
     sig_update = Signal()
 
     def __init__(self, block, text=None, fold_level=None, def_type=None,
