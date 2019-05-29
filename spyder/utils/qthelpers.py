@@ -281,9 +281,6 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
 
 def add_shortcut_to_tooltip(action, context, name):
     """Add the shortcut associated with a given action to its tooltip"""
-    logger.debug(name)
-    logger.debug(action)
-    logger.debug(get_shortcut(context=context, name=name))
     action.setToolTip(action.toolTip() + ' (%s)' %
                       get_shortcut(context=context, name=name))
 
