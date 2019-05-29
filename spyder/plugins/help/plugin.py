@@ -90,7 +90,7 @@ class Help(SpyderPluginWidget):
         self._last_texts = [None, None]
         self._last_editor_doc = None
 
-        # Source selection layout
+        # Source selection widgets
         txt = _("Source")
         if sys.platform == 'darwin':
             source_label = QLabel("  " + txt)
@@ -104,16 +104,7 @@ class Help(SpyderPluginWidget):
             self.source_combo.hide()
             source_label.hide()
 
-        style = QApplication.instance().style()
-        label_spacing = style.pixelMetric(QStyle.PM_CheckBoxLabelSpacing)
-
-        source_layout = QHBoxLayout()
-        source_layout.setContentsMargins(0, 0, 0, 0)
-        source_layout.addWidget(source_label)
-        source_layout.addSpacing(label_spacing)
-        source_layout.addWidget(self.source_combo)
-
-        # Object name layout
+        # Object name widgets
         self.object_edit = QLineEdit(self)
         self.object_edit.setReadOnly(True)
         self.combo = ObjectComboBox(self)
@@ -122,23 +113,24 @@ class Help(SpyderPluginWidget):
         self.combo.setItemText(0, '')
         self.combo.valid.connect(self.force_refresh)
 
-        object_layout = QHBoxLayout()
-        object_layout.setContentsMargins(0, 0, 0, 0)
-        object_layout.addWidget(QLabel(_("Object")))
-        object_layout.addSpacing(label_spacing)
-        object_layout.addWidget(self.combo)
-        object_layout.addWidget(self.object_edit)
-
         # Lock checkbox
         self.locked_button = create_toolbutton(self,
                                                triggered=self.toggle_locked)
         self._update_lock_icon()
 
-        # Create plugin toolbar
+        # Plugin Toolbar
         self.toolbar = SpyderPluginToolbar()
-        self.toolbar.add_item(source_layout)
+
+        self.toolbar.add_item(source_label)
+        self.toolbar.add_spacing('label')
+        self.toolbar.add_item(self.source_combo)
+
         self.toolbar.add_spacing()
-        self.toolbar.add_item(object_layout, stretch=1)
+        self.toolbar.add_item(QLabel(_("Object")))
+        self.toolbar.add_spacing('label')
+        self.toolbar.add_item(self.combo)
+        self.toolbar.add_item(self.object_edit)
+
         self.toolbar.add_item(self.locked_button)
         self.toolbar.add_options_btn(self.options_button, stretch=None)
         self.toolbar.set_iconsize(get_iconsize(panel=True))
