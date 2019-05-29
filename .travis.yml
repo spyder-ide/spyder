@@ -29,7 +29,7 @@ install:
   - ./continuous_integration/travis/install.sh
 
 script:
-  - ./continuous_integration/travis/runtests.sh || ./continuous_integration/travis/runtests.sh || ./continuous_integration/travis/runtests.sh
+  - ./continuous_integration/travis/runtests.sh || ./continuous_integration/travis/runtests.sh || ./continuous_integration/travis/runtests.sh || ./continuous_integration/travis/runtests.sh
 
 after_success:
   - source $HOME/miniconda/etc/profile.d/conda.sh && conda activate test && coveralls

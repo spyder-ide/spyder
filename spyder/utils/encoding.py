@@ -75,10 +75,10 @@ def to_unicode_from_fs(string):
             else:
                 return unic
     return string
-    
+
 def to_fs_from_unicode(unic):
     """
-    Return a byte string version of unic encoded using the file 
+    Return a byte string version of unic encoded using the file
     system encoding.
     """
     if is_unicode(unic):
@@ -177,7 +177,7 @@ def encode(text, orig_coding):
     """
     if orig_coding == 'utf-8-bom':
         return BOM_UTF8 + text.encode("utf-8"), 'utf-8-bom'
-    
+
     # Try saving with original encoding
     if orig_coding:
         try:
@@ -200,16 +200,16 @@ def encode(text, orig_coding):
             return text.encode(coding), coding
         except (UnicodeError, LookupError):
             pass
-    
+
     # Try saving as ASCII
     try:
         return text.encode('ascii'), 'ascii'
     except UnicodeError:
         pass
-    
+
     # Save as UTF-8 without BOM
     return text.encode('utf-8'), 'utf-8'
-    
+
 def to_unicode(string):
     """Convert a string to unicode"""
     if not is_unicode(string):
@@ -223,7 +223,7 @@ def to_unicode(string):
             else:
                 return unic
     return string
-    
+
 
 def write(text, filename, encoding='utf-8', mode='wb'):
     """

@@ -6,7 +6,7 @@
 
 """Outline Explorer Plugin
 
-Data for outline are provided by method .get_outlineexplorer_data() of
+Data for outline are provided by the outlineexplorer data of
 highlighter of assigned editor. For example, for Python files code editor uses
 highlighter spyder.utils.syntaxhighlighters.PythonSH
 """

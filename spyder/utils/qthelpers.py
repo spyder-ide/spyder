@@ -11,6 +11,7 @@ import os
 import os.path as osp
 import re
 import sys
+import logging
 
 # Third party imports
 from qtpy.compat import to_qvariant, from_qvariant
@@ -38,7 +39,7 @@ from spyder.py3compat import is_text_string, to_text_string
 # (self.listwidget is widget *a* and self is widget *b*)
 #    self.connect(self.listwidget, SIGNAL('option_changed'),
 #                 lambda *args: self.emit(SIGNAL('option_changed'), *args))
-
+logger = logging.getLogger(__name__)
 
 
 def get_image_label(name, default="not_found.png"):
@@ -51,7 +52,7 @@ def get_image_label(name, default="not_found.png"):
 class MacApplication(QApplication):
     """Subclass to be able to open external files with our Mac app"""
     sig_open_external_file = Signal(str)
-    
+
     def __init__(self, *args):
         QApplication.__init__(self, *args)
 
@@ -66,7 +67,7 @@ def qapplication(translate=True, test_time=3):
     """
     Return QApplication instance
     Creates it if it doesn't already exist
-    
+
     test_time: Time to maintain open the application when testing. It's given
     in seconds
     """
@@ -74,7 +75,7 @@ def qapplication(translate=True, test_time=3):
         SpyderApplication = MacApplication
     else:
         SpyderApplication = QApplication
-    
+
     app = SpyderApplication.instance()
     if app is None:
         # Set Application name for Gnome 3
@@ -168,7 +169,7 @@ def keyevent2tuple(event):
     return (event.type(), event.key(), event.modifiers(), event.text(),
             event.isAutoRepeat(), event.count())
 
-    
+
 def tuple2keyevent(past_event):
     """Convert tuple into a QKeyEvent instance"""
     return QKeyEvent(*past_event)
@@ -334,11 +335,11 @@ def set_item_user_text(item, text):
 
 def create_bookmark_action(parent, url, title, icon=None, shortcut=None):
     """Create bookmark action"""
-    
+
     @Slot()
     def open_url():
         return programs.start_file(url)
-    
+
     return create_action( parent, title, shortcut=shortcut, icon=icon,
                           triggered=open_url)
 
@@ -361,7 +362,7 @@ def create_module_bookmark_actions(parent, bookmarks):
             actions.append(act)
     return actions
 
-        
+
 def create_program_action(parent, text, name, icon=None, nt_name=None):
     """Create action to run a program"""
     if is_text_string(icon):
@@ -373,7 +374,7 @@ def create_program_action(parent, text, name, icon=None, nt_name=None):
         return create_action(parent, text, icon=icon,
                              triggered=lambda: programs.run_program(name))
 
-        
+
 def create_python_script_action(parent, text, icon, package, module, args=[]):
     """Create action to run a GUI based Python script"""
     if is_text_string(icon):
@@ -392,7 +393,7 @@ class DialogManager(QObject):
     def __init__(self):
         QObject.__init__(self)
         self.dialogs = {}
-        
+
     def show(self, dialog):
         """Generic method to show a non-modal dialog and keep reference
         to the Qt C++ object"""
@@ -409,17 +410,17 @@ class DialogManager(QObject):
                               lambda eid=id(dialog): self.dialog_finished(eid))
             dialog.rejected.connect(
                               lambda eid=id(dialog): self.dialog_finished(eid))
-    
+
     def dialog_finished(self, dialog_id):
         """Manage non-modal dialog boxes"""
         return self.dialogs.pop(dialog_id)
-    
+
     def close_all(self):
         """Close all opened dialog boxes"""
         for dlg in list(self.dialogs.values()):
             dlg.reject()
 
-        
+
 def get_filetype_icon(fname):
     """Return file type icon"""
     ext = osp.splitext(fname)[1]
@@ -427,7 +428,7 @@ def get_filetype_icon(fname):
         ext = ext[1:]
     return get_icon( "%s.png" % ext, ima.icon('FileIcon') )
 
-    
+
 class SpyderAction(QAction):
     """Spyder QAction class wrapper to handle cross platform patches."""
 
@@ -492,7 +493,7 @@ class ShowStdIcons(QWidget):
                 col_layout.addLayout(icon_layout)
                 cindex = (cindex+1) % row_nb
                 if cindex == 0:
-                    layout.addLayout(col_layout)                    
+                    layout.addLayout(col_layout)
         self.setLayout(layout)
         self.setWindowTitle('Standard Platform Icons')
         self.setWindowIcon(get_std_icon('TitleBarMenuButton'))

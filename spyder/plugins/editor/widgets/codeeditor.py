@@ -30,10 +30,10 @@ from unicodedata import category
 
 # Third party imports
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import QRegExp, Qt, QTimer, Signal, Slot, QEvent
+from qtpy.QtCore import QRegExp, Qt, QTimer, QUrl, Signal, Slot, QEvent
 from qtpy.QtGui import (QColor, QCursor, QFont, QIntValidator,
                         QKeySequence, QPaintEvent, QPainter, QMouseEvent,
-                        QTextCharFormat, QTextCursor,
+                        QTextCharFormat, QTextCursor, QDesktopServices,
                         QKeyEvent, QTextDocument, QTextFormat, QTextOption)
 from qtpy.QtPrintSupport import QPrinter
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
@@ -49,8 +49,7 @@ from diff_match_patch import diff_match_patch
 from spyder.api.panel import Panel
 from spyder.config.base import _, get_debug_level, running_under_pytest
 from spyder.config.gui import get_shortcut, config_shortcut
-from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
-                                RUN_CELL_AND_ADVANCE_SHORTCUT)
+from spyder.config.main import CONF
 from spyder.plugins.editor.api.decoration import TextDecoration
 from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               CloseQuotesExtension,
@@ -73,10 +72,11 @@ from spyder.plugins.editor.utils.lsp import request, handles, class_register
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.outlineexplorer.languages import PythonCFM
 from spyder.py3compat import PY2, to_text_string
-from spyder.utils import encoding, sourcecode
+from spyder.utils import encoding, programs, sourcecode
 from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters as sh
-from spyder.utils.qthelpers import add_actions, create_action, mimedata2url
+from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
+                                    mimedata2url)
 
 
 try:
@@ -289,6 +289,14 @@ class CodeEditor(TextEditBaseWidget):
     #: Signal emmited when processing code analysis warnings is finished
     sig_process_code_analysis = Signal()
 
+    # Used for testing. When the mouse moves with Ctrl/Cmd pressed and
+    # a URI is found, this signal is emmited
+    sig_uri_found = Signal(str)
+
+    # Used for testing. When the mouse moves with Ctrl/Cmd pressed and
+    # the mouse left button is pressed, this signal is emmited
+    sig_go_to_uri = Signal(str)
+
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
 
@@ -311,6 +319,9 @@ class CodeEditor(TextEditBaseWidget):
         self._timer_mouse_moving = QTimer(self)
         self._timer_mouse_moving.setInterval(350)
         self._timer_mouse_moving.timeout.connect(lambda: self._handle_hover())
+
+        # Goto uri
+        self._last_hover_uri = None
 
         # 79-col edge line
         self.edge_line = self.panels.register(EdgeLine(self),
@@ -408,8 +419,6 @@ class CodeEditor(TextEditBaseWidget):
         self._kill_ring = QtKillRing(self)
 
         # Block user data
-        self.blockuserdata_list = []
-
         self.blockCountChanged.connect(self.update_bookmarks)
 
         # Highlight using Pygments highlighter timer
@@ -476,6 +485,13 @@ class CodeEditor(TextEditBaseWidget):
 
         self.oe_proxy = None
 
+        # Line stripping
+        self.last_change_position = None
+        self.last_position = None
+        self.last_auto_indent = None
+        self.skip_rstrip = False
+        self.strip_trailing_spaces_on_modify = True
+
         # Language Server
         self.lsp_requests = {}
         self.document_opened = False
@@ -529,10 +545,25 @@ class CodeEditor(TextEditBaseWidget):
         ignore_chars = ['(', ')', '.']
 
         if self._should_display_hover(pos):
+            uri, cursor = self.get_uri_at(pos)
             text = self.get_word_at(pos)
+            if uri:
+                ctrl_text = ' Cmd' if sys.platform == "darwin" else ' Ctrl'
+
+                if uri.startswith('file://'):
+                    hint_text = ctrl_text + ' + click to open file \n'
+                elif uri.startswith('mailto:'):
+                    hint_text = ctrl_text + ' + click to send email \n'
+                elif uri.startswith('http'):
+                    hint_text = ctrl_text + ' + click to open url \n'
+                else:
+                    hint_text = ctrl_text + ' + click to open \n'
+
+                self.show_tooltip(text=hint_text, at_point=pos)
+                return
+
             cursor = self.cursorForPosition(pos)
             line, col = cursor.blockNumber(), cursor.columnNumber()
-
             self._last_point = pos
             if text and self._last_hover_word != text:
                 if all(char not in text for char in ignore_chars):
@@ -542,6 +573,21 @@ class CodeEditor(TextEditBaseWidget):
                     self.hide_tooltip()
         else:
             self.hide_tooltip()
+
+    def blockuserdata_list(self):
+        """Get the list of all user data in document."""
+        block = self.document().firstBlock()
+        while block.isValid():
+            data = block.userData()
+            if data:
+                yield data
+            block = block.next()
+
+    def outlineexplorer_data_list(self):
+        """Get the list of all user data in document."""
+        for data in self.blockuserdata_list():
+            if data.oedata:
+                yield data.oedata
 
     # ---- Keyboard Shortcuts
 
@@ -662,6 +708,7 @@ class CodeEditor(TextEditBaseWidget):
                      color_scheme=None,
                      wrap=False,
                      tab_mode=True,
+                     strip_mode=False,
                      intelligent_backspace=True,
                      highlight_current_line=True,
                      highlight_current_cell=True,
@@ -761,6 +808,8 @@ class CodeEditor(TextEditBaseWidget):
         # Class/Function dropdown will be disabled if we're not in a Python file.
         self.classfuncdropdown.setVisible(show_class_func_dropdown
                                           and self.is_python_like())
+
+        self.set_strip_mode(strip_mode)
 
     # --- Language Server Protocol methods -----------------------------------
     # ------------------------------------------------------------------------
@@ -1124,6 +1173,12 @@ class CodeEditor(TextEditBaseWidget):
         """
         self.tab_mode = enable
 
+    def set_strip_mode(self, enable):
+        """
+        Strip all trailing spaces if enabled, else only strip on auto-indents.
+        """
+        self.strip_trailing_spaces_on_modify = enable
+
     def toggle_intelligent_backspace(self, state):
         self.intelligent_backspace = state
 
@@ -1325,8 +1380,10 @@ class CodeEditor(TextEditBaseWidget):
             # We do the following rather than using self.setPlainText
             # to benefit from QTextEdit's undo/redo feature.
             self.selectAll()
+            self.skip_rstrip = True
             self.insertPlainText(text_after)
             self.document_did_change()
+            self.skip_rstrip = False
 
     def get_current_object(self):
         """Return current object (string) """
@@ -1381,6 +1438,9 @@ class CodeEditor(TextEditBaseWidget):
         if self.occurrence_highlighting:
             self.occurrence_timer.stop()
             self.occurrence_timer.start()
+
+        # Strip if needed
+        self.strip_trailing_spaces()
 
     def __clear_occurrences(self):
         """Clear occurrence markers"""
@@ -1487,6 +1547,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def __text_has_changed(self):
         """Text has changed, eventually clear found results highlighting"""
+        self.last_change_position = self.textCursor().position()
         if self.found_results:
             self.clear_found_results()
 
@@ -1501,8 +1562,14 @@ class CodeEditor(TextEditBaseWidget):
 
     def calculate_real_position(self, point):
         """Add offset to a point, to take into account the panels."""
-        point.setX(point.x()+self.panels.margin_size(Panel.Position.LEFT))
-        point.setY(point.y()+self.panels.margin_size(Panel.Position.TOP))
+        point.setX(point.x() + self.panels.margin_size(Panel.Position.LEFT))
+        point.setY(point.y() + self.panels.margin_size(Panel.Position.TOP))
+        return point
+
+    def calculate_real_position_from_global(self, point):
+        """Add offset to a point, to take into account the panels."""
+        point.setX(point.x() - self.panels.margin_size(Panel.Position.LEFT))
+        point.setY(point.y() + self.panels.margin_size(Panel.Position.TOP))
         return point
 
     def get_linenumber_from_mouse_event(self, event):
@@ -1580,13 +1647,8 @@ class CodeEditor(TextEditBaseWidget):
     def clear_bookmarks(self):
         """Clear bookmarks for all blocks."""
         self.bookmarks = {}
-        for data in self.blockuserdata_list[:]:
+        for data in self.blockuserdata_list():
             data.bookmarks = []
-            if data.is_empty():
-                # This is not calling the __del__ in BlockUserData.  Not
-                # sure if it's supposed to or not, but that seems to be the
-                # intent.
-                del data
 
     def set_bookmarks(self, bookmarks):
         """Set bookmarks when opening file."""
@@ -1667,10 +1729,6 @@ class CodeEditor(TextEditBaseWidget):
                 self.set_color_scheme(color_scheme)
             else:
                 self.highlighter.rehighlight()
-
-    def get_outlineexplorer_data(self):
-        """Get data provided by the Outline Explorer"""
-        return self.highlighter.get_outlineexplorer_data()
 
     def set_font(self, font, color_scheme=None):
         """Set font"""
@@ -1757,24 +1815,30 @@ class CodeEditor(TextEditBaseWidget):
         if len(text.splitlines()) > 1:
             eol_chars = self.get_line_separator()
             text = eol_chars.join((text + eol_chars).splitlines())
+        self.skip_rstrip = True
         TextEditBaseWidget.insertPlainText(self, text)
         self.document_did_change(text)
+        self.skip_rstrip = False
 
     @Slot()
     def undo(self):
         """Reimplement undo to decrease text version number."""
         if self.document().isUndoAvailable():
             self.text_version -= 1
+            self.skip_rstrip = True
             TextEditBaseWidget.undo(self)
             self.document_did_change('')
+            self.skip_rstrip = False
 
     @Slot()
     def redo(self):
         """Reimplement redo to increase text version number."""
         if self.document().isRedoAvailable():
             self.text_version += 1
+            self.skip_rstrip = True
             TextEditBaseWidget.redo(self)
             self.document_did_change('text')
+            self.skip_rstrip = False
 
     def get_block_data(self, block):
         """Return block data (from syntax highlighter)"""
@@ -1812,10 +1876,9 @@ class CodeEditor(TextEditBaseWidget):
         """Remove all code analysis markers"""
         self.setUpdatesEnabled(False)
         self.clear_extra_selections('code_analysis')
-        for data in self.blockuserdata_list[:]:
+        for data in self.blockuserdata_list():
             data.code_analysis = []
-            if data.is_empty():
-                del data
+
         self.setUpdatesEnabled(True)
         # When the new code analysis results are empty, it is necessary
         # to update manually the scrollflag and linenumber areas (otherwise,
@@ -1988,10 +2051,9 @@ class CodeEditor(TextEditBaseWidget):
 
     def process_todo(self, todo_results):
         """Process todo finder results"""
-        for data in self.blockuserdata_list[:]:
+        for data in self.blockuserdata_list():
             data.todo = ''
-            if data.is_empty():
-                del data
+
         for message, line_number in todo_results:
             block = self.document().findBlockByNumber(line_number-1)
             data = block.userData()
@@ -2205,10 +2267,11 @@ class CodeEditor(TextEditBaseWidget):
     def fix_indent(self, *args, **kwargs):
         """Indent line according to the preferences"""
         if self.is_python_like():
-            return self.fix_indent_smart(*args, **kwargs)
+            ret = self.fix_indent_smart(*args, **kwargs)
         else:
-            return self.simple_indentation(*args, **kwargs)
+            ret = self.simple_indentation(*args, **kwargs)
         self.document_did_change()
+        return ret
 
     def simple_indentation(self, forward=True, **kwargs):
         """
@@ -2422,7 +2485,9 @@ class CodeEditor(TextEditBaseWidget):
             # We do the following rather than using self.setPlainText
             # to benefit from QTextEdit's undo/redo feature.
             self.selectAll()
+            self.skip_rstrip = True
             self.insertPlainText(nbformat.writes(nb))
+            self.skip_rstrip = False
         except Exception as e:
             QMessageBox.critical(self, _('Removal error'),
                            _("It was not possible to remove outputs from "
@@ -2881,11 +2946,22 @@ class CodeEditor(TextEditBaseWidget):
         next_char = to_text_string(cursor.selectedText())
         return next_char
 
-    def in_comment(self):
+    def in_comment(self, cursor=None):
         if self.highlighter:
-            current_color = self.__get_current_color()
+            current_color = self.__get_current_color(cursor)
             comment_color = self.highlighter.get_color_name('comment')
             if current_color == comment_color:
+                return True
+            else:
+                return False
+        else:
+            return False
+
+    def in_string(self, cursor=None):
+        if self.highlighter:
+            current_color = self.__get_current_color(cursor)
+            string_color = self.highlighter.get_color_name('string')
+            if current_color == string_color:
                 return True
             else:
                 return False
@@ -2932,11 +3008,11 @@ class CodeEditor(TextEditBaseWidget):
         # Run actions
         self.run_cell_action = create_action(
             self, _("Run cell"), icon=ima.icon('run_cell'),
-            shortcut=QKeySequence(RUN_CELL_SHORTCUT),
+            shortcut=get_shortcut('editor', 'run cell'),
             triggered=self.sig_run_cell.emit)
         self.run_cell_and_advance_action = create_action(
             self, _("Run cell and advance"), icon=ima.icon('run_cell'),
-            shortcut=QKeySequence(RUN_CELL_AND_ADVANCE_SHORTCUT),
+            shortcut=get_shortcut('editor', 'run cell and advance'),
             triggered=self.sig_run_cell_and_advance.emit)
         self.re_run_last_cell_action = create_action(
             self, _("Re-run last cell"), icon=ima.icon('run_cell'),
@@ -2996,6 +3072,8 @@ class CodeEditor(TextEditBaseWidget):
         """Override Qt method."""
         self.sig_key_released.emit(event)
         self.timer_syntax_highlight.start()
+        self.clear_extra_selections('ctrl_click')
+        self._last_hover_uri = None
         super(CodeEditor, self).keyReleaseEvent(event)
         event.ignore()
 
@@ -3015,6 +3093,10 @@ class CodeEditor(TextEditBaseWidget):
 
         key = event.key()
         text = to_text_string(event.text())
+        has_selection = self.has_selected_text()
+        ctrl = event.modifiers() & Qt.ControlModifier
+        shift = event.modifiers() & Qt.ShiftModifier
+
         if text:
             self.__clear_occurrences()
         if QToolTip.isVisible():
@@ -3027,12 +3109,19 @@ class CodeEditor(TextEditBaseWidget):
         if key in [Qt.Key_Control, Qt.Key_Shift, Qt.Key_Alt,
                    Qt.Key_Meta, Qt.KeypadModifier]:
             # The user pressed only a modifier key.
+            if ctrl:
+                pos = self.mapFromGlobal(QCursor.pos())
+                pos = self.calculate_real_position_from_global(pos)
+                if self._handle_goto_uri_event(pos):
+                    event.accept()
+                    return
+
+                if self._handle_goto_definition_event(pos):
+                    event.accept()
+                    return
             return
 
         # ---- Handle hard coded and builtin actions
-        has_selection = self.has_selected_text()
-        ctrl = event.modifiers() & Qt.ControlModifier
-        shift = event.modifiers() & Qt.ShiftModifier
         operators = {'+', '-', '*', '**', '/', '//', '%', '@', '<<', '>>',
                      '&', '|', '^', '~', '<', '>', '<=', '>=', '==', '!='}
         delimiters = {',', ':', ';', '@', '=', '->', '+=', '-=', '*=', '/=',
@@ -3049,7 +3138,7 @@ class CodeEditor(TextEditBaseWidget):
                   self.autoinsert_colons():
                     self.textCursor().beginEditBlock()
                     self.insert_text(':' + self.get_line_separator())
-                    self.fix_indent()
+                    self.fix_and_strip_indent()
                     self.textCursor().endEditBlock()
                 elif self.is_completion_widget_visible():
                     self.select_completion_list()
@@ -3070,7 +3159,7 @@ class CodeEditor(TextEditBaseWidget):
 
                     self.textCursor().beginEditBlock()
                     TextEditBaseWidget.keyPressEvent(self, event)
-                    self.fix_indent(comment_or_string=cmt_or_str)
+                    self.fix_and_strip_indent(comment_or_string=cmt_or_str)
                     self.textCursor().endEditBlock()
         elif key == Qt.Key_Insert and not shift and not ctrl:
             self.setOverwriteMode(not self.overwriteMode())
@@ -3165,10 +3254,211 @@ class CodeEditor(TextEditBaseWidget):
             # could be shortcuts
             event.accept()
 
+    def fix_and_strip_indent(self, comment_or_string=False):
+        """Automatically fix indent and strip previous automatic indent."""
+        # Fix indent
+        cursor_before = self.textCursor().position()
+        # A change just occured on the last line (return was pressed)
+        if cursor_before > 0:
+            self.last_change_position = cursor_before - 1
+        self.fix_indent(comment_or_string=comment_or_string)
+        cursor_after = self.textCursor().position()
+        # Remove previous spaces and update last_auto_indent
+        nspaces_removed = self.strip_trailing_spaces()
+        self.last_auto_indent = (cursor_before - nspaces_removed,
+                                 cursor_after - nspaces_removed)
+        self.document_did_change()
+
     def run_pygments_highlighter(self):
         """Run pygments highlighter."""
         if isinstance(self.highlighter, sh.PygmentsSH):
             self.highlighter.make_charlist()
+
+    def get_uri_at(self, coordinates):
+        """Return uri and cursor for if uri found at coordinates."""
+        return self.get_pattern_cursor_at(sh.URI_PATTERNS, coordinates)
+
+    def get_pattern_cursor_at(self, pattern, coordinates):
+        """
+        Find pattern located at the line where the coordinate is located.
+
+        This returns the actual match and the cursor that selects the text.
+        """
+        # Check if the pattern is in line
+        line = self.get_line_at(coordinates)
+        match = pattern.search(line)
+        uri = None
+        cursor = None
+
+        while match:
+            start, end = match.span()
+
+            # Get cursor selection if pattern found
+            cursor = self.cursorForPosition(coordinates)
+            cursor.movePosition(QTextCursor.StartOfBlock)
+            line_start_position = cursor.position()
+
+            cursor.setPosition(line_start_position + start, cursor.MoveAnchor)
+            start_rect = self.cursorRect(cursor)
+            cursor.setPosition(line_start_position + end, cursor.MoveAnchor)
+            end_rect = self.cursorRect(cursor)
+            bounding_rect = start_rect.united(end_rect)
+
+            # Check if coordinates are located within the selection rect
+            if bounding_rect.contains(coordinates):
+                uri = line[start:end]
+                cursor.setPosition(line_start_position + start,
+                                   cursor.KeepAnchor)
+                break
+            else:
+                match = pattern.search(line, end)
+
+        return uri, cursor
+
+    def _preprocess_file_uri(self, uri):
+        """Format uri to conform to absolute or relative file paths."""
+        fname = uri.replace('file://', '')
+        if fname[-1] == '/':
+            fname = fname[:-1]
+        dirname = osp.dirname(osp.abspath(self.filename))
+        if osp.isdir(dirname):
+            if not osp.isfile(fname):
+                # Maybe relative
+                fname = osp.join(dirname, fname)
+        return fname
+
+    def _handle_goto_definition_event(self, pos):
+        """Check if goto definition can be applied and apply highlight."""
+        text = self.get_word_at(pos)
+        if text and not sourcecode.is_keyword(to_text_string(text)):
+            if not self.__cursor_changed:
+                QApplication.setOverrideCursor(QCursor(Qt.PointingHandCursor))
+                self.__cursor_changed = True
+            cursor = self.cursorForPosition(pos)
+            cursor.select(QTextCursor.WordUnderCursor)
+            self.clear_extra_selections('ctrl_click')
+            self.__highlight_selection(
+                'ctrl_click', cursor, update=True,
+                foreground_color=self.ctrl_click_color,
+                underline_color=self.ctrl_click_color,
+                underline_style=QTextCharFormat.SingleUnderline)
+            return True
+        else:
+            return False
+
+    def _handle_goto_uri_event(self, pos):
+        """Check if go to uri can be applied and apply highlight."""
+        uri, cursor = self.get_uri_at(pos)
+        if uri and cursor:
+            color = self.ctrl_click_color
+
+            if uri.startswith('file://'):
+                fname = self._preprocess_file_uri(uri)
+                if not osp.isfile(fname):
+                    color = QColor(255, 80, 80)
+
+            self.clear_extra_selections('ctrl_click')
+            self.__highlight_selection(
+                'ctrl_click', cursor, update=True,
+                foreground_color=color,
+                underline_color=color,
+                underline_style=QTextCharFormat.SingleUnderline)
+            if not self.__cursor_changed:
+                QApplication.setOverrideCursor(
+                    QCursor(Qt.PointingHandCursor))
+                self.__cursor_changed = True
+            self._last_hover_uri = uri
+            self.sig_uri_found.emit(uri)
+            return True
+        else:
+            self._last_hover_uri = uri
+            return False
+
+    def line_range(self, position):
+        """
+        Get line range from position.
+        """
+        if position is None:
+            return None
+        if position >= self.document().characterCount():
+            return None
+        # Check if still on the line
+        cursor = self.textCursor()
+        cursor.setPosition(position)
+        line_range = (cursor.block().position(),
+                      cursor.block().position()
+                      + cursor.block().length() - 1)
+        return line_range
+
+    def strip_trailing_spaces(self):
+        """
+        Strip trailing spaces if needed.
+
+        Remove trailing whitespace on leaving a non-string line containing it.
+        Return the number of removed spaces.
+        """
+        # Update current position
+        current_position = self.textCursor().position()
+        last_position = self.last_position
+        self.last_position = current_position
+
+        if self.skip_rstrip:
+            return 0
+
+        line_range = self.line_range(last_position)
+        if line_range is None:
+            # Doesn't apply
+            return 0
+
+        def pos_in_line(pos):
+            """Check if pos is in last line."""
+            if pos is None:
+                return False
+            return line_range[0] <= pos <= line_range[1]
+
+        if pos_in_line(current_position):
+            # Check if still on the line
+            return 0
+
+        if not self.strip_trailing_spaces_on_modify:
+            if self.last_auto_indent is None:
+                return 0
+            elif (self.last_auto_indent !=
+                  self.line_range(self.last_auto_indent[0])):
+                # line not empty
+                self.last_auto_indent = None
+                return 0
+            line_range = self.last_auto_indent
+            self.last_auto_indent = None
+        elif not pos_in_line(self.last_change_position):
+            # Should process if pressed return or made a change on the line:
+            return 0
+
+        # Check if end of line in string
+        cursor = self.textCursor()
+        cursor.setPosition(line_range[1])
+        if self.in_string(cursor=cursor):
+            return 0
+
+        cursor.setPosition(line_range[0])
+        cursor.setPosition(line_range[1],
+                           QTextCursor.KeepAnchor)
+        # remove spaces on the right
+        text = cursor.selectedText()
+        strip = text.rstrip()
+
+        if line_range[0] + len(strip) < line_range[1]:
+            # Select text to remove
+            cursor.setPosition(line_range[0] + len(strip))
+            cursor.setPosition(line_range[1],
+                               QTextCursor.KeepAnchor)
+            cursor.removeSelectedText()
+            self.document_did_change()
+            # Correct last change position
+            self.last_change_position = line_range[1]
+            return line_range[1] - (line_range[0] + len(strip))
+        return 0
+
 
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""
@@ -3178,32 +3468,26 @@ class CodeEditor(TextEditBaseWidget):
 
         pos = event.pos()
         self._last_point = pos
+        alt = event.modifiers() & Qt.AltModifier
+        ctrl = event.modifiers() & Qt.ControlModifier
+        shift = event.modifiers() & Qt.ShiftModifier
 
-        if event.modifiers() & Qt.AltModifier:
+        if alt:
             self.sig_alt_mouse_moved.emit(event)
             event.accept()
             return
+
+        if ctrl:
+            if self._handle_goto_uri_event(pos):
+                event.accept()
+                return
 
         if self.has_selected_text():
             TextEditBaseWidget.mouseMoveEvent(self, event)
             return
 
-        if (self.go_to_definition_enabled and
-                event.modifiers() & Qt.ControlModifier):
-            text = self.get_word_at(event.pos())
-            if (text and not sourcecode.is_keyword(to_text_string(text))):
-                if not self.__cursor_changed:
-                    QApplication.setOverrideCursor(
-                                                QCursor(Qt.PointingHandCursor))
-                    self.__cursor_changed = True
-                cursor = self.cursorForPosition(event.pos())
-                cursor.select(QTextCursor.WordUnderCursor)
-                self.clear_extra_selections('ctrl_click')
-                self.__highlight_selection(
-                    'ctrl_click', cursor, update=True,
-                    foreground_color=self.ctrl_click_color,
-                    underline_color=self.ctrl_click_color,
-                    underline_style=QTextCharFormat.SingleUnderline)
+        if self.go_to_definition_enabled and ctrl:
+            if self._handle_goto_definition_event(pos):
                 event.accept()
                 return
 
@@ -3241,17 +3525,36 @@ class CodeEditor(TextEditBaseWidget):
             QApplication.restoreOverrideCursor()
             self.__cursor_changed = False
             self.clear_extra_selections('ctrl_click')
+            self._last_hover_uri = None
         TextEditBaseWidget.leaveEvent(self, event)
 
     def mousePressEvent(self, event):
-        """Reimplement Qt method"""
+        """Override Qt method."""
         ctrl = event.modifiers() & Qt.ControlModifier
         alt = event.modifiers() & Qt.AltModifier
         pos = event.pos()
         if event.button() == Qt.LeftButton and ctrl:
             TextEditBaseWidget.mousePressEvent(self, event)
             cursor = self.cursorForPosition(pos)
-            self.go_to_definition_from_cursor(cursor)
+
+            if self._last_hover_uri:
+                uri = self._last_hover_uri
+                if uri.startswith('file://'):
+                    fname = self._preprocess_file_uri(uri)
+
+                    if osp.isfile(fname) and encoding.is_text_file(fname):
+                        # Open in editor
+                        self.go_to_definition.emit(fname, 0, 0)
+                    else:
+                        # Use external program
+                        fname = file_uri(fname)
+                        programs.start_file(fname)
+                else:
+                    quri = QUrl(uri)
+                    QDesktopServices.openUrl(quri)
+                self.sig_go_to_uri.emit(uri)
+            else:
+                self.go_to_definition_from_cursor(cursor)
         elif event.button() == Qt.LeftButton and alt:
             self.sig_alt_left_mouse_pressed.emit(event)
         else:

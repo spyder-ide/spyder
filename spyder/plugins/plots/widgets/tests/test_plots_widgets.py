@@ -23,7 +23,7 @@ import pytest
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 import numpy as np
-from qtpy.QtWidgets import QApplication
+from qtpy.QtWidgets import QApplication, QStyle
 from qtpy.QtGui import QPixmap
 from qtpy.QtCore import Qt
 
@@ -380,9 +380,10 @@ def test_zoom_figure_viewer(figbrowser, tmpdir, fmt):
         scaling_factor += zoom_step
         scale = scaling_step**scaling_factor
 
-        assert figbrowser.zoom_disp.value() == np.floor(scale * 100)
-        assert figcanvas.width() == np.floor(fwidth * scale)
-        assert figcanvas.height() == np.floor(fheight * scale)
+        assert (figbrowser.zoom_disp.value() ==
+                np.floor(int(fwidth * scale) / fwidth * 100))
+        assert figcanvas.width() == int(fwidth * scale)
+        assert figcanvas.height() == int(fheight * scale)
 
 
 @pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
@@ -402,12 +403,15 @@ def test_autofit_figure_viewer(figbrowser, tmpdir, fmt):
     # Test when `Fit plots to window` is set to True.
     # Otherwise, test should fall into `test_zoom_figure_viewer`
     figbrowser.change_auto_fit_plotting(True)
-    size = figviewer.size()
 
-    scrollbar_width = figviewer.verticalScrollBar().sizeHint().width()
-    width = size.width() - scrollbar_width
-    scrollbar_height = figviewer.horizontalScrollBar().sizeHint().height()
-    height = size.height() - scrollbar_height
+    size = figviewer.size()
+    style = figviewer.style()
+    width = (size.width() -
+             style.pixelMetric(QStyle.PM_LayoutLeftMargin) -
+             style.pixelMetric(QStyle.PM_LayoutRightMargin))
+    height = (size.height() -
+              style.pixelMetric(QStyle.PM_LayoutTopMargin) -
+              style.pixelMetric(QStyle.PM_LayoutBottomMargin))
     if (fwidth / fheight) > (width / height):
         new_width = int(width)
         new_height = int(width / fwidth * fheight)
@@ -415,6 +419,8 @@ def test_autofit_figure_viewer(figbrowser, tmpdir, fmt):
         new_height = int(height)
         new_width = int(height / fheight * fwidth)
 
+    assert (figbrowser.zoom_disp.value() ==
+            np.floor(figcanvas.width() / fwidth * 100))
     assert figcanvas.width() == new_width
     assert figcanvas.height() == new_height
 

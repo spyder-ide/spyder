@@ -359,6 +359,11 @@ class BaseEditMixin(object):
         has_multisignature = False
         language = getattr(self, 'language', '').lower()
         signature_or_text = signature_or_text.replace('\\*', '*')
+
+        # Remove special symbols that could itefere with ''.format
+        signature_or_text = signature_or_text.replace('{', '&#123;')
+        signature_or_text = signature_or_text.replace('}', '&#125;')
+
         lines = signature_or_text.split('\n')
         inspect_word = None
 
@@ -861,6 +866,14 @@ class BaseEditMixin(object):
         block_start = self.document().findBlock(start)
         block_end = self.document().findBlock(end)
         return sorted([block_start.blockNumber(), block_end.blockNumber()])
+
+    def get_selection_first_block(self):
+        """Return the first block of the selection."""
+        cursor = self.textCursor()
+        start, end = cursor.selectionStart(), cursor.selectionEnd()
+        if start > 0:
+            start = start - 1
+        return self.document().findBlock(start)
 
 
     #------Text selection

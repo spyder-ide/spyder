@@ -107,7 +107,7 @@ class DependenciesDialog(QDialog):
 def test():
     """Run dependency widget test"""
     from spyder import dependencies
-    
+
     # Test sample
     dependencies.add("IPython", "Enhanced Python interpreter", ">=20.0")
     dependencies.add("matplotlib", "Interactive data plotting", ">=1.0")
@@ -115,7 +115,7 @@ def test():
     dependencies.add("foo", "Non-existent module", ">=1.0")
     dependencies.add("numpy", "Edit arrays in Variable Explorer", ">=0.10",
                      optional=True)
-    
+
     from spyder.utils.qthelpers import qapplication
     app = qapplication()
     dlg = DependenciesDialog(None)
