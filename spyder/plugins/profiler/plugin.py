@@ -61,6 +61,12 @@ class Profiler(SpyderPluginWidget):
         path = osp.join(self.PLUGIN_PATH, self.IMG_PATH)
         return ima.icon('profiler', icon_path=path)
 
+    def set_plugin_icon_size(self, iconsize):
+        """
+        Set the icon size of plugin.
+        """
+        self.profiler.toolbar.set_iconsize(iconsize)
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
