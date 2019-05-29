@@ -123,7 +123,13 @@ class FindInFiles(SpyderPluginWidget):
     def get_plugin_title(self):
         """Return widget title"""
         return _("Find")
-    
+
+    def set_plugin_icon_size(self, iconsize):
+        """
+        Set the icon size of plugin.
+        """
+        self.findinfiles.find_options.set_iconsize(iconsize)
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when

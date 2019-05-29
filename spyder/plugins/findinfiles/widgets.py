@@ -34,6 +34,7 @@ from qtpy.QtWidgets import (QApplication, QComboBox, QHBoxLayout, QLabel,
 # Local imports
 from spyder.config.base import _
 from spyder.config.main import EXCLUDE_PATTERNS
+from spyder.config.gui import get_iconsize
 from spyder.py3compat import to_text_string, PY2
 from spyder.utils import icon_manager as ima
 from spyder.utils.encoding import is_text_file, to_unicode_from_fs
@@ -44,6 +45,7 @@ from spyder.utils.misc import regexp_error_msg
 from spyder.utils.qthelpers import create_toolbutton
 from spyder.config.gui import get_font
 from spyder.widgets.waitingspinner import QWaitingSpinner
+from spyder.api.toolbar import SpyderPluginToolbar
 
 
 ON = 'on'
@@ -398,7 +400,7 @@ class SearchInComboBox(QComboBox):
                 break
 
 
-class FindOptions(QWidget):
+class FindOptions(SpyderPluginToolbar):
     """Find widget with options"""
     REGEX_INVALID = "background-color:rgb(255, 80, 80);"
     REGEX_ERROR = _("Regular expression error")
@@ -411,7 +413,7 @@ class FindOptions(QWidget):
                  exclude, exclude_idx, exclude_regexp,
                  supported_encodings, more_options,
                  case_sensitive, external_path_history, options_button=None):
-        QWidget.__init__(self, parent)
+        super(FindOptions, self).__init__(parent)
 
         if not isinstance(search_text, (list, tuple)):
             search_text = [search_text]
@@ -422,8 +424,7 @@ class FindOptions(QWidget):
 
         self.supported_encodings = supported_encodings
 
-        # Layout 1
-        hlayout1 = QHBoxLayout()
+        # Toolbar Layout 1
         self.search_text = PatternComboBox(self, search_text,
                                            _("Search pattern"))
         self.edit_regexp = create_toolbutton(self,
@@ -437,7 +438,6 @@ class FindOptions(QWidget):
         self.case_button.setChecked(case_sensitive)
         self.edit_regexp.setCheckable(True)
         self.edit_regexp.setChecked(search_text_regexp)
-        self.more_widgets = ()
         self.more_options = create_toolbutton(self,
                                               toggled=self.toggle_more_options)
         self.more_options.setCheckable(True)
@@ -458,12 +458,11 @@ class FindOptions(QWidget):
         self.stop_button.setEnabled(False)
         for widget in [self.search_text, self.edit_regexp, self.case_button,
                        self.ok_button, self.stop_button, self.more_options]:
-            hlayout1.addWidget(widget)
+            self.add_item(widget)
         if options_button:
-            hlayout1.addWidget(options_button)
+            self.add_options_btn(options_button, stretch=None)
 
-        # Layout 2
-        hlayout2 = QHBoxLayout()
+        # Toolbar Layout 2
         self.exclude_pattern = PatternComboBox(self, exclude,
                                                _("Exclude pattern"))
         if exclude_idx is not None and exclude_idx >= 0 \
@@ -476,40 +475,31 @@ class FindOptions(QWidget):
         self.exclude_regexp.setChecked(exclude_regexp)
         exclude_label = QLabel(_("Exclude:"))
         exclude_label.setBuddy(self.exclude_pattern)
-        for widget in [exclude_label, self.exclude_pattern,
-                       self.exclude_regexp]:
-            hlayout2.addWidget(widget)
 
-        # Layout 3
-        hlayout3 = QHBoxLayout()
+        self.add_item(exclude_label, row=1)
+        self.add_spacing('label', row=1)
+        self.add_item(self.exclude_pattern, row=1)
+        self.add_item(self.exclude_regexp, row=1)
 
+        # Toolbar Layout 3
         search_on_label = QLabel(_("Search in:"))
         self.path_selection_combo = SearchInComboBox(
                 external_path_history, parent)
 
-        hlayout3.addWidget(search_on_label)
-        hlayout3.addWidget(self.path_selection_combo)
+        self.add_widget(search_on_label, row=2)
+        self.add_spacing('label', row=2)
+        self.add_widget(self.path_selection_combo, row=2)
 
         self.search_text.valid.connect(lambda valid: self.find.emit())
         self.exclude_pattern.valid.connect(lambda valid: self.find.emit())
 
-        vlayout = QVBoxLayout()
-        vlayout.setContentsMargins(0, 0, 0, 0)
-        vlayout.addLayout(hlayout1)
-        vlayout.addLayout(hlayout2)
-        vlayout.addLayout(hlayout3)
-        self.more_widgets = (hlayout2,)
         self.toggle_more_options(more_options)
-        self.setLayout(vlayout)
-
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.set_iconsize(get_iconsize(panel=True))
 
     @Slot(bool)
     def toggle_more_options(self, state):
-        for layout in self.more_widgets:
-            for index in range(layout.count()):
-                if state and self.isVisible() or not state:
-                    layout.itemAt(index).widget().setVisible(state)
+        self.set_row_visible(1, state)
         if state:
             icon = ima.icon('options_less')
             tip = _('Hide advanced options')
