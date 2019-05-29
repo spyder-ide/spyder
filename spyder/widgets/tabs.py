@@ -134,16 +134,50 @@ class EditTabNamePopup(QLineEdit):
             self.main.sig_change_name.emit(tab_text)
 
 
-class TabBar(QTabBar):
+class BaseTabBar(QTabBar):
+    """Tabs base class with variable tab height support."""
+    def __init__(self, parent):
+        QTabBar.__init__(self, parent)
+        self._tabheight = None
+
+    def set_tabheight(self, height):
+        """Set the height of the tabs."""
+        self._tabheight = height
+        if self.parent():
+            self.parent().repaint()
+        else:
+            self.repaint()
+
+    def tabSizeHint(self, index):
+        """Qt method override."""
+        if self._tabheight is None:
+            return QTabBar.tabSizeHint(self, index)
+        else:
+            return QSize(
+                QTabBar.tabSizeHint(self, index).width(),
+                max(QTabBar().tabSizeHint(index).height(), self._tabheight)
+                )
+
+    def sizeHint(self):
+        """Qt method override."""
+        if self._tabheight is None:
+            return QTabBar.sizeHint(self)
+        else:
+            return QSize(
+                QTabBar.sizeHint(self).width(),
+                max(QTabBar().sizeHint().height(), self._tabheight)
+                )
+
+
+class TabBar(BaseTabBar):
     """Tabs base class with drag and drop support"""
     sig_move_tab = Signal((int, int), (str, int, int))
     sig_change_name = Signal(str)
 
     def __init__(self, parent, ancestor, rename_tabs=False, split_char='',
                  split_index=0):
-        QTabBar.__init__(self, parent)
+        super(TabBar, self).__init__(parent)
         self.ancestor = ancestor
-        self._tabheight = None
 
         # To style tabs on Mac
         if sys.platform == 'darwin':
@@ -243,34 +277,6 @@ class TabBar(QTabBar):
             # Event is not interesting, raise to parent
             QTabBar.mouseDoubleClickEvent(self, event)
 
-    def set_tabheight(self, height):
-        """Set the height of the tabs."""
-        self._tabheight = height
-        if self.parent():
-            self.parent().repaint()
-        else:
-            self.repaint()
-
-    def tabSizeHint(self, index):
-        """Qt method override."""
-        if self._tabheight is None:
-            return QTabBar.tabSizeHint(self, index)
-        else:
-            return QSize(
-                QTabBar.tabSizeHint(self, index).width(),
-                max(QTabBar().tabSizeHint(index).height(), self._tabheight)
-                )
-
-    def sizeHint(self):
-        """Qt method override."""
-        if self._tabheight is None:
-            return QTabBar.sizeHint(self)
-        else:
-            return QSize(
-                QTabBar.sizeHint(self).width(),
-                max(QTabBar().sizeHint().height(), self._tabheight)
-                )
-
 
 class BaseTabs(QTabWidget):
     """TabWidget with context menu and corner widgets"""
@@ -280,6 +286,7 @@ class BaseTabs(QTabWidget):
                  corner_widgets=None, menu_use_tooltips=False):
         QTabWidget.__init__(self, parent)
         self.setUsesScrollButtons(True)
+        self.setTabBar(BaseTabBar(self))
 
         # To style tabs on Mac
         if sys.platform == 'darwin':
@@ -449,6 +456,36 @@ class BaseTabs(QTabWidget):
                                              tip=_("Close current tab"))
             self.setCornerWidget(close_button if state else None)
 
+    def set_iconsize(self, iconsize):
+        """
+        Set the icon size of the corner widgets.
+        """
+        # Set the height of the tabs.
+        # NOTE: We cannot use the iconsize value directly because depending of
+        # the theme, the size of the toolbuttons is bigger than that of their
+        # respective icon.
+        style = QApplication.instance().style()
+        opt = QStyleOptionToolButton()
+        QToolButton().initStyleOption(opt)
+        opt.rect.setSize(QSize(iconsize, iconsize))
+        size = style.sizeFromContents(
+            QStyle.CT_ToolButton, opt, QSize(iconsize, iconsize), self
+            ).expandedTo(QApplication.globalStrut())
+        self.tabBar().set_tabheight(size.height())
+
+        # Set the icon size of the corner widgets.
+        for loc in (Qt.TopLeftCorner, Qt.TopRightCorner):
+            widgets = self.corner_widgets[loc]
+            for widget in widgets:
+                if not isinstance(widget, int):
+                    if widget.layout():
+                        set_iconsize_recursively(iconsize, widget.layout())
+                    else:
+                        try:
+                            widget.setIconSize(QSize(iconsize, iconsize))
+                        except AttributeError:
+                            pass
+
 
 class Tabs(BaseTabs):
     """BaseTabs widget with movable tabs and tab navigation shortcuts"""
@@ -508,33 +545,3 @@ class Tabs(BaseTabs):
         # (see Issue 1094, Issue 1098)
         self.sig_move_tab.emit(tabwidget_from, to_text_string(id(self)),
                                index_from, index_to)
-
-    def set_iconsize(self, iconsize):
-        """
-        Set the icon size of the corner widgets.
-        """
-        # Set the height of the tabs.
-        # NOTE: We cannot use the iconsize value directly because depending of
-        # the theme, the size of the toolbuttons is bigger than that of their
-        # respective icon.
-        style = QApplication.instance().style()
-        opt = QStyleOptionToolButton()
-        QToolButton().initStyleOption(opt)
-        opt.rect.setSize(QSize(iconsize, iconsize))
-        size = style.sizeFromContents(
-            QStyle.CT_ToolButton, opt, QSize(iconsize, iconsize), self
-            ).expandedTo(QApplication.globalStrut())
-        self.tabBar().set_tabheight(size.height())
-
-        # Set the icon size of the corner widgets.
-        for loc in (Qt.TopLeftCorner, Qt.TopRightCorner):
-            widgets = self.corner_widgets[loc]
-            for widget in widgets:
-                if not isinstance(widget, int):
-                    if widget.layout():
-                        set_iconsize_recursively(iconsize, widget.layout())
-                    else:
-                        try:
-                            widget.setIconSize(QSize(iconsize, iconsize))
-                        except AttributeError:
-                            pass
