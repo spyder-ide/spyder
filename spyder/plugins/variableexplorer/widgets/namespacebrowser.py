@@ -27,6 +27,7 @@ from spyder_kernels.utils.nsview import get_supported_types, REMOTE_SETTINGS
 # Local imports
 from spyder.config.base import _
 from spyder.config.main import CONF
+from spyder.config.gui import get_iconsize
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
@@ -38,6 +39,7 @@ from spyder.utils.qthelpers import (add_actions, create_action,
 from spyder.plugins.variableexplorer.widgets.collectionseditor import (
     RemoteCollectionsEditorTableView)
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
+from spyder.api.toolbar import SpyderPluginToolbar
 
 
 SUPPORTED_TYPES = get_supported_types()
@@ -127,17 +129,14 @@ class NamespaceBrowser(QWidget):
 
         # Setup toolbar layout.
 
-        self.tools_layout = QHBoxLayout()
-        toolbar = self.setup_toolbar()
-        for widget in toolbar:
-            self.tools_layout.addWidget(widget)
-        self.tools_layout.addStretch()
+        self.toolbar = SpyderPluginToolbar()
+        for widget in self.setup_toolbar():
+            self.toolbar.add_item(widget)
         self.setup_options_button()
+        self.toolbar.set_iconsize(get_iconsize(panel=True))
 
         # Setup layout.
-
-        layout = create_plugin_layout(self.tools_layout, self.editor)
-        self.setLayout(layout)
+        self.setLayout(create_plugin_layout(self.toolbar, self.editor))
 
         self.sig_option_changed.connect(self.option_changed)
 
@@ -224,12 +223,7 @@ class NamespaceBrowser(QWidget):
             self.options_menu = QMenu(self)
             add_actions(self.options_menu, actions)
             self.options_button.setMenu(self.options_menu)
-
-        if self.tools_layout.itemAt(self.tools_layout.count() - 1) is None:
-            self.tools_layout.insertWidget(
-                self.tools_layout.count() - 1, self.options_button)
-        else:
-            self.tools_layout.addWidget(self.options_button)
+        self.toolbar.add_options_btn(self.options_button)
 
     def option_changed(self, option, value):
         """Option has changed"""

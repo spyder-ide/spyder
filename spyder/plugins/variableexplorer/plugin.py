@@ -173,6 +173,13 @@ class VariableExplorer(SpyderPluginWidget):
     def get_plugin_icon(self):
         """Return plugin icon"""
         return ima.icon('dictedit')
+
+    def set_plugin_icon_size(self, iconsize):
+        """
+        Set the icon size of plugin.
+        """
+        for nsb_browser in list(self.shellwidgets.values()):
+            nsb_browser.toolbar.set_iconsize(iconsize)
     
     def get_focus_widget(self):
         """
