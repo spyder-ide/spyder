@@ -33,7 +33,8 @@ from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
 
 # Local imports
 from spyder.config.base import _, running_under_pytest
-from spyder.config.gui import config_shortcut, is_dark_interface, get_shortcut
+from spyder.config.gui import (config_shortcut, is_dark_interface,
+                               get_shortcut, get_iconsize)
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
 from spyder.py3compat import qbytearray_to_str, to_text_string
@@ -770,6 +771,7 @@ class EditorStack(QWidget):
         self.tabs.set_close_function(self.close_file)
         self.tabs.tabBar().tabMoved.connect(self.move_editorstack_data)
         self.tabs.setMovable(True)
+        self.tabs.set_iconsize(get_iconsize(panel=True))
 
         self.stack_history.refresh()
 

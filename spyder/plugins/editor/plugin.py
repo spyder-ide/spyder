@@ -320,6 +320,13 @@ class Editor(SpyderPluginWidget):
         """Return widget icon."""
         return ima.icon('edit')
 
+    def set_plugin_icon_size(self, iconsize):
+        """
+        Set the icon size of plugin.
+        """
+        for editorstack in self.editorstacks:
+            editorstack.tabs.set_iconsize(iconsize)
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to.
