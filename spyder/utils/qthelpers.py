@@ -218,15 +218,17 @@ def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
 def set_iconsize_recursively(iconsize, layout):
     """Set the icon size of all toolbuttons of a layout recursively."""
     for i in range(layout.count()):
-        widget = layout.itemAt(i).widget()
-        if widget is None:
+        item = layout.itemAt(i)
+        if item is None:
             continue
-
-        if widget.layout():
-            set_iconsize_recursively(iconsize, widget.layout())
+        if item.layout():
+            set_iconsize_recursively(iconsize, item.layout())
+            continue
+        if item.widget() and item.widget().layout():
+            set_iconsize_recursively(iconsize, item.widget().layout())
         else:
             try:
-                widget.setIconSize(QSize(iconsize, iconsize))
+                item.widget().setIconSize(QSize(iconsize, iconsize))
             except AttributeError:
                 pass
 
