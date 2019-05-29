@@ -12,8 +12,8 @@ import sys
 
 # Third party imports
 from qtpy.QtCore import QUrl, Signal, Slot
-from qtpy.QtWidgets import (QActionGroup, QComboBox, QHBoxLayout,
-                            QLabel, QLineEdit, QMenu, QMessageBox,
+from qtpy.QtWidgets import (QActionGroup, QApplication, QComboBox, QHBoxLayout,
+                            QLabel, QLineEdit, QMenu, QMessageBox, QStyle,
                             QToolButton, QVBoxLayout)
 from qtpy.QtWebEngineWidgets import QWebEnginePage, WEBENGINE
 
@@ -21,6 +21,7 @@ from qtpy.QtWebEngineWidgets import QWebEnginePage, WEBENGINE
 from spyder import dependencies
 from spyder.config.base import _, get_conf_path, get_module_source_path
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
+from spyder.config.gui import get_iconsize
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import get_meth_class_inst, to_text_string
 from spyder.utils import icon_manager as ima
@@ -34,12 +35,12 @@ from spyder.utils.qthelpers import (add_actions, create_action,
 from spyder.plugins.help.confpage import HelpConfigPage
 from spyder.plugins.help.utils.sphinxthread import SphinxThread
 from spyder.plugins.help.widgets import PlainText, RichText, ObjectComboBox
+from spyder.api.toolbar import SpyderPluginToolbar
 
 # Sphinx dependency
 dependencies.add("sphinx", _("Show help for objects in the Editor and "
                              "Consoles in a dedicated pane"),
                  required_version='>=0.6.6')
-
 
 
 class Help(SpyderPluginWidget):
@@ -89,15 +90,12 @@ class Help(SpyderPluginWidget):
         self._last_texts = [None, None]
         self._last_editor_doc = None
 
-        # Object name
-        layout_edit = QHBoxLayout()
-        layout_edit.setContentsMargins(0, 0, 0, 0)
+        # Source selection layout
         txt = _("Source")
         if sys.platform == 'darwin':
             source_label = QLabel("  " + txt)
         else:
             source_label = QLabel(txt)
-        layout_edit.addWidget(source_label)
         self.source_combo = QComboBox(self)
         self.source_combo.addItems([_("Console"), _("Editor")])
         self.source_combo.currentIndexChanged.connect(self.source_changed)
@@ -105,18 +103,45 @@ class Help(SpyderPluginWidget):
                 not programs.is_module_installed('jedi', '>=0.11.0')):
             self.source_combo.hide()
             source_label.hide()
-        layout_edit.addWidget(self.source_combo)
-        layout_edit.addSpacing(10)
-        layout_edit.addWidget(QLabel(_("Object")))
-        self.combo = ObjectComboBox(self)
-        layout_edit.addWidget(self.combo)
+
+        style = QApplication.instance().style()
+        label_spacing = style.pixelMetric(QStyle.PM_CheckBoxLabelSpacing)
+
+        source_layout = QHBoxLayout()
+        source_layout.setContentsMargins(0, 0, 0, 0)
+        source_layout.addWidget(source_label)
+        source_layout.addSpacing(label_spacing)
+        source_layout.addWidget(self.source_combo)
+
+        # Object name layout
         self.object_edit = QLineEdit(self)
         self.object_edit.setReadOnly(True)
-        layout_edit.addWidget(self.object_edit)
+        self.combo = ObjectComboBox(self)
         self.combo.setMaxCount(self.get_option('max_history_entries'))
-        self.combo.addItems( self.load_history() )
+        self.combo.addItems(self.load_history())
         self.combo.setItemText(0, '')
         self.combo.valid.connect(self.force_refresh)
+
+        object_layout = QHBoxLayout()
+        object_layout.setContentsMargins(0, 0, 0, 0)
+        object_layout.addWidget(QLabel(_("Object")))
+        object_layout.addSpacing(label_spacing)
+        object_layout.addWidget(self.combo)
+        object_layout.addWidget(self.object_edit)
+
+        # Lock checkbox
+        self.locked_button = create_toolbutton(self,
+                                               triggered=self.toggle_locked)
+        self._update_lock_icon()
+
+        # Create plugin toolbar
+        self.toolbar = SpyderPluginToolbar()
+        self.toolbar.add_item(source_layout)
+        self.toolbar.add_spacing()
+        self.toolbar.add_item(object_layout, stretch=1)
+        self.toolbar.add_item(self.locked_button)
+        self.toolbar.add_item(self.options_button)
+        self.toolbar.set_iconsize(get_iconsize(panel=True))
 
         # Plain text docstring option
         self.docstring = True
@@ -144,15 +169,6 @@ class Help(SpyderPluginWidget):
         auto_import_state = self.get_option('automatic_import')
         self.auto_import_action.setChecked(auto_import_state)
 
-        # Lock checkbox
-        self.locked_button = create_toolbutton(self,
-                                               triggered=self.toggle_locked)
-        layout_edit.addWidget(self.locked_button)
-        self._update_lock_icon()
-
-        # Option menu
-        layout_edit.addWidget(self.options_button)
-
         if self.rich_help:
             self.switch_to_rich_text()
         else:
@@ -162,7 +178,7 @@ class Help(SpyderPluginWidget):
         self.source_changed()
 
         # Main layout
-        layout = create_plugin_layout(layout_edit)
+        layout = create_plugin_layout(self.toolbar)
         # we have two main widgets, but only one of them is shown at a time
         layout.addWidget(self.plain_text)
         layout.addWidget(self.rich_text)
@@ -200,6 +216,12 @@ class Help(SpyderPluginWidget):
     def get_plugin_icon(self):
         """Return widget icon"""
         return ima.icon('help')
+
+    def set_plugin_icon_size(self, iconsize):
+        """
+        Set the icon size of plugin.
+        """
+        self.toolbar.set_iconsize(iconsize)
 
     def get_focus_widget(self):
         """
