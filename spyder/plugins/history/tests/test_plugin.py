@@ -107,7 +107,7 @@ def test_init(historylog):
     assert hl.filenames == []
     assert len(hl.plugin_actions) == 5
     assert len(hl.tabwidget.menu.actions()) == 5
-    assert len(hl.tabwidget.cornerWidget().menu().actions()) == 5
+    assert len(hl.options_button.menu().actions()) == 5
 
 
 def test_add_history(historylog, mocker, monkeypatch):
