@@ -156,7 +156,7 @@ def my_add():
     block = block.next()
     TextBlockHelper.set_fold_trigger(block, True)
     fold_scope = FoldScope(block)
-    oed = sh.get_outlineexplorer_data()[1]
+    oed = block.userData().oedata
 
     def test_fold_scope_helper(self):
         fsh = cfd.FoldScopeHelper(None, None)

@@ -34,6 +34,7 @@ from spyder.py3compat import (builtins, is_text_string, to_text_string, PY3,
                               PY36_OR_MORE)
 from spyder.plugins.editor.utils.languages import CELL_LANGUAGES
 from spyder.plugins.editor.utils.editor import TextBlockHelper as tbh
+from spyder.plugins.editor.utils.editor import BlockUserData
 from spyder.utils.workers import WorkerManager
 from spyder.plugins.outlineexplorer.api import OutlineExplorerData
 
@@ -132,8 +133,6 @@ class BaseSH(QSyntaxHighlighter):
     def __init__(self, parent, font=None, color_scheme='Spyder'):
         QSyntaxHighlighter.__init__(self, parent)
 
-        self.outlineexplorer_data = {}
-
         self.font = font
         if is_text_string(color_scheme):
             self.color_scheme = get_color_scheme(color_scheme)
@@ -155,6 +154,9 @@ class BaseSH(QSyntaxHighlighter):
         self.cell_separators = None
         self.fold_detector = None
         self.editor = None
+
+        # Cell separator could be there in any language
+        self.found_cell_separators = False
         
     def get_background_color(self):
         return QColor(self.background_color)
@@ -312,11 +314,7 @@ class BaseSH(QSyntaxHighlighter):
         self.highlight_spaces(text, offset=offset)
         self.highlight_uris(text, offset=offset)
 
-    def get_outlineexplorer_data(self):
-        return self.outlineexplorer_data
-
     def rehighlight(self):
-        self.outlineexplorer_data = {}
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         # rehighlight() triggers the textChanged signal, which in our editor
         # switches changed_since_autosave to True; we need to prevent this.
@@ -458,8 +456,6 @@ class PythonSH(BaseSH):
     
     def __init__(self, parent, font=None, color_scheme='Spyder'):
         BaseSH.__init__(self, parent, font, color_scheme)
-        self.import_statements = {}
-        self.found_cell_separators = False
         self.cell_separators = CELL_LANGUAGES['Python']
         # Avoid updating the outline explorer with every single letter typed
         self.outline_explorer_data_update_timer = QTimer()
@@ -526,7 +522,8 @@ class PythonSH(BaseSH):
                         if key == "comment":
                             if text.lstrip().startswith(self.cell_separators):
                                 self.found_cell_separators = True
-                                oedata = OutlineExplorerData()
+                                oedata = OutlineExplorerData(
+                                    self.currentBlock())
                                 oedata.text = to_text_string(text).strip()
                                 # cell_head: string contaning the first group
                                 # of '%'s in the cell header
@@ -538,9 +535,11 @@ class PythonSH(BaseSH):
                                     oedata.cell_level = len(cell_head) - 2
                                 oedata.fold_level = start
                                 oedata.def_type = OutlineExplorerData.CELL
-                                oedata.def_name = get_code_cell_name(text)
+                                def_name = get_code_cell_name(text)
+                                oedata.def_name = def_name
                             elif self.OECOMMENT.match(text.lstrip()):
-                                oedata = OutlineExplorerData()
+                                oedata = OutlineExplorerData(
+                                    self.currentBlock())
                                 oedata.text = to_text_string(text).strip()
                                 oedata.fold_level = start
                                 oedata.def_type = OutlineExplorerData.COMMENT
@@ -552,7 +551,8 @@ class PythonSH(BaseSH):
                                     start1, end1 = match1.span(1)
                                     self.setFormat(start1, end1-start1,
                                                    self.formats["definition"])
-                                    oedata = OutlineExplorerData()
+                                    oedata = OutlineExplorerData(
+                                        self.currentBlock())
                                     oedata.text = to_text_string(text)
                                     oedata.fold_level = (len(text)
                                                          - len(text.lstrip()))
@@ -564,7 +564,8 @@ class PythonSH(BaseSH):
                                            "for", "if", "try", "while",
                                            "with"):
                                 if text.lstrip().startswith(value):
-                                    oedata = OutlineExplorerData()
+                                    oedata = OutlineExplorerData(
+                                        self.currentBlock())
                                     oedata.text = to_text_string(text).strip()
                                     oedata.fold_level = start
                                     oedata.def_type = \
@@ -607,20 +608,40 @@ class PythonSH(BaseSH):
             self.formats['trailing'] = self.formats['string']
         self.highlight_extras(text, offset)
 
-        if oedata is not None:
-            block_nb = self.currentBlock().blockNumber()
-            self.outlineexplorer_data[block_nb] = oedata
-            self.outlineexplorer_data['found_cell_separators'] = self.found_cell_separators
+        block = self.currentBlock()
+        data = block.userData()
+
+        need_data = (oedata or import_stmt)
+
+        if need_data and not data:
+            data = BlockUserData(self.editor)
+
+        # Try updating
+        update = False
+        if oedata and data and data.oedata:
+            update = data.oedata.update(oedata)
+
+        if data and not update:
+            data.oedata = oedata
             self.outline_explorer_data_update_timer.start(500)
-        if import_stmt is not None:
-            block_nb = self.currentBlock().blockNumber()
-            self.import_statements[block_nb] = import_stmt
-            
+
+        if (import_stmt) or (data and data.import_statement):
+            data.import_statement = import_stmt
+
+        block.setUserData(data)
+
     def get_import_statements(self):
-        return list(self.import_statements.values())
+        """Get import statment list."""
+        block = self.document().firstBlock()
+        statments = []
+        while block.isValid():
+            data = block.userData()
+            if data and data.import_statement:
+                statments.append(data.import_statement)
+            block = block.next()
+        return statments
             
     def rehighlight(self):
-        self.import_statements = {}
         self.found_cell_separators = False
         BaseSH.rehighlight(self)
 
