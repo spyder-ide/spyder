@@ -684,13 +684,14 @@ class OutlineExplorerWidget(QWidget):
                                            icon='outline_explorer_vis.png',
                                            toggled=self.toggle_visibility)
         self.visibility_action.setChecked(True)
-        
+
         self.toolbar = SpyderPluginToolbar()
         for btn in self.setup_buttons():
             btn.setAutoRaise(True)
-            self.toolbar.add_widget(btn)
+            self.toolbar.add_item(btn)
         if options_button:
-            self.toolbar.add_options_button(options_button)
+            self.toolbar.add_stretch(1)
+            self.toolbar.add_item(options_button)
         self.toolbar.set_iconsize(get_iconsize(panel=True))
 
         layout = create_plugin_layout(self.toolbar, self.treewidget)

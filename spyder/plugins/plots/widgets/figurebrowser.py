@@ -135,7 +135,8 @@ class FigureBrowser(QWidget):
 
         self.toolbar = SpyderPluginToolbar()
         for widget in toolbar:
-            self.toolbar.add_widget(widget)
+            self.toolbar.add_item(widget)
+        self.toolbar.add_stretch(1)
         self.setup_options_button()
         self.toolbar.set_iconsize(get_iconsize(panel=True))
 
@@ -246,7 +247,7 @@ class FigureBrowser(QWidget):
     def setup_options_button(self):
         """Add the cog menu button to the toolbar."""
         if not self.options_button:
-            # When the FigureBowser widget is instatiated outside of the
+            # When the FigureBowser widget is instantiated outside of the
             # plugin (for testing purpose for instance), we need to create
             # the options_button and set its menu.
             self.options_button = create_toolbutton(
@@ -256,7 +257,7 @@ class FigureBrowser(QWidget):
             self.options_menu = QMenu(self)
             add_actions(self.options_menu, actions)
             self.options_button.setMenu(self.options_menu)
-        self.toolbar.add_options_button(self.options_button)
+        self.toolbar.add_item(self.options_button)
 
     def create_shortcuts(self):
         """Create shortcuts for this widget."""

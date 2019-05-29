@@ -12,7 +12,6 @@ Toolbar widgets designed specifically for Spyder plugin widgets.
 """
 
 # Third party imports
-from qtpy.QtCore import QSize
 from qtpy.QtWidgets import QApplication, QFrame, QHBoxLayout, QStyle, QWidget
 
 # Local imports
@@ -29,31 +28,49 @@ class SpyderPluginToolbar(QWidget):
     def __init__(self, parent=None):
         super(SpyderPluginToolbar, self).__init__(parent)
         self.layout = QHBoxLayout(self)
-        self.layout.addStretch(1)
-        self._stretch_index = 0
 
         style = QApplication.instance().style()
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setSpacing(style.pixelMetric(QStyle.PM_ToolBarItemSpacing))
 
-    def add_widget(self, widget, ha='left'):
-        """Add a widget to the toolbar."""
-        if widget is None:
-            widget = QFrame()
-            widget.setFrameStyle(53)
-        if ha == 'left':
-            self.layout.insertWidget(self._stretch_index, widget)
-            self._stretch_index += 1
+    def add_item(self, item, stretch=None):
+        """
+        Add a widget or a layout with a stretch factor stretch to the
+        end of this toolbar.
+        """
+        if item is None:
+            item = QFrame()
+            item.setFrameStyle(53)
+        if self.layout.itemAt(self.layout.count() - 1) is None:
+            try:
+                self.layout.insertWidget(self.layout.count() - 1, item)
+            except TypeError:
+                self.layout.insertLayout(self.layout.count() - 1, item)
         else:
-            self.layout.addWidget(widget)
+            try:
+                self.layout.addWidget(item)
+            except TypeError:
+                self.layout.addLayout(item)
+        if stretch is not None:
+            self.layout.setStretchFactor(item, stretch)
+
+    def add_stretch(self, stretch):
+        """
+        Add a stretchable space with zero minimum size and stretch factor
+        stretch to the end of this toolbar.
+        """
+        self.layout.addStretch(stretch)
+
+    def add_spacing(self, spacing=None):
+        """
+        Add a non-stretchable space with size spacing to the end of
+        this toolbar.
+        """
+        if spacing is None:
+            style = QApplication.instance().style()
+            spacing = style.pixelMetric(QStyle.PM_LayoutHorizontalSpacing)
+        self.layout.addSpacing(spacing)
 
     def set_iconsize(self, iconsize):
         """Set the icon size of the toolbar."""
         set_iconsize_recursively(iconsize, self.layout)
-
-    def add_options_button(self, options_button):
-        """Add the options button to the toolbar."""
-        if self.layout.itemAt(self.layout.count() - 1) is None:
-            self.layout.insertWidget(self.layout.count() - 1, options_button)
-        else:
-            self.layout.addWidget(options_button)
