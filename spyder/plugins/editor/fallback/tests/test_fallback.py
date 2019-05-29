@@ -63,25 +63,15 @@ def file_fixture(tokens_fixture, request):
 
 
 @pytest.fixture(scope="module")
-def fallback_fixture(qtbot_module, request):
-    fallback = FallbackActor(None)
+def fallback_editor(fallback, qtbot_module, request):
     diff_match = diff_match_patch()
     editor = CodeEditorMock()
     qtbot_module.addWidget(editor)
-    qtbot_module.addWidget(fallback)
-
-    with qtbot_module.waitSignal(fallback.sig_fallback_ready, timeout=30000):
-        fallback.start()
-
-    def teardown():
-        fallback.stop()
-
-    request.addfinalizer(teardown)
     return fallback, editor, diff_match
 
 
-def test_file_open_close(qtbot_module, fallback_fixture):
-    fallback, editor, diff_match = fallback_fixture
+def test_file_open_close(qtbot_module, fallback_editor):
+    fallback, editor, diff_match = fallback_editor
 
     diff = diff_match.patch_make('', TEST_FILE)
     open_request = {
@@ -110,10 +100,10 @@ def test_file_open_close(qtbot_module, fallback_fixture):
 
 
 @pytest.mark.parametrize('file_fixture', language_list, indirect=True)
-def test_tokenize(qtbot_module, fallback_fixture, file_fixture):
+def test_tokenize(qtbot_module, fallback_editor, file_fixture):
     filename, expected_tokens, contents = file_fixture
     _, ext = osp.splitext(filename)
-    fallback, editor, diff_match = fallback_fixture
+    fallback, editor, diff_match = fallback_editor
     diff = diff_match.patch_make('', contents)
     open_request = {
         'file': filename,
@@ -140,8 +130,8 @@ def test_tokenize(qtbot_module, fallback_fixture, file_fixture):
     assert len(expected_tokens - tokens) == 0
 
 
-def test_token_update(qtbot_module, fallback_fixture):
-    fallback, editor, diff_match = fallback_fixture
+def test_token_update(qtbot_module, fallback_editor):
+    fallback, editor, diff_match = fallback_editor
 
     diff = diff_match.patch_make('', TEST_FILE)
     open_request = {
