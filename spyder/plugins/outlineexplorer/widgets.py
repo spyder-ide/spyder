@@ -690,8 +690,7 @@ class OutlineExplorerWidget(QWidget):
             btn.setAutoRaise(True)
             self.toolbar.add_item(btn)
         if options_button:
-            self.toolbar.add_stretch(1)
-            self.toolbar.add_item(options_button)
+            self.toolbar.add_options_btn(options_button)
         self.toolbar.set_iconsize(get_iconsize(panel=True))
 
         layout = create_plugin_layout(self.toolbar, self.treewidget)

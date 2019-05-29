@@ -136,7 +136,6 @@ class FigureBrowser(QWidget):
         self.toolbar = SpyderPluginToolbar()
         for widget in toolbar:
             self.toolbar.add_item(widget)
-        self.toolbar.add_stretch(1)
         self.setup_options_button()
         self.toolbar.set_iconsize(get_iconsize(panel=True))
 
@@ -257,7 +256,7 @@ class FigureBrowser(QWidget):
             self.options_menu = QMenu(self)
             add_actions(self.options_menu, actions)
             self.options_button.setMenu(self.options_menu)
-        self.toolbar.add_item(self.options_button)
+        self.toolbar.add_options_btn(self.options_button)
 
     def create_shortcuts(self):
         """Create shortcuts for this widget."""
