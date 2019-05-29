@@ -28,15 +28,17 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMessageBox, QTreeWidgetItem,
 # Local imports
 from spyder import dependencies
 from spyder.config.base import get_conf_path, get_translation
+from spyder.config.gui import get_iconsize
 from spyder.py3compat import pickle, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.encoding import to_unicode_from_fs
-from spyder.utils.qthelpers import create_toolbutton
+from spyder.utils.qthelpers import create_toolbutton, create_plugin_layout
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.comboboxes import (is_module_or_package,
                                        PythonModulesComboBox)
 from spyder.widgets.onecolumntree import OneColumnTree
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
+from spyder.api.toolbar import SpyderPluginToolbar
 
 
 # This is needed for testing this module as a stand alone script
@@ -199,26 +201,25 @@ class PylintWidget(QWidget):
                                     triggered=self.show_log)
         self.treewidget = ResultsTree(self)
 
-        hlayout1 = QHBoxLayout()
-        hlayout1.addWidget(self.filecombo)
-        hlayout1.addWidget(browse_button)
-        hlayout1.addWidget(self.start_button)
-        hlayout1.addWidget(self.stop_button)
+        self.toolbar = SpyderPluginToolbar()
+
+        # Toolbar Layout 1
+        self.toolbar.add_item(self.filecombo)
+        self.toolbar.add_item(browse_button)
+        self.toolbar.add_item(self.start_button)
+        self.toolbar.add_item(self.stop_button)
         if options_button:
-            hlayout1.addWidget(options_button)
+            self.toolbar.add_options_btn(options_button, stretch=None)
 
-        hlayout2 = QHBoxLayout()
-        hlayout2.addWidget(self.ratelabel)
-        hlayout2.addStretch()
-        hlayout2.addWidget(self.datelabel)
-        hlayout2.addStretch()
-        hlayout2.addWidget(self.log_button)
+        # Toolbar Layout 2
+        self.toolbar.add_item(self.ratelabel, row=1)
+        self.toolbar.add_stretch(1, row=1)
+        self.toolbar.add_item(self.datelabel, row=1)
+        self.toolbar.add_stretch(1, row=1)
+        self.toolbar.add_item(self.log_button, row=1)
 
-        layout = QVBoxLayout()
-        layout.addLayout(hlayout1)
-        layout.addLayout(hlayout2)
-        layout.addWidget(self.treewidget)
-        self.setLayout(layout)
+        self.setLayout(create_plugin_layout(self.toolbar, self.treewidget))
+        self.toolbar.set_iconsize(get_iconsize(panel=True))
 
         self.process = None
         self.set_running_state(False)
