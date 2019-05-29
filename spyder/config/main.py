@@ -51,13 +51,6 @@ MAC = sys.platform == 'darwin'
 LINUX = sys.platform.startswith('linux')
 CTRL = "Meta" if MAC else "Ctrl"
 
-# Run cell shortcuts
-if MAC:
-    RUN_CELL_SHORTCUT = 'Meta+Return'
-else:
-    RUN_CELL_SHORTCUT = 'Ctrl+Return'
-RE_RUN_LAST_CELL_SHORTCUT = 'Alt+Return'
-RUN_CELL_AND_ADVANCE_SHORTCUT = 'Shift+Return'
 
 # Modules to be preloaded for Rope and Jedi
 PRELOAD_MDOULES = ', '.join(PREFERRED_MODULES)
@@ -428,11 +421,11 @@ DEFAULTS = [
               'editor/zoom reset': "Ctrl+0",
               'editor/close file 1': "Ctrl+W",
               'editor/close file 2': "Ctrl+F4",
-              'editor/run cell': RUN_CELL_SHORTCUT,
-              'editor/run cell and advance': RUN_CELL_AND_ADVANCE_SHORTCUT,
+              'editor/run cell': CTRL + '+Return',
+              'editor/run cell and advance': 'Shift+Return',
               'editor/go to next cell': 'Ctrl+Down',
               'editor/go to previous cell': 'Ctrl+Up',
-              'editor/re-run last cell': RE_RUN_LAST_CELL_SHORTCUT,
+              'editor/re-run last cell': 'Alt+Return',
               'editor/split vertically': "Ctrl+{",
               'editor/split horizontally': "Ctrl+_",
               'editor/close split panel': "Alt+Shift+W",

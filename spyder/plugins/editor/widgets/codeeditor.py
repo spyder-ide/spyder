@@ -48,8 +48,7 @@ from spyder_kernels.utils.dochelpers import getobj
 from spyder.api.panel import Panel
 from spyder.config.base import _, get_debug_level, running_under_pytest
 from spyder.config.gui import get_shortcut, config_shortcut
-from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
-                                RUN_CELL_AND_ADVANCE_SHORTCUT)
+from spyder.config.main import CONF
 from spyder.plugins.editor.api.decoration import TextDecoration
 from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               CloseQuotesExtension,
@@ -2945,11 +2944,11 @@ class CodeEditor(TextEditBaseWidget):
         # Run actions
         self.run_cell_action = create_action(
             self, _("Run cell"), icon=ima.icon('run_cell'),
-            shortcut=QKeySequence(RUN_CELL_SHORTCUT),
+            shortcut=get_shortcut('editor', 'run cell'),
             triggered=self.sig_run_cell.emit)
         self.run_cell_and_advance_action = create_action(
             self, _("Run cell and advance"), icon=ima.icon('run_cell'),
-            shortcut=QKeySequence(RUN_CELL_AND_ADVANCE_SHORTCUT),
+            shortcut=get_shortcut('editor', 'run cell and advance'),
             triggered=self.sig_run_cell_and_advance.emit)
         self.re_run_last_cell_action = create_action(
             self, _("Re-run last cell"), icon=ima.icon('run_cell'),
