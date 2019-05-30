@@ -50,6 +50,7 @@ dependencies.add("pygments", _("Syntax highlighting for Matlab, Julia and "
 URL_PATTERN = r"https?://([\da-z\.-]+)\.([a-z\.]{2,6})([/\w\.-]*)[^ ^'^\"]+"
 FILE_PATTERN = r"file:///?([\S ]*)/"
 MAILTO_PATTERN = r"mailto:\s*([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})"
+ISSUE_PATTERN = r'((?:\w\w:)?[\w\-_]*/[\w\-_]*#\d+)'
 COLOR_SCHEME_KEYS = {
                       "background":     _("Background:"),
                       "currentline":    _("Current line:"),
@@ -111,7 +112,7 @@ def any(name, alternates):
 
 
 URI_PATTERNS = re.compile(
-    any('uri', [URL_PATTERN, FILE_PATTERN, MAILTO_PATTERN])
+    any('uri', [URL_PATTERN, FILE_PATTERN, MAILTO_PATTERN, ISSUE_PATTERN])
 )
 
 

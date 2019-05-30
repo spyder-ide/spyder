@@ -3519,9 +3519,31 @@ class CodeEditor(TextEditBaseWidget):
                         # Use external program
                         fname = file_uri(fname)
                         programs.start_file(fname)
-                else:
+                elif uri.startswith(('http', 'mailto:')):
                     quri = QUrl(uri)
                     QDesktopServices.openUrl(quri)
+                else:
+                    # Issue URI
+                    service = 'https://github.com/'
+                    uri = uri.replace('#', '/issues/')
+
+                    if uri.startswith('gh:') or ':' not in uri:
+                        # Github
+                        if uri.startswith('gh:'):
+                            uri = uri[3:]
+                        service = 'https://github.com/'
+                    elif uri.startswith('gl:'):
+                        # Gitlab
+                        uri = uri[3:]
+                        service = 'https://gitlab.com/'
+                    elif uri.startswith('bb:'):
+                        # Bitbucket
+                        uri = uri[3:]
+                        service = 'https://bitbucket.org/'
+
+                    quri = QUrl(service + uri)
+                    QDesktopServices.openUrl(quri)
+
                 self.sig_go_to_uri.emit(uri)
             else:
                 self.go_to_definition_from_cursor(cursor)
