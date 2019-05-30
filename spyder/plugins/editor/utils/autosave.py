@@ -227,25 +227,43 @@ class AutosaveForStack(object):
         """
         Autosave a file.
 
-        Do nothing if the `changed_since_autosave` flag is not set or the file
-        is newly created (and thus not named by the user). Otherwise, save a
-        copy of the file with the name given by `self.get_autosave_filename()`
-        and clear the `changed_since_autosave` flag and update the cached hash
-        of the autosave file. An error dialog notifies the user of any errors
-        raised when saving.
+        If the file is newly created (and thus not named by the user), do
+        nothing.  If the current contents are the same as the autosave file
+        (if it exists) or the original file (if no autosave filee exists),
+        then do nothing. If the current contents are the same as the file on
+        disc, but the autosave file is different, then remove the autosave
+        file.
+
+        In all other cases, save a copy in a file with the name given by
+        `self.get_autosave_filename()` and clear the `changed_since_autosave`
+        flag and update the cached hash of the autosave file. An error dialog
+        notifies the user of any errors raised when saving.
 
         Args:
             index (int): index into self.stack.data
         """
         finfo = self.stack.data[index]
-        document = finfo.editor.document()
-        if not document.changed_since_autosave or finfo.newly_created:
+        if finfo.newly_created:
             return
+        orig_filename = finfo.filename
+        orig_hash = self.file_hashes[orig_filename]
+        new_hash = self.stack.compute_hash(finfo)
+        if orig_filename in self.name_mapping:
+            autosave_filename = self.name_mapping[orig_filename]
+            autosave_hash = self.file_hashes[autosave_filename]
+            if new_hash == autosave_hash:
+                return
+            elif new_hash == orig_hash:
+                self.remove_autosave_file(orig_filename)
+                return
+        else:
+            if new_hash == orig_hash:
+                return
         autosave_filename = self.get_autosave_filename(finfo.filename)
         logger.debug('Autosaving %s to %s', finfo.filename, autosave_filename)
         try:
             self.stack._write_to_file(finfo, autosave_filename)
-            document.changed_since_autosave = False
+            finfo.editor.document().changed_since_autosave = False
             autosave_hash = self.stack.compute_hash(finfo)
             self.file_hashes[autosave_filename] = autosave_hash
         except EnvironmentError as error:

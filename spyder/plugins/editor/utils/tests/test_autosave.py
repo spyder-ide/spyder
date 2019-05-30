@@ -53,11 +53,14 @@ def test_autosave(mocker):
     mock_stack = mocker.Mock(data=[mock_fileinfo])
     addon = AutosaveForStack(mock_stack)
     addon.name_mapping = {'orig': 'autosave'}
+    addon.file_hashes = {'orig': 1, 'autosave': 2}
+    mock_stack.compute_hash.return_value = 3
 
     addon.autosave(0)
+
+    mock_stack._write_to_file.assert_called_with(mock_fileinfo, 'autosave')
     mock_stack.compute_hash.assert_called_with(mock_fileinfo)
-    mock_hash = mock_stack.compute_hash.return_value
-    assert addon.file_hashes == {'autosave': mock_hash}
+    assert addon.file_hashes == {'orig': 1, 'autosave': 3}
 
 
 @pytest.mark.parametrize('exception', [False, True])
