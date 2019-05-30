@@ -20,9 +20,9 @@ from qtpy import PYQT5
 from qtpy.QtCore import (QByteArray, QEvent, QMimeData, QPoint, QSize, Qt,
                          Signal, Slot)
 from qtpy.QtGui import QDrag
-from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu, QTabBar,
-                            QTabWidget, QWidget, QLineEdit,
-                            QStyleOptionToolButton, QStyle, QToolButton)
+from qtpy.QtWidgets import (QApplication, QHBoxLayout, QLineEdit, QMenu,
+                            QStyle, QStyleOptionToolButton, QTabBar,
+                            QTabWidget, QToolButton, QWidget)
 
 # Local imports
 from spyder.config.base import _
@@ -143,7 +143,12 @@ class BaseTabBar(QTabBar):
 
     def set_tabheight(self, height):
         """Set the height of the tabs."""
-        self._tabheight = height
+        iconsize = self.iconSize()
+        fm = self.fontMetrics()
+        vframe = QApplication.instance().style().pixelMetric(
+            QStyle.PM_TabBarTabVSpace)
+
+        self._tabheight = max(iconsize.height(), fm.height(), height) + vframe
         if self.parent():
             self.parent().repaint()
         else:
@@ -154,20 +159,15 @@ class BaseTabBar(QTabBar):
         if self._tabheight is None:
             return QTabBar.tabSizeHint(self, index)
         else:
-            return QSize(
-                QTabBar.tabSizeHint(self, index).width(),
-                max(QTabBar().tabSizeHint(index).height(), self._tabheight)
-                )
+            return QSize(QTabBar.tabSizeHint(self, index).width(),
+                         self._tabheight)
 
     def sizeHint(self):
         """Qt method override."""
         if self._tabheight is None:
             return QTabBar.sizeHint(self)
         else:
-            return QSize(
-                QTabBar.sizeHint(self).width(),
-                max(QTabBar().sizeHint().height(), self._tabheight)
-                )
+            return QSize(QTabBar.sizeHint(self).width(), self._tabheight)
 
 
 class TabBar(BaseTabBar):
