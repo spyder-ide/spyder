@@ -21,6 +21,7 @@ from spyder.config.base import get_image_path
 from spyder.config.main import CONF
 from spyder.config.gui import is_dark_interface
 from spyder.py3compat import to_text_string
+from spyder.utils.encoding import is_text_file
 import qtawesome as qta
 
 
@@ -410,7 +411,7 @@ def icon(name, scale_factor=None, resample=False, icon_path=None):
         return icon if icon is not None else QIcon()
 
 
-def get_icon_by_extension(fname, scale_factor):
+def get_icon_by_extension_or_type(fname, scale_factor):
     """Return the icon depending on the file extension"""
     application_icons = {}
     application_icons.update(BIN_FILES)
@@ -421,12 +422,17 @@ def get_icon_by_extension(fname, scale_factor):
         basename = osp.basename(fname)
         __, extension = osp.splitext(basename.lower())
         mime_type, __ = mime.guess_type(basename)
-        icon_by_extension = icon('FileIcon', scale_factor)
+        if is_dark_interface():
+                    icon_by_extension = QIcon(
+                        get_image_path('binary.svg'))
+        else:
+            icon_by_extension = QIcon(
+                get_image_path('binary_light.svg'))
 
         if extension in OFFICE_FILES:
             icon_by_extension = icon(OFFICE_FILES[extension], scale_factor)
 
-        if extension in LANGUAGE_ICONS:
+        elif extension in LANGUAGE_ICONS:
             icon_by_extension = icon(LANGUAGE_ICONS[extension], scale_factor)
         else:
             if extension == '.ipynb':
@@ -443,6 +449,8 @@ def get_icon_by_extension(fname, scale_factor):
                 else:
                     icon_by_extension = QIcon(
                         get_image_path('file_type_light_tex.svg'))
+            elif is_text_file(fname):
+                icon_by_extension = icon('TextFileIcon', scale_factor)
             elif mime_type is not None:
                 try:
                     # Fix for issue 5080. Even though
@@ -454,9 +462,14 @@ def get_icon_by_extension(fname, scale_factor):
                     # returning it incorrectly.
                     file_type, bin_name = mime_type.split('/')
                 except ValueError:
-                    file_type = 'text'
-                if file_type == 'text':
-                    icon_by_extension = icon('TextFileIcon', scale_factor)
+                    file_type = 'none'
+                if file_type == 'none':
+                    if is_dark_interface():
+                        icon_by_extension = QIcon(
+                            get_image_path('binary.svg'))
+                    else:
+                        icon_by_extension = QIcon(
+                            get_image_path('binary_light.svg'))
                 elif file_type == 'audio':
                     icon_by_extension = icon('AudioFileIcon', scale_factor)
                 elif file_type == 'video':
