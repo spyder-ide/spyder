@@ -772,6 +772,7 @@ class BaseEditMixin(object):
         """Return current word, i.e. word at cursor position,
             and the start position"""
         cursor = self.textCursor()
+        cursor_pos = cursor.position()
 
         if cursor.hasSelection():
             # Removes the selection and moves the cursor to the left side
@@ -813,7 +814,10 @@ class BaseEditMixin(object):
         # find a valid python variable name
         match = re.findall(r'([^\d\W]\w*)', text, re.UNICODE)
         if match:
-            return match[0], cursor.selectionStart()
+            text, startpos = match[0], cursor.selectionStart()
+            if completion:
+                text = text[:cursor_pos - startpos]
+            return text, startpos
 
     def get_current_word(self, completion=False):
         """Return current word, i.e. word at cursor position"""
