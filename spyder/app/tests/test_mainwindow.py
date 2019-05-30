@@ -1822,5 +1822,36 @@ def test_custom_layouts(main_window, qtbot):
                                 assert widget.isVisible()
 
 
+@pytest.mark.slow
+def test_pylint_follows_file(main_window, qtbot):
+    """Test that file editor focus change updates pylint combobox filename."""
+    for plugin in main_window.thirdparty_plugins:
+        if plugin.CONF_SECTION == 'pylint':
+            pylint_plugin = plugin
+            break
+
+    # Show pylint plugin
+    pylint_plugin.dockwidget.show()
+    pylint_plugin.dockwidget.raise_()
+
+    # Open some files
+    for idx in range(2):
+        _, fname = tempfile.mkstemp(suffix='{}.py'.format(idx))
+        main_window.open_file(fname)
+        qtbot.wait(200)
+        assert fname == pylint_plugin.get_filename()
+
+    # Create a editor split
+    main_window.editor.editorsplitter.split(orientation=Qt.Vertical)
+    qtbot.wait(500)
+
+    # Open other files
+    for idx in range(2):
+        _, fname = tempfile.mkstemp(suffix='{}.py'.format(idx))
+        main_window.open_file(fname)
+        qtbot.wait(200)
+        assert fname == pylint_plugin.get_filename()
+
+
 if __name__ == "__main__":
     pytest.main()

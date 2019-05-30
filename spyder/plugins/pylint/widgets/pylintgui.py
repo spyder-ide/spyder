@@ -231,6 +231,10 @@ class PylintWidget(QWidget):
         else:
             self.start_button.setEnabled(False)
 
+    def get_filename(self):
+        """Get current filename in combobox."""
+        return self.filecombo.currentText()
+
     @Slot(str)
     def set_filename(self, filename):
         """Set filename without performing code analysis."""

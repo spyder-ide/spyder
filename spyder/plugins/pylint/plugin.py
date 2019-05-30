@@ -137,6 +137,10 @@ class Pylint(SpyderPluginWidget):
         if valid:
             self.set_option('max_entries', depth)
 
+    def get_filename(self):
+        """Get current filename in combobox."""
+        return self.pylint.get_filename()
+
     @Slot()
     def set_filename(self):
         """Set filename without code analysis."""
