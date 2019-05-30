@@ -45,6 +45,15 @@ TEST_FILE_REL = [f for f in os.listdir(TEST_FOLDER) if f.endswith('.py')][0]
             # Mail to
             ('" mailto:some@email.com"\n', 'mailto:some@email.com', None),
             ('# mailto:some@email.com\n', 'mailto:some@email.com', None),
+            # Issues
+            ('# gl:gitlab-org/gitlab-ce#62529\n',
+             'gl:gitlab-org/gitlab-ce#62529', None),
+            ('# bb:birkenfeld/pygments-main#1516\n',
+             'bb:birkenfeld/pygments-main#1516', None),
+            ('# gh:spyder-ide/spyder#123\n',
+             'gh:spyder-ide/spyder#123', None),
+            ('# gh:spyder-ide/spyder#123\n',
+             'gh:spyder-ide/spyder#123', None),
         ]
     )
 def test_goto_uri(qtbot, editorbot, params):
