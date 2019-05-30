@@ -1541,6 +1541,13 @@ class EditorStack(QWidget):
             if editor.language.lower() == language:
                 editor.start_lsp_services(config)
 
+    def notify_server_down(self, language):
+        """Notify language server unavailability to code editors."""
+        for index in range(self.get_stack_count()):
+            editor = self.tabs.widget(index)
+            if editor.language.lower() == language:
+                editor.stop_lsp_services()
+
     def close_all_files(self):
         """Close all opened scripts"""
         while self.close_file():
