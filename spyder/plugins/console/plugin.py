@@ -128,7 +128,7 @@ class Console(SpyderPluginWidget):
         """
         Set the icon size of plugin.
         """
-        self.tabwidget.set_iconsize(iconsize)
+        self.toolbar.set_iconsize(iconsize)
         self.find_widget.set_iconsize(iconsize)
 
     def get_focus_widget(self):
