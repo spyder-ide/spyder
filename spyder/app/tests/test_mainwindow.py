@@ -1822,8 +1822,8 @@ def test_custom_layouts(main_window, qtbot):
                                 assert widget.isVisible()
 
 
-@pytest.mark.slow
-def test_pylint_follows_file(main_window, qtbot):
+# @pytest.mark.slow
+def test_pylint_follows_file(qtbot, tmpdir, main_window):
     """Test that file editor focus change updates pylint combobox filename."""
     for plugin in main_window.thirdparty_plugins:
         if plugin.CONF_SECTION == 'pylint':
@@ -1834,10 +1834,15 @@ def test_pylint_follows_file(main_window, qtbot):
     pylint_plugin.dockwidget.show()
     pylint_plugin.dockwidget.raise_()
 
+    # Create base temporary directory
+    basedir = tmpdir.mkdir('foo')
+
     # Open some files
     for idx in range(2):
-        _, fname = tempfile.mkstemp(suffix='{}.py'.format(idx))
-        main_window.open_file(fname)
+        fh = basedir.join('{}.py'.format(idx))
+        fname = str(fh)
+        fh.write('print("Hello world!")')
+        main_window.open_file(fh)
         qtbot.wait(200)
         assert fname == pylint_plugin.get_filename()
 
@@ -1846,9 +1851,11 @@ def test_pylint_follows_file(main_window, qtbot):
     qtbot.wait(500)
 
     # Open other files
-    for idx in range(2):
-        _, fname = tempfile.mkstemp(suffix='{}.py'.format(idx))
-        main_window.open_file(fname)
+    for idx in range(4):
+        fh = basedir.join('{}.py'.format(idx))
+        fh.write('print("Hello world!")')
+        fname = str(fh)
+        main_window.open_file(fh)
         qtbot.wait(200)
         assert fname == pylint_plugin.get_filename()
 
