@@ -423,8 +423,8 @@ def get_icon_by_extension_or_type(fname, scale_factor):
         __, extension = osp.splitext(basename.lower())
         mime_type, __ = mime.guess_type(basename)
         if is_dark_interface():
-                    icon_by_extension = QIcon(
-                        get_image_path('binary.svg'))
+            icon_by_extension = QIcon(
+                get_image_path('binary.svg'))
         else:
             icon_by_extension = QIcon(
                 get_image_path('binary_light.svg'))
