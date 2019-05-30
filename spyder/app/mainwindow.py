@@ -171,7 +171,7 @@ from spyder.utils.qthelpers import (create_action, add_actions, get_icon,
                                     create_module_bookmark_actions,
                                     create_program_action, DialogManager,
                                     create_python_script_action, file_uri)
-from spyder.config.gui import get_shortcut, get_iconsize
+from spyder.config.gui import get_iconsize, get_shortcut
 from spyder.otherplugins import get_spyderplugins_mods
 from spyder.app import tour
 
