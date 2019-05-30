@@ -136,7 +136,8 @@ class EditTabNamePopup(QLineEdit):
 
 class BaseTabBar(QTabBar):
     """Tabs base class with variable tab height support."""
-    def __init__(self, parent):
+
+    def __init__(self, parent=None):
         QTabBar.__init__(self, parent)
         self._tabheight = None
 
@@ -286,7 +287,7 @@ class BaseTabs(QTabWidget):
                  corner_widgets=None, menu_use_tooltips=False):
         QTabWidget.__init__(self, parent)
         self.setUsesScrollButtons(True)
-        self.setTabBar(BaseTabBar(self))
+        self.setTabBar(BaseTabBar())
 
         # To style tabs on Mac
         if sys.platform == 'darwin':
