@@ -20,7 +20,8 @@ import logging
 # Third party imports
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt, Signal, Slot
-from qtpy.QtWidgets import QInputDialog, QLineEdit, QMenu, QHBoxLayout
+from qtpy.QtWidgets import (QInputDialog, QLineEdit, QMenu, QHBoxLayout,
+                            QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import _, DEV, get_debug_level
@@ -39,6 +40,8 @@ from spyder.plugins.variableexplorer.widgets.collectionseditor import (
 from spyder.widgets.reporterror import SpyderErrorDialog
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import to_text_string
+from spyder.api.toolbar import SpyderPluginToolbar
+
 
 logger = logging.getLogger(__name__)
 
@@ -81,19 +84,22 @@ class Console(SpyderPluginWidget):
         self.find_widget.hide()
         self.register_widget_shortcuts(self.find_widget)
 
+        # Plugin toolbar
+        self.toolbar = SpyderPluginToolbar()
+        self.toolbar.add_options_btn(self.options_button)
+
         # Main layout
-        btn_layout = QHBoxLayout()
-        btn_layout.setAlignment(Qt.AlignLeft)
-        btn_layout.addStretch()
-        btn_layout.addWidget(self.options_button, Qt.AlignRight)
-        layout = create_plugin_layout(btn_layout)
-        layout.addWidget(self.shell)
-        layout.addWidget(self.find_widget)
-        self.setLayout(layout)
-        
+        main_widget = QWidget()
+        bottom_layout = QVBoxLayout(main_widget)
+        bottom_layout.setContentsMargins(0, 0, 0, 0)
+        bottom_layout.addWidget(self.shell)
+        bottom_layout.addWidget(self.find_widget)
+
+        self.setLayout(create_plugin_layout(self.toolbar, main_widget))
+
         # Parameters
         self.shell.toggle_wrap_mode(self.get_option('wrap'))
-            
+
         # Accepting drops
         self.setAcceptDrops(True)
 
@@ -117,7 +123,13 @@ class Console(SpyderPluginWidget):
     def get_plugin_title(self):
         """Return widget title"""
         return _('Internal console')
-    
+
+    def set_plugin_icon_size(self, iconsize):
+        """
+        Set the icon size of plugin.
+        """
+        self.tabwidget.set_iconsize(iconsize)
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
