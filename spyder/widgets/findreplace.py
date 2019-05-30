@@ -17,18 +17,18 @@ import re
 # Third party imports
 from qtpy.QtCore import Qt, QTimer, Signal, Slot, QEvent
 from qtpy.QtGui import QTextCursor
-from qtpy.QtWidgets import (QGridLayout, QHBoxLayout, QLabel,
-                            QSizePolicy, QWidget)
+from qtpy.QtWidgets import QLabel, QSizePolicy, QWidget
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import config_shortcut
+from spyder.config.gui import config_shortcut, get_iconsize
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import regexp_error_msg
 from spyder.plugins.editor.utils.editor import TextHelper
 from spyder.utils.qthelpers import create_toolbutton, get_icon
 from spyder.widgets.comboboxes import PatternComboBox
+from spyder.api.toolbar import SpyderPluginToolbar
 
 
 def is_position_sup(pos1, pos2):
@@ -40,7 +40,7 @@ def is_position_inf(pos1, pos2):
     return pos1 < pos2
 
 
-class FindReplace(QWidget):
+class FindReplace(SpyderPluginToolbar):
     """Find widget"""
     STYLE = {False: "background-color:rgb(255, 175, 90);",
              True: "",
@@ -57,18 +57,14 @@ class FindReplace(QWidget):
     return_pressed = Signal()
 
     def __init__(self, parent, enable_replace=False):
-        QWidget.__init__(self, parent)
+        super(FindReplace, self).__init__(parent)
         self.enable_replace = enable_replace
         self.editor = None
         self.is_code_editor = None
 
-        glayout = QGridLayout()
-        glayout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(glayout)
-
-        self.close_button = create_toolbutton(self, triggered=self.hide,
-                                      icon=ima.icon('DialogCloseButton'))
-        glayout.addWidget(self.close_button, 0, 0)
+        self.close_button = create_toolbutton(
+            self, triggered=self.hide, icon=ima.icon('DialogCloseButton'))
+        self.add_close_btn(self.close_button)
 
         # Find layout
         self.search_text = PatternComboBox(self, tip=_("Search string"),
@@ -121,14 +117,14 @@ class FindReplace(QWidget):
         self.highlight_button.setCheckable(True)
         self.highlight_button.toggled.connect(self.toggle_highlighting)
 
-        hlayout = QHBoxLayout()
         self.widgets = [self.close_button, self.search_text,
                         self.number_matches_text, self.previous_button,
                         self.next_button, self.re_button, self.case_button,
                         self.words_button, self.highlight_button]
         for widget in self.widgets[1:]:
-            hlayout.addWidget(widget)
-        glayout.addLayout(hlayout, 0, 1)
+            if widget == self.number_matches_text:
+                self.add_spacing('label')
+            self.add_item(widget)
 
         # Replace layout
         replace_with = QLabel(_("Replace with:"))
@@ -157,12 +153,12 @@ class FindReplace(QWidget):
         self.replace_all_button.clicked.connect(self.update_replace_combo)
         self.replace_all_button.clicked.connect(self.update_search_combo)
 
-        self.replace_layout = QHBoxLayout()
         widgets = [replace_with, self.replace_text, self.replace_button,
                    self.replace_sel_button, self.replace_all_button]
         for widget in widgets:
-            self.replace_layout.addWidget(widget)
-        glayout.addLayout(self.replace_layout, 1, 1)
+            if widget == self.replace_text:
+                self.add_spacing('label', row=1)
+            self.add_item(widget, row=1)
         self.widgets.extend(widgets)
         self.replace_widgets = widgets
         self.hide_replace()
@@ -170,6 +166,7 @@ class FindReplace(QWidget):
         self.search_text.setTabOrder(self.search_text, self.replace_text)
 
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.set_iconsize(get_iconsize(panel=True))
 
         self.shortcuts = self.create_shortcuts(parent)
 

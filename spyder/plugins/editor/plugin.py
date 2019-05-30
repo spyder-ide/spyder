@@ -325,6 +325,7 @@ class Editor(SpyderPluginWidget):
         """
         for editorstack in self.editorstacks:
             editorstack.tabs.set_iconsize(iconsize)
+            editorstack.find_widget.set_iconsize(iconsize)
 
     def get_focus_widget(self):
         """

@@ -214,6 +214,8 @@ class Help(SpyderPluginWidget):
         Set the icon size of plugin.
         """
         self.toolbar.set_iconsize(iconsize)
+        self.plain_text.find_widget.set_iconsize(iconsize)
+        self.rich_text.find_widget.set_iconsize(iconsize)
 
     def get_focus_widget(self):
         """
