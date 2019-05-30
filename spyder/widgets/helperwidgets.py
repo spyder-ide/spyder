@@ -31,11 +31,8 @@ class HelperToolButton(QToolButton):
         self.setIcon(get_std_icon('MessageBoxInformation'))
         style = """
             QToolButton {
-              border: 1px solid grey;
               padding:0px;
               border-radius: 2px;
-              background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                  stop: 0 #f6f7fa, stop: 1 #dadbde);
             }
             """
         self.setStyleSheet(style)
