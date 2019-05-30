@@ -538,16 +538,18 @@ class CodeEditor(TextEditBaseWidget):
             uri, cursor = self.get_uri_at(pos)
             text = self.get_word_at(pos)
             if uri:
-                ctrl_text = ' Cmd' if sys.platform == "darwin" else ' Ctrl'
+                ctrl_text = 'Cmd' if sys.platform == "darwin" else 'Ctrl'
 
                 if uri.startswith('file://'):
-                    hint_text = ctrl_text + ' + click to open file \n'
+                    hint_text = ctrl_text + ' + click to open file'
                 elif uri.startswith('mailto:'):
-                    hint_text = ctrl_text + ' + click to send email \n'
+                    hint_text = ctrl_text + ' + click to send email'
                 elif uri.startswith('http'):
-                    hint_text = ctrl_text + ' + click to open url \n'
+                    hint_text = ctrl_text + ' + click to open url'
                 else:
-                    hint_text = ctrl_text + ' + click to open \n'
+                    hint_text = ctrl_text + ' + click to open'
+
+                hint_text = '<span>&nbsp;{}&nbsp;</span>'.format(hint_text)
 
                 self.show_tooltip(text=hint_text, at_point=pos)
                 return
@@ -1887,18 +1889,48 @@ class CodeEditor(TextEditBaseWidget):
 
     def show_code_analysis_results(self, line_number, block_data):
         """Show warning/error messages."""
-        code_analysis = block_data.code_analysis
-        template = '{0} [{1}]: {2}'
-        msglist = [template.format(src, code, msg) for src, code, _sev, msg
-                   in code_analysis]
+        from spyder.config.base import get_image_path
+        # Diagnostic severity
+        icons = {
+            DiagnosticSeverity.ERROR: 'error',
+            DiagnosticSeverity.WARNING: 'warning',
+            DiagnosticSeverity.INFORMATION: 'information',
+            DiagnosticSeverity.HINT: 'hint',
+        }
 
-        self.show_tooltip(
-            title=_("Code analysis"),
-            text='\n'.join(msglist),
-            title_color='#129625',
-            at_line=line_number,
+        code_analysis = block_data.code_analysis
+
+        # Size must be adapted from font
+        fm = self.fontMetrics()
+        size = fm.height()
+        template = (
+            '<img src="data:image/png;base64, {}"'
+            ' height="{size}" width="{size}" />&nbsp;'
+            '{} <i>({} {})</i>'
         )
-        self.highlight_line_warning(block_data)
+
+        msglist = []
+        sorted_code_analysis = sorted(code_analysis, key=lambda i: i[2])
+        for src, code, sev, msg in sorted_code_analysis:
+            if '[' in msg and ']' in msg:
+                # Remove extra redundant info from pyling messages
+                msg = msg.split(']')[-1]
+
+            msg = msg.strip()
+            # Avoid messing TODO, FIXME
+            msg = msg[0].upper() + msg[1:]
+            base_64 = ima.base64_from_icon(icons[sev], size, size)
+            msglist.append(template.format(base_64, msg, src,
+                                           code, size=size))
+
+        if msglist:
+            self.show_tooltip(
+                title=_("Code analysis"),
+                text='\n'.join(msglist),
+                title_color='#129625',
+                at_line=line_number,
+            )
+            self.highlight_line_warning(block_data)
 
     def highlight_line_warning(self, block_data):
         self.clear_extra_selections('code_analysis')

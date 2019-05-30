@@ -5,13 +5,15 @@
 # (see spyder/__init__.py for details)
 
 # Standard library imports
+import base64
 import os
 import os.path as osp
 import mimetypes as mime
 import sys
 
 # Third party imports
-from qtpy.QtGui import QIcon
+from qtpy.QtCore import QBuffer, QByteArray
+from qtpy.QtGui import QIcon, QImage
 from qtpy.QtWidgets import QStyle, QWidget
 
 # Local imports
@@ -161,6 +163,8 @@ _qtaargs = {
     'gotoline':                [('fa.sort-numeric-asc',), {'color': MAIN_FG_COLOR}],
     'error':                   [('fa.times-circle',), {'color': 'darkred'}],
     'warning':                 [('fa.warning',), {'color': 'orange'}],
+    'information':             [('fa.info-circle',), {'color': '#3775a9'}],
+    'hint':                    [('fa.lightbulb-o',), {'color': 'yellow'}],
     'todo':                    [('fa.exclamation',), {'color': '#3775a9'}],
     'ipython_console':         [('spyder.ipython-logo-alt',), {'color': MAIN_FG_COLOR}],
     'ipython_console_t':       [('spyder.ipython-logo-alt',), {'color':'gray'}],
@@ -464,3 +468,13 @@ def get_icon_by_extension(fname, scale_factor):
                         icon_by_extension = icon(
                             application_icons[bin_name], scale_factor)
     return icon_by_extension
+
+
+def base64_from_icon(icon_name, width, height):
+    """Convert icon to base64 encoding."""
+    icon_obj = icon(icon_name)
+    image = QImage(icon_obj.pixmap(width, height).toImage())
+    byte_array = QByteArray()
+    buffer = QBuffer(byte_array)
+    image.save(buffer, "PNG")
+    return byte_array.toBase64().data().decode()
