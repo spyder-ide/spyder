@@ -35,6 +35,7 @@ class Plots(SpyderPluginWidget):
 
         # Widgets
         self.stack = QStackedWidget(self)
+        self.stack.setStyleSheet("QStackedWidget{padding: 0px; border: 0px}")
         self.shellwidgets = {}
 
         # Layout
