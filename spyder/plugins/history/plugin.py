@@ -73,16 +73,15 @@ class HistoryLog(SpyderPluginWidget):
         # Menu as corner widget
         self.tabwidget.set_corner_widgets(
             {Qt.TopRightCorner: [self.options_button]})
-        self.set_plugin_icon_size(get_iconsize(panel=True))
 
         # Find/replace widget
         self.find_widget = FindReplace(self)
         self.find_widget.hide()
         self.register_widget_shortcuts(self.find_widget)
-
         layout.addWidget(self.find_widget)
 
         self.setLayout(layout)
+        self.set_plugin_icon_size(get_iconsize(panel=True))
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
