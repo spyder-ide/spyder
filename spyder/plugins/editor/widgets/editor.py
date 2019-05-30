@@ -363,9 +363,9 @@ class TabSwitcherWidget(QListWidget):
 
     def set_dialog_position(self):
         """Positions the tab switcher in the top-center of the editor."""
-        left = self.editor.geometry().width()/2 - self.width()/2
-        top = self.editor.tabs.tabBar().geometry().height()
-
+        left = self.editor.size().width()/2 - self.width()/2
+        top = (self.editor.tabs.tabBar().size().height() +
+               self.editor.fname_label.size().height())
         self.move(self.editor.mapToGlobal(QPoint(left, top)))
 
     def keyReleaseEvent(self, event):
