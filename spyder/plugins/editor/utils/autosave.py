@@ -231,12 +231,7 @@ class AutosaveForStack(object):
         (if it exists) or the original file (if no autosave filee exists),
         then do nothing. If the current contents are the same as the file on
         disc, but the autosave file is different, then remove the autosave
-        file.
-
-        In all other cases, save a copy in a file with the name given by
-        `self.get_autosave_filename()` and update the cached hash of the
-        autosave file. An error dialog notifies the user of any errors raised
-        when saving.
+        file. In all other cases, autosave the file.
 
         Args:
             index (int): index into self.stack.data
@@ -258,6 +253,19 @@ class AutosaveForStack(object):
         else:
             if new_hash == orig_hash:
                 return
+        self.autosave(finfo)
+
+    def autosave(self, finfo):
+        """
+        Autosave a file.
+
+        Save a copy in a file with name `self.get_autosave_filename()` and
+        update the cached hash of the autosave file. An error dialog notifies
+        the user of any errors raised when saving.
+
+        Args:
+            fileinfo (FileInfo): file that is to be autosaved.
+        """
         autosave_filename = self.get_autosave_filename(finfo.filename)
         logger.debug('Autosaving %s to %s', finfo.filename, autosave_filename)
         try:
