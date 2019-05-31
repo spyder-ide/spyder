@@ -39,7 +39,7 @@ class SpyderPluginToolbar(QWidget):
         self.layout.setContentsMargins(0, 0, 0, bottom_margin)
 
     def _add_hboxlayout_at_row(self, row):
-        """Add a new QHBoxLayout at row row."""
+        """Add a new QHBoxLayout at row."""
         row_layout = QHBoxLayout()
         row_layout.setContentsMargins(0, 0, 0, 0)
         row_layout.setSpacing(QApplication.instance().style().pixelMetric(
@@ -49,8 +49,7 @@ class SpyderPluginToolbar(QWidget):
 
     def _get_hboxlayout_at_row(self, row):
         """
-        Return the QHBoxLayout at row row. Add one if it doesn't already
-        exist.
+        Return the QHBoxLayout at row. Add one if it doesn't already exist.
         """
         if self.layout.itemAtPosition(row, self.CONTENT_COL) is None:
             self._add_hboxlayout_at_row(row)
@@ -58,7 +57,7 @@ class SpyderPluginToolbar(QWidget):
 
     def set_row_visible(self, row, state):
         """
-        Set the visibility of all widgets at row row to state.
+        Set the visibility of all widgets at row to state.
         """
         hboxlayout = self.layout.itemAtPosition(row, self.CONTENT_COL)
         if (state and not self.isVisible()) or hboxlayout is None:
@@ -72,7 +71,7 @@ class SpyderPluginToolbar(QWidget):
     def add_item(self, item, stretch=None, row=0):
         """
         Add a widget or a layout with an horizontal stretch factor stretch
-        to the end of row row of this toolbar.
+        to the end of this toolbar at row.
         """
         row_layout = self._get_hboxlayout_at_row(row)
 
@@ -98,22 +97,22 @@ class SpyderPluginToolbar(QWidget):
     def add_widget(self, widget, stretch=None, row=0):
         """
         Add a widget with an horizontal stretch factor stretch to the end
-        of row row of this toolbar.
+        of this toolbar at row.
         """
         self.add_item(widget, stretch=stretch, row=row)
 
     def add_stretch(self, stretch, row=0):
         """
         Add a stretchable space with zero minimum size and stretch factor
-        stretch to the end of this toolbar.
+        stretch to the end of this toolbar at row.
         """
         row_layout = self._get_hboxlayout_at_row(row)
         row_layout.addStretch(stretch)
 
     def add_spacing(self, spacing=None, row=0):
         """
-        Add a non-stretchable space with size spacing to the end of
-        this toolbar.
+        Add a non-stretchable space with size spacing to the end
+        of this toolbar at row.
         """
         row_layout = self._get_hboxlayout_at_row(row)
         if spacing is None:
@@ -125,7 +124,7 @@ class SpyderPluginToolbar(QWidget):
         row_layout.addSpacing(spacing)
 
     def add_options_button(self, options_button, spacing=None, stretch=1):
-        """Add options_btn to the top right corner of this toolbar."""
+        """Add `options_button` to the top right corner of this toolbar."""
         if spacing is None:
             spacing = QApplication.instance().style().pixelMetric(
                 QStyle.PM_ToolBarItemSpacing)
@@ -135,7 +134,7 @@ class SpyderPluginToolbar(QWidget):
         self.layout.addWidget(options_button, 0, self.OPTIONS_COL)
 
     def add_close_button(self, close_button):
-        """Add close_btn to the top left corner of this toolbar."""
+        """Add `close_button` to the top left corner of this toolbar."""
         spacing = QApplication.instance().style().pixelMetric(
             QStyle.PM_LayoutHorizontalSpacing)
         self.layout.setColumnMinimumWidth(self.CLOSE_COL + 1, spacing)
