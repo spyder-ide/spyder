@@ -291,10 +291,7 @@ class SpyderPluginWidget(PluginWidget):
         This must be reimplemented by plugins that need to adjust the icon
         size of their toolbar.
         """
-        try:
-            self.options_button.setIconSize(QSize(iconsize, iconsize))
-        except AttributeError:
-            pass
+        pass
 
     def get_focus_widget(self):
         """
