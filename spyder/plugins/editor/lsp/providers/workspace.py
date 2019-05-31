@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Spyder Language Server Protocol Client window handler routines."""
+"""Spyder Language Server Protocol Client workspace handler routines."""
 
 import logging
 
@@ -23,3 +23,17 @@ class WorkspaceProvider:
             'settings': configurations
         }
         return params
+
+    @handles(LSPRequestTypes.WORKSPACE_FOLDERS)
+    @send_request(method=LSPRequestTypes.WORKSPACE_FOLDERS,
+                  requires_response=False)
+    def send_workspace_folders(self, response):
+        workspace_folders = []
+        for folder_info in self.watched_folders:
+            folder_uri = folder_info['uri']
+            folder_name = folder_info['name']
+            workspace_folders.append({
+                'uri': folder_uri,
+                'name': folder_name
+            })
+        return workspace_folders

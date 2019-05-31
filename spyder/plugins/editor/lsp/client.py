@@ -85,6 +85,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.request_seq = 1
         self.req_status = {}
         self.watched_files = {}
+        self.watched_folders = {}
         self.req_reply = {}
 
         self.transport_args = [sys.executable, '-u',
