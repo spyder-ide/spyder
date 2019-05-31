@@ -569,14 +569,14 @@ def calc_tools_spacing(tools_layout):
         return max(spacing, 0)
 
 
-def create_plugin_layout(tools_layout, main_widget=None):
+def create_plugin_layout(toolbar, main_widget=None):
     """
     Returns a layout for a set of controls above a main widget. This is a
     standard layout for many plugin panes (even though, it's currently
     more often applied not to the pane itself but with in the one widget
     contained in the pane.
 
-    tools_layout: a layout containing the top toolbar
+    toolbar: a wiget used as the top toolbar of the layout
     main_widget: the main widget. Can be None, if you want to add this
         manually later on.
     """
@@ -584,9 +584,12 @@ def create_plugin_layout(tools_layout, main_widget=None):
     layout.setContentsMargins(0, 0, 0, 0)
     layout.setSpacing(0)
     try:
-        layout.addLayout(tools_layout)
+        # This is needed to support non-default old plugins that may still
+        # pass a layout as the toolbar argument instead of a widget.
+        # See PR#9452.
+        layout.addWidget(toolbar)
     except TypeError:
-        layout.addWidget(tools_layout)
+        layout.addLayout(toolbar)
     if main_widget is not None:
         layout.addWidget(main_widget)
     layout.setStretch(1, 1)
