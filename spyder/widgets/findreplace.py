@@ -64,7 +64,7 @@ class FindReplace(SpyderPluginToolbar):
 
         self.close_button = create_toolbutton(
             self, triggered=self.hide, icon=ima.icon('DialogCloseButton'))
-        self.add_close_btn(self.close_button)
+        self.add_close_button(self.close_button)
 
         # Find layout
         self.search_text = PatternComboBox(self, tip=_("Search string"),

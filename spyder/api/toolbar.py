@@ -134,12 +134,12 @@ class SpyderPluginToolbar(QWidget):
             self.layout.setColumnStretch(self.OPTIONS_COL - 1, stretch)
         self.layout.addWidget(options_button, 0, self.OPTIONS_COL)
 
-    def add_close_btn(self, close_btn):
+    def add_close_button(self, close_button):
         """Add close_btn to the top left corner of this toolbar."""
         spacing = QApplication.instance().style().pixelMetric(
             QStyle.PM_LayoutHorizontalSpacing)
         self.layout.setColumnMinimumWidth(self.CLOSE_COL + 1, spacing)
-        self.layout.addWidget(close_btn, 0, self.CLOSE_COL)
+        self.layout.addWidget(close_button, 0, self.CLOSE_COL)
 
     def set_iconsize(self, iconsize):
         """Set the icon size of the toolbar."""
