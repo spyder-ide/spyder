@@ -399,6 +399,16 @@ EXECUTE_COMMAND_OPTIONS = {
     'commands': []
 }
 
+# Workspace options.
+
+WORKSPACE_OPTIONS = {
+    # The server has support for workspace folders
+    'workspaceFolders': {
+        'supported': False,
+        'changeNotifications': False
+    }
+}
+
 
 # Server available capabilites options as defined by the protocol.
 
@@ -455,6 +465,9 @@ SERVER_CAPABILITES = {
 
     # The server provides execute command support.
     'executeCommandProvider': EXECUTE_COMMAND_OPTIONS,
+
+    # Workspace specific server capabillities.
+    'workspace': WORKSPACE_OPTIONS,
 
     # Experimental server capabilities.
     'experimental': None

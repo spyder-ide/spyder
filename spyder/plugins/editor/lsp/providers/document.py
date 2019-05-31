@@ -13,23 +13,18 @@ from spyder.py3compat import PY2
 from spyder.plugins.editor.lsp import (
     LSPRequestTypes, InsertTextFormat, CompletionItemKind,
     ClientConstants)
+from spyder.plugins.editor.lsp.providers.utils import path_as_uri
 from spyder.plugins.editor.lsp.decorators import handles, send_request
 
 if PY2:
-    import pathlib2 as pathlib
     from urlparse import urlparse
     from urllib import url2pathname
 else:
-    import pathlib
     from urllib.parse import urlparse
     from urllib.request import url2pathname
 
 
 logger = logging.getLogger(__name__)
-
-
-def path_as_uri(path):
-    return pathlib.Path(osp.abspath(path)).as_uri()
 
 
 class DocumentProvider:
