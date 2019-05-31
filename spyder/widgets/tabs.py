@@ -155,7 +155,7 @@ class BaseTabBar(QTabBar):
             self.repaint()
 
     def tabSizeHint(self, index):
-        """Qt method override."""
+        """Override Qt method."""
         if self._tabheight is None:
             return QTabBar.tabSizeHint(self, index)
         else:
@@ -163,7 +163,7 @@ class BaseTabBar(QTabBar):
                          self._tabheight)
 
     def sizeHint(self):
-        """Qt method override."""
+        """Override Qt method."""
         if self._tabheight is None:
             return QTabBar.sizeHint(self)
         else:
