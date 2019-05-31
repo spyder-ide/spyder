@@ -48,7 +48,7 @@ def test_autosave(mocker):
     mock_editor = mocker.Mock()
     mock_fileinfo = mocker.Mock(editor=mock_editor, filename='orig',
                                 newly_created=False)
-    mock_document = mocker.Mock(changed_since_autosave=True)
+    mock_document = mocker.Mock()
     mock_fileinfo.editor.document.return_value = mock_document
     mock_stack = mocker.Mock(data=[mock_fileinfo])
     addon = AutosaveForStack(mock_stack)

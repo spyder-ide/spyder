@@ -159,8 +159,7 @@ class AutosaveForStack(object):
         """
         Remove autosave file for specified file.
 
-        This function also updates `self.autosave_mapping` and clears the
-        `changed_since_autosave` flag.
+        This function also updates `self.name_mapping` and `self.file_hashes`.
         """
         if filename not in self.name_mapping:
             return
@@ -235,9 +234,9 @@ class AutosaveForStack(object):
         file.
 
         In all other cases, save a copy in a file with the name given by
-        `self.get_autosave_filename()` and clear the `changed_since_autosave`
-        flag and update the cached hash of the autosave file. An error dialog
-        notifies the user of any errors raised when saving.
+        `self.get_autosave_filename()` and update the cached hash of the
+        autosave file. An error dialog notifies the user of any errors raised
+        when saving.
 
         Args:
             index (int): index into self.stack.data
@@ -263,7 +262,6 @@ class AutosaveForStack(object):
         logger.debug('Autosaving %s to %s', finfo.filename, autosave_filename)
         try:
             self.stack._write_to_file(finfo, autosave_filename)
-            finfo.editor.document().changed_since_autosave = False
             autosave_hash = self.stack.compute_hash(finfo)
             self.file_hashes[autosave_filename] = autosave_hash
         except EnvironmentError as error:

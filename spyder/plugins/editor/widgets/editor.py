@@ -199,7 +199,6 @@ class FileInfo(QObject):
     def text_changed(self):
         """Editor's text has changed"""
         self.default = False
-        self.editor.document().changed_since_autosave = True
         self.text_changed_at.emit(self.filename,
                                   self.editor.get_position('cursor'))
 
@@ -1753,7 +1752,6 @@ class EditorStack(QWidget):
                                  finfo.filename, finfo.filename)
 
             finfo.editor.document().setModified(False)
-            finfo.editor.document().changed_since_autosave = False
             self.modification_changed(index=index)
             self.analyze_script(index)
 
@@ -2238,7 +2236,6 @@ class EditorStack(QWidget):
         position = finfo.editor.get_position('cursor')
         finfo.editor.set_text(txt)
         finfo.editor.document().setModified(False)
-        finfo.editor.document().changed_since_autosave = False
         self.autosave.file_hashes[finfo.filename] = hash(txt)
         finfo.editor.set_cursor_position(position)
 
@@ -2330,7 +2327,6 @@ class EditorStack(QWidget):
         if cloned_from is None:
             editor.set_text(txt)
             editor.document().setModified(False)
-            editor.document().changed_since_autosave = False
         finfo.text_changed_at.connect(
             lambda fname, position:
             self.text_changed_at.emit(fname, position))
