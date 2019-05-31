@@ -145,8 +145,9 @@ class BaseTabBar(QTabBar):
         """Set the height of the tabs."""
         iconsize = self.iconSize()
         fm = self.fontMetrics()
-        vframe = QApplication.instance().style().pixelMetric(
-            QStyle.PM_TabBarTabVSpace)
+        style = QApplication.instance().style()
+        vframe = (style.pixelMetric(QStyle.PM_TabBarTabVSpace) +
+                  style.pixelMetric(QStyle.PM_TabBarTabShiftVertical))
 
         self._tab_height = max(iconsize.height(), fm.height(), height) + vframe
         if self.parent():
