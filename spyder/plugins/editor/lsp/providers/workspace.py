@@ -9,10 +9,17 @@
 import logging
 
 from spyder.plugins.editor.lsp import LSPRequestTypes
-from spyder.plugins.editor.lsp.decorators import handles
+from spyder.plugins.editor.lsp.decorators import handles, send_request
 
 logger = logging.getLogger(__name__)
 
 
 class WorkspaceProvider:
-    pass
+    @send_request(method=LSPRequestTypes.WORKSPACE_CONFIGURATION_CHANGE,
+                  requires_response=False)
+    def send_plugin_configurations(self, configurations, *args):
+        self.plugin_configurations = configurations
+        params = {
+            'settings': configurations
+        }
+        return params
