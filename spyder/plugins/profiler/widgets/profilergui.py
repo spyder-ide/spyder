@@ -149,7 +149,7 @@ class ProfilerWidget(QWidget):
         self.toolbar.add_item(self.start_button)
         self.toolbar.add_item(self.stop_button)
         if options_button:
-            self.toolbar.add_options_btn(options_button, stretch=None)
+            self.toolbar.add_options_button(options_button, stretch=None)
 
         # Toolbar Layout 2
         self.toolbar.add_item(self.collapse_button, row=1)

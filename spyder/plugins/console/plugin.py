@@ -86,7 +86,7 @@ class Console(SpyderPluginWidget):
 
         # Plugin toolbar
         self.toolbar = SpyderPluginToolbar()
-        self.toolbar.add_options_btn(self.options_button)
+        self.toolbar.add_options_button(self.options_button)
 
         # Main layout
         main_widget = QWidget()

@@ -132,7 +132,7 @@ class Help(SpyderPluginWidget):
         self.toolbar.add_item(self.object_edit)
 
         self.toolbar.add_item(self.locked_button)
-        self.toolbar.add_options_btn(self.options_button, stretch=None)
+        self.toolbar.add_options_button(self.options_button, stretch=None)
         self.toolbar.set_iconsize(get_iconsize(panel=True))
 
         # Plain text docstring option

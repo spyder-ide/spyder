@@ -124,7 +124,7 @@ class SpyderPluginToolbar(QWidget):
                 QStyle.PM_CheckBoxLabelSpacing)
         row_layout.addSpacing(spacing)
 
-    def add_options_btn(self, options_btn, spacing=None, stretch=1):
+    def add_options_button(self, options_button, spacing=None, stretch=1):
         """Add options_btn to the top right corner of this toolbar."""
         if spacing is None:
             spacing = QApplication.instance().style().pixelMetric(
@@ -132,7 +132,7 @@ class SpyderPluginToolbar(QWidget):
         self.layout.setColumnMinimumWidth(self.OPTIONS_COL - 1, spacing)
         if stretch is not None:
             self.layout.setColumnStretch(self.OPTIONS_COL - 1, stretch)
-        self.layout.addWidget(options_btn, 0, self.OPTIONS_COL)
+        self.layout.addWidget(options_button, 0, self.OPTIONS_COL)
 
     def add_close_btn(self, close_btn):
         """Add close_btn to the top left corner of this toolbar."""

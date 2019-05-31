@@ -223,7 +223,7 @@ class NamespaceBrowser(QWidget):
             self.options_menu = QMenu(self)
             add_actions(self.options_menu, actions)
             self.options_button.setMenu(self.options_menu)
-        self.toolbar.add_options_btn(self.options_button)
+        self.toolbar.add_options_button(self.options_button)
 
     def option_changed(self, option, value):
         """Option has changed"""

@@ -460,7 +460,7 @@ class FindOptions(SpyderPluginToolbar):
                        self.ok_button, self.stop_button, self.more_options]:
             self.add_item(widget)
         if options_button:
-            self.add_options_btn(options_button, stretch=None)
+            self.add_options_button(options_button, stretch=None)
 
         # Toolbar Layout 2
         self.exclude_pattern = PatternComboBox(self, exclude,

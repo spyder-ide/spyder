@@ -1450,7 +1450,7 @@ class ExplorerWidget(QWidget):
         self.toolbar.add_item(button_previous)
         self.toolbar.add_item(button_next)
         self.toolbar.add_item(button_parent)
-        self.toolbar.add_options_btn(self.button_menu)
+        self.toolbar.add_options_button(self.button_menu)
         self.toolbar.set_iconsize(get_iconsize(panel=True))
 
         layout = create_plugin_layout(self.toolbar, self.treewidget)
