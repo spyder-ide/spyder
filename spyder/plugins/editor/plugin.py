@@ -302,6 +302,11 @@ class Editor(SpyderPluginWidget):
             language, settings))
         self.lsp_server_ready(language, self.lsp_editor_settings[language])
 
+    def stop_lsp_services(self, language):
+        """Notify all editorstacks about LSP server unavailability."""
+        for editorstack in self.editorstacks:
+            editorstack.notify_server_down(language)
+
     def lsp_server_ready(self, language, configuration):
         """Notify all stackeditors about LSP server availability."""
         for editorstack in self.editorstacks:

@@ -852,6 +852,9 @@ class CodeEditor(TextEditBaseWidget):
             self.lsp_ready = True
             self.document_did_open()
 
+    def stop_lsp_services(self):
+        self.lsp_ready = False
+
     def parse_lsp_config(self, config):
         """Parse and load LSP server editor capabilities."""
         sync_options = config['textDocumentSync']

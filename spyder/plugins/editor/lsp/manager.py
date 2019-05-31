@@ -208,6 +208,7 @@ class LSPManager(QObject):
                     if self.clients[language]['status'] == self.STOPPED:
                         self.clients[language] = config
                     elif self.clients[language]['status'] == self.RUNNING:
+                        self.main.editor.stop_lsp_services(language)
                         self.close_client(language)
                         self.clients[language] = config
                         self.start_client(language)
