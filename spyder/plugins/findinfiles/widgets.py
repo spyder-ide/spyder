@@ -43,7 +43,7 @@ from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.comboboxes import PatternComboBox
 from spyder.widgets.onecolumntree import OneColumnTree
 from spyder.utils.misc import regexp_error_msg
-from spyder.utils.qthelpers import create_toolbutton
+from spyder.utils.qthelpers import create_plugin_layout, create_toolbutton
 from spyder.config.gui import get_font
 from spyder.widgets.waitingspinner import QWaitingSpinner
 
@@ -958,6 +958,7 @@ class FindInFilesWidget(QWidget):
         self.status_bar = FileProgressBar(self)
         self.status_bar.hide()
 
+        # Create toolbar.
         self.find_options = FindOptions(self, search_text,
                                         search_text_regexp,
                                         exclude, exclude_idx,
@@ -972,16 +973,15 @@ class FindInFilesWidget(QWidget):
 
         self.result_browser = ResultsBrowser(self, text_color=text_color)
 
-        hlayout = QHBoxLayout()
-        hlayout.addWidget(self.result_browser)
+        # Create main widget.
+        main_widget = QWidget()
+        main_widget_layout = QVBoxLayout(main_widget)
+        main_widget_layout.setContentsMargins(0, 0, 0, 0)
+        main_widget_layout.addWidget(self.result_browser)
+        main_widget_layout.addWidget(self.status_bar)
 
-        layout = QVBoxLayout()
-        left, _x, right, bottom = layout.getContentsMargins()
-        layout.setContentsMargins(left, 0, right, bottom)
-        layout.addWidget(self.find_options)
-        layout.addLayout(hlayout)
-        layout.addWidget(self.status_bar)
-        self.setLayout(layout)
+        # Create plugin layout.
+        self.setLayout(create_plugin_layout(self.find_options, main_widget))
 
     def set_search_text(self, text):
         """Set search pattern"""
