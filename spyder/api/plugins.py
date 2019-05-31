@@ -81,7 +81,7 @@ class PluginWidget(QWidget, BasePluginMixin):
         if is_dark_interface():
             self.options_button.setStyleSheet(
                 ("QToolButton::menu-indicator{image: none;}\n"
-                 "QToolButton{padding: 3px;}"))
+                 "QToolButton{padding-right: 2px;}"))
         else:
             self.options_button.setStyleSheet(
                 "QToolButton::menu-indicator{image: none;}")

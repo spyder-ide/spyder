@@ -26,7 +26,7 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QLineEdit, QMenu,
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import config_shortcut
+from spyder.config.gui import config_shortcut, is_dark_interface
 from spyder.py3compat import PY2, to_binary_string, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import get_common_path
@@ -310,12 +310,16 @@ class BaseTabs(QTabWidget):
         corner_widgets.setdefault(Qt.TopLeftCorner, [])
         corner_widgets.setdefault(Qt.TopRightCorner, [])
 
-        self.browse_button = create_toolbutton(self,
-                                          icon=ima.icon('browse_tab'),
-                                          tip=_("Browse tabs"))
-        self.browse_button.setStyleSheet(
-            ("QToolButton::menu-indicator{image: none;}\n"
-             "QToolButton{margin: 1px; padding: 3px;}"))
+        self.browse_button = create_toolbutton(
+            self, icon=ima.icon('browse_tab'), tip=_("Browse tabs"))
+        # Don't show menu arrow and remove padding
+        if is_dark_interface():
+            self.browse_button.setStyleSheet(
+                ("QToolButton::menu-indicator{image: none;}\n"
+                 "QToolButton{padding-right: 2px;}"))
+        else:
+            self.browse_button.setStyleSheet(
+                "QToolButton::menu-indicator{image: none;}")
 
         self.browse_tabs_menu = QMenu(self)
         self.browse_button.setMenu(self.browse_tabs_menu)
