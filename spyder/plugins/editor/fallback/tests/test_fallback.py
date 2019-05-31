@@ -70,6 +70,7 @@ def fallback_editor(fallback, qtbot_module, request):
     return fallback, editor, diff_match
 
 
+@pytest.mark.slow
 def test_file_open_close(qtbot_module, fallback_editor):
     fallback, editor, diff_match = fallback_editor
 
@@ -99,6 +100,7 @@ def test_file_open_close(qtbot_module, fallback_editor):
     assert 'test.py' not in fallback.file_tokens
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize('file_fixture', language_list, indirect=True)
 def test_tokenize(qtbot_module, fallback_editor, file_fixture):
     filename, expected_tokens, contents = file_fixture
@@ -130,6 +132,7 @@ def test_tokenize(qtbot_module, fallback_editor, file_fixture):
     assert len(expected_tokens - tokens) == 0
 
 
+@pytest.mark.slow
 def test_token_update(qtbot_module, fallback_editor):
     fallback, editor, diff_match = fallback_editor
 
