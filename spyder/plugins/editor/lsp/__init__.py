@@ -398,6 +398,7 @@ class LSPRequestTypes:
     """Language Server Protocol request/response types."""
     # General requests
     INITIALIZE = 'initialize'
+    INITIALIZED = 'initialized'
     SHUTDOWN = 'shutdown'
     EXIT = 'exit'
     CANCEL_REQUEST = '$/cancelRequest'
@@ -410,6 +411,9 @@ class LSPRequestTypes:
     CLIENT_REGISTER_CAPABILITY = 'client/registerCapability'
     CLIENT_UNREGISTER_CAPABILITY = 'client/unregisterCapability'
     # Workspace requests
+    WORKSPACE_FOLDERS = 'workspace/workspaceFolders'
+    WORKSPACE_FOLDERS_CHANGE = 'workspace/didChangeWorkspaceFolders'
+    WORKSPACE_CONFIGURATION = 'workspace/configuration'
     WORKSPACE_CONFIGURATION_CHANGE = 'workspace/didChangeConfiguration'
     WORKSPACE_WATCHED_FILES_UPDATE = 'workspace/didChangeWatchedFiles'
     WORKSPACE_SYMBOL = 'workspace/symbol'

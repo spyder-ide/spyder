@@ -358,6 +358,12 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.server_capabilites.update(server_capabilites)
 
         self.sig_initialize.emit(self.server_capabilites, self.language)
+        self.initialized()
+
+    @send_request(method=LSPRequestTypes.INITIALIZED)
+    def initialized(self):
+        params = {}
+        return params
 
     @send_request(method=LSPRequestTypes.WORKSPACE_CONFIGURATION_CHANGE,
                   requires_response=False)
