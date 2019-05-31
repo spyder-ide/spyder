@@ -139,16 +139,16 @@ class BaseTabBar(QTabBar):
 
     def __init__(self, parent=None):
         QTabBar.__init__(self, parent)
-        self._tabheight = None
+        self._tab_height = None
 
-    def set_tabheight(self, height):
+    def set_tab_height(self, height):
         """Set the height of the tabs."""
         iconsize = self.iconSize()
         fm = self.fontMetrics()
         vframe = QApplication.instance().style().pixelMetric(
             QStyle.PM_TabBarTabVSpace)
 
-        self._tabheight = max(iconsize.height(), fm.height(), height) + vframe
+        self._tab_height = max(iconsize.height(), fm.height(), height) + vframe
         if self.parent():
             self.parent().repaint()
         else:
@@ -156,18 +156,18 @@ class BaseTabBar(QTabBar):
 
     def tabSizeHint(self, index):
         """Override Qt method."""
-        if self._tabheight is None:
+        if self._tab_height is None:
             return QTabBar.tabSizeHint(self, index)
         else:
             return QSize(QTabBar.tabSizeHint(self, index).width(),
-                         self._tabheight)
+                         self._tab_height)
 
     def sizeHint(self):
         """Override Qt method."""
-        if self._tabheight is None:
+        if self._tab_height is None:
             return QTabBar.sizeHint(self)
         else:
-            return QSize(QTabBar.sizeHint(self).width(), self._tabheight)
+            return QSize(QTabBar.sizeHint(self).width(), self._tab_height)
 
 
 class TabBar(BaseTabBar):
@@ -472,7 +472,7 @@ class BaseTabs(QTabWidget):
         size = style.sizeFromContents(
             QStyle.CT_ToolButton, opt, QSize(iconsize, iconsize), self
             ).expandedTo(QApplication.globalStrut())
-        self.tabBar().set_tabheight(size.height())
+        self.tabBar().set_tab_height(size.height())
 
         # Set the icon size of the corner widgets.
         for loc in (Qt.TopLeftCorner, Qt.TopRightCorner):
