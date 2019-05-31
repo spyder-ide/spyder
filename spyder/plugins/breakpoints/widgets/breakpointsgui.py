@@ -21,11 +21,12 @@ from qtpy import API
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QModelIndex, QTextCodec, Qt,
                          Signal)
-from qtpy.QtWidgets import (QItemDelegate, QMenu, QTableView, QHBoxLayout,
-                            QVBoxLayout, QWidget)
+from qtpy.QtWidgets import QItemDelegate, QMenu, QTableView, QWidget
 
 # Local imports
+from spyder.api.toolbar import SpyderPluginToolbar
 from spyder.config.base import get_translation
+from spyder.config.gui import get_iconsize
 from spyder.config.main import CONF
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_plugin_layout)
@@ -226,18 +227,18 @@ class BreakpointWidget(QWidget):
         QWidget.__init__(self, parent)
 
         self.setWindowTitle("Breakpoints")
-        self.dictwidget = BreakpointTableView(self,
-                               self._load_all_breakpoints())
+        self.dictwidget = BreakpointTableView(
+            self, self._load_all_breakpoints())
+
+        # Create toolbar.
+        self.toolbar = SpyderPluginToolbar()
         if options_button:
-            btn_layout = QHBoxLayout()
-            btn_layout.setAlignment(Qt.AlignLeft)
-            btn_layout.addStretch()
-            btn_layout.addWidget(options_button, Qt.AlignRight)
-            layout = create_plugin_layout(btn_layout, self.dictwidget)
-        else:
-            layout = QVBoxLayout()
-            layout.addWidget(self.dictwidget)
-        self.setLayout(layout)
+            self.toolbar.add_options_button(options_button)
+        self.toolbar.set_iconsize(get_iconsize(panel=True))
+
+        # Create main layout.
+        self.setLayout(create_plugin_layout(self.toolbar, self.dictwidget))
+
         self.dictwidget.clear_all_breakpoints.connect(
                                      lambda: self.clear_all_breakpoints.emit())
         self.dictwidget.clear_breakpoint.connect(
