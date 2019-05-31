@@ -221,14 +221,19 @@ def test_completions(lsp_codeeditor, qtbot):
                                         'math.c\nmath.asin\nmath.\n'
 
 
+@pytest.mark.slow
+@pytest.mark.first
 def test_fallback_completions(fallback_codeeditor, qtbot):
     code_editor, _ = fallback_codeeditor
     completion = code_editor.completion_widget
+
     # Set cursor to start
     code_editor.go_to_line(1)
+
     # Add some words in comments
     qtbot.keyClicks(code_editor, '# some comment and words')
     code_editor.document_did_change()
+
     # Enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
     with qtbot.waitSignal(completion.sig_show_completions,
@@ -237,8 +242,10 @@ def test_fallback_completions(fallback_codeeditor, qtbot):
         qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
 
     assert 'words' in {x['insertText'] for x in sig.args[0]}
+
     # Delete 'w'
     qtbot.keyPress(code_editor, Qt.Key_Backspace)
+
     # Insert another word
     qtbot.keyClicks(code_editor, 'another')
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
@@ -248,6 +255,7 @@ def test_fallback_completions(fallback_codeeditor, qtbot):
         qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
     word_set = {x['insertText'] for x in sig.args[0]}
     assert 'another' in word_set
+
     # Assert that keywords are also retrieved
     assert 'assert' in word_set
 
@@ -262,6 +270,10 @@ def test_fallback_completions(fallback_codeeditor, qtbot):
         qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
     word_set = {x['insertText'] for x in sig.args[0]}
     assert 'another' not in word_set
+
+    # Avoid focus errors with other tests
+    completion.hide()
+    completion.close()
 
 
 if __name__ == '__main__':
