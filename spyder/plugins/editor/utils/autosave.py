@@ -25,7 +25,15 @@ logger = logging.getLogger(__name__)
 
 
 class AutosaveForPlugin(object):
-    """Component of editor plugin implementing autosave functionality."""
+    """
+    Component of editor plugin implementing autosave functionality.
+
+    Attributes:
+        name_mapping (dict): map between names of opened and autosave files.
+        file_hashes (dict): map between file names and hash of their contents.
+            This is used for both files opened in the editor and their
+            corresponding autosave files.
+    """
 
     # Interval (in ms) between two autosaves
     DEFAULT_AUTOSAVE_INTERVAL = 60 * 1000
@@ -41,6 +49,8 @@ class AutosaveForPlugin(object):
             editor (Editor): editor plugin.
         """
         self.editor = editor
+        self.name_mapping = {}
+        self.file_hashes = {}
         self.timer = QTimer(self.editor)
         self.timer.setSingleShot(True)
         self.timer.timeout.connect(self.do_autosave)
@@ -112,10 +122,25 @@ class AutosaveForPlugin(object):
         dialog.exec_if_nonempty()
         self.recover_files_to_open = dialog.files_to_open[:]
 
+    def register_autosave_for_stack(self, autosave_for_stack):
+        """
+        Register an AutosaveForStack object.
+
+        This replaces the `name_mapping` and `file_hashes` attributes
+        in `autosave_for_stack` with references to the corresponding
+        attributes of `self`, so that all AutosaveForStack objects
+        share the same data.
+        """
+        autosave_for_stack.name_mapping = self.name_mapping
+        autosave_for_stack.file_hashes = self.file_hashes
+
 
 class AutosaveForStack(object):
     """
     Component of EditorStack implementing autosave functionality.
+
+    In Spyder, the `name_mapping` and `file_hashes` are set to references to
+    the corresponding variables in `AutosaveForPlugin`.
 
     Attributes:
         stack (EditorStack): editor stack this component belongs to.
