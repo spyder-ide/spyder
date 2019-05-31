@@ -43,8 +43,8 @@ def test_autosave_component_timer_if_enabled(qtbot, mocker, enabled):
 
 
 def test_autosave(mocker):
-    """Test that AutosaveForStack.autosave writes the contents to the autosave
-    file and updates the file_hashes."""
+    """Test that AutosaveForStack.maybe_autosave writes the contents to the
+    autosave file and updates the file_hashes."""
     mock_editor = mocker.Mock()
     mock_fileinfo = mocker.Mock(editor=mock_editor, filename='orig',
                                 newly_created=False)
@@ -56,7 +56,7 @@ def test_autosave(mocker):
     addon.file_hashes = {'orig': 1, 'autosave': 2}
     mock_stack.compute_hash.return_value = 3
 
-    addon.autosave(0)
+    addon.maybe_autosave(0)
 
     mock_stack._write_to_file.assert_called_with(mock_fileinfo, 'autosave')
     mock_stack.compute_hash.assert_called_with(mock_fileinfo)

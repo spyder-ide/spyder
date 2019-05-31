@@ -222,9 +222,9 @@ class AutosaveForStack(object):
             logger.debug('New autosave file name')
         return autosave_filename
 
-    def autosave(self, index):
+    def maybe_autosave(self, index):
         """
-        Autosave a file.
+        Autosave a file if necessary.
 
         If the file is newly created (and thus not named by the user), do
         nothing.  If the current contents are the same as the autosave file
@@ -271,6 +271,6 @@ class AutosaveForStack(object):
             msgbox.exec_if_enabled()
 
     def autosave_all(self):
-        """Autosave all opened files."""
+        """Autosave all opened files where necessary."""
         for index in range(self.stack.get_stack_count()):
-            self.autosave(index)
+            self.maybe_autosave(index)
