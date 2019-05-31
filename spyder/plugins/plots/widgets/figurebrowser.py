@@ -25,6 +25,7 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu,
                             QSpinBox, QSplitter, QStyleOptionSlider, QStyle)
 
 # ---- Local library imports
+from spyder.api.toolbar import SpyderPluginToolbar
 from spyder.config.base import _
 from spyder.py3compat import is_unicode, to_text_string
 from spyder.utils import icon_manager as ima
@@ -33,7 +34,6 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     MENU_SEPARATOR)
 from spyder.utils.misc import getcwd_or_home
 from spyder.config.gui import config_shortcut, get_shortcut, get_iconsize
-from spyder.api.toolbar import SpyderPluginToolbar
 
 
 def save_figure_tofile(fig, fmt, fname):

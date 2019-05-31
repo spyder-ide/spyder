@@ -19,10 +19,11 @@ from qtpy.QtWebEngineWidgets import QWebEnginePage, WEBENGINE
 
 # Local imports
 from spyder import dependencies
+from spyder.api.plugins import SpyderPluginWidget
+from spyder.api.toolbar import SpyderPluginToolbar
 from spyder.config.base import _, get_conf_path, get_module_source_path
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_iconsize
-from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import get_meth_class_inst, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs
@@ -35,7 +36,6 @@ from spyder.utils.qthelpers import (add_actions, create_action,
 from spyder.plugins.help.confpage import HelpConfigPage
 from spyder.plugins.help.utils.sphinxthread import SphinxThread
 from spyder.plugins.help.widgets import PlainText, RichText, ObjectComboBox
-from spyder.api.toolbar import SpyderPluginToolbar
 
 # Sphinx dependency
 dependencies.add("sphinx", _("Show help for objects in the Editor and "

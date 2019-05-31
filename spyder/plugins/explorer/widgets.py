@@ -32,6 +32,7 @@ from qtpy.QtWidgets import (QFileSystemModel, QHBoxLayout, QFileIconProvider,
                             QMessageBox, QToolButton, QTreeView, QVBoxLayout,
                             QWidget, QApplication)
 # Local imports
+from spyder.api.toolbar import SpyderPluginToolbar
 from spyder.config.base import _, get_home_dir, get_image_path
 from spyder.config.gui import (is_dark_interface, config_shortcut,
                                get_shortcut, get_iconsize)
@@ -42,7 +43,6 @@ from spyder.utils import encoding, misc, programs, vcs
 from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
                                     create_plugin_layout)
 from spyder.utils.misc import getcwd_or_home
-from spyder.api.toolbar import SpyderPluginToolbar
 
 try:
     from nbconvert import PythonExporter as nbexporter

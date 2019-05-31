@@ -20,6 +20,7 @@ from qtpy.QtGui import QTextCursor
 from qtpy.QtWidgets import QLabel, QSizePolicy, QWidget
 
 # Local imports
+from spyder.api.toolbar import SpyderPluginToolbar
 from spyder.config.base import _
 from spyder.config.gui import config_shortcut, get_iconsize
 from spyder.py3compat import to_text_string
@@ -28,7 +29,6 @@ from spyder.utils.misc import regexp_error_msg
 from spyder.plugins.editor.utils.editor import TextHelper
 from spyder.utils.qthelpers import create_toolbutton, get_icon
 from spyder.widgets.comboboxes import PatternComboBox
-from spyder.api.toolbar import SpyderPluginToolbar
 
 
 def is_position_sup(pos1, pos2):

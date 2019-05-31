@@ -24,6 +24,8 @@ from qtpy.QtWidgets import (QInputDialog, QLineEdit, QMenu, QHBoxLayout,
                             QVBoxLayout, QWidget)
 
 # Local imports
+from spyder.api.plugins import SpyderPluginWidget
+from spyder.api.toolbar import SpyderPluginToolbar
 from spyder.config.base import _, DEV, get_debug_level
 from spyder.config.main import CONF
 from spyder.utils import icon_manager as ima
@@ -38,9 +40,7 @@ from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.variableexplorer.widgets.collectionseditor import (
         CollectionsEditor)
 from spyder.widgets.reporterror import SpyderErrorDialog
-from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import to_text_string
-from spyder.api.toolbar import SpyderPluginToolbar
 
 
 logger = logging.getLogger(__name__)

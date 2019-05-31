@@ -32,6 +32,7 @@ from qtpy.QtWidgets import (QApplication, QComboBox, QHBoxLayout, QLabel,
                             QTreeWidgetItem, QVBoxLayout, QWidget)
 
 # Local imports
+from spyder.api.toolbar import SpyderPluginToolbar
 from spyder.config.base import _
 from spyder.config.main import EXCLUDE_PATTERNS
 from spyder.config.gui import get_iconsize
@@ -45,7 +46,6 @@ from spyder.utils.misc import regexp_error_msg
 from spyder.utils.qthelpers import create_toolbutton
 from spyder.config.gui import get_font
 from spyder.widgets.waitingspinner import QWaitingSpinner
-from spyder.api.toolbar import SpyderPluginToolbar
 
 
 ON = 'on'

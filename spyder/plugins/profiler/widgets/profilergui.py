@@ -32,9 +32,9 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QLabel, QMessageBox,
                             QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget)
 
 # Local imports
+from spyder.api.toolbar import SpyderPluginToolbar
 from spyder.config.base import get_conf_path, get_translation
 from spyder.config.gui import get_iconsize
-from spyder.api.toolbar import SpyderPluginToolbar
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (create_toolbutton, get_item_user_text,

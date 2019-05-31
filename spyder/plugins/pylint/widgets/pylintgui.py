@@ -27,6 +27,7 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMessageBox, QTreeWidgetItem,
 
 # Local imports
 from spyder import dependencies
+from spyder.api.toolbar import SpyderPluginToolbar
 from spyder.config.base import get_conf_path, get_translation
 from spyder.config.gui import get_iconsize
 from spyder.py3compat import pickle, to_text_string
@@ -38,7 +39,6 @@ from spyder.widgets.comboboxes import (is_module_or_package,
                                        PythonModulesComboBox)
 from spyder.widgets.onecolumntree import OneColumnTree
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
-from spyder.api.toolbar import SpyderPluginToolbar
 
 
 # This is needed for testing this module as a stand alone script

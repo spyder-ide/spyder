@@ -25,6 +25,7 @@ from spyder_kernels.utils.misc import fix_reference_name
 from spyder_kernels.utils.nsview import get_supported_types, REMOTE_SETTINGS
 
 # Local imports
+from spyder.api.toolbar import SpyderPluginToolbar
 from spyder.config.base import _
 from spyder.config.main import CONF
 from spyder.config.gui import get_iconsize
@@ -39,7 +40,6 @@ from spyder.utils.qthelpers import (add_actions, create_action,
 from spyder.plugins.variableexplorer.widgets.collectionseditor import (
     RemoteCollectionsEditorTableView)
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
-from spyder.api.toolbar import SpyderPluginToolbar
 
 
 SUPPORTED_TYPES = get_supported_types()

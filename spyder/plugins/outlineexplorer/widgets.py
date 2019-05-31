@@ -17,6 +17,7 @@ from qtpy.QtWidgets import (QHBoxLayout, QTreeWidgetItem, QVBoxLayout, QWidget,
                             QTreeWidgetItemIterator)
 
 # Local imports
+from spyder.api.toolbar import SpyderPluginToolbar
 from spyder.config.base import _, STDOUT
 from spyder.config.gui import get_iconsize
 from spyder.py3compat import to_text_string
@@ -24,7 +25,6 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (create_action, create_toolbutton,
                                     set_item_user_text, create_plugin_layout)
 from spyder.widgets.onecolumntree import OneColumnTree
-from spyder.api.toolbar import SpyderPluginToolbar
 
 
 class FileRootItem(QTreeWidgetItem):
