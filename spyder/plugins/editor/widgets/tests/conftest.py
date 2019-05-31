@@ -79,9 +79,13 @@ def fallback_codeeditor(fallback, qtbot_module, request):
     editor.filename = 'test.py'
     editor.language = 'Python'
     editor.start_fallback()
+    qtbot_module.wait(2000)
 
-    qtbot_module.wait(1000)
+    def teardown():
+        editor.hide()
+        editor.completion_widget.hide()
 
+    request.addfinalizer(teardown)
     return editor, fallback
 
 

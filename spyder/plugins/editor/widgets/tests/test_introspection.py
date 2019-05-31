@@ -293,10 +293,6 @@ def test_fallback_completions(fallback_codeeditor, qtbot):
     word_set = {x['insertText'] for x in sig.args[0]}
     assert 'another' not in word_set
 
-    # Avoid focus errors with other tests
-    completion.hide()
-    completion.close()
-
 
 if __name__ == '__main__':
     pytest.main(['test_introspection.py', '--run-slow'])
