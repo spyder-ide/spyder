@@ -245,15 +245,14 @@ class AutosaveForStack(object):
         if orig_filename in self.name_mapping:
             autosave_filename = self.name_mapping[orig_filename]
             autosave_hash = self.file_hashes[autosave_filename]
-            if new_hash == autosave_hash:
-                return
-            elif new_hash == orig_hash:
-                self.remove_autosave_file(orig_filename)
-                return
+            if new_hash != autosave_hash:
+                if new_hash == orig_hash:
+                    self.remove_autosave_file(orig_filename)
+                else:
+                    self.autosave(finfo)
         else:
-            if new_hash == orig_hash:
-                return
-        self.autosave(finfo)
+            if new_hash != orig_hash:
+                self.autosave(finfo)
 
     def autosave(self, finfo):
         """
