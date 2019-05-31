@@ -21,9 +21,9 @@ from qtpy.QtCore import Signal, Slot
 from qtpy.QtWidgets import QMenu, QMessageBox, QVBoxLayout
 
 # Local imports
+from spyder.api.plugins import SpyderPluginWidget
 from spyder.config.base import _, get_home_dir
 from spyder.config.main import CONF
-from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
@@ -72,6 +72,12 @@ class Projects(SpyderPluginWidget):
     def get_plugin_title(self):
         """Return widget title"""
         return _("Project")
+
+    def set_plugin_icon_size(self, iconsize):
+        """
+        Set the icon size of plugin.
+        """
+        self.explorer.toolbar.set_iconsize(iconsize)
 
     def get_focus_widget(self):
         """

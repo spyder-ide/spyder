@@ -20,7 +20,9 @@ from qtpy.QtWidgets import (QAbstractItemView, QHBoxLayout, QHeaderView,
                             QLabel, QMessageBox, QVBoxLayout, QWidget)
 
 # Local imports
+from spyder.api.toolbar import SpyderPluginToolbar
 from spyder.config.base import _
+from spyder.config.gui import get_iconsize
 from spyder.py3compat import to_text_string
 from spyder.utils import misc
 from spyder.utils.qthelpers import create_action, create_plugin_layout
@@ -192,15 +194,14 @@ class ProjectExplorerWidget(QWidget):
 
         self.emptywidget = ExplorerTreeWidget(self)
 
+        # Create toolbar.
+        self.toolbar = SpyderPluginToolbar()
         if options_button:
-            btn_layout = QHBoxLayout()
-            btn_layout.setAlignment(Qt.AlignLeft)
-            btn_layout.addStretch()
-            btn_layout.addWidget(options_button, Qt.AlignRight)
-            layout = create_plugin_layout(btn_layout)
-        else:
-            layout = QVBoxLayout()
-            layout.setContentsMargins(0, 0, 0, 0)
+            self.toolbar.add_options_button(options_button)
+        self.toolbar.set_iconsize(get_iconsize(panel=True))
+
+        # Create main layout.
+        layout = create_plugin_layout(self.toolbar)
         layout.addWidget(self.emptywidget)
         layout.addWidget(self.treewidget)
         self.setLayout(layout)
