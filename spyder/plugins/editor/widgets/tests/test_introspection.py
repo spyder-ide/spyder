@@ -10,6 +10,7 @@
 import os
 import os.path as osp
 import random
+import sys
 
 # Third party imports
 import pytest
@@ -245,6 +246,8 @@ def test_completions(lsp_codeeditor, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.first
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason='Only works on Linux')
 def test_fallback_completions(fallback_codeeditor, qtbot):
     code_editor, _ = fallback_codeeditor
     completion = code_editor.completion_widget
