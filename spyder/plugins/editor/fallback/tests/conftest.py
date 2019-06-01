@@ -4,8 +4,8 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-
 import pytest
+
 from spyder.plugins.editor.fallback.actor import FallbackActor
 from spyder.plugins.editor.lsp.tests.conftest import qtbot_module
 
@@ -14,6 +14,7 @@ from spyder.plugins.editor.lsp.tests.conftest import qtbot_module
 def fallback(qtbot_module, request):
     fallback = FallbackActor(None)
     qtbot_module.addWidget(fallback)
+
     with qtbot_module.waitSignal(fallback.sig_fallback_ready, timeout=30000):
         fallback.start()
 

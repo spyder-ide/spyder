@@ -29,6 +29,7 @@ import time
 from unicodedata import category
 
 # Third party imports
+from diff_match_patch import diff_match_patch
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import QRegExp, Qt, QTimer, QUrl, Signal, Slot, QEvent
 from qtpy.QtGui import (QColor, QCursor, QFont, QIntValidator,
@@ -41,7 +42,6 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QLineEdit, QMenu, QMessageBox, QSplitter,
                             QToolTip, QVBoxLayout, QScrollBar)
 from spyder_kernels.utils.dochelpers import getobj
-from diff_match_patch import diff_match_patch
 
 # %% This line is for cell execution testing
 
@@ -1115,10 +1115,12 @@ class CodeEditor(TextEditBaseWidget):
 
     # ------------- Fallback completions ------------------------------------
     def start_fallback(self):
+        """Register with fallback engine."""
         self.previous_text = ''
         self.update_fallback(self.toPlainText())
 
     def close_fallback(self):
+        """Close connection with fallback engine."""
         fallback_request = {
             'file': self.filename,
             'type': 'close',
@@ -1128,6 +1130,7 @@ class CodeEditor(TextEditBaseWidget):
         self.sig_perform_fallback_request.emit(fallback_request)
 
     def update_fallback(self, text):
+        """Send changes to fallback engine."""
         # Invoke fallback update
         patch = self.differ.patch_make(self.previous_text, text)
         self.previous_text = text
@@ -1143,6 +1146,7 @@ class CodeEditor(TextEditBaseWidget):
         self.sig_perform_fallback_request.emit(fallback_request)
 
     def request_fallback(self):
+        """Send request to fallback engine."""
         request = {
             'file': self.filename,
             'type': 'retrieve',
@@ -1151,7 +1155,8 @@ class CodeEditor(TextEditBaseWidget):
         }
         self.sig_perform_fallback_request.emit(request)
 
-    def recieve_text_tokens(self, tokens):
+    def receive_text_tokens(self, tokens):
+        """Handle tokens sent by fallback engine."""
         self.word_tokens = tokens
         if not self.lsp_ready:
             self.completion_args = (self.textCursor().position(), False)

@@ -444,7 +444,7 @@ class EditorStack(QWidget):
     sig_next_warning = Signal()
     sig_go_to_definition = Signal(str, int, int)
     perform_lsp_request = Signal(str, str, dict)
-    perform_fallback_request = Signal(dict)
+    sig_perform_fallback_request = Signal(dict)
     sig_option_changed = Signal(str, object)  # config option needs changing
     sig_save_bookmark = Signal(int)
     sig_load_bookmark = Signal(int)
@@ -2330,7 +2330,7 @@ class EditorStack(QWidget):
             lambda lang, method, params: self.perform_lsp_request.emit(
                 lang, method, params))
         editor.sig_perform_fallback_request.connect(
-            lambda req: self.perform_fallback_request.emit(req)
+            lambda req: self.sig_perform_fallback_request.emit(req)
         )
         editor.modificationChanged.connect(
             lambda state: self.modification_changed(state,

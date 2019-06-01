@@ -7,8 +7,10 @@
 
 """
 Fallback completion actor.
-This plugin takes a plain text/source file and returns the individual words
-written on it.
+
+This takes a plain text/source file and returns the individual words
+written on it and the keywords associated by Pygments to the
+programming language of that file.
 """
 
 # Standard library imports
@@ -46,10 +48,14 @@ class FallbackActor(QThread):
         self.diff_patch = diff_match_patch()
 
     def tokenize(self, text, language):
+        """
+        Return all tokens in `text` and all keywords associated by
+        Pygments to `language`.
+        """
         try:
             lexer = get_lexer_by_name(language)
             keywords = get_keywords(lexer)
-        except pygments.util.ClassNotFound:
+        except Exception:
             keywords = []
         keyword_set = set(keywords)
         keywords = [{'kind': CompletionItemKind.KEYWORD,
@@ -71,12 +77,15 @@ class FallbackActor(QThread):
         return keywords
 
     def stop(self):
+        """Stop actor."""
         with QMutexLocker(self.mutex):
             self.stopped = True
 
     def run(self):
+        """Run actor."""
         logger.debug('Fallback plugin starting...')
         self.sig_fallback_ready.emit()
+
         while True:
             with QMutexLocker(self.mutex):
                 if self.stopped:
@@ -101,4 +110,4 @@ class FallbackActor(QThread):
                     text_info = self.file_tokens[file]
                     tokens = self.tokenize(
                         text_info['text'], text_info['language'])
-                editor.recieve_text_tokens(tokens)
+                editor.receive_text_tokens(tokens)

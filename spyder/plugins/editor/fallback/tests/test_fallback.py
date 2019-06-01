@@ -41,7 +41,7 @@ def func(args):
 class CodeEditorMock(QObject):
     sig_recv_tokens = Signal(list)
 
-    def recieve_text_tokens(self, tokens):
+    def receive_text_tokens(self, tokens):
         self.sig_recv_tokens.emit(tokens)
 
 
@@ -84,7 +84,6 @@ def test_file_open_close(qtbot_module, fallback_editor):
             'diff': diff
         }
     }
-
     fallback.mailbox.put(open_request)
     qtbot_module.wait(1000)
     assert 'test.py' in fallback.file_tokens
@@ -118,6 +117,7 @@ def test_tokenize(qtbot_module, fallback_editor, file_fixture):
     }
     fallback.mailbox.put(open_request)
     qtbot_module.wait(1000)
+
     tokens_request = {
         'file': filename,
         'type': 'retrieve',
@@ -146,9 +146,9 @@ def test_token_update(qtbot_module, fallback_editor):
             'diff': diff
         }
     }
-
     fallback.mailbox.put(open_request)
     qtbot_module.wait(1000)
+
     tokens_request = {
         'file': 'test.py',
         'type': 'retrieve',
