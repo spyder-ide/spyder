@@ -33,10 +33,7 @@ class SpyderPluginToolbar(QWidget):
         super(SpyderPluginToolbar, self).__init__(parent)
         self.layout = QGridLayout(self)
         self.layout.setHorizontalSpacing(0)
-
-        bottom_margin = QApplication.instance().style().pixelMetric(
-            QStyle.PM_ToolBarItemMargin)
-        self.layout.setContentsMargins(0, 0, 0, bottom_margin)
+        self.layout.setContentsMargins(0, 0, 0, 0)
 
     def _add_hboxlayout_at_row(self, row):
         """Add a new QHBoxLayout at row."""

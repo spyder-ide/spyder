@@ -607,7 +607,7 @@ def create_plugin_layout(toolbar, main_widget=None):
     """
     layout = QVBoxLayout()
     layout.setContentsMargins(0, 0, 0, 0)
-    layout.setSpacing(0)
+    layout.setSpacing(3)
     try:
         # This is needed to support non-default old plugins that may still
         # pass a layout as the toolbar argument instead of a widget.
