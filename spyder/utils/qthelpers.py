@@ -19,8 +19,8 @@ from qtpy.QtCore import (QEvent, QLibraryInfo, QLocale, QObject, QSize,
                          Qt, QTimer, QTranslator, Signal, Slot)
 from qtpy.QtGui import QIcon, QKeyEvent, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QLabel,
-                            QLineEdit, QMenu, QStyle, QToolBar, QToolButton,
-                            QVBoxLayout, QWidget)
+                            QLineEdit, QMenu, QStyle, QStyleOptionToolButton,
+                            QToolBar, QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import get_image_path, running_in_mac_app
@@ -567,6 +567,31 @@ def calc_tools_spacing(tools_layout):
         tools_height = tools_layout.sizeHint().height()
         spacing = tabbar_height - tools_height + offset
         return max(spacing, 0)
+
+
+def calcul_toolbutton_size(iconsize, style=None):
+    """
+    Return the expected size of a toolbutton based on a given icon size.
+
+    Depending on the theme, the size of toolbuttons is bigger than that
+    of their respective icon.
+    """
+    if style is None:
+        style = QApplication.style()
+
+    opt = QStyleOptionToolButton()
+    QToolButton().initStyleOption(opt)
+    opt.rect.setSize(QSize(iconsize, iconsize))
+    button_size = style.sizeFromContents(
+        QStyle.CT_ToolButton, opt, QSize(iconsize, iconsize)
+        ).expandedTo(QApplication.globalStrut())
+
+    # The toolbar item margins need to be removed from the
+    # calculated size to obtain the actual real size of the button.
+    margin = style.pixelMetric(QStyle.PM_ToolBarItemMargin)
+    button_size = button_size - QSize(2 * margin, 2 * margin)
+
+    return button_size
 
 
 def create_plugin_layout(toolbar, main_widget=None):

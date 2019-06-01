@@ -21,8 +21,7 @@ from qtpy.QtCore import (QByteArray, QEvent, QMimeData, QPoint, QSize, Qt,
                          Signal, Slot)
 from qtpy.QtGui import QDrag
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QLineEdit, QMenu,
-                            QStyle, QStyleOptionToolButton, QTabBar,
-                            QTabWidget, QToolButton, QWidget)
+                            QStyle, QTabBar, QTabWidget, QWidget)
 
 # Local imports
 from spyder.config.base import _
@@ -30,8 +29,8 @@ from spyder.config.gui import config_shortcut, is_dark_interface
 from spyder.py3compat import PY2, to_binary_string, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import get_common_path
-from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton,
+from spyder.utils.qthelpers import (add_actions, calcul_toolbutton_size,
+                                    create_action, create_toolbutton,
                                     set_iconsize_recursively)
 
 
@@ -470,14 +469,8 @@ class BaseTabs(QTabWidget):
         # NOTE: We cannot use the iconsize value directly because depending of
         # the theme, the size of the toolbuttons is bigger than that of their
         # respective icon.
-        style = QApplication.instance().style()
-        opt = QStyleOptionToolButton()
-        QToolButton().initStyleOption(opt)
-        opt.rect.setSize(QSize(iconsize, iconsize))
-        size = style.sizeFromContents(
-            QStyle.CT_ToolButton, opt, QSize(iconsize, iconsize), self
-            ).expandedTo(QApplication.globalStrut())
-        self.tabBar().set_tab_height(size.height())
+        button_size = calcul_toolbutton_size(iconsize)
+        self.tabBar().set_tab_height(button_size.height())
 
         # Set the icon size of the corner widgets.
         for loc in (Qt.TopLeftCorner, Qt.TopRightCorner):
