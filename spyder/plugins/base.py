@@ -50,7 +50,7 @@ class BasePluginMixin(object):
         """Get option from spyder.ini."""
         return CONF.get(self.CONF_SECTION, option, default)
 
-    def show_message(self, message, timeout=0):
+    def _show_status_message(self, message, timeout=0):
         """Show message in main window's status bar."""
         self.main.statusBar().showMessage(message, timeout)
 
@@ -66,7 +66,7 @@ class BasePluginMixin(object):
 
     def starting_long_process(self, message):
         """Show message in main window's status bar."""
-        self.show_message(message)
+        self._show_status_message(message)
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         QApplication.processEvents()
 
@@ -75,7 +75,7 @@ class BasePluginMixin(object):
         Clear main window's status bar and restore mouse cursor.
         """
         QApplication.restoreOverrideCursor()
-        self.show_message(message, timeout=2000)
+        self._show_status_message(message, timeout=2000)
         QApplication.processEvents()
 
 

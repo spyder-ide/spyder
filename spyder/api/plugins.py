@@ -35,8 +35,10 @@ class BasePlugin(BasePluginMixin):
     WARNING: Don't override any methods or attributes present here!
     """
 
-    # Use this signal to display a message in the status bar
-    sig_show_message = Signal(str, int)
+    # Use this signal to display a message in the status bar.
+    # str: The message you want to display
+    # int: Amount of time to display the message
+    sig_show_status_message = Signal(str, int)
 
     # Use this signal to inform another plugin that a configuration
     # value has changed.
@@ -53,14 +55,14 @@ class BasePlugin(BasePluginMixin):
         self.PLUGIN_PATH = os.path.dirname(inspect.getfile(self.__class__))
 
         # Connect signals to slots.
-        self.sig_show_message.connect(self.show_message)
+        self.sig_show_status_message.connect(self.show_status_message)
         self.sig_option_changed.connect(self.set_option)
 
     @Slot(str)
     @Slot(str, int)
-    def show_message(self, message, timeout=0):
+    def show_status_message(self, message, timeout=0):
         """Show message in main window's status bar."""
-        super(BasePlugin, self).show_message(message, timeout)
+        super(BasePlugin, self)._show_status_message(message, timeout)
 
     @Slot(str, object)
     def set_option(self, option, value):

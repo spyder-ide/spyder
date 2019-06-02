@@ -65,7 +65,7 @@ class Console(SpyderPluginWidget):
                                    self.get_plugin_font(), exitfunc, profile,
                                    multithreaded)
         self.shell.status.connect(lambda msg:
-                                  self.sig_show_message.emit(msg, 0))
+                                  self.sig_show_status_message.emit(msg, 0))
         self.shell.go_to_error.connect(self.go_to_error)
         self.shell.focus_changed.connect(lambda: self.focus_changed.emit())
 
