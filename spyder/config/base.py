@@ -503,7 +503,7 @@ def running_in_mac_app():
 #==============================================================================
 SAVED_CONFIG_FILES = ('help', 'onlinehelp', 'path', 'pylint.results',
                       'spyder.ini', 'temp.py', 'temp.spydata', 'template.py',
-                      'history.py', 'history_internal.py', 'workingdir',
+                      'history_internal.py', 'workingdir',
                       '.projects', '.spyproject', '.ropeproject',
                       'monitor.log', 'monitor_debug.log', 'rope.log',
                       'langconfig', 'spyder.lock')

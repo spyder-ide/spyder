@@ -1331,7 +1331,9 @@ class MainWindow(QMainWindow):
 
         # Show history file if no console is visible
         if not self.ipyconsole.isvisible:
-            self.historylog.add_history(get_conf_path('history.py'))
+            self.historylog.add_history(
+                    self.ipyconsole.history_title,
+                    self.ipyconsole.get_current_shellwidget()._history)
 
         if self.open_project:
             self.projects.open_project(self.open_project)

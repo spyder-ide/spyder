@@ -103,12 +103,6 @@ class Console(SpyderPluginWidget):
         self.dismiss_error = False
 
     #------ Private API --------------------------------------------------------
-    def set_historylog(self, historylog):
-        """Bind historylog instance to this console
-        Not used anymore since v2.0"""
-        historylog.add_history(self.shell.history_filename)
-        self.shell.append_to_history.connect(historylog.append_to_history)
-
     def set_help(self, help_plugin):
         """Bind help instance to this console"""
         self.shell.help = help_plugin

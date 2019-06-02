@@ -50,6 +50,7 @@ class HistoryLog(SpyderPluginWidget):
 
         self.editors = []
         self.filenames = []
+        self.histories = []
 
         # Initialize plugin actions, toolbutton and general signals
         self.initialize_plugin()
@@ -89,14 +90,14 @@ class HistoryLog(SpyderPluginWidget):
     def get_plugin_icon(self):
         """Return widget icon."""
         return ima.icon('history')
-    
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
         this plugin's dockwidget is raised on top-level
         """
         return self.tabwidget.currentWidget()
-        
+
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         return True
@@ -129,12 +130,11 @@ class HistoryLog(SpyderPluginWidget):
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""
         self.main.tabify_plugins(self.main.ipyconsole, self)
-    
+
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.focus_changed.connect(self.main.plugin_focus_changed)
         self.main.add_dockwidget(self)
-#        self.main.console.set_historylog(self)
         self.main.console.shell.refresh.connect(self.refresh_plugin)
 
     def update_font(self):
@@ -178,21 +178,18 @@ class HistoryLog(SpyderPluginWidget):
         self.editors.insert(index_to, editor)
 
     #------ Public API ---------------------------------------------------------
-    def add_history(self, filename):
+    def add_history(self, filename, history_list):
         """
         Add new history tab
         Slot for add_history signal emitted by shell instance
         """
-        filename = encoding.to_unicode_from_fs(filename)
         if filename in self.filenames:
             return
+        #Limit history depth
+        history_list = history_list[-self.get_option('max_entries'):]
         editor = codeeditor.CodeEditor(self)
-        if osp.splitext(filename)[1] == '.py':
-            language = 'py'
-        else:
-            language = 'bat'
         editor.setup_editor(linenumbers=self.get_option('line_numbers'),
-                            language=language,
+                            language='py',
                             scrollflagarea=False)
         editor.focus_changed.connect(lambda: self.focus_changed.emit())
         editor.setReadOnly(True)
@@ -200,26 +197,10 @@ class HistoryLog(SpyderPluginWidget):
         editor.set_font( self.get_plugin_font(), color_scheme )
         editor.toggle_wrap_mode( self.get_option('wrap') )
 
-        # Avoid a possible error when reading the history file
-        try:
-            text, _ = encoding.read(filename)
-        except (IOError, OSError):
-            text = "# Previous history could not be read from disk, sorry\n\n"
-        text = normalize_eols(text)
-        linebreaks = [m.start() for m in re.finditer('\n', text)]
-        maxNline = self.get_option('max_entries')
-        if len(linebreaks) > maxNline:
-            text = text[linebreaks[-maxNline - 1] + 1:]
-            # Avoid an error when trying to write the trimmed text to
-            # disk.
-            # See issue 9093
-            try:
-                encoding.write(text, filename)
-            except (IOError, OSError):
-                pass
-        editor.set_text(text)
+        editor.set_text('\n'.join(history_list) + '\n')
         editor.set_cursor_position('eof')
 
+        self.histories.append(history_list)
         self.editors.append(editor)
         self.filenames.append(filename)
         index = self.tabwidget.addTab(editor, osp.basename(filename))
@@ -237,11 +218,28 @@ class HistoryLog(SpyderPluginWidget):
             filename = to_text_string(filename.toUtf8(), 'utf-8')
         command = to_text_string(command)
         index = self.filenames.index(filename)
+        self.histories[index].append(command)
         self.editors[index].append(command)
         if self.get_option('go_to_eof'):
             self.editors[index].set_cursor_position('eof')
         self.tabwidget.setCurrentIndex(index)
-    
+
+    def set_history(self, filename, history_list):
+        """
+        Update the history for history filename
+        Slot for set_history signal emitted by shell instance
+        """
+        #Limit history depth
+        history_list = history_list[-self.get_option('max_entries'):]
+        if not is_text_string(filename):  # filename is a QString
+            filename = to_text_string(filename.toUtf8(), 'utf-8')
+        index = self.filenames.index(filename)
+        self.histories[index] = history_list
+        self.editors[index].set_text('\n'.join(history_list) + '\n')
+        if self.get_option('go_to_eof'):
+            self.editors[index].set_cursor_position('eof')
+        self.tabwidget.setCurrentIndex(index)
+
     @Slot()
     def change_history_depth(self):
         "Change history max entries"""

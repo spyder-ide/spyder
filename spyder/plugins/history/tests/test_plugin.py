@@ -64,12 +64,13 @@ def historylog_with_tab(historylog, mocker, monkeypatch):
     monkeypatch.setattr(history.HistoryLog, 'get_option', get_option)
     monkeypatch.setattr(history.HistoryLog, 'set_option', set_option)
 
+    commands = []
     # Create tab for page.
     hl.set_option('wrap', False)
     hl.set_option('line_numbers', False)
     hl.set_option('max_entries', 100)
     hl.set_option('go_to_eof', True)
-    hl.add_history('test_history.py')
+    hl.add_history('test_history.py', commands)
     return hl
 
 #==============================================================================
@@ -105,6 +106,7 @@ def test_init(historylog):
     hl = historylog
     assert hl.editors == []
     assert hl.filenames == []
+    assert hl.histories == []
     assert len(hl.plugin_actions) == 5
     assert len(hl.tabwidget.menu.actions()) == 5
     assert len(hl.tabwidget.cornerWidget().menu().actions()) == 5
@@ -130,11 +132,11 @@ def test_add_history(historylog, mocker, monkeypatch):
 
     # Add one file.
     tab1 = 'test_history.py'
-    text1 = 'a = 5\nb= 10\na + b\n'
+    commands = ["This", "is", "a", "list", "of", "commands"]
+    
     hl.set_option('line_numbers', False)
     hl.set_option('wrap', False)
-    history.encoding.read.return_value = (text1, '')
-    hl.add_history(tab1)
+    hl.add_history(tab1, commands)
     # Check tab and editor were created correctly.
     assert len(hle) == 1
     assert hl.filenames == [tab1]
@@ -143,20 +145,19 @@ def test_add_history(historylog, mocker, monkeypatch):
     assert hle[0].wordWrapMode() == QTextOption.NoWrap
     assert hl.tabwidget.tabText(0) == tab1
     assert hl.tabwidget.tabToolTip(0) == tab1
+    assert hl.histories[0] == commands
 
     hl.set_option('line_numbers', True)
     hl.set_option('wrap', True)
     # Try to add same file -- does not process filename again, so
     # linenumbers and wrap doesn't change.
-    hl.add_history(tab1)
+    hl.add_history(tab1, commands)
     assert hl.tabwidget.currentIndex() == 0
     assert not hl.editors[0].linenumberarea.isVisible()
 
     # Add another file.
     tab2 = 'history2.js'
-    text2 = 'random text\nspam line\n\n\n\n'
-    history.encoding.read.return_value = (text2, '')
-    hl.add_history(tab2)
+    hl.add_history(tab2, commands)
     # Check second tab and editor were created correctly.
     assert len(hle) == 2
     assert hl.filenames == [tab1, tab2]
@@ -165,6 +166,7 @@ def test_add_history(historylog, mocker, monkeypatch):
     assert hle[1].wordWrapMode() == QTextOption.WrapAtWordBoundaryOrAnywhere
     assert hl.tabwidget.tabText(1) == tab2
     assert hl.tabwidget.tabToolTip(1) == tab2
+    assert hl.histories[1] == commands
 
     assert hl.filenames == [tab1, tab2]
 
@@ -173,13 +175,14 @@ def test_add_history(historylog, mocker, monkeypatch):
     assert hle[0].is_python()
     assert hle[0].isReadOnly()
     assert not hle[0].isVisible()
-    assert hle[0].toPlainText() == text1
+    assert hle[0].toPlainText() == '\n'.join(commands) + '\n'
 
-    assert not hle[1].supported_language
-    assert not hle[1].is_python()
+    # The history is loaded from iPython so it has to be python
+    # assert not hle[1].supported_language
+    # assert not hle[1].is_python()
     assert hle[1].isReadOnly()
     assert hle[1].isVisible()
-    assert hle[1].toPlainText() == text2
+    assert hle[1].toPlainText() == '\n'.join(commands) + '\n'
 
 
 def test_append_to_history(historylog_with_tab, mocker):
@@ -195,7 +198,7 @@ def test_append_to_history(historylog_with_tab, mocker):
     # Force cursor to the beginning of the file.
     hl.editors[0].set_cursor_position('sof')
     hl.append_to_history('test_history.py', 'import re\n')
-    assert hl.editors[0].toPlainText() == 'import re\n'
+    assert hl.editors[0].toPlainText() == '\nimport re\n'
     assert hl.tabwidget.currentIndex() == 0
     # Cursor moved to end.
     assert hl.editors[0].is_cursor_at_end()
@@ -206,7 +209,7 @@ def test_append_to_history(historylog_with_tab, mocker):
     # Force cursor to the beginning of the file.
     hl.editors[0].set_cursor_position('sof')
     hl.append_to_history('test_history.py', 'a = r"[a-z]"\n')
-    assert hl.editors[0].toPlainText() == 'import re\na = r"[a-z]"\n'
+    assert hl.editors[0].toPlainText() == '\nimport re\na = r"[a-z]"\n'
     # Cursor not at end.
     assert not hl.editors[0].is_cursor_at_end()
 

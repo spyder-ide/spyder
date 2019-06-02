@@ -44,7 +44,6 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     MENU_SEPARATOR)
 from spyder.py3compat import to_text_string
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
-from spyder.widgets.mixins import SaveHistoryMixin
 from spyder.plugins.variableexplorer.widgets.collectionseditor import (
         CollectionsEditor)
 
@@ -86,7 +85,7 @@ def background(f):
 #-----------------------------------------------------------------------------
 # Client widget
 #-----------------------------------------------------------------------------
-class ClientWidget(QWidget, SaveHistoryMixin):
+class ClientWidget(QWidget):
     """
     Client widget for the IPython Console
 
@@ -98,10 +97,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     INITHISTORY = ['# -*- coding: utf-8 -*-',
                    '# *** Spyder Python Console History Log ***',]
 
-    append_to_history = Signal(str, str)
-
-    def __init__(self, plugin, id_,
-                 history_filename, config_options,
+    def __init__(self, plugin, id_, config_options,
                  additional_options, interpreter_versions,
                  connection_file=None, hostname=None,
                  menu_actions=None, slave=False,
@@ -112,7 +108,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                  ask_before_restart=True,
                  css_path=None):
         super(ClientWidget, self).__init__(plugin)
-        SaveHistoryMixin.__init__(self, history_filename)
 
         # --- Init attrs
         self.id_ = id_
@@ -131,7 +126,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.stop_button = None
         self.reset_button = None
         self.stop_icon = ima.icon('stop')
-        self.history = []
         self.allow_rename = True
         self.stderr_dir = None
         self.is_error_shown = False
@@ -246,15 +240,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # Set exit callback
         self.shellwidget.set_exit_callback()
 
-        # To save history
-        self.shellwidget.executing.connect(self.add_to_history)
-
         # For Mayavi to run correctly
         self.shellwidget.executing.connect(
             self.shellwidget.set_backend_for_mayavi)
-
-        # To update history after execution
-        self.shellwidget.executed.connect(self.update_history)
 
         # To update the Variable Explorer after execution
         self.shellwidget.executed.connect(
@@ -598,9 +586,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """Resets the namespace by removing all names defined by the user"""
         self.shellwidget.reset_namespace(warning=self.reset_warning,
                                          message=True)
-
-    def update_history(self):
-        self.history = self.shellwidget._history
 
     @Slot(object)
     def show_syspath(self, syspath):

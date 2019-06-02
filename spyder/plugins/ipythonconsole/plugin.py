@@ -110,6 +110,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         self.tabwidget = None
         self.menu_actions = None
+        self.history_title = "History"
         self.master_clients = 0
         self.clients = []
         self.filenames = []
@@ -642,7 +643,6 @@ class IPythonConsole(SpyderPluginWidget):
         reset_warning = self.get_option('show_reset_namespace_warning')
         ask_before_restart = self.get_option('ask_before_restart')
         client = ClientWidget(self, id_=client_id,
-                              history_filename=get_conf_path('history.py'),
                               config_options=self.config_options(),
                               additional_options=self.additional_options(
                                       is_pylab=is_pylab,
@@ -917,9 +917,18 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Connect client to our history log
         if self.main.historylog is not None:
-            self.main.historylog.add_history(client.history_filename)
-            client.append_to_history.connect(
-                self.main.historylog.append_to_history)
+            self.main.historylog.add_history(
+                    self.history_title,
+                    shellwidget.history_tail(
+                        self.main.historylog.get_option('max_entries')))
+            # To save history
+            shellwidget.sig_new_history.connect(
+                    lambda history:  self.main.historylog.set_history(
+                            self.history_title, history))
+            shellwidget.executing.connect(
+                    lambda command:  self.main.historylog.append_to_history(
+                            self.history_title, command))
+
 
         # Set font for client
         client.set_font( self.get_plugin_font() )
@@ -1442,7 +1451,6 @@ class IPythonConsole(SpyderPluginWidget):
         client = ClientWidget(self,
                               id_=client_id,
                               given_name=given_name,
-                              history_filename=get_conf_path('history.py'),
                               config_options=self.config_options(),
                               additional_options=self.additional_options(),
                               interpreter_versions=self.interpreter_versions(),

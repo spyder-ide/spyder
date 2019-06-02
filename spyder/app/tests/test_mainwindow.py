@@ -1792,6 +1792,38 @@ def test_render_issue():
     assert test_description in test_issue_2
     assert test_traceback in test_issue_2
 
+@flaky(max_runs=3)
+@pytest.mark.slow
+def test_history(main_window, qtbot):
+    """Test History"""
+    # ---- Setup ----
+    # Create 3 clients and wait until the window is fully up
+    for i in range(3):
+        main_window.ipyconsole.create_new_client()
+
+    clients = main_window.ipyconsole.get_clients()
+    for client in clients:
+        shell = client.shellwidget
+        qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    #Execute some code in each widget
+    commands = []
+    for i, client in enumerate(clients):
+        shell = client.shellwidget
+        commands.append('i = {i}\n'.format(i=i))
+        shell.execute(commands[-1])
+        qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+        print(main_window.historylog.editors[0].toPlainText()[-10:])
+
+    commands_text = ''.join(commands)
+
+    index = main_window.historylog.filenames.index(main_window.ipyconsole.history_title)
+    assert index == 0 
+    text = main_window.historylog.editors[index].toPlainText()[-len(commands_text):]
+    history = main_window.historylog.histories[index][-len(clients):]
+
+    assert history == commands
+    assert text == commands_text
 
 @pytest.mark.slow
 @flaky(max_runs=3)

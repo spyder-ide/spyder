@@ -58,6 +58,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     sig_is_spykernel = Signal(object)
     sig_kernel_restarted = Signal(str)
     sig_prompt_ready = Signal()
+    sig_new_history = Signal(list)
 
     # For global working directory
     sig_change_cwd = Signal(str)
@@ -509,6 +510,11 @@ the sympy module (e.g. plot)
         if not self._reading:
             self._highlighter.highlighting_on = True
             self.sig_prompt_ready.emit()
+
+    def _set_history(self, history):
+        """ Send a signal when history is changed."""
+        super(ShellWidget, self)._set_history(history)
+        self.sig_new_history.emit(history)
 
     #---- Qt methods ----------------------------------------------------------
     def focusInEvent(self, event):
