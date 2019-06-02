@@ -16,6 +16,7 @@ import logging
 import os
 import os.path as osp
 import re
+import sys
 import time
 
 # Third party imports
@@ -30,8 +31,8 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
 # Local imports
 from spyder import dependencies
 from spyder.config.base import _, get_conf_path, running_under_pytest
-from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
-                                RUN_CELL_AND_ADVANCE_SHORTCUT)
+from spyder.config.gui import get_shortcut
+from spyder.config.main import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter)
 from spyder.py3compat import PY2, qbytearray_to_str, to_text_string
@@ -62,7 +63,7 @@ logger = logging.getLogger(__name__)
 
 
 # Dependencies
-PYLS_REQVER = '>=0.19.0'
+PYLS_REQVER = '>=0.19.0;<0.25'
 dependencies.add('pyls',
                  _("Editor's code completion, go-to-definition, help and "
                    "real-time code analysis"),
@@ -94,6 +95,9 @@ class Editor(SpyderPluginWidget):
     breakpoints_saved = Signal()
     run_in_current_extconsole = Signal(str, str, str, bool, bool)
     open_file_update = Signal(str)
+
+    # This signal is fired for any focus change among all editor stacks
+    sig_editor_focus_changed = Signal()
 
     def __init__(self, parent, ignore_last_opened_files=False):
         SpyderPluginWidget.__init__(self, parent)
@@ -134,7 +138,7 @@ class Editor(SpyderPluginWidget):
         self.editorwindows_to_be_created = []
         self.toolbar_list = None
         self.menu_list = None
-        
+
         # Initialize plugin
         self.initialize_plugin()
         self.options_button.hide()
@@ -298,6 +302,11 @@ class Editor(SpyderPluginWidget):
             language, settings))
         self.lsp_server_ready(language, self.lsp_editor_settings[language])
 
+    def stop_lsp_services(self, language):
+        """Notify all editorstacks about LSP server unavailability."""
+        for editorstack in self.editorstacks:
+            editorstack.notify_server_down(language)
+
     def lsp_server_ready(self, language, configuration):
         """Notify all stackeditors about LSP server availability."""
         for editorstack in self.editorstacks:
@@ -354,7 +363,7 @@ class Editor(SpyderPluginWidget):
 
         active_project_path = None
         if self.projects is not None:
-             active_project_path = self.projects.get_active_project_path()
+            active_project_path = self.projects.get_active_project_path()
         if not active_project_path:
             self.set_open_filenames()
         else:
@@ -377,6 +386,14 @@ class Editor(SpyderPluginWidget):
             else:
                 for win in self.editorwindows[:]:
                     win.close()
+                # Remove autosave on successful close to avoid issue #9265.
+                # Probably a good idea anyway to mitigate autosave issues.
+                # Ignore errors resulting from file being open in > 2
+                # editorstacks or another Spyder being closed first and
+                # removing the spurious files.
+                for editorstack_split in self.editorstacks:
+                    editorstack_split.autosave.remove_all_autosave_files(
+                        errors="ignore")
                 return True
         except IndexError:
             return True
@@ -580,8 +597,8 @@ class Editor(SpyderPluginWidget):
         run_cell_action = create_action(self,
                             _("Run cell"),
                             icon=ima.icon('run_cell'),
-                            shortcut=QKeySequence(RUN_CELL_SHORTCUT),
-                            tip=_("Run current cell (Ctrl+Enter)\n"
+                            shortcut=get_shortcut('editor', 'run cell'),
+                            tip=_("Run current cell \n"
                                   "[Use #%% to create cells]"),
                             triggered=self.run_cell,
                             context=Qt.WidgetShortcut)
@@ -589,9 +606,8 @@ class Editor(SpyderPluginWidget):
         run_cell_advance_action = create_action(self,
                    _("Run cell and advance"),
                    icon=ima.icon('run_cell_advance'),
-                   shortcut=QKeySequence(RUN_CELL_AND_ADVANCE_SHORTCUT),
-                   tip=_("Run current cell and go to the next one "
-                         "(Shift+Enter)"),
+                   shortcut=get_shortcut('editor', 'run cell and advance'),
+                   tip=_("Run current cell and go to the next one "),
                    triggered=self.run_cell_and_advance,
                    context=Qt.WidgetShortcut)
 
@@ -736,35 +752,39 @@ class Editor(SpyderPluginWidget):
         eol_menu = QMenu(_("Convert end-of-line characters"), self)
         add_actions(eol_menu, eol_actions)
 
-        trailingspaces_action = create_action(self,
-                                      _("Remove trailing spaces"),
-                                      triggered=self.remove_trailing_spaces)
+        trailingspaces_action = create_action(
+            self,
+            _("Remove trailing spaces"),
+            triggered=self.remove_trailing_spaces)
 
         # Checkable actions
         showblanks_action = self._create_checkable_action(
-                _("Show blank spaces"), 'blank_spaces', 'set_blanks_enabled')
+            _("Show blank spaces"), 'blank_spaces', 'set_blanks_enabled')
 
         scrollpastend_action = self._create_checkable_action(
-                 _("Scroll past the end"), 'scroll_past_end',
-                 'set_scrollpastend_enabled')
+            _("Scroll past the end"), 'scroll_past_end',
+            'set_scrollpastend_enabled')
 
         showindentguides_action = self._create_checkable_action(
-                _("Show indent guides."), 'indent_guides', 'set_indent_guides')
+            _("Show indent guides"), 'indent_guides', 'set_indent_guides')
 
         show_classfunc_dropdown_action = self._create_checkable_action(
-                _("Show selector for classes and functions."),
-                'show_class_func_dropdown', 'set_classfunc_dropdown_visible')
+            _("Show selector for classes and functions"),
+            'show_class_func_dropdown', 'set_classfunc_dropdown_visible')
 
-        showcode_analysis_pep8_action = self._create_checkable_action(
-                _("Show code style warnings (pep8)"),
-                'code_analysis/pep8', 'set_pep8_enabled')
+        show_codestyle_warnings_action = self._create_checkable_action(
+            _("Show code style warnings"), 'pycodestyle',)
+
+        show_docstring_warnings_action = self._create_checkable_action(
+            _("Show docstring style warnings"), 'pydocstyle')
 
         self.checkable_actions = {
                 'blank_spaces': showblanks_action,
                 'scroll_past_end': scrollpastend_action,
                 'indent_guides': showindentguides_action,
                 'show_class_func_dropdown': show_classfunc_dropdown_action,
-                'code_analysis/pep8': showcode_analysis_pep8_action}
+                'pycodestyle': show_codestyle_warnings_action,
+                'pydocstyle': show_docstring_warnings_action}
 
         fixindentation_action = create_action(self, _("Fix indentation"),
                       tip=_("Replace tab characters by space characters"),
@@ -791,29 +811,63 @@ class Editor(SpyderPluginWidget):
             _("Clear this list"), tip=_("Clear recent files list"),
             triggered=self.clear_recent_files)
 
+        # Fixes issue 6055
+        # See: https://bugreports.qt.io/browse/QTBUG-8596
+        self.tab_navigation_actions = []
+        if sys.platform == 'darwin':
+            self.go_to_next_file_action = create_action(
+                self,
+                _("Go to next file"),
+                shortcut=get_shortcut('editor', 'go to previous file'),
+                triggered=self.go_to_next_file,
+            )
+            self.go_to_previous_file_action = create_action(
+                self,
+                _("Go to previous file"),
+                shortcut=get_shortcut('editor', 'go to next file'),
+                triggered=self.go_to_previous_file,
+            )
+            self.register_shortcut(
+                self.go_to_next_file_action,
+                context="Editor",
+                name="Go to next file",
+            )
+            self.register_shortcut(
+                self.go_to_previous_file_action,
+                context="Editor",
+                name="Go to previous file",
+            )
+            self.tab_navigation_actions = [
+                MENU_SEPARATOR,
+                self.go_to_previous_file_action,
+                self.go_to_next_file_action,
+            ]
+
         # ---- File menu/toolbar construction ----
         self.recent_file_menu = QMenu(_("Open &recent"), self)
         self.recent_file_menu.aboutToShow.connect(self.update_recent_file_menu)
 
-        file_menu_actions = [self.new_action,
-                             MENU_SEPARATOR,
-                             self.open_action,
-                             self.open_last_closed_action,
-                             self.recent_file_menu,
-                             MENU_SEPARATOR,
-                             MENU_SEPARATOR,
-                             self.save_action,
-                             self.save_all_action,
-                             save_as_action,
-                             save_copy_as_action,
-                             self.revert_action,
-                             MENU_SEPARATOR,
-                             print_preview_action,
-                             self.print_action,
-                             MENU_SEPARATOR,
-                             self.close_action,
-                             self.close_all_action,
-                             MENU_SEPARATOR]
+        file_menu_actions = [
+            self.new_action,
+            MENU_SEPARATOR,
+            self.open_action,
+            self.open_last_closed_action,
+            self.recent_file_menu,
+            MENU_SEPARATOR,
+            MENU_SEPARATOR,
+            self.save_action,
+            self.save_all_action,
+            save_as_action,
+            save_copy_as_action,
+            self.revert_action,
+            MENU_SEPARATOR,
+            print_preview_action,
+            self.print_action,
+            MENU_SEPARATOR,
+            self.close_action,
+            self.close_all_action,
+            MENU_SEPARATOR,
+        ]
 
         self.main.file_menu_actions += file_menu_actions
         file_toolbar_actions = ([self.new_action, self.open_action,
@@ -862,83 +916,114 @@ class Editor(SpyderPluginWidget):
         # NOTE: 'list_breakpoints' is used by the breakpoints
         # plugin to add its "List breakpoints" action to this
         # menu
-        debug_menu_actions = [debug_action,
-                              debug_next_action,
-                              debug_step_action,
-                              debug_return_action,
-                              debug_continue_action,
-                              debug_exit_action,
-                              MENU_SEPARATOR,
-                              set_clear_breakpoint_action,
-                              set_cond_breakpoint_action,
-                              clear_all_breakpoints_action,
-                              'list_breakpoints',
-                              MENU_SEPARATOR,
-                              self.winpdb_action]
+        debug_menu_actions = [
+            debug_action,
+            debug_next_action,
+            debug_step_action,
+            debug_return_action,
+            debug_continue_action,
+            debug_exit_action,
+            MENU_SEPARATOR,
+            set_clear_breakpoint_action,
+            set_cond_breakpoint_action,
+            clear_all_breakpoints_action,
+            'list_breakpoints',
+            MENU_SEPARATOR,
+            self.winpdb_action
+        ]
         self.main.debug_menu_actions += debug_menu_actions
-        debug_toolbar_actions = [debug_action, debug_next_action,
-                                 debug_step_action, debug_return_action,
-                                 debug_continue_action, debug_exit_action]
+        debug_toolbar_actions = [
+            debug_action,
+            debug_next_action,
+            debug_step_action,
+            debug_return_action,
+            debug_continue_action,
+            debug_exit_action
+        ]
         self.main.debug_toolbar_actions += debug_toolbar_actions
 
         # ---- Source menu/toolbar construction ----
-        source_menu_actions = [eol_menu,
-                               showblanks_action,
-                               scrollpastend_action,
-                               showindentguides_action,
-                               show_classfunc_dropdown_action,
-                               showcode_analysis_pep8_action,
-                               trailingspaces_action,
-                               fixindentation_action,
-                               MENU_SEPARATOR,
-                               self.todo_list_action,
-                               self.warning_list_action,
-                               self.previous_warning_action,
-                               self.next_warning_action,
-                               MENU_SEPARATOR,
-                               self.previous_edit_cursor_action,
-                               self.previous_cursor_action,
-                               self.next_cursor_action]
+        source_menu_actions = [
+            showblanks_action,
+            scrollpastend_action,
+            showindentguides_action,
+            show_classfunc_dropdown_action,
+            show_codestyle_warnings_action,
+            show_docstring_warnings_action,
+            MENU_SEPARATOR,
+            self.todo_list_action,
+            self.warning_list_action,
+            self.previous_warning_action,
+            self.next_warning_action,
+            MENU_SEPARATOR,
+            self.previous_edit_cursor_action,
+            self.previous_cursor_action,
+            self.next_cursor_action,
+            MENU_SEPARATOR,
+            eol_menu,
+            trailingspaces_action,
+            fixindentation_action
+        ]
         self.main.source_menu_actions += source_menu_actions
 
-        source_toolbar_actions = [self.todo_list_action,
-                                  self.warning_list_action,
-                                  self.previous_warning_action,
-                                  self.next_warning_action,
-                                  MENU_SEPARATOR,
-                                  self.previous_edit_cursor_action,
-                                  self.previous_cursor_action,
-                                  self.next_cursor_action]
+        source_toolbar_actions = [
+            self.todo_list_action,
+            self.warning_list_action,
+            self.previous_warning_action,
+            self.next_warning_action,
+            MENU_SEPARATOR,
+            self.previous_edit_cursor_action,
+            self.previous_cursor_action,
+            self.next_cursor_action
+        ]
         self.main.source_toolbar_actions += source_toolbar_actions
 
         # ---- Dock widget and file dependent actions ----
-        self.dock_toolbar_actions = (file_toolbar_actions +
-                                     [MENU_SEPARATOR] +
-                                     source_toolbar_actions +
-                                     [MENU_SEPARATOR] +
-                                     run_toolbar_actions +
-                                     [MENU_SEPARATOR] +
-                                     debug_toolbar_actions +
-                                     [MENU_SEPARATOR] +
-                                     edit_toolbar_actions)
-        self.pythonfile_dependent_actions = [run_action, configure_action,
-                                             set_clear_breakpoint_action,
-                                             set_cond_breakpoint_action,
-                                             debug_action, run_selected_action,
-                                             run_cell_action,
-                                             run_cell_advance_action,
-                                             re_run_last_cell_action,
-                                             blockcomment_action,
-                                             unblockcomment_action,
-                                             self.winpdb_action]
+        self.dock_toolbar_actions = (
+            file_toolbar_actions +
+            [MENU_SEPARATOR] +
+            source_toolbar_actions +
+            [MENU_SEPARATOR] +
+            run_toolbar_actions +
+            [MENU_SEPARATOR] +
+            debug_toolbar_actions +
+            [MENU_SEPARATOR] +
+            edit_toolbar_actions
+        )
+        self.pythonfile_dependent_actions = [
+            run_action,
+            configure_action,
+            set_clear_breakpoint_action,
+            set_cond_breakpoint_action,
+            debug_action,
+            run_selected_action,
+            run_cell_action,
+            run_cell_advance_action,
+            re_run_last_cell_action,
+            blockcomment_action,
+            unblockcomment_action,
+            self.winpdb_action
+        ]
         self.cythonfile_compatible_actions = [run_action, configure_action]
-        self.file_dependent_actions = self.pythonfile_dependent_actions + \
-                [self.save_action, save_as_action, save_copy_as_action,
-                 print_preview_action, self.print_action,
-                 self.save_all_action, gotoline_action, workdir_action,
-                 self.close_action, self.close_all_action,
-                 self.toggle_comment_action, self.revert_action,
-                 self.indent_action, self.unindent_action]
+        self.file_dependent_actions = (
+            self.pythonfile_dependent_actions +
+            [
+                self.save_action,
+                save_as_action,
+                save_copy_as_action,
+                print_preview_action,
+                self.print_action,
+                self.save_all_action,
+                gotoline_action,
+                workdir_action,
+                self.close_action,
+                self.close_all_action,
+                self.toggle_comment_action,
+                self.revert_action,
+                self.indent_action,
+                self.unindent_action
+            ]
+        )
         self.stack_menu_actions = [gotoline_action, workdir_action]
 
         return self.file_dependent_actions
@@ -972,50 +1057,57 @@ class Editor(SpyderPluginWidget):
                 comp_widget = finfo.editor.completion_widget
                 comp_widget.setup_appearance(completion_size, font)
 
-    def _create_checkable_action(self, text, conf_name, editorstack_method):
+    def _create_checkable_action(self, text, conf_name, method=''):
         """Helper function to create a checkable action.
 
         Args:
             text (str): Text to be displayed in the action.
-            conf_name (str): configuration setting associated with the action
-            editorstack_method (str): name of EditorStack class that will be
-                used to update the changes in each editorstack.
+            conf_name (str): configuration setting associated with the
+                action
+            method (str): name of EditorStack class that will be used
+                to update the changes in each editorstack.
         """
         def toogle(checked):
             self.switch_to_plugin()
-            self._toggle_checkable_action(checked, editorstack_method,
-                                          conf_name)
+            self._toggle_checkable_action(checked, method, conf_name)
         action = create_action(self, text, toggled=toogle)
-        action.setChecked(CONF.get('editor', conf_name))
+
+        if conf_name not in ['pycodestyle', 'pydocstyle']:
+            action.setChecked(self.get_option(conf_name))
+        else:
+            action.setChecked(CONF.get('lsp-server', conf_name))
+
         return action
 
     @Slot(bool, str, str)
-    def _toggle_checkable_action(self, checked, editorstack_method, conf_name):
-        """Handle the toogle of a checkable action.
+    def _toggle_checkable_action(self, checked, method_name, conf_name):
+        """
+        Handle the toogle of a checkable action.
 
-        Update editorstacks and the configuration.
+        Update editorstacks, PyLS and CONF.
 
         Args:
             checked (bool): State of the action.
-            editorstack_method (str): name of EditorStack class that will be
-                used to update the changes in each editorstack.
-            conf_name (str): configuration setting associated with the action.
+            method_name (str): name of EditorStack class that will be used
+                to update the changes in each editorstack.
+            conf_name (str): configuration setting associated with the
+                action.
         """
-        if self.editorstacks:
-            for editorstack in self.editorstacks:
-                try:
-                    editorstack.__getattribute__(editorstack_method)(checked)
-                except AttributeError as e:
-                    logger.error(e, exc_info=True)
-                # Run code analysis when `set_pep8_enabled` is toggled
-                if editorstack_method == 'set_pep8_enabled':
-                    # TODO: Connect this to the LSP
-                    #for finfo in editorstack.data:
-                    #    finfo.run_code_analysis(
-                    #            self.get_option('code_analysis/pyflakes'),
-                    #            checked)
-                    pass
-        CONF.set('editor', conf_name, checked)
+        if method_name:
+            if self.editorstacks:
+                for editorstack in self.editorstacks:
+                    try:
+                        method = getattr(editorstack, method_name)
+                        method(checked)
+                    except AttributeError as e:
+                        logger.error(e, exc_info=True)
+            self.set_option(conf_name, checked)
+        else:
+            if conf_name == 'pycodestyle':
+                CONF.set('lsp-server', 'pycodestyle', checked)
+            elif conf_name == 'pydocstyle':
+                CONF.set('lsp-server', 'pydocstyle', checked)
+            self.main.lspmanager.update_server_list()
 
     def received_sig_option_changed(self, option, value):
         """
@@ -1119,6 +1211,7 @@ class Editor(SpyderPluginWidget):
             ('set_tab_stop_width_spaces',           'tab_stop_width_spaces'),
             ('set_wrap_enabled',                    'wrap'),
             ('set_tabmode_enabled',                 'tab_always_indent'),
+            ('set_stripmode_enabled',               'strip_trailing_spaces_on_modify'),
             ('set_intelligent_backspace_enabled',   'intelligent_backspace'),
             ('set_highlight_current_line_enabled',  'highlight_current_line'),
             ('set_highlight_current_cell_enabled',  'highlight_current_cell'),
@@ -1156,6 +1249,7 @@ class Editor(SpyderPluginWidget):
                                    lambda: self.sig_update_plugin_title.emit())
         editorstack.editor_focus_changed.connect(self.save_focus_editorstack)
         editorstack.editor_focus_changed.connect(self.main.plugin_focus_changed)
+        editorstack.editor_focus_changed.connect(self.sig_editor_focus_changed)
         editorstack.zoom_in.connect(lambda: self.zoom(1))
         editorstack.zoom_out.connect(lambda: self.zoom(-1))
         editorstack.zoom_reset.connect(lambda: self.zoom(0))
@@ -1176,9 +1270,9 @@ class Editor(SpyderPluginWidget):
         editorstack.perform_lsp_request.connect(self.send_lsp_request)
         editorstack.todo_results_changed.connect(self.todo_results_changed)
         editorstack.update_code_analysis_actions.connect(
-                                             self.update_code_analysis_actions)
+            self.update_code_analysis_actions)
         editorstack.update_code_analysis_actions.connect(
-                                                      self.update_todo_actions)
+            self.update_todo_actions)
         editorstack.refresh_file_dependent_actions.connect(
                                            self.refresh_file_dependent_actions)
         editorstack.refresh_save_all_action.connect(self.refresh_save_all_action)
@@ -1282,11 +1376,7 @@ class Editor(SpyderPluginWidget):
         oe_options = self.outlineexplorer.explorer.get_options()
         window = EditorMainWindow(
             self, self.stack_menu_actions, self.toolbar_list, self.menu_list,
-            show_fullpath=oe_options['show_fullpath'],
-            show_all_files=oe_options['show_all_files'],
-            group_cells=oe_options['group_cells'],
-            show_comments=oe_options['show_comments'],
-            sort_files_alphabetically=oe_options['sort_files_alphabetically'])
+            outline_explorer_options=oe_options)
         window.add_toolbars_to_menu("&View", window.get_toolbars())
         window.load_toolbars()
         window.resize(self.size())
@@ -1431,7 +1521,6 @@ class Editor(SpyderPluginWidget):
             self.mac_eol_action.setChecked(True)
         self.__set_eol_chars = True
 
-
     #------ Slots
     def opened_files_list_changed(self):
         """
@@ -1464,10 +1553,8 @@ class Editor(SpyderPluginWidget):
         if editor is None:
             return
         results = editor.get_current_warnings()
-        # Update code analysis buttons
-        state = (self.get_option('code_analysis/pyflakes') \
-                 or self.get_option('code_analysis/pep8')) \
-                 and results is not None and len(results)
+        # Update code analysis actions
+        state = results is not None and len(results)
         for action in (self.warning_list_action, self.previous_warning_action,
                        self.next_warning_action):
             if state is not None:
@@ -1653,14 +1740,15 @@ class Editor(SpyderPluginWidget):
         """Update recent file menu"""
         recent_files = []
         for fname in self.recent_files:
-            if self.is_file_opened(fname) is None and osp.isfile(fname):
+            if osp.isfile(fname):
                 recent_files.append(fname)
         self.recent_file_menu.clear()
         if recent_files:
             for fname in recent_files:
-                action = create_action(self, fname,
-                                       icon=ima.icon('FileIcon'),
-                                       triggered=self.load)
+                action = create_action(
+                    self, fname,
+                    icon=ima.get_icon_by_extension(fname, scale_factor=1.0),
+                    triggered=self.load)
                 action.setData(to_qvariant(fname))
                 self.recent_file_menu.addAction(action)
         self.clear_recent_action.setEnabled(len(recent_files) > 0)
@@ -2482,6 +2570,8 @@ class Editor(SpyderPluginWidget):
             indentguides_o = self.get_option(indentguides_n)
             tabindent_n = 'tab_always_indent'
             tabindent_o = self.get_option(tabindent_n)
+            stripindent_n = 'strip_trailing_spaces_on_modify'
+            stripindent_o = self.get_option(stripindent_n)
             ibackspace_n = 'intelligent_backspace'
             ibackspace_o = self.get_option(ibackspace_n)
             removetrail_n = 'always_remove_trailing_spaces'
@@ -2526,6 +2616,8 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_wrap_enabled(wrap_o)
                 if tabindent_n in options:
                     editorstack.set_tabmode_enabled(tabindent_o)
+                if stripindent_n in options:
+                    editorstack.set_stripmode_enabled(stripindent_o)
                 if ibackspace_n in options:
                     editorstack.set_intelligent_backspace_enabled(ibackspace_o)
                 if removetrail_n in options:
@@ -2673,3 +2765,16 @@ class Editor(SpyderPluginWidget):
         """Change the value of create_new_file_if_empty"""
         for editorstack in self.editorstacks:
             editorstack.create_new_file_if_empty = value
+
+    # --- File Menu actions (Mac only)
+    @Slot()
+    def go_to_next_file(self):
+        """Switch to next file tab on the current editor stack."""
+        editorstack = self.get_current_editorstack()
+        editorstack.tabs.tab_navigate(+1)
+
+    @Slot()
+    def go_to_previous_file(self):
+        """Switch to previous file tab on the current editor stack."""
+        editorstack = self.get_current_editorstack()
+        editorstack.tabs.tab_navigate(-1)

@@ -14,7 +14,6 @@ from spyder.api.preferences import PluginConfigPage
 from spyder.config.base import _
 from spyder.config.main import CONF
 import spyder.utils.icon_manager as ima
-from spyder.utils import codeanalysis, programs
 
 
 NUMPYDOC = "https://numpydoc.readthedocs.io/en/latest/format.html"
@@ -37,7 +36,7 @@ class EditorConfigPage(PluginConfigPage):
         showclassfuncdropdown_box = newcb(
                 _("Show selector for classes and functions"),
                 'show_class_func_dropdown')
-        showindentguides_box = newcb(_("Show Indent Guides"),
+        showindentguides_box = newcb(_("Show indent guides"),
                                      'indent_guides')
         linenumbers_box = newcb(_("Show line numbers"), 'line_numbers')
         blanks_box = newcb(_("Show blank spaces"), 'blank_spaces')
@@ -123,6 +122,12 @@ class EditorConfigPage(PluginConfigPage):
                   "of a line (when this option is enabled, code\n"
                   "completion may be triggered using the alternate\n"
                   "shortcut: Ctrl+Space)"))
+        strip_mode_box = newcb(
+            _("Automatically strip trailing spaces on changed lines"),
+            'strip_trailing_spaces_on_modify', default=True,
+            tip=_("If enabled, modified lines of code (excluding strings)\n"
+                  "will have their trailing whitespace stripped when leaving them.\n"
+                  "If disabled, only whitespace added by Spyder will be stripped."))
         ibackspace_box = newcb(
             _("Intelligent backspace"),
             'intelligent_backspace',
@@ -179,6 +184,7 @@ class EditorConfigPage(PluginConfigPage):
         sourcecode_layout.addWidget(tab_mode_box)
         sourcecode_layout.addWidget(ibackspace_box)
         sourcecode_layout.addWidget(removetrail_box)
+        sourcecode_layout.addWidget(strip_mode_box)
         sourcecode_layout.addLayout(indent_tab_layout)
 
         sourcecode_widget = QWidget()

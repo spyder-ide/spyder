@@ -21,7 +21,7 @@ from spyder.config.base import (CHECK_ALL, EXCLUDED_NAMES, get_home_dir,
 from spyder.config.fonts import MEDIUM, MONOSPACE, SANS_SERIF, SMALL
 from spyder.config.user import UserConfig
 from spyder.config.utils import IMPORT_EXT
-from spyder.utils import codeanalysis
+from spyder.plugins.editor.utils.findtasks import TASKS_PATTERN
 from spyder.utils.introspection.module_completion import PREFERRED_MODULES
 
 
@@ -51,13 +51,6 @@ MAC = sys.platform == 'darwin'
 LINUX = sys.platform.startswith('linux')
 CTRL = "Meta" if MAC else "Ctrl"
 
-# Run cell shortcuts
-if MAC:
-    RUN_CELL_SHORTCUT = 'Meta+Return'
-else:
-    RUN_CELL_SHORTCUT = 'Ctrl+Return'
-RE_RUN_LAST_CELL_SHORTCUT = 'Alt+Return'
-RUN_CELL_AND_ADVANCE_SHORTCUT = 'Shift+Return'
 
 # Modules to be preloaded for Rope and Jedi
 PRELOAD_MDOULES = ', '.join(PREFERRED_MODULES)
@@ -180,6 +173,7 @@ DEFAULTS = [
              {
               'mute_inline_plotting': True,
               'show_plot_outline': False,
+              'auto_fit_plotting': True
              }),
             ('editor',
              {
@@ -189,8 +183,6 @@ DEFAULTS = [
               'printer_header/font/bold': False,
               'wrap': False,
               'wrapflag': True,
-              'code_analysis/pyflakes': True,
-              'code_analysis/pep8': False,
               'todo_list': True,
               'realtime_analysis': True,
               'realtime_analysis/timeout': 2500,
@@ -228,6 +220,7 @@ DEFAULTS = [
               'autosave_enabled': True,
               'autosave_interval': 60,
               'docstring_type': 'Numpydoc',
+              'strip_trailing_spaces_on_modify': True,
               }),
             ('historylog',
              {
@@ -287,7 +280,7 @@ DEFAULTS = [
               'exclude_regexp': False,
               'search_text_regexp': False,
               'search_text': [''],
-              'search_text_samples': [codeanalysis.TASKS_PATTERN],
+              'search_text_samples': [TASKS_PATTERN],
               'more_options': True,
               'case_sensitive': False
               }),
@@ -406,8 +399,8 @@ DEFAULTS = [
               'editor/conditional breakpoint': 'Shift+F12',
               'editor/run selection': "F9",
               'editor/go to line': 'Ctrl+L',
-              'editor/go to previous file': 'Ctrl+Shift+Tab',
-              'editor/go to next file': 'Ctrl+Tab',
+              'editor/go to previous file': CTRL + '+Shift+Tab',
+              'editor/go to next file': CTRL + '+Tab',
               'editor/cycle to previous file': 'Ctrl+PgUp',
               'editor/cycle to next file': 'Ctrl+PgDown',
               'editor/new file': "Ctrl+N",
@@ -428,11 +421,11 @@ DEFAULTS = [
               'editor/zoom reset': "Ctrl+0",
               'editor/close file 1': "Ctrl+W",
               'editor/close file 2': "Ctrl+F4",
-              'editor/run cell': RUN_CELL_SHORTCUT,
-              'editor/run cell and advance': RUN_CELL_AND_ADVANCE_SHORTCUT,
+              'editor/run cell': CTRL + '+Return',
+              'editor/run cell and advance': 'Shift+Return',
               'editor/go to next cell': 'Ctrl+Down',
               'editor/go to previous cell': 'Ctrl+Up',
-              'editor/re-run last cell': RE_RUN_LAST_CELL_SHORTCUT,
+              'editor/re-run last cell': 'Alt+Return',
               'editor/split vertically': "Ctrl+{",
               'editor/split horizontally': "Ctrl+_",
               'editor/close split panel': "Alt+Shift+W",
@@ -676,6 +669,9 @@ DEFAULTS = [
              }),
             ('lsp-server',
              {
+              # This option is not used with the LSP server config
+              # It is used to disable hover hints in the editor
+              'enable_hover_hints': True,
               'code_completion': True,
               'jedi_definition': True,
               'jedi_definition/follow_imports': True,
@@ -698,7 +694,8 @@ DEFAULTS = [
               'advanced/command_launch': 'pyls',
               'advanced/host': '127.0.0.1',
               'advanced/port': 2087,
-              'advanced/external': False
+              'advanced/external': False,
+              'advanced/stdio': False
              })
             ]
 
@@ -713,7 +710,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '49.0.0'
+CONF_VERSION = '50.1.0'
 
 
 # Main configuration instance

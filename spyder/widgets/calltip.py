@@ -18,12 +18,16 @@ Now located at qtconsole/call_tip_widget.py as part of the
 
 # Standard library imports
 from unicodedata import category
+import os
+import sys
 
 # Third party imports
-from qtpy.QtCore import QBasicTimer, QCoreApplication, QEvent, Qt
+from qtpy.QtCore import (QBasicTimer, QCoreApplication, QEvent, Qt, QTimer,
+                         Signal)
 from qtpy.QtGui import QCursor, QPalette
-from qtpy.QtWidgets import (QFrame, QLabel, QTextEdit, QPlainTextEdit, QStyle,
-                            QStyleOptionFrame, QStylePainter, QToolTip)
+from qtpy.QtWidgets import (QApplication, QFrame, QLabel, QTextEdit,
+                            QPlainTextEdit, QStyle, QStyleOptionFrame,
+                            QStylePainter, QToolTip)
 
 # Local imports
 from spyder.py3compat import to_text_string
@@ -34,6 +38,8 @@ class ToolTipWidget(QLabel):
     Shows tooltips that can be styled with the different themes.
     """
 
+    sig_help_requested = Signal(str)
+
     def __init__(self, parent=None, as_tooltip=False):
         """
         Shows tooltips that can be styled with the different themes.
@@ -41,11 +47,24 @@ class ToolTipWidget(QLabel):
         super(ToolTipWidget, self).__init__(parent, Qt.ToolTip)
 
         # Variables
+        self._url = ''
         self.app = QCoreApplication.instance()
         self.as_tooltip = as_tooltip
         self.tip = None
+        self._timer_hide = QTimer()
+        self._text_edit = parent
 
         # Setup
+        # This keeps the hints below other applications
+        if sys.platform == 'darwin':
+            self.setWindowFlags(Qt.SplashScreen)
+        else:
+            self.setWindowFlags(Qt.ToolTip | Qt.FramelessWindowHint)
+
+        self._timer_hide.setInterval(500)
+        self.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        self.setTextInteractionFlags(Qt.TextBrowserInteraction)
+        self.setOpenExternalLinks(False)
         self.setForegroundRole(QPalette.ToolTipText)
         self.setBackgroundRole(QPalette.ToolTipBase)
         self.setPalette(QToolTip.palette())
@@ -57,6 +76,10 @@ class ToolTipWidget(QLabel):
                                          None, self)
         self.setMargin(1 + delta_margin)
 
+        # Signals
+        self.linkHovered.connect(self._update_hover_html_link_style)
+        self._timer_hide.timeout.connect(self.hide)
+
     def paintEvent(self, event):
         """Reimplemented to paint the background panel."""
         painter = QStylePainter(self)
@@ -67,10 +90,28 @@ class ToolTipWidget(QLabel):
 
         super(ToolTipWidget, self).paintEvent(event)
 
+    def _update_hover_html_link_style(self, url):
+        """Update style of labels that include rich text and html links."""
+        link = 'text-decoration:none;'
+        link_hovered = 'text-decoration:underline;'
+        self._url = url
+
+        if url:
+            QApplication.setOverrideCursor(QCursor(Qt.PointingHandCursor))
+            new_text, old_text = link_hovered, link
+        else:
+            new_text, old_text = link, link_hovered
+            QApplication.restoreOverrideCursor()
+
+        text = self.text()
+        new_text = text.replace(old_text, new_text)
+
+        self.setText(new_text)
+
     # ------------------------------------------------------------------------
     # --- 'ToolTipWidget' interface
     # ------------------------------------------------------------------------
-    def show_tip(self, point, tip):
+    def show_tip(self, point, tip, cursor=None):
         """
         Attempts to show the specified tip at the current cursor location.
         """
@@ -86,15 +127,73 @@ class ToolTipWidget(QLabel):
         self.tip = tip
         self.setText(tip)
         self.resize(self.sizeHint())
+
+        padding = 0
+        text_edit = self._text_edit
+        if cursor is None:
+            cursor_rect = text_edit.cursorRect()
+        else:
+            cursor_rect = text_edit.cursorRect(cursor)
+
+        screen_rect = self.app.desktop().screenGeometry(text_edit)
+        point.setY(point.y() + padding)
+        tip_height = self.size().height()
+        tip_width = self.size().width()
+
+        vertical = 'bottom'
+        horizontal = 'Right'
+
+        if point.y() + tip_height > screen_rect.height() + screen_rect.y():
+            point_ = text_edit.mapToGlobal(cursor_rect.topRight())
+            # If tip is still off screen, check if point is in top or bottom
+            # half of screen.
+            if point_.y() - tip_height < padding:
+                # If point is in upper half of screen, show tip below it.
+                # otherwise above it.
+                if 2 * point.y() < screen_rect.height():
+                    vertical = 'bottom'
+                else:
+                    vertical = 'top'
+            else:
+                vertical = 'top'
+
+        if point.x() + tip_width > screen_rect.width() + screen_rect.x():
+            point_ = text_edit.mapToGlobal(cursor_rect.topRight())
+            # If tip is still off-screen, check if point is in the right or
+            # left half of the screen.
+            if point_.x() - tip_width < padding:
+                if 2 * point.x() < screen_rect.width():
+                    horizontal = 'Right'
+                else:
+                    horizontal = 'Left'
+            else:
+                horizontal = 'Left'
+        pos = getattr(cursor_rect, '%s%s' % (vertical, horizontal))
+        adjusted_point = text_edit.mapToGlobal(pos())
+
+        if vertical == 'top':
+            if os.name == 'nt':
+                padding = -7
+            else:
+                padding = -4.5
+
+            point.setY(adjusted_point.y() - tip_height - padding)
+
+        if horizontal == 'Left':
+            point.setX(adjusted_point.x() - tip_width - padding)
+
         self.move(point)
         self.show()
         return True
 
-    def focusInEvent(self, event):
+    def mousePressEvent(self, event):
         """
         Reimplemented to hide it when focus goes out of the main window.
         """
-        self.hide()
+        QApplication.restoreOverrideCursor()
+        self.sig_help_requested.emit(self._url)
+        super(ToolTipWidget, self).mousePressEvent(event)
+        self._hide()
 
     def focusOutEvent(self, event):
         """
@@ -106,6 +205,17 @@ class ToolTipWidget(QLabel):
         """Override Qt method to hide the tooltip on leave."""
         super(ToolTipWidget, self).leaveEvent(event)
         self.hide()
+
+    def _hide(self):
+        """Hide method helper."""
+        QApplication.restoreOverrideCursor()
+        self._timer_hide.start()
+
+    def hide(self):
+        """Override Qt method to add timer and restore cursor."""
+        super(ToolTipWidget, self).hide()
+        self._timer_hide.stop()
+
 
 
 class CallTipWidget(QLabel):
@@ -130,6 +240,14 @@ class CallTipWidget(QLabel):
         self._hide_timer = QBasicTimer()
         self._text_edit = text_edit
 
+        # Setup
+        if sys.platform == 'darwin':
+            # This keeps the hints below other applications
+            self.setWindowFlags(Qt.SplashScreen)
+        else:
+            self.setWindowFlags(Qt.ToolTip | Qt.FramelessWindowHint)
+
+        self.setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.setFont(text_edit.document().defaultFont())
         self.setForegroundRole(QPalette.ToolTipText)
         self.setBackgroundRole(QPalette.ToolTipBase)
@@ -301,7 +419,7 @@ class CallTipWidget(QLabel):
         # Locate and show the widget. Place the tip below the current line
         # unless it would be off the screen.  In that case, decide the best
         # location based trying to minimize the  area that goes off-screen.
-        padding = 3 # Distance in pixels between cursor bounds and tip box.
+        padding = 0  # Distance in pixels between cursor bounds and tip box.
         cursor_rect = text_edit.cursorRect(cursor)
         screen_rect = self.app.desktop().screenGeometry(text_edit)
         point.setY(point.y() + padding)
@@ -336,7 +454,13 @@ class CallTipWidget(QLabel):
                 horizontal = 'Left'
         pos = getattr(cursor_rect, '%s%s' %(vertical, horizontal))
         adjusted_point = text_edit.mapToGlobal(pos())
+
         if vertical == 'top':
+            if os.name == 'nt':
+                padding = -7
+            else:
+                padding = -4.5
+
             point.setY(adjusted_point.y() - tip_height - padding)
         if horizontal == 'Left':
             point.setX(adjusted_point.x() - tip_width - padding)

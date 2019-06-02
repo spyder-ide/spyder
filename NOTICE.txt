@@ -343,7 +343,7 @@ Colin Duquesnoy (@ColinDuquesnoy) <colin.duquesnoy@gmail.com>
 
 Contributors:
 
-Andres Granada (@ogranada) 
+Andres Granada (@ogranada)
 Fynn Mazurkiewicz <FynnMazurkiewicz@'Googles-Email-Service'.com>
 
 
@@ -1652,7 +1652,7 @@ Copyright (c) 2015 Project Jupyter Contributors
 
 
 Author: Project Jupyter Contributors | https://github.com/jupyterlab/jupyterlab
-Site: https://github.com/jupyterlab/jupyterlab  
+Site: https://github.com/jupyterlab/jupyterlab
 Source: https://github.com/jupyterlab/jupyterlab
 License: 3-Clause ("Modified") BSD License
 https://opensource.org/licenses/BSD-3-Clause
@@ -1673,6 +1673,39 @@ Files covered:
 
 spyder/images/notebook_light.svg
 spyder/images/notebook_dark.svg
+
+
+-------------------------------------------------------------------------------
+
+
+
+Latex Logo
+----------
+
+
+Copyright (c) 2016 Roberto Huertas
+
+
+Author: Roberto Huertas | https://github.com/vscode-icons/vscode-icons
+Site: https://github.com/vscode-icons
+Source: https://github.com/vscode-icons
+License: The MIT License (MIT)
+https://opensource.org/licenses/MIT
+
+
+Distributed under the terms of The MIT License (MIT)
+
+
+See below for the full text of The MIT License (MIT).
+
+The current version of the original file can be viewed at:
+https://github.com/vscode-icons/vscode-icons/blob/master/icons/file_type_tex.svg
+
+
+Files covered:
+
+spyder/images/file_type_light_tex.svg
+spyder/images/file_type_tex.svg
 
 
 ===============================================================================
@@ -3888,7 +3921,7 @@ Creative Commons Attribution 4.0 International Public License
 
 By exercising the Licensed Rights (defined below), You accept and agree to be
 bound by the terms and conditions of this Creative Commons Attribution 4.0
-International Public License ("Public License"). To the extent this Public 
+International Public License ("Public License"). To the extent this Public
 License may be interpreted as a contract, You are granted the Licensed Rights
 in consideration of Your acceptance of these terms and conditions, and the
 Licensor grants You such rights in consideration of benefits the Licensor

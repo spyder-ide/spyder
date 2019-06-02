@@ -22,8 +22,7 @@ from qtpy.QtWidgets import QMessageBox
 # Local imports
 from spyder.plugins.explorer.widgets import (FileExplorerTest,
                                              ProjectExplorerTest)
-from spyder.plugins.projects.widgets.explorer import ProjectExplorerTest as \
-    ProjectExplorerTest2
+from spyder.plugins.projects.widgets.explorer import ProjectExplorerTest as ProjectExplorerTest2
 
 
 @pytest.fixture
@@ -42,7 +41,6 @@ def project_explorer(qtbot):
     return widget
 
 
-@pytest.mark.usefixtures("create_folders_files")
 @pytest.fixture(params=[FileExplorerTest, ProjectExplorerTest2])
 def explorer_with_files(qtbot, create_folders_files, request):
     """Setup Project/File Explorer widget."""
@@ -146,7 +144,7 @@ def test_single_click_to_open(qtbot, file_explorer):
         file_explorer.label1.setText('')
 
         for i in range(4):  # 4 items inside `/spyder/plugins/explorer/`
-            qtbot.keyClick(treewidget, Qt.Key_Down)        
+            qtbot.keyClick(treewidget, Qt.Key_Down)
             index = treewidget.currentIndex()
             path = model.data(index)
             if path:

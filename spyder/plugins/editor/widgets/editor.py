@@ -24,7 +24,7 @@ import unicodedata
 import qdarkstyle
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import (QByteArray, QFileInfo, QObject, QPoint, QSize, Qt,
-                         QThread, QTimer, Signal, Slot)
+                         QThread, QTimer, Signal, Slot, QCoreApplication)
 from qtpy.QtGui import QFont
 from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
                             QLabel, QMainWindow, QMessageBox, QMenu,
@@ -38,8 +38,7 @@ from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
 from spyder.py3compat import qbytearray_to_str, to_text_string
 from spyder.utils import icon_manager as ima
-from spyder.utils import (codeanalysis, encoding, sourcecode,
-                          syntaxhighlighters)
+from spyder.utils import encoding, sourcecode, syntaxhighlighters
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, MENU_SEPARATOR,
                                     mimedata2url)
@@ -55,6 +54,7 @@ from spyder.plugins.editor.widgets.codeeditor import get_file_language
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
+from spyder.plugins.editor.utils.findtasks import find_tasks
 from spyder.widgets.tabs import BaseTabs
 from spyder.config.main import CONF
 from spyder.plugins.explorer.widgets import show_in_external_file_explorer
@@ -166,6 +166,7 @@ class FileInfo(QObject):
     edit_goto = Signal(str, int, str)
     send_to_help = Signal(str, str, str, str, bool)
     sig_filename_changed = Signal(str)
+    sig_show_object_info = Signal(int)
 
     def __init__(self, filename, encoding, editor, new, threadmanager):
         QObject.__init__(self)
@@ -183,6 +184,7 @@ class FileInfo(QObject):
 
         self.editor.textChanged.connect(self.text_changed)
         self.editor.sig_bookmarks_changed.connect(self.bookmarks_changed)
+        self.editor.sig_show_object_info.connect(self.sig_show_object_info)
         self.sig_filename_changed.connect(self.editor.sig_filename_changed)
 
     @property
@@ -208,7 +210,7 @@ class FileInfo(QObject):
     def run_todo_finder(self):
         """Run TODO finder"""
         if self.editor.is_python():
-            self.threadmanager.add_thread(codeanalysis.find_tasks,
+            self.threadmanager.add_thread(find_tasks,
                                           self.todo_finished,
                                           self.get_source_code(), self)
 
@@ -537,6 +539,7 @@ class EditorStack(QWidget):
         self.default_font = None
         self.wrap_enabled = False
         self.tabmode_enabled = False
+        self.stripmode_enabled = False
         self.intelligent_backspace_enabled = True
         self.highlight_current_line_enabled = False
         self.highlight_current_cell_enabled = False
@@ -559,7 +562,7 @@ class EditorStack(QWidget):
         # Real-time code analysis
         self.analysis_timer = QTimer(self)
         self.analysis_timer.setSingleShot(True)
-        self.analysis_timer.setInterval(2000)
+        self.analysis_timer.setInterval(1000)
         self.analysis_timer.timeout.connect(self.analyze_script)
 
         # Update filename label
@@ -599,6 +602,8 @@ class EditorStack(QWidget):
         # --- Configurable shortcuts
         inspect = config_shortcut(self.inspect_current_object, context='Editor',
                                   name='Inspect current object', parent=self)
+        # TODO: Cleaner way to do this?
+        app = QCoreApplication.instance()
         set_breakpoint = config_shortcut(self.set_or_clear_breakpoint,
                                          context='Editor', name='Breakpoint',
                                          parent=self)
@@ -815,6 +820,8 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 self.outlineexplorer.remove_editor(finfo.editor.oe_proxy)
 
+        for finfo in self.data:
+            finfo.editor.notify_close()
         QWidget.closeEvent(self, event)
 
     def clone_editor_from(self, other_finfo, set_current):
@@ -886,20 +893,27 @@ class EditorStack(QWidget):
             editor = self.get_current_editor()
             editor.add_bookmark(slot_num)
 
-    def inspect_current_object(self):
+    def inspect_current_object(self, pos=None):
         """Inspect current object in the Help plugin"""
         editor = self.get_current_editor()
-        editor.sig_display_signature.connect(self.display_signature_help)
-        line, col = editor.get_cursor_line_column()
-        editor.request_hover(line, col)
+        editor.sig_display_object_info.connect(self.display_help)
+        cursor = None
+        if pos:
+            cursor = editor.get_last_hover_cursor()
+        line, col = editor.get_cursor_line_column(cursor)
+        editor.request_hover(line, col, show_hint=False, clicked=bool(pos))
 
-    @Slot(str)
-    def display_signature_help(self, signature):
+    @Slot(str, bool)
+    def display_help(self, help_text, clicked):
         editor = self.get_current_editor()
-        name = editor.get_current_word()
+        if clicked:
+            name = editor.get_last_hover_word()
+        else:
+            name = editor.get_current_word()
+
+        editor.sig_display_object_info.disconnect(self.display_help)
         self.help.switch_to_editor_source()
-        editor.sig_display_signature.disconnect(self.display_signature_help)
-        self.send_to_help(name, signature, force=True)
+        self.send_to_help(name, help_text, force=True)
 
     #------ Editor Widget Settings
     def set_closable(self, state):
@@ -1086,6 +1100,13 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_tab_mode(state)
+
+    def set_stripmode_enabled(self, state):
+        # CONF.get(self.CONF_SECTION, 'strip_trailing_spaces_on_modify')
+        self.stripmode_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_strip_mode(state)
 
     def set_intelligent_backspace_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'intelligent_backspace')
@@ -1495,6 +1516,10 @@ class EditorStack(QWidget):
 
             self.add_last_closed_file(finfo.filename)
 
+            # Remove autosave on successful close to work around issue #9265.
+            # Probably a good idea in general to mitigate any other bugs.
+            self.autosave.remove_autosave_file(finfo.filename)
+
         if self.get_stack_count() == 0 and self.create_new_file_if_empty:
             self.sig_new_file[()].emit()
             return False
@@ -1515,6 +1540,13 @@ class EditorStack(QWidget):
             editor = self.tabs.widget(index)
             if editor.language.lower() == language:
                 editor.start_lsp_services(config)
+
+    def notify_server_down(self, language):
+        """Notify language server unavailability to code editors."""
+        for index in range(self.get_stack_count()):
+            editor = self.tabs.widget(index)
+            if editor.language.lower() == language:
+                editor.stop_lsp_services()
 
     def close_all_files(self):
         """Close all opened scripts"""
@@ -1606,7 +1638,7 @@ class EditorStack(QWidget):
                 if not self.save(index):
                     return False
             elif no_all:
-                self.autosave.remove_autosave_file(finfo)
+                self.autosave.remove_autosave_file(finfo.filename)
             elif (finfo.editor.document().isModified() and
                   self.save_dialog_on_tests):
 
@@ -1624,13 +1656,13 @@ class EditorStack(QWidget):
                     if not self.save(index):
                         return False
                 elif answer == QMessageBox.No:
-                    self.autosave.remove_autosave_file(finfo)
+                    self.autosave.remove_autosave_file(finfo.filename)
                 elif answer == QMessageBox.YesToAll:
                     if not self.save(index):
                         return False
                     yes_all = True
                 elif answer == QMessageBox.NoToAll:
-                    self.autosave.remove_autosave_file(finfo)
+                    self.autosave.remove_autosave_file(finfo.filename)
                     no_all = True
                 elif answer == QMessageBox.Cancel:
                     return False
@@ -1689,7 +1721,7 @@ class EditorStack(QWidget):
             self.set_os_eol_chars(osname=osname)
         try:
             self._write_to_file(finfo, finfo.filename)
-            self.autosave.remove_autosave_file(finfo)
+            self.autosave.remove_autosave_file(finfo.filename)
             finfo.newly_created = False
             self.encoding_changed.emit(finfo.encoding)
             finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
@@ -1906,9 +1938,11 @@ class EditorStack(QWidget):
     #------ Update UI
     def start_stop_analysis_timer(self):
         self.is_analysis_done = False
+        self.analysis_timer.stop()
+        self.analysis_timer.start()
 
     def analyze_script(self, index=None):
-        """Analyze current script with todos"""
+        """Analyze current script for TODOs."""
         if self.is_analysis_done:
             return
         if index is None:
@@ -2130,6 +2164,7 @@ class EditorStack(QWidget):
             editor = finfo.editor
             editor.setFocus()
             self._refresh_outlineexplorer(index, update=False)
+            self.update_code_analysis_actions.emit()
             self.__refresh_statusbar(index)
             self.__refresh_readonly(index)
             self.__check_file_status(index)
@@ -2232,8 +2267,9 @@ class EditorStack(QWidget):
 
         self.add_to_data(finfo, set_current, add_where)
         finfo.send_to_help.connect(self.send_to_help)
+        finfo.sig_show_object_info.connect(self.inspect_current_object)
         finfo.todo_results_changed.connect(
-                                      lambda: self.todo_results_changed.emit())
+            lambda: self.todo_results_changed.emit())
         finfo.edit_goto.connect(lambda fname, lineno, name:
                                 self.edit_goto.emit(fname, lineno, name))
         finfo.sig_save_bookmarks.connect(lambda s1, s2:
@@ -2244,38 +2280,42 @@ class EditorStack(QWidget):
         editor.sig_re_run_last_cell.connect(self.re_run_last_cell)
         editor.sig_new_file.connect(self.sig_new_file.emit)
         editor.sig_breakpoints_saved.connect(self.sig_breakpoints_saved)
+        editor.sig_process_code_analysis.connect(
+            lambda: self.update_code_analysis_actions.emit())
         language = get_file_language(fname, txt)
         editor.setup_editor(
-                linenumbers=self.linenumbers_enabled,
-                show_blanks=self.blanks_enabled,
-                scroll_past_end=self.scrollpastend_enabled,
-                edge_line=self.edgeline_enabled,
-                edge_line_columns=self.edgeline_columns, language=language,
-                markers=self.has_markers(), font=self.default_font,
-                color_scheme=self.color_scheme,
-                wrap=self.wrap_enabled, tab_mode=self.tabmode_enabled,
-                intelligent_backspace=self.intelligent_backspace_enabled,
-                highlight_current_line=self.highlight_current_line_enabled,
-                highlight_current_cell=self.highlight_current_cell_enabled,
-                occurrence_highlighting=self.occurrence_highlighting_enabled,
-                occurrence_timeout=self.occurrence_highlighting_timeout,
-                close_parentheses=self.close_parentheses_enabled,
-                close_quotes=self.close_quotes_enabled,
-                add_colons=self.add_colons_enabled,
-                auto_unindent=self.auto_unindent_enabled,
-                indent_chars=self.indent_chars,
-                tab_stop_width_spaces=self.tab_stop_width_spaces,
-                cloned_from=cloned_from,
-                filename=fname,
-                show_class_func_dropdown=self.show_class_func_dropdown,
-                indent_guides=self.indent_guides)
+            linenumbers=self.linenumbers_enabled,
+            show_blanks=self.blanks_enabled,
+            scroll_past_end=self.scrollpastend_enabled,
+            edge_line=self.edgeline_enabled,
+            edge_line_columns=self.edgeline_columns, language=language,
+            markers=self.has_markers(), font=self.default_font,
+            color_scheme=self.color_scheme,
+            wrap=self.wrap_enabled, tab_mode=self.tabmode_enabled,
+            strip_mode=self.stripmode_enabled,
+            intelligent_backspace=self.intelligent_backspace_enabled,
+            highlight_current_line=self.highlight_current_line_enabled,
+            highlight_current_cell=self.highlight_current_cell_enabled,
+            occurrence_highlighting=self.occurrence_highlighting_enabled,
+            occurrence_timeout=self.occurrence_highlighting_timeout,
+            close_parentheses=self.close_parentheses_enabled,
+            close_quotes=self.close_quotes_enabled,
+            add_colons=self.add_colons_enabled,
+            auto_unindent=self.auto_unindent_enabled,
+            indent_chars=self.indent_chars,
+            tab_stop_width_spaces=self.tab_stop_width_spaces,
+            cloned_from=cloned_from,
+            filename=fname,
+            show_class_func_dropdown=self.show_class_func_dropdown,
+            indent_guides=self.indent_guides,
+        )
         if cloned_from is None:
             editor.set_text(txt)
             editor.document().setModified(False)
             editor.document().changed_since_autosave = False
         finfo.text_changed_at.connect(
-                                    lambda fname, position:
-                                    self.text_changed_at.emit(fname, position))
+            lambda fname, position:
+            self.text_changed_at.emit(fname, position))
         editor.sig_cursor_position_changed.connect(
                                            self.editor_cursor_position_changed)
         editor.textChanged.connect(self.start_stop_analysis_timer)
@@ -2283,13 +2323,14 @@ class EditorStack(QWidget):
             lambda lang, method, params: self.perform_lsp_request.emit(
                 lang, method, params))
         editor.modificationChanged.connect(
-                     lambda state: self.modification_changed(state,
-                                                    editor_id=id(editor)))
+            lambda state: self.modification_changed(state,
+                editor_id=id(editor)))
         editor.focus_in.connect(self.focus_changed)
         editor.zoom_in.connect(lambda: self.zoom_in.emit())
         editor.zoom_out.connect(lambda: self.zoom_out.emit())
         editor.zoom_reset.connect(lambda: self.zoom_reset.emit())
-        editor.sig_eol_chars_changed.connect(lambda eol_chars: self.refresh_eol_chars(eol_chars))
+        editor.sig_eol_chars_changed.connect(
+            lambda eol_chars: self.refresh_eol_chars(eol_chars))
 
         self.find_widget.set_editor(editor)
 
@@ -2380,6 +2421,7 @@ class EditorStack(QWidget):
             self.msgbox.exec_()
             self.set_os_eol_chars(index)
         self.is_analysis_done = False
+        self.analyze_script(index)
         return finfo
 
     def set_os_eol_chars(self, index=None, osname=None):
@@ -2442,8 +2484,8 @@ class EditorStack(QWidget):
 
     def run_cell(self):
         """Run current cell."""
-        text, line = self.get_current_editor().get_cell_as_executable_code()
-        self._run_cell_text(text, line)
+        text, block = self.get_current_editor().get_cell_as_executable_code()
+        self._run_cell_text(text, block)
 
     def run_cell_and_advance(self):
         """Run current cell and advance to the next one"""
@@ -2472,11 +2514,25 @@ class EditorStack(QWidget):
 
     def re_run_last_cell(self):
         """Run the previous cell again."""
-        text, line = (self.get_current_editor()
-                      .get_last_cell_as_executable_code())
-        self._run_cell_text(text, line)
+        last_cell = (self.get_current_editor()
+                     .get_last_cell_as_executable_code())
+        if not last_cell:
+            return
+        self._run_cell_text(*last_cell)
 
-    def _run_cell_text(self, text, line):
+    def _get_cell_name(self, block):
+        """Get the cell name from the block."""
+        oe_data = block.userData()
+        if oe_data and oe_data.oedata:
+            cell_name = oe_data.oedata.def_name
+        else:
+            if block.firstLineNumber() == 0:
+                cell_name = 'Cell at line 0'
+            else:
+                raise RuntimeError('Not a cell?')
+        return cell_name
+
+    def _run_cell_text(self, text, block):
         """Run cell code in the console.
 
         Cell code is run in the console by copying it to the console if
@@ -2492,11 +2548,7 @@ class EditorStack(QWidget):
         """
         finfo = self.get_current_finfo()
         editor = self.get_current_editor()
-        oe_data = editor.highlighter.get_outlineexplorer_data()
-        try:
-            cell_name = oe_data.get(line-1).def_name
-        except AttributeError:
-            cell_name = ''
+        cell_name = self._get_cell_name(block)
         if finfo.editor.is_python() and text:
             self.run_cell_in_ipyclient.emit(text, cell_name,
                                             finfo.filename,
@@ -2623,7 +2675,7 @@ class EditorSplitter(QSplitter):
             self.unregister_editorstack_cb(self.editorstack)
             self.editorstack = None
             close_splitter = self.count() == 1
-        except RuntimeError:
+        except (RuntimeError, AttributeError):
             # editorsplitter has been destroyed (happens when closing a
             # EditorMainWindow instance)
             return
@@ -2781,9 +2833,7 @@ class EditorSplitter(QSplitter):
 
 
 class EditorWidget(QSplitter):
-    def __init__(self, parent, plugin, menu_actions, show_fullpath,
-                 show_all_files, group_cells, show_comments,
-                 sort_files_alphabetically):
+    def __init__(self, parent, plugin, menu_actions, outline_explorer_options):
         QSplitter.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
@@ -2802,12 +2852,14 @@ class EditorWidget(QSplitter):
         self.plugin.register_widget_shortcuts(self.find_widget)
         self.find_widget.hide()
         self.outlineexplorer = OutlineExplorerWidget(
-                self,
-                show_fullpath=show_fullpath,
-                show_all_files=show_all_files,
-                group_cells=group_cells,
-                show_comments=show_comments,
-                sort_files_alphabetically=sort_files_alphabetically)
+            self,
+            show_fullpath=outline_explorer_options['show_fullpath'],
+            show_all_files=outline_explorer_options['show_all_files'],
+            group_cells=outline_explorer_options['group_cells'],
+            show_comments=outline_explorer_options['show_comments'],
+            sort_files_alphabetically=outline_explorer_options[
+                'sort_files_alphabetically'],
+            )
         self.outlineexplorer.edit_goto.connect(
                      lambda filenames, goto, word:
                      plugin.load(filenames=filenames, goto=goto, word=word,
@@ -2846,12 +2898,12 @@ class EditorWidget(QSplitter):
         editorstack.reset_statusbar.connect(self.encoding_status.hide)
         editorstack.reset_statusbar.connect(self.cursorpos_status.hide)
         editorstack.readonly_changed.connect(
-                                        self.readwrite_status.readonly_changed)
+                                        self.readwrite_status.update_readonly)
         editorstack.encoding_changed.connect(
-                                         self.encoding_status.encoding_changed)
+                                         self.encoding_status.update_encoding)
         editorstack.sig_editor_cursor_position_changed.connect(
-                     self.cursorpos_status.cursor_position_changed)
-        editorstack.sig_refresh_eol_chars.connect(self.eol_status.eol_changed)
+                     self.cursorpos_status.update_cursor_position)
+        editorstack.sig_refresh_eol_chars.connect(self.eol_status.update_eol)
         self.plugin.register_editorstack(editorstack)
         oe_btn = create_toolbutton(self)
         oe_btn.setDefaultAction(self.outlineexplorer.visibility_action)
@@ -2872,8 +2924,7 @@ class EditorWidget(QSplitter):
 
 class EditorMainWindow(QMainWindow):
     def __init__(self, plugin, menu_actions, toolbar_list, menu_list,
-                 show_fullpath, show_all_files, group_cells, show_comments,
-                 sort_files_alphabetically):
+                 outline_explorer_options):
         QMainWindow.__init__(self)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
@@ -2881,9 +2932,7 @@ class EditorMainWindow(QMainWindow):
         self.window_size = None
 
         self.editorwidget = EditorWidget(self, plugin, menu_actions,
-                                         show_fullpath, show_all_files,
-                                         group_cells, show_comments,
-                                         sort_files_alphabetically)
+                                         outline_explorer_options)
         self.setCentralWidget(self.editorwidget)
 
         # Setting interface theme

@@ -64,13 +64,16 @@ class Pylint(SpyderPluginWidget):
                                        triggered=self.change_history_depth)
         self.pylint.treewidget.common_actions += (None, history_action)
 
+        # Follow editorstacks tab change
+        self.main.editor.sig_editor_focus_changed.connect(self.set_filename)
+
         # Initialize plugin
         self.initialize_plugin()
-        
+
     #------ SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
-        return _("Static code analysis")
+        return _("Code Analysis")
 
     def get_plugin_icon(self):
         """Return widget icon"""
@@ -83,7 +86,7 @@ class Pylint(SpyderPluginWidget):
         this plugin's dockwidget is raised on top-level
         """
         return self.pylint.treewidget
-    
+
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         return self.pylint.treewidget.get_menu_actions()
@@ -99,13 +102,13 @@ class Pylint(SpyderPluginWidget):
         self.pylint.redirect_stdio.connect(
             self.main.redirect_internalshell_stdio)
         self.main.add_dockwidget(self)
-        
+
         pylint_act = create_action(self, _("Run static code analysis"),
                                    triggered=self.run_pylint)
         pylint_act.setEnabled(is_module_installed('pylint'))
         self.register_shortcut(pylint_act, context="Pylint",
                                name="Run analysis")
-        
+
         self.main.source_menu_actions += [MENU_SEPARATOR, pylint_act]
         self.main.editor.pythonfile_dependent_actions += [pylint_act]
 
@@ -115,10 +118,10 @@ class Pylint(SpyderPluginWidget):
 
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
-        # The history depth option will be applied at 
+        # The history depth option will be applied at
         # next Spyder startup, which is soon enough
         pass
-        
+
     #------ Public API --------------------------------------------------------
     @Slot()
     def change_history_depth(self):
@@ -130,6 +133,15 @@ class Pylint(SpyderPluginWidget):
         if valid:
             self.set_option('max_entries', depth)
 
+    def get_filename(self):
+        """Get current filename in combobox."""
+        return self.pylint.get_filename()
+
+    @Slot()
+    def set_filename(self):
+        """Set filename without code analysis."""
+        self.pylint.set_filename(self.main.editor.get_current_filename())
+
     @Slot()
     def run_pylint(self):
         """Run pylint code analysis"""
@@ -138,7 +150,7 @@ class Pylint(SpyderPluginWidget):
             return
         self.switch_to_plugin()
         self.analyze(self.main.editor.get_current_filename())
-        
+
     def analyze(self, filename):
         """Reimplement analyze method"""
         if self.dockwidget and not self.ismaximized:

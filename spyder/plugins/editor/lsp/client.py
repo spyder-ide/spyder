@@ -54,16 +54,17 @@ logger = logging.getLogger(__name__)
 @class_register
 class LSPClient(QObject, LSPMethodProviderMixIn):
     """Language Server Protocol v3.0 client implementation."""
-    # Signals
+    #: Signal to inform the editor plugin that the client has
+    #  started properly and it's ready to be used.
     sig_initialize = Signal(dict, str)
+
+    #: Signal to report internal server errors through Spyder's
+    #  facilities.
+    sig_server_error = Signal(str)
 
     # Constants
     external_server_fmt = ('--server-host %(host)s '
-                           '--server-port %(port)s '
-                           '--external-server')
-    local_server_fmt = ('--server-host %(host)s '
-                        '--server-port %(port)s '
-                        '--server %(cmd)s')
+                           '--server-port %(port)s ')
 
     def __init__(self, parent,
                  server_settings={},
@@ -89,6 +90,13 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.transport_args = [sys.executable, '-u',
                                osp.join(LOCATION, 'transport', 'main.py')]
         self.external_server = server_settings.get('external', False)
+        self.stdio = server_settings.get('stdio', False)
+        # Setting stdio on implies that external_server is off
+        if self.stdio and self.external_server:
+            error = ('If server is set to use stdio communication, '
+                     'then it cannot be an external server')
+            logger.error(error)
+            raise AssertionError(error)
 
         self.folder = folder
         self.plugin_configurations = server_settings.get('configurations', {})
@@ -98,15 +106,23 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
         server_args_fmt = server_settings.get('args', '')
         server_args = server_args_fmt.format(**server_settings)
-        # transport_args = self.local_server_fmt % (server_settings)
-        # if self.external_server:
         transport_args = self.external_server_fmt % (server_settings)
 
-        self.server_args = [sys.executable, '-m', server_settings['cmd']]
-        self.server_args += server_args.split(' ')
+        self.server_args = []
+        if language == 'python':
+            self.server_args += [sys.executable, '-m']
+        self.server_args += [server_settings['cmd']]
+        if len(server_args) > 0:
+            self.server_args += server_args.split(' ')
+
         self.transport_args += transport_args.split(' ')
         self.transport_args += ['--folder', folder]
         self.transport_args += ['--transport-debug', str(get_debug_level())]
+        if not self.stdio:
+            self.transport_args += ['--external-server']
+        else:
+            self.transport_args += ['--stdio-server']
+            self.external_server = True
 
     def start(self):
         self.zmq_out_socket = self.context.socket(zmq.PAIR)
@@ -126,12 +142,21 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             if not osp.exists(osp.dirname(server_log_file)):
                 os.makedirs(osp.dirname(server_log_file))
             server_log = open(server_log_file, 'w')
+            if self.stdio:
+                server_log.close()
+                if self.language == 'python':
+                    self.server_args += ['--log-file', server_log_file]
+                self.transport_args += ['--server-log-file', server_log_file]
 
             # Start server with logging options
             if get_debug_level() == 2:
                 self.server_args.append('-v')
             elif get_debug_level() == 3:
                 self.server_args.append('-vv')
+
+        server_stdin = subprocess.PIPE
+        server_stdout = server_log
+        server_stderr = subprocess.STDOUT
 
         if not self.external_server:
             logger.info('Starting server: {0}'.format(
@@ -157,8 +182,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
             self.lsp_server = subprocess.Popen(
                 self.server_args,
-                stdout=server_log,
-                stderr=subprocess.STDOUT,
+                stdout=server_stdout,
+                stdin=server_stdin,
+                stderr=server_stderr,
                 creationflags=creation_flags)
 
         client_log = subprocess.PIPE
@@ -177,9 +203,19 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.transport_args = list(map(str, self.transport_args))
         logger.info('Starting transport: {0}'
                     .format(' '.join(self.transport_args)))
+        if self.stdio:
+            transport_stdin = subprocess.PIPE
+            transport_stdout = subprocess.PIPE
+            transport_stderr = client_log
+            self.transport_args += self.server_args
+        else:
+            transport_stdout = client_log
+            transport_stdin = subprocess.PIPE
+            transport_stderr = subprocess.STDOUT
         self.transport_client = subprocess.Popen(self.transport_args,
-                                                 stdout=subprocess.PIPE,
-                                                 stderr=client_log,
+                                                 stdout=transport_stdout,
+                                                 stdin=transport_stdin,
+                                                 stderr=transport_stderr,
                                                  env=new_env)
 
         fid = self.zmq_in_socket.getsockopt(zmq.FD)
@@ -239,8 +275,13 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 if 'error' in resp:
                     logger.debug('{} Response error: {}'
                                  .format(self.language, repr(resp['error'])))
-
-                if 'method' in resp:
+                    if self.language == 'python':
+                        traceback = (resp['error'].get('data', {}).
+                                     get('traceback'))
+                        if traceback:
+                            traceback = ''.join(traceback)
+                            self.sig_server_error.emit(traceback)
+                elif 'method' in resp:
                     if resp['method'][0] != '$':
                         if resp['method'] in self.handler_registry:
                             handler_name = (

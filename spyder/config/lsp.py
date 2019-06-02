@@ -26,6 +26,7 @@ PYTHON_CONFIG = {
     'host': '127.0.0.1',
     'port': 2087,
     'external': False,
+    'stdio': False,
     'configurations': {
         'pyls': {
             'configurationSources': [
@@ -73,6 +74,8 @@ PYTHON_CONFIG = {
                     'follow_builtin_imports': True
                 },
                 'jedi_hover': {
+                    # This option always needs to be `True` so that we can
+                    # request information for the Object Inspection Help Pane
                     'enabled': True
                 },
                 'jedi_references': {

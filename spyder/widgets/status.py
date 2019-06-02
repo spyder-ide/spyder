@@ -113,7 +113,7 @@ class BaseTimerStatus(StatusBarWidget):
         self._interval = interval
         if self.timer is not None:
             self.timer.setInterval(interval)
-    
+
     def import_test(self):
         """Raise ImportError if feature is not supported."""
         raise NotImplementedError
@@ -129,7 +129,7 @@ class BaseTimerStatus(StatusBarWidget):
     def get_value(self):
         """Return formatted text value."""
         raise NotImplementedError
-        
+
     def update_status(self):
         """Update status label widget, if widget is visible."""
         if self.isVisible():

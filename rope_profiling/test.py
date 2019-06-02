@@ -37,19 +37,19 @@ ROPE_PREFS = {
 def ropetest():
     project = rope.base.project.Project('src', **ROPE_PREFS)
     project.validate(project.root)
-    
+
     filename = osp.join('src', 'script.py')
     source_code = file(filename, 'rb').read()
     offset = len(source_code)
-    
+
     resource = rope.base.libutils.path_to_resource(project, filename)
-    
+
     t0 = time.time()
-    
+
     proposals = rope.contrib.codeassist.code_assist(project, source_code,
                                                     offset, resource)
     proposals = rope.contrib.codeassist.sorted_proposals(proposals)
-    
+
     print "%s: %d ms" % ("completion", 10*round(1e2*(time.time()-t0)))
     print 'loadtxt' in [proposal.name for proposal in proposals]
 
@@ -77,22 +77,22 @@ rope_patch.apply()
 def other_features():
     project = rope.base.project.Project('src', **ROPE_PREFS)
     project.validate(project.root)
-    
+
     filename = osp.join('src', 'script2.py')
     source_code = file(filename, 'rb').read()
     offset = len(source_code)
-    
+
     resource = rope.base.libutils.path_to_resource(project, filename)
-    
+
     t0 = time.time()
-    
+
     cts = rope.contrib.codeassist.get_calltip(
                                     project, source_code, offset, resource)
     doc_text = rope.contrib.codeassist.get_doc(
                                     project, source_code, offset, resource)
     def_loc = rope.contrib.codeassist.get_definition_location(
                                     project, source_code, offset, resource)
-    
+
     msg = "Testing other rope instrospection features"
     print msg
     print "="*len(msg)

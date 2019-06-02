@@ -59,7 +59,7 @@ jobs:
 
     # Run Tests
   - script: |
-      ./continuous_integration/azure/runtests.sh || ./continuous_integration/azure/runtests.sh || ./continuous_integration/azure/runtests.sh
+      ./continuous_integration/azure/runtests.sh || ./continuous_integration/azure/runtests.sh || ./continuous_integration/azure/runtests.sh || ./continuous_integration/azure/runtests.sh
     displayName: 'Run tests'
     continueOnError: false
 

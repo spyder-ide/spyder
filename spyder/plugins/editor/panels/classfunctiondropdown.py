@@ -24,11 +24,6 @@ from spyder.plugins.outlineexplorer.api import OutlineExplorerData as OED
 from spyder.utils import icon_manager as ima
 
 
-DUMMY_OED = OED()
-DUMMY_OED.fold_level = 0
-DUMMY_OED.text = "<None>"
-
-
 def populate(combobox, data):
     """
     Populate the given ``combobox`` with the class or function names.
@@ -90,20 +85,17 @@ def _get_fold_levels(editor):
     folds : list of :class:`FoldScopeHelper`
         A list of all the class or function defintion fold points.
     """
-    block = editor.document().firstBlock()
-    oed = editor.get_outlineexplorer_data()
+
 
     folds = []
     parents = []
     prev = None
 
-    while block.isValid():
-        if TextBlockHelper.is_fold_trigger(block):
+    for oedata in editor.outlineexplorer_data_list():
+        if TextBlockHelper.is_fold_trigger(oedata.block):
             try:
-                data = oed[block.firstLineNumber()]
-
-                if data.def_type in (OED.CLASS, OED.FUNCTION):
-                    fsh = FoldScopeHelper(FoldScope(block), data)
+                if oedata.def_type in (OED.CLASS, OED.FUNCTION):
+                    fsh = FoldScopeHelper(FoldScope(oedata.block), oedata)
 
                     # Determine the parents of the item using a stack.
                     _adjust_parent_stack(fsh, prev, parents)
@@ -114,9 +106,6 @@ def _get_fold_levels(editor):
                     prev = fsh
             except KeyError:
                 pass
-
-        block = block.next()
-
     return folds
 
 

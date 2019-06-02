@@ -421,6 +421,7 @@ class MainWindow(QMainWindow):
                               RunConfigPage, LSPManagerConfigPage]
         self.prefs_index = None
         self.prefs_dialog_size = None
+        self.prefs_dialog_instance = None
 
         # Quick Layouts and Dialogs
         from spyder.preferences.layoutdialog import (LayoutSaveDialog,
@@ -928,9 +929,16 @@ class MainWindow(QMainWindow):
                                        context=Qt.ApplicationShortcut)
         self.register_shortcut(restart_action, "_", "Restart")
 
-        self.file_menu_actions += [self.file_switcher_action,
-                                   self.symbol_finder_action, None,
-                                   restart_action, quit_action]
+        file_actions = [
+            self.file_switcher_action,
+            self.symbol_finder_action,
+            None,
+        ]
+        if sys.platform == 'darwin':
+            file_actions.extend(self.editor.tab_navigation_actions + [None])
+
+        file_actions.extend([restart_action, quit_action])
+        self.file_menu_actions += file_actions
         self.set_splash("")
 
         # Namespace browser
@@ -1143,6 +1151,7 @@ class MainWindow(QMainWindow):
                                         qta_exe)
         if qta_act:
             self.help_menu_actions += [qta_act, None]
+
         # About Spyder
         about_action = create_action(self,
                                 _("About %s...") % "Spyder",
@@ -2500,41 +2509,60 @@ class MainWindow(QMainWindow):
             rev = versions['revision']
             revlink = " (<a href='https://github.com/spyder-ide/spyder/"\
                       "commit/%s'>Commit: %s</a>)" % (rev, rev)
+
+        # Get current font properties
+        font = self.font()
+        font_family = font.family()
+        font_size = font.pointSize()
+        if sys.platform == 'darwin':
+            font_size -= 2
+
         msgBox = QMessageBox(self)
         msgBox.setText(
             """
+            <div style='font-family: "{font_family}";
+                        font-size: {font_size}pt;
+                        font-weight: normal;
+                        '>
+            <p>
             <b>Spyder {spyder_ver}</b> {revision}
-            <br>The Scientific Python Development Environment |
+            <br>
+            The Scientific Python Development Environment |
             <a href="{website_url}">Spyder-IDE.org</a>
-            <br>Copyright &copy; 2009-2019 Spyder Project Contributors and
-            <a href="{github_url}/blob/master/AUTHORS.txt">others</a>
-            <br>Distributed under the terms of the
+            <br>
+            Copyright &copy; 2009-2019 Spyder Project Contributors and
+            <a href="{github_url}/blob/master/AUTHORS.txt">others</a>.
+            <br>
+            Distributed under the terms of the
             <a href="{github_url}/blob/master/LICENSE.txt">MIT License</a>.
-
-            <p>Created by Pierre Raybaut; current maintainer is Carlos Cordoba.
-            <br>Developed by the
+            </p>
+            <p>
+            Created by Pierre Raybaut; current maintainer is Carlos Cordoba.
+            Developed by the
             <a href="{github_url}/graphs/contributors">international
-            Spyder community</a>.
-            <br>Many thanks to all the Spyder beta testers and dedicated users.
-
+            Spyder community</a>. Many thanks to all the Spyder beta testers
+            and dedicated users.
+            </p>
             <p>For help with Spyder errors and crashes, please read our
             <a href="{trouble_url}">Troubleshooting Guide</a>, and for bug
             reports and feature requests, visit our
-            <a href="{github_url}">Github site</a>.
-            For project discussion, see our
-            <a href="{forum_url}">Google Group</a>.
-            <p>This project is part of a larger effort to promote and
+            <a href="{github_url}">Github site</a>. For project discussion,
+            see our <a href="{forum_url}">Google Group</a>.
+            </p>
+            <p>
+            This project is part of a larger effort to promote and
             facilitate the use of Python for scientific and engineering
             software development.
             The popular Python distributions
             <a href="https://www.anaconda.com/download/">Anaconda</a> and
             <a href="https://winpython.github.io/">WinPython</a>
             also contribute to this plan.
-
-            <p>Python {python_ver} {bitness}-bit | Qt {qt_ver} |
+            </p>
+            <p>
+            Python {python_ver} {bitness}-bit | Qt {qt_ver} |
             {qt_api} {qt_api_ver} | {os_name} {os_ver}
-
-            <small><p>Certain source files under other compatible permissive
+            </p>
+            <p><small>Certain source files under other compatible permissive
             licenses and/or originally by other authors.
             Spyder 3 theme icons derived from
             <a href="https://fontawesome.com/">Font Awesome</a> 4.7
@@ -2551,23 +2579,29 @@ class MainWindow(QMainWindow):
             Silk icon set</a> 1.3 (&copy; 2006 Mark James; CC-BY 2.5), and
             the <a href="https://www.kde.org/">KDE Oxygen icons</a>
             (&copy; 2007 KDE Artists; LGPL 3.0+).</small>
-
-            <p>See the <a href="{github_url}/blob/master/NOTICE.txt">NOTICE</a>
+            </p>
+            <p>
+            See the <a href="{github_url}/blob/master/NOTICE.txt">NOTICE</a>
             file for full legal information.
-            """
-            .format(spyder_ver=versions['spyder'],
-                    revision=revlink,
-                    website_url=__website_url__,
-                    github_url=__project_url__,
-                    trouble_url=__trouble_url__,
-                    forum_url=__forum_url__,
-                    python_ver=versions['python'],
-                    bitness=versions['bitness'],
-                    qt_ver=versions['qt'],
-                    qt_api=versions['qt_api'],
-                    qt_api_ver=versions['qt_api_ver'],
-                    os_name=versions['system'],
-                    os_ver=versions['release'])
+            </p>
+            </div>
+            """.format(
+                spyder_ver=versions['spyder'],
+                revision=revlink,
+                website_url=__website_url__,
+                github_url=__project_url__,
+                trouble_url=__trouble_url__,
+                forum_url=__forum_url__,
+                python_ver=versions['python'],
+                bitness=versions['bitness'],
+                qt_ver=versions['qt'],
+                qt_api=versions['qt_api'],
+                qt_api_ver=versions['qt_api_ver'],
+                os_name=versions['system'],
+                os_ver=versions['release'],
+                font_family=font_family,
+                font_size=font_size,
+            )
         )
         msgBox.setWindowTitle(_("About %s") % "Spyder")
         msgBox.setStandardButtons(QMessageBox.Ok)
@@ -2875,32 +2909,52 @@ class MainWindow(QMainWindow):
     def edit_preferences(self):
         """Edit Spyder preferences"""
         from spyder.preferences.configdialog import ConfigDialog
-        dlg = ConfigDialog(self)
-        dlg.size_change.connect(self.set_prefs_size)
-        if self.prefs_dialog_size is not None:
-            dlg.resize(self.prefs_dialog_size)
-        for PrefPageClass in self.general_prefs:
-            widget = PrefPageClass(dlg, main=self)
-            widget.initialize()
-            dlg.add_page(widget)
-        for plugin in [self.workingdirectory, self.editor,
-                       self.projects, self.ipyconsole,
-                       self.historylog, self.help, self.variableexplorer,
-                       self.onlinehelp, self.explorer, self.findinfiles
-                       ]+self.thirdparty_plugins:
-            if plugin is not None:
-                try:
-                    widget = plugin.create_configwidget(dlg)
-                    if widget is not None:
-                        dlg.add_page(widget)
-                except Exception:
-                    traceback.print_exc(file=sys.stderr)
-        if self.prefs_index is not None:
-            dlg.set_current_index(self.prefs_index)
-        dlg.show()
-        dlg.check_all_settings()
-        dlg.pages_widget.currentChanged.connect(self.__preference_page_changed)
-        dlg.exec_()
+
+        def _dialog_finished(result_code):
+            """Restore preferences dialog instance variable."""
+            self.prefs_dialog_instance = None
+
+        if self.prefs_dialog_instance is None:
+            dlg = ConfigDialog(self)
+            self.prefs_dialog_instance = dlg
+
+            # Signals
+            dlg.finished.connect(_dialog_finished)
+            dlg.pages_widget.currentChanged.connect(
+                self.__preference_page_changed)
+            dlg.size_change.connect(self.set_prefs_size)
+
+            # Setup
+            if self.prefs_dialog_size is not None:
+                dlg.resize(self.prefs_dialog_size)
+
+            for PrefPageClass in self.general_prefs:
+                widget = PrefPageClass(dlg, main=self)
+                widget.initialize()
+                dlg.add_page(widget)
+
+            for plugin in [self.workingdirectory, self.editor,
+                           self.projects, self.ipyconsole,
+                           self.historylog, self.help, self.variableexplorer,
+                           self.onlinehelp, self.explorer, self.findinfiles
+                           ] + self.thirdparty_plugins:
+                if plugin is not None:
+                    try:
+                        widget = plugin.create_configwidget(dlg)
+                        if widget is not None:
+                            dlg.add_page(widget)
+                    except Exception:
+                        # Avoid a crash at startup if a plugin's config
+                        # page fails to load.
+                        traceback.print_exc(file=sys.stderr)
+
+            if self.prefs_index is not None:
+                dlg.set_current_index(self.prefs_index)
+
+            # Check settings and show dialog
+            dlg.show()
+            dlg.check_all_settings()
+            dlg.exec_()
 
     def __preference_page_changed(self, index):
         """Preference page index has changed"""

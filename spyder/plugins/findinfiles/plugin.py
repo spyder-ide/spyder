@@ -122,7 +122,7 @@ class FindInFiles(SpyderPluginWidget):
     #------ SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
-        return _("Find in files")
+        return _("Find")
     
     def get_focus_widget(self):
         """

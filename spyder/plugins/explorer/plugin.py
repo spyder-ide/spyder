@@ -54,7 +54,7 @@ class Explorer(SpyderPluginWidget):
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
-        return _("File explorer")
+        return _("Files")
     
     def get_focus_widget(self):
         """
