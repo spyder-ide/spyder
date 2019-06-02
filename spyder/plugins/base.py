@@ -8,6 +8,10 @@
 Base plugin class
 """
 
+# Standard library imports
+import inspect
+import os
+
 # Third party imports
 import qdarkstyle
 from qtpy.QtCore import Qt, Slot
@@ -77,6 +81,10 @@ class BasePluginMixin(object):
         QApplication.restoreOverrideCursor()
         self._show_status_message(message, timeout=2000)
         QApplication.processEvents()
+
+    def _get_plugin_path(self):
+        """Return filesystem path to the root directory of the plugin."""
+        return os.path.dirname(inspect.getfile(self.__class__))
 
 
 class PluginWindow(QMainWindow):

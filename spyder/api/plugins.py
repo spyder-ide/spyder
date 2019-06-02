@@ -8,12 +8,9 @@
 spyder.api.plugins
 ==================
 
-Here, 'plugins' are Qt widgets designed specifically for Spyder
+Here, 'plugins' are Qt widgets that can make changes to Spyder's
+main window and call other plugins directly.
 """
-
-# Standard library imports
-import inspect
-import os
 
 # Third party imports
 from qtpy.QtCore import Signal, Slot
@@ -51,8 +48,9 @@ class BasePlugin(BasePluginMixin):
         # window.
         self.main = parent
 
-        # Filesystem path to this plugin
-        self.PLUGIN_PATH = os.path.dirname(inspect.getfile(self.__class__))
+        # Filesystem path to the root directory that contains the
+        # plugin
+        self.PLUGIN_PATH = self._get_plugin_path()
 
         # Connect signals to slots.
         self.sig_show_status_message.connect(self.show_status_message)
