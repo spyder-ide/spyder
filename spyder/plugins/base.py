@@ -44,13 +44,13 @@ class BasePluginMixin(object):
         self.is_compatible = True
         if not check_compatibility:
             self.is_compatible = False
-            self.show_compatibility_message(message)
+            self._show_compatibility_message(message)
 
-    def set_option(self, option, value):
+    def _set_option(self, option, value):
         """Set option in spyder.ini"""
         CONF.set(self.CONF_SECTION, str(option), value)
 
-    def get_option(self, option, default=NoDefault):
+    def _get_option(self, option, default=NoDefault):
         """Get option from spyder.ini."""
         return CONF.get(self.CONF_SECTION, option, default)
 
@@ -58,7 +58,7 @@ class BasePluginMixin(object):
         """Show message in main window's status bar."""
         self.main.statusBar().showMessage(message, timeout)
 
-    def show_compatibility_message(self, message):
+    def _show_compatibility_message(self, message):
         """Show a compatibility message."""
         messageBox = QMessageBox(self)
         messageBox.setWindowModality(Qt.NonModal)

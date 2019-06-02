@@ -85,7 +85,7 @@ class BasePlugin(BasePluginMixin):
             Value to save in configuration file, passed as a Python
             object.
         """
-        super(BasePlugin, self).set_option(option, value)
+        super(BasePlugin, self)._set_option(option, value)
 
     def get_option(self, option, default=NoDefault):
         """
@@ -94,7 +94,7 @@ class BasePlugin(BasePluginMixin):
         option: str
             Name of the option to get its value from.
         """
-        return super(BasePlugin, self).get_option(option, default)
+        return super(BasePlugin, self)._get_option(option, default)
 
     def starting_long_process(self, message):
         """
@@ -137,7 +137,7 @@ class SpyderPlugin(BasePlugin):
 
     def check_compatibility(self):
         """
-        This method can be implemented to check compatibility of a plugin
+        This method can be reimplemented to check compatibility of a plugin
         for a given condition.
 
         `message` should give information in case of incompatibility. For
