@@ -59,21 +59,41 @@ class BasePlugin(BasePluginMixin):
     @Slot(str)
     @Slot(str, int)
     def show_status_message(self, message, timeout=0):
-        """Show message in main window's status bar."""
+        """
+        Show message in main window's status bar.
+
+        message: str
+            Message to display in the status bar
+        timeout: int
+            Amound of time to display the message
+        """
         super(BasePlugin, self)._show_status_message(message, timeout)
 
     @Slot(str, object)
     def set_option(self, option, value):
         """
-        Set an option in CONF_SECTION of Spyder configuration file.
+        Set an option in Spyder configuration file.
 
-        Note: Use sig_option_changed to call it from widgets of the
-              same or another plugin.
+        Notes:
+            1. Use sig_option_changed to call this method from widgets
+               of the same or another plugin.
+            2. CONF_SECTION needs to be defined for this to work.
+
+        option: str
+            Name of the option (e.g. 'case_sensitive')
+        value: bool, int, str, tuple, list, dict
+            Value to save in configuration file, passed as a Python
+            object.
         """
         super(BasePlugin, self).set_option(option, value)
 
     def get_option(self, option, default=NoDefault):
-        """Get an option from our configuration system."""
+        """
+        Get an option from Spyder configuration file.
+
+        option: str
+            Name of the option to get its value from.
+        """
         return super(BasePlugin, self).get_option(option, default)
 
     def starting_long_process(self, message):
@@ -121,7 +141,7 @@ class SpyderPlugin(BasePlugin):
         for a given condition.
 
         `message` should give information in case of incompatibility. For
-        example: 'This plugin does not work with Qt4'
+        example: 'This plugin does not work with PyQt4'
         """
         message = ''
         valid = True
