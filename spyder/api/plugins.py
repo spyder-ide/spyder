@@ -78,19 +78,25 @@ class BasePlugin(BasePluginMixin):
 
     def starting_long_process(self, message):
         """
-        Show a message in main window's status bar when starting a
-        long process.
+        Show a message in main window's status bar and changes the
+        mouse to Qt.WaitCursor when starting a long process.
 
-        This also changes mouse cursor to Qt.WaitCursor
+        message: str
+            Message to show in the status bar when the long
+            process starts.
         """
-        super(BasePlugin, self).starting_long_process(message)
+        super(BasePlugin, self)._starting_long_process(message)
 
     def ending_long_process(self, message=""):
         """
         Clear main window's status bar after a long process and restore
-        mouse cursor.
+        mouse to the OS deault.
+
+        message: str
+            Message to show in the status bar when the long
+            process finishes.
         """
-        super(BasePlugin, self).ending_long_process(message)
+        super(BasePlugin, self)._ending_long_process(message)
 
 
 class SpyderPlugin(BasePlugin):

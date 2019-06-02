@@ -68,13 +68,16 @@ class BasePluginMixin(object):
         messageBox.setStandardButtons(QMessageBox.Ok)
         messageBox.show()
 
-    def starting_long_process(self, message):
-        """Show message in main window's status bar."""
+    def _starting_long_process(self, message):
+        """
+        Show message in main window's status bar and change cursor to
+        Qt.WaitCursor
+        """
         self._show_status_message(message)
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         QApplication.processEvents()
 
-    def ending_long_process(self, message=""):
+    def _ending_long_process(self, message=""):
         """
         Clear main window's status bar and restore mouse cursor.
         """
