@@ -73,9 +73,16 @@ class SpyderPluginToolbar(QWidget):
         row_layout = self._get_hboxlayout_at_row(row)
 
         if item is None:
-            item = QFrame()
-            item.setFrameShape(QFrame.VLine)
-            item.setFrameShadow(QFrame.Sunken)
+            item = QWidget()
+            layout = QGridLayout(item)
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.setSpacing(0)
+            frame = QFrame()
+            frame.setFrameShape(QFrame.VLine)
+            layout.addWidget(frame, 1, 0)
+            layout.setRowStretch(0, 1)
+            layout.setRowStretch(1, 3)
+            layout.setRowStretch(2, 1)
         elif isinstance(item, int):
             self.add_spacing(spacing=item, row=row)
 
