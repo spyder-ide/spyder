@@ -538,7 +538,12 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if whole_file_selected:
             self.clear_extra_selections('current_cell')
         elif whole_screen_selected:
-            if self.highlighter.found_cell_separators:
+            has_cell_separators = False
+            for oedata in self.outlineexplorer_data_list():
+                if oedata.def_type == oedata.CELL:
+                    has_cell_separators = True
+                    break
+            if has_cell_separators:
                 self.set_extra_selections('current_cell', [selection])
                 self.update_extra_selections()
             else:
@@ -1172,23 +1177,27 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Completion list is active, Enter was just pressed"""
         self.completion_widget.item_selected()
 
-    def insert_completion(self, text, position):
+    def insert_completion(self, text, completion_position):
         if text:
-            # Set position to where the request was made
-            if position is not None:
-                cursor = self.textCursor()
-                cursor.setPosition(position)
-                self.setTextCursor(cursor)
-            # Move to the beginning of the selected word
+            # Get word on the left of the cursor.
             result = self.get_current_word_and_position(completion=True)
+            cursor = self.textCursor()
             if result is not None:
-                position = result[1]
-                cursor = self.textCursor()
-                cursor.setPosition(position)
+                current_text, start_position = result
+                end_position = start_position + len(current_text)
+                # Check if the completion position is in the expected range
+                if not start_position <= completion_position <= end_position:
+                    return
+                cursor.setPosition(start_position)
                 # Remove the word under the cursor
-                cursor.select(QTextCursor.WordUnderCursor)
+                cursor.setPosition(end_position,
+                                   QTextCursor.KeepAnchor)
                 cursor.removeSelectedText()
                 self.setTextCursor(cursor)
+            else:
+                # Check if we are in the correct position
+                if cursor.position() != completion_position:
+                    return
             # Add text
             self.insert_text(text)
             self.document_did_change()

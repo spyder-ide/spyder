@@ -96,6 +96,9 @@ class Editor(SpyderPluginWidget):
     run_in_current_extconsole = Signal(str, str, str, bool, bool)
     open_file_update = Signal(str)
 
+    # This signal is fired for any focus change among all editor stacks
+    sig_editor_focus_changed = Signal()
+
     def __init__(self, parent, ignore_last_opened_files=False):
         SpyderPluginWidget.__init__(self, parent)
 
@@ -298,6 +301,11 @@ class Editor(SpyderPluginWidget):
         logger.debug('LSP server settings for {!s} are: {!r}'.format(
             language, settings))
         self.lsp_server_ready(language, self.lsp_editor_settings[language])
+
+    def stop_lsp_services(self, language):
+        """Notify all editorstacks about LSP server unavailability."""
+        for editorstack in self.editorstacks:
+            editorstack.notify_server_down(language)
 
     def lsp_server_ready(self, language, configuration):
         """Notify all stackeditors about LSP server availability."""
@@ -1249,6 +1257,7 @@ class Editor(SpyderPluginWidget):
                                    lambda: self.sig_update_plugin_title.emit())
         editorstack.editor_focus_changed.connect(self.save_focus_editorstack)
         editorstack.editor_focus_changed.connect(self.main.plugin_focus_changed)
+        editorstack.editor_focus_changed.connect(self.sig_editor_focus_changed)
         editorstack.zoom_in.connect(lambda: self.zoom(1))
         editorstack.zoom_out.connect(lambda: self.zoom(-1))
         editorstack.zoom_reset.connect(lambda: self.zoom(0))

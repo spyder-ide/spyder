@@ -232,7 +232,13 @@ class PylintWidget(QWidget):
         else:
             self.start_button.setEnabled(False)
 
-    def analyze(self, filename):
+    def get_filename(self):
+        """Get current filename in combobox."""
+        return self.filecombo.currentText()
+
+    @Slot(str)
+    def set_filename(self, filename):
+        """Set filename without performing code analysis."""
         filename = to_text_string(filename) # filename is a QString instance
         self.kill_if_running()
         index, _data = self.get_data(filename)
@@ -242,6 +248,16 @@ class PylintWidget(QWidget):
         else:
             self.filecombo.setCurrentIndex(self.filecombo.findText(filename))
         self.filecombo.selected()
+
+    def analyze(self, filename=None):
+        """
+        Perform code analysis for given `filename`.
+
+        If `filename` is None default to current filename in combobox.
+        """
+        if filename is not None:
+            self.set_filename(filename)
+
         if self.filecombo.is_valid():
             self.start()
 

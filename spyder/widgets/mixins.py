@@ -204,7 +204,6 @@ class BaseEditMixin(object):
             lines = text.split('\n')
             if len(lines) > max_lines:
                 text = '\n'.join(lines[:max_lines]) + ' ...'
-            text = '\n' + text
 
         text = text.replace('\n', '<br>')
         template += BASE_TEMPLATE.format(
@@ -217,8 +216,13 @@ class BaseEditMixin(object):
         help_text = ''
         if inspect_word:
             if display_link:
-                help_text = ('Click anywhere in this tooltip for '
-                             'additional help')
+                help_text = (
+                    '<span style="font-size:{size}pt;">'
+                    'Click anywhere in this tooltip for additional help'
+                    '</span>'.format(
+                        size=title_size + 1,
+                    )
+                )
             else:
                 shortcut = self._get_inspect_shortcut()
                 if shortcut:
@@ -768,6 +772,7 @@ class BaseEditMixin(object):
         """Return current word, i.e. word at cursor position,
             and the start position"""
         cursor = self.textCursor()
+        cursor_pos = cursor.position()
 
         if cursor.hasSelection():
             # Removes the selection and moves the cursor to the left side
@@ -809,7 +814,10 @@ class BaseEditMixin(object):
         # find a valid python variable name
         match = re.findall(r'([^\d\W]\w*)', text, re.UNICODE)
         if match:
-            return match[0], cursor.selectionStart()
+            text, startpos = match[0], cursor.selectionStart()
+            if completion:
+                text = text[:cursor_pos - startpos]
+            return text, startpos
 
     def get_current_word(self, completion=False):
         """Return current word, i.e. word at cursor position"""
