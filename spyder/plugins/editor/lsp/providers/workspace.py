@@ -61,6 +61,9 @@ class WorkspaceProvider:
                 })
         workspace_settings = self.server_capabilites['workspace']
         request_params = {
-            ''
+            'added': added_folders,
+            'removed': removed_folders
         }
-        if not workspace_settings['workspace'] or workspace_settings['']
+        if not workspace_settings['workspaceFolders']['supported']:
+            request_params[ClientConstants.CANCEL] = True
+        return request_params
