@@ -62,6 +62,8 @@ class BasePlugin(BasePluginMixin):
         """
         Show message in main window's status bar.
 
+        Parameters
+        ----------
         message: str
             Message to display in the status bar
         timeout: int
@@ -74,16 +76,19 @@ class BasePlugin(BasePluginMixin):
         """
         Set an option in Spyder configuration file.
 
-        Notes:
-            1. Use sig_option_changed to call this method from widgets
-               of the same or another plugin.
-            2. CONF_SECTION needs to be defined for this to work.
-
+        Parameters
+        ----------
         option: str
             Name of the option (e.g. 'case_sensitive')
         value: bool, int, str, tuple, list, dict
             Value to save in configuration file, passed as a Python
             object.
+
+        Notes
+        -----
+        * Use sig_option_changed to call this method from widgets of the
+          same or another plugin.
+        * CONF_SECTION needs to be defined for this to work.
         """
         super(BasePlugin, self)._set_option(option, value)
 
@@ -91,6 +96,8 @@ class BasePlugin(BasePluginMixin):
         """
         Get an option from Spyder configuration file.
 
+        Parameters
+        ----------
         option: str
             Name of the option to get its value from.
         """
@@ -101,6 +108,8 @@ class BasePlugin(BasePluginMixin):
         Show a message in main window's status bar and changes the
         mouse to Qt.WaitCursor when starting a long process.
 
+        Parameters
+        ----------
         message: str
             Message to show in the status bar when the long
             process starts.
@@ -112,9 +121,11 @@ class BasePlugin(BasePluginMixin):
         Clear main window's status bar after a long process and restore
         mouse to the OS deault.
 
+        Parameters
+        ----------
         message: str
-            Message to show in the status bar when the long
-            process finishes.
+            Message to show in the status bar when the long process
+            finishes.
         """
         super(BasePlugin, self)._ending_long_process(message)
 
@@ -176,8 +187,10 @@ class BasePluginWidget(QWidget, BasePluginWidgetMixin):
         Register a shortcut associated to a QAction or a QShortcut to
         Spyder main application.
 
+        Parameters
+        ----------
         qaction_or_qshortcut: QAction or QShortcut
-            QAction or QShortcut to register the shortcut for.
+            QAction to register the shortcut for or QShortcut.
         context: str
             Name of the plugin this shortcut applies to. For instance,
             if you pass 'Editor' as context, the shortcut will only
@@ -200,10 +213,19 @@ class BasePluginWidget(QWidget, BasePluginWidgetMixin):
 
     def register_widget_shortcuts(self, widget):
         """
-        Register shortcuts for a plugin's widget.
+        Register shortcuts defined by a plugin's widget so they take
+        effect when the plugin is focused.
 
-        The Widget interface must have a method called
-        'get_shortcut_data'.
+        Parameters
+        ----------
+        widget: QWidget
+            Widget to register shortcuts for.
+
+        Notes
+        -----
+        The widget interface must have a method called
+        `get_shortcut_data` for this to work. Please see
+        `spyder/widgets/findreplace.py` for an example.
         """
         for qshortcut, context, name in widget.get_shortcut_data():
             self.register_shortcut(qshortcut, context, name)
@@ -213,7 +235,20 @@ class BasePluginWidget(QWidget, BasePluginWidgetMixin):
         super(BasePluginWidget, self).visibility_changed(enable)
 
     def get_color_scheme(self):
-        """Get the current color scheme."""
+        """
+        Get the current color scheme.
+
+        Returns
+        -------
+        dict
+            Dictionary with properties and colors of the color scheme
+            used in the Editor.
+
+        Notes
+        -----
+        This is useful to set the color scheme of all instances of
+        CodeEditor used by the plugin.
+        """
         return super(BasePluginWidget, self).get_color_scheme()
 
     def refresh_actions(self):
