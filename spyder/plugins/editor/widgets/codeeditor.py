@@ -954,11 +954,13 @@ class CodeEditor(TextEditBaseWidget):
         position, automatic = args
         try:
             completions = params['params']
-            if completions is not None and len(completions) > 0:
+            if not automatic:
+                completions = [] if completions is None else completions
                 available_completions = {x['insertText'] for x in completions}
                 for entry in self.word_tokens:
                     if entry['insertText'] not in available_completions:
                         completions.append(entry)
+            if completions is not None and len(completions) > 0:
                 completion_list = sorted(completions,
                                          key=lambda x: x['sortText'])
                 self.completion_widget.show_list(
