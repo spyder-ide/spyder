@@ -100,6 +100,11 @@ class BasePlugin(BasePluginMixin):
         ----------
         option: str
             Name of the option to get its value from.
+
+        Returns
+        -------
+        bool, int, str, tuple, list, dict
+            Value associated with `option`.
         """
         return super(BasePlugin, self)._get_option(option, default)
 
@@ -148,11 +153,17 @@ class SpyderPlugin(BasePlugin):
 
     def check_compatibility(self):
         """
-        This method can be reimplemented to check compatibility of a plugin
-        for a given condition.
+        This method can be reimplemented to check compatibility of a
+        plugin for a given condition.
 
-        `message` should give information in case of incompatibility. For
-        example: 'This plugin does not work with PyQt4'
+        Returns
+        -------
+        (bool, str)
+            The first value tells Spyder if the plugin has passed the
+            compatibility test defined in this method. The second value
+            is a message that must explain users why the plugin was
+            found to be incompatible (e.g. 'This plugin does not work
+            with PyQt4'). It will be shown at startup in a QMessageBox.
         """
         message = ''
         valid = True
