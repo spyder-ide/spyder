@@ -538,7 +538,12 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if whole_file_selected:
             self.clear_extra_selections('current_cell')
         elif whole_screen_selected:
-            if self.highlighter.found_cell_separators:
+            has_cell_separators = False
+            for oedata in self.outlineexplorer_data_list():
+                if oedata.def_type == oedata.CELL:
+                    has_cell_separators = True
+                    break
+            if has_cell_separators:
                 self.set_extra_selections('current_cell', [selection])
                 self.update_extra_selections()
             else:
