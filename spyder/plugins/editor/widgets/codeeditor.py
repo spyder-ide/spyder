@@ -955,9 +955,14 @@ class CodeEditor(TextEditBaseWidget):
         try:
             completions = params['params']
             if not automatic:
+                cursor = self.textCursor()
+                cursor.select(QTextCursor.WordUnderCursor)
+                text = to_text_string(cursor.selectedText())
                 completions = [] if completions is None else completions
                 available_completions = {x['insertText'] for x in completions}
                 for entry in self.word_tokens:
+                    if entry['insertText'] == text:
+                        continue
                     if entry['insertText'] not in available_completions:
                         completions.append(entry)
             if completions is not None and len(completions) > 0:
