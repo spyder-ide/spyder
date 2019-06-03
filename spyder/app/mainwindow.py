@@ -661,7 +661,7 @@ class MainWindow(QMainWindow):
                                     triggered=self.open_symbolfinder,
                                     context=Qt.ApplicationShortcut)
         self.register_shortcut(self.symbol_finder_action, context="_",
-                               name="symbol finder", add_sc_to_tip=True)
+                               name="symbol finder", add_shortcut_to_tip=True)
         self.file_toolbar_actions = [self.file_switcher_action,
                                      self.symbol_finder_action]
 
@@ -755,7 +755,7 @@ class MainWindow(QMainWindow):
                                         triggered=self.edit_preferences,
                                         context=Qt.ApplicationShortcut)
         self.register_shortcut(prefs_action, "_", "Preferences",
-                               add_sc_to_tip=True)
+                               add_shortcut_to_tip=True)
         spyder_path_action = create_action(self,
                                 _("PYTHONPATH manager"),
                                 None, icon=ima.icon('pythonpath'),
@@ -854,7 +854,7 @@ class MainWindow(QMainWindow):
                                         triggered=self.toggle_fullscreen,
                                         context=Qt.ApplicationShortcut)
         self.register_shortcut(self.fullscreen_action, "_",
-                               "Fullscreen mode", add_sc_to_tip=True)
+                               "Fullscreen mode", add_shortcut_to_tip=True)
 
         # Main toolbar
         self.main_toolbar_actions = [self.maximize_action,
@@ -2966,19 +2966,19 @@ class MainWindow(QMainWindow):
 
     #---- Shortcuts
     def register_shortcut(self, qaction_or_qshortcut, context, name,
-                          add_sc_to_tip=False):
+                          add_shortcut_to_tip=False):
         """
         Register QAction or QShortcut to Spyder main application,
         with shortcut (context, name, default)
         """
-        self.shortcut_data.append( (qaction_or_qshortcut, context,
-                                    name, add_sc_to_tip) )
+        self.shortcut_data.append((qaction_or_qshortcut, context,
+                                   name, add_shortcut_to_tip))
 
     def apply_shortcuts(self):
         """Apply shortcuts settings to all widgets/plugins"""
         toberemoved = []
         for index, (qobject, context, name,
-                    add_sc_to_tip) in enumerate(self.shortcut_data):
+                    add_shortcut_to_tip) in enumerate(self.shortcut_data):
             keyseq = QKeySequence( get_shortcut(context, name) )
             try:
                 if isinstance(qobject, QAction):
@@ -2987,7 +2987,7 @@ class MainWindow(QMainWindow):
                         qobject._shown_shortcut = keyseq
                     else:
                         qobject.setShortcut(keyseq)
-                    if add_sc_to_tip:
+                    if add_shortcut_to_tip:
                         add_shortcut_to_tooltip(qobject, context, name)
                 elif isinstance(qobject, QShortcut):
                     qobject.setKey(keyseq)

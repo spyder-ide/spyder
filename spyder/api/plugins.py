@@ -171,22 +171,32 @@ class BasePluginWidget(QWidget, BasePluginWidgetMixin):
         super(BasePluginWidget, self).initialize_plugin()
 
     def register_shortcut(self, qaction_or_qshortcut, context, name,
-                          add_sc_to_tip=False):
+                          add_shortcut_to_tip=False):
         """
-        Register QAction or QShortcut to Spyder main application.
+        Register a shortcut associated to a QAction or a QShortcut to
+        Spyder main application.
 
-        context: The name of the plugin (e.g. 'Editor') or '_' to be
-            applied to the entire application.
-        name: Name of the action the shortcut refers to (e.g.
-            'Debug exit').
-        add_sc_to_tip: If True, the shortcut is added to the
-            action's tooltip.
+        qaction_or_qshortcut: QAction or QShortcut
+            QAction or QShortcut to register the shortcut for.
+        context: str
+            Name of the plugin this shortcut applies to. For instance,
+            if you pass 'Editor' as context, the shortcut will only
+            work when the editor is focused.
+            Note: You can use '_' if you want the shortcut to be work
+            for the entire application.
+        name: str
+            Name of the action the shortcut refers to (e.g. 'Debug
+            exit').
+        add_shortcut_to_tip: bool
+            If True, the shortcut is added to the action's tooltip.
+            This is useful if the action is added to a toolbar and
+            users hover it to see what it does.
         """
-        super(BasePluginWidget, self).register_shortcut(
+        super(BasePluginWidget, self)._register_shortcut(
             qaction_or_qshortcut,
             context,
             name,
-            add_sc_to_tip)
+            add_shortcut_to_tip)
 
     def register_widget_shortcuts(self, widget):
         """
