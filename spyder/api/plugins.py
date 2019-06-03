@@ -179,7 +179,7 @@ class BasePluginWidget(QWidget, BasePluginWidgetMixin):
         """
         This method *must* be called at the end of the plugin's __init__
         """
-        super(BasePluginWidget, self).initialize_plugin()
+        super(BasePluginWidget, self)._initialize_plugin()
 
     def register_shortcut(self, qaction_or_qshortcut, context, name,
                           add_shortcut_to_tip=False):
@@ -232,7 +232,7 @@ class BasePluginWidget(QWidget, BasePluginWidgetMixin):
 
     def visibility_changed(self, enable):
         """Dock widget visibility has changed."""
-        super(BasePluginWidget, self).visibility_changed(enable)
+        super(BasePluginWidget, self)._visibility_changed(enable)
 
     def get_color_scheme(self):
         """
@@ -249,11 +249,11 @@ class BasePluginWidget(QWidget, BasePluginWidgetMixin):
         This is useful to set the color scheme of all instances of
         CodeEditor used by the plugin.
         """
-        return super(BasePluginWidget, self).get_color_scheme()
+        return super(BasePluginWidget, self)._get_color_scheme()
 
     def refresh_actions(self):
         """Refresh options menu."""
-        super(BasePluginWidget, self).refresh_actions()
+        super(BasePluginWidget, self)._refresh_actions()
 
 
 class SpyderPluginWidget(SpyderPlugin, BasePluginWidget):

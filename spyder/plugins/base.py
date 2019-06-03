@@ -356,9 +356,7 @@ class BasePluginWidgetMixin(object):
         else:
             self.undock_action.setDisabled(False)
 
-    # -- Public API
-    # The methods below are exposed in spyder/api/plugins.py
-    def visibility_changed(self, enable):
+    def _visibility_changed(self, enable):
         """Dock widget visibility has changed."""
         if self.dockwidget is None:
             return
@@ -374,7 +372,7 @@ class BasePluginWidgetMixin(object):
         if self.isvisible:
             self.refresh_plugin()   # To give focus to the plugin's widget
 
-    def refresh_actions(self):
+    def _refresh_actions(self):
         """Refresh Options menu."""
         self.options_menu.clear()
 
@@ -391,7 +389,7 @@ class BasePluginWidgetMixin(object):
         self.plugin_actions = self.get_plugin_actions() + additional_actions
         add_actions(self.options_menu, self.plugin_actions)
 
-    def initialize_plugin(self):
+    def _initialize_plugin(self):
         """
         Setup Options menu, create toggle action and connect some signals.
         """
@@ -412,6 +410,6 @@ class BasePluginWidgetMixin(object):
         self.main.register_shortcut(qaction_or_qshortcut, context,
                                     name, add_shortcut_to_tip)
 
-    def get_color_scheme(self):
+    def _get_color_scheme(self):
         """Get the current color scheme."""
         return get_color_scheme(CONF.get('appearance', 'selected'))
