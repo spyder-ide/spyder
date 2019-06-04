@@ -25,7 +25,8 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QLineEdit, QMenu,
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import config_shortcut, is_dark_interface
+from spyder.config.gui import (config_shortcut, get_toolbar_item_spacing,
+                               is_dark_interface)
 from spyder.py3compat import PY2, to_binary_string, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import get_common_path
@@ -389,6 +390,10 @@ class BaseTabs(QTabWidget):
                     clayout.addSpacing(widget)
                 else:
                     clayout.addWidget(widget)
+                    if widget != widgets[-1]:
+                        # Changing the layout spacing doesn't work, so
+                        # we need to add spacing items to the layout instead.
+                        clayout.addSpacing(get_toolbar_item_spacing())
             cwidget.setLayout(clayout)
             cwidget.show()
 

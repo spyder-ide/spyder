@@ -13,10 +13,11 @@ Toolbar widgets designed specifically for Spyder plugin widgets.
 
 # Third party imports
 from qtpy.QtWidgets import (QApplication, QFrame, QHBoxLayout, QStyle,
-                            QWidget, QGridLayout, QVBoxLayout)
+                            QWidget, QGridLayout)
 
 # Local imports
 from spyder.utils.qthelpers import set_iconsize_recursively
+from spyder.config.gui import get_toolbar_item_spacing
 
 
 class SpyderPluginToolbar(QWidget):
@@ -39,8 +40,7 @@ class SpyderPluginToolbar(QWidget):
         """Add a new QHBoxLayout at row."""
         row_layout = QHBoxLayout()
         row_layout.setContentsMargins(0, 0, 0, 0)
-        row_layout.setSpacing(QApplication.instance().style().pixelMetric(
-            QStyle.PM_ToolBarItemSpacing))
+        row_layout.setSpacing(get_toolbar_item_spacing())
         colspan = 1 if row == 0 else 3
         self.layout.addLayout(row_layout, row, self.CONTENT_COL, 1, colspan)
 
@@ -127,12 +127,10 @@ class SpyderPluginToolbar(QWidget):
                 QStyle.PM_CheckBoxLabelSpacing)
         row_layout.addSpacing(spacing)
 
-    def add_options_button(self, options_button, spacing=None, stretch=1):
+    def add_options_button(self, options_button, stretch=1):
         """Add `options_button` to the top right corner of this toolbar."""
-        if spacing is None:
-            spacing = QApplication.instance().style().pixelMetric(
-                QStyle.PM_ToolBarItemSpacing)
-        self.layout.setColumnMinimumWidth(self.OPTIONS_COL - 1, spacing)
+        self.layout.setColumnMinimumWidth(
+            self.OPTIONS_COL - 1, get_toolbar_item_spacing())
         if stretch is not None:
             self.layout.setColumnStretch(self.OPTIONS_COL - 1, stretch)
         self.layout.addWidget(options_button, 0, self.OPTIONS_COL)

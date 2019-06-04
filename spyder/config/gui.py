@@ -20,7 +20,7 @@ from collections import namedtuple
 # Third party imports
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QFont, QFontDatabase, QKeySequence
-from qtpy.QtWidgets import QShortcut
+from qtpy.QtWidgets import QApplication, QShortcut, QStyle
 
 # Local imports
 from spyder.config.main import CONF, TOOLBAR_ICON_SIZES
@@ -206,6 +206,13 @@ def get_iconsize(panel=False):
             return main_icon_size
     else:
         return main_icon_size
+
+
+def get_toolbar_item_spacing(style=None):
+    """Return an integer value to use for toolbar items spacing."""
+    if style is None:
+        style = QApplication.instance().style()
+    return style.pixelMetric(QStyle.PM_ToolBarItemSpacing)
 
 
 for _name in sh.COLOR_SCHEME_NAMES:
