@@ -323,7 +323,10 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             if radiobutton.restart_required:
                 self.restart_options[option] = radiobutton.label_text
         for lineedit, (option, default) in list(self.lineedits.items()):
-            lineedit.setText(self.get_option(option, default))
+            data = self.get_option(option, default)
+            if getattr(lineedit, 'content_type', None) == list:
+                data = ', '.join(data)
+            lineedit.setText(data)
             lineedit.textChanged.connect(lambda _foo, opt=option:
                                          self.has_been_modified(opt))
             if lineedit.restart_required:
@@ -416,7 +419,11 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         for radiobutton, (option, _default) in list(self.radiobuttons.items()):
             self.set_option(option, radiobutton.isChecked())
         for lineedit, (option, _default) in list(self.lineedits.items()):
-            self.set_option(option, to_text_string(lineedit.text()))
+            if lineedit.content_type == list:
+                data = [item.strip() for item in lineedit.text().split(',')]
+            else:
+                data = to_text_string(data)
+            self.set_option(option, data)
         for textedit, (option, _default) in list(self.textedits.items()):
             self.set_option(option, to_text_string(textedit.toPlainText()))
         for spinbox, (option, _default) in list(self.spinboxes.items()):
@@ -489,10 +496,12 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
 
     def create_lineedit(self, text, option, default=NoDefault,
                         tip=None, alignment=Qt.Vertical, regex=None,
-                        restart=False, word_wrap=True, placeholder=None):
+                        restart=False, word_wrap=True, placeholder=None,
+                        content_type=None):
         label = QLabel(text)
         label.setWordWrap(word_wrap)
         edit = QLineEdit()
+        edit.content_type = content_type
         layout = QVBoxLayout() if alignment == Qt.Vertical else QHBoxLayout()
         layout.addWidget(label)
         layout.addWidget(edit)

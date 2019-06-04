@@ -13,54 +13,36 @@ from qtpy.QtWidgets import QGroupBox, QLabel, QVBoxLayout, QListWidget, QPushBut
 # Local imports
 from spyder.api.preferences import PluginConfigPage
 from spyder.config.base import _
+from spyder.widgets.fileassociations import FileAssociationsWidget
 
 
 class ExplorerConfigPage(PluginConfigPage):
     def setup_page(self):
-        settings_group = QGroupBox(_("File associations"))
-        # save_box = self.create_checkbox(_("Save file before analyzing it"),
-        #                                 'save_before', default=True)
+        newcb = self.create_checkbox
 
         # Widgets
-        list_extensions = QListWidget()
-        button_add = QPushButton(_('Add'))
-        button_remove = QPushButton(_('Remove'))
-
-        list_editors = QListWidget()
-        button_add_editor = QPushButton(_('Add editor'))
-        button_remove_editor = QPushButton(_('Remove editor'))
-        button_move_up = QPushButton(_('Move up'))
-        button_move_down = QPushButton(_('Move down'))
-
-        layout_extensions = QHBoxLayout()
-        layout_extensions.addWidget(list_extensions)
-
-        layout_buttons_extensions = QVBoxLayout()
-        layout_buttons_extensions.addWidget(button_add)
-        layout_buttons_extensions.addWidget(button_remove)
-        layout_buttons_extensions.addStretch()
-
-        layout_editors = QHBoxLayout()
-        layout_editors.addWidget(list_editors)
-
-        layout_buttons_editors = QVBoxLayout()
-        layout_buttons_editors.addWidget(button_add_editor)
-        layout_buttons_editors.addWidget(button_move_up)
-        layout_buttons_editors.addWidget(button_move_down)
-        layout_buttons_editors.addWidget(button_remove_editor)
-        layout_buttons_editors.addStretch()
-
-        layout_extensions.addLayout(layout_buttons_extensions)
-        layout_editors.addLayout(layout_buttons_editors)
-
-        associations_widget_layout = QHBoxLayout()
-        associations_widget_layout.addLayout(layout_extensions)
-        associations_widget_layout.addLayout(layout_editors)
-
         general_widget = QWidget()
+        edit_filename_filters = self.create_lineedit(
+            _("Edit filename filters..."),
+            'name_filters',
+            tip=("Enter values separated by commas"),
+            alignment=Qt.Horizontal,
+            content_type=list,
+        )
+        check_show_hidden = newcb(_("Show hidden files"), 'show_hidden')
+        check_show_all = newcb(_("Show all files"), 'show_all')
+        check_icon = newcb(_("Show icons and text"), 'show_icontext')
+        check_single_click = newcb(_("Single click to open files"), 'single_click_to_open')
+        associations_widget = FileAssociationsWidget()
 
-        associations_widget = QWidget()
-        associations_widget.setLayout(associations_widget_layout)
+        # Layouts
+        layout = QVBoxLayout()
+        layout.addWidget(edit_filename_filters)
+        layout.addWidget(check_show_hidden)
+        layout.addWidget(check_show_all)
+        layout.addWidget(check_icon)
+        layout.addWidget(check_single_click)
+        general_widget.setLayout(layout)
 
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(general_widget), _("General"))

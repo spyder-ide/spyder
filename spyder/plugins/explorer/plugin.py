@@ -122,6 +122,10 @@ class Explorer(SpyderPluginWidget):
         """Action to be performed on first plugin registration"""
         self.main.tabify_plugins(self.main.variableexplorer, self)
 
+    def apply_plugin_settings(self, options):
+        # TODO: Need to update the editname filters
+        # TODO: And the check actions!
+
     #------ Public API ---------------------------------------------------------
     def chdir(self, directory):
         """Set working directory"""
