@@ -337,8 +337,13 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             sig_move.connect(self.do_follow_cursor)
             self.do_follow_cursor()
         else:
-            sig_update.disconnect(self.update_all)
-            sig_move.disconnect(self.do_follow_cursor)
+            try:
+                sig_update.disconnect(self.update_all)
+                sig_move.disconnect(self.do_follow_cursor)
+            except TypeError:
+                # This catches an error while performing
+                # teardown in one of our tests.
+                pass
 
     def clear(self):
         """Reimplemented Qt method"""

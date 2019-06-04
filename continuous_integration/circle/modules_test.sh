@@ -67,7 +67,7 @@ for f in spyder/*/*/*.py; do
     if [[ $f == spyder/plugins/*/__init__.py ]]; then
         continue
     fi
-    if [[ $f == spyder/utils/introspection/fallback_plugin.py ]]; then
+    if [[ $f == spyder/utils/introspection/old_fallback.py ]]; then
         continue
     fi
     python "$f"

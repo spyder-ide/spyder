@@ -444,6 +444,7 @@ class EditorStack(QWidget):
     sig_next_warning = Signal()
     sig_go_to_definition = Signal(str, int, int)
     perform_lsp_request = Signal(str, str, dict)
+    sig_perform_fallback_request = Signal(dict)
     sig_option_changed = Signal(str, object)  # config option needs changing
     sig_save_bookmark = Signal(int)
     sig_load_bookmark = Signal(int)
@@ -1548,6 +1549,12 @@ class EditorStack(QWidget):
             if editor.language.lower() == language:
                 editor.stop_lsp_services()
 
+    def notify_fallback_ready(self):
+        """Notify fallback availability to code editors."""
+        for index in range(self.get_stack_count()):
+            editor = self.tabs.widget(index)
+            editor.start_fallback()
+
     def close_all_files(self):
         """Close all opened scripts"""
         while self.close_file():
@@ -2322,6 +2329,9 @@ class EditorStack(QWidget):
         editor.sig_perform_lsp_request.connect(
             lambda lang, method, params: self.perform_lsp_request.emit(
                 lang, method, params))
+        editor.sig_perform_fallback_request.connect(
+            lambda req: self.sig_perform_fallback_request.emit(req)
+        )
         editor.modificationChanged.connect(
             lambda state: self.modification_changed(state,
                 editor_id=id(editor)))
