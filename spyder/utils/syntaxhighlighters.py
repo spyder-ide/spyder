@@ -156,9 +156,6 @@ class BaseSH(QSyntaxHighlighter):
         self.fold_detector = None
         self.editor = None
 
-        # Cell separator could be there in any language
-        self.found_cell_separators = False
-        
     def get_background_color(self):
         return QColor(self.background_color)
 
@@ -467,7 +464,6 @@ class PythonSH(BaseSH):
     def highlight_block(self, text):
         """Implement specific highlight for Python."""
         text = to_text_string(text)
-        self.found_cell_separators = False
         prev_state = tbh.get_state(self.currentBlock().previous())
         if prev_state == self.INSIDE_DQ3STRING:
             offset = -4
@@ -522,7 +518,6 @@ class PythonSH(BaseSH):
                         self.setFormat(start, end-start, self.formats[key])
                         if key == "comment":
                             if text.lstrip().startswith(self.cell_separators):
-                                self.found_cell_separators = True
                                 oedata = OutlineExplorerData(
                                     self.currentBlock())
                                 oedata.text = to_text_string(text).strip()
@@ -643,7 +638,6 @@ class PythonSH(BaseSH):
         return statments
             
     def rehighlight(self):
-        self.found_cell_separators = False
         BaseSH.rehighlight(self)
 
 

@@ -29,6 +29,7 @@ import time
 from unicodedata import category
 
 # Third party imports
+from diff_match_patch import diff_match_patch
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import QRegExp, Qt, QTimer, QUrl, Signal, Slot, QEvent
 from qtpy.QtGui import (QColor, QCursor, QFont, QIntValidator,
@@ -274,6 +275,10 @@ class CodeEditor(TextEditBaseWidget):
     # and profile LSP diagnostics.
     lsp_response_signal = Signal(str, dict)
 
+    # -- Fallback Signal
+    #: Signal emitted to get fallback completions
+    sig_perform_fallback_request = Signal(dict)
+
     #: Signal to display object information on the Help plugin
     sig_display_object_info = Signal(str, bool)
 
@@ -515,6 +520,11 @@ class CodeEditor(TextEditBaseWidget):
 
         self.editor_extensions.add(CloseQuotesExtension())
         self.editor_extensions.add(CloseBracketsExtension())
+
+        # Text diffs across versions
+        self.differ = diff_match_patch()
+        self.previous_text = ''
+        self.word_tokens = []
 
     # --- Helper private methods
     # ------------------------------------------------------------------------
@@ -852,6 +862,9 @@ class CodeEditor(TextEditBaseWidget):
             self.lsp_ready = True
             self.document_did_open()
 
+    def stop_lsp_services(self):
+        self.lsp_ready = False
+
     def parse_lsp_config(self, config):
         """Parse and load LSP server editor capabilities."""
         sync_options = config['textDocumentSync']
@@ -898,11 +911,13 @@ class CodeEditor(TextEditBaseWidget):
     def document_did_change(self, text=None):
         """Send textDocument/didChange request to the server."""
         self.text_version += 1
+        text = self.toPlainText()
         params = {
             'file': self.filename,
             'version': self.text_version,
-            'text': self.toPlainText()
+            'text': text
         }
+        self.update_fallback(text)
         return params
 
     @handles(LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
@@ -925,6 +940,7 @@ class CodeEditor(TextEditBaseWidget):
             'column': column
         }
         self.completion_args = (self.textCursor().position(), automatic)
+        self.request_fallback()
         return params
 
     @handles(LSPRequestTypes.DOCUMENT_COMPLETION)
@@ -938,6 +954,17 @@ class CodeEditor(TextEditBaseWidget):
         position, automatic = args
         try:
             completions = params['params']
+            if not automatic:
+                cursor = self.textCursor()
+                cursor.select(QTextCursor.WordUnderCursor)
+                text = to_text_string(cursor.selectedText())
+                completions = [] if completions is None else completions
+                available_completions = {x['insertText'] for x in completions}
+                for entry in self.word_tokens:
+                    if entry['insertText'] == text:
+                        continue
+                    if entry['insertText'] not in available_completions:
+                        completions.append(entry)
             if completions is not None and len(completions) > 0:
                 completion_list = sorted(completions,
                                          key=lambda x: x['sortText'])
@@ -1091,6 +1118,56 @@ class CodeEditor(TextEditBaseWidget):
                 'codeeditor': self
             }
             return params
+        self.close_fallback()
+
+    # ------------- Fallback completions ------------------------------------
+    def start_fallback(self):
+        """Register with fallback engine."""
+        self.previous_text = ''
+        self.update_fallback(self.toPlainText())
+
+    def close_fallback(self):
+        """Close connection with fallback engine."""
+        fallback_request = {
+            'file': self.filename,
+            'type': 'close',
+            'editor': None,
+            'msg': {}
+        }
+        self.sig_perform_fallback_request.emit(fallback_request)
+
+    def update_fallback(self, text):
+        """Send changes to fallback engine."""
+        # Invoke fallback update
+        patch = self.differ.patch_make(self.previous_text, text)
+        self.previous_text = text
+        fallback_request = {
+            'file': self.filename,
+            'type': 'update',
+            'editor': self,
+            'msg': {
+                'language': self.language,
+                'diff': patch
+            }
+        }
+        self.sig_perform_fallback_request.emit(fallback_request)
+
+    def request_fallback(self):
+        """Send request to fallback engine."""
+        request = {
+            'file': self.filename,
+            'type': 'retrieve',
+            'editor': self,
+            'msg': None
+        }
+        self.sig_perform_fallback_request.emit(request)
+
+    def receive_text_tokens(self, tokens):
+        """Handle tokens sent by fallback engine."""
+        self.word_tokens = tokens
+        if not self.lsp_ready:
+            self.completion_args = (self.textCursor().position(), False)
+            self.process_completion({'params': tokens})
 
     # -------------------------------------------------------------------------
     def set_debug_panel(self, debug_panel, language):

@@ -96,6 +96,9 @@ class Editor(SpyderPluginWidget):
     run_in_current_extconsole = Signal(str, str, str, bool, bool)
     open_file_update = Signal(str)
 
+    # This signal is fired for any focus change among all editor stacks
+    sig_editor_focus_changed = Signal()
+
     def __init__(self, parent, ignore_last_opened_files=False):
         SpyderPluginWidget.__init__(self, parent)
 
@@ -229,6 +232,11 @@ class Editor(SpyderPluginWidget):
         self.update_cursorpos_actions()
         self.set_path()
 
+        self.fallback_up = False
+        # Know when the fallback completion engine is up
+        self.main.fallback_completions.sig_fallback_ready.connect(
+            self.fallback_ready)
+
     def set_projects(self, projects):
         self.projects = projects
 
@@ -290,6 +298,8 @@ class Editor(SpyderPluginWidget):
             else:
                 editor = self.get_current_editor()
                 editor.lsp_ready = False
+        if self.fallback_up:
+            self.fallback_ready()
 
     @Slot(dict, str)
     def register_lsp_server_settings(self, settings, language):
@@ -298,6 +308,11 @@ class Editor(SpyderPluginWidget):
         logger.debug('LSP server settings for {!s} are: {!r}'.format(
             language, settings))
         self.lsp_server_ready(language, self.lsp_editor_settings[language])
+
+    def stop_lsp_services(self, language):
+        """Notify all editorstacks about LSP server unavailability."""
+        for editorstack in self.editorstacks:
+            editorstack.notify_server_down(language)
 
     def lsp_server_ready(self, language, configuration):
         """Notify all stackeditors about LSP server availability."""
@@ -308,6 +323,16 @@ class Editor(SpyderPluginWidget):
         logger.debug("LSP request: %r" %request)
         self.main.lspmanager.send_request(language, request, params)
 
+    def send_fallback_request(self, msg):
+        """Send request to fallback engine."""
+        self.main.fallback_completions.mailbox.put(msg)
+
+    def fallback_ready(self):
+        """Notify all stackeditors about fallback availability."""
+        logger.debug('Fallback is available')
+        self.fallback_up = True
+        for editorstack in self.editorstacks:
+            editorstack.notify_fallback_ready()
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
@@ -1241,6 +1266,7 @@ class Editor(SpyderPluginWidget):
                                    lambda: self.sig_update_plugin_title.emit())
         editorstack.editor_focus_changed.connect(self.save_focus_editorstack)
         editorstack.editor_focus_changed.connect(self.main.plugin_focus_changed)
+        editorstack.editor_focus_changed.connect(self.sig_editor_focus_changed)
         editorstack.zoom_in.connect(lambda: self.zoom(1))
         editorstack.zoom_out.connect(lambda: self.zoom(-1))
         editorstack.zoom_reset.connect(lambda: self.zoom(0))
@@ -1259,6 +1285,8 @@ class Editor(SpyderPluginWidget):
             lambda fname, line, col: self.load(
                 fname, line, start_column=col))
         editorstack.perform_lsp_request.connect(self.send_lsp_request)
+        editorstack.sig_perform_fallback_request.connect(
+            self.send_fallback_request)
         editorstack.todo_results_changed.connect(self.todo_results_changed)
         editorstack.update_code_analysis_actions.connect(
             self.update_code_analysis_actions)
