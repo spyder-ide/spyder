@@ -3565,6 +3565,10 @@ class CodeEditor(TextEditBaseWidget):
     def focusOutEvent(self, event):
         """Reimplement Qt method"""
         self.sig_focus_changed.emit()
+        self.clear_extra_selections('ctrl_click')
+        QApplication.restoreOverrideCursor()
+        self.__cursor_changed = False
+        self._last_hover_uri = None
         super(CodeEditor, self).focusOutEvent(event)
 
     def leaveEvent(self, event):
