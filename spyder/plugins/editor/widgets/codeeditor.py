@@ -3120,6 +3120,8 @@ class CodeEditor(TextEditBaseWidget):
         self.sig_key_released.emit(event)
         self.timer_syntax_highlight.start()
         self.clear_extra_selections('ctrl_click')
+        QApplication.restoreOverrideCursor()
+        self.__cursor_changed = False
         self._last_hover_uri = None
         super(CodeEditor, self).keyReleaseEvent(event)
         event.ignore()
