@@ -10,6 +10,7 @@ Tests for editor.py
 
 # Standard library imports
 import os
+import os.path as osp
 from sys import platform
 try:
     from unittest.mock import Mock, MagicMock
@@ -674,8 +675,9 @@ def test_opening_sets_file_hash(base_editor_bot, mocker):
     editor_stack = base_editor_bot
     mocker.patch('spyder.plugins.editor.widgets.editor.encoding.read',
                  return_value=('my text', 42))
-    editor_stack.load('/mock-filename')
-    expected = {'/mock-filename': hash('my text')}
+    filename = osp.realpath('/mock-filename')
+    editor_stack.load(filename)
+    expected = {filename: hash('my text')}
     assert editor_stack.autosave.file_hashes == expected
 
 
@@ -684,10 +686,11 @@ def test_reloading_updates_file_hash(base_editor_bot, mocker):
     editor_stack = base_editor_bot
     mocker.patch('spyder.plugins.editor.widgets.editor.encoding.read',
                  side_effect=[('my text', 42), ('new text', 42)])
-    finfo = editor_stack.load('/mock-filename')
+    filename = osp.realpath('/mock-filename')
+    finfo = editor_stack.load(filename)
     index = editor_stack.data.index(finfo)
     editor_stack.reload(index)
-    expected = {'/mock-filename': hash('new text')}
+    expected = {filename: hash('new text')}
     assert editor_stack.autosave.file_hashes == expected
 
 
@@ -696,7 +699,8 @@ def test_closing_removes_file_hash(base_editor_bot, mocker):
     editor_stack = base_editor_bot
     mocker.patch('spyder.plugins.editor.widgets.editor.encoding.read',
                  return_value=('my text', 42))
-    finfo = editor_stack.load('/mock-filename')
+    filename = osp.realpath('/mock-filename')
+    finfo = editor_stack.load(filename)
     index = editor_stack.data.index(finfo)
     editor_stack.close_file(index)
     assert editor_stack.autosave.file_hashes == {}
