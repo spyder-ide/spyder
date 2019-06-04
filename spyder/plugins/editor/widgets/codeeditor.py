@@ -3119,10 +3119,7 @@ class CodeEditor(TextEditBaseWidget):
         """Override Qt method."""
         self.sig_key_released.emit(event)
         self.timer_syntax_highlight.start()
-        self.clear_extra_selections('ctrl_click')
-        QApplication.restoreOverrideCursor()
-        self.__cursor_changed = False
-        self._last_hover_uri = None
+        self._restore_editor_cursor_and_selections()
         super(CodeEditor, self).keyReleaseEvent(event)
         event.ignore()
 
@@ -3541,9 +3538,7 @@ class CodeEditor(TextEditBaseWidget):
                 return
 
         if self.__cursor_changed:
-            QApplication.restoreOverrideCursor()
-            self.__cursor_changed = False
-            self.clear_extra_selections('ctrl_click')
+            self._restore_editor_cursor_and_selections()
         else:
             if not self._should_display_hover(pos):
                 self.hide_tooltip()
@@ -3563,22 +3558,15 @@ class CodeEditor(TextEditBaseWidget):
         self.new_text_set.emit()
 
     def focusOutEvent(self, event):
-        """Reimplement Qt method"""
+        """Extend Qt method"""
         self.sig_focus_changed.emit()
-        self.clear_extra_selections('ctrl_click')
-        QApplication.restoreOverrideCursor()
-        self.__cursor_changed = False
-        self._last_hover_uri = None
+        self._restore_editor_cursor_and_selections()
         super(CodeEditor, self).focusOutEvent(event)
 
     def leaveEvent(self, event):
-        """If cursor has not been restored yet, do it now"""
+        """Extend Qt method"""
         self.sig_leave_out.emit()
-        if self.__cursor_changed:
-            QApplication.restoreOverrideCursor()
-            self.__cursor_changed = False
-            self.clear_extra_selections('ctrl_click')
-            self._last_hover_uri = None
+        self._restore_editor_cursor_and_selections()
         TextEditBaseWidget.leaveEvent(self, event)
 
     def mousePressEvent(self, event):
@@ -3674,6 +3662,14 @@ class CodeEditor(TextEditBaseWidget):
             menu = self.readonly_menu
         menu.popup(event.globalPos())
         event.accept()
+
+    def _restore_editor_cursor_and_selections(self):
+        """Restore the cursor and extra selections of this code editor."""
+        if self.__cursor_changed:
+            self.__cursor_changed = False
+            QApplication.restoreOverrideCursor()
+            self.clear_extra_selections('ctrl_click')
+            self._last_hover_uri = None
 
     #------ Drag and drop
     def dragEnterEvent(self, event):
