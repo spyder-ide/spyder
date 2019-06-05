@@ -462,8 +462,8 @@ def get_icon_by_extension_or_type(fname, scale_factor):
                     # returning it incorrectly.
                     file_type, bin_name = mime_type.split('/')
                 except ValueError:
-                    file_type = 'none'
-                if file_type == 'none':
+                    file_type = None
+                if file_type is None:
                     if is_dark_interface():
                         icon_by_extension = QIcon(
                             get_image_path('binary.svg'))
