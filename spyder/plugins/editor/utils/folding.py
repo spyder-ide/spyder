@@ -18,10 +18,14 @@ Original file:
 
 # Standard library imports
 import sys
+import re
+import logging
 
 # Local imports
 from spyder.plugins.editor.api.folding import FoldDetector
 from spyder.plugins.editor.utils.editor import TextBlockHelper
+
+logger = logging.getLogger(__name__)
 
 
 class FoldScope(object):
@@ -222,6 +226,7 @@ class IndentFoldDetector(FoldDetector):
         """
         text = block.text()
         prev_lvl = TextBlockHelper().get_fold_lvl(prev_block)
+        regex = r"(and|or|'|\+|\-|\*|\^|>>|<<|\*|\*{2}|\||\*|//|/|,|\\|\")$"
         # round down to previous indentation guide to ensure contiguous block
         # fold level evolution.
         indent_len = 0
@@ -230,9 +235,14 @@ class IndentFoldDetector(FoldDetector):
             # ignore commented lines (could have arbitary indentation)
             prev_text = prev_block.text()
             indent_len = (len(prev_text) - len(prev_text.lstrip())) // prev_lvl
+            if re.search(regex, prev_block.text().strip()[-1]):
+                logger.debug('BFR: ' + str(indent_len))
+                indent_len -= 1
         if indent_len == 0:
             indent_len = len(self.editor.indent_chars)
-
+        logger.debug('-----------')
+        logger.debug(str(len(text) - len(text.lstrip())))
+        logger.debug(indent_len)
         return (len(text) - len(text.lstrip())) // indent_len
 
 
