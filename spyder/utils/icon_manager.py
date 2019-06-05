@@ -160,6 +160,8 @@ _qtaargs = {
     'comment':                 [('fa.comment',), {'color': MAIN_FG_COLOR}],
     'indent':                  [('fa.indent',), {'color': MAIN_FG_COLOR}],
     'unindent':                [('fa.outdent',), {'color': MAIN_FG_COLOR}],
+    'toggle_lowercase':        [('mdi.format-letter-case-lower',), {'color': MAIN_FG_COLOR}],
+    'toggle_uppercase':        [('mdi.format-letter-case-upper',), {'color': MAIN_FG_COLOR}],
     'gotoline':                [('fa.sort-numeric-asc',), {'color': MAIN_FG_COLOR}],
     'error':                   [('fa.times-circle',), {'color': 'darkred'}],
     'warning':                 [('fa.warning',), {'color': 'orange'}],
