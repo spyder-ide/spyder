@@ -146,7 +146,6 @@ def test_editor_transmits_sig_option_changed(editor_plugin, qtbot):
     assert blocker.args == ['autosave_mapping', {1: 2}]
 
 
-
 def test_editorstacks_share_autosave_data(editor_plugin, qtbot):
     """Check that two EditorStacks share the same autosave data."""
     editor = editor_plugin

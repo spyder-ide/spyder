@@ -1514,7 +1514,7 @@ class EditorStack(QWidget):
                 self.set_stack_index(new_index)
 
             self.add_last_closed_file(finfo.filename)
- 
+
             if finfo.filename in self.autosave.file_hashes:
                 del self.autosave.file_hashes[finfo.filename]
 
