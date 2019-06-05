@@ -242,7 +242,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         if not self.external_server:
             self.lsp_server.kill()
 
-    def send(self, method, params, requires_response):
+    def send(self, method, params, response, requires_response):
         if ClientConstants.CANCEL in params:
             return
         msg = {
@@ -250,6 +250,11 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             'method': method,
             'params': params
         }
+        if response:
+            msg = {
+                'id': self.request_seq,
+                'result': params
+            }
         if requires_response:
             self.req_status[self.request_seq] = method
 
@@ -284,13 +289,13 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                             self.sig_server_error.emit(traceback)
                 elif 'method' in resp:
                     if resp['method'][0] != '$':
+                        if 'id' in resp:
+                            self.request_seq = int(resp['id'])
                         if resp['method'] in self.handler_registry:
                             handler_name = (
                                 self.handler_registry[resp['method']])
                             handler = getattr(self, handler_name)
                             handler(resp['params'])
-                        if 'id' in resp:
-                            self.request_seq = resp['id']
                 elif 'result' in resp:
                     if resp['result'] is not None:
                         req_id = resp['id']

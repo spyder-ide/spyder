@@ -69,20 +69,25 @@ class LanguageServerClient(object):
         while events > 0:
             client_request = self.zmq_in_socket.recv_pyobj()
             logger.debug("Client Event: {0}".format(client_request))
-            server_request = self.__compose_request(client_request['id'],
-                                                    client_request['method'],
-                                                    client_request['params'])
+            server_request = self.__compose_request(client_request)
             self.__send_request(server_request)
             # self.zmq_socket.send_pyobj({'a': 'b'})
             events -= 1
 
-    def __compose_request(self, id, method, params):
-        request = {
-            "jsonrpc": "2.0",
-            "id": id,
-            "method": method,
-            "params": params
-        }
+    def __compose_request(self, request):
+        if 'method' in request:
+            request = {
+                "jsonrpc": "2.0",
+                "id": request['id'],
+                "method": request['method'],
+                "params": request['params']
+            }
+        else:
+            request = {
+                "jsonrpc": "2.0",
+                "id": request['id'],
+                "result": request['result']
+            }
         return request
 
     def __send_request(self, request):
@@ -90,7 +95,11 @@ class LanguageServerClient(object):
         content = bytes(json_req.encode('utf-8'))
         content_length = len(content)
 
-        logger.debug('Sending request of type: {0}'.format(request['method']))
+        if 'method' in request:
+            logger.debug(
+                'Sending request of type: {0}'.format(request['method']))
+        else:
+            logger.debug('Sending reply to server')
         logger.debug(json_req)
 
         content_length = self.CONTENT_LENGTH.format(

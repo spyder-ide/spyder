@@ -67,3 +67,9 @@ class WorkspaceProvider:
         if not workspace_settings['workspaceFolders']['supported']:
             request_params[ClientConstants.CANCEL] = True
         return request_params
+
+    @handles(LSPRequestTypes.WORKSPACE_CONFIGURATION)
+    @send_request(response=True, requires_response=False)
+    def send_workspace_configuration(self, params):
+        logger.debug(params)
+        return self.plugin_configurations

@@ -9,16 +9,18 @@
 import functools
 
 
-def send_request(req=None, method=None, requires_response=True):
+def send_request(req=None, method=None, response=False,
+                 requires_response=True):
     """Call function req and then send its results via ZMQ."""
     if req is None:
         return functools.partial(send_request, method=method,
+                                 response=response,
                                  requires_response=requires_response)
 
     @functools.wraps(req)
     def wrapper(self, *args, **kwargs):
         params = req(self, *args, **kwargs)
-        _id = self.send(method, params, requires_response)
+        _id = self.send(method, params, response, requires_response)
         return _id
     wrapper._sends = method
     return wrapper
