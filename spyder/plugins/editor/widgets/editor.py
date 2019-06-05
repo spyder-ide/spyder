@@ -1514,10 +1514,7 @@ class EditorStack(QWidget):
                 self.set_stack_index(new_index)
 
             self.add_last_closed_file(finfo.filename)
-
-            # Remove autosave on successful close to work around issue #9265.
-            # Probably a good idea in general to mitigate any other bugs.
-            self.autosave.remove_autosave_file(finfo.filename)
+ 
             if finfo.filename in self.autosave.file_hashes:
                 del self.autosave.file_hashes[finfo.filename]
 
@@ -1639,7 +1636,7 @@ class EditorStack(QWidget):
                 if not self.save(index):
                     return False
             elif no_all:
-                self.autosave.remove_autosave_file(finfo.filename)
+                self.autosave.remove_autosave_file(finfo)
             elif (finfo.editor.document().isModified() and
                   self.save_dialog_on_tests):
 

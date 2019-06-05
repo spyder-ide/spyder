@@ -387,14 +387,6 @@ class Editor(SpyderPluginWidget):
             else:
                 for win in self.editorwindows[:]:
                     win.close()
-                # Remove autosave on successful close to avoid issue #9265.
-                # Probably a good idea anyway to mitigate autosave issues.
-                # Ignore errors resulting from file being open in > 2
-                # editorstacks or another Spyder being closed first and
-                # removing the spurious files.
-                for editorstack_split in self.editorstacks:
-                    editorstack_split.autosave.remove_all_autosave_files(
-                        errors="ignore")
                 return True
         except IndexError:
             return True
