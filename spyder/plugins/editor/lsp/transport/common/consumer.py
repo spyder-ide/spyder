@@ -124,6 +124,8 @@ class IncomingMessageThread(Thread):
     def parse_headers(self, headers):
         logger.debug(headers)
         headers = headers.split(b'\r\n')
+        headers = [header.split(b'\n')[-1] if b'\n' in header else header
+                   for header in headers]
         header_dict = dict([x.split(b': ') for x in headers])
         return header_dict
 
