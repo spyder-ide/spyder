@@ -3272,7 +3272,7 @@ class CodeEditor(TextEditBaseWidget):
                 if ind(leading_text) == ind(prevtxt):
                     self.unindent(force=True)
             TextEditBaseWidget.keyPressEvent(self, event)
-        elif key == Qt.Key_Tab:
+        elif key == Qt.Key_Tab and not ctrl:
             # Important note: <TAB> can't be called with a QShortcut because
             # of its singular role with respect to widget focus management
             if not has_selection and not self.tab_mode:
@@ -3280,7 +3280,7 @@ class CodeEditor(TextEditBaseWidget):
             else:
                 # indent the selected text
                 self.indent_or_replace()
-        elif key == Qt.Key_Backtab:
+        elif key == Qt.Key_Backtab and not ctrl:
             # Backtab, i.e. Shift+<TAB>, could be treated as a QShortcut but
             # there is no point since <TAB> can't (see above)
             if not has_selection and not self.tab_mode:
