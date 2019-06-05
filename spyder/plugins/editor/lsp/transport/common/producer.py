@@ -75,19 +75,7 @@ class LanguageServerClient(object):
             events -= 1
 
     def __compose_request(self, request):
-        if 'method' in request:
-            request = {
-                "jsonrpc": "2.0",
-                "id": request['id'],
-                "method": request['method'],
-                "params": request['params']
-            }
-        else:
-            request = {
-                "jsonrpc": "2.0",
-                "id": request['id'],
-                "result": request['result']
-            }
+        request['jsonrpc'] = '2.0'
         return request
 
     def __send_request(self, request):
@@ -96,8 +84,13 @@ class LanguageServerClient(object):
         content_length = len(content)
 
         if 'method' in request:
-            logger.debug(
-                'Sending request of type: {0}'.format(request['method']))
+            if 'id' in request:
+                logger.debug(
+                    'Sending request of type: {0}'.format(request['method']))
+            else:
+                logger.debug(
+                    'Sending notification of type: {0}'.format(
+                        request['method']))
         else:
             logger.debug('Sending reply to server')
         logger.debug(json_req)

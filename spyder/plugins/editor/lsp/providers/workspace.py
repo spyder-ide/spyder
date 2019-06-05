@@ -10,14 +10,14 @@ import logging
 
 from spyder.plugins.editor.lsp.providers.utils import path_as_uri
 from spyder.plugins.editor.lsp import LSPRequestTypes, ClientConstants
-from spyder.plugins.editor.lsp.decorators import handles, send_request
+from spyder.plugins.editor.lsp.decorators import (
+    handles, send_request, send_response, send_notification)
 
 logger = logging.getLogger(__name__)
 
 
 class WorkspaceProvider:
-    @send_request(method=LSPRequestTypes.WORKSPACE_CONFIGURATION_CHANGE,
-                  requires_response=False)
+    @send_notification(method=LSPRequestTypes.WORKSPACE_CONFIGURATION_CHANGE)
     def send_plugin_configurations(self, configurations, *args):
         self.plugin_configurations = configurations
         params = {
@@ -26,8 +26,7 @@ class WorkspaceProvider:
         return params
 
     @handles(LSPRequestTypes.WORKSPACE_FOLDERS)
-    @send_request(method=LSPRequestTypes.WORKSPACE_FOLDERS,
-                  requires_response=False)
+    @send_notification(method=LSPRequestTypes.WORKSPACE_FOLDERS)
     def send_workspace_folders(self, response):
         workspace_folders = []
         for folder_name in self.watched_folders:
@@ -38,8 +37,7 @@ class WorkspaceProvider:
             })
         return workspace_folders
 
-    @send_request(method=LSPRequestTypes.WORKSPACE_FOLDERS_CHANGE,
-                  requires_response=False)
+    @send_notification(method=LSPRequestTypes.WORKSPACE_FOLDERS_CHANGE)
     def send_workspace_folders_change(self, params):
         folder = params['folder']
         folder_uri = path_as_uri(folder)
@@ -69,7 +67,7 @@ class WorkspaceProvider:
         return request_params
 
     @handles(LSPRequestTypes.WORKSPACE_CONFIGURATION)
-    @send_request(response=True, requires_response=False)
+    @send_response
     def send_workspace_configuration(self, params):
         logger.debug(params)
         return self.plugin_configurations

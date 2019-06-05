@@ -7,20 +7,36 @@
 """Spyder Language Server Protocol Client auxiliar decorators."""
 
 import functools
+from spyder.plugins.editor.lsp.transport import MessageKind
 
 
-def send_request(req=None, method=None, response=False,
-                 requires_response=True):
-    """Call function req and then send its results via ZMQ."""
+def send_request(req=None, method=None):
+    """Send message as a proper JSON-RPC request."""
     if req is None:
-        return functools.partial(send_request, method=method,
-                                 response=response,
-                                 requires_response=requires_response)
+        return functools.partial(send_request, method=method)
 
+    return send_message(req, method, kind=MessageKind.REQUEST)
+
+
+def send_notification(req=None, method=None):
+    """Send message as a proper JSON-RPC notification."""
+    if req is None:
+        return functools.partial(send_notification, method=method)
+
+    return send_message(req, method, kind=MessageKind.NOTIFICATION)
+
+
+def send_response(req):
+    """Send message as a proper JSON-RPC response."""
+    return send_message(req, kind=MessageKind.RESPONSE)
+
+
+def send_message(req=None, method=None, kind=MessageKind.REQUEST):
+    """Call function req and then send its results via ZMQ."""
     @functools.wraps(req)
     def wrapper(self, *args, **kwargs):
         params = req(self, *args, **kwargs)
-        _id = self.send(method, params, response, requires_response)
+        _id = self.send(method, params, kind)
         return _id
     wrapper._sends = method
     return wrapper

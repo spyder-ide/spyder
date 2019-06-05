@@ -31,7 +31,8 @@ from spyder.plugins.editor.lsp import (
     TEXT_DOCUMENT_SYNC_OPTIONS, LSPRequestTypes,
     ClientConstants)
 from spyder.plugins.editor.lsp.decorators import (
-    send_request, class_register, handles)
+    send_request, send_notification, class_register, handles)
+from spyder.plugins.editor.lsp.transport import MessageKind
 from spyder.plugins.editor.lsp.providers import LSPMethodProviderMixIn
 from spyder.utils.misc import getcwd_or_home
 
@@ -242,26 +243,32 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         if not self.external_server:
             self.lsp_server.kill()
 
-    def send(self, method, params, response, requires_response):
+    def send(self, method, params, kind):
         if ClientConstants.CANCEL in params:
             return
-        msg = {
-            'id': self.request_seq,
-            'method': method,
-            'params': params
-        }
-        if response:
+        _id = self.request_seq
+        if kind == MessageKind.REQUEST:
+            msg = {
+                'id': self.request_seq,
+                'method': method,
+                'params': params
+            }
+            self.req_status[self.request_seq] = method
+        elif kind == MessageKind.RESPONSE:
             msg = {
                 'id': self.request_seq,
                 'result': params
             }
-        if requires_response:
-            self.req_status[self.request_seq] = method
+        elif kind == MessageKind.NOTIFICATION:
+            msg = {
+                'method': method,
+                'params': params
+            }
 
         logger.debug('{} request: {}'.format(self.language, method))
         self.zmq_out_socket.send_pyobj(msg)
         self.request_seq += 1
-        return int(msg['id'])
+        return int(_id)
 
     @Slot()
     def on_msg_received(self):
@@ -343,7 +350,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     def handle_shutdown(self, response, *args):
         self.ready_to_close = True
 
-    @send_request(method=LSPRequestTypes.EXIT, requires_response=False)
+    @send_notification(method=LSPRequestTypes.EXIT)
     def exit(self):
         params = {}
         return params
@@ -366,7 +373,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.sig_initialize.emit(self.server_capabilites, self.language)
         self.initialized_call()
 
-    @send_request(method=LSPRequestTypes.INITIALIZED)
+    @send_notification(method=LSPRequestTypes.INITIALIZED)
     def initialized_call(self):
         params = {}
         return params
