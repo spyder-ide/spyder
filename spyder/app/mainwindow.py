@@ -473,6 +473,18 @@ class MainWindow(QMainWindow):
         self.layout_toolbar = None
         self.layout_toolbar_actions = []
 
+        self.menus = [self.file_menu, self.edit_menu, self.search_menu,
+                      self.source_menu, self.run_menu, self.debug_menu,
+                      self.consoles_menu, self.projects_menu, self.tools_menu,
+                      self.help_menu]
+        self.menu_actions = [self.file_menu_actions, self.edit_menu_actions,
+                             self.search_menu_actions,
+                             self.source_menu_actions, self.run_menu_actions,
+                             self.debug_menu_actions,
+                             self.consoles_menu_actions,
+                             self.projects_menu_actions,
+                             self.tools_menu_actions, self.help_menu_actions]
+
         if running_under_pytest():
             # Show errors in internal console when testing.
             CONF.set('main', 'show_internal_errors', False)
@@ -568,22 +580,6 @@ class MainWindow(QMainWindow):
         toolbar.setIconSize(QSize(iconsize, iconsize))
         self.toolbarslist.append(toolbar)
         return toolbar
-
-    def setup_menus(self):
-        """Hide icon menus in toolbars before displaying them"""
-
-        if sys.platform == 'darwin':
-
-            self.file_menu.aboutToShow.connect(lambda menu_actions=self.file_menu_actions: self.verify_menu_actions(menu_actions, False))
-            self.edit_menu.aboutToShow.connect(lambda menu_actions=self.edit_menu_actions: self.verify_menu_actions(menu_actions, False))
-            self.search_menu.aboutToShow.connect(lambda menu_actions=self.search_menu_actions: self.verify_menu_actions(menu_actions, False))
-            self.source_menu.aboutToShow.connect(lambda menu_actions=self.source_menu_actions: self.verify_menu_actions(menu_actions, False))
-            self.run_menu.aboutToShow.connect(lambda menu_actions=self.run_menu_actions: self.verify_menu_actions(menu_actions, False))
-            self.debug_menu.aboutToShow.connect(lambda menu_actions=self.debug_menu_actions: self.verify_menu_actions(menu_actions, False))
-            self.consoles_menu.aboutToShow.connect(lambda menu_actions=self.consoles_menu_actions: self.verify_menu_actions(menu_actions, False))
-            self.projects_menu.aboutToShow.connect(lambda menu_actions=self.projects_menu_actions: self.verify_menu_actions(menu_actions, False))
-            self.tools_menu.aboutToShow.connect(lambda menu_actions=self.tools_menu_actions: self.verify_menu_actions(menu_actions, False))
-            self.help_menu.aboutToShow.connect(lambda menu_actions=self.help_menu_actions: self.verify_menu_actions(menu_actions, False))
 
     def setup(self):  
 
@@ -692,58 +688,46 @@ class MainWindow(QMainWindow):
         self.file_menu = self.menuBar().addMenu(_("&File"))
         self.file_toolbar = self.create_toolbar(_("File toolbar"),
                                                 "file_toolbar")
-        self.file_menu.aboutToShow.connect(self.hide_menus)
         # Edit menu/toolbar
         self.edit_menu = self.menuBar().addMenu(_("&Edit"))
         self.edit_toolbar = self.create_toolbar(_("Edit toolbar"),
                                                 "edit_toolbar")
-        self.edit_menu.aboutToShow.connect(self.hide_menus)
         # Search menu/toolbar
         self.search_menu = self.menuBar().addMenu(_("&Search"))
         self.search_toolbar = self.create_toolbar(_("Search toolbar"),
-                                                    "search_toolbar")
-        self.search_menu.aboutToShow.connect(self.hide_menus)
+                                                   "search_toolbar")
         # Source menu/toolbar
         self.source_menu = self.menuBar().addMenu(_("Sour&ce"))
         self.source_toolbar = self.create_toolbar(_("Source toolbar"),
                                                     "source_toolbar")
-        self.source_menu.aboutToShow.connect(self.hide_menus)
         # Run menu/toolbar
         self.run_menu = self.menuBar().addMenu(_("&Run"))
         self.run_toolbar = self.create_toolbar(_("Run toolbar"),
                                                 "run_toolbar")
-        self.run_menu.aboutToShow.connect(self.hide_menus)
 
         # Debug menu/toolbar
         self.debug_menu = self.menuBar().addMenu(_("&Debug"))
         self.debug_toolbar = self.create_toolbar(_("Debug toolbar"),
                                                     "debug_toolbar")
-        self.debug_menu.aboutToShow.connect(self.hide_menus)
 
         # Consoles menu/toolbar
         self.consoles_menu = self.menuBar().addMenu(_("C&onsoles"))
         self.consoles_menu.aboutToShow.connect(
                 self.update_execution_state_kernel)
 
-        self.consoles_menu.aboutToShow.connect(self.hide_menus)
-
         # Projects menu
         self.projects_menu = self.menuBar().addMenu(_("&Projects"))
         self.projects_menu.aboutToShow.connect(self.valid_project)
-        self.projects_menu.aboutToShow.connect(self.hide_menus)
 
         # Tools menu
         self.tools_menu = self.menuBar().addMenu(_("&Tools"))
-        self.tools_menu.aboutToShow.connect(self.hide_menus)
 
         # View menu
         self.view_menu = self.menuBar().addMenu(_("&View"))
-        self.view_menu.aboutToShow.connect(self.hide_menus)
 
         # Help menu
         self.help_menu = self.menuBar().addMenu(_("&Help"))
-        self.help_menu.aboutToShow.connect(self.hide_menus)
-        
+
         self.setup_menus()
         # Status bar
         status = self.statusBar()
@@ -1232,18 +1216,6 @@ class MainWindow(QMainWindow):
         logger.info("Setting up window...")
         self.setup_layout(default=False)
 
-        # Show and hide shortcuts in menus for Mac.
-        # This is a workaround because we can't disable shortcuts
-        # by setting context=Qt.WidgetShortcut there
-        if sys.platform == 'darwin':
-            for name in ['file', 'edit', 'search', 'source', 'run', 'debug',
-                         'projects', 'tools', 'plugins']:
-                menu_object = getattr(self, name + '_menu')
-                menu_object.aboutToShow.connect(
-                    lambda name=name: self.show_shortcuts(name))
-                menu_object.aboutToHide.connect(
-                    lambda name=name: self.hide_shortcuts(name))
-
         if self.splash is not None:
             self.splash.hide()
 
@@ -1264,6 +1236,29 @@ class MainWindow(QMainWindow):
 
         logger.info("*** End of MainWindow setup ***")
         self.is_starting_up = False
+
+    def setup_menus(self):
+        """Hide icon menus in toolbars before displaying them"""
+
+        # Show and hide shortcuts in menus for Mac.
+        # This is a workaround because we can't disable shortcuts
+        # by setting context=Qt.WidgetShortcut there
+        if sys.platform == 'darwin':
+
+            for name in ['file', 'edit', 'search', 'source', 'run', 'debug',
+                         'projects', 'tools', 'plugins']:
+                menu_object = getattr(self, name + '_menu')
+                if menu_object is not None:
+                    menu_object.aboutToShow.connect(
+                        lambda name=name: self.show_shortcuts(name))
+                    menu_object.aboutToHide.connect(
+                        lambda name=name: self.hide_shortcuts(name))
+            for idx, menu in enumerate(self.menus):
+                if menu is not None:
+                    menu.aboutToShow.connect(
+                        lambda menu_actions=self.menu_actions[idx]:
+                        self.verify_menu_actions(menu_actions, False))
+                    menu.aboutToShow.connect(self.hide_menus)
 
     def post_visible_setup(self):
         """Actions to be performed only after the main window's `show` method
