@@ -9,6 +9,7 @@ Configuration dialog / Preferences.
 """
 
 # Standard library imports
+import ast
 import os.path as osp
 
 # Third party imports
@@ -335,6 +336,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             data = self.get_option(option, default)
             if getattr(textedit, 'content_type', None) == list:
                 data = ', '.join(data)
+            elif getattr(textedit, 'content_type', None) == dict:
+                data = to_text_string(data)
             textedit.setPlainText(data)
             textedit.textChanged.connect(lambda opt=option:
                                          self.has_been_modified(opt))
@@ -422,13 +425,24 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         for radiobutton, (option, _default) in list(self.radiobuttons.items()):
             self.set_option(option, radiobutton.isChecked())
         for lineedit, (option, _default) in list(self.lineedits.items()):
+            data = lineedit.text()
             if lineedit.content_type == list:
-                data = [item.strip() for item in lineedit.text().split(',')]
+                data = [item.strip() for item in data.split(',')]
             else:
                 data = to_text_string(data)
             self.set_option(option, data)
         for textedit, (option, _default) in list(self.textedits.items()):
-            self.set_option(option, to_text_string(textedit.toPlainText()))
+            data = textedit.toPlainText()
+            if textedit.content_type == dict:
+                if data:
+                    data = ast.literal_eval(data)
+                else:
+                    data = textedit.content_type()
+            elif textedit.content_type in (tuple, list):
+                data = [item.strip() for item in data.split(',')]
+            else:
+                data = to_text_string(data)
+            self.set_option(option, data)
         for spinbox, (option, _default) in list(self.spinboxes.items()):
             self.set_option(option, spinbox.value())
         for combobox, (option, _default) in list(self.comboboxes.items()):
