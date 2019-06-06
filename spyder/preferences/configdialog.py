@@ -332,7 +332,10 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             if lineedit.restart_required:
                 self.restart_options[option] = lineedit.label_text
         for textedit, (option, default) in list(self.textedits.items()):
-            textedit.setPlainText(self.get_option(option, default))
+            data = self.get_option(option, default)
+            if getattr(textedit, 'content_type', None) == list:
+                data = ', '.join(data)
+            textedit.setPlainText(data)
             textedit.textChanged.connect(lambda opt=option:
                                          self.has_been_modified(opt))
             if textedit.restart_required:
@@ -522,10 +525,11 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         return widget
 
     def create_textedit(self, text, option, default=NoDefault,
-                        tip=None, restart=False):
+                        tip=None, restart=False, content_type=None):
         label = QLabel(text)
         label.setWordWrap(True)
         edit = QPlainTextEdit()
+        edit.content_type = content_type
         edit.setWordWrapMode(QTextOption.WordWrap)
         layout = QVBoxLayout()
         layout.addWidget(label)
