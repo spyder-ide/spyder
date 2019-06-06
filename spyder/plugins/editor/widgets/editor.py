@@ -863,6 +863,12 @@ class EditorStack(QWidget):
         self.open_fileswitcher_dlg()
         self.fileswitcher_dlg.set_search_text('@')
 
+    def get_plugin_title(self):
+        """Get the plugin title of the parent widget."""
+        # Needed for the editor stack to use its own fileswitcher instance.
+        # See issue # 9469
+        return self.parent().plugin.get_plugin_title()
+
     def get_current_tab_manager(self):
         """Get the widget with the TabWidget attribute."""
         return self
