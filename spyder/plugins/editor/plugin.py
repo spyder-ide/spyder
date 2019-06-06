@@ -2251,6 +2251,10 @@ class Editor(SpyderPluginWidget):
                     editor.set_cursor_position(position)
 
     def __move_cursor_position(self, index_move):
+        """
+        Move the cursor position forward or backward in the cursor
+        position history by the specified index increment.
+        """
         if self.cursor_pos_index is None:
             return
         filename, _position = self.cursor_pos_history[self.cursor_pos_index]
