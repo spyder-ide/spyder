@@ -58,10 +58,6 @@ def get_mac_application_icon_path(fpath):
         pl = {}
 
     icon_file = pl.get('CFBundleIconFile')
-
-    if icon_file is None:
-        print(fpath)
-
     icon_path = None
     if icon_file:
         icon_path = os.path.join(fpath, 'Contents', 'Resources', icon_file)
@@ -113,7 +109,7 @@ class ApplicationsDialog(QDialog):
         super(ApplicationsDialog, self).__init__(parent=parent)
 
         # Widgets
-        self.label = QLabel(_('Choose the application for files of type '))
+        self.label = QLabel()
         self.label_browse = QLabel()
         self.edit_filter = QLineEdit()
         self.list = QListWidget()
@@ -145,9 +141,9 @@ class ApplicationsDialog(QDialog):
         self.button_ok.clicked.connect(self.accept)
         self.button_cancel.clicked.connect(self.reject)
 
-        self._setup()
+        self.setup()
 
-    def _setup(self):
+    def setup(self):
         """"""
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         self.list.clear()
@@ -197,21 +193,33 @@ class ApplicationsDialog(QDialog):
             item = self.list.item(row)
             item.setHidden(text not in item.text().lower())
 
+    def set_extension(self, extension):
+        """"""
+        self.label.setText(_('Choose the application for files of type ')
+                           + extension)
+
     @property
-    def application(self):
+    def application_path(self):
         """"""
         return self.list.currentItem().fpath
+
+    @property
+    def application_name(self):
+        """"""
+        return self.list.currentItem().text()
 
 
 class FileAssociationsWidget(QWidget):
     """"""
+    sig_data_changed = Signal(dict)
 
-    def __init__(self, parent=None, data=None):
+    def __init__(self, parent=None):
         """"""
         super(FileAssociationsWidget, self).__init__(parent=parent)
 
         # Variables
         self._data = {}
+        self._initial_data = {}
         self._dlg_applications = None
 
         # Widgets
@@ -267,13 +275,11 @@ class FileAssociationsWidget(QWidget):
         self.list_extensions.currentRowChanged.connect(self.update_extensions)
         self.list_applications.currentRowChanged.connect(
             self.update_applications)
-        self._setup()
+        self._refresh()
 
-        if data:
-            self.load_values(data)
-
-    def _setup(self):
+    def _refresh(self):
         """"""
+        self.setUpdatesEnabled(False)
         for widget in [self.button_remove,  self.button_add_application,
                        self.button_remove_application, self.button_default]:
             widget.setDisabled(True)
@@ -284,9 +290,7 @@ class FileAssociationsWidget(QWidget):
             for widget in [self.button_remove, self.button_add_application,
                            self.button_remove_application]:
                 widget.setDisabled(False)
-
-    def _check_values(self):
-        """"""
+        self.setUpdatesEnabled(True)
 
     def _add_association(self, value):
         """"""
@@ -300,87 +304,134 @@ class FileAssociationsWidget(QWidget):
             self.list_extensions.addItem(item)
             self.list_extensions.setCurrentItem(item)
 
-        self._data[value] = []
-        self._setup()
+        self._refresh()
 
-    def _remove_association(self, index):
-        """"""
-        print(index)
-
-    def _add_application(self, value, key=None):
+    def _add_application(self, app_name, fpath):
         """"""
         for row in range(self.list_applications.count()):
             item = self.list_extensions.item(row)
-            if item and item.text().strip() == value.strip():
+            if item and item.text().strip() == app_name:
                 break
         else:
-            item = QListWidgetItem(value)
+            icon_path = get_mac_application_icon_path(fpath)
+            icon = QIcon(icon_path) if icon_path else ima.icon('help')
+            item = QListWidgetItem(icon, app_name)
             self.list_applications.addItem(item)
             self.list_applications.setCurrentItem(item)
-
-        # self._data[key].append(value)
 
     def load_values(self, data=None):
         """"""
         self._data = data
-        for key, values in sorted(data.items()):
-            self._add_association(key)
-            for value in values:
-                self._add_application(key, value)
+        self._initial_data = data.copy()
+        self._update_extensions()
+
+    def _update_extensions(self):
+        """"""
+        self.list_extensions.clear()
+        for extension, _ in sorted(self._data.items()):
+            self._add_association(extension)
 
         # Select first item
-        self.list_applications.setCurrentRow(0)
+        self.list_extensions.setCurrentRow(0)
+        self.update_extensions()
+        self.update_applications()
 
-    def add_association(self, show_dialog=True):
+    def add_association(self, slot=None, value=None):
         """"""
-        text, ok_pressed = QInputDialog.getText(
-            self,
-            _('File association'),
-            _('Enter new file association/extension (e.g. `*.txt` or '
-              '`pattern.dol`)'),
-            QLineEdit.Normal,
-            "",
-        )
+        if value is None:
+            text, ok_pressed = QInputDialog.getText(
+                self,
+                _('File association'),
+                _('Enter new file association/extension (e.g. `*.txt` or '
+                '`pattern.dol`)'),
+                QLineEdit.Normal,
+                "",
+            )
+        else:
+           text, ok_pressed = value, True
+ 
         if ok_pressed:
+            self._data[text] = []
             self._add_association(text)
+            self.check_data_changed()
 
-    def remove_association(self, index):
+    def remove_association(self):
         """"""
+        if self._data:
+            if self.current_extension:
+                self._data.pop(self.current_extension)
+                self._update_extensions()
+                self._refresh()
+                self.check_data_changed()
 
     def add_application(self):
         """"""
-        if self._dlg_applications is None:
-            self._dlg_applications = ApplicationsDialog(self)
-        self._dlg_applications.show()
+        if self.current_extension:
+            if self._dlg_applications is None:
+                self._dlg_applications = ApplicationsDialog(self)
+
+            self._dlg_applications.set_extension(self.current_extension)
+
+            if self._dlg_applications.exec_():
+                fpath = self._dlg_applications.application_path
+                app = self._dlg_applications.application_name
+                self._data[self.current_extension].append((app, fpath))
+                self._add_application(app, fpath)
+                self.check_data_changed()
 
     def remove_application(self):
         """"""
+        current_row = self.list_applications.currentRow()
+        values = self._data.get(self.current_extension)
+        if values and current_row != -1:
+            values.pop(current_row)
+            self.update_extensions()
+            self.update_applications()
+            self.check_data_changed()
 
     def set_default_application(self):
         """"""
-        current_item = self.list_extensions.currentItem()
-        current_row = self.list_editors.currentRow()
-        values = self._data[current_item.text().strip()]
-        value = values.pop(current_row)
-        values.insert(0, value)
-        self._data[current_item.text().strip()] = values
-        self.update_extensions()
+        current_row = self.list_applications.currentRow()
+        if current_row != -1:
+            values = self._data[self.current_extension]
+            value = values.pop(current_row)
+            values.insert(0, value)
+            self._data[self.current_extension] = values
+            self.update_extensions()
+            self.check_data_changed()
 
     def update_extensions(self, row=None):
         """"""
         self.list_applications.clear()
-        current_item = self.list_extensions.currentItem()
-        for key, values in self._data.items():
-            if key.strip() == current_item.text().strip():
-                for value in values:
-                    self._add_application(value)
+        for extension, values in self._data.items():
+            if extension.strip() == self.current_extension:
+                for (app_name, fpath) in values:
+                    self._add_application(app_name, fpath)
                 break
         self.list_applications.setCurrentRow(0)
+        self._refresh()
 
     def update_applications(self, row=None):
         """"""
+        self._refresh()
         current_row =  self.list_applications.currentRow()
         self.button_default.setEnabled(current_row != 0)
+
+    def check_data_changed(self):
+        """"""
+        self.sig_data_changed.emit(self._data)
+
+    @property
+    def current_extension(self):
+        """"""
+        item = self.list_extensions.currentItem()
+        if item:
+            return item.text()
+
+    @property
+    def data(self):
+        """"""
+        return self._data
 
 
 def test_widget():
@@ -389,11 +440,11 @@ def test_widget():
     widget = FileAssociationsWidget()
     data = {
         '*.txt':
-            ['something', 'something 2'],
+            [('App name', 'path-to-app'), ('App name 2', 'path-to-app')],
         '*.csv':
-            ['something 4', 'something 5', 'some 3'],
+            [('App name 2', 'path-to-app'), ('App name 5', 'path-to-app')],
     }
-    # widget.load_values(data)
+    widget.load_values(data)
     widget.show()
     app.exec_()
 

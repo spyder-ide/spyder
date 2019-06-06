@@ -8,16 +8,20 @@
 
 # Third party imports
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QGroupBox, QLabel, QVBoxLayout, QListWidget, QPushButton, QHBoxLayout, QWidget, QTabWidget
+from qtpy.QtWidgets import (QGroupBox, QHBoxLayout, QLabel, QListWidget,
+                            QPushButton, QTabWidget, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.api.preferences import PluginConfigPage
 from spyder.config.base import _
+from spyder.py3compat import to_text_string
 from spyder.widgets.fileassociations import FileAssociationsWidget
 
 
 class ExplorerConfigPage(PluginConfigPage):
+
     def setup_page(self):
+        # Variables
         newcb = self.create_checkbox
 
         # Widgets
@@ -32,7 +36,18 @@ class ExplorerConfigPage(PluginConfigPage):
             tip=("Enter values separated by commas"),
             content_type=list,
         )
-        associations_widget = FileAssociationsWidget()
+        associations_widget = QWidget()
+        self.edit_file_associations = self.create_textedit(
+            '',
+            'file_associations',
+            content_type=dict,
+        )
+        file_associations = FileAssociationsWidget()
+
+        # Widget setup
+        file_associations.load_values(self.get_option('file_associations'))
+        # The actual `data` is stored on this text edit set to invisible
+        self.edit_file_associations.setVisible(False)
 
         # Layouts
         layout = QVBoxLayout()
@@ -43,6 +58,11 @@ class ExplorerConfigPage(PluginConfigPage):
         layout.addWidget(edit_filename_filters)
         general_widget.setLayout(layout)
 
+        layout_file = QVBoxLayout()
+        layout_file.addWidget(file_associations)
+        layout_file.addWidget(self.edit_file_associations)
+        associations_widget.setLayout(layout_file)
+
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(general_widget), _("General"))
         tabs.addTab(self.create_tab(associations_widget), _("File associations"))
@@ -51,3 +71,11 @@ class ExplorerConfigPage(PluginConfigPage):
         tab_layout.addWidget(tabs)
 
         self.setLayout(tab_layout)
+
+        # Signals
+        file_associations.sig_data_changed.connect(self.update_associations)
+
+    def update_associations(self, data):
+        """"""
+        textedit = self.edit_file_associations.textbox
+        textedit.setPlainText(to_text_string(data))
