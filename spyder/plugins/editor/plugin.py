@@ -2263,7 +2263,8 @@ class Editor(SpyderPluginWidget):
                                      max([0, self.cursor_pos_index+index_move])
                                      ])
         filename, position = self.cursor_pos_history[self.cursor_pos_index]
-        if not osp.isfile(filename):
+        filenames = self.get_current_editorstack().get_filenames()
+        if not osp.isfile(filename) and filename not in filenames:
             self.cursor_pos_history.pop(self.cursor_pos_index)
             if self.cursor_pos_index <= old_index:
                 old_index -= 1
