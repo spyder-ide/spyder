@@ -306,44 +306,75 @@ class SpyderPluginWidget(SpyderPlugin, BasePluginWidget):
 
     def get_plugin_title(self):
         """
-        Return plugin's title as string
+        Get plugin's title.
+
+        Returns
+        -------
+        str
+            Name of the plugin.
         """
         raise NotImplementedError
 
     def get_plugin_icon(self):
         """
-        Return plugin icon (QIcon instance).
+        Get plugin's associated icon.
+
+        Returns
+        -------
+        QIcon
+            QIcon instance
         """
         return ima.icon('outline_explorer')
 
     def get_focus_widget(self):
         """
-        Return the widget to give focus to.
+        Get the plugin widget to give focus to.
 
+        Returns
+        -------
+        QWidget
+            QWidget to give focus to.
+
+        Notes
+        -----
         This is applied when plugin's dockwidget is raised on top-level.
         """
         pass
 
     def closing_plugin(self, cancelable=False):
         """
-        Perform actions before parent main window is closed.
+        Perform actions before the main window is closed.
 
-        Returns True or False whether the plugin may be closed
-        immediately or not.
+        Returns
+        -------
+        bool
+            Whether the plugin may be closed immediately or not.
 
-        Note: The returned value is ignored if *cancelable* is False.
+        Notes
+        -----
+        The returned value is ignored if *cancelable* is False.
         """
         return True
 
     def refresh_plugin(self):
-        """Refresh plugin after receiving focus."""
+        """
+        Refresh plugin after it receives focus.
+
+        Notes
+        -----
+        For instance, this is used to maintain in sync the Variable
+        Explorer with the currently focused IPython console.
+        """
         pass
 
     def get_plugin_actions(self):
         """
         Return a list of QAction's related to plugin.
 
-        Note: These actions will be shown in the plugins Options menu.
+        Notes
+        -----
+        These actions will be shown in the plugins Options menu (i.e.
+        the hambuger menu on the right of each plugin).
         """
         return []
 
@@ -351,7 +382,9 @@ class SpyderPluginWidget(SpyderPlugin, BasePluginWidget):
         """
         Register plugin in Spyder's main window.
 
-        Note: Here is the minimal call to register a plugin. If you
+        Notes
+        -----
+        Below is the minimal call needed to register a plugin. If you
         override this method, you need to make that call by yourself.
         """
         self.main.add_dockwidget(self)
@@ -360,10 +393,12 @@ class SpyderPluginWidget(SpyderPlugin, BasePluginWidget):
         """
         Action to be performed on first plugin registration.
 
-        Note: This is most usually used to tabify the plugin next to one
-              of the core plugins, like this:
+        Notes
+        -----
+        This is most usually used to tabify the plugin next to one of
+        the core plugins, like this:
 
-              self.main.tabify_plugins(self.main.variableexplorer, self)
+        self.main.tabify_plugins(self.main.variableexplorer, self)
         """
         raise NotImplementedError
 
