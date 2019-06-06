@@ -778,7 +778,7 @@ class FileSwitcher(QDialog):
                 scale_factor = 0.7
             else:
                 scale_factor = 0.9
-            icon = ima.get_icon_by_extension(path, scale_factor)
+            icon = ima.get_icon_by_extension_or_type(path, scale_factor)
             text = ''
             try:
                 title = self.widgets[index][1].get_plugin_title().split(' - ')
