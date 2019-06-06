@@ -2265,7 +2265,7 @@ class Editor(SpyderPluginWidget):
         filename, position = self.cursor_pos_history[self.cursor_pos_index]
         if not osp.isfile(filename):
             self.cursor_pos_history.pop(self.cursor_pos_index)
-            if self.cursor_pos_index < old_index:
+            if self.cursor_pos_index <= old_index:
                 old_index -= 1
             self.cursor_pos_index = old_index
         else:
