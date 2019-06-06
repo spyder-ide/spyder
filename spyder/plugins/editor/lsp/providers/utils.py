@@ -30,3 +30,22 @@ def process_uri(uri):
     # Prepend UNC share notation if we have a UNC path.
     netloc = '\\\\' + netloc if netloc else netloc
     return url2pathname(netloc + path)
+
+
+def match_path_to_folder(folders, path):
+    # folders = [pathlib.Path(folder).parts for folder in folders]
+    max_len, chosen_folder = -1, None
+    path = pathlib.Path(path).parts
+    for folder in folders:
+        folder_parts = pathlib.Path(folder).parts
+        if len(folder_parts) > len(path):
+            continue
+        match_len = 0
+        for folder_part, path_part in zip(folder_parts, path):
+            if folder_part == path_part:
+                match_len += 1
+        if match_len > 0:
+            if match_len > max_len:
+                max_len = match_len
+                chosen_folder = folder
+    return chosen_folder

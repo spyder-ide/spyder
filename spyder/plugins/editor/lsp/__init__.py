@@ -96,7 +96,7 @@ WORKSPACE_CAPABILITIES = {
     # Workspace edition settings
     "workspaceEdit": {
         # The client supports versioned document changes.
-        "documentChanges": False,
+        "documentChanges": True,
         # The resource operations that the client supports
         "resourceOperations": [ResourceOperationKind.CREATE,
                                ResourceOperationKind.RENAME,
