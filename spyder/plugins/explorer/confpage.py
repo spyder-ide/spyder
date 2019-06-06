@@ -22,26 +22,25 @@ class ExplorerConfigPage(PluginConfigPage):
 
         # Widgets
         general_widget = QWidget()
-        edit_filename_filters = self.create_lineedit(
-            _("Edit filename filters..."),
-            'name_filters',
-            tip=("Enter values separated by commas"),
-            alignment=Qt.Horizontal,
-            content_type=list,
-        )
         check_show_hidden = newcb(_("Show hidden files"), 'show_hidden')
         check_show_all = newcb(_("Show all files"), 'show_all')
         check_icon = newcb(_("Show icons and text"), 'show_icontext')
         check_single_click = newcb(_("Single click to open files"), 'single_click_to_open')
+        edit_filename_filters = self.create_textedit(
+            _("Edit filename filters..."),
+            'name_filters',
+            tip=("Enter values separated by commas"),
+            content_type=list,
+        )
         associations_widget = FileAssociationsWidget()
 
         # Layouts
         layout = QVBoxLayout()
-        layout.addWidget(edit_filename_filters)
         layout.addWidget(check_show_hidden)
         layout.addWidget(check_show_all)
         layout.addWidget(check_icon)
         layout.addWidget(check_single_click)
+        layout.addWidget(edit_filename_filters)
         general_widget.setLayout(layout)
 
         tabs = QTabWidget()

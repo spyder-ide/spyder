@@ -123,6 +123,7 @@ class Explorer(SpyderPluginWidget):
         self.main.tabify_plugins(self.main.variableexplorer, self)
 
     def apply_plugin_settings(self, options):
+        pass
         # TODO: Need to update the editname filters
         # TODO: And the check actions!
 
