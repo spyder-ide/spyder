@@ -29,7 +29,7 @@ from spyder.plugins.editor.utils.editor import TextBlockHelper
 logger = logging.getLogger(__name__)
 
 
-def print_tree_triggers(editor, file=sys.stdout, print_blocks=False, 
+def print_tree_triggers(editor, file=sys.stdout, print_blocks=False,
                         return_list=False):
     """
     Prints the editor fold tree to stdout, for debugging purpose.
@@ -61,8 +61,6 @@ def print_tree_triggers(editor, file=sys.stdout, print_blocks=False,
             else:
                 print('l%d:%s%s' %
                       (block.blockNumber() + 1, lvl, visible), file=file)
-        print('&&&&' + block.text())
-        print(str(lvl) + str(visible))
         block = block.next()
 
     if return_list:
