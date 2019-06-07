@@ -22,7 +22,6 @@ from __future__ import print_function
 # Standard library imports
 import sys
 import logging
-import re
 
 # Local imports
 from spyder.plugins.editor.utils.editor import TextBlockHelper
@@ -127,7 +126,6 @@ class FoldDetector(object):
                 block = block.previous()
             TextBlockHelper.set_fold_trigger(
                 block, True)
-
         # update block fold level
         if text.strip() and not self.editor.is_comment(previous_block):
             TextBlockHelper.set_fold_trigger(

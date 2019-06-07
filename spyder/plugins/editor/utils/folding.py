@@ -19,13 +19,10 @@ Original file:
 # Standard library imports
 import sys
 import re
-import logging
 
 # Local imports
 from spyder.plugins.editor.api.folding import FoldDetector
 from spyder.plugins.editor.utils.editor import TextBlockHelper
-
-logger = logging.getLogger(__name__)
 
 
 class FoldScope(object):
@@ -226,7 +223,8 @@ class IndentFoldDetector(FoldDetector):
         """
         text = block.text()
         prev_lvl = TextBlockHelper().get_fold_lvl(prev_block)
-        regex = r"(and|or|'|\+|\-|\*|\^|>>|<<|\*|\*{2}|\||\*|//|/|,|\\|\")$"
+        cont_line_regex = (r"(and|or|'|\+|\-|\*|\^|>>|<<|"
+                           r"\*|\*{2}|\||\*|//|/|,|\\|\")$")
         # round down to previous indentation guide to ensure contiguous block
         # fold level evolution.
         indent_len = 0
@@ -237,7 +235,8 @@ class IndentFoldDetector(FoldDetector):
             indent_len = (len(prev_text) - len(prev_text.lstrip())) // prev_lvl
             # Verify if the previous line ends with a continuation line
             # with a regex
-            if re.search(regex, prev_block.text()) and indent_len > prev_lvl:
+            if (re.search(cont_line_regex, prev_block.text()) and
+               indent_len > prev_lvl):
                 # Calculate act level of line
                 act_lvl = (len(text) - len(text.lstrip())) // indent_len
                 if act_lvl == prev_lvl:
