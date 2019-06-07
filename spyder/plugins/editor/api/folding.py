@@ -85,7 +85,7 @@ def print_tree(editor, file=sys.stdout, print_blocks=False, return_list=False):
         if return_list:
             output_list.append([block.blockNumber() + 1, lvl, visible])
         else:
-            print('l%d:%s%s%s' %
+            print('l%d:%s%s' %
                   (block.blockNumber() + 1, lvl, visible),
                   file=file)
         block = block.next()
