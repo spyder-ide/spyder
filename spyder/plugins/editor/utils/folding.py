@@ -235,15 +235,21 @@ class IndentFoldDetector(FoldDetector):
             # ignore commented lines (could have arbitary indentation)
             prev_text = prev_block.text()
             indent_len = (len(prev_text) - len(prev_text.lstrip())) // prev_lvl
-            if re.search(regex, prev_block.text().strip()[-1]):
-                logger.debug('BFR: ' + str(indent_len))
-                indent_len -= 1
+            # Verify if the previous line ends with a continuation line
+            # with a regex
+            if re.search(regex, prev_block.text()) and indent_len > prev_lvl:
+                # Calculate act level of line
+                act_lvl = (len(text) - len(text.lstrip())) // indent_len
+                if act_lvl == prev_lvl:
+                    # If they are the same, don't change the level
+                    return prev_lvl
+                if prev_lvl > act_lvl:
+                    return prev_lvl - 1
+                return prev_lvl + 1
         if indent_len == 0:
             indent_len = len(self.editor.indent_chars)
-        logger.debug('-----------')
-        logger.debug(str(len(text) - len(text.lstrip())))
-        logger.debug(indent_len)
-        return (len(text) - len(text.lstrip())) // indent_len
+        act_lvl = (len(text) - len(text.lstrip())) // indent_len
+        return act_lvl
 
 
 class CharBasedFoldDetector(FoldDetector):

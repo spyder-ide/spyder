@@ -106,24 +106,17 @@ class FoldDetector(object):
         :param previous_block: previous block
         :param text: current block text
         """
-        logger.debug("&&&&&&& " + text)
-        # regex = r"(and|or|'|\+|\-|\*|\^|>>|<<|\*|\*{2}|\||\*|//|/|,|\\|\")$"
         prev_fold_level = TextBlockHelper.get_fold_lvl(previous_block)
-        # logger.debug(re.search(regex, previous_block.text().strip()[-1]))
         if text.strip() == '' or self.editor.is_comment(current_block):
             # blank or comment line always have the same level
             # as the previous line
-            # verify if the current block is the continuation of the previous
-            # using regular expression
             fold_level = prev_fold_level
         else:
             fold_level = self.detect_fold_level(
                 previous_block, current_block)
-            logger.debug("FL&&&&& " + str(fold_level))
             if fold_level > self.limit:
                 fold_level = self.limit
         prev_fold_level = TextBlockHelper.get_fold_lvl(previous_block)
-        logger.debug("PL&&&&& " + str(prev_fold_level))
 
         if fold_level > prev_fold_level:
             # apply on previous blank or comment lines
@@ -140,7 +133,6 @@ class FoldDetector(object):
             TextBlockHelper.set_fold_trigger(
                 previous_block, fold_level > prev_fold_level)
         TextBlockHelper.set_fold_lvl(current_block, fold_level)
-        logger.debug("FF&&&&& " + str(fold_level))
         # user pressed enter at the beginning of a fold trigger line
         # the previous blank or comment line will keep the trigger state
         # and the new line (which actually contains the trigger) must use
