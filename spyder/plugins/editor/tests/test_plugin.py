@@ -59,7 +59,7 @@ def test_setup_open_files(editor_plugin_open_files, last_focused_filename,
 def test_setup_open_files_cleanprefs(editor_plugin_open_files):
     """Test that Editor successfully opens files if layout is not defined.
 
-    Regression test for #8458 .
+    Regression test for spyder-ide/spyder#8458.
     """
     editor_factory = editor_plugin_open_files
     editor, expected_filenames, expected_current_filename = (
