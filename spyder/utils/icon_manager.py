@@ -163,7 +163,7 @@ _qtaargs = {
     'warning':                 [('fa.warning',), {'color': 'orange'}],
     'todo':                    [('fa.exclamation',), {'color': '#3775a9'}],
     'ipython_console':         [('mdi.console',), {'color': MAIN_FG_COLOR}],
-    'ipython_console_t':       [('mdi.console',), {'color':'gray'}],
+    'ipython_console_t':       [('mdi.console',), {'color': 'gray'}],
     'python':                  [('spyder.python-logo-up', 'spyder.python-logo-down'), {'options': [{'color': '#3775a9'}, {'color': '#ffd444'}]}],
     'pythonpath':              [('spyder.python-logo-up', 'spyder.python-logo-down'), {'options': [{'color': '#3775a9'}, {'color': '#ffd444'}]}],
     'terminated':              [('fa.circle',), {'color': MAIN_FG_COLOR}],
