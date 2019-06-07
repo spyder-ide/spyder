@@ -246,6 +246,7 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 * **QDarkStyle** 2.6.4+: A dark stylesheet for Qt applications, used for Spyder's dark theme.
 * **atomicwrites**: Atomic file writes.
 * **pexpect**/**paramiko**: Connect to remote kernels through SSH.
+* **diff-match-patch**: Compute text file diff changes during edition.
 
 ### Optional dependencies
 

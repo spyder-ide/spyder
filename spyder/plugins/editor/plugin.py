@@ -16,6 +16,7 @@ import logging
 import os
 import os.path as osp
 import re
+import sys
 import time
 
 # Third party imports
@@ -30,8 +31,8 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
 # Local imports
 from spyder import dependencies
 from spyder.config.base import _, get_conf_path, running_under_pytest
-from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
-                                RUN_CELL_AND_ADVANCE_SHORTCUT)
+from spyder.config.gui import get_shortcut
+from spyder.config.main import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter)
 from spyder.py3compat import PY2, qbytearray_to_str, to_text_string
@@ -62,7 +63,7 @@ logger = logging.getLogger(__name__)
 
 
 # Dependencies
-PYLS_REQVER = '>=0.19.0'
+PYLS_REQVER = '>=0.19.0;<0.25'
 dependencies.add('pyls',
                  _("Editor's code completion, go-to-definition, help and "
                    "real-time code analysis"),
@@ -94,6 +95,9 @@ class Editor(SpyderPluginWidget):
     breakpoints_saved = Signal()
     run_in_current_extconsole = Signal(str, str, str, bool, bool)
     open_file_update = Signal(str)
+
+    # This signal is fired for any focus change among all editor stacks
+    sig_editor_focus_changed = Signal()
 
     def __init__(self, parent, ignore_last_opened_files=False):
         SpyderPluginWidget.__init__(self, parent)
@@ -134,7 +138,7 @@ class Editor(SpyderPluginWidget):
         self.editorwindows_to_be_created = []
         self.toolbar_list = None
         self.menu_list = None
-        
+
         # Initialize plugin
         self.initialize_plugin()
         self.options_button.hide()
@@ -228,6 +232,11 @@ class Editor(SpyderPluginWidget):
         self.update_cursorpos_actions()
         self.set_path()
 
+        self.fallback_up = False
+        # Know when the fallback completion engine is up
+        self.main.fallback_completions.sig_fallback_ready.connect(
+            self.fallback_ready)
+
     def set_projects(self, projects):
         self.projects = projects
 
@@ -289,6 +298,8 @@ class Editor(SpyderPluginWidget):
             else:
                 editor = self.get_current_editor()
                 editor.lsp_ready = False
+        if self.fallback_up:
+            self.fallback_ready()
 
     @Slot(dict, str)
     def register_lsp_server_settings(self, settings, language):
@@ -297,6 +308,11 @@ class Editor(SpyderPluginWidget):
         logger.debug('LSP server settings for {!s} are: {!r}'.format(
             language, settings))
         self.lsp_server_ready(language, self.lsp_editor_settings[language])
+
+    def stop_lsp_services(self, language):
+        """Notify all editorstacks about LSP server unavailability."""
+        for editorstack in self.editorstacks:
+            editorstack.notify_server_down(language)
 
     def lsp_server_ready(self, language, configuration):
         """Notify all stackeditors about LSP server availability."""
@@ -307,6 +323,16 @@ class Editor(SpyderPluginWidget):
         logger.debug("LSP request: %r" %request)
         self.main.lspmanager.send_request(language, request, params)
 
+    def send_fallback_request(self, msg):
+        """Send request to fallback engine."""
+        self.main.fallback_completions.mailbox.put(msg)
+
+    def fallback_ready(self):
+        """Notify all stackeditors about fallback availability."""
+        logger.debug('Fallback is available')
+        self.fallback_up = True
+        for editorstack in self.editorstacks:
+            editorstack.notify_fallback_ready()
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
@@ -354,7 +380,7 @@ class Editor(SpyderPluginWidget):
 
         active_project_path = None
         if self.projects is not None:
-             active_project_path = self.projects.get_active_project_path()
+            active_project_path = self.projects.get_active_project_path()
         if not active_project_path:
             self.set_open_filenames()
         else:
@@ -377,6 +403,14 @@ class Editor(SpyderPluginWidget):
             else:
                 for win in self.editorwindows[:]:
                     win.close()
+                # Remove autosave on successful close to avoid issue #9265.
+                # Probably a good idea anyway to mitigate autosave issues.
+                # Ignore errors resulting from file being open in > 2
+                # editorstacks or another Spyder being closed first and
+                # removing the spurious files.
+                for editorstack_split in self.editorstacks:
+                    editorstack_split.autosave.remove_all_autosave_files(
+                        errors="ignore")
                 return True
         except IndexError:
             return True
@@ -580,8 +614,8 @@ class Editor(SpyderPluginWidget):
         run_cell_action = create_action(self,
                             _("Run cell"),
                             icon=ima.icon('run_cell'),
-                            shortcut=QKeySequence(RUN_CELL_SHORTCUT),
-                            tip=_("Run current cell (Ctrl+Enter)\n"
+                            shortcut=get_shortcut('editor', 'run cell'),
+                            tip=_("Run current cell \n"
                                   "[Use #%% to create cells]"),
                             triggered=self.run_cell,
                             context=Qt.WidgetShortcut)
@@ -589,9 +623,8 @@ class Editor(SpyderPluginWidget):
         run_cell_advance_action = create_action(self,
                    _("Run cell and advance"),
                    icon=ima.icon('run_cell_advance'),
-                   shortcut=QKeySequence(RUN_CELL_AND_ADVANCE_SHORTCUT),
-                   tip=_("Run current cell and go to the next one "
-                         "(Shift+Enter)"),
+                   shortcut=get_shortcut('editor', 'run cell and advance'),
+                   tip=_("Run current cell and go to the next one "),
                    triggered=self.run_cell_and_advance,
                    context=Qt.WidgetShortcut)
 
@@ -706,14 +739,14 @@ class Editor(SpyderPluginWidget):
                 triggered=self.unindent, context=Qt.WidgetShortcut)
 
         self.text_uppercase_action = create_action(self,
-                _("Toggle Uppercase"),
+                _("Toggle Uppercase"), icon=ima.icon('toggle_uppercase'),
                 tip=_("Change to uppercase current line or selection"),
                 triggered=self.text_uppercase, context=Qt.WidgetShortcut)
         self.register_shortcut(self.text_uppercase_action, context="Editor",
                                name="transform to uppercase")
 
         self.text_lowercase_action = create_action(self,
-                _("Toggle Lowercase"),
+                _("Toggle Lowercase"), icon=ima.icon('toggle_lowercase'),
                 tip=_("Change to lowercase current line or selection"),
                 triggered=self.text_lowercase, context=Qt.WidgetShortcut)
         self.register_shortcut(self.text_lowercase_action, context="Editor",
@@ -795,29 +828,63 @@ class Editor(SpyderPluginWidget):
             _("Clear this list"), tip=_("Clear recent files list"),
             triggered=self.clear_recent_files)
 
+        # Fixes issue 6055
+        # See: https://bugreports.qt.io/browse/QTBUG-8596
+        self.tab_navigation_actions = []
+        if sys.platform == 'darwin':
+            self.go_to_next_file_action = create_action(
+                self,
+                _("Go to next file"),
+                shortcut=get_shortcut('editor', 'go to previous file'),
+                triggered=self.go_to_next_file,
+            )
+            self.go_to_previous_file_action = create_action(
+                self,
+                _("Go to previous file"),
+                shortcut=get_shortcut('editor', 'go to next file'),
+                triggered=self.go_to_previous_file,
+            )
+            self.register_shortcut(
+                self.go_to_next_file_action,
+                context="Editor",
+                name="Go to next file",
+            )
+            self.register_shortcut(
+                self.go_to_previous_file_action,
+                context="Editor",
+                name="Go to previous file",
+            )
+            self.tab_navigation_actions = [
+                MENU_SEPARATOR,
+                self.go_to_previous_file_action,
+                self.go_to_next_file_action,
+            ]
+
         # ---- File menu/toolbar construction ----
         self.recent_file_menu = QMenu(_("Open &recent"), self)
         self.recent_file_menu.aboutToShow.connect(self.update_recent_file_menu)
 
-        file_menu_actions = [self.new_action,
-                             MENU_SEPARATOR,
-                             self.open_action,
-                             self.open_last_closed_action,
-                             self.recent_file_menu,
-                             MENU_SEPARATOR,
-                             MENU_SEPARATOR,
-                             self.save_action,
-                             self.save_all_action,
-                             save_as_action,
-                             save_copy_as_action,
-                             self.revert_action,
-                             MENU_SEPARATOR,
-                             print_preview_action,
-                             self.print_action,
-                             MENU_SEPARATOR,
-                             self.close_action,
-                             self.close_all_action,
-                             MENU_SEPARATOR]
+        file_menu_actions = [
+            self.new_action,
+            MENU_SEPARATOR,
+            self.open_action,
+            self.open_last_closed_action,
+            self.recent_file_menu,
+            MENU_SEPARATOR,
+            MENU_SEPARATOR,
+            self.save_action,
+            self.save_all_action,
+            save_as_action,
+            save_copy_as_action,
+            self.revert_action,
+            MENU_SEPARATOR,
+            print_preview_action,
+            self.print_action,
+            MENU_SEPARATOR,
+            self.close_action,
+            self.close_all_action,
+            MENU_SEPARATOR,
+        ]
 
         self.main.file_menu_actions += file_menu_actions
         file_toolbar_actions = ([self.new_action, self.open_action,
@@ -1161,6 +1228,7 @@ class Editor(SpyderPluginWidget):
             ('set_tab_stop_width_spaces',           'tab_stop_width_spaces'),
             ('set_wrap_enabled',                    'wrap'),
             ('set_tabmode_enabled',                 'tab_always_indent'),
+            ('set_stripmode_enabled',               'strip_trailing_spaces_on_modify'),
             ('set_intelligent_backspace_enabled',   'intelligent_backspace'),
             ('set_highlight_current_line_enabled',  'highlight_current_line'),
             ('set_highlight_current_cell_enabled',  'highlight_current_cell'),
@@ -1198,6 +1266,7 @@ class Editor(SpyderPluginWidget):
                                    lambda: self.sig_update_plugin_title.emit())
         editorstack.editor_focus_changed.connect(self.save_focus_editorstack)
         editorstack.editor_focus_changed.connect(self.main.plugin_focus_changed)
+        editorstack.editor_focus_changed.connect(self.sig_editor_focus_changed)
         editorstack.zoom_in.connect(lambda: self.zoom(1))
         editorstack.zoom_out.connect(lambda: self.zoom(-1))
         editorstack.zoom_reset.connect(lambda: self.zoom(0))
@@ -1216,6 +1285,8 @@ class Editor(SpyderPluginWidget):
             lambda fname, line, col: self.load(
                 fname, line, start_column=col))
         editorstack.perform_lsp_request.connect(self.send_lsp_request)
+        editorstack.sig_perform_fallback_request.connect(
+            self.send_fallback_request)
         editorstack.todo_results_changed.connect(self.todo_results_changed)
         editorstack.update_code_analysis_actions.connect(
             self.update_code_analysis_actions)
@@ -1324,11 +1395,7 @@ class Editor(SpyderPluginWidget):
         oe_options = self.outlineexplorer.explorer.get_options()
         window = EditorMainWindow(
             self, self.stack_menu_actions, self.toolbar_list, self.menu_list,
-            show_fullpath=oe_options['show_fullpath'],
-            show_all_files=oe_options['show_all_files'],
-            group_cells=oe_options['group_cells'],
-            show_comments=oe_options['show_comments'],
-            sort_files_alphabetically=oe_options['sort_files_alphabetically'])
+            outline_explorer_options=oe_options)
         window.add_toolbars_to_menu("&View", window.get_toolbars())
         window.load_toolbars()
         window.resize(self.size())
@@ -1699,7 +1766,8 @@ class Editor(SpyderPluginWidget):
             for fname in recent_files:
                 action = create_action(
                     self, fname,
-                    icon=ima.get_icon_by_extension(fname, scale_factor=1.0),
+                    icon=ima.get_icon_by_extension_or_type(
+                        fname, scale_factor=1.0),
                     triggered=self.load)
                 action.setData(to_qvariant(fname))
                 self.recent_file_menu.addAction(action)
@@ -2522,6 +2590,8 @@ class Editor(SpyderPluginWidget):
             indentguides_o = self.get_option(indentguides_n)
             tabindent_n = 'tab_always_indent'
             tabindent_o = self.get_option(tabindent_n)
+            stripindent_n = 'strip_trailing_spaces_on_modify'
+            stripindent_o = self.get_option(stripindent_n)
             ibackspace_n = 'intelligent_backspace'
             ibackspace_o = self.get_option(ibackspace_n)
             removetrail_n = 'always_remove_trailing_spaces'
@@ -2566,6 +2636,8 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_wrap_enabled(wrap_o)
                 if tabindent_n in options:
                     editorstack.set_tabmode_enabled(tabindent_o)
+                if stripindent_n in options:
+                    editorstack.set_stripmode_enabled(stripindent_o)
                 if ibackspace_n in options:
                     editorstack.set_intelligent_backspace_enabled(ibackspace_o)
                 if removetrail_n in options:
@@ -2713,3 +2785,16 @@ class Editor(SpyderPluginWidget):
         """Change the value of create_new_file_if_empty"""
         for editorstack in self.editorstacks:
             editorstack.create_new_file_if_empty = value
+
+    # --- File Menu actions (Mac only)
+    @Slot()
+    def go_to_next_file(self):
+        """Switch to next file tab on the current editor stack."""
+        editorstack = self.get_current_editorstack()
+        editorstack.tabs.tab_navigate(+1)
+
+    @Slot()
+    def go_to_previous_file(self):
+        """Switch to previous file tab on the current editor stack."""
+        editorstack = self.get_current_editorstack()
+        editorstack.tabs.tab_navigate(-1)

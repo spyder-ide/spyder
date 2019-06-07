@@ -246,6 +246,8 @@ class DocumentProvider:
             params[ClientConstants.CANCEL] = True
         else:
             editors = self.watched_files[filename]
+            if len(editors) > 1:
+                params[ClientConstants.CANCEL] = True
             idx = -1
             for i, editor in enumerate(editors):
                 if id(codeeditor) == id(editor):
@@ -256,4 +258,5 @@ class DocumentProvider:
 
             if len(editors) == 0:
                 self.watched_files.pop(filename)
+
         return params

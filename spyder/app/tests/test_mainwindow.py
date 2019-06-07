@@ -202,50 +202,6 @@ def main_window(request):
 # =============================================================================
 # ---- Tests
 # =============================================================================
-# IMPORTANT NOTE: Please leave this test to be the first one here to
-# avoid possible timeouts in Appveyor
-@pytest.mark.slow
-@pytest.mark.use_introspection
-@flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or not PY2,
-                    reason="Times out on AppVeyor and fails on PY3/PyQt 5.6")
-def test_calltip(main_window, qtbot):
-    """Test that the calltip in editor is hidden when matching ')' is found."""
-    # Load test file
-    text = 'a = [1,2,3]\n(max'
-    lsp_client = main_window.lspmanager.clients['python']['instance']
-    with qtbot.waitSignal(lsp_client.sig_initialize, timeout=30000):
-        main_window.editor.new(fname="test.py", text=text)
-    code_editor = main_window.editor.get_focus_widget()
-
-    # Set text to start
-    # with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
-    #     code_editor.set_text(text)
-    #     code_editor.document_did_change()
-    code_editor.set_text(text)
-    code_editor.go_to_line(2)
-    code_editor.move_cursor(4)
-    calltip = code_editor.calltip_widget
-    assert not calltip.isVisible()
-
-    with qtbot.waitSignal(code_editor.sig_signature_invoked, timeout=30000):
-        qtbot.keyPress(code_editor, Qt.Key_ParenLeft, delay=3000)
-        # qtbot.keyPress(code_editor, Qt.Key_A, delay=1000)
-
-    # qtbot.wait(1000)
-    # print(calltip.isVisible())
-    qtbot.waitUntil(lambda: calltip.isVisible(), timeout=3000)
-
-    qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
-    qtbot.keyPress(code_editor, Qt.Key_Space)
-    qtbot.waitUntil(lambda: not calltip.isVisible(), timeout=3000)
-    assert not QToolTip.isVisible()
-    qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
-    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
-
-    main_window.editor.close_file()
-
-
 @pytest.mark.slow
 def test_lock_action(main_window):
     """Test the lock interface action."""
@@ -348,7 +304,8 @@ def test_filter_numpy_warning(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(PY2, reason="Times out in PY2")
+@pytest.mark.skipif(PY2 or sys.platform.startswith('linux'),
+                    reason="Times out in PY2 and fails on second run on Linux")
 def test_get_help_combo(main_window, qtbot):
     """
     Test that Help can display docstrings for names typed in its combobox.
@@ -1395,7 +1352,8 @@ def test_stop_dbg(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="It only works on Linux")
 def test_change_cwd_dbg(main_window, qtbot):
     """
     Test that using the Working directory toolbar is working while debugging.
@@ -1628,31 +1586,47 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot, tmpdir):
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(not sys.platform.startswith('linux'),
-                    reason="Doesn't run correctly on Windows and macOS")
 def test_fileswitcher(main_window, qtbot, tmpdir):
     """Test the use of shorten paths when necessary in the fileswitcher."""
+    fileswitcher = main_window.fileswitcher
+
     # Assert that the full path of a file is shown in the fileswitcher
-    file_a = tmpdir.join("a.py")
-    file_a.write('foo')
+    file_a = tmpdir.join('test_file_a.py')
+    file_a.write('foo\n')
     main_window.editor.load(str(file_a))
 
     main_window.open_fileswitcher()
-    item_text = main_window.fileswitcher.list.currentItem().text()
-    assert str(file_a) in item_text
+    fileswitcher_paths = fileswitcher.paths
+    assert file_a in fileswitcher_paths
+    fileswitcher.close()
 
     # Assert that long paths are shortened in the fileswitcher
     dir_b = tmpdir
     for _ in range(3):
         dir_b = dir_b.mkdir(str(uuid.uuid4()))
-    file_b = dir_b.join("b.py")
-    file_b.write('bar')
+    file_b = dir_b.join('test_file_b.py')
+    file_b.write('bar\n')
     main_window.editor.load(str(file_b))
 
-    main_window.fileswitcher.close()
     main_window.open_fileswitcher()
-    item_text = main_window.fileswitcher.list.currentItem().text()
-    assert '...' in item_text
+    file_b_text = fileswitcher.list.item(
+        fileswitcher.list.count() - 1).text()
+    assert '...' in file_b_text
+    fileswitcher.close()
+
+    # Assert search works correctly
+    search_texts = ['test_file_a', 'file_b', 'foo_spam']
+    expected_paths = [file_a, file_b, None]
+    for search_text, expected_path in zip(search_texts, expected_paths):
+        main_window.open_fileswitcher()
+        qtbot.keyClicks(fileswitcher.edit, search_text)
+        qtbot.wait(200)
+        assert fileswitcher.count() == 2 * bool(expected_path)
+        if expected_path:
+            assert fileswitcher.filtered_path[0] == expected_path
+        else:
+            assert not fileswitcher.filtered_path
+        fileswitcher.close()
 
 
 @pytest.mark.slow
@@ -1847,6 +1821,44 @@ def test_custom_layouts(main_window, qtbot):
                             if widget not in hidden_widgets:
                                 print(widget)  # spyder: test-skip
                                 assert widget.isVisible()
+
+
+# @pytest.mark.slow
+def test_pylint_follows_file(qtbot, tmpdir, main_window):
+    """Test that file editor focus change updates pylint combobox filename."""
+    for plugin in main_window.thirdparty_plugins:
+        if plugin.CONF_SECTION == 'pylint':
+            pylint_plugin = plugin
+            break
+
+    # Show pylint plugin
+    pylint_plugin.dockwidget.show()
+    pylint_plugin.dockwidget.raise_()
+
+    # Create base temporary directory
+    basedir = tmpdir.mkdir('foo')
+
+    # Open some files
+    for idx in range(2):
+        fh = basedir.join('{}.py'.format(idx))
+        fname = str(fh)
+        fh.write('print("Hello world!")')
+        main_window.open_file(fh)
+        qtbot.wait(200)
+        assert fname == pylint_plugin.get_filename()
+
+    # Create a editor split
+    main_window.editor.editorsplitter.split(orientation=Qt.Vertical)
+    qtbot.wait(500)
+
+    # Open other files
+    for idx in range(4):
+        fh = basedir.join('{}.py'.format(idx))
+        fh.write('print("Hello world!")')
+        fname = str(fh)
+        main_window.open_file(fh)
+        qtbot.wait(200)
+        assert fname == pylint_plugin.get_filename()
 
 
 if __name__ == "__main__":

@@ -191,7 +191,7 @@ def test_save(editor_bot, mocker):
     editor_stack.file_saved.emit.assert_called_with(
         str(id(editor_stack)), 'foo.py', 'foo.py')
     editor_stack.autosave.remove_autosave_file.assert_called_with(
-        editor_stack.data[0])
+        editor_stack.data[0].filename)
 
     editor_stack.file_saved = save_file_saved
 

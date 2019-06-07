@@ -19,6 +19,7 @@ import pytest
 # Local imports
 from spyder.utils.vcs import (ActionToolNotFound, get_git_refs,
                               get_git_revision, get_vcs_root, run_vcs_tool)
+from spyder.utils import programs
 
 
 @pytest.mark.skipif(os.environ.get('CI', None) is None,
@@ -46,11 +47,27 @@ def test_git_revision():
     assert all([isinstance(x, str) for x in get_git_revision(root)])
 
 
+def test_no_git(monkeypatch):
+
+    def mockreturn(program_name):
+        return None
+
+    monkeypatch.setattr(programs, 'find_program', mockreturn)
+    branch_tags, branch, files_modified = get_git_refs(__file__)
+    assert len(branch_tags) == 0
+    assert branch == ''
+    assert len(files_modified) == 0
+
+
 def test_get_git_refs():
-    braches_tags, branch, files_modified = get_git_refs(__file__)
+    branch_tags, branch, files_modified = get_git_refs(__file__)
     assert bool(branch)  # This must always return a branch_name
     assert len(files_modified) >= 0
-    assert any(['master' in b for b in braches_tags])
+
+    # It seems when Travis run tests on tags, master doesn't
+    # appear among the list of git branches.
+    if not os.environ.get('TRAVIS_TAG'):
+        assert any(['master' in b for b in branch_tags])
 
 
 if __name__ == "__main__":

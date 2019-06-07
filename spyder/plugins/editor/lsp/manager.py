@@ -53,13 +53,13 @@ class LSPManager(QObject):
             }
             self.register_queue[language] = []
 
-    def register_file(self, language, filename, signal):
+    def register_file(self, language, filename, codeeditor):
         if language in self.clients:
             language_client = self.clients[language]['instance']
             if language_client is None:
-                self.register_queue[language].append((filename, signal))
+                self.register_queue[language].append((filename, codeeditor))
             else:
-                language_client.register_file(filename, signal)
+                language_client.register_file(filename, codeeditor)
 
     def get_option(self, option):
         """Get an option from our config system."""
@@ -128,6 +128,12 @@ class LSPManager(QObject):
                 instance.folder = folder
                 instance.initialize()
 
+    @Slot(str)
+    def report_server_error(self, error):
+        """Report server errors in our error report dialog."""
+        self.main.console.exception_occurred(error, is_traceback=True,
+                                             is_pyls_error=True)
+
     def start_client(self, language):
         """Start an LSP client for a given language."""
         started = False
@@ -157,11 +163,7 @@ class LSPManager(QObject):
                     language=language
                 )
 
-                # Connect signals emitted by the client to the methods that
-                # can handle them
-                if self.main and self.main.editor:
-                    language_client['instance'].sig_initialize.connect(
-                        self.main.editor.register_lsp_server_settings)
+                self.register_client_instance(language_client['instance'])
 
                 logger.info("Starting LSP client for {}...".format(language))
                 language_client['instance'].start()
@@ -170,6 +172,15 @@ class LSPManager(QObject):
                     language_client.register_file(*entry)
                 self.register_queue[language] = []
         return started
+
+    def register_client_instance(self, instance):
+        """Register signals emmited by a client instance."""
+        if self.main:
+            if self.main.editor:
+                instance.sig_initialize.connect(
+                    self.main.editor.register_lsp_server_settings)
+            if self.main.console:
+                instance.sig_server_error.connect(self.report_server_error)
 
     def shutdown(self):
         logger.info("Shutting down LSP manager...")
@@ -189,13 +200,15 @@ class LSPManager(QObject):
                     self.clients[language]['config'] != config['config'])
                 current_config = self.clients[language]['config']
                 new_config = config['config']
-                restart_diff = ['cmd', 'args', 'host', 'port', 'external']
+                restart_diff = ['cmd', 'args', 'host',
+                                'port', 'external', 'stdio']
                 restart = any([current_config[x] != new_config[x]
                                for x in restart_diff])
                 if restart:
                     if self.clients[language]['status'] == self.STOPPED:
                         self.clients[language] = config
                     elif self.clients[language]['status'] == self.RUNNING:
+                        self.main.editor.stop_lsp_services(language)
                         self.close_client(language)
                         self.clients[language] = config
                         self.start_client(language)
@@ -306,14 +319,16 @@ class LSPManager(QObject):
 
         # Advanced
         external_server = self.get_option('advanced/external')
+        stdio = self.get_option('advanced/stdio')
 
         # Setup options in json
         python_config['cmd'] = cmd
-        if host in self.LOCALHOST:
+        if host in self.LOCALHOST and not stdio:
             python_config['args'] = '--host {host} --port {port} --tcp'
         else:
             python_config['args'] = ''
         python_config['external'] = external_server
+        python_config['stdio'] = stdio
         python_config['host'] = host
         python_config['port'] = port
 

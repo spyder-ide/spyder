@@ -17,7 +17,7 @@ import inspect
 import traceback
 import time
 
-from spyder.py3compat import PY2 
+from spyder.py3compat import PY2
 
 
 def log_time(fd):
@@ -60,15 +60,15 @@ def caller_name(skip=2):
 
     `skip` specifies how many levels of call stack to skip for caller's name.
     skip=1 means "who calls me", skip=2 "who calls my caller" etc.
-       
+
     An empty string is returned if skipped levels exceed stack height
     """
     stack = inspect.stack()
     start = 0 + skip
     if len(stack) < start + 1:
       return ''
-    parentframe = stack[start][0]    
-    
+    parentframe = stack[start][0]
+
     name = []
     module = inspect.getmodule(parentframe)
     # `modname` can be None when frame is executed directly in console
@@ -100,9 +100,9 @@ def log_methods_calls(fname, some_class, prefix=None):
         asked   - name of `some_class`
         called  - name of class for which a method is called
         defined - name of class where method is defined
-    
+
     Must be used carefully, because it monkeypatches __getattribute__ call.
-    
+
     Example:  log_methods_calls('log.log', ShellBaseWidget)
     """
     # test if file is writable
@@ -114,7 +114,7 @@ def log_methods_calls(fname, some_class, prefix=None):
     if prefix != None:
         PREFIX = prefix
     MAXWIDTH = {'o_O': 10}  # hack with editable closure dict, to align names
-               
+
     def format_prefix(method, methodobj):
         """
         --[ ShellBase / Internal / BaseEdit ]------- get_position
@@ -127,7 +127,7 @@ def log_methods_calls(fname, some_class, prefix=None):
         line = PREFIX % classnames
         MAXWIDTH['o_O'] = max(len(line), MAXWIDTH['o_O'])
         return line.ljust(MAXWIDTH['o_O'], '-')
-       
+
     import types
     def __getattribute__(self, name):
         attr = object.__getattribute__(self, name)
@@ -142,6 +142,5 @@ def log_methods_calls(fname, some_class, prefix=None):
                 result = attr(*args, **kwargs)
                 return result
             return newfunc
- 
+
     some_class.__getattribute__ = __getattribute__
-    

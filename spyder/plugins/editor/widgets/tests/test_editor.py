@@ -24,7 +24,6 @@ from qtpy.QtGui import QTextCursor
 
 # Local imports
 from spyder.config.base import get_conf_path
-from spyder.plugins.editor.widgets.tests.fixtures import setup_editor
 from spyder.plugins.editor.widgets.editor import EditorStack
 from spyder.widgets.findreplace import FindReplace
 from spyder.py3compat import PY2
@@ -55,6 +54,26 @@ def editor_bot(base_editor_bot, qtbot):
     finfo.newly_created = False
     qtbot.addWidget(editor_stack)
     return editor_stack, finfo.editor
+
+
+@pytest.fixture
+def editor_multifile_bot(base_editor_bot, qtbot):
+    """
+    Like `editor_bot`, but open multiple files with procedural content.
+    """
+    editor_stack = base_editor_bot
+    finfo_list = []
+    for idx in range(3):
+        text = ('sample_var_{idx} = 1 + {idx}\n'
+                'print(sample_var_{idx})\n'
+                '\n'
+                'x = {idx}').format(idx=idx)
+        finfo = editor_stack.new('spam_{idx}.py'.format(idx=idx),
+                                 'utf-8', text)
+        finfo.newly_created = False
+        finfo_list.append(finfo)
+    qtbot.addWidget(editor_stack)
+    return editor_stack, finfo_list
 
 
 @pytest.fixture
@@ -138,7 +157,7 @@ def test_find_number_matches(setup_editor):
 
 def test_move_current_line_up(editor_bot):
     editor_stack, editor = editor_bot
-        
+
     # Move second line up when nothing is selected.
     editor.go_to_line(2)
     editor.move_line_up()
@@ -147,19 +166,19 @@ def test_move_current_line_up(editor_bot):
                          '\n'
                          'x = 2\n')
     assert editor.toPlainText() == expected_new_text
-    
+
     # Move line up when already at the top.
     editor.move_line_up()
     assert editor.toPlainText() == expected_new_text
-    
+
     # Move fourth line up when part of the line is selected.
-    editor.go_to_line(4)    
+    editor.go_to_line(4)
     editor.moveCursor(QTextCursor.Right, QTextCursor.MoveAnchor)
     for i in range(2):
         editor.moveCursor(QTextCursor.Right, QTextCursor.KeepAnchor)
     editor.move_line_up()
     expected_new_text = ('print(a)\n'
-                         'a = 1\n'                         
+                         'a = 1\n'
                          'x = 2\n'
                          '\n')
     assert editor.toPlainText()[:] == expected_new_text
@@ -167,7 +186,7 @@ def test_move_current_line_up(editor_bot):
 
 def test_move_current_line_down(editor_bot):
     editor_stack, editor = editor_bot
-        
+
     # Move fourth line down when nothing is selected.
     editor.go_to_line(4)
     editor.move_line_down()
@@ -177,11 +196,11 @@ def test_move_current_line_down(editor_bot):
                          '\n'
                          'x = 2')
     assert editor.toPlainText() == expected_new_text
-    
+
     # Move line down when already at the bottom.
     editor.move_line_down()
     assert editor.toPlainText() == expected_new_text
-        
+
     # Move first line down when part of the line is selected.
     editor.go_to_line(1)
     editor.moveCursor(QTextCursor.Right, QTextCursor.MoveAnchor)
@@ -194,11 +213,11 @@ def test_move_current_line_down(editor_bot):
                          '\n'
                          'x = 2')
     assert editor.toPlainText() == expected_new_text
-    
+
 
 def test_move_multiple_lines_up(editor_bot):
     editor_stack, editor = editor_bot
-    
+
     # Move second and third lines up.
     editor.go_to_line(2)
     cursor = editor.textCursor()
@@ -206,13 +225,13 @@ def test_move_multiple_lines_up(editor_bot):
     cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor)
     editor.setTextCursor(cursor)
     editor.move_line_up()
-    
+
     expected_new_text = ('print(a)\n'
                          '\n'
                          'a = 1\n'
                          'x = 2\n')
-    assert editor.toPlainText() == expected_new_text     
- 
+    assert editor.toPlainText() == expected_new_text
+
     # Move first and second lines up (to test already at top condition).
     editor.move_line_up()
     assert editor.toPlainText() == expected_new_text
@@ -220,7 +239,7 @@ def test_move_multiple_lines_up(editor_bot):
 
 def test_move_multiple_lines_down(editor_bot):
     editor_stack, editor = editor_bot
-    
+
     # Move third and fourth lines down.
     editor.go_to_line(3)
     cursor = editor.textCursor()
@@ -228,19 +247,19 @@ def test_move_multiple_lines_down(editor_bot):
     cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor)
     editor.setTextCursor(cursor)
     editor.move_line_down()
-    
+
     expected_new_text = ('a = 1\n'
                          'print(a)\n'
                          '\n'
                          '\n'
                          'x = 2')
     assert editor.toPlainText() == expected_new_text
-    
+
     # Move fourht and fifth lines down (to test already at bottom condition).
     editor.move_line_down()
     assert editor.toPlainText() == expected_new_text
 
-    
+
 def test_run_top_line(editor_bot, qtbot):
     editor_stack, editor = editor_bot
     editor.go_to_line(1) # line number is one based
@@ -708,7 +727,7 @@ def test_autosave_handles_error(editor_bot, mocker):
 
 def test_remove_autosave_file(editor_bot, mocker, qtbot):
     """
-    Test that remove_autosave_file() removes the autosave file
+    Test that remove_autosave_file() removes the autosave file.
 
     Also, test that it updates `name_mapping`.
     """
@@ -722,7 +741,7 @@ def test_remove_autosave_file(editor_bot, mocker, qtbot):
     assert autosave.name_mapping == expected
     assert blocker.args == ['autosave_mapping', expected]
     with qtbot.wait_signal(editor_stack.sig_option_changed) as blocker:
-        autosave.remove_autosave_file(editor_stack.data[0])
+        autosave.remove_autosave_file(editor_stack.data[0].filename)
     assert not os.access(autosave_filename, os.R_OK)
     assert autosave.name_mapping == {}
     assert blocker.args == ['autosave_mapping', {}]
@@ -730,6 +749,39 @@ def test_remove_autosave_file(editor_bot, mocker, qtbot):
         autosave.autosave(0)
     assert not os.access(autosave_filename, os.R_OK)
     assert autosave.name_mapping == {}
+
+
+def test_remove_all_autosave_files(editor_multifile_bot, mocker, qtbot):
+    """
+    Test that remove_all_autosave_files() removes all autosave files.
+
+    Also, test that it updates `name_mapping`.
+    """
+    editor_stack, finfo_list = editor_multifile_bot
+    autosave = editor_stack.autosave
+    autosave_basenames = []
+    autosave_filenames = []
+    expected_mapping = {}
+    with qtbot.wait_signal(editor_stack.sig_option_changed) as blocker:
+        for idx, finfo in enumerate(finfo_list):
+            autosave.autosave(idx)
+            autosave_basenames.append(os.path.basename(finfo.filename))
+            autosave_filenames.append(os.path.join(
+                get_conf_path('autosave'), autosave_basenames[idx]))
+            assert os.access(autosave_filenames[idx], os.R_OK)
+            expected_mapping[autosave_basenames[idx]] = autosave_filenames[idx]
+    assert autosave.name_mapping == expected_mapping
+    assert blocker.args == ['autosave_mapping', expected_mapping]
+    with qtbot.wait_signal(editor_stack.sig_option_changed) as blocker:
+        autosave.remove_all_autosave_files(errors='raise')
+    assert autosave.name_mapping == {}
+    assert blocker.args == ['autosave_mapping', {}]
+    for idx, autosave_filename in enumerate(autosave_filenames):
+        assert not os.access(autosave_filename, os.R_OK)
+        with qtbot.assert_not_emitted(editor_stack.sig_option_changed):
+            autosave.autosave(idx)
+        assert not os.access(autosave_filename, os.R_OK)
+        assert autosave.name_mapping == {}
 
 
 if __name__ == "__main__":

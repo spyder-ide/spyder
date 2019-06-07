@@ -47,7 +47,7 @@ def get_submodules(mod):
         return []
     except:
         return [mod]
-    
+
     return submodules
 
 
@@ -70,6 +70,6 @@ def get_preferred_submodules():
     for m in PREFERRED_MODULES:
         submods = get_submodules(m)
         submodules += submods
-    
+
     modules_db['submodules'] = submodules
     return submodules

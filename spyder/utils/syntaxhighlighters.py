@@ -21,7 +21,7 @@ from pygments.lexer import RegexLexer, bygroups
 from pygments.lexers import get_lexer_by_name
 from pygments.token import (Text, Other, Keyword, Name, String, Number,
                             Comment, Generic, Token)
-from qtpy.QtCore import Qt
+from qtpy.QtCore import Qt, QTimer, Signal, Slot
 from qtpy.QtGui import (QColor, QCursor, QFont, QSyntaxHighlighter,
                         QTextCharFormat, QTextOption)
 from qtpy.QtWidgets import QApplication
@@ -34,6 +34,7 @@ from spyder.py3compat import (builtins, is_text_string, to_text_string, PY3,
                               PY36_OR_MORE)
 from spyder.plugins.editor.utils.languages import CELL_LANGUAGES
 from spyder.plugins.editor.utils.editor import TextBlockHelper as tbh
+from spyder.plugins.editor.utils.editor import BlockUserData
 from spyder.utils.workers import WorkerManager
 from spyder.plugins.outlineexplorer.api import OutlineExplorerData
 
@@ -46,6 +47,10 @@ dependencies.add("pygments", _("Syntax highlighting for Matlab, Julia and "
 # =============================================================================
 # Constants
 # =============================================================================
+URL_PATTERN = r"https?://([\da-z\.-]+)\.([a-z\.]{2,6})([/\w\.-]*)[^ ^'^\"]+"
+FILE_PATTERN = r"file:///?([\S ]*)/"
+MAILTO_PATTERN = r"mailto:\s*([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})"
+ISSUE_PATTERN = r'((?:\w\w:)?[\w\-_]*/[\w\-_]*#\d+)'
 COLOR_SCHEME_KEYS = {
                       "background":     _("Background:"),
                       "currentline":    _("Current line:"),
@@ -101,6 +106,16 @@ def get_color_scheme(name):
     return scheme
 
 
+def any(name, alternates):
+    "Return a named group pattern matching list of alternates."
+    return "(?P<%s>" % name + "|".join(alternates) + ")"
+
+
+URI_PATTERNS = re.compile(
+    any('uri', [URL_PATTERN, FILE_PATTERN, MAILTO_PATTERN, ISSUE_PATTERN])
+)
+
+
 #==============================================================================
 # Syntax highlighting color schemes
 #==============================================================================
@@ -114,10 +129,10 @@ class BaseSH(QSyntaxHighlighter):
     # Syntax highlighting parameters.
     BLANK_ALPHA_FACTOR = 0.31
 
+    sig_outline_explorer_data_changed = Signal()
+
     def __init__(self, parent, font=None, color_scheme='Spyder'):
         QSyntaxHighlighter.__init__(self, parent)
-
-        self.outlineexplorer_data = {}
 
         self.font = font
         if is_text_string(color_scheme):
@@ -140,7 +155,7 @@ class BaseSH(QSyntaxHighlighter):
         self.cell_separators = None
         self.fold_detector = None
         self.editor = None
-        
+
     def get_background_color(self):
         return QColor(self.background_color)
 
@@ -248,6 +263,18 @@ class BaseSH(QSyntaxHighlighter):
         """
         raise NotImplementedError()
 
+    def highlight_uris(self, text, offset=0):
+        """Highlight URI and mailto: patterns."""
+        match = URI_PATTERNS.search(text, offset)
+        while match:
+            start, end = match.span()
+            start = max([0, start+offset])
+            end = max([0, end+offset])
+            font = self.format(start)
+            font.setUnderlineStyle(True)
+            self.setFormat(start, end - start, font)
+            match = URI_PATTERNS.search(text, end)
+
     def highlight_spaces(self, text, offset=0):
         """
         Make blank space less apparent by setting the foreground alpha.
@@ -277,12 +304,15 @@ class BaseSH(QSyntaxHighlighter):
                 color_foreground.setAlphaF(alpha_new)
                 self.setFormat(start, end-start, color_foreground)
                 match = self.BLANKPROG.search(text, match.end())
-    
-    def get_outlineexplorer_data(self):
-        return self.outlineexplorer_data
+
+        self.highlight_uris(text, offset)
+
+    def highlight_extras(self, text, offset=0):
+        """Perform additional global text highlight."""
+        self.highlight_spaces(text, offset=offset)
+        self.highlight_uris(text, offset=offset)
 
     def rehighlight(self):
-        self.outlineexplorer_data = {}
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         # rehighlight() triggers the textChanged signal, which in our editor
         # switches changed_since_autosave to True; we need to prevent this.
@@ -296,7 +326,7 @@ class TextSH(BaseSH):
     """Simple Text Syntax Highlighter Class (only highlight spaces)"""
     def highlight_block(self, text):
         """Implement highlight, only highlight spaces."""
-        self.highlight_spaces(text)
+        self.highlight_extras(text)
 
 
 class GenericSH(BaseSH):
@@ -320,16 +350,12 @@ class GenericSH(BaseSH):
                     
             match = self.PROG.search(text, match.end())
         
-        self.highlight_spaces(text)
+        self.highlight_extras(text)
 
 
 #==============================================================================
 # Python syntax highlighter
 #==============================================================================
-def any(name, alternates):
-    "Return a named group pattern matching list of alternates."
-    return "(?P<%s>" % name + "|".join(alternates) + ")"
-
 def make_python_patterns(additional_keywords=[], additional_builtins=[]):
     "Strongly inspired from idlelib.ColorDelegator.make_pat"
     kwlist = keyword.kwlist + additional_keywords
@@ -358,6 +384,8 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
     dqstring =     r'(\b(%s))?"[^"\\\n]*(\\.[^"\\\n]*)*"?' % prefix
     uf_sqstring =  r"(\b(%s))?'[^'\\\n]*(\\.[^'\\\n]*)*(\\)$(?!')$" % prefix
     uf_dqstring =  r'(\b(%s))?"[^"\\\n]*(\\.[^"\\\n]*)*(\\)$(?!")$' % prefix
+    ufe_sqstring = r"(\b(%s))?'[^'\\\n]*(\\.[^'\\\n]*)*(?!\\)$(?!')$" % prefix
+    ufe_dqstring = r'(\b(%s))?"[^"\\\n]*(\\.[^"\\\n]*)*(?!\\)$(?!")$' % prefix
     sq3string =    r"(\b(%s))?'''[^'\\]*((\\.|'(?!''))[^'\\]*)*(''')?" % prefix
     dq3string =    r'(\b(%s))?"""[^"\\]*((\\.|"(?!""))[^"\\]*)*(""")?' % prefix
     uf_sq3string = r"(\b(%s))?'''[^'\\]*((\\.|'(?!''))[^'\\]*)*(\\)?(?!''')$" \
@@ -388,9 +416,11 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
     ufstring2 = any("uf_dqstring", [uf_dqstring])
     ufstring3 = any("uf_sq3string", [uf_sq3string])
     ufstring4 = any("uf_dq3string", [uf_dq3string])
+    ufstring5 = any("ufe_sqstring", [ufe_sqstring])
+    ufstring6 = any("ufe_dqstring", [ufe_dqstring])
     return "|".join([instance, kw, builtin, comment,
-                     ufstring1, ufstring2, ufstring3, ufstring4, string,
-                     number, any("SYNC", [r"\n"])])
+                     ufstring1, ufstring2, ufstring3, ufstring4, ufstring5,
+                     ufstring6, string, number, any("SYNC", [r"\n"])])
 
 
 def get_code_cell_name(text):
@@ -415,7 +445,8 @@ class PythonSH(BaseSH):
     ASPROG = re.compile(r".*?\b(as)\b")
     # Syntax highlighting states (from one text block to another):
     (NORMAL, INSIDE_SQ3STRING, INSIDE_DQ3STRING,
-     INSIDE_SQSTRING, INSIDE_DQSTRING) = list(range(5))
+     INSIDE_SQSTRING, INSIDE_DQSTRING,
+     INSIDE_NON_MULTILINE_STRING) = list(range(6))
     DEF_TYPES = {"def": OutlineExplorerData.FUNCTION,
                  "class": OutlineExplorerData.CLASS}
     # Comments suitable for Outline Explorer
@@ -423,9 +454,12 @@ class PythonSH(BaseSH):
     
     def __init__(self, parent, font=None, color_scheme='Spyder'):
         BaseSH.__init__(self, parent, font, color_scheme)
-        self.import_statements = {}
-        self.found_cell_separators = False
         self.cell_separators = CELL_LANGUAGES['Python']
+        # Avoid updating the outline explorer with every single letter typed
+        self.outline_explorer_data_update_timer = QTimer()
+        self.outline_explorer_data_update_timer.setSingleShot(True)
+        self.outline_explorer_data_update_timer.timeout.connect(
+            self.sig_outline_explorer_data_changed)
 
     def highlight_block(self, text):
         """Implement specific highlight for Python."""
@@ -451,7 +485,7 @@ class PythonSH(BaseSH):
         import_stmt = None
 
         self.setFormat(0, len(text), self.formats["normal"])
-        
+
         state = self.NORMAL
         match = self.PROG.search(text)
         while match:
@@ -476,12 +510,16 @@ class PythonSH(BaseSH):
                         self.setFormat(start, end-start,
                                        self.formats["string"])
                         state = self.INSIDE_DQSTRING
+                    elif key in ["ufe_sqstring", "ufe_dqstring"]:
+                        self.setFormat(start, end-start,
+                                       self.formats["string"])
+                        state = self.INSIDE_NON_MULTILINE_STRING
                     else:
                         self.setFormat(start, end-start, self.formats[key])
                         if key == "comment":
                             if text.lstrip().startswith(self.cell_separators):
-                                self.found_cell_separators = True
-                                oedata = OutlineExplorerData()
+                                oedata = OutlineExplorerData(
+                                    self.currentBlock())
                                 oedata.text = to_text_string(text).strip()
                                 # cell_head: string contaning the first group
                                 # of '%'s in the cell header
@@ -493,9 +531,11 @@ class PythonSH(BaseSH):
                                     oedata.cell_level = len(cell_head) - 2
                                 oedata.fold_level = start
                                 oedata.def_type = OutlineExplorerData.CELL
-                                oedata.def_name = get_code_cell_name(text)
+                                def_name = get_code_cell_name(text)
+                                oedata.def_name = def_name
                             elif self.OECOMMENT.match(text.lstrip()):
-                                oedata = OutlineExplorerData()
+                                oedata = OutlineExplorerData(
+                                    self.currentBlock())
                                 oedata.text = to_text_string(text).strip()
                                 oedata.fold_level = start
                                 oedata.def_type = OutlineExplorerData.COMMENT
@@ -507,7 +547,8 @@ class PythonSH(BaseSH):
                                     start1, end1 = match1.span(1)
                                     self.setFormat(start1, end1-start1,
                                                    self.formats["definition"])
-                                    oedata = OutlineExplorerData()
+                                    oedata = OutlineExplorerData(
+                                        self.currentBlock())
                                     oedata.text = to_text_string(text)
                                     oedata.fold_level = (len(text)
                                                          - len(text.lstrip()))
@@ -519,7 +560,8 @@ class PythonSH(BaseSH):
                                            "for", "if", "try", "while",
                                            "with"):
                                 if text.lstrip().startswith(value):
-                                    oedata = OutlineExplorerData()
+                                    oedata = OutlineExplorerData(
+                                        self.currentBlock())
                                     oedata.text = to_text_string(text).strip()
                                     oedata.fold_level = start
                                     oedata.def_type = \
@@ -542,30 +584,60 @@ class PythonSH(BaseSH):
                                     start, end = match1.span(1)
                                     self.setFormat(start, end-start,
                                                    self.formats["keyword"])
-                    
+
             match = self.PROG.search(text, match.end())
-        
+
         tbh.set_state(self.currentBlock(), state)
         
-        # Use normal format for indentation and trailing spaces.
+        # Use normal format for indentation and trailing spaces
+        # Unless we are in a string
+        states_multiline_string = [
+            self.INSIDE_DQ3STRING, self.INSIDE_SQ3STRING,
+            self.INSIDE_DQSTRING, self.INSIDE_SQSTRING]
+        states_string = states_multiline_string + [
+            self.INSIDE_NON_MULTILINE_STRING]
         self.formats['leading'] = self.formats['normal']
+        if prev_state in states_multiline_string:
+            self.formats['leading'] = self.formats["string"]
         self.formats['trailing'] = self.formats['normal']
-        self.highlight_spaces(text, offset)
-        
-        if oedata is not None:
-            block_nb = self.currentBlock().blockNumber()
-            self.outlineexplorer_data[block_nb] = oedata
-            self.outlineexplorer_data['found_cell_separators'] = self.found_cell_separators
-        if import_stmt is not None:
-            block_nb = self.currentBlock().blockNumber()
-            self.import_statements[block_nb] = import_stmt
-            
+        if state in states_string:
+            self.formats['trailing'] = self.formats['string']
+        self.highlight_extras(text, offset)
+
+        block = self.currentBlock()
+        data = block.userData()
+
+        need_data = (oedata or import_stmt)
+
+        if need_data and not data:
+            data = BlockUserData(self.editor)
+
+        # Try updating
+        update = False
+        if oedata and data and data.oedata:
+            update = data.oedata.update(oedata)
+
+        if data and not update:
+            data.oedata = oedata
+            self.outline_explorer_data_update_timer.start(500)
+
+        if (import_stmt) or (data and data.import_statement):
+            data.import_statement = import_stmt
+
+        block.setUserData(data)
+
     def get_import_statements(self):
-        return list(self.import_statements.values())
+        """Get import statment list."""
+        block = self.document().firstBlock()
+        statments = []
+        while block.isValid():
+            data = block.userData()
+            if data and data.import_statement:
+                statments.append(data.import_statement)
+            block = block.next()
+        return statments
             
     def rehighlight(self):
-        self.import_statements = {}
-        self.found_cell_separators = False
         BaseSH.rehighlight(self)
 
 
@@ -678,7 +750,7 @@ class CppSH(BaseSH):
                     
             match = self.PROG.search(text, match.end())
         
-        self.highlight_spaces(text)
+        self.highlight_extras(text)
         
         last_state = self.INSIDE_COMMENT if inside_comment else self.NORMAL
         tbh.set_state(self.currentBlock(), last_state)
@@ -755,7 +827,7 @@ class FortranSH(BaseSH):
                     
             match = self.PROG.search(text, match.end())
         
-        self.highlight_spaces(text)
+        self.highlight_extras(text)
 
 class Fortran77SH(FortranSH):
     """Fortran 77 Syntax Highlighter"""
@@ -764,7 +836,7 @@ class Fortran77SH(FortranSH):
         text = to_text_string(text)
         if text.startswith(("c", "C")):
             self.setFormat(0, len(text), self.formats["comment"])
-            self.highlight_spaces(text)
+            self.highlight_extras(text)
         else:
             FortranSH.highlight_block(self, text)
             self.setFormat(0, 5, self.formats["comment"])
@@ -821,7 +893,7 @@ class DiffSH(BaseSH):
         elif text.startswith("@"):
             self.setFormat(0, len(text), self.formats["builtin"])
         
-        self.highlight_spaces(text)
+        self.highlight_extras(text)
 
 #==============================================================================
 # NSIS highlighter
@@ -954,7 +1026,7 @@ class BaseWebSH(BaseSH):
             match = self.PROG.search(text, match.end())
             match_count += 1
         
-        self.highlight_spaces(text)
+        self.highlight_extras(text)
 
 def make_html_patterns():
     """Strongly inspired from idlelib.ColorDelegator.make_pat """
@@ -1072,7 +1144,7 @@ class MarkdownSH(BaseSH):
             match = self.PROG.search(text, match.end())
             match_count += 1
 
-        self.highlight_spaces(text)
+        self.highlight_extras(text)
 
     def setup_formats(self, font=None):
         super(MarkdownSH, self).setup_formats(font)
@@ -1217,7 +1289,7 @@ class PygmentsSH(BaseSH):
             for i, (fmt, letter) in enumerate(self._charlist[start:end]):
                 self.setFormat(i, 1, fmt)
             self.setCurrentBlockState(end)
-            self.highlight_spaces(text)
+            self.highlight_extras(text)
 
 
 class PythonLoggingLexer(RegexLexer):

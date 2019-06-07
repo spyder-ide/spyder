@@ -884,6 +884,11 @@ class MainWindow(QMainWindow):
         from spyder.plugins.editor.lsp.manager import LSPManager
         self.lspmanager = LSPManager(self)
 
+        # Fallback completion thread
+        self.set_splash(_("Creating fallback completion engine..."))
+        from spyder.plugins.editor.fallback.actor import FallbackActor
+        self.fallback_completions = FallbackActor(self)
+
         # Working directory plugin
         logger.info("Loading working directory...")
         from spyder.plugins.workingdirectory.plugin import WorkingDirectory
@@ -915,6 +920,10 @@ class MainWindow(QMainWindow):
         self.set_splash(_("Launching LSP Client for Python..."))
         self.lspmanager.start_client(language='python')
 
+        # Start fallback plugin
+        self.set_splash(_('Launching fallback completion engine...'))
+        self.fallback_completions.start()
+
         # Populating file menu entries
         quit_action = create_action(self, _("&Quit"),
                                     icon=ima.icon('exit'),
@@ -929,9 +938,16 @@ class MainWindow(QMainWindow):
                                        context=Qt.ApplicationShortcut)
         self.register_shortcut(restart_action, "_", "Restart")
 
-        self.file_menu_actions += [self.file_switcher_action,
-                                   self.symbol_finder_action, None,
-                                   restart_action, quit_action]
+        file_actions = [
+            self.file_switcher_action,
+            self.symbol_finder_action,
+            None,
+        ]
+        if sys.platform == 'darwin':
+            file_actions.extend(self.editor.tab_navigation_actions + [None])
+
+        file_actions.extend([restart_action, quit_action])
+        self.file_menu_actions += file_actions
         self.set_splash("")
 
         # Namespace browser
@@ -1144,6 +1160,7 @@ class MainWindow(QMainWindow):
                                         qta_exe)
         if qta_act:
             self.help_menu_actions += [qta_act, None]
+
         # About Spyder
         about_action = create_action(self,
                                 _("About %s...") % "Spyder",
@@ -2331,6 +2348,7 @@ class MainWindow(QMainWindow):
         if self.toolbars_visible:
             self.save_visible_toolbars()
         self.lspmanager.shutdown()
+        self.fallback_completions.stop()
         self.already_closed = True
         return True
 
@@ -2500,41 +2518,60 @@ class MainWindow(QMainWindow):
             rev = versions['revision']
             revlink = " (<a href='https://github.com/spyder-ide/spyder/"\
                       "commit/%s'>Commit: %s</a>)" % (rev, rev)
+
+        # Get current font properties
+        font = self.font()
+        font_family = font.family()
+        font_size = font.pointSize()
+        if sys.platform == 'darwin':
+            font_size -= 2
+
         msgBox = QMessageBox(self)
         msgBox.setText(
             """
+            <div style='font-family: "{font_family}";
+                        font-size: {font_size}pt;
+                        font-weight: normal;
+                        '>
+            <p>
             <b>Spyder {spyder_ver}</b> {revision}
-            <br>The Scientific Python Development Environment |
+            <br>
+            The Scientific Python Development Environment |
             <a href="{website_url}">Spyder-IDE.org</a>
-            <br>Copyright &copy; 2009-2019 Spyder Project Contributors and
-            <a href="{github_url}/blob/master/AUTHORS.txt">others</a>
-            <br>Distributed under the terms of the
+            <br>
+            Copyright &copy; 2009-2019 Spyder Project Contributors and
+            <a href="{github_url}/blob/master/AUTHORS.txt">others</a>.
+            <br>
+            Distributed under the terms of the
             <a href="{github_url}/blob/master/LICENSE.txt">MIT License</a>.
-
-            <p>Created by Pierre Raybaut; current maintainer is Carlos Cordoba.
-            <br>Developed by the
+            </p>
+            <p>
+            Created by Pierre Raybaut; current maintainer is Carlos Cordoba.
+            Developed by the
             <a href="{github_url}/graphs/contributors">international
-            Spyder community</a>.
-            <br>Many thanks to all the Spyder beta testers and dedicated users.
-
+            Spyder community</a>. Many thanks to all the Spyder beta testers
+            and dedicated users.
+            </p>
             <p>For help with Spyder errors and crashes, please read our
             <a href="{trouble_url}">Troubleshooting Guide</a>, and for bug
             reports and feature requests, visit our
-            <a href="{github_url}">Github site</a>.
-            For project discussion, see our
-            <a href="{forum_url}">Google Group</a>.
-            <p>This project is part of a larger effort to promote and
+            <a href="{github_url}">Github site</a>. For project discussion,
+            see our <a href="{forum_url}">Google Group</a>.
+            </p>
+            <p>
+            This project is part of a larger effort to promote and
             facilitate the use of Python for scientific and engineering
             software development.
             The popular Python distributions
             <a href="https://www.anaconda.com/download/">Anaconda</a> and
             <a href="https://winpython.github.io/">WinPython</a>
             also contribute to this plan.
-
-            <p>Python {python_ver} {bitness}-bit | Qt {qt_ver} |
+            </p>
+            <p>
+            Python {python_ver} {bitness}-bit | Qt {qt_ver} |
             {qt_api} {qt_api_ver} | {os_name} {os_ver}
-
-            <small><p>Certain source files under other compatible permissive
+            </p>
+            <p><small>Certain source files under other compatible permissive
             licenses and/or originally by other authors.
             Spyder 3 theme icons derived from
             <a href="https://fontawesome.com/">Font Awesome</a> 4.7
@@ -2551,23 +2588,29 @@ class MainWindow(QMainWindow):
             Silk icon set</a> 1.3 (&copy; 2006 Mark James; CC-BY 2.5), and
             the <a href="https://www.kde.org/">KDE Oxygen icons</a>
             (&copy; 2007 KDE Artists; LGPL 3.0+).</small>
-
-            <p>See the <a href="{github_url}/blob/master/NOTICE.txt">NOTICE</a>
+            </p>
+            <p>
+            See the <a href="{github_url}/blob/master/NOTICE.txt">NOTICE</a>
             file for full legal information.
-            """
-            .format(spyder_ver=versions['spyder'],
-                    revision=revlink,
-                    website_url=__website_url__,
-                    github_url=__project_url__,
-                    trouble_url=__trouble_url__,
-                    forum_url=__forum_url__,
-                    python_ver=versions['python'],
-                    bitness=versions['bitness'],
-                    qt_ver=versions['qt'],
-                    qt_api=versions['qt_api'],
-                    qt_api_ver=versions['qt_api_ver'],
-                    os_name=versions['system'],
-                    os_ver=versions['release'])
+            </p>
+            </div>
+            """.format(
+                spyder_ver=versions['spyder'],
+                revision=revlink,
+                website_url=__website_url__,
+                github_url=__project_url__,
+                trouble_url=__trouble_url__,
+                forum_url=__forum_url__,
+                python_ver=versions['python'],
+                bitness=versions['bitness'],
+                qt_ver=versions['qt'],
+                qt_api=versions['qt_api'],
+                qt_api_ver=versions['qt_api_ver'],
+                os_name=versions['system'],
+                os_ver=versions['release'],
+                font_family=font_family,
+                font_size=font_size,
+            )
         )
         msgBox.setWindowTitle(_("About %s") % "Spyder")
         msgBox.setStandardButtons(QMessageBox.Ok)
