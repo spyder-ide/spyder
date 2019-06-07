@@ -53,6 +53,7 @@ class BaseEditMixin(object):
     _DEFAULT_TITLE_COLOR = '#2D62FF'
     _CHAR_HIGHLIGHT_COLOR = 'red'
     _DEFAULT_TEXT_COLOR = '#999999'
+    _DEFAULT_LANGUAGE = 'python'
 
     def __init__(self):
         self.eol_chars = None
@@ -249,7 +250,8 @@ class BaseEditMixin(object):
 
     def _format_signature(self, signature, parameter=None,
                           parameter_color=_PARAMETER_HIGHLIGHT_COLOR,
-                          char_color=_CHAR_HIGHLIGHT_COLOR):
+                          char_color=_CHAR_HIGHLIGHT_COLOR,
+                          language=_DEFAULT_LANGUAGE):
         """
         Create HTML template for signature.
 
@@ -327,7 +329,8 @@ class BaseEditMixin(object):
 
         return title
 
-    def show_calltip(self, signature, parameter=None, language="python"):
+    def show_calltip(self, signature, parameter=None,
+                     language=_DEFAULT_LANGUAGE):
         """
         Show calltip.
 
@@ -342,6 +345,7 @@ class BaseEditMixin(object):
         html_signature = self._format_signature(
             signature=signature,
             parameter=parameter,
+            language=language
         )
 
         inspect_word = signature.split('(')[0]
