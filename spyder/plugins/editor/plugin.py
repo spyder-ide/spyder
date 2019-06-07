@@ -179,6 +179,14 @@ class Editor(SpyderPluginWidget):
                                           lambda vs: self.rehighlight_cells())
         self.register_widget_shortcuts(self.find_widget)
 
+        # Start autosave component
+        # (needs to be done before EditorSplitter)
+        self.autosave = AutosaveForPlugin(self)
+        self.autosave.try_recover_from_autosave()
+        # Multiply by 1000 to convert seconds to milliseconds
+        self.autosave.interval = self.get_option('autosave_interval') * 1000
+        self.autosave.enabled = self.get_option('autosave_enabled')
+
         # Tabbed editor widget + Find/Replace widget
         editor_widgets = QWidget(self)
         editor_layout = QVBoxLayout()
@@ -188,13 +196,6 @@ class Editor(SpyderPluginWidget):
                                          self.stack_menu_actions, first=True)
         editor_layout.addWidget(self.editorsplitter)
         editor_layout.addWidget(self.find_widget)
-
-        # Start autosave component
-        self.autosave = AutosaveForPlugin(self)
-        self.autosave.try_recover_from_autosave()
-        # Multiply by 1000 to convert seconds to milliseconds
-        self.autosave.interval = self.get_option('autosave_interval') * 1000
-        self.autosave.enabled = self.get_option('autosave_enabled')
 
         # Splitter: editor widgets (see above) + outline explorer
         self.splitter = QSplitter(self)
@@ -403,14 +404,6 @@ class Editor(SpyderPluginWidget):
             else:
                 for win in self.editorwindows[:]:
                     win.close()
-                # Remove autosave on successful close to avoid issue #9265.
-                # Probably a good idea anyway to mitigate autosave issues.
-                # Ignore errors resulting from file being open in > 2
-                # editorstacks or another Spyder being closed first and
-                # removing the spurious files.
-                for editorstack_split in self.editorstacks:
-                    editorstack_split.autosave.remove_all_autosave_files(
-                        errors="ignore")
                 return True
         except IndexError:
             return True
@@ -1126,19 +1119,6 @@ class Editor(SpyderPluginWidget):
                 CONF.set('lsp-server', 'pydocstyle', checked)
             self.main.lspmanager.update_server_list()
 
-    def received_sig_option_changed(self, option, value):
-        """
-        Called when sig_option_changed is received.
-
-        If option being changed is autosave_mapping, then synchronize new
-        mapping with all editor stacks except the sender.
-        """
-        if option == 'autosave_mapping':
-            for editorstack in self.editorstacks:
-                if editorstack != self.sender():
-                    editorstack.autosave_mapping = value
-        self.sig_option_changed.emit(option, value)
-
     #------ Focus tabwidget
     def __get_focus_editorstack(self):
         fwidget = QApplication.focusWidget()
@@ -1203,8 +1183,6 @@ class Editor(SpyderPluginWidget):
             editorstack.file_saved.connect(
                 self.vcs_status.update_vcs_state)
 
-        editorstack.autosave_mapping \
-            = CONF.get('editor', 'autosave_mapping', {})
         editorstack.set_help(self.help)
         editorstack.set_io_actions(self.new_action, self.open_action,
                                    self.save_action, self.revert_action)
@@ -1251,8 +1229,7 @@ class Editor(SpyderPluginWidget):
         editorstack.ending_long_process.connect(self.ending_long_process)
 
         # Redirect signals
-        editorstack.sig_option_changed.connect(
-                self.received_sig_option_changed)
+        editorstack.sig_option_changed.connect(self.sig_option_changed)
         editorstack.redirect_stdio.connect(
                                  lambda state: self.redirect_stdio.emit(state))
         editorstack.exec_in_extconsole.connect(
@@ -1311,6 +1288,10 @@ class Editor(SpyderPluginWidget):
         editorstack.sig_save_bookmark.connect(self.save_bookmark)
         editorstack.sig_load_bookmark.connect(self.load_bookmark)
         editorstack.sig_save_bookmarks.connect(self.save_bookmarks)
+
+        # Register editorstack's autosave component with plugin's autosave
+        # component
+        self.autosave.register_autosave_for_stack(editorstack.autosave)
 
     def unregister_editorstack(self, editorstack):
         """Removing editorstack only if it's not the last remaining"""
