@@ -29,7 +29,8 @@ class ExplorerConfigPage(PluginConfigPage):
         check_show_hidden = newcb(_("Show hidden files"), 'show_hidden')
         check_show_all = newcb(_("Show all files"), 'show_all')
         check_icon = newcb(_("Show icons and text"), 'show_icontext')
-        check_single_click = newcb(_("Single click to open files"), 'single_click_to_open')
+        check_single_click = newcb(_("Single click to open files"),
+                                   'single_click_to_open')
         edit_filename_filters = self.create_textedit(
             _("Edit filename filters..."),
             'name_filters',
@@ -46,10 +47,10 @@ class ExplorerConfigPage(PluginConfigPage):
 
         # Widget setup
         file_associations.load_values(self.get_option('file_associations'))
-        # The actual `data` is stored on this text edit set to invisible
+        # The actual config data is stored on this text edit set to invisible
         self.edit_file_associations.setVisible(False)
 
-        # Layouts
+        # Layout
         layout = QVBoxLayout()
         layout.addWidget(check_show_hidden)
         layout.addWidget(check_show_all)
@@ -65,7 +66,8 @@ class ExplorerConfigPage(PluginConfigPage):
 
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(general_widget), _("General"))
-        tabs.addTab(self.create_tab(associations_widget), _("File associations"))
+        tabs.addTab(self.create_tab(associations_widget),
+                                    _("File associations"))
 
         tab_layout = QVBoxLayout()
         tab_layout.addWidget(tabs)
@@ -76,6 +78,8 @@ class ExplorerConfigPage(PluginConfigPage):
         file_associations.sig_data_changed.connect(self.update_associations)
 
     def update_associations(self, data):
-        """"""
+        """
+        Update the content of the text edit used to store the config data.
+        """
         textedit = self.edit_file_associations.textbox
         textedit.setPlainText(to_text_string(data))

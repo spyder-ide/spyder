@@ -5,62 +5,48 @@
 # (see spyder/__init__.py for details)
 
 """
-File assoaciations widget for use in global and project preferences.
+File associations widget for use in global and project preferences.
 """
 
 # Standard library imports
 from __future__ import print_function
 import os
-import os.path as osp
-import pwd
 import sys
 
 # Third party imports
 from qtpy.compat import getopenfilename
-from qtpy.QtCore import (Signal, Slot, QEvent, QFileInfo, QObject, QRegExp,
-                         QSize, Qt)
-from qtpy.QtGui import (QIcon, QRegExpValidator, QTextCursor)
-from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLabel, QLineEdit,
-                            QListWidget, QListWidgetItem, QVBoxLayout,
-                            QMainWindow, QListWidgetItem, QInputDialog)
+from qtpy.QtCore import Qt, Signal
+from qtpy.QtGui import QCursor, QIcon
+from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
+                            QHBoxLayout, QInputDialog, QLabel, QLineEdit,
+                            QListWidget, QListWidgetItem, QPushButton,
+                            QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import _
-from spyder.py3compat import iteritems, to_text_string
-from spyder.config.utils import is_ubuntu
-from spyder.utils import icon_manager as ima
-from spyder.utils.stringmatching import get_search_scores
-from spyder.widgets.helperwidgets import HelperToolButton, HTMLDelegate
 from spyder.config.main import CONF
+from spyder.utils import icon_manager as ima
 
 
-# Third party imports
-from qtpy.QtCore import Qt
-from qtpy.QtGui import QCursor
-from qtpy.QtWidgets import (QApplication, QGroupBox, QLabel, QVBoxLayout, QListWidget,
-                            QPushButton, QHBoxLayout, QWidget, QTabWidget,
-                            QDialogButtonBox)
-
-# Local imports
-from spyder.api.preferences import PluginConfigPage
-from spyder.config.base import _
-
-
-def get_mac_application_icon_path(fpath):
-    """"""
+def get_mac_application_icon_path(app_bundle_path):
+    """Parse mac application bundle and return path for *.icns file."""
     import plistlib
-    info_path = os.path.join(fpath, 'Contents', 'Info.plist')
+    contents_path = info_path = os.path.join(app_bundle_path, 'Contents')
+    info_path = os.path.join(contents_path, 'Info.plist')
 
-    # with open(info_path, 'rb') as fp:
-    try:
-        pl = plistlib.readPlist(info_path)
-    except:
-        pl = {}
+    pl = {}
+    if os.path.isfile(info_path):
+        try:
+            # readPlist is deprecated but needed for py27 compat
+            pl = plistlib.readPlist(info_path)
+        except:
+            # TODO: Add the specific errors to catch
+            pass
 
     icon_file = pl.get('CFBundleIconFile')
     icon_path = None
     if icon_file:
-        icon_path = os.path.join(fpath, 'Contents', 'Resources', icon_file)
+        icon_path = os.path.join(contents_path, 'Resources', icon_file)
         if not os.path.isfile(icon_path):
             icon_path = None
 
@@ -68,24 +54,42 @@ def get_mac_application_icon_path(fpath):
 
 
 def get_username():
-    """"""
-    return pwd.getpwuid(os.getuid())[0]
+    """Return current session username."""
+    if os.name == 'nt':
+        return
+    else:
+        import pwd
+        return pwd.getpwuid(os.getuid())[0]
+
+
+def get_win_applications():
+    """Return all system installed windows applications."""
+    apps = {}
+    return apps
+
+
+def get_linux_applications():
+    """Return all system installed linux applications."""
+    apps = {}
+    return apps
 
 
 def get_mac_applications():
-    """"""
+    """Return all system installed osx applications."""
     apps = {}
-    roots = ['/Applications', '/Users/{}/Applications/'.format(get_username())]
-    sub_roots = []
-    for root in roots:
-        for item in os.listdir(root):
-            if not item.endswith('.app') and os.path.isdir(item):
-                sub_roots.append(os.path.join(root, item))
+    folders = ['/Applications', '/Users/{}/Applications/'.format(get_username())]
 
-    for root in roots + sub_roots:
-        for item in os.listdir(root):
+    # Checking for applications on the top level and on any subfolder
+    sub_folders = []
+    for folder in folders:
+        for item in os.listdir(folder):
+            if not item.endswith('.app') and os.path.isdir(item):
+                sub_folders.append(os.path.join(folder, item))
+
+    for folder in folders + sub_folders:
+        for item in os.listdir(folder):
             if item.endswith('.app'):
-                fpath = os.path.join(root, item)
+                fpath = os.path.join(folder, item)
                 name = item.split('.app')[0]
                 icon = get_mac_application_icon_path(fpath)
                 apps[name] = (icon, fpath)
@@ -93,19 +97,29 @@ def get_mac_applications():
 
 
 def get_installed_applications():
-    """"""
+    """
+    Return all system installed applications.
+
+    The return value is a list of tuples where the first item is the icon path
+    and the second item is the program executable path. 
+    """
+
     apps = {}
     if sys.platform == 'darwin':
         apps = get_mac_applications()
+    elif os.name == 'nt':
+        apps = get_win_applications()
+    else:
+        apps = get_linux_applications()
 
     return apps
 
 
 class ApplicationsDialog(QDialog):
-    """"""
+    """Dialog for selection of installed system/user applications."""
 
-    def __init__(self, parent=None, association=None):
-        """"""
+    def __init__(self, parent=None):
+        """Dialog for selection of installed system/user applications."""
         super(ApplicationsDialog, self).__init__(parent=parent)
 
         # Widgets
@@ -119,6 +133,7 @@ class ApplicationsDialog(QDialog):
         self.button_ok = self.button_box.button(QDialogButtonBox.Ok)
         self.button_cancel = self.button_box.button(QDialogButtonBox.Cancel)
 
+        # Widget setup
         self.setWindowTitle(_('Applications dialog'))
         self.edit_filter.setPlaceholderText(_('Type to filter by name...'))
 
@@ -144,7 +159,7 @@ class ApplicationsDialog(QDialog):
         self.setup()
 
     def setup(self):
-        """"""
+        """Load installed applications."""
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         self.list.clear()
         apps = get_installed_applications()
@@ -163,12 +178,13 @@ class ApplicationsDialog(QDialog):
         QApplication.restoreOverrideCursor()
 
     def browse(self):
-        """"""
+        """Prompt user to select an application not found on the list."""
+        item = None
         if sys.platform == 'darwin':
             basedir = '/Applications/'
             filters = _('Applications (*.app)')
             title = _('Select application')
-            filename, _selfilter = getopenfilename(self, title, basedir, filters)
+            filename, __ = getopenfilename(self, title, basedir, filters)
 
             if filename and filename.endswith('.app'):
                 fpath = filename
@@ -183,38 +199,45 @@ class ApplicationsDialog(QDialog):
                     item = QListWidgetItem(icon, app)
                     item.fpath = fpath
                     self.list.addItem(item)
-                self.list.setCurrentItem(item)
-                self.list.setFocus()
+        elif os.name == 'nt':
+            pass
+        else:
+            pass
+
+        if item:
+            self.list.setCurrentItem(item)
+
+        self.list.setFocus()
 
     def filter(self, text):
-        """"""
+        """Filter the list of applications based on text."""
         text = self.edit_filter.text().lower().strip()
         for row in range(self.list.count()):
             item = self.list.item(row)
             item.setHidden(text not in item.text().lower())
 
     def set_extension(self, extension):
-        """"""
+        """Set the extension on the label of the dialog."""
         self.label.setText(_('Choose the application for files of type ')
                            + extension)
 
     @property
     def application_path(self):
-        """"""
+        """Return the selected application path to executable."""
         return self.list.currentItem().fpath
 
     @property
     def application_name(self):
-        """"""
+        """Return the selected application name."""
         return self.list.currentItem().text()
 
 
 class FileAssociationsWidget(QWidget):
-    """"""
+    """Widget to add applications association to file extensions."""
     sig_data_changed = Signal(dict)
 
     def __init__(self, parent=None):
-        """"""
+        """Widget to add applications association to file extensions."""
         super(FileAssociationsWidget, self).__init__(parent=parent)
 
         # Variables
@@ -278,13 +301,12 @@ class FileAssociationsWidget(QWidget):
         self._refresh()
 
     def _refresh(self):
-        """"""
+        """Refresh the status of buttons on widget."""
         self.setUpdatesEnabled(False)
         for widget in [self.button_remove,  self.button_add_application,
                        self.button_remove_application, self.button_default]:
             widget.setDisabled(True)
 
-        # If a selected item
         item = self.list_extensions.currentItem()
         if item:
             for widget in [self.button_remove, self.button_add_application,
@@ -293,7 +315,7 @@ class FileAssociationsWidget(QWidget):
         self.setUpdatesEnabled(True)
 
     def _add_association(self, value):
-        """"""
+        """Add association helper."""
         # Check value is not pressent
         for row in range(self.list_extensions.count()):
             item = self.list_extensions.item(row)
@@ -307,7 +329,7 @@ class FileAssociationsWidget(QWidget):
         self._refresh()
 
     def _add_application(self, app_name, fpath):
-        """"""
+        """Add application helper."""
         for row in range(self.list_applications.count()):
             item = self.list_extensions.item(row)
             if item and item.text().strip() == app_name:
@@ -319,14 +341,8 @@ class FileAssociationsWidget(QWidget):
             self.list_applications.addItem(item)
             self.list_applications.setCurrentItem(item)
 
-    def load_values(self, data=None):
-        """"""
-        self._data = data
-        self._initial_data = data.copy()
-        self._update_extensions()
-
     def _update_extensions(self):
-        """"""
+        """Update extensions list."""
         self.list_extensions.clear()
         for extension, _ in sorted(self._data.items()):
             self._add_association(extension)
@@ -336,14 +352,24 @@ class FileAssociationsWidget(QWidget):
         self.update_extensions()
         self.update_applications()
 
+    def load_values(self, data=None):
+        """
+        Load file associations data.
+
+        Format {'*.ext': [['Application Name', '/path/to/app/executable']]}
+        """
+        self._data = data
+        self._initial_data = data.copy()
+        self._update_extensions()
+
     def add_association(self, slot=None, value=None):
-        """"""
+        """Add extension file association."""
         if value is None:
             text, ok_pressed = QInputDialog.getText(
                 self,
                 _('File association'),
-                _('Enter new file association/extension (e.g. `*.txt` or '
-                '`pattern.dol`)'),
+                (_('Enter new file association/extension') +
+                ' (e.g. <code>*.txt</code> or <code>name.ext</code>)'),
                 QLineEdit.Normal,
                 "",
             )
@@ -356,7 +382,7 @@ class FileAssociationsWidget(QWidget):
             self.check_data_changed()
 
     def remove_association(self):
-        """"""
+        """Remove extension file association."""
         if self._data:
             if self.current_extension:
                 self._data.pop(self.current_extension)
@@ -365,7 +391,7 @@ class FileAssociationsWidget(QWidget):
                 self.check_data_changed()
 
     def add_application(self):
-        """"""
+        """Remove application to selected extension."""
         if self.current_extension:
             if self._dlg_applications is None:
                 self._dlg_applications = ApplicationsDialog(self)
@@ -380,7 +406,7 @@ class FileAssociationsWidget(QWidget):
                 self.check_data_changed()
 
     def remove_application(self):
-        """"""
+        """Remove application from selected extension."""
         current_row = self.list_applications.currentRow()
         values = self._data.get(self.current_extension)
         if values and current_row != -1:
@@ -390,7 +416,9 @@ class FileAssociationsWidget(QWidget):
             self.check_data_changed()
 
     def set_default_application(self):
-        """"""
+        """
+        Set the selected item on the application list as default application.
+        """
         current_row = self.list_applications.currentRow()
         if current_row != -1:
             values = self._data[self.current_extension]
@@ -401,7 +429,7 @@ class FileAssociationsWidget(QWidget):
             self.check_data_changed()
 
     def update_extensions(self, row=None):
-        """"""
+        """Update extensiosn list after additions or deletions."""
         self.list_applications.clear()
         for extension, values in self._data.items():
             if extension.strip() == self.current_extension:
@@ -412,26 +440,26 @@ class FileAssociationsWidget(QWidget):
         self._refresh()
 
     def update_applications(self, row=None):
-        """"""
+        """Update application list after additions or deletions."""
         self._refresh()
         current_row =  self.list_applications.currentRow()
         self.button_default.setEnabled(current_row != 0)
 
     def check_data_changed(self):
-        """"""
+        """Check if data has changed and emit signal as needed."""
         self.sig_data_changed.emit(self._data)
 
     @property
     def current_extension(self):
-        """"""
+        """Return the current selected extension text."""
         item = self.list_extensions.currentItem()
         if item:
             return item.text()
 
     @property
     def data(self):
-        """"""
-        return self._data
+        """Return the current file associations data."""
+        return self._data.copy()
 
 
 def test_widget():

@@ -13,13 +13,14 @@
 
 # Standard library imports
 from __future__ import with_statement
+import mimetypes as mime
 import os
 import os.path as osp
 import re
 import shutil
 import subprocess
 import sys
-import mimetypes as mime
+
 
 # Third party imports
 from qtpy.compat import getsavefilename, getexistingdirectory
@@ -34,6 +35,7 @@ from qtpy.QtWidgets import (QFileSystemModel, QHBoxLayout, QFileIconProvider,
 # Local imports
 from spyder.config.base import _, get_home_dir, get_image_path
 from spyder.config.gui import is_dark_interface, config_shortcut, get_shortcut
+from spyder.config.main import CONF
 from spyder.py3compat import (str_lower, to_binary_string,
                               to_text_string)
 from spyder.utils import icon_manager as ima
@@ -48,6 +50,30 @@ except:
     nbexporter = None    # analysis:ignore
 
 
+def get_common_file_associations(fnames):
+    """Return the list of common matching file associations for all fnames."""
+    all_values = []
+    for fname in fnames:
+        values = get_file_associations(fname)
+        all_values.append(values)
+
+    common = set(all_values[0])
+    for index in range(1, len(all_values)):
+        common = common.intersection(all_values[index])
+    return list(sorted(common))
+
+
+def get_file_associations(fname):
+    """Return the list of matching file associations for `fname`."""
+    file_associations = CONF.get('explorer', 'file_associations')
+    for ext, values in file_associations.items():
+        if fname.endswith((ext, ext[1:])):
+            break
+    else:
+        values = []
+    return values
+
+
 def open_file_in_external_explorer(filename):
     if sys.platform == "darwin":
         subprocess.call(["open", "-R", filename])
@@ -56,6 +82,7 @@ def open_file_in_external_explorer(filename):
     else:
         filename=os.path.dirname(filename)
         subprocess.call(["xdg-open", filename])
+
 
 def show_in_external_file_explorer(fnames=None):
     """Show files in external file explorer
@@ -67,6 +94,7 @@ def show_in_external_file_explorer(fnames=None):
         fnames = [fnames]
     for fname in fnames:
         open_file_in_external_explorer(fname)
+
 
 def fixpath(path):
     """Normalize path fixing case, making absolute and removing symlinks"""
@@ -331,8 +359,13 @@ class DirView(QTreeView):
         only_valid = all([encoding.is_text_file(_fn) for _fn in fnames])
         run_action = create_action(self, _("Run"), icon=ima.icon('run'),
                                    triggered=self.run)
-        edit_action = create_action(self, _("Edit"), icon=ima.icon('edit'),
-                                    triggered=self.clicked)
+        open_with_spyder_action = create_action(
+            self, _("Open in Spyder"), icon=ima.icon('edit'),
+            triggered=self.open)
+        open_with_menu = QMenu(_('Open with'), self)
+        open_external_action = create_action(
+            self, _("Open extenally"),
+            triggered=self.open_external)
         move_action = create_action(self, _("Move..."),
                                     icon="move.png",
                                     triggered=self.move)
@@ -342,8 +375,6 @@ class DirView(QTreeView):
         rename_action = create_action(self, _("Rename..."),
                                       icon=ima.icon('rename'),
                                       triggered=self.rename)
-        open_external_action = create_action(self, _("Open With OS"),
-                                             triggered=self.open_external)
         ipynb_convert_action = create_action(self, _("Convert to Python script"),
                                              icon=ima.icon('python'),
                                              triggered=self.convert_notebooks)
@@ -369,13 +400,37 @@ class DirView(QTreeView):
         actions = []
         if only_modules:
             actions.append(run_action)
-        if only_valid and only_files:
-            actions.append(edit_action)
+
+        if only_files:
+            if only_valid:
+                actions.append(open_with_spyder_action)
+
+            if len(fnames) == 1:
+                assoc = get_file_associations(fnames[0])
+            elif len(fnames) > 1:
+                assoc = get_common_file_associations(fnames)
+
+            if len(assoc) >= 1:
+                actions.append(open_with_menu)
+                open_with_actions = []
+                for app_name, fpath in assoc:
+                    open_with_action = create_action(
+                        self, app_name,
+                        triggered=lambda x, y=fpath: self.open_association(y))
+                    open_with_actions.append(open_with_action)
+                open_external_action_2 = create_action(
+                    self, _("Default external application"),
+                    triggered=self.open_external)
+                open_with_actions.append(open_external_action_2)
+                add_actions(open_with_menu, open_with_actions)                
+            else:
+                actions.append(open_external_action)
 
         if sys.platform == 'darwin':
-            text=_("Show in Finder")
+            text = _("Show in Finder")
         else:
-            text=_("Show in Folder")
+            text = _("Show in Folder")
+
         external_fileexp_action = create_action(
             self, text, triggered=self.show_in_external_file_explorer)
         actions += [delete_action, rename_action]
@@ -388,26 +443,25 @@ class DirView(QTreeView):
         if not QApplication.clipboard().mimeData().hasUrls():
             save_file_clipboard_action.setDisabled(True)
         actions += [None]
-        if only_files:
-            actions.append(open_external_action)
         actions.append(external_fileexp_action)
         actions.append([None])
         if only_notebooks and nbexporter is not None:
             actions.append(ipynb_convert_action)
 
-        # VCS support is quite limited for now, so we are enabling the VCS
-        # related actions only when a single file/folder is selected:
         dirname = fnames[0] if osp.isdir(fnames[0]) else osp.dirname(fnames[0])
-        if len(fnames) == 1 and vcs.is_vcs_repository(dirname):
-            commit_slot = lambda : self.vcs_command([dirname], 'commit')
-            browse_slot = lambda : self.vcs_command([dirname], 'browse')
-            vcs_ci = create_action(self, _("Commit"),
-                                   icon=ima.icon('vcs_commit'),
-                                   triggered=commit_slot)
-            vcs_log = create_action(self, _("Browse repository"),
-                                    icon=ima.icon('vcs_browse'),
-                                    triggered=browse_slot)
-            actions += [None, vcs_ci, vcs_log]
+        if len(fnames) == 1:
+            if vcs.is_vcs_repository(dirname):
+                # VCS support is quite limited for now, so we are enabling the VCS
+                # related actions only when a single file/folder is selected:
+                commit_slot = lambda : self.vcs_command([dirname], 'commit')
+                browse_slot = lambda : self.vcs_command([dirname], 'browse')
+                vcs_ci = create_action(self, _("Commit"),
+                                       icon=ima.icon('vcs_commit'),
+                                       triggered=commit_slot)
+                vcs_log = create_action(self, _("Browse repository"),
+                                        icon=ima.icon('vcs_browse'),
+                                        triggered=browse_slot)
+                actions += [None, vcs_ci, vcs_log]
 
         return actions
 
@@ -513,13 +567,23 @@ class DirView(QTreeView):
 
     @Slot()
     def clicked(self):
-        """Selected item was double-clicked or enter/return was pressed"""
+        """
+        Selected item was single/double-clicked or enter/return was pressed.
+        """
         fnames = self.get_selected_filenames()
         for fname in fnames:
             if osp.isdir(fname):
                 self.directory_clicked(fname)
             else:
-                self.open([fname])
+                if len(fnames) == 1:
+                    assoc = get_file_associations(fnames[0])
+                elif len(fnames) > 1:
+                    assoc = get_common_file_associations(fnames)
+
+                if assoc:
+                    self.open_association(assoc[0][-1])
+                else:
+                    self.open([fname])
 
     def directory_clicked(self, dirname):
         """Directory was just clicked"""
@@ -557,6 +621,18 @@ class DirView(QTreeView):
                 self.parent_widget.sig_open_file.emit(fname)
             else:
                 self.open_outside_spyder([fname])
+
+    @Slot()
+    def open_association(self, app_path):
+        """Open files with given application executable path."""
+        fnames = self.get_selected_filenames()
+        if sys.platform == 'darwin':
+            subprocess.call(['open', '-a', app_path] + fnames)
+        if os.name == 'nt':
+            pass
+            # subprocess.call(['open', '-a', cmd] + fnames)
+        else:
+            pass
 
     @Slot()
     def open_external(self, fnames=None):
