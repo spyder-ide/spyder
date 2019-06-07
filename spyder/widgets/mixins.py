@@ -427,7 +427,7 @@ class BaseEditMixin(object):
         return new_signature, extra_text, inspect_word
 
     def show_calltip(self, signature, parameter=None, documentation=None,
-                    language=_DEFAULT_LANGUAGE):
+                     language=_DEFAULT_LANGUAGE):
         """
         Show calltip.
 
