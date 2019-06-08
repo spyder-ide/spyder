@@ -10,8 +10,10 @@ File associations widget for use in global and project preferences.
 
 # Standard library imports
 from __future__ import print_function
+import itertools
 import os
 import sys
+import winreg
 
 # Third party imports
 from qtpy.compat import getopenfilename
@@ -26,6 +28,11 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
 from spyder.config.base import _
 from spyder.config.main import CONF
 from spyder.utils import icon_manager as ima
+
+
+def get_win_application_icon_path(fpath):
+    """"""
+    pass
 
 
 def get_mac_application_icon_path(app_bundle_path):
@@ -62,9 +69,89 @@ def get_username():
         return pwd.getpwuid(os.getuid())[0]
 
 
+def get_windows_registry_info(key_path, hive, flag, subkeys):
+    reg = winreg.ConnectRegistry(None, hive)
+    software_list = []
+    try:
+        key = winreg.OpenKey(reg, key_path, 0, winreg.KEY_READ | flag)
+        count_subkey = winreg.QueryInfoKey(key)[0]
+
+        for index in range(count_subkey):
+            software = {}
+            try:
+                subkey_name = winreg.EnumKey(key, index)
+                if not (subkey_name.startswith('{') and subkey_name.endswith('}')):
+                    # print(subkey_name)
+                    software['key'] = subkey_name
+                    subkey = winreg.OpenKey(key, subkey_name)
+                    for property in subkeys:
+                        try:
+                            value = winreg.QueryValueEx(subkey, property)[0]
+                            software[property] = value
+                        except EnvironmentError:
+                            software[property] = ''
+                    software_list.append(software)
+            except EnvironmentError:
+                continue
+    except:
+        pass
+
+    return software_list
+
+
 def get_win_applications():
     """Return all system installed windows applications."""
+    key_path = r'SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths'
+    hfs = [
+        (winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_32KEY),
+        (winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_64KEY),
+        (winreg.HKEY_CURRENT_USER, 0),
+    ]
+    subkeys = [None]
+    sort_key = 'key'
+    app_paths = {}
+    _apps = [get_windows_registry_info(key_path, *hf, subkeys) for hf in hfs]
+    software_list = itertools.chain(*_apps)
+    for software in sorted(software_list, key=lambda x: x[sort_key]):
+        if software[None]:
+            key = software['key'].capitalize().replace('.exe', '')
+            app_paths[key] = software[None].lower()
+
+    key_path = r'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall'
+    subkeys = ['DisplayName', 'InstallLocation', 'DisplayIcon']
+    sort_key = 'DisplayName'
     apps = {}
+    _apps = [get_windows_registry_info(key_path, *hf, subkeys) for hf in hfs]
+    software_list = itertools.chain(*_apps)
+    for software in sorted(software_list, key=lambda x: x[sort_key]):
+        location = software['InstallLocation']
+        name = software['DisplayName']
+        icon = software['DisplayIcon']
+        
+        key = software['key']
+        if name and icon:
+            icon = icon.replace('"', '').replace("'", '')
+            icon = icon.split(',')[0]
+
+            if location == '' and icon:
+               location = os.path.dirname(icon)
+
+            if not os.path.isfile(icon):
+                icon = ''            
+               
+            if location and os.path.isdir(location):
+                files = [f for f in os.listdir(location) if os.path.isfile(os.path.join(location, f))]
+                if files:
+                    for fname in files:
+                        if fname.lower().endswith(('.exe', '.com', '.bat')) and not fname.lower().startswith('unins'):
+                            fpath = os.path.join(location, fname)
+                            apps[name + ' (' + fname + ')'] = (icon.lower(), fpath.lower())
+
+    # Join data
+    values = list(zip(*apps.values()))[-1]
+    for name, fpath in app_paths.items():
+        if fpath not in values:
+            apps[name] = (fpath, fpath)
     return apps
 
 
@@ -172,14 +259,19 @@ class ApplicationsDialog(QDialog):
                     icon = ima.icon('help')    
             else:
                 icon = ima.icon('help')
+            if os.name == 'nt':
+                if not icon_path.endswith('.ico'):
+                    icon = ima.icon('help')
             item = QListWidgetItem(icon, app)
             item.fpath = fpath
             self.list.addItem(item)
+        self.list.setMinimumWidth(self.list.sizeHintForColumn(0) + 24)
         QApplication.restoreOverrideCursor()
 
     def browse(self):
         """Prompt user to select an application not found on the list."""
         item = None
+        filename = None
         if sys.platform == 'darwin':
             basedir = '/Applications/'
             filters = _('Applications (*.app)')
@@ -200,12 +292,30 @@ class ApplicationsDialog(QDialog):
                     item.fpath = fpath
                     self.list.addItem(item)
         elif os.name == 'nt':
-            pass
+            basedir = 'C:\\'
+            filters = _('Applications (*.exe *.bat *.com)')
+            title = _('Select application')
+            filename, __ = getopenfilename(self, title, basedir, filters)
+
+            if filename and filename.endswith(('.exe', '.bat', '.com')):
+                fpath = filename
+                app = os.path.basename(fpath).capitalize().rsplit('.')[0]
+                for row in range(self.list.count()):
+                    item = self.list.item(row)
+                    if app == item.text() and fpath == item.fpath:
+                        break
+                else:
+                    icon = ima.icon('help')
         else:
             pass
 
-        if item:
-            self.list.setCurrentItem(item)
+        if filename:
+            item = QListWidgetItem(icon, app)
+            item.fpath = fpath
+            self.list.addItem(item)
+
+            if item:
+                self.list.setCurrentItem(item)
 
         self.list.setFocus()
 
