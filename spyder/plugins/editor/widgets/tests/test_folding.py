@@ -53,25 +53,24 @@ responses = {
         'No payment -- see charging schemes')
 }"""
 
-
+# --- Fixtures-----------------------------------------------------------------
 @pytest.fixture()
-def get_fold_levels():
+def code_editor():
     """setup editor and return fold levels."""
     editor = CodeEditor(parent=None)
     editor.setup_editor(language='Python')
-
-    lines_lvls = [0, 0, 1, 2, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                  1, 1, 2, 1, 2, 2, 1, 2, 2, 1, 2, 1, 2, 1, 2, 0]
-
     editor.set_text(text)
-    return editor, lines_lvls
+    return editor
 
 
 # --- Tests--------------------------------------------------------------------
-def test_simple_folding(get_fold_levels):
+def test_simple_folding(code_editor):
     """Test folding by the levels."""
-    editor, lines_lvls = get_fold_levels
+    expected_folding_levels = [0, 0, 1, 2, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1,
+                               1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 1, 2, 2, 1, 2, 1,
+                               2, 1, 2, 0]
 
-    output_fold = print_tree(editor, return_list=True)
-    for expected_lvl, (line, lvl, visible) in zip(lines_lvls, output_fold):
+    output_fold = print_tree(code_editor(), return_list=True)
+    for expected_lvl, (line, lvl, visible) in zip(expected_folding_levels,
+                                                  output_fold):
         assert expected_lvl == lvl
