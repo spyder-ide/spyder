@@ -1012,6 +1012,7 @@ class CodeEditor(TextEditBaseWidget):
                 self.show_calltip(
                     signature=signature,
                     parameter=parameter,
+                    language=self.language,
                     documentation=documentation,
                 )
         except Exception:

@@ -131,4 +131,5 @@ class HelpWidget(RichJupyterWidget):
                 if signature:
                     self._control.show_calltip(
                         signature,
+                        language=self.language_name
                     )
