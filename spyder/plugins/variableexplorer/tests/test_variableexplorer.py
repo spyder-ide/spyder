@@ -33,8 +33,13 @@ def test_get_settings(monkeypatch):
 
     app = qapplication()
     settings = VariableExplorer(None).get_settings()
-    expected = {'remote1': 'remote1val', 'remote2': 'remote2val',
-                'dataframe_format': '%3d'}
+    expected = {'auto_refresh': None,
+                'dataframe_format': '%3d',
+                'refresh_rate': None,
+                'remote1': 'remote1val',
+                'remote2': 'remote2val',
+                'show_callable_attributes': None,
+                'show_special_attributes': None}
     assert settings == expected
 
 
