@@ -70,7 +70,7 @@ def test_simple_folding(code_editor):
                                1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 1, 2, 2, 1, 2, 1,
                                2, 1, 2, 0]
 
-    output_fold = print_tree(code_editor(), return_list=True)
+    output_fold = print_tree(code_editor, return_list=True)
     for expected_lvl, (line, lvl, visible) in zip(expected_folding_levels,
                                                   output_fold):
         assert expected_lvl == lvl
