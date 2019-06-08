@@ -53,7 +53,7 @@ class BaseEditMixin(object):
     _DEFAULT_TITLE_COLOR = '#2D62FF'
     _CHAR_HIGHLIGHT_COLOR = 'red'
     _DEFAULT_TEXT_COLOR = '#999999'
-    _DEFAULT_LANGUAGE = 'python'
+    _DEFAULT_LANGUAGE = ''
 
     def __init__(self):
         self.eol_chars = None
@@ -353,7 +353,8 @@ class BaseEditMixin(object):
 
         return '<br><br>'.join(new_signatures)
 
-    def _check_signature_and_format(self, signature_or_text, parameter=None):
+    def _check_signature_and_format(self, signature_or_text, parameter=None,
+                                    language=_DEFAULT_LANGUAGE):
         """
         LSP hints might provide docstrings instead of signatures.
 
@@ -363,7 +364,7 @@ class BaseEditMixin(object):
         open_func_char = ''
         has_signature = False
         has_multisignature = False
-        language = getattr(self, 'language', '').lower()
+        language = getattr(self, 'language', language).lower()
         signature_or_text = signature_or_text.replace('\\*', '*')
 
         # Remove special symbols that could itefere with ''.format
@@ -442,7 +443,9 @@ class BaseEditMixin(object):
         if language == 'python':
             # Check if documentation is better than signature, sometimes
             # signature has \n stripped for functions like print, type etc
-            check_doc = ' '.join(documentation.split()).replace('\\*', '*')
+            check_doc = ' '
+            if documentation:
+                check_doc.join(documentation.split()).replace('\\*', '*')
             check_sig = ' '.join(signature.split())
             if check_doc == check_sig:
                 signature = documentation
@@ -454,7 +457,8 @@ class BaseEditMixin(object):
             documentation = documentation.replace(signature + '\n', '')
 
         # Format
-        res = self._check_signature_and_format(signature, parameter)
+        res = self._check_signature_and_format(signature, parameter,
+                                               language=language)
         new_signature, text, inspect_word = res
         text = self._format_text(
             signature=new_signature,

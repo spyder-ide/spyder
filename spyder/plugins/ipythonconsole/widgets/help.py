@@ -130,5 +130,6 @@ class HelpWidget(RichJupyterWidget):
                 signature = self.get_signature(content)
                 if signature:
                     self._control.show_calltip(
-                        signature, language=self.language_name
+                        signature,
+                        language=self.language_name
                     )
