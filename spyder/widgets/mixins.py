@@ -53,7 +53,7 @@ class BaseEditMixin(object):
     _DEFAULT_TITLE_COLOR = '#2D62FF'
     _CHAR_HIGHLIGHT_COLOR = 'red'
     _DEFAULT_TEXT_COLOR = '#999999'
-    _DEFAULT_LANGUAGE = ''
+    _DEFAULT_LANGUAGE = 'python'
 
     def __init__(self):
         self.eol_chars = None
