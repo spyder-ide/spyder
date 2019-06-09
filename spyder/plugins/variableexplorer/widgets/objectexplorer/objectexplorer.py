@@ -216,11 +216,6 @@ class ObjectExplorer(QDialog):
     def _setup_menu(self, show_callable_attributes=False,
                     show_special_attributes=False):
         """Sets up the main menu."""
-        if show_callable_attributes is None:
-            show_callable_attributes = False
-        if show_special_attributes is None:
-            show_special_attributes = False
-
         self.tools_layout = QHBoxLayout()
 
         refresh = create_toolbutton(self, text=_("Refresh"),

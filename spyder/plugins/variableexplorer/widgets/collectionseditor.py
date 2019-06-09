@@ -568,12 +568,22 @@ class CollectionsDelegate(QItemDelegate):
                 # act doesn't exist anymore.
                 # editor.returnPressed.connect(self.commitAndCloseEditor)
                 return editor
-        # CollectionsEditor for an arbitrary Python object
+        # ObjectExplorer for an arbitrary Python object
         else:
             show_callable_attributes = index.model().show_callable_attributes
             show_special_attributes = index.model().show_special_attributes
             auto_refresh = index.model().auto_refresh
             refresh_rate = index.model().refresh_rate
+
+            if show_callable_attributes is None:
+                show_callable_attributes = False
+            if show_special_attributes is None:
+                show_special_attributes = False
+            if auto_refresh is None:
+                auto_refresh = False
+            if refresh_rate is None:
+                refresh_rate = 2
+
             editor = ObjectExplorer(
                 {_('Object'): value},
                 expanded=True,
