@@ -57,7 +57,8 @@ from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
 from spyder.plugins.editor.utils.findtasks import find_tasks
 from spyder.widgets.tabs import BaseTabs
 from spyder.config.main import CONF
-from spyder.plugins.explorer.widgets import show_in_external_file_explorer
+from spyder.plugins.explorer.widgets.explorer import (
+    show_in_external_file_explorer)
 
 
 logger = logging.getLogger(__name__)

@@ -15,7 +15,8 @@ from qtpy.QtWidgets import (QGroupBox, QHBoxLayout, QLabel, QListWidget,
 from spyder.api.preferences import PluginConfigPage
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
-from spyder.widgets.fileassociations import FileAssociationsWidget
+from spyder.plugins.explorer.widgets.fileassociations import (
+    FileAssociationsWidget)
 
 
 class ExplorerConfigPage(PluginConfigPage):

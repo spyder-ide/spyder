@@ -36,6 +36,7 @@ from qtpy.QtWidgets import (QFileSystemModel, QHBoxLayout, QFileIconProvider,
 from spyder.config.base import _, get_home_dir, get_image_path
 from spyder.config.gui import is_dark_interface, config_shortcut, get_shortcut
 from spyder.config.main import CONF
+from spyder.plugins.explorer.utils import parse_linux_desktop_entry
 from spyder.py3compat import (str_lower, to_binary_string,
                               to_text_string)
 from spyder.utils import icon_manager as ima
@@ -43,7 +44,6 @@ from spyder.utils import encoding, misc, programs, vcs
 from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
                                     create_plugin_layout)
 from spyder.utils.misc import getcwd_or_home
-from spyder.widgets.fileassociations import parse_linux_desktop_entry
 
 try:
     from nbconvert import PythonExporter as nbexporter

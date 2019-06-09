@@ -21,7 +21,7 @@ from qtpy.QtWidgets import QVBoxLayout
 from spyder.config.base import _
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.utils.qthelpers import add_actions, MENU_SEPARATOR
-from spyder.plugins.explorer.widgets import ExplorerWidget
+from spyder.plugins.explorer.widgets.explorer import ExplorerWidget
 from spyder.plugins.explorer.confpage import ExplorerConfigPage
 
 
