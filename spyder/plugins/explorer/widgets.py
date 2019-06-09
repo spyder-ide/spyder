@@ -640,7 +640,7 @@ class DirView(QTreeView):
 
             if sys.platform == 'darwin':
                 subprocess.call(['open', '-a', app_path] + fnames)
-            if os.name == 'nt':
+            elif os.name == 'nt':
                 subprocess.call([app_path] + fnames)
             else:
                 entry = parse_linux_desktop_entry(app_path)

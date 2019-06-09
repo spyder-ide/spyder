@@ -24,7 +24,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QListWidget, QListWidgetItem, QPushButton,
                             QVBoxLayout, QWidget)
 # Local imports
-from spyder.config.base import _
+from spyder.config.base import _, get_conf_path
 from spyder.utils import icon_manager as ima
 
 
@@ -73,6 +73,11 @@ def get_mac_application_icon_path(app_bundle_path):
     icon_path = None
     if icon_file:
         icon_path = os.path.join(contents_path, 'Resources', icon_file)
+
+        # Some app bundles seem to list the icon name without extension
+        if not icon_path.endswith('.icns'):
+            icon_path = icon_path + '.icns'
+
         if not os.path.isfile(icon_path):
             icon_path = None
 
@@ -221,45 +226,43 @@ def get_linux_applications():
 def get_mac_applications():
     """Return all system installed osx applications."""
     apps = {}
-    folders = [
-        '/Applications',
-        '/Users/{}/Applications/'.format(get_username())
+    app_folders = [
+        '/**/*.app',
+        '/Users/{}/**/*.app'.format(get_username())
     ]
 
-    # Checking for applications on the top level and on any subfolder
-    sub_folders = []
-    for folder in folders:
-        for item in os.listdir(folder):
-            if not item.endswith('.app') and os.path.isdir(item):
-                sub_folders.append(os.path.join(folder, item))
+    fpaths = []
+    for path in app_folders:
+        fpaths += glob.glob(path)
 
-    for folder in folders + sub_folders:
-        for item in os.listdir(folder):
-            if item.endswith('.app'):
-                fpath = os.path.join(folder, item)
-                name = item.split('.app')[0]
-                apps[name] = fpath
+    for fpath in fpaths:
+        if os.path.isdir(fpath):
+            name = os.path.basename(fpath).split('.app')[0]
+            apps[name] = fpath
 
     return apps
 
 
 def get_application_icon(fpath):
     """Return application icon or default icon if not found."""
-    icon = ima.icon('help')
-    if sys.platform == 'darwin':
-        icon_path = get_mac_application_icon_path(fpath)
-        if icon_path and os.path.isfile(icon_path):
-            icon = QIcon(icon_path)
-    elif os.name == 'nt':
-        pass
-    else:
-        entry_data = parse_linux_desktop_entry(fpath)
-        icon_path = entry_data['icon_path']
-        if icon_path:
-            if os.path.isfile(icon_path):
+    if os.path.isfile(fpath) or os.path.isdir(fpath):
+        icon = ima.icon('no_match')
+        if sys.platform == 'darwin':
+            icon_path = get_mac_application_icon_path(fpath)
+            if icon_path and os.path.isfile(icon_path):
                 icon = QIcon(icon_path)
-            else:
-                icon = QIcon.fromTheme(icon_path)
+        elif os.name == 'nt':
+            pass
+        else:
+            entry_data = parse_linux_desktop_entry(fpath)
+            icon_path = entry_data['icon_path']
+            if icon_path:
+                if os.path.isfile(icon_path):
+                    icon = QIcon(icon_path)
+                else:
+                    icon = QIcon.fromTheme(icon_path)
+    else:
+        icon = ima.icon('help')
 
     return icon
 
@@ -331,10 +334,11 @@ class ApplicationsDialog(QDialog):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         self.list.clear()
         apps = get_installed_applications()
-        for app in sorted(apps):
+        for app in sorted(apps, key=lambda x: x.lower()):
             fpath = apps[app]
             icon = get_application_icon(fpath)
             item = QListWidgetItem(icon, app)
+            item.setToolTip(fpath)
             item.fpath = fpath
             self.list.addItem(item)
 
@@ -529,6 +533,9 @@ class FileAssociationsWidget(QWidget):
             item = QListWidgetItem(icon, app_name)
             self.list_applications.addItem(item)
             self.list_applications.setCurrentItem(item)
+
+        if not (os.path.isfile(fpath) or os.path.isdir(fpath)):
+            item.setToolTip(_('Application not found!'))
 
     def _update_extensions(self):
         """Update extensions list."""
