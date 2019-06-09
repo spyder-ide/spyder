@@ -58,10 +58,10 @@ class ObjectExplorer(QDialog):
                  parent=None,
                  attribute_columns=DEFAULT_ATTR_COLS,
                  attribute_details=DEFAULT_ATTR_DETAILS,
-                 show_callable_attributes=None,  # Uses value from settings
-                 show_special_attributes=None,  # Uses value from settings
-                 auto_refresh=None,  # Uses value from settings
-                 refresh_rate=None,  # Uses value from settings
+                 show_callable_attributes=False,
+                 show_special_attributes=False,
+                 auto_refresh=False,
+                 refresh_rate=2,
                  reset=False):
         """
         Constructor
