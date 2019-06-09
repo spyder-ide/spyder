@@ -1318,7 +1318,7 @@ class MainWindow(QMainWindow):
         # Hide Internal Console so that people don't use it instead of
         # the External or IPython ones
         if self.console.dockwidget.isVisible() and DEV is None:
-            self.console.toggle_view_action.setChecked(False)
+            self.console._toggle_view_action.setChecked(False)
             self.console.dockwidget.hide()
 
         # Show Help and Consoles by default
@@ -1744,7 +1744,7 @@ class MainWindow(QMainWindow):
         # Make every widget visible
         for widget in widgets:
             widget.toggle_view(True)
-            widget.toggle_view_action.setChecked(True)
+            widget._toggle_view_action.setChecked(True)
 
         # We use both directions to ensure proper update when moving from
         # 'Horizontal Split' to 'Spyder Default'
@@ -2019,7 +2019,7 @@ class MainWindow(QMainWindow):
 
         # make sure the flags are correctly set for visible panes
         for plugin in (self.widgetlist + self.thirdparty_plugins):
-            action = plugin.toggle_view_action
+            action = plugin._toggle_view_action
             action.setChecked(plugin.dockwidget.isVisible())
 
     # --- Show/Hide toolbars
@@ -2219,7 +2219,7 @@ class MainWindow(QMainWindow):
                  'profiler', 'breakpoints', 'pylint', None,
                  'onlinehelp', 'internal_console', None]
         for plugin in self.widgetlist:
-            action = plugin.toggle_view_action
+            action = plugin._toggle_view_action
             action.setChecked(plugin.dockwidget.isVisible())
             try:
                 name = plugin.CONF_SECTION
@@ -2357,7 +2357,7 @@ class MainWindow(QMainWindow):
         widget = QApplication.focusWidget()
         for plugin in (self.widgetlist + self.thirdparty_plugins):
             if plugin.isAncestorOf(widget):
-                plugin.toggle_view_action.setChecked(False)
+                plugin._toggle_view_action.setChecked(False)
                 break
 
     def toggle_lock(self, value):

@@ -110,7 +110,7 @@ class Projects(SpyderPluginWidget):
                                                 self.delete_project_action,
                                                 MENU_SEPARATOR,
                                                 self.recent_project_menu,
-                                                self.toggle_view_action]
+                                                self._toggle_view_action]
 
         self.setup_menu_actions()
         return []
@@ -194,8 +194,8 @@ class Projects(SpyderPluginWidget):
 
         # Show plugin only if it was already visible
         if self.get_option('visible_if_project_open'):
-            if not self.toggle_view_action.isChecked():
-                self.toggle_view_action.setChecked(True)
+            if not self._toggle_view_action.isChecked():
+                self._toggle_view_action.setChecked(True)
             self.visibility_changed(True)
 
     # ------ Public API -------------------------------------------------------

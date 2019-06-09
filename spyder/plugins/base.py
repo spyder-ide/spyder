@@ -166,7 +166,7 @@ class BasePluginWidgetMixin(object):
         # We decided to create our own toggle action instead of using
         # the one that comes with dockwidget because it's not possible
         # to raise and focus the plugin with it.
-        self.toggle_view_action = None
+        self._toggle_view_action = None
 
         # Default actions for Options menu
         self._dock_action = create_action(
@@ -260,14 +260,14 @@ class BasePluginWidgetMixin(object):
                 self.main.last_plugin._ismaximized and
                 self.main.last_plugin is not self):
             self.main.maximize_dockwidget()
-        if not self.toggle_view_action.isChecked():
-            self.toggle_view_action.setChecked(True)
+        if not self._toggle_view_action.isChecked():
+            self._toggle_view_action.setChecked(True)
         self.visibility_changed(True)
 
     @Slot()
     def _plugin_closed(self):
         """DockWidget was closed"""
-        self.toggle_view_action.setChecked(False)
+        self._toggle_view_action.setChecked(False)
 
     def get_plugin_font(self, rich_text=False):
         """
@@ -310,7 +310,7 @@ class BasePluginWidgetMixin(object):
         else:
             action = create_action(self, title, toggled=lambda checked:
                                                 self.toggle_view(checked))
-        self.toggle_view_action = action
+        self._toggle_view_action = action
 
     def toggle_view(self, checked):
         """Toggle view"""

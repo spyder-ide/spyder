@@ -59,7 +59,7 @@ def projects(qtbot, mocker):
     projects.shortcut = None
     mocker.patch.object(spyder.plugins.base.SpyderDockWidget,
                         'install_tab_event_filter')
-    mocker.patch.object(projects, 'toggle_view_action')
+    mocker.patch.object(projects, '_toggle_view_action')
     projects._create_dockwidget()
 
     # This can only be done at this point

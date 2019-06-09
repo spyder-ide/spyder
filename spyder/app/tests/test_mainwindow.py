@@ -252,10 +252,10 @@ def test_default_plugin_actions(main_window, qtbot):
     file_explorer._close_plugin_action.triggered.emit(True)
     qtbot.wait(500)
     assert not file_explorer.dockwidget.isVisible()
-    assert not file_explorer.toggle_view_action.isChecked()
+    assert not file_explorer._toggle_view_action.isChecked()
 
     # Toggle view action
-    file_explorer.toggle_view_action.setChecked(True)
+    file_explorer._toggle_view_action.setChecked(True)
     assert file_explorer.dockwidget.isVisible()
 
 
@@ -1696,7 +1696,7 @@ def test_help_opens_when_show_tutorial_full(main_window, qtbot):
             break
 
     # Test opening tutorial with Help plguin closed
-    main_window.help.toggle_view_action.setChecked(False)
+    main_window.help._toggle_view_action.setChecked(False)
     qtbot.wait(500)
     help_tabbar, help_index = find_desired_tab_in_window(HELP_STR, main_window)
     assert help_tabbar is None and help_index is None
