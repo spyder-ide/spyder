@@ -218,10 +218,12 @@ class BaseEditMixin(object):
         if inspect_word:
             if display_link:
                 help_text = (
-                    '<span style="font-size:{size}pt;">'
+                    '<span style="font-family: \'{font_family}\';'
+                    'font-size:{font_size}pt;">'
                     'Click anywhere in this tooltip for additional help'
                     '</span>'.format(
-                        size=title_size + 1,
+                        font_size=text_size,
+                        font_family=font_family,
                     )
                 )
             else:
