@@ -1554,7 +1554,7 @@ class MainWindow(QMainWindow):
 
         for plugin in (self.widgetlist + self.thirdparty_plugins):
             try:
-                plugin.initialize_plugin_in_mainwindow_layout()
+                plugin._initialize_plugin_in_mainwindow_layout()
             except Exception as error:
                 print("%s: %s" % (plugin, str(error)), file=STDERR)
                 traceback.print_exc(file=STDERR)
@@ -2332,7 +2332,7 @@ class MainWindow(QMainWindow):
         if CONF.get('main', 'single_instance') and self.open_files_server:
             self.open_files_server.close()
         for plugin in (self.widgetlist + self.thirdparty_plugins):
-            plugin.close_window()
+            plugin._close_window()
             if not plugin.closing_plugin(cancelable):
                 return False
         self.dialog_manager.close_all()
@@ -2345,7 +2345,7 @@ class MainWindow(QMainWindow):
     def add_dockwidget(self, child):
         """Add QDockWidget and toggleViewAction"""
         if child._is_compatible:
-            dockwidget, location = child.create_dockwidget()
+            dockwidget, location = child._create_dockwidget()
             if CONF.get('main', 'vertical_dockwidget_titlebars'):
                 dockwidget.setFeatures(dockwidget.features()|
                                        QDockWidget.DockWidgetVerticalTitleBar)
@@ -2889,7 +2889,7 @@ class MainWindow(QMainWindow):
             if CONF.get('main', 'vertical_dockwidget_titlebars'):
                 features = features | QDockWidget.DockWidgetVerticalTitleBar
             plugin.dockwidget.setFeatures(features)
-            plugin.update_margins()
+            plugin._update_margins()
 
     def apply_statusbar_settings(self):
         """Update status bar widgets settings"""
@@ -2940,7 +2940,7 @@ class MainWindow(QMainWindow):
                            ] + self.thirdparty_plugins:
                 if plugin is not None:
                     try:
-                        widget = plugin.create_configwidget(dlg)
+                        widget = plugin._create_configwidget(dlg)
                         if widget is not None:
                             dlg.add_page(widget)
                     except Exception:

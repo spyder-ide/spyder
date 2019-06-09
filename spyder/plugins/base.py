@@ -169,25 +169,28 @@ class BasePluginWidgetMixin(object):
         self.toggle_view_action = None
 
         # Default actions for Options menu
-        self._dock_action = create_action(self,
-                                          _("Dock"),
-                                          icon=ima.icon('dock'),
-                                          tip=_("Dock the pane"),
-                                          triggered=self.close_window)
+        self._dock_action = create_action(
+            self,
+            _("Dock"),
+            icon=ima.icon('dock'),
+            tip=_("Dock the pane"),
+            triggered=self._close_window)
 
-        self._undock_action = create_action(self,
-                                            _("Undock"),
-                                            icon=ima.icon('undock'),
-                                            tip=_("Undock the pane"),
-                                            triggered=self.create_window)
+        self._undock_action = create_action(
+            self,
+            _("Undock"),
+            icon=ima.icon('undock'),
+            tip=_("Undock the pane"),
+            triggered=self._create_window)
 
-        self._close_plugin_action = create_action(self,
-                                                  _("Close"),
-                                                  icon=ima.icon('close_pane'),
-                                                  tip=_("Close the pane"),
-                                                  triggered=self.plugin_closed)
+        self._close_plugin_action = create_action(
+            self,
+            _("Close"),
+            icon=ima.icon('close_pane'),
+            tip=_("Close the pane"),
+            triggered=self._plugin_closed)
 
-    def initialize_plugin_in_mainwindow_layout(self):
+    def _initialize_plugin_in_mainwindow_layout(self):
         """
         If this is the first time the plugin is shown, perform actions to
         initialize plugin position in Spyder's window layout.
@@ -202,7 +205,7 @@ class BasePluginWidgetMixin(object):
                 return
             self.set_option('first_time', False)
 
-    def update_margins(self):
+    def _update_margins(self):
         """Update plugin margins"""
         layout = self.layout()
         if self._default_margins is None:
@@ -213,7 +216,7 @@ class BasePluginWidgetMixin(object):
         else:
             layout.setContentsMargins(*self._default_margins)
 
-    def update_plugin_title(self):
+    def _update_plugin_title(self):
         """Update plugin title, i.e. dockwidget or window title"""
         if self.dockwidget is not None:
             win = self.dockwidget
@@ -223,7 +226,7 @@ class BasePluginWidgetMixin(object):
             return
         win.setWindowTitle(self.get_plugin_title())
 
-    def create_dockwidget(self):
+    def _create_dockwidget(self):
         """Add to parent QMainWindow as a dock widget"""
         # Creating dock widget
         dock = SpyderDockWidget(self.get_plugin_title(), self.main)
@@ -233,10 +236,10 @@ class BasePluginWidgetMixin(object):
         dock.setAllowedAreas(self._ALLOWED_AREAS)
         dock.setFeatures(self._FEATURES)
         dock.setWidget(self)
-        self.update_margins()
+        self._update_margins()
         dock.visibilityChanged.connect(self.visibility_changed)
-        dock.topLevelChanged.connect(self.on_top_level_changed)
-        dock.sig_plugin_closed.connect(self.plugin_closed)
+        dock.topLevelChanged.connect(self._on_top_level_changed)
+        dock.sig_plugin_closed.connect(self._plugin_closed)
         self.dockwidget = dock
         if self.shortcut is not None:
             sc = QShortcut(QKeySequence(self.shortcut), self.main,
@@ -244,7 +247,7 @@ class BasePluginWidgetMixin(object):
             self.register_shortcut(sc, "_", "Switch to %s" % self.CONF_SECTION)
         return (dock, self._LOCATION)
 
-    def create_configwidget(self, parent):
+    def _create_configwidget(self, parent):
         """Create configuration dialog box page widget"""
         if self.CONFIGWIDGET_CLASS is not None:
             configwidget = self.CONFIGWIDGET_CLASS(self, parent)
@@ -262,7 +265,7 @@ class BasePluginWidgetMixin(object):
         self.visibility_changed(True)
 
     @Slot()
-    def plugin_closed(self):
+    def _plugin_closed(self):
         """DockWidget was closed"""
         self.toggle_view_action.setChecked(False)
 
@@ -294,7 +297,7 @@ class BasePluginWidgetMixin(object):
                         "and cannot be set directly on the plugin."
                         "This method is deprecated.")
 
-    def create_toggle_view_action(self):
+    def _create_toggle_view_action(self):
         """Associate a toggle view action with each plugin"""
         title = self.get_plugin_title()
         if self.CONF_SECTION == 'editor':
@@ -320,7 +323,7 @@ class BasePluginWidgetMixin(object):
             self.dockwidget.hide()
 
     @Slot()
-    def close_window(self):
+    def _close_window(self):
         """Close QMainWindow instance that contains this plugin."""
         if self._undocked_window is not None:
             self._undocked_window.close()
@@ -332,7 +335,7 @@ class BasePluginWidgetMixin(object):
             self._close_plugin_action.setDisabled(False)
 
     @Slot()
-    def create_window(self):
+    def _create_window(self):
         """Create a QMainWindow instance containing this plugin."""
         self._undocked_window = window = PluginWindow(self)
         window.setAttribute(Qt.WA_DeleteOnClose)
@@ -351,7 +354,7 @@ class BasePluginWidgetMixin(object):
         window.show()
 
     @Slot(bool)
-    def on_top_level_changed(self, top_level):
+    def _on_top_level_changed(self, top_level):
         """Actions to perform when a plugin is undocked to be moved."""
         if top_level:
             self._undock_action.setDisabled(True)
@@ -395,7 +398,7 @@ class BasePluginWidgetMixin(object):
         """
         Setup Options menu, create toggle action and connect some signals.
         """
-        self.create_toggle_view_action()
+        self._create_toggle_view_action()
 
         self.plugin_actions = self.get_plugin_actions() + [MENU_SEPARATOR,
                                                            self._undock_action]
@@ -403,7 +406,7 @@ class BasePluginWidgetMixin(object):
         self.options_button.setMenu(self._options_menu)
         self._options_menu.aboutToShow.connect(self.refresh_actions)
 
-        self.sig_update_plugin_title.connect(self.update_plugin_title)
+        self.sig_update_plugin_title.connect(self._update_plugin_title)
         self.setWindowTitle(self.get_plugin_title())
 
     def _register_shortcut(self, qaction_or_qshortcut, context, name,

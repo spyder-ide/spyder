@@ -60,7 +60,7 @@ def projects(qtbot, mocker):
     mocker.patch.object(spyder.plugins.base.SpyderDockWidget,
                         'install_tab_event_filter')
     mocker.patch.object(projects, 'toggle_view_action')
-    projects.create_dockwidget()
+    projects._create_dockwidget()
 
     # This can only be done at this point
     projects.main = MainWindowMock()
