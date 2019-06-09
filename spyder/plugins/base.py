@@ -41,9 +41,9 @@ class BasePluginMixin(object):
         # Check compatibility
         check_compatibility, message = self.check_compatibility()
 
-        self.is_compatible = True
+        self._is_compatible = True
         if not check_compatibility:
-            self.is_compatible = False
+            self._is_compatible = False
             self._show_compatibility_message(message)
 
     def _set_option(self, option, value):
@@ -107,7 +107,7 @@ class PluginWindow(QMainWindow):
         self.plugin.dockwidget.setVisible(True)
         self.plugin.switch_to_plugin()
         QMainWindow.closeEvent(self, event)
-        self.plugin.undocked_window = None
+        self.plugin._undocked_window = None
 
 
 class BasePluginWidgetMixin(object):
@@ -115,9 +115,9 @@ class BasePluginWidgetMixin(object):
     Implementation of the basic functionality for Spyder plugin widgets.
     """
 
-    ALLOWED_AREAS = Qt.AllDockWidgetAreas
-    LOCATION = Qt.LeftDockWidgetArea
-    FEATURES = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetMovable
+    _ALLOWED_AREAS = Qt.AllDockWidgetAreas
+    _LOCATION = Qt.LeftDockWidgetArea
+    _FEATURES = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetMovable
 
     def __init__(self, parent=None):
         super(BasePluginWidgetMixin, self).__init__()
@@ -126,14 +126,16 @@ class BasePluginWidgetMixin(object):
         # visible in Spyder
         self.dockwidget = None
 
+        # Actions to add to the Options menu
+        self.plugin_actions = None
+
         # Attribute to keep track if the plugin is undocked in a
         # separate window
-        self.undocked_window = None
+        self._undocked_window = None
 
-        self.default_margins = None
-        self.plugin_actions = None
         self.ismaximized = False
-        self.isvisible = False
+        self._default_margins = None
+        self._isvisible = False
 
         # Options buttons
         self.options_button = create_toolbutton(self, text=_('Options'),
@@ -150,7 +152,7 @@ class BasePluginWidgetMixin(object):
                 "QToolButton::menu-indicator{image: none;}")
 
         # Options menu
-        self.options_menu = QMenu(self)
+        self._options_menu = QMenu(self)
 
         # NOTE: Don't use the default option of CONF.get to assign a
         # None shortcut to plugins that don't have one. That will mess
@@ -167,23 +169,23 @@ class BasePluginWidgetMixin(object):
         self.toggle_view_action = None
 
         # Default actions for Options menu
-        self.dock_action = create_action(self,
-                                         _("Dock"),
-                                         icon=ima.icon('dock'),
-                                         tip=_("Dock the pane"),
-                                         triggered=self.close_window)
+        self._dock_action = create_action(self,
+                                          _("Dock"),
+                                          icon=ima.icon('dock'),
+                                          tip=_("Dock the pane"),
+                                          triggered=self.close_window)
 
-        self.undock_action = create_action(self,
-                                           _("Undock"),
-                                           icon=ima.icon('undock'),
-                                           tip=_("Undock the pane"),
-                                           triggered=self.create_window)
+        self._undock_action = create_action(self,
+                                            _("Undock"),
+                                            icon=ima.icon('undock'),
+                                            tip=_("Undock the pane"),
+                                            triggered=self.create_window)
 
-        self.close_plugin_action = create_action(self,
-                                                 _("Close"),
-                                                 icon=ima.icon('close_pane'),
-                                                 tip=_("Close the pane"),
-                                                 triggered=self.plugin_closed)
+        self._close_plugin_action = create_action(self,
+                                                  _("Close"),
+                                                  icon=ima.icon('close_pane'),
+                                                  tip=_("Close the pane"),
+                                                  triggered=self.plugin_closed)
 
     def initialize_plugin_in_mainwindow_layout(self):
         """
@@ -203,20 +205,20 @@ class BasePluginWidgetMixin(object):
     def update_margins(self):
         """Update plugin margins"""
         layout = self.layout()
-        if self.default_margins is None:
-            self.default_margins = layout.getContentsMargins()
+        if self._default_margins is None:
+            self._default_margins = layout.getContentsMargins()
         if CONF.get('main', 'use_custom_margin'):
             margin = CONF.get('main', 'custom_margin')
             layout.setContentsMargins(*[margin]*4)
         else:
-            layout.setContentsMargins(*self.default_margins)
+            layout.setContentsMargins(*self._default_margins)
 
     def update_plugin_title(self):
         """Update plugin title, i.e. dockwidget or window title"""
         if self.dockwidget is not None:
             win = self.dockwidget
-        elif self.undocked_window is not None:
-            win = self.undocked_window
+        elif self._undocked_window is not None:
+            win = self._undocked_window
         else:
             return
         win.setWindowTitle(self.get_plugin_title())
@@ -228,8 +230,8 @@ class BasePluginWidgetMixin(object):
 
         # Set properties
         dock.setObjectName(self.__class__.__name__+"_dw")
-        dock.setAllowedAreas(self.ALLOWED_AREAS)
-        dock.setFeatures(self.FEATURES)
+        dock.setAllowedAreas(self._ALLOWED_AREAS)
+        dock.setFeatures(self._FEATURES)
         dock.setWidget(self)
         self.update_margins()
         dock.visibilityChanged.connect(self.visibility_changed)
@@ -240,7 +242,7 @@ class BasePluginWidgetMixin(object):
             sc = QShortcut(QKeySequence(self.shortcut), self.main,
                             self.switch_to_plugin)
             self.register_shortcut(sc, "_", "Switch to %s" % self.CONF_SECTION)
-        return (dock, self.LOCATION)
+        return (dock, self._LOCATION)
 
     def create_configwidget(self, parent):
         """Create configuration dialog box page widget"""
@@ -320,19 +322,19 @@ class BasePluginWidgetMixin(object):
     @Slot()
     def close_window(self):
         """Close QMainWindow instance that contains this plugin."""
-        if self.undocked_window is not None:
-            self.undocked_window.close()
-            self.undocked_window = None
+        if self._undocked_window is not None:
+            self._undocked_window.close()
+            self._undocked_window = None
 
             # Oddly, these actions can appear disabled after the Dock
             # action is pressed
-            self.undock_action.setDisabled(False)
-            self.close_plugin_action.setDisabled(False)
+            self._undock_action.setDisabled(False)
+            self._close_plugin_action.setDisabled(False)
 
     @Slot()
     def create_window(self):
         """Create a QMainWindow instance containing this plugin."""
-        self.undocked_window = window = PluginWindow(self)
+        self._undocked_window = window = PluginWindow(self)
         window.setAttribute(Qt.WA_DeleteOnClose)
         icon = self.get_plugin_icon()
         if is_text_string(icon):
@@ -352,9 +354,9 @@ class BasePluginWidgetMixin(object):
     def on_top_level_changed(self, top_level):
         """Actions to perform when a plugin is undocked to be moved."""
         if top_level:
-            self.undock_action.setDisabled(True)
+            self._undock_action.setDisabled(True)
         else:
-            self.undock_action.setDisabled(False)
+            self._undock_action.setDisabled(False)
 
     def _visibility_changed(self, enable):
         """Dock widget visibility has changed."""
@@ -363,31 +365,31 @@ class BasePluginWidgetMixin(object):
         if enable:
             self.dockwidget.raise_()
             widget = self.get_focus_widget()
-            if widget is not None and self.undocked_window is not None:
+            if widget is not None and self._undocked_window is not None:
                 widget.setFocus()
         visible = self.dockwidget.isVisible() or self.ismaximized
         if self.DISABLE_ACTIONS_WHEN_HIDDEN:
             toggle_actions(self.plugin_actions, visible)
-        self.isvisible = enable and visible
-        if self.isvisible:
+        self._isvisible = enable and visible
+        if self._isvisible:
             self.refresh_plugin()   # To give focus to the plugin's widget
 
     def _refresh_actions(self):
         """Refresh Options menu."""
-        self.options_menu.clear()
+        self._options_menu.clear()
 
         # Decide what additional actions to show
-        if self.undocked_window is None:
+        if self._undocked_window is None:
             additional_actions = [MENU_SEPARATOR,
-                                  self.undock_action,
-                                  self.close_plugin_action]
+                                  self._undock_action,
+                                  self._close_plugin_action]
         else:
             additional_actions = [MENU_SEPARATOR,
-                                  self.dock_action]
+                                  self._dock_action]
 
         # Create actions list
         self.plugin_actions = self.get_plugin_actions() + additional_actions
-        add_actions(self.options_menu, self.plugin_actions)
+        add_actions(self._options_menu, self.plugin_actions)
 
     def _initialize_plugin(self):
         """
@@ -396,10 +398,10 @@ class BasePluginWidgetMixin(object):
         self.create_toggle_view_action()
 
         self.plugin_actions = self.get_plugin_actions() + [MENU_SEPARATOR,
-                                                           self.undock_action]
-        add_actions(self.options_menu, self.plugin_actions)
-        self.options_button.setMenu(self.options_menu)
-        self.options_menu.aboutToShow.connect(self.refresh_actions)
+                                                           self._undock_action]
+        add_actions(self._options_menu, self.plugin_actions)
+        self.options_button.setMenu(self._options_menu)
+        self._options_menu.aboutToShow.connect(self.refresh_actions)
 
         self.sig_update_plugin_title.connect(self.update_plugin_title)
         self.setWindowTitle(self.get_plugin_title())

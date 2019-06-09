@@ -1330,7 +1330,7 @@ class MainWindow(QMainWindow):
                 plugin.dockwidget.raise_()
 
         # Show history file if no console is visible
-        if not self.ipyconsole.isvisible:
+        if not self.ipyconsole._isvisible:
             self.historylog.add_history(get_conf_path('history.py'))
 
         if self.open_project:
@@ -2344,7 +2344,7 @@ class MainWindow(QMainWindow):
 
     def add_dockwidget(self, child):
         """Add QDockWidget and toggleViewAction"""
-        if child.is_compatible:
+        if child._is_compatible:
             dockwidget, location = child.create_dockwidget()
             if CONF.get('main', 'vertical_dockwidget_titlebars'):
                 dockwidget.setFeatures(dockwidget.features()|
@@ -2885,7 +2885,7 @@ class MainWindow(QMainWindow):
     def apply_panes_settings(self):
         """Update dockwidgets features settings"""
         for plugin in (self.widgetlist + self.thirdparty_plugins):
-            features = plugin.FEATURES
+            features = plugin._FEATURES
             if CONF.get('main', 'vertical_dockwidget_titlebars'):
                 features = features | QDockWidget.DockWidgetVerticalTitleBar
             plugin.dockwidget.setFeatures(features)

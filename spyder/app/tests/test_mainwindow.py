@@ -235,21 +235,21 @@ def test_default_plugin_actions(main_window, qtbot):
     file_explorer = main_window.explorer
 
     # Undock action
-    file_explorer.undock_action.triggered.emit(True)
+    file_explorer._undock_action.triggered.emit(True)
     qtbot.wait(500)
     assert not file_explorer.dockwidget.isVisible()
-    assert file_explorer.undocked_window is not None
-    assert isinstance(file_explorer.undocked_window, PluginWindow)
-    assert file_explorer.undocked_window.centralWidget() == file_explorer
+    assert file_explorer._undocked_window is not None
+    assert isinstance(file_explorer._undocked_window, PluginWindow)
+    assert file_explorer._undocked_window.centralWidget() == file_explorer
 
     # Dock action
-    file_explorer.dock_action.triggered.emit(True)
+    file_explorer._dock_action.triggered.emit(True)
     qtbot.wait(500)
     assert file_explorer.dockwidget.isVisible()
-    assert file_explorer.undocked_window is None
+    assert file_explorer._undocked_window is None
 
     # Close action
-    file_explorer.close_plugin_action.triggered.emit(True)
+    file_explorer._close_plugin_action.triggered.emit(True)
     qtbot.wait(500)
     assert not file_explorer.dockwidget.isVisible()
     assert not file_explorer.toggle_view_action.isChecked()

@@ -183,8 +183,7 @@ class Console(SpyderPluginWidget):
                                   exteditor_action))
                     
         plugin_actions = [None, run_action, environ_action, syspath_action,
-                          option_menu, MENU_SEPARATOR, quit_action,
-                          self.undock_action]
+                          option_menu, MENU_SEPARATOR, quit_action]
 
         return plugin_actions
     

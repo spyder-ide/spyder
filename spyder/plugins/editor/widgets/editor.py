@@ -1349,11 +1349,12 @@ class EditorStack(QWidget):
             actions += [MENU_SEPARATOR, self.new_window_action,
                         close_window_action]
         elif plugin is not None:
-            if plugin.undocked_window is not None:
-                actions += [MENU_SEPARATOR, plugin.dock_action]
+            if plugin._undocked_window is not None:
+                actions += [MENU_SEPARATOR, plugin._dock_action]
             else:
                 actions += [MENU_SEPARATOR, self.new_window_action,
-                            plugin.undock_action, plugin.close_plugin_action]
+                            plugin._undock_action,
+                            plugin._close_plugin_action]
 
         return actions
 
@@ -3008,13 +3009,13 @@ class EditorMainWindow(QMainWindow):
 
     def closeEvent(self, event):
         """Reimplement Qt method"""
-        if self.plugin.undocked_window is not None:
+        if self.plugin._undocked_window is not None:
             self.plugin.dockwidget.setWidget(self.plugin)
             self.plugin.dockwidget.setVisible(True)
         self.plugin.switch_to_plugin()
         QMainWindow.closeEvent(self, event)
-        if self.plugin.undocked_window is not None:
-            self.plugin.undocked_window = None
+        if self.plugin._undocked_window is not None:
+            self.plugin._undocked_window = None
 
     def get_layout_settings(self):
         """Return layout state"""
@@ -3052,10 +3053,10 @@ class EditorPluginExample(QSplitter):
     def __init__(self):
         QSplitter.__init__(self)
 
-        self.dock_action = None
-        self.undock_action = None
-        self.close_plugin_action = None
-        self.undocked_window = None
+        self._dock_action = None
+        self._undock_action = None
+        self._close_plugin_action = None
+        self._undocked_window = None
         menu_actions = []
 
         self.editorstacks = []

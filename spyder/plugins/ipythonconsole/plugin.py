@@ -130,7 +130,8 @@ class IPythonConsole(SpyderPluginWidget):
                 os.makedirs(osp.join(test_dir))
 
         layout = QVBoxLayout()
-        self.tabwidget = Tabs(self, menu=self.options_menu, actions=self.menu_actions,
+        self.tabwidget = Tabs(self, menu=self._options_menu,
+                              actions=self.menu_actions,
                               rename_tabs=True,
                               split_char='/', split_index=0)
         if hasattr(self.tabwidget, 'setDocumentMode')\
