@@ -17,7 +17,7 @@ import sys
 
 # Third party imports
 from qtpy.compat import getopenfilename
-from qtpy.QtCore import Qt, Signal
+from qtpy.QtCore import Qt, QSize, Signal
 from qtpy.QtGui import QCursor, QIcon
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QHBoxLayout, QInputDialog, QLabel, QLineEdit,
@@ -178,13 +178,26 @@ def get_linux_applications():
     # See:
     # https://standards.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html
     # https://askubuntu.com/questions/433609/how-can-i-list-all-applications-installed-in-my-system
+    from xdg.DesktopEntry import DesktopEntry
+
     apps = {}
     desktop_app_paths = [
-        '/usr/share/applications/*.desktop',
-        '~/.local/share/applications/*.desktop',
+        '/usr/share/**/*.desktop',
+        '~/.local/share/**/*.desktop',
     ]
+    entries = []
     for path in desktop_app_paths:
         files = glob.glob(path)
+        for fname in files:
+            try:
+                entries.append(DesktopEntry(fname))
+            except:
+                pass
+
+    for entry in sorted(entries, key=lambda x: x.getName()):
+        if not entry.getHidden() and entry.getType() == 'Application':
+            apps[entry.getName()] = (entry.getIcon(), entry.getExec())
+            # print(entry.getName(), entry.getExec())
 
     return apps
 
@@ -251,6 +264,7 @@ class ApplicationsDialog(QDialog):
         # Widget setup
         self.setWindowTitle(_('Applications dialog'))
         self.edit_filter.setPlaceholderText(_('Type to filter by name...'))
+        self.list.setIconSize(QSize(16, 16))
 
         # Layout
         layout = QVBoxLayout()
@@ -261,7 +275,7 @@ class ApplicationsDialog(QDialog):
         layout_browse.addWidget(self.button_browse)
         layout_browse.addWidget(self.label_browse)
         layout.addLayout(layout_browse)
-        layout.addStretch()
+        layout.addSpacing(12)
         layout.addWidget(self.button_box)
         self.setLayout(layout)
 
@@ -280,16 +294,16 @@ class ApplicationsDialog(QDialog):
         apps = get_installed_applications()
         for app in sorted(apps):
             icon_path, fpath = apps[app]
-            if icon_path:
-                try:
-                    icon = QIcon(icon_path)
-                except:
-                    icon = ima.icon('help')    
-            else:
-                icon = ima.icon('help')
-            if os.name == 'nt':
+            if icon_path and os.path.isfile(icon_path):
+                icon = QIcon(icon_path)
                 if not icon_path.endswith('.ico'):
                     icon = ima.icon('help')
+            else:
+                if icon_path and sys.platform.startswith('linux'):
+                    icon = QIcon.fromTheme(icon_path)
+                else:
+                    icon = ima.icon('help')
+
             item = QListWidgetItem(icon, app)
             item.fpath = fpath
             self.list.addItem(item)
@@ -335,7 +349,33 @@ class ApplicationsDialog(QDialog):
                 else:
                     icon = ima.icon('help')
         else:
-            pass
+            basedir = '/'
+            filters = _('Applications (*.desktop)')
+            title = _('Select application')
+            filename, __ = getopenfilename(self, title, basedir, filters)
+
+            if filename and filename.endswith(('.desktop')):
+                from xdg.DesktopEntry import DesktopEntry
+
+                try:
+                    entry = DesktopEntry(filename)
+                    app = entry.getName()
+                    fpath = entry.getExec()
+                    icon = entry.getIcon()
+                    for row in range(self.list.count()):
+                        item = self.list.item(row)
+                        if app == item.text() and fpath == item.fpath:
+                            break
+                    else:
+                        if icon:
+                            if os.path.isfile(icon):
+                                icon = QIcon(icon)
+                            else:
+                                icon = QIcon.fromTheme(icon)
+                        else:
+                            icon = ima.icon('help')
+                except:
+                    filename = None
 
         if filename:
             item = QListWidgetItem(icon, app)

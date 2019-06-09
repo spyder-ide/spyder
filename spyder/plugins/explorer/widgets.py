@@ -625,13 +625,58 @@ class DirView(QTreeView):
     @Slot()
     def open_association(self, app_path):
         """Open files with given application executable path."""
-        fnames = self.get_selected_filenames()
-        if sys.platform == 'darwin':
-            subprocess.call(['open', '-a', app_path] + fnames)
-        if os.name == 'nt':
-            subprocess.call([app_path] + fnames)
-        else:
-            pass
+        if app_path:
+            fnames = self.get_selected_filenames()
+
+            # Add quotes as needed
+            new_fnames = []
+            for fname in fnames:
+                if ' ' in fname:
+                    new_fnames.append(repr(fname))
+                else:
+                    new_fnames.append(fname)
+            fnames = new_fnames
+
+            if sys.platform == 'darwin':
+                subprocess.call(['open', '-a', app_path] + fnames)
+            if os.name == 'nt':
+                subprocess.call([app_path] + fnames)
+            else:
+                multi = []
+                extra = []
+                if len(fnames) == 1:
+                    fname = fnames[0]
+                    if '%u' in app_path:
+                        cmd = app_path.replace('%u', fname)
+                    elif '%f' in app_path:
+                        cmd = app_path.replace('%f', fname)
+                    elif '%U' in app_path:
+                        cmd = app_path.replace('%U', fname)
+                    elif '%F' in app_path:
+                        cmd = app_path.replace('%F', fname)
+                    else:
+                        cmd = app_path
+                        extra = fnames
+                elif len(fnames) > 1:
+                    if '%U' in app_path:
+                        cmd = app_path.replace('%U', ' '.join(fnames))
+                    elif '%F' in app_path:
+                        cmd = app_path.replace('%F', ' '.join(fnames))
+                    if '%u' in app_path:
+                        for fname in fnames:
+                            multi.append(app_path.replace('%u', fname))
+                    elif '%f' in app_path:
+                        for fname in fnames:
+                            multi.append(app_path.replace('%f', fname))
+                    else:
+                        cmd = app_path
+                        extra = fnames
+
+                if multi:
+                    for cmd in multi:
+                        subprocess.call([cmd], shell=True)
+                else:
+                    subprocess.call([cmd] + extra, shell=True)
 
     @Slot()
     def open_external(self, fnames=None):
