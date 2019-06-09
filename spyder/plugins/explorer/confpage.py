@@ -67,7 +67,7 @@ class ExplorerConfigPage(PluginConfigPage):
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(general_widget), _("General"))
         tabs.addTab(self.create_tab(associations_widget),
-                                    _("File associations"))
+                    _("File associations"))
 
         tab_layout = QVBoxLayout()
         tab_layout.addWidget(tabs)

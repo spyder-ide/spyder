@@ -43,6 +43,7 @@ from spyder.utils import encoding, misc, programs, vcs
 from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
                                     create_plugin_layout)
 from spyder.utils.misc import getcwd_or_home
+from spyder.widgets.fileassociations import parse_linux_desktop_entry
 
 try:
     from nbconvert import PythonExporter as nbexporter
@@ -422,7 +423,7 @@ class DirView(QTreeView):
                     self, _("Default external application"),
                     triggered=self.open_external)
                 open_with_actions.append(open_external_action_2)
-                add_actions(open_with_menu, open_with_actions)                
+                add_actions(open_with_menu, open_with_actions)
             else:
                 actions.append(open_external_action)
 
@@ -450,11 +451,11 @@ class DirView(QTreeView):
 
         dirname = fnames[0] if osp.isdir(fnames[0]) else osp.dirname(fnames[0])
         if len(fnames) == 1:
+            # VCS support is quite limited for now, so we are enabling the VCS
+            # related actions only when a single file/folder is selected:
             if vcs.is_vcs_repository(dirname):
-                # VCS support is quite limited for now, so we are enabling the VCS
-                # related actions only when a single file/folder is selected:
-                commit_slot = lambda : self.vcs_command([dirname], 'commit')
-                browse_slot = lambda : self.vcs_command([dirname], 'browse')
+                commit_slot = lambda: self.vcs_command([dirname], 'commit')
+                browse_slot = lambda: self.vcs_command([dirname], 'browse')
                 vcs_ci = create_action(self, _("Commit"),
                                        icon=ima.icon('vcs_commit'),
                                        triggered=commit_slot)
@@ -642,6 +643,8 @@ class DirView(QTreeView):
             if os.name == 'nt':
                 subprocess.call([app_path] + fnames)
             else:
+                entry = parse_linux_desktop_entry(app_path)
+                app_path = entry['exec']
                 multi = []
                 extra = []
                 if len(fnames) == 1:

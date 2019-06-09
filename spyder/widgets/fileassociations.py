@@ -17,26 +17,41 @@ import sys
 
 # Third party imports
 from qtpy.compat import getopenfilename
-from qtpy.QtCore import Qt, QSize, Signal
+from qtpy.QtCore import QSize, Qt, Signal
 from qtpy.QtGui import QCursor, QIcon
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QHBoxLayout, QInputDialog, QLabel, QLineEdit,
                             QListWidget, QListWidgetItem, QPushButton,
                             QVBoxLayout, QWidget)
-
 # Local imports
 from spyder.config.base import _
-from spyder.config.main import CONF
 from spyder.utils import icon_manager as ima
 
 
-if os.name == 'nt':
-    import winreg
+def parse_linux_desktop_entry(fpath):
+    """Load data from desktop entry with xdg specification."""
+    from xdg.DesktopEntry import DesktopEntry
 
+    try:
+        entry = DesktopEntry(fpath)
+        entry_data = {}
+        entry_data['name'] = entry.getName()
+        entry_data['icon_path'] = entry.getIcon()
+        entry_data['exec'] = entry.getExec()
+        entry_data['type'] = entry.getType()
+        entry_data['hidden'] = entry.getHidden()
+        entry_data['fpath'] = fpath
+    except Exception:
+        entry_data = {
+            'name': '',
+            'icon_path': '',
+            'hidden': '',
+            'exec': '',
+            'type': '',
+            'fpath': fpath
+        }
 
-def get_win_application_icon_path(fpath):
-    """"""
-    pass
+    return entry_data
 
 
 def get_mac_application_icon_path(app_bundle_path):
@@ -50,7 +65,7 @@ def get_mac_application_icon_path(app_bundle_path):
         try:
             # readPlist is deprecated but needed for py27 compat
             pl = plistlib.readPlist(info_path)
-        except:
+        except Exception:
             # TODO: Add the specific errors to catch
             pass
 
@@ -67,10 +82,12 @@ def get_mac_application_icon_path(app_bundle_path):
 def get_username():
     """Return current session username."""
     if os.name == 'nt':
-        return
+        username = os.getlogin()
     else:
         import pwd
-        return pwd.getpwuid(os.getuid())[0]
+        username = pwd.getpwuid(os.getuid())[0]
+
+    return username
 
 
 def get_win_reg_info(key_path, hive, flag, subkeys):
@@ -78,6 +95,8 @@ def get_win_reg_info(key_path, hive, flag, subkeys):
     See:
     https://stackoverflow.com/questions/53132434/list-of-installed-programs
     """
+    import winreg
+
     reg = winreg.ConnectRegistry(None, hive)
     software_list = []
     try:
@@ -90,7 +109,6 @@ def get_win_reg_info(key_path, hive, flag, subkeys):
                 subkey_name = winreg.EnumKey(key, index)
                 if not (subkey_name.startswith('{')
                         and subkey_name.endswith('}')):
-                    # print(subkey_name)
                     software['key'] = subkey_name
                     subkey = winreg.OpenKey(key, subkey_name)
                     for property in subkeys:
@@ -102,7 +120,7 @@ def get_win_reg_info(key_path, hive, flag, subkeys):
                     software_list.append(software)
             except EnvironmentError:
                 continue
-    except:
+    except Exception:
         pass
 
     return software_list
@@ -110,6 +128,8 @@ def get_win_reg_info(key_path, hive, flag, subkeys):
 
 def get_win_applications():
     """Return all system installed windows applications."""
+    import winreg
+
     # See:
     # https://docs.microsoft.com/en-us/windows/desktop/shell/app-registration
     key_path = 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths'
@@ -143,25 +163,25 @@ def get_win_applications():
         location = software['InstallLocation']
         name = software['DisplayName']
         icon = software['DisplayIcon']
-        
         key = software['key']
         if name and icon:
             icon = icon.replace('"', '').replace("'", '')
             icon = icon.split(',')[0]
 
             if location == '' and icon:
-               location = os.path.dirname(icon)
+                location = os.path.dirname(icon)
 
             if not os.path.isfile(icon):
-                icon = ''            
-               
+                icon = ''
+
             if location and os.path.isdir(location):
                 files = [f for f in os.listdir(location)
                          if os.path.isfile(os.path.join(location, f))]
                 if files:
                     for fname in files:
-                        if (fname.lower().endswith(('.exe', '.com', '.bat')) 
-                               and not fname.lower().startswith('unins')):
+                        fn_low = fname.lower()
+                        valid_file = fn_low.endswith(('.exe', '.com', '.bat'))
+                        if valid_file and not fn_low.startswith('unins'):
                             fpath = os.path.join(location, fname)
                             apps[name + ' (' + fname + ')'] = (icon.lower(),
                                                                fpath.lower())
@@ -169,7 +189,8 @@ def get_win_applications():
     values = list(zip(*apps.values()))[-1]
     for name, fpath in app_paths.items():
         if fpath not in values:
-            apps[name] = (fpath, fpath)
+            apps[name] = fpath
+
     return apps
 
 
@@ -178,26 +199,21 @@ def get_linux_applications():
     # See:
     # https://standards.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html
     # https://askubuntu.com/questions/433609/how-can-i-list-all-applications-installed-in-my-system
-    from xdg.DesktopEntry import DesktopEntry
-
     apps = {}
     desktop_app_paths = [
         '/usr/share/**/*.desktop',
         '~/.local/share/**/*.desktop',
     ]
-    entries = []
+    all_entries_data = []
     for path in desktop_app_paths:
-        files = glob.glob(path)
-        for fname in files:
-            try:
-                entries.append(DesktopEntry(fname))
-            except:
-                pass
+        fpaths = glob.glob(path)
+        for fpath in fpaths:
+            entry_data = parse_linux_desktop_entry(fpath)
+            all_entries_data.append(entry_data)
 
-    for entry in sorted(entries, key=lambda x: x.getName()):
-        if not entry.getHidden() and entry.getType() == 'Application':
-            apps[entry.getName()] = (entry.getIcon(), entry.getExec())
-            # print(entry.getName(), entry.getExec())
+    for entry_data in sorted(all_entries_data, key=lambda x: x['name']):
+        if not entry_data['hidden'] and entry_data['type'] == 'Application':
+            apps[entry_data['name']] = entry_data['fpath']
 
     return apps
 
@@ -205,7 +221,10 @@ def get_linux_applications():
 def get_mac_applications():
     """Return all system installed osx applications."""
     apps = {}
-    folders = ['/Applications', '/Users/{}/Applications/'.format(get_username())]
+    folders = [
+        '/Applications',
+        '/Users/{}/Applications/'.format(get_username())
+    ]
 
     # Checking for applications on the top level and on any subfolder
     sub_folders = []
@@ -219,9 +238,30 @@ def get_mac_applications():
             if item.endswith('.app'):
                 fpath = os.path.join(folder, item)
                 name = item.split('.app')[0]
-                icon = get_mac_application_icon_path(fpath)
-                apps[name] = (icon, fpath)
+                apps[name] = fpath
+
     return apps
+
+
+def get_application_icon(fpath):
+    """Return application icon or default icon if not found."""
+    icon = ima.icon('help')
+    if sys.platform == 'darwin':
+        icon_path = get_mac_application_icon_path(fpath)
+        if icon_path and os.path.isfile(icon_path):
+            icon = QIcon(icon_path)
+    elif os.name == 'nt':
+        pass
+    else:
+        entry_data = parse_linux_desktop_entry(fpath)
+        icon_path = entry_data['icon_path']
+        if icon_path:
+            if os.path.isfile(icon_path):
+                icon = QIcon(icon_path)
+            else:
+                icon = QIcon.fromTheme(icon_path)
+
+    return icon
 
 
 def get_installed_applications():
@@ -229,9 +269,8 @@ def get_installed_applications():
     Return all system installed applications.
 
     The return value is a list of tuples where the first item is the icon path
-    and the second item is the program executable path. 
+    and the second item is the program executable path.
     """
-
     apps = {}
     if sys.platform == 'darwin':
         apps = get_mac_applications()
@@ -264,7 +303,7 @@ class ApplicationsDialog(QDialog):
         # Widget setup
         self.setWindowTitle(_('Applications dialog'))
         self.edit_filter.setPlaceholderText(_('Type to filter by name...'))
-        self.list.setIconSize(QSize(16, 16))
+        self.list.setIconSize(QSize(16, 16))  # FIXME: Use metrics
 
         # Layout
         layout = QVBoxLayout()
@@ -275,13 +314,13 @@ class ApplicationsDialog(QDialog):
         layout_browse.addWidget(self.button_browse)
         layout_browse.addWidget(self.label_browse)
         layout.addLayout(layout_browse)
-        layout.addSpacing(12)
+        layout.addSpacing(12)  # FIXME: Use metrics
         layout.addWidget(self.button_box)
         self.setLayout(layout)
 
         # Signals
         self.edit_filter.textChanged.connect(self.filter)
-        self.button_browse.clicked.connect(self.browse)
+        self.button_browse.clicked.connect(lambda x: self.browse())
         self.button_ok.clicked.connect(self.accept)
         self.button_cancel.clicked.connect(self.reject)
 
@@ -293,97 +332,71 @@ class ApplicationsDialog(QDialog):
         self.list.clear()
         apps = get_installed_applications()
         for app in sorted(apps):
-            icon_path, fpath = apps[app]
-            if icon_path and os.path.isfile(icon_path):
-                icon = QIcon(icon_path)
-                if not icon_path.endswith('.ico'):
-                    icon = ima.icon('help')
-            else:
-                if icon_path and sys.platform.startswith('linux'):
-                    icon = QIcon.fromTheme(icon_path)
-                else:
-                    icon = ima.icon('help')
-
+            fpath = apps[app]
+            icon = get_application_icon(fpath)
             item = QListWidgetItem(icon, app)
             item.fpath = fpath
             self.list.addItem(item)
+
+        # FIXME: Use metrics
         self.list.setMinimumWidth(self.list.sizeHintForColumn(0) + 24)
         QApplication.restoreOverrideCursor()
 
-    def browse(self):
+    def browse(self, fpath=None):
         """Prompt user to select an application not found on the list."""
         item = None
-        filename = None
+
         if sys.platform == 'darwin':
             basedir = '/Applications/'
             filters = _('Applications (*.app)')
             title = _('Select application')
-            filename, __ = getopenfilename(self, title, basedir, filters)
 
-            if filename and filename.endswith('.app'):
-                fpath = filename
-                app = os.path.basename(filename).split('.app')[0]
+            if fpath is None:
+                fpath, __ = getopenfilename(self, title, basedir, filters)
+
+            if fpath and fpath.endswith('.app'):
+                app = os.path.basename(fpath).split('.app')[0]
                 for row in range(self.list.count()):
                     item = self.list.item(row)
                     if app == item.text() and fpath == item.fpath:
                         break
-                else:
-                    icon_path = get_mac_application_icon_path(fpath)
-                    icon = QIcon(icon_path) if icon_path else ima.icon('help')
-                    item = QListWidgetItem(icon, app)
-                    item.fpath = fpath
-                    self.list.addItem(item)
         elif os.name == 'nt':
             basedir = 'C:\\'
             filters = _('Applications (*.exe *.bat *.com)')
             title = _('Select application')
-            filename, __ = getopenfilename(self, title, basedir, filters)
 
-            if filename and filename.endswith(('.exe', '.bat', '.com')):
-                fpath = filename
+            if fpath is None:
+                fpath, __ = getopenfilename(self, title, basedir, filters)
+
+            if fpath and fpath.endswith(('.exe', '.bat', '.com')):
                 app = os.path.basename(fpath).capitalize().rsplit('.')[0]
                 for row in range(self.list.count()):
                     item = self.list.item(row)
                     if app == item.text() and fpath == item.fpath:
                         break
-                else:
-                    icon = ima.icon('help')
         else:
             basedir = '/'
             filters = _('Applications (*.desktop)')
             title = _('Select application')
-            filename, __ = getopenfilename(self, title, basedir, filters)
 
-            if filename and filename.endswith(('.desktop')):
-                from xdg.DesktopEntry import DesktopEntry
+            if fpath is None:
+                fpath, __ = getopenfilename(self, title, basedir, filters)
 
-                try:
-                    entry = DesktopEntry(filename)
-                    app = entry.getName()
-                    fpath = entry.getExec()
-                    icon = entry.getIcon()
-                    for row in range(self.list.count()):
-                        item = self.list.item(row)
-                        if app == item.text() and fpath == item.fpath:
-                            break
-                    else:
-                        if icon:
-                            if os.path.isfile(icon):
-                                icon = QIcon(icon)
-                            else:
-                                icon = QIcon.fromTheme(icon)
-                        else:
-                            icon = ima.icon('help')
-                except:
-                    filename = None
-
-        if filename:
-            item = QListWidgetItem(icon, app)
-            item.fpath = fpath
-            self.list.addItem(item)
-
+            if fpath and fpath.endswith(('.desktop')):
+                entry_data = parse_linux_desktop_entry(fpath)
+                app = entry_data['name']
+                for row in range(self.list.count()):
+                    item = self.list.item(row)
+                    if app == item.text() and fpath == item.fpath:
+                        break
+        if fpath:
             if item:
                 self.list.setCurrentItem(item)
+            else:
+                icon = get_application_icon(fpath)
+                item = QListWidgetItem(icon, app)
+                item.fpath = fpath
+                self.list.addItem(item)
 
         self.list.setFocus()
 
@@ -420,7 +433,6 @@ class FileAssociationsWidget(QWidget):
 
         # Variables
         self._data = {}
-        self._initial_data = {}
         self._dlg_applications = None
 
         # Widgets
@@ -513,8 +525,7 @@ class FileAssociationsWidget(QWidget):
             if item and item.text().strip() == app_name:
                 break
         else:
-            icon_path = get_mac_application_icon_path(fpath)
-            icon = QIcon(icon_path) if icon_path else ima.icon('help')
+            icon = get_application_icon(fpath)
             item = QListWidgetItem(icon, app_name)
             self.list_applications.addItem(item)
             self.list_applications.setCurrentItem(item)
@@ -535,9 +546,11 @@ class FileAssociationsWidget(QWidget):
         Load file associations data.
 
         Format {'*.ext': [['Application Name', '/path/to/app/executable']]}
+
+        `/path/to/app/executable` is an executable app on mac and windows and
+        a .desktop xdg file on linux.
         """
         self._data = data
-        self._initial_data = data.copy()
         self._update_extensions()
 
     def add_association(self, slot=None, value=None):
@@ -547,13 +560,13 @@ class FileAssociationsWidget(QWidget):
                 self,
                 _('File association'),
                 (_('Enter new file association/extension') +
-                ' (e.g. <code>*.txt</code> or <code>name.ext</code>)'),
+                 ' (e.g. <code>*.txt</code> or <code>name.ext</code>)'),
                 QLineEdit.Normal,
                 "",
             )
         else:
-           text, ok_pressed = value, True
- 
+            text, ok_pressed = value, True
+
         if ok_pressed:
             self._data[text] = []
             self._add_association(text)
@@ -577,10 +590,10 @@ class FileAssociationsWidget(QWidget):
             self._dlg_applications.set_extension(self.current_extension)
 
             if self._dlg_applications.exec_():
+                app_name = self._dlg_applications.application_name
                 fpath = self._dlg_applications.application_path
-                app = self._dlg_applications.application_name
-                self._data[self.current_extension].append((app, fpath))
-                self._add_application(app, fpath)
+                self._data[self.current_extension].append((app_name, fpath))
+                self._add_application(app_name, fpath)
                 self.check_data_changed()
 
     def remove_application(self):
@@ -620,7 +633,7 @@ class FileAssociationsWidget(QWidget):
     def update_applications(self, row=None):
         """Update application list after additions or deletions."""
         self._refresh()
-        current_row =  self.list_applications.currentRow()
+        current_row = self.list_applications.currentRow()
         self.button_default.setEnabled(current_row != 0)
 
     def check_data_changed(self):
@@ -646,9 +659,15 @@ def test_widget():
     widget = FileAssociationsWidget()
     data = {
         '*.txt':
-            [('App name', 'path-to-app'), ('App name 2', 'path-to-app')],
+            [
+                ('App name 1', 'path-to-app'),
+                ('App name 2', 'path-to-app'),
+            ],
         '*.csv':
-            [('App name 2', 'path-to-app'), ('App name 5', 'path-to-app')],
+            [
+                ('App name 2', 'path-to-app'),
+                ('App name 5', 'path-to-app'),
+            ],
     }
     widget.load_values(data)
     widget.show()
