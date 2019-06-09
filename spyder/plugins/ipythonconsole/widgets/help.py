@@ -37,6 +37,16 @@ class HelpWidget(RichJupyterWidget):
         """
         return re.sub(r'\W|^(?=\d)', '_', var)
 
+    def get_documentation(self, content):
+        """Get documentation fron inspect reply content."""
+        data = content.get('data', {})
+        text = data.get('text/plain', '')
+        signature = self.get_signature(content)
+        if text:
+            documentation = text.split(signature)
+            if len(documentation) > 1:
+                return documentation[-1]
+
     def get_signature(self, content):
         """Get signature from inspect reply content"""
         data = content.get('data', {})
@@ -124,12 +134,14 @@ class HelpWidget(RichJupyterWidget):
         cursor = self._get_cursor()
         info = self._request_info.get('call_tip')
         if info and info.id == rep['parent_header']['msg_id'] and \
-          info.pos == cursor.position():
+                info.pos == cursor.position():
             content = rep['content']
             if content.get('status') == 'ok' and content.get('found', False):
                 signature = self.get_signature(content)
+                documentation = self.get_documentation(content)
                 if signature:
                     self._control.show_calltip(
                         signature,
+                        documentation=documentation,
                         language=self.language_name
                     )
