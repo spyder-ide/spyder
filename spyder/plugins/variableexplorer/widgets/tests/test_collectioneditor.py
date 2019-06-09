@@ -363,8 +363,9 @@ def test_editor_parent_set(monkeypatch):
     monkeypatch.setattr(attr_to_patch_textedit, MockTextEditor)
 
     MockObjectEditor = Mock()
-    attr_to_patch_objecteditor = ('spyder.plugins.variableexplorer.widgets.' +
-                                  'objecteditor2.objecteditor.ObjectBrowser')
+    attr_to_patch_objecteditor = (
+        'spyder.plugins.variableexplorer.widgets.' +
+        'objectexplorer.objectexplorer.ObjectExplorer')
     monkeypatch.setattr(attr_to_patch_objecteditor, MockObjectEditor)
 
     editor_data = [[0, 1, 2, 3, 4],
