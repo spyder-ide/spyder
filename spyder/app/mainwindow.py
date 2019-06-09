@@ -1569,7 +1569,7 @@ class MainWindow(QMainWindow):
             self.set_window_settings(*settings)
         else:
             if self.last_plugin:
-                if self.last_plugin.ismaximized:
+                if self.last_plugin._ismaximized:
                     self.maximize_dockwidget(restore=True)
 
             if not (self.isMaximized() or self.maximized_flag):
@@ -2424,7 +2424,7 @@ class MainWindow(QMainWindow):
             # Maximize last_plugin
             self.last_plugin.dockwidget.toggleViewAction().setDisabled(True)
             self.setCentralWidget(self.last_plugin)
-            self.last_plugin.ismaximized = True
+            self.last_plugin._ismaximized = True
 
             # Workaround to solve an issue with editor's outline explorer:
             # (otherwise the whole plugin is hidden and so is the outline explorer
@@ -2441,7 +2441,7 @@ class MainWindow(QMainWindow):
             self.last_plugin.dockwidget.setWidget(self.last_plugin)
             self.last_plugin.dockwidget.toggleViewAction().setEnabled(True)
             self.setCentralWidget(None)
-            self.last_plugin.ismaximized = False
+            self.last_plugin._ismaximized = False
             self.restoreState(self.state_before_maximizing)
             self.state_before_maximizing = None
             self.last_plugin.get_focus_widget().setFocus()

@@ -1847,12 +1847,10 @@ class Editor(SpyderPluginWidget):
                 editorwindow = self.editorwindows[0]
             editorwindow.setFocus()
             editorwindow.raise_()
-        elif (self.dockwidget and not self.ismaximized
+        elif (self.dockwidget and not self._ismaximized
               and not self.dockwidget.isAncestorOf(focus_widget)
               and not isinstance(focus_widget, CodeEditor)):
-            self.dockwidget.setVisible(True)
-            self.dockwidget.setFocus()
-            self.dockwidget.raise_()
+            self.switch_to_plugin()
 
         def _convert(fname):
             fname = osp.abspath(encoding.to_unicode_from_fs(fname))

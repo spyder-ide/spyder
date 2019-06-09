@@ -153,8 +153,6 @@ class Pylint(SpyderPluginWidget):
 
     def analyze(self, filename):
         """Reimplement analyze method"""
-        if self.dockwidget and not self.ismaximized:
-            self.dockwidget.setVisible(True)
-            self.dockwidget.setFocus()
-            self.dockwidget.raise_()
+        if self.dockwidget:
+            self.switch_to_plugin()
         self.pylint.analyze(filename)

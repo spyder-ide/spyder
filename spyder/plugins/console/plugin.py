@@ -269,9 +269,8 @@ class Console(SpyderPluginWidget):
         command = "runfile('%s', args='%s')" % (rbs(filename), rbs(args))
         if set_focus:
             self.shell.setFocus()
-        if self.dockwidget and not self.ismaximized:
-            self.dockwidget.setVisible(True)
-            self.dockwidget.raise_()
+        if self.dockwidget:
+            self.switch_to_plugin()
         self.shell.write(command+'\n')
         self.shell.run_command(command)
 

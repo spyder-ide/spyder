@@ -188,7 +188,7 @@ class Projects(SpyderPluginWidget):
         """Switch to plugin."""
         # Unmaxizime currently maximized plugin
         if (self.main.last_plugin is not None and
-                self.main.last_plugin.ismaximized and
+                self.main.last_plugin._ismaximized and
                 self.main.last_plugin is not self):
             self.main.maximize_dockwidget()
 

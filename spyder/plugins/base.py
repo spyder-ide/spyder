@@ -133,7 +133,7 @@ class BasePluginWidgetMixin(object):
         # separate window
         self._undocked_window = None
 
-        self.ismaximized = False
+        self._ismaximized = False
         self._default_margins = None
         self._isvisible = False
 
@@ -257,7 +257,7 @@ class BasePluginWidgetMixin(object):
     def switch_to_plugin(self):
         """Switch to plugin."""
         if (self.main.last_plugin is not None and
-                self.main.last_plugin.ismaximized and
+                self.main.last_plugin._ismaximized and
                 self.main.last_plugin is not self):
             self.main.maximize_dockwidget()
         if not self.toggle_view_action.isChecked():
@@ -370,7 +370,7 @@ class BasePluginWidgetMixin(object):
             widget = self.get_focus_widget()
             if widget is not None and self._undocked_window is not None:
                 widget.setFocus()
-        visible = self.dockwidget.isVisible() or self.ismaximized
+        visible = self.dockwidget.isVisible() or self._ismaximized
         if self.DISABLE_ACTIONS_WHEN_HIDDEN:
             toggle_actions(self.plugin_actions, visible)
         self._isvisible = enable and visible

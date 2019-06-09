@@ -94,13 +94,9 @@ class FindInFiles(SpyderPluginWidget):
         """Refresh current project path"""
         self.findinfiles.find_options.disable_project_search()
 
-    @Slot()
     def findinfiles_callback(self):
         """Find in files callback"""
         widget = QApplication.focusWidget()
-        if not self.ismaximized:
-            self.dockwidget.setVisible(True)
-            self.dockwidget.raise_()
         text = ''
         try:
             if widget.has_selected_text():
@@ -114,10 +110,14 @@ class FindInFiles(SpyderPluginWidget):
 
     #------ SpyderPluginMixin API ---------------------------------------------
     def switch_to_plugin(self):
-        """Switch to plugin
-        This method is called when pressing plugin's shortcut key"""
+        """
+        Switch to plugin.
+
+        This method is called when pressing the plugin shortcut.
+        """
+        if self.dockwidget:
+            super(FindInFiles, self).switch_to_plugin()
         self.findinfiles_callback()  # Necessary at least with PyQt5 on Windows
-        super(SpyderPluginWidget, self).switch_to_plugin()
 
     #------ SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
