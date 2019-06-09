@@ -10,10 +10,10 @@ File associations widget for use in global and project preferences.
 
 # Standard library imports
 from __future__ import print_function
+import glob
 import itertools
 import os
 import sys
-import winreg
 
 # Third party imports
 from qtpy.compat import getopenfilename
@@ -28,6 +28,10 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
 from spyder.config.base import _
 from spyder.config.main import CONF
 from spyder.utils import icon_manager as ima
+
+
+if os.name == 'nt':
+    import winreg
 
 
 def get_win_application_icon_path(fpath):
@@ -69,7 +73,11 @@ def get_username():
         return pwd.getpwuid(os.getuid())[0]
 
 
-def get_windows_registry_info(key_path, hive, flag, subkeys):
+def get_win_reg_info(key_path, hive, flag, subkeys):
+    """
+    See:
+    https://stackoverflow.com/questions/53132434/list-of-installed-programs
+    """
     reg = winreg.ConnectRegistry(None, hive)
     software_list = []
     try:
@@ -80,7 +88,8 @@ def get_windows_registry_info(key_path, hive, flag, subkeys):
             software = {}
             try:
                 subkey_name = winreg.EnumKey(key, index)
-                if not (subkey_name.startswith('{') and subkey_name.endswith('}')):
+                if not (subkey_name.startswith('{')
+                        and subkey_name.endswith('}')):
                     # print(subkey_name)
                     software['key'] = subkey_name
                     subkey = winreg.OpenKey(key, subkey_name)
@@ -101,7 +110,11 @@ def get_windows_registry_info(key_path, hive, flag, subkeys):
 
 def get_win_applications():
     """Return all system installed windows applications."""
-    key_path = r'SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths'
+    # See:
+    # https://docs.microsoft.com/en-us/windows/desktop/shell/app-registration
+    key_path = 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths'
+
+    # Hive and flags
     hfs = [
         (winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_32KEY),
         (winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_64KEY),
@@ -110,18 +123,21 @@ def get_win_applications():
     subkeys = [None]
     sort_key = 'key'
     app_paths = {}
-    _apps = [get_windows_registry_info(key_path, *hf, subkeys) for hf in hfs]
+    _apps = [get_win_reg_info(key_path, hf[0], hf[1], subkeys) for hf in hfs]
     software_list = itertools.chain(*_apps)
     for software in sorted(software_list, key=lambda x: x[sort_key]):
         if software[None]:
             key = software['key'].capitalize().replace('.exe', '')
             app_paths[key] = software[None].lower()
 
-    key_path = r'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall'
+    # See:
+    # https://www.blog.pythonlibrary.org/2010/03/03/finding-installed-software-using-python/
+    # https://stackoverflow.com/questions/53132434/list-of-installed-programs
+    key_path = 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall'
     subkeys = ['DisplayName', 'InstallLocation', 'DisplayIcon']
     sort_key = 'DisplayName'
     apps = {}
-    _apps = [get_windows_registry_info(key_path, *hf, subkeys) for hf in hfs]
+    _apps = [get_win_reg_info(key_path, hf[0], hf[1], subkeys) for hf in hfs]
     software_list = itertools.chain(*_apps)
     for software in sorted(software_list, key=lambda x: x[sort_key]):
         location = software['InstallLocation']
@@ -140,13 +156,15 @@ def get_win_applications():
                 icon = ''            
                
             if location and os.path.isdir(location):
-                files = [f for f in os.listdir(location) if os.path.isfile(os.path.join(location, f))]
+                files = [f for f in os.listdir(location)
+                         if os.path.isfile(os.path.join(location, f))]
                 if files:
                     for fname in files:
-                        if fname.lower().endswith(('.exe', '.com', '.bat')) and not fname.lower().startswith('unins'):
+                        if (fname.lower().endswith(('.exe', '.com', '.bat')) 
+                               and not fname.lower().startswith('unins')):
                             fpath = os.path.join(location, fname)
-                            apps[name + ' (' + fname + ')'] = (icon.lower(), fpath.lower())
-
+                            apps[name + ' (' + fname + ')'] = (icon.lower(),
+                                                               fpath.lower())
     # Join data
     values = list(zip(*apps.values()))[-1]
     for name, fpath in app_paths.items():
@@ -157,7 +175,17 @@ def get_win_applications():
 
 def get_linux_applications():
     """Return all system installed linux applications."""
+    # See:
+    # https://standards.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html
+    # https://askubuntu.com/questions/433609/how-can-i-list-all-applications-installed-in-my-system
     apps = {}
+    desktop_app_paths = [
+        '/usr/share/applications/*.desktop',
+        '~/.local/share/applications/*.desktop',
+    ]
+    for path in desktop_app_paths:
+        files = glob.glob(path)
+
     return apps
 
 
