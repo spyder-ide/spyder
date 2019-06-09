@@ -55,7 +55,7 @@ class HistoryLog(SpyderPluginWidget):
         self.initialize_plugin()
 
         layout = QVBoxLayout()
-        self.tabwidget = Tabs(self, self.plugin_actions)
+        self.tabwidget = Tabs(self, self._plugin_actions)
         self.tabwidget.currentChanged.connect(self.refresh_plugin)
         self.tabwidget.move_data.connect(self.move_tab)
 

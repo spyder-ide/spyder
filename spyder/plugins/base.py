@@ -127,7 +127,7 @@ class BasePluginWidgetMixin(object):
         self.dockwidget = None
 
         # Actions to add to the Options menu
-        self.plugin_actions = None
+        self._plugin_actions = None
 
         # Attribute to keep track if the plugin is undocked in a
         # separate window
@@ -372,7 +372,7 @@ class BasePluginWidgetMixin(object):
                 widget.setFocus()
         visible = self.dockwidget.isVisible() or self._ismaximized
         if self.DISABLE_ACTIONS_WHEN_HIDDEN:
-            toggle_actions(self.plugin_actions, visible)
+            toggle_actions(self._plugin_actions, visible)
         self._isvisible = enable and visible
         if self._isvisible:
             self.refresh_plugin()   # To give focus to the plugin's widget
@@ -391,8 +391,8 @@ class BasePluginWidgetMixin(object):
                                   self._dock_action]
 
         # Create actions list
-        self.plugin_actions = self.get_plugin_actions() + additional_actions
-        add_actions(self._options_menu, self.plugin_actions)
+        self._plugin_actions = self.get_plugin_actions() + additional_actions
+        add_actions(self._options_menu, self._plugin_actions)
 
     def _initialize_plugin(self):
         """
@@ -400,9 +400,9 @@ class BasePluginWidgetMixin(object):
         """
         self._create_toggle_view_action()
 
-        self.plugin_actions = self.get_plugin_actions() + [MENU_SEPARATOR,
-                                                           self._undock_action]
-        add_actions(self._options_menu, self.plugin_actions)
+        self._plugin_actions = self.get_plugin_actions() + [MENU_SEPARATOR,
+                                                            self._undock_action]
+        add_actions(self._options_menu, self._plugin_actions)
         self.options_button.setMenu(self._options_menu)
         self._options_menu.aboutToShow.connect(self.refresh_actions)
 
