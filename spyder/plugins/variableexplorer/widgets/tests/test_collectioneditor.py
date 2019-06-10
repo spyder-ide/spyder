@@ -47,7 +47,7 @@ LOCATION = path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 # Utility functions
 # =============================================================================
 def data(cm, i, j):
-    return cm.data(cm.createIndex(i, j))
+    return cm.data(cm.index(i, j))
 
 
 def data_table(cm, n_rows, n_cols):
@@ -79,7 +79,7 @@ def test_create_dataframeeditor_with_correct_format(qtbot, monkeypatch):
     editor = CollectionsEditorTableView(None, {'df': df})
     qtbot.addWidget(editor)
     editor.set_dataframe_format('%10d')
-    editor.delegate.createEditor(None, None, editor.model().createIndex(0, 3))
+    editor.delegate.createEditor(None, None, editor.model().index(0, 3))
     mockDataFrameEditor_instance.dataModel.set_format.assert_called_once_with('%10d')
 
 def test_accept_sig_option_changed_from_dataframeeditor(qtbot, monkeypatch):
@@ -88,7 +88,7 @@ def test_accept_sig_option_changed_from_dataframeeditor(qtbot, monkeypatch):
     qtbot.addWidget(editor)
     editor.set_dataframe_format('%10d')
     assert editor.source_model.dataframe_format == '%10d'
-    editor.delegate.createEditor(None, None, editor.model().createIndex(0, 3))
+    editor.delegate.createEditor(None, None, editor.model().index(0, 3))
     dataframe_editor = next(iter(editor.delegate._editors.values()))['editor']
     qtbot.addWidget(dataframe_editor)
     dataframe_editor.sig_option_changed.emit('dataframe_format', '%5f')
@@ -139,7 +139,7 @@ def test_shows_dataframeeditor_when_editing_index(qtbot, monkeypatch):
         coll = {'rng': rng}
         editor = CollectionsEditorTableView(None, coll)
         editor.delegate.createEditor(None, None,
-                                     editor.model().createIndex(0, 3))
+                                     editor.model().index(0, 3))
         mockDataFrameEditor_instance.show.assert_called_once_with()
 
 
@@ -202,7 +202,7 @@ def test_rename_and_duplicate_item_in_collection_editor():
         editor = CollectionsEditorTableView(None, coll)
         assert editor.rename_action.isEnabled()
         assert editor.duplicate_action.isEnabled()
-        editor.setCurrentIndex(editor.source_model.createIndex(0, 0))
+        editor.setCurrentIndex(editor.source_model.index(0, 0))
         editor.refresh_menu()
         assert editor.rename_action.isEnabled() == rename_enabled
         assert editor.duplicate_action.isEnabled() == duplicate_enabled
@@ -247,31 +247,31 @@ def test_edit_mutable_and_immutable_types(monkeypatch):
 
     # Directly editable values inside list
     editor_list_value = editor_list.delegate.createEditor(
-        None, None, editor_list.model().createIndex(0, 3))
+        None, None, editor_list.model().index(0, 3))
     assert editor_list_value is not None
     assert MockQLineEdit.call_count == 1
 
     # Text Editor for long text inside list
     editor_list.delegate.createEditor(None, None,
-                                      editor_list.model().createIndex(1, 3))
+                                      editor_list.model().index(1, 3))
     assert MockTextEditor.call_count == 2
     assert not MockTextEditor.call_args[1]["readonly"]
 
     # Datetime inside list
     editor_list_datetime = editor_list.delegate.createEditor(
-        None, None, editor_list.model().createIndex(2, 3))
+        None, None, editor_list.model().index(2, 3))
     assert editor_list_datetime is not None
     assert MockQDateTimeEdit.call_count == 1
 
     # List inside list
     editor_list.delegate.createEditor(None, None,
-                                      editor_list.model().createIndex(3, 3))
+                                      editor_list.model().index(3, 3))
     assert mockCollectionsEditor_instance.show.call_count == 1
     assert not mockCollectionsEditor_instance.setup.call_args[1]["readonly"]
 
     # Tuple inside list
     editor_list.delegate.createEditor(None, None,
-                                      editor_list.model().createIndex(4, 3))
+                                      editor_list.model().index(4, 3))
     assert mockCollectionsEditor_instance.show.call_count == 2
     assert mockCollectionsEditor_instance.setup.call_args[1]["readonly"]
 
@@ -280,31 +280,31 @@ def test_edit_mutable_and_immutable_types(monkeypatch):
 
     # Directly editable values inside tuple
     editor_tup_value = editor_tup.delegate.createEditor(
-        None, None, editor_tup.model().createIndex(0, 3))
+        None, None, editor_tup.model().index(0, 3))
     assert editor_tup_value is None
     assert MockQLineEdit.call_count == 1
 
     # Text Editor for long text inside tuple
     editor_tup.delegate.createEditor(None, None,
-                                     editor_tup.model().createIndex(1, 3))
+                                     editor_tup.model().index(1, 3))
     assert MockTextEditor.call_count == 4
     assert MockTextEditor.call_args[1]["readonly"]
 
     # Datetime inside tuple
     editor_tup_datetime = editor_tup.delegate.createEditor(
-        None, None, editor_tup.model().createIndex(2, 3))
+        None, None, editor_tup.model().index(2, 3))
     assert editor_tup_datetime is None
     assert MockQDateTimeEdit.call_count == 1
 
     # List inside tuple
     editor_tup.delegate.createEditor(None, None,
-                                     editor_tup.model().createIndex(3, 3))
+                                     editor_tup.model().index(3, 3))
     assert mockCollectionsEditor_instance.show.call_count == 3
     assert mockCollectionsEditor_instance.setup.call_args[1]["readonly"]
 
     # Tuple inside tuple
     editor_tup.delegate.createEditor(None, None,
-                                     editor_tup.model().createIndex(4, 3))
+                                     editor_tup.model().index(4, 3))
     assert mockCollectionsEditor_instance.show.call_count == 4
     assert mockCollectionsEditor_instance.setup.call_args[1]["readonly"]
 
@@ -383,7 +383,7 @@ def test_editor_parent_set(monkeypatch):
                                       MockTextEditor,
                                       MockCollectionsEditor]):
         col_editor.delegate.createEditor(col_editor.parent(), None,
-                                         col_editor.model().createIndex(idx, 3))
+                                         col_editor.model().index(idx, 3))
         assert mock_class.call_count == 1 + (idx // 3)
         assert mock_class.call_args[1]["parent"] is test_parent
 
