@@ -1,6 +1,6 @@
 cloudpickle
 pygments >=2.0
-qtconsole >=4.2.0
+qtconsole >=4.5.0
 nbconvert
 sphinx
 pylint
