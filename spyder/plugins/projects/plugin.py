@@ -535,5 +535,4 @@ class Projects(SpyderPluginWidget):
     @Slot(str, bool)
     def file_modified(self, src_file, is_dir):
         # TODO: Handle calls to LSP workspace
-        print(f'{src_file} {is_dir}')
         self.sig_file_modified.emit(src_file, is_dir)
