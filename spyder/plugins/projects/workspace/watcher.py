@@ -8,7 +8,7 @@
 import logging
 
 # Third-party imports
-from qtpy.QtCore import QObject, Signal, Slot
+from qtpy.QtCore import QObject, Signal
 
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
@@ -17,6 +17,10 @@ logger = logging.getLogger(__name__)
 
 
 class WorkspaceEventHandler(QObject, FileSystemEventHandler):
+    """Event handler for watchdog notifications. This class recieves
+       notifications about file/folder moving, modification,
+       creation and deletion and emits its corresponding signal."""
+
     sig_file_moved = Signal(str, str, bool)
     sig_file_created = Signal(str, bool)
     sig_file_deleted = Signal(str, bool)
@@ -45,28 +49,40 @@ class WorkspaceEventHandler(QObject, FileSystemEventHandler):
         is_dir = event.is_directory
         logger.info("Deleted {0}: {1}".format(
             self.fmt_is_dir(is_dir), src_path))
-        self.sig_file_created.emit(src_path, is_dir)
+        self.sig_file_deleted.emit(src_path, is_dir)
 
     def on_modified(self, event):
         src_path = event.src_path
         is_dir = event.is_directory
         logger.info("Modified {0}: {1}".format(
             self.fmt_is_dir(is_dir), src_path))
-        self.sig_file_created.emit(src_path, is_dir)
+        self.sig_file_modified.emit(src_path, is_dir)
 
 
 class WorkspaceWatcher(QObject):
-    def __init__(self, workspace_folder):
-        self.observer = Observer()
-        self.event_handler = WorkspaceEventHandler()
-        self.observer.schedule(
-            self.event_handler, workspace_folder, recursive=True)
+    """Wrapper class around watchdog observer and notifier. Provides methods
+       to start and stop watching folders."""
 
-    def connect_signals(self, workspace_manager):
+    def __init__(self):
+        self.observer = None
+        self.event_handler = WorkspaceEventHandler()
+
+    def connect_signals(self, project_manager):
         pass
 
-    def start(self):
+    def disconnect_signals(self):
+        self.event_handler.sig_file_created.disconnect()
+        self.event_handler.sig_file_deleted.disconnect()
+        self.event_handler.sig_file_moved.disconnect()
+        self.event_handler.sig_file_modified.disconnect()
+
+    def start(self, workspace_folder):
+        self.observer = Observer()
+        self.observer.schedule(
+            self.event_handler, workspace_folder, recursive=True)
         self.observer.start()
 
     def stop(self):
         self.observer.stop()
+        self.observer.join()
+        del self.observer

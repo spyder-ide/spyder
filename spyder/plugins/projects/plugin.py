@@ -32,7 +32,7 @@ from spyder.utils.misc import getcwd_or_home
 from spyder.plugins.projects.widgets.explorer import ProjectExplorerWidget
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
 from spyder.plugins.projects.widgets import EmptyProject
-from spyder.plugins.editor.utils.lsp import request, handles, class_register
+from spyder.plugins.projects.workspace import WorkspaceWatcher
 
 
 class Projects(SpyderPluginWidget):
@@ -64,10 +64,12 @@ class Projects(SpyderPluginWidget):
         self.recent_projects = self.get_option('recent_projects', default=[])
         self.current_active_project = None
         self.latest_project = None
+        self.watcher = WorkspaceWatcher()
 
         # Initialize plugin
         self.initialize_plugin()
         self.explorer.setup_project(self.get_active_project_path())
+        self.watcher.connect_signals(self)
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
@@ -273,6 +275,7 @@ class Projects(SpyderPluginWidget):
     def _create_project(self, path):
         """Create a new project."""
         self.open_project(path=path)
+        self.watcher.start(path)
         self.setup_menu_actions()
         self.add_to_recent(path)
 
@@ -347,6 +350,7 @@ class Projects(SpyderPluginWidget):
 
             self.explorer.clear()
             self.restart_consoles()
+            self.watcher.stop()
 
     def delete_project(self):
         """
