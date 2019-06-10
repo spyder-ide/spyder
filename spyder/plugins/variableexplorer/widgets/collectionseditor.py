@@ -58,8 +58,7 @@ from spyder.utils.qthelpers import (add_actions, create_action,
 from spyder.utils.stringmatching import get_search_scores
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
-from spyder.preferences.shortcuts import CustomSortFilterProxy
-from spyder.widgets.helperwidgets import HTMLDelegate
+from spyder.widgets.helperwidgets import CustomSortFilterProxy, HTMLDelegate
 
 if ndarray is not FakeObject:
     from spyder.plugins.variableexplorer.widgets.arrayeditor import (
@@ -467,14 +466,16 @@ class CollectionsDelegate(QItemDelegate):
     def __init__(self, parent=None):
         QItemDelegate.__init__(self, parent)
         self._editors = {} # keep references on opened editors
-        
+
     def get_value(self, index):
         if index.isValid():
-            return index.model().sourceModel().get_value(index)
+            source_index = index.model().mapToSource(index)
+            return source_index.model().get_value(index)
 
     def set_value(self, index, value):
         if index.isValid():
-            index.model().sourceModel().set_value(index, value)
+            source_index = index.model().mapToSource(index)
+            source_index.model().set_value(index, value)
 
     def show_warning(self, index):
         """
@@ -489,8 +490,9 @@ class CollectionsDelegate(QItemDelegate):
         lot of time just to get its value
         """
         try:
-            val_size = index.model().sourceModel().sizes[index.row()]
-            val_type = index.model().sourceModel().types[index.row()]
+            source_index = index.model().mapToSource(index)
+            val_size = source_index.model().sizes[source_index.row()]
+            val_type = source_index.model().types[source_index.row()]
         except Exception:
             return False
         if val_type in ['list', 'set', 'tuple', 'dict'] and \
@@ -523,7 +525,8 @@ class CollectionsDelegate(QItemDelegate):
                   "The error mesage was:<br>"
                   "<i>%s</i>") % to_text_string(msg))
             return
-        key = index.model().sourceModel().get_key(index)
+        source_index = index.model().mapToSource(index)
+        key = source_index.model().get_key(source_index)
         readonly = (isinstance(value, (tuple, set)) or self.parent().readonly
                     or not is_known_type(value))
         # CollectionsEditor for a list, tuple, dict, etc.
@@ -531,7 +534,7 @@ class CollectionsDelegate(QItemDelegate):
             editor = CollectionsEditor(parent=parent)
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
-            self.create_dialog(editor, dict(model=index.model().sourceModel(),
+            self.create_dialog(editor, dict(model=source_index.model(),
                                             editor=editor,
                                             key=key, readonly=readonly))
             return None
@@ -541,7 +544,7 @@ class CollectionsDelegate(QItemDelegate):
             editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(value, title=key, readonly=readonly):
                 return
-            self.create_dialog(editor, dict(model=index.model().sourceModel(),
+            self.create_dialog(editor, dict(model=source_index.model(),
                                             editor=editor,
                                             key=key, readonly=readonly))
             return None
@@ -553,7 +556,7 @@ class CollectionsDelegate(QItemDelegate):
             if not editor.setup_and_check(arr, title=key, readonly=readonly):
                 return
             conv_func = lambda arr: Image.fromarray(arr, mode=value.mode)
-            self.create_dialog(editor, dict(model=index.model().sourceModel(),
+            self.create_dialog(editor, dict(model=source_index.model(),
                                             editor=editor,
                                             key=key, readonly=readonly,
                                             conv=conv_func))
@@ -567,7 +570,7 @@ class CollectionsDelegate(QItemDelegate):
             editor.dataModel.set_format(
                 index.model().sourceModel().dataframe_format)
             editor.sig_option_changed.connect(self.change_option)
-            self.create_dialog(editor, dict(model=index.model().sourceModel(),
+            self.create_dialog(editor, dict(model=source_index.model(),
                                             editor=editor,
                                             key=key, readonly=readonly))
             return None
@@ -590,7 +593,7 @@ class CollectionsDelegate(QItemDelegate):
                 editor = TextEditor(value, key,
                                     readonly=readonly, parent=parent)
                 self.create_dialog(editor,
-                                   dict(model=index.model().sourceModel(),
+                                   dict(model=source_index.model(),
                                         editor=editor, key=key,
                                         readonly=readonly))
             return None
@@ -613,7 +616,7 @@ class CollectionsDelegate(QItemDelegate):
             editor = CollectionsEditor(parent=parent)
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
-            self.create_dialog(editor, dict(model=index.model().sourceModel(),
+            self.create_dialog(editor, dict(model=source_index.model(),
                                             editor=editor,
                                             key=key, readonly=readonly))
             return None
@@ -1618,12 +1621,14 @@ class RemoteCollectionsDelegate(CollectionsDelegate):
 
     def get_value(self, index):
         if index.isValid():
-            name = index.model().sourceModel().keys[index.row()]
+            source_index = index.model().mapToSource(index)
+            name = source_index.model().keys[source_index.row()]
             return self.parent().get_value(name)
 
     def set_value(self, index, value):
         if index.isValid():
-            name = index.model().sourceModel().keys[index.row()]
+            source_index = index.model().mapToSource(index)
+            name = source_index.model().keys[source_index.row()]
             self.parent().new_value(name, value)
 
 
