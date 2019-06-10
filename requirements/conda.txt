@@ -19,4 +19,4 @@ qdarkstyle >=2.6.4
 atomicwrites
 diff-match-patch
 pexpect
-
+watchdog
