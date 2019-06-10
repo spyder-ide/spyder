@@ -239,7 +239,10 @@ the sympy module (e.g. plot)
         reset_str = _("Remove all variables")
         warn_str = _("All user-defined variables will be removed. "
                      "Are you sure you want to proceed?")
-        kernel_env = self.kernel_manager._kernel_spec.env
+        try:
+            kernel_env = self.kernel_manager._kernel_spec.env
+        except AttributeError:
+            kernel_env = {}
 
         if warning:
             box = MessageCheckBox(icon=QMessageBox.Warning, parent=self)
