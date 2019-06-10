@@ -1352,7 +1352,8 @@ def test_stop_dbg(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="It only works on Linux")
 def test_change_cwd_dbg(main_window, qtbot):
     """
     Test that using the Working directory toolbar is working while debugging.

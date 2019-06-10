@@ -199,7 +199,6 @@ class FileInfo(QObject):
     def text_changed(self):
         """Editor's text has changed"""
         self.default = False
-        self.editor.document().changed_since_autosave = True
         self.text_changed_at.emit(self.filename,
                                   self.editor.get_position('cursor'))
 
@@ -363,7 +362,8 @@ class TabSwitcherWidget(QListWidget):
     def set_dialog_position(self):
         """Positions the tab switcher in the top-center of the editor."""
         left = self.editor.geometry().width()/2 - self.width()/2
-        top = self.editor.tabs.tabBar().geometry().height()
+        top = (self.editor.tabs.tabBar().geometry().height() +
+               self.editor.fname_label.geometry().height())
 
         self.move(self.editor.mapToGlobal(QPoint(left, top)))
 
@@ -861,6 +861,12 @@ class EditorStack(QWidget):
     def open_symbolfinder_dlg(self):
         self.open_fileswitcher_dlg()
         self.fileswitcher_dlg.set_search_text('@')
+
+    def get_plugin_title(self):
+        """Get the plugin title of the parent widget."""
+        # Needed for the editor stack to use its own fileswitcher instance.
+        # See spyder-ide/spyder#9469
+        return self.parent().plugin.get_plugin_title()
 
     def get_current_tab_manager(self):
         """Get the widget with the TabWidget attribute."""
@@ -1517,9 +1523,8 @@ class EditorStack(QWidget):
 
             self.add_last_closed_file(finfo.filename)
 
-            # Remove autosave on successful close to work around issue #9265.
-            # Probably a good idea in general to mitigate any other bugs.
-            self.autosave.remove_autosave_file(finfo.filename)
+            if finfo.filename in self.autosave.file_hashes:
+                del self.autosave.file_hashes[finfo.filename]
 
         if self.get_stack_count() == 0 and self.create_new_file_if_empty:
             self.sig_new_file[()].emit()
@@ -1645,7 +1650,7 @@ class EditorStack(QWidget):
                 if not self.save(index):
                     return False
             elif no_all:
-                self.autosave.remove_autosave_file(finfo.filename)
+                self.autosave.remove_autosave_file(finfo)
             elif (finfo.editor.document().isModified() and
                   self.save_dialog_on_tests):
 
@@ -1675,6 +1680,19 @@ class EditorStack(QWidget):
                     return False
         return True
 
+    def compute_hash(self, fileinfo):
+        """Compute hash of contents of editor.
+
+        Args:
+            fileinfo: FileInfo object associated to editor whose hash needs
+                to be computed.
+
+        Returns:
+            int: computed hash.
+        """
+        txt = fileinfo.editor.get_text_with_eol()
+        return hash(txt)
+
     def _write_to_file(self, fileinfo, filename):
         """Low-level function for writing text of editor to file.
 
@@ -1685,7 +1703,7 @@ class EditorStack(QWidget):
         This is a low-level function that only saves the text to file in the
         correct encoding without doing any error handling.
         """
-        txt = to_text_string(fileinfo.editor.get_text_with_eol())
+        txt = fileinfo.editor.get_text_with_eol()
         fileinfo.encoding = encoding.write(txt, filename, fileinfo.encoding)
 
     def save(self, index=None, force=False):
@@ -1728,6 +1746,8 @@ class EditorStack(QWidget):
             self.set_os_eol_chars(osname=osname)
         try:
             self._write_to_file(finfo, finfo.filename)
+            file_hash = self.compute_hash(finfo)
+            self.autosave.file_hashes[finfo.filename] = file_hash
             self.autosave.remove_autosave_file(finfo.filename)
             finfo.newly_created = False
             self.encoding_changed.emit(finfo.encoding)
@@ -1743,7 +1763,6 @@ class EditorStack(QWidget):
                                  finfo.filename, finfo.filename)
 
             finfo.editor.document().setModified(False)
-            finfo.editor.document().changed_since_autosave = False
             self.modification_changed(index=index)
             self.analyze_script(index)
 
@@ -2228,7 +2247,7 @@ class EditorStack(QWidget):
         position = finfo.editor.get_position('cursor')
         finfo.editor.set_text(txt)
         finfo.editor.document().setModified(False)
-        finfo.editor.document().changed_since_autosave = False
+        self.autosave.file_hashes[finfo.filename] = hash(txt)
         finfo.editor.set_cursor_position(position)
 
         #XXX CodeEditor-only: re-scan the whole text to rebuild outline
@@ -2319,7 +2338,6 @@ class EditorStack(QWidget):
         if cloned_from is None:
             editor.set_text(txt)
             editor.document().setModified(False)
-            editor.document().changed_since_autosave = False
         finfo.text_changed_at.connect(
             lambda fname, position:
             self.text_changed_at.emit(fname, position))
@@ -2405,6 +2423,9 @@ class EditorStack(QWidget):
     def load(self, filename, set_current=True, add_where='end'):
         """
         Load filename, create an editor instance and return it
+
+        This also sets the hash of the loaded file in the autosave component.
+
         *Warning* This is loading file, creating editor but not executing
         the source code analysis -- the analysis must be done by the editor
         plugin (in case multiple editorstack instances are handled)
@@ -2412,6 +2433,7 @@ class EditorStack(QWidget):
         filename = osp.abspath(to_text_string(filename))
         self.starting_long_process.emit(_("Loading %s...") % filename)
         text, enc = encoding.read(filename)
+        self.autosave.file_hashes[filename] = hash(text)
         finfo = self.create_new_editor(filename, enc, text, set_current,
                                        add_where=add_where)
         index = self.data.index(finfo)

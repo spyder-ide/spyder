@@ -59,7 +59,7 @@ def test_setup_open_files(editor_plugin_open_files, last_focused_filename,
 def test_setup_open_files_cleanprefs(editor_plugin_open_files):
     """Test that Editor successfully opens files if layout is not defined.
 
-    Regression test for #8458 .
+    Regression test for spyder-ide/spyder#8458.
     """
     editor_factory = editor_plugin_open_files
     editor, expected_filenames, expected_current_filename = (
@@ -146,31 +146,15 @@ def test_editor_transmits_sig_option_changed(editor_plugin, qtbot):
     assert blocker.args == ['autosave_mapping', {1: 2}]
 
 
-def test_editor_sets_autosave_mapping_on_first_editorstack(editor_plugin):
-    """Check that first editor stack gets autosave mapping from config."""
-    editor = editor_plugin
-    editorStack = editor.get_current_editorstack()
-    assert editorStack.autosave_mapping == {}
-
-
-def test_editor_syncs_autosave_mapping_among_editorstacks(editor_plugin, qtbot):
-    """Check that when an editorstack emits a sig_option_changed for
-    autosave_mapping, the autosave mapping of all other editorstacks is
-    updated."""
+def test_editorstacks_share_autosave_data(editor_plugin, qtbot):
+    """Check that two EditorStacks share the same autosave data."""
     editor = editor_plugin
     editor.editorsplitter.split()
     assert len(editor.editorstacks) == 2
-    old_mapping = {}
-    for editorstack in editor.editorstacks:
-        assert editorstack.autosave_mapping == old_mapping
-    new_mapping = {'ham': 'spam'}
-    editor.get_current_editorstack().sig_option_changed.emit(
-            'autosave_mapping', new_mapping)
-    for editorstack in editor.editorstacks:
-        if editorstack == editor.get_current_editorstack():
-            assert editorstack.autosave_mapping == old_mapping
-        else:
-            assert editorstack.autosave_mapping == new_mapping
+    autosave1 = editor.editorstacks[0].autosave
+    autosave2 = editor.editorstacks[1].autosave
+    assert autosave1.name_mapping is autosave2.name_mapping
+    assert autosave1.file_hashes is autosave2.file_hashes
 
 
 # The mock_RecoveryDialog fixture needs to be called before setup_editor, so
@@ -187,6 +171,72 @@ def test_closing_editor_plugin_stops_autosave_timer(editor_plugin):
     assert editor.autosave.timer.isActive()
     editor.closing_plugin()
     assert not editor.autosave.timer.isActive()
+
+
+def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
+    """
+    Test the previous and next cursor position feature of the Editor.
+
+    Regression test for spyder-ide/spyder#8000.
+    """
+    filenames, tmpdir = python_files
+    editorstack = editor_plugin.get_current_editorstack()
+
+    expected_cursor_pos_history = []
+    assert editor_plugin.cursor_pos_history == expected_cursor_pos_history
+
+    # Load the Python test files (4).
+    editor_plugin.load(filenames)
+    # Open a new file.
+    editor_plugin.new()
+    # Go to the third file.
+    editorstack.set_stack_index(2)
+    # Move the cursor within the third file. Note that this new position is
+    # not added to the cursor position history.
+    editorstack.get_current_editor().set_cursor_position(5)
+
+    # Note that we use the filenames from the editor to define the expected
+    # results because those returned by the python_files fixture are
+    # normalized, so this would cause issues when assessing the results.
+    filenames = editor_plugin.get_filenames()
+    expected_cursor_pos_history = [
+        (filenames[0], 0),
+        (filenames[4], len(editorstack.data[4].get_source_code())),
+        (filenames[2], 0)
+        ]
+    assert editor_plugin.cursor_pos_history == expected_cursor_pos_history
+
+    # Navigate to previous and next cursor positions.
+
+    # The last entry in the cursor position history is overriden by the
+    # current cursor position when going to previous or next cursor position,
+    # so we need to update the last item of the expected_cursor_pos_history.
+    expected_cursor_pos_history[-1] = (filenames[2], 5)
+
+    cursor_index_moves = [-1, 1, 1, -1, -1, -1, 1, -1]
+    expected_cursor_pos_indexes = [1, 2, 2, 1, 0, 0, 1, 0]
+    for move, index in zip(cursor_index_moves, expected_cursor_pos_indexes):
+        if move == -1:
+            editor_plugin.go_to_previous_cursor_position()
+        elif move == 1:
+            editor_plugin.go_to_next_cursor_position()
+
+        assert editor_plugin.cursor_pos_index == index
+        assert (editor_plugin.get_current_filename(),
+                editor_plugin.get_current_editor().get_position('cursor')
+                ) == expected_cursor_pos_history[index]
+    assert editor_plugin.cursor_pos_history == expected_cursor_pos_history
+
+    # So we are now expected to be at index 0 in the cursor position history.
+    # From there, we go to the fourth file.
+    editorstack.set_stack_index(3)
+
+    # We expect that our last action caused the cursor position history to
+    # be stripped from the current cursor position index and that the
+    # new cursor position is added at the end of the cursor position history.
+    expected_cursor_pos_history = expected_cursor_pos_history[:1]
+    expected_cursor_pos_history.append((filenames[3], 0))
+    assert editor_plugin.cursor_pos_history == expected_cursor_pos_history
 
 
 if __name__ == "__main__":
