@@ -32,7 +32,8 @@ from qtpy.compat import getsavefilename, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QDateTime, QModelIndex, Qt,
                          Signal, Slot)
 from qtpy.QtGui import QColor, QKeySequence
-from qtpy.QtWidgets import (QAbstractItemDelegate, QApplication, QDateEdit,
+from qtpy.QtWidgets import (QAbstractItemDelegate, QAbstractItemView,
+                            QApplication, QDateEdit,
                             QDateTimeEdit, QDialog, QHBoxLayout, QHeaderView,
                             QInputDialog, QItemDelegate, QLineEdit, QMenu,
                             QMessageBox, QPushButton, QTableView,
@@ -878,6 +879,11 @@ class BaseTableView(QTableView):
         return menu
     
     # ------ Remote/local API -------------------------------------------------
+    def selection(self, index):
+        """Update selected row."""
+        self.update()
+        self.isActiveWindow()
+
     def set_regex(self, regex=None, reset=False):
         """Update the regex text for the shortcut finder."""
         if reset:
@@ -1130,7 +1136,7 @@ class BaseTableView(QTableView):
                                       QMessageBox.Yes | QMessageBox.No)
         if answer == QMessageBox.Yes:
             idx_rows = unsorted_unique([idx.row() for idx in indexes])
-            keys = [ self.source_model.keys[idx_row] for idx_row in idx_rows ]
+            keys = [self.source_model.keys[idx_row] for idx_row in idx_rows]
             self.remove_values(keys)
 
     def copy_item(self, erase_original=False):
@@ -1351,8 +1357,9 @@ class CollectionsEditorTableView(BaseTableView):
         self.readonly = readonly or isinstance(data, (tuple, set))
         CollectionsModelClass = ReadOnlyCollectionsModel if self.readonly \
                                 else CollectionsModel
-        self.source_model = CollectionsModelClass(self, data, title, names=names,
-                                           minmax=minmax)
+        self.source_model = CollectionsModelClass(self, data, title,
+                                                  names=names,
+                                                  minmax=minmax)
         self.proxy_model = CollectionsCustomSortFilterProxy(self)
 
         self.proxy_model.setSourceModel(self.source_model)
@@ -1366,6 +1373,10 @@ class CollectionsEditorTableView(BaseTableView):
         self.setItemDelegateForColumn(0, HTMLDelegate(self, margin=5))
         self.delegate = CollectionsDelegate(self)
         self.setItemDelegate(self.delegate)
+        self.setSelectionBehavior(QAbstractItemView.SelectItems)
+        self.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.setSortingEnabled(True)
+        self.selectionModel().selectionChanged.connect(self.selection)
 
         self.setup_table()
         self.menu = self.setup_menu(minmax)
@@ -1646,9 +1657,9 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.delegate = None
         self.readonly = False
         self.source_model = CollectionsModel(self, data, names=True,
-                                      minmax=minmax,
-                                      dataframe_format=dataframe_format,
-                                      remote=True)
+                                             minmax=minmax,
+                                             dataframe_format=dataframe_format,
+                                             remote=True)
 
         self.proxy_model = CollectionsCustomSortFilterProxy(self)
 
@@ -1664,6 +1675,10 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.delegate.sig_free_memory.connect(self.sig_free_memory.emit)
         self.setItemDelegate(self.delegate)
         self.setItemDelegateForColumn(0, HTMLDelegate(self, margin=5))
+        self.setSelectionBehavior(QAbstractItemView.SelectItems)
+        self.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.setSortingEnabled(True)
+        self.selectionModel().selectionChanged.connect(self.selection)
 
         self.setup_table()
         self.menu = self.setup_menu(minmax)
