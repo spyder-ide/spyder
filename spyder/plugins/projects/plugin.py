@@ -44,6 +44,12 @@ class Projects(SpyderPluginWidget):
     sig_project_loaded = Signal(object)
     sig_project_closed = Signal(object)
 
+    # The following signals are only used for testing
+    sig_file_moved = Signal(str, str, bool)
+    sig_file_created = Signal(str, bool)
+    sig_file_deleted = Signal(str, bool)
+    sig_file_modified = Signal(str, bool)
+
     def __init__(self, parent=None):
         """Initialization."""
         SpyderPluginWidget.__init__(self, parent)
@@ -275,7 +281,6 @@ class Projects(SpyderPluginWidget):
     def _create_project(self, path):
         """Create a new project."""
         self.open_project(path=path)
-        self.watcher.start(path)
         self.setup_menu_actions()
         self.add_to_recent(path)
 
@@ -321,6 +326,7 @@ class Projects(SpyderPluginWidget):
         self.setup_menu_actions()
         self.sig_project_loaded.emit(path)
         self.sig_pythonpath_changed.emit()
+        self.watcher.start(path)
 
         if restart_consoles:
             self.restart_consoles()
@@ -510,3 +516,24 @@ class Projects(SpyderPluginWidget):
         if project not in self.recent_projects:
             self.recent_projects.insert(0, project)
             self.recent_projects = self.recent_projects[:10]
+
+    @Slot(str, str, bool)
+    def file_moved(self, src_file, dest_file, is_dir):
+        # TODO: Handle calls to LSP workspace
+        self.sig_file_moved.emit(src_file, dest_file, is_dir)
+
+    @Slot(str, bool)
+    def file_created(self, src_file, is_dir):
+        # TODO: Handle calls to LSP workspace
+        self.sig_file_created.emit(src_file, is_dir)
+
+    @Slot(str, bool)
+    def file_deleted(self, src_file, is_dir):
+        # TODO: Handle calls to LSP workspace
+        self.sig_file_deleted.emit(src_file, is_dir)
+
+    @Slot(str, bool)
+    def file_modified(self, src_file, is_dir):
+        # TODO: Handle calls to LSP workspace
+        print(f'{src_file} {is_dir}')
+        self.sig_file_modified.emit(src_file, is_dir)

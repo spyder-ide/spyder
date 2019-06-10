@@ -12,6 +12,7 @@ Tests for the Projects plugin.
 
 # Standard library imports
 import os
+import shutil
 import os.path as osp
 try:
     from unittest.mock import Mock
@@ -287,6 +288,98 @@ def test_project_explorer_tree_root(projects, tmpdir, qtbot):
         topleft_index = (projects.explorer.treewidget.indexAt(
             projects.explorer.treewidget.rect().topLeft()))
         assert topleft_index.data() == osp.basename(ppath)
+
+
+def test_project_file_notifications(qtbot, projects, tmpdir):
+    # Create the directory and files.
+    project_root = tmpdir.mkdir('project0')
+    folder0 = project_root.mkdir('folder0')
+    folder1 = project_root.mkdir('folder1')
+    file0 = project_root.join('file0')
+    file1 = folder0.join('file1')
+    file2 = folder0.join('file2')
+    file3 = folder1.join('file3')
+    file0.write('')
+    file1.write('')
+    # file2.write('')
+    file3.write('ab')
+    projects.open_project(path=to_text_string(project_root))
+
+    # Test file creation
+    with qtbot.waitSignal(projects.sig_file_created,
+                          timeout=3000) as blocker:
+        file2.write('')
+
+    file_created, is_dir = blocker.args
+    assert file_created == to_text_string(file2)
+    assert not is_dir
+
+    # Test folder creation
+    with qtbot.waitSignal(projects.sig_file_created,
+                          timeout=3000) as blocker:
+        folder2 = project_root.mkdir('folder2')
+
+    folder_created, is_dir = blocker.args
+    assert folder_created == osp.join(to_text_string(project_root), 'folder2')
+
+    # Test file move/renaming
+    new_file = osp.join(to_text_string(project_root), 'new_file')
+    with qtbot.waitSignal(projects.sig_file_moved,
+                          timeout=3000) as blocker:
+        shutil.move(to_text_string(file1), new_file)
+
+    original_file, file_moved, is_dir = blocker.args
+    assert original_file == to_text_string(file1)
+    assert file_moved == new_file
+    assert not is_dir
+
+    # Test folder move/renaming
+    new_folder = osp.join(to_text_string(folder1), 'move_folder')
+    with qtbot.waitSignal(projects.sig_file_moved,
+                          timeout=3000) as blocker:
+        shutil.move(to_text_string(folder2), new_folder)
+
+    original_folder, folder_moved, is_dir = blocker.args
+    assert original_folder == to_text_string(folder2)
+    assert folder_moved == new_folder
+    assert is_dir
+
+    # Test file deletion
+    with qtbot.waitSignal(projects.sig_file_deleted,
+                          timeout=3000) as blocker:
+        os.remove(new_file)
+
+    deleted_file, is_dir = blocker.args
+    assert deleted_file == new_file
+    assert not is_dir
+    assert not osp.exists(new_file)
+
+    # Test folder deletion
+    with qtbot.waitSignal(projects.sig_file_deleted,
+                          timeout=3000) as blocker:
+        shutil.rmtree(new_folder)
+
+    deleted_folder, is_dir = blocker.args
+    assert deleted_folder == new_folder
+    assert is_dir
+    assert not osp.exists(new_folder)
+
+    # Test file/folder modification
+    with qtbot.waitSignal(projects.sig_file_modified,
+                          timeout=3000) as blocker_folder:
+        file3.write('abc')
+
+    with qtbot.waitSignal(projects.sig_file_modified,
+                          timeout=3000) as blocker_file:
+        pass
+
+    modified_folder, is_dir = blocker_folder.args
+    assert modified_folder == to_text_string(folder1)
+    assert is_dir
+
+    modified_file, is_dir = blocker_file.args
+    assert modified_file == to_text_string(file3)
+    assert not is_dir
 
 
 if __name__ == "__main__":

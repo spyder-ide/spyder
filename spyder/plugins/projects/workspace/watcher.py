@@ -67,14 +67,11 @@ class WorkspaceWatcher(QObject):
         self.observer = None
         self.event_handler = WorkspaceEventHandler()
 
-    def connect_signals(self, project_manager):
-        pass
-
-    def disconnect_signals(self):
-        self.event_handler.sig_file_created.disconnect()
-        self.event_handler.sig_file_deleted.disconnect()
-        self.event_handler.sig_file_moved.disconnect()
-        self.event_handler.sig_file_modified.disconnect()
+    def connect_signals(self, project):
+        self.event_handler.sig_file_created.connect(project.file_created)
+        self.event_handler.sig_file_moved.connect(project.file_moved)
+        self.event_handler.sig_file_deleted.connect(project.file_deleted)
+        self.event_handler.sig_file_modified.connect(project.file_modified)
 
     def start(self, workspace_folder):
         self.observer = Observer()
