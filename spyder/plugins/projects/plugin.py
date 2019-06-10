@@ -32,7 +32,7 @@ from spyder.utils.misc import getcwd_or_home
 from spyder.plugins.projects.widgets.explorer import ProjectExplorerWidget
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
 from spyder.plugins.projects.widgets import EmptyProject
-from spyder.plugins.projects.workspace import WorkspaceWatcher
+from spyder.plugins.projects.workspace.watcher import WorkspaceWatcher
 
 
 class Projects(SpyderPluginWidget):
