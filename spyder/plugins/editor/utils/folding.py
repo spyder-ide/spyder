@@ -236,7 +236,7 @@ class IndentFoldDetector(FoldDetector):
             # Verify if the previous line ends with a continuation line
             # with a regex
             if (re.search(cont_line_regex, prev_block.text()) and
-               indent_len > prev_lvl):
+                    indent_len > prev_lvl):
                 # Calculate act level of line
                 act_lvl = (len(text) - len(text.lstrip())) // indent_len
                 if act_lvl == prev_lvl:
