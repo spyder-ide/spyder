@@ -152,7 +152,7 @@ class ColorModel(QFileSystemModel):
         self.vcs_state_timer = QTimer(self)
         self.vcs_state_timer.timeout.connect(self.set_vcs_state)
         if self.use_vcs:
-            self.vcs_state_timer.start(2000)
+            self.vcs_state_timer.start(8000)
 
     def set_color(self, n, name):
         """Set a specific color of the color_array"""
@@ -162,7 +162,7 @@ class ColorModel(QFileSystemModel):
         """Enable/Disable the highlighting"""
         self.use_vcs = state
         if self.use_vcs:
-            self.vcs_state_timer.start(2000)
+            self.vcs_state_timer.start(8000)
         else:
             self.vcs_state_timer.stop()
         if state and not self.vcs_state:
