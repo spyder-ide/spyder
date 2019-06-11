@@ -274,8 +274,7 @@ class BaseTabs(QTabWidget):
                                           icon=ima.icon('browse_tab'),
                                           tip=_("Browse tabs"))
         self.browse_button.setStyleSheet(
-            ("QToolButton::menu-indicator{image: none;}\n"
-             "QToolButton{margin: 1px; padding: 3px;}"))
+            "QToolButton::menu-indicator{image: none;}")
 
         self.browse_tabs_menu = QMenu(self)
         self.browse_button.setMenu(self.browse_tabs_menu)
