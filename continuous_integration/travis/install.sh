@@ -27,7 +27,7 @@ if [ "$USE_CONDA" = "yes" ]; then
     pip install -q coveralls
 
     # Install spyder-kernels from Github with no deps
-    pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels
+    pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels.git@refs/pull/111/head
 else
     # Install Spyder and its dependencies from our setup.py
     pip install -e .[test]
@@ -48,7 +48,7 @@ else
     pip install git+https://github.com/jupyter/qtconsole.git
 
     # Install spyder-kernels from Github
-    pip install -q git+https://github.com/spyder-ide/spyder-kernels
+    pip install -q git+https://github.com/spyder-ide/spyder-kernels.git@refs/pull/111/head
 
     # Downgrade Jedi because 0.14 broke the PyLS
     pip install jedi==0.13.3
