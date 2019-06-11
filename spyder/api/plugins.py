@@ -23,7 +23,7 @@ from qtpy.QtWidgets import (QApplication, QMenu, QMessageBox, QToolButton,
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import get_color_scheme
+from spyder.config.gui import get_color_scheme, STYLE_BUTTON_CSS
 from spyder.config.main import CONF
 from spyder.config.user import NoDefault
 from spyder.plugins.base import BasePluginMixin
@@ -75,9 +75,7 @@ class PluginWidget(QWidget, BasePluginMixin):
         self.options_button = create_toolbutton(self, text=_('Options'),
                                                 icon=ima.icon('tooloptions'))
         self.options_button.setPopupMode(QToolButton.InstantPopup)
-        # Don't show menu arrow.
-        self.options_button.setStyleSheet(
-            "QToolButton::menu-indicator{image: none;}")
+        self.options_button.setStyleSheet(STYLE_BUTTON_CSS)
         self.options_menu = QMenu(self)
 
         # NOTE: Don't use the default option of CONF.get to assign a
