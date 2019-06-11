@@ -307,7 +307,7 @@ def test_project_file_notifications(qtbot, projects, tmpdir):
 
     # Test file creation
     with qtbot.waitSignal(projects.sig_file_created,
-                          timeout=3000) as blocker:
+                          timeout=30000) as blocker:
         file2.write('')
 
     file_created, is_dir = blocker.args
@@ -316,7 +316,7 @@ def test_project_file_notifications(qtbot, projects, tmpdir):
 
     # Test folder creation
     with qtbot.waitSignal(projects.sig_file_created,
-                          timeout=3000) as blocker:
+                          timeout=30000) as blocker:
         folder2 = project_root.mkdir('folder2')
 
     folder_created, is_dir = blocker.args
@@ -325,7 +325,7 @@ def test_project_file_notifications(qtbot, projects, tmpdir):
     # Test file move/renaming
     new_file = osp.join(to_text_string(project_root), 'new_file')
     with qtbot.waitSignal(projects.sig_file_moved,
-                          timeout=3000) as blocker:
+                          timeout=30000) as blocker:
         shutil.move(to_text_string(file1), new_file)
 
     original_file, file_moved, is_dir = blocker.args
@@ -336,7 +336,7 @@ def test_project_file_notifications(qtbot, projects, tmpdir):
     # Test folder move/renaming
     new_folder = osp.join(to_text_string(folder1), 'move_folder')
     with qtbot.waitSignal(projects.sig_file_moved,
-                          timeout=3000) as blocker:
+                          timeout=30000) as blocker:
         shutil.move(to_text_string(folder2), new_folder)
 
     original_folder, folder_moved, is_dir = blocker.args
@@ -346,7 +346,7 @@ def test_project_file_notifications(qtbot, projects, tmpdir):
 
     # Test file deletion
     with qtbot.waitSignal(projects.sig_file_deleted,
-                          timeout=3000) as blocker:
+                          timeout=30000) as blocker:
         os.remove(new_file)
 
     deleted_file, is_dir = blocker.args
@@ -356,7 +356,7 @@ def test_project_file_notifications(qtbot, projects, tmpdir):
 
     # Test folder deletion
     with qtbot.waitSignal(projects.sig_file_deleted,
-                          timeout=3000) as blocker:
+                          timeout=30000) as blocker:
         shutil.rmtree(new_folder)
 
     deleted_folder, is_dir = blocker.args
@@ -366,11 +366,11 @@ def test_project_file_notifications(qtbot, projects, tmpdir):
 
     # Test file/folder modification
     with qtbot.waitSignal(projects.sig_file_modified,
-                          timeout=3000) as blocker_folder:
+                          timeout=30000) as blocker_folder:
         file3.write('abc')
 
     with qtbot.waitSignal(projects.sig_file_modified,
-                          timeout=3000) as blocker_file:
+                          timeout=30000) as blocker_file:
         pass
 
     modified_folder, is_dir = blocker_folder.args
