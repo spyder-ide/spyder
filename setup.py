@@ -230,7 +230,9 @@ install_requires = [
     'python-language-server[all]>=0.19.0,<0.25',
     # Required to get SSH connections to remote kernels
     'pexpect',
-    'paramiko;platform_system=="Windows"'
+    'paramiko;platform_system=="Windows"',
+    # Required for accesing xdg spec on Linux
+    'pyxdg;platform_system=="linux2"',
 ]
 
 extras_require = {
