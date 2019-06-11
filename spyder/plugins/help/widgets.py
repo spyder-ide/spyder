@@ -87,6 +87,7 @@ class ObjectComboBox(EditableComboBox):
                 # A new item has just been selected
                 if valid:
                     self.selected()
+                    self.lineEdit().cursorWordForward(False)
                 else:
                     self.valid.emit(False, False)
 
