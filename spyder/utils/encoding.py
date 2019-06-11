@@ -239,6 +239,10 @@ def write(text, filename, encoding='utf-8', mode='wb'):
         # Needed to fix file permissions overwritting
         # See spyder-ide/spyder#9381
         try:
+            FileNotFoundError
+        except NameError:  # Python 2
+            FileNotFoundError = OSError
+        try:
             original_mode = os.stat(filename).st_mode
         except FileNotFoundError:
             # Creating a new file, emulate what os.open() does
