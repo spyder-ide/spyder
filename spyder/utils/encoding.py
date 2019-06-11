@@ -235,12 +235,12 @@ def write(text, filename, encoding='utf-8', mode='wb'):
         with open(filename, mode) as textfile:
             textfile.write(text)
     else:
-        mode = os.stat(filename).st_mode
+        original_mode = os.stat(filename).st_mode
         with atomic_write(filename,
                           overwrite=True,
                           mode=mode) as textfile:
             textfile.write(text)
-        os.chmod(filename, mode)
+        os.chmod(filename, original_mode)
     return encoding
 
 
