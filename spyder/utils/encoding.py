@@ -240,7 +240,7 @@ def write(text, filename, encoding='utf-8', mode='wb'):
         # See spyder-ide/spyder#9381
         try:
             original_mode = os.stat(filename).st_mode
-        except OSError:
+        except OSError:  # Change to FileNotFoundError for PY3
             # Creating a new file, emulate what os.open() does
             umask = os.umask(0)
             os.umask(umask)
