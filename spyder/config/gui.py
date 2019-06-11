@@ -116,7 +116,7 @@ def fixed_shortcut(keystr, parent, action):
 def config_shortcut(action, context, name, parent):
     """
     Create a Shortcut namedtuple for a widget
-    
+
     The data contained in this tuple will be registered in
     our shortcuts preferences page
     """

@@ -53,6 +53,7 @@ class BaseEditMixin(object):
     _DEFAULT_TITLE_COLOR = '#2D62FF'
     _CHAR_HIGHLIGHT_COLOR = 'red'
     _DEFAULT_TEXT_COLOR = '#999999'
+    _DEFAULT_LANGUAGE = 'python'
 
     def __init__(self):
         self.eol_chars = None
@@ -204,7 +205,6 @@ class BaseEditMixin(object):
             lines = text.split('\n')
             if len(lines) > max_lines:
                 text = '\n'.join(lines[:max_lines]) + ' ...'
-            text = '\n' + text
 
         text = text.replace('\n', '<br>')
         template += BASE_TEMPLATE.format(
@@ -217,8 +217,15 @@ class BaseEditMixin(object):
         help_text = ''
         if inspect_word:
             if display_link:
-                help_text = ('Click anywhere in this tooltip for '
-                             'additional help')
+                help_text = (
+                    '<span style="font-family: \'{font_family}\';'
+                    'font-size:{font_size}pt;">'
+                    'Click anywhere in this tooltip for additional help'
+                    '</span>'.format(
+                        font_size=text_size,
+                        font_family=font_family,
+                    )
+                )
             else:
                 shortcut = self._get_inspect_shortcut()
                 if shortcut:
@@ -257,7 +264,8 @@ class BaseEditMixin(object):
 
     def _format_signature(self, signatures, parameter=None,
                           parameter_color=_PARAMETER_HIGHLIGHT_COLOR,
-                          char_color=_CHAR_HIGHLIGHT_COLOR):
+                          char_color=_CHAR_HIGHLIGHT_COLOR,
+                          language=_DEFAULT_LANGUAGE):
         """
         Create HTML template for signature.
 
@@ -302,6 +310,9 @@ class BaseEditMixin(object):
 
             # Process signature template
             if parameter:
+                # '*' has a meaning in regex so needs to be escaped
+                if '*' in parameter:
+                    parameter = parameter.replace('*', '\\*')
                 pattern = r'[\*|(|\s](' + parameter + r')[,|)|\s|=]'
 
             formatted_lines = []
@@ -316,7 +327,7 @@ class BaseEditMixin(object):
                 row = row.replace(' ', '&nbsp;')
                 row = row.replace('span&nbsp;', 'span ')
 
-                language = getattr(self, 'language', None)
+                language = getattr(self, 'language', language)
                 if language and 'python' == language.lower():
                     for char in ['(', ')', ',', '*', '**']:
                         new_char = chars_template.format(char=char)
@@ -344,7 +355,8 @@ class BaseEditMixin(object):
 
         return '<br><br>'.join(new_signatures)
 
-    def _check_signature_and_format(self, signature_or_text, parameter=None):
+    def _check_signature_and_format(self, signature_or_text, parameter=None,
+                                    language=_DEFAULT_LANGUAGE):
         """
         LSP hints might provide docstrings instead of signatures.
 
@@ -354,7 +366,13 @@ class BaseEditMixin(object):
         open_func_char = ''
         has_signature = False
         has_multisignature = False
-        language = getattr(self, 'language', '').lower()
+        language = getattr(self, 'language', language).lower()
+        signature_or_text = signature_or_text.replace('\\*', '*')
+
+        # Remove special symbols that could itefere with ''.format
+        signature_or_text = signature_or_text.replace('{', '&#123;')
+        signature_or_text = signature_or_text.replace('}', '&#125;')
+
         lines = signature_or_text.split('\n')
         inspect_word = None
 
@@ -411,7 +429,8 @@ class BaseEditMixin(object):
 
         return new_signature, extra_text, inspect_word
 
-    def show_calltip(self, signature, parameter=None, documentation=None):
+    def show_calltip(self, signature, parameter=None, documentation=None,
+                     language=_DEFAULT_LANGUAGE):
         """
         Show calltip.
 
@@ -422,12 +441,26 @@ class BaseEditMixin(object):
         # Find position of calltip
         point = self._calculate_position()
 
+        language = getattr(self, 'language', language).lower()
+        if language == 'python':
+            # Check if documentation is better than signature, sometimes
+            # signature has \n stripped for functions like print, type etc
+            check_doc = ' '
+            if documentation:
+                check_doc.join(documentation.split()).replace('\\*', '*')
+            check_sig = ' '.join(signature.split())
+            if check_doc == check_sig:
+                signature = documentation
+                documentation = ''
+
         # Remove duplicate signature inside documentation
         if documentation:
+            documentation = documentation.replace('\\*', '*')
             documentation = documentation.replace(signature + '\n', '')
 
         # Format
-        res = self._check_signature_and_format(signature, parameter)
+        res = self._check_signature_and_format(signature, parameter,
+                                               language=language)
         new_signature, text, inspect_word = res
         text = self._format_text(
             signature=new_signature,
@@ -748,6 +781,7 @@ class BaseEditMixin(object):
         """Return current word, i.e. word at cursor position,
             and the start position"""
         cursor = self.textCursor()
+        cursor_pos = cursor.position()
 
         if cursor.hasSelection():
             # Removes the selection and moves the cursor to the left side
@@ -789,7 +823,10 @@ class BaseEditMixin(object):
         # find a valid python variable name
         match = re.findall(r'([^\d\W]\w*)', text, re.UNICODE)
         if match:
-            return match[0], cursor.selectionStart()
+            text, startpos = match[0], cursor.selectionStart()
+            if completion:
+                text = text[:cursor_pos - startpos]
+            return text, startpos
 
     def get_current_word(self, completion=False):
         """Return current word, i.e. word at cursor position"""
@@ -846,6 +883,14 @@ class BaseEditMixin(object):
         block_start = self.document().findBlock(start)
         block_end = self.document().findBlock(end)
         return sorted([block_start.blockNumber(), block_end.blockNumber()])
+
+    def get_selection_first_block(self):
+        """Return the first block of the selection."""
+        cursor = self.textCursor()
+        start, end = cursor.selectionStart(), cursor.selectionEnd()
+        if start > 0:
+            start = start - 1
+        return self.document().findBlock(start)
 
 
     #------Text selection
@@ -1169,7 +1214,7 @@ class GetHelpMixin(object):
                         else:
                             tiptext = signature
                         # TODO: Select language and pass it to call
-                        self.show_calltip(tiptext, color='#2D62FF', is_python=True)
+                        self.show_calltip(tiptext)
 
     def get_last_obj(self, last=False):
         """

@@ -19,3 +19,8 @@ class WindowProvider:
     def process_show_message(self, response, *args):
         """Handle window/showMessage notifications from LSP server."""
         logger.debug("Received showMessage: %r" % response)
+
+    @handles(LSPRequestTypes.WINDOW_LOG_MESSAGE)
+    def process_log_message(self, response, *args):
+        """Handle window/logMessage notifications from LSP server."""
+        logger.debug("Received logMessage: %r" % response)

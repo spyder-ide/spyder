@@ -125,7 +125,7 @@ class AppearanceConfigPage(GeneralConfigPage):
             without_group=True)
 
         # Fonts layouts
-        fonts_layout = QGridLayout()
+        fonts_layout = QGridLayout(fonts_group)
         fonts_layout.addWidget(plain_text_font.fontlabel, 0, 0)
         fonts_layout.addWidget(plain_text_font.fontbox, 0, 1)
         fonts_layout.addWidget(plain_text_font.sizelabel, 0, 2)
@@ -134,7 +134,7 @@ class AppearanceConfigPage(GeneralConfigPage):
         fonts_layout.addWidget(rich_text_font.fontbox, 1, 1)
         fonts_layout.addWidget(rich_text_font.sizelabel, 1, 2)
         fonts_layout.addWidget(rich_text_font.sizebox, 1, 3)
-        fonts_group.setLayout(fonts_layout)
+        fonts_layout.setRowStretch(fonts_layout.rowCount(), 1)
 
         # Left options layout
         options_layout = QVBoxLayout()

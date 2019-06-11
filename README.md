@@ -225,7 +225,7 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 
 * **Python** 2.7 or 3.4+: The core language Spyder is written in and for.
 * **PyQt5** 5.6+: Python bindings for Qt, used for Spyder's GUI.
-* **qtconsole** 4.2.0+: Enhanced Python interpreter.
+* **qtconsole** 4.5.0+: Enhanced Python interpreter.
 * **Python-language-server**: Editor code completion, calltips
   go-to-definition and real-time code analysis
 * **Sphinx**: Rich text mode for the Help pane.
@@ -246,6 +246,7 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 * **QDarkStyle** 2.6.4+: A dark stylesheet for Qt applications, used for Spyder's dark theme.
 * **atomicwrites**: Atomic file writes.
 * **pexpect**/**paramiko**: Connect to remote kernels through SSH.
+* **diff-match-patch**: Compute text file diff changes during edition.
 
 ### Optional dependencies
 

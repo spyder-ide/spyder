@@ -884,6 +884,11 @@ class MainWindow(QMainWindow):
         from spyder.plugins.editor.lsp.manager import LSPManager
         self.lspmanager = LSPManager(self)
 
+        # Fallback completion thread
+        self.set_splash(_("Creating fallback completion engine..."))
+        from spyder.plugins.editor.fallback.actor import FallbackActor
+        self.fallback_completions = FallbackActor(self)
+
         # Working directory plugin
         logger.info("Loading working directory...")
         from spyder.plugins.workingdirectory.plugin import WorkingDirectory
@@ -915,6 +920,10 @@ class MainWindow(QMainWindow):
         self.set_splash(_("Launching LSP Client for Python..."))
         self.lspmanager.start_client(language='python')
 
+        # Start fallback plugin
+        self.set_splash(_('Launching fallback completion engine...'))
+        self.fallback_completions.start()
+
         # Populating file menu entries
         quit_action = create_action(self, _("&Quit"),
                                     icon=ima.icon('exit'),
@@ -929,9 +938,16 @@ class MainWindow(QMainWindow):
                                        context=Qt.ApplicationShortcut)
         self.register_shortcut(restart_action, "_", "Restart")
 
-        self.file_menu_actions += [self.file_switcher_action,
-                                   self.symbol_finder_action, None,
-                                   restart_action, quit_action]
+        file_actions = [
+            self.file_switcher_action,
+            self.symbol_finder_action,
+            None,
+        ]
+        if sys.platform == 'darwin':
+            file_actions.extend(self.editor.tab_navigation_actions + [None])
+
+        file_actions.extend([restart_action, quit_action])
+        self.file_menu_actions += file_actions
         self.set_splash("")
 
         # Namespace browser
@@ -2332,6 +2348,7 @@ class MainWindow(QMainWindow):
         if self.toolbars_visible:
             self.save_visible_toolbars()
         self.lspmanager.shutdown()
+        self.fallback_completions.stop()
         self.already_closed = True
         return True
 
@@ -3136,9 +3153,8 @@ class MainWindow(QMainWindow):
             self.fileswitcher = FileSwitcher(self, plugin, tabs, data, icon)
         else:
             self.fileswitcher.add_plugin(plugin, tabs, data, icon)
-
         self.fileswitcher.sig_goto_file.connect(
-                plugin.get_current_tab_manager().set_stack_index)
+            plugin.get_current_tab_manager().set_stack_index)
 
     # ---- Check for Spyder Updates
     def _check_updates_ready(self):

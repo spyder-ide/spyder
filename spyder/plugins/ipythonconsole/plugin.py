@@ -231,16 +231,16 @@ class IPythonConsole(SpyderPluginWidget):
                     self.create_new_client(give_focus=True)
         else:
             self.dockwidget.hide()
-    
+
     #------ SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
         return _('IPython console')
-    
+
     def get_plugin_icon(self):
         """Return widget icon"""
         return ima.icon('ipython_console')
-    
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
@@ -361,11 +361,11 @@ class IPythonConsole(SpyderPluginWidget):
                _("Connect to an existing kernel"), None, None,
                _("Open a new IPython console connected to an existing kernel"),
                triggered=self.create_client_for_kernel)
-        
+
         rename_tab_action = create_action(self, _("Rename tab"),
                                        icon=ima.icon('rename'),
                                        triggered=self.tab_name_editor)
-        
+
         # Add the action to the 'Consoles' menu on the main window
         main_consoles_menu = self.main.consoles_menu_actions
         main_consoles_menu.insert(0, create_client_action)
@@ -404,9 +404,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.main.editor.run_cell_in_ipyclient.connect(self.run_cell)
         self.main.workingdirectory.set_current_console_wd.connect(
                                      self.set_current_client_working_directory)
-
         self.tabwidget.currentChanged.connect(self.update_working_directory)
-
         self._remove_old_stderr_files()
 
     #------ Public API (for clients) ------------------------------------------
@@ -420,7 +418,7 @@ class IPythonConsole(SpyderPluginWidget):
         for client in self.get_clients():
             if widget is client or widget is client.get_control():
                 return client
-    
+
     def get_current_client(self):
         """Return the currently selected client"""
         client = self.tabwidget.currentWidget()
@@ -920,13 +918,13 @@ class IPythonConsole(SpyderPluginWidget):
             self.main.historylog.add_history(client.history_filename)
             client.append_to_history.connect(
                 self.main.historylog.append_to_history)
-        
+
         # Set font for client
         client.set_font( self.get_plugin_font() )
-        
+
         # Connect focus signal to client's control widget
         control.focus_changed.connect(lambda: self.focus_changed.emit())
-        
+
         shellwidget.sig_change_cwd.connect(self.set_working_directory)
 
         # Update the find widget if focus changes between control and
@@ -1254,7 +1252,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.activateWindow()
         widget.get_control().setFocus()
         self.update_tabs_text()
-        
+
     def move_tab(self, index_from, index_to):
         """
         Move tab (tabs themselves have already been moved by the tabwidget)
@@ -1396,7 +1394,7 @@ class IPythonConsole(SpyderPluginWidget):
             cf_filename = osp.basename(connection_file)
             # To change a possible empty string to None
             cf_path = cf_path if cf_path else None
-            connection_file = find_connection_file(filename=cf_filename, 
+            connection_file = find_connection_file(filename=cf_filename,
                                                    path=cf_path)
         except (IOError, UnboundLocalError):
             QMessageBox.critical(self, _('IPython'),
@@ -1423,7 +1421,7 @@ class IPythonConsole(SpyderPluginWidget):
                 new_slave_ord = ord(cl.id_['str_id'])
                 if new_slave_ord > slave_ord:
                     slave_ord = new_slave_ord
-        
+
         # If we couldn't find a client with the same connection file,
         # it means this is a new master client
         if master_id is None:

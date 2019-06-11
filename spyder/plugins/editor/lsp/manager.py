@@ -53,13 +53,13 @@ class LSPManager(QObject):
             }
             self.register_queue[language] = []
 
-    def register_file(self, language, filename, signal):
+    def register_file(self, language, filename, codeeditor):
         if language in self.clients:
             language_client = self.clients[language]['instance']
             if language_client is None:
-                self.register_queue[language].append((filename, signal))
+                self.register_queue[language].append((filename, codeeditor))
             else:
-                language_client.register_file(filename, signal)
+                language_client.register_file(filename, codeeditor)
 
     def get_option(self, option):
         """Get an option from our config system."""
@@ -200,13 +200,15 @@ class LSPManager(QObject):
                     self.clients[language]['config'] != config['config'])
                 current_config = self.clients[language]['config']
                 new_config = config['config']
-                restart_diff = ['cmd', 'args', 'host', 'port', 'external']
+                restart_diff = ['cmd', 'args', 'host',
+                                'port', 'external', 'stdio']
                 restart = any([current_config[x] != new_config[x]
                                for x in restart_diff])
                 if restart:
                     if self.clients[language]['status'] == self.STOPPED:
                         self.clients[language] = config
                     elif self.clients[language]['status'] == self.RUNNING:
+                        self.main.editor.stop_lsp_services(language)
                         self.close_client(language)
                         self.clients[language] = config
                         self.start_client(language)
@@ -317,14 +319,16 @@ class LSPManager(QObject):
 
         # Advanced
         external_server = self.get_option('advanced/external')
+        stdio = self.get_option('advanced/stdio')
 
         # Setup options in json
         python_config['cmd'] = cmd
-        if host in self.LOCALHOST:
+        if host in self.LOCALHOST and not stdio:
             python_config['args'] = '--host {host} --port {port} --tcp'
         else:
             python_config['args'] = ''
         python_config['external'] = external_server
+        python_config['stdio'] = stdio
         python_config['host'] = host
         python_config['port'] = port
 

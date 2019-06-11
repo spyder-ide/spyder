@@ -58,10 +58,8 @@ class ToolTipWidget(QLabel):
         # This keeps the hints below other applications
         if sys.platform == 'darwin':
             self.setWindowFlags(Qt.SplashScreen)
-        elif os.name == 'nt':
-            self.setWindowFlags(Qt.ToolTip | Qt.FramelessWindowHint)
         else:
-            self.setWindowFlags(Qt.Tool | Qt.FramelessWindowHint)
+            self.setWindowFlags(Qt.ToolTip | Qt.FramelessWindowHint)
 
         self._timer_hide.setInterval(500)
         self.setTextInteractionFlags(Qt.TextSelectableByMouse)
