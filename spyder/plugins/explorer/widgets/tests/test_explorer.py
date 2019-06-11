@@ -20,8 +20,8 @@ from qtpy.QtWidgets import QApplication
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyder.plugins.explorer.widgets import (FileExplorerTest,
-                                             ProjectExplorerTest)
+from spyder.plugins.explorer.widgets.explorer import (FileExplorerTest,
+                                                      ProjectExplorerTest)
 from spyder.plugins.projects.widgets.explorer import ProjectExplorerTest as ProjectExplorerTest2
 
 
