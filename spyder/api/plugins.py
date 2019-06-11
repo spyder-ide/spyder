@@ -75,14 +75,9 @@ class PluginWidget(QWidget, BasePluginMixin):
         self.options_button = create_toolbutton(self, text=_('Options'),
                                                 icon=ima.icon('tooloptions'))
         self.options_button.setPopupMode(QToolButton.InstantPopup)
-        # Don't show menu arrow and remove padding
-        if is_dark_interface():
-            self.options_button.setStyleSheet(
-                ("QToolButton::menu-indicator{image: none;}\n"
-                 "QToolButton{padding: 3px;}"))
-        else:
-            self.options_button.setStyleSheet(
-                "QToolButton::menu-indicator{image: none;}")
+        # Don't show menu arrow.
+        self.options_button.setStyleSheet(
+            "QToolButton::menu-indicator{image: none;}")
         self.options_menu = QMenu(self)
 
         # NOTE: Don't use the default option of CONF.get to assign a
