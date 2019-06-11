@@ -23,7 +23,7 @@ from qtpy.QtWidgets import (QApplication, QMenu, QMessageBox, QToolButton,
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import get_color_scheme, is_dark_interface
+from spyder.config.gui import get_color_scheme
 from spyder.config.main import CONF
 from spyder.config.user import NoDefault
 from spyder.plugins.base import BasePluginMixin
