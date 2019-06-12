@@ -63,9 +63,10 @@ from spyder.plugins.editor.panels import (ClassFunctionDropdown,
                                           FoldingPanel, IndentationGuide,
                                           LineNumberArea, PanelsManager,
                                           ScrollFlagArea)
-from spyder.plugins.editor.utils.editor import TextHelper, BlockUserData
+from spyder.plugins.editor.utils.editor import (TextHelper, BlockUserData,
+                                                TextBlockHelper)
 from spyder.plugins.editor.utils.debugger import DebuggerManager
-from spyder.plugins.editor.utils.folding import IndentFoldDetector
+from spyder.plugins.editor.utils.folding import IndentFoldDetector, FoldScope
 from spyder.plugins.editor.utils.kill_ring import QtKillRing
 from spyder.plugins.editor.utils.languages import ALL_LANGUAGES, CELL_LANGUAGES
 from spyder.plugins.editor.utils.lsp import request, handles, class_register
@@ -1600,11 +1601,15 @@ class CodeEditor(TextEditBaseWidget):
 
         while block.isValid() and top < event.pos().y():
             block = block.next()
+            collapsed = TextBlockHelper.is_collapsed(block)
             if block.isVisible():  # skip collapsed blocks
                 top = bottom
                 bottom = top + self.blockBoundingRect(block).height()
                 line_number += 1
-
+            if collapsed:
+                scope = FoldScope(block)
+                start, end = scope.get_range(ignore_blank_lines=True)
+                line_number += (end - start)
         return line_number
 
     def select_lines(self, linenumber_pressed, linenumber_released):
