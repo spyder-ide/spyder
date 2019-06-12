@@ -4,6 +4,8 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
+"""Watcher to detect filesystem changes in the project's directory."""
+
 # Standard lib imports
 import logging
 
@@ -70,7 +72,8 @@ class WorkspaceWatcher(QObject):
     """
     Wrapper class around watchdog observer and notifier.
 
-    It provides methods to start and stop watching folders."""
+    It provides methods to start and stop watching folders.
+    """
 
     def __init__(self, parent=None):
         super(QObject, self).__init__(parent)
