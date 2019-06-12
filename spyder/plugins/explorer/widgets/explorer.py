@@ -75,7 +75,7 @@ def get_file_associations(fname):
                 break
         else:
             continue  # Only excecuted if the inner loop did not break
-        break # Only excecuted if the inner loop did break
+        break  # Only excecuted if the inner loop did break
     else:
         values = []
 

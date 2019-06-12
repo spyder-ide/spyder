@@ -27,6 +27,7 @@ from spyder.plugins.explorer.utils import (get_application_icon,
                                            get_installed_applications)
 from spyder.utils import icon_manager as ima
 
+
 class InputTextDialog(QDialog):
     """Input text dialog with regex validation."""
 
@@ -359,11 +360,13 @@ class FileAssociationsWidget(QWidget):
         self._dlg_input = InputTextDialog(
             self,
             title=_('File association'),
-            label=(_('Enter new file association/extension') +
-                    ' (e.g. <code>*.txt</code> or <code>name.ext</code>)')
-                    + '<br>'
-                    + _('You can add several values separated by commas.')
-                    + '<br>',
+            label=(
+                _('Enter new file association/extension')
+                + ' (e.g. <code>*.txt</code> or <code>name.ext</code>)'
+                + '<br>'
+                + _('You can add several values separated by commas.')
+                + '<br>'
+            ),
         )
         self._dlg_input.set_regex_validation(self._REGEX)
 

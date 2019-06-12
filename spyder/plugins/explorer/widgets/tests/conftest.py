@@ -19,11 +19,13 @@ import pytest
 from spyder.py3compat import to_text_string
 
 
-@pytest.fixture(params=[['script.py', 'dir1/dir2/dir3/dir4'],
-                        ['script.py', 'script1.py', 'testdir/dir1/script2.py'],
-                        ['subdir/innerdir/dir3/text.txt', 'dir1/dir2/dir3',
-                         'dir1/dir2/dir3/file.txt',
-                         'dir1/dir2/dir3/dir4/python.py']])
+@pytest.fixture(params=[
+        ['script.py', 'dir1/dir2/dir3/dir4'],
+        ['script.py', 'script1.py', 'testdir/dir1/script2.py'],
+        ['subdir/innerdir/dir3/text.txt', 'dir1/dir2/dir3',
+         'dir1/dir2/dir3/file.txt', 'dir1/dir2/dir3/dir4/python.py'],
+    ]
+)
 def create_folders_files(tmpdir, request):
     """A project directory with dirs and files for testing."""
     project_dir = to_text_string(tmpdir.mkdir('project'))
