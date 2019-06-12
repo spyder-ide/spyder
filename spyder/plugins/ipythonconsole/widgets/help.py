@@ -41,7 +41,7 @@ class HelpWidget(RichJupyterWidget):
         """Get documentation fron inspect reply content."""
         data = content.get('data', {})
         text = data.get('text/plain', '')
-        signature = self.get_signature(content)
+        signature = self.get_signature(content).split('(')[-1]
         if text:
             documentation = text.split(signature)
             if len(documentation) > 1:
@@ -62,6 +62,7 @@ class HelpWidget(RichJupyterWidget):
                 name = self.clean_invalid_var_chars(name)
             except:
                 pass
+            text = text.split('Docstring:')[-1]
             argspec = getargspecfromtext(text)
             if argspec:
                 # This covers cases like np.abs, whose docstring is
