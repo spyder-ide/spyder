@@ -67,11 +67,18 @@ def get_common_file_associations(fnames):
 def get_file_associations(fname):
     """Return the list of matching file associations for `fname`."""
     file_associations = CONF.get('explorer', 'file_associations')
-    for ext, values in file_associations.items():
-        if fname.endswith((ext, ext[1:])):
-            break
+    for exts, values in file_associations.items():
+        clean_exts = [ext.strip() for ext in exts.split(',')]
+        for ext in clean_exts:
+            if fname.endswith((ext, ext[1:])):
+                values = values
+                break
+        else:
+            continue  # Only excecuted if the inner loop did not break
+        break # Only excecuted if the inner loop did break
     else:
         values = []
+
     return values
 
 
@@ -630,16 +637,22 @@ class DirView(QTreeView):
             fnames = self.get_selected_filenames()
 
             # Add quotes as needed
-            new_fnames = []
-            for fname in fnames:
-                if ' ' in fname:
-                    new_fnames.append(repr(fname))
-                else:
-                    new_fnames.append(fname)
-            fnames = new_fnames
+            if sys.platform != 'darwin':
+                new_fnames = []
+                for fname in fnames:
+                    if ' ' in fname:
+                        if '"' in fname:
+                            fname = '"{}"'.format(fname)
+                        else:
+                            fname = "'{}'".format(fname)
+                        new_fnames.append(fname)
+                    else:
+                        new_fnames.append(fname)
+                fnames = new_fnames
 
             if sys.platform == 'darwin':
-                subprocess.call(['open', '-a', app_path] + fnames)
+                cmd = ['open', '-a', app_path] + fnames
+                subprocess.call(cmd)
             elif os.name == 'nt':
                 subprocess.call([app_path] + fnames)
             else:

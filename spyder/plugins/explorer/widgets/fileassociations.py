@@ -15,8 +15,8 @@ import sys
 
 # Third party imports
 from qtpy.compat import getopenfilename
-from qtpy.QtCore import QSize, Qt, Signal
-from qtpy.QtGui import QCursor
+from qtpy.QtCore import QSize, Qt, Signal, QRegExp
+from qtpy.QtGui import QCursor, QRegExpValidator
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QHBoxLayout, QInputDialog, QLabel, QLineEdit,
                             QListWidget, QListWidgetItem, QPushButton,
@@ -26,6 +26,61 @@ from spyder.config.base import _
 from spyder.plugins.explorer.utils import (get_application_icon,
                                            get_installed_applications)
 from spyder.utils import icon_manager as ima
+
+class InputTextDialog(QDialog):
+    """Input text dialog with regex validation."""
+
+    def __init__(self, parent=None, title='', label=''):
+        """Input text dialog with regex validation."""
+        super(InputTextDialog, self).__init__(parent=parent)
+
+        # Widgets
+        self.label = QLabel()
+        self.lineedit = QLineEdit()
+        self.button_box = QDialogButtonBox(QDialogButtonBox.Ok
+                                           | QDialogButtonBox.Cancel)
+        self.button_ok = self.button_box.button(QDialogButtonBox.Ok)
+        self.button_cancel = self.button_box.button(QDialogButtonBox.Cancel)
+
+        # Widget setup
+        self.setWindowTitle(title)
+        self.setMinimumWidth(500)  # FIXME: use metrics
+        self.label.setText(label)
+
+        # Layout
+        layout = QVBoxLayout()
+        layout.addWidget(self.label)
+        layout.addWidget(self.lineedit)
+        layout.addSpacing(24)  # FIXME: use metrics
+        layout.addWidget(self.button_box)
+        self.setLayout(layout)
+
+        # Signals
+        self.button_ok.clicked.connect(self.accept)
+        self.button_cancel.clicked.connect(self.reject)
+        self.lineedit.textChanged.connect(self.validate)
+
+        self.validate()
+
+    def validate(self):
+        """Validate content."""
+        is_valid = bool(self.text().strip())
+        self.button_ok.setEnabled(is_valid)
+
+    def set_regex_validation(self, regex):
+        """Set the regular expression to validate content."""
+        self._regex = regex
+        validator = QRegExpValidator(QRegExp(regex))
+        self.lineedit.setValidator(validator)
+
+    def text(self):
+        """Return the text of the lineedit."""
+        return self.lineedit.text()
+
+    def set_text(self, text):
+        """Set the text of the lineedit."""
+        self.lineedit.setText(text)
+        self.validate()
 
 
 class ApplicationsDialog(QDialog):
@@ -172,6 +227,8 @@ class ApplicationsDialog(QDialog):
 
 class FileAssociationsWidget(QWidget):
     """Widget to add applications association to file extensions."""
+    _REGEX = r'(?:\*\.\w+)|(?:[\w]*\.\w+)(?:(?:,\*\.\w+)|(?:,[\w]*\.\w+))?'
+    _REGEX = '.*'
     sig_data_changed = Signal(dict)
 
     def __init__(self, parent=None):
@@ -188,6 +245,7 @@ class FileAssociationsWidget(QWidget):
         self.list_extensions = QListWidget()
         self.button_add = QPushButton(_('Add'))
         self.button_remove = QPushButton(_('Remove'))
+        self.button_edit = QPushButton(_('Edit'))
 
         self.label_applications = QLabel(_('Associated applications:'))
         self.list_applications = QListWidget()
@@ -202,6 +260,7 @@ class FileAssociationsWidget(QWidget):
         layout_buttons_extensions = QVBoxLayout()
         layout_buttons_extensions.addWidget(self.button_add)
         layout_buttons_extensions.addWidget(self.button_remove)
+        layout_buttons_extensions.addWidget(self.button_edit)
         layout_buttons_extensions.addStretch()
 
         layout_applications = QHBoxLayout()
@@ -228,26 +287,30 @@ class FileAssociationsWidget(QWidget):
         # Signals
         self.button_add.clicked.connect(self.add_association)
         self.button_remove.clicked.connect(self.remove_association)
+        self.button_edit.clicked.connect(self.edit_association)
         self.button_add_application.clicked.connect(self.add_application)
         self.button_remove_application.clicked.connect(
             self.remove_application)
         self.button_default.clicked.connect(self.set_default_application)
         self.list_extensions.currentRowChanged.connect(self.update_extensions)
+        self.list_extensions.itemDoubleClicked.connect(self.edit_association)
         self.list_applications.currentRowChanged.connect(
             self.update_applications)
         self._refresh()
+        self._create_association_dialog()
 
     def _refresh(self):
         """Refresh the status of buttons on widget."""
         self.setUpdatesEnabled(False)
         for widget in [self.button_remove,  self.button_add_application,
+                       self.button_edit,
                        self.button_remove_application, self.button_default]:
             widget.setDisabled(True)
 
         item = self.list_extensions.currentItem()
         if item:
             for widget in [self.button_remove, self.button_add_application,
-                           self.button_remove_application]:
+                           self.button_remove_application, self.button_edit]:
                 widget.setDisabled(False)
         self.setUpdatesEnabled(True)
 
@@ -291,6 +354,19 @@ class FileAssociationsWidget(QWidget):
         self.update_extensions()
         self.update_applications()
 
+    def _create_association_dialog(self):
+        """Create input extension dialog and save it to for reuse."""
+        self._dlg_input = InputTextDialog(
+            self,
+            title=_('File association'),
+            label=(_('Enter new file association/extension') +
+                    ' (e.g. <code>*.txt</code> or <code>name.ext</code>)')
+                    + '<br>'
+                    + _('You can add several values separated by commas.')
+                    + '<br>',
+        )
+        self._dlg_input.set_regex_validation(self._REGEX)
+
     def load_values(self, data=None):
         """
         Load file associations data.
@@ -306,14 +382,12 @@ class FileAssociationsWidget(QWidget):
     def add_association(self, slot=None, value=None):
         """Add extension file association."""
         if value is None:
-            text, ok_pressed = QInputDialog.getText(
-                self,
-                _('File association'),
-                (_('Enter new file association/extension') +
-                 ' (e.g. <code>*.txt</code> or <code>name.ext</code>)'),
-                QLineEdit.Normal,
-                "",
-            )
+            text, ok_pressed = '', False
+            self._dlg_input.set_text('')
+
+            if self._dlg_input.exec_():
+                text = self._dlg_input.text()
+                ok_pressed = True
         else:
             text, ok_pressed = value, True
 
@@ -329,6 +403,25 @@ class FileAssociationsWidget(QWidget):
                 self._data.pop(self.current_extension)
                 self._update_extensions()
                 self._refresh()
+                self.check_data_changed()
+
+    def edit_association(self):
+        """"""
+        old_text = self.current_extension
+        self._dlg_input.set_text(old_text)
+
+        if self._dlg_input.exec_():
+            new_text = self._dlg_input.text()
+            if old_text != new_text:
+                values = self._data.pop(self.current_extension)
+                self._data[new_text] = values
+                self._update_extensions()
+                self._refresh()
+                for row in range(self.list_extensions.count()):
+                    item = self.list_extensions.item(row)
+                    if item.text() == new_text:
+                        self.list_extensions.setCurrentItem(item)
+                        break
                 self.check_data_changed()
 
     def add_application(self):
