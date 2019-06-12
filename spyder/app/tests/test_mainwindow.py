@@ -341,15 +341,8 @@ def test_get_help_combo(main_window, qtbot):
     qtbot.waitUntil(lambda: check_text(webpage, "arange"), timeout=6000)
 
     # Get help - np
-    # Delete arange
-    qtbot.keyClick(help_plugin.combo, Qt.Key_Left, Qt.ShiftModifier)
-    qtbot.keyClick(help_plugin.combo, Qt.Key_Delete)
-    # Delete .
-    qtbot.keyClick(help_plugin.combo, Qt.Key_Left, Qt.ShiftModifier)
-    qtbot.keyClick(help_plugin.combo, Qt.Key_Delete)
-    # Delete numpy
-    qtbot.keyClick(help_plugin.combo, Qt.Key_Left, Qt.ShiftModifier)
-    qtbot.keyClick(help_plugin.combo, Qt.Key_Delete)
+    # Clear combo
+    help_plugin.combo.set_current_text('')
 
     qtbot.keyClicks(help_plugin.combo, 'np', delay=100)
 
