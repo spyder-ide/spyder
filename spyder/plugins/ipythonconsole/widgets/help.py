@@ -59,7 +59,7 @@ class HelpWidget(RichJupyterWidget):
             name = name.split('.')[-1]        # Then take last token after a .
             # Clean name from invalid chars
             try:
-                name = self.clean_invalid_var_chars(name).split('_')[-1]
+                name = self.clean_invalid_var_chars(name)
             except:
                 pass
             argspec = getargspecfromtext(text)
@@ -70,7 +70,6 @@ class HelpWidget(RichJupyterWidget):
                 signature = name + argspec
             else:
                 signature = getsignaturefromtext(text, name)
-
             # Remove docstring for uniformity with editor
             signature = signature.split('Docstring:')[0]
 
@@ -143,5 +142,6 @@ class HelpWidget(RichJupyterWidget):
                     self._control.show_calltip(
                         signature,
                         documentation=documentation,
-                        language=self.language_name
+                        language=self.language_name,
+                        max_lines=5
                     )

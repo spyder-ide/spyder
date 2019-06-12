@@ -428,7 +428,7 @@ class BaseEditMixin(object):
         return new_signature, extra_text, inspect_word
 
     def show_calltip(self, signature, parameter=None, documentation=None,
-                     language=_DEFAULT_LANGUAGE):
+                     language=_DEFAULT_LANGUAGE, max_lines=10):
         """
         Show calltip.
 
@@ -465,7 +465,7 @@ class BaseEditMixin(object):
             inspect_word=inspect_word,
             display_link=False,
             text=documentation,
-            max_lines=10,
+            max_lines=max_lines,
         )
 
         self._update_stylesheet(self.calltip_widget)
