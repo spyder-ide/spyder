@@ -29,6 +29,7 @@ from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import add_actions, create_action, MENU_SEPARATOR
 from spyder.utils.misc import getcwd_or_home
+from spyder.plugins.projects.utils.watcher import WorkspaceWatcher
 from spyder.plugins.projects.widgets.explorer import ProjectExplorerWidget
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
 from spyder.plugins.projects.widgets import EmptyProject
@@ -63,10 +64,12 @@ class Projects(SpyderPluginWidget):
         self.recent_projects = self.get_option('recent_projects', default=[])
         self.current_active_project = None
         self.latest_project = None
+        self.watcher = WorkspaceWatcher(self)
 
         # Initialize plugin
         self.initialize_plugin()
         self.explorer.setup_project(self.get_active_project_path())
+        self.watcher.connect_signals(self)
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
@@ -317,6 +320,7 @@ class Projects(SpyderPluginWidget):
         self.setup_menu_actions()
         self.sig_project_loaded.emit(path)
         self.sig_pythonpath_changed.emit()
+        self.watcher.start(path)
 
         if restart_consoles:
             self.restart_consoles()
@@ -346,6 +350,7 @@ class Projects(SpyderPluginWidget):
 
             self.explorer.clear()
             self.restart_consoles()
+            self.watcher.stop()
 
     def delete_project(self):
         """
@@ -505,3 +510,23 @@ class Projects(SpyderPluginWidget):
         if project not in self.recent_projects:
             self.recent_projects.insert(0, project)
             self.recent_projects = self.recent_projects[:10]
+
+    @Slot(str, str, bool)
+    def file_moved(self, src_file, dest_file, is_dir):
+        # TODO: Handle calls to LSP workspace
+        pass
+
+    @Slot(str, bool)
+    def file_created(self, src_file, is_dir):
+        # TODO: Handle calls to LSP workspace
+        pass
+
+    @Slot(str, bool)
+    def file_deleted(self, src_file, is_dir):
+        # TODO: Handle calls to LSP workspace
+        pass
+
+    @Slot(str, bool)
+    def file_modified(self, src_file, is_dir):
+        # TODO: Handle calls to LSP workspace
+        pass

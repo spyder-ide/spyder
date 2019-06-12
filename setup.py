@@ -216,6 +216,7 @@ install_requires = [
     'qdarkstyle>=2.6.4',
     'atomicwrites',
     'diff-match-patch',
+    'watchdog',
     # Don't require keyring for Python 2 and Linux
     # because it depends on system packages
     'keyring;sys_platform!="linux2"',
