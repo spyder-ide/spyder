@@ -17,9 +17,12 @@ logger = logging.getLogger(__name__)
 
 
 class WorkspaceEventHandler(QObject, FileSystemEventHandler):
-    """Event handler for watchdog notifications. This class recieves
-       notifications about file/folder moving, modification,
-       creation and deletion and emits its corresponding signal."""
+    """
+    Event handler for watchdog notifications.
+
+    This class receives notifications about file/folder moving, modification,
+    creation and deletion and emits a corresponding signal about it.
+    """
 
     sig_file_moved = Signal(str, str, bool)
     sig_file_created = Signal(str, bool)
@@ -64,8 +67,10 @@ class WorkspaceEventHandler(QObject, FileSystemEventHandler):
 
 
 class WorkspaceWatcher(QObject):
-    """Wrapper class around watchdog observer and notifier. Provides methods
-       to start and stop watching folders."""
+    """
+    Wrapper class around watchdog observer and notifier.
+
+    It provides methods to start and stop watching folders."""
 
     def __init__(self, parent=None):
         super(QObject, self).__init__(parent)
