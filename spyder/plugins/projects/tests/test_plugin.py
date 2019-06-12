@@ -21,6 +21,7 @@ except ImportError:
 
 # Third party imports
 import pytest
+from flaky import flaky
 
 # Local imports
 import spyder.plugins.base
@@ -290,6 +291,7 @@ def test_project_explorer_tree_root(projects, tmpdir, qtbot):
         assert topleft_index.data() == osp.basename(ppath)
 
 
+@flaky(max_runs=5)
 def test_project_file_notifications(qtbot, projects, tmpdir):
     # Create the directory and files.
     project_root = tmpdir.mkdir('project0')
