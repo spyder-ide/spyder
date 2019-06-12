@@ -335,20 +335,21 @@ def test_get_help_combo(main_window, qtbot):
     qtbot.waitUntil(lambda: check_text(webpage, "NumPy"), timeout=6000)
 
     # Get help - numpy.arange
-    qtbot.keyClick(help_plugin.combo, Qt.Key_Right)
     qtbot.keyClicks(help_plugin.combo, '.arange', delay=100)
 
     # Check that a expected text is part of the page
     qtbot.waitUntil(lambda: check_text(webpage, "arange"), timeout=6000)
 
     # Get help - np
+    # Clear combo
+    help_plugin.combo.set_current_text('')
+
     qtbot.keyClicks(help_plugin.combo, 'np', delay=100)
 
     # Check that a expected text is part of the page
     qtbot.waitUntil(lambda: check_text(webpage, "NumPy"), timeout=6000)
 
     # Get help - np.arange
-    qtbot.keyClick(help_plugin.combo, Qt.Key_Right)
     qtbot.keyClicks(help_plugin.combo, '.arange', delay=100)
 
     # Check that a expected text is part of the page
