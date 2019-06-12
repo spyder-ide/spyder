@@ -292,7 +292,6 @@ def test_project_explorer_tree_root(projects, tmpdir, qtbot):
         assert topleft_index.data() == osp.basename(ppath)
 
 
-@pytest.mark.skipif(sys.platform == 'darwin', reason='Fails in macOS')
 def test_filesystem_notifications(qtbot, projects, tmpdir):
     """
     Test that filesystem notifications are emitted when creating,
