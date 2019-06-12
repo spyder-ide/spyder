@@ -44,12 +44,6 @@ class Projects(SpyderPluginWidget):
     sig_project_loaded = Signal(object)
     sig_project_closed = Signal(object)
 
-    # The following signals are only used for testing
-    sig_file_moved = Signal(str, str, bool)
-    sig_file_created = Signal(str, bool)
-    sig_file_deleted = Signal(str, bool)
-    sig_file_modified = Signal(str, bool)
-
     def __init__(self, parent=None):
         """Initialization."""
         SpyderPluginWidget.__init__(self, parent)
@@ -70,7 +64,7 @@ class Projects(SpyderPluginWidget):
         self.recent_projects = self.get_option('recent_projects', default=[])
         self.current_active_project = None
         self.latest_project = None
-        self.watcher = WorkspaceWatcher()
+        self.watcher = WorkspaceWatcher(self)
 
         # Initialize plugin
         self.initialize_plugin()
@@ -520,19 +514,19 @@ class Projects(SpyderPluginWidget):
     @Slot(str, str, bool)
     def file_moved(self, src_file, dest_file, is_dir):
         # TODO: Handle calls to LSP workspace
-        self.sig_file_moved.emit(src_file, dest_file, is_dir)
+        pass
 
     @Slot(str, bool)
     def file_created(self, src_file, is_dir):
         # TODO: Handle calls to LSP workspace
-        self.sig_file_created.emit(src_file, is_dir)
+        pass
 
     @Slot(str, bool)
     def file_deleted(self, src_file, is_dir):
         # TODO: Handle calls to LSP workspace
-        self.sig_file_deleted.emit(src_file, is_dir)
+        pass
 
     @Slot(str, bool)
     def file_modified(self, src_file, is_dir):
         # TODO: Handle calls to LSP workspace
-        self.sig_file_modified.emit(src_file, is_dir)
+        pass

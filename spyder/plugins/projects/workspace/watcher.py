@@ -63,7 +63,8 @@ class WorkspaceWatcher(QObject):
     """Wrapper class around watchdog observer and notifier. Provides methods
        to start and stop watching folders."""
 
-    def __init__(self):
+    def __init__(self, parent=None):
+        super(QObject, self).__init__(parent)
         self.observer = None
         self.event_handler = WorkspaceEventHandler()
 
