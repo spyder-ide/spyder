@@ -123,9 +123,27 @@ class Explorer(SpyderPluginWidget):
         self.main.tabify_plugins(self.main.variableexplorer, self)
 
     def apply_plugin_settings(self, options):
-        pass
-        # TODO: Need to update the editname filters
-        # TODO: And the check actions!
+        """"""
+        method_map = {
+            'file_associations':
+                self.fileexplorer.treewidget.set_file_associations,
+            # 'show_hidden':
+            #     self.fileexplorer.treewidget.set_show_all,
+            'single_click_to_open':
+                self.fileexplorer.treewidget.set_single_click_to_open,
+            'name_filters':
+                self.fileexplorer.treewidget.set_name_filters,
+            'show_all':
+                self.fileexplorer.treewidget.toggle_all,
+            'show_icontext': 
+                self.fileexplorer.toggle_icontext,
+        }
+        for option in options:
+            if option in method_map:
+                value = self.get_option(option)
+                method = method_map.get(option)
+                method(value)
+        self.fileexplorer.treewidget.update_common_actions()
 
     #------ Public API ---------------------------------------------------------
     def chdir(self, directory):

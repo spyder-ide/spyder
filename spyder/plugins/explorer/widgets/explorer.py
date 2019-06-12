@@ -167,6 +167,7 @@ class IconProvider(QFileIconProvider):
             fname = osp.normpath(to_text_string(qfileinfo.absoluteFilePath()))
             return ima.get_icon_by_extension_or_type(fname, scale_factor=1.0)
 
+
 class DirView(QTreeView):
     """Base file/directory tree view"""
     sig_edit = Signal(str)
@@ -188,6 +189,7 @@ class DirView(QTreeView):
         self.name_filters = ['*.py']
         self.show_all = None
         self.single_click_to_open = False
+        self.file_associations = {}
 
         self.menu = None
         self.common_actions = None
@@ -229,6 +231,10 @@ class DirView(QTreeView):
         self.single_click_to_open = value
         self.parent_widget.sig_option_changed.emit('single_click_to_open',
                                                    value)
+
+    def set_file_associations(self, value):
+        """Set file associations open items."""
+        self.file_associations = value
 
     def set_name_filters(self, name_filters):
         """Set name filters"""
@@ -272,13 +278,14 @@ class DirView(QTreeView):
 
     #---- Tree view widget
     def setup(self, name_filters=['*.py', '*.pyw'], show_all=False,
-              single_click_to_open=False):
+              single_click_to_open=False, file_associations={}):
         """Setup tree widget"""
         self.setup_view()
 
         self.set_name_filters(name_filters)
         self.show_all = show_all
         self.single_click_to_open = single_click_to_open
+        self.set_file_associations(file_associations)
 
         # Setup context menu
         self.menu = QMenu(self)
@@ -293,23 +300,29 @@ class DirView(QTreeView):
     def setup_common_actions(self):
         """Setup context menu common actions"""
         # Filters
-        filters_action = create_action(self, _("Edit filename filters..."),
+        self.filters_action = create_action(self, _("Edit filename filters..."),
                                        None, ima.icon('filter'),
                                        triggered=self.edit_filter)
         # Show all files
-        all_action = create_action(self, _("Show all files"),
-                                   toggled=self.toggle_all)
-        all_action.setChecked(self.show_all)
-        self.toggle_all(self.show_all)
+        self.all_action = create_action(self, _("Show all files"),
+                                        toggled=self.toggle_all)
 
         # Show all files
-        single_click_to_open = create_action(
+        self.single_click_to_open_action = create_action(
             self,
             _("Single click to open"),
             toggled=self.set_single_click_to_open,
         )
-        single_click_to_open.setChecked(self.single_click_to_open)
-        return [filters_action, all_action, single_click_to_open]
+        actions = [self.filters_action, self.all_action,
+                   self.single_click_to_open_action]
+        self.update_common_actions()
+        return actions
+
+    def update_common_actions(self):
+        """"""
+        self.set_show_all(self.show_all)
+        self.all_action.setChecked(self.show_all)
+        self.single_click_to_open_action.setChecked(self.single_click_to_open)
 
     @Slot()
     def edit_filter(self):
@@ -1529,7 +1542,7 @@ class ExplorerWidget(QWidget):
 
     def __init__(self, parent=None, name_filters=['*.py', '*.pyw'],
                  show_all=False, show_cd_only=None, show_icontext=True,
-                 single_click_to_open=False,
+                 single_click_to_open=False, file_associations={},
                  options_button=None):
         QWidget.__init__(self, parent)
 
@@ -1560,6 +1573,7 @@ class ExplorerWidget(QWidget):
             name_filters=name_filters,
             show_all=show_all,
             single_click_to_open=single_click_to_open,
+            file_associations=file_associations,
         )
         self.treewidget.chdir(getcwd_or_home())
         self.treewidget.common_actions += [None, icontext_action]

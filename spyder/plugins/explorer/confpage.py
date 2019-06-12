@@ -27,7 +27,6 @@ class ExplorerConfigPage(PluginConfigPage):
 
         # Widgets
         general_widget = QWidget()
-        check_show_hidden = newcb(_("Show hidden files"), 'show_hidden')
         check_show_all = newcb(_("Show all files"), 'show_all')
         check_icon = newcb(_("Show icons and text"), 'show_icontext')
         check_single_click = newcb(_("Single click to open files"),
@@ -53,7 +52,6 @@ class ExplorerConfigPage(PluginConfigPage):
 
         # Layout
         layout = QVBoxLayout()
-        layout.addWidget(check_show_hidden)
         layout.addWidget(check_show_all)
         layout.addWidget(check_icon)
         layout.addWidget(check_single_click)

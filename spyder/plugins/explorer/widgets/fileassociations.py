@@ -15,7 +15,7 @@ import sys
 
 # Third party imports
 from qtpy.compat import getopenfilename
-from qtpy.QtCore import QSize, Qt, Signal, QRegExp
+from qtpy.QtCore import QRegExp, QSize, Qt, Signal
 from qtpy.QtGui import QCursor, QRegExpValidator
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QHBoxLayout, QInputDialog, QLabel, QLineEdit,
