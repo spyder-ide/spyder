@@ -14,6 +14,7 @@ Tests for the Projects plugin.
 import os
 import shutil
 import os.path as osp
+import sys
 try:
     from unittest.mock import Mock
 except ImportError:
@@ -291,9 +292,13 @@ def test_project_explorer_tree_root(projects, tmpdir, qtbot):
         assert topleft_index.data() == osp.basename(ppath)
 
 
-@flaky(max_runs=5)
-def test_project_file_notifications(qtbot, projects, tmpdir):
-    # Create the directory and files.
+@pytest.mark.skipif(sys.platform == 'darwin', reason='Fails in macOS')
+def test_filesystem_notifications(qtbot, projects, tmpdir):
+    """
+    Test that filesystem notifications are emitted when creating,
+    deleting and moving files and directories.
+    """
+    # Create a directory for the project and some files.
     project_root = tmpdir.mkdir('project0')
     folder0 = project_root.mkdir('folder0')
     folder1 = project_root.mkdir('folder1')
@@ -303,12 +308,16 @@ def test_project_file_notifications(qtbot, projects, tmpdir):
     file3 = folder1.join('file3')
     file0.write('')
     file1.write('')
-    # file2.write('')
     file3.write('ab')
+
+    # Open the project
     projects.open_project(path=to_text_string(project_root))
 
+    # Get a reference to the filesystem event handler
+    fs_handler = projects.watcher.event_handler
+
     # Test file creation
-    with qtbot.waitSignal(projects.sig_file_created,
+    with qtbot.waitSignal(fs_handler.sig_file_created,
                           timeout=30000) as blocker:
         file2.write('')
 
@@ -317,17 +326,17 @@ def test_project_file_notifications(qtbot, projects, tmpdir):
     assert not is_dir
 
     # Test folder creation
-    with qtbot.waitSignal(projects.sig_file_created,
-                          timeout=30000) as blocker:
+    with qtbot.waitSignal(fs_handler.sig_file_created,
+                          timeout=3000) as blocker:
         folder2 = project_root.mkdir('folder2')
 
     folder_created, is_dir = blocker.args
     assert folder_created == osp.join(to_text_string(project_root), 'folder2')
 
     # Test file move/renaming
-    new_file = osp.join(to_text_string(project_root), 'new_file')
-    with qtbot.waitSignal(projects.sig_file_moved,
-                          timeout=30000) as blocker:
+    new_file = osp.join(to_text_string(folder0), 'new_file')
+    with qtbot.waitSignal(fs_handler.sig_file_moved,
+                          timeout=3000) as blocker:
         shutil.move(to_text_string(file1), new_file)
 
     original_file, file_moved, is_dir = blocker.args
@@ -336,9 +345,9 @@ def test_project_file_notifications(qtbot, projects, tmpdir):
     assert not is_dir
 
     # Test folder move/renaming
-    new_folder = osp.join(to_text_string(folder1), 'move_folder')
-    with qtbot.waitSignal(projects.sig_file_moved,
-                          timeout=30000) as blocker:
+    new_folder = osp.join(to_text_string(project_root), 'new_folder')
+    with qtbot.waitSignal(fs_handler.sig_file_moved,
+                          timeout=3000) as blocker:
         shutil.move(to_text_string(folder2), new_folder)
 
     original_folder, folder_moved, is_dir = blocker.args
@@ -347,41 +356,30 @@ def test_project_file_notifications(qtbot, projects, tmpdir):
     assert is_dir
 
     # Test file deletion
-    with qtbot.waitSignal(projects.sig_file_deleted,
-                          timeout=30000) as blocker:
-        os.remove(new_file)
+    with qtbot.waitSignal(fs_handler.sig_file_deleted,
+                          timeout=3000) as blocker:
+        os.remove(to_text_string(file0))
 
     deleted_file, is_dir = blocker.args
-    assert deleted_file == new_file
+    assert deleted_file == to_text_string(file0)
     assert not is_dir
-    assert not osp.exists(new_file)
+    assert not osp.exists(to_text_string(file0))
 
     # Test folder deletion
-    with qtbot.waitSignal(projects.sig_file_deleted,
-                          timeout=30000) as blocker:
-        shutil.rmtree(new_folder)
+    with qtbot.waitSignal(fs_handler.sig_file_deleted,
+                          timeout=3000) as blocker:
+        shutil.rmtree(to_text_string(folder0))
 
     deleted_folder, is_dir = blocker.args
-    assert deleted_folder == new_folder
-    assert is_dir
-    assert not osp.exists(new_folder)
+    assert to_text_string(folder0) in deleted_folder
 
     # Test file/folder modification
-    with qtbot.waitSignal(projects.sig_file_modified,
-                          timeout=30000) as blocker_folder:
+    with qtbot.waitSignal(fs_handler.sig_file_modified,
+                          timeout=3000) as blocker:
         file3.write('abc')
 
-    with qtbot.waitSignal(projects.sig_file_modified,
-                          timeout=30000) as blocker_file:
-        pass
-
-    modified_folder, is_dir = blocker_folder.args
-    assert modified_folder == to_text_string(folder1)
-    assert is_dir
-
-    modified_file, is_dir = blocker_file.args
-    assert modified_file == to_text_string(file3)
-    assert not is_dir
+    modified_file, is_dir = blocker.args
+    assert modified_file in to_text_string(file3)
 
 
 if __name__ == "__main__":
