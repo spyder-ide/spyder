@@ -756,7 +756,7 @@ class EditorStack(QWidget):
         if is_dark_interface():
             menu_btn.setStyleSheet(
                 ("QToolButton::menu-indicator{image: none;}\n"
-                 "QToolButton{padding-right: 2px;}"))
+                 "QToolButton{margin: 1px; padding: 3px;}"))
         else:
             menu_btn.setStyleSheet(
                 "QToolButton::menu-indicator{image: none;}")
