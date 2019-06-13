@@ -19,11 +19,9 @@ import numpy as np
 import pytest
 
 # Local imports
-from spyder.plugins.variableexplorer.widgets.tests.test_dataframeeditor \
-    import data
 from spyder.plugins.variableexplorer.widgets.objectexplorer.objectexplorer \
     import ObjectExplorer
-
+from spyder.py3compat import PY2
 
 # =============================================================================
 # Fixtures
@@ -122,6 +120,7 @@ def test_objectexplorer(objectexplorer):
     assert model.columnCount() == 17
 
 
+@pytest.mark.skipif(PY2, reason="Number of rows is different in PY2")
 def test_objectexplorer_types(objectexplorer):
     """Test to validate proper handling of multiple data types."""
     test = {'str': 'kjkj kj k j j kj k jkj',
