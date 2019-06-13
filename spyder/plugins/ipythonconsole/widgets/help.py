@@ -37,6 +37,16 @@ class HelpWidget(RichJupyterWidget):
         """
         return re.sub(r'\W|^(?=\d)', '_', var)
 
+    def get_documentation(self, content):
+        """Get documentation fron inspect reply content."""
+        data = content.get('data', {})
+        text = data.get('text/plain', '')
+        signature = self.get_signature(content).split('(')[-1]
+        if text:
+            documentation = text.split(signature)
+            if len(documentation) > 1:
+                return documentation[-1]
+
     def get_signature(self, content):
         """Get signature from inspect reply content"""
         data = content.get('data', {})
@@ -49,9 +59,10 @@ class HelpWidget(RichJupyterWidget):
             name = name.split('.')[-1]        # Then take last token after a .
             # Clean name from invalid chars
             try:
-                name = self.clean_invalid_var_chars(name).split('_')[-1]
+                name = self.clean_invalid_var_chars(name)
             except:
                 pass
+            text = text.split('Docstring:')[-1]
             argspec = getargspecfromtext(text)
             if argspec:
                 # This covers cases like np.abs, whose docstring is
@@ -60,6 +71,9 @@ class HelpWidget(RichJupyterWidget):
                 signature = name + argspec
             else:
                 signature = getsignaturefromtext(text, name)
+            # Remove docstring for uniformity with editor
+            signature = signature.split('Docstring:')[0]
+
             return signature
         else:
             return ''
@@ -119,11 +133,16 @@ class HelpWidget(RichJupyterWidget):
         """
         cursor = self._get_cursor()
         info = self._request_info.get('call_tip')
-        if info and info.id == rep['parent_header']['msg_id'] and \
-          info.pos == cursor.position():
+        if (info and info.id == rep['parent_header']['msg_id'] and
+                info.pos == cursor.position()):
             content = rep['content']
             if content.get('status') == 'ok' and content.get('found', False):
                 signature = self.get_signature(content)
+                documentation = self.get_documentation(content)
                 if signature:
-                    self._control.show_calltip(_("Arguments"), signature,
-                                               signature=True, color='#2D62FF')
+                    self._control.show_calltip(
+                        signature,
+                        documentation=documentation,
+                        language=self.language_name,
+                        max_lines=5
+                    )

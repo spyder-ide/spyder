@@ -6,18 +6,24 @@
 
 
 """
-LSP client, code introspection and linting utillites.
+LSP client, code introspection and linting utilities.
 """
 
 from spyder.config.base import DEV
 
 
 # Language server communication verbosity at server logs.
-
 TRACE = 'messages'
 if DEV:
     TRACE = 'verbose'
 
+# Supported LSP programming languages
+LSP_LANGUAGES = [
+    'C#', 'CSS/LESS/SASS', 'Go', 'GraphQL', 'Groovy', 'Haxe', 'HTML',
+    'Java', 'JavaScript', 'JSON', 'Julia', 'OCaml', 'PHP',
+    'Rust', 'Scala', 'Swift', 'TypeScript', 'Erlang', 'Fortran',
+    'Elixir'
+]
 
 # -------------------- CLIENT CONFIGURATION SETTINGS --------------------------
 

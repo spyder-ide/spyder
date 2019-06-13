@@ -84,7 +84,7 @@ BACKGROUND_NUMBER_MINHUE = 0.66 # hue for largest number
 BACKGROUND_NUMBER_HUERANGE = 0.33 # (hue for smallest) minus (hue for largest)
 BACKGROUND_NUMBER_SATURATION = 0.7
 BACKGROUND_NUMBER_VALUE = 1.0
-BACKGROUND_NUMBER_ALPHA = 0.6 
+BACKGROUND_NUMBER_ALPHA = 0.6
 BACKGROUND_NONNUMBER_COLOR = Qt.lightGray
 BACKGROUND_INDEX_ALPHA = 0.8
 BACKGROUND_STRING_ALPHA = 0.05
@@ -128,7 +128,7 @@ class DataFrameModel(QAbstractTableModel):
         self._format = format
         self.complex_intran = None
         self.display_error_idxs = []
-        
+
         self.total_rows = self.df.shape[0]
         self.total_cols = self.df.shape[1]
         size = self.total_rows * self.total_cols
@@ -215,12 +215,12 @@ class DataFrameModel(QAbstractTableModel):
         Determines the maximum and minimum number in each column.
 
         The result is a list whose k-th entry is [vmax, vmin], where vmax and
-        vmin denote the maximum and minimum of the k-th column (ignoring NaN). 
+        vmin denote the maximum and minimum of the k-th column (ignoring NaN).
         This list is stored in self.max_min_col.
 
         If the k-th column has a non-numerical dtype, then the k-th entry
         is set to None. If the dtype is complex, then compute the maximum and
-        minimum of the absolute values. If vmax equals vmin, then vmin is 
+        minimum of the absolute values. If vmax equals vmin, then vmin is
         decreased by one.
         """
         if self.df.shape[0] == 0: # If no rows to compute max/min then return
@@ -438,10 +438,16 @@ class DataFrameModel(QAbstractTableModel):
 
     def rowCount(self, index=QModelIndex()):
         """DataFrame row number"""
-        if self.total_rows <= self.rows_loaded:
-            return self.total_rows
-        else:
-            return self.rows_loaded
+        # Avoid a "Qt exception in virtual methods" generated in our
+        # tests on Windows/Python 3.7
+        # See PR 8910
+        try:
+            if self.total_rows <= self.rows_loaded:
+                return self.total_rows
+            else:
+                return self.rows_loaded
+        except AttributeError:
+            return 0
 
     def fetch_more(self, rows=False, columns=False):
         """Get more columns and/or rows."""
@@ -462,13 +468,19 @@ class DataFrameModel(QAbstractTableModel):
 
     def columnCount(self, index=QModelIndex()):
         """DataFrame column number"""
-        # This is done to implement series
-        if len(self.df.shape) == 1:
-            return 2
-        elif self.total_cols <= self.cols_loaded:
-            return self.total_cols
-        else:
-            return self.cols_loaded
+        # Avoid a "Qt exception in virtual methods" generated in our
+        # tests on Windows/Python 3.7
+        # See PR 8910
+        try:
+            # This is done to implement series
+            if len(self.df.shape) == 1:
+                return 2
+            elif self.total_cols <= self.cols_loaded:
+                return self.total_cols
+            else:
+                return self.cols_loaded
+        except AttributeError:
+            return 0
 
     def reset(self):
         self.beginResetModel()
@@ -511,12 +523,18 @@ class DataFrameView(QTableView):
 
     def load_more_data(self, value, rows=False, columns=False):
         """Load more rows and columns to display."""
-        if rows and value == self.verticalScrollBar().maximum():
-            self.model().fetch_more(rows=rows)
-            self.sig_fetch_more_rows.emit()
-        if columns and value == self.horizontalScrollBar().maximum():
-            self.model().fetch_more(columns=columns)
-            self.sig_fetch_more_columns.emit()
+        try:
+            if rows and value == self.verticalScrollBar().maximum():
+                self.model().fetch_more(rows=rows)
+                self.sig_fetch_more_rows.emit()
+            if columns and value == self.horizontalScrollBar().maximum():
+                self.model().fetch_more(columns=columns)
+                self.sig_fetch_more_columns.emit()
+
+        except NameError:
+            # Needed to handle a NameError while fetching data when closing
+            # See issue 7880
+            pass
 
     def sortByColumn(self, index):
         """Implement a column sort."""
@@ -878,7 +896,7 @@ class DataFrameEditor(QDialog):
         self.dataTable.installEventFilter(self)
 
         avg_width = self.fontMetrics().averageCharWidth()
-        self.min_trunc = avg_width * 8  # Minimum size for columns
+        self.min_trunc = avg_width * 12  # Minimum size for columns
         self.max_width = avg_width * 64  # Maximum size for columns
 
         self.setLayout(self.layout)
@@ -1113,7 +1131,7 @@ class DataFrameEditor(QDialog):
         max_row = table.model().rowCount()
         lm_start = time.clock()
         lm_row = 64 if limit_ms else max_row
-        max_width = 0
+        max_width = self.min_trunc
         for row in range(max_row):
             v = table.sizeHintForIndex(table.model().index(row, col))
             max_width = max(max_width, v.width())
@@ -1135,7 +1153,7 @@ class DataFrameEditor(QDialog):
             width = max(min(hdr_width, self.min_trunc), min(self.max_width,
                         data_width))
         else:
-            width = min(self.max_width, hdr_width)
+            width = max(min(self.max_width, hdr_width), self.min_trunc)
         header.setColumnWidth(col, width)
 
     def _resizeColumnsToContents(self, header, data, limit_ms):
@@ -1194,7 +1212,6 @@ class DataFrameEditor(QDialog):
         self._resizeColumnsToContents(self.table_level,
                                       self.table_index, self._max_autosize_ms)
         self._update_layout()
-        self.table_level.resizeColumnsToContents()
 
     def change_bgcolor_enable(self, state):
         """

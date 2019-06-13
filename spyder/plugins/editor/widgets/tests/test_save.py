@@ -93,6 +93,7 @@ def test_save_if_changed(editor_bot, mocker):
     save_if_changed = editor_stack.save_if_changed
     mocker.patch.object(editor.QMessageBox, 'exec_')
     mocker.patch.object(editor_stack, 'save')
+    mocker.patch.object(editor_stack.autosave, 'remove_autosave_file')
     editor_stack.save.return_value = True
 
     # No file changed - returns True.
@@ -101,6 +102,7 @@ def test_save_if_changed(editor_bot, mocker):
     editor_stack.data[2].editor.document().setModified(False)
     assert save_if_changed() is True
     assert not editor_stack.save.called
+    assert not editor_stack.autosave.remove_autosave_file.called
     editor_stack.data[0].editor.document().setModified(True)
     editor_stack.data[1].editor.document().setModified(True)
     editor_stack.data[2].editor.document().setModified(True)
@@ -109,37 +111,45 @@ def test_save_if_changed(editor_bot, mocker):
     editor.QMessageBox.exec_.return_value = editor.QMessageBox.Cancel
     assert save_if_changed(index=0, cancelable=True) is False
     assert not editor_stack.save.called
+    assert not editor_stack.autosave.remove_autosave_file.called
     assert editor_stack.tabs.currentIndex() == 0
 
     # Yes button - return value from save().
     editor.QMessageBox.exec_.return_value = editor.QMessageBox.Yes
     assert save_if_changed(index=0, cancelable=True) is True
     assert editor_stack.save.called
+    assert not editor_stack.autosave.remove_autosave_file.called
 
     # YesToAll button - if any save() fails, then return False.
     editor_stack.save.reset_mock()
     editor.QMessageBox.exec_.return_value = editor.QMessageBox.YesToAll
     assert save_if_changed() is True
     assert editor_stack.save.call_count == 3
+    assert not editor_stack.autosave.remove_autosave_file.called
 
-    # No button - returns True.
+    # No button - remove autosave, returns True.
     editor_stack.save.reset_mock()
     editor.QMessageBox.exec_.return_value = editor.QMessageBox.No
     assert save_if_changed(index=0, cancelable=True) is True
     assert not editor_stack.save.called
+    assert editor_stack.autosave.remove_autosave_file.called
 
-    # NoToAll button - returns True.
+    # NoToAll button - remove autosave 3x, returns True.
     editor_stack.save.reset_mock()
+    editor_stack.autosave.remove_autosave_file.reset_mock()
     editor.QMessageBox.exec_.return_value = editor.QMessageBox.NoToAll
     assert save_if_changed() is True
     assert not editor_stack.save.called
+    assert editor_stack.autosave.remove_autosave_file.call_count == 3
 
     # Tempfile doesn't show message box - always calls save().
     editor.QMessageBox.exec_.reset_mock()
+    editor_stack.autosave.remove_autosave_file.reset_mock()
     editor_stack.set_tempfile_path(__file__)
     editor_stack.save.return_value = False
     assert save_if_changed(index=2, cancelable=True) is False
     assert editor_stack.save.called
+    assert not editor_stack.autosave.remove_autosave_file.called
     editor.QMessageBox.exec_.assert_not_called()
 
 
@@ -151,6 +161,7 @@ def test_save(editor_bot, mocker):
     mocker.patch.object(editor.os.path, 'isfile')
     mocker.patch.object(editor.encoding, 'write')
     mocker.patch.object(editor_stack, 'save_as')
+    mocker.patch.object(editor_stack.autosave, 'remove_autosave_file')
     save_file_saved = editor_stack.file_saved
     editor_stack.file_saved = Mock()
     editor.encoding.write.return_value = 'utf-8'
@@ -160,6 +171,8 @@ def test_save(editor_bot, mocker):
     editor_stack.data[0].newly_created = False
     assert save(index=0) is True
     assert not editor.encoding.write.called
+    assert not editor_stack.autosave.remove_autosave_file.called
+    assert editor_stack.autosave.file_hashes == {}
 
     # File modified.
     editor_stack.data[0].editor.document().setModified(True)
@@ -170,13 +183,19 @@ def test_save(editor_bot, mocker):
     assert save(index=0) == 'save_as_called'
     editor_stack.save_as.assert_called_with(index=0)
     assert not editor.encoding.write.called
+    assert not editor_stack.autosave.remove_autosave_file.called
+    assert editor_stack.autosave.file_hashes == {}
 
     # Force save.
     editor.os.path.isfile.return_value = True
     assert save(index=0, force=True)
     assert editor.encoding.write.called == 1
-    editor_stack.file_saved.emit.assert_called_with(str(id(editor_stack)),
-                                                    'foo.py', 'foo.py')
+    editor_stack.file_saved.emit.assert_called_with(
+        str(id(editor_stack)), 'foo.py', 'foo.py')
+    editor_stack.autosave.remove_autosave_file.assert_called_with(
+        editor_stack.data[0].filename)
+    expected = {'foo.py': hash('a = 1\nprint(a)\n\nx = 2\n')}
+    assert editor_stack.autosave.file_hashes == expected
 
     editor_stack.file_saved = save_file_saved
 

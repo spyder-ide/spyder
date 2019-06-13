@@ -14,13 +14,21 @@ import socket
 # Third party imports
 from qtpy.QtCore import  Signal
 from qtpy.QtWidgets import QSizePolicy, QVBoxLayout, QWidget
+from qtpy.QtGui import QColor
+from qtpy.QtWebEngineWidgets import WEBENGINE
 
 # Local imports
+from spyder.config.gui import is_dark_interface
 from spyder.py3compat import to_text_string
 from spyder.widgets.browser import FrameWebView
 from spyder.widgets.comboboxes import EditableComboBox
 from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.editor.widgets import codeeditor
+
+if is_dark_interface():
+    MAIN_BG_COLOR = '#19232D'
+else:
+    MAIN_BG_COLOR = 'white'
 
 
 class ObjectComboBox(EditableComboBox):
@@ -45,21 +53,24 @@ class ObjectComboBox(EditableComboBox):
         if not re.search(r'^[a-zA-Z0-9_\.]*$', str(qstr), 0):
             return False
         objtxt = to_text_string(qstr)
+        shell_is_defined = False
         if self.help.get_option('automatic_import'):
             shell = self.help.internal_shell
             if shell is not None:
-                return shell.is_defined(objtxt, force_import=True)
-        shell = self.help.get_shell()
-        if shell is not None:
-            try:
-                return shell.is_defined(objtxt)
-            except socket.error:
-                shell = self.help.get_shell()
+                shell_is_defined = shell.is_defined(objtxt, force_import=True)
+        if not shell_is_defined:
+            shell = self.help.get_shell()
+            if shell is not None:
                 try:
-                    return shell.is_defined(objtxt)
+                    shell_is_defined = shell.is_defined(objtxt)
                 except socket.error:
-                    # Well... too bad!
-                    pass
+                    shell = self.help.get_shell()
+                    try:
+                        shell_is_defined = shell.is_defined(objtxt)
+                    except socket.error:
+                        # Well... too bad!
+                        pass
+        return shell_is_defined
 
     def validate_current_text(self):
         self.validate(self.currentText())
@@ -68,7 +79,7 @@ class ObjectComboBox(EditableComboBox):
         """Reimplemented to avoid formatting actions"""
         valid = self.is_valid(qstr)
         if self.hasFocus() and valid is not None:
-            if editing:
+            if editing and not valid:
                 # Combo box text is being modified: invalidate the entry
                 self.show_tip(self.tips[valid])
                 self.valid.emit(False, False)
@@ -76,6 +87,8 @@ class ObjectComboBox(EditableComboBox):
                 # A new item has just been selected
                 if valid:
                     self.selected()
+                    # See spyder-ide/spyder#9542
+                    self.lineEdit().cursorWordForward(False)
                 else:
                     self.valid.emit(False, False)
 
@@ -88,6 +101,12 @@ class RichText(QWidget):
         QWidget.__init__(self, parent)
 
         self.webview = FrameWebView(self)
+        if WEBENGINE:
+            self.webview.web_widget.page().setBackgroundColor(
+                QColor(MAIN_BG_COLOR))
+        else:
+            self.webview.web_widget.setStyleSheet(
+                "background:{}".format(MAIN_BG_COLOR))
         self.find_widget = FindReplace(self)
         self.find_widget.set_editor(self.webview.web_widget)
         self.find_widget.hide()

@@ -13,7 +13,7 @@ I/O plugin for loading/saving HDF5 files.
 Note that this is a fairly dumb implementation which reads the whole HDF5 file into
 Spyder's variable explorer.  Since HDF5 files are designed for storing very large
 data-sets, it may be much better to work directly with the HDF5 objects, thus keeping
-the data on disk.  Nonetheless, this plugin gives quick and dirty but convenient 
+the data on disk.  Nonetheless, this plugin gives quick and dirty but convenient
 access to HDF5 files.
 
 There is no support for creating files with compression, chunking etc, although
@@ -40,7 +40,7 @@ try:
     import imp
     imp.find_module('h5py')
     import numpy as np
-    
+
     def load_hdf5(filename):
         import h5py
         def get_group(group):
@@ -53,7 +53,7 @@ try:
                     contents[name] = get_group(obj)
                 # other objects such as links are ignored
             return contents
-            
+
         try:
             f = h5py.File(filename, 'r')
             contents = get_group(f)
@@ -61,7 +61,7 @@ try:
             return contents, None
         except Exception as error:
             return None, str(error)
-            
+
     def save_hdf5(data, filename):
         import h5py
         try:
@@ -70,7 +70,7 @@ try:
                 f[key] = np.array(value)
             f.close()
         except Exception as error:
-            return str(error)            
+            return str(error)
 except ImportError:
     load_hdf5 = None
     save_hdf5 = None

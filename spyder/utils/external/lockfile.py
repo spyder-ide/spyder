@@ -56,14 +56,14 @@ else:
     # GetExitCodeProcess uses a special exit code to indicate that the
     # process is still running.
     STILL_ACTIVE = 259
-    
+
     def _is_pid_running(pid):
         """Taken from https://www.madebuild.org/blog/?p=30"""
         kernel32 = ctypes.windll.kernel32
         handle = kernel32.OpenProcess(PROCESS_QUERY_INFORMATION, 0, pid)
         if handle == 0:
             return False
-         
+
         # If the process exited recently, a pid may still exist for the
         # handle. So, check if we can get the exit code.
         exit_code = wintypes.DWORD()
@@ -71,7 +71,7 @@ else:
                                              ctypes.byref(exit_code))
         is_running = (retval == 0)
         kernel32.CloseHandle(handle)
-         
+
         # See if we couldn't get the exit code or the exit code indicates
         # that the process is still running.
         return is_running or exit_code.value == STILL_ACTIVE
@@ -81,7 +81,7 @@ else:
             raise OSError(errno.ESRCH, None)
         else:
             return
-            
+
     _open = open
 
     # XXX Implement an atomic thingamajig for win32
@@ -96,11 +96,14 @@ else:
         try:
             rename(newlinkname, filename)
         except:
+            # This is needed to avoid an error when we don't
+            # have permissions to write in ~/.spyder
+            # See issues 6319 and 9093
             try:
                 os.remove(newvalname)
                 os.rmdir(newlinkname)
             except (IOError, OSError):
-                pass
+                return
             raise
 
     def readlink(filename):   #analysis:ignore

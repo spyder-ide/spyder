@@ -13,7 +13,14 @@ import os
 import sys
 import argparse
 
+# To activate/deactivate certain things for pytest's only
+# NOTE: Please leave this before any other import here!!
+os.environ['SPYDER_PYTEST'] = 'True'
+
 # Third party imports
+# NOTE: This needs to be imported before any QApplication.
+# Don't remove it or change it to a different location!
+from qtpy import QtWebEngineWidgets
 import pytest
 
 
@@ -31,11 +38,11 @@ def main(run_slow=False, extra_args=None):
                    '--durations=10']
 
     if RUN_CI:
-        pytest_args += ['-x', '--cov=spyder', '--no-cov-on-fail']
-        # Skip slow tests for macOS and Python 3 because they
-        # don't run correctly
-        if not (sys.platform == 'darwin' and sys.version_info[0] == 3):
-            pytest_args += ['--run-slow']
+        pytest_args += ['-x', '--cov=spyder', '--no-cov-on-fail',
+                        '--run-slow']
+        # To display nice tests resume in Azure's web page
+        if os.environ.get('AZURE', None) is not None:
+            pytest_args += ['--cache-clear', '--junitxml=result.xml']
     elif run_slow:
         pytest_args += ['--run-slow']
     elif extra_args:

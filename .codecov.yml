@@ -1,6 +1,6 @@
 codecov:
   notify:
-    require_ci_to_pass: yes
+    require_ci_to_pass: no
 
 codecov:
   branch: master
@@ -9,14 +9,14 @@ coverage:
   precision: 2
   round: down
   range: "70...100"
-  
+
   status:
     project:
       default:
         threshold: 1%
     patch: no
     changes: no
-    
+
 parsers:
   gcov:
     branch_detection:
@@ -24,5 +24,5 @@ parsers:
       loop: yes
       method: no
       macro: no
-   
+
 comment: false

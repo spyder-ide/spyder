@@ -6,6 +6,7 @@
 """Tests for programs.py"""
 
 import os
+import os.path as osp
 import sys
 
 from flaky import flaky
@@ -15,8 +16,7 @@ from spyder.utils.programs import (run_python_script_in_terminal,
                                    is_python_interpreter,
                                    is_python_interpreter_valid_name,
                                    find_program, shell_split, check_version,
-                                   is_module_installed, get_temp_dir,
-                                   is_stable_version)
+                                   is_module_installed, get_temp_dir)
 
 
 if os.name == 'nt':
@@ -25,12 +25,32 @@ if os.name == 'nt':
     VALID_W_INTERPRETER = os.path.join(python_dir, 'pythonw.exe')
     INVALID_INTERPRETER = os.path.join(python_dir, 'Scripts', 'ipython.exe')
 else:
-    home_dir = os.environ['HOME']
+    if sys.platform.startswith('linux'):
+        home_dir = os.environ['HOME']
+    else:
+        # Parent Miniconda dir in macOS Azure VMs
+        home_dir = os.path.join('/usr', 'local')
     VALID_INTERPRETER = os.path.join(home_dir, 'miniconda', 'bin', 'python')
     VALID_W_INTERPRETER = os.path.join(home_dir, 'miniconda', 'bin', 'pythonw')
     INVALID_INTERPRETER = os.path.join(home_dir, 'miniconda', 'bin', 'ipython')
 
 
+# =============================================================================
+# ---- Fixtures
+# =============================================================================
+@pytest.fixture
+def scriptpath(tmpdir):
+    """Save a basic Python script in a file."""
+    script = ("with open('out.txt', 'w') as f:\n"
+              "    f.write('done')\n")
+    scriptpath = tmpdir.join('write-done.py')
+    scriptpath.write(script)
+    return scriptpath
+
+
+# =============================================================================
+# ---- Tests
+# =============================================================================
 @pytest.mark.skipif((sys.platform.startswith('linux') or
                      os.environ.get('CI', None) is None),
                     reason='It only runs in CI services and '
@@ -40,35 +60,43 @@ def test_is_valid_w_interpreter():
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif((os.name == 'nt' or os.environ.get('CI', None) is None or
-                     sys.platform == 'darwin'),
-                    reason='gets stuck on Windows and fails in macOS and sometimes locally') # FIXME
-def test_run_python_script_in_terminal(tmpdir, qtbot):
-    scriptpath = tmpdir.join('write-done.py')
-    outfilepath = tmpdir.join('out.txt')
-    script = ("with open('out.txt', 'w') as f:\n"
-              "    f.write('done')\n")
-    scriptpath.write(script)
-    run_python_script_in_terminal(scriptpath.strpath, tmpdir.strpath, '',
-                                  False, False, '')
-    qtbot.wait(1000) # wait for script to finish
-    res = outfilepath.read()
+@pytest.mark.skipif(
+    os.environ.get('CI', None) is None or sys.platform == 'darwin',
+    reason='fails in macOS and sometimes locally')
+def test_run_python_script_in_terminal(scriptpath, qtbot):
+    """
+    Test running a Python script in an external terminal when specifying
+    explicitely the working directory.
+    """
+    # Run the script.
+    outfilepath = osp.join(scriptpath.dirname, 'out.txt')
+    run_python_script_in_terminal(
+        scriptpath.strpath, scriptpath.dirname, '', False, False, '')
+    qtbot.waitUntil(lambda: osp.exists(outfilepath), timeout=1000)
+
+    # Assert the result.
+    with open(outfilepath, 'r') as txtfile:
+        res = txtfile.read()
     assert res == 'done'
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif((os.name == 'nt' or os.environ.get('CI', None) is None or
-                     sys.platform == 'darwin'),
-                    reason='gets stuck on Windows and fails in macOS and sometimes locally') # FIXME
-def test_run_python_script_in_terminal_with_wdir_empty(tmpdir, qtbot):
-    scriptpath = tmpdir.join('write-done.py')
-    outfilepath = tmpdir.join('out.txt')
-    script = ("with open('{}', 'w') as f:\n"
-              "    f.write('done')\n").format(outfilepath.strpath)
-    scriptpath.write(script)
+@pytest.mark.skipif(
+    os.environ.get('CI', None) is None or sys.platform == 'darwin',
+    reason='fails in macOS and sometimes locally')
+def test_run_python_script_in_terminal_with_wdir_empty(scriptpath, qtbot):
+    """
+    Test running a Python script in an external terminal without specifying
+    the working directory.
+    """
+    # Run the script.
+    outfilepath = osp.join(os.getcwd(), 'out.txt')
     run_python_script_in_terminal(scriptpath.strpath, '', '', False, False, '')
-    qtbot.wait(1000) # wait for script to finish
-    res = outfilepath.read()
+    qtbot.waitUntil(lambda: osp.exists(outfilepath), timeout=1000)
+
+    # Assert the result.
+    with open(outfilepath, 'r') as txtfile:
+        res = txtfile.read()
     assert res == 'done'
 
 
@@ -111,6 +139,8 @@ def test_is_module_installed():
     assert is_module_installed('jedi', '>=0.7.0')
 
 
+@pytest.mark.skipif(os.name == 'nt' and os.environ.get('AZURE') is not None,
+                    reason="Fails on Windows/Azure")
 def test_is_module_installed_with_custom_interpreter():
     """Test if a module with the proper version is installed"""
     current = sys.executable
@@ -131,13 +161,6 @@ def test_get_temp_dir_ensure_dir_exists():
 
     assert os.path.exists(another_call)
     assert another_call == temp_dir
-
-
-def test_is_stable_version():
-    """Test for is_stable_version."""
-    assert is_stable_version('3.3.0')
-    assert not is_stable_version('4.0.0b1')
-    assert not is_stable_version('3.3.2.dev0')
 
 
 if __name__ == '__main__':

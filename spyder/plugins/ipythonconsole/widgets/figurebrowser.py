@@ -15,6 +15,9 @@ from base64 import decodestring
 # ---- Third party library imports
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
+# ---- Local library imports
+from spyder.config.base import _
+
 
 class FigureBrowserWidget(RichJupyterWidget):
     """
@@ -31,6 +34,7 @@ class FigureBrowserWidget(RichJupyterWidget):
     def set_figurebrowser(self, figurebrowser):
         """Set the namespace for the figurebrowser widget."""
         self.figurebrowser = figurebrowser
+        self.sended_render_message = False
 
     # ---- Private API (overrode by us)
     def _handle_display_data(self, msg):
@@ -55,6 +59,18 @@ class FigureBrowserWidget(RichJupyterWidget):
             self.sig_new_inline_figure.emit(img, fmt)
             if (self.figurebrowser is not None and
                     self.figurebrowser.mute_inline_plotting):
+                if not self.sended_render_message:
+                    msg['content']['data']['text/plain'] = ''
+                    self._append_html(
+                        _('<br><hr>'
+                          '\nFigures now render in the Plots pane by default. '
+                          'To make them also appear inline in the Console, '
+                          'uncheck "Mute Inline Plotting" under the Plots '
+                          'pane options menu. \n'
+                          '<hr><br>'), before_prompt=True)
+                    self.sended_render_message = True
+                else:
+                    msg['content']['data']['text/plain'] = ''
                 del msg['content']['data'][fmt]
 
         return super(FigureBrowserWidget, self)._handle_display_data(msg)

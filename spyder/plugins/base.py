@@ -9,44 +9,69 @@ Base plugin class
 """
 
 # Third party imports
+import qdarkstyle
 from qtpy.QtCore import Qt, Slot
 from qtpy.QtGui import QKeySequence
-from qtpy.QtWidgets import QDockWidget, QMainWindow, QShortcut, QWidget
+from qtpy.QtWidgets import QDockWidget, QMainWindow, QShortcut
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import get_font
+from spyder.config.gui import is_dark_interface, get_font
 from spyder.config.main import CONF
+from spyder.py3compat import is_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action
 from spyder.widgets.dock import SpyderDockWidget
 
 
+class PluginWindow(QMainWindow):
+    """MainWindow subclass that contains a Spyder Plugin."""
 
-class PluginMainWindow(QMainWindow):
-    """Spyder Plugin MainWindow class."""
     def __init__(self, plugin):
         QMainWindow.__init__(self)
         self.plugin = plugin
+
+        # Setting interface theme
+        if is_dark_interface():
+            self.setStyleSheet(qdarkstyle.load_stylesheet_from_environment())
 
     def closeEvent(self, event):
         """Reimplement Qt method."""
         self.plugin.dockwidget.setWidget(self.plugin)
         self.plugin.dockwidget.setVisible(True)
-        self.plugin.undock_action.setDisabled(False)
         self.plugin.switch_to_plugin()
         QMainWindow.closeEvent(self, event)
+        self.plugin.undocked_window = None
 
 
-
-class BasePluginWidget(QWidget):
-    """
-    Basic functionality for Spyder plugin widgets
-    """
+class BasePluginMixin(object):
+    """Basic functionality for Spyder plugin widgets."""
 
     ALLOWED_AREAS = Qt.AllDockWidgetAreas
     LOCATION = Qt.LeftDockWidgetArea
-    FEATURES = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetFloatable
+    FEATURES = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetMovable
+
+    def __init__(self, parent=None):
+        super(BasePluginMixin, self).__init__()
+
+        # Additional actions
+        self.dock_action = create_action(self,
+                                         _("Dock"),
+                                         icon=ima.icon('dock'),
+                                         tip=_("Dock the pane"),
+                                         triggered=self.close_window)
+
+        self.undock_action = create_action(self,
+                                           _("Undock"),
+                                           icon=ima.icon('undock'),
+                                           tip=_("Undock the pane"),
+                                           triggered=self.create_window)
+
+        self.close_plugin_action = create_action(self,
+                                                 _("Close"),
+                                                 icon=ima.icon('close_pane'),
+                                                 tip=_("Close the pane"),
+                                                 triggered=self.plugin_closed)
 
     def initialize_plugin_in_mainwindow_layout(self):
         """
@@ -75,38 +100,30 @@ class BasePluginWidget(QWidget):
             layout.setContentsMargins(*self.default_margins)
 
     def update_plugin_title(self):
-        """Update plugin title, i.e. dockwidget or mainwindow title"""
+        """Update plugin title, i.e. dockwidget or window title"""
         if self.dockwidget is not None:
             win = self.dockwidget
-        elif self.mainwindow is not None:
-            win = self.mainwindow
+        elif self.undocked_window is not None:
+            win = self.undocked_window
         else:
             return
         win.setWindowTitle(self.get_plugin_title())
 
     def create_dockwidget(self):
         """Add to parent QMainWindow as a dock widget"""
+        # Creating dock widget
+        dock = SpyderDockWidget(self.get_plugin_title(), self.main)
 
-        # This is not clear yet why the following do not work...
-        # (see Issue #880)
-##         # Using Qt.Window window flags solves Issue #880 (detached dockwidgets
-##         # are not painted after restarting Spyder and restoring their hexstate)
-##         # but it does not work with PyQt <=v4.7 (dockwidgets can't be docked)
-##         # or non-Windows platforms (lot of warnings are printed out)
-##         # (so in those cases, we use the default window flags: Qt.Widget):
-##         flags = Qt.Widget if is_old_pyqt or os.name != 'nt' else Qt.Window
-        dock = SpyderDockWidget(self.get_plugin_title(), self.main)#, flags)
-
+        # Set properties
         dock.setObjectName(self.__class__.__name__+"_dw")
         dock.setAllowedAreas(self.ALLOWED_AREAS)
         dock.setFeatures(self.FEATURES)
         dock.setWidget(self)
         self.update_margins()
         dock.visibilityChanged.connect(self.visibility_changed)
-        dock.topLevelChanged.connect(self.create_window)
-        dock.plugin_closed.connect(self.plugin_closed)
+        dock.topLevelChanged.connect(self.on_top_level_changed)
+        dock.sig_plugin_closed.connect(self.plugin_closed)
         self.dockwidget = dock
-        self.undocked = False
         if self.shortcut is not None:
             sc = QShortcut(QKeySequence(self.shortcut), self.main,
                             self.switch_to_plugin)
@@ -130,6 +147,7 @@ class BasePluginWidget(QWidget):
             self.toggle_view_action.setChecked(True)
         self.visibility_changed(True)
 
+    @Slot()
     def plugin_closed(self):
         """DockWidget was closed"""
         self.toggle_view_action.setChecked(False)
@@ -192,37 +210,40 @@ class BasePluginWidget(QWidget):
             self.dockwidget.hide()
 
     @Slot()
+    def close_window(self):
+        """Close QMainWindow instance that contains this plugin."""
+        if self.undocked_window is not None:
+            self.undocked_window.close()
+            self.undocked_window = None
+
+            # Oddly, these actions can appear disabled after the Dock
+            # action is pressed
+            self.undock_action.setDisabled(False)
+            self.close_plugin_action.setDisabled(False)
+
+    @Slot()
     def create_window(self):
-        """Open a window of the plugin instead of undocking it."""
-        if (self.dockwidget.isFloating() and not self.undocked and
-                self.dockwidget.main.dockwidgets_locked):
-            self.dockwidget.setFloating(False)
-            self.dockwidget.setVisible(False)
-            self.undock_action.setDisabled(True)
-            window = self.create_mainwindow()
-            window.show()
-        elif self.undocked:
+        """Create a QMainWindow instance containing this plugin."""
+        self.undocked_window = window = PluginWindow(self)
+        window.setAttribute(Qt.WA_DeleteOnClose)
+        icon = self.get_plugin_icon()
+        if is_text_string(icon):
+            icon = self.get_icon(icon)
+        window.setWindowIcon(icon)
+        window.setWindowTitle(self.get_plugin_title())
+        window.setCentralWidget(self)
+        window.resize(self.size())
+        self.refresh_plugin()
+
+        self.dockwidget.setFloating(False)
+        self.dockwidget.setVisible(False)
+
+        window.show()
+
+    @Slot(bool)
+    def on_top_level_changed(self, top_level):
+        """Actions to perform when a plugin is undocked to be moved."""
+        if top_level:
             self.undock_action.setDisabled(True)
         else:
             self.undock_action.setDisabled(False)
-        self.undocked = False
-
-    def create_mainwindow(self):
-        """
-        Create a QMainWindow instance containing this plugin.
-        """
-        raise NotImplementedError
-
-    def create_undock_action(self):
-        """Create the undock action for the plugin."""
-        self.undock_action = create_action(self,
-                                           _("Undock"),
-                                           icon=ima.icon('newwindow'),
-                                           tip=_("Undock the plugin"),
-                                           triggered=self.undock_plugin)
-
-    def undock_plugin(self):
-        """Undocks the plugin from the MainWindow."""
-        self.undocked = True
-        self.dockwidget.setFloating(True)
-        self.undock_action.setDisabled(True)

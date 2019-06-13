@@ -7,11 +7,33 @@
 
 import pytest
 import os
+import stat
 
-from spyder.utils.encoding import is_text_file, get_coding
+from spyder.utils.encoding import is_text_file, get_coding, write
+from spyder.py3compat import to_text_string
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(),
                                              os.path.dirname(__file__)))
+
+
+def test_permissions(tmpdir):
+    """Check that file permissions are preserved."""
+    p_file = tmpdir.mkdir("permissions").join("permissions_text.txt")
+    p_file = to_text_string(p_file)
+
+    # Write file and define execution permissions
+    write("Some text", p_file)
+    st = os.stat(p_file)
+    mode = st.st_mode | stat.S_IEXEC
+    os.chmod(p_file, mode)
+
+    old_mode = os.stat(p_file).st_mode
+
+    # Write the file and check permissions
+    write("Some text and more", p_file)
+    new_mode = os.stat(p_file).st_mode
+
+    assert old_mode == new_mode
 
 
 def test_is_text_file(tmpdir):

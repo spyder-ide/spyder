@@ -18,6 +18,7 @@ Original file:
 
 # Standard library imports
 import sys
+import re
 
 # Local imports
 from spyder.plugins.editor.api.folding import FoldDetector
@@ -222,6 +223,8 @@ class IndentFoldDetector(FoldDetector):
         """
         text = block.text()
         prev_lvl = TextBlockHelper().get_fold_lvl(prev_block)
+        cont_line_regex = (r"(and|or|'|\+|\-|\*|\^|>>|<<|"
+                           r"\*|\*{2}|\||\*|//|/|,|\\|\")$")
         # round down to previous indentation guide to ensure contiguous block
         # fold level evolution.
         indent_len = 0
@@ -230,10 +233,22 @@ class IndentFoldDetector(FoldDetector):
             # ignore commented lines (could have arbitary indentation)
             prev_text = prev_block.text()
             indent_len = (len(prev_text) - len(prev_text.lstrip())) // prev_lvl
+            # Verify if the previous line ends with a continuation line
+            # with a regex
+            if (re.search(cont_line_regex, prev_block.text()) and
+                    indent_len > prev_lvl):
+                # Calculate act level of line
+                act_lvl = (len(text) - len(text.lstrip())) // indent_len
+                if act_lvl == prev_lvl:
+                    # If they are the same, don't change the level
+                    return prev_lvl
+                if prev_lvl > act_lvl:
+                    return prev_lvl - 1
+                return prev_lvl + 1
         if indent_len == 0:
             indent_len = len(self.editor.indent_chars)
-
-        return (len(text) - len(text.lstrip())) // indent_len
+        act_lvl = (len(text) - len(text.lstrip())) // indent_len
+        return act_lvl
 
 
 class CharBasedFoldDetector(FoldDetector):

@@ -6,17 +6,20 @@
 
 """
 Configuration file for Pytest
+
+NOTE: DO NOT add fixtures here. It could generate problems with
+      QtAwesome being called before a QApplication is created.
 """
 
 import os
 import os.path as osp
 import shutil
 
-import pytest
-
-
 # To activate/deactivate certain things for pytest's only
+# NOTE: Please leave this before any other import here!!
 os.environ['SPYDER_PYTEST'] = 'True'
+
+import pytest
 
 # Remove temp conf_dir before starting the tests
 from spyder.config.base import get_conf_path

@@ -10,6 +10,7 @@ Tests for editor.py
 
 # Standard library imports
 import os
+import os.path as osp
 from sys import platform
 try:
     from unittest.mock import Mock, MagicMock
@@ -23,8 +24,8 @@ from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
 
 # Local imports
-from spyder.plugins.editor.widgets.tests.fixtures import setup_editor
-from spyder.plugins.editor.widgets.editor import EditorStack, EditorSplitter
+from spyder.config.base import get_conf_path
+from spyder.plugins.editor.widgets.editor import EditorStack
 from spyder.widgets.findreplace import FindReplace
 from spyder.py3compat import PY2
 
@@ -39,10 +40,11 @@ def base_editor_bot(qtbot):
 
 
 @pytest.fixture
-def editor_bot(base_editor_bot, qtbot):
+def editor_bot(base_editor_bot, mocker, qtbot):
     """
     Set up EditorStack with CodeEditor containing some Python code.
     The cursor is at the empty line below the code.
+    The file in the editor is `foo.py` and has not been changed.
     Returns tuple with EditorStack and CodeEditor.
     """
     editor_stack = base_editor_bot
@@ -51,6 +53,8 @@ def editor_bot(base_editor_bot, qtbot):
             '\n'
             'x = 2')  # a newline is added at end
     finfo = editor_stack.new('foo.py', 'utf-8', text)
+    finfo.newly_created = False
+    editor_stack.autosave.file_hashes = {'foo.py': hash(text + '\n')}
     qtbot.addWidget(editor_stack)
     return editor_stack, finfo.editor
 
@@ -136,7 +140,7 @@ def test_find_number_matches(setup_editor):
 
 def test_move_current_line_up(editor_bot):
     editor_stack, editor = editor_bot
-        
+
     # Move second line up when nothing is selected.
     editor.go_to_line(2)
     editor.move_line_up()
@@ -145,19 +149,19 @@ def test_move_current_line_up(editor_bot):
                          '\n'
                          'x = 2\n')
     assert editor.toPlainText() == expected_new_text
-    
+
     # Move line up when already at the top.
     editor.move_line_up()
     assert editor.toPlainText() == expected_new_text
-    
+
     # Move fourth line up when part of the line is selected.
-    editor.go_to_line(4)    
+    editor.go_to_line(4)
     editor.moveCursor(QTextCursor.Right, QTextCursor.MoveAnchor)
     for i in range(2):
         editor.moveCursor(QTextCursor.Right, QTextCursor.KeepAnchor)
     editor.move_line_up()
     expected_new_text = ('print(a)\n'
-                         'a = 1\n'                         
+                         'a = 1\n'
                          'x = 2\n'
                          '\n')
     assert editor.toPlainText()[:] == expected_new_text
@@ -165,7 +169,7 @@ def test_move_current_line_up(editor_bot):
 
 def test_move_current_line_down(editor_bot):
     editor_stack, editor = editor_bot
-        
+
     # Move fourth line down when nothing is selected.
     editor.go_to_line(4)
     editor.move_line_down()
@@ -175,11 +179,11 @@ def test_move_current_line_down(editor_bot):
                          '\n'
                          'x = 2')
     assert editor.toPlainText() == expected_new_text
-    
+
     # Move line down when already at the bottom.
     editor.move_line_down()
     assert editor.toPlainText() == expected_new_text
-        
+
     # Move first line down when part of the line is selected.
     editor.go_to_line(1)
     editor.moveCursor(QTextCursor.Right, QTextCursor.MoveAnchor)
@@ -192,11 +196,11 @@ def test_move_current_line_down(editor_bot):
                          '\n'
                          'x = 2')
     assert editor.toPlainText() == expected_new_text
-    
+
 
 def test_move_multiple_lines_up(editor_bot):
     editor_stack, editor = editor_bot
-    
+
     # Move second and third lines up.
     editor.go_to_line(2)
     cursor = editor.textCursor()
@@ -204,13 +208,13 @@ def test_move_multiple_lines_up(editor_bot):
     cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor)
     editor.setTextCursor(cursor)
     editor.move_line_up()
-    
+
     expected_new_text = ('print(a)\n'
                          '\n'
                          'a = 1\n'
                          'x = 2\n')
-    assert editor.toPlainText() == expected_new_text     
- 
+    assert editor.toPlainText() == expected_new_text
+
     # Move first and second lines up (to test already at top condition).
     editor.move_line_up()
     assert editor.toPlainText() == expected_new_text
@@ -218,7 +222,7 @@ def test_move_multiple_lines_up(editor_bot):
 
 def test_move_multiple_lines_down(editor_bot):
     editor_stack, editor = editor_bot
-    
+
     # Move third and fourth lines down.
     editor.go_to_line(3)
     cursor = editor.textCursor()
@@ -226,19 +230,19 @@ def test_move_multiple_lines_down(editor_bot):
     cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor)
     editor.setTextCursor(cursor)
     editor.move_line_down()
-    
+
     expected_new_text = ('a = 1\n'
                          'print(a)\n'
                          '\n'
                          '\n'
                          'x = 2')
     assert editor.toPlainText() == expected_new_text
-    
+
     # Move fourht and fifth lines down (to test already at bottom condition).
     editor.move_line_down()
     assert editor.toPlainText() == expected_new_text
 
-    
+
 def test_run_top_line(editor_bot, qtbot):
     editor_stack, editor = editor_bot
     editor.go_to_line(1) # line number is one based
@@ -536,9 +540,7 @@ def test_tab_keypress_properly_caught_find_replace(editor_find_replace_bot, qtbo
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.environ.get('CI', None) is None and
-                    platform.startswith('linux'),
-                    reason="Fails on some Linux platforms locally.")
+@pytest.mark.skipif(platform.startswith('linux'), reason="Fails on Linux.")
 def test_tab_moves_focus_from_search_to_replace(editor_find_replace_bot, qtbot):
     """Test that tab works in find/replace dialog. Regression test for #3674.
     "Real world" test—more comprehensive but potentially less robust."""
@@ -572,6 +574,205 @@ def test_tab_copies_find_to_replace(editor_find_replace_bot, qtbot):
     qtbot.keyClick(finder.search_text, Qt.Key_Tab)
     qtbot.wait(500)
     assert finder.replace_text.currentText() == 'This is some test text!'
+
+
+def test_get_autosave_filename(editor_bot):
+    """
+    Test filename returned by `get_autosave_filename`.
+
+    Test a consistent and unique name for the autosave file is returned.
+    """
+    editor_stack, editor = editor_bot
+    autosave = editor_stack.autosave
+    expected = os.path.join(get_conf_path('autosave'), 'foo.py')
+    assert autosave.get_autosave_filename('foo.py') == expected
+    editor_stack.new('ham/foo.py', 'utf-8', '')
+    expected2 = os.path.join(get_conf_path('autosave'), 'foo-1.py')
+    assert autosave.get_autosave_filename('foo.py') == expected
+    assert autosave.get_autosave_filename('ham/foo.py') == expected2
+
+
+def test_autosave_all(editor_bot, mocker):
+    """
+    Test that `autosave_all()` calls maybe_autosave() on all open buffers.
+
+    The `editor_bot` fixture is constructed with one open file and the test
+    opens another one with `new()`, so maybe_autosave should be called twice.
+    """
+    editor_stack, editor = editor_bot
+    editor_stack.new('ham.py', 'utf-8', '')
+    mocker.patch.object(editor_stack.autosave, 'maybe_autosave')
+    editor_stack.autosave.autosave_all()
+    expected_calls = [mocker.call(0), mocker.call(1)]
+    actual_calls = editor_stack.autosave.maybe_autosave.call_args_list
+    assert actual_calls == expected_calls
+
+
+def test_maybe_autosave(editor_bot):
+    """
+    Test that maybe_autosave() saves text to correct autosave file if contents
+    are changed.
+    """
+    editor_stack, editor = editor_bot
+    editor.set_text('spam\n')
+    editor_stack.autosave.maybe_autosave(0)
+    contents = open(os.path.join(get_conf_path('autosave'), 'foo.py')).read()
+    assert contents == 'spam\n'
+
+
+def test_maybe_autosave_saves_only_if_changed(editor_bot, mocker):
+    """
+    Test that maybe_autosave() only saves text if text has changed.
+
+    The `editor_bot` fixture creates a clean editor, so the first call to
+    `maybe_autosave()` should not autosave. After call #2 we change the text,
+    so call #2 should autosave. The text is not changed after call #2, so
+    call #3 should not autosave.
+    """
+    editor_stack, editor = editor_bot
+    mocker.patch.object(editor_stack, '_write_to_file')
+    editor_stack.autosave.maybe_autosave(0)  # call #1, should not write
+    assert editor_stack._write_to_file.call_count == 0
+    editor.set_text('ham\n')
+    editor_stack.autosave.maybe_autosave(0)  # call #2, should write
+    assert editor_stack._write_to_file.call_count == 1
+    editor_stack.autosave.maybe_autosave(0)  # call #3, should not write
+    assert editor_stack._write_to_file.call_count == 1
+
+
+def test_maybe_autosave_does_not_save_new_files(editor_bot, mocker):
+    """Test that maybe_autosave() does not save newly created files."""
+    editor_stack, editor = editor_bot
+    editor_stack.data[0].newly_created = True
+    mocker.patch.object(editor_stack, '_write_to_file')
+    editor_stack.autosave.maybe_autosave(0)
+    editor_stack._write_to_file.assert_not_called()
+
+
+def test_opening_sets_file_hash(base_editor_bot, mocker):
+    """Test that opening a file sets the file hash."""
+    editor_stack = base_editor_bot
+    mocker.patch('spyder.plugins.editor.widgets.editor.encoding.read',
+                 return_value=('my text', 42))
+    filename = osp.realpath('/mock-filename')
+    editor_stack.load(filename)
+    expected = {filename: hash('my text')}
+    assert editor_stack.autosave.file_hashes == expected
+
+
+def test_reloading_updates_file_hash(base_editor_bot, mocker):
+    """Test that reloading a file updates the file hash."""
+    editor_stack = base_editor_bot
+    mocker.patch('spyder.plugins.editor.widgets.editor.encoding.read',
+                 side_effect=[('my text', 42), ('new text', 42)])
+    filename = osp.realpath('/mock-filename')
+    finfo = editor_stack.load(filename)
+    index = editor_stack.data.index(finfo)
+    editor_stack.reload(index)
+    expected = {filename: hash('new text')}
+    assert editor_stack.autosave.file_hashes == expected
+
+
+def test_closing_removes_file_hash(base_editor_bot, mocker):
+    """Test that closing a file removes the file hash."""
+    editor_stack = base_editor_bot
+    mocker.patch('spyder.plugins.editor.widgets.editor.encoding.read',
+                 return_value=('my text', 42))
+    filename = osp.realpath('/mock-filename')
+    finfo = editor_stack.load(filename)
+    index = editor_stack.data.index(finfo)
+    editor_stack.close_file(index)
+    assert editor_stack.autosave.file_hashes == {}
+
+
+@pytest.mark.parametrize('filename', ['ham.py', 'ham.txt'])
+def test_maybe_autosave_does_not_save_after_open(base_editor_bot, mocker,
+                                                 qtbot, filename):
+    """
+    Test that maybe_autosave() does not save files immediately after opening.
+
+    Files should only be autosaved after the user made changes.
+    Editors use different highlighters depending on the filename, so we test
+    both Python and text files. The latter covers issue #8654.
+    """
+    editor_stack = base_editor_bot
+    mocker.patch('spyder.plugins.editor.widgets.editor.encoding.read',
+                 return_value=('spam\n', 42))
+    editor_stack.load(filename)
+    mocker.patch.object(editor_stack, '_write_to_file')
+    qtbot.wait(100)  # Wait for PygmentsSH.makeCharlist() if applicable
+    editor_stack.autosave.maybe_autosave(0)
+    editor_stack._write_to_file.assert_not_called()
+
+
+def test_maybe_autosave_does_not_save_after_reload(base_editor_bot, mocker):
+    """
+    Test that maybe_autosave() does not save files immediately after reloading.
+
+    Spyder reloads the file if it has changed on disk. In that case, there is
+    no need to autosave because the contents in Spyder are identical to the
+    contents on disk.
+    """
+    editor_stack = base_editor_bot
+    txt = 'spam\n'
+    editor_stack.create_new_editor('ham.py', 'ascii', txt, set_current=True)
+    mocker.patch.object(editor_stack, '_write_to_file')
+    mocker.patch('spyder.plugins.editor.widgets.editor.encoding.read',
+                 return_value=(txt, 'ascii'))
+    editor_stack.reload(0)
+    editor_stack.autosave.maybe_autosave(0)
+    editor_stack._write_to_file.assert_not_called()
+
+
+def test_autosave_updates_name_mapping(editor_bot, mocker, qtbot):
+    """Test that maybe_autosave() updates name_mapping."""
+    editor_stack, editor = editor_bot
+    assert editor_stack.autosave.name_mapping == {}
+    mocker.patch.object(editor_stack, '_write_to_file')
+    editor.set_text('spam\n')
+    with qtbot.wait_signal(editor_stack.sig_option_changed) as blocker:
+        editor_stack.autosave.maybe_autosave(0)
+    expected = {'foo.py': os.path.join(get_conf_path('autosave'), 'foo.py')}
+    assert editor_stack.autosave.name_mapping == expected
+    assert blocker.args == ['autosave_mapping', expected]
+
+
+def test_maybe_autosave_handles_error(editor_bot, mocker):
+    """Test that autosave() ignores errors when writing to file."""
+    editor_stack, editor = editor_bot
+    mock_write = mocker.patch.object(editor_stack, '_write_to_file')
+    mock_dialog = mocker.patch(
+        'spyder.plugins.editor.utils.autosave.AutosaveErrorDialog')
+    try:
+        mock_write.side_effect = PermissionError
+    except NameError:  # Python 2
+        mock_write.side_effect = IOError
+    editor.set_text('spam\n')
+    editor_stack.autosave.maybe_autosave(0)
+    assert mock_dialog.called
+
+
+def test_remove_autosave_file(editor_bot, mocker, qtbot):
+    """
+    Test that remove_autosave_file() removes the autosave file.
+
+    Also, test that it updates `name_mapping`.
+    """
+    editor_stack, editor = editor_bot
+    autosave = editor_stack.autosave
+    editor.set_text('spam\n')
+    with qtbot.wait_signal(editor_stack.sig_option_changed) as blocker:
+        autosave.maybe_autosave(0)
+    autosave_filename = os.path.join(get_conf_path('autosave'), 'foo.py')
+    assert os.access(autosave_filename, os.R_OK)
+    expected = {'foo.py': autosave_filename}
+    assert autosave.name_mapping == expected
+    assert blocker.args == ['autosave_mapping', expected]
+    with qtbot.wait_signal(editor_stack.sig_option_changed) as blocker:
+        autosave.remove_autosave_file(editor_stack.data[0].filename)
+    assert not os.access(autosave_filename, os.R_OK)
+    assert autosave.name_mapping == {}
+    assert blocker.args == ['autosave_mapping', {}]
 
 
 if __name__ == "__main__":

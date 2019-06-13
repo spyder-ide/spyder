@@ -17,6 +17,15 @@ from spyder.plugins.outlineexplorer.api import OutlineExplorerData
 from spyder.utils.qthelpers import qapplication
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 
+
+class testBlock():
+    def __init__(self, line_number):
+        self._line = line_number - 1
+
+    def firstLineNumber(self):
+        return self._line
+
+
 text = ('# test file\n'
         'class a():\n'
         '    self.b = 1\n'
@@ -25,11 +34,14 @@ text = ('# test file\n'
         '    def some_method(self):\n'
         '        self.b = 3')
 
-expected_oe_data = {
-    1: OutlineExplorerData('class a():', 0, OutlineExplorerData.CLASS, 'a'),
-    5: OutlineExplorerData('    def some_method(self):', 4,
-                           OutlineExplorerData.FUNCTION, 'some_method')
-}
+expected_oe_list = [
+    OutlineExplorerData(
+        testBlock(2), 'class a():', 0,
+        OutlineExplorerData.CLASS, 'a'),
+    OutlineExplorerData(
+        testBlock(6), '    def some_method(self):', 4,
+        OutlineExplorerData.FUNCTION, 'some_method')
+]
 
 
 @pytest.fixture()
@@ -65,19 +77,20 @@ def test_editor_outline_explorer(editor_outline_explorer_bot):
     assert file_root.text(0) == oe_proxy.fname
 
     # Assert OEData
-    oedata = oe_proxy.get_outlineexplorer_data()
+    oedata = oe_proxy.outlineexplorer_data_list()
 
-    for index, oeitem in expected_oe_data.items():
-        a = oeitem.__dict__
-        b = oedata.get(index).__dict__
+    for left, right in zip(oedata, expected_oe_list):
+        a = right.__dict__
+        b = left.__dict__
         b['color'] = None
+        assert a['block'].firstLineNumber() == b['block'].firstLineNumber()
+        a['block'] = None
+        b['block'] = None
         assert a == b
 
     # Assert Treewidget Items
     items = outline_explorer.treewidget.get_items()
-    oedata_texts = [l
-                    for k, l in sorted([[i, j.def_name] for i, j in
-                                        expected_oe_data.items()])]
+    oedata_texts = [oe.def_name for oe in expected_oe_list]
     for item, oe_item in zip(items, oedata_texts):
         assert item.text(0) == oe_item
 

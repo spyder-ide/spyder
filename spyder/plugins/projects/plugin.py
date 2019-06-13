@@ -13,6 +13,7 @@ updating the file tree explorer associated with a project
 
 # Standard library imports
 import os.path as osp
+import shutil
 
 # Third party imports
 from qtpy.compat import getexistingdirectory
@@ -21,12 +22,14 @@ from qtpy.QtWidgets import QMenu, QMessageBox, QVBoxLayout
 
 # Local imports
 from spyder.config.base import _, get_home_dir
+from spyder.config.main import CONF
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import add_actions, create_action, MENU_SEPARATOR
 from spyder.utils.misc import getcwd_or_home
+from spyder.plugins.projects.utils.watcher import WorkspaceWatcher
 from spyder.plugins.projects.widgets.explorer import ProjectExplorerWidget
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
 from spyder.plugins.projects.widgets import EmptyProject
@@ -46,11 +49,13 @@ class Projects(SpyderPluginWidget):
         SpyderPluginWidget.__init__(self, parent)
 
         self.explorer = ProjectExplorerWidget(
-                            self,
-                            name_filters=self.get_option('name_filters'),
-                            show_all=self.get_option('show_all'),
-                            show_hscrollbar=self.get_option('show_hscrollbar'),
-                            options_button=self.options_button)
+            self,
+            name_filters=self.get_option('name_filters'),
+            show_all=self.get_option('show_all'),
+            show_hscrollbar=self.get_option('show_hscrollbar'),
+            options_button=self.options_button,
+            single_click_to_open=CONF.get('explorer', 'single_click_to_open'),
+        )
 
         layout = QVBoxLayout()
         layout.addWidget(self.explorer)
@@ -59,15 +64,17 @@ class Projects(SpyderPluginWidget):
         self.recent_projects = self.get_option('recent_projects', default=[])
         self.current_active_project = None
         self.latest_project = None
+        self.watcher = WorkspaceWatcher(self)
 
         # Initialize plugin
         self.initialize_plugin()
         self.explorer.setup_project(self.get_active_project_path())
+        self.watcher.connect_signals(self)
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
-        return _("Project explorer")
+        return _("Project")
 
     def get_focus_widget(self):
         """
@@ -89,7 +96,7 @@ class Projects(SpyderPluginWidget):
                                     triggered=self.close_project)
         self.delete_project_action = create_action(self,
                                     _("Delete Project"),
-                                    triggered=self._delete_project)
+                                    triggered=self.delete_project)
         self.clear_recent_projects_action =\
             create_action(self, _("Clear this list"),
                           triggered=self.clear_recent_projects)
@@ -119,7 +126,9 @@ class Projects(SpyderPluginWidget):
 
         self.main.add_dockwidget(self)
         self.explorer.sig_open_file.connect(self.main.open_file)
+        self.register_widget_shortcuts(treewidget)
 
+        treewidget.sig_delete_project.connect(self.delete_project)
         treewidget.sig_edit.connect(self.main.editor.load)
         treewidget.sig_removed.connect(self.main.editor.removed)
         treewidget.sig_removed_tree.connect(self.main.editor.removed_tree)
@@ -142,7 +151,7 @@ class Projects(SpyderPluginWidget):
             lambda v: self.main.workingdirectory.chdir(v))
         self.sig_project_loaded.connect(
             lambda v: self.main.set_window_title())
-        self.sig_project_loaded.connect(lspmgr.reinit_all_lsp_clients)
+        self.sig_project_loaded.connect(lspmgr.reinitialize_all_clients)
         self.sig_project_loaded.connect(
             lambda v: self.main.editor.setup_open_files())
         self.sig_project_loaded.connect(self.update_explorer)
@@ -151,7 +160,7 @@ class Projects(SpyderPluginWidget):
                 self.get_last_working_dir()))
         self.sig_project_closed.connect(
             lambda v: self.main.set_window_title())
-        self.sig_project_closed.connect(lspmgr.reinit_all_lsp_clients)
+        self.sig_project_closed.connect(lspmgr.reinitialize_all_clients)
         self.sig_project_closed.connect(
             lambda v: self.main.editor.setup_open_files())
         self.recent_project_menu.aboutToShow.connect(self.setup_menu_actions)
@@ -161,6 +170,16 @@ class Projects(SpyderPluginWidget):
                                                self.restore_scrollbar_position)
         self.sig_pythonpath_changed.connect(self.main.pythonpath_changed)
         self.main.editor.set_projects(self)
+
+        # Connect to file explorer to keep single click to open files in sync
+        self.main.explorer.fileexplorer.sig_option_changed.connect(
+            self.set_single_click_to_open
+        )
+
+    def set_single_click_to_open(self, option, value):
+        """Set single click to open files and directories."""
+        if option == 'single_click_to_open':
+            self.explorer.treewidget.set_single_click_to_open(value)
 
     def refresh_plugin(self):
         """Refresh project explorer widget"""
@@ -186,7 +205,7 @@ class Projects(SpyderPluginWidget):
                 self.toggle_view_action.setChecked(True)
             self.visibility_changed(True)
 
-    #------ Public API ---------------------------------------------------------
+    # ------ Public API -------------------------------------------------------
     def setup_menu_actions(self):
         """Setup and update the menu actions."""
         self.recent_project_menu.clear()
@@ -195,15 +214,13 @@ class Projects(SpyderPluginWidget):
             for project in self.recent_projects:
                 if self.is_valid_project(project):
                     name = project.replace(get_home_dir(), '~')
-
-                    def slot():
-                        self.switch_to_plugin()
-                        self.open_project(path=project)
-
-                    action = create_action(self,
+                    action = create_action(
+                        self,
                         name,
-                        icon = ima.icon('project'),
-                        triggered=slot)
+                        icon=ima.icon('project'),
+                        triggered=(
+                            lambda _, p=project: self.open_project(path=p))
+                        )
                     self.recent_projects_actions.append(action)
                 else:
                     self.recent_projects.remove(project)
@@ -303,6 +320,7 @@ class Projects(SpyderPluginWidget):
         self.setup_menu_actions()
         self.sig_project_loaded.emit(path)
         self.sig_pythonpath_changed.emit()
+        self.watcher.start(path)
 
         if restart_consoles:
             self.restart_consoles()
@@ -314,6 +332,9 @@ class Projects(SpyderPluginWidget):
         """
         if self.current_active_project:
             self.switch_to_plugin()
+            if self.main.editor is not None:
+                self.set_project_filenames(
+                    self.main.editor.get_open_filenames())
             path = self.current_active_project.root_path
             self.current_active_project = None
             self.set_option('current_project_path', None)
@@ -329,16 +350,35 @@ class Projects(SpyderPluginWidget):
 
             self.explorer.clear()
             self.restart_consoles()
+            self.watcher.stop()
 
-            if self.main.editor is not None:
-                self.set_project_filenames(
-                    self.main.editor.get_open_filenames())
-
-    def _delete_project(self):
-        """Delete current project."""
+    def delete_project(self):
+        """
+        Delete the current project without deleting the files in the directory.
+        """
         if self.current_active_project:
             self.switch_to_plugin()
-            self.explorer.delete_project()
+            path = self.current_active_project.root_path
+            buttons = QMessageBox.Yes | QMessageBox.No
+            answer = QMessageBox.warning(
+                self,
+                _("Delete"),
+                _("Do you really want to delete <b>{filename}</b>?<br><br>"
+                  "<b>Note:</b> This action will only delete the project. "
+                  "Its files are going to be preserved on disk."
+                  ).format(filename=osp.basename(path)),
+                buttons)
+            if answer == QMessageBox.Yes:
+                try:
+                    self.close_project()
+                    shutil.rmtree(osp.join(path, '.spyproject'))
+                except EnvironmentError as error:
+                    QMessageBox.critical(
+                        self,
+                        _("Project Explorer"),
+                        _("<b>Unable to delete <i>{varpath}</i></b>"
+                          "<br><br>The error message was:<br>{error}"
+                          ).format(varpath=path, error=to_text_string(error)))
 
     def clear_recent_projects(self):
         """Clear the list of recent projects"""
@@ -470,3 +510,23 @@ class Projects(SpyderPluginWidget):
         if project not in self.recent_projects:
             self.recent_projects.insert(0, project)
             self.recent_projects = self.recent_projects[:10]
+
+    @Slot(str, str, bool)
+    def file_moved(self, src_file, dest_file, is_dir):
+        # TODO: Handle calls to LSP workspace
+        pass
+
+    @Slot(str, bool)
+    def file_created(self, src_file, is_dir):
+        # TODO: Handle calls to LSP workspace
+        pass
+
+    @Slot(str, bool)
+    def file_deleted(self, src_file, is_dir):
+        # TODO: Handle calls to LSP workspace
+        pass
+
+    @Slot(str, bool)
+    def file_modified(self, src_file, is_dir):
+        # TODO: Handle calls to LSP workspace
+        pass

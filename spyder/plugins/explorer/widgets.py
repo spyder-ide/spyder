@@ -26,13 +26,14 @@ from qtpy.compat import getsavefilename, getexistingdirectory
 from qtpy.QtCore import (QDir, QFileInfo, QMimeData, QSize,
                          QSortFilterProxyModel, Qt, QTimer, QUrl,
                          Signal, Slot)
-from qtpy.QtGui import QDrag
+from qtpy.QtGui import QDrag, QIcon, QKeySequence
 from qtpy.QtWidgets import (QFileSystemModel, QHBoxLayout, QFileIconProvider,
                             QInputDialog, QLabel, QLineEdit, QMenu,
                             QMessageBox, QToolButton, QTreeView, QVBoxLayout,
-                            QWidget)
+                            QWidget, QApplication)
 # Local imports
-from spyder.config.base import _, get_home_dir
+from spyder.config.base import _, get_home_dir, get_image_path
+from spyder.config.gui import is_dark_interface, config_shortcut, get_shortcut
 from spyder.py3compat import (str_lower, to_binary_string,
                               to_text_string)
 from spyder.utils import icon_manager as ima
@@ -113,28 +114,11 @@ def has_subdirectories(path, include, exclude, show_all):
 
 
 class IconProvider(QFileIconProvider):
-    BIN_FILES = {x: 'ArchiveFileIcon' for x in ['zip', 'x-tar',
-                 'x-7z-compressed', 'rar']}
-    DOCUMENT_FILES = {'vnd.ms-powerpoint': 'PowerpointFileIcon',
-                      'vnd.openxmlformats-officedocument.'
-                      'presentationml.presentation': 'PowerpointFileIcon',
-                      'msword': 'WordFileIcon',
-                      'vnd.openxmlformats-officedocument.'
-                      'wordprocessingml.document': 'WordFileIcon',
-                      'vnd.ms-excel': 'ExcelFileIcon',
-                      'vnd.openxmlformats-officedocument.'
-                      'spreadsheetml.sheet': 'ExcelFileIcon',
-                      'pdf': 'PDFIcon'}
-    OFFICE_FILES = {'.xlsx': 'ExcelFileIcon', '.docx': 'WordFileIcon',
-                    '.pptx': 'PowerpointFileIcon'}
-
     """Project tree widget icon provider"""
+
     def __init__(self, treeview):
         super(IconProvider, self).__init__()
         self.treeview = treeview
-        self.application_icons = {}
-        self.application_icons.update(self.BIN_FILES)
-        self.application_icons.update(self.DOCUMENT_FILES)
 
     @Slot(int)
     @Slot(QFileInfo)
@@ -145,41 +129,7 @@ class IconProvider(QFileIconProvider):
         else:
             qfileinfo = icontype_or_qfileinfo
             fname = osp.normpath(to_text_string(qfileinfo.absoluteFilePath()))
-            if osp.isdir(fname):
-                return ima.icon('DirOpenIcon')
-            else:
-                basename = osp.basename(fname)
-                _, extension = osp.splitext(basename)
-                mime_type, _ = mime.guess_type(basename)
-                icon = ima.icon('FileIcon')
-
-                if extension in self.OFFICE_FILES:
-                    icon = ima.icon(self.OFFICE_FILES[extension])
-
-                if mime_type is not None:
-                    try:
-                        # Fix for issue 5080.  Even though mimetypes.guess_type
-                        # documentation states that the return value will be
-                        # None or a tuple of the form type/subtype, in the
-                        # Windows registry, .sql has a mimetype of text\plain
-                        # instead of text/plain therefore mimetypes is
-                        # returning it incorrectly.
-                        file_type, bin_name = mime_type.split('/')
-                    except ValueError:
-                        file_type = 'text'
-                    if file_type == 'text':
-                        icon = ima.icon('TextFileIcon')
-                    elif file_type == 'audio':
-                        icon = ima.icon('AudioFileIcon')
-                    elif file_type == 'video':
-                        icon = ima.icon('VideoFileIcon')
-                    elif file_type == 'image':
-                        icon = ima.icon('ImageFileIcon')
-                    elif file_type == 'application':
-                        if bin_name in self.application_icons:
-                            icon = ima.icon(self.application_icons[bin_name])
-                return icon
-
+            return ima.get_icon_by_extension_or_type(fname, scale_factor=1.0)
 
 class DirView(QTreeView):
     """Base file/directory tree view"""
@@ -196,9 +146,13 @@ class DirView(QTreeView):
 
     def __init__(self, parent=None):
         super(DirView, self).__init__(parent)
-        self.name_filters = ['*.py']
         self.parent_widget = parent
+
+        # Options
+        self.name_filters = ['*.py']
         self.show_all = None
+        self.single_click_to_open = False
+
         self.menu = None
         self.common_actions = None
         self.__expanded_state = None
@@ -207,7 +161,8 @@ class DirView(QTreeView):
         self.setup_fs_model()
         self._scrollbar_positions = None
         self.setSelectionMode(self.ExtendedSelection)
-                
+        self.shortcuts = self.create_shortcuts()
+
     #---- Model
     def setup_fs_model(self):
         """Setup filesystem model"""
@@ -215,11 +170,11 @@ class DirView(QTreeView):
         self.fsmodel = QFileSystemModel(self)
         self.fsmodel.setFilter(filters)
         self.fsmodel.setNameFilterDisables(False)
-        
+
     def install_model(self):
         """Install filesystem model"""
         self.setModel(self.fsmodel)
-        
+
     def setup_view(self):
         """Setup view"""
         self.install_model()
@@ -230,40 +185,46 @@ class DirView(QTreeView):
         self.sortByColumn(0, Qt.AscendingOrder)
         self.fsmodel.modelReset.connect(self.reset_icon_provider)
         self.reset_icon_provider()
-        # Disable the view of .spyproject. 
+        # Disable the view of .spyproject.
         self.filter_directories()
-        
+
+    def set_single_click_to_open(self, value):
+        """Set single click to open items."""
+        self.single_click_to_open = value
+        self.parent_widget.sig_option_changed.emit('single_click_to_open',
+                                                   value)
+
     def set_name_filters(self, name_filters):
         """Set name filters"""
         self.name_filters = name_filters
         self.fsmodel.setNameFilters(name_filters)
-        
+
     def set_show_all(self, state):
         """Toggle 'show all files' state"""
         if state:
             self.fsmodel.setNameFilters([])
         else:
             self.fsmodel.setNameFilters(self.name_filters)
-            
+
     def get_filename(self, index):
         """Return filename associated with *index*"""
         if index:
             return osp.normpath(to_text_string(self.fsmodel.filePath(index)))
-        
+
     def get_index(self, filename):
         """Return index associated with filename"""
         return self.fsmodel.index(filename)
-        
+
     def get_selected_filenames(self):
         """Return selected filenames"""
         if self.selectionMode() == self.ExtendedSelection:
             if self.selectionModel() is None:
                 return []
-            return [self.get_filename(idx) for idx in 
+            return [self.get_filename(idx) for idx in
                     self.selectionModel().selectedRows()]
         else:
             return [self.get_filename(self.currentIndex())]
-            
+
     def get_dirname(self, index):
         """Return dirname associated with *index*"""
         fname = self.get_filename(index)
@@ -272,15 +233,17 @@ class DirView(QTreeView):
                 return fname
             else:
                 return osp.dirname(fname)
-        
+
     #---- Tree view widget
-    def setup(self, name_filters=['*.py', '*.pyw'], show_all=False):
+    def setup(self, name_filters=['*.py', '*.pyw'], show_all=False,
+              single_click_to_open=False):
         """Setup tree widget"""
         self.setup_view()
 
         self.set_name_filters(name_filters)
         self.show_all = show_all
-        
+        self.single_click_to_open = single_click_to_open
+
         # Setup context menu
         self.menu = QMenu(self)
         self.common_actions = self.setup_common_actions()
@@ -289,7 +252,7 @@ class DirView(QTreeView):
         """Reset file system model icon provider
         The purpose of this is to refresh files/directories icons"""
         self.fsmodel.setIconProvider(IconProvider(self))
-        
+
     #---- Context menu
     def setup_common_actions(self):
         """Setup context menu common actions"""
@@ -302,8 +265,15 @@ class DirView(QTreeView):
                                    toggled=self.toggle_all)
         all_action.setChecked(self.show_all)
         self.toggle_all(self.show_all)
-        
-        return [filters_action, all_action]
+
+        # Show all files
+        single_click_to_open = create_action(
+            self,
+            _("Single click to open"),
+            toggled=self.set_single_click_to_open,
+        )
+        single_click_to_open.setChecked(self.single_click_to_open)
+        return [filters_action, all_action, single_click_to_open]
 
     @Slot()
     def edit_filter(self):
@@ -323,12 +293,12 @@ class DirView(QTreeView):
         self.parent_widget.sig_option_changed.emit('show_all', checked)
         self.show_all = checked
         self.set_show_all(checked)
-        
+
     def create_file_new_actions(self, fnames):
         """Return actions for submenu 'New...'"""
         if not fnames:
             return []
-        new_file_act = create_action(self, _("File..."), 
+        new_file_act = create_action(self, _("File..."),
                                      icon=ima.icon('filenew'),
                                      triggered=lambda:
                                      self.new_file(fnames[-1]))
@@ -346,7 +316,7 @@ class DirView(QTreeView):
                                          self.new_package(fnames[-1]))
         return [new_file_act, new_folder_act, None,
                 new_module_act, new_package_act]
-        
+
     def create_file_import_actions(self, fnames):
         """Return actions for submenu 'Import...'"""
         return []
@@ -372,28 +342,51 @@ class DirView(QTreeView):
         rename_action = create_action(self, _("Rename..."),
                                       icon=ima.icon('rename'),
                                       triggered=self.rename)
-        open_external_action = create_action(self, _("Open With OS"), 
+        open_external_action = create_action(self, _("Open With OS"),
                                              triggered=self.open_external)
         ipynb_convert_action = create_action(self, _("Convert to Python script"),
                                              icon=ima.icon('python'),
                                              triggered=self.convert_notebooks)
-        
+        copy_file_clipboard_action = (
+            create_action(self, _("Copy"),
+                          QKeySequence(get_shortcut('explorer', 'copy file')),
+                          icon=ima.icon('editcopy'),
+                          triggered=self.copy_file_clipboard))
+        save_file_clipboard_action = (
+            create_action(self, _("Paste"),
+                          QKeySequence(get_shortcut('explorer', 'paste file')),
+                          icon=ima.icon('editpaste'),
+                          triggered=self.save_file_clipboard))
+        copy_absolute_path_action = (
+            create_action(self, _("Copy Absolute Path"), QKeySequence(
+                get_shortcut('explorer', 'copy absolute path')),
+                          triggered=self.copy_absolute_path))
+        copy_relative_path_action = (
+            create_action(self, _("Copy Relative Path"), QKeySequence(
+                get_shortcut('explorer', 'copy relative path')),
+                          triggered=self.copy_relative_path))
+
         actions = []
         if only_modules:
             actions.append(run_action)
         if only_valid and only_files:
             actions.append(edit_action)
-        
+
         if sys.platform == 'darwin':
             text=_("Show in Finder")
         else:
             text=_("Show in Folder")
-        external_fileexp_action = create_action(self, text, 
-                                triggered=self.show_in_external_file_explorer)        
+        external_fileexp_action = create_action(
+            self, text, triggered=self.show_in_external_file_explorer)
         actions += [delete_action, rename_action]
         basedir = fixpath(osp.dirname(fnames[0]))
         if all([fixpath(osp.dirname(_fn)) == basedir for _fn in fnames]):
             actions.append(move_action)
+        actions += [None]
+        actions += [copy_file_clipboard_action, save_file_clipboard_action,
+                    copy_absolute_path_action, copy_relative_path_action]
+        if not QApplication.clipboard().mimeData().hasUrls():
+            save_file_clipboard_action.setDisabled(True)
         actions += [None]
         if only_files:
             actions.append(open_external_action)
@@ -431,7 +424,7 @@ class DirView(QTreeView):
                                self.open_interpreter(fnames))
         actions.append(action)
         return actions
-        
+
     def create_context_menu_actions(self):
         """Create context menu actions"""
         actions = []
@@ -466,14 +459,14 @@ class DirView(QTreeView):
         """Update context menu"""
         self.menu.clear()
         add_actions(self.menu, self.create_context_menu_actions())
-    
+
     #---- Events
     def viewportEvent(self, event):
         """Reimplement Qt method"""
 
         # Prevent Qt from crashing or showing warnings like:
-        # "QSortFilterProxyModel: index from wrong model passed to 
-        # mapFromSource", probably due to the fact that the file system model 
+        # "QSortFilterProxyModel: index from wrong model passed to
+        # mapFromSource", probably due to the fact that the file system model
         # is being built. See Issue 1250.
         #
         # This workaround was inspired by the following KDE bug:
@@ -481,9 +474,9 @@ class DirView(QTreeView):
         #
         # Apparently, this is a bug from Qt itself.
         self.executeDelayedItemsLayout()
-        
-        return QTreeView.viewportEvent(self, event)        
-                
+
+        return QTreeView.viewportEvent(self, event)
+
     def contextMenuEvent(self, event):
         """Override Qt method"""
         # Needed to handle not initialized menu.
@@ -512,6 +505,12 @@ class DirView(QTreeView):
         QTreeView.mouseDoubleClickEvent(self, event)
         self.clicked()
 
+    def mouseReleaseEvent(self, event):
+        """Reimplement Qt method."""
+        QTreeView.mouseReleaseEvent(self, event)
+        if self.single_click_to_open:
+            self.clicked()
+
     @Slot()
     def clicked(self):
         """Selected item was double-clicked or enter/return was pressed"""
@@ -521,11 +520,11 @@ class DirView(QTreeView):
                 self.directory_clicked(fname)
             else:
                 self.open([fname])
-                
+
     def directory_clicked(self, dirname):
         """Directory was just clicked"""
         pass
-        
+
     #---- Drag
     def dragEnterEvent(self, event):
         """Drag and Drop - Enter event"""
@@ -538,7 +537,7 @@ class DirView(QTreeView):
             event.accept()
         else:
             event.ignore()
-            
+
     def startDrag(self, dropActions):
         """Reimplement Qt Method - handle drag event"""
         data = QMimeData()
@@ -546,7 +545,7 @@ class DirView(QTreeView):
         drag = QDrag(self)
         drag.setMimeData(data)
         drag.exec_()
-        
+
     #---- File/Directory actions
     @Slot()
     def open(self, fnames=None):
@@ -558,7 +557,7 @@ class DirView(QTreeView):
                 self.parent_widget.sig_open_file.emit(fname)
             else:
                 self.open_outside_spyder([fname])
-                
+
     @Slot()
     def open_external(self, fnames=None):
         """Open files with default application"""
@@ -566,7 +565,7 @@ class DirView(QTreeView):
             fnames = self.get_selected_filenames()
         for fname in fnames:
             self.open_outside_spyder([fname])
-        
+
     def open_outside_spyder(self, fnames):
         """Open file outside Spyder with the appropriate application
         If this does not work, opening unknown file in Spyder, as text file"""
@@ -588,12 +587,20 @@ class DirView(QTreeView):
             fnames = self.get_selected_filenames()
         for fname in fnames:
             self.sig_run.emit(fname)
-    
+
     def remove_tree(self, dirname):
         """Remove whole directory tree
         Reimplemented in project explorer widget"""
-        shutil.rmtree(dirname, onerror=misc.onerror)
-    
+        while osp.exists(dirname):
+            try:
+                shutil.rmtree(dirname, onerror=misc.onerror)
+            except Exception as e:
+                # This handles a Windows problem with shutil.rmtree.
+                # See issue #8567.
+                if type(e).__name__ == "OSError":
+                    error_path = to_text_string(e.filename)
+                    shutil.rmtree(error_path, ignore_errors=True)
+
     def delete_file(self, fname, multiple, yes_to_all):
         """Delete file"""
         if multiple:
@@ -645,18 +652,18 @@ class DirView(QTreeView):
                                         " the project, please go to "
                                         "<b>Projects</b> &raquo; <b>Delete "
                                         "Project</b>"))
-            else:    
+            else:
                 yes_to_all = self.delete_file(fname, multiple, yes_to_all)
                 if yes_to_all is not None and not yes_to_all:
                     # Canceled
                     break
-                
+
     def convert_notebook(self, fname):
         """Convert an IPython notebook to a Python script in editor"""
-        try: 
+        try:
             script = nbexporter().from_filename(fname)[0]
         except Exception as e:
-            QMessageBox.critical(self, _('Conversion error'), 
+            QMessageBox.critical(self, _('Conversion error'),
                                  _("It was not possible to convert this "
                                  "notebook. The error is:\n\n") + \
                                  to_text_string(e))
@@ -747,7 +754,7 @@ class DirView(QTreeView):
                                      _("<b>Unable to move <i>%s</i></b>"
                                        "<br><br>Error message:<br>%s"
                                        ) % (basename, to_text_string(error)))
-        
+
     def create_new_folder(self, current_path, title, subtitle, is_package):
         """Create new folder"""
         if current_path is None:
@@ -786,13 +793,13 @@ class DirView(QTreeView):
         title = _('New folder')
         subtitle = _('Folder name:')
         self.create_new_folder(basedir, title, subtitle, is_package=False)
-    
+
     def new_package(self, basedir):
         """New package"""
         title = _('New package')
         subtitle = _('Package name:')
         self.create_new_folder(basedir, title, subtitle, is_package=True)
-    
+
     def create_new_file(self, current_path, title, filters, create_func):
         """Create new file
         Returns True if successful"""
@@ -827,7 +834,7 @@ class DirView(QTreeView):
         fname = self.create_new_file(basedir, title, filters, create_func)
         if fname is not None:
             self.open([fname])
-    
+
     def new_module(self, basedir):
         """New module"""
         title = _("New module")
@@ -840,7 +847,188 @@ class DirView(QTreeView):
 
     def go_to_parent_directory(self):
         pass
-        
+
+    def copy_path(self, fnames=None, method="absolute"):
+        """Copy absolute or relative path to given file(s)/folders(s)."""
+        cb = QApplication.clipboard()
+        explorer_dir = self.fsmodel.rootPath()
+        if fnames is None:
+            fnames = self.get_selected_filenames()
+        if not isinstance(fnames, (tuple, list)):
+            fnames = [fnames]
+        fnames = [_fn.replace(os.sep, "/") for _fn in fnames]
+        if len(fnames) > 1:
+            if method == "absolute":
+                clipboard_files = ',\n'.join('"' + _fn + '"' for _fn in fnames)
+            elif method == "relative":
+                clipboard_files = ',\n'.join('"' +
+                                             osp.relpath(_fn, explorer_dir).
+                                             replace(os.sep, "/") + '"'
+                                             for _fn in fnames)
+        else:
+            if method == "absolute":
+                clipboard_files = fnames[0]
+            elif method == "relative":
+                clipboard_files = (osp.relpath(fnames[0], explorer_dir).
+                                   replace(os.sep, "/"))
+        copied_from = self.parent_widget.__class__.__name__
+        if copied_from == 'ProjectExplorerWidget' and method == 'relative':
+            clipboard_files = [path.strip(',"') for path in
+                               clipboard_files.splitlines()]
+            clipboard_files = ['/'.join(path.strip('/').split('/')[1:]) for
+                               path in clipboard_files]
+            if len(clipboard_files) > 1:
+                clipboard_files = ',\n'.join('"' + _fn + '"' for _fn in
+                                             clipboard_files)
+            else:
+                clipboard_files = clipboard_files[0]
+        cb.setText(clipboard_files, mode=cb.Clipboard)
+
+    @Slot()
+    def copy_absolute_path(self):
+        """Copy absolute paths of named files/directories to the clipboard."""
+        self.copy_path(method="absolute")
+
+    @Slot()
+    def copy_relative_path(self):
+        """Copy relative paths of named files/directories to the clipboard."""
+        self.copy_path(method="relative")
+
+    @Slot()
+    def copy_file_clipboard(self, fnames=None):
+        """Copy file(s)/folders(s) to clipboard."""
+        if fnames is None:
+            fnames = self.get_selected_filenames()
+        if not isinstance(fnames, (tuple, list)):
+            fnames = [fnames]
+        try:
+            file_content = QMimeData()
+            file_content.setUrls([QUrl.fromLocalFile(_fn) for _fn in fnames])
+            cb = QApplication.clipboard()
+            cb.setMimeData(file_content, mode=cb.Clipboard)
+        except Exception as e:
+            QMessageBox.critical(self,
+                                 _('File/Folder copy error'),
+                                 _("Cannot copy this type of file(s) or "
+                                     "folder(s). The error was:\n\n")
+                                 + to_text_string(e))
+
+    @Slot()
+    def save_file_clipboard(self, fnames=None):
+        """Paste file from clipboard into file/project explorer directory."""
+        if fnames is None:
+            fnames = self.get_selected_filenames()
+        if not isinstance(fnames, (tuple, list)):
+            fnames = [fnames]
+        if len(fnames) >= 1:
+            try:
+                selected_item = osp.commonpath(fnames)
+            except AttributeError:
+                #  py2 does not have commonpath
+                if len(fnames) > 1:
+                    selected_item = osp.normpath(
+                            osp.dirname(osp.commonprefix(fnames)))
+                else:
+                    selected_item = fnames[0]
+            if osp.isfile(selected_item):
+                parent_path = osp.dirname(selected_item)
+            else:
+                parent_path = osp.normpath(selected_item)
+            cb_data = QApplication.clipboard().mimeData()
+            if cb_data.hasUrls():
+                urls = cb_data.urls()
+                for url in urls:
+                    source_name = url.toLocalFile()
+                    base_name = osp.basename(source_name)
+                    if osp.isfile(source_name):
+                        try:
+                            while base_name in os.listdir(parent_path):
+                                file_no_ext, file_ext = osp.splitext(base_name)
+                                end_number = re.search(r'\d+$', file_no_ext)
+                                if end_number:
+                                    new_number = int(end_number.group()) + 1
+                                else:
+                                    new_number = 1
+                                left_string = re.sub(r'\d+$', '', file_no_ext)
+                                left_string += str(new_number)
+                                base_name = left_string + file_ext
+                                destination = osp.join(parent_path, base_name)
+                            else:
+                                destination = osp.join(parent_path, base_name)
+                            shutil.copy(source_name, destination)
+                        except Exception as e:
+                            QMessageBox.critical(self, _('Error pasting file'),
+                                                 _("Unsupported copy operation"
+                                                   ". The error was:\n\n")
+                                                 + to_text_string(e))
+                    else:
+                        try:
+                            while base_name in os.listdir(parent_path):
+                                end_number = re.search(r'\d+$', base_name)
+                                if end_number:
+                                    new_number = int(end_number.group()) + 1
+                                else:
+                                    new_number = 1
+                                left_string = re.sub(r'\d+$', '', base_name)
+                                base_name = left_string + str(new_number)
+                                destination = osp.join(parent_path, base_name)
+                            else:
+                                destination = osp.join(parent_path, base_name)
+                            if osp.realpath(destination).startswith(
+                                    osp.realpath(source_name) + os.sep):
+                                QMessageBox.critical(self,
+                                                     _('Recursive copy'),
+                                                     _("Source is an ancestor"
+                                                       " of destination"
+                                                       " folder."))
+                                continue
+                            shutil.copytree(source_name, destination)
+                        except Exception as e:
+                            QMessageBox.critical(self,
+                                                 _('Error pasting folder'),
+                                                 _("Unsupported copy"
+                                                   " operation. The error was:"
+                                                   "\n\n") + to_text_string(e))
+            else:
+                QMessageBox.critical(self, _("No file in clipboard"),
+                                     _("No file in the clipboard. Please copy"
+                                       " a file to the clipboard first."))
+        else:
+            if QApplication.clipboard().mimeData().hasUrls():
+                QMessageBox.critical(self, _('Blank area'),
+                                     _("Cannot paste in the blank area."))
+            else:
+                pass
+
+    def create_shortcuts(self):
+        """Create shortcuts for this file explorer."""
+        # Configurable
+        copy_clipboard_file = config_shortcut(self.copy_file_clipboard,
+                                              context='explorer',
+                                              name='copy file', parent=self)
+        paste_clipboard_file = config_shortcut(self.save_file_clipboard,
+                                               context='explorer',
+                                               name='paste file', parent=self)
+        copy_absolute_path = config_shortcut(self.copy_absolute_path,
+                                             context='explorer',
+                                             name='copy absolute path',
+                                             parent=self)
+        copy_relative_path = config_shortcut(self.copy_relative_path,
+                                             context='explorer',
+                                             name='copy relative path',
+                                             parent=self)
+        return [copy_clipboard_file, paste_clipboard_file, copy_absolute_path,
+                copy_relative_path]
+
+    def get_shortcut_data(self):
+        """
+        Return shortcut data, a list of tuples (shortcut, text, default).
+        shortcut (QShortcut or QAction instance)
+        text (string): action/shortcut description
+        default (string): default key sequence
+        """
+        return [sc.data for sc in self.shortcuts]
+
     #----- VCS actions
     def vcs_command(self, fnames, action):
         """VCS action (commit, browse)"""
@@ -854,36 +1042,36 @@ class DirView(QTreeView):
             QMessageBox.critical(self, _("Error"),
                 _("""<b>Unable to find external program.</b><br><br>%s""")
                     % to_text_string(msg))
-        
+
     #----- Settings
     def get_scrollbar_position(self):
         """Return scrollbar positions"""
         return (self.horizontalScrollBar().value(),
                 self.verticalScrollBar().value())
-        
+
     def set_scrollbar_position(self, position):
         """Set scrollbar positions"""
         # Scrollbars will be restored after the expanded state
         self._scrollbar_positions = position
         if self._to_be_loaded is not None and len(self._to_be_loaded) == 0:
             self.restore_scrollbar_positions()
-            
+
     def restore_scrollbar_positions(self):
         """Restore scrollbar positions once tree is loaded"""
         hor, ver = self._scrollbar_positions
         self.horizontalScrollBar().setValue(hor)
         self.verticalScrollBar().setValue(ver)
-        
+
     def get_expanded_state(self):
         """Return expanded state"""
         self.save_expanded_state()
         return self.__expanded_state
-    
+
     def set_expanded_state(self, state):
         """Set expanded state"""
         self.__expanded_state = state
         self.restore_expanded_state()
-    
+
     def save_expanded_state(self):
         """Save all items expanded state"""
         model = self.model()
@@ -911,7 +1099,7 @@ class DirView(QTreeView):
                 self.setExpanded(self.get_index(path), True)
         if not self.__expanded_state:
             self.fsmodel.directoryLoaded.disconnect(self.restore_directory_state)
-                
+
     def follow_directories_loaded(self, fname):
         """Follow directories loaded during startup"""
         if self._to_be_loaded is None:
@@ -935,7 +1123,7 @@ class DirView(QTreeView):
                                                   self.restore_directory_state)
                 self.fsmodel.directoryLoaded.connect(
                                                 self.follow_directories_loaded)
-                
+
     def filter_directories(self):
         """Filter the directories to show"""
         index = self.get_index('.spyproject')
@@ -949,7 +1137,7 @@ class ProxyModel(QSortFilterProxyModel):
         self.root_path = None
         self.path_list = []
         self.setDynamicSortFilter(True)
-        
+
     def setup_filter(self, root_path, path_list):
         """Setup proxy model filter parameters"""
         self.root_path = osp.normpath(to_text_string(root_path))
@@ -959,18 +1147,19 @@ class ProxyModel(QSortFilterProxyModel):
     def sort(self, column, order=Qt.AscendingOrder):
         """Reimplement Qt method"""
         self.sourceModel().sort(column, order)
-        
+
     def filterAcceptsRow(self, row, parent_index):
         """Reimplement Qt method"""
         if self.root_path is None:
             return True
         index = self.sourceModel().index(row, 0, parent_index)
-        path = osp.normpath(to_text_string(self.sourceModel().filePath(index)))
-        if self.root_path.startswith(path):
+        path = osp.normcase(osp.normpath(
+            to_text_string(self.sourceModel().filePath(index))))
+        if osp.normcase(self.root_path).startswith(path):
             # This is necessary because parent folders need to be scanned
             return True
         else:
-            for p in self.path_list:
+            for p in [osp.normcase(p) for p in self.path_list]:
                 if path == p or path.startswith(p+os.sep):
                     return True
             else:
@@ -991,38 +1180,39 @@ class FilteredDirView(DirView):
         self.proxymodel = None
         self.setup_proxy_model()
         self.root_path = None
-        
+
     #---- Model
     def setup_proxy_model(self):
         """Setup proxy model"""
         self.proxymodel = ProxyModel(self)
         self.proxymodel.setSourceModel(self.fsmodel)
-        
+
     def install_model(self):
         """Install proxy model"""
         if self.root_path is not None:
             self.setModel(self.proxymodel)
-        
+
     def set_root_path(self, root_path):
         """Set root path"""
         self.root_path = root_path
         self.install_model()
         index = self.fsmodel.setRootPath(root_path)
+        self.proxymodel.setup_filter(self.root_path, [])
         self.setRootIndex(self.proxymodel.mapFromSource(index))
-        
+
     def get_index(self, filename):
         """Return index associated with filename"""
         index = self.fsmodel.index(filename)
         if index.isValid() and index.model() is self.fsmodel:
             return self.proxymodel.mapFromSource(index)
-        
+
     def set_folder_names(self, folder_names):
         """Set folder names"""
         assert self.root_path is not None
         path_list = [osp.join(self.root_path, dirname)
                      for dirname in folder_names]
         self.proxymodel.setup_filter(self.root_path, path_list)
-        
+
     def get_filename(self, index):
         """Return filename from index"""
         if index:
@@ -1034,7 +1224,7 @@ class FilteredDirView(DirView):
         for i in [1, 2, 3]:
             self.hideColumn(i)
         self.setHeaderHidden(True)
-        # Disable the view of .spyproject. 
+        # Disable the view of .spyproject.
         self.filter_directories()
 
 
@@ -1046,10 +1236,10 @@ class ExplorerTreeWidget(DirView):
     set_previous_enabled = Signal(bool)
     set_next_enabled = Signal(bool)
     sig_open_dir = Signal(str)
-    
+
     def __init__(self, parent=None, show_cd_only=None):
         DirView.__init__(self, parent)
-                
+
         self.history = []
         self.histindex = None
 
@@ -1059,10 +1249,10 @@ class ExplorerTreeWidget(DirView):
 
         self.menu = None
         self.common_actions = None
-        
+
         # Enable drag events
         self.setDragEnabled(True)
-        
+
     #---- Context menu
     def setup_common_actions(self):
         """Setup context menu common actions"""
@@ -1091,7 +1281,7 @@ class ExplorerTreeWidget(DirView):
                 self.set_current_folder(self.__last_folder)
         elif self.__original_root_index is not None:
             self.setRootIndex(self.__original_root_index)
-        
+
     #---- Refreshing widget
     def set_current_folder(self, folder):
         """Set current folder and return associated model index"""
@@ -1102,7 +1292,7 @@ class ExplorerTreeWidget(DirView):
                 self.__original_root_index = self.rootIndex()
             self.setRootIndex(index)
         return index
-        
+
     def get_current_folder(self):
         return self.__last_folder
 
@@ -1119,14 +1309,14 @@ class ExplorerTreeWidget(DirView):
                              self.histindex is not None and self.histindex > 0)
         self.set_next_enabled.emit(self.histindex is not None and \
                                    self.histindex < len(self.history)-1)
-        # Disable the view of .spyproject. 
+        # Disable the view of .spyproject.
         self.filter_directories()
-            
+
     #---- Events
     def directory_clicked(self, dirname):
         """Directory was just clicked"""
         self.chdir(directory=dirname)
-        
+
     #---- Files/Directories Actions
     @Slot()
     def go_to_parent_directory(self):
@@ -1144,7 +1334,7 @@ class ExplorerTreeWidget(DirView):
         """Return to next directory"""
         self.histindex += 1
         self.chdir(browsing_history=True)
-        
+
     def update_history(self, directory):
         """Update browse history"""
         try:
@@ -1154,7 +1344,7 @@ class ExplorerTreeWidget(DirView):
         except Exception:
             user_directory = get_home_dir()
             self.chdir(directory=user_directory, browsing_history=True)
-        
+
     def chdir(self, directory=None, browsing_history=False):
         """Set directory as working directory"""
         if directory is not None:
@@ -1203,7 +1393,8 @@ class ExplorerWidget(QWidget):
 
     def __init__(self, parent=None, name_filters=['*.py', '*.pyw'],
                  show_all=False, show_cd_only=None, show_icontext=True,
-                 options_button=None, menu=None):
+                 single_click_to_open=False,
+                 options_button=None):
         QWidget.__init__(self, parent)
 
         # Widgets
@@ -1212,11 +1403,6 @@ class ExplorerWidget(QWidget):
         button_next = QToolButton(self)
         button_parent = QToolButton(self)
         self.button_menu = options_button or QToolButton(self)
-        if menu:
-            self.menu = menu
-        else:
-            self.menu = QMenu(self)
-
         self.action_widgets = [button_previous, button_next, button_parent,
                                self.button_menu]
 
@@ -1234,7 +1420,11 @@ class ExplorerWidget(QWidget):
                             triggered=self.treewidget.go_to_parent_directory)
 
         # Setup widgets
-        self.treewidget.setup(name_filters=name_filters, show_all=show_all)
+        self.treewidget.setup(
+            name_filters=name_filters,
+            show_all=show_all,
+            single_click_to_open=single_click_to_open,
+        )
         self.treewidget.chdir(getcwd_or_home())
         self.treewidget.common_actions += [None, icontext_action]
 
@@ -1245,11 +1435,6 @@ class ExplorerWidget(QWidget):
         next_action.setEnabled(False)
 
         button_parent.setDefaultAction(parent_action)
-
-        self.button_menu.setIcon(ima.icon('tooloptions'))
-        self.button_menu.setPopupMode(QToolButton.InstantPopup)
-        self.button_menu.setMenu(self.menu)
-        add_actions(self.menu, self.treewidget.common_actions)
 
         self.toggle_icontext(show_icontext)
         icontext_action.setChecked(show_icontext)
@@ -1290,13 +1475,17 @@ class ExplorerWidget(QWidget):
 # Tests
 #==============================================================================
 class FileExplorerTest(QWidget):
-    def __init__(self):
+    def __init__(self, directory=None):
         QWidget.__init__(self)
         vlayout = QVBoxLayout()
         self.setLayout(vlayout)
         self.explorer = ExplorerWidget(self, show_cd_only=None)
+        if directory is not None:
+            self.directory = directory
+        else:
+            self.directory = osp.dirname(osp.abspath(__file__))
         vlayout.addWidget(self.explorer)
-        
+
         hlayout1 = QHBoxLayout()
         vlayout.addLayout(hlayout1)
         label = QLabel("<b>Open file:</b>")
@@ -1305,7 +1494,7 @@ class FileExplorerTest(QWidget):
         self.label1 = QLabel()
         hlayout1.addWidget(self.label1)
         self.explorer.sig_open_file.connect(self.label1.setText)
-        
+
         hlayout2 = QHBoxLayout()
         vlayout.addLayout(hlayout2)
         label = QLabel("<b>Open dir:</b>")
@@ -1314,7 +1503,7 @@ class FileExplorerTest(QWidget):
         self.label2 = QLabel()
         hlayout2.addWidget(self.label2)
         self.explorer.open_dir.connect(self.label2.setText)
-        
+
         hlayout3 = QHBoxLayout()
         vlayout.addLayout(hlayout3)
         label = QLabel("<b>Option changed:</b>")

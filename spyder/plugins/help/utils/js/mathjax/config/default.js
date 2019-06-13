@@ -1,3 +1,6 @@
+/* -*- Mode: Javascript; indent-tabs-mode:nil; js-indent-level: 2 -*- */
+/* vim: set ts=2 et sw=2 tw=80: */
+
 /*************************************************************
  *
  *  MathJax/config/default.js
@@ -9,7 +12,7 @@
  *
  *  ---------------------------------------------------------------------
  *  
- *  Copyright (c) 2009-2012 Design Science, Inc.
+ *  Copyright (c) 2009-2018 The MathJax Consortium
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -73,15 +76,30 @@ MathJax.Hub.Config({
   //  A comma-separated list of input and output jax to initialize at startup.
   //  Their main code is loaded only when they are actually used, so it is not
   //  inefficient to include jax that may not actually be used on the page.  These
-  //  are found in the MathJax/jax directory.
+  //  are found in the MathJax/jax directory.  The choices include
   //  
-  jax: ["input/TeX","output/HTML-CSS"],
+  //      input/TeX
+  //      input/MathML
+  //      input/AsciiMath
+  //      
+  //      output/HTML-CSS
+  //      output/NativeMML
+  //      output/SVG
+  // 
+  //   If you change the input jax, you may need to include the appropriate
+  //   preprocessor in the extensions array below.
+  //  
+  jax: ["input/TeX", "output/HTML-CSS"],
   
   //
   //  A comma-separated list of extensions to load at startup.  The default
   //  directory is MathJax/extensions.
   //  
   //  Example:    extensions: ["tex2jax.js","TeX/AMSmath.js","TeX/AMSsymbols.js"],
+  //  
+  //  You may wish to include "mml2jax.js" if you are using "input/MathML" in the
+  //  jax array above, and "asciimath2jax.js" if you using "input/AsciiMath".
+  //  Include "jsmath2jax.js" if you are converting from using jsMath to MathJax.
   //
   extensions: ["tex2jax.js"],
   
@@ -93,7 +111,7 @@ MathJax.Hub.Config({
   //  tag usually doesn't add content to the page, if there is a space before and after
   //  a MathJax SCRIPT tag, IE will remove the first space.  When MathJax inserts
   //  the typeset mathematics, this means there will be no space before it and the
-  //  preceeding text.  In order to avoid this, you should include some "guard characters"
+  //  preceding text.  In order to avoid this, you should include some "guard characters"
   //  before or after the math SCRIPT tag; define the patterns you want to use below.
   //  Note that these are used as regular expressions, so you will need to quote
   //  special characters.  Furthermore, since they are javascript strings, you must
@@ -116,7 +134,7 @@ MathJax.Hub.Config({
   postJax: null,
   
   //
-  //  The CSS class for a math preview to be removed preceeding a MathJax
+  //  The CSS class for a math preview to be removed preceding a MathJax
   //  SCRIPT tag.  If the tag just before the MathJax SCRIPT tag is of this
   //  class, its contents are removed when MathJax processes the SCRIPT
   //  tag.  This allows you to include a math preview in a form that will
@@ -151,10 +169,12 @@ MathJax.Hub.Config({
   //  These two parameters control the alignment and shifting of displayed equations.
   //  The first can be "left", "center", or "right", and determines the alignment of
   //  displayed equations.  When the alignment is not "center", the second determines
-  //  an indentation from the left or right side for the displayed equations.
+  //  an indentation from the left or right side for the displayed equations.  When
+  //  the alignment is "center", the indent allows you to shift the center to the right
+  //  or left (negative is left).
   //  
   displayAlign: "center",
-  displayIndent: "0em",
+  displayIndent: "0",
   
   //
   //  Normally MathJax will perform its starup commands (loading of
@@ -220,12 +240,19 @@ MathJax.Hub.Config({
     ALT: false,          //    require Alt or Option?
     CMD: false,          //    require CMD?
     Shift: false,        //    require Shift?
+    discoverable: false, //  make math menu discoverable on hover?
     zscale: "200%",      //  the scaling factor for MathZoom
+    renderer: null,      //  set when Jax are loaded
     font: "Auto",        //  what font HTML-CSS should use
     context: "MathJax",  //  or "Browser" for pass-through to browser menu
+    locale: null,        //  the language to use for messages
     mpContext: false,    //  true means pass menu events to MathPlayer in IE
     mpMouse: false,      //  true means pass mouse events to MathPlayer in IE
-    texHints: true       //  include class names for TeXAtom elements
+    texHints: true,      //  include class names for TeXAtom elements
+    FastPreview: null,   //  use PreviewHTML output as preview?
+    assistiveMML: null,  //  include hidden MathML for screen readers?
+    inTabOrder: true,    //  set to true if math elements should be included in the tabindex
+    semantics: false     //  add semantics tag with original form in MathML output
   },
   
   //
@@ -234,7 +261,7 @@ MathJax.Hub.Config({
   //  jax that prevents it from operating properly).
   //
   errorSettings: {
-    message: ["[Math Processing Error]"], // HTML snippet structure for message to use
+    message: ["[",["MathProcessingError","Math Processing Error"],"]"],
     style: {color: "#CC0000", "font-style":"italic"}  // style for message
   },
 
@@ -269,19 +296,6 @@ MathJax.Hub.Config({
       ['$$','$$'],
       ['\\[','\\]']
     ],
-
-    //
-    //  This value determines whether tex2jax requires braces to be
-    //  balanced within math delimiters (which allows for nested dollar
-    //  signs).  Set to false to get pre-v2.0 compatibility.  When true,
-    //  
-    //      $y = x^2 \hbox{ when $x > 2$}$.
-    //  
-    //  will be properly handled as a single expression.  When false, it
-    //  would be interpreted as two searpate expressions, each with 
-    //  improperly balanced braces.
-    // 
-    balanceBraces: true,
     
     //
     //  This array lists the names of the tags whose contents should not be
@@ -289,14 +303,14 @@ MathJax.Hub.Config({
     //  as listed below).  You can add to (or remove from) this list to prevent
     //  MathJax from processing mathematics in specific contexts.
     //
-    skipTags: ["script","noscript","style","textarea","pre","code"],
+    skipTags: ["script","noscript","style","textarea","pre","code","annotation","annotation-xml"],
 
     //
     //  This is the class name used to mark elements whose contents should
     //  not be processed by tex2jax (other than to look for the
     //  processClass pattern below).  Note that this is a regular
     //  expression, and so you need to be sure to quote any regexp special
-    //  characters.  The pattern is automatically preceeded by '(^| )(' and
+    //  characters.  The pattern is automatically preceded by '(^| )(' and
     //  followed by ')( |$)', so your pattern will have to match full words
     //  in the class name.  Assigning an element this class name will
     //  prevent `tex2jax` from processing its contents.
@@ -309,7 +323,7 @@ MathJax.Hub.Config({
     //  tags that have been marked as ignored or skipped above.  Note that
     //  this is a regular expression, and so you need to be sure to quote
     //  any regexp special characters.  The pattern is automatically
-    //  preceeded by '(^| )(' and followed by ')( |$)', so your pattern
+    //  preceded by '(^| )(' and followed by ')( |$)', so your pattern
     //  will have to match full words in the class name.  Use this to
     //  restart processing within an element that has been marked as
     //  ignored above.
@@ -376,14 +390,14 @@ MathJax.Hub.Config({
     //  as listed below).  You can add to (or remove from) this list to prevent
     //  MathJax from processing mathematics in specific contexts.
     //
-    skipTags: ["script","noscript","style","textarea","pre","code"],
+    skipTags: ["script","noscript","style","textarea","pre","code","annotation","annotation-xml"],
 
     //
     //  This is the class name used to mark elements whose contents should
     //  not be processed by asciimath2jax (other than to look for the
     //  processClass pattern below).  Note that this is a regular
     //  expression, and so you need to be sure to quote any regexp special
-    //  characters.  The pattern is automatically preceeded by '(^| )(' and
+    //  characters.  The pattern is automatically preceded by '(^| )(' and
     //  followed by ')( |$)', so your pattern will have to match full words
     //  in the class name.  Assigning an element this class name will
     //  prevent `asciimath2jax` from processing its contents.
@@ -396,7 +410,7 @@ MathJax.Hub.Config({
     //  within tags that have been marked as ignored or skipped above.
     //  Note that this is a regular expression, and so you need to be sure
     //  to quote any regexp special characters.  The pattern is
-    //  automatically preceeded by '(^| )(' and followed by ')( |$)', so
+    //  automatically preceded by '(^| )(' and followed by ')( |$)', so
     //  your pattern will have to match full words in the class name.  Use
     //  this to restart processing within an element that has been marked
     //  as ignored above.
@@ -429,12 +443,15 @@ MathJax.Hub.Config({
     
     //
     //  Controls whether mml2jax inserts MathJax_Preview spans to make a
-    //  preview available, and what preview to use, whrn it locates
-    //  mathematics on the page.  The default is "alttext", which means use
-    //  the <math> tag's alttext attribute as the preview (until it is
-    //  processed by MathJax), if the tag has one.  Set to "none" to
+    //  preview available, and what preview to use, when it locates
+    //  mathematics on the page.  The default is "mathml" which means use
+    //  the <math> tag as the preview (until it is processed by MathJax).
+    //  Set to "alttext", to use the  <math> tag's alttext attribute as the
+    //  preview, if the tag has one.  Set to "none" to
     //  prevent the previews from being inserted (the math will simply
-    //  disappear until it is typeset).  Set to an array containing the
+    //  disappear until it is typeset). Set to "altimg" to use an image
+    //  described by the altimg* attributes of the <math> element.
+    //  Set to an array containing the
     //  description of an HTML snippet in order to use the same preview for
     //  all equations on the page (e.g., you could have it say "[math]" or
     //  load an image).
@@ -442,7 +459,7 @@ MathJax.Hub.Config({
     //  E.g.,     preview: ["[math]"],
     //  or        preview: [["img",{src: "http://myserver.com/images/mypic.jpg"}]]
     //  
-    preview: "alttext"
+    preview: "mathml"
     
   },
   
@@ -486,7 +503,7 @@ MathJax.Hub.Config({
     //
     //  This is the amound of indentation (from right or left) for the tags.
     //
-    TagIndent: ".8em",
+    TagIndent: "0.8em",
     
     //
     //  This is the width to use for the multline environment
@@ -518,9 +535,10 @@ MathJax.Hub.Config({
                            //  or "all" to number all displayed equations
 //    formatNumber: function (n) {return n},                // format for equation number n
 //    formatTag:    function (n) {return '('+n+')'},        // format for \tag and \eqref
-//    formatID:     function (n) {return 'mjx-eqn-'+String(n).replace(/[:'"<>&]/g,"")},
+//    formatID:     function (n) {return 'mjx-eqn-'+String(n).replace(/\s/g,"_")},
 //                                                          // element ID to use for reference
-//    formatURL:    function (id) {return '#'+escape(id)},  // URL to use for references
+//    formatURL:    function (id,base) {return base+'#'+encodeURIComponent(id)},
+//                                                          // URL to use for references
       useLabelIds: true    // make element ID's use \label name rather than equation number
     },
 
@@ -563,6 +581,22 @@ MathJax.Hub.Config({
   //  These parameters control the AsciiMath input jax.
   //
   AsciiMath: {
+    //
+    //  Determines whether the unicode positions for phi and varphi are
+    //  to be swapped or not.  (Unicode originally had these reversed, and
+    //  many fonts have them reversed as well.)  When set to true, phi
+    //  and varphi will correspond to the LaTeX macros of the same name.
+    //
+    fixphi: true,
+    
+    //
+    //  Determines whether the MathML should be marked so that the HTML-CSS
+    //  and SVG output jax will use MathML spacing rules rather than TeX
+    //  spacing rules.  Since AsciiMath was designed for MathML output, the
+    //  MathML rules are used by default.
+    //
+    useMathMLspacing: true,
+    
     //
     //  Determines whether limits are placed above and below operators,
     //  or next to them.  (AsciiMath doesn't have separate in-line and
@@ -697,6 +731,25 @@ MathJax.Hub.Config({
     EqnChunkDelay: 100,
 
     //
+    //  This option indicates whether MathJax should try to correct the
+    //  x-height of equations to match the size of the surrounding text.
+    //
+    matchFontHeight: true,
+
+    //
+    //  When true, MathJax will not measure the widths or heights of the
+    //  subexpressions as it creates its output, but instead will rely on
+    //  its internal calculations based on the bounding boxes of the
+    //  characters it uses, and will only take measurements when it
+    //  absolutely has to.  Since measurements cause display reflows, they
+    //  slows down MathJax considerably, so without them MathJax runs
+    //  faster, but can produce slightly less accurate character placements,
+    //  especially in width fractions or roots.
+    //
+    noReflows: true,
+
+    
+    //
     //  These settings control automatic line breaking.  It is off by
     //  default, so only explicit line breaks are performed (via
     //  linebreak="newline" attributes on <mo> and <mspace> elements).  To
@@ -748,7 +801,7 @@ MathJax.Hub.Config({
     //
     //  Configuration for <maction> tooltips
     //    (see also the #MathJax_Tooltip CSS in MathJax/jax/output/HTML-CSS/config.js,
-    //     which can be overriden using the styles values above).
+    //     which can be overridden using the styles values above).
     //
     tooltip: {
       delayPost: 600,          // milliseconds delay before tooltip is posted after mouseover
@@ -775,6 +828,10 @@ MathJax.Hub.Config({
     //
     minScaleAdjust: 50,
     
+    //  This option indicates whether MathJax should try to correct the
+    //  x-height of equations to match the size of the surrounding text.
+    matchFontHeight: true,
+
     //
     //  This allows you to define or modify the styles used to display
     //  various math elements created by MathJax.
@@ -868,6 +925,10 @@ MathJax.Hub.Config({
     EqnChunkFactor: 1.5,
     EqnChunkDelay: 100,
 
+    //  This option indicates whether MathJax should try to correct the
+    //  x-height of equations to match the size of the surrounding text.
+    matchFontHeight: true,
+
     //
     //  These settings control automatic line breaking.  It is off by
     //  default, so only explicit line breaks are performed (via
@@ -904,6 +965,17 @@ MathJax.Hub.Config({
     },
 
     //
+    //  These are the styles used for merror elements in SVG output.  Note
+    //  that only a limited number of style attributes are supported by
+    //  SVG, but you can at least change the colors and borders.
+    //  
+    //
+    merrorStyle: {
+      fontSize:"90%", color:"#C00", background:"#FF8",
+      border: "1px solid #C00", padding:"3px"
+    },
+
+    //
     //  This allows you to define or modify the styles used to display
     //  various math elements created by MathJax.
     //  
@@ -920,7 +992,7 @@ MathJax.Hub.Config({
     //
     //  Configuration for <maction> tooltips
     //    (see also the #MathJax_Tooltip CSS in MathJax/jax/output/SVG/config.js,
-    //     which can be overriden using the styles values above).
+    //     which can be overridden using the styles values above).
     //
     tooltip: {
       delayPost: 600,          // milliseconds delay before tooltip is posted after mouseover
@@ -958,6 +1030,20 @@ MathJax.Hub.Config({
     showFontMenu: false,
     showContext:  false,
     showDiscoverable: false,
+    
+    //
+    // These are the settings for the Annotation menu. If the <math> root has
+    // a <semantics> child that contains one of the following annotation
+    // formats, the source will be available via the "Show Math As" menu.
+    // Each format has a list of possible encodings.
+    //
+    semanticsAnnotations: {
+      "TeX": ["TeX", "LaTeX", "application/x-tex"],
+      "StarMath": ["StarMath 5.0"],
+      "Maple": ["Maple"],
+      "ContentMathML": ["MathML-Content", "application/mathml-content+xml"],
+      "OpenMath": ["OpenMath"]
+    },
 
     //
     //  These are the settings for the Show Source window.  The initial

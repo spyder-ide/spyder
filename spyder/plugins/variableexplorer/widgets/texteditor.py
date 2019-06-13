@@ -20,7 +20,7 @@ from qtpy.QtWidgets import (QDialog, QHBoxLayout, QPushButton, QTextEdit,
 from spyder.config.base import _
 from spyder.config.gui import get_font
 from spyder.py3compat import (is_binary_string, to_binary_string,
-                              to_text_string)
+                              to_text_string, PY3, PY2)
 from spyder.utils import icon_manager as ima
 
 
@@ -29,24 +29,24 @@ class TextEditor(QDialog):
     def __init__(self, text, title='', font=None, parent=None,
                  readonly=False, size=(400, 300)):
         QDialog.__init__(self, parent)
-        
+
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
         # (e.g. the editor's analysis thread in Spyder), thus leading to
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
-        
+
         self.text = None
         self.btn_save_and_close = None
-        
-        # Display text as unicode if it comes as bytes, so users see 
+
+        # Display text as unicode if it comes as bytes, so users see
         # its right representation
         if is_binary_string(text):
             self.is_binary = True
             text = to_text_string(text, 'utf8')
         else:
             self.is_binary = False
-        
+
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
 
@@ -79,10 +79,19 @@ class TextEditor(QDialog):
 
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
-        
+
         self.setWindowIcon(ima.icon('edit'))
+        if title:
+            try:
+                unicode_title = to_text_string(title)
+            except UnicodeEncodeError:
+                unicode_title = u''
+        else:
+            unicode_title = u''
+
         self.setWindowTitle(_("Text editor") + \
-                            "%s" % (" - "+str(title) if str(title) else ""))
+                            u"%s" % (u" - " + unicode_title
+                                     if unicode_title else u""))
         self.resize(size[0], size[1])
 
     @Slot()

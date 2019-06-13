@@ -111,14 +111,15 @@ def get_hg_revision(repopath):
         # output is now: ('eba7273c69df+ 2015+ default\n', None)
         # Split 2 times max to allow spaces in branch names.
         return tuple(output.decode().strip().split(None, 2))
-    except (subprocess.CalledProcessError, AssertionError, AttributeError):
+    except (subprocess.CalledProcessError, AssertionError, AttributeError,
+            OSError):
         return (None, None, None)
 
 
 def get_git_revision(repopath):
     """
     Return Git revision for the repository located at repopath
-    
+
     Result is a tuple (latest commit hash, branch), with None values on
     error
     """
@@ -145,5 +146,65 @@ def get_git_revision(repopath):
             branch = active_branch[0].split(None, 1)[1]
 
         return commit, branch
-    except (subprocess.CalledProcessError, AssertionError, AttributeError):
+    except (subprocess.CalledProcessError, AssertionError, AttributeError,
+            OSError):
         return None, None
+
+
+def get_git_refs(repopath):
+    """
+    Return Git active branch, state, branches (plus tags).
+    """
+    tags = []
+    branches = []
+    branch = ''
+    files_modifed = []
+
+    if os.path.isfile(repopath):
+        repopath = os.path.dirname(repopath)
+
+    git = programs.find_program('git')
+
+    if git:
+        try:
+            # Files modified
+            out, err = programs.run_program(
+                git, ['status', '-s'],
+                cwd=repopath,
+            ).communicate()
+
+            if PY3:
+                out = out.decode(sys.getdefaultencoding())
+            files_modifed = [line.strip() for line in out.split('\n') if line]
+
+            # Tags
+            out, err = programs.run_program(
+                git, ['tag'],
+                cwd=repopath,
+            ).communicate()
+
+            if PY3:
+                out = out.decode(sys.getdefaultencoding())
+            tags = [line.strip() for line in out.split('\n') if line]
+
+            # Branches
+            out, err = programs.run_program(
+                git, ['branch', '-a'],
+                cwd=repopath,
+            ).communicate()
+
+            if PY3:
+                out = out.decode(sys.getdefaultencoding())
+
+            lines = [line.strip() for line in out.split('\n') if line]
+            for line in lines:
+                if line.startswith('*'):
+                    line = line.replace('*', '').strip()
+                    branch = line
+
+                branches.append(line)
+
+        except (subprocess.CalledProcessError, AttributeError, OSError):
+            pass
+
+    return branches + tags, branch, files_modifed

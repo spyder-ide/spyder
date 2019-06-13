@@ -5,16 +5,23 @@
 # (see spyder/__init__.py for details)
 
 # Standard library imports
+import base64
+import os
 import os.path as osp
+import mimetypes as mime
+import sys
 
 # Third party imports
-from qtpy.QtGui import QIcon
+from qtpy.QtCore import QBuffer, QByteArray
+from qtpy.QtGui import QIcon, QImage
 from qtpy.QtWidgets import QStyle, QWidget
 
 # Local imports
 from spyder.config.base import get_image_path
 from spyder.config.main import CONF
 from spyder.config.gui import is_dark_interface
+from spyder.py3compat import to_text_string
+from spyder.utils.encoding import is_text_file
 import qtawesome as qta
 
 
@@ -23,6 +30,75 @@ if is_dark_interface():
 else:
     MAIN_FG_COLOR = 'black'
 
+BIN_FILES = {x: 'ArchiveFileIcon' for x in ['zip', 'x-tar',
+                                            'x-7z-compressed', 'rar']}
+
+DOCUMENT_FILES = {'vnd.ms-powerpoint': 'PowerpointFileIcon',
+                  'vnd.openxmlformats-officedocument.'
+                  'presentationml.presentation': 'PowerpointFileIcon',
+                  'msword': 'WordFileIcon',
+                  'vnd.openxmlformats-officedocument.'
+                  'wordprocessingml.document': 'WordFileIcon',
+                  'vnd.ms-excel': 'ExcelFileIcon',
+                  'vnd.openxmlformats-officedocument.'
+                  'spreadsheetml.sheet': 'ExcelFileIcon',
+                  'pdf': 'PDFIcon'}
+
+OFFICE_FILES = {'.xlsx': 'ExcelFileIcon', '.docx': 'WordFileIcon',
+                '.pptx': 'PowerpointFileIcon'}
+
+# Magnification factors for attribute icons
+# per platform
+if sys.platform.startswith('linux'):
+    BIG_ATTR_FACTOR = 1.0
+    SMALL_ATTR_FACTOR = 0.9
+elif os.name == 'nt':
+    BIG_ATTR_FACTOR = 1.1
+    SMALL_ATTR_FACTOR = 1.0
+else:
+    BIG_ATTR_FACTOR = 1.3
+    SMALL_ATTR_FACTOR = 1.1
+
+# Icons for different programming language
+# extensions
+LANGUAGE_ICONS = {
+    '.c': 'CFileIcon',
+    '.h': 'CFileIcon',
+    '.cc': 'CppFileIcon',
+    '.hh': 'CppFileIcon',
+    '.cpp': 'CppFileIcon',
+    '.cxx': 'CppFileIcon',
+    '.c++': 'CppFileIcon',
+    '.hpp': 'CppFileIcon',
+    '.hxx': 'CppFileIcon',
+    '.h++': 'CppFileIcon',
+    '.cs': 'CsharpFileIcon',
+    '.asmx': 'CsharpFileIcon',
+    '.py': 'PythonFileIcon',
+    '.py3': 'PythonFileIcon',
+    '.pyx': 'PythonFileIcon',
+    '.pyw': 'PythonFileIcon',
+    '.java': 'JavaFileIcon',
+    '.jav': 'JavaFileIcon',
+    '.j': 'JavaFileIcon',
+    '.js': 'JavascriptFileIcon',
+    '.r': 'RFileIcon',
+    '.rnw': 'RFileIcon',
+    '.rmd': 'RFileIcon',
+    '.swift': 'SwiftFileIcon',
+    '.csv': 'GridFileIcon',
+    '.tsv': 'GridFileIcon',
+    '.bat': 'WindowsFileIcon',
+    '.psl': 'PowershellFileIcon',
+    '.sh': 'DollarFileIcon',
+    '.md': 'MarkdownFileIcon',
+    '.json': 'JsonFileIcon',
+    '.html': 'CodeFileIcon',
+    '.css': 'CodeFileIcon',
+    '.yml': 'ExclamationFileIcon',
+    '.yaml': 'ExclamationFileIcon',
+    '.xml': 'CodeFileIcon'
+}
 
 _resource = {
     'directory': osp.join(osp.dirname(osp.realpath(__file__)), '../fonts'),
@@ -30,6 +106,7 @@ _resource = {
 }
 
 _qtaargs = {
+    'drag-horizontal':         [('mdi.drag-horizontal',), {'color': MAIN_FG_COLOR}],
     'format_letter_case':      [('mdi.format-letter-case',), {'color': MAIN_FG_COLOR}],
     'regex':                   [('mdi.regex',), {'color': MAIN_FG_COLOR}],
     'log':                     [('fa.file-text-o',), {'color': MAIN_FG_COLOR}],
@@ -44,7 +121,7 @@ _qtaargs = {
     'font':                    [('fa.font',), {'color': MAIN_FG_COLOR}],
     'keyboard':                [('fa.keyboard-o',), {'color': MAIN_FG_COLOR}],
     'eyedropper':              [('fa.eyedropper',), {'color': MAIN_FG_COLOR}],
-    'tooloptions':             [('fa.cog',), {'color': '#333333'}],
+    'tooloptions':             [('fa.bars',), {'color': MAIN_FG_COLOR}],
     'edit24':                  [('fa.edit',), {'color': MAIN_FG_COLOR}],
     'edit':                    [('fa.edit',), {'color': MAIN_FG_COLOR}],
     'filenew':                 [('fa.file-o',), {'color': MAIN_FG_COLOR}],
@@ -56,8 +133,10 @@ _qtaargs = {
     'print':                   [('fa.print',), {'color': MAIN_FG_COLOR}],
     'fileclose':               [('fa.close',), {'color': MAIN_FG_COLOR}],
     'filecloseall':            [('fa.close', 'fa.close', 'fa.close'), {'options': [{'scale_factor': 0.6, 'offset': (0.3, -0.3), 'color': MAIN_FG_COLOR},  {'scale_factor': 0.6, 'offset': (-0.3, -0.3), 'color': MAIN_FG_COLOR}, {'scale_factor': 0.6, 'offset': (0.3, 0.3), 'color': MAIN_FG_COLOR}]}],
-    'breakpoint_big':          [('fa.circle',), {'color': 'darkred'} ],
-    'breakpoint_cond_big':     [('fa.question-circle',), {'color': 'darkred'},],
+    'breakpoint_transparent':  [('fa.circle',), {'color': 'darkred', 'opacity': 0.75, 'scale_factor': 0.9}],
+    'breakpoint_big':          [('fa.circle',), {'color': '#cc0000', 'scale_factor': 0.9} ],
+    'breakpoint_cond_big':     [('fa.question-circle',), {'color': '#cc0000', 'scale_factor': 0.9},],
+    'arrow_debugger':          [('mdi.arrow-right-bold',), {'color': '#3775a9', 'scale_factor': 2.0}],
     'debug':                   [('spyder.debug',), {'color': '#3775a9'}],
     'arrow-step-over':         [('spyder.step-forward',), {'color': '#3775a9'}],
     'arrow-continue':          [('spyder.continue',), {'color': '#3775a9'}],
@@ -75,19 +154,23 @@ _qtaargs = {
     'todo_list':               [('fa.th-list', 'fa.check'), {'options': [{'color': '#999999'}, {'offset': (0.0, 0.2), 'color': '#3775a9', 'color_disabled': '#748fa6'}]}],
     'wng_list':                [('fa.th-list', 'fa.warning'), {'options': [{'color': '#999999'}, {'offset': (0.0, 0.2), 'scale_factor': 0.75, 'color': 'orange', 'color_disabled': '#face7e'}]}],
     'prev_wng':                [('fa.arrow-left', 'fa.warning'), {'options': [{'color': '#999999'}, {'offset': (0.0, 0.2), 'scale_factor': 0.75, 'color': 'orange', 'color_disabled': '#face7e'}]}],
-    'next_wng':                [('fa.arrow-right', 'fa.warning'), {'options': [{'color': '999999'}, {'offset': (0.0, 0.2), 'scale_factor': 0.75, 'color': 'orange', 'color_disabled': '#face7e'}]}],
+    'next_wng':                [('fa.arrow-right', 'fa.warning'), {'options': [{'color': '#999999'}, {'offset': (0.0, 0.2), 'scale_factor': 0.75, 'color': 'orange', 'color_disabled': '#face7e'}]}],
     'last_edit_location':      [('fa.caret-up',), {'color': MAIN_FG_COLOR}],
     'prev_cursor':             [('fa.hand-o-left',), {'color': MAIN_FG_COLOR}],
     'next_cursor':             [('fa.hand-o-right',), {'color': MAIN_FG_COLOR}],
     'comment':                 [('fa.comment',), {'color': MAIN_FG_COLOR}],
     'indent':                  [('fa.indent',), {'color': MAIN_FG_COLOR}],
     'unindent':                [('fa.outdent',), {'color': MAIN_FG_COLOR}],
+    'toggle_lowercase':        [('mdi.format-letter-case-lower',), {'color': MAIN_FG_COLOR}],
+    'toggle_uppercase':        [('mdi.format-letter-case-upper',), {'color': MAIN_FG_COLOR}],
     'gotoline':                [('fa.sort-numeric-asc',), {'color': MAIN_FG_COLOR}],
     'error':                   [('fa.times-circle',), {'color': 'darkred'}],
     'warning':                 [('fa.warning',), {'color': 'orange'}],
+    'information':             [('fa.info-circle',), {'color': '#3775a9'}],
+    'hint':                    [('fa.lightbulb-o',), {'color': 'yellow'}],
     'todo':                    [('fa.exclamation',), {'color': '#3775a9'}],
-    'ipython_console':         [('spyder.ipython-logo-alt',), {'color': MAIN_FG_COLOR}],
-    'ipython_console_t':       [('spyder.ipython-logo-alt',), {'color':'gray'}],
+    'ipython_console':         [('mdi.console',), {'color': MAIN_FG_COLOR}],
+    'ipython_console_t':       [('mdi.console',), {'color': 'gray'}],
     'python':                  [('spyder.python-logo-up', 'spyder.python-logo-down'), {'options': [{'color': '#3775a9'}, {'color': '#ffd444'}]}],
     'pythonpath':              [('spyder.python-logo-up', 'spyder.python-logo-down'), {'options': [{'color': '#3775a9'}, {'color': '#ffd444'}]}],
     'terminated':              [('fa.circle',), {'color': MAIN_FG_COLOR}],
@@ -116,7 +199,7 @@ _qtaargs = {
     'replace':                 [('fa.exchange',), {'color': MAIN_FG_COLOR}],
     'undo':                    [('fa.undo',), {'color': MAIN_FG_COLOR}],
     'redo':                    [('fa.repeat',), {'color': MAIN_FG_COLOR}],
-    'restart':                 [('fa.repeat',), {'çolor': '#3775a9'}],
+    'restart':                 [('fa.repeat',), {'color': MAIN_FG_COLOR}],
     'editcopy':                [('fa.copy',), {'color': MAIN_FG_COLOR}],
     'editcut':                 [('fa.scissors',), {'color': MAIN_FG_COLOR}],
     'editpaste':               [('fa.clipboard',), {'color': MAIN_FG_COLOR}],
@@ -144,7 +227,7 @@ _qtaargs = {
     'rename':                  [('fa.pencil',), {'color': MAIN_FG_COLOR}],
     'edit_add':                [('fa.plus',), {'color': MAIN_FG_COLOR}],
     'edit_remove':             [('fa.minus',), {'color': MAIN_FG_COLOR}],
-    'browse_tab':              [('fa.folder-o',), {'color': MAIN_FG_COLOR}],
+    'browse_tab':              [('mdi.tab',), {'color': MAIN_FG_COLOR}],
     'filelist':                [('fa.list',), {'color': MAIN_FG_COLOR}],
     'newwindow':               [('spyder.window',), {'color': MAIN_FG_COLOR}],
     'versplit':                [('spyder.rows',), {'color': MAIN_FG_COLOR}],
@@ -190,6 +273,22 @@ _qtaargs = {
     'ArchiveFileIcon':         [('fa.file-archive-o',), {'color': MAIN_FG_COLOR}],
     'VideoFileIcon':           [('fa.file-video-o',), {'color': MAIN_FG_COLOR}],
     'TextFileIcon':            [('fa.file-text-o',), {'color': MAIN_FG_COLOR}],
+    'CFileIcon':               [('mdi.language-c',), {'color': MAIN_FG_COLOR}],
+    'CppFileIcon':             [('mdi.language-cpp',), {'color': MAIN_FG_COLOR}],
+    'CsharpFileIcon':          [('mdi.language-csharp',), {'color': MAIN_FG_COLOR}],
+    'PythonFileIcon':          [('mdi.language-python',), {'color': MAIN_FG_COLOR}],
+    'JavaFileIcon':            [('mdi.language-java',), {'color': MAIN_FG_COLOR}],
+    'JavascriptFileIcon':      [('mdi.language-javascript',), {'color': MAIN_FG_COLOR}],
+    'RFileIcon':               [('mdi.language-r',), {'color': MAIN_FG_COLOR}],
+    'SwiftFileIcon':           [('mdi.language-swift',), {'color': MAIN_FG_COLOR}],
+    'GridFileIcon':            [('mdi.grid',), {'color': MAIN_FG_COLOR}],
+    'WindowsFileIcon':         [('mdi.windows',), {'color': MAIN_FG_COLOR}],
+    'PowershellFileIcon':      [('mdi.powershell',), {'color': MAIN_FG_COLOR}],
+    'DollarFileIcon':          [('fa5s.file-invoice-dollar',), {'color': MAIN_FG_COLOR}],
+    'MarkdownFileIcon':        [('mdi.markdown',), {'color': MAIN_FG_COLOR}],
+    'JsonFileIcon':            [('mdi.json',), {'color': MAIN_FG_COLOR}],
+    'ExclamationFileIcon':     [('mdi.exclamation',), {'color': MAIN_FG_COLOR}],
+    'CodeFileIcon':             [('mdi.xml',), {'color': MAIN_FG_COLOR}],
     'project':                 [('fa.folder-open-o',), {'color': MAIN_FG_COLOR}],
     'DriveHDIcon':             [('fa.hdd-o',), {'color': MAIN_FG_COLOR}],
     'arrow':                   [('fa.arrow-right',), {'color': MAIN_FG_COLOR}],
@@ -208,17 +307,22 @@ _qtaargs = {
     '1uparrow':                [('fa.angle-up',), {'color': MAIN_FG_COLOR}],
     '2downarrow':              [('fa.angle-double-down',), {'color': MAIN_FG_COLOR}],
     '1downarrow':              [('fa.angle-down',), {'color': MAIN_FG_COLOR}],
+    'undock':                  [('fa.external-link',), {'color': MAIN_FG_COLOR}],
+    'dock':                    [('fa.caret-square-o-down',), {'color': MAIN_FG_COLOR}],
+    'close_pane':              [('fa.window-close-o',), {'color': MAIN_FG_COLOR}],
     # --- Autocompletion type icons --------------
-    'attribute':               [('spyder.circle-letter-a',), {'color': 'magenta'}],
-    'module':                  [('spyder.circle-letter-m',), {'color': '#daa520'}],
-    'class':                   [('spyder.circle-letter-c',), {'color':'#3775a9'}],
-    'private2':                [('spyder.circle-underscore',), {'color':'#e69c9c'}],
-    'private1':                [('spyder.circle-underscore',), {'color':'#e69c9c'}],
-    'method':                  [('spyder.circle-letter-m',), {'color':'#7ea67e'}],
-    'function':                [('spyder.circle-letter-f',), {'color':'orange'}],
-    'blockcomment':            [('spyder.circle-hash',), {'color':'grey'}],
-    'cell':                    [('spyder.circle-percent',), {'color':'red'}],
-    'no_match':                [('fa.circle',), {'color': 'gray'}],
+    'keyword':                 [('mdi.alpha-k-box',), {'color': '#df2935', 'scale_factor': BIG_ATTR_FACTOR}],
+    'text':                    [('mdi.alpha-t-box',), {'color': 'gray', 'scale_factor': BIG_ATTR_FACTOR}],
+    'attribute':               [('mdi.alpha-a-box',), {'color': 'magenta', 'scale_factor': BIG_ATTR_FACTOR}],
+    'module':                  [('mdi.alpha-m-box',), {'color': '#daa520', 'scale_factor': BIG_ATTR_FACTOR}],
+    'class':                   [('mdi.alpha-c-box',), {'color':'#3775a9', 'scale_factor': BIG_ATTR_FACTOR}],
+    'private2':                [('spyder.circle-underscore',), {'color':'#e69c9c', 'scale_factor': SMALL_ATTR_FACTOR}],
+    'private1':                [('spyder.circle-underscore',), {'color':'#e69c9c', 'scale_factor': SMALL_ATTR_FACTOR}],
+    'method':                  [('mdi.alpha-m-box',), {'color':'#7ea67e', 'scale_factor': BIG_ATTR_FACTOR}],
+    'function':                [('mdi.alpha-f-box',), {'color':'orange', 'scale_factor': BIG_ATTR_FACTOR}],
+    'blockcomment':            [('fa5s.hashtag',), {'color':'grey', 'scale_factor': SMALL_ATTR_FACTOR}],
+    'cell':                    [('mdi.percent',), {'color':'red', 'scale_factor': SMALL_ATTR_FACTOR}],
+    'no_match':                [('fa.circle',), {'color': 'gray', 'scale_factor': SMALL_ATTR_FACTOR}],
     'github':                  [('fa.github',), {'color': MAIN_FG_COLOR}],
     # --- Spyder Tour --------------------------------------------------------
     'tour.close':              [('fa.close',), {'color': MAIN_FG_COLOR}],
@@ -239,10 +343,12 @@ _qtaargs = {
     'folding.arrow_right_on':  [('fa.caret-right',), {'color': MAIN_FG_COLOR}],
     'folding.arrow_down_off':  [('fa.caret-down',), {'color': 'gray'}],
     'folding.arrow_down_on':   [('fa.caret-down',), {'color': MAIN_FG_COLOR}],
-    'lspserver':               [('fa.server',), {'color': MAIN_FG_COLOR}],
+    'lspserver':               [('mdi.code-tags-check',), {'color': MAIN_FG_COLOR}],
     'dependency_ok':           [('fa.check',), {'color': MAIN_FG_COLOR}],
     'dependency_warning':      [('fa.warning',), {'color': 'orange'}],
     'dependency_error':        [('fa.warning',), {'color': 'darkred'}],
+    # --- Status bar --------------------------------------------------------
+    'code_fork':               [('fa.code-fork',), {'color': MAIN_FG_COLOR}],
 }
 
 
@@ -289,7 +395,7 @@ def get_icon(name, default=None, resample=False):
         return icon
 
 
-def icon(name, resample=False, icon_path=None):
+def icon(name, scale_factor=None, resample=False, icon_path=None):
     theme = CONF.get('appearance', 'icon_theme')
     if theme == 'spyder 3':
         if not _resource['loaded']:
@@ -297,6 +403,8 @@ def icon(name, resample=False, icon_path=None):
                           directory=_resource['directory'])
             _resource['loaded'] = True
         args, kwargs = _qtaargs[name]
+        if scale_factor is not None:
+            kwargs['scale_factor'] = scale_factor
         return qta.icon(*args, **kwargs)
     elif theme == 'spyder 2':
         icon = get_icon(name + '.png', resample=resample)
@@ -305,3 +413,85 @@ def icon(name, resample=False, icon_path=None):
             if osp.isfile(icon_path):
                 icon = QIcon(icon_path)
         return icon if icon is not None else QIcon()
+
+
+def get_icon_by_extension_or_type(fname, scale_factor):
+    """Return the icon depending on the file extension"""
+    application_icons = {}
+    application_icons.update(BIN_FILES)
+    application_icons.update(DOCUMENT_FILES)
+    if osp.isdir(fname):
+        return icon('DirOpenIcon', scale_factor)
+    else:
+        basename = osp.basename(fname)
+        __, extension = osp.splitext(basename.lower())
+        mime_type, __ = mime.guess_type(basename)
+        if is_dark_interface():
+            icon_by_extension = QIcon(
+                get_image_path('binary.svg'))
+        else:
+            icon_by_extension = QIcon(
+                get_image_path('binary_light.svg'))
+
+        if extension in OFFICE_FILES:
+            icon_by_extension = icon(OFFICE_FILES[extension], scale_factor)
+
+        elif extension in LANGUAGE_ICONS:
+            icon_by_extension = icon(LANGUAGE_ICONS[extension], scale_factor)
+        else:
+            if extension == '.ipynb':
+                if is_dark_interface():
+                    icon_by_extension = QIcon(
+                        get_image_path('notebook_dark.svg'))
+                else:
+                    icon_by_extension = QIcon(
+                        get_image_path('notebook_light.svg'))
+            elif extension == '.tex':
+                if is_dark_interface():
+                    icon_by_extension = QIcon(
+                        get_image_path('file_type_tex.svg'))
+                else:
+                    icon_by_extension = QIcon(
+                        get_image_path('file_type_light_tex.svg'))
+            elif is_text_file(fname):
+                icon_by_extension = icon('TextFileIcon', scale_factor)
+            elif mime_type is not None:
+                try:
+                    # Fix for issue 5080. Even though
+                    # mimetypes.guess_type documentation states that
+                    # the return value will be None or a tuple of
+                    # the form type/subtype, in the Windows registry,
+                    # .sql has a mimetype of text\plain
+                    # instead of text/plain therefore mimetypes is
+                    # returning it incorrectly.
+                    file_type, bin_name = mime_type.split('/')
+                except ValueError:
+                    file_type = None
+                if file_type is None:
+                    if is_dark_interface():
+                        icon_by_extension = QIcon(
+                            get_image_path('binary.svg'))
+                    else:
+                        icon_by_extension = QIcon(
+                            get_image_path('binary_light.svg'))
+                elif file_type == 'audio':
+                    icon_by_extension = icon('AudioFileIcon', scale_factor)
+                elif file_type == 'video':
+                    icon_by_extension = icon('VideoFileIcon', scale_factor)
+                elif file_type == 'image':
+                    icon_by_extension = icon('ImageFileIcon', scale_factor)
+                elif file_type == 'application':
+                    if bin_name in application_icons:
+                        icon_by_extension = icon(
+                            application_icons[bin_name], scale_factor)
+    return icon_by_extension
+
+
+def base64_from_icon(icon_name, width, height):
+    """Convert icon to base64 encoding."""
+    icon_obj = icon(icon_name)
+    image = QImage(icon_obj.pixmap(width, height).toImage())
+    byte_array = QByteArray()
+    buffer = QBuffer(byte_array)
+    image.save(buffer, "PNG")
+    return byte_array.toBase64().data().decode()

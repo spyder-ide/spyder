@@ -27,7 +27,7 @@ from spyder.utils.qthelpers import restore_keyevent
 from spyder.widgets.github.backend import GithubBackend
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.widgets.mixins import BaseEditMixin, TracebackLinksMixin
-from spyder.plugins.editor.widgets.base import ConsoleBaseWidget
+from spyder.plugins.console.widgets.console import ConsoleBaseWidget
 
 
 # Minimum number of characters to introduce in the title and
@@ -148,7 +148,7 @@ class SpyderErrorDialog(QDialog):
               "matching your error message or problem description for a "
               "quicker solution."
               ).format(title=title, trouble_url=__trouble_url__,
-                          project_url=__project_url__))
+                       project_url=__project_url__))
         main_label.setOpenExternalLinks(True)
         main_label.setWordWrap(True)
         main_label.setAlignment(Qt.AlignJustify)
@@ -160,6 +160,7 @@ class SpyderErrorDialog(QDialog):
         self.title_chars_label = QLabel(_("{} more characters "
                                           "to go...").format(TITLE_MIN_CHARS))
         form_layout = QFormLayout()
+        form_layout.setFieldGrowthPolicy(QFormLayout.ExpandingFieldsGrow)
         red_asterisk = '<font color="Red">*</font>'
         title_label = QLabel(_("<b>Title</b>: {}").format(red_asterisk))
         form_layout.setWidget(0, QFormLayout.LabelRole, title_label)
@@ -343,6 +344,14 @@ class SpyderErrorDialog(QDialog):
         submission_enabled = (desc_chars >= DESC_MIN_CHARS and
                               title_chars >= TITLE_MIN_CHARS)
         self.submit_btn.setEnabled(submission_enabled)
+
+    def set_title(self, title):
+        """Set the title for the report."""
+        self.title.setText(title)
+
+    def set_description(self, description):
+        """Set the description for the report."""
+        self.input_description.setPlainText(description)
 
 
 def test():

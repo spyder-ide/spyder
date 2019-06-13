@@ -20,6 +20,7 @@ import sys
 import tempfile
 
 # Local imports
+from spyder.config.base import is_stable_version
 from spyder.config.utils import is_anaconda
 from spyder.utils import encoding
 from spyder.utils.misc import get_python_executable
@@ -109,7 +110,7 @@ def alter_subprocess_kwargs_by_platform(**kwargs):
 def run_shell_command(cmdstr, **subprocess_kwargs):
     """
     Execute the given shell command.
-    
+
     Note that *args and **kwargs will be passed to the subprocess call.
 
     If 'shell' is given in subprocess_kwargs it must be True,
@@ -259,7 +260,7 @@ def get_python_args(fname, python_args, interact, debug, end_args):
     if fname is not None:
         if os.name == 'nt' and debug:
             # When calling pdb on Windows, one has to replace backslashes by
-            # slashes to avoid confusion with escape characters (otherwise, 
+            # slashes to avoid confusion with escape characters (otherwise,
             # for example, '\t' will be interpreted as a tabulation):
             p_args.append(osp.normpath(fname).replace(os.sep, '/'))
         else:
@@ -291,7 +292,10 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
     p_args += get_python_args(fname, python_args, interact, debug, args)
 
     if os.name == 'nt':
-        cmd = 'start cmd.exe /c "cd %s && ' % wdir + ' '.join(p_args) + '"'
+        cmd = 'start cmd.exe /K "'
+        if wdir:
+            cmd += 'cd ' + wdir + ' && '
+        cmd += ' '.join(p_args) + '"' + ' ^&^& exit'
         # Command line and cwd have to be converted to the filesystem
         # encoding before passing them to subprocess, but only for
         # Python 2.
@@ -300,7 +304,10 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
             cmd = encoding.to_fs_from_unicode(cmd)
             wdir = encoding.to_fs_from_unicode(wdir)
         try:
-            run_shell_command(cmd, cwd=wdir)
+            if wdir:
+                run_shell_command(cmd, cwd=wdir)
+            else:
+                run_shell_command(cmd)
         except WindowsError:
             from qtpy.QtWidgets import QMessageBox
             from spyder.config.base import _
@@ -338,23 +345,6 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
         raise NotImplementedError
 
 
-def is_stable_version(version):
-    """
-    A stable version has no letters in the final component, but only numbers.
-
-    Stable version example: 1.2, 1.3.4, 1.0.5
-    Not stable version: 1.2alpha, 1.3.4beta, 0.1.0rc1, 3.0.0dev
-    """
-    if not isinstance(version, tuple):
-        version = version.split('.')
-    last_part = version[-1]
-
-    if not re.search(r'[a-zA-Z]', last_part):
-        return True
-    else:
-        return False
-
-
 def check_version(actver, version, cmp_op):
     """
     Check version string of an active module against a required version.
@@ -363,7 +353,7 @@ def check_version(actver, version, cmp_op):
     it is assumed that the dependency is satisfied.
     Users on dev branches are responsible for keeping their own packages up to
     date.
-    
+
     Copyright (C) 2013  The IPython Development Team
 
     Distributed under the terms of the BSD License.
@@ -424,8 +414,8 @@ def is_module_installed(module_name, version=None, installed_version=None,
             stable_ver = inspect.getsource(is_stable_version)
             ismod_inst = inspect.getsource(is_module_installed)
 
-            f = tempfile.NamedTemporaryFile('wt', suffix='.py', 
-                                            dir=get_temp_dir(), delete=False) 
+            f = tempfile.NamedTemporaryFile('wt', suffix='.py',
+                                            dir=get_temp_dir(), delete=False)
             try:
                 script = f.name
                 f.write("# -*- coding: utf-8 -*-" + "\n\n")
@@ -488,7 +478,7 @@ def is_module_installed(module_name, version=None, installed_version=None,
             assert symb in ('>=', '>', '=', '<', '<='),\
                     "Invalid version condition '%s'" % symb
             version = version[match.start():]
-            
+
             return check_version(actver, version, symb)
 
 def is_python_interpreter_valid_name(filename):
@@ -502,7 +492,7 @@ def is_python_interpreter_valid_name(filename):
 def is_python_interpreter(filename):
     """Evaluate wether a file is a python interpreter or not."""
     real_filename = os.path.realpath(filename)  # To follow symlink if existent
-    if (not osp.isfile(real_filename) or 
+    if (not osp.isfile(real_filename) or
         not is_python_interpreter_valid_name(filename)):
         return False
     elif is_pythonw(filename):

@@ -8,14 +8,12 @@
 
 
 # Third party imports
-from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QStackedWidget, QGridLayout
 
 # Local imports
 from spyder.config.base import _
 from spyder.config.gui import is_dark_interface
 from spyder.api.plugins import SpyderPluginWidget
-from spyder.api.preferences import PluginConfigPage
 from spyder.utils import icon_manager as ima
 from spyder.plugins.plots.widgets.figurebrowser import FigureBrowser
 
@@ -26,25 +24,18 @@ else:
     MAIN_BG_COLOR = 'white'
 
 
-class PlotsConfigPage(PluginConfigPage):
-
-    def setup_page(self):
-        pass
-
-
 class Plots(SpyderPluginWidget):
     """Plots plugin."""
 
     CONF_SECTION = 'plots'
-    CONFIGWIDGET_CLASS = PlotsConfigPage
     DISABLE_ACTIONS_WHEN_HIDDEN = False
-    sig_option_changed = Signal(str, object)
 
     def __init__(self, parent):
         SpyderPluginWidget.__init__(self, parent)
 
         # Widgets
         self.stack = QStackedWidget(self)
+        self.stack.setStyleSheet("QStackedWidget{padding: 0px; border: 0px}")
         self.shellwidgets = {}
 
         # Layout
@@ -57,7 +48,8 @@ class Plots(SpyderPluginWidget):
     def get_settings(self):
         """Retrieve all Plots configuration settings."""
         return {name: self.get_option(name) for name in
-                ['mute_inline_plotting',  'show_plot_outline']}
+                ['mute_inline_plotting', 'show_plot_outline',
+                 'auto_fit_plotting']}
 
     # ---- Stack accesors
     def set_current_widget(self, fig_browser):
@@ -104,6 +96,7 @@ class Plots(SpyderPluginWidget):
                 self.sig_option_changed.emit)
             fig_browser.thumbnails_sb.redirect_stdio.connect(
                 self.main.redirect_internalshell_stdio)
+            self.register_widget_shortcuts(fig_browser)
             self.add_widget(fig_browser)
             self.shellwidgets[shellwidget_id] = fig_browser
             self.set_shellwidget_from_id(shellwidget_id)
@@ -158,3 +151,7 @@ class Plots(SpyderPluginWidget):
         """Apply configuration file's plugin settings"""
         for fig_browser in list(self.shellwidgets.values()):
             fig_browser.setup(**self.get_settings())
+
+    def on_first_registration(self):
+        """Action to be performed on first plugin registration"""
+        self.main.tabify_plugins(self.main.variableexplorer, self)
