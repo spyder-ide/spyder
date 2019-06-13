@@ -45,7 +45,7 @@ class WorkspaceProvider:
         folder_uri = path_as_uri(folder)
         added_folders = []
         removed_folders = []
-        if params['addition']:
+        if params['kind'] == 'addition':
             if folder not in self.watched_folders:
                 self.watched_folders[folder] = {
                     'uri': folder_uri,
@@ -55,7 +55,7 @@ class WorkspaceProvider:
                     'uri': folder_uri,
                     'name': folder
                 })
-        elif params['deletion']:
+        elif params['kind'] == 'deletion':
             if folder not in self.watched_folders:
                 self.watched_folders.pop(folder)
                 removed_folders.append({
@@ -79,8 +79,17 @@ class WorkspaceProvider:
 
     @send_notification(method=LSPRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE)
     def send_watched_files_change(self, params):
-        # TODO: Depends on file observer implementation.
-        pass
+        changes = []
+        entries = params.get('params', [])
+        for entry in entries:
+            changes.append({
+                'uri': path_as_uri(entry['file']),
+                'type': entry['kind']
+            })
+        params = {
+            'changes': changes
+        }
+        return params
 
     @send_request(method=LSPRequestTypes.WORKSPACE_SYMBOL)
     def send_symbol_request(self, params):

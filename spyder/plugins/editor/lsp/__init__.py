@@ -38,6 +38,12 @@ class ResourceOperationKind:
     DELETE = 'delete'
 
 
+class FileChangeType:
+    CREATED = 1
+    CHANGED = 2
+    DELETED = 3
+
+
 class FailureHandlingKind:
     """LSP workspace modification error codes."""
     # Applying the workspace change is simply aborted if one

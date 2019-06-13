@@ -181,6 +181,9 @@ class LSPManager(QObject):
                     self.main.editor.register_lsp_server_settings)
             if self.main.console:
                 instance.sig_server_error.connect(self.report_server_error)
+            if self.main.projects:
+                instance.sig_initialize.connect(
+                    self.main.projects.register_lsp_server_settings)
 
     def shutdown(self):
         logger.info("Shutting down LSP manager...")
@@ -209,6 +212,7 @@ class LSPManager(QObject):
                         self.clients[language] = config
                     elif self.clients[language]['status'] == self.RUNNING:
                         self.main.editor.stop_lsp_services(language)
+                        self.main.projects.stop_lsp_services()
                         self.close_client(language)
                         self.clients[language] = config
                         self.start_client(language)
@@ -235,6 +239,13 @@ class LSPManager(QObject):
 
     def send_request(self, language, request, params):
         if language in self.clients:
+            language_client = self.clients[language]
+            if language_client['status'] == self.RUNNING:
+                client = self.clients[language]['instance']
+                client.perform_request(request, params)
+
+    def broadcast_request(self, request, params):
+        for language in self.clients:
             language_client = self.clients[language]
             if language_client['status'] == self.RUNNING:
                 client = self.clients[language]['instance']

@@ -33,8 +33,11 @@ from spyder.plugins.projects.utils.watcher import WorkspaceWatcher
 from spyder.plugins.projects.widgets.explorer import ProjectExplorerWidget
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
 from spyder.plugins.projects.widgets import EmptyProject
+from spyder.plugins.editor.lsp import LSPRequestTypes, FileChangeType
+from spyder.plugins.editor.utils.lsp import request, handles, class_register
 
 
+@class_register
 class Projects(SpyderPluginWidget):
     """Projects plugin."""
 
@@ -65,6 +68,7 @@ class Projects(SpyderPluginWidget):
         self.current_active_project = None
         self.latest_project = None
         self.watcher = WorkspaceWatcher(self)
+        self.lsp_ready = False
 
         # Initialize plugin
         self.initialize_plugin()
@@ -321,6 +325,7 @@ class Projects(SpyderPluginWidget):
         self.sig_project_loaded.emit(path)
         self.sig_pythonpath_changed.emit()
         self.watcher.start(path)
+        self.notify_project_open(path)
 
         if restart_consoles:
             self.restart_consoles()
@@ -351,6 +356,7 @@ class Projects(SpyderPluginWidget):
             self.explorer.clear()
             self.restart_consoles()
             self.watcher.stop()
+            self.notify_project_close(path)
 
     def delete_project(self):
         """
@@ -511,22 +517,105 @@ class Projects(SpyderPluginWidget):
             self.recent_projects.insert(0, project)
             self.recent_projects = self.recent_projects[:10]
 
+    def register_lsp_server_settings(self, settings):
+        self.lsp_ready = True
+        if self.current_active_project:
+            path = self.get_active_project_path()
+            self.notify_project_open(path)
+
+    def stop_lsp_services(self):
+        self.lsp_ready = False
+
+    def emit_request(self, method, params, requires_response):
+        params['requires_response'] = requires_response
+        params['response_instance'] = self
+        self.main.lspmanager.broadcast_request(method, params)
+
+    @request(method=LSPRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
+             requires_response=False)
     @Slot(str, str, bool)
     def file_moved(self, src_file, dest_file, is_dir):
-        # TODO: Handle calls to LSP workspace
-        pass
+        # LSP specification only considers file updates
+        if is_dir:
+            return
 
+        deletion_entry = {
+            'file': src_file,
+            'kind': FileChangeType.DELETED
+        }
+
+        addition_entry = {
+            'file': dest_file,
+            'kind': FileChangeType.CREATED
+        }
+
+        entries = [addition_entry, deletion_entry]
+        params = {
+            'params': entries
+        }
+        return params
+
+    @request(method=LSPRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
+             requires_response=False)
     @Slot(str, bool)
     def file_created(self, src_file, is_dir):
-        # TODO: Handle calls to LSP workspace
-        pass
+        if is_dir:
+            return
 
+        params = {
+            'params': [{
+                'file': src_file,
+                'kind': FileChangeType.CREATED
+            }]
+        }
+        return params
+
+    @request(method=LSPRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
+             requires_response=False)
     @Slot(str, bool)
     def file_deleted(self, src_file, is_dir):
-        # TODO: Handle calls to LSP workspace
-        pass
+        if is_dir:
+            return
 
+        params = {
+            'params': [{
+                'file': src_file,
+                'kind': FileChangeType.DELETED
+            }]
+        }
+        return params
+
+    @request(method=LSPRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
+             requires_response=False)
     @Slot(str, bool)
     def file_modified(self, src_file, is_dir):
-        # TODO: Handle calls to LSP workspace
-        pass
+        if is_dir:
+            return
+
+        params = {
+            'params': [{
+                'file': src_file,
+                'kind': FileChangeType.CHANGED
+            }]
+        }
+        return params
+
+    @request(method=LSPRequestTypes.WORKSPACE_FOLDERS_CHANGE,
+             requires_response=False)
+    def notify_project_open(self, path):
+        params = {
+            'folder': path,
+            'instance': self,
+            'kind': 'addition'
+        }
+        return params
+
+    @request(method=LSPRequestTypes.WORKSPACE_FOLDERS_CHANGE,
+             requires_response=False)
+    def notify_project_close(self, path):
+        params = {
+            'folder': path,
+            'instance': self,
+            'kind': 'deletion'
+        }
+        return params

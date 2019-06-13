@@ -83,7 +83,7 @@ def test_get_signature(lsp_client_and_editor, qtbot):
         'line': 1,
         'column': 10,
         'requires_response': True,
-        'response_codeeditor': editor
+        'response_instance': editor
     }
 
     # Perform the request
@@ -121,7 +121,7 @@ def test_get_completions(lsp_client_and_editor, qtbot):
         'line': 0,
         'column': 8,
         'requires_response': True,
-        'response_codeeditor': editor
+        'response_instance': editor
     }
 
     # Perform the request
@@ -160,7 +160,7 @@ def test_go_to_definition(lsp_client_and_editor, qtbot):
         'line': 0,
         'column': 19,
         'requires_response': True,
-        'response_codeeditor': editor
+        'response_instance': editor
     }
 
     # Perform the request
@@ -204,7 +204,7 @@ def test_local_signature(lsp_client_and_editor, qtbot):
         'line': 4,
         'column': 0,
         'requires_response': True,
-        'response_codeeditor': editor
+        'response_instance': editor
     }
 
     # Perform the request
