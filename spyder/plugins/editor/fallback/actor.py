@@ -37,6 +37,7 @@ logger = logging.getLogger(__name__)
 class FallbackActor(QThread):
     #: Signal emitted when the Thread is ready
     sig_fallback_ready = Signal()
+    sig_text_tokens = Signal(list)
 
     def __init__(self, parent):
         QThread.__init__(self, parent)
@@ -110,4 +111,6 @@ class FallbackActor(QThread):
                     text_info = self.file_tokens[file]
                     tokens = self.tokenize(
                         text_info['text'], text_info['language'])
-                editor.receive_text_tokens(tokens)
+                self.sig_text_tokens.connect(editor.receive_text_tokens)
+                self.sig_text_tokens.emit(tokens)
+                self.sig_text_tokens.disconnect(editor.receive_text_tokens)
