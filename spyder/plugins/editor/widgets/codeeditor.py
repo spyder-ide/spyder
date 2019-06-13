@@ -2373,7 +2373,7 @@ class CodeEditor(TextEditBaseWidget):
 
             if prevtext:
 
-                if not "return" in prevtext.strip().split()[:1] and \
+                if not "return" == prevtext.strip().split()[:1] and \
                     (prevtext.strip().endswith(')') or
                      prevtext.strip().endswith(']') or
                      prevtext.strip().endswith('}')):
@@ -2419,10 +2419,9 @@ class CodeEditor(TextEditBaseWidget):
                 else:
                     correct_indent += len(self.indent_chars)
             elif self.is_python_like() and \
-                (prevtext.endswith('continue') or
-                 prevtext.endswith('break') or
-                 prevtext.endswith('pass') or
-                 ("return" in prevtext.strip().split()[:1] and
+                (prevtext.strip().split()[-1:] in
+                 ('continue', 'break', 'pass') or
+                 ("return" == prevtext.strip().split()[:1] and
                   len(re.split(r'\(|\{|\[', prevtext)) ==
                   len(re.split(r'\)|\}|\]', prevtext)))):
                 # Unindent
