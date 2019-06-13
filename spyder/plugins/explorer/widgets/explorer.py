@@ -651,6 +651,7 @@ class DirView(QTreeView):
     @Slot()
     def open_association(self, app_path):
         """Open files with given application executable path."""
+        return_codes = {}
         if app_path:
             fnames = self.get_selected_filenames()
 
@@ -670,9 +671,12 @@ class DirView(QTreeView):
 
             if sys.platform == 'darwin':
                 cmd = ['open', '-a', app_path] + fnames
-                subprocess.call(cmd)
+                return_code = subprocess.call(cmd)
+                return_codes[' '.join(cmd)] = return_code
             elif os.name == 'nt':
-                subprocess.call([app_path] + fnames)
+                cmd = [app_path] + fnames
+                return_code = subprocess.call(cmd)
+                return_codes[' '.join(cmd)] = return_code
             else:
                 entry = parse_linux_desktop_entry(app_path)
                 app_path = entry['exec']
@@ -708,9 +712,15 @@ class DirView(QTreeView):
 
                 if multi:
                     for cmd in multi:
-                        subprocess.call([cmd], shell=True)
+                        return_code = subprocess.call([cmd], shell=True)
+                        return_codes[cmd]= return_code
                 else:
-                    subprocess.call([cmd] + extra, shell=True)
+                    return_code = subprocess.call([cmd] + extra, shell=True)
+                    return_codes[cmd]= return_code
+
+        # TODO: Handle code. Display message if problem?
+        print(return_codes)
+        return return_codes
 
     @Slot()
     def open_external(self, fnames=None):
