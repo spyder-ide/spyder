@@ -11,6 +11,7 @@ File associations widget for use in global and project preferences.
 # Standard library imports
 from __future__ import print_function
 import os
+import re
 import sys
 
 # Third party imports
@@ -24,7 +25,8 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
 # Local imports
 from spyder.config.base import _
 from spyder.plugins.explorer.utils import (get_application_icon,
-                                           get_installed_applications)
+                                           get_installed_applications,
+                                           parse_linux_desktop_entry)
 from spyder.utils import icon_manager as ima
 
 
@@ -34,6 +36,8 @@ class InputTextDialog(QDialog):
     def __init__(self, parent=None, title='', label=''):
         """Input text dialog with regex validation."""
         super(InputTextDialog, self).__init__(parent=parent)
+        self._reg = None
+        self._regex = None
 
         # Widgets
         self.label = QLabel()
@@ -65,12 +69,21 @@ class InputTextDialog(QDialog):
 
     def validate(self):
         """Validate content."""
-        is_valid = bool(self.text().strip())
+        text = self.text().strip()
+        is_valid = bool(text)
+        if self._reg:
+            res = self._reg.match(text)
+            if res:
+                text_matched = res.group(0)
+                is_valid = is_valid and text_matched == text
+            else:
+                is_valid = False
         self.button_ok.setEnabled(is_valid)
 
     def set_regex_validation(self, regex):
         """Set the regular expression to validate content."""
         self._regex = regex
+        self._reg = re.compile(regex, re.IGNORECASE)
         validator = QRegExpValidator(QRegExp(regex))
         self.lineedit.setValidator(validator)
 
@@ -228,8 +241,7 @@ class ApplicationsDialog(QDialog):
 
 class FileAssociationsWidget(QWidget):
     """Widget to add applications association to file extensions."""
-    _REGEX = r'(?:\*\.\w+)|(?:[\w]*\.\w+)(?:(?:,\*\.\w+)|(?:,[\w]*\.\w+))?'
-    _REGEX = '.*'
+    _REGEX = r'(?:(?:\*{1,1}|\w+)\.\w+)(?:,(?:\*{1,1}|\w+)\.\w+){0,20}'
     sig_data_changed = Signal(dict)
 
     def __init__(self, parent=None):
