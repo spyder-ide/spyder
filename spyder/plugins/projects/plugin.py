@@ -531,6 +531,13 @@ class Projects(SpyderPluginWidget):
         params['response_instance'] = self
         self.main.lspmanager.broadcast_request(method, params)
 
+    @Slot(str, dict)
+    def handle_response(self, method, params):
+        if method in self.handler_registry:
+            handler_name = self.handler_registry[method]
+            handler = getattr(self, handler_name)
+            handler(params)
+
     @request(method=LSPRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
              requires_response=False)
     @Slot(str, str, bool)
@@ -619,3 +626,15 @@ class Projects(SpyderPluginWidget):
             'kind': 'deletion'
         }
         return params
+
+    @request(method=LSPRequestTypes.WORKSPACE_APPLY_EDIT,
+             requires_response=False)
+    @handles(LSPRequestTypes.WORKSPACE_APPLY_EDIT)
+    def handle_workspace_edit(self, params):
+        edits = params['params']
+        response = {
+            'applied': False,
+            'error': 'Not implemented',
+            'language': edits['language']
+        }
+        return response

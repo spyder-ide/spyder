@@ -245,11 +245,12 @@ class LSPManager(QObject):
                 client.perform_request(request, params)
 
     def broadcast_request(self, request, params):
-        for language in self.clients:
-            language_client = self.clients[language]
-            if language_client['status'] == self.RUNNING:
-                client = self.clients[language]['instance']
-                client.perform_request(request, params)
+        language = params.pop('language', None)
+        if language:
+            self.send_request(language, request, params)
+        else:
+            for language in self.clients:
+                self.send_request(language, request, params)
 
     def generate_python_config(self):
         """

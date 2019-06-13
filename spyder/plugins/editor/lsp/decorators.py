@@ -26,9 +26,12 @@ def send_notification(req=None, method=None):
     return send_message(req, method, kind=MessageKind.NOTIFICATION)
 
 
-def send_response(req):
+def send_response(req=None, method=None):
     """Send message as a proper JSON-RPC response."""
-    return send_message(req, kind=MessageKind.RESPONSE)
+    if req is None:
+        return functools.partial(send_response, method=method)
+
+    return send_message(req, method, kind=MessageKind.RESPONSE)
 
 
 def send_message(req=None, method=None, kind=MessageKind.REQUEST):

@@ -100,7 +100,7 @@ class WorkspaceProvider:
 
     @handles(LSPRequestTypes.WORKSPACE_SYMBOL)
     def handle_symbol_response(self, response):
-        folders = list(self.watched_files.keys())
+        folders = list(self.watched_folders.keys())
         assigned_symbols = {folder: [] for folder in self.watched_folders}
         for symbol_info in response:
             location = symbol_info['location']
@@ -125,9 +125,20 @@ class WorkspaceProvider:
         }
         return params
 
+    @send_response(method=LSPRequestTypes.WORKSPACE_APPLY_EDIT)
+    def send_edit_response(self, edits):
+        params = {
+            'applied': edits['applied']
+        }
+        if 'error' in edits:
+            params['failureReason'] = edits['error']
+        return params
+
     @handles(LSPRequestTypes.WORKSPACE_APPLY_EDIT)
     def apply_edit(self, response):
-        folders = list(self.watched_files.keys())
+        logger.debug("Editing: {0}".format(response['label']))
+        response = response['edit']
+        folders = list(self.watched_folders.keys())
         assigned_files = {folder: [] for folder in self.watched_folders}
         if 'documentChanges' in response:
             for change in response['documentChanges']:
@@ -136,30 +147,32 @@ class WorkspaceProvider:
                     path = process_uri(uri)
                     change['textDocument']['path'] = path
                     workspace = match_path_to_folder(folders, path)
-                    assigned_files[workspace].append(change)
+                    assigned_files[workspace].append({path: change})
                 elif 'uri' in change:
                     path = process_uri(change['uri'])
                     change['path'] = path
                     workspace = match_path_to_folder(folders, path)
-                    assigned_files[workspace].append(change)
+                    assigned_files[workspace].append({path: change})
                 elif 'oldUri' in change:
-                    change['old_path'] = process_uri(change['oldUri'])
+                    old_path = process_uri(change['oldUri'])
+                    change['old_path'] = old_path
                     new_path = process_uri(change['newUri'])
                     change['new_path'] = new_path
                     workspace = match_path_to_folder(folders, new_path)
-                    assigned_files[workspace].append(change)
+                    assigned_files[workspace].append({old_path: change})
         elif 'changes' in response:
             changes = response['changes']
-            uris = list(response.keys())
+            uris = list(changes.keys())
             for uri in uris:
                 path = process_uri(uri)
-                changes[path] = response.pop(uri)
+                change = changes.pop(uri)
                 workspace = match_path_to_folder(folders, path)
-                assigned_files[workspace].append(change)
+                assigned_files[workspace].append({path: change})
 
         for workspace in assigned_files:
             workspace_edits = assigned_files[workspace]
             workspace_instance = self.watched_folders[workspace]['instance']
             workspace_instance.handle_response(
                 LSPRequestTypes.WORKSPACE_APPLY_EDIT,
-                {'params': workspace_edits})
+                {'params': {'edits': workspace_edits,
+                            'language': self.language}})
