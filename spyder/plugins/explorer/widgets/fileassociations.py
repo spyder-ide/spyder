@@ -337,6 +337,10 @@ class FileAssociationsWidget(QWidget):
                 break
         else:
             icon = get_application_icon(fpath)
+
+            if not (os.path.isfile(fpath) or os.path.isdir(fpath)):
+                app_name += _(' (Application not found!)')
+
             item = QListWidgetItem(icon, app_name)
             self.list_applications.addItem(item)
             self.list_applications.setCurrentItem(item)

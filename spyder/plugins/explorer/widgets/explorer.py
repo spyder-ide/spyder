@@ -35,7 +35,6 @@ from qtpy.QtWidgets import (QFileSystemModel, QHBoxLayout, QFileIconProvider,
 # Local imports
 from spyder.config.base import _, get_home_dir, get_image_path
 from spyder.config.gui import is_dark_interface, config_shortcut, get_shortcut
-from spyder.config.main import CONF
 from spyder.plugins.explorer.utils import parse_linux_desktop_entry
 from spyder.py3compat import (str_lower, to_binary_string,
                               to_text_string)
@@ -49,37 +48,6 @@ try:
     from nbconvert import PythonExporter as nbexporter
 except:
     nbexporter = None    # analysis:ignore
-
-
-def get_common_file_associations(fnames):
-    """Return the list of common matching file associations for all fnames."""
-    all_values = []
-    for fname in fnames:
-        values = get_file_associations(fname)
-        all_values.append(values)
-
-    common = set(all_values[0])
-    for index in range(1, len(all_values)):
-        common = common.intersection(all_values[index])
-    return list(sorted(common))
-
-
-def get_file_associations(fname):
-    """Return the list of matching file associations for `fname`."""
-    file_associations = CONF.get('explorer', 'file_associations')
-    for exts, values in file_associations.items():
-        clean_exts = [ext.strip() for ext in exts.split(',')]
-        for ext in clean_exts:
-            if fname.endswith((ext, ext[1:])):
-                values = values
-                break
-        else:
-            continue  # Only excecuted if the inner loop did not break
-        break  # Only excecuted if the inner loop did break
-    else:
-        values = []
-
-    return values
 
 
 def open_file_in_external_explorer(filename):
@@ -324,6 +292,36 @@ class DirView(QTreeView):
         self.all_action.setChecked(self.show_all)
         self.single_click_to_open_action.setChecked(self.single_click_to_open)
 
+    def get_common_file_associations(self, fnames):
+        """
+        Return the list of common matching file associations for all fnames.
+        """
+        all_values = []
+        for fname in fnames:
+            values = self.get_file_associations(fname)
+            all_values.append(values)
+
+        common = set(all_values[0])
+        for index in range(1, len(all_values)):
+            common = common.intersection(all_values[index])
+        return list(sorted(common))
+
+    def get_file_associations(self, fname):
+        """Return the list of matching file associations for `fname`."""
+        for exts, values in self.file_associations.items():
+            clean_exts = [ext.strip() for ext in exts.split(',')]
+            for ext in clean_exts:
+                if fname.endswith((ext, ext[1:])):
+                    values = values
+                    break
+            else:
+                continue  # Only excecuted if the inner loop did not break
+            break  # Only excecuted if the inner loop did break
+        else:
+            values = []
+
+        return values
+
     @Slot()
     def edit_filter(self):
         """Edit name filters"""
@@ -427,17 +425,24 @@ class DirView(QTreeView):
                 actions.append(open_with_spyder_action)
 
             if len(fnames) == 1:
-                assoc = get_file_associations(fnames[0])
+                assoc = self.get_file_associations(fnames[0])
             elif len(fnames) > 1:
-                assoc = get_common_file_associations(fnames)
+                assoc = self.get_common_file_associations(fnames)
 
             if len(assoc) >= 1:
                 actions.append(open_with_menu)
                 open_with_actions = []
                 for app_name, fpath in assoc:
+                    if not (os.path.isfile(fpath) or os.path.isdir(fpath)):
+                        app_name += _(' (Application not found!)')
+
                     open_with_action = create_action(
                         self, app_name,
                         triggered=lambda x, y=fpath: self.open_association(y))
+
+                    if not (os.path.isfile(fpath) or os.path.isdir(fpath)):
+                        open_with_action.setDisabled(True)
+
                     open_with_actions.append(open_with_action)
                 open_external_action_2 = create_action(
                     self, _("Default external application"),
@@ -597,9 +602,9 @@ class DirView(QTreeView):
                 self.directory_clicked(fname)
             else:
                 if len(fnames) == 1:
-                    assoc = get_file_associations(fnames[0])
+                    assoc = self.get_file_associations(fnames[0])
                 elif len(fnames) > 1:
-                    assoc = get_common_file_associations(fnames)
+                    assoc = self.get_common_file_associations(fnames)
 
                 if assoc:
                     self.open_association(assoc[0][-1])

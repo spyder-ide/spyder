@@ -42,6 +42,7 @@ class Explorer(SpyderPluginWidget):
             show_icontext=self.get_option('show_icontext'),
             options_button=self.options_button,
             single_click_to_open=self.get_option('single_click_to_open'),
+            file_associations=self.get_option('file_associations'),
         )
 
         # Initialize plugin
@@ -53,6 +54,10 @@ class Explorer(SpyderPluginWidget):
 
         self.fileexplorer.sig_option_changed.connect(
             self._update_config_options)
+
+    def _update_config_options(self, option, value):
+        """Update the config options of the explorer to make them permanent."""
+        self.set_option(option, value)
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
@@ -127,8 +132,6 @@ class Explorer(SpyderPluginWidget):
         method_map = {
             'file_associations':
                 self.fileexplorer.treewidget.set_file_associations,
-            # 'show_hidden':
-            #     self.fileexplorer.treewidget.set_show_all,
             'single_click_to_open':
                 self.fileexplorer.treewidget.set_single_click_to_open,
             'name_filters':
@@ -149,7 +152,3 @@ class Explorer(SpyderPluginWidget):
     def chdir(self, directory):
         """Set working directory"""
         self.fileexplorer.treewidget.chdir(directory)
-
-    def _update_config_options(self, option, value):
-        """Update the config options of the explorer to make them permanent."""
-        self.set_option(option, value)
