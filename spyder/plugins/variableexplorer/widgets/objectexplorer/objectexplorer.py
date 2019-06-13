@@ -528,9 +528,9 @@ class ObjectExplorer(QDialog):
         A (class attribute) reference to the browser window is kept to prevent
         it from being garbage-collected.
         """
-        object_browser = cls(*args, **kwargs)
-        object_browser.exec_()
-        return object_browser
+        object_explorer = cls(*args, **kwargs)
+        object_explorer.exec_()
+        return object_explorer
 
 
 # =============================================================================
