@@ -67,7 +67,7 @@ def fallback_codeeditor(fallback, qtbot_module, request):
     """CodeEditor instance with Fallback enabled."""
 
     def send_fallback_request(request):
-        fallback.mailbox.put(request)
+        fallback.sig_mailbox.emit(request)
 
     # Create a CodeEditor instance
     editor = codeeditor_factory()

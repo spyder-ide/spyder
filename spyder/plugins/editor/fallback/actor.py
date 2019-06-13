@@ -16,10 +16,9 @@ programming language of that file.
 # Standard library imports
 import re
 import logging
-from queue import Queue
 
 # Qt imports
-from qtpy.QtCore import QThread, QMutex, QMutexLocker, Signal
+from qtpy.QtCore import QObject, QThread, QMutex, QMutexLocker, Signal, Slot
 
 # Other imports
 import pygments
@@ -34,19 +33,24 @@ from spyder.plugins.editor.fallback.utils import get_keywords, get_words
 logger = logging.getLogger(__name__)
 
 
-class FallbackActor(QThread):
+class FallbackActor(QObject):
     #: Signal emitted when the Thread is ready
     sig_fallback_ready = Signal()
-    sig_text_tokens = Signal(list)
+    sig_set_tokens = Signal(object, list)
+    sig_mailbox = Signal(dict)
 
     def __init__(self, parent):
-        QThread.__init__(self, parent)
-        self.mailbox = Queue()
+        QObject.__init__(self)
         self.stopped = False
         self.daemon = True
         self.mutex = QMutex()
         self.file_tokens = {}
         self.diff_patch = diff_match_patch()
+        self.thread = QThread()
+        self.moveToThread(self.thread)
+
+        self.thread.started.connect(self.started)
+        self.sig_mailbox.connect(self.handle_msg)
 
     def tokenize(self, text, language):
         """
@@ -80,37 +84,38 @@ class FallbackActor(QThread):
     def stop(self):
         """Stop actor."""
         with QMutexLocker(self.mutex):
-            self.stopped = True
+            logger.debug("Fallback plugin stopping...")
+            self.thread.quit()
 
-    def run(self):
-        """Run actor."""
+    def start(self):
+        """Start thread."""
+        self.thread.start()
+
+    def started(self):
+        """Thread started."""
         logger.debug('Fallback plugin starting...')
         self.sig_fallback_ready.emit()
 
-        while True:
-            with QMutexLocker(self.mutex):
-                if self.stopped:
-                    logger.debug("Fallback plugin stopping...")
-            message = self.mailbox.get()
-            msg_type, file, msg, editor = [
-                message[k] for k in ('type', 'file', 'msg', 'editor')]
-            if msg_type == 'update':
-                if file not in self.file_tokens:
-                    self.file_tokens[file] = {
-                        'text': '', 'language': msg['language']}
-                diff = msg['diff']
-                text = self.file_tokens[file]
-                text, _ = self.diff_patch.patch_apply(
-                    diff, text['text'])
-                self.file_tokens[file]['text'] = text
-            elif msg_type == 'close':
-                self.file_tokens.pop(file, {})
-            elif msg_type == 'retrieve':
-                tokens = []
-                if file in self.file_tokens:
-                    text_info = self.file_tokens[file]
-                    tokens = self.tokenize(
-                        text_info['text'], text_info['language'])
-                self.sig_text_tokens.connect(editor.receive_text_tokens)
-                self.sig_text_tokens.emit(tokens)
-                self.sig_text_tokens.disconnect(editor.receive_text_tokens)
+    @Slot(dict)
+    def handle_msg(self, message):
+        """Handle one message"""
+        msg_type, file, msg, editor = [
+            message[k] for k in ('type', 'file', 'msg', 'editor')]
+        if msg_type == 'update':
+            if file not in self.file_tokens:
+                self.file_tokens[file] = {
+                    'text': '', 'language': msg['language']}
+            diff = msg['diff']
+            text = self.file_tokens[file]
+            text, _ = self.diff_patch.patch_apply(
+                diff, text['text'])
+            self.file_tokens[file]['text'] = text
+        elif msg_type == 'close':
+            self.file_tokens.pop(file, {})
+        elif msg_type == 'retrieve':
+            tokens = []
+            if file in self.file_tokens:
+                text_info = self.file_tokens[file]
+                tokens = self.tokenize(
+                    text_info['text'], text_info['language'])
+            self.sig_set_tokens.emit(editor, tokens)
