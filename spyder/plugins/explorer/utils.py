@@ -183,8 +183,7 @@ def _get_win_applications():
                         valid_file = fn_low.endswith(('.exe', '.com', '.bat'))
                         if valid_file and not fn_low.startswith('unins'):
                             fpath = os.path.join(location, fname)
-                            apps[name + ' (' + fname + ')'] = (icon.lower(),
-                                                               fpath.lower())
+                            apps[name + ' (' + fname + ')'] = fpath.lower()
     # Join data
     values = list(zip(*apps.values()))[-1]
     for name, fpath in app_paths.items():
