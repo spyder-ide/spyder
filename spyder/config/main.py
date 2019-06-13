@@ -18,6 +18,7 @@ import sys
 # Local import
 from spyder.config.base import (CHECK_ALL, EXCLUDED_NAMES, get_home_dir,
                                 SUBFOLDER)
+from spyder.config.fonts import MEDIUM, SANS_SERIF
 from spyder.config.user import UserConfig
 from spyder.config.utils import IMPORT_EXT
 from spyder.config.appearance import APPEARANCE
