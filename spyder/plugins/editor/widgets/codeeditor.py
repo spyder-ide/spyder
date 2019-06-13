@@ -2371,9 +2371,7 @@ class CodeEditor(TextEditBaseWidget):
             if inline_comment != -1:
                 prevtext = prevtext[:inline_comment]
 
-            if ((self.is_python_like() and
-               not prevtext.strip().startswith('#') and prevtext) or
-               prevtext):
+            if prevtext:
 
                 if not "return" in prevtext.strip().split()[:1] and \
                     (prevtext.strip().endswith(')') or
