@@ -466,7 +466,7 @@ class CollectionsDelegate(QItemDelegate):
         else:
             return False
 
-    def createEditor(self, parent, option, index):
+    def createEditor(self, parent, option, index, object_explorer=False):
         """Overriding method createEditor"""
         if index.column() < 3:
             return None
@@ -493,7 +493,7 @@ class CollectionsDelegate(QItemDelegate):
         readonly = (isinstance(value, (tuple, set)) or self.parent().readonly
                     or not is_known_type(value))
         # CollectionsEditor for a list, tuple, dict, etc.
-        if isinstance(value, (list, set, tuple, dict)):
+        if isinstance(value, (list, set, tuple, dict)) and not object_explorer:
             editor = CollectionsEditor(parent=parent)
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
@@ -502,7 +502,7 @@ class CollectionsDelegate(QItemDelegate):
             return None
         # ArrayEditor for a Numpy array
         elif isinstance(value, (ndarray, MaskedArray)) \
-          and ndarray is not FakeObject:
+                and ndarray is not FakeObject and not object_explorer:
             editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(value, title=key, readonly=readonly):
                 return
@@ -511,7 +511,7 @@ class CollectionsDelegate(QItemDelegate):
             return None
         # ArrayEditor for an images
         elif isinstance(value, Image) and ndarray is not FakeObject \
-          and Image is not FakeObject:
+                and Image is not FakeObject and not object_explorer:
             arr = array(value)
             editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(arr, title=key, readonly=readonly):
@@ -523,7 +523,7 @@ class CollectionsDelegate(QItemDelegate):
             return None
         # DataFrameEditor for a pandas dataframe, series or index
         elif isinstance(value, (DataFrame, Index, Series)) \
-          and DataFrame is not FakeObject:
+                and DataFrame is not FakeObject and not object_explorer:
             editor = DataFrameEditor(parent=parent)
             if not editor.setup_and_check(value, title=key):
                 return
@@ -533,7 +533,7 @@ class CollectionsDelegate(QItemDelegate):
                                             key=key, readonly=readonly))
             return None
         # QDateEdit and QDateTimeEdit for a dates or datetime respectively
-        elif isinstance(value, datetime.date):
+        elif isinstance(value, datetime.date) and not object_explorer:
             if readonly:
                 return None
             else:
@@ -545,7 +545,7 @@ class CollectionsDelegate(QItemDelegate):
                 editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
                 return editor
         # TextEditor for a long string
-        elif is_text_string(value) and len(value) > 40:
+        elif is_text_string(value) and len(value) > 40 and not object_explorer:
             te = TextEditor(None, parent=parent)
             if te.setup_and_check(value):
                 editor = TextEditor(value, key,
@@ -555,7 +555,7 @@ class CollectionsDelegate(QItemDelegate):
                                                 readonly=readonly))
             return None
         # QLineEdit for an individual value (int, float, short string, etc)
-        elif is_editable_type(value):
+        elif is_editable_type(value) and not object_explorer:
             if readonly:
                 return None
             else:
@@ -774,6 +774,7 @@ class BaseTableView(QTableView):
         self.minmax_action = None
         self.rename_action = None
         self.duplicate_action = None
+        self.view_action = None
         self.delegate = None
         self.setAcceptDrops(True)
         self.automatic_column_width = True
@@ -842,11 +843,17 @@ class BaseTableView(QTableView):
         self.duplicate_action = create_action(self, _("Duplicate"),
                                               icon=ima.icon('edit_add'),
                                               triggered=self.duplicate_item)
+        self.view_action = create_action(
+            self,
+            _("View with the Object Explorer"),
+            icon=ima.icon('outline_explorer'),
+            triggered=self.view_item)
         menu = QMenu(self)
         menu_actions = [self.edit_action, self.plot_action, self.hist_action,
                         self.imshow_action, self.save_array_action,
                         self.insert_action, self.remove_action,
                         self.copy_action, self.paste_action,
+                        self.view_action,
                         None, self.rename_action, self.duplicate_action,
                         None, resize_action, resize_columns_action]
         if ndarray is not FakeObject:
@@ -1164,7 +1171,17 @@ class BaseTableView(QTableView):
                                             QLineEdit.Normal)
         if valid and to_text_string(value):
             self.new_value(key, try_to_eval(to_text_string(value)))
-            
+
+    @Slot()
+    def view_item(self):
+        """View item with the Object Explorer"""
+        index = self.currentIndex()
+        if not index.isValid():
+            return
+        # TODO: Remove hard coded "Value" column number (3 here)
+        index = index.child(index.row(), 3)
+        self.delegate.createEditor(self, None, index, object_explorer=True)
+
     def __prepare_plot(self):
         try:
             import guiqwt.pyplot   #analysis:ignore
