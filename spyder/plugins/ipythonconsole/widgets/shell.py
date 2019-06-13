@@ -239,6 +239,9 @@ the sympy module (e.g. plot)
         reset_str = _("Remove all variables")
         warn_str = _("All user-defined variables will be removed. "
                      "Are you sure you want to proceed?")
+        # This is necessary to make resetting variables work in external
+        # kernels.
+        # See spyder-ide/spyder#9505
         try:
             kernel_env = self.kernel_manager._kernel_spec.env
         except AttributeError:
