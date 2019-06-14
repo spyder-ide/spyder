@@ -48,8 +48,8 @@ dependencies.add("pygments", _("Syntax highlighting for Matlab, Julia and "
 # Constants
 # =============================================================================
 URL_PATTERN = r"https?://([\da-z\.-]+)\.([a-z\.]{2,6})([/\w\.-]*)[^ ^'^\"]+"
-FILE_PATTERN = r"file:///?([\S ]*)/"
-MAILTO_PATTERN = r"(?:mailto:)?\s*([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})"
+FILE_PATTERN = r"file:///?(?:[\S]*)"
+MAILTO_PATTERN = r"(?:mailto:\s*)?([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})"
 ISSUE_PATTERN = r'((?:\w\w:)?[\w\-_]*/[\w\-_]*#\d+)'
 COLOR_SCHEME_KEYS = {
                       "background":     _("Background:"),

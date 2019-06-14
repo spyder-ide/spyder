@@ -37,7 +37,7 @@ TEST_FILE_REL = [f for f in os.listdir(TEST_FOLDER) if f.endswith('.py')][0]
             ('"file://./{}/"\n'.format(TEST_FILE_REL), TEST_FILE_REL,
              os.path.join(TEST_FOLDER, TEST_FILE_REL)),
             # Files that do not exist
-            ('"file:///not there/"', 'file:///not there/', '/not there/'),
+            ('"file:///not%20there/"', 'file:///not%20there/', '/not%20there/'),
             ('"file:///not_there/"', 'file:///not_there/', '/not_there/'),
             # Urls
             ('" https://google.com"\n', 'https://google.com', None),
