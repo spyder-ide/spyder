@@ -141,11 +141,15 @@ class ApplicationsDialog(QDialog):
 
         self.setup()
 
-    def setup(self):
+    def setup(self, applications=None):
         """Load installed applications."""
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         self.list.clear()
-        apps = get_installed_applications()
+        if applications is None:
+            apps = get_installed_applications()
+        else:
+            apps = applications
+
         for app in sorted(apps, key=lambda x: x.lower()):
             fpath = apps[app]
             icon = get_application_icon(fpath)
@@ -160,14 +164,14 @@ class ApplicationsDialog(QDialog):
 
     def browse(self, fpath=None):
         """Prompt user to select an application not found on the list."""
+        app = None
         item = None
 
         if sys.platform == 'darwin':
-            basedir = '/Applications/'
-            filters = _('Applications (*.app)')
-            title = _('Select application')
-
             if fpath is None:
+                basedir = '/Applications/'
+                filters = _('Applications (*.app)')
+                title = _('Select application')
                 fpath, __ = getopenfilename(self, title, basedir, filters)
 
             if fpath and fpath.endswith('.app'):
@@ -176,12 +180,13 @@ class ApplicationsDialog(QDialog):
                     item = self.list.item(row)
                     if app == item.text() and fpath == item.fpath:
                         break
+                else:
+                    item = None
         elif os.name == 'nt':
-            basedir = 'C:\\'
-            filters = _('Applications (*.exe *.bat *.com)')
-            title = _('Select application')
-
             if fpath is None:
+                basedir = 'C:\\'
+                filters = _('Applications (*.exe *.bat *.com)')
+                title = _('Select application')
                 fpath, __ = getopenfilename(self, title, basedir, filters)
 
             if fpath and fpath.endswith(('.exe', '.bat', '.com')):
@@ -190,12 +195,13 @@ class ApplicationsDialog(QDialog):
                     item = self.list.item(row)
                     if app == item.text() and fpath == item.fpath:
                         break
+                else:
+                    item = None
         else:
-            basedir = '/'
-            filters = _('Applications (*.desktop)')
-            title = _('Select application')
-
             if fpath is None:
+                basedir = '/'
+                filters = _('Applications (*.desktop)')
+                title = _('Select application')
                 fpath, __ = getopenfilename(self, title, basedir, filters)
 
             if fpath and fpath.endswith(('.desktop')):
@@ -205,14 +211,18 @@ class ApplicationsDialog(QDialog):
                     item = self.list.item(row)
                     if app == item.text() and fpath == item.fpath:
                         break
+                else:
+                    item = None
+
         if fpath:
             if item:
                 self.list.setCurrentItem(item)
-            else:
+            elif app:
                 icon = get_application_icon(fpath)
                 item = QListWidgetItem(icon, app)
                 item.fpath = fpath
                 self.list.addItem(item)
+                self.list.setCurrentItem(item)
 
         self.list.setFocus()
 
@@ -298,7 +308,7 @@ class FileAssociationsWidget(QWidget):
         self.setLayout(layout)
 
         # Signals
-        self.button_add.clicked.connect(self.add_association)
+        self.button_add.clicked.connect(lambda: self.add_association())
         self.button_remove.clicked.connect(self.remove_association)
         self.button_edit.clicked.connect(self.edit_association)
         self.button_add_application.clicked.connect(self.add_application)
@@ -398,7 +408,7 @@ class FileAssociationsWidget(QWidget):
         self._data = data
         self._update_extensions()
 
-    def add_association(self, slot=None, value=None):
+    def add_association(self, value=None):
         """Add extension file association."""
         if value is None:
             text, ok_pressed = '', False
@@ -425,7 +435,7 @@ class FileAssociationsWidget(QWidget):
                 self.check_data_changed()
 
     def edit_association(self):
-        """"""
+        """Edit text of current selected association."""
         old_text = self.current_extension
         self._dlg_input.set_text(old_text)
 
@@ -513,28 +523,3 @@ class FileAssociationsWidget(QWidget):
     def data(self):
         """Return the current file associations data."""
         return self._data.copy()
-
-
-def test_widget():
-    from spyder.utils.qthelpers import qapplication
-    app = qapplication()
-    widget = FileAssociationsWidget()
-    data = {
-        '*.txt':
-            [
-                ('App name 1', 'path-to-app'),
-                ('App name 2', 'path-to-app'),
-            ],
-        '*.csv':
-            [
-                ('App name 2', 'path-to-app'),
-                ('App name 5', 'path-to-app'),
-            ],
-    }
-    widget.load_values(data)
-    widget.show()
-    app.exec_()
-
-
-if __name__ == '__main__':
-    test_widget()

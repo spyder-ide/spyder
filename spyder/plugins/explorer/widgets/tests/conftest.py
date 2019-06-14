@@ -11,12 +11,15 @@ Fixture to create files folders.
 # Standard imports
 import os
 import os.path as osp
+import sys
 
 # Third party imports
 import pytest
 
 # Local imports
 from spyder.py3compat import to_text_string
+from spyder.plugins.explorer.widgets.fileassociations import (
+    FileAssociationsWidget)
 
 
 @pytest.fixture(params=[
@@ -54,3 +57,31 @@ def create_folders_files(tmpdir, request):
                 fh.write("File Path:\n" + str(item_path).replace(os.sep, '/'))
         list_paths.append(item_path)
     return list_paths, project_dir, destination_dir, top_folder
+
+
+@pytest.fixture
+def file_assoc_widget(qtbot):
+    widget = FileAssociationsWidget()
+    qtbot.addWidget(widget)
+    if os.name == 'nt':
+        ext = '.exe'
+    elif sys.platform == 'darwin':
+        ext = '.app'
+    else:
+        ext = '.desktop'
+
+    data = {
+        '*.txt':
+            [
+                ('App name 1', '/path/to/app 1' + ext),
+                ('App name 2', '/path/to/app 2' + ext),
+            ],
+        '*.csv':
+            [
+                ('App name 2', '/path/to/app 2' + ext),
+                ('App name 3', '/path/to/app 3' + ext),
+            ],
+    }
+    widget.load_values(data)
+    widget.show()
+    return qtbot, widget

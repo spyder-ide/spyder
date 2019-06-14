@@ -148,7 +148,7 @@ def _get_win_applications():
     for software in sorted(software_list, key=lambda x: x[sort_key]):
         if software[None]:
             key = software['key'].capitalize().replace('.exe', '')
-            app_paths[key] = software[None].lower()
+            app_paths[key] = os.path.expandvars(software[None].lower())
 
     # See:
     # https://www.blog.pythonlibrary.org/2010/03/03/finding-installed-software-using-python/
@@ -183,7 +183,8 @@ def _get_win_applications():
                         valid_file = fn_low.endswith(('.exe', '.com', '.bat'))
                         if valid_file and not fn_low.startswith('unins'):
                             fpath = os.path.join(location, fname)
-                            apps[name + ' (' + fname + ')'] = fpath.lower()
+                            expanded_fpath = os.path.expandvars(fpath.lower())
+                            apps[name + ' (' + fname + ')'] = expanded_fpath
     # Join data
     values = list(zip(*apps.values()))[-1]
     for name, fpath in app_paths.items():
