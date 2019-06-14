@@ -2422,8 +2422,8 @@ msgid ""
 "please select <b>%s</b> to put graphics inside the console or <b>%s</b> to "
 "interact with them (through zooming and panning) in a separate window."
 msgstr ""
-"确定如何在控制台中显示图形。 如果不确定，请选择<b>%s</b>将图形放入控制台或<b>"
-"％s</b>以在单独的窗口中与它们进行交互（如缩放和平移）。"
+"确定如何在控制台中显示图形。 如果不确定，请选择<b>%s</b>将图形放入控制台或<b>％s</b>"
+"以在单独的窗口中与它们进行交互（如缩放和平移）。"
 
 #: spyder/plugins/ipythonconsole.py:405
 msgid "Backend:"
