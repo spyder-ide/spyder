@@ -245,6 +245,7 @@ class LSPManager(QObject):
                 client.perform_request(request, params)
 
     def broadcast_request(self, request, params):
+        """Send notification/request to all available LSP servers."""
         language = params.pop('language', None)
         if language:
             self.send_request(language, request, params)
