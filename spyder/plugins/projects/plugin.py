@@ -518,30 +518,35 @@ class Projects(SpyderPluginWidget):
             self.recent_projects = self.recent_projects[:10]
 
     def register_lsp_server_settings(self, settings):
+        """Enable LSP workspace functions."""
         self.lsp_ready = True
         if self.current_active_project:
             path = self.get_active_project_path()
             self.notify_project_open(path)
 
     def stop_lsp_services(self):
+        """Disable LSP workspace functions."""
         self.lsp_ready = False
 
     def emit_request(self, method, params, requires_response):
+        """Send request/notification/response to all LSP servers."""
         params['requires_response'] = requires_response
         params['response_instance'] = self
         self.main.lspmanager.broadcast_request(method, params)
 
     @Slot(str, dict)
     def handle_response(self, method, params):
+        """Method dispatcher for LSP requests."""
         if method in self.handler_registry:
             handler_name = self.handler_registry[method]
             handler = getattr(self, handler_name)
             handler(params)
 
+    @Slot(str, str, bool)
     @request(method=LSPRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
              requires_response=False)
-    @Slot(str, str, bool)
     def file_moved(self, src_file, dest_file, is_dir):
+        """Notify LSP server about a file that is moved."""
         # LSP specification only considers file updates
         if is_dir:
             return
@@ -566,6 +571,7 @@ class Projects(SpyderPluginWidget):
              requires_response=False)
     @Slot(str, bool)
     def file_created(self, src_file, is_dir):
+        """Notify LSP server about file creation."""
         if is_dir:
             return
 
@@ -581,6 +587,7 @@ class Projects(SpyderPluginWidget):
              requires_response=False)
     @Slot(str, bool)
     def file_deleted(self, src_file, is_dir):
+        """Notify LSP server about file deletion."""
         if is_dir:
             return
 
@@ -596,6 +603,7 @@ class Projects(SpyderPluginWidget):
              requires_response=False)
     @Slot(str, bool)
     def file_modified(self, src_file, is_dir):
+        """Notify LSP server about file modification."""
         if is_dir:
             return
 
@@ -610,6 +618,7 @@ class Projects(SpyderPluginWidget):
     @request(method=LSPRequestTypes.WORKSPACE_FOLDERS_CHANGE,
              requires_response=False)
     def notify_project_open(self, path):
+        """Notify LSP server about project path availability."""
         params = {
             'folder': path,
             'instance': self,
@@ -620,6 +629,7 @@ class Projects(SpyderPluginWidget):
     @request(method=LSPRequestTypes.WORKSPACE_FOLDERS_CHANGE,
              requires_response=False)
     def notify_project_close(self, path):
+        """Notify LSP server to unregister project path."""
         params = {
             'folder': path,
             'instance': self,
@@ -627,10 +637,11 @@ class Projects(SpyderPluginWidget):
         }
         return params
 
+    @handles(LSPRequestTypes.WORKSPACE_APPLY_EDIT)
     @request(method=LSPRequestTypes.WORKSPACE_APPLY_EDIT,
              requires_response=False)
-    @handles(LSPRequestTypes.WORKSPACE_APPLY_EDIT)
     def handle_workspace_edit(self, params):
+        """Apply edits to multiple files and notify server about success."""
         edits = params['params']
         response = {
             'applied': False,
