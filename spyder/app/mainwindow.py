@@ -892,36 +892,6 @@ class MainWindow(QMainWindow):
         # Working directory plugin
         logger.info("Loading working directory...")
         from spyder.plugins.workingdirectory.plugin import WorkingDirectory
-        
-#---------------------------------------------------------------------------------#
-        from spyder.plugins.workingdirectory.plugin import BreadcrumbsAddressBar
-
-        def perm_err(self, path):
-            print('perm err', path)
-        
-        def path_err(self, path):
-            print('path err', path)
-        
-        def b_clicked(self):
-            pass
-        
-        # pylint: disable=super-init-not-called
-        self.address = BreadcrumbsAddressBar()
-        # self.b = QtWidgets.QPushButton("test_button_long_text", self)
-        # self.b.setFixedWidth(200)
-        # self.layout().addWidget(self.b)
-        self.layout().addWidget(self.address)
-        self.address.listdir_error.connect(perm_err)
-        self.address.path_error.connect(path_err)
-        # self.address.set_path(r"C:\Windows\System32\drivers\etc")
-        # print(self.b.width())
-        # self.b.hide()
-        # QtCore.QTimer.singleShot(0, lambda: print(self.b.width()))
-        def act():
-            for i in self.address.crumbs_panel.layout().widgets('hidden'):
-                    print(i.text())
-#------------------------------------------------------------------------------------#
-
         self.workingdirectory = WorkingDirectory(self, self.init_workdir, main=self)
         self.workingdirectory.register_plugin()
         self.toolbarslist.append(self.workingdirectory.toolbar)

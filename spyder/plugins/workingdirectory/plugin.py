@@ -33,7 +33,7 @@ from spyder.utils.qthelpers import create_action
 from spyder.widgets.comboboxes import PathComboBox
 from spyder.plugins.workingdirectory.confpage import WorkingDirectoryConfigPage
 
-TRANSP_ICON_SIZE = 40, 40 
+TRANSP_ICON_SIZE = 40, 40
 
 class WorkingDirectory(SpyderPluginWidget):
     """Working directory changer plugin."""
@@ -81,17 +81,18 @@ class WorkingDirectory(SpyderPluginWidget):
         self.set_previous_enabled.connect(self.previous_action.setEnabled)
         self.set_next_enabled.connect(self.next_action.setEnabled)
         
-        # Path combo box
+        # BreadCrumbAdressBar
         adjust = self.get_option('working_dir_adjusttocontents')
-        self.pathedit = PathComboBox(self, adjust_to_contents=adjust)
+        self.pathedit =BreadcrumbsAddressBar(self)
         self.pathedit.setToolTip(_("This is the working directory for newly\n"
                                "opened consoles (Python/IPython consoles and\n"
                                "terminals), for the file explorer, for the\n"
                                "find in files plugin and for new files\n"
                                "created in the editor"))
-        self.pathedit.open_dir.connect(self.chdir)
-        self.pathedit.activated[str].connect(self.chdir)
-        self.pathedit.setMaxCount(self.get_option('working_dir_history'))
+
+        #self.pathedit.open_dir.connect(self.chdir)
+        #self.pathedit.activated[str].connect(self.chdir)
+        #self.pathedit.setMaxCount(self.get_option('working_dir_history'))
         wdhistory = self.load_wdhistory(workdir)
         if workdir is None:
             if self.get_option('console/use_project_or_home_directory'):
@@ -101,8 +102,8 @@ class WorkingDirectory(SpyderPluginWidget):
                 if not osp.isdir(workdir):
                     workdir = get_home_dir()
         self.chdir(workdir)
-        self.pathedit.addItems(wdhistory)
-        self.pathedit.selected_text = self.pathedit.currentText()
+        #self.pathedit.addItems(wdhistory)
+        #self.pathedit.selected_text = self.pathedit.currentText()
         self.refresh_plugin()
         self.toolbar.addWidget(self.pathedit)
         
@@ -144,7 +145,7 @@ class WorkingDirectory(SpyderPluginWidget):
     def refresh_plugin(self):
         """Refresh widget"""
         curdir = getcwd_or_home()
-        self.pathedit.add_text(curdir)
+        #self.pathedit.add_text(curdir)
         self.save_wdhistory()
         self.set_previous_enabled.emit(
                              self.histindex is not None and self.histindex > 0)
@@ -173,13 +174,13 @@ class WorkingDirectory(SpyderPluginWidget):
 
     def save_wdhistory(self):
         """Save history to a text file in user home directory"""
-        text = [ to_text_string( self.pathedit.itemText(index) ) \
+        """text = [ to_text_string( self.pathedit.itemText(index) ) \
                  for index in range(self.pathedit.count()) ]
         try:
             encoding.writelines(text, self.LOG_PATH)
         except EnvironmentError:
             pass
-    
+            """
     @Slot()
     def select_directory(self):
         """Select directory"""
@@ -505,15 +506,6 @@ class BreadcrumbsAddressBar(QtWidgets.QFrame):
     def minimumSizeHint(self):
         # print(self.layout().minimumSize().width())
         return QtCore.QSize(150, self.line_address.height())
-
-    #--------------------------------------------------------#
-    # def register_plugin(self):
-    #     """Register plugin in Spyder's main window"""
-    #     self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
-    #     self.main.console.shell.refresh.connect(self.refresh_plugin)
-    #     iconsize = 24 
-    #     self.toolbar.setIconSize(QSize(iconsize, iconsize))
-    #     self.main.addToolBar(self.toolbar)
 
 class FilenameModel(QtCore.QStringListModel):
     """
