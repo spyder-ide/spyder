@@ -114,6 +114,11 @@ class PluginWidget(QWidget, BasePluginMixin):
         self.options_button.setMenu(self.options_menu)
         self.options_menu.aboutToShow.connect(self.refresh_actions)
 
+        # Show icons in Mac plugin menus
+        if sys.platform == 'darwin':
+            self.options_menu.aboutToHide.connect(
+                lambda: self.verify_menu_actions(False))
+
         self.sig_show_message.connect(self.show_message)
         self.sig_update_plugin_title.connect(self.update_plugin_title)
         self.sig_option_changed.connect(self.set_option)
@@ -227,17 +232,13 @@ class PluginWidget(QWidget, BasePluginMixin):
         self.plugin_actions = self.get_plugin_actions() + additional_actions
         add_actions(self.options_menu, self.plugin_actions)
 
-        # Show icons in Mac plugin menus
         if sys.platform == 'darwin':
+            self.verify_menu_actions(True)
 
-            self.options_menu.aboutToShow.connect(lambda plugin_actions=self.plugin_actions: self.verify_menu_actions(plugin_actions, True))
-            self.options_menu.aboutToHide.connect(lambda plugin_actions=self.plugin_actions: self.verify_menu_actions(plugin_actions, False))
-
-    def verify_menu_actions(self, menu_actions, state):
+    def verify_menu_actions(self, state):
         """Check OS to hide icons in menu toolbars"""
-        if menu_actions is not None:
-
-            for action in menu_actions:
+        if self.plugin_actions:
+            for action in self.plugin_actions:
                 if isinstance(action, QAction):
                     action.setIconVisibleInMenu(state)
 
