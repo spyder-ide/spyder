@@ -1640,11 +1640,12 @@ class ExplorerWidget(QWidget):
 # Tests
 #==============================================================================
 class FileExplorerTest(QWidget):
-    def __init__(self, directory=None):
+    def __init__(self, directory=None, file_associations={}):
         QWidget.__init__(self)
         vlayout = QVBoxLayout()
         self.setLayout(vlayout)
-        self.explorer = ExplorerWidget(self, show_cd_only=None)
+        self.explorer = ExplorerWidget(self, show_cd_only=None,
+                                       file_associations=file_associations)
         if directory is not None:
             self.directory = directory
         else:

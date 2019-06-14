@@ -114,7 +114,7 @@ def test_apps_dialog(qtbot):
     assert widget.list.currentRow() == 1
 
 
-def test_apps_dialog(file_assoc_widget):
+def test_file_assoc_widget(file_assoc_widget):
     qtbot, widget = file_assoc_widget
     qtbot.wait(4000)
 
@@ -123,3 +123,9 @@ def test_apps_dialog(file_assoc_widget):
     # Test remove associations
 
     # Test edit associations
+
+    # Test add application
+
+    # Test remove application
+
+    # Test set default
