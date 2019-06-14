@@ -3596,7 +3596,9 @@ class CodeEditor(TextEditBaseWidget):
                         # Use external program
                         fname = file_uri(fname)
                         programs.start_file(fname)
-                elif uri.startswith(('http', 'mailto:')):
+                elif uri.startswith(('http', 'mailto:')) or '@' in uri:
+                    if '@' in uri and not uri.startswith('mailto:'):
+                        uri = 'mailto:' + uri
                     quri = QUrl(uri)
                     QDesktopServices.openUrl(quri)
                 else:

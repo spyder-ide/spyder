@@ -45,6 +45,8 @@ TEST_FILE_REL = [f for f in os.listdir(TEST_FOLDER) if f.endswith('.py')][0]
             # Mail to
             ('" mailto:some@email.com"\n', 'mailto:some@email.com', None),
             ('# mailto:some@email.com\n', 'mailto:some@email.com', None),
+            ('some@email.com\n', 'mailto:some@email.com', None),
+            ('# some@email.com\n', 'mailto:some@email.com', None),
             # Issues
             ('# gl:gitlab-org/gitlab-ce#62529\n',
              'gl:gitlab-org/gitlab-ce#62529', None),
