@@ -26,8 +26,8 @@ class WorkspaceProvider:
         }
         return params
 
-    @handles(LSPRequestTypes.WORKSPACE_FOLDERS)
     @send_response
+    @handles(LSPRequestTypes.WORKSPACE_FOLDERS)
     def send_workspace_folders(self, response):
         workspace_folders = []
         for folder_name in self.watched_folders:
@@ -71,8 +71,8 @@ class WorkspaceProvider:
             request_params[ClientConstants.CANCEL] = True
         return request_params
 
-    @handles(LSPRequestTypes.WORKSPACE_CONFIGURATION)
     @send_response
+    @handles(LSPRequestTypes.WORKSPACE_CONFIGURATION)
     def send_workspace_configuration(self, params):
         logger.debug(params)
         return self.plugin_configurations
