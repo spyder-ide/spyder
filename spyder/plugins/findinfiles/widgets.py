@@ -309,6 +309,12 @@ class SearchInComboBox(QComboBox):
         else:
             return self.external_path
 
+    def set_current_searchpath_index(self, index):
+        """Set the current index of this combo box."""
+        index = min(index, self.count() - 1)
+        index = CWD if index in [CLEAR_LIST, SELECT_OTHER] else index
+        self.setCurrentIndex(index)
+
     def is_file_search(self):
         """Returns whether the current search path is a file."""
         if self.currentIndex() == FILE_PATH:
@@ -486,8 +492,7 @@ class FindOptions(QWidget):
         search_on_label = QLabel(_("Search in:"))
         self.path_selection_combo = SearchInComboBox(
                 external_path_history, parent)
-        self.path_selection_combo.setCurrentIndex(
-            min(search_in_index, self.path_selection_combo.count() - 1))
+        self.path_selection_combo.set_current_searchpath_index(search_in_index)
 
         hlayout3.addWidget(search_on_label)
         hlayout3.addWidget(self.path_selection_combo)
