@@ -41,9 +41,8 @@ from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.comboboxes import PatternComboBox
 from spyder.widgets.onecolumntree import OneColumnTree
 from spyder.utils.misc import regexp_error_msg
-from spyder.utils.qthelpers import create_toolbutton
+from spyder.utils.qthelpers import create_toolbutton, create_waitspinner
 from spyder.config.gui import get_font
-from spyder.widgets.waitingspinner import QWaitingSpinner
 
 
 ON = 'on'
@@ -911,9 +910,7 @@ class FileProgressBar(QWidget):
         QWidget.__init__(self, parent)
 
         self.status_text = QLabel(self)
-        self.spinner = QWaitingSpinner(self, centerOnParent=False)
-        self.spinner.setNumberOfLines(12)
-        self.spinner.setInnerRadius(2)
+        self.spinner = create_waitspinner(parent=self)
         layout = QHBoxLayout()
         layout.addWidget(self.spinner)
         layout.addWidget(self.status_text)
