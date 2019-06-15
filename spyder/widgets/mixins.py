@@ -54,6 +54,8 @@ class BaseEditMixin(object):
     _CHAR_HIGHLIGHT_COLOR = 'red'
     _DEFAULT_TEXT_COLOR = '#999999'
     _DEFAULT_LANGUAGE = 'python'
+    _DEFAULT_MAX_LINES = 10
+    _DEFAULT_WIDTH = 60
 
     def __init__(self):
         self.eol_chars = None
@@ -142,7 +144,7 @@ class BaseEditMixin(object):
 
     def _format_text(self, title=None, signature=None, text=None,
                      inspect_word=None, title_color=None, max_lines=None,
-                     width=60, display_link=False):
+                     width=None, display_link=False):
         """
         Create HTML template for calltips and tooltips.
 
@@ -198,7 +200,8 @@ class BaseEditMixin(object):
             text = '\n<i>No documentation available</i>\n'
 
         # Wrap text
-        lines = textwrap.wrap(text, width=width)
+        # TODO: CHeck if replace_whitespace is needed
+        lines = textwrap.wrap(text, width=width, replace_whitespace=False)
 
         # Remove empty lines at the beginning
         lines = [l for l in lines if l.strip()]
@@ -264,7 +267,8 @@ class BaseEditMixin(object):
 
         return template
 
-    def _format_signature(self, signatures, parameter=None, width=60,
+    def _format_signature(self, signatures, parameter=None,
+                          width=_DEFAULT_WIDTH,
                           parameter_color=_PARAMETER_HIGHLIGHT_COLOR,
                           char_color=_CHAR_HIGHLIGHT_COLOR,
                           language=_DEFAULT_LANGUAGE):
@@ -359,7 +363,8 @@ class BaseEditMixin(object):
         return '<br><br>'.join(new_signatures)
 
     def _check_signature_and_format(self, signature_or_text, parameter=None,
-                                    width=60, language=_DEFAULT_LANGUAGE):
+                                    width=_DEFAULT_WIDTH,
+                                    language=_DEFAULT_LANGUAGE):
         """
         LSP hints might provide docstrings instead of signatures.
 
@@ -435,7 +440,8 @@ class BaseEditMixin(object):
         return new_signature, extra_text, inspect_word
 
     def show_calltip(self, signature, parameter=None, documentation=None,
-                     language=_DEFAULT_LANGUAGE, max_lines=10, width=60):
+                     language=_DEFAULT_LANGUAGE, max_lines=_DEFAULT_MAX_LINES,
+                     width=_DEFAULT_WIDTH):
         """
         Show calltip.
 
@@ -486,7 +492,8 @@ class BaseEditMixin(object):
     def show_tooltip(self, title=None, signature=None, text=None,
                      inspect_word=None, title_color=_DEFAULT_TITLE_COLOR,
                      at_line=None, at_point=None, display_link=False,
-                     max_lines=10, cursor=None):
+                     max_lines=_DEFAULT_MAX_LINES, width=_DEFAULT_WIDTH,
+                     cursor=None):
         """Show tooltip."""
         # Find position of calltip
         point = self._calculate_position(
@@ -503,6 +510,7 @@ class BaseEditMixin(object):
             inspect_word=inspect_word,
             display_link=display_link,
             max_lines=max_lines,
+            width=width
         )
 
         self._update_stylesheet(self.tooltip_widget)
@@ -510,7 +518,8 @@ class BaseEditMixin(object):
         # Display tooltip
         self.tooltip_widget.show_tip(point, tiptext, cursor=cursor)
 
-    def show_hint(self, text, inspect_word, at_point):
+    def show_hint(self, text, inspect_word, at_point,
+                  max_lines=_DEFAULT_MAX_LINES, width=_DEFAULT_WIDTH):
         """Show code hint and crop text as needed."""
         # Check if signature and format
         res = self._check_signature_and_format(text)
@@ -524,7 +533,8 @@ class BaseEditMixin(object):
 
         self.show_tooltip(signature=html_signature, text=extra_text,
                           at_point=point, inspect_word=inspect_word,
-                          display_link=True, max_lines=10, cursor=cursor)
+                          display_link=True, max_lines=max_lines, width=width,
+                          cursor=cursor)
 
     def hide_tooltip(self):
         """
