@@ -36,9 +36,9 @@ A port of `QtWaitingSpinner <https://github.com/snowwlex/QtWaitingSpinner>`_.
 
 import math
 
-from qtpy.QtCore import *
-from qtpy.QtGui import *
-from qtpy.QtWidgets import *
+from qtpy.QtCore import QRect, Qt, QTimer
+from qtpy.QtGui import QColor, QPainter
+from qtpy.QtWidgets import QWidget
 
 
 class QWaitingSpinner(QWidget):
