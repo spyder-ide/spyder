@@ -142,7 +142,7 @@ class BaseEditMixin(object):
 
     def _format_text(self, title=None, signature=None, text=None,
                      inspect_word=None, title_color=None, max_lines=None,
-                     display_link=False):
+                     width=60, display_link=False):
         """
         Create HTML template for calltips and tooltips.
 
@@ -197,12 +197,14 @@ class BaseEditMixin(object):
         if not text:
             text = '\n<i>No documentation available</i>\n'
 
+        # Wrap text
+        lines = textwrap.wrap(text, width=width)
+
         # Remove empty lines at the beginning
-        lines = [l for l in text.split('\n') if l.strip()]
+        lines = [l for l in lines if l.strip()]
 
         # Limit max number of text displayed
         if max_lines:
-            lines = text.split('\n')
             if len(lines) > max_lines:
                 text = '\n'.join(lines[:max_lines]) + ' ...'
 
@@ -262,7 +264,7 @@ class BaseEditMixin(object):
 
         return template
 
-    def _format_signature(self, signatures, parameter=None,
+    def _format_signature(self, signatures, parameter=None, width=60,
                           parameter_color=_PARAMETER_HIGHLIGHT_COLOR,
                           char_color=_CHAR_HIGHLIGHT_COLOR,
                           language=_DEFAULT_LANGUAGE):
@@ -318,7 +320,8 @@ class BaseEditMixin(object):
             formatted_lines = []
             name = signature.split('(')[0]
             indent = ' ' * (len(name) + 1)
-            rows = textwrap.wrap(signature, width=60, subsequent_indent=indent)
+            rows = textwrap.wrap(signature, width=width,
+                                 subsequent_indent=indent)
             for row in rows:
                 if parameter:
                     # Add template to highlight the active parameter
@@ -356,7 +359,7 @@ class BaseEditMixin(object):
         return '<br><br>'.join(new_signatures)
 
     def _check_signature_and_format(self, signature_or_text, parameter=None,
-                                    language=_DEFAULT_LANGUAGE):
+                                    width=60, language=_DEFAULT_LANGUAGE):
         """
         LSP hints might provide docstrings instead of signatures.
 
@@ -406,6 +409,7 @@ class BaseEditMixin(object):
                 new_signature = self._format_signature(
                     signatures=signature,
                     parameter=parameter,
+                    width=width
                 )
         elif has_multisignature:
             signature = signature_or_text.replace(name_plus_char,
@@ -421,6 +425,7 @@ class BaseEditMixin(object):
             new_signature = self._format_signature(
                 signatures=signatures,
                 parameter=parameter,
+                width=width
             )
             extra_text = None
         else:
@@ -430,7 +435,7 @@ class BaseEditMixin(object):
         return new_signature, extra_text, inspect_word
 
     def show_calltip(self, signature, parameter=None, documentation=None,
-                     language=_DEFAULT_LANGUAGE, max_lines=10):
+                     language=_DEFAULT_LANGUAGE, max_lines=10, width=60):
         """
         Show calltip.
 
@@ -460,7 +465,8 @@ class BaseEditMixin(object):
 
         # Format
         res = self._check_signature_and_format(signature, parameter,
-                                               language=language)
+                                               language=language,
+                                               width=width)
         new_signature, text, inspect_word = res
         text = self._format_text(
             signature=new_signature,
@@ -468,6 +474,7 @@ class BaseEditMixin(object):
             display_link=False,
             text=documentation,
             max_lines=max_lines,
+            width=width
         )
 
         self._update_stylesheet(self.calltip_widget)
