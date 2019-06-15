@@ -22,8 +22,71 @@ LSP_LANGUAGES = [
     'C#', 'CSS/LESS/SASS', 'Go', 'GraphQL', 'Groovy', 'Haxe', 'HTML',
     'Java', 'JavaScript', 'JSON', 'Julia', 'OCaml', 'PHP',
     'Rust', 'Scala', 'Swift', 'TypeScript', 'Erlang', 'Fortran',
-    'Elixir'
+    'Elixir', 'Kotlin'
 ]
+
+# -------------------- WORKSPACE CONFIGURATION CONSTANTS ----------------------
+
+
+class ResourceOperationKind:
+    """LSP workspace resource operations."""
+    # The client is able to create workspace files and folders
+    CREATE = 'create'
+    # The client is able to rename workspace files and folders
+    RENAME = 'rename'
+    # The client is able to delete workspace files and folders
+    DELETE = 'delete'
+
+
+class FileChangeType:
+    CREATED = 1
+    CHANGED = 2
+    DELETED = 3
+
+
+class FailureHandlingKind:
+    """LSP workspace modification error codes."""
+    # Applying the workspace change is simply aborted if one
+    # of the changes provided fails. All operations executed before, stay.
+    ABORT = 'abort'
+    # All the operations succeed or no changes at all.
+    TRANSACTIONAL = 'transactional'
+    # The client tries to undo the applied operations, best effort strategy.
+    UNDO = 'undo'
+    # The textual changes are applied transactionally, whereas
+    # creation/deletion/renaming operations are aborted.
+    TEXT_ONLY_TRANSACTIONAL = 'textOnlyTransactional'
+
+
+class SymbolKind:
+    """LSP workspace symbol constants."""
+    FILE = 1
+    MODULE = 2
+    NAMESPACE = 3
+    PACKAGE = 4
+    CLASS = 5
+    METHOD = 6
+    PROPERTY = 7
+    FIELD = 8
+    CONSTRUCTOR = 9
+    ENUM = 10
+    INTERFACE = 11
+    FUNCTION = 12
+    VARIABLE = 13
+    CONSTANT = 14
+    STRING = 15
+    NUMBER = 16
+    BOOLEAN = 17
+    ARRAY = 18
+    OBJECT = 19
+    KEY = 20
+    NULL = 21
+    ENUM_MEMBER = 22
+    STRUCT = 23
+    EVENT = 24
+    OPERATOR = 25
+    TYPE_PARAMETER = 26
+
 
 # -------------------- CLIENT CONFIGURATION SETTINGS --------------------------
 
@@ -36,9 +99,16 @@ WORKSPACE_CAPABILITIES = {
     #          to n different text documents
     "applyEdit": True,
 
-    # The client supports versioned document changes.
+    # Workspace edition settings
     "workspaceEdit": {
-        "documentChanges": False
+        # The client supports versioned document changes.
+        "documentChanges": True,
+        # The resource operations that the client supports
+        "resourceOperations": [ResourceOperationKind.CREATE,
+                               ResourceOperationKind.RENAME,
+                               ResourceOperationKind.DELETE],
+        # Failure handling strategy applied by the client.
+        "failureHandling": FailureHandlingKind.TRANSACTIONAL
     },
 
     # Did change configuration notification supports dynamic registration.
@@ -69,8 +139,19 @@ WORKSPACE_CAPABILITIES = {
     # the server to the client.
     "executeCommand": {
         # Can be turned on/off dynamically
-        "dynamicRegistration": True
-    }
+        "dynamicRegistration": True,
+        # Specific capabilities for the `SymbolKind` in the `workspace/symbol`
+        # request.
+        "symbolKind": {
+            # The symbol kind values the client supports.
+            "valueSet": [value for value in SymbolKind.__dict__.values()
+                         if isinstance(value, int)]
+        }
+    },
+    # The client has support for workspace folders.
+    "workspaceFolders": True,
+    # The client supports `workspace/configuration` requests.
+    "configuration": True
 }
 
 # TextDocumentClientCapabilities define capabilities the editor / tool
@@ -324,6 +405,16 @@ EXECUTE_COMMAND_OPTIONS = {
     'commands': []
 }
 
+# Workspace options.
+
+WORKSPACE_OPTIONS = {
+    # The server has support for workspace folders
+    'workspaceFolders': {
+        'supported': False,
+        'changeNotifications': False
+    }
+}
+
 
 # Server available capabilites options as defined by the protocol.
 
@@ -381,6 +472,9 @@ SERVER_CAPABILITES = {
     # The server provides execute command support.
     'executeCommandProvider': EXECUTE_COMMAND_OPTIONS,
 
+    # Workspace specific server capabillities.
+    'workspace': WORKSPACE_OPTIONS,
+
     # Experimental server capabilities.
     'experimental': None
 }
@@ -398,6 +492,7 @@ class LSPRequestTypes:
     """Language Server Protocol request/response types."""
     # General requests
     INITIALIZE = 'initialize'
+    INITIALIZED = 'initialized'
     SHUTDOWN = 'shutdown'
     EXIT = 'exit'
     CANCEL_REQUEST = '$/cancelRequest'
@@ -410,6 +505,9 @@ class LSPRequestTypes:
     CLIENT_REGISTER_CAPABILITY = 'client/registerCapability'
     CLIENT_UNREGISTER_CAPABILITY = 'client/unregisterCapability'
     # Workspace requests
+    WORKSPACE_FOLDERS = 'workspace/workspaceFolders'
+    WORKSPACE_FOLDERS_CHANGE = 'workspace/didChangeWorkspaceFolders'
+    WORKSPACE_CONFIGURATION = 'workspace/configuration'
     WORKSPACE_CONFIGURATION_CHANGE = 'workspace/didChangeConfiguration'
     WORKSPACE_WATCHED_FILES_UPDATE = 'workspace/didChangeWatchedFiles'
     WORKSPACE_SYMBOL = 'workspace/symbol'

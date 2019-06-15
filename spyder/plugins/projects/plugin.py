@@ -29,11 +29,15 @@ from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import add_actions, create_action, MENU_SEPARATOR
 from spyder.utils.misc import getcwd_or_home
+from spyder.plugins.projects.utils.watcher import WorkspaceWatcher
 from spyder.plugins.projects.widgets.explorer import ProjectExplorerWidget
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
 from spyder.plugins.projects.widgets import EmptyProject
+from spyder.plugins.editor.lsp import LSPRequestTypes, FileChangeType
+from spyder.plugins.editor.utils.lsp import request, handles, class_register
 
 
+@class_register
 class Projects(SpyderPluginWidget):
     """Projects plugin."""
 
@@ -63,10 +67,13 @@ class Projects(SpyderPluginWidget):
         self.recent_projects = self.get_option('recent_projects', default=[])
         self.current_active_project = None
         self.latest_project = None
+        self.watcher = WorkspaceWatcher(self)
+        self.lsp_ready = False
 
         # Initialize plugin
         self.initialize_plugin()
         self.explorer.setup_project(self.get_active_project_path())
+        self.watcher.connect_signals(self)
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
@@ -323,6 +330,8 @@ class Projects(SpyderPluginWidget):
         self.setup_menu_actions()
         self.sig_project_loaded.emit(path)
         self.sig_pythonpath_changed.emit()
+        self.watcher.start(path)
+        self.notify_project_open(path)
 
         if restart_consoles:
             self.restart_consoles()
@@ -352,6 +361,8 @@ class Projects(SpyderPluginWidget):
 
             self.explorer.clear()
             self.restart_consoles()
+            self.watcher.stop()
+            self.notify_project_close(path)
 
     def delete_project(self):
         """
@@ -511,3 +522,136 @@ class Projects(SpyderPluginWidget):
         if project not in self.recent_projects:
             self.recent_projects.insert(0, project)
             self.recent_projects = self.recent_projects[:10]
+
+    def register_lsp_server_settings(self, settings):
+        """Enable LSP workspace functions."""
+        self.lsp_ready = True
+        if self.current_active_project:
+            path = self.get_active_project_path()
+            self.notify_project_open(path)
+
+    def stop_lsp_services(self):
+        """Disable LSP workspace functions."""
+        self.lsp_ready = False
+
+    def emit_request(self, method, params, requires_response):
+        """Send request/notification/response to all LSP servers."""
+        params['requires_response'] = requires_response
+        params['response_instance'] = self
+        self.main.lspmanager.broadcast_request(method, params)
+
+    @Slot(str, dict)
+    def handle_response(self, method, params):
+        """Method dispatcher for LSP requests."""
+        if method in self.handler_registry:
+            handler_name = self.handler_registry[method]
+            handler = getattr(self, handler_name)
+            handler(params)
+
+    @Slot(str, str, bool)
+    @request(method=LSPRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
+             requires_response=False)
+    def file_moved(self, src_file, dest_file, is_dir):
+        """Notify LSP server about a file that is moved."""
+        # LSP specification only considers file updates
+        if is_dir:
+            return
+
+        deletion_entry = {
+            'file': src_file,
+            'kind': FileChangeType.DELETED
+        }
+
+        addition_entry = {
+            'file': dest_file,
+            'kind': FileChangeType.CREATED
+        }
+
+        entries = [addition_entry, deletion_entry]
+        params = {
+            'params': entries
+        }
+        return params
+
+    @request(method=LSPRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
+             requires_response=False)
+    @Slot(str, bool)
+    def file_created(self, src_file, is_dir):
+        """Notify LSP server about file creation."""
+        if is_dir:
+            return
+
+        params = {
+            'params': [{
+                'file': src_file,
+                'kind': FileChangeType.CREATED
+            }]
+        }
+        return params
+
+    @request(method=LSPRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
+             requires_response=False)
+    @Slot(str, bool)
+    def file_deleted(self, src_file, is_dir):
+        """Notify LSP server about file deletion."""
+        if is_dir:
+            return
+
+        params = {
+            'params': [{
+                'file': src_file,
+                'kind': FileChangeType.DELETED
+            }]
+        }
+        return params
+
+    @request(method=LSPRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
+             requires_response=False)
+    @Slot(str, bool)
+    def file_modified(self, src_file, is_dir):
+        """Notify LSP server about file modification."""
+        if is_dir:
+            return
+
+        params = {
+            'params': [{
+                'file': src_file,
+                'kind': FileChangeType.CHANGED
+            }]
+        }
+        return params
+
+    @request(method=LSPRequestTypes.WORKSPACE_FOLDERS_CHANGE,
+             requires_response=False)
+    def notify_project_open(self, path):
+        """Notify LSP server about project path availability."""
+        params = {
+            'folder': path,
+            'instance': self,
+            'kind': 'addition'
+        }
+        return params
+
+    @request(method=LSPRequestTypes.WORKSPACE_FOLDERS_CHANGE,
+             requires_response=False)
+    def notify_project_close(self, path):
+        """Notify LSP server to unregister project path."""
+        params = {
+            'folder': path,
+            'instance': self,
+            'kind': 'deletion'
+        }
+        return params
+
+    @handles(LSPRequestTypes.WORKSPACE_APPLY_EDIT)
+    @request(method=LSPRequestTypes.WORKSPACE_APPLY_EDIT,
+             requires_response=False)
+    def handle_workspace_edit(self, params):
+        """Apply edits to multiple files and notify server about success."""
+        edits = params['params']
+        response = {
+            'applied': False,
+            'error': 'Not implemented',
+            'language': edits['language']
+        }
+        return response
