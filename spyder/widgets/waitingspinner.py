@@ -94,7 +94,7 @@ class QWaitingSpinner(QWidget):
             color = self.currentLineColor(distance, self._numberOfLines, self._trailFadePercentage,
                                           self._minimumTrailOpacity, self._color)
 
-            # Calcul the scaling factor to apply to the size and thickness
+            # Compute the scaling factor to apply to the size and thickness
             # of the lines in the trail.
             if self._trailSizeDecreasing:
                 sf = (self._numberOfLines - distance) / self._numberOfLines
