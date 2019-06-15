@@ -43,9 +43,10 @@ class HelpWidget(RichJupyterWidget):
         text = data.get('text/plain', '')
         signature = self.get_signature(content).split('(')[-1]
         if text:
-            documentation = text.split(signature)
-            if len(documentation) > 1:
-                return documentation[-1]
+            if signature:
+                documentation = text.split(signature)
+                if len(documentation) > 1:
+                    return documentation[-1]
 
     def get_signature(self, content):
         """Get signature from inspect reply content"""
@@ -62,6 +63,7 @@ class HelpWidget(RichJupyterWidget):
                 name = self.clean_invalid_var_chars(name)
             except:
                 pass
+
             text = text.split('Docstring:')[-1]
             argspec = getargspecfromtext(text)
             if argspec:
