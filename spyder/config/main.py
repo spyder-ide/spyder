@@ -282,7 +282,8 @@ DEFAULTS = [
               'search_text': [''],
               'search_text_samples': [TASKS_PATTERN],
               'more_options': True,
-              'case_sensitive': False
+              'case_sensitive': False,
+              'search_in_index': 0
               }),
             ('breakpoints',
              {
