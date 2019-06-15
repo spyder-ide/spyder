@@ -7,6 +7,7 @@
 """Qt utilities"""
 
 # Standard library imports
+from math import pi
 import os
 import os.path as osp
 import re
@@ -24,11 +25,12 @@ from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QLabel,
 
 # Local imports
 from spyder.config.base import get_image_path, running_in_mac_app
-from spyder.config.gui import get_shortcut
+from spyder.config.gui import get_shortcut, is_dark_interface
 from spyder.utils import programs
 from spyder.utils import icon_manager as ima
 from spyder.utils.icon_manager import get_icon, get_std_icon
 from spyder.py3compat import is_text_string, to_text_string
+from spyder.widgets.waitingspinner import QWaitingSpinner
 
 # Note: How to redirect a signal from widget *a* to widget *b* ?
 # ----
@@ -212,6 +214,30 @@ def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
     if shortcut is not None:
         button.setShortcut(shortcut)
     return button
+
+
+def create_waitspinner(size=32, n=11, parent=None):
+    """
+    Create a wait spinner with the specified size built with n circling dots.
+    """
+    dot_padding = 1
+
+    # To calculate the size of the dots, we need to solve the following
+    # system of two equations in two variables.
+    # (1) middle_circumference = pi * (size - dot_size)
+    # (2) middle_circumference = n * (dot_size + dot_padding)
+    dot_size = (pi * size - n * dot_padding) / (n + pi)
+    inner_radius = (size - 2 * dot_size) / 2
+
+    spinner = QWaitingSpinner(parent, centerOnParent=False)
+    spinner.setTrailSizeDecreasing(True)
+    spinner.setNumberOfLines(n)
+    spinner.setLineLength(dot_size)
+    spinner.setLineWidth(dot_size)
+    spinner.setInnerRadius(inner_radius)
+    spinner.setColor(Qt.white if is_dark_interface() else Qt.black)
+
+    return spinner
 
 
 def action2button(action, autoraise=True, text_beside_icon=False, parent=None):
