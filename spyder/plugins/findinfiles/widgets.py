@@ -309,6 +309,12 @@ class SearchInComboBox(QComboBox):
         else:
             return self.external_path
 
+    def set_current_searchpath_index(self, index):
+        """Set the current index of this combo box."""
+        index = min(index, self.count() - 1)
+        index = CWD if index in [CLEAR_LIST, SELECT_OTHER] else index
+        self.setCurrentIndex(index)
+
     def is_file_search(self):
         """Returns whether the current search path is a file."""
         if self.currentIndex() == FILE_PATH:
@@ -409,7 +415,8 @@ class FindOptions(QWidget):
     def __init__(self, parent, search_text, search_text_regexp,
                  exclude, exclude_idx, exclude_regexp,
                  supported_encodings, more_options,
-                 case_sensitive, external_path_history, options_button=None):
+                 case_sensitive, external_path_history, search_in_index,
+                 options_button=None):
         QWidget.__init__(self, parent)
 
         if not isinstance(search_text, (list, tuple)):
@@ -485,6 +492,7 @@ class FindOptions(QWidget):
         search_on_label = QLabel(_("Search in:"))
         self.path_selection_combo = SearchInComboBox(
                 external_path_history, parent)
+        self.path_selection_combo.set_current_searchpath_index(search_in_index)
 
         hlayout3.addWidget(search_on_label)
         hlayout3.addWidget(self.path_selection_combo)
@@ -544,10 +552,12 @@ class FindOptions(QWidget):
             exclude_idx = self.exclude_pattern.currentIndex()
             path_history = self.path_selection_combo.get_external_paths()
             more_options = self.more_options.isChecked()
+            search_in_index = self.path_selection_combo.currentIndex()
             return (search_text, text_re,
                     exclude, exclude_idx,
                     exclude_re, more_options,
-                    case_sensitive, path_history)
+                    case_sensitive, path_history,
+                    search_in_index)
 
         # Clear fields
         self.search_text.lineEdit().setStyleSheet("")
@@ -955,6 +965,7 @@ class FindInFilesWidget(QWidget):
                  more_options=True,
                  case_sensitive=False,
                  external_path_history=[],
+                 search_in_index=0,
                  options_button=None,
                  text_color=None):
         QWidget.__init__(self, parent)
@@ -973,6 +984,7 @@ class FindInFilesWidget(QWidget):
                                         more_options,
                                         case_sensitive,
                                         external_path_history,
+                                        search_in_index,
                                         options_button=options_button)
         self.find_options.find.connect(self.find)
         self.find_options.stop.connect(self.stop_and_reset_thread)
