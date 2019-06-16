@@ -151,5 +151,5 @@ class HelpWidget(RichJupyterWidget):
                     signature,
                     documentation=documentation,
                     language=self.language_name,
-                    max_lines=5
+                    max_lines=7
                 )
