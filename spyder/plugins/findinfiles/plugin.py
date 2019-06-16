@@ -52,7 +52,7 @@ class FindInFiles(SpyderPluginWidget):
         more_options = self.get_option('more_options')
         case_sensitive = self.get_option('case_sensitive')
         path_history = self.get_option('path_history', [])
-        search_in_index = self.get_option('search_in_index', 0)
+        search_in_index = self.get_option('search_in_index', default=0)
 
         self.findinfiles = FindInFilesWidget(
                                    self,
