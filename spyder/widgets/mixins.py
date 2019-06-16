@@ -144,7 +144,8 @@ class BaseEditMixin(object):
 
     def _format_text(self, title=None, signature=None, text=None,
                      inspect_word=None, title_color=None, max_lines=None,
-                     width=_DEFAULT_WIDTH, display_link=False):
+                     width=_DEFAULT_WIDTH, display_link=False,
+                     text_new_line=False):
         """
         Create HTML template for calltips and tooltips.
 
@@ -210,7 +211,10 @@ class BaseEditMixin(object):
             if len(lines) > max_lines:
                 text = '\n'.join(lines[:max_lines]) + ' ...'
 
-        text = '<br>' + text.replace('\n', '<br>')
+        text = text.replace('\n', '<br>')
+        if text_new_line:
+            text = '<br>' + text
+
         template += BASE_TEMPLATE.format(
             font_family=font_family,
             size=text_size,
@@ -479,7 +483,8 @@ class BaseEditMixin(object):
             display_link=False,
             text=documentation,
             max_lines=max_lines,
-            width=width
+            width=width,
+            text_new_line=True
         )
 
         self._update_stylesheet(self.calltip_widget)
