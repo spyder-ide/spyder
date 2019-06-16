@@ -200,8 +200,7 @@ class BaseEditMixin(object):
             text = '\n<i>No documentation available</i>'
 
         # Wrap text
-        # TODO: CHeck if replace_whitespace is needed
-        lines = textwrap.wrap(text, width=width, replace_whitespace=False)
+        lines = textwrap.wrap(text, width=width)
 
         # Remove empty lines at the beginning
         lines = [l for l in lines if l.strip()]
@@ -211,7 +210,7 @@ class BaseEditMixin(object):
             if len(lines) > max_lines:
                 text = '\n'.join(lines[:max_lines]) + ' ...'
 
-        text = text.replace('\n', '<br>')
+        text = '<br>' + text.replace('\n', '<br>')
         template += BASE_TEMPLATE.format(
             font_family=font_family,
             size=text_size,
