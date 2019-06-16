@@ -144,7 +144,7 @@ class BaseEditMixin(object):
 
     def _format_text(self, title=None, signature=None, text=None,
                      inspect_word=None, title_color=None, max_lines=None,
-                     width=None, display_link=False):
+                     width=_DEFAULT_WIDTH, display_link=False):
         """
         Create HTML template for calltips and tooltips.
 
@@ -197,7 +197,7 @@ class BaseEditMixin(object):
 
         # Documentation/text handling
         if not text:
-            text = '\n<i>No documentation available</i>\n'
+            text = '\n<i>No documentation available</i>'
 
         # Wrap text
         # TODO: CHeck if replace_whitespace is needed
@@ -519,7 +519,8 @@ class BaseEditMixin(object):
         self.tooltip_widget.show_tip(point, tiptext, cursor=cursor)
 
     def show_hint(self, text, inspect_word, at_point,
-                  max_lines=_DEFAULT_MAX_LINES, width=_DEFAULT_WIDTH):
+                  max_lines=30,
+                  width=120):
         """Show code hint and crop text as needed."""
         # Check if signature and format
         res = self._check_signature_and_format(text)
