@@ -2371,7 +2371,7 @@ class CodeEditor(TextEditBaseWidget):
             if inline_comment != -1:
                 prevtext = prevtext[:inline_comment]
 
-            if prevtext:
+            if prevtext.strip():
 
                 if not "return" == prevtext.strip().split()[0] and \
                     (prevtext.strip().endswith(')') or
@@ -2411,7 +2411,7 @@ class CodeEditor(TextEditBaseWidget):
             else:
                 correct_indent += len(self.indent_chars)
 
-        if not comment_or_string:
+        if prevtext.strip() and not comment_or_string:
             if prevtext.endswith(':') and self.is_python_like():
                 # Indent
                 if self.indent_chars == '\t':
@@ -2434,10 +2434,15 @@ class CodeEditor(TextEditBaseWidget):
                 # Check if all braces are matching using a stack
                 stack = ['dummy']  # Dummy elemet to avoid index errors
                 deactivate = None
+                escaped = False
                 for c in prevtext:
-                    if deactivate is not None:
+                    if escaped:
+                        escaped = False
+                    elif deactivate is not None:
                         if c == deactivate:
                             deactivate = None
+                        elif c == "\\":
+                            escaped = True
                     elif c in ["'", '"']:
                         deactivate = c
                     elif c in ['(', '[','{']:
