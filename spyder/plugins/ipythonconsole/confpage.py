@@ -113,10 +113,10 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         backend_group = QGroupBox(_("Graphics backend"))
         bend_label = QLabel(_("Decide how graphics are going to be displayed "
                               "in the console. If unsure, please select "
-                              "<b>{0}</b> to put graphics inside the "
-                              "console or <b>{1}</b> to interact with "
+                              "<b>%s</b> to put graphics inside the "
+                              "console or <b>%s</b> to interact with "
                               "them (through zooming and panning) in a "
-                              "separate window.").format(inline, automatic))
+                              "separate window.") % (inline, automatic))
         bend_label.setWordWrap(True)
 
         backends = [(inline, 0), (automatic, 1), ("Qt5", 2), ("Qt4", 3)]
@@ -296,11 +296,11 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         autocall_opts = ((_('Off'), 0), (smart, 1), (full, 2))
         autocall_box = self.create_combobox(
                        _("Autocall:  "), autocall_opts, 'autocall', default=0,
-                       tip=_("On <b>{0}</b> mode, Autocall is not applied if "
+                       tip=_("On <b>%s</b> mode, Autocall is not applied if "
                              "there are no arguments after the callable. On "
-                             "<b>{1}</b> mode, all callable objects are "
+                             "<b>%s</b> mode, all callable objects are "
                              "automatically called (even if no arguments are "
-                             "present).").format(smart, full))
+                             "present).") % (smart, full))
 
         autocall_layout = QVBoxLayout()
         autocall_layout.addWidget(autocall_label)
