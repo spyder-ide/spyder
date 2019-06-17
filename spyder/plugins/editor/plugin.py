@@ -237,6 +237,8 @@ class Editor(SpyderPluginWidget):
         # Know when the fallback completion engine is up
         self.main.fallback_completions.sig_fallback_ready.connect(
             self.fallback_ready)
+        self.main.fallback_completions.sig_set_tokens.connect(
+            self.fallback_set_tokens)
 
     def set_projects(self, projects):
         self.projects = projects
@@ -326,7 +328,7 @@ class Editor(SpyderPluginWidget):
 
     def send_fallback_request(self, msg):
         """Send request to fallback engine."""
-        self.main.fallback_completions.mailbox.put(msg)
+        self.main.fallback_completions.sig_mailbox.emit(msg)
 
     def fallback_ready(self):
         """Notify all stackeditors about fallback availability."""
@@ -334,6 +336,10 @@ class Editor(SpyderPluginWidget):
         self.fallback_up = True
         for editorstack in self.editorstacks:
             editorstack.notify_fallback_ready()
+
+    def fallback_set_tokens(self, editor, tokens):
+        """Set the tokend in the editor."""
+        editor.receive_text_tokens(tokens)
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):

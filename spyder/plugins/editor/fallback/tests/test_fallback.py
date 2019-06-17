@@ -84,7 +84,7 @@ def test_file_open_close(qtbot_module, fallback_editor):
             'diff': diff
         }
     }
-    fallback.mailbox.put(open_request)
+    fallback.sig_mailbox.emit(open_request)
     qtbot_module.wait(1000)
     assert 'test.py' in fallback.file_tokens
 
@@ -94,7 +94,7 @@ def test_file_open_close(qtbot_module, fallback_editor):
         'editor': editor,
         'msg': {}
     }
-    fallback.mailbox.put(close_request)
+    fallback.sig_mailbox.emit(close_request)
     qtbot_module.wait(1000)
     assert 'test.py' not in fallback.file_tokens
 
@@ -115,7 +115,7 @@ def test_tokenize(qtbot_module, fallback_editor, file_fixture):
             'diff': diff
         }
     }
-    fallback.mailbox.put(open_request)
+    fallback.sig_mailbox.emit(open_request)
     qtbot_module.wait(1000)
 
     tokens_request = {
@@ -126,7 +126,7 @@ def test_tokenize(qtbot_module, fallback_editor, file_fixture):
     }
     with qtbot_module.waitSignal(editor.sig_recv_tokens,
                                  timeout=3000) as blocker:
-        fallback.mailbox.put(tokens_request)
+        fallback.sig_mailbox.emit(tokens_request)
     tokens = blocker.args
     tokens = {token['insertText'] for token in tokens[0]}
     assert len(expected_tokens - tokens) == 0
@@ -146,7 +146,7 @@ def test_token_update(qtbot_module, fallback_editor):
             'diff': diff
         }
     }
-    fallback.mailbox.put(open_request)
+    fallback.sig_mailbox.emit(open_request)
     qtbot_module.wait(1000)
 
     tokens_request = {
@@ -157,7 +157,7 @@ def test_token_update(qtbot_module, fallback_editor):
     }
     with qtbot_module.waitSignal(editor.sig_recv_tokens,
                                  timeout=3000) as blocker:
-        fallback.mailbox.put(tokens_request)
+        fallback.sig_mailbox.emit(tokens_request)
     initial_tokens = blocker.args[0]
     initial_tokens = {token['insertText'] for token in initial_tokens}
     assert 'args' not in initial_tokens
@@ -172,11 +172,11 @@ def test_token_update(qtbot_module, fallback_editor):
             'diff': diff
         }
     }
-    fallback.mailbox.put(update_request)
+    fallback.sig_mailbox.emit(update_request)
     qtbot_module.wait(1000)
     with qtbot_module.waitSignal(editor.sig_recv_tokens,
                                  timeout=3000) as blocker:
-        fallback.mailbox.put(tokens_request)
+        fallback.sig_mailbox.emit(tokens_request)
     updated_tokens = blocker.args[0]
     updated_tokens = {token['insertText'] for token in updated_tokens}
     assert 'args' in updated_tokens

@@ -7,12 +7,13 @@
 """Status bar widgets."""
 
 # Standard library imports
-import os
+import os.path as osp
 
 # Local imports
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
+from spyder.utils.workers import WorkerManager
 from spyder.utils.vcs import get_git_refs
 from spyder.widgets.status import StatusBarWidget
 
@@ -65,22 +66,50 @@ class VCSStatus(StatusBarWidget):
     def __init__(self, parent, statusbar):
         super(VCSStatus, self).__init__(parent, statusbar,
                                         icon=ima.icon('code_fork'))
+        self._worker_manager = WorkerManager(max_threads=1)
+        self._git_is_working = None
+        self._git_job_queue = None
+        self._last_git_job = None
 
     def update_vcs_state(self, idx, fname, fname2):
         """Update vcs status."""
         self.update_vcs(fname, None)
 
-    def update_vcs(self, fname, index):
+    def update_vcs(self, fname, index, force=False):
         """Update vcs status."""
-        fpath = os.path.dirname(fname)
-        branches, branch, files_modified = get_git_refs(fpath)
-        text = branch if branch else ''
+        if self._last_git_job == (fname, index) and not force:
+            self._git_job_queue = None
+            return
 
+        if self._git_is_working:
+            self._git_job_queue = (fname, index)
+        else:
+            self._worker_manager.terminate_all()
+            worker = self._worker_manager.create_python_worker(
+                self.get_git_refs, fname)
+            worker.sig_finished.connect(self.process_git_data)
+            self._last_git_job = (fname, index)
+            self._git_job_queue = None
+            self._git_is_working = True
+            worker.start()
+
+    def get_git_refs(self, fname):
+        """Get Git active branch, state, branches (plus tags)."""
+        return get_git_refs(osp.dirname(fname))
+
+    def process_git_data(self, worker, output, error):
+        """Receive data from git and update gui."""
+        branches, branch, files_modified = output
+
+        text = branch if branch else ''
         if len(files_modified):
             text = text + ' [{}]'.format(len(files_modified))
-
         self.setVisible(bool(branch))
         self.set_value(text)
+
+        self._git_is_working = False
+        if self._git_job_queue:
+            self.update_vcs(*self._git_job_queue)
 
     def change_branch(self):
         """Change current branch."""

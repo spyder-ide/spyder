@@ -22,4 +22,9 @@ def fallback(qtbot_module, request):
         fallback.stop()
 
     request.addfinalizer(teardown)
+
+    def call_editor(editor, tokens):
+        editor.receive_text_tokens(tokens)
+
+    fallback.sig_set_tokens.connect(call_editor)
     return fallback
