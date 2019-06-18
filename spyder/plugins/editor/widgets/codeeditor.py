@@ -1470,7 +1470,7 @@ class CodeEditor(TextEditBaseWidget):
     def __highlight_selection(self, key, cursor, foreground_color=None,
                         background_color=None, underline_color=None,
                         outline_color=None,
-                        underline_style=QTextCharFormat.WaveUnderline,
+                        underline_style=QTextCharFormat.SingleUnderline,
                         update=False):
         if cursor is None:
             return
