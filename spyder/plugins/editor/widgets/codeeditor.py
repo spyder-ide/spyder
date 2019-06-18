@@ -2371,7 +2371,7 @@ class CodeEditor(TextEditBaseWidget):
             prevtext = to_text_string(cursor.block().text()).rstrip()
 
             # Remove inline comment
-            bracket_stack = ['dummy']
+            bracket_stack = []
             bracket_unmatched_closing = []
             deactivate = None
             escaped = False
@@ -2396,7 +2396,9 @@ class CodeEditor(TextEditBaseWidget):
                 elif c in ('(', '[', '{'):
                         bracket_stack.append(c)
                 elif c in (')', ']', '}'):
-                    if bracket_stack[-1] == {')': '(', ']': '[', '}': '{'}[c]:
+                    if bracket_stack and bracket_stack[-1] == {
+                            ')': '(', ']': '[', '}': '{'
+                            }[c]:
                         bracket_stack.pop()
                     else:
                         bracket_unmatched_closing.append(c)
@@ -2415,7 +2417,7 @@ class CodeEditor(TextEditBaseWidget):
                     add_indent = True
                     comment_or_string = True
 
-                if len(bracket_stack) > 1:
+                if bracket_stack:
                     break
                 elif bracket_unmatched_closing:
                     closing_brackets = bracket_unmatched_closing + closing_brackets
@@ -2448,7 +2450,7 @@ class CodeEditor(TextEditBaseWidget):
             elif (
                     prevtext.strip().split()[-1] in ('continue', 'break', 'pass')
                     or ("return" == prevtext.strip().split()[0] and
-                    not len(bracket_stack) > 1)  # and not closing_brackets?
+                    not bracket_stack)  # and not closing_brackets?
                  ):
                 # Unindent
                 if self.indent_chars == '\t':
@@ -2457,7 +2459,7 @@ class CodeEditor(TextEditBaseWidget):
                     correct_indent -= len(self.indent_chars)
             elif len(re.split(r'\(|\{|\[', prevtext)) > 1:
 
-                if len(bracket_stack) == 1:  # all braces matching
+                if not bracket_stack:  # all braces matching
                     pass
 
                 # Hanging indent
