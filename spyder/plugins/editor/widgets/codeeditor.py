@@ -2346,12 +2346,15 @@ class CodeEditor(TextEditBaseWidget):
     def fix_indent_smart(self, forward=True, comment_or_string=False):
         """
         Fix indentation (Python only, no text selection)
+        
         forward=True: fix indent only if text is not enough indented
                       (otherwise force indent)
         forward=False: fix indent only if text is too much indented
                        (otherwise force unindent)
 
         Returns True if indent needed to be fixed
+        
+        Assumes self.is_python_like() to return True
         """
         cursor = self.textCursor()
         block_nb = cursor.blockNumber()
@@ -2380,7 +2383,7 @@ class CodeEditor(TextEditBaseWidget):
 
                     comment_or_string = True  # prevent further parsing
 
-                elif prevtext.strip().endswith(':') and self.is_python_like():
+                elif prevtext.strip().endswith(':'):
                     add_indent = True
                     comment_or_string = True
                 if (prevtext.count(')') > prevtext.count('(')):
@@ -2412,13 +2415,13 @@ class CodeEditor(TextEditBaseWidget):
                 correct_indent += len(self.indent_chars)
 
         if prevtext.strip() and not comment_or_string:
-            if prevtext.endswith(':') and self.is_python_like():
+            if prevtext.endswith(':'):
                 # Indent
                 if self.indent_chars == '\t':
                     correct_indent += self.tab_stop_width_spaces
                 else:
                     correct_indent += len(self.indent_chars)
-            elif self.is_python_like() and \
+            elif \
                 (prevtext.strip().split()[-1] in
                  ('continue', 'break', 'pass') or
                  ("return" == prevtext.strip().split()[0] and
