@@ -637,6 +637,27 @@ class DirView(QTreeView):
         drag.exec_()
 
     #---- File/Directory actions
+    def check_launch_error_codes(self, return_codes):
+        """"""
+        errors = [cmd for cmd, code in return_codes.items() if code != 0]
+        if errors:
+            if len(errors) == 1:
+                msg = _('The following command did not launch successfully:')
+            else:
+                msg = _('The following commands did not launch successfully:')
+
+            msg += '<br><br>' if len(errors) == 1 else '<br><br><ul>'
+            for error in errors:
+                if len(errors) == 1:
+                    msg += '<code>{}</code>'.format(error)
+                else:
+                    msg += '<li><code>{}</code></li>'.format(error)
+            msg += '' if len(errors) == 1 else '</ul>'
+
+            QMessageBox.warning(self, 'Application', msg, QMessageBox.Ok)
+
+        return return_codes
+
     @Slot()
     def open(self, fnames=None):
         """Open files with the appropriate application"""
@@ -661,25 +682,7 @@ class DirView(QTreeView):
             fnames = self.get_selected_filenames()
             return_codes = programs.open_files_with_application(app_path,
                                                                 fnames)
-
-        errors = [cmd for cmd, code in return_codes.items() if code != 0]
-        if errors:
-            if len(errors) == 1:
-                msg = _('The following command did not launch successfully:')
-            else:
-                msg = _('The following commands did not launch successfully:')
-
-            msg += '<br><br>' if len(errors) == 1 else '<br><br><ul>'
-            for error in errors:
-                if len(errors) == 1:
-                    msg += '<code>{}</code>'.format(error)
-                else:
-                    msg += '<li><code>{}</code></li>'.format(error)
-            msg += '' if len(errors) == 1 else '</ul>'
-
-            QMessageBox.warning(self, 'Application', msg, QMessageBox.Ok)
-
-        return return_codes
+        self.check_launch_error_codes(return_codes)
 
     @Slot()
     def open_external(self, fnames=None):

@@ -22,15 +22,11 @@ import subprocess
 import sys
 import tempfile
 
-# Third party imports
-from qtpy.QtGui import QIcon
-
 # Local imports
 from spyder.config.base import _, get_conf_path, is_stable_version
 from spyder.config.utils import is_anaconda
 from spyder.py3compat import PY2, is_text_string, to_text_string
 from spyder.utils import encoding
-from spyder.utils import icon_manager as ima
 from spyder.utils.misc import get_python_executable
 
 
@@ -421,6 +417,9 @@ def _get_mac_applications():
 
 def get_application_icon(fpath):
     """Return application icon or default icon if not found."""
+    from qtpy.QtGui import QIcon
+    from spyder.utils import icon_manager as ima
+
     if os.path.isfile(fpath) or os.path.isdir(fpath):
         icon = ima.icon('no_match')
         if sys.platform == 'darwin':
