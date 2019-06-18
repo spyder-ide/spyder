@@ -2346,14 +2346,14 @@ class CodeEditor(TextEditBaseWidget):
     def fix_indent_smart(self, forward=True, comment_or_string=False):
         """
         Fix indentation (Python only, no text selection)
-        
+
         forward=True: fix indent only if text is not enough indented
                       (otherwise force indent)
         forward=False: fix indent only if text is too much indented
                        (otherwise force unindent)
 
         Returns True if indent needed to be fixed
-        
+
         Assumes self.is_python_like() to return True
         """
         cursor = self.textCursor()
@@ -2396,7 +2396,7 @@ class CodeEditor(TextEditBaseWidget):
                 elif c in ('(', '[', '{'):
                         bracket_stack.append(c)
                 elif c in (')', ']', '}'):
-                    if bracket_stack[-1] == {')':'(', ']':'[', '}':'{'}[c]:
+                    if bracket_stack[-1] == {')': '(', ']': '[', '}': '{'}[c]:
                         bracket_stack.pop()
                     else:
                         bracket_unmatched_closing.append(c)
@@ -2475,7 +2475,7 @@ class CodeEditor(TextEditBaseWidget):
                     elif c in ('(', '[', '{'):
                         stack.append(c)
                     elif c in (')', ']', '}'):
-                        if stack[-1] == {')':'(', ']':'[', '}':'{'}[c]:
+                        if stack[-1] == {')': '(', ']': '[', '}': '{'}[c]:
                             stack.pop()
                         else:
                             # mismatched bracket
