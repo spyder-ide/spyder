@@ -52,6 +52,7 @@ class FindInFiles(SpyderPluginWidget):
         more_options = self.get_option('more_options')
         case_sensitive = self.get_option('case_sensitive')
         path_history = self.get_option('path_history', [])
+        search_in_index = self.get_option('search_in_index', default=0)
 
         self.findinfiles = FindInFilesWidget(
                                    self,
@@ -60,6 +61,7 @@ class FindInFiles(SpyderPluginWidget):
                                    supported_encodings,
                                    more_options,
                                    case_sensitive, path_history,
+                                   search_in_index,
                                    options_button=self.options_button,
                                    text_color=ima.MAIN_FG_COLOR)
 
@@ -172,7 +174,7 @@ class FindInFiles(SpyderPluginWidget):
             (search_text, text_re,
              exclude, exclude_idx, exclude_re,
              more_options, case_sensitive,
-             path_history) = options
+             path_history, search_in_index) = options
             hist_limit = 15
             search_text = search_text[:hist_limit]
             exclude = exclude[:hist_limit]
@@ -185,6 +187,7 @@ class FindInFiles(SpyderPluginWidget):
             self.set_option('more_options', more_options)
             self.set_option('case_sensitive', case_sensitive)
             self.set_option('path_history', path_history)
+            self.set_option('search_in_index', search_in_index)
         return True
 
     def on_first_registration(self):
