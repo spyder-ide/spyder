@@ -2404,16 +2404,16 @@ class CodeEditor(TextEditBaseWidget):
                         bracket_unmatched_closing.append(c)
             del pos, c, deactivate, escaped
 
-            if prevtext.strip():
+            if prevtext:
 
-                if not "return" == prevtext.strip().split()[0] and \
-                    (prevtext.strip().endswith(')') or
-                     prevtext.strip().endswith(']') or
-                     prevtext.strip().endswith('}')):
+                if not "return" == prevtext.split()[0] and \
+                    (prevtext.endswith(')') or
+                     prevtext.endswith(']') or
+                     prevtext.endswith('}')):
 
                     comment_or_string = True  # prevent further parsing
 
-                elif prevtext.strip().endswith(':'):
+                elif prevtext.endswith(':'):
                     add_indent = True
                     comment_or_string = True
 
@@ -2440,7 +2440,7 @@ class CodeEditor(TextEditBaseWidget):
             else:
                 correct_indent += len(self.indent_chars)
 
-        if prevtext.strip() and not comment_or_string:
+        if prevtext and not comment_or_string:
             if prevtext.endswith(':'):
                 # Indent
                 if self.indent_chars == '\t':
@@ -2448,8 +2448,8 @@ class CodeEditor(TextEditBaseWidget):
                 else:
                     correct_indent += len(self.indent_chars)
             elif (
-                    prevtext.strip().split()[-1] in ('continue', 'break', 'pass')
-                    or ("return" == prevtext.strip().split()[0] and
+                    prevtext.split()[-1] in ('continue', 'break', 'pass')
+                    or ("return" == prevtext.split()[0] and
                     not bracket_stack)  # and not closing_brackets?
                  ):
                 # Unindent
@@ -2461,7 +2461,7 @@ class CodeEditor(TextEditBaseWidget):
                 # Hanging indent
                 # find out if the last one is (, {, or []})
                 # only if prevtext is long that the hanging indentation
-                if (re.search(r'[\(|\{|\[]\s*$', prevtext) is not None and
+                if (prevtext[-1] in ('(', '[', '{') and
                       ((self.indent_chars == '\t' and
                         self.tab_stop_width_spaces * 2 < len(prevtext)) or
                        (self.indent_chars.startswith(' ') and
