@@ -56,6 +56,8 @@ class BaseEditMixin(object):
     _DEFAULT_LANGUAGE = 'python'
     _DEFAULT_MAX_LINES = 10
     _DEFAULT_MAX_WIDTH = 60
+    _DEFAULT_MAX_HINT_LINES = 20
+    _DEFAULT_MAX_HINT_WIDTH = 120
 
     def __init__(self):
         self.eol_chars = None
@@ -145,7 +147,7 @@ class BaseEditMixin(object):
     def _format_text(self, title=None, signature=None, text=None,
                      inspect_word=None, title_color=None, max_lines=None,
                      max_width=_DEFAULT_MAX_WIDTH, display_link=False,
-                     text_new_line=False):
+                     text_new_line=False,  with_html_format=False):
         """
         Create HTML template for calltips and tooltips.
 
@@ -200,11 +202,14 @@ class BaseEditMixin(object):
         if not text:
             text = '\n<i>No documentation available</i>'
 
-        # Wrap text
-        lines = textwrap.wrap(text, width=max_width)
+        if not with_html_format:
+            # Wrap text
+            lines = textwrap.wrap(text, width=max_width)
 
-        # Remove empty lines at the beginning
-        lines = [l for l in lines if l.strip()]
+            # Remove empty lines at the beginning
+            lines = [l for l in lines if l.strip()]
+        else:
+            lines = [l for l in text.split('\n') if l.strip()]
 
         # Limit max number of text displayed
         if max_lines:
@@ -498,7 +503,7 @@ class BaseEditMixin(object):
                      at_line=None, at_point=None, display_link=False,
                      max_lines=_DEFAULT_MAX_LINES,
                      max_width=_DEFAULT_MAX_WIDTH,
-                     cursor=None):
+                     cursor=None, with_html_format=False):
         """Show tooltip."""
         # Find position of calltip
         point = self._calculate_position(
@@ -515,7 +520,8 @@ class BaseEditMixin(object):
             inspect_word=inspect_word,
             display_link=display_link,
             max_lines=max_lines,
-            max_width=max_width
+            max_width=max_width,
+            with_html_format=with_html_format
         )
 
         self._update_stylesheet(self.tooltip_widget)
@@ -523,8 +529,9 @@ class BaseEditMixin(object):
         # Display tooltip
         self.tooltip_widget.show_tip(point, tiptext, cursor=cursor)
 
-    def show_hint(self, text, inspect_word, at_point, max_lines=30,
-                  max_width=120):
+    def show_hint(self, text, inspect_word, at_point,
+                  max_lines=_DEFAULT_MAX_HINT_LINES,
+                  max_width=_DEFAULT_MAX_HINT_WIDTH):
         """Show code hint and crop text as needed."""
         # Check if signature and format
         res = self._check_signature_and_format(text)
