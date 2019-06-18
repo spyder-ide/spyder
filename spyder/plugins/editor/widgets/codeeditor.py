@@ -2394,9 +2394,9 @@ class CodeEditor(TextEditBaseWidget):
                     break
                 # Handle brackets
                 elif c in ('(', '[', '{'):
-                        bracket_stack.append(c)
+                        bracket_stack.append((pos, c))
                 elif c in (')', ']', '}'):
-                    if bracket_stack and bracket_stack[-1] == {
+                    if bracket_stack and bracket_stack[-1][1] == {
                             ')': '(', ']': '[', '}': '{'
                             }[c]:
                         bracket_stack.pop()
@@ -2457,15 +2457,11 @@ class CodeEditor(TextEditBaseWidget):
                     correct_indent -= self.tab_stop_width_spaces
                 else:
                     correct_indent -= len(self.indent_chars)
-            elif len(re.split(r'\(|\{|\[', prevtext)) > 1:
-
-                if not bracket_stack:  # all braces matching
-                    pass
-
+            elif bracket_stack:
                 # Hanging indent
                 # find out if the last one is (, {, or []})
                 # only if prevtext is long that the hanging indentation
-                elif (re.search(r'[\(|\{|\[]\s*$', prevtext) is not None and
+                if (re.search(r'[\(|\{|\[]\s*$', prevtext) is not None and
                       ((self.indent_chars == '\t' and
                         self.tab_stop_width_spaces * 2 < len(prevtext)) or
                        (self.indent_chars.startswith(' ') and
@@ -2475,25 +2471,9 @@ class CodeEditor(TextEditBaseWidget):
                     else:
                         correct_indent += len(self.indent_chars) * 2
                 else:
-                    rlmap = {")":"(", "]":"[", "}":"{"}
-                    for par in rlmap:
-                        i_right = prevtext.rfind(par)
-                        if i_right != -1:
-                            prevtext = prevtext[:i_right]
-                            for _i in range(len(prevtext.split(par))):
-                                i_left = prevtext.rfind(rlmap[par])
-                                if i_left != -1:
-                                    prevtext = prevtext[:i_left]
-                                else:
-                                    break
-                    else:
-                        if prevtext.strip():
-                            if len(re.split(r'\(|\{|\[', prevtext)) > 1:
-                                #correct indent only if there are still opening brackets
-                                prevexpr = re.split(r'\(|\{|\[', prevtext)[-1]
-                                correct_indent = len(prevtext)-len(prevexpr)
-                            else:
-                                correct_indent = len(prevtext)
+                    # Unmatched opening brackets and stuff after
+                    # Visual indent
+                    correct_indent = bracket_stack[-1][0] + 1
 
         if not (diff_paren or diff_brack or diff_curly) and \
            not prevtext.endswith(':') and prevline:
