@@ -47,10 +47,17 @@ dependencies.add("pygments", _("Syntax highlighting for Matlab, Julia and "
 # =============================================================================
 # Constants
 # =============================================================================
-URL_PATTERN = r"https?://([\da-z\.-]+)\.([a-z\.]{2,6})([/\w\.-]*)[^ ^'^\"]+"
-FILE_PATTERN = r"file:///?([\S ]*)/"
-MAILTO_PATTERN = r"mailto:\s*([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})"
-ISSUE_PATTERN = r'((?:\w\w:)?[\w\-_]*/[\w\-_]*#\d+)'
+DEFAULT_PATTERNS = {
+    'file':
+        r'file:///?(?:[\S]*)',
+    'issue':
+        (r'(?:(?:(?:gh:)|(?:gl:)|(?:bb:))?[\w\-_]*/[\w\-_]*#\d+)|'
+         r'(?:(?:(?:gh-)|(?:gl-)|(?:bb-))\d+)'),
+    'mail':
+        r'(?:mailto:\s*)?([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})',
+    'url':
+        r"https?://([\da-z\.-]+)\.([a-z\.]{2,6})([/\w\.-]*)[^ ^'^\"]+",
+}
 COLOR_SCHEME_KEYS = {
                       "background":     _("Background:"),
                       "currentline":    _("Current line:"),
@@ -111,9 +118,28 @@ def any(name, alternates):
     return "(?P<%s>" % name + "|".join(alternates) + ")"
 
 
-URI_PATTERNS = re.compile(
-    any('uri', [URL_PATTERN, FILE_PATTERN, MAILTO_PATTERN, ISSUE_PATTERN])
-)
+def create_patterns(patterns, compile=False):
+    """
+    Create patterns from pattern dictionary.
+
+    The key correspond to the group name and the values a list of
+    possible pattern alternatives.
+    """
+    all_patterns = []
+    for key, value in patterns.items():
+        all_patterns.append(any(key, [value]))
+
+    regex = '|'.join(all_patterns)
+
+    if compile:
+        regex = re.compile(regex)
+
+    return regex
+
+
+DEFAULT_PATTERNS_TEXT = create_patterns(DEFAULT_PATTERNS, compile=False)
+DEFAULT_COMPILED_PATTERNS = re.compile(create_patterns(DEFAULT_PATTERNS,
+                                                       compile=True))
 
 
 #==============================================================================
@@ -155,6 +181,7 @@ class BaseSH(QSyntaxHighlighter):
         self.cell_separators = None
         self.fold_detector = None
         self.editor = None
+        self.patterns = DEFAULT_COMPILED_PATTERNS
 
     def get_background_color(self):
         return QColor(self.background_color)
@@ -235,6 +262,20 @@ class BaseSH(QSyntaxHighlighter):
             previous_block = previous_block.previous()
         return previous_block
 
+    def update_patterns(self, patterns):
+        """Update patterns to underline."""
+        all_patterns = DEFAULT_PATTERNS.copy()
+        additional_patterns = patterns.copy()
+
+        # Check that default keys are not overwritten
+        for key in DEFAULT_PATTERNS.keys():
+            if key in additional_patterns:
+                # TODO: print warning or check this at the plugin level?
+                additional_patterns.pop(key)
+        all_patterns.update(additional_patterns)
+
+        self.patterns = create_patterns(all_patterns, compile=True)
+
     def highlightBlock(self, text):
         """
         Highlights a block of text. Please do not override, this method.
@@ -263,24 +304,24 @@ class BaseSH(QSyntaxHighlighter):
         """
         raise NotImplementedError()
 
-    def highlight_uris(self, text, offset=0):
+    def highlight_patterns(self, text, offset=0):
         """Highlight URI and mailto: patterns."""
-        match = URI_PATTERNS.search(text, offset)
+        match = self.patterns.search(text, offset)
         while match:
-            start, end = match.span()
-            start = max([0, start+offset])
-            end = max([0, end+offset])
-            font = self.format(start)
-            font.setUnderlineStyle(True)
-            self.setFormat(start, end - start, font)
-            match = URI_PATTERNS.search(text, end)
+            for __, value in list(match.groupdict().items()):
+                if value:
+                    start, end = match.span()
+                    start = max([0, start + offset])
+                    end = max([0, end + offset])
+                    font = self.format(start)
+                    font.setUnderlineStyle(True)
+                    self.setFormat(start, end - start, font)
+            match = self.patterns.search(text, end)
 
     def highlight_spaces(self, text, offset=0):
         """
         Make blank space less apparent by setting the foreground alpha.
         This only has an effect when 'Show blank space' is turned on.
-        Derived classes could call this function at the end of
-        highlightBlock().
         """
         flags_text = self.document().defaultTextOption().flags()
         show_blanks =  flags_text & QTextOption.ShowTabsAndSpaces
@@ -305,12 +346,15 @@ class BaseSH(QSyntaxHighlighter):
                 self.setFormat(start, end-start, color_foreground)
                 match = self.BLANKPROG.search(text, match.end())
 
-        self.highlight_uris(text, offset)
-
     def highlight_extras(self, text, offset=0):
-        """Perform additional global text highlight."""
+        """
+        Perform additional global text highlight.
+
+        Derived classes could call this function at the end of
+        highlight_block().
+        """
         self.highlight_spaces(text, offset=offset)
-        self.highlight_uris(text, offset=offset)
+        self.highlight_patterns(text, offset=offset)
 
     def rehighlight(self):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
