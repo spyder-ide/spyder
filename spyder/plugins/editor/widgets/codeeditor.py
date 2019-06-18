@@ -2438,21 +2438,21 @@ class CodeEditor(TextEditBaseWidget):
                 for c in prevtext:
                     if escaped:
                         escaped = False
-                    elif deactivate is not None:
+                    elif deactivate:
                         if c == deactivate:
                             deactivate = None
                         elif c == "\\":
                             escaped = True
                     elif c in ["'", '"']:
                         deactivate = c
-                    elif c in ['(', '[','{']:
+                    elif c in ('(', '[', '{'):
                         stack.append(c)
-                    elif c == ')' and stack[-1] == '(':
-                        stack.pop()
-                    elif c == ']' and stack[-1] == '[':
-                        stack.pop()
-                    elif c == '}' and stack[-1] == '{':
-                        stack.pop()
+                    elif c in (')', ']', '}'):
+                        if stack[-1] == {')':'(', ']':'[', '}':'{'}[c]:
+                            stack.pop()
+                        else:
+                            # mismatched bracket
+                            pass
 
                 if len(stack) == 1:  # all braces matching
                     pass
