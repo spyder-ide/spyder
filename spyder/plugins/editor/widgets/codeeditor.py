@@ -2370,9 +2370,22 @@ class CodeEditor(TextEditBaseWidget):
             prevtext = to_text_string(cursor.block().text()).rstrip()
 
             # Remove inline comment
-            inline_comment = prevtext.find('#')
-            if inline_comment != -1:
-                prevtext = prevtext[:inline_comment]
+            deactivate = None
+            escaped = False
+            for pos, c in prevtext:
+                if escaped:
+                    escaped = False
+                elif deactivate:
+                    if c == deactivate:
+                        deactivate = None
+                    elif c == "\\":
+                        escaped = True
+                elif c in ["'", '"']:
+                    deactivate = c
+                elif c == "#":
+                    prevtext = prevtext[:pos].rstrip()
+                    break
+            del pos, c, deactivate, escaped
 
             if prevtext.strip():
 
