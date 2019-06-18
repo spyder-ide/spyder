@@ -2352,6 +2352,8 @@ class CodeEditor(TextEditBaseWidget):
         forward=False: fix indent only if text is too much indented
                        (otherwise force unindent)
 
+        comment_or_string:
+
         Returns True if indent needed to be fixed
 
         Assumes self.is_python_like() to return True
@@ -2359,19 +2361,20 @@ class CodeEditor(TextEditBaseWidget):
         cursor = self.textCursor()
         block_nb = cursor.blockNumber()
         # find the line that contains our scope
-        diff_paren = 0
-        diff_brack = 0
-        diff_curly = 0
         closing_brackets = []  # Closing brackets left over from lower lines
-        add_indent = False
+        line_in_block = False
+        visual_indent = False
+        add_indent = 0  # How many levels of indent to add
         prevline = None
         prevtext = ""
         for prevline in range(block_nb-1, -1, -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
 
-            # Remove inline comment
-            bracket_stack = []
+            # Remove inline comment and check brackets
+            bracket_stack = []  # list containing this lines unmatched opening
+            # same deal, for closing though. Ignore if bracket stack not empty,
+            # since they are mismatched in that case.
             bracket_unmatched_closing = []
             deactivate = None
             escaped = False
@@ -2394,7 +2397,7 @@ class CodeEditor(TextEditBaseWidget):
                     break
                 # Handle brackets
                 elif c in ('(', '[', '{'):
-                        bracket_stack.append((pos, c))
+                    bracket_stack.append((pos, c))
                 elif c in (')', ']', '}'):
                     if bracket_stack and bracket_stack[-1][1] == {
                             ')': '(', ']': '[', '}': '{'
@@ -2402,81 +2405,94 @@ class CodeEditor(TextEditBaseWidget):
                         bracket_stack.pop()
                     else:
                         bracket_unmatched_closing.append(c)
-            del pos, c, deactivate, escaped
+            del pos, deactivate, escaped
+            # If no closing brackets are left over from this line,
+            # check the ones from previous iterations' prevlines
+            if not bracket_unmatched_closing:
+                for c in closing_brackets.copy():
+                    if bracket_stack and bracket_stack[-1][1] == {
+                            ')': '(', ']': '[', '}': '{'
+                            }[c]:
+                        bracket_stack.pop()
+                        closing_brackets.remove(c)
+                    else:
+                        break
+            del c
 
-            if prevtext:
+            if not prevtext:
+                continue
 
-                if not "return" == prevtext.split()[0] and \
-                    (prevtext.endswith(')') or
-                     prevtext.endswith(']') or
-                     prevtext.endswith('}')):
+            # This doesn't seem to be doing anything important?
+# =============================================================================
+#             if not "return" == prevtext.split()[0] and \
+#                     prevtext.endswith((')', ']', '}')):  # What for?
+#                 comment_or_string = True  # prevent further parsing
+#             el
+# =============================================================================
+            if prevtext.endswith(':'):
+                # Presume a block was started
+                line_in_block = True  # add one level of indent to correct_indent
+                # Does this variable actually do *anything* of relevance?
+                # comment_or_string = True
 
-                    comment_or_string = True  # prevent further parsing
+            if bracket_stack:
+                break
+            elif bracket_unmatched_closing:
+                closing_brackets = bracket_unmatched_closing + closing_brackets
+            else:
+                break
 
-                elif prevtext.endswith(':'):
-                    add_indent = True
-                    comment_or_string = True
+            if not closing_brackets:
+                break
 
-                if bracket_stack:
-                    break
-                elif bracket_unmatched_closing:
-                    closing_brackets = bracket_unmatched_closing + closing_brackets
+        # splits of prevtext happen a few times. Let's just do it once
+        words = re.split('[\s\(\[\{\}\]\)]', prevtext.lstrip())
+
+        if line_in_block:
+            add_indent += 1
+
+        if prevtext and not comment_or_string:
+            if bracket_stack:
+                # Hanging indent
+                # only if prevtext is long that the hanging indentation
+                if prevtext.endswith(('(', '[', '{')):
+                    # TODO Only 1 Level if not keyword
+                    add_indent += 1
+                    if words[0] in ('class', 'def', 'elif', 'except', 'for',
+                            'if', 'while', 'with'):
+                        add_indent += 1
+                    if not ((
+                        self.tab_stop_width_spaces
+                        if self.indent_chars == '\t' else
+                        len(self.indent_chars))
+                        * 2 < len(prevtext)):
+                          visual_indent = True
                 else:
-                    break
-
-                if not closing_brackets:
-                    break
+                    # There's stuff after unmatched opening brackets
+                    visual_indent = True
+            elif (words[-1] in ('continue', 'break', 'pass')
+                  or "return" == words[0]  # TODO fix for "return()"
+                  # and not closing_brackets?
+                ):
+                add_indent -= 1
 
         if prevline:
             correct_indent = self.get_block_indentation(prevline)
         else:
             correct_indent = 0
 
-        indent = self.get_block_indentation(block_nb)
-
-        if add_indent:
+        if visual_indent:  # can only be true if bracket_stack
+            correct_indent = bracket_stack[-1][0] + 1
+        elif add_indent:
+            # Indent
             if self.indent_chars == '\t':
-                correct_indent += self.tab_stop_width_spaces
+                correct_indent += self.tab_stop_width_spaces * add_indent
             else:
-                correct_indent += len(self.indent_chars)
+                correct_indent += len(self.indent_chars) * add_indent
 
-        if prevtext and not comment_or_string:
-            if prevtext.endswith(':'):
-                # Indent
-                if self.indent_chars == '\t':
-                    correct_indent += self.tab_stop_width_spaces
-                else:
-                    correct_indent += len(self.indent_chars)
-            elif (
-                    prevtext.split()[-1] in ('continue', 'break', 'pass')
-                    or ("return" == prevtext.split()[0] and
-                    not bracket_stack)  # and not closing_brackets?
-                 ):
-                # Unindent
-                if self.indent_chars == '\t':
-                    correct_indent -= self.tab_stop_width_spaces
-                else:
-                    correct_indent -= len(self.indent_chars)
-            elif bracket_stack:
-                # Hanging indent
-                # find out if the last one is (, {, or []})
-                # only if prevtext is long that the hanging indentation
-                if (prevtext[-1] in ('(', '[', '{') and
-                      ((self.indent_chars == '\t' and
-                        self.tab_stop_width_spaces * 2 < len(prevtext)) or
-                       (self.indent_chars.startswith(' ') and
-                        len(self.indent_chars) * 2 < len(prevtext)))):
-                    if self.indent_chars == '\t':
-                        correct_indent += self.tab_stop_width_spaces * 2
-                    else:
-                        correct_indent += len(self.indent_chars) * 2
-                else:
-                    # Unmatched opening brackets and stuff after
-                    # Visual indent
-                    correct_indent = bracket_stack[-1][0] + 1
 
-        if not (diff_paren or diff_brack or diff_curly) and \
-           not prevtext.endswith(':') and prevline:
+
+        if prevline and not bracket_stack and not prevtext.endswith(':'):
             cur_indent = self.get_block_indentation(block_nb - 1)
             is_blank = not self.get_text_line(block_nb - 1).strip()
             prevline_indent = self.get_block_indentation(prevline)
@@ -2491,11 +2507,17 @@ class CodeEditor(TextEditBaseWidget):
                                    + (len(self.indent_chars) -
                                       cur_indent % len(self.indent_chars))
 
+
+
+
+        indent = self.get_block_indentation(block_nb)
+
         if (forward and indent >= correct_indent) or \
            (not forward and indent <= correct_indent):
             # No indentation fix is necessary
             return False
 
+        # Insert the determined indent
         if correct_indent >= 0:
             cursor = self.textCursor()
             cursor.movePosition(QTextCursor.StartOfBlock)
