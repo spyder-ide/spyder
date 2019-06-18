@@ -71,12 +71,12 @@ def file_assoc_widget(qtbot):
         ext = '.desktop'
 
     data = {
-        '*.txt':
+        '*.csv':
             [
                 ('App name 1', '/path/to/app 1' + ext),
                 ('App name 2', '/path/to/app 2' + ext),
             ],
-        '*.csv':
+        '*.txt':
             [
                 ('App name 2', '/path/to/app 2' + ext),
                 ('App name 3', '/path/to/app 3' + ext),
@@ -84,4 +84,5 @@ def file_assoc_widget(qtbot):
     }
     widget.load_values(data)
     widget.show()
+    widget.test_data = data
     return qtbot, widget

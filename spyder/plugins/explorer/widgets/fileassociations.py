@@ -140,7 +140,9 @@ class ApplicationsDialog(QDialog):
         self.button_browse.clicked.connect(lambda x: self.browse())
         self.button_ok.clicked.connect(self.accept)
         self.button_cancel.clicked.connect(self.reject)
+        self.list.currentItemChanged.connect(self._refresh)
 
+        self._refresh()
         self.setup()
 
     def setup(self, applications=None):
@@ -163,6 +165,11 @@ class ApplicationsDialog(QDialog):
         # FIXME: Use metrics
         self.list.setMinimumWidth(self.list.sizeHintForColumn(0) + 24)
         QApplication.restoreOverrideCursor()
+        self._refresh()
+
+    def _refresh(self):
+        """Refresh the status of buttons on widget."""
+        self.button_ok.setEnabled(self.list.currentRow() != -1)
 
     def browse(self, fpath=None):
         """Prompt user to select an application not found on the list."""
@@ -231,6 +238,7 @@ class ApplicationsDialog(QDialog):
                 self.list.setCurrentItem(item)
 
         self.list.setFocus()
+        self._refresh()
 
     def filter(self, text):
         """Filter the list of applications based on text."""
@@ -238,6 +246,7 @@ class ApplicationsDialog(QDialog):
         for row in range(self.list.count()):
             item = self.list.item(row)
             item.setHidden(text not in item.text().lower())
+        self._refresh()
 
     def set_extension(self, extension):
         """Set the extension on the label of the dialog."""
@@ -247,12 +256,16 @@ class ApplicationsDialog(QDialog):
     @property
     def application_path(self):
         """Return the selected application path to executable."""
-        return self.list.currentItem().fpath
+        item = self.list.currentItem()
+        path = item.fpath if item else ''
+        return path
 
     @property
     def application_name(self):
         """Return the selected application name."""
-        return self.list.currentItem().text()
+        item = self.list.currentItem()
+        text = item.text() if item else ''
+        return text
 
 
 class FileAssociationsWidget(QWidget):
@@ -271,6 +284,8 @@ class FileAssociationsWidget(QWidget):
         # Variables
         self._data = {}
         self._dlg_applications = None
+        self._dlg_input = None
+        self._regex = re.compile(self._EXTENSIONS_LIST_REGEX)
 
         # Widgets
         self.label = QLabel(
@@ -367,15 +382,19 @@ class FileAssociationsWidget(QWidget):
 
     def _add_application(self, app_name, fpath):
         """Add application helper."""
+        app_not_found_text = _(' (Application not found!)')
         for row in range(self.list_applications.count()):
-            item = self.list_extensions.item(row)
-            if item and item.text().strip() == app_name:
+            item = self.list_applications.item(row)
+            # Ensure the actual name is checked without the `app not found`
+            # additional text, in case app was not found
+            item_text = item.text().replace(app_not_found_text, '').strip()
+            if item and item_text == app_name:
                 break
         else:
             icon = get_application_icon(fpath)
 
             if not (os.path.isfile(fpath) or os.path.isdir(fpath)):
-                app_name += _(' (Application not found!)')
+                app_name += app_not_found_text
 
             item = QListWidgetItem(icon, app_name)
             self.list_applications.addItem(item)
@@ -406,7 +425,6 @@ class FileAssociationsWidget(QWidget):
                 + '<ul><li><code>*.txt</code></li>'
                 + '<li><code>*.json,*,csv</code></li>'
                 + '<li><code>*.json,README.md</code></li></ul>'
-                + '<br>'
             ),
         )
         self._dlg_input.set_regex_validation(self._EXTENSIONS_LIST_REGEX)
@@ -433,12 +451,14 @@ class FileAssociationsWidget(QWidget):
                 text = self._dlg_input.text()
                 ok_pressed = True
         else:
-            text, ok_pressed = value, True
+            match = self._regex.match(value)
+            text, ok_pressed = value, bool(match)
 
         if ok_pressed:
-            self._data[text] = []
-            self._add_association(text)
-            self.check_data_changed()
+            if text not in self._data:
+                self._data[text] = []
+                self._add_association(text)
+                self.check_data_changed()
 
     def remove_association(self):
         """Remove extension file association."""

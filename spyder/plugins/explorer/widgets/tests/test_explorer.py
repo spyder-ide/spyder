@@ -11,6 +11,7 @@ Tests for explorer.py
 # Standard imports
 import os
 import os.path as osp
+import sys
 
 # Third party imports
 import pytest
@@ -29,6 +30,26 @@ from spyder.plugins.projects.widgets.explorer import ProjectExplorerTest as Proj
 def file_explorer(qtbot):
     """Set up FileExplorerTest."""
     widget = FileExplorerTest()
+    qtbot.addWidget(widget)
+    return widget
+
+
+@pytest.fixture
+def file_explorer_associations(qtbot):
+    """Set up FileExplorerTest."""
+    if os.name == 'nt':
+        ext = '.exe'
+    elif sys.platform == 'darwin':
+        ext = '.app'
+    else:
+        ext = '.desktop'
+
+    associations = {
+        '*.txt': '/some/fake/some_app_1' + ext,
+        '*.json,*.txt': '/some/fake/some_app_2' + ext,
+    }
+    widget = FileExplorerTest(file_associations=associations)
+    widget.show()
     qtbot.addWidget(widget)
     return widget
 
@@ -143,7 +164,7 @@ def test_single_click_to_open(qtbot, file_explorer):
         file_explorer.label3.setText('')
         file_explorer.label1.setText('')
 
-        for i in range(4):  # 4 items inside `/spyder/plugins/explorer/`
+        for __ in range(4):  # 4 items inside `/spyder/plugins/explorer/`
             qtbot.keyClick(treewidget, Qt.Key_Down)
             index = treewidget.currentIndex()
             path = model.data(index)
@@ -171,16 +192,34 @@ def test_single_click_to_open(qtbot, file_explorer):
     run_test_helper(single_click=False, initial_index=initial_index)
 
 
-def test_associations(qtbot, file_explorer):
-    pass
+def test_get_common_file_associations(qtbot, file_explorer_associations):
+    widget = file_explorer_associations
 
 
-def test_check_launch_error_codes(qtbot, file_explorer):
-    pass
+def test_get_file_associations(qtbot, file_explorer_associations):
+    widget = file_explorer_associations.explorer.treewidget
+    associations = widget.get_file_associations('/some/path/file.txt')
+    assert associations == '/some/fake/some_app_1.app'
 
 
-def test_open_association(qtbot, file_explorer):
-    pass
+def test_create_file_manage_actions(qtbot, file_explorer_associations):
+    widget = file_explorer_associations
+
+
+def test_clicked(qtbot, file_explorer_associations):
+    widget = file_explorer_associations
+
+
+def test_associations(qtbot, file_explorer_associations):
+    widget = file_explorer_associations
+
+
+def test_check_launch_error_codes(qtbot, file_explorer_associations):
+    widget = file_explorer_associations
+
+
+def test_open_association(qtbot, file_explorer_associations):
+    widget = file_explorer_associations
 
 
 if __name__ == "__main__":
