@@ -2372,7 +2372,8 @@ class CodeEditor(TextEditBaseWidget):
             # Remove inline comment
             deactivate = None
             escaped = False
-            for pos, c in prevtext:
+            pos, c = None, None
+            for pos, c in enumerate(prevtext):
                 if escaped:
                     escaped = False
                 elif deactivate:
