@@ -40,8 +40,6 @@ from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils import misc, programs, vcs
 from spyder.utils.misc import getcwd_or_home
-from spyder.utils.programs import (open_files_with_application,
-                                   parse_linux_desktop_entry)
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_plugin_layout, file_uri)
 
@@ -661,7 +659,8 @@ class DirView(QTreeView):
 
         if app_path:
             fnames = self.get_selected_filenames()
-            return_codes = open_files_with_application(app_path, fnames)
+            return_codes = programs.open_files_with_application(app_path,
+                                                                fnames)
 
         errors = [cmd for cmd, code in return_codes.items() if code != 0]
         if errors:

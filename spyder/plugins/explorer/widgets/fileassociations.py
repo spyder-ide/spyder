@@ -8,8 +8,9 @@
 File associations widget for use in global and project preferences.
 """
 
-# Standard library imports
 from __future__ import print_function
+
+# Standard library imports
 import os
 import re
 import sys
@@ -24,11 +25,11 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QVBoxLayout, QWidget)
 # Local imports
 from spyder.config.base import _
-from spyder.plugins.explorer.utils import (get_application_icon,
-                                           get_installed_applications)
 from spyder.utils import icon_manager as ima
 from spyder.utils.encoding import is_text_file
-from spyder.utils.programs import parse_linux_desktop_entry
+from spyder.utils.programs import (get_application_icon,
+                                   get_installed_applications,
+                                   parse_linux_desktop_entry)
 
 
 class InputTextDialog(QDialog):
