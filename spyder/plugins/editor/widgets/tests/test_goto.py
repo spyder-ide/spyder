@@ -20,8 +20,9 @@ from spyder.plugins.editor.widgets.tests.test_codeeditor import editorbot
 # Constants
 TEST_FOLDER = os.path.abspath(os.path.dirname(__file__))
 _, TEMPFILE_PATH = tempfile.mkstemp()
-TEST_FILE_ABS = [os.path.join(TEST_FOLDER, f) for f in
-                 os.listdir(TEST_FOLDER) if f.endswith('.py')][0].replace(' ', '%20')
+TEST_FILES = [os.path.join(TEST_FOLDER, f) for f in
+              os.listdir(TEST_FOLDER) if f.endswith('.py')]
+TEST_FILE_ABS = TEST_FILES[0].replace(' ', '%20')
 TEST_FILE_REL = [f for f in os.listdir(TEST_FOLDER) if f.endswith('.py')][0]
 
 
@@ -37,7 +38,8 @@ TEST_FILE_REL = [f for f in os.listdir(TEST_FOLDER) if f.endswith('.py')][0]
             ('"file://./{}/"\n'.format(TEST_FILE_REL), TEST_FILE_REL,
              os.path.join(TEST_FOLDER, TEST_FILE_REL)),
             # Files that do not exist
-            ('"file:///not%20there/"', 'file:///not%20there/', '/not%20there/'),
+            ('"file:///not%20there/"', 'file:///not%20there/',
+             '/not%20there/'),
             ('"file:///not_there/"', 'file:///not_there/', '/not_there/'),
             # Urls
             ('" https://google.com"\n', 'https://google.com', None),

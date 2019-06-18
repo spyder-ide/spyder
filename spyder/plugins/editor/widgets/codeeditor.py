@@ -3365,11 +3365,11 @@ class CodeEditor(TextEditBaseWidget):
                     end_rect = self.cursorRect(cursor)
                     bounding_rect = start_rect.united(end_rect)
 
-                    # Check if coordinates are located within the selection rect
+                    # Check coordinates are located within the selection rect
                     if bounding_rect.contains(coordinates):
                         text = line[start:end]
                         cursor.setPosition(line_start_position + start,
-                                        cursor.KeepAnchor)
+                                           cursor.KeepAnchor)
                         break_loop = True
                         break
 

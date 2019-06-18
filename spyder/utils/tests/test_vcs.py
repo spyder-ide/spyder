@@ -83,9 +83,12 @@ def test_get_git_remotes():
 @pytest.mark.parametrize(
     'input_text, expected_output',
     [
-        ('https://github.com/neophnx/spyder.git', 'https://github.com/neophnx/spyder'),
-        ('http://github.com/neophnx/spyder.git', 'http://github.com/neophnx/spyder'),
-        ('git@github.com:goanpeca/spyder.git', 'https://github.com/goanpeca/spyder'),
+        ('https://github.com/neophnx/spyder.git',
+         'https://github.com/neophnx/spyder'),
+        ('http://github.com/neophnx/spyder.git',
+         'http://github.com/neophnx/spyder'),
+        ('git@github.com:goanpeca/spyder.git',
+         'https://github.com/goanpeca/spyder'),
     ]
 )
 def test_remote_to_url(input_text, expected_output):

@@ -119,7 +119,12 @@ def any(name, alternates):
 
 
 def create_patterns(patterns, compile=False):
-    """"""
+    """
+    Create patterns from pattern dictionary.
+
+    The key correspond to the group name and the values a list of
+    possible pattern alternatives.
+    """
     all_patterns = []
     for key, value in patterns.items():
         all_patterns.append(any(key, [value]))
@@ -133,7 +138,8 @@ def create_patterns(patterns, compile=False):
 
 
 DEFAULT_PATTERNS_TEXT = create_patterns(DEFAULT_PATTERNS, compile=False)
-DEFAULT_COMPILED_PATTERNS = re.compile(create_patterns(DEFAULT_PATTERNS, compile=True))
+DEFAULT_COMPILED_PATTERNS = re.compile(create_patterns(DEFAULT_PATTERNS,
+                                                       compile=True))
 
 
 #==============================================================================
