@@ -2399,9 +2399,8 @@ class CodeEditor(TextEditBaseWidget):
                 elif c in ('(', '[', '{'):
                     bracket_stack.append((pos, c))
                 elif c in (')', ']', '}'):
-                    if bracket_stack and bracket_stack[-1][1] == {
-                            ')': '(', ']': '[', '}': '{'
-                            }[c]:
+                    if bracket_stack and bracket_stack[-1][1] == \
+                            {')': '(', ']': '[', '}': '{'}[c]:
                         bracket_stack.pop()
                     else:
                         bracket_unmatched_closing.append(c)
@@ -2410,9 +2409,8 @@ class CodeEditor(TextEditBaseWidget):
             # check the ones from previous iterations' prevlines
             if not bracket_unmatched_closing:
                 for c in closing_brackets.copy():
-                    if bracket_stack and bracket_stack[-1][1] == {
-                            ')': '(', ']': '[', '}': '{'
-                            }[c]:
+                    if bracket_stack and bracket_stack[-1][1] == \
+                            {')': '(', ']': '[', '}': '{'}[c]:
                         bracket_stack.pop()
                         closing_brackets.remove(c)
                     else:
@@ -2446,7 +2444,7 @@ class CodeEditor(TextEditBaseWidget):
                 break
 
         # splits of prevtext happen a few times. Let's just do it once
-        words = re.split('[\s\(\[\{\}\]\)]', prevtext.lstrip())
+        words = re.split(r'[\s\(\[\{\}\]\)]', prevtext.lstrip())
 
         if line_in_block:
             add_indent += 1
@@ -2454,26 +2452,24 @@ class CodeEditor(TextEditBaseWidget):
         if prevtext and not comment_or_string:
             if bracket_stack:
                 # Hanging indent
-                # only if prevtext is long that the hanging indentation
                 if prevtext.endswith(('(', '[', '{')):
-                    # TODO Only 1 Level if not keyword
                     add_indent += 1
                     if words[0] in ('class', 'def', 'elif', 'except', 'for',
-                            'if', 'while', 'with'):
+                                    'if', 'while', 'with'):
                         add_indent += 1
-                    if not ((
-                        self.tab_stop_width_spaces
-                        if self.indent_chars == '\t' else
-                        len(self.indent_chars))
-                        * 2 < len(prevtext)):
-                          visual_indent = True
+                    if not (
+                            (
+                                self.tab_stop_width_spaces
+                                if self.indent_chars == '\t' else
+                                len(self.indent_chars)
+                            ) * 2 < len(prevtext)):
+                        visual_indent = True
                 else:
                     # There's stuff after unmatched opening brackets
                     visual_indent = True
-            elif (words[-1] in ('continue', 'break', 'pass')
-                  or "return" == words[0]  # TODO fix for "return()"
-                  # and not closing_brackets?
-                ):
+            elif (words[-1] in ('continue', 'break', 'pass',)
+                  or words[0] == "return"
+                  ):
                 add_indent -= 1
 
         if prevline:
@@ -2490,8 +2486,7 @@ class CodeEditor(TextEditBaseWidget):
             else:
                 correct_indent += len(self.indent_chars) * add_indent
 
-
-
+        # TODO this block
         if prevline and not bracket_stack and not prevtext.endswith(':'):
             cur_indent = self.get_block_indentation(block_nb - 1)
             is_blank = not self.get_text_line(block_nb - 1).strip()
@@ -2506,9 +2501,6 @@ class CodeEditor(TextEditBaseWidget):
                     correct_indent = cur_indent \
                                    + (len(self.indent_chars) -
                                       cur_indent % len(self.indent_chars))
-
-
-
 
         indent = self.get_block_indentation(block_nb)
 
