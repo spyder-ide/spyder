@@ -2362,6 +2362,7 @@ class CodeEditor(TextEditBaseWidget):
         diff_paren = 0
         diff_brack = 0
         diff_curly = 0
+        closing_brackets = []  # Closing brackets left over from lower lines
         add_indent = False
         prevline = None
         prevtext = ""
@@ -2370,12 +2371,16 @@ class CodeEditor(TextEditBaseWidget):
             prevtext = to_text_string(cursor.block().text()).rstrip()
 
             # Remove inline comment
+            bracket_stack = ['dummy']
+            bracket_unmatched_closing = []
             deactivate = None
             escaped = False
             pos, c = None, None
             for pos, c in enumerate(prevtext):
+                # Handle '\' inside strings
                 if escaped:
                     escaped = False
+                # Handle strings
                 elif deactivate:
                     if c == deactivate:
                         deactivate = None
@@ -2383,9 +2388,18 @@ class CodeEditor(TextEditBaseWidget):
                         escaped = True
                 elif c in ["'", '"']:
                     deactivate = c
+                # Handle comments
                 elif c == "#":
                     prevtext = prevtext[:pos].rstrip()
                     break
+                # Handle brackets
+                elif c in ('(', '[', '{'):
+                        bracket_stack.append(c)
+                elif c in (')', ']', '}'):
+                    if bracket_stack[-1] == {')':'(', ']':'[', '}':'{'}[c]:
+                        bracket_stack.pop()
+                    else:
+                        bracket_unmatched_closing.append(c)
             del pos, c, deactivate, escaped
 
             if prevtext.strip():
@@ -2400,19 +2414,15 @@ class CodeEditor(TextEditBaseWidget):
                 elif prevtext.strip().endswith(':'):
                     add_indent = True
                     comment_or_string = True
-                if (prevtext.count(')') > prevtext.count('(')):
-                    diff_paren = prevtext.count(')') - prevtext.count('(')
-                elif (prevtext.count(']') > prevtext.count('[')):
-                    diff_brack = prevtext.count(']') - prevtext.count('[')
-                elif (prevtext.count('}') > prevtext.count('{')):
-                    diff_curly = prevtext.count('}') - prevtext.count('{')
-                elif diff_paren or diff_brack or diff_curly:
-                    diff_paren += prevtext.count(')') - prevtext.count('(')
-                    diff_brack += prevtext.count(']') - prevtext.count('[')
-                    diff_curly += prevtext.count('}') - prevtext.count('{')
-                    if not (diff_paren or diff_brack or diff_curly):
-                        break
+
+                if len(bracket_stack) > 1:
+                    break
+                elif bracket_unmatched_closing:
+                    closing_brackets = bracket_unmatched_closing + closing_brackets
                 else:
+                    break
+
+                if not closing_brackets:
                     break
 
         if prevline:
