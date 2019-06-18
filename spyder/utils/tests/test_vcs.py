@@ -77,7 +77,6 @@ def test_get_git_refs():
 def test_get_git_remotes():
     remotes = get_git_remotes(HERE)
     assert 'origin' in remotes
-    assert 'spyder.git' in remotes['origin']
 
 
 @pytest.mark.parametrize(
