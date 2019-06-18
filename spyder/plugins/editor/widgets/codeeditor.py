@@ -1471,7 +1471,7 @@ class CodeEditor(TextEditBaseWidget):
     def __highlight_selection(self, key, cursor, foreground_color=None,
                         background_color=None, underline_color=None,
                         outline_color=None,
-                        underline_style=QTextCharFormat.WaveUnderline,
+                        underline_style=QTextCharFormat.SingleUnderline,
                         update=False):
         if cursor is None:
             return
@@ -1942,7 +1942,7 @@ class CodeEditor(TextEditBaseWidget):
                 QTextCursor.NextCharacter, n=end['character'],
                 mode=QTextCursor.KeepAnchor)
             color = QColor(color)
-            color.setAlpha(50)
+            color.setAlpha(255)
 
             data = block.userData()
             if not data:
@@ -1952,6 +1952,8 @@ class CodeEditor(TextEditBaseWidget):
             block.setUserData(data)
             block.selection = QTextCursor(cursor)
             block.color = color
+            self.__highlight_selection('code_analysis', block.selection,
+                                       underline_color=block.color)
 
         self.sig_process_code_analysis.emit()
         self.update_extra_selections()
