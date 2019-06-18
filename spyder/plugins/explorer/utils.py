@@ -23,32 +23,6 @@ from spyder.config.base import _, get_conf_path
 from spyder.utils import icon_manager as ima
 
 
-def parse_linux_desktop_entry(fpath):
-    """Load data from desktop entry with xdg specification."""
-    from xdg.DesktopEntry import DesktopEntry
-
-    try:
-        entry = DesktopEntry(fpath)
-        entry_data = {}
-        entry_data['name'] = entry.getName()
-        entry_data['icon_path'] = entry.getIcon()
-        entry_data['exec'] = entry.getExec()
-        entry_data['type'] = entry.getType()
-        entry_data['hidden'] = entry.getHidden()
-        entry_data['fpath'] = fpath
-    except Exception:
-        entry_data = {
-            'name': '',
-            'icon_path': '',
-            'hidden': '',
-            'exec': '',
-            'type': '',
-            'fpath': fpath
-        }
-
-    return entry_data
-
-
 def _get_mac_application_icon_path(app_bundle_path):
     """Parse mac application bundle and return path for *.icns file."""
     import plistlib

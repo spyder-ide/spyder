@@ -172,6 +172,7 @@ def test_single_click_to_open(qtbot, file_explorer):
 
 
 def test_assocaitions(qtbot, file_explorer):
+    pass
 
 
 if __name__ == "__main__":

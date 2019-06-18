@@ -35,12 +35,13 @@ from qtpy.QtWidgets import (QApplication, QFileIconProvider, QFileSystemModel,
 # Local imports
 from spyder.config.base import _, get_home_dir, get_image_path
 from spyder.config.gui import config_shortcut, get_shortcut, is_dark_interface
-from spyder.plugins.explorer.utils import parse_linux_desktop_entry
 from spyder.py3compat import str_lower, to_binary_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils import misc, programs, vcs
 from spyder.utils.misc import getcwd_or_home
+from spyder.utils.programs import (open_files_with_application,
+                                   parse_linux_desktop_entry)
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_plugin_layout, file_uri)
 
@@ -652,74 +653,33 @@ class DirView(QTreeView):
     @Slot()
     def open_association(self, app_path):
         """Open files with given application executable path."""
-        return_codes = {}
+        if not (os.path.isdir(app_path) or os.path.isfile(app_path)):
+            return_codes = {app_path: 0}
+            app_path = None
+        else:
+            return_codes = {}
+
         if app_path:
             fnames = self.get_selected_filenames()
+            return_codes = open_files_with_application(app_path, fnames)
 
-            # Add quotes as needed
-            if sys.platform != 'darwin':
-                new_fnames = []
-                for fname in fnames:
-                    if ' ' in fname:
-                        if '"' in fname:
-                            fname = '"{}"'.format(fname)
-                        else:
-                            fname = "'{}'".format(fname)
-                        new_fnames.append(fname)
-                    else:
-                        new_fnames.append(fname)
-                fnames = new_fnames
-
-            if sys.platform == 'darwin':
-                cmd = ['open', '-a', app_path] + fnames
-                return_code = subprocess.call(cmd)
-                return_codes[' '.join(cmd)] = return_code
-            elif os.name == 'nt':
-                cmd = [app_path] + fnames
-                return_code = subprocess.call(cmd)
-                return_codes[' '.join(cmd)] = return_code
+        errors = [cmd for cmd, code in return_codes.items() if code != 0]
+        if errors:
+            if len(errors) == 1:
+                msg = _('The following command did not launch successfully:')
             else:
-                entry = parse_linux_desktop_entry(app_path)
-                app_path = entry['exec']
-                multi = []
-                extra = []
-                if len(fnames) == 1:
-                    fname = fnames[0]
-                    if '%u' in app_path:
-                        cmd = app_path.replace('%u', fname)
-                    elif '%f' in app_path:
-                        cmd = app_path.replace('%f', fname)
-                    elif '%U' in app_path:
-                        cmd = app_path.replace('%U', fname)
-                    elif '%F' in app_path:
-                        cmd = app_path.replace('%F', fname)
-                    else:
-                        cmd = app_path
-                        extra = fnames
-                elif len(fnames) > 1:
-                    if '%U' in app_path:
-                        cmd = app_path.replace('%U', ' '.join(fnames))
-                    elif '%F' in app_path:
-                        cmd = app_path.replace('%F', ' '.join(fnames))
-                    if '%u' in app_path:
-                        for fname in fnames:
-                            multi.append(app_path.replace('%u', fname))
-                    elif '%f' in app_path:
-                        for fname in fnames:
-                            multi.append(app_path.replace('%f', fname))
-                    else:
-                        cmd = app_path
-                        extra = fnames
+                msg = _('The following commands did not launch successfully:')
 
-                if multi:
-                    for cmd in multi:
-                        return_code = subprocess.call([cmd], shell=True)
-                        return_codes[cmd] = return_code
+            msg += '<br><br>' if len(errors) == 1 else '<br><br><ul>'
+            for error in errors:
+                if len(errors) == 1:
+                    msg += '<code>{}</code>'.format(error)
                 else:
-                    return_code = subprocess.call([cmd] + extra, shell=True)
-                    return_codes[cmd] = return_code
+                    msg += '<li><code>{}</code></li>'.format(error)
+            msg += '' if len(errors) == 1 else '</ul>'
 
-        # TODO: Handle code. Display message if problem?
+            QMessageBox.warning(self, 'Application', msg, QMessageBox.Ok)
+
         return return_codes
 
     @Slot()
@@ -1293,6 +1253,7 @@ class DirView(QTreeView):
         index = self.get_index('.spyproject')
         if index is not None:
             self.setRowHidden(index.row(), index.parent(), True)
+
 
 class ProxyModel(QSortFilterProxyModel):
     """Proxy model: filters tree view"""

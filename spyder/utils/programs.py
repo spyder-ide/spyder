@@ -200,6 +200,118 @@ def start_file(filename):
     return QDesktopServices.openUrl(url)
 
 
+def parse_linux_desktop_entry(fpath):
+    """Load data from desktop entry with xdg specification."""
+    from xdg.DesktopEntry import DesktopEntry
+
+    try:
+        entry = DesktopEntry(fpath)
+        entry_data = {}
+        entry_data['name'] = entry.getName()
+        entry_data['icon_path'] = entry.getIcon()
+        entry_data['exec'] = entry.getExec()
+        entry_data['type'] = entry.getType()
+        entry_data['hidden'] = entry.getHidden()
+        entry_data['fpath'] = fpath
+    except Exception:
+        entry_data = {
+            'name': '',
+            'icon_path': '',
+            'hidden': '',
+            'exec': '',
+            'type': '',
+            'fpath': fpath
+        }
+
+    return entry_data
+
+
+def open_files_with_application(app_path, fnames):
+    """
+    Generalized method for opening files with a specific application.
+
+    Returns a dictionary of the command used and the return code.
+    A code equal to 0 means the application executed successfully.
+    """
+    return_codes = {}
+
+    # Add quotes as needed
+    if sys.platform != 'darwin':
+        new_fnames = []
+        for fname in fnames:
+            if ' ' in fname:
+                if '"' in fname:
+                    fname = '"{}"'.format(fname)
+                else:
+                    fname = "'{}'".format(fname)
+                new_fnames.append(fname)
+            else:
+                new_fnames.append(fname)
+        fnames = new_fnames
+
+    if sys.platform == 'darwin':
+        if not (app_path.endswith('.app') and os.path.isdir(app_path)):
+            raise ValueError('`app_path`  must point to a valid OSX '
+                             'application!')
+        cmd = ['open', '-a', app_path] + fnames
+        return_code = subprocess.call(cmd)
+        return_codes[' '.join(cmd)] = return_code
+    elif os.name == 'nt':
+        if not (app_path.endswith(('.exe', '.bar', '.com'))
+                and os.path.isfile(app_path)):
+            raise ValueError('`app_path`  must point to a valid Windows '
+                             'executable!')
+        cmd = [app_path] + fnames
+        return_code = subprocess.call(cmd)
+        return_codes[' '.join(cmd)] = return_code
+    else:
+        if not (app_path.endswith('.desktop') and os.path.isfile(app_path)):
+            raise ValueError('`app_path` must point to a valid Linux '
+                             'application!')
+
+        entry = parse_linux_desktop_entry(app_path)
+        app_path = entry['exec']
+        multi = []
+        extra = []
+        if len(fnames) == 1:
+            fname = fnames[0]
+            if '%u' in app_path:
+                cmd = app_path.replace('%u', fname)
+            elif '%f' in app_path:
+                cmd = app_path.replace('%f', fname)
+            elif '%U' in app_path:
+                cmd = app_path.replace('%U', fname)
+            elif '%F' in app_path:
+                cmd = app_path.replace('%F', fname)
+            else:
+                cmd = app_path
+                extra = fnames
+        elif len(fnames) > 1:
+            if '%U' in app_path:
+                cmd = app_path.replace('%U', ' '.join(fnames))
+            elif '%F' in app_path:
+                cmd = app_path.replace('%F', ' '.join(fnames))
+            if '%u' in app_path:
+                for fname in fnames:
+                    multi.append(app_path.replace('%u', fname))
+            elif '%f' in app_path:
+                for fname in fnames:
+                    multi.append(app_path.replace('%f', fname))
+            else:
+                cmd = app_path
+                extra = fnames
+
+        if multi:
+            for cmd in multi:
+                return_code = subprocess.call([cmd], shell=True)
+                return_codes[cmd] = return_code
+        else:
+            return_code = subprocess.call([cmd] + extra, shell=True)
+            return_codes[cmd] = return_code
+
+    return return_codes
+
+
 def python_script_exists(package=None, module=None):
     """
     Return absolute path if Python script exists (otherwise, return None)
