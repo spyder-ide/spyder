@@ -11,8 +11,9 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-# Standard library imports
 from __future__ import with_statement
+
+# Standard library imports
 import mimetypes as mime
 import os
 import os.path as osp
@@ -21,28 +22,27 @@ import shutil
 import subprocess
 import sys
 
-
 # Third party imports
-from qtpy.compat import getsavefilename, getexistingdirectory
+from qtpy.compat import getexistingdirectory, getsavefilename
 from qtpy.QtCore import (QDir, QFileInfo, QMimeData, QSize,
-                         QSortFilterProxyModel, Qt, QTimer, QUrl,
-                         Signal, Slot)
+                         QSortFilterProxyModel, Qt, QTimer, QUrl, Signal, Slot)
 from qtpy.QtGui import QDrag, QIcon, QKeySequence
-from qtpy.QtWidgets import (QFileSystemModel, QHBoxLayout, QFileIconProvider,
-                            QInputDialog, QLabel, QLineEdit, QMenu,
-                            QMessageBox, QToolButton, QTreeView, QVBoxLayout,
-                            QWidget, QApplication)
+from qtpy.QtWidgets import (QApplication, QFileIconProvider, QFileSystemModel,
+                            QHBoxLayout, QInputDialog, QLabel, QLineEdit,
+                            QMenu, QMessageBox, QToolButton, QTreeView,
+                            QVBoxLayout, QWidget)
+
 # Local imports
 from spyder.config.base import _, get_home_dir, get_image_path
-from spyder.config.gui import is_dark_interface, config_shortcut, get_shortcut
+from spyder.config.gui import config_shortcut, get_shortcut, is_dark_interface
 from spyder.plugins.explorer.utils import parse_linux_desktop_entry
-from spyder.py3compat import (str_lower, to_binary_string,
-                              to_text_string)
+from spyder.py3compat import str_lower, to_binary_string, to_text_string
+from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
-from spyder.utils import encoding, misc, programs, vcs
-from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
-                                    create_plugin_layout)
+from spyder.utils import misc, programs, vcs
 from spyder.utils.misc import getcwd_or_home
+from spyder.utils.qthelpers import (add_actions, create_action,
+                                    create_plugin_layout, file_uri)
 
 try:
     from nbconvert import PythonExporter as nbexporter
@@ -268,9 +268,10 @@ class DirView(QTreeView):
     def setup_common_actions(self):
         """Setup context menu common actions"""
         # Filters
-        self.filters_action = create_action(self, _("Edit filename filters..."),
-                                       None, ima.icon('filter'),
-                                       triggered=self.edit_filter)
+        self.filters_action = create_action(
+            self, _("Edit filename filters..."), None, ima.icon('filter'),
+            triggered=self.edit_filter,
+        )
         # Show all files
         self.all_action = create_action(self, _("Show all files"),
                                         toggled=self.toggle_all)
@@ -287,7 +288,7 @@ class DirView(QTreeView):
         return actions
 
     def update_common_actions(self):
-        """"""
+        """Update the status of widget actions based on stored state."""
         self.set_show_all(self.show_all)
         self.all_action.setChecked(self.show_all)
         self.single_click_to_open_action.setChecked(self.single_click_to_open)
@@ -713,13 +714,12 @@ class DirView(QTreeView):
                 if multi:
                     for cmd in multi:
                         return_code = subprocess.call([cmd], shell=True)
-                        return_codes[cmd]= return_code
+                        return_codes[cmd] = return_code
                 else:
                     return_code = subprocess.call([cmd] + extra, shell=True)
-                    return_codes[cmd]= return_code
+                    return_codes[cmd] = return_code
 
         # TODO: Handle code. Display message if problem?
-        print(return_codes)
         return return_codes
 
     @Slot()

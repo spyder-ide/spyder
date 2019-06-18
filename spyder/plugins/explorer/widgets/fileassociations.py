@@ -28,6 +28,7 @@ from spyder.plugins.explorer.utils import (get_application_icon,
                                            get_installed_applications,
                                            parse_linux_desktop_entry)
 from spyder.utils import icon_manager as ima
+from spyder.utils.encoding import is_text_file
 
 
 class InputTextDialog(QDialog):
@@ -116,8 +117,8 @@ class ApplicationsDialog(QDialog):
         self.button_cancel = self.button_box.button(QDialogButtonBox.Cancel)
 
         # Widget setup
-        self.setWindowTitle(_('Applications dialog'))
-        self.edit_filter.setPlaceholderText(_('Type to filter by name...'))
+        self.setWindowTitle(_('Applications'))
+        self.edit_filter.setPlaceholderText(_('Type to filter by name'))
         self.list.setIconSize(QSize(16, 16))  # FIXME: Use metrics
 
         # Layout
@@ -174,7 +175,7 @@ class ApplicationsDialog(QDialog):
                 title = _('Select application')
                 fpath, __ = getopenfilename(self, title, basedir, filters)
 
-            if fpath and fpath.endswith('.app'):
+            if fpath and fpath.endswith('.app') and os.path.isdir(fpath):
                 app = os.path.basename(fpath).split('.app')[0]
                 for row in range(self.list.count()):
                     item = self.list.item(row)
@@ -189,14 +190,18 @@ class ApplicationsDialog(QDialog):
                 title = _('Select application')
                 fpath, __ = getopenfilename(self, title, basedir, filters)
 
-            if fpath and fpath.endswith(('.exe', '.bat', '.com')):
-                app = os.path.basename(fpath).capitalize().rsplit('.')[0]
-                for row in range(self.list.count()):
-                    item = self.list.item(row)
-                    if app == item.text() and fpath == item.fpath:
-                        break
-                else:
-                    item = None
+            if fpath:
+                check_1 = fpath.endswith('.bat') and is_text_file(fpath)
+                check_2 = (fpath.endswith(('.exe', '.com'))
+                           and not is_text_file(fpath))
+                if check_1 or check_2:
+                    app = os.path.basename(fpath).capitalize().rsplit('.')[0]
+                    for row in range(self.list.count()):
+                        item = self.list.item(row)
+                        if app == item.text() and fpath == item.fpath:
+                            break
+                    else:
+                        item = None
         else:
             if fpath is None:
                 basedir = '/'
@@ -204,7 +209,7 @@ class ApplicationsDialog(QDialog):
                 title = _('Select application')
                 fpath, __ = getopenfilename(self, title, basedir, filters)
 
-            if fpath and fpath.endswith(('.desktop')):
+            if fpath and fpath.endswith(('.desktop')) and is_text_file(fpath):
                 entry_data = parse_linux_desktop_entry(fpath)
                 app = entry_data['name']
                 for row in range(self.list.count()):
@@ -251,7 +256,11 @@ class ApplicationsDialog(QDialog):
 
 class FileAssociationsWidget(QWidget):
     """Widget to add applications association to file extensions."""
-    _REGEX = r'(?:(?:\*{1,1}|\w+)\.\w+)(?:,(?:\*{1,1}|\w+)\.\w+){0,20}'
+
+    # This allows validating a single extension entry or a list of comma
+    # separated values (eg `*.json` or `*.json,*.txt,MANIFEST.in`)
+    _EXTENSIONS_LIST_REGEX = (r'(?:(?:\*{1,1}|\w+)\.\w+)'
+                              r'(?:,(?:\*{1,1}|\w+)\.\w+){0,20}')
     sig_data_changed = Signal(dict)
 
     def __init__(self, parent=None):
@@ -263,7 +272,11 @@ class FileAssociationsWidget(QWidget):
         self._dlg_applications = None
 
         # Widgets
-        self.label = QLabel(_('This is the main description of this tab.'))
+        self.label = QLabel(
+            _('Here you can associate which external applications you want'
+              'to use to open specific file extensions <br> (e.g. .txt '
+              'files with Notepad++ or .csv files with Excel).')
+        )
         self.label_extensions = QLabel(_('File types:'))
         self.list_extensions = QListWidget()
         self.button_add = QPushButton(_('Add'))
@@ -387,14 +400,15 @@ class FileAssociationsWidget(QWidget):
             self,
             title=_('File association'),
             label=(
-                _('Enter new file association/extension')
-                + ' (e.g. <code>*.txt</code> or <code>name.ext</code>)'
-                + '<br>'
-                + _('You can add several values separated by commas.')
+                _('Enter new file extension. You can add several values '
+                  'separated by commas.<br>Examples include:')
+                + '<ul><li><code>*.txt</code></li>'
+                + '<li><code>*.json,*,csv</code></li>'
+                + '<li><code>*.json,README.md</code></li></ul>'
                 + '<br>'
             ),
         )
-        self._dlg_input.set_regex_validation(self._REGEX)
+        self._dlg_input.set_regex_validation(self._EXTENSIONS_LIST_REGEX)
 
     def load_values(self, data=None):
         """

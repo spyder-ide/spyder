@@ -17,8 +17,9 @@ import sys
 import pytest
 
 # Local imports
-from spyder.plugins.explorer.utils import (get_installed_applications,
-get_application_icon, parse_linux_desktop_entry)
+from spyder.plugins.explorer.utils import (get_application_icon,
+                                           get_installed_applications,
+                                           parse_linux_desktop_entry)
 
 
 def test_get_installed_apps_and_icons(qtbot):

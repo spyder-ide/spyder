@@ -8,5 +8,5 @@
 spyder.plugins.explorer.widgets
 ===============================
 
-Widgets used for the Files and Directories Explorer Plugin.
+Widgets used for the File Explorer plugin.
 """

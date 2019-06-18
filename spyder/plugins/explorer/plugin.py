@@ -42,7 +42,8 @@ class Explorer(SpyderPluginWidget):
             show_icontext=self.get_option('show_icontext'),
             options_button=self.options_button,
             single_click_to_open=self.get_option('single_click_to_open'),
-            file_associations=self.get_option('file_associations'),
+            file_associations=self.get_option('file_associations',
+                                              default={}),
         )
 
         # Initialize plugin
@@ -138,7 +139,7 @@ class Explorer(SpyderPluginWidget):
                 self.fileexplorer.treewidget.set_name_filters,
             'show_all':
                 self.fileexplorer.treewidget.toggle_all,
-            'show_icontext': 
+            'show_icontext':
                 self.fileexplorer.toggle_icontext,
         }
         for option in options:

@@ -171,5 +171,8 @@ def test_single_click_to_open(qtbot, file_explorer):
     run_test_helper(single_click=False, initial_index=initial_index)
 
 
+def test_assocaitions(qtbot, file_explorer):
+
+
 if __name__ == "__main__":
     pytest.main()

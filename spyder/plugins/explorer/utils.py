@@ -61,7 +61,6 @@ def _get_mac_application_icon_path(app_bundle_path):
             # readPlist is deprecated but needed for py27 compat
             pl = plistlib.readPlist(info_path)
         except Exception:
-            # TODO: Add the specific errors to catch
             pass
 
     icon_file = pl.get('CFBundleIconFile')
@@ -92,8 +91,7 @@ def get_username():
 
 def _get_win_reg_info(key_path, hive, flag, subkeys):
     """
-    See:
-    https://stackoverflow.com/questions/53132434/list-of-installed-programs
+    See: https://stackoverflow.com/q/53132434
     """
     import winreg
 
@@ -152,7 +150,7 @@ def _get_win_applications():
 
     # See:
     # https://www.blog.pythonlibrary.org/2010/03/03/finding-installed-software-using-python/
-    # https://stackoverflow.com/questions/53132434/list-of-installed-programs
+    # https://stackoverflow.com/q/53132434
     key_path = 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall'
     subkeys = ['DisplayName', 'InstallLocation', 'DisplayIcon']
     sort_key = 'DisplayName'
@@ -198,7 +196,7 @@ def _get_linux_applications():
     """Return all system installed linux applications."""
     # See:
     # https://standards.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html
-    # https://askubuntu.com/questions/433609/how-can-i-list-all-applications-installed-in-my-system
+    # https://askubuntu.com/q/433609
     apps = {}
     desktop_app_paths = [
         '/usr/share/**/*.desktop',

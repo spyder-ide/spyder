@@ -232,7 +232,7 @@ install_requires = [
     'pexpect',
     'paramiko;platform_system=="Windows"',
     # Required for accesing xdg spec on Linux
-    'pyxdg;platform_system=="linux2"',
+    'pyxdg;platform_system=="Linux"',
 ]
 
 extras_require = {
