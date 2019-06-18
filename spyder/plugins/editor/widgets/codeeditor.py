@@ -2445,12 +2445,11 @@ class CodeEditor(TextEditBaseWidget):
                     correct_indent += self.tab_stop_width_spaces
                 else:
                     correct_indent += len(self.indent_chars)
-            elif \
-                (prevtext.strip().split()[-1] in
-                 ('continue', 'break', 'pass') or
-                 ("return" == prevtext.strip().split()[0] and
-                  len(re.split(r'\(|\{|\[', prevtext)) ==
-                  len(re.split(r'\)|\}|\]', prevtext)))):
+            elif (
+                    prevtext.strip().split()[-1] in ('continue', 'break', 'pass')
+                    or ("return" == prevtext.strip().split()[0] and
+                    not len(bracket_stack) > 1)  # and not closing_brackets?
+                 ):
                 # Unindent
                 if self.indent_chars == '\t':
                     correct_indent -= self.tab_stop_width_spaces
@@ -2458,30 +2457,7 @@ class CodeEditor(TextEditBaseWidget):
                     correct_indent -= len(self.indent_chars)
             elif len(re.split(r'\(|\{|\[', prevtext)) > 1:
 
-                # Check if all braces are matching using a stack
-                stack = ['dummy']  # Dummy elemet to avoid index errors
-                deactivate = None
-                escaped = False
-                for c in prevtext:
-                    if escaped:
-                        escaped = False
-                    elif deactivate:
-                        if c == deactivate:
-                            deactivate = None
-                        elif c == "\\":
-                            escaped = True
-                    elif c in ["'", '"']:
-                        deactivate = c
-                    elif c in ('(', '[', '{'):
-                        stack.append(c)
-                    elif c in (')', ']', '}'):
-                        if stack[-1] == {')': '(', ']': '[', '}': '{'}[c]:
-                            stack.pop()
-                        else:
-                            # mismatched bracket
-                            pass
-
-                if len(stack) == 1:  # all braces matching
+                if len(bracket_stack) == 1:  # all braces matching
                     pass
 
                 # Hanging indent
