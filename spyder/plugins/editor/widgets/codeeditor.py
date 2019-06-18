@@ -1952,8 +1952,7 @@ class CodeEditor(TextEditBaseWidget):
             block.selection = QTextCursor(cursor)
             block.color = color
             self.__highlight_selection('code_analysis', block.selection,
-                                       underline_color=block.color,
-                                       underline_style=QTextCharFormat.WaveUnderline)
+                                       underline_color=block.color)
 
         self.sig_process_code_analysis.emit()
         self.update_extra_selections()
