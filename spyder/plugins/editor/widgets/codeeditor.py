@@ -20,13 +20,13 @@ Editor widget based on QtGui.QPlainTextEdit
 # Standard library imports
 from __future__ import division, print_function
 
+from unicodedata import category
 import logging
 import os.path as osp
 import re
 import sre_constants
 import sys
 import time
-from unicodedata import category
 
 # Third party imports
 from diff_match_patch import diff_match_patch
@@ -78,6 +78,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
                                     mimedata2url)
+from spyder.utils.vcs import get_git_remotes, remote_to_url
 
 
 try:
@@ -322,7 +323,8 @@ class CodeEditor(TextEditBaseWidget):
         self._timer_mouse_moving.timeout.connect(lambda: self._handle_hover())
 
         # Goto uri
-        self._last_hover_uri = None
+        self._last_hover_pattern_key = None
+        self._last_hover_pattern_text = None
 
         # 79-col edge line
         self.edge_line = self.panels.register(EdgeLine(self),
@@ -546,19 +548,18 @@ class CodeEditor(TextEditBaseWidget):
         ignore_chars = ['(', ')', '.']
 
         if self._should_display_hover(pos):
-            uri, cursor = self.get_uri_at(pos)
+            key, pattern_text, cursor = self.get_pattern_at(pos)
             text = self.get_word_at(pos)
-            if uri:
+            if pattern_text:
                 ctrl_text = 'Cmd' if sys.platform == "darwin" else 'Ctrl'
-
-                if uri.startswith('file://'):
-                    hint_text = ctrl_text + ' + click to open file'
-                elif uri.startswith('mailto:'):
-                    hint_text = ctrl_text + ' + click to send email'
-                elif uri.startswith('http'):
-                    hint_text = ctrl_text + ' + click to open url'
+                if key in ['file']:
+                    hint_text = ctrl_text + ' + ' + _('click to open file')
+                elif key in ['mail']:
+                    hint_text = ctrl_text + ' + ' + _('click to send email')
+                elif key in ['url']:
+                    hint_text = ctrl_text + ' + ' + _('click to open url')
                 else:
-                    hint_text = ctrl_text + ' + click to open'
+                    hint_text = ctrl_text + ' + ' + _('click to open')
 
                 hint_text = '<span>&nbsp;{}&nbsp;</span>'.format(hint_text)
 
@@ -3326,9 +3327,12 @@ class CodeEditor(TextEditBaseWidget):
         if isinstance(self.highlighter, sh.PygmentsSH):
             self.highlighter.make_charlist()
 
-    def get_uri_at(self, coordinates):
-        """Return uri and cursor for if uri found at coordinates."""
-        return self.get_pattern_cursor_at(sh.URI_PATTERNS, coordinates)
+    def get_pattern_at(self, coordinates):
+        """
+        Return key, text and cursor for pattern (if found at coordinates).
+        """
+        return self.get_pattern_cursor_at(self.highlighter.patterns,
+                                          coordinates)
 
     def get_pattern_cursor_at(self, pattern, coordinates):
         """
@@ -3336,36 +3340,45 @@ class CodeEditor(TextEditBaseWidget):
 
         This returns the actual match and the cursor that selects the text.
         """
+        cursor, key, text = None, None, None
+        break_loop = False
+
         # Check if the pattern is in line
         line = self.get_line_at(coordinates)
         match = pattern.search(line)
-        uri = None
-        cursor = None
 
         while match:
-            start, end = match.span()
+            for key, value in list(match.groupdict().items()):
+                if value:
+                    start, end = match.span()
 
-            # Get cursor selection if pattern found
-            cursor = self.cursorForPosition(coordinates)
-            cursor.movePosition(QTextCursor.StartOfBlock)
-            line_start_position = cursor.position()
+                    # Get cursor selection if pattern found
+                    cursor = self.cursorForPosition(coordinates)
+                    cursor.movePosition(QTextCursor.StartOfBlock)
+                    line_start_position = cursor.position()
 
-            cursor.setPosition(line_start_position + start, cursor.MoveAnchor)
-            start_rect = self.cursorRect(cursor)
-            cursor.setPosition(line_start_position + end, cursor.MoveAnchor)
-            end_rect = self.cursorRect(cursor)
-            bounding_rect = start_rect.united(end_rect)
+                    cursor.setPosition(line_start_position + start,
+                                       cursor.MoveAnchor)
+                    start_rect = self.cursorRect(cursor)
+                    cursor.setPosition(line_start_position + end,
+                                       cursor.MoveAnchor)
+                    end_rect = self.cursorRect(cursor)
+                    bounding_rect = start_rect.united(end_rect)
 
-            # Check if coordinates are located within the selection rect
-            if bounding_rect.contains(coordinates):
-                uri = line[start:end]
-                cursor.setPosition(line_start_position + start,
-                                   cursor.KeepAnchor)
+                    # Check if coordinates are located within the selection rect
+                    if bounding_rect.contains(coordinates):
+                        text = line[start:end]
+                        cursor.setPosition(line_start_position + start,
+                                        cursor.KeepAnchor)
+                        break_loop = True
+                        break
+
+            if break_loop:
                 break
-            else:
-                match = pattern.search(line, end)
 
-        return uri, cursor
+            match = pattern.search(line, end)
+
+        return key, text, cursor
 
     def _preprocess_file_uri(self, uri):
         """Format uri to conform to absolute or relative file paths."""
@@ -3400,12 +3413,15 @@ class CodeEditor(TextEditBaseWidget):
 
     def _handle_goto_uri_event(self, pos):
         """Check if go to uri can be applied and apply highlight."""
-        uri, cursor = self.get_uri_at(pos)
-        if uri and cursor:
+        key, pattern_text, cursor = self.get_pattern_at(pos)
+        if key and pattern_text and cursor:
+            self._last_hover_pattern_key = key
+            self._last_hover_pattern_text = pattern_text
+
             color = self.ctrl_click_color
 
-            if uri.startswith('file://'):
-                fname = self._preprocess_file_uri(uri)
+            if key in ['file']:
+                fname = self._preprocess_file_uri(pattern_text)
                 if not osp.isfile(fname):
                     color = QColor(255, 80, 80)
 
@@ -3415,16 +3431,74 @@ class CodeEditor(TextEditBaseWidget):
                 foreground_color=color,
                 underline_color=color,
                 underline_style=QTextCharFormat.SingleUnderline)
+
             if not self.__cursor_changed:
                 QApplication.setOverrideCursor(
                     QCursor(Qt.PointingHandCursor))
                 self.__cursor_changed = True
-            self._last_hover_uri = uri
-            self.sig_uri_found.emit(uri)
+
+            self.sig_uri_found.emit(pattern_text)
             return True
         else:
-            self._last_hover_uri = uri
+            self._last_hover_pattern_key = key
+            self._last_hover_pattern_text = pattern_text
             return False
+
+    def go_to_uri_from_cursor(self, uri):
+        """Go to url from cursor and defined hover patterns."""
+        key = self._last_hover_pattern_key
+        if key in ['file']:
+            fname = self._preprocess_file_uri(uri)
+
+            if osp.isfile(fname) and encoding.is_text_file(fname):
+                # Open in editor
+                self.go_to_definition.emit(fname, 0, 0)
+            else:
+                # Use external program
+                fname = file_uri(fname)
+                programs.start_file(fname)
+        elif key in ['mail', 'url']:
+            if '@' in uri and not uri.startswith('mailto:'):
+                full_uri = 'mailto:' + uri
+            quri = QUrl(full_uri)
+            QDesktopServices.openUrl(quri)
+        elif key in ['issue']:
+            # Issue URI
+            repo_url = uri.replace('#', '/issues/')
+            if uri.startswith(('gh-', 'bb-', 'gl-')):
+                number = uri[3:]
+                remotes = get_git_remotes(self.filename)
+                remote = remotes.get('upstream', remotes.get('origin'))
+                if remote:
+                    full_uri = remote_to_url(remote) + '/issues/' + number
+                else:
+                    full_uri = None
+            elif uri.startswith('gh:') or ':' not in uri:
+                # Github
+                repo_and_issue = repo_url
+                if uri.startswith('gh:'):
+                    repo_and_issue = repo_url[3:]
+                full_uri = 'https://github.com/' + repo_and_issue
+            elif uri.startswith('gl:'):
+                # Gitlab
+                full_uri = 'https://gitlab.com/' + repo_url[3:]
+            elif uri.startswith('bb:'):
+                # Bitbucket
+                full_uri = 'https://bitbucket.org/' + repo_url[3:]
+
+            if full_uri:
+                quri = QUrl(full_uri)
+                QDesktopServices.openUrl(quri)
+            else:
+                QMessageBox.information(
+                    self,
+                    _('Information'),
+                    _('This file is not part of a local repository or '
+                      'upstream/origin remotes are not defined!'),
+                    QMessageBox.Ok,
+                )
+        self.sig_go_to_uri.emit(uri)
+        return full_uri
 
     def line_range(self, position):
         """
@@ -3511,7 +3585,6 @@ class CodeEditor(TextEditBaseWidget):
             return line_range[1] - (line_range[0] + len(strip))
         return 0
 
-
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""
         # Restart timer every time the mouse is moved
@@ -3583,47 +3656,9 @@ class CodeEditor(TextEditBaseWidget):
         if event.button() == Qt.LeftButton and ctrl:
             TextEditBaseWidget.mousePressEvent(self, event)
             cursor = self.cursorForPosition(pos)
-
-            if self._last_hover_uri:
-                uri = self._last_hover_uri
-                if uri.startswith('file://'):
-                    fname = self._preprocess_file_uri(uri)
-
-                    if osp.isfile(fname) and encoding.is_text_file(fname):
-                        # Open in editor
-                        self.go_to_definition.emit(fname, 0, 0)
-                    else:
-                        # Use external program
-                        fname = file_uri(fname)
-                        programs.start_file(fname)
-                elif uri.startswith(('http', 'mailto:')) or '@' in uri:
-                    if '@' in uri and not uri.startswith('mailto:'):
-                        uri = 'mailto:' + uri
-                    quri = QUrl(uri)
-                    QDesktopServices.openUrl(quri)
-                else:
-                    # Issue URI
-                    service = 'https://github.com/'
-                    uri = uri.replace('#', '/issues/')
-
-                    if uri.startswith('gh:') or ':' not in uri:
-                        # Github
-                        if uri.startswith('gh:'):
-                            uri = uri[3:]
-                        service = 'https://github.com/'
-                    elif uri.startswith('gl:'):
-                        # Gitlab
-                        uri = uri[3:]
-                        service = 'https://gitlab.com/'
-                    elif uri.startswith('bb:'):
-                        # Bitbucket
-                        uri = uri[3:]
-                        service = 'https://bitbucket.org/'
-
-                    quri = QUrl(service + uri)
-                    QDesktopServices.openUrl(quri)
-
-                self.sig_go_to_uri.emit(uri)
+            uri = self._last_hover_pattern_text
+            if uri:
+                self.go_to_uri_from_cursor(uri)
             else:
                 self.go_to_definition_from_cursor(cursor)
         elif event.button() == Qt.LeftButton and alt:
@@ -3677,7 +3712,8 @@ class CodeEditor(TextEditBaseWidget):
             self.__cursor_changed = False
             QApplication.restoreOverrideCursor()
             self.clear_extra_selections('ctrl_click')
-            self._last_hover_uri = None
+            self._last_hover_pattern_key = None
+            self._last_hover_pattern_text = None
 
     #------ Drag and drop
     def dragEnterEvent(self, event):

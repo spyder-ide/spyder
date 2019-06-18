@@ -21,7 +21,7 @@ from spyder.plugins.editor.widgets.tests.test_codeeditor import editorbot
 TEST_FOLDER = os.path.abspath(os.path.dirname(__file__))
 _, TEMPFILE_PATH = tempfile.mkstemp()
 TEST_FILE_ABS = [os.path.join(TEST_FOLDER, f) for f in
-                 os.listdir(TEST_FOLDER) if f.endswith('.py')][0]
+                 os.listdir(TEST_FOLDER) if f.endswith('.py')][0].replace(' ', '%20')
 TEST_FILE_REL = [f for f in os.listdir(TEST_FOLDER) if f.endswith('.py')][0]
 
 
@@ -56,6 +56,8 @@ TEST_FILE_REL = [f for f in os.listdir(TEST_FOLDER) if f.endswith('.py')][0]
              'gh:spyder-ide/spyder#123', None),
             ('# gh:spyder-ide/spyder#123\n',
              'gh:spyder-ide/spyder#123', None),
+            ('# gh-123\n',
+             'gh-123', None),
         ]
     )
 def test_goto_uri(qtbot, editorbot, params):
