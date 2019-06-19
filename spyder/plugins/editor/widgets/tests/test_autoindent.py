@@ -68,19 +68,19 @@ def test_simple_def():
 def test_open_parenthesis():
     # An open parenthesis with no item is followed by a hanging indent
     text = get_indent_fix("open_parenthesis(\n")
-    assert text == "open_parenthesis(\n        ", repr(text)
+    assert text == "open_parenthesis(\n    ", repr(text)
 
 
 def test_open_bracket():
     # An open bracket with no item is followed by a hanging indent
     text = get_indent_fix("open_bracket[\n")
-    assert text == "open_bracket[\n        ", repr(text)
+    assert text == "open_bracket[\n    ", repr(text)
 
 
 def test_open_curly():
     # An open curly bracket with no item is followed by a hanging indent
     text = get_indent_fix("open_curly{\n")
-    assert text == "open_curly{\n        ", repr(text)
+    assert text == "open_curly{\n    ", repr(text)
 
 
 def test_align_on_parenthesis():
@@ -93,15 +93,15 @@ def test_align_on_parenthesis():
 def test_align_on_bracket():
     # An open bracket with one or more item is followed by an indent
     # up to the parenthesis.
-    text = get_indent_fix("bracket_w_item = (1,\n")
-    assert text == "bracket_w_item = (1,\n                  ", repr(text)
+    text = get_indent_fix("bracket_w_item = [1,\n")
+    assert text == "bracket_w_item = [1,\n                  ", repr(text)
 
 
 def test_align_on_curly():
     # An open curly bracket with one or more item is followed by an indent
     # up to the parenthesis.
-    text = get_indent_fix("curly_w_item = (1,\n")
-    assert text == "curly_w_item = (1,\n                ", repr(text)
+    text = get_indent_fix("curly_w_item = {1,\n")
+    assert text == "curly_w_item = {1,\n                ", repr(text)
 
 
 def test_keep_unindent():
@@ -191,10 +191,10 @@ def test_indentation_with_tabs():
          "test with indented comment"),
         ("def function():\n\tprint []\n", "def function():\n\tprint []\n\t",
          "test brackets alone"),
-        ("\nsome_long_name = {\n", "\nsome_long_name = {\n\t\t",
+        ("\nsome_long_name = {\n", "\nsome_long_name = {\n\t",
          "indentation after opening bracket"),
         ("def function():\n", "def function():\n\t", "test simple def"),
-        ("open_parenthesis(\n", "open_parenthesis(\n\t\t",
+        ("open_parenthesis(\n", "open_parenthesis(\n\t",
          "open parenthesis"),
         ("tags = ['(a)', '(b)', '(c)']\n", "tags = ['(a)', '(b)', '(c)']\n",
          "test_commented_brackets"),
@@ -220,14 +220,14 @@ def test_indentation_with_tabs():
 def test_indentation_with_tabs_parenthesis():
     """Simple parenthesis indentation test with different tab stop widths."""
     text_input_expected_tab = [
-        ("print(\n)", "print(\n\t\t)", 1),
-        ("print(\n)", "print(\n\t\t)", 2),
-        ("print(\n)", "print(\n\t\t)", 3),
-        ("print(\n)", "print(\n\t  )", 4),
-        ("print(\n)", "print(\n\t )", 5),
-        ("print(\n)", "print(\n\t)", 6),
-        ("print(\n)", "print(\n      )", 7),
-        ("print(\n)", "print(\n      )", 8),
+        # ("print(''\n)", "print(''\n\t\t)", 1),
+        # ("print(''\n)", "print(''\n\t\t)", 2),
+        ("print(''\n)", "print(''\n\t\t)", 3),
+        ("print(''\n)", "print(''\n\t  )", 4),
+        ("print(''\n)", "print(''\n\t )", 5),
+        ("print(''\n)", "print(''\n\t)", 6),
+        ("print(''\n)", "print(''\n      )", 7),
+        ("print(''\n)", "print(''\n      )", 8),
         ("a = (a  #  some comment\n", "a = (a  #  some comment\n\t ", 4)
         ]
     for text_input, expected, tab_stop_width_spaces in text_input_expected_tab:
