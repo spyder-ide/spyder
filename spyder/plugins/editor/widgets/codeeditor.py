@@ -2317,6 +2317,72 @@ class CodeEditor(TextEditBaseWidget):
         if len(spaces) - 1 >= group:
             return len(spaces[group])
 
+    def __get_brackets(self, line_text, closing_brackets=[]):
+        """
+        Return unmatched opening brackets and left-over closing brackets.
+
+        (str, []) -> ([(pos, bracket)], [bracket], comment_pos)
+
+        Iterate through line_text to find unmatched brackets.
+
+        Returns three objects as a tuple:
+        1) bracket_stack:
+            a list of tuples of pos and char of each unmatched opening bracket
+        2) closing brackets:
+            this line's unmatched closing brackets + arg closing_brackets.
+            If this line ad no closing brackets, arg closing_brackets might
+            be matched with previously unmatched opening brackets in this line.
+        3) Pos at which a # comment begins. -1 if it doesn't.'
+        """
+        # Remove inline comment and check brackets
+        bracket_stack = []  # list containing this lines unmatched opening
+        # same deal, for closing though. Ignore if bracket stack not empty,
+        # since they are mismatched in that case.
+        bracket_unmatched_closing = []
+        comment_pos = -1
+        deactivate = None
+        escaped = False
+        pos, c = None, None
+        for pos, c in enumerate(line_text):
+            # Handle '\' inside strings
+            if escaped:
+                escaped = False
+            # Handle strings
+            elif deactivate:
+                if c == deactivate:
+                    deactivate = None
+                elif c == "\\":
+                    escaped = True
+            elif c in ["'", '"']:
+                deactivate = c
+            # Handle comments
+            elif c == "#":
+                comment_pos = pos
+                break
+            # Handle brackets
+            elif c in ('(', '[', '{'):
+                bracket_stack.append((pos, c))
+            elif c in (')', ']', '}'):
+                if bracket_stack and bracket_stack[-1][1] == \
+                        {')': '(', ']': '[', '}': '{'}[c]:
+                    bracket_stack.pop()
+                else:
+                    bracket_unmatched_closing.append(c)
+        del pos, deactivate, escaped
+        # If no closing brackets are left over from this line,
+        # check the ones from previous iterations' prevlines
+        if not bracket_unmatched_closing:
+            for c in closing_brackets.copy():
+                if bracket_stack and bracket_stack[-1][1] == \
+                        {')': '(', ']': '[', '}': '{'}[c]:
+                    bracket_stack.pop()
+                    closing_brackets.remove(c)
+                else:
+                    break
+        del c
+        closing_brackets = bracket_unmatched_closing + closing_brackets
+        return (bracket_stack, closing_brackets, comment_pos)
+
     def fix_indent(self, *args, **kwargs):
         """Indent line according to the preferences"""
         if self.is_python_like():
@@ -2361,61 +2427,22 @@ class CodeEditor(TextEditBaseWidget):
         cursor = self.textCursor()
         block_nb = cursor.blockNumber()
         # find the line that contains our scope
-        closing_brackets = []  # Closing brackets left over from lower lines
         line_in_block = False
         visual_indent = False
         add_indent = 0  # How many levels of indent to add
         prevline = None
         prevtext = ""
+
+        closing_brackets = []
+
         for prevline in range(block_nb-1, -1, -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
 
-            # Remove inline comment and check brackets
-            bracket_stack = []  # list containing this lines unmatched opening
-            # same deal, for closing though. Ignore if bracket stack not empty,
-            # since they are mismatched in that case.
-            bracket_unmatched_closing = []
-            deactivate = None
-            escaped = False
-            pos, c = None, None
-            for pos, c in enumerate(prevtext):
-                # Handle '\' inside strings
-                if escaped:
-                    escaped = False
-                # Handle strings
-                elif deactivate:
-                    if c == deactivate:
-                        deactivate = None
-                    elif c == "\\":
-                        escaped = True
-                elif c in ["'", '"']:
-                    deactivate = c
-                # Handle comments
-                elif c == "#":
-                    prevtext = prevtext[:pos].rstrip()
-                    break
-                # Handle brackets
-                elif c in ('(', '[', '{'):
-                    bracket_stack.append((pos, c))
-                elif c in (')', ']', '}'):
-                    if bracket_stack and bracket_stack[-1][1] == \
-                            {')': '(', ']': '[', '}': '{'}[c]:
-                        bracket_stack.pop()
-                    else:
-                        bracket_unmatched_closing.append(c)
-            del pos, deactivate, escaped
-            # If no closing brackets are left over from this line,
-            # check the ones from previous iterations' prevlines
-            if not bracket_unmatched_closing:
-                for c in closing_brackets.copy():
-                    if bracket_stack and bracket_stack[-1][1] == \
-                            {')': '(', ']': '[', '}': '{'}[c]:
-                        bracket_stack.pop()
-                        closing_brackets.remove(c)
-                    else:
-                        break
-            del c
+            bracket_stack, closing_brackets, comment_pos = self.__get_brackets(
+                prevtext, closing_brackets)
+            if comment_pos > -1:
+                prevtext = prevtext[:comment_pos].rstrip()
 
             if not prevtext:
                 continue
@@ -2433,14 +2460,7 @@ class CodeEditor(TextEditBaseWidget):
                 # Does this variable actually do *anything* of relevance?
                 # comment_or_string = True
 
-            if bracket_stack:
-                break
-            elif bracket_unmatched_closing:
-                closing_brackets = bracket_unmatched_closing + closing_brackets
-            else:
-                break
-
-            if not closing_brackets:
+            if bracket_stack or not closing_brackets:
                 break
 
         # splits of prevtext happen a few times. Let's just do it once
