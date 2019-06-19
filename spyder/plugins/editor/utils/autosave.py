@@ -122,13 +122,21 @@ class AutosaveForPlugin(object):
         stack.autosave.autosave_all()
         self.start_autosave_timer()
 
+    def get_files_to_recover(self):
+        """
+        Get a list of files to recover from the Spyder config file.
+
+        This returns a dict mapping original file names to autosave file names.
+        """
+        return CONF.get('editor', 'autosave_mapping', {})
+
     def try_recover_from_autosave(self):
         """Offer to recover files from autosave."""
         if not self.single_instance():
             self.recover_files_to_open = []
             return
         autosave_dir = get_conf_path('autosave')
-        autosave_mapping = CONF.get('editor', 'autosave_mapping', {})
+        autosave_mapping = self.get_files_to_recover()
         dialog = RecoveryDialog(autosave_dir, autosave_mapping,
                                 parent=self.editor)
         dialog.exec_if_nonempty()
@@ -192,6 +200,15 @@ class AutosaveForStack(object):
                 autosave_filename = osp.join(autosave_dir, autosave_basename)
         return autosave_filename
 
+    def save_autosave_mapping(self):
+        """
+        Writes current autosave mapping to Spyder config file.
+
+        This function should be called after updating `self.autosave_mapping`.
+        """
+        new_mapping = self.name_mapping
+        self.stack.sig_option_changed.emit('autosave_mapping', new_mapping)
+
     def remove_autosave_file(self, filename):
         """
         Remove autosave file for specified file.
@@ -210,8 +227,7 @@ class AutosaveForStack(object):
             msgbox.exec_if_enabled()
         del self.name_mapping[filename]
         del self.file_hashes[autosave_filename]
-        self.stack.sig_option_changed.emit(
-                'autosave_mapping', self.name_mapping)
+        self.save_autosave_mapping()
         logger.debug('Removing autosave file %s', autosave_filename)
 
     def get_autosave_filename(self, filename):
@@ -239,8 +255,7 @@ class AutosaveForStack(object):
             autosave_filename = self.create_unique_autosave_filename(
                     filename, autosave_dir)
             self.name_mapping[filename] = autosave_filename
-            self.stack.sig_option_changed.emit(
-                    'autosave_mapping', self.name_mapping)
+            self.save_autosave_mapping()
             logger.debug('New autosave file name')
         return autosave_filename
 
