@@ -66,7 +66,7 @@ CYTHON_REQVER = '>=0.21'
 dependencies.add("cython", _("Run Cython files in the IPython Console"),
                  required_version=CYTHON_REQVER, optional=True)
 
-QTCONSOLE_REQVER = ">=4.2.0"
+QTCONSOLE_REQVER = ">=4.5.0"
 dependencies.add("qtconsole", _("Integrate the IPython console"),
                  required_version=QTCONSOLE_REQVER)
 

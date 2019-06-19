@@ -14,12 +14,16 @@ import os.path as osp
 import sys
 
 # Test library imports
+from spyder.utils import programs
 import pytest
 
 # Local imports
 from spyder.utils.vcs import (ActionToolNotFound, get_git_refs,
-                              get_git_revision, get_vcs_root, run_vcs_tool)
-from spyder.utils import programs
+                              get_git_remotes, get_git_revision, get_vcs_root,
+                              remote_to_url, run_vcs_tool)
+
+
+HERE = os.path.abspath(os.path.dirname(__file__))
 
 
 @pytest.mark.skipif(os.environ.get('CI', None) is None,
@@ -68,6 +72,27 @@ def test_get_git_refs():
     # appear among the list of git branches.
     if not os.environ.get('TRAVIS_TAG'):
         assert any(['master' in b for b in branch_tags])
+
+
+def test_get_git_remotes():
+    remotes = get_git_remotes(HERE)
+    assert 'origin' in remotes
+
+
+@pytest.mark.parametrize(
+    'input_text, expected_output',
+    [
+        ('https://github.com/neophnx/spyder.git',
+         'https://github.com/neophnx/spyder'),
+        ('http://github.com/neophnx/spyder.git',
+         'http://github.com/neophnx/spyder'),
+        ('git@github.com:goanpeca/spyder.git',
+         'https://github.com/goanpeca/spyder'),
+    ]
+)
+def test_remote_to_url(input_text, expected_output):
+    output = remote_to_url(input_text)
+    assert expected_output == output
 
 
 if __name__ == "__main__":

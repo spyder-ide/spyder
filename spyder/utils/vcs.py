@@ -208,3 +208,37 @@ def get_git_refs(repopath):
             pass
 
     return branches + tags, branch, files_modifed
+
+
+def get_git_remotes(fpath):
+    """Return git remotes for repo on fpath."""
+    remote_data = {}
+    data, __ = programs.run_program(
+        'git',
+        ['remote', '-v'],
+        cwd=osp.dirname(fpath),
+    ).communicate()
+
+    if PY3:
+        data = data.decode(sys.getdefaultencoding())
+
+    lines = [line.strip() for line in data.split('\n') if line]
+    for line in lines:
+        if line:
+            remote, value = line.split('\t')
+            remote_data[remote] = value.split(' ')[0]
+
+    return remote_data
+
+
+def remote_to_url(remote):
+    """Convert a git remote to a url."""
+    url = ''
+    if remote.startswith('git@'):
+        url = remote.replace('git@', '')
+        url = url.replace(':', '/')
+        url = 'https://' + url.replace('.git', '')
+    else:
+        url = remote.replace('.git', '')
+
+    return url
