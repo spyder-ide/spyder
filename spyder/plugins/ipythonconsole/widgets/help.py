@@ -42,20 +42,24 @@ class HelpWidget(RichJupyterWidget):
         data = content.get('data', {})
         text = data.get('text/plain', '')
         if text:
-            text = re.compile(ANSI_PATTERN).sub('', text)
-            signature = self.get_signature(content).split('(')[-1]
+            if (self.language_name is not None
+                    and self.language_name == 'python'):
+                text = re.compile(ANSI_PATTERN).sub('', text)
+                signature = self.get_signature(content).split('(')[-1]
 
-            # Base value for the documentation
-            documentation = text.split('Docstring:')[-1].split('Type:')[0]
+                # Base value for the documentation
+                documentation = text.split('Docstring:')[-1].split('Type:')[0]
 
-            if signature:
-                # Check if the signature is in the Docstring
-                doc_from_signature = documentation.split(signature)
-                if len(doc_from_signature) > 1:
-                    return (doc_from_signature[-1].split('Docstring:')[-1].
-                            split('Type:')[0])
+                if signature:
+                    # Check if the signature is in the Docstring
+                    doc_from_signature = documentation.split(signature)
+                    if len(doc_from_signature) > 1:
+                        return (doc_from_signature[-1].split('Docstring:')[-1].
+                                split('Type:')[0])
 
-            return documentation
+                return documentation
+            else:
+                return text
         else:
             return ''
 
@@ -77,37 +81,42 @@ class HelpWidget(RichJupyterWidget):
         data = content.get('data', {})
         text = data.get('text/plain', '')
         if text:
-            self._control.current_prompt_pos = self._prompt_pos
-            line = self._control.get_current_line_to_cursor()
-            name = line[:-1].split('(')[-1]   # Take last token after a (
-            name = name.split('.')[-1]        # Then take last token after a .
-            # Clean name from invalid chars
-            try:
-                name = self.clean_invalid_var_chars(name)
-            except:
-                pass
+            if (self.language_name is not None
+                    and self.language_name == 'python'):
+                self._control.current_prompt_pos = self._prompt_pos
+                line = self._control.get_current_line_to_cursor()
+                name = line[:-1].split('(')[-1]   # Take last token after a (
+                name = name.split('.')[-1]   # Then take last token after a .
 
-            text = text.split('Docstring:')
+                # Clean name from invalid chars
+                try:
+                    name = self.clean_invalid_var_chars(name)
+                except Exception:
+                    pass
 
-            # Try signature from text before 'Docstring:'
-            before_text = text[0]
-            before_signature = self._get_signature(name, before_text)
+                text = text.split('Docstring:')
 
-            # Try signature from text after 'Docstring:'
-            after_text = text[-1]
-            after_signature = self._get_signature(name, after_text)
+                # Try signature from text before 'Docstring:'
+                before_text = text[0]
+                before_signature = self._get_signature(name, before_text)
 
-            # Stay with the longest signature
-            if len(before_signature) > len(after_signature):
-                signature = before_signature
+                # Try signature from text after 'Docstring:'
+                after_text = text[-1]
+                after_signature = self._get_signature(name, after_text)
+
+                # Stay with the longest signature
+                if len(before_signature) > len(after_signature):
+                    signature = before_signature
+                else:
+                    signature = after_signature
+
+                # Prevent special characters. Applied here to ensure
+                # recognizing the signature in the logic above.
+                signature = ANSI_OR_SPECIAL_PATTERN.sub('', signature)
+
+                return signature
             else:
-                signature = after_signature
-
-            # Prevent special characters. Applied here to ensure
-            # recognizing the signature in the logic above.
-            signature = ANSI_OR_SPECIAL_PATTERN.sub('', signature)
-
-            return signature
+                return text
         else:
             return ''
 

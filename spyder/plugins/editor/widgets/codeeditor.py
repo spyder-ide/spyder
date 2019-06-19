@@ -2004,7 +2004,10 @@ class CodeEditor(TextEditBaseWidget):
             # Avoid messing TODO, FIXME
             msg = msg[0].upper() + msg[1:]
             msg = textwrap.wrap(msg, width=60)
-            msg = '<br>'.join(msg)
+            if len(msg) > 1:
+                msg = '<br>'.join(msg) + '<br>'
+            else:
+                msg = '<br>'.join(msg)
             base_64 = ima.base64_from_icon(icons[sev], size, size)
             msglist.append(template.format(base_64, msg, src,
                                            code, size=size))
