@@ -66,7 +66,7 @@ CYTHON_REQVER = '>=0.21'
 dependencies.add("cython", _("Run Cython files in the IPython Console"),
                  required_version=CYTHON_REQVER, optional=True)
 
-QTCONSOLE_REQVER = ">=4.2.0"
+QTCONSOLE_REQVER = ">=4.5.0"
 dependencies.add("qtconsole", _("Integrate the IPython console"),
                  required_version=QTCONSOLE_REQVER)
 
@@ -401,9 +401,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.main.editor.run_cell_in_ipyclient.connect(self.run_cell)
         self.main.workingdirectory.set_current_console_wd.connect(
                                      self.set_current_client_working_directory)
-
         self.tabwidget.currentChanged.connect(self.update_working_directory)
-
         self._remove_old_stderr_files()
 
     #------ Public API (for clients) ------------------------------------------

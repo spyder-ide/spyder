@@ -848,7 +848,8 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
 
     def show_completion_widget(self, textlist):
         """Show completion widget"""
-        self.completion_widget.show_list(textlist, position=None)
+        self.completion_widget.show_list(
+            textlist, automatic=False, position=None)
 
     def hide_completion_widget(self):
         """Hide completion widget"""

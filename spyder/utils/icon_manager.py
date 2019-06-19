@@ -21,6 +21,7 @@ from spyder.config.base import get_image_path
 from spyder.config.main import CONF
 from spyder.config.gui import is_dark_interface
 from spyder.py3compat import to_text_string
+from spyder.utils.encoding import is_text_file
 import qtawesome as qta
 
 
@@ -160,14 +161,16 @@ _qtaargs = {
     'comment':                 [('fa.comment',), {'color': MAIN_FG_COLOR}],
     'indent':                  [('fa.indent',), {'color': MAIN_FG_COLOR}],
     'unindent':                [('fa.outdent',), {'color': MAIN_FG_COLOR}],
+    'toggle_lowercase':        [('mdi.format-letter-case-lower',), {'color': MAIN_FG_COLOR}],
+    'toggle_uppercase':        [('mdi.format-letter-case-upper',), {'color': MAIN_FG_COLOR}],
     'gotoline':                [('fa.sort-numeric-asc',), {'color': MAIN_FG_COLOR}],
     'error':                   [('fa.times-circle',), {'color': 'darkred'}],
     'warning':                 [('fa.warning',), {'color': 'orange'}],
     'information':             [('fa.info-circle',), {'color': '#3775a9'}],
     'hint':                    [('fa.lightbulb-o',), {'color': 'yellow'}],
     'todo':                    [('fa.exclamation',), {'color': '#3775a9'}],
-    'ipython_console':         [('spyder.ipython-logo-alt',), {'color': MAIN_FG_COLOR}],
-    'ipython_console_t':       [('spyder.ipython-logo-alt',), {'color':'gray'}],
+    'ipython_console':         [('mdi.console',), {'color': MAIN_FG_COLOR}],
+    'ipython_console_t':       [('mdi.console',), {'color': 'gray'}],
     'python':                  [('spyder.python-logo-up', 'spyder.python-logo-down'), {'options': [{'color': '#3775a9'}, {'color': '#ffd444'}]}],
     'pythonpath':              [('spyder.python-logo-up', 'spyder.python-logo-down'), {'options': [{'color': '#3775a9'}, {'color': '#ffd444'}]}],
     'terminated':              [('fa.circle',), {'color': MAIN_FG_COLOR}],
@@ -308,6 +311,8 @@ _qtaargs = {
     'dock':                    [('fa.caret-square-o-down',), {'color': MAIN_FG_COLOR}],
     'close_pane':              [('fa.window-close-o',), {'color': MAIN_FG_COLOR}],
     # --- Autocompletion type icons --------------
+    'keyword':                 [('mdi.alpha-k-box',), {'color': '#df2935', 'scale_factor': BIG_ATTR_FACTOR}],
+    'text':                    [('mdi.alpha-t-box',), {'color': 'gray', 'scale_factor': BIG_ATTR_FACTOR}],
     'attribute':               [('mdi.alpha-a-box',), {'color': 'magenta', 'scale_factor': BIG_ATTR_FACTOR}],
     'module':                  [('mdi.alpha-m-box',), {'color': '#daa520', 'scale_factor': BIG_ATTR_FACTOR}],
     'class':                   [('mdi.alpha-c-box',), {'color':'#3775a9', 'scale_factor': BIG_ATTR_FACTOR}],
@@ -410,7 +415,7 @@ def icon(name, scale_factor=None, resample=False, icon_path=None):
         return icon if icon is not None else QIcon()
 
 
-def get_icon_by_extension(fname, scale_factor):
+def get_icon_by_extension_or_type(fname, scale_factor):
     """Return the icon depending on the file extension"""
     application_icons = {}
     application_icons.update(BIN_FILES)
@@ -421,12 +426,17 @@ def get_icon_by_extension(fname, scale_factor):
         basename = osp.basename(fname)
         __, extension = osp.splitext(basename.lower())
         mime_type, __ = mime.guess_type(basename)
-        icon_by_extension = icon('FileIcon', scale_factor)
+        if is_dark_interface():
+            icon_by_extension = QIcon(
+                get_image_path('binary.svg'))
+        else:
+            icon_by_extension = QIcon(
+                get_image_path('binary_light.svg'))
 
         if extension in OFFICE_FILES:
             icon_by_extension = icon(OFFICE_FILES[extension], scale_factor)
 
-        if extension in LANGUAGE_ICONS:
+        elif extension in LANGUAGE_ICONS:
             icon_by_extension = icon(LANGUAGE_ICONS[extension], scale_factor)
         else:
             if extension == '.ipynb':
@@ -443,6 +453,8 @@ def get_icon_by_extension(fname, scale_factor):
                 else:
                     icon_by_extension = QIcon(
                         get_image_path('file_type_light_tex.svg'))
+            elif is_text_file(fname):
+                icon_by_extension = icon('TextFileIcon', scale_factor)
             elif mime_type is not None:
                 try:
                     # Fix for issue 5080. Even though
@@ -454,9 +466,14 @@ def get_icon_by_extension(fname, scale_factor):
                     # returning it incorrectly.
                     file_type, bin_name = mime_type.split('/')
                 except ValueError:
-                    file_type = 'text'
-                if file_type == 'text':
-                    icon_by_extension = icon('TextFileIcon', scale_factor)
+                    file_type = None
+                if file_type is None:
+                    if is_dark_interface():
+                        icon_by_extension = QIcon(
+                            get_image_path('binary.svg'))
+                    else:
+                        icon_by_extension = QIcon(
+                            get_image_path('binary_light.svg'))
                 elif file_type == 'audio':
                     icon_by_extension = icon('AudioFileIcon', scale_factor)
                 elif file_type == 'video':

@@ -682,17 +682,18 @@ class FileSwitcher(QDialog):
     @Slot()
     @Slot(QListWidgetItem)
     def enter(self, itemClicked=None):
-        row = self.current_row()
-        stack_index = self.paths.index(self.filtered_path[row])
-        self.plugin = self.widgets[stack_index][1]
-        plugin_index = self.plugins_instances.index(self.plugin)
-        # Count the real index in the tabWidget of the
-        # current plugin
-        real_index = self.get_stack_index(stack_index,
-                                          plugin_index)
-        self.sig_goto_file.emit(real_index,
-                                self.plugin.get_current_tab_manager())
-        self.accept()
+        if self.mode == self.FILE_MODE:
+            row = self.current_row()
+            stack_index = self.paths.index(self.filtered_path[row])
+            self.plugin = self.widgets[stack_index][1]
+            plugin_index = self.plugins_instances.index(self.plugin)
+            # Count the real index in the tabWidget of the
+            # current plugin
+            real_index = self.get_stack_index(stack_index,
+                                              plugin_index)
+            self.sig_goto_file.emit(real_index,
+                                    self.plugin.get_current_tab_manager())
+            self.accept()
 
     def setup_file_list(self, filter_text, current_path):
         """Setup list widget content for file list display."""
@@ -778,7 +779,7 @@ class FileSwitcher(QDialog):
                 scale_factor = 0.7
             else:
                 scale_factor = 0.9
-            icon = ima.get_icon_by_extension(path, scale_factor)
+            icon = ima.get_icon_by_extension_or_type(path, scale_factor)
             text = ''
             try:
                 title = self.widgets[index][1].get_plugin_title().split(' - ')

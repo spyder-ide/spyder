@@ -13,7 +13,7 @@ from __future__ import absolute_import
 
 import re
 
-from qtconsole.ansi_code_processor import ANSI_OR_SPECIAL_PATTERN
+from qtconsole.ansi_code_processor import ANSI_OR_SPECIAL_PATTERN, ANSI_PATTERN
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from qtpy.QtCore import QEventLoop
 from spyder_kernels.utils.dochelpers import (getargspecfromtext,
@@ -37,6 +37,22 @@ class HelpWidget(RichJupyterWidget):
         """
         return re.sub(r'\W|^(?=\d)', '_', var)
 
+    def get_documentation(self, content):
+        """Get documentation from inspect reply content."""
+        data = content.get('data', {})
+        text = data.get('text/plain', '')
+        if text:
+            text = re.compile(ANSI_PATTERN).sub('', text)
+            signature = self.get_signature(content).split('(')[-1]
+            if signature:
+                documentation = text.split(signature)
+                if len(documentation) > 1:
+                    return documentation[-1].split('Type:')[0]
+            else:
+                return text.split('Docstring:')[-1].split('Type:')[0]
+        else:
+            return ''
+
     def get_signature(self, content):
         """Get signature from inspect reply content"""
         data = content.get('data', {})
@@ -49,17 +65,19 @@ class HelpWidget(RichJupyterWidget):
             name = name.split('.')[-1]        # Then take last token after a .
             # Clean name from invalid chars
             try:
-                name = self.clean_invalid_var_chars(name).split('_')[-1]
+                name = self.clean_invalid_var_chars(name)
             except:
                 pass
-            argspec = getargspecfromtext(text)
+
+            docstring_text = text.split('Docstring:')[-1]
+            argspec = getargspecfromtext(docstring_text)
             if argspec:
                 # This covers cases like np.abs, whose docstring is
                 # the same as np.absolute and because of that a proper
                 # signature can't be obtained correctly
                 signature = name + argspec
             else:
-                signature = getsignaturefromtext(text, name)
+                signature = getsignaturefromtext(docstring_text, name)
 
             # Remove docstring for uniformity with editor
             signature = signature.split('Docstring:')[0]
@@ -123,12 +141,15 @@ class HelpWidget(RichJupyterWidget):
         """
         cursor = self._get_cursor()
         info = self._request_info.get('call_tip')
-        if info and info.id == rep['parent_header']['msg_id'] and \
-          info.pos == cursor.position():
+        if (info and info.id == rep['parent_header']['msg_id'] and
+                info.pos == cursor.position()):
             content = rep['content']
             if content.get('status') == 'ok' and content.get('found', False):
                 signature = self.get_signature(content)
-                if signature:
-                    self._control.show_calltip(
-                        signature,
-                    )
+                documentation = self.get_documentation(content)
+                self._control.show_calltip(
+                    signature,
+                    documentation=documentation,
+                    language=self.language_name,
+                    max_lines=7
+                )

@@ -201,7 +201,7 @@ if any(arg == 'bdist_wheel' for arg in sys.argv):
 install_requires = [
     'cloudpickle',
     'pygments>=2.0',
-    'qtconsole>=4.2.0',
+    'qtconsole>=4.5.0',
     'nbconvert',
     'sphinx',
     'pylint',
@@ -215,6 +215,8 @@ install_requires = [
     'spyder-kernels>=1.2',
     'qdarkstyle>=2.6.4',
     'atomicwrites',
+    'diff-match-patch',
+    'watchdog',
     # Don't require keyring for Python 2 and Linux
     # because it depends on system packages
     'keyring;sys_platform!="linux2"',

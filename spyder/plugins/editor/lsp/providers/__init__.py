@@ -8,7 +8,9 @@
 
 from .document import DocumentProvider
 from .window import WindowProvider
+from .workspace import WorkspaceProvider
 
 
-class LSPMethodProviderMixIn(DocumentProvider, WindowProvider):
+class LSPMethodProviderMixIn(DocumentProvider, WindowProvider,
+                             WorkspaceProvider):
     pass

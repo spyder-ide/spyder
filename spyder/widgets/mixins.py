@@ -53,6 +53,7 @@ class BaseEditMixin(object):
     _DEFAULT_TITLE_COLOR = '#2D62FF'
     _CHAR_HIGHLIGHT_COLOR = 'red'
     _DEFAULT_TEXT_COLOR = '#999999'
+    _DEFAULT_LANGUAGE = 'python'
 
     def __init__(self):
         self.eol_chars = None
@@ -217,10 +218,12 @@ class BaseEditMixin(object):
         if inspect_word:
             if display_link:
                 help_text = (
-                    '<span style="font-size:{size}pt;">'
+                    '<span style="font-family: \'{font_family}\';'
+                    'font-size:{font_size}pt;">'
                     'Click anywhere in this tooltip for additional help'
                     '</span>'.format(
-                        size=title_size + 1,
+                        font_size=text_size,
+                        font_family=font_family,
                     )
                 )
             else:
@@ -261,7 +264,8 @@ class BaseEditMixin(object):
 
     def _format_signature(self, signatures, parameter=None,
                           parameter_color=_PARAMETER_HIGHLIGHT_COLOR,
-                          char_color=_CHAR_HIGHLIGHT_COLOR):
+                          char_color=_CHAR_HIGHLIGHT_COLOR,
+                          language=_DEFAULT_LANGUAGE):
         """
         Create HTML template for signature.
 
@@ -323,7 +327,7 @@ class BaseEditMixin(object):
                 row = row.replace(' ', '&nbsp;')
                 row = row.replace('span&nbsp;', 'span ')
 
-                language = getattr(self, 'language', None)
+                language = getattr(self, 'language', language)
                 if language and 'python' == language.lower():
                     for char in ['(', ')', ',', '*', '**']:
                         new_char = chars_template.format(char=char)
@@ -351,7 +355,8 @@ class BaseEditMixin(object):
 
         return '<br><br>'.join(new_signatures)
 
-    def _check_signature_and_format(self, signature_or_text, parameter=None):
+    def _check_signature_and_format(self, signature_or_text, parameter=None,
+                                    language=_DEFAULT_LANGUAGE):
         """
         LSP hints might provide docstrings instead of signatures.
 
@@ -361,7 +366,7 @@ class BaseEditMixin(object):
         open_func_char = ''
         has_signature = False
         has_multisignature = False
-        language = getattr(self, 'language', '').lower()
+        language = getattr(self, 'language', language).lower()
         signature_or_text = signature_or_text.replace('\\*', '*')
 
         # Remove special symbols that could itefere with ''.format
@@ -424,7 +429,8 @@ class BaseEditMixin(object):
 
         return new_signature, extra_text, inspect_word
 
-    def show_calltip(self, signature, parameter=None, documentation=None):
+    def show_calltip(self, signature, parameter=None, documentation=None,
+                     language=_DEFAULT_LANGUAGE, max_lines=10):
         """
         Show calltip.
 
@@ -435,11 +441,13 @@ class BaseEditMixin(object):
         # Find position of calltip
         point = self._calculate_position()
 
-        language = getattr(self, 'language', '').lower()
+        language = getattr(self, 'language', language).lower()
         if language == 'python':
             # Check if documentation is better than signature, sometimes
             # signature has \n stripped for functions like print, type etc
-            check_doc = ' '.join(documentation.split()).replace('\\*', '*')
+            check_doc = ' '
+            if documentation:
+                check_doc.join(documentation.split()).replace('\\*', '*')
             check_sig = ' '.join(signature.split())
             if check_doc == check_sig:
                 signature = documentation
@@ -451,14 +459,15 @@ class BaseEditMixin(object):
             documentation = documentation.replace(signature + '\n', '')
 
         # Format
-        res = self._check_signature_and_format(signature, parameter)
+        res = self._check_signature_and_format(signature, parameter,
+                                               language=language)
         new_signature, text, inspect_word = res
         text = self._format_text(
             signature=new_signature,
             inspect_word=inspect_word,
             display_link=False,
             text=documentation,
-            max_lines=10,
+            max_lines=max_lines,
         )
 
         self._update_stylesheet(self.calltip_widget)
@@ -1205,7 +1214,7 @@ class GetHelpMixin(object):
                         else:
                             tiptext = signature
                         # TODO: Select language and pass it to call
-                        self.show_calltip(tiptext, color='#2D62FF', is_python=True)
+                        self.show_calltip(tiptext)
 
     def get_last_obj(self, last=False):
         """

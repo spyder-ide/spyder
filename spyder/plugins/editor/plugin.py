@@ -180,6 +180,14 @@ class Editor(SpyderPluginWidget):
                                           lambda vs: self.rehighlight_cells())
         self.register_widget_shortcuts(self.find_widget)
 
+        # Start autosave component
+        # (needs to be done before EditorSplitter)
+        self.autosave = AutosaveForPlugin(self)
+        self.autosave.try_recover_from_autosave()
+        # Multiply by 1000 to convert seconds to milliseconds
+        self.autosave.interval = self.get_option('autosave_interval') * 1000
+        self.autosave.enabled = self.get_option('autosave_enabled')
+
         # Tabbed editor widget + Find/Replace widget
         editor_widgets = QWidget(self)
         editor_layout = QVBoxLayout()
@@ -189,13 +197,6 @@ class Editor(SpyderPluginWidget):
                                          self.stack_menu_actions, first=True)
         editor_layout.addWidget(self.editorsplitter)
         editor_layout.addWidget(self.find_widget)
-
-        # Start autosave component
-        self.autosave = AutosaveForPlugin(self)
-        self.autosave.try_recover_from_autosave()
-        # Multiply by 1000 to convert seconds to milliseconds
-        self.autosave.interval = self.get_option('autosave_interval') * 1000
-        self.autosave.enabled = self.get_option('autosave_enabled')
 
         # Splitter: editor widgets (see above) + outline explorer
         self.splitter = QSplitter(self)
@@ -232,6 +233,13 @@ class Editor(SpyderPluginWidget):
             self.add_cursor_position_to_history(filename, position)
         self.update_cursorpos_actions()
         self.set_path()
+
+        self.fallback_up = False
+        # Know when the fallback completion engine is up
+        self.main.fallback_completions.sig_fallback_ready.connect(
+            self.fallback_ready)
+        self.main.fallback_completions.sig_set_tokens.connect(
+            self.fallback_set_tokens)
 
     def set_projects(self, projects):
         self.projects = projects
@@ -294,6 +302,8 @@ class Editor(SpyderPluginWidget):
             else:
                 editor = self.get_current_editor()
                 editor.lsp_ready = False
+        if self.fallback_up:
+            self.fallback_ready()
 
     @Slot(dict, str)
     def register_lsp_server_settings(self, settings, language):
@@ -317,6 +327,20 @@ class Editor(SpyderPluginWidget):
         logger.debug("LSP request: %r" %request)
         self.main.lspmanager.send_request(language, request, params)
 
+    def send_fallback_request(self, msg):
+        """Send request to fallback engine."""
+        self.main.fallback_completions.sig_mailbox.emit(msg)
+
+    def fallback_ready(self):
+        """Notify all stackeditors about fallback availability."""
+        logger.debug('Fallback is available')
+        self.fallback_up = True
+        for editorstack in self.editorstacks:
+            editorstack.notify_fallback_ready()
+
+    def fallback_set_tokens(self, editor, tokens):
+        """Set the tokend in the editor."""
+        editor.receive_text_tokens(tokens)
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
@@ -387,14 +411,6 @@ class Editor(SpyderPluginWidget):
             else:
                 for win in self.editorwindows[:]:
                     win.close()
-                # Remove autosave on successful close to avoid issue #9265.
-                # Probably a good idea anyway to mitigate autosave issues.
-                # Ignore errors resulting from file being open in > 2
-                # editorstacks or another Spyder being closed first and
-                # removing the spurious files.
-                for editorstack_split in self.editorstacks:
-                    editorstack_split.autosave.remove_all_autosave_files(
-                        errors="ignore")
                 return True
         except IndexError:
             return True
@@ -723,14 +739,14 @@ class Editor(SpyderPluginWidget):
                 triggered=self.unindent, context=Qt.WidgetShortcut)
 
         self.text_uppercase_action = create_action(self,
-                _("Toggle Uppercase"),
+                _("Toggle Uppercase"), icon=ima.icon('toggle_uppercase'),
                 tip=_("Change to uppercase current line or selection"),
                 triggered=self.text_uppercase, context=Qt.WidgetShortcut)
         self.register_shortcut(self.text_uppercase_action, context="Editor",
                                name="transform to uppercase")
 
         self.text_lowercase_action = create_action(self,
-                _("Toggle Lowercase"),
+                _("Toggle Lowercase"), icon=ima.icon('toggle_lowercase'),
                 tip=_("Change to lowercase current line or selection"),
                 triggered=self.text_lowercase, context=Qt.WidgetShortcut)
         self.register_shortcut(self.text_lowercase_action, context="Editor",
@@ -1110,19 +1126,6 @@ class Editor(SpyderPluginWidget):
                 CONF.set('lsp-server', 'pydocstyle', checked)
             self.main.lspmanager.update_server_list()
 
-    def received_sig_option_changed(self, option, value):
-        """
-        Called when sig_option_changed is received.
-
-        If option being changed is autosave_mapping, then synchronize new
-        mapping with all editor stacks except the sender.
-        """
-        if option == 'autosave_mapping':
-            for editorstack in self.editorstacks:
-                if editorstack != self.sender():
-                    editorstack.autosave_mapping = value
-        self.sig_option_changed.emit(option, value)
-
     #------ Focus tabwidget
     def __get_focus_editorstack(self):
         fwidget = QApplication.focusWidget()
@@ -1187,8 +1190,6 @@ class Editor(SpyderPluginWidget):
             editorstack.file_saved.connect(
                 self.vcs_status.update_vcs_state)
 
-        editorstack.autosave_mapping \
-            = CONF.get('editor', 'autosave_mapping', {})
         editorstack.set_help(self.help)
         editorstack.set_io_actions(self.new_action, self.open_action,
                                    self.save_action, self.revert_action)
@@ -1235,8 +1236,7 @@ class Editor(SpyderPluginWidget):
         editorstack.ending_long_process.connect(self.ending_long_process)
 
         # Redirect signals
-        editorstack.sig_option_changed.connect(
-                self.received_sig_option_changed)
+        editorstack.sig_option_changed.connect(self.sig_option_changed)
         editorstack.redirect_stdio.connect(
                                  lambda state: self.redirect_stdio.emit(state))
         editorstack.exec_in_extconsole.connect(
@@ -1269,6 +1269,8 @@ class Editor(SpyderPluginWidget):
             lambda fname, line, col: self.load(
                 fname, line, start_column=col))
         editorstack.perform_lsp_request.connect(self.send_lsp_request)
+        editorstack.sig_perform_fallback_request.connect(
+            self.send_fallback_request)
         editorstack.todo_results_changed.connect(self.todo_results_changed)
         editorstack.update_code_analysis_actions.connect(
             self.update_code_analysis_actions)
@@ -1293,6 +1295,10 @@ class Editor(SpyderPluginWidget):
         editorstack.sig_save_bookmark.connect(self.save_bookmark)
         editorstack.sig_load_bookmark.connect(self.load_bookmark)
         editorstack.sig_save_bookmarks.connect(self.save_bookmarks)
+
+        # Register editorstack's autosave component with plugin's autosave
+        # component
+        self.autosave.register_autosave_for_stack(editorstack.autosave)
 
     def unregister_editorstack(self, editorstack):
         """Removing editorstack only if it's not the last remaining"""
@@ -1748,7 +1754,8 @@ class Editor(SpyderPluginWidget):
             for fname in recent_files:
                 action = create_action(
                     self, fname,
-                    icon=ima.get_icon_by_extension(fname, scale_factor=1.0),
+                    icon=ima.get_icon_by_extension_or_type(
+                        fname, scale_factor=1.0),
                     triggered=self.load)
                 action.setData(to_qvariant(fname))
                 self.recent_file_menu.addAction(action)
@@ -2230,21 +2237,24 @@ class Editor(SpyderPluginWidget):
                     editor.set_cursor_position(position)
 
     def __move_cursor_position(self, index_move):
+        """
+        Move the cursor position forward or backward in the cursor
+        position history by the specified index increment.
+        """
         if self.cursor_pos_index is None:
             return
         filename, _position = self.cursor_pos_history[self.cursor_pos_index]
-        self.cursor_pos_history[self.cursor_pos_index] = ( filename,
-                            self.get_current_editor().get_position('cursor') )
+        self.cursor_pos_history[self.cursor_pos_index] = (
+            filename, self.get_current_editor().get_position('cursor'))
         self.__ignore_cursor_position = True
         old_index = self.cursor_pos_index
-        self.cursor_pos_index = min([
-                                     len(self.cursor_pos_history)-1,
-                                     max([0, self.cursor_pos_index+index_move])
-                                     ])
+        self.cursor_pos_index = min(len(self.cursor_pos_history) - 1,
+                                    max(0, self.cursor_pos_index + index_move))
         filename, position = self.cursor_pos_history[self.cursor_pos_index]
-        if not osp.isfile(filename):
+        filenames = self.get_current_editorstack().get_filenames()
+        if not osp.isfile(filename) and filename not in filenames:
             self.cursor_pos_history.pop(self.cursor_pos_index)
-            if self.cursor_pos_index < old_index:
+            if self.cursor_pos_index <= old_index:
                 old_index -= 1
             self.cursor_pos_index = old_index
         else:

@@ -13,23 +13,12 @@ from spyder.py3compat import PY2
 from spyder.plugins.editor.lsp import (
     LSPRequestTypes, InsertTextFormat, CompletionItemKind,
     ClientConstants)
-from spyder.plugins.editor.lsp.decorators import handles, send_request
-
-if PY2:
-    import pathlib2 as pathlib
-    from urlparse import urlparse
-    from urllib import url2pathname
-else:
-    import pathlib
-    from urllib.parse import urlparse
-    from urllib.request import url2pathname
+from spyder.plugins.editor.lsp.providers.utils import path_as_uri, process_uri
+from spyder.plugins.editor.lsp.decorators import (
+    handles, send_request, send_notification)
 
 
 logger = logging.getLogger(__name__)
-
-
-def path_as_uri(path):
-    return pathlib.Path(osp.abspath(path)).as_uri()
 
 
 class DocumentProvider:
@@ -52,8 +41,7 @@ class DocumentProvider:
         else:
             logger.debug("Received diagnotics for file not open: " + uri)
 
-    @send_request(
-        method=LSPRequestTypes.DOCUMENT_DID_CHANGE, requires_response=False)
+    @send_notification(method=LSPRequestTypes.DOCUMENT_DID_CHANGE)
     def document_changed(self, params):
         params = {
             'textDocument': {
@@ -66,8 +54,7 @@ class DocumentProvider:
         }
         return params
 
-    @send_request(
-        method=LSPRequestTypes.DOCUMENT_DID_OPEN, requires_response=False)
+    @send_notification(method=LSPRequestTypes.DOCUMENT_DID_OPEN)
     def document_open(self, editor_params):
         uri = path_as_uri(editor_params['file'])
         if uri not in self.watched_files:
@@ -161,9 +148,13 @@ class DocumentProvider:
     def process_hover_result(self, result, req_id):
         contents = result['contents']
         if isinstance(contents, list):
-            contents = contents[0]
+            if len(contents) > 0:
+                contents = contents[0]
+            else:
+                contents = {}
         if isinstance(contents, dict):
-            contents = contents['value']
+            if 'value' in contents:
+                contents = contents['value']
         if req_id in self.req_reply:
             self.req_reply[req_id].handle_response(
                 LSPRequestTypes.DOCUMENT_HOVER,
@@ -188,20 +179,17 @@ class DocumentProvider:
         if isinstance(result, list):
             if len(result) > 0:
                 result = result[0]
-                uri = urlparse(result['uri'])
-                netloc, path = uri.netloc, uri.path
-                # Prepend UNC share notation if we have a UNC path.
-                netloc = '\\\\' + netloc if netloc else netloc
-                result['file'] = url2pathname(netloc + path)
+                result['file'] = process_uri(result['uri'])
             else:
                 result = None
+        elif isinstance(result, dict):
+            result['file'] = process_uri(result['uri'])
         if req_id in self.req_reply:
             self.req_reply[req_id].handle_response(
                 LSPRequestTypes.DOCUMENT_DEFINITION,
                 {'params': result})
 
-    @send_request(method=LSPRequestTypes.DOCUMENT_WILL_SAVE,
-                  requires_response=False)
+    @send_notification(method=LSPRequestTypes.DOCUMENT_WILL_SAVE)
     def document_will_save_notification(self, params):
         params = {
             'textDocument': {
@@ -211,8 +199,7 @@ class DocumentProvider:
         }
         return params
 
-    @send_request(method=LSPRequestTypes.DOCUMENT_DID_SAVE,
-                  requires_response=False)
+    @send_notification(method=LSPRequestTypes.DOCUMENT_DID_SAVE)
     def document_did_save_notification(self, params):
         """
         Handle the textDocument/didSave message received from an LSP server.
@@ -229,8 +216,7 @@ class DocumentProvider:
             params['text'] = text
         return params
 
-    @send_request(method=LSPRequestTypes.DOCUMENT_DID_CLOSE,
-                  requires_response=False)
+    @send_notification(method=LSPRequestTypes.DOCUMENT_DID_CLOSE)
     def document_did_close(self, params):
         codeeditor = params['codeeditor']
         logger.debug('[{0}] File: {1}'.format(
