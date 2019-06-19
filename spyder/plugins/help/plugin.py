@@ -70,7 +70,7 @@ class Help(SpyderPluginWidget):
         self.rich_text = RichText(self)
 
         color_scheme = self.get_color_scheme()
-        self.set_plain_text_font(self.get_plugin_font(), color_scheme)
+        self.set_plain_text_font(self.get_font(), color_scheme)
         self.plain_text.editor.toggle_wrap_mode(self.get_option('wrap'))
 
         # Add entries to read-only editor context-menu
@@ -80,7 +80,7 @@ class Help(SpyderPluginWidget):
         self.plain_text.editor.readonly_menu.addSeparator()
         add_actions(self.plain_text.editor.readonly_menu, (self.wrap_action,))
 
-        self.set_rich_text_font(self.get_plugin_font('rich_text'))
+        self.set_rich_text_font(self.get_font(rich_text=True))
 
         self.shell = None
 
@@ -231,8 +231,8 @@ class Help(SpyderPluginWidget):
     def update_font(self):
         """Update font from Preferences"""
         color_scheme = self.get_color_scheme()
-        font = self.get_plugin_font()
-        rich_font = self.get_plugin_font(rich_text=True)
+        font = self.get_font()
+        rich_font = self.get_font(rich_text=True)
 
         self.set_plain_text_font(font, color_scheme=color_scheme)
         self.set_rich_text_font(rich_font)
@@ -320,7 +320,7 @@ class Help(SpyderPluginWidget):
 
     def set_rich_text_font(self, font):
         """Set rich text mode font"""
-        self.rich_text.set_font(font, fixed_font=self.get_plugin_font())
+        self.rich_text.set_font(font, fixed_font=self.get_font())
 
     def set_plain_text_font(self, font, color_scheme=None):
         """Set plain text mode font"""

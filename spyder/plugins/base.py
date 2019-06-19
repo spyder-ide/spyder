@@ -265,14 +265,8 @@ class BasePluginWidgetMixin(object):
         """DockWidget was closed"""
         self._toggle_view_action.setChecked(False)
 
-    def get_plugin_font(self, rich_text=False):
-        """
-        Return plugin font option.
-
-        All plugins in Spyder use a global font. This is a convenience method
-        in case some plugins will have a delta size based on the default size.
-        """
-
+    def _get_font(self, rich_text=False):
+        """Return plugin font."""
         if rich_text:
             option = 'rich_font'
             font_size_delta = self.RICH_FONT_SIZE_DELTA

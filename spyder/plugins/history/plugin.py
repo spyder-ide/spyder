@@ -133,7 +133,7 @@ class HistoryLog(SpyderPluginWidget):
     def update_font(self):
         """Update font from Preferences"""
         color_scheme = self.get_color_scheme()
-        font = self.get_plugin_font()
+        font = self.get_font()
         for editor in self.editors:
             editor.set_font(font, color_scheme)
 
@@ -142,7 +142,7 @@ class HistoryLog(SpyderPluginWidget):
         color_scheme_n = 'color_scheme_name'
         color_scheme_o = self.get_color_scheme()
         font_n = 'plugin_font'
-        font_o = self.get_plugin_font()
+        font_o = self.get_font()
         wrap_n = 'wrap'
         wrap_o = self.get_option(wrap_n)
         self.wrap_action.setChecked(wrap_o)
@@ -190,8 +190,8 @@ class HistoryLog(SpyderPluginWidget):
         editor.focus_changed.connect(lambda: self.focus_changed.emit())
         editor.setReadOnly(True)
         color_scheme = self.get_color_scheme()
-        editor.set_font( self.get_plugin_font(), color_scheme )
-        editor.toggle_wrap_mode( self.get_option('wrap') )
+        editor.set_font(self.get_font(), color_scheme)
+        editor.toggle_wrap_mode(self.get_option('wrap'))
 
         # Avoid a possible error when reading the history file
         try:

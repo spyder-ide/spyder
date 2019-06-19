@@ -181,14 +181,14 @@ class IPythonConsole(SpyderPluginWidget):
     #------ SpyderPluginMixin API ---------------------------------------------
     def update_font(self):
         """Update font from Preferences"""
-        font = self.get_plugin_font()
+        font = self.get_font()
         for client in self.clients:
             client.set_font(font)
 
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
         font_n = 'plugin_font'
-        font_o = self.get_plugin_font()
+        font_o = self.get_font()
         help_n = 'connect_to_oi'
         help_o = CONF.get('help', 'connect/ipython_console')
         color_scheme_n = 'color_scheme_name'
@@ -919,7 +919,7 @@ class IPythonConsole(SpyderPluginWidget):
                 self.main.historylog.append_to_history)
 
         # Set font for client
-        client.set_font( self.get_plugin_font() )
+        client.set_font(self.get_font())
 
         # Connect focus signal to client's control widget
         control.focus_changed.connect(lambda: self.focus_changed.emit())

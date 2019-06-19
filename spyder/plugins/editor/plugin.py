@@ -1049,7 +1049,7 @@ class Editor(SpyderPluginWidget):
 
     def update_font(self):
         """Update font from Preferences"""
-        font = self.get_plugin_font()
+        font = self.get_font()
         color_scheme = self.get_color_scheme()
         for editorstack in self.editorstacks:
             editorstack.set_default_font(font, color_scheme)
@@ -1229,7 +1229,7 @@ class Editor(SpyderPluginWidget):
             getattr(editorstack, method)(self.get_option(setting))
         editorstack.set_help_enabled(CONF.get('help', 'connect/editor'))
         color_scheme = self.get_color_scheme()
-        editorstack.set_default_font(self.get_plugin_font(), color_scheme)
+        editorstack.set_default_font(self.get_font(), color_scheme)
 
         editorstack.starting_long_process.connect(self.starting_long_process)
         editorstack.ending_long_process.connect(self.ending_long_process)
@@ -1920,7 +1920,7 @@ class Editor(SpyderPluginWidget):
         editor = self.get_current_editor()
         filename = self.get_current_filename()
         printer = Printer(mode=QPrinter.HighResolution,
-                          header_font=self.get_plugin_font('printer_header'))
+                          header_font=self.get_font())
         printDialog = QPrintDialog(printer, editor)
         if editor.has_selected_text():
             printDialog.setOption(QAbstractPrintDialog.PrintSelection, True)
@@ -1940,7 +1940,7 @@ class Editor(SpyderPluginWidget):
 
         editor = self.get_current_editor()
         printer = Printer(mode=QPrinter.HighResolution,
-                          header_font=self.get_plugin_font('printer_header'))
+                          header_font=self.get_font())
         preview = QPrintPreviewDialog(printer, self)
         preview.setWindowFlags(Qt.Window)
         preview.paintRequested.connect(lambda printer: editor.print_(printer))
@@ -2503,7 +2503,7 @@ class Editor(SpyderPluginWidget):
         """Zoom in/out/reset"""
         editor = self.get_current_editorstack().get_current_editor()
         if factor == 0:
-            font = self.get_plugin_font()
+            font = self.get_font()
             editor.set_font(font)
         else:
             font = editor.font()

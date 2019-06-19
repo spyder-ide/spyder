@@ -62,7 +62,7 @@ class Console(SpyderPluginWidget):
         # Shell
         self.shell = InternalShell(parent, namespace, commands, message,
                                    self.get_option('max_line_count'),
-                                   self.get_plugin_font(), exitfunc, profile,
+                                   self.get_font(), exitfunc, profile,
                                    multithreaded)
         self.shell.status.connect(lambda msg:
                                   self.sig_show_status_message.emit(msg, 0))
@@ -125,7 +125,7 @@ class Console(SpyderPluginWidget):
 
     def update_font(self):
         """Update font from Preferences"""
-        font = self.get_plugin_font()
+        font = self.get_font()
         self.shell.set_font(font)
 
     def closing_plugin(self, cancelable=False):

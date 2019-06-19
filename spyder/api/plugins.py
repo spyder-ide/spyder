@@ -201,6 +201,31 @@ class BasePluginWidget(QWidget, BasePluginWidgetMixin):
         """Add the plugin's QDockWidget to the main window."""
         super(BasePluginWidget, self)._add_dockwidget()
 
+    def get_font(self, rich_text=False):
+        """
+        Return plain or rich text font used in Spyder.
+
+        Parameters
+        ----------
+        rich_text: bool
+            Return rich text font (i.e. the one used in the Help pane)
+            or plain text one (i.e. the one used in the Editor).
+
+        Returns
+        -------
+        QFont:
+            QFont object to be passed to other Qt widgets.
+
+        Notes
+        -----
+        All plugins in Spyder use the same, global font. This is a
+        convenience method in case some plugins want to use a delta
+        size based on the default one. That can be controlled by using
+        FONT_SIZE_DELTA or RICH_FONT_SIZE_DELTA (declared below in
+        `SpyderPluginWidget`).
+        """
+        return super(BasePluginWidget, self)._get_font(rich_text)
+
     def register_shortcut(self, qaction_or_qshortcut, context, name,
                           add_shortcut_to_tip=False):
         """
