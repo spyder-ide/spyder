@@ -302,16 +302,6 @@ class BasePluginWidgetMixin(object):
                                                 self.toggle_view(checked))
         self._toggle_view_action = action
 
-    def toggle_view(self, checked):
-        """Toggle view"""
-        if not self.dockwidget:
-            return
-        if checked:
-            self.dockwidget.show()
-            self.dockwidget.raise_()
-        else:
-            self.dockwidget.hide()
-
     @Slot()
     def _close_window(self):
         """Close QMainWindow instance that contains this plugin."""

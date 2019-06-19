@@ -441,6 +441,31 @@ class SpyderPluginWidget(SpyderPlugin, BasePluginWidget):
 
     def update_font(self):
         """
-        This must be reimplemented by plugins that need to adjust their fonts.
+        This must be reimplemented by plugins that need to adjust
+        their fonts.
         """
         pass
+
+    def toggle_view(self, checked):
+        """
+        Toggle dockwidget's visibility when its entry is selected in
+        the menu `View > Panes`.
+
+        Parameters
+        ----------
+        checked: bool
+            Is the entry in `View > Panes` checked or not?
+
+        Notes
+        -----
+        Redefining this method can be useful to execute certain actions
+        when the plugin is made visible. For an example, please see
+        `spyder/plugins/ipythonconsole/plugin.py`
+        """
+        if not self.dockwidget:
+            return
+        if checked:
+            self.dockwidget.show()
+            self.dockwidget.raise_()
+        else:
+            self.dockwidget.hide()
