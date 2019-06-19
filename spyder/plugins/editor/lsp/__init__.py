@@ -22,7 +22,7 @@ LSP_LANGUAGES = [
     'C#', 'CSS/LESS/SASS', 'Go', 'GraphQL', 'Groovy', 'Haxe', 'HTML',
     'Java', 'JavaScript', 'JSON', 'Julia', 'OCaml', 'PHP',
     'Rust', 'Scala', 'Swift', 'TypeScript', 'Erlang', 'Fortran',
-    'Elixir', 'Kotlin'
+    'Elixir', 'Kotlin', 'Cpp'
 ]
 
 # -------------------- WORKSPACE CONFIGURATION CONSTANTS ----------------------

@@ -151,10 +151,11 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 self.transport_args += ['--server-log-file', server_log_file]
 
             # Start server with logging options
-            if get_debug_level() == 2:
-                self.server_args.append('-v')
-            elif get_debug_level() == 3:
-                self.server_args.append('-vv')
+            if self.language != 'cpp':
+                if get_debug_level() == 2:
+                    self.server_args.append('-v')
+                elif get_debug_level() == 3:
+                    self.server_args.append('-vv')
 
         server_stdin = subprocess.PIPE
         server_stdout = server_log

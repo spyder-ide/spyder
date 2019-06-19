@@ -3185,8 +3185,9 @@ class CodeEditor(TextEditBaseWidget):
         if not shift and not ctrl:
             self.hide_tooltip()
 
-        if text in operators or text in delimiters:
-            self.completion_widget.hide()
+        if text not in self.auto_completion_characters:
+            if text in operators or text in delimiters:
+                self.completion_widget.hide()
         if key in (Qt.Key_Enter, Qt.Key_Return):
             if not shift and not ctrl:
                 if self.add_colons_enabled and self.is_python_like() and \
@@ -3252,10 +3253,13 @@ class CodeEditor(TextEditBaseWidget):
             self.stdkey_end(shift, ctrl)
         elif text in self.auto_completion_characters:
             self.insert_text(text)
-            if not self.in_comment_or_string():
-                last_obj = getobj(self.get_text('sol', 'cursor'))
-                if last_obj and not last_obj.isdigit():
-                    self.do_completion(automatic=True)
+            if text == ".":
+                if not self.in_comment_or_string():
+                    last_obj = getobj(self.get_text('sol', 'cursor'))
+                    if last_obj and not last_obj.isdigit():
+                        self.do_completion(automatic=True)
+            else:
+                self.do_completion(automatic=True)
         elif (text != '(' and text in self.signature_completion_characters and
                 not self.has_selected_text()):
             self.insert_text(text)
