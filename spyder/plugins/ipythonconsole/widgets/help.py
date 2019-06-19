@@ -59,6 +59,7 @@ class HelpWidget(RichJupyterWidget):
 
                 return documentation
             else:
+                text = re.compile(ANSI_PATTERN).sub('', text)
                 return text
         else:
             return ''
@@ -116,6 +117,7 @@ class HelpWidget(RichJupyterWidget):
 
                 return signature
             else:
+                text = re.compile(ANSI_PATTERN).sub('', text)
                 return text
         else:
             return ''
