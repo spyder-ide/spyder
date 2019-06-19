@@ -421,4 +421,8 @@ class BasePluginWidgetMixin(object):
     def _add_dockwidget(self):
         """Add dockwidget to the main window and set it up."""
         self.main.add_dockwidget(self)
-        self._setup()
+
+        # This is not necessary for the Editor because it calls
+        # _setup directly on init.
+        if self.CONF_SECTION != 'editor':
+            self._setup()
