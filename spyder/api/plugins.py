@@ -149,6 +149,11 @@ class SpyderPlugin(BasePlugin):
     # Status: Optional
     CONF_SECTION = None
 
+    # Widget to be used as entry in Spyder Preferences
+    # dialog
+    # Status: Optional
+    CONFIGWIDGET_CLASS = None
+
     # ------------------------------ METHODS ----------------------------------
 
     def check_compatibility(self):
@@ -275,11 +280,6 @@ class SpyderPluginWidget(SpyderPlugin, BasePluginWidget):
     """
 
     # ---------------------------- ATTRIBUTES ---------------------------------
-
-    # Widget to be used as entry in Spyder Preferences
-    # dialog
-    # Status: Optional
-    CONFIGWIDGET_CLASS = None
 
     # Path for images relative to the plugin path
     # Status: Optional
