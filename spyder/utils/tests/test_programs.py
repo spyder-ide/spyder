@@ -19,9 +19,9 @@ from spyder.utils.programs import (check_version, find_program,
                                    get_installed_applications, get_temp_dir,
                                    is_module_installed, is_python_interpreter,
                                    is_python_interpreter_valid_name,
+                                   open_files_with_application,
                                    parse_linux_desktop_entry,
                                    run_python_script_in_terminal, shell_split)
-
 
 if os.name == 'nt':
     python_dir = os.environ['PYTHON'] if os.environ.get('CI', None) else ''
@@ -190,6 +190,37 @@ def test_parse_linux_desktop_entry():
             assert key in data
 
         assert fpath == data['fpath']
+
+
+def test_open_files_with_application(tmp_path):
+    fpath = tmp_path / 'file space.txt'
+    fpath.write_text(u'Hello')
+    fpath_2 = tmp_path / 'file2.txt'
+    fpath_2.write_text(u'Hello 2')
+
+    if os.name == 'nt':
+        ext = '.exe'
+        path_obj = tmp_path / ("some-new app" + ext)
+        path_obj.write_bytes(b'Binary file contents')
+        app_path = str(path_obj)
+    elif sys.platform == 'darwin':
+        ext = '.app'
+        path_obj = tmp_path / ("some-new app" + ext)
+        path_obj.mkdir()
+        app_path = str(path_obj)
+    else:
+        ext = '.desktop'
+        path_obj = tmp_path / ("some-new app" + ext)
+        path_obj.write_text('Exec=some-command')
+        app_path = str(path_obj)
+
+    fnames = [str(fpath), str(fpath_2)]
+    return_codes = open_files_with_application(app_path, fnames)
+    assert 0 not in return_codes.values()
+
+    # Test raises
+    with pytest.raises(ValueError):
+        return_codes = open_files_with_application('not-valid.ext', fnames)
 
 
 if __name__ == '__main__':

@@ -60,25 +60,34 @@ def create_folders_files(tmpdir, request):
 
 
 @pytest.fixture
-def file_assoc_widget(qtbot):
+def file_assoc_widget(qtbot, tmp_path):
     widget = FileAssociationsWidget()
     qtbot.addWidget(widget)
     if os.name == 'nt':
         ext = '.exe'
+        path_obj = tmp_path / ('app 2' + ext)
+        path_obj.write_bytes(b'Binary file contents')
+        fpath = str(path_obj)
     elif sys.platform == 'darwin':
         ext = '.app'
+        path_obj = tmp_path / ('app 2' + ext)
+        path_obj.mkdir()
+        fpath = str(path_obj)
     else:
         ext = '.desktop'
+        path_obj = tmp_path / ('app 2' + ext)
+        path_obj.write_text('Text file contents')
+        fpath = str(path_obj)
 
     data = {
         '*.csv':
             [
                 ('App name 1', '/path/to/app 1' + ext),
-                ('App name 2', '/path/to/app 2' + ext),
+                ('App name 2', fpath),
             ],
         '*.txt':
             [
-                ('App name 2', '/path/to/app 2' + ext),
+                ('App name 2', fpath),
                 ('App name 3', '/path/to/app 3' + ext),
             ],
     }

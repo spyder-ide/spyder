@@ -364,6 +364,7 @@ class FileAssociationsWidget(QWidget):
             for widget in [self.button_remove, self.button_add_application,
                            self.button_remove_application, self.button_edit]:
                 widget.setDisabled(False)
+        self.update_applications()
         self.setUpdatesEnabled(True)
 
     def _add_association(self, value):
@@ -539,7 +540,6 @@ class FileAssociationsWidget(QWidget):
 
     def update_applications(self, row=None):
         """Update application list after additions or deletions."""
-        self._refresh()
         current_row = self.list_applications.currentRow()
         self.button_default.setEnabled(current_row != 0)
 

@@ -45,8 +45,9 @@ def file_explorer_associations(qtbot):
         ext = '.desktop'
 
     associations = {
-        '*.txt': '/some/fake/some_app_1' + ext,
-        '*.json,*.txt': '/some/fake/some_app_2' + ext,
+        '*.txt': ['/some/fake/some_app_1' + ext],
+        '*.json,*.csv': ['/some/fake/some_app_2' + ext,
+                         '/some/fake/some_app_1' +  ext],
     }
     widget = FileExplorerTest(file_associations=associations)
     widget.show()
@@ -193,13 +194,28 @@ def test_single_click_to_open(qtbot, file_explorer):
 
 
 def test_get_common_file_associations(qtbot, file_explorer_associations):
-    widget = file_explorer_associations
+    widget = file_explorer_associations.explorer.treewidget
+    associations = widget.get_common_file_associations(
+        ['/some/path/file.txt', '/some/path/file1.json', '/some/path/file2.csv'])
+    if os.name == 'nt':
+        ext = '.exe'
+    elif sys.platform == 'darwin':
+        ext = '.app'
+    else:
+        ext = '.desktop'
+    assert associations == ['/some/fake/some_app_1' + ext]
 
 
 def test_get_file_associations(qtbot, file_explorer_associations):
     widget = file_explorer_associations.explorer.treewidget
     associations = widget.get_file_associations('/some/path/file.txt')
-    assert associations == '/some/fake/some_app_1.app'
+    if os.name == 'nt':
+        ext = '.exe'
+    elif sys.platform == 'darwin':
+        ext = '.app'
+    else:
+        ext = '.desktop'
+    assert associations == ['/some/fake/some_app_1' + ext]
 
 
 def test_create_file_manage_actions(qtbot, file_explorer_associations):

@@ -118,6 +118,10 @@ def test_apps_dialog(qtbot, tmp_path):
     widget.browse(fpath)
     assert widget.list.count() == 4
 
+    # Test browse valid duplicate
+    widget.browse(fpath)
+    assert widget.list.count() == 4
+
 
 def create_timer(func, interval=500):
     """Helper function to help interact with modal dialogs."""
