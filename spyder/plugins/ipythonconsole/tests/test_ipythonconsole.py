@@ -130,6 +130,7 @@ def ipyconsole(qtbot, request):
                              test_dir=test_dir,
                              test_no_stderr=test_no_stderr)
     console.dockwidget = Mock()
+    console._toggle_view_action = Mock()
     console.create_new_client(is_pylab=is_pylab,
                               is_sympy=is_sympy,
                               is_cython=is_cython)

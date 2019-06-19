@@ -57,6 +57,7 @@ def projects(qtbot, mocker):
 
     # Create plugin
     projects = Projects(parent=None)
+    projects._setup()
 
     # Patching necessary to test visible_if_project_open
     projects.shortcut = None
