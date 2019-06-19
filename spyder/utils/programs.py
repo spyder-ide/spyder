@@ -3,12 +3,12 @@
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
-
-"""Running programs utilities"""
+"""Running programs utilities."""
 
 from __future__ import print_function
 
-# Standard library imports 
+# Standard library imports
+from ast import literal_eval
 from distutils.version import LooseVersion
 from getpass import getuser
 import glob
@@ -228,6 +228,7 @@ def parse_linux_desktop_entry(fpath):
 
     return entry_data
 
+
 def _get_mac_application_icon_path(app_bundle_path):
     """Parse mac application bundle and return path for *.icns file."""
     import plistlib
@@ -325,7 +326,10 @@ def _get_win_applications():
     for software in sorted(software_list, key=lambda x: x[sort_key]):
         if software[None]:
             key = software['key'].capitalize().replace('.exe', '')
-            app_paths[key] = os.path.expandvars(software[None].lower())
+            expanded_fpath = os.path.expandvars(software[None]).lower()
+            if '"' in expanded_fpath or "'" in expanded_fpath:
+                expanded_fpath = literal_eval(expanded_fpath)
+            app_paths[key] = expanded_fpath
 
     # See:
     # https://www.blog.pythonlibrary.org/2010/03/03/finding-installed-software-using-python/
@@ -361,6 +365,8 @@ def _get_win_applications():
                         if valid_file and not fn_low.startswith('unins'):
                             fpath = os.path.join(location, fname)
                             expanded_fpath = os.path.expandvars(fpath.lower())
+                            if '"' in expanded_fpath or "'" in expanded_fpath:
+                                expanded_fpath = literal_eval(expanded_fpath)
                             apps[name + ' (' + fname + ')'] = expanded_fpath
     # Join data
     values = list(zip(*apps.values()))[-1]
@@ -457,6 +463,11 @@ def get_installed_applications():
     else:
         apps = _get_linux_applications()
 
+    if sys.platform == 'darwin':
+        apps = {key: val for (key, val) in apps.items() if osp.isdir(val)}
+    else:
+        apps = {key: val for (key, val) in apps.items() if osp.isfile(val)}
+
     return apps
 
 
@@ -488,7 +499,10 @@ def open_files_with_application(app_path, fnames):
             raise ValueError('`app_path`  must point to a valid OSX '
                              'application!')
         cmd = ['open', '-a', app_path] + fnames
-        return_code = subprocess.call(cmd)
+        try:
+            return_code = subprocess.call(cmd)
+        except Exception:
+            return_code = 1
         return_codes[' '.join(cmd)] = return_code
     elif os.name == 'nt':
         if not (app_path.endswith(('.exe', '.bar', '.com'))
@@ -496,7 +510,10 @@ def open_files_with_application(app_path, fnames):
             raise ValueError('`app_path`  must point to a valid Windows '
                              'executable!')
         cmd = [app_path] + fnames
-        return_code = subprocess.call(cmd)
+        try:
+            return_code = subprocess.call(cmd)
+        except OSError:
+            return_code = 1
         return_codes[' '.join(cmd)] = return_code
     else:
         if not (app_path.endswith('.desktop') and os.path.isfile(app_path)):
@@ -537,10 +554,16 @@ def open_files_with_application(app_path, fnames):
 
         if multi:
             for cmd in multi:
-                return_code = subprocess.call([cmd], shell=True)
+                try:
+                    return_code = subprocess.call([cmd], shell=True)
+                except Exception:
+                    return_code = 1
                 return_codes[cmd] = return_code
         else:
-            return_code = subprocess.call([cmd] + extra, shell=True)
+            try:
+                return_code = subprocess.call([cmd] + extra, shell=True)
+            except Exception:
+                return_code = 1
             return_codes[cmd] = return_code
 
     return return_codes

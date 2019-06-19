@@ -104,7 +104,7 @@ def test_apps_dialog(qtbot, tmp_path):
     # Test browse valid
     if os.name == 'nt':
         path_obj = tmp_path / ("some-new-app" + ext)
-        path_obj.write_bytes(b'Binary file contents')
+        path_obj.write_bytes(b'\x00\x00')
         fpath = str(path_obj)
     elif sys.platform == 'darwin':
         path_obj = tmp_path / ("some-new-app" + ext)
@@ -112,7 +112,13 @@ def test_apps_dialog(qtbot, tmp_path):
         fpath = str(path_obj)
     else:
         path_obj = tmp_path / ("some-new-app" + ext)
-        path_obj.write_text('Text file contents')
+        path_obj.write_text(u'''
+[Desktop Entry]
+Name=Suer app
+Type=Application
+Exec=/something/bleerp
+Icon=/blah/blah.xpm
+''')
         fpath = str(path_obj)
 
     widget.browse(fpath)
@@ -141,6 +147,7 @@ def test_file_assoc_widget(file_assoc_widget):
 
     # Test add invalid associations
     extension = 'blooper.foo,'
+
     def interact_with_dialog_1():
         qtbot.keyClicks(widget._dlg_input.lineedit, extension)
         assert widget._dlg_input.lineedit.text() == extension
@@ -152,6 +159,7 @@ def test_file_assoc_widget(file_assoc_widget):
 
     # Test add valid association
     extension = '*.zpam,MANIFEST.in'
+
     def interact_with_dialog_2():
         qtbot.keyClicks(widget._dlg_input.lineedit, extension)
         qtbot.keyClick(widget._dlg_input.button_ok, Qt.Key_Return)
@@ -177,6 +185,7 @@ def test_file_assoc_widget(file_assoc_widget):
 
     # Test edit association
     extension = '*.zpam'
+
     def interact_with_dialog_3():
         widget._dlg_input.lineedit.clear()
         qtbot.keyClicks(widget._dlg_input.lineedit, extension)
@@ -200,11 +209,12 @@ def test_file_assoc_widget(file_assoc_widget):
     def interact_with_dialog_4():
         assert not widget._dlg_applications.button_ok.isEnabled()
         count = widget._dlg_applications.list.count()
-        if count > 0: 
+        if count > 0:
             widget._dlg_applications.list.setCurrentRow(count - 1)
             qtbot.keyClick(widget._dlg_applications.button_ok, Qt.Key_Return)
         else:
-            qtbot.keyClick(widget._dlg_applications.button_cancel, Qt.Key_Return)
+            qtbot.keyClick(widget._dlg_applications.button_cancel,
+                           Qt.Key_Return)
 
     _ = create_timer(interact_with_dialog_4)
     qtbot.mouseClick(widget.button_add_application, Qt.LeftButton)

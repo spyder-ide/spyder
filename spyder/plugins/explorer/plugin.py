@@ -129,7 +129,7 @@ class Explorer(SpyderPluginWidget):
         self.main.tabify_plugins(self.main.variableexplorer, self)
 
     def apply_plugin_settings(self, options):
-        """"""
+        """Handle preference options update."""
         method_map = {
             'file_associations':
                 self.fileexplorer.treewidget.set_file_associations,

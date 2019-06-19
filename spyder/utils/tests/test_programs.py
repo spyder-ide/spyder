@@ -201,7 +201,7 @@ def test_open_files_with_application(tmp_path):
     if os.name == 'nt':
         ext = '.exe'
         path_obj = tmp_path / ("some-new app" + ext)
-        path_obj.write_bytes(b'Binary file contents')
+        path_obj.write_bytes(b'\x00\x00')
         app_path = str(path_obj)
     elif sys.platform == 'darwin':
         ext = '.app'
@@ -211,7 +211,13 @@ def test_open_files_with_application(tmp_path):
     else:
         ext = '.desktop'
         path_obj = tmp_path / ("some-new app" + ext)
-        path_obj.write_text('Exec=some-command')
+        path_obj.write_text(u'''
+[Desktop Entry]
+Name=Suer app
+Type=Application
+Exec=/something/bleerp
+Icon=/blah/blah.xpm
+''')
         app_path = str(path_obj)
 
     fnames = [str(fpath), str(fpath_2)]

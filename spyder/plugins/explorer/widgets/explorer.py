@@ -470,7 +470,7 @@ class DirView(QTreeView):
             save_file_clipboard_action.setDisabled(True)
         actions += [None]
         actions.append(external_fileexp_action)
-        actions.append([None])
+        actions.append(None)
         if only_notebooks and nbexporter is not None:
             actions.append(ipynb_convert_action)
 
@@ -638,7 +638,7 @@ class DirView(QTreeView):
 
     #---- File/Directory actions
     def check_launch_error_codes(self, return_codes):
-        """"""
+        """Check return codes and display message box if errors found."""
         errors = [cmd for cmd, code in return_codes.items() if code != 0]
         if errors:
             if len(errors) == 1:
@@ -656,7 +656,7 @@ class DirView(QTreeView):
 
             QMessageBox.warning(self, 'Application', msg, QMessageBox.Ok)
 
-        return return_codes
+        return not bool(errors)
 
     @Slot()
     def open(self, fnames=None):
@@ -673,7 +673,7 @@ class DirView(QTreeView):
     def open_association(self, app_path):
         """Open files with given application executable path."""
         if not (os.path.isdir(app_path) or os.path.isfile(app_path)):
-            return_codes = {app_path: 0}
+            return_codes = {app_path: 1}
             app_path = None
         else:
             return_codes = {}

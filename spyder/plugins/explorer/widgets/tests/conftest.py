@@ -76,7 +76,7 @@ def file_assoc_widget(qtbot, tmp_path):
     else:
         ext = '.desktop'
         path_obj = tmp_path / ('app 2' + ext)
-        path_obj.write_text('Text file contents')
+        path_obj.write_text(u'Text file contents')
         fpath = str(path_obj)
 
     data = {
