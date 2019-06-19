@@ -122,10 +122,6 @@ class BasePluginWidgetMixin(object):
     def __init__(self, parent=None):
         super(BasePluginWidgetMixin, self).__init__()
 
-        # Dockwidget for the plugin, i.e. the pane that's going to be
-        # visible in Spyder
-        self.dockwidget = None
-
         # Actions to add to the Options menu
         self._plugin_actions = None
 
@@ -418,3 +414,7 @@ class BasePluginWidgetMixin(object):
     def _get_color_scheme(self):
         """Get the current color scheme."""
         return get_color_scheme(CONF.get('appearance', 'selected'))
+
+    def _add_dockwidget(self):
+        """Add dockwidget to the main window."""
+        self.main.add_dockwidget(self)

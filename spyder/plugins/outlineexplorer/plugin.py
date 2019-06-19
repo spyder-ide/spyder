@@ -80,7 +80,7 @@ class OutlineExplorer(SpyderPluginWidget):
         """Register plugin in Spyder's main window"""
         self.main.restore_scrollbar_position.connect(
                                                self.restore_scrollbar_position)
-        self.main.add_dockwidget(self)
+        self.add_dockwidget()
 
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""

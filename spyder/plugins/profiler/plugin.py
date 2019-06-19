@@ -78,7 +78,7 @@ class Profiler(SpyderPluginWidget):
         self.profiler.datatree.sig_edit_goto.connect(self.main.editor.load)
         self.profiler.redirect_stdio.connect(
             self.main.redirect_internalshell_stdio)
-        self.main.add_dockwidget(self)
+        self.add_dockwidget()
 
         profiler_act = create_action(self, _("Profile"),
                                      icon=self.get_plugin_icon(),

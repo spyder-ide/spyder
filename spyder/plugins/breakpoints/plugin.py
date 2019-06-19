@@ -81,9 +81,9 @@ class Breakpoints(SpyderPluginWidget):
         self.main.editor.breakpoints_saved.connect(self.breakpoints.set_data)
         self.breakpoints.set_or_edit_conditional_breakpoint.connect(
                            self.main.editor.set_or_edit_conditional_breakpoint)
-        
-        self.main.add_dockwidget(self)
-        
+
+        self.add_dockwidget()
+
         list_action = create_action(self, _("List breakpoints"),
                                    triggered=self.show)
         list_action.setEnabled(True)

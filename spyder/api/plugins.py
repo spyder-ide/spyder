@@ -191,11 +191,21 @@ class BasePluginWidget(QWidget, BasePluginWidgetMixin):
     def __init__(self, main=None):
         super(BasePluginWidget, self).__init__(main)
 
+        # Dockwidget for the plugin, i.e. the pane that's going to be
+        # visible in Spyder for this plugin.
+        # Note: This is created when you call the `add_dockwidget`
+        # method, which must be done in the `register_plugin` one.
+        self.dockwidget = None
+
     def initialize_plugin(self):
         """
         This method *must* be called at the end of the plugin's __init__
         """
         super(BasePluginWidget, self)._initialize_plugin()
+
+    def add_dockwidget(self):
+        """Add the plugin's QDockWidget to the main window."""
+        super(BasePluginWidget, self)._add_dockwidget()
 
     def register_shortcut(self, qaction_or_qshortcut, context, name,
                           add_shortcut_to_tip=False):
@@ -380,14 +390,16 @@ class SpyderPluginWidget(SpyderPlugin, BasePluginWidget):
 
     def register_plugin(self):
         """
-        Register plugin in Spyder's main window.
+        Register plugin in Spyder's main window and connect it to other
+        plugins.
 
         Notes
         -----
-        Below is the minimal call needed to register a plugin. If you
-        override this method, you need to make that call by yourself.
+        Below is the minimal call necessary to register the plugin. If
+        you override this method, please don't forget to make that call
+        here too.
         """
-        self.main.add_dockwidget(self)
+        self.add_dockwidget()
 
     def on_first_registration(self):
         """

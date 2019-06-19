@@ -72,7 +72,7 @@ class Explorer(SpyderPluginWidget):
         ipyconsole = self.main.ipyconsole
         treewidget = self.fileexplorer.treewidget
 
-        self.main.add_dockwidget(self)
+        self.add_dockwidget()
         self.fileexplorer.sig_open_file.connect(self.main.open_file)
         self.register_widget_shortcuts(treewidget)
 

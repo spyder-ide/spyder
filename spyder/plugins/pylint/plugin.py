@@ -101,7 +101,7 @@ class Pylint(SpyderPluginWidget):
         self.pylint.treewidget.sig_edit_goto.connect(self.main.editor.load)
         self.pylint.redirect_stdio.connect(
             self.main.redirect_internalshell_stdio)
-        self.main.add_dockwidget(self)
+        self.add_dockwidget()
 
         pylint_act = create_action(self, _("Run static code analysis"),
                                    triggered=self.run_pylint)

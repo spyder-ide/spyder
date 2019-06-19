@@ -1042,7 +1042,7 @@ class Editor(SpyderPluginWidget):
         editorstack = self.get_current_editorstack()
         if not editorstack.data:
             self.__load_temp_file()
-        self.main.add_dockwidget(self)
+        self.add_dockwidget()
         self.main.add_to_fileswitcher(self, editorstack.tabs, editorstack.data,
                                       ima.icon('TextFileIcon'))
 

@@ -2342,15 +2342,15 @@ class MainWindow(QMainWindow):
         self.already_closed = True
         return True
 
-    def add_dockwidget(self, child):
-        """Add QDockWidget and toggleViewAction"""
-        if child._is_compatible:
-            dockwidget, location = child._create_dockwidget()
+    def add_dockwidget(self, plugin):
+        """Add a plugin QDockWidget to the window."""
+        if plugin._is_compatible:
+            dockwidget, location = plugin._create_dockwidget()
             if CONF.get('main', 'vertical_dockwidget_titlebars'):
                 dockwidget.setFeatures(dockwidget.features()|
                                        QDockWidget.DockWidgetVerticalTitleBar)
             self.addDockWidget(location, dockwidget)
-            self.widgetlist.append(child)
+            self.widgetlist.append(plugin)
 
     @Slot()
     def close_current_dockwidget(self):

@@ -121,7 +121,7 @@ class Projects(SpyderPluginWidget):
         treewidget = self.explorer.treewidget
         lspmgr = self.main.lspmanager
 
-        self.main.add_dockwidget(self)
+        self.add_dockwidget()
         self.explorer.sig_open_file.connect(self.main.open_file)
         self.register_widget_shortcuts(treewidget)
 

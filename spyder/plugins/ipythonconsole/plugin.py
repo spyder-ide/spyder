@@ -392,7 +392,7 @@ class IPythonConsole(SpyderPluginWidget):
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.main.add_dockwidget(self)
+        self.add_dockwidget()
 
         self.focus_changed.connect(self.main.plugin_focus_changed)
         self.edit_goto.connect(self.main.editor.load)
