@@ -72,9 +72,6 @@ class Console(SpyderPluginWidget):
         # Redirecting some signals:
         self.shell.redirect_stdio.connect(lambda state:
                                           self.redirect_stdio.emit(state))
-        
-        # Initialize plugin
-        self.initialize_plugin()
 
         # Find/replace widget
         self.find_widget = FindReplace(self)

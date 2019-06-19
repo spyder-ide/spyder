@@ -41,9 +41,6 @@ class Plots(SpyderPluginWidget):
         layout = QGridLayout(self)
         layout.addWidget(self.stack)
 
-        # Initialize plugin
-        self.initialize_plugin()
-
     def get_settings(self):
         """Retrieve all Plots configuration settings."""
         return {name: self.get_option(name) for name in

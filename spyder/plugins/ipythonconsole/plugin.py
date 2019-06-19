@@ -178,10 +178,6 @@ class IPythonConsole(SpyderPluginWidget):
         # Accepting drops
         self.setAcceptDrops(True)
 
-        # Initialize plugin
-        self.initialize_plugin()
-
-
     #------ SpyderPluginMixin API ---------------------------------------------
     def update_font(self):
         """Update font from Preferences"""

@@ -67,9 +67,6 @@ class Pylint(SpyderPluginWidget):
         # Follow editorstacks tab change
         self.main.editor.sig_editor_focus_changed.connect(self.set_filename)
 
-        # Initialize plugin
-        self.initialize_plugin()
-
     #------ SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""

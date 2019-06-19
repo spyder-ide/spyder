@@ -390,18 +390,21 @@ class BasePluginWidgetMixin(object):
         self._plugin_actions = self.get_plugin_actions() + additional_actions
         add_actions(self._options_menu, self._plugin_actions)
 
-    def _initialize_plugin(self):
+    def _setup(self):
         """
-        Setup Options menu, create toggle action and connect some signals.
+        Setup Options menu, create toggle action and connect signals.
         """
+        # Creat toggle view action
         self._create_toggle_view_action()
 
+        # Create Options menu
         self._plugin_actions = self.get_plugin_actions() + [MENU_SEPARATOR,
                                                             self._undock_action]
         add_actions(self._options_menu, self._plugin_actions)
         self.options_button.setMenu(self._options_menu)
         self._options_menu.aboutToShow.connect(self.refresh_actions)
 
+        # Update title
         self.sig_update_plugin_title.connect(self._update_plugin_title)
         self.setWindowTitle(self.get_plugin_title())
 
@@ -416,5 +419,6 @@ class BasePluginWidgetMixin(object):
         return get_color_scheme(CONF.get('appearance', 'selected'))
 
     def _add_dockwidget(self):
-        """Add dockwidget to the main window."""
+        """Add dockwidget to the main window and set it up."""
         self.main.add_dockwidget(self)
+        self._setup()

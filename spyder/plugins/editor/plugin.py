@@ -139,8 +139,8 @@ class Editor(SpyderPluginWidget):
         self.toolbar_list = None
         self.menu_list = None
 
-        # Initialize plugin
-        self.initialize_plugin()
+        # We need to call this here to create dock_toolbar_actions
+        self.get_plugin_actions()
         self.options_button.hide()
 
         # Configuration dialog size

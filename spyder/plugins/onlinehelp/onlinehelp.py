@@ -28,9 +28,6 @@ class OnlineHelp(SpyderPluginWidget):
     def __init__(self, parent):
         SpyderPluginWidget.__init__(self, parent)
 
-        # Initialize plugin
-        self.initialize_plugin()
-
         self.pydocbrowser = PydocBrowser(self, self.options_button)
 
         layout = QVBoxLayout()

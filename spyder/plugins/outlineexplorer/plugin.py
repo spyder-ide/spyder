@@ -53,9 +53,6 @@ class OutlineExplorer(SpyderPluginWidget):
         self.explorer.treewidget.header().hide()
         self.load_config()
 
-        # Initialize plugin
-        self.initialize_plugin()
-
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
         """Return widget title"""

@@ -51,9 +51,6 @@ class HistoryLog(SpyderPluginWidget):
         self.editors = []
         self.filenames = []
 
-        # Initialize plugin actions, toolbutton and general signals
-        self.initialize_plugin()
-
         layout = QVBoxLayout()
         self.tabwidget = Tabs(self, self._plugin_actions)
         self.tabwidget.currentChanged.connect(self.refresh_plugin)

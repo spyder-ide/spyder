@@ -45,8 +45,6 @@ class Breakpoints(SpyderPluginWidget):
         layout.addWidget(self.breakpoints)
         self.setLayout(layout)
 
-        # Initialize plugin
-        self.initialize_plugin()
         self.breakpoints.set_data()
     
     #------ SpyderPluginWidget API --------------------------------------------

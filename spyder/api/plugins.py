@@ -192,16 +192,10 @@ class BasePluginWidget(QWidget, BasePluginWidgetMixin):
         super(BasePluginWidget, self).__init__(main)
 
         # Dockwidget for the plugin, i.e. the pane that's going to be
-        # visible in Spyder for this plugin.
+        # displayed in Spyder for this plugin.
         # Note: This is created when you call the `add_dockwidget`
         # method, which must be done in the `register_plugin` one.
         self.dockwidget = None
-
-    def initialize_plugin(self):
-        """
-        This method *must* be called at the end of the plugin's __init__
-        """
-        super(BasePluginWidget, self)._initialize_plugin()
 
     def add_dockwidget(self):
         """Add the plugin's QDockWidget to the main window."""

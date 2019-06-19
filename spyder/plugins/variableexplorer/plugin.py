@@ -52,10 +52,6 @@ class VariableExplorer(SpyderPluginWidget):
         layout.addWidget(self.stack)
         self.setLayout(layout)
 
-
-        # Initialize plugin
-        self.initialize_plugin()
-
     def get_settings(self):
         """
         Retrieve all Variable Explorer configuration settings.

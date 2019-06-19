@@ -183,9 +183,6 @@ class Help(SpyderPluginWidget):
             view.page().setLinkDelegationPolicy(QWebEnginePage.DelegateAllLinks)
         view.linkClicked.connect(self.handle_link_clicks)
 
-        # Initialize plugin
-        self.initialize_plugin()
-
         self._starting_up = True
 
     #------ SpyderPluginWidget API ---------------------------------------------

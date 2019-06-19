@@ -63,9 +63,6 @@ class Projects(SpyderPluginWidget):
         self.recent_projects = self.get_option('recent_projects', default=[])
         self.current_active_project = None
         self.latest_project = None
-
-        # Initialize plugin
-        self.initialize_plugin()
         self.explorer.setup_project(self.get_active_project_path())
 
     #------ SpyderPluginWidget API ---------------------------------------------

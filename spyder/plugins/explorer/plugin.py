@@ -41,9 +41,6 @@ class Explorer(SpyderPluginWidget):
             single_click_to_open=self.get_option('single_click_to_open'),
         )
 
-        # Initialize plugin
-        self.initialize_plugin()
-
         layout = QVBoxLayout()
         layout.addWidget(self.fileexplorer)
         self.setLayout(layout)

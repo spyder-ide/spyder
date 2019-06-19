@@ -48,9 +48,6 @@ class Profiler(SpyderPluginWidget):
         layout.addWidget(self.profiler)
         self.setLayout(layout)
 
-        # Initialize plugin
-        self.initialize_plugin()
-        
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
         """Return widget title"""

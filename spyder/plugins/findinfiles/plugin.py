@@ -66,9 +66,6 @@ class FindInFiles(SpyderPluginWidget):
         layout = QVBoxLayout()
         layout.addWidget(self.findinfiles)
         self.setLayout(layout)
-        
-        # Initialize plugin
-        self.initialize_plugin()
 
         self.toggle_visibility.connect(self.toggle)
         
