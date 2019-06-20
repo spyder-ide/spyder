@@ -983,12 +983,9 @@ class MainWindow(QMainWindow):
             self.explorer.register_plugin()
 
         # Online help widget
-        try:    # Qt >= v4.4
-            from spyder.plugins.onlinehelp.plugin import OnlineHelp
-        except ImportError:    # Qt < v4.4
-            OnlineHelp = None  # analysis:ignore
-        if CONF.get('onlinehelp', 'enable') and OnlineHelp is not None:
+        if CONF.get('onlinehelp', 'enable'):
             self.set_splash(_("Loading online help..."))
+            from spyder.plugins.onlinehelp.plugin import OnlineHelp
             self.onlinehelp = OnlineHelp(self)
             self.onlinehelp.register_plugin()
 

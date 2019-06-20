@@ -36,10 +36,10 @@ class OnlineHelp(SpyderPluginWidget):
 
         self.register_widget_shortcuts(self.pydocbrowser.find_widget)
         self.pydocbrowser.webview.set_zoom_factor(
-                                                self.get_option('zoom_factor'))
+            self.get_option('zoom_factor'))
         self.pydocbrowser.url_combo.setMaxCount(
-                                        self.get_option('max_history_entries'))
-        self.pydocbrowser.url_combo.addItems( self.load_history() )
+            self.get_option('max_history_entries'))
+        self.pydocbrowser.url_combo.addItems(self.load_history())
 
     #------ Public API ---------------------------------------------------------
     def load_history(self, obj=None):
@@ -83,3 +83,7 @@ class OnlineHelp(SpyderPluginWidget):
         self.set_option('zoom_factor',
                         self.pydocbrowser.webview.get_zoom_factor())
         return True
+
+    def on_first_registration(self):
+        """Action to be performed on first plugin registration"""
+        self.tabify(self.main.help)
