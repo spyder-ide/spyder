@@ -2003,7 +2003,7 @@ class CodeEditor(TextEditBaseWidget):
             msg = msg.strip()
             # Avoid messing TODO, FIXME
             msg = msg[0].upper() + msg[1:]
-            msg = textwrap.wrap(msg, width=60)
+            msg = textwrap.wrap(msg, width=self._DEFAULT_MAX_WIDTH)
             if len(msg) > 1:
                 msg = '<br>'.join(msg) + '<br>'
             else:
