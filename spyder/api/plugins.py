@@ -201,6 +201,28 @@ class BasePluginWidget(QWidget, BasePluginWidgetMixin):
         """Add the plugin's QDockWidget to the main window."""
         super(BasePluginWidget, self)._add_dockwidget()
 
+    def tabify(self, core_plugin):
+        """
+        Tabify plugin next to one of the core plugins.
+
+        Parameters
+        ----------
+        core_plugin: SpyderPluginWidget
+            Core Spyder plugin this one will be tabified next to.
+
+        Examples
+        --------
+        >>> self.tabify(self.main.variableexplorer)
+        >>> self.tabify(self.main.ipyconsole)
+
+        Notes
+        -----
+        The names of variables associated with each of the core plugins
+        can be found in the `setup` method of `MainWindow`, present in
+        `spyder/app/mainwindow.py`.
+        """
+        super(BasePluginWidget, self)._tabify(core_plugin)
+
     def get_font(self, rich_text=False):
         """
         Return plain or rich text font used in Spyder.
@@ -426,10 +448,10 @@ class SpyderPluginWidget(SpyderPlugin, BasePluginWidget):
 
         Notes
         -----
-        This is most usually used to tabify the plugin next to one of
-        the core plugins, like this:
+        This is mostly used to tabify the plugin next to one of the
+        core plugins, like this:
 
-        self.main.tabify_plugins(self.main.variableexplorer, self)
+        self.tabify(self.main.variableexplorer)
         """
         raise NotImplementedError
 

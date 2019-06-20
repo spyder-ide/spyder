@@ -67,7 +67,7 @@ class Profiler(SpyderPluginWidget):
 
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""
-        self.main.tabify_plugins(self.main.help, self)
+        self.tabify(self.main.help)
         self.dockwidget.hide()
 
     def register_plugin(self):

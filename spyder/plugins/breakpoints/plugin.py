@@ -66,7 +66,7 @@ class Breakpoints(SpyderPluginWidget):
 
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""
-        self.main.tabify_plugins(self.main.help, self)
+        self.tabify(self.main.help)
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""

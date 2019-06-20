@@ -410,3 +410,7 @@ class BasePluginWidgetMixin(object):
         # _setup directly on init.
         if self.CONF_SECTION != 'editor':
             self._setup()
+
+    def _tabify(self, core_plugin):
+        """Tabify plugin next to a core plugin."""
+        self.main.tabify_plugins(core_plugin, self)

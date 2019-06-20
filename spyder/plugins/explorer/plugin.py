@@ -110,7 +110,7 @@ class Explorer(SpyderPluginWidget):
 
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""
-        self.main.tabify_plugins(self.main.variableexplorer, self)
+        self.tabify(self.main.variableexplorer)
 
     #------ Public API ---------------------------------------------------------
     def chdir(self, directory):
