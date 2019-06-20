@@ -199,10 +199,14 @@ class LSPManager(QObject):
                 self.clients[language] = config
                 self.register_queue[language] = []
             else:
-                logger.debug(
-                    self.clients[language]['config'] != config['config'])
+                # logger.debug(
+                #     self.clients[language]['config'] != config['config'])
                 current_config = self.clients[language]['config']
                 new_config = config['config']
+                logger.debug('!!!!!!!!OLD:')
+                logger.debug(current_config)
+                logger.debug('!!!!!!!!NEW:')
+                logger.debug(new_config)
                 restart_diff = ['cmd', 'args', 'host',
                                 'port', 'external', 'stdio']
                 restart = any([current_config[x] != new_config[x]
@@ -221,6 +225,8 @@ class LSPManager(QObject):
                         client = self.clients[language]['instance']
                         client.send_plugin_configurations(
                             new_config['configurations'])
+                logger.debug('!!!!!!!!NEW_FINAL:')
+                logger.debug(new_config['configurations'])
 
     def update_client_status(self, active_set):
         for language in self.clients:

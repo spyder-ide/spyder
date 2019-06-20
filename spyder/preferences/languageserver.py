@@ -32,7 +32,9 @@ from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.utils import icon_manager as ima
 from spyder.utils.programs import find_program
 from spyder.widgets.helperwidgets import ItemDelegate
+import logging
 
+logger = logging.getLogger(__name__)
 
 LSP_LANGUAGE_NAME = {x.lower(): x for x in LSP_LANGUAGES}
 LSP_URL = "https://microsoft.github.io/language-server-protocol"
@@ -915,6 +917,7 @@ class LSPManagerConfigPage(GeneralConfigPage):
         # Set Docstring style options enabled/disabled
         docstring_style_g_widget = QWidget()
         docstring_style_g_widget.setLayout(docstring_style_g_layout)
+        logger.debug('&&&&&&&&' + str(self.get_option('pydocstyle')))
         docstring_style_g_widget.setEnabled(self.get_option('pydocstyle'))
         docstring_style_check.toggled.connect(
             docstring_style_g_widget.setEnabled)
@@ -1150,6 +1153,9 @@ class LSPManagerConfigPage(GeneralConfigPage):
                 state = self.get_option(name)
                 action.setChecked(state)
                 action.trigger()
+                logger.debug('-----')
+                logger.debug(name)
+                logger.debug(state)
 
         # TODO: Reset Manager
         self.main.lspmanager.update_server_list()
