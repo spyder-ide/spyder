@@ -386,7 +386,7 @@ class BasePluginWidgetMixin(object):
                                                             self._undock_action]
         add_actions(self._options_menu, self._plugin_actions)
         self.options_button.setMenu(self._options_menu)
-        self._options_menu.aboutToShow.connect(self.refresh_actions)
+        self._options_menu.aboutToShow.connect(self._refresh_actions)
 
         # Update title
         self.sig_update_plugin_title.connect(self._update_plugin_title)

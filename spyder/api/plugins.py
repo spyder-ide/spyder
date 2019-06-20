@@ -314,10 +314,6 @@ class BasePluginWidget(QWidget, BasePluginWidgetMixin):
         """
         return super(BasePluginWidget, self)._get_color_scheme()
 
-    def refresh_actions(self):
-        """Refresh options menu."""
-        super(BasePluginWidget, self)._refresh_actions()
-
 
 class SpyderPluginWidget(SpyderPlugin, BasePluginWidget):
     """

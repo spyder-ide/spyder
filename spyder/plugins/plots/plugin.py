@@ -58,7 +58,7 @@ class Plots(SpyderPluginWidget):
         self.stack.setCurrentWidget(fig_browser)
         # We update the actions of the options button (cog menu) and
         # we move it to the layout of the current widget.
-        self.refresh_actions()
+        self._refresh_actions()
         fig_browser.setup_options_button()
 
     def current_widget(self):

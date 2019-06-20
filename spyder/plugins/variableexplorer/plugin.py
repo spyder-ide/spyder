@@ -103,7 +103,7 @@ class VariableExplorer(SpyderPluginWidget):
         self.stack.setCurrentWidget(nsb)
         # We update the actions of the options button (cog menu) and we move
         # it to the layout of the current widget.
-        self.refresh_actions()
+        self._refresh_actions()
         nsb.setup_options_button()
 
     def current_widget(self):
