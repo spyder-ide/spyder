@@ -360,9 +360,9 @@ class Editor(SpyderPluginWidget):
         """
         return self.get_current_editor()
 
-    def visibility_changed(self, enable):
+    def _visibility_changed(self, enable):
         """DockWidget visibility has changed"""
-        SpyderPluginWidget.visibility_changed(self, enable)
+        SpyderPluginWidget._visibility_changed(self, enable)
         if self.dockwidget is None:
             return
         if self.dockwidget.isWindow():

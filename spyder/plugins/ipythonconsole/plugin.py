@@ -552,7 +552,7 @@ class IPythonConsole(SpyderPluginWidget):
                     self.execute_code(line)
             except AttributeError:
                 pass
-            self.visibility_changed(True)
+            self._visibility_changed(True)
             self.raise_()
         else:
             # XXX: not sure it can really happen

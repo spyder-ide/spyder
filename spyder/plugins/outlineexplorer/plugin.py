@@ -84,10 +84,10 @@ class OutlineExplorer(SpyderPluginWidget):
         self.save_config()
         return True
 
-    #------ SpyderPluginMixin API ---------------------------------------------
-    def visibility_changed(self, enable):
+    #------ BasePluginWidgetMixin API ---------------------------------------------
+    def _visibility_changed(self, enable):
         """DockWidget visibility has changed"""
-        super(SpyderPluginWidget, self).visibility_changed(enable)
+        super(SpyderPluginWidget, self)._visibility_changed(enable)
         if enable:
             self.explorer.is_visible.emit()
             

@@ -655,7 +655,7 @@ def test_connection_to_external_kernel(main_window, qtbot):
         shell.execute('a = 10')
 
     # Assert that there are no variables in the variable explorer
-    main_window.variableexplorer.visibility_changed(True)
+    main_window.variableexplorer._visibility_changed(True)
     nsb = main_window.variableexplorer.get_focus_widget()
     qtbot.wait(500)
     assert nsb.editor.model.rowCount() == 0
@@ -670,7 +670,7 @@ def test_connection_to_external_kernel(main_window, qtbot):
         shell.execute('a = 10')
 
     # Assert that a variable is visible in the variable explorer
-    main_window.variableexplorer.visibility_changed(True)
+    main_window.variableexplorer._visibility_changed(True)
     nsb = main_window.variableexplorer.get_focus_widget()
     qtbot.wait(500)
     assert nsb.editor.model.rowCount() == 1
@@ -692,7 +692,7 @@ def test_change_types_in_varexp(main_window, qtbot):
         shell.execute('a = 10')
 
     # Edit object
-    main_window.variableexplorer.visibility_changed(True)
+    main_window.variableexplorer._visibility_changed(True)
     nsb = main_window.variableexplorer.get_focus_widget()
     qtbot.waitUntil(lambda: nsb.editor.model.rowCount() > 0, timeout=EVAL_TIMEOUT)
     nsb.editor.setFocus()
@@ -1221,7 +1221,7 @@ def test_varexp_edit_inline(main_window, qtbot):
         shell.execute('a = 10')
 
     # Edit object
-    main_window.variableexplorer.visibility_changed(True)
+    main_window.variableexplorer._visibility_changed(True)
     nsb = main_window.variableexplorer.get_focus_widget()
     qtbot.waitUntil(lambda: nsb.editor.model.rowCount() > 0, timeout=EVAL_TIMEOUT)
     nsb.editor.setFocus()

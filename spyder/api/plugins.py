@@ -297,10 +297,6 @@ class BasePluginWidget(QWidget, BasePluginWidgetMixin):
         for qshortcut, context, name in widget.get_shortcut_data():
             self.register_shortcut(qshortcut, context, name)
 
-    def visibility_changed(self, enable):
-        """Dock widget visibility has changed."""
-        super(BasePluginWidget, self)._visibility_changed(enable)
-
     def get_color_scheme(self):
         """
         Get the current color scheme.

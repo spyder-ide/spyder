@@ -200,7 +200,7 @@ class Projects(SpyderPluginWidget):
         if self.get_option('visible_if_project_open'):
             if not self._toggle_view_action.isChecked():
                 self._toggle_view_action.setChecked(True)
-            self.visibility_changed(True)
+            self._visibility_changed(True)
 
     # ------ Public API -------------------------------------------------------
     def setup_menu_actions(self):

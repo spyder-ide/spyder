@@ -57,14 +57,17 @@ class OnlineHelp(SpyderPluginWidget):
                 [to_text_string(self.pydocbrowser.url_combo.itemText(index))
                  for index in range(self.pydocbrowser.url_combo.count())]))
 
-    #------ SpyderPluginMixin API ---------------------------------------------
-    def visibility_changed(self, enable):
-        """DockWidget visibility has changed"""
-        super(SpyderPluginWidget, self).visibility_changed(enable)
-        if enable and not self.pydocbrowser.is_server_running():
-            self.pydocbrowser.initialize()
-    
     #------ SpyderPluginWidget API ---------------------------------------------
+    def toggle_view(self, checked):
+        """Toggle view action."""
+        if checked:
+            if not self.pydocbrowser.is_server_running():
+                self.pydocbrowser.initialize()
+            self.dockwidget.show()
+            self.dockwidget.raise_()
+        else:
+            self.dockwidget.hide()
+
     def get_plugin_title(self):
         """Return widget title"""
         return _('Online help')

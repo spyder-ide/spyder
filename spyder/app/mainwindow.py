@@ -2308,7 +2308,7 @@ class MainWindow(QMainWindow):
         try:
             for plugin in (self.widgetlist + self.thirdparty_plugins):
                 if plugin.isAncestorOf(self.last_focused_widget):
-                    plugin.visibility_changed(True)
+                    plugin._visibility_changed(True)
             QMainWindow.hideEvent(self, event)
         except RuntimeError:
             QMainWindow.hideEvent(self, event)
@@ -2437,7 +2437,7 @@ class MainWindow(QMainWindow):
             # (otherwise the whole plugin is hidden and so is the outline explorer
             #  and the latter won't be refreshed if not visible)
             self.last_plugin.show()
-            self.last_plugin.visibility_changed(True)
+            self.last_plugin._visibility_changed(True)
             if self.last_plugin is self.editor:
                 # Automatically show the outline if the editor was maximized:
                 self.addDockWidget(Qt.RightDockWidgetArea,

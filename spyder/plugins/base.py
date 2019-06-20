@@ -233,7 +233,7 @@ class BasePluginWidgetMixin(object):
         dock.setFeatures(self._FEATURES)
         dock.setWidget(self)
         self._update_margins()
-        dock.visibilityChanged.connect(self.visibility_changed)
+        dock.visibilityChanged.connect(self._visibility_changed)
         dock.topLevelChanged.connect(self._on_top_level_changed)
         dock.sig_plugin_closed.connect(self._plugin_closed)
         self.dockwidget = dock
@@ -258,7 +258,7 @@ class BasePluginWidgetMixin(object):
             self.main.maximize_dockwidget()
         if not self._toggle_view_action.isChecked():
             self._toggle_view_action.setChecked(True)
-        self.visibility_changed(True)
+        self._visibility_changed(True)
 
     @Slot()
     def _plugin_closed(self):
