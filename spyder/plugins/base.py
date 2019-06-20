@@ -250,7 +250,7 @@ class BasePluginWidgetMixin(object):
             configwidget.initialize()
             return configwidget
 
-    def switch_to_plugin(self):
+    def _switch_to_plugin(self):
         """Switch to plugin."""
         if (self.main.last_plugin is not None and
                 self.main.last_plugin._ismaximized and
@@ -355,7 +355,7 @@ class BasePluginWidgetMixin(object):
             toggle_actions(self._plugin_actions, visible)
         self._isvisible = enable and visible
         if self._isvisible:
-            self.refresh_plugin()   # To give focus to the plugin's widget
+            self.refresh_plugin()
 
     def _refresh_actions(self):
         """Refresh Options menu."""

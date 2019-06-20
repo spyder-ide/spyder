@@ -314,6 +314,18 @@ class BasePluginWidget(QWidget, BasePluginWidgetMixin):
         """
         return super(BasePluginWidget, self)._get_color_scheme()
 
+    def switch_to_plugin(self):
+        """
+        Switch to this plugin.
+
+        Notes
+        -----
+        This operation unmaximizes the current plugin (if any), raises
+        this plugin to view (if it's hidden) and gives it focus (if
+        possible).
+        """
+        super(BasePluginWidget, self)._switch_to_plugin()
+
 
 class SpyderPluginWidget(SpyderPlugin, BasePluginWidget):
     """
