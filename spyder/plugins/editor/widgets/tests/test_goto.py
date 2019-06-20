@@ -18,6 +18,7 @@ import pytest
 from spyder.plugins.editor.widgets.tests.test_codeeditor import editorbot
 
 # Constants
+HERE = os.path.abspath(__file__)
 TEST_FOLDER = os.path.abspath(os.path.dirname(__file__))
 _, TEMPFILE_PATH = tempfile.mkstemp()
 TEST_FILES = [os.path.join(TEST_FOLDER, f) for f in
@@ -59,7 +60,7 @@ TEST_FILE_REL = [f for f in os.listdir(TEST_FOLDER) if f.endswith('.py')][0]
             ('# gh:spyder-ide/spyder#123\n',
              'gh:spyder-ide/spyder#123', None),
             ('# gh-123\n',
-             'gh-123', None),
+             'gh-123', HERE),
         ]
     )
 def test_goto_uri(qtbot, editorbot, params):
@@ -90,7 +91,11 @@ def test_goto_uri(qtbot, editorbot, params):
     with qtbot.waitSignal(code_editor.sig_uri_found, timeout=3000) as blocker:
         qtbot.keyPress(code_editor, Qt.Key_Control, delay=500)
         args = blocker.args
-        print(param, expected_output_text)
+        print([param, expected_output_text])
         print([args])
         output_text = args[0]
+
+        # Tests spyder-ide/spyder#9614
+        code_editor.go_to_uri_from_cursor(expected_output_text, testing=True)
+
         assert expected_output_text in output_text

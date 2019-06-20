@@ -3480,24 +3480,28 @@ class CodeEditor(TextEditBaseWidget):
             self._last_hover_pattern_text = pattern_text
             return False
 
-    def go_to_uri_from_cursor(self, uri):
+    def go_to_uri_from_cursor(self, uri, testing=False):
         """Go to url from cursor and defined hover patterns."""
         key = self._last_hover_pattern_key
+        full_uri = uri
         if key in ['file']:
             fname = self._preprocess_file_uri(uri)
 
             if osp.isfile(fname) and encoding.is_text_file(fname):
                 # Open in editor
-                self.go_to_definition.emit(fname, 0, 0)
+                if not testing:
+                    self.go_to_definition.emit(fname, 0, 0)
             else:
                 # Use external program
                 fname = file_uri(fname)
-                programs.start_file(fname)
+                if not testing:
+                    programs.start_file(fname)
         elif key in ['mail', 'url']:
             if '@' in uri and not uri.startswith('mailto:'):
                 full_uri = 'mailto:' + uri
             quri = QUrl(full_uri)
-            QDesktopServices.openUrl(quri)
+            if not testing:
+                QDesktopServices.openUrl(quri)
         elif key in ['issue']:
             # Issue URI
             repo_url = uri.replace('#', '/issues/')
@@ -3524,7 +3528,8 @@ class CodeEditor(TextEditBaseWidget):
 
             if full_uri:
                 quri = QUrl(full_uri)
-                QDesktopServices.openUrl(quri)
+                if not testing:
+                    QDesktopServices.openUrl(quri)
             else:
                 QMessageBox.information(
                     self,
