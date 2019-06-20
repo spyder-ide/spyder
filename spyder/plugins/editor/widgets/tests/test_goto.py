@@ -135,3 +135,7 @@ def test_goto_uri_message_box(qtbot, editorbot, mocker):
     timer.start()
 
     code_editor.go_to_uri_from_cursor('gh-123')
+
+    code_editor.filename = None
+    code_editor._last_hover_pattern_key = None
+    code_editor._last_hover_pattern_text = None
