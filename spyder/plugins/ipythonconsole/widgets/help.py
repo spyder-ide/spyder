@@ -183,12 +183,12 @@ class HelpWidget(RichJupyterWidget):
             if content.get('status') == 'ok' and content.get('found', False):
                 signature = self.get_signature(content)
                 documentation = self.get_documentation(content)
-                documentation_new_line = (self.language_name is not None
-                                          and self.language_name == 'python')
+                new_line = (self.language_name is not None
+                            and self.language_name == 'python')
                 self._control.show_calltip(
                     signature,
                     documentation=documentation,
                     language=self.language_name,
                     max_lines=7,
-                    text_new_line=documentation_new_line
+                    text_new_line=new_line
                 )
