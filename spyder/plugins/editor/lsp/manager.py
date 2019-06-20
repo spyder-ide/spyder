@@ -100,7 +100,7 @@ class LSPManager(QObject):
         # If there's no project, use the output of getcwd_or_home.
         if not path:
             # We can't use getcwd_or_home for LSP servers because if it
-            # returns home and you have a lot of LSP servers files on it
+            # returns home and you have a lot of files on it
             # then computing completions takes a long time
             # and blocks the LSP server.
             # Instead we use an empty directory inside our config one,
