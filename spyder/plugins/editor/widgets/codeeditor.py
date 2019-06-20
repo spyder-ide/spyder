@@ -26,6 +26,7 @@ import os.path as osp
 import re
 import sre_constants
 import sys
+import textwrap
 import time
 
 # Third party imports
@@ -2005,6 +2006,11 @@ class CodeEditor(TextEditBaseWidget):
             msg = msg.strip()
             # Avoid messing TODO, FIXME
             msg = msg[0].upper() + msg[1:]
+            msg = textwrap.wrap(msg, width=self._DEFAULT_MAX_WIDTH)
+            if len(msg) > 1:
+                msg = '<br>'.join(msg) + '<br>'
+            else:
+                msg = '<br>'.join(msg)
             base_64 = ima.base64_from_icon(icons[sev], size, size)
             msglist.append(template.format(base_64, msg, src,
                                            code, size=size))
@@ -2015,6 +2021,7 @@ class CodeEditor(TextEditBaseWidget):
                 text='\n'.join(msglist),
                 title_color='#129625',
                 at_line=line_number,
+                with_html_format=True
             )
             self.highlight_line_warning(block_data)
 
