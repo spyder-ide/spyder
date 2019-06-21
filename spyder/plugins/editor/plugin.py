@@ -289,10 +289,10 @@ class Editor(SpyderPluginWidget):
         filename = options['filename']
         language = options['language']
         logger.debug('Call LSP for %s [%s]' % (filename, language))
-        callback = options['codeeditor']
+        codeeditor = options['codeeditor']
         stat = self.main.lspmanager.start_client(language.lower())
         self.main.lspmanager.register_file(
-            language.lower(), filename, callback)
+            language.lower(), filename, codeeditor)
         if stat:
             if language.lower() in self.lsp_editor_settings:
                 logger.debug('{0} LSP is ready'.format(language))
@@ -300,9 +300,9 @@ class Editor(SpyderPluginWidget):
                     language.lower(), self.lsp_editor_settings[
                         language.lower()])
             else:
-                if callback.language == language.lower():
-                    logger.debug('Setting {0} LSP off'.filename)
-                    callback.lsp_ready = False
+                if codeeditor.language == language.lower():
+                    logger.debug('Setting {0} LSP off'.format(filename))
+                    codeeditor.lsp_ready = False
         if self.fallback_up:
             self.fallback_ready()
 
