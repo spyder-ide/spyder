@@ -211,7 +211,7 @@ class AttributeModel(object):
 # Column definitions ##
 #######################
 ATTR_MODEL_NAME = AttributeModel(
-    'name',
+    'Name',
     doc=_("The name of the object."),
     data_fn=lambda tree_item: tree_item.obj_name
     if tree_item.obj_name else _('<root>'),
@@ -220,7 +220,7 @@ ATTR_MODEL_NAME = AttributeModel(
 
 
 ATTR_MODEL_PATH = AttributeModel(
-    'path',
+    'Path',
     doc=_("A path to the data: e.g. var[1]['a'].item"),
     data_fn=lambda tree_item: tree_item.obj_path
     if tree_item.obj_path else _('<root>'),
@@ -271,7 +271,7 @@ ATTR_MODEL_REPR = AttributeModel(
 
 
 ATTR_MODEL_TYPE = AttributeModel(
-    'type',
+    'type function',
     doc=_("Type of the object determined using the builtin type() function"),
     data_fn=lambda tree_item: str(type(tree_item.obj)),
     col_visible=False,
@@ -279,7 +279,7 @@ ATTR_MODEL_TYPE = AttributeModel(
 
 
 ATTR_MODEL_CLASS = AttributeModel(
-    'type name',
+    'Type',
     doc="The name of the class of the object via obj.__class__.__name__",
     data_fn=lambda tree_item: type(tree_item.obj).__name__,
     col_visible=True,
@@ -287,11 +287,11 @@ ATTR_MODEL_CLASS = AttributeModel(
 
 
 ATTR_MODEL_LENGTH = AttributeModel(
-    'length',
+    'Size',
     doc=_("The length of the object using the len() function"),
     # data_fn     = tio_length,
     data_fn=safe_data_fn(len),
-    col_visible=False,
+    col_visible=True,
     alignment=ALIGN_RIGHT,
     width=SMALL_COL_WIDTH)
 
@@ -307,7 +307,7 @@ ATTR_MODEL_ID = AttributeModel(
 
 
 ATTR_MODEL_IS_ATTRIBUTE = AttributeModel(
-    'is attribute',
+    'Attribute',
     doc=_("The object is an attribute of the parent "
           "(opposed to e.g. a list element)."
           "Attributes are displayed in italics in the table."),
@@ -317,7 +317,7 @@ ATTR_MODEL_IS_ATTRIBUTE = AttributeModel(
 
 
 ATTR_MODEL_CALLABLE = AttributeModel(
-    'is callable',
+    'Callable',
     doc=_("True if the object is callable."
           "Determined with the `callable` built-in function."
           "Callable objects are displayed in blue in the table."),
@@ -327,7 +327,7 @@ ATTR_MODEL_CALLABLE = AttributeModel(
 
 
 ATTR_MODEL_IS_ROUTINE = AttributeModel(
-    'is routine',
+    'Routine',
     doc=_("True if the object is a user-defined or "
           "built-in function or method."
           "Determined with the inspect.isroutine() method."),
@@ -362,7 +362,7 @@ ATTR_MODEL_DOC_STRING = AttributeModel(
 
 
 ATTR_MODEL_GET_DOC = AttributeModel(
-    'inspect.getdoc',
+    'Documentation',
     doc=_("The object's doc string, leaned up by inspect.getdoc()"),
     data_fn=safe_data_fn(inspect.getdoc),
     col_visible=False,
@@ -387,7 +387,7 @@ ATTR_MODEL_GET_MODULE = AttributeModel(
 
 
 ATTR_MODEL_GET_FILE = AttributeModel(
-    'inspect.getfile',
+    'File',
     doc=_("The object's file. Retrieved using inspect.getfile"),
     data_fn=safe_data_fn(inspect.getfile),
     col_visible=False,
@@ -395,7 +395,7 @@ ATTR_MODEL_GET_FILE = AttributeModel(
 
 
 ATTR_MODEL_GET_SOURCE_FILE = AttributeModel(
-    'inspect.getsourcefile',  # calls inspect.getfile()
+    'Source file',  # calls inspect.getfile()
     doc=_("The object's file. Retrieved using inspect.getsourcefile"),
     data_fn=safe_data_fn(inspect.getsourcefile),
     col_visible=False,
@@ -412,7 +412,7 @@ ATTR_MODEL_GET_SOURCE_LINES = AttributeModel(
 
 
 ATTR_MODEL_GET_SOURCE = AttributeModel(
-    'inspect.getsource',
+    'Source code',
     doc=_("The source code of an object retrieved using inspect.getsource"),
     data_fn=safe_data_fn(inspect.getsource),
     col_visible=False,
@@ -446,33 +446,22 @@ ALL_ATTR_MODELS = (
 
 DEFAULT_ATTR_COLS = (
     ATTR_MODEL_NAME,
-    ATTR_MODEL_TYPE,
-    ATTR_MODEL_PATH,
-    ATTR_MODEL_SUMMARY,
-    ATTR_MODEL_UNICODE,
-    ATTR_MODEL_STR,
-    ATTR_MODEL_REPR,
-    ATTR_MODEL_LENGTH,
     ATTR_MODEL_CLASS,
+    ATTR_MODEL_LENGTH,
+    # ATTR_MODEL_VALUE,
+    ATTR_MODEL_CALLABLE,
+    ATTR_MODEL_PATH,
     ATTR_MODEL_ID,
     ATTR_MODEL_IS_ATTRIBUTE,
-    ATTR_MODEL_CALLABLE,
     ATTR_MODEL_IS_ROUTINE,
-    ATTR_MODEL_PRED,
-    ATTR_MODEL_GET_MODULE,
     ATTR_MODEL_GET_FILE,
     ATTR_MODEL_GET_SOURCE_FILE)
 
 DEFAULT_ATTR_DETAILS = (
-    ATTR_MODEL_PRETTY_PRINT,
-    ATTR_MODEL_PATH,  # to allow for copy/paste
-    # ATTR_MODEL_SUMMARY, # Too similar to unicode column
-    ATTR_MODEL_UNICODE,
     # ATTR_MODEL_STR, # Too similar to unicode column
+    ATTR_MODEL_GET_DOC,
     ATTR_MODEL_REPR,
     # ATTR_MODEL_DOC_STRING, # not used, too similar to ATTR_MODEL_GET_DOC
-    ATTR_MODEL_GET_DOC,
-    ATTR_MODEL_GET_COMMENTS,
     # ATTR_MODEL_GET_MODULE, # not used, already in table
     ATTR_MODEL_GET_FILE,
     # ATTR_MODEL_GET_SOURCE_FILE,  # not used, already in table

@@ -125,8 +125,6 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
                  minmax=False, dataframe_format=None,
                  show_callable_attributes=None,
                  show_special_attributes=None,
-                 auto_refresh=None,
-                 refresh_rate=None,
                  remote=False):
         QAbstractTableModel.__init__(self, parent)
         if data is None:
@@ -136,8 +134,6 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         self.dataframe_format = dataframe_format
         self.show_callable_attributes = show_callable_attributes
         self.show_special_attributes = show_special_attributes
-        self.auto_refresh = auto_refresh
-        self.refresh_rate = refresh_rate
         self.remote = remote
         self.header0 = None
         self._data = None
@@ -572,26 +568,19 @@ class CollectionsDelegate(QItemDelegate):
         else:
             show_callable_attributes = index.model().show_callable_attributes
             show_special_attributes = index.model().show_special_attributes
-            auto_refresh = index.model().auto_refresh
-            refresh_rate = index.model().refresh_rate
 
             if show_callable_attributes is None:
                 show_callable_attributes = False
             if show_special_attributes is None:
                 show_special_attributes = False
-            if auto_refresh is None:
-                auto_refresh = False
-            if refresh_rate is None:
-                refresh_rate = 2
 
+            key = index.model().keys[index.row()]
             editor = ObjectExplorer(
-                {_('Object'): value},
-                expanded=True,
+                value,
+                name=key,
                 parent=parent,
                 show_callable_attributes=show_callable_attributes,
-                show_special_attributes=show_special_attributes,
-                auto_refresh=auto_refresh,
-                refresh_rate=refresh_rate)
+                show_special_attributes=show_special_attributes)
             editor.sig_option_changed.connect(self.change_option)
             self.create_dialog(editor, dict(model=index.model(),
                                             editor=editor,
@@ -621,8 +610,6 @@ class CollectionsDelegate(QItemDelegate):
             self.parent().toggle_show_callable_attributes(new_value)
         elif option_name == 'show_special_attributes':
             self.parent().toggle_show_special_attributes(new_value)
-        elif option_name == 'auto_refresh':
-            self.parent().toggle_auto_refresh(new_value)
 
     def editor_accepted(self, editor_id):
         data = self._editors[editor_id]
@@ -1055,12 +1042,6 @@ class BaseTableView(QTableView):
         """Toggle special attributes for the Object Explorer."""
         self.sig_option_changed.emit('show_special_attributes', state)
         self.model.show_special_attributes = state
-
-    @Slot(bool)
-    def toggle_auto_refresh(self, state):
-        """Toggle auto-refresh for the Object Explorer."""
-        self.sig_option_changed.emit('auto_refresh', state)
-        self.model.auto_refresh = state
 
     @Slot(bool)
     def toggle_minmax(self, state):
@@ -1609,9 +1590,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
     def __init__(self, parent, data, minmax=False, shellwidget=None,
                  remote_editing=False, dataframe_format=None,
                  show_callable_attributes=None,
-                 show_special_attributes=None,
-                 auto_refresh=None,
-                 refresh_rate=None):
+                 show_special_attributes=None):
         BaseTableView.__init__(self, parent)
 
         self.shellwidget = shellwidget
@@ -1627,8 +1606,6 @@ class RemoteCollectionsEditorTableView(BaseTableView):
             dataframe_format=dataframe_format,
             show_callable_attributes=show_callable_attributes,
             show_special_attributes=show_special_attributes,
-            auto_refresh=auto_refresh,
-            refresh_rate=refresh_rate,
             remote=True)
         self.setModel(self.model)
 

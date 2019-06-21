@@ -175,10 +175,8 @@ DEFAULTS = [
               'exclude_unsupported': True,
               'truncate': True,
               'minmax': False,
-              'show_callable_attributes': False,
-              'show_special_attributes': False,
-              'auto_refresh': False,
-              'refresh_rate': 2
+              'show_callable_attributes': True,
+              'show_special_attributes': False
              }),
             ('plots',
              {

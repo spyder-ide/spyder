@@ -71,11 +71,11 @@ class TreeModel(QAbstractItemModel):
         self.regular_font = QFont()  # Font for members (non-functions)
         # Font for __special_attributes__
         self.special_attribute_font = QFont()
-        self.special_attribute_font.setItalic(True)
+        self.special_attribute_font.setItalic(False)
 
         self.regular_color = QBrush(QColor(ima.MAIN_FG_COLOR))
         self.callable_color = QBrush(
-            QColor('mediumblue'))  # for functions, methods, etc.
+            QColor(ima.MAIN_FG_COLOR))  # for functions, methods, etc.
 
         # The following members will be initialized by populateTree
         # The rootItem is always invisible. If the obj_name

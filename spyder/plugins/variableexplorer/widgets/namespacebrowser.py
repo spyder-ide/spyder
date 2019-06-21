@@ -69,8 +69,6 @@ class NamespaceBrowser(QWidget):
         self.dataframe_format = None
         self.show_callable_attributes = None
         self.show_special_attributes = None
-        self.auto_refresh = None
-        self.refresh_rate = None
 
         self.editor = None
         self.exclude_private_action = None
@@ -88,9 +86,7 @@ class NamespaceBrowser(QWidget):
               exclude_unsupported=None, excluded_names=None,
               minmax=None, dataframe_format=None,
               show_callable_attributes=None,
-              show_special_attributes=None,
-              auto_refresh=None,
-              refresh_rate=None):
+              show_special_attributes=None):
         """
         Setup the namespace browser with provided settings.
 
@@ -110,8 +106,6 @@ class NamespaceBrowser(QWidget):
         self.dataframe_format = dataframe_format
         self.show_callable_attributes = show_callable_attributes
         self.show_special_attributes = show_special_attributes
-        self.auto_refresh = auto_refresh
-        self.refresh_rate = refresh_rate
 
         if self.editor is not None:
             self.editor.setup_menu(minmax)
@@ -130,9 +124,7 @@ class NamespaceBrowser(QWidget):
                         shellwidget=self.shellwidget,
                         dataframe_format=dataframe_format,
                         show_callable_attributes=show_callable_attributes,
-                        show_special_attributes=show_special_attributes,
-                        auto_refresh=auto_refresh,
-                        refresh_rate=refresh_rate
+                        show_special_attributes=show_special_attributes
                         )
 
         self.editor.sig_option_changed.connect(self.sig_option_changed.emit)

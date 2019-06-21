@@ -40,7 +40,7 @@ from spyder.utils import icon_manager as ima
 logger = logging.getLogger(__name__)
 
 # About message
-PROGRAM_NAME = 'Object Explorer'
+EDITOR_NAME = 'Object'
 
 
 class ObjectExplorer(QDialog):
@@ -60,8 +60,6 @@ class ObjectExplorer(QDialog):
                  attribute_details=DEFAULT_ATTR_DETAILS,
                  show_callable_attributes=False,
                  show_special_attributes=False,
-                 auto_refresh=False,
-                 refresh_rate=2,
                  reset=False):
         """
         Constructor
@@ -81,10 +79,6 @@ class ObjectExplorer(QDialog):
         :param show_special_attributes: if True rows where the 'is attribute'
             is True and the object name starts and ends with two underscores,
             are displayed. Otherwise they are hidden.
-        :param auto_refresh: If True, the contents refershes itsef every
-            <refresh_rate> seconds.
-        :param refresh_rate: number of seconds between automatic refreshes.
-            Default = 2 .
         :param reset: If true the persistent settings, such as column widths,
             are reset.
         """
@@ -95,10 +89,6 @@ class ObjectExplorer(QDialog):
         # Model
         self._attr_cols = attribute_columns
         self._attr_details = attribute_details
-
-        # Settings
-        self._auto_refresh = auto_refresh
-        self._refresh_rate = refresh_rate
 
         self._tree_model = TreeModel(obj, obj_name=name,
                                      attr_cols=self._attr_cols)
@@ -118,35 +108,23 @@ class ObjectExplorer(QDialog):
                          show_special_attributes=show_special_attributes)
         self._setup_views()
         if name:
-            name = "- {}".format(name)
-        self.setWindowTitle("{} {}".format(PROGRAM_NAME, name))
+            name = "{} -".format(name)
+        self.setWindowTitle("{} {}".format(name, EDITOR_NAME))
         self.setWindowFlags(Qt.Window)
 
         self._resize_to_contents = resize_to_contents
         self._readViewSettings(reset=reset)
 
-        assert self._refresh_rate > 0, ("refresh_rate must be > 0."
-                                        " Got: {}".format(self._refresh_rate))
-        self._refresh_timer = QTimer(self)
-        self._refresh_timer.setInterval(self._refresh_rate * 1000)
-        self._refresh_timer.timeout.connect(self.refresh)
-
         # Update views with model
         self.toggle_show_special_attribute_action.setChecked(
             show_special_attributes)
         self.toggle_show_callable_action.setChecked(show_callable_attributes)
-        self.toggle_auto_refresh_action.setChecked(self._auto_refresh)
 
         # Select first row so that a hidden root node will not be selected.
         first_row_index = self._proxy_tree_model.firstItemIndex()
         self.obj_tree.setCurrentIndex(first_row_index)
         if self._tree_model.inspectedNodeIsVisible or expanded:
             self.obj_tree.expand(first_row_index)
-
-    def refresh(self):
-        """Refreshes object brawser contents."""
-        logger.debug("Refreshing")
-        self._tree_model.refreshTree()
 
     def _add_instance(self):
         """
@@ -198,37 +176,11 @@ class ObjectExplorer(QDialog):
         self.toggle_show_special_attribute_action.toggled.connect(
             self._proxy_tree_model.setShowSpecialAttributes)
 
-        # Toggle auto-refresh on/off
-        self.toggle_auto_refresh_action = \
-            QAction(_("Auto-refresh"), self, checkable=True,
-                    statusTip=_("Auto refresh every "
-                                "{} seconds").format(self._refresh_rate))
-        self.toggle_auto_refresh_action.toggled.connect(
-            self.toggle_auto_refresh)
-
-        # Add another refresh action with a different short cut. An action
-        # must be added to a visible widget for it to receive events.
-        # from being displayed again in the menu
-        self.refresh_action_f5 = QAction(self, text="&Refresh2", shortcut="F5")
-        self.refresh_action_f5.triggered.connect(self.refresh)
-        self.addAction(self.refresh_action_f5)
 
     def _setup_menu(self, show_callable_attributes=False,
                     show_special_attributes=False):
         """Sets up the main menu."""
         self.tools_layout = QHBoxLayout()
-
-        refresh = create_toolbutton(self, text=_("Refresh"),
-                                    icon=ima.icon("reload"),
-                                    triggered=lambda: self.refresh())
-        self.tools_layout.addWidget(refresh)
-
-        auto_refresh = create_toolbutton(
-            self, text=_("Auto-refresh"),
-            icon=ima.icon("auto_reload"),
-            toggled=self._toggle_auto_refresh_action)
-        auto_refresh.setCheckable(True)
-        self.tools_layout.addWidget(auto_refresh)
 
         callable_attributes = create_toolbutton(
             self, text=_("Show callable attributes"),
@@ -271,13 +223,6 @@ class ObjectExplorer(QDialog):
         self.toggle_show_callable_action.setChecked(action_checked)
         self.sig_option_changed.emit('show_callable_attributes',
                                      action_checked)
-
-    @Slot()
-    def _toggle_auto_refresh_action(self):
-        """Toggle auto-refresh action."""
-        action_checked = not self.toggle_auto_refresh_action.isChecked()
-        self.toggle_auto_refresh_action.setChecked(action_checked)
-        self.sig_option_changed.emit('auto_refresh', action_checked)
 
     @Slot()
     def _toggle_show_special_attributes_action(self):
@@ -468,31 +413,15 @@ class ObjectExplorer(QDialog):
             self.editor.setWordWrapMode(
                 QTextOption.WrapAtWordBoundaryOrAnywhere)
 
-    def toggle_auto_refresh(self, checked):
-        """Toggles auto-refresh on/off."""
-        if checked:
-            logger.info("Auto-refresh on. "
-                        "Rate {:g} seconds".format(self._refresh_rate))
-            self._refresh_timer.start()
-        else:
-            logger.info("Auto-refresh off")
-            self._refresh_timer.stop()
-        self._auto_refresh = checked
-
     def _finalize(self):
         """
         Cleans up resources when this window is closed.
         Disconnects all signals for this window.
         """
-        self._refresh_timer.stop()
-        self._refresh_timer.timeout.disconnect(self.refresh)
         self.toggle_show_callable_action.toggled.disconnect(
             self._proxy_tree_model.setShowCallables)
         self.toggle_show_special_attribute_action.toggled.disconnect(
             self._proxy_tree_model.setShowSpecialAttributes)
-        self.toggle_auto_refresh_action.toggled.disconnect(
-            self.toggle_auto_refresh)
-        self.refresh_action_f5.triggered.disconnect(self.refresh)
         self.button_group.buttonClicked[int].disconnect(
             self._change_details_field)
         selection_model = self.obj_tree.selectionModel()
@@ -507,7 +436,7 @@ class ObjectExplorer(QDialog):
         event.accept()
         self._remove_instance()
         self.about_to_quit()
-        logger.debug("Closed {} window {}".format(PROGRAM_NAME,
+        logger.debug("Closed {} window {}".format(EDITOR_NAME,
                                                   self._instance_nr))
 
     def about_to_quit(self):
@@ -566,9 +495,7 @@ def test():
                'foobar': foobar}
     ObjectExplorer.create_explorer(example, 'Example',
                                    show_callable_attributes=True,
-                                   show_special_attributes=True,
-                                   auto_refresh=False,
-                                   refresh_rate=2)
+                                   show_special_attributes=True)
 
 
 if __name__ == "__main__":
