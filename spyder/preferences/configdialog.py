@@ -35,9 +35,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.colors import ColorLayout
 from spyder.widgets.comboboxes import FileComboBox
-import logging
 
-logger = logging.getLogger(__name__)
 
 class ConfigAccessMixin(object):
     """Namespace for methods that access config storage"""
@@ -47,9 +45,6 @@ class ConfigAccessMixin(object):
         CONF.set(self.CONF_SECTION, option, value)
 
     def get_option(self, option, default=NoDefault):
-        if option == 'pydocstyle' or option == 'pycodestyle':
-            logger.debug('********* ' + option)
-            logger.debug('********* ' + str(CONF.get(self.CONF_SECTION, option, default)))
         return CONF.get(self.CONF_SECTION, option, default)
 
 
@@ -315,12 +310,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         for checkbox, (option, default) in list(self.checkboxes.items()):
             checkbox.setChecked(self.get_option(option, default))
             # QAbstractButton works differently for PySide and PyQt
-            if not API == 'pyside':
-                checkbox.clicked.connect(lambda _foo, opt=option:
-                                         self.has_been_modified(opt))
-            else:
-                checkbox.clicked.connect(lambda opt=option:
-                                         self.has_been_modified(opt))
+            checkbox.clicked.connect(lambda opt=option:
+                                     self.has_been_modified(opt))
         for radiobutton, (option, default) in list(self.radiobuttons.items()):
             radiobutton.setChecked(self.get_option(option, default))
             radiobutton.toggled.connect(lambda _foo, opt=option:
