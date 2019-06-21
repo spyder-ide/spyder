@@ -1247,7 +1247,10 @@ class CodeEditor(TextEditBaseWidget):
     def set_underline_errors_enabled(self, state):
         """Toggle the underlining of errors and warnings."""
         self.underline_errors_enabled = state
-        self.document_did_change()
+        if state:
+            self.document_did_change()
+        else:
+            self.clear_extra_selections('code_analysis_underline')
 
     def set_highlight_current_line(self, enable):
         """Enable/disable current line highlighting"""
@@ -1914,7 +1917,8 @@ class CodeEditor(TextEditBaseWidget):
     def cleanup_code_analysis(self):
         """Remove all code analysis markers"""
         self.setUpdatesEnabled(False)
-        self.clear_extra_selections('code_analysis')
+        self.clear_extra_selections('code_analysis_highlight')
+        self.clear_extra_selections('code_analysis_underline')
         for data in self.blockuserdata_list():
             data.code_analysis = []
 
@@ -1967,8 +1971,11 @@ class CodeEditor(TextEditBaseWidget):
             block.setUserData(data)
             block.selection = QTextCursor(cursor)
             block.color = color
+
+            # Underline errors and warnings in this editor.
             if self.underline_errors_enabled:
-                self.__highlight_selection('code_analysis', block.selection,
+                self.__highlight_selection('code_analysis_underline',
+                                           block.selection,
                                            underline_color=block.color)
 
         self.sig_process_code_analysis.emit()
@@ -1988,6 +1995,7 @@ class CodeEditor(TextEditBaseWidget):
         """
         self._last_hover_word = None
         self.tooltip_widget.hide()
+        self.clear_extra_selections('code_analysis_highlight')
 
     def show_code_analysis_results(self, line_number, block_data):
         """Show warning/error messages."""
@@ -2041,13 +2049,13 @@ class CodeEditor(TextEditBaseWidget):
             self.highlight_line_warning(block_data)
 
     def highlight_line_warning(self, block_data):
-        self.clear_extra_selections('code_analysis')
-        self.__highlight_selection('code_analysis', block_data.selection,
+        """Highlight errors and warnings in this editor."""
+        self.clear_extra_selections('code_analysis_highlight')
+        self.__highlight_selection('code_analysis_highlight',
+                                   block_data.selection,
                                    background_color=block_data.color)
         self.update_extra_selections()
         self.linenumberarea.update()
-        QTimer.singleShot(
-            5000, lambda: self.clear_extra_selections('code_analysis'))
 
     def get_current_warnings(self):
         """
