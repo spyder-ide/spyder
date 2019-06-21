@@ -1136,6 +1136,12 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 finfo.editor.set_occurrence_timeout(timeout)
 
+    def set_underline_errors_enabled(self, state):
+        self.underline_errors_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_underline_errors_enabled(state)
+
     def set_highlight_current_line_enabled(self, state):
         self.highlight_current_line_enabled = state
         if self.data:
@@ -2312,6 +2318,7 @@ class EditorStack(QWidget):
         editor.setup_editor(
             linenumbers=self.linenumbers_enabled,
             show_blanks=self.blanks_enabled,
+            underline_errors=self.underline_errors_enabled,
             scroll_past_end=self.scrollpastend_enabled,
             edge_line=self.edgeline_enabled,
             edge_line_columns=self.edgeline_columns, language=language,
