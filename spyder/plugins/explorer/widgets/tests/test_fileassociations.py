@@ -4,6 +4,7 @@
 #
 # Licensed under the terms of the MIT License
 # ----------------------------------------------------------------------------
+
 """
 Tests for explorer plugin utilities.
 """

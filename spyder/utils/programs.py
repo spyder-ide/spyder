@@ -3,6 +3,7 @@
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
+
 """Running programs utilities."""
 
 from __future__ import print_function
