@@ -2043,6 +2043,7 @@ class CodeEditor(TextEditBaseWidget):
             self.highlight_line_warning(block_data)
 
     def highlight_line_warning(self, block_data):
+        """Highlight errors and warnings in this editor."""
         self.clear_extra_selections('code_analysis_highlight')
         self.__highlight_selection('code_analysis_highlight',
                                    block_data.selection,
