@@ -288,27 +288,29 @@ class Editor(SpyderPluginWidget):
     def report_open_file(self, options):
         """Request to start a LSP server to attend a language."""
         filename = options['filename']
-        logger.debug('Call LSP for %s' % filename)
         language = options['language']
-        callback = options['codeeditor']
+        logger.debug('Call LSP for %s [%s]' % (filename, language))
+        codeeditor = options['codeeditor']
         stat = self.main.lspmanager.start_client(language.lower())
         self.main.lspmanager.register_file(
-            language.lower(), filename, callback)
+            language.lower(), filename, codeeditor)
         if stat:
             if language.lower() in self.lsp_editor_settings:
+                logger.debug('{0} LSP is ready'.format(language))
                 self.lsp_server_ready(
                     language.lower(), self.lsp_editor_settings[
                         language.lower()])
             else:
-                editor = self.get_current_editor()
-                editor.lsp_ready = False
+                if codeeditor.language == language.lower():
+                    logger.debug('Setting {0} LSP off'.format(filename))
+                    codeeditor.lsp_ready = False
         if self.fallback_up:
             self.fallback_ready()
 
     @Slot(dict, str)
     def register_lsp_server_settings(self, settings, language):
         """Register LSP server settings."""
-        self.lsp_editor_settings[language] = settings
+        self.lsp_editor_settings[language] = dict(settings)
         logger.debug('LSP server settings for {!s} are: {!r}'.format(
             language, settings))
         self.lsp_server_ready(language, self.lsp_editor_settings[language])
@@ -324,7 +326,7 @@ class Editor(SpyderPluginWidget):
             editorstack.notify_server_ready(language, configuration)
 
     def send_lsp_request(self, language, request, params):
-        logger.debug("LSP request: %r" %request)
+        logger.debug("LSP request: %r" % request)
         self.main.lspmanager.send_request(language, request, params)
 
     def send_fallback_request(self, msg):

@@ -278,6 +278,7 @@ class Projects(SpyderPluginWidget):
     def open_project(self, path=None, restart_consoles=True,
                      save_previous_files=True):
         """Open the project located in `path`"""
+        self.notify_project_open(path)
         self.switch_to_plugin()
         if path is None:
             basedir = get_home_dir()
@@ -318,7 +319,6 @@ class Projects(SpyderPluginWidget):
         self.sig_project_loaded.emit(path)
         self.sig_pythonpath_changed.emit()
         self.watcher.start(path)
-        self.notify_project_open(path)
 
         if restart_consoles:
             self.restart_consoles()
