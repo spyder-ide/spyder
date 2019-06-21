@@ -25,7 +25,7 @@ _, TEMPFILE_PATH = tempfile.mkstemp()
 TEST_FILES = [os.path.join(TEST_FOLDER, f) for f in
               os.listdir(TEST_FOLDER) if f.endswith('.py')]
 TEST_FILE_ABS = TEST_FILES[0].replace(' ', '%20')
-TEST_FILE_REL = [f for f in os.listdir(TEST_FOLDER) if f.endswith('.py')][0]
+TEST_FILE_REL = 'conftest.py'
 
 
 @pytest.mark.parametrize('params', [
@@ -37,9 +37,10 @@ TEST_FILE_REL = [f for f in os.listdir(TEST_FOLDER) if f.endswith('.py')][0]
             ('"file://{}"\n'.format(TEST_FILE_ABS), 'file://' + TEST_FILE_ABS,
              TEST_FILE_ABS, 'file://' + TEST_FILE_ABS),
             # Files that exist with relative paths
-            ('"file://./{}"\n'.format(TEST_FILE_REL), 'file://./test_goto.py',
+            ('"file://./{}"\n'.format(TEST_FILE_REL),
+             'file://./' + TEST_FILE_REL,
              os.path.join(TEST_FOLDER, TEST_FILE_REL),
-             'file://./test_goto.py'),
+             'file://./' + TEST_FILE_REL),
             # Files that do not exist
             ('"file:///not%20there"', 'file:///not%20there',
              '/not%20there', 'file:///not%20there'),
