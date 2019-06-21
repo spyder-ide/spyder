@@ -297,7 +297,7 @@ ATTR_MODEL_LENGTH = AttributeModel(
 
 
 ATTR_MODEL_ID = AttributeModel(
-    'id',
+    'Id',
     doc=_("The identifier of the object with "
           "calculated using the id() function"),
     data_fn=lambda tree_item: "0x{:X}".format(id(tree_item.obj)),
