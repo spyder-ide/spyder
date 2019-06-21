@@ -337,6 +337,9 @@ class CodeEditor(TextEditBaseWidget):
         # Blanks enabled
         self.blanks_enabled = False
 
+        # Underline errors and warnings
+        self.underline_errors_enabled = False
+
         # Scrolling past the end of the document
         self.scrollpastend_enabled = False
 
@@ -722,6 +725,7 @@ class CodeEditor(TextEditBaseWidget):
                      edge_line=True,
                      edge_line_columns=(79,),
                      show_blanks=False,
+                     underline_errors=False,
                      close_parentheses=True,
                      close_quotes=False,
                      add_colons=True,
@@ -780,6 +784,9 @@ class CodeEditor(TextEditBaseWidget):
         # Lexer
         self.filename = filename
         self.set_language(language, filename)
+
+        # Underline errors and warnings
+        self.set_underline_errors_enabled(underline_errors)
 
         # Highlight current cell
         self.set_highlight_current_cell(highlight_current_cell)
@@ -1234,6 +1241,11 @@ class CodeEditor(TextEditBaseWidget):
     def set_occurrence_timeout(self, timeout):
         """Set occurrence highlighting timeout (ms)"""
         self.occurrence_timer.setInterval(timeout)
+
+    def set_underline_errors_enabled(self, state):
+        """Toggle the underlining of errors and warnings."""
+        self.underline_errors_enabled = state
+        self.document_did_change()
 
     def set_highlight_current_line(self, enable):
         """Enable/disable current line highlighting"""
@@ -1953,8 +1965,9 @@ class CodeEditor(TextEditBaseWidget):
             block.setUserData(data)
             block.selection = QTextCursor(cursor)
             block.color = color
-            self.__highlight_selection('code_analysis', block.selection,
-                                       underline_color=block.color)
+            if self.underline_errors_enabled:
+                self.__highlight_selection('code_analysis', block.selection,
+                                           underline_color=block.color)
 
         self.sig_process_code_analysis.emit()
         self.update_extra_selections()
