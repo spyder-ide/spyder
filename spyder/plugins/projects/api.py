@@ -70,6 +70,7 @@ class BaseProject(object):
         for recent_file in recent_files[:]:
             if not os.path.isfile(recent_file):
                 recent_files.remove(recent_file)
+        recent_files = [os.path.relpath(recent_file, self.root_path) for recent_file in recent_files]
         try:
             self.CONF[WORKSPACE].set('main', 'recent_files',
                                      list(OrderedDict.fromkeys(recent_files)))
@@ -87,6 +88,7 @@ class BaseProject(object):
         for recent_file in recent_files[:]:
             if not os.path.isfile(recent_file):
                 recent_files.remove(recent_file)
+        recent_files = [recent_file if os.path.isabs(recent_file) else os.path.join(self.root_path, recent_file) for recent_file in recent_files]
         return list(OrderedDict.fromkeys(recent_files))
 
     def create_project_config_files(self):
