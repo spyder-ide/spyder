@@ -28,9 +28,6 @@ class OnlineHelp(SpyderPluginWidget):
     def __init__(self, parent):
         SpyderPluginWidget.__init__(self, parent)
 
-        # Initialize plugin
-        self.initialize_plugin()
-
         self.pydocbrowser = PydocBrowser(self, self.options_button)
 
         layout = QVBoxLayout()
@@ -39,10 +36,10 @@ class OnlineHelp(SpyderPluginWidget):
 
         self.register_widget_shortcuts(self.pydocbrowser.find_widget)
         self.pydocbrowser.webview.set_zoom_factor(
-                                                self.get_option('zoom_factor'))
+            self.get_option('zoom_factor'))
         self.pydocbrowser.url_combo.setMaxCount(
-                                        self.get_option('max_history_entries'))
-        self.pydocbrowser.url_combo.addItems( self.load_history() )
+            self.get_option('max_history_entries'))
+        self.pydocbrowser.url_combo.addItems(self.load_history())
 
     #------ Public API ---------------------------------------------------------
     def load_history(self, obj=None):
@@ -60,14 +57,17 @@ class OnlineHelp(SpyderPluginWidget):
                 [to_text_string(self.pydocbrowser.url_combo.itemText(index))
                  for index in range(self.pydocbrowser.url_combo.count())]))
 
-    #------ SpyderPluginMixin API ---------------------------------------------
-    def visibility_changed(self, enable):
-        """DockWidget visibility has changed"""
-        super(SpyderPluginWidget, self).visibility_changed(enable)
-        if enable and not self.pydocbrowser.is_server_running():
-            self.pydocbrowser.initialize()
-    
     #------ SpyderPluginWidget API ---------------------------------------------
+    def toggle_view(self, checked):
+        """Toggle view action."""
+        if checked:
+            if not self.pydocbrowser.is_server_running():
+                self.pydocbrowser.initialize()
+            self.dockwidget.show()
+            self.dockwidget.raise_()
+        else:
+            self.dockwidget.hide()
+
     def get_plugin_title(self):
         """Return widget title"""
         return _('Online help')
@@ -86,15 +86,7 @@ class OnlineHelp(SpyderPluginWidget):
         self.set_option('zoom_factor',
                         self.pydocbrowser.webview.get_zoom_factor())
         return True
-        
-    def refresh_plugin(self):
-        """Refresh widget"""
-        pass
-    
-    def get_plugin_actions(self):
-        """Return a list of actions related to plugin"""
-        return []
-    
-    def register_plugin(self):
-        """Register plugin in Spyder's main window"""
-        self.main.add_dockwidget(self)
+
+    def on_first_registration(self):
+        """Action to be performed on first plugin registration"""
+        self.tabify(self.main.help)

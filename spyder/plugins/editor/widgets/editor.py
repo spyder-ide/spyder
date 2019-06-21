@@ -543,6 +543,7 @@ class EditorStack(QWidget):
         self.tabmode_enabled = False
         self.stripmode_enabled = False
         self.intelligent_backspace_enabled = True
+        self.underline_errors_enabled = False
         self.highlight_current_line_enabled = False
         self.highlight_current_cell_enabled = False
         self.occurrence_highlighting_enabled = True
@@ -1137,6 +1138,12 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 finfo.editor.set_occurrence_timeout(timeout)
 
+    def set_underline_errors_enabled(self, state):
+        self.underline_errors_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_underline_errors_enabled(state)
+
     def set_highlight_current_line_enabled(self, state):
         self.highlight_current_line_enabled = state
         if self.data:
@@ -1357,11 +1364,12 @@ class EditorStack(QWidget):
             actions += [MENU_SEPARATOR, self.new_window_action,
                         close_window_action]
         elif plugin is not None:
-            if plugin.undocked_window is not None:
-                actions += [MENU_SEPARATOR, plugin.dock_action]
+            if plugin._undocked_window is not None:
+                actions += [MENU_SEPARATOR, plugin._dock_action]
             else:
                 actions += [MENU_SEPARATOR, self.new_window_action,
-                            plugin.undock_action, plugin.close_plugin_action]
+                            plugin._undock_action,
+                            plugin._close_plugin_action]
 
         return actions
 
@@ -2313,6 +2321,7 @@ class EditorStack(QWidget):
         editor.setup_editor(
             linenumbers=self.linenumbers_enabled,
             show_blanks=self.blanks_enabled,
+            underline_errors=self.underline_errors_enabled,
             scroll_past_end=self.scrollpastend_enabled,
             edge_line=self.edgeline_enabled,
             edge_line_columns=self.edgeline_columns, language=language,
@@ -3041,13 +3050,13 @@ class EditorMainWindow(QMainWindow):
 
     def closeEvent(self, event):
         """Reimplement Qt method"""
-        if self.plugin.undocked_window is not None:
+        if self.plugin._undocked_window is not None:
             self.plugin.dockwidget.setWidget(self.plugin)
             self.plugin.dockwidget.setVisible(True)
         self.plugin.switch_to_plugin()
         QMainWindow.closeEvent(self, event)
-        if self.plugin.undocked_window is not None:
-            self.plugin.undocked_window = None
+        if self.plugin._undocked_window is not None:
+            self.plugin._undocked_window = None
 
     def get_layout_settings(self):
         """Return layout state"""
@@ -3085,10 +3094,10 @@ class EditorPluginExample(QSplitter):
     def __init__(self):
         QSplitter.__init__(self)
 
-        self.dock_action = None
-        self.undock_action = None
-        self.close_plugin_action = None
-        self.undocked_window = None
+        self._dock_action = None
+        self._undock_action = None
+        self._close_plugin_action = None
+        self._undocked_window = None
         menu_actions = []
 
         self.editorstacks = []

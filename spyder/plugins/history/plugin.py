@@ -51,11 +51,8 @@ class HistoryLog(SpyderPluginWidget):
         self.editors = []
         self.filenames = []
 
-        # Initialize plugin actions, toolbutton and general signals
-        self.initialize_plugin()
-
         layout = QVBoxLayout()
-        self.tabwidget = Tabs(self, self.plugin_actions)
+        self.tabwidget = Tabs(self, self._plugin_actions)
         self.tabwidget.currentChanged.connect(self.refresh_plugin)
         self.tabwidget.move_data.connect(self.move_tab)
 
@@ -96,10 +93,6 @@ class HistoryLog(SpyderPluginWidget):
         this plugin's dockwidget is raised on top-level
         """
         return self.tabwidget.currentWidget()
-        
-    def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        return True
 
     def refresh_plugin(self):
         """Refresh tabwidget"""
@@ -128,19 +121,19 @@ class HistoryLog(SpyderPluginWidget):
 
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""
-        self.main.tabify_plugins(self.main.ipyconsole, self)
+        self.tabify(self.main.ipyconsole)
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.focus_changed.connect(self.main.plugin_focus_changed)
-        self.main.add_dockwidget(self)
+        self.add_dockwidget()
 #        self.main.console.set_historylog(self)
         self.main.console.shell.refresh.connect(self.refresh_plugin)
 
     def update_font(self):
         """Update font from Preferences"""
         color_scheme = self.get_color_scheme()
-        font = self.get_plugin_font()
+        font = self.get_font()
         for editor in self.editors:
             editor.set_font(font, color_scheme)
 
@@ -149,7 +142,7 @@ class HistoryLog(SpyderPluginWidget):
         color_scheme_n = 'color_scheme_name'
         color_scheme_o = self.get_color_scheme()
         font_n = 'plugin_font'
-        font_o = self.get_plugin_font()
+        font_o = self.get_font()
         wrap_n = 'wrap'
         wrap_o = self.get_option(wrap_n)
         self.wrap_action.setChecked(wrap_o)
@@ -197,8 +190,8 @@ class HistoryLog(SpyderPluginWidget):
         editor.focus_changed.connect(lambda: self.focus_changed.emit())
         editor.setReadOnly(True)
         color_scheme = self.get_color_scheme()
-        editor.set_font( self.get_plugin_font(), color_scheme )
-        editor.toggle_wrap_mode( self.get_option('wrap') )
+        editor.set_font(self.get_font(), color_scheme)
+        editor.toggle_wrap_mode(self.get_option('wrap'))
 
         # Avoid a possible error when reading the history file
         try:

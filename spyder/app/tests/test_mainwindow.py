@@ -235,27 +235,27 @@ def test_default_plugin_actions(main_window, qtbot):
     file_explorer = main_window.explorer
 
     # Undock action
-    file_explorer.undock_action.triggered.emit(True)
+    file_explorer._undock_action.triggered.emit(True)
     qtbot.wait(500)
     assert not file_explorer.dockwidget.isVisible()
-    assert file_explorer.undocked_window is not None
-    assert isinstance(file_explorer.undocked_window, PluginWindow)
-    assert file_explorer.undocked_window.centralWidget() == file_explorer
+    assert file_explorer._undocked_window is not None
+    assert isinstance(file_explorer._undocked_window, PluginWindow)
+    assert file_explorer._undocked_window.centralWidget() == file_explorer
 
     # Dock action
-    file_explorer.dock_action.triggered.emit(True)
+    file_explorer._dock_action.triggered.emit(True)
     qtbot.wait(500)
     assert file_explorer.dockwidget.isVisible()
-    assert file_explorer.undocked_window is None
+    assert file_explorer._undocked_window is None
 
     # Close action
-    file_explorer.close_plugin_action.triggered.emit(True)
+    file_explorer._close_plugin_action.triggered.emit(True)
     qtbot.wait(500)
     assert not file_explorer.dockwidget.isVisible()
-    assert not file_explorer.toggle_view_action.isChecked()
+    assert not file_explorer._toggle_view_action.isChecked()
 
     # Toggle view action
-    file_explorer.toggle_view_action.setChecked(True)
+    file_explorer._toggle_view_action.setChecked(True)
     assert file_explorer.dockwidget.isVisible()
 
 
@@ -655,7 +655,7 @@ def test_connection_to_external_kernel(main_window, qtbot):
         shell.execute('a = 10')
 
     # Assert that there are no variables in the variable explorer
-    main_window.variableexplorer.visibility_changed(True)
+    main_window.variableexplorer._visibility_changed(True)
     nsb = main_window.variableexplorer.get_focus_widget()
     qtbot.wait(500)
     assert nsb.editor.model.rowCount() == 0
@@ -670,7 +670,7 @@ def test_connection_to_external_kernel(main_window, qtbot):
         shell.execute('a = 10')
 
     # Assert that a variable is visible in the variable explorer
-    main_window.variableexplorer.visibility_changed(True)
+    main_window.variableexplorer._visibility_changed(True)
     nsb = main_window.variableexplorer.get_focus_widget()
     qtbot.wait(500)
     assert nsb.editor.model.rowCount() == 1
@@ -692,7 +692,7 @@ def test_change_types_in_varexp(main_window, qtbot):
         shell.execute('a = 10')
 
     # Edit object
-    main_window.variableexplorer.visibility_changed(True)
+    main_window.variableexplorer._visibility_changed(True)
     nsb = main_window.variableexplorer.get_focus_widget()
     qtbot.waitUntil(lambda: nsb.editor.model.rowCount() > 0, timeout=EVAL_TIMEOUT)
     nsb.editor.setFocus()
@@ -1154,11 +1154,11 @@ def test_maximize_minimize_plugins(main_window, qtbot):
     qtbot.mouseClick(max_button, Qt.LeftButton)
 
     # Verify that the Editor is maximized
-    assert main_window.editor.ismaximized
+    assert main_window.editor._ismaximized
 
     # Verify that the action minimizes the plugin too
     qtbot.mouseClick(max_button, Qt.LeftButton)
-    assert not main_window.editor.ismaximized
+    assert not main_window.editor._ismaximized
 
 
 @flaky(max_runs=3)
@@ -1221,7 +1221,7 @@ def test_varexp_edit_inline(main_window, qtbot):
         shell.execute('a = 10')
 
     # Edit object
-    main_window.variableexplorer.visibility_changed(True)
+    main_window.variableexplorer._visibility_changed(True)
     nsb = main_window.variableexplorer.get_focus_widget()
     qtbot.waitUntil(lambda: nsb.editor.model.rowCount() > 0, timeout=EVAL_TIMEOUT)
     nsb.editor.setFocus()
@@ -1698,7 +1698,7 @@ def test_help_opens_when_show_tutorial_full(main_window, qtbot):
             break
 
     # Test opening tutorial with Help plguin closed
-    main_window.help.toggle_view_action.setChecked(False)
+    main_window.help._toggle_view_action.setChecked(False)
     qtbot.wait(500)
     help_tabbar, help_index = find_desired_tab_in_window(HELP_STR, main_window)
     assert help_tabbar is None and help_index is None

@@ -33,7 +33,6 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.programs import find_program
 from spyder.widgets.helperwidgets import ItemDelegate
 
-
 LSP_LANGUAGE_NAME = {x.lower(): x for x in LSP_LANGUAGES}
 LSP_URL = "https://microsoft.github.io/language-server-protocol"
 

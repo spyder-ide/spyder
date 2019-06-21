@@ -26,6 +26,7 @@ import os.path as osp
 import re
 import sre_constants
 import sys
+import textwrap
 import time
 
 # Third party imports
@@ -335,6 +336,9 @@ class CodeEditor(TextEditBaseWidget):
                                                   Panel.Position.FLOATING)
         # Blanks enabled
         self.blanks_enabled = False
+
+        # Underline errors and warnings
+        self.underline_errors_enabled = False
 
         # Scrolling past the end of the document
         self.scrollpastend_enabled = False
@@ -721,6 +725,7 @@ class CodeEditor(TextEditBaseWidget):
                      edge_line=True,
                      edge_line_columns=(79,),
                      show_blanks=False,
+                     underline_errors=False,
                      close_parentheses=True,
                      close_quotes=False,
                      add_colons=True,
@@ -779,6 +784,9 @@ class CodeEditor(TextEditBaseWidget):
         # Lexer
         self.filename = filename
         self.set_language(language, filename)
+
+        # Underline errors and warnings
+        self.set_underline_errors_enabled(underline_errors)
 
         # Highlight current cell
         self.set_highlight_current_cell(highlight_current_cell)
@@ -865,7 +873,9 @@ class CodeEditor(TextEditBaseWidget):
             self.document_did_open()
 
     def stop_lsp_services(self):
+        logger.debug('Stopping LSP services for %s' % self.filename)
         self.lsp_ready = False
+        self.document_opened = False
 
     def parse_lsp_config(self, config):
         """Parse and load LSP server editor capabilities."""
@@ -1233,6 +1243,14 @@ class CodeEditor(TextEditBaseWidget):
     def set_occurrence_timeout(self, timeout):
         """Set occurrence highlighting timeout (ms)"""
         self.occurrence_timer.setInterval(timeout)
+
+    def set_underline_errors_enabled(self, state):
+        """Toggle the underlining of errors and warnings."""
+        self.underline_errors_enabled = state
+        if state:
+            self.document_did_change()
+        else:
+            self.clear_extra_selections('code_analysis_underline')
 
     def set_highlight_current_line(self, enable):
         """Enable/disable current line highlighting"""
@@ -1899,7 +1917,8 @@ class CodeEditor(TextEditBaseWidget):
     def cleanup_code_analysis(self):
         """Remove all code analysis markers"""
         self.setUpdatesEnabled(False)
-        self.clear_extra_selections('code_analysis')
+        self.clear_extra_selections('code_analysis_highlight')
+        self.clear_extra_selections('code_analysis_underline')
         for data in self.blockuserdata_list():
             data.code_analysis = []
 
@@ -1952,8 +1971,12 @@ class CodeEditor(TextEditBaseWidget):
             block.setUserData(data)
             block.selection = QTextCursor(cursor)
             block.color = color
-            self.__highlight_selection('code_analysis', block.selection,
-                                       underline_color=block.color)
+
+            # Underline errors and warnings in this editor.
+            if self.underline_errors_enabled:
+                self.__highlight_selection('code_analysis_underline',
+                                           block.selection,
+                                           underline_color=block.color)
 
         self.sig_process_code_analysis.emit()
         self.update_extra_selections()
@@ -1972,6 +1995,7 @@ class CodeEditor(TextEditBaseWidget):
         """
         self._last_hover_word = None
         self.tooltip_widget.hide()
+        self.clear_extra_selections('code_analysis_highlight')
 
     def show_code_analysis_results(self, line_number, block_data):
         """Show warning/error messages."""
@@ -2005,6 +2029,11 @@ class CodeEditor(TextEditBaseWidget):
             msg = msg.strip()
             # Avoid messing TODO, FIXME
             msg = msg[0].upper() + msg[1:]
+            msg = textwrap.wrap(msg, width=self._DEFAULT_MAX_WIDTH)
+            if len(msg) > 1:
+                msg = '<br>'.join(msg) + '<br>'
+            else:
+                msg = '<br>'.join(msg)
             base_64 = ima.base64_from_icon(icons[sev], size, size)
             msglist.append(template.format(base_64, msg, src,
                                            code, size=size))
@@ -2015,17 +2044,18 @@ class CodeEditor(TextEditBaseWidget):
                 text='\n'.join(msglist),
                 title_color='#129625',
                 at_line=line_number,
+                with_html_format=True
             )
             self.highlight_line_warning(block_data)
 
     def highlight_line_warning(self, block_data):
-        self.clear_extra_selections('code_analysis')
-        self.__highlight_selection('code_analysis', block_data.selection,
+        """Highlight errors and warnings in this editor."""
+        self.clear_extra_selections('code_analysis_highlight')
+        self.__highlight_selection('code_analysis_highlight',
+                                   block_data.selection,
                                    background_color=block_data.color)
         self.update_extra_selections()
         self.linenumberarea.update()
-        QTimer.singleShot(
-            5000, lambda: self.clear_extra_selections('code_analysis'))
 
     def get_current_warnings(self):
         """
