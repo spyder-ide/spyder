@@ -1245,7 +1245,10 @@ class CodeEditor(TextEditBaseWidget):
     def set_underline_errors_enabled(self, state):
         """Toggle the underlining of errors and warnings."""
         self.underline_errors_enabled = state
-        self.document_did_change()
+        if state:
+            self.document_did_change()
+        else:
+            self.clear_extra_selections('code_analysis_underline')
 
     def set_highlight_current_line(self, enable):
         """Enable/disable current line highlighting"""
