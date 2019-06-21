@@ -17,6 +17,10 @@ if %USE_CONDA% == yes (
     :: Install qtconsole from Github
     pip install git+https://github.com/jupyter/qtconsole.git
     if errorlevel 1 exit 1
+
+    :: Downgrade Jedi because 0.14 broke the PyLS
+    pip install jedi==0.13.3
+    if errorlevel 1 exit 1
 )
 
 :: The newly introduced changes to the Python packages in Anaconda
