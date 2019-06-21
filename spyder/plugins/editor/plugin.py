@@ -295,14 +295,13 @@ class Editor(SpyderPluginWidget):
             language.lower(), filename, callback)
         if stat:
             if language.lower() in self.lsp_editor_settings:
-                logger.debug(f'{language} LSP is ready')
+                logger.debug('{0} LSP is ready'.format(language))
                 self.lsp_server_ready(
                     language.lower(), self.lsp_editor_settings[
                         language.lower()])
             else:
-                # editor = self.get_current_editor()
                 if callback.language == language.lower():
-                    logger.debug(f'Setting {filename} LSP off')
+                    logger.debug('Setting {0} LSP off'.filename)
                     callback.lsp_ready = False
         if self.fallback_up:
             self.fallback_ready()

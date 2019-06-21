@@ -44,7 +44,6 @@ class Projects(SpyderPluginWidget):
     CONF_SECTION = 'project_explorer'
     sig_pythonpath_changed = Signal()
     sig_project_created = Signal(object, object, object)
-    sig_project_opened = Signal(object)
     sig_project_loaded = Signal(object)
     sig_project_closed = Signal(object)
 
@@ -156,7 +155,7 @@ class Projects(SpyderPluginWidget):
             lambda v: self.main.workingdirectory.chdir(v))
         self.sig_project_loaded.connect(
             lambda v: self.main.set_window_title())
-        self.sig_project_opened.connect(lspmgr.reinitialize_all_clients)
+        self.sig_project_loaded.connect(lspmgr.reinitialize_all_clients)
         self.sig_project_loaded.connect(
             lambda v: self.main.editor.setup_open_files())
         self.sig_project_loaded.connect(self.update_explorer)
@@ -302,7 +301,6 @@ class Projects(SpyderPluginWidget):
         else:
             path = encoding.to_unicode_from_fs(path)
 
-        self.sig_project_opened.emit(path)
         self.add_to_recent(path)
 
         # A project was not open before

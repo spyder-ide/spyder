@@ -885,9 +885,6 @@ class CodeEditor(TextEditBaseWidget):
             completion_options['triggerCharacters'])
         self.signature_completion_characters = (
             signature_options['triggerCharacters'] + ['='])  # FIXME:
-        if self.language.lower() == 'python':
-            logger.debug(
-                f'Signature Characters: {self.signature_completion_characters}')
         self.go_to_definition_enabled = config['definitionProvider']
         self.find_references_enabled = config['referencesProvider']
         self.highlight_enabled = config['documentHighlightProvider']
@@ -3267,7 +3264,6 @@ class CodeEditor(TextEditBaseWidget):
                 self.do_completion(automatic=True)
         elif (text != '(' and text in self.signature_completion_characters and
                 not self.has_selected_text()):
-            logger.debug("Completion!!!!!!!!!!!!!!!!!!!!!")
             self.insert_text(text)
             self.request_signature()
         elif key == Qt.Key_Colon and not has_selection \
