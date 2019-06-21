@@ -310,12 +310,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         for checkbox, (option, default) in list(self.checkboxes.items()):
             checkbox.setChecked(self.get_option(option, default))
             # QAbstractButton works differently for PySide and PyQt
-            if not API == 'pyside':
-                checkbox.clicked.connect(lambda _foo, opt=option:
-                                         self.has_been_modified(opt))
-            else:
-                checkbox.clicked.connect(lambda opt=option:
-                                         self.has_been_modified(opt))
+            checkbox.clicked.connect(lambda opt=option:
+                                     self.has_been_modified(opt))
         for radiobutton, (option, default) in list(self.radiobuttons.items()):
             radiobutton.setChecked(self.get_option(option, default))
             radiobutton.toggled.connect(lambda _foo, opt=option:
