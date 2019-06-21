@@ -338,7 +338,7 @@ class CodeEditor(TextEditBaseWidget):
         self.blanks_enabled = False
 
         # Underline errors and warnings
-        self.underline_enabled = False
+        self.underline_errors_enabled = False
 
         # Scrolling past the end of the document
         self.scrollpastend_enabled = False
@@ -1244,7 +1244,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def set_underline_errors_enabled(self, state):
         """Toggle the underlining of errors and warnings."""
-        self.underline_errors = state
+        self.underline_errors_enabled = state
         self.document_did_change()
 
     def set_highlight_current_line(self, enable):
@@ -1965,7 +1965,7 @@ class CodeEditor(TextEditBaseWidget):
             block.setUserData(data)
             block.selection = QTextCursor(cursor)
             block.color = color
-            if self.underline_errors:
+            if self.underline_errors_enabled:
                 self.__highlight_selection('code_analysis', block.selection,
                                            underline_color=block.color)
 
