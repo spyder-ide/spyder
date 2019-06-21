@@ -1990,6 +1990,7 @@ class CodeEditor(TextEditBaseWidget):
         """
         self._last_hover_word = None
         self.tooltip_widget.hide()
+        self.clear_extra_selections('code_analysis_highlight')
 
     def show_code_analysis_results(self, line_number, block_data):
         """Show warning/error messages."""
@@ -2050,8 +2051,6 @@ class CodeEditor(TextEditBaseWidget):
                                    background_color=block_data.color)
         self.update_extra_selections()
         self.linenumberarea.update()
-        QTimer.singleShot(
-            5000, lambda: self.clear_extra_selections('code_analysis_highlight'))
 
     def get_current_warnings(self):
         """
