@@ -44,6 +44,7 @@ class Projects(SpyderPluginWidget):
     CONF_SECTION = 'project_explorer'
     sig_pythonpath_changed = Signal()
     sig_project_created = Signal(object, object, object)
+    sig_project_opened = Signal(object)
     sig_project_loaded = Signal(object)
     sig_project_closed = Signal(object)
 
@@ -155,7 +156,7 @@ class Projects(SpyderPluginWidget):
             lambda v: self.main.workingdirectory.chdir(v))
         self.sig_project_loaded.connect(
             lambda v: self.main.set_window_title())
-        self.sig_project_loaded.connect(lspmgr.reinitialize_all_clients)
+        self.sig_project_opened.connect(lspmgr.reinitialize_all_clients)
         self.sig_project_loaded.connect(
             lambda v: self.main.editor.setup_open_files())
         self.sig_project_loaded.connect(self.update_explorer)
@@ -285,6 +286,7 @@ class Projects(SpyderPluginWidget):
     def open_project(self, path=None, restart_consoles=True,
                      save_previous_files=True):
         """Open the project located in `path`"""
+        self.notify_project_open(path)
         self.switch_to_plugin()
         if path is None:
             basedir = get_home_dir()
@@ -300,6 +302,7 @@ class Projects(SpyderPluginWidget):
         else:
             path = encoding.to_unicode_from_fs(path)
 
+        self.sig_project_opened.emit(path)
         self.add_to_recent(path)
 
         # A project was not open before
@@ -325,7 +328,6 @@ class Projects(SpyderPluginWidget):
         self.sig_project_loaded.emit(path)
         self.sig_pythonpath_changed.emit()
         self.watcher.start(path)
-        self.notify_project_open(path)
 
         if restart_consoles:
             self.restart_consoles()

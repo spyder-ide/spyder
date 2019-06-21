@@ -287,27 +287,30 @@ class Editor(SpyderPluginWidget):
     def report_open_file(self, options):
         """Request to start a LSP server to attend a language."""
         filename = options['filename']
-        logger.debug('Call LSP for %s' % filename)
         language = options['language']
+        logger.debug('Call LSP for %s [%s]' % (filename, language))
         callback = options['codeeditor']
         stat = self.main.lspmanager.start_client(language.lower())
         self.main.lspmanager.register_file(
             language.lower(), filename, callback)
         if stat:
             if language.lower() in self.lsp_editor_settings:
+                logger.debug(f'{language} LSP is ready')
                 self.lsp_server_ready(
                     language.lower(), self.lsp_editor_settings[
                         language.lower()])
             else:
-                editor = self.get_current_editor()
-                editor.lsp_ready = False
+                # editor = self.get_current_editor()
+                if callback.language == language.lower():
+                    logger.debug(f'Setting {filename} LSP off')
+                    callback.lsp_ready = False
         if self.fallback_up:
             self.fallback_ready()
 
     @Slot(dict, str)
     def register_lsp_server_settings(self, settings, language):
         """Register LSP server settings."""
-        self.lsp_editor_settings[language] = settings
+        self.lsp_editor_settings[language] = dict(settings)
         logger.debug('LSP server settings for {!s} are: {!r}'.format(
             language, settings))
         self.lsp_server_ready(language, self.lsp_editor_settings[language])
@@ -323,7 +326,7 @@ class Editor(SpyderPluginWidget):
             editorstack.notify_server_ready(language, configuration)
 
     def send_lsp_request(self, language, request, params):
-        logger.debug("LSP request: %r" %request)
+        logger.debug("LSP request: %r" % request)
         self.main.lspmanager.send_request(language, request, params)
 
     def send_fallback_request(self, msg):
