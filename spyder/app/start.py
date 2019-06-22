@@ -38,7 +38,7 @@ from spyder.py3compat import is_unicode
 
 def send_args_to_spyder(args):
     """
-    Simple socket client used to send the args passed to the Spyder 
+    Simple socket client used to send the args passed to the Spyder
     executable to an already running instance.
 
     Args can be Python scripts or files with these extensions: .spydata, .mat,

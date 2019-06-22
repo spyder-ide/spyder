@@ -39,7 +39,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                 "texts.\n"
                                 "Note: Use the Q key to get out of the "
                                 "pager."))
-        calltips_box = newcb(_("Display balloon tips"), 'show_calltips')
+        calltips_box = newcb(_("Show calltips"), 'show_calltips')
         ask_box = newcb(_("Ask for confirmation before closing"),
                         'ask_before_closing')
         reset_namespace_box = newcb(

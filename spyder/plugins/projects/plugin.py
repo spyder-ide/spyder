@@ -22,17 +22,22 @@ from qtpy.QtWidgets import QMenu, QMessageBox, QVBoxLayout
 
 # Local imports
 from spyder.config.base import _, get_home_dir
+from spyder.config.main import CONF
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import add_actions, create_action, MENU_SEPARATOR
 from spyder.utils.misc import getcwd_or_home
+from spyder.plugins.projects.utils.watcher import WorkspaceWatcher
 from spyder.plugins.projects.widgets.explorer import ProjectExplorerWidget
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
 from spyder.plugins.projects.widgets import EmptyProject
+from spyder.plugins.editor.lsp import LSPRequestTypes, FileChangeType
+from spyder.plugins.editor.utils.lsp import request, handles, class_register
 
 
+@class_register
 class Projects(SpyderPluginWidget):
     """Projects plugin."""
 
@@ -47,11 +52,13 @@ class Projects(SpyderPluginWidget):
         SpyderPluginWidget.__init__(self, parent)
 
         self.explorer = ProjectExplorerWidget(
-                            self,
-                            name_filters=self.get_option('name_filters'),
-                            show_all=self.get_option('show_all'),
-                            show_hscrollbar=self.get_option('show_hscrollbar'),
-                            options_button=self.options_button)
+            self,
+            name_filters=self.get_option('name_filters'),
+            show_all=self.get_option('show_all'),
+            show_hscrollbar=self.get_option('show_hscrollbar'),
+            options_button=self.options_button,
+            single_click_to_open=CONF.get('explorer', 'single_click_to_open'),
+        )
 
         layout = QVBoxLayout()
         layout.addWidget(self.explorer)
@@ -60,15 +67,15 @@ class Projects(SpyderPluginWidget):
         self.recent_projects = self.get_option('recent_projects', default=[])
         self.current_active_project = None
         self.latest_project = None
-
-        # Initialize plugin
-        self.initialize_plugin()
+        self.watcher = WorkspaceWatcher(self)
+        self.lsp_ready = False
         self.explorer.setup_project(self.get_active_project_path())
+        self.watcher.connect_signals(self)
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
-        return _("Project explorer")
+        return _("Project")
 
     def get_focus_widget(self):
         """
@@ -107,7 +114,7 @@ class Projects(SpyderPluginWidget):
                                                 self.delete_project_action,
                                                 MENU_SEPARATOR,
                                                 self.recent_project_menu,
-                                                self.toggle_view_action]
+                                                self._toggle_view_action]
 
         self.setup_menu_actions()
         return []
@@ -118,7 +125,7 @@ class Projects(SpyderPluginWidget):
         treewidget = self.explorer.treewidget
         lspmgr = self.main.lspmanager
 
-        self.main.add_dockwidget(self)
+        self.add_dockwidget()
         self.explorer.sig_open_file.connect(self.main.open_file)
         self.register_widget_shortcuts(treewidget)
 
@@ -165,9 +172,15 @@ class Projects(SpyderPluginWidget):
         self.sig_pythonpath_changed.connect(self.main.pythonpath_changed)
         self.main.editor.set_projects(self)
 
-    def refresh_plugin(self):
-        """Refresh project explorer widget"""
-        pass
+        # Connect to file explorer to keep single click to open files in sync
+        self.main.explorer.fileexplorer.sig_option_changed.connect(
+            self.set_single_click_to_open
+        )
+
+    def set_single_click_to_open(self, option, value):
+        """Set single click to open files and directories."""
+        if option == 'single_click_to_open':
+            self.explorer.treewidget.set_single_click_to_open(value)
 
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
@@ -179,15 +192,15 @@ class Projects(SpyderPluginWidget):
         """Switch to plugin."""
         # Unmaxizime currently maximized plugin
         if (self.main.last_plugin is not None and
-                self.main.last_plugin.ismaximized and
+                self.main.last_plugin._ismaximized and
                 self.main.last_plugin is not self):
             self.main.maximize_dockwidget()
 
         # Show plugin only if it was already visible
         if self.get_option('visible_if_project_open'):
-            if not self.toggle_view_action.isChecked():
-                self.toggle_view_action.setChecked(True)
-            self.visibility_changed(True)
+            if not self._toggle_view_action.isChecked():
+                self._toggle_view_action.setChecked(True)
+            self._visibility_changed(True)
 
     # ------ Public API -------------------------------------------------------
     def setup_menu_actions(self):
@@ -265,6 +278,7 @@ class Projects(SpyderPluginWidget):
     def open_project(self, path=None, restart_consoles=True,
                      save_previous_files=True):
         """Open the project located in `path`"""
+        self.notify_project_open(path)
         self.switch_to_plugin()
         if path is None:
             basedir = get_home_dir()
@@ -304,6 +318,7 @@ class Projects(SpyderPluginWidget):
         self.setup_menu_actions()
         self.sig_project_loaded.emit(path)
         self.sig_pythonpath_changed.emit()
+        self.watcher.start(path)
 
         if restart_consoles:
             self.restart_consoles()
@@ -333,6 +348,8 @@ class Projects(SpyderPluginWidget):
 
             self.explorer.clear()
             self.restart_consoles()
+            self.watcher.stop()
+            self.notify_project_close(path)
 
     def delete_project(self):
         """
@@ -492,3 +509,136 @@ class Projects(SpyderPluginWidget):
         if project not in self.recent_projects:
             self.recent_projects.insert(0, project)
             self.recent_projects = self.recent_projects[:10]
+
+    def register_lsp_server_settings(self, settings):
+        """Enable LSP workspace functions."""
+        self.lsp_ready = True
+        if self.current_active_project:
+            path = self.get_active_project_path()
+            self.notify_project_open(path)
+
+    def stop_lsp_services(self):
+        """Disable LSP workspace functions."""
+        self.lsp_ready = False
+
+    def emit_request(self, method, params, requires_response):
+        """Send request/notification/response to all LSP servers."""
+        params['requires_response'] = requires_response
+        params['response_instance'] = self
+        self.main.lspmanager.broadcast_request(method, params)
+
+    @Slot(str, dict)
+    def handle_response(self, method, params):
+        """Method dispatcher for LSP requests."""
+        if method in self.handler_registry:
+            handler_name = self.handler_registry[method]
+            handler = getattr(self, handler_name)
+            handler(params)
+
+    @Slot(str, str, bool)
+    @request(method=LSPRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
+             requires_response=False)
+    def file_moved(self, src_file, dest_file, is_dir):
+        """Notify LSP server about a file that is moved."""
+        # LSP specification only considers file updates
+        if is_dir:
+            return
+
+        deletion_entry = {
+            'file': src_file,
+            'kind': FileChangeType.DELETED
+        }
+
+        addition_entry = {
+            'file': dest_file,
+            'kind': FileChangeType.CREATED
+        }
+
+        entries = [addition_entry, deletion_entry]
+        params = {
+            'params': entries
+        }
+        return params
+
+    @request(method=LSPRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
+             requires_response=False)
+    @Slot(str, bool)
+    def file_created(self, src_file, is_dir):
+        """Notify LSP server about file creation."""
+        if is_dir:
+            return
+
+        params = {
+            'params': [{
+                'file': src_file,
+                'kind': FileChangeType.CREATED
+            }]
+        }
+        return params
+
+    @request(method=LSPRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
+             requires_response=False)
+    @Slot(str, bool)
+    def file_deleted(self, src_file, is_dir):
+        """Notify LSP server about file deletion."""
+        if is_dir:
+            return
+
+        params = {
+            'params': [{
+                'file': src_file,
+                'kind': FileChangeType.DELETED
+            }]
+        }
+        return params
+
+    @request(method=LSPRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
+             requires_response=False)
+    @Slot(str, bool)
+    def file_modified(self, src_file, is_dir):
+        """Notify LSP server about file modification."""
+        if is_dir:
+            return
+
+        params = {
+            'params': [{
+                'file': src_file,
+                'kind': FileChangeType.CHANGED
+            }]
+        }
+        return params
+
+    @request(method=LSPRequestTypes.WORKSPACE_FOLDERS_CHANGE,
+             requires_response=False)
+    def notify_project_open(self, path):
+        """Notify LSP server about project path availability."""
+        params = {
+            'folder': path,
+            'instance': self,
+            'kind': 'addition'
+        }
+        return params
+
+    @request(method=LSPRequestTypes.WORKSPACE_FOLDERS_CHANGE,
+             requires_response=False)
+    def notify_project_close(self, path):
+        """Notify LSP server to unregister project path."""
+        params = {
+            'folder': path,
+            'instance': self,
+            'kind': 'deletion'
+        }
+        return params
+
+    @handles(LSPRequestTypes.WORKSPACE_APPLY_EDIT)
+    @request(method=LSPRequestTypes.WORKSPACE_APPLY_EDIT,
+             requires_response=False)
+    def handle_workspace_edit(self, params):
+        """Apply edits to multiple files and notify server about success."""
+        edits = params['params']
+        response = {
+            'applied': False,
+            'error': 'Not implemented',
+            'language': edits['language']
+        }
+        return response

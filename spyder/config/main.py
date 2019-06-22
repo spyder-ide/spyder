@@ -18,10 +18,12 @@ import sys
 # Local import
 from spyder.config.base import (CHECK_ALL, EXCLUDED_NAMES, get_home_dir,
                                 SUBFOLDER)
-from spyder.config.fonts import MEDIUM, MONOSPACE, SANS_SERIF, SMALL
+from spyder.config.fonts import MEDIUM, SANS_SERIF
 from spyder.config.user import UserConfig
 from spyder.config.utils import IMPORT_EXT
-from spyder.utils import codeanalysis
+from spyder.config.appearance import APPEARANCE
+from spyder.plugins.editor.utils.findtasks import TASKS_PATTERN
+from spyder.utils.introspection.module_completion import PREFERRED_MODULES
 
 
 # =============================================================================
@@ -33,20 +35,16 @@ EXCLUDE_PATTERNS = ['*.csv, *.dat, *.log, *.tmp, *.bak, *.orig']
 # Extensions that should be visible in Spyder's file/project explorers
 SHOW_EXT = ['.py', '.ipynb', '.txt', '.dat', '.pdf', '.png', '.svg']
 
-
 # Extensions supported by Spyder (Editor or Variable explorer)
 USEFUL_EXT = IMPORT_EXT + SHOW_EXT
-
 
 # Name filters for file/project explorers (excluding files without extension)
 NAME_FILTERS = ['README', 'INSTALL', 'LICENSE', 'CHANGELOG'] + \
                ['*' + _ext for _ext in USEFUL_EXT if _ext]
 
-
 # Port used to detect if there is a running instance and to communicate with
 # it to open external files
 OPEN_FILES_PORT = 21128
-
 
 # OS Specific
 WIN = os.name == 'nt'
@@ -54,13 +52,9 @@ MAC = sys.platform == 'darwin'
 LINUX = sys.platform.startswith('linux')
 CTRL = "Meta" if MAC else "Ctrl"
 
-# Run cell shortcuts
-if MAC:
-    RUN_CELL_SHORTCUT = 'Meta+Return'
-else:
-    RUN_CELL_SHORTCUT = 'Ctrl+Return'
-RE_RUN_LAST_CELL_SHORTCUT = 'Alt+Return'
-RUN_CELL_AND_ADVANCE_SHORTCUT = 'Shift+Return'
+
+# Modules to be preloaded for Rope and Jedi
+PRELOAD_MDOULES = ', '.join(PREFERRED_MODULES)
 
 
 # =============================================================================
@@ -182,6 +176,7 @@ DEFAULTS = [
              {
               'mute_inline_plotting': True,
               'show_plot_outline': False,
+              'auto_fit_plotting': True
              }),
             ('editor',
              {
@@ -191,8 +186,6 @@ DEFAULTS = [
               'printer_header/font/bold': False,
               'wrap': False,
               'wrapflag': True,
-              'code_analysis/pyflakes': True,
-              'code_analysis/pep8': False,
               'todo_list': True,
               'realtime_analysis': True,
               'realtime_analysis/timeout': 2500,
@@ -215,6 +208,7 @@ DEFAULTS = [
               'convert_eol_on_save_to': 'LF',
               'tab_always_indent': False,
               'intelligent_backspace': True,
+              'underline_errors': False,
               'highlight_current_line': True,
               'highlight_current_cell': True,
               'occurrence_highlighting': True,
@@ -230,6 +224,7 @@ DEFAULTS = [
               'autosave_enabled': True,
               'autosave_interval': 60,
               'docstring_type': 'Numpydoc',
+              'strip_trailing_spaces_on_modify': True,
               }),
             ('historylog',
              {
@@ -289,7 +284,7 @@ DEFAULTS = [
               'exclude_regexp': False,
               'search_text_regexp': False,
               'search_text': [''],
-              'search_text_samples': [codeanalysis.TASKS_PATTERN],
+              'search_text_samples': [TASKS_PATTERN],
               'more_options': True,
               'case_sensitive': False
               }),
@@ -408,8 +403,8 @@ DEFAULTS = [
               'editor/conditional breakpoint': 'Shift+F12',
               'editor/run selection': "F9",
               'editor/go to line': 'Ctrl+L',
-              'editor/go to previous file': 'Ctrl+Shift+Tab',
-              'editor/go to next file': 'Ctrl+Tab',
+              'editor/go to previous file': CTRL + '+Shift+Tab',
+              'editor/go to next file': CTRL + '+Tab',
               'editor/cycle to previous file': 'Ctrl+PgUp',
               'editor/cycle to next file': 'Ctrl+PgDown',
               'editor/new file': "Ctrl+N",
@@ -430,11 +425,11 @@ DEFAULTS = [
               'editor/zoom reset': "Ctrl+0",
               'editor/close file 1': "Ctrl+W",
               'editor/close file 2': "Ctrl+F4",
-              'editor/run cell': RUN_CELL_SHORTCUT,
-              'editor/run cell and advance': RUN_CELL_AND_ADVANCE_SHORTCUT,
+              'editor/run cell': CTRL + '+Return',
+              'editor/run cell and advance': 'Shift+Return',
               'editor/go to next cell': 'Ctrl+Down',
               'editor/go to previous cell': 'Ctrl+Up',
-              'editor/re-run last cell': RE_RUN_LAST_CELL_SHORTCUT,
+              'editor/re-run last cell': 'Alt+Return',
               'editor/split vertically': "Ctrl+{",
               'editor/split horizontally': "Ctrl+_",
               'editor/close split panel': "Alt+Shift+W",
@@ -468,290 +463,37 @@ DEFAULTS = [
               'explorer/copy absolute path': 'Ctrl+Alt+C',
               'explorer/copy relative path': 'Ctrl+Alt+Shift+C',
               }),
-            ('appearance',
+            ('appearance', APPEARANCE),
+            ('lsp-server',
              {
-              'icon_theme': 'spyder 3',
-              # Global Spyder fonts
-              'font/family': MONOSPACE,
-              'font/size': MEDIUM,
-              'font/italic': False,
-              'font/bold': False,
-              'rich_font/family': SANS_SERIF,
-              'rich_font/size': SMALL if (LINUX or WIN) else MEDIUM,
-              'rich_font/italic': False,
-              'rich_font/bold': False,
-              'ui_theme': 'automatic',
-              'names': ['emacs', 'idle', 'monokai', 'pydev', 'scintilla',
-                        'spyder', 'spyder/dark', 'zenburn', 'solarized/light',
-                        'solarized/dark'],
-              'selected': 'spyder/dark',
-              # ---- Emacs ----
-              'emacs/name':        "Emacs",
-              #      Name            Color     Bold  Italic
-              'emacs/background':  "#000000",
-              'emacs/currentline': "#2b2b43",
-              'emacs/currentcell': "#1c1c2d",
-              'emacs/occurrence':   "#abab67",
-              'emacs/ctrlclick':   "#0000ff",
-              'emacs/sideareas':   "#555555",
-              'emacs/matched_p':   "#009800",
-              'emacs/unmatched_p': "#c80000",
-              'emacs/normal':     ('#ffffff', False, False),
-              'emacs/keyword':    ('#3c51e8', False, False),
-              'emacs/builtin':    ('#900090', False, False),
-              'emacs/definition': ('#ff8040', True, False),
-              'emacs/comment':    ('#005100', False, False),
-              'emacs/string':     ('#00aa00', False, True),
-              'emacs/number':     ('#800000', False, False),
-              'emacs/instance':   ('#ffffff', False, True),
-              # ---- IDLE ----
-              'idle/name':         "IDLE",
-              #      Name            Color     Bold  Italic
-              'idle/background':   "#ffffff",
-              'idle/currentline':  "#f2e6f3",
-              'idle/currentcell':  "#feefff",
-              'idle/occurrence':    "#e8f2fe",
-              'idle/ctrlclick':    "#0000ff",
-              'idle/sideareas':    "#efefef",
-              'idle/matched_p':    "#99ff99",
-              'idle/unmatched_p':  "#ff9999",
-              'idle/normal':      ('#000000', False, False),
-              'idle/keyword':     ('#ff7700', True, False),
-              'idle/builtin':     ('#900090', False, False),
-              'idle/definition':  ('#0000ff', False, False),
-              'idle/comment':     ('#dd0000', False, True),
-              'idle/string':      ('#00aa00', False, False),
-              'idle/number':      ('#924900', False, False),
-              'idle/instance':    ('#777777', True, True),
-              # ---- Monokai ----
-              'monokai/name':         "Monokai",
-              #      Name              Color     Bold  Italic
-              'monokai/background':   "#2a2b24",
-              'monokai/currentline':  "#484848",
-              'monokai/currentcell':  "#3d3d3d",
-              'monokai/occurrence':    "#666666",
-              'monokai/ctrlclick':    "#0000ff",
-              'monokai/sideareas':    "#2a2b24",
-              'monokai/matched_p':    "#688060",
-              'monokai/unmatched_p':  "#bd6e76",
-              'monokai/normal':      ("#ddddda", False, False),
-              'monokai/keyword':     ("#f92672", False, False),
-              'monokai/builtin':     ("#ae81ff", False, False),
-              'monokai/definition':  ("#a6e22e", False, False),
-              'monokai/comment':     ("#75715e", False, True),
-              'monokai/string':      ("#e6db74", False, False),
-              'monokai/number':      ("#ae81ff", False, False),
-              'monokai/instance':    ("#ddddda", False, True),
-              # ---- Pydev ----
-              'pydev/name':        "Pydev",
-              #      Name            Color     Bold  Italic
-              'pydev/background':  "#ffffff",
-              'pydev/currentline': "#e8f2fe",
-              'pydev/currentcell': "#eff8fe",
-              'pydev/occurrence':   "#ffff99",
-              'pydev/ctrlclick':   "#0000ff",
-              'pydev/sideareas':   "#efefef",
-              'pydev/matched_p':   "#99ff99",
-              'pydev/unmatched_p': "#ff99992",
-              'pydev/normal':     ('#000000', False, False),
-              'pydev/keyword':    ('#0000ff', False, False),
-              'pydev/builtin':    ('#900090', False, False),
-              'pydev/definition': ('#000000', True, False),
-              'pydev/comment':    ('#c0c0c0', False, False),
-              'pydev/string':     ('#00aa00', False, True),
-              'pydev/number':     ('#800000', False, False),
-              'pydev/instance':   ('#000000', False, True),
-              # ---- Scintilla ----
-              'scintilla/name':        "Scintilla",
-              #         Name             Color     Bold  Italic
-              'scintilla/background':  "#ffffff",
-              'scintilla/currentline': "#e1f0d1",
-              'scintilla/currentcell': "#edfcdc",
-              'scintilla/occurrence':   "#ffff99",
-              'scintilla/ctrlclick':   "#0000ff",
-              'scintilla/sideareas':   "#efefef",
-              'scintilla/matched_p':   "#99ff99",
-              'scintilla/unmatched_p': "#ff9999",
-              'scintilla/normal':     ('#000000', False, False),
-              'scintilla/keyword':    ('#00007f', True, False),
-              'scintilla/builtin':    ('#000000', False, False),
-              'scintilla/definition': ('#007f7f', True, False),
-              'scintilla/comment':    ('#007f00', False, False),
-              'scintilla/string':     ('#7f007f', False, False),
-              'scintilla/number':     ('#007f7f', False, False),
-              'scintilla/instance':   ('#000000', False, True),
-              # ---- Spyder ----
-              'spyder/name':        "Spyder",
-              #       Name            Color     Bold  Italic
-              'spyder/background':  "#ffffff",
-              'spyder/currentline': "#f7ecf8",
-              'spyder/currentcell': "#fdfdde",
-              'spyder/occurrence':   "#ffff99",
-              'spyder/ctrlclick':   "#0000ff",
-              'spyder/sideareas':   "#efefef",
-              'spyder/matched_p':   "#99ff99",
-              'spyder/unmatched_p': "#ff9999",
-              'spyder/normal':     ('#000000', False, False),
-              'spyder/keyword':    ('#0000ff', False, False),
-              'spyder/builtin':    ('#900090', False, False),
-              'spyder/definition': ('#000000', True, False),
-              'spyder/comment':    ('#adadad', False, True),
-              'spyder/string':     ('#00aa00', False, False),
-              'spyder/number':     ('#800000', False, False),
-              'spyder/instance':   ('#924900', False, True),
-              # ---- Spyder/Dark ----
-              'spyder/dark/name':        "Spyder Dark",
-              #           Name             Color     Bold  Italic
-              'spyder/dark/background':  "#19232D",
-              'spyder/dark/currentline': "#3a424a",
-              'spyder/dark/currentcell': "#17172d",
-              'spyder/dark/occurrence':  "#509ea5",
-              'spyder/dark/ctrlclick':   "#179ae0",
-              'spyder/dark/sideareas':   "#222b35",
-              'spyder/dark/matched_p':   "#0bbe0b",
-              'spyder/dark/unmatched_p': "#ff4340",
-              'spyder/dark/normal':     ('#ffffff', False, False),
-              'spyder/dark/keyword':    ('#c670e0', False, False),
-              'spyder/dark/builtin':    ('#fab16c', False, False),
-              'spyder/dark/definition': ('#57d6e4', True, False),
-              'spyder/dark/comment':    ('#999999', False, False),
-              'spyder/dark/string':     ('#b0e686', False, True),
-              'spyder/dark/number':     ('#faed5c', False, False),
-              'spyder/dark/instance':   ('#ee6772', False, True),
-              # ---- Zenburn ----
-              'zenburn/name':        "Zenburn",
-              #        Name            Color     Bold  Italic
-              'zenburn/background':  "#3f3f3f",
-              'zenburn/currentline': "#333333",
-              'zenburn/currentcell': "#2c2c2c",
-              'zenburn/occurrence':   "#7a738f",
-              'zenburn/ctrlclick':   "#0000ff",
-              'zenburn/sideareas':   "#3f3f3f",
-              'zenburn/matched_p':   "#688060",
-              'zenburn/unmatched_p': "#bd6e76",
-              'zenburn/normal':     ('#dcdccc', False, False),
-              'zenburn/keyword':    ('#dfaf8f', True, False),
-              'zenburn/builtin':    ('#efef8f', False, False),
-              'zenburn/definition': ('#efef8f', False, False),
-              'zenburn/comment':    ('#7f9f7f', False, True),
-              'zenburn/string':     ('#cc9393', False, False),
-              'zenburn/number':     ('#8cd0d3', False, False),
-              'zenburn/instance':   ('#dcdccc', False, True),
-              # ---- Solarized Light ----
-              'solarized/light/name':        "Solarized Light",
-              #        Name            Color     Bold  Italic
-              'solarized/light/background':  '#fdf6e3',
-              'solarized/light/currentline': '#f5efdB',
-              'solarized/light/currentcell': '#eee8d5',
-              'solarized/light/occurrence':   '#839496',
-              'solarized/light/ctrlclick':   '#d33682',
-              'solarized/light/sideareas':   '#eee8d5',
-              'solarized/light/matched_p':   '#586e75',
-              'solarized/light/unmatched_p': '#dc322f',
-              'solarized/light/normal':     ('#657b83', False, False),
-              'solarized/light/keyword':    ('#859900', False, False),
-              'solarized/light/builtin':    ('#6c71c4', False, False),
-              'solarized/light/definition': ('#268bd2', True, False),
-              'solarized/light/comment':    ('#93a1a1', False, True),
-              'solarized/light/string':     ('#2aa198', False, False),
-              'solarized/light/number':     ('#cb4b16', False, False),
-              'solarized/light/instance':   ('#b58900', False, True),
-              # ---- Solarized Dark ----
-              'solarized/dark/name':        "Solarized Dark",
-              #        Name            Color     Bold  Italic
-              'solarized/dark/background':  '#002b36',
-              'solarized/dark/currentline': '#083f4d',
-              'solarized/dark/currentcell': '#073642',
-              'solarized/dark/occurrence':   '#657b83',
-              'solarized/dark/ctrlclick':   '#d33682',
-              'solarized/dark/sideareas':   '#073642',
-              'solarized/dark/matched_p':   '#93a1a1',
-              'solarized/dark/unmatched_p': '#dc322f',
-              'solarized/dark/normal':     ('#839496', False, False),
-              'solarized/dark/keyword':    ('#859900', False, False),
-              'solarized/dark/builtin':    ('#6c71c4', False, False),
-              'solarized/dark/definition': ('#268bd2', True, False),
-              'solarized/dark/comment':    ('#586e75', False, True),
-              'solarized/dark/string':     ('#2aa198', False, False),
-              'solarized/dark/number':     ('#cb4b16', False, False),
-              'solarized/dark/instance':   ('#b58900', False, True)
-             }),
-            ('lsp-server', {
-                'python': {
-                    'index': 0,
-                    'cmd': 'pyls',
-                    'args': '--host {host} --port {port} --tcp',
-                    'host': '127.0.0.1',
-                    'port': 2087,
-                    'external': False,
-                    'configurations': {
-                        'pyls': {
-                            'configurationSources': [
-                                "pycodestyle", "pyflakes"],
-                            'plugins': {
-                                'pycodestyle': {
-                                    'enabled': True,
-                                    'exclude': [],
-                                    'filename': [],
-                                    'select': [],
-                                    'ignore': [],
-                                    'hangClosing': False,
-                                    'maxLineLength': 79
-                                },
-                                'pyflakes': {
-                                    'enabled': True
-                                },
-                                'yapf': {
-                                    'enabled': False
-                                },
-                                'pydocstyle': {
-                                    'enabled': False,
-                                    'convention': 'pep257',
-                                    'addIgnore': [],
-                                    'addSelect': [],
-                                    'ignore': [],
-                                    'select': [],
-                                    'match': "(?!test_).*\\.py",
-                                    'matchDir': '[^\\.].*',
-                                },
-                                'rope': {
-                                    'extensionModules': None,
-                                    'ropeFolder': None,
-                                },
-                                'rope_completion': {
-                                    'enabled': False
-                                },
-                                'jedi_completion': {
-                                    'enabled': True,
-                                    'include_params': False
-                                },
-                                'jedi_hover': {
-                                    'enabled': True
-                                },
-                                'jedi_references': {
-                                    'enabled': True
-                                },
-                                'jedi_signature_help': {
-                                    'enabled': True
-                                },
-                                'jedi_symbols': {
-                                    'enabled': True,
-                                    'all_scopes': True
-                                },
-                                'mccabe': {
-                                    'enabled': False,
-                                    'threshold': 15
-                                },
-                                'preload': {
-                                    'enabled': True,
-                                    'modules': []
-                                }
-                            },
-
-                        }
-                    }
-                }
-            })
+              # This option is not used with the LSP server config
+              # It is used to disable hover hints in the editor
+              'enable_hover_hints': True,
+              'code_completion': True,
+              'jedi_definition': True,
+              'jedi_definition/follow_imports': True,
+              'jedi_signature_help': True,
+              'preload_modules': PRELOAD_MDOULES,
+              'pyflakes': True,
+              'mccabe': False,
+              'pycodestyle': False,
+              'pycodestyle/filename': '',
+              'pycodestyle/exclude': '',
+              'pycodestyle/select': '',
+              'pycodestyle/ignore': '',
+              'pycodestyle/max_line_length': 79,
+              'pydocstyle': False,
+              'pydocstyle/convention': 'numpy',
+              'pydocstyle/select': '',
+              'pydocstyle/ignore': '',
+              'pydocstyle/match': '(?!test_).*\\.py',
+              'pydocstyle/match_dir': '[^\\.].*',
+              'advanced/command_launch': 'pyls',
+              'advanced/host': '127.0.0.1',
+              'advanced/port': 2087,
+              'advanced/external': False,
+              'advanced/stdio': False
+             })
             ]
 
 
@@ -765,7 +507,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '48.0.0'
+CONF_VERSION = '50.2.0'
 
 
 # Main configuration instance

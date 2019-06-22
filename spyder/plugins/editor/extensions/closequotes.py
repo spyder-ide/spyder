@@ -56,6 +56,7 @@ class CloseQuotesExtension(EditorExtension):
         if key in (Qt.Key_QuoteDbl, Qt.Key_Apostrophe) and self.enabled:
             self.editor.completion_widget.hide()
             self._autoinsert_quotes(key)
+            self.editor.document_did_change()
             event.accept()
 
     def _autoinsert_quotes(self, key):

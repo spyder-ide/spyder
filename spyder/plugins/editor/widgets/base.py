@@ -30,7 +30,7 @@ from spyder.config.gui import get_font
 from spyder.config.main import CONF
 from spyder.py3compat import PY3, to_text_string
 from spyder.utils import icon_manager as ima
-from spyder.widgets.calltip import CallTipWidget
+from spyder.widgets.calltip import CallTipWidget, ToolTipWidget
 from spyder.widgets.mixins import BaseEditMixin
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
@@ -46,55 +46,72 @@ class CompletionWidget(QListWidget):
         QListWidget.__init__(self, ancestor)
         self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint)
         self.textedit = parent
-        self.completion_list = None
         self.hide()
         self.itemActivated.connect(self.item_selected)
         self.currentRowChanged.connect(self.row_changed)
         self.is_internal_console = False
+        self.completion_list = None
+        self.completion_position = None
+        self.automatic = False
+        # Text to be displayed if no match is found.
+        self.empty_text = 'No match'
 
     def setup_appearance(self, size, font):
         self.resize(*size)
         self.setFont(font)
 
-    def show_list(self, completion_list, position):
+    def is_empty(self):
+        """Check if widget is empty."""
+        if self.count() == 0:
+            return True
+        if self.count() == 1 and self.item(0).text() == self.empty_text:
+            return True
+        return False
+
+    def show_list(self, completion_list, position, automatic):
+        """Show list corresponding to position."""
+
+        if not completion_list:
+            self.hide()
+            return
+
+        self.automatic = automatic
+
         if position is None:
             # Somehow the position was not saved.
             # Hope that the current position is still valid
-            self.position = self.textedit.textCursor().position()
+            self.completion_position = self.textedit.textCursor().position()
+
         elif self.textedit.textCursor().position() < position:
             # hide the text as we moved away from the position
+            self.hide()
             return
+
         else:
-            self.position = position
+            self.completion_position = position
 
         # Completions are handled differently for the Internal
         # console.
         if not isinstance(completion_list[0], dict):
             self.is_internal_console = True
         self.completion_list = completion_list
-        self.clear()
+        # Check everything is in order
+        self.update_current()
 
-        icons_map = {CompletionItemKind.PROPERTY: 'attribute',
-                     CompletionItemKind.VARIABLE: 'attribute',
-                     CompletionItemKind.METHOD: 'method',
-                     CompletionItemKind.FUNCTION: 'function',
-                     CompletionItemKind.CLASS: 'class',
-                     CompletionItemKind.MODULE: 'module',
-                     CompletionItemKind.CONSTRUCTOR: 'method',
-                     CompletionItemKind.REFERENCE: 'attribute'}
+        # If update_current called close, stop loading
+        if not self.completion_list:
+            return
 
-        for completion in completion_list:
-            if not self.is_internal_console:
-                icon = icons_map.get(completion['kind'], 'no_match')
-                self.addItem(
-                    QListWidgetItem(ima.icon(icon), completion['insertText']))
-            else:
-                # This is used by the Internal console.
-                self.addItem(QListWidgetItem(completion[0]))
+        # If only one, must be chosen if not automatic
+        single_match = (self.count() == 1 and
+                        self.item(0).text() != self.empty_text)
+        if single_match and not self.automatic:
+            self.item_selected()
+            self.hide()
+            # signal used for testing
+            self.sig_show_completions.emit(completion_list)
+            return
 
-        self.setCurrentRow(0)
-
-        QApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
         self.show()
         self.setFocus()
         self.raise_()
@@ -150,32 +167,75 @@ class CompletionWidget(QListWidget):
             for completion in completion_list:
                 completion['point'] = tooltip_point
 
-        if to_text_string(to_text_string(
-                self.textedit.get_current_word(completion=True))):
-            # When initialized, if completion text is not empty, we need
-            # to update the displayed list:
-            self.update_current()
-
         # signal used for testing
         self.sig_show_completions.emit(completion_list)
 
+    def update_list(self, filter_text):
+        """
+        Update the displayed list by filtering self.completion_list.
+
+        If returns False, the autocompletion should stop.
+        """
+        self.clear()
+        icons_map = {CompletionItemKind.PROPERTY: 'attribute',
+                     CompletionItemKind.VARIABLE: 'attribute',
+                     CompletionItemKind.METHOD: 'method',
+                     CompletionItemKind.FUNCTION: 'function',
+                     CompletionItemKind.CLASS: 'class',
+                     CompletionItemKind.MODULE: 'module',
+                     CompletionItemKind.CONSTRUCTOR: 'method',
+                     CompletionItemKind.REFERENCE: 'attribute',
+                     CompletionItemKind.KEYWORD: 'keyword',
+                     CompletionItemKind.TEXT: 'text'}
+
+        for completion in self.completion_list:
+            if not self.is_internal_console:
+                completion_label = completion['filterText']
+                icon = icons_map.get(completion['kind'], 'no_match')
+                item = QListWidgetItem(ima.icon(icon),
+                                       completion['insertText'])
+            else:
+                completion_label = completion[0]
+                item = QListWidgetItem(completion_label)
+
+            if self.check_can_complete(
+                    completion_label, filter_text):
+                self.addItem(item)
+
+        if self.count() > 0:
+            self.setCurrentRow(0)
+            self.scrollTo(self.currentIndex(),
+                          QAbstractItemView.PositionAtTop)
+        else:
+            self.addItem(QListWidgetItem(self.empty_text))
+
     def hide(self):
+        """Hide the widget."""
+        self.completion_position = None
+        self.completion_list = None
+        self.clear()
         QToolTip.hideText()
         QListWidget.hide(self)
         self.textedit.setFocus()
 
     def keyPressEvent(self, event):
+        """Process keypress."""
         text, key = event.text(), event.key()
         alt = event.modifiers() & Qt.AltModifier
         shift = event.modifiers() & Qt.ShiftModifier
         ctrl = event.modifiers() & Qt.ControlModifier
         modifier = shift or ctrl or alt
-        if key in (Qt.Key_Return, Qt.Key_Enter) or key == Qt.Key_Tab:
-            self.item_selected()
+        if key in (Qt.Key_Return, Qt.Key_Enter, Qt.Key_Tab):
+            # Check that what was selected can be selected,
+            # otherwise timing issues
+            if self.up_to_date():
+                self.item_selected()
+            else:
+                self.hide()
+                self.textedit.keyPressEvent(event)
         elif key == Qt.Key_Escape:
             self.hide()
-        elif key in (Qt.Key_Return, Qt.Key_Enter,
-                     Qt.Key_Left, Qt.Key_Right) or text in ('.', ':'):
+        elif key in (Qt.Key_Left, Qt.Key_Right) or text in ('.', ':'):
             self.hide()
             self.textedit.keyPressEvent(event)
         elif key in (Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp, Qt.Key_PageDown,
@@ -188,39 +248,75 @@ class CompletionWidget(QListWidget):
             else:
                 QListWidget.keyPressEvent(self, event)
         elif len(text) or key == Qt.Key_Backspace:
-            # If the cursor goes behind the current position,
-            # the autocomplete is no longer relevant
-            if self.textedit.textCursor().position() < self.position or (
-                    key == Qt.Key_Backspace and (
-                    self.textedit.textCursor().position() <= self.position)):
-                self.hide()
-                self.textedit.keyPressEvent(event)
-            else:
-                self.textedit.keyPressEvent(event)
-                self.update_current()
+            self.textedit.keyPressEvent(event)
+            self.update_current()
         elif modifier:
             self.textedit.keyPressEvent(event)
         else:
             self.hide()
             QListWidget.keyPressEvent(self, event)
 
-    def update_current(self):
-        completion_text = to_text_string(
-                self.textedit.get_current_word(completion=True))
-        if completion_text:
-            for row, completion in enumerate(self.completion_list):
-                if not self.is_internal_console:
-                    completion_label = completion['filterText']
-                else:
-                    completion_label = completion[0]
+    def up_to_date(self):
+        """
+        Check if the selection is up to date.
+        """
+        if self.is_empty():
+            return False
+        if not self.is_position_correct():
+            return False
+        completion_text = self.textedit.get_current_word(completion=True)
+        selected_text = self.currentItem().text()
+        return self.check_can_complete(selected_text, completion_text)
 
-                if completion_label.startswith(completion_text):
-                    self.setCurrentRow(row)
-                    self.scrollTo(self.currentIndex(),
-                                  QAbstractItemView.PositionAtTop)
-                    break
-        else:
+    def check_can_complete(self, text, sub):
+        """Check if sub can be completed to text."""
+        if not sub:
+            return True
+        return to_text_string(text).lower().startswith(
+                to_text_string(sub).lower())
+
+    def is_position_correct(self):
+        """Check if the position is correct."""
+
+        if self.completion_position is None:
+            return False
+
+        cursor_position = self.textedit.textCursor().position()
+
+        # Can only go forward from the data we have
+        if cursor_position < self.completion_position:
+            return False
+
+        completion_text = self.textedit.get_current_word_and_position(
+            completion=True)
+
+        # If no text found, we must be at self.completion_position
+        if completion_text is None:
+            if self.completion_position == cursor_position:
+                return True
+            else:
+                return False
+
+        completion_text, text_position = completion_text
+        completion_text = to_text_string(completion_text)
+
+        # The position of text must compatible with completion_position
+        if not text_position <= self.completion_position <= (
+                text_position + len(completion_text)):
+            return False
+
+        return True
+
+    def update_current(self):
+        """
+        Update the displayed list.
+        """
+        if not self.is_position_correct():
             self.hide()
+            return
+
+        completion_text = self.textedit.get_current_word(completion=True)
+        self.update_list(completion_text)
 
     def focusOutEvent(self, event):
         event.ignore()
@@ -231,26 +327,34 @@ class CompletionWidget(QListWidget):
             if event.reason() != Qt.ActiveWindowFocusReason:
                 self.hide()
         else:
-            self.hide()
+            # Avoid an error when running tests that show
+            # the completion widget
+            try:
+                self.hide()
+            except RuntimeError:
+                pass
 
     def item_selected(self, item=None):
+        """Perform the item selected action."""
         if item is None:
             item = self.currentItem()
-        self.textedit.insert_completion(to_text_string(item.text()),
-                                        self.position)
+
+        if item is not None and self.completion_position is not None:
+            self.textedit.insert_completion(to_text_string(item.text()),
+                                            self.completion_position)
         self.hide()
 
     @Slot(int)
     def row_changed(self, row):
-        item = self.completion_list[row]
-        if len(item['documentation']) > 0:
-            # TODO: LSP - Define an UI element to display the documentation
-            # self.textedit.show_calltip(
-            #     item['detail'], item['documentation'], color='#daa520',
-            #     at_point=item['point'])
-            pass
-        else:
-            QToolTip.hideText()
+        if self.completion_list:
+            item = self.completion_list[row]
+            if len(item['documentation']) > 0:
+                # TODO: LSP - Define an UI element to display the documentation
+                # self.textedit.show_calltip(
+                #     item['detail'], item['documentation'], color='#daa520',
+                #     at_point=item['point'])
+                return
+        QToolTip.hideText()
 
 
 class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
@@ -293,8 +397,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         self.calltip_widget = CallTipWidget(self, hide_timer_on=False)
         self.calltip_position = None
+        self.tooltip_widget = ToolTipWidget(self, as_tooltip=True)
 
-        self.has_cell_separators = False
         self.highlight_current_cell_enabled = False
 
         # The color values may be overridden by the syntax highlighter
@@ -332,21 +436,18 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         Set text editor palette colors:
         background color and caret (text cursor) color
         """
-        palette = QPalette()
-        palette.setColor(QPalette.Base, background)
-        palette.setColor(QPalette.Text, foreground)
-        self.setPalette(palette)
+        # Because QtStylsheet overrides QPalette and because some style do not
+        # use the palette for all drawing (e.g. macOS styles), the background
+        # and foreground color of each TextEditBaseWidget instance must be set
+        # with a stylesheet extended with an ID Selector.
+        # Fixes Issue 2028, 8069 and 9248.
+        if not self.objectName():
+            self.setObjectName(self.__class__.__name__ + str(id(self)))
+        style = "QPlainTextEdit#%s {background: %s; color: %s;}" % \
+                (self.objectName(), background.name(), foreground.name())
+        self.setStyleSheet(style)
 
-        # Set the right background color when changing color schemes
-        # or creating new Editor windows. This seems to be a Qt bug.
-        # Fixes Issue 2028 and 8069
-        if self.objectName():
-            style = "QPlainTextEdit#%s {background: %s; color: %s;}" % \
-                    (self.objectName(), background.name(), foreground.name())
-            self.setStyleSheet(style)
-
-
-    #------Extra selections
+    # ---- Extra selections
     def get_extra_selections(self, key):
         """Return editor extra selections.
 
@@ -439,7 +540,12 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if whole_file_selected:
             self.clear_extra_selections('current_cell')
         elif whole_screen_selected:
-            if self.has_cell_separators:
+            has_cell_separators = False
+            for oedata in self.outlineexplorer_data_list():
+                if oedata.def_type == oedata.CELL:
+                    has_cell_separators = True
+                    break
+            if has_cell_separators:
                 self.set_extra_selections('current_cell', [selection])
                 self.update_extra_selections()
             else:
@@ -658,24 +764,24 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         cursor, whole_file_selected = self.select_current_cell()
         self.setTextCursor(cursor)
         line_from, line_to = self.get_selection_bounds()
+        block = self.get_selection_first_block()
         text = self.get_selection_as_executable_code()
         self.last_cursor_cell = init_cursor
         self.__restore_selection(start_pos, end_pos)
         if text is not None:
             text = ls * line_from + text
-        return text, line_from
+        return text, block
 
     def get_cell_as_executable_code(self):
         """Return cell contents as executable code"""
         return self.__exec_cell()
 
     def get_last_cell_as_executable_code(self):
-        text = None
         if self.last_cursor_cell:
             self.setTextCursor(self.last_cursor_cell)
             self.highlight_current_cell()
-            text, line = self.__exec_cell()
-        return text, line
+            return self.__exec_cell()
+        return None
 
     def is_cell_separator(self, cursor=None, block=None):
         """Return True if cursor (or text block) is on a block separator"""
@@ -1009,7 +1115,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.setTextCursor(cursor)
 
     def delete_line(self):
-        """Delete current line"""
+        """Delete current line."""
         cursor = self.textCursor()
         if self.has_selected_text():
             self.extend_selection_to_complete_lines()
@@ -1028,6 +1134,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         cursor.removeSelectedText()
         cursor.endEditBlock()
         self.ensureCursorVisible()
+        self.document_did_change()
 
     def set_selection(self, start, end):
         cursor = self.textCursor()
@@ -1072,23 +1179,27 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Completion list is active, Enter was just pressed"""
         self.completion_widget.item_selected()
 
-    def insert_completion(self, text, position):
+    def insert_completion(self, text, completion_position):
         if text:
-            # Set position to where the request was made
-            if position is not None:
-                cursor = self.textCursor()
-                cursor.setPosition(position)
-                self.setTextCursor(cursor)
-            # Move to the beginning of the selected word
+            # Get word on the left of the cursor.
             result = self.get_current_word_and_position(completion=True)
+            cursor = self.textCursor()
             if result is not None:
-                position = result[1]
-                cursor = self.textCursor()
-                cursor.setPosition(position)
+                current_text, start_position = result
+                end_position = start_position + len(current_text)
+                # Check if the completion position is in the expected range
+                if not start_position <= completion_position <= end_position:
+                    return
+                cursor.setPosition(start_position)
                 # Remove the word under the cursor
-                cursor.select(QTextCursor.WordUnderCursor)
+                cursor.setPosition(end_position,
+                                   QTextCursor.KeepAnchor)
                 cursor.removeSelectedText()
                 self.setTextCursor(cursor)
+            else:
+                # Check if we are in the correct position
+                if cursor.position() != completion_position:
+                    return
             # Add text
             self.insert_text(text)
             self.document_did_change()

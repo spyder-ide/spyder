@@ -49,14 +49,14 @@ def apply():
                                                'default_config.py')
                 return open(fname, 'rb').read()
         project.Project = PatchedProject
-    
+
     # Patching pycore.PyCore...
     from rope.base import pycore
     class PatchedPyCore(pycore.PyCore):
-        # [2] ...so that forced builtin modules (i.e. modules that were 
+        # [2] ...so that forced builtin modules (i.e. modules that were
         # declared as 'extension_modules' in rope preferences) will be indeed
         # recognized as builtins by rope, as expected
-        # 
+        #
         # This patch is included in rope 0.9.4+ but applying it anyway is ok
         def get_module(self, name, folder=None):
             """Returns a `PyObject` if the module was found."""
@@ -89,7 +89,7 @@ def apply():
                     return module.get_child(packages[-1] + '.py')
     pycore.PyCore = PatchedPyCore
 
-    # [2] Patching BuiltinName for the go to definition feature to simply work 
+    # [2] Patching BuiltinName for the go to definition feature to simply work
     # with forced builtins
     from rope.base import builtins, libutils, pyobjects
     import inspect
@@ -114,7 +114,7 @@ def apply():
                     return (module, lineno)
             return (None, None)
     builtins.BuiltinName = PatchedBuiltinName
-    
+
     # [4] Patching several PyDocExtractor methods:
     # 1. get_doc:
     # To force rope to return the docstring of any object which has one, even
@@ -136,7 +136,7 @@ def apply():
         def get_builtin_doc(self, pyobject):
             buitin = pyobject.builtin
             return getdoc(buitin)
-            
+
         def get_doc(self, pyobject):
             if hasattr(pyobject, 'builtin'):
                 doc = self.get_builtin_doc(pyobject)
@@ -184,7 +184,7 @@ def apply():
                 if remove_self and self._is_method(pyobject):
                     return result.replace('(self)', '()').replace('(self, ', '(')
                 return result
-        
+
         def _get_class_docstring(self, pyclass):
             contents = self._trim_docstring(pyclass.get_doc(), indents=0)
             supers = [super.get_name() for super in pyclass.get_superclasses()]
@@ -195,7 +195,7 @@ def apply():
                 if isinstance(init, pyobjects.AbstractFunction):
                     doc += '\n\n' + self._get_single_function_docstring(init)
             return doc
-            
+
         def _get_single_function_docstring(self, pyfunction):
             docs = pyfunction.get_doc()
             docs = self._trim_docstring(docs, indents=0)

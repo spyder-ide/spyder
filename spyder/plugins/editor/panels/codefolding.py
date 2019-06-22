@@ -348,7 +348,7 @@ class FoldingPanel(Panel):
         Gets the base scope highlight color (derivated from the editor
         background)
 
-        For lighter themes will be a darker color, 
+        For lighter themes will be a darker color,
         and for darker ones will be a lighter color
         """
         color = self.editor.sideareas_color

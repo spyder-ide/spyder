@@ -36,9 +36,9 @@ A port of `QtWaitingSpinner <https://github.com/snowwlex/QtWaitingSpinner>`_.
 
 import math
 
-from qtpy.QtCore import *
-from qtpy.QtGui import *
-from qtpy.QtWidgets import *
+from qtpy.QtCore import QRect, Qt, QTimer
+from qtpy.QtGui import QColor, QPainter
+from qtpy.QtWidgets import QWidget
 
 
 class QWaitingSpinner(QWidget):
@@ -55,6 +55,7 @@ class QWaitingSpinner(QWidget):
         self._roundness = 100.0
         self._minimumTrailOpacity = 3.14159265358979323846
         self._trailFadePercentage = 80.0
+        self._trailSizeDecreasing = False
         self._revolutionsPerSecond = 1.57079632679489661923
         self._numberOfLines = 20
         self._lineLength = 10
@@ -92,9 +93,19 @@ class QWaitingSpinner(QWidget):
             distance = self.lineCountDistanceFromPrimary(i, self._currentCounter, self._numberOfLines)
             color = self.currentLineColor(distance, self._numberOfLines, self._trailFadePercentage,
                                           self._minimumTrailOpacity, self._color)
+
+            # Compute the scaling factor to apply to the size and thickness
+            # of the lines in the trail.
+            if self._trailSizeDecreasing:
+                sf = (self._numberOfLines - distance) / self._numberOfLines
+            else:
+                sf = 1
+
             painter.setBrush(color)
-            painter.drawRoundedRect(QRect(0, -self._lineWidth / 2, self._lineLength, self._lineWidth), self._roundness,
-                                    self._roundness, Qt.RelativeSize)
+            rect = QRect(0, -self._lineWidth / 2,
+                         sf * self._lineLength, sf * self._lineWidth)
+            painter.drawRoundedRect(
+                rect, self._roundness, self._roundness, Qt.RelativeSize)
             painter.restore()
 
     def start(self):
@@ -158,6 +169,13 @@ class QWaitingSpinner(QWidget):
     def lineLength(self):
         return self._lineLength
 
+    def isTrailSizeDecreasing(self):
+        """
+        Return whether the length and thickness of the trailing lines
+        are decreasing.
+        """
+        return self._trailSizeDecreasing
+
     def lineWidth(self):
         return self._lineWidth
 
@@ -179,6 +197,13 @@ class QWaitingSpinner(QWidget):
 
     def setTrailFadePercentage(self, trail):
         self._trailFadePercentage = trail
+
+    def setTrailSizeDecreasing(self, value):
+        """
+        Set whether the length and thickness of the trailing lines
+        are decreasing.
+        """
+        self._trailSizeDecreasing = value
 
     def setMinimumTrailOpacity(self, minimumTrailOpacity):
         self._minimumTrailOpacity = minimumTrailOpacity

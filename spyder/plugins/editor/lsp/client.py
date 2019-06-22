@@ -29,9 +29,10 @@ from spyder.config.base import get_conf_path, get_debug_level
 from spyder.plugins.editor.lsp import (
     CLIENT_CAPABILITES, SERVER_CAPABILITES, TRACE,
     TEXT_DOCUMENT_SYNC_OPTIONS, LSPRequestTypes,
-    LSPEventTypes, ClientConstants)
+    ClientConstants)
 from spyder.plugins.editor.lsp.decorators import (
-    send_request, class_register, handles)
+    send_request, send_notification, class_register, handles)
+from spyder.plugins.editor.lsp.transport import MessageKind
 from spyder.plugins.editor.lsp.providers import LSPMethodProviderMixIn
 from spyder.utils.misc import getcwd_or_home
 
@@ -54,13 +55,17 @@ logger = logging.getLogger(__name__)
 @class_register
 class LSPClient(QObject, LSPMethodProviderMixIn):
     """Language Server Protocol v3.0 client implementation."""
-    initialized = Signal()
+    #: Signal to inform the editor plugin that the client has
+    #  started properly and it's ready to be used.
+    sig_initialize = Signal(dict, str)
+
+    #: Signal to report internal server errors through Spyder's
+    #  facilities.
+    sig_server_error = Signal(str)
+
+    # Constants
     external_server_fmt = ('--server-host %(host)s '
-                           '--server-port %(port)s '
-                           '--external-server')
-    local_server_fmt = ('--server-host %(host)s '
-                        '--server-port %(port)s '
-                        '--server %(cmd)s')
+                           '--server-port %(port)s ')
 
     def __init__(self, parent,
                  server_settings={},
@@ -80,13 +85,20 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.ready_to_close = False
         self.request_seq = 1
         self.req_status = {}
-        self.plugin_registry = {}
         self.watched_files = {}
+        self.watched_folders = {}
         self.req_reply = {}
 
         self.transport_args = [sys.executable, '-u',
                                osp.join(LOCATION, 'transport', 'main.py')]
         self.external_server = server_settings.get('external', False)
+        self.stdio = server_settings.get('stdio', False)
+        # Setting stdio on implies that external_server is off
+        if self.stdio and self.external_server:
+            error = ('If server is set to use stdio communication, '
+                     'then it cannot be an external server')
+            logger.error(error)
+            raise AssertionError(error)
 
         self.folder = folder
         self.plugin_configurations = server_settings.get('configurations', {})
@@ -96,15 +108,23 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
         server_args_fmt = server_settings.get('args', '')
         server_args = server_args_fmt.format(**server_settings)
-        # transport_args = self.local_server_fmt % (server_settings)
-        # if self.external_server:
         transport_args = self.external_server_fmt % (server_settings)
 
-        self.server_args = [sys.executable, '-m', server_settings['cmd']]
-        self.server_args += server_args.split(' ')
+        self.server_args = []
+        if language == 'python':
+            self.server_args += [sys.executable, '-m']
+        self.server_args += [server_settings['cmd']]
+        if len(server_args) > 0:
+            self.server_args += server_args.split(' ')
+
         self.transport_args += transport_args.split(' ')
         self.transport_args += ['--folder', folder]
         self.transport_args += ['--transport-debug', str(get_debug_level())]
+        if not self.stdio:
+            self.transport_args += ['--external-server']
+        else:
+            self.transport_args += ['--stdio-server']
+            self.external_server = True
 
     def start(self):
         self.zmq_out_socket = self.context.socket(zmq.PAIR)
@@ -124,12 +144,22 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             if not osp.exists(osp.dirname(server_log_file)):
                 os.makedirs(osp.dirname(server_log_file))
             server_log = open(server_log_file, 'w')
+            if self.stdio:
+                server_log.close()
+                if self.language == 'python':
+                    self.server_args += ['--log-file', server_log_file]
+                self.transport_args += ['--server-log-file', server_log_file]
 
             # Start server with logging options
-            if get_debug_level() == 2:
-                self.server_args.append('-v')
-            elif get_debug_level() == 3:
-                self.server_args.append('-vv')
+            if self.language != 'cpp':
+                if get_debug_level() == 2:
+                    self.server_args.append('-v')
+                elif get_debug_level() == 3:
+                    self.server_args.append('-vv')
+
+        server_stdin = subprocess.PIPE
+        server_stdout = server_log
+        server_stderr = subprocess.STDOUT
 
         if not self.external_server:
             logger.info('Starting server: {0}'.format(
@@ -138,10 +168,26 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             if os.name == 'nt':
                 creation_flags = (subprocess.CREATE_NEW_PROCESS_GROUP
                                   | 0x08000000)  # CREATE_NO_WINDOW
+
+            if os.environ.get('CI') and os.name == 'nt':
+                # The following patching avoids:
+                #
+                # OSError: [WinError 6] The handle is invalid
+                #
+                # while running our tests in CI services on Windows
+                # (they run fine locally).
+                # See this comment for an explanation:
+                # https://stackoverflow.com/q/43966523/
+                # 438386#comment74964124_43966523
+                def patched_cleanup():
+                    pass
+                subprocess._cleanup = patched_cleanup
+
             self.lsp_server = subprocess.Popen(
                 self.server_args,
-                stdout=server_log,
-                stderr=subprocess.STDOUT,
+                stdout=server_stdout,
+                stdin=server_stdin,
+                stderr=server_stderr,
                 creationflags=creation_flags)
 
         client_log = subprocess.PIPE
@@ -160,16 +206,27 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.transport_args = list(map(str, self.transport_args))
         logger.info('Starting transport: {0}'
                     .format(' '.join(self.transport_args)))
+        if self.stdio:
+            transport_stdin = subprocess.PIPE
+            transport_stdout = subprocess.PIPE
+            transport_stderr = client_log
+            self.transport_args += self.server_args
+        else:
+            transport_stdout = client_log
+            transport_stdin = subprocess.PIPE
+            transport_stderr = subprocess.STDOUT
         self.transport_client = subprocess.Popen(self.transport_args,
-                                                 stdout=subprocess.PIPE,
-                                                 stderr=client_log,
+                                                 stdout=transport_stdout,
+                                                 stdin=transport_stdin,
+                                                 stderr=transport_stderr,
                                                  env=new_env)
 
         fid = self.zmq_in_socket.getsockopt(zmq.FD)
         self.notifier = QSocketNotifier(fid, QSocketNotifier.Read, self)
-        # self.notifier.activated.connect(self.debug_print)
         self.notifier.activated.connect(self.on_msg_received)
-        # self.initialize()
+
+        # This is necessary for tests to pass locally!
+        logger.debug('LSP {} client started!'.format(self.language))
 
     def stop(self):
         # self.shutdown()
@@ -187,21 +244,32 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         if not self.external_server:
             self.lsp_server.kill()
 
-    def send(self, method, params, requires_response):
+    def send(self, method, params, kind):
         if ClientConstants.CANCEL in params:
             return
-        msg = {
-            'id': self.request_seq,
-            'method': method,
-            'params': params
-        }
-        if requires_response:
+        _id = self.request_seq
+        if kind == MessageKind.REQUEST:
+            msg = {
+                'id': self.request_seq,
+                'method': method,
+                'params': params
+            }
             self.req_status[self.request_seq] = method
+        elif kind == MessageKind.RESPONSE:
+            msg = {
+                'id': self.request_seq,
+                'result': params
+            }
+        elif kind == MessageKind.NOTIFICATION:
+            msg = {
+                'method': method,
+                'params': params
+            }
 
         logger.debug('{} request: {}'.format(self.language, method))
         self.zmq_out_socket.send_pyobj(msg)
         self.request_seq += 1
-        return int(msg['id'])
+        return int(_id)
 
     @Slot()
     def on_msg_received(self):
@@ -221,16 +289,21 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 if 'error' in resp:
                     logger.debug('{} Response error: {}'
                                  .format(self.language, repr(resp['error'])))
-
-                if 'method' in resp:
+                    if self.language == 'python':
+                        traceback = (resp['error'].get('data', {}).
+                                     get('traceback'))
+                        if traceback:
+                            traceback = ''.join(traceback)
+                            self.sig_server_error.emit(traceback)
+                elif 'method' in resp:
                     if resp['method'][0] != '$':
+                        if 'id' in resp:
+                            self.request_seq = int(resp['id'])
                         if resp['method'] in self.handler_registry:
                             handler_name = (
                                 self.handler_registry[resp['method']])
                             handler = getattr(self, handler_name)
                             handler(resp['params'])
-                        if 'id' in resp:
-                            self.request_seq = resp['id']
                 elif 'result' in resp:
                     if resp['result'] is not None:
                         req_id = resp['id']
@@ -252,16 +325,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             handler_name = self.sender_registry[method]
             handler = getattr(self, handler_name)
             _id = handler(params)
-            if 'response_codeeditor' in params:
+            if 'response_instance' in params:
                 if params['requires_response']:
-                    self.req_reply[_id] = params['response_codeeditor']
+                    self.req_reply[_id] = params['response_instance']
             return _id
-
-    # ------ Spyder plugin registration --------------------------------
-    def register_plugin_type(self, plugin_type, notification_sig):
-        if plugin_type not in self.plugin_registry:
-            self.plugin_registry[plugin_type] = []
-        self.plugin_registry[plugin_type].append(notification_sig)
 
     # ------ LSP initialization methods --------------------------------
     @handles(SERVER_READY)
@@ -284,7 +351,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     def handle_shutdown(self, response, *args):
         self.ready_to_close = True
 
-    @send_request(method=LSPRequestTypes.EXIT, requires_response=False)
+    @send_notification(method=LSPRequestTypes.EXIT)
     def exit(self):
         params = {}
         return params
@@ -304,16 +371,12 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
         self.server_capabilites.update(server_capabilites)
 
-        for sig in self.plugin_registry[LSPEventTypes.DOCUMENT]:
-            sig.emit(self.server_capabilites, self.language)
+        self.sig_initialize.emit(self.server_capabilites, self.language)
+        self.initialized_call()
 
-    @send_request(method=LSPRequestTypes.WORKSPACE_CONFIGURATION_CHANGE,
-                  requires_response=False)
-    def send_plugin_configurations(self, configurations, *args):
-        self.plugin_configurations = configurations
-        params = {
-            'settings': configurations
-        }
+    @send_notification(method=LSPRequestTypes.INITIALIZED)
+    def initialized_call(self):
+        params = {}
         return params
 
 

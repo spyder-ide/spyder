@@ -68,7 +68,8 @@ if os.name == 'nt':
 from qtpy import API, PYQT5
 from qtpy.compat import from_qvariant
 from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
-                         QThread, QTimer, QUrl, Signal, Slot)
+                         QThread, QTimer, QUrl, Signal, Slot,
+                         qInstallMessageHandler)
 from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QDockWidget, QMainWindow,
                             QMenu, QMessageBox, QShortcut, QSplashScreen,
@@ -246,6 +247,28 @@ def setup_logging(cli_options):
                             filename=log_file,
                             filemode='w+')
 
+
+def qt_message_handler(msg_type, msg_log_context, msg_string):
+    """
+    Qt warning messages are intercepted by this handler.
+
+    On some operating systems, warning messages might be displayed
+    even if the actual message does not apply. This filter adds a
+    blacklist for messages that are being printed for no apparent
+    reason. Anything else will get printed in the internal console.
+
+    In DEV mode, all messages are printed.
+    """
+    BLACKLIST = [
+        'QMainWidget::resizeDocks: all sizes need to be larger than 0',
+    ]
+    if DEV or msg_string not in BLACKLIST:
+        print(msg_string)  # spyder: test-skip
+
+
+qInstallMessageHandler(qt_message_handler)
+
+
 # =============================================================================
 # Dependencies
 # =============================================================================
@@ -287,8 +310,9 @@ class MainWindow(QMainWindow):
     all_actions_defined = Signal()
     sig_pythonpath_changed = Signal()
     sig_open_external_file = Signal(str)
-    sig_resized = Signal("QResizeEvent")  # related to interactive tour
-    sig_moved = Signal("QMoveEvent")      # related to interactive tour
+    sig_resized = Signal("QResizeEvent")     # Related to interactive tour
+    sig_moved = Signal("QMoveEvent")         # Related to interactive tour
+    sig_layout_setup_ready = Signal(object)  # Related to default layouts
 
     def __init__(self, options=None):
         QMainWindow.__init__(self)
@@ -298,7 +322,6 @@ class MainWindow(QMainWindow):
             # Enabling scaling for high dpi
             qapp.setAttribute(Qt.AA_UseHighDpiPixmaps)
         self.default_style = str(qapp.style().objectName())
-
         self.dialog_manager = DialogManager()
 
         self.init_workdir = options.working_directory
@@ -398,6 +421,7 @@ class MainWindow(QMainWindow):
                               RunConfigPage, LSPManagerConfigPage]
         self.prefs_index = None
         self.prefs_dialog_size = None
+        self.prefs_dialog_instance = None
 
         # Quick Layouts and Dialogs
         from spyder.preferences.layoutdialog import (LayoutSaveDialog,
@@ -637,7 +661,7 @@ class MainWindow(QMainWindow):
                                     triggered=self.open_symbolfinder,
                                     context=Qt.ApplicationShortcut)
         self.register_shortcut(self.symbol_finder_action, context="_",
-                               name="symbol finder", add_sc_to_tip=True)
+                               name="symbol finder", add_shortcut_to_tip=True)
         self.file_toolbar_actions = [self.file_switcher_action,
                                      self.symbol_finder_action]
 
@@ -731,7 +755,7 @@ class MainWindow(QMainWindow):
                                         triggered=self.edit_preferences,
                                         context=Qt.ApplicationShortcut)
         self.register_shortcut(prefs_action, "_", "Preferences",
-                               add_sc_to_tip=True)
+                               add_shortcut_to_tip=True)
         spyder_path_action = create_action(self,
                                 _("PYTHONPATH manager"),
                                 None, icon=ima.icon('pythonpath'),
@@ -830,7 +854,7 @@ class MainWindow(QMainWindow):
                                         triggered=self.toggle_fullscreen,
                                         context=Qt.ApplicationShortcut)
         self.register_shortcut(self.fullscreen_action, "_",
-                               "Fullscreen mode", add_sc_to_tip=True)
+                               "Fullscreen mode", add_shortcut_to_tip=True)
 
         # Main toolbar
         self.main_toolbar_actions = [self.maximize_action,
@@ -859,6 +883,11 @@ class MainWindow(QMainWindow):
         self.set_splash(_("Starting Language Server Protocol manager..."))
         from spyder.plugins.editor.lsp.manager import LSPManager
         self.lspmanager = LSPManager(self)
+
+        # Fallback completion thread
+        self.set_splash(_("Creating fallback completion engine..."))
+        from spyder.plugins.editor.fallback.actor import FallbackActor
+        self.fallback_completions = FallbackActor(self)
 
         # Working directory plugin
         logger.info("Loading working directory...")
@@ -891,6 +920,10 @@ class MainWindow(QMainWindow):
         self.set_splash(_("Launching LSP Client for Python..."))
         self.lspmanager.start_client(language='python')
 
+        # Start fallback plugin
+        self.set_splash(_('Launching fallback completion engine...'))
+        self.fallback_completions.start()
+
         # Populating file menu entries
         quit_action = create_action(self, _("&Quit"),
                                     icon=ima.icon('exit'),
@@ -905,9 +938,16 @@ class MainWindow(QMainWindow):
                                        context=Qt.ApplicationShortcut)
         self.register_shortcut(restart_action, "_", "Restart")
 
-        self.file_menu_actions += [self.file_switcher_action,
-                                   self.symbol_finder_action, None,
-                                   restart_action, quit_action]
+        file_actions = [
+            self.file_switcher_action,
+            self.symbol_finder_action,
+            None,
+        ]
+        if sys.platform == 'darwin':
+            file_actions.extend(self.editor.tab_navigation_actions + [None])
+
+        file_actions.extend([restart_action, quit_action])
+        self.file_menu_actions += file_actions
         self.set_splash("")
 
         # Namespace browser
@@ -943,12 +983,9 @@ class MainWindow(QMainWindow):
             self.explorer.register_plugin()
 
         # Online help widget
-        try:    # Qt >= v4.4
-            from spyder.plugins.onlinehelp.plugin import OnlineHelp
-        except ImportError:    # Qt < v4.4
-            OnlineHelp = None  # analysis:ignore
-        if CONF.get('onlinehelp', 'enable') and OnlineHelp is not None:
+        if CONF.get('onlinehelp', 'enable'):
             self.set_splash(_("Loading online help..."))
+            from spyder.plugins.onlinehelp.plugin import OnlineHelp
             self.onlinehelp = OnlineHelp(self)
             self.onlinehelp.register_plugin()
 
@@ -1120,6 +1157,7 @@ class MainWindow(QMainWindow):
                                         qta_exe)
         if qta_act:
             self.help_menu_actions += [qta_act, None]
+
         # About Spyder
         about_action = create_action(self,
                                 _("About %s...") % "Spyder",
@@ -1286,7 +1324,7 @@ class MainWindow(QMainWindow):
         # Hide Internal Console so that people don't use it instead of
         # the External or IPython ones
         if self.console.dockwidget.isVisible() and DEV is None:
-            self.console.toggle_view_action.setChecked(False)
+            self.console._toggle_view_action.setChecked(False)
             self.console.dockwidget.hide()
 
         # Show Help and Consoles by default
@@ -1298,7 +1336,7 @@ class MainWindow(QMainWindow):
                 plugin.dockwidget.raise_()
 
         # Show history file if no console is visible
-        if not self.ipyconsole.isvisible:
+        if not self.ipyconsole._isvisible:
             self.historylog.add_history(get_conf_path('history.py'))
 
         if self.open_project:
@@ -1522,21 +1560,36 @@ class MainWindow(QMainWindow):
 
         for plugin in (self.widgetlist + self.thirdparty_plugins):
             try:
-                plugin.initialize_plugin_in_mainwindow_layout()
+                plugin._initialize_plugin_in_mainwindow_layout()
             except Exception as error:
                 print("%s: %s" % (plugin, str(error)), file=STDERR)
                 traceback.print_exc(file=STDERR)
 
     def setup_default_layouts(self, index, settings):
-        """Setup default layouts when run for the first time"""
-        self.maximize_dockwidget(restore=True)
-        self.set_window_settings(*settings)
+        """Setup default layouts when run for the first time."""
         self.setUpdatesEnabled(False)
+
+        first_spyder_run = bool(self.first_spyder_run)  # Store copy
+
+        if first_spyder_run:
+            self.set_window_settings(*settings)
+        else:
+            if self.last_plugin:
+                if self.last_plugin._ismaximized:
+                    self.maximize_dockwidget(restore=True)
+
+            if not (self.isMaximized() or self.maximized_flag):
+                self.showMaximized()
+
+            min_width = self.minimumWidth()
+            max_width = self.maximumWidth()
+            base_width = self.width()
+            self.setFixedWidth(base_width)
 
         # IMPORTANT: order has to be the same as defined in the config file
         MATLAB, RSTUDIO, VERTICAL, HORIZONTAL = range(self.DEFAULT_LAYOUTS)
 
-        # define widgets locally
+        # Define widgets locally
         editor = self.editor
         console_ipy = self.ipyconsole
         console_int = self.console
@@ -1551,153 +1604,197 @@ class MainWindow(QMainWindow):
         helper = self.onlinehelp
         plugins = self.thirdparty_plugins
 
+        # Stored for tests
         global_hidden_widgets = [finder, console_int, explorer_project,
                                  helper] + plugins
         global_hidden_toolbars = [self.source_toolbar, self.edit_toolbar,
                                   self.search_toolbar]
         # Layout definition
-        # layouts are organized by columns, each colum is organized by rows
-        # widths have to add 1.0, height per column have to add 1.0
+        # --------------------------------------------------------------------
+        # Layouts are organized by columns, each column is organized by rows.
+        # Widths have to add 1.0 (except if hidden), height per column has to
+        # add 1.0 as well
+
         # Spyder Default Initial Layout
-        s_layout = {'widgets': [
-                    # column 0
-                    [[explorer_project]],
-                    # column 1
-                    [[editor]],
-                    # column 2
-                    [[outline]],
-                    # column 3
-                    [[help_plugin, explorer_variable, plots, helper,
-                      explorer_file, finder] + plugins,
-                     [console_int, console_ipy, history]]
-                    ],
-                    'width fraction': [0.0,             # column 0 width
-                                       0.55,            # column 1 width
-                                       0.0,             # column 2 width
-                                       0.45],           # column 3 width
-                    'height fraction': [[1.0],          # column 0, row heights
-                                        [1.0],          # column 1, row heights
-                                        [1.0],          # column 2, row heights
-                                        [0.46, 0.54]],  # column 3, row heights
-                    'hidden widgets': [outline],
-                    'hidden toolbars': [],
-                    }
-        r_layout = {'widgets': [
-                    # column 0
-                    [[editor],
-                     [console_ipy, console_int]],
-                    # column 1
-                    [[explorer_variable, plots, history, outline,
-                      finder] + plugins,
-                     [explorer_file, explorer_project, help_plugin, helper]]
-                    ],
-                    'width fraction': [0.55,            # column 0 width
-                                       0.45],           # column 1 width
-                    'height fraction': [[0.55, 0.45],   # column 0, row heights
-                                        [0.55, 0.45]],  # column 1, row heights
-                    'hidden widgets': [outline],
-                    'hidden toolbars': [],
-                    }
+        s_layout = {
+            'widgets': [
+                # Column 0
+                [[explorer_project]],
+                # Column 1
+                [[editor]],
+                # Column 2
+                [[outline]],
+                # Column 3
+                [[help_plugin, explorer_variable, plots,     # Row 0
+                  helper, explorer_file, finder] + plugins,
+                 [console_int, console_ipy, history]]        # Row 1
+                ],
+            'width fraction': [0.05,            # Column 0 width
+                               0.55,            # Column 1 width
+                               0.05,            # Column 2 width
+                               0.45],           # Column 3 width
+            'height fraction': [[1.0],          # Column 0, row heights
+                                [1.0],          # Column 1, row heights
+                                [1.0],          # Column 2, row heights
+                                [0.46, 0.54]],  # Column 3, row heights
+            'hidden widgets': [outline] + global_hidden_widgets,
+            'hidden toolbars': [],
+        }
+
+        # RStudio
+        r_layout = {
+            'widgets': [
+                # column 0
+                [[editor],                            # Row 0
+                 [console_ipy, console_int]],         # Row 1
+                # column 1
+                [[explorer_variable, plots, history,  # Row 0
+                  outline, finder] + plugins,
+                 [explorer_file, explorer_project,    # Row 1
+                  help_plugin, helper]]
+                ],
+            'width fraction': [0.55,            # Column 0 width
+                               0.45],           # Column 1 width
+            'height fraction': [[0.55, 0.45],   # Column 0, row heights
+                                [0.55, 0.45]],  # Column 1, row heights
+            'hidden widgets': [outline] + global_hidden_widgets,
+            'hidden toolbars': [],
+        }
+
         # Matlab
-        m_layout = {'widgets': [
-                    # column 0
-                    [[explorer_file, explorer_project],
-                     [outline]],
-                    # column 1
-                    [[editor],
-                     [console_ipy, console_int]],
-                    # column 2
-                    [[explorer_variable, plots, finder] + plugins,
-                     [history, help_plugin, helper]]
-                    ],
-                    'width fraction': [0.20,            # column 0 width
-                                       0.40,            # column 1 width
-                                       0.40],           # column 2 width
-                    'height fraction': [[0.55, 0.45],   # column 0, row heights
-                                        [0.55, 0.45],   # column 1, row heights
-                                        [0.55, 0.45]],  # column 2, row heights
-                    'hidden widgets': [],
-                    'hidden toolbars': [],
-                    }
+        m_layout = {
+            'widgets': [
+                # column 0
+                [[explorer_file, explorer_project],
+                 [outline]],
+                # column 1
+                [[editor],
+                 [console_ipy, console_int]],
+                # column 2
+                [[explorer_variable, plots, finder] + plugins,
+                 [history, help_plugin, helper]]
+                ],
+            'width fraction': [0.10,            # Column 0 width
+                               0.45,            # Column 1 width
+                               0.45],           # Column 2 width
+            'height fraction': [[0.55, 0.45],   # Column 0, row heights
+                                [0.55, 0.45],   # Column 1, row heights
+                                [0.55, 0.45]],  # Column 2, row heights
+            'hidden widgets': global_hidden_widgets,
+            'hidden toolbars': [],
+        }
+
         # Vertically split
-        v_layout = {'widgets': [
-                    # column 0
-                    [[editor],
-                     [console_ipy, console_int, explorer_file,
-                      explorer_project, help_plugin, explorer_variable, plots,
-                      history, outline, finder, helper] + plugins]
-                    ],
-                    'width fraction': [1.0],            # column 0 width
-                    'height fraction': [[0.55, 0.45]],  # column 0, row heights
-                    'hidden widgets': [outline],
-                    'hidden toolbars': [],
-                    }
+        v_layout = {
+            'widgets': [
+                # column 0
+                [[editor],                                  # Row 0
+                 [console_ipy, console_int, explorer_file,  # Row 1
+                  explorer_project, help_plugin, explorer_variable, plots,
+                  history, outline, finder, helper] + plugins]
+                ],
+            'width fraction': [1.0],            # Column 0 width
+            'height fraction': [[0.55, 0.45]],  # Column 0, row heights
+            'hidden widgets': [outline] + global_hidden_widgets,
+            'hidden toolbars': [],
+        }
+
         # Horizontally split
-        h_layout = {'widgets': [
-                    # column 0
-                    [[editor]],
-                    # column 1
-                    [[console_ipy, console_int, explorer_file,
-                      explorer_project, help_plugin, explorer_variable, plots,
-                      history, outline, finder, helper] + plugins]
-                    ],
-                    'width fraction': [0.55,      # column 0 width
-                                       0.45],     # column 1 width
-                    'height fraction': [[1.0],    # column 0, row heights
-                                        [1.0]],   # column 1, row heights
-                    'hidden widgets': [outline],
-                    'hidden toolbars': []
-                    }
+        h_layout = {
+            'widgets': [
+                # column 0
+                [[editor]],                                 # Row 0
+                # column 1
+                [[console_ipy, console_int, explorer_file,  # Row 0
+                  explorer_project, help_plugin, explorer_variable, plots,
+                  history, outline, finder, helper] + plugins]
+                ],
+            'width fraction': [0.55,      # Column 0 width
+                               0.45],     # Column 1 width
+            'height fraction': [[1.0],    # Column 0, row heights
+                                [1.0]],   # Column 1, row heights
+            'hidden widgets': [outline] + global_hidden_widgets,
+            'hidden toolbars': []
+        }
 
         # Layout selection
-        layouts = {'default': s_layout,
-                   RSTUDIO: r_layout,
-                   MATLAB: m_layout,
-                   VERTICAL: v_layout,
-                   HORIZONTAL: h_layout}
+        layouts = {
+            'default': s_layout,
+            RSTUDIO: r_layout,
+            MATLAB: m_layout,
+            VERTICAL: v_layout,
+            HORIZONTAL: h_layout,
+        }
 
         layout = layouts[index]
 
+        # Remove None from widgets layout
         widgets_layout = layout['widgets']
+        widgets_layout_clean = []
+        for column in widgets_layout:
+            clean_col = []
+            for row in column:
+                clean_row = [w for w in row if w is not None]
+                if clean_row:
+                    clean_col.append(clean_row)
+            if clean_col:
+                widgets_layout_clean.append(clean_col)
+
+        # Flatten widgets list
         widgets = []
-        for column in widgets_layout :
+        for column in widgets_layout_clean:
             for row in column:
                 for widget in row:
-                    if widget is not None:
-                        widgets.append(widget)
+                    widgets.append(widget)
 
         # Make every widget visible
         for widget in widgets:
             widget.toggle_view(True)
-            action = widget.toggle_view_action
-            action.setChecked(widget.dockwidget.isVisible())
+            widget._toggle_view_action.setChecked(True)
 
-        # Set the widgets horizontally
-        for i in range(len(widgets) - 1):
-            first, second = widgets[i], widgets[i+1]
-            if first is not None and second is not None:
-                self.splitDockWidget(first.dockwidget, second.dockwidget,
-                                     Qt.Horizontal)
+        # We use both directions to ensure proper update when moving from
+        # 'Horizontal Split' to 'Spyder Default'
+        # This also seems to help on random cases where the display seems
+        # 'empty'
+        for direction in (Qt.Vertical, Qt.Horizontal):
+            # Arrange the widgets in one direction
+            for idx in range(len(widgets) - 1):
+                first, second = widgets[idx], widgets[idx+1]
+                if first is not None and second is not None:
+                    self.splitDockWidget(first.dockwidget, second.dockwidget,
+                                         direction)
 
-        # Arrange rows vertically
-        for column in widgets_layout :
-            for i in range(len(column) - 1):
-                first_row, second_row = column[i], column[i+1]
-                if first_row is not None and second_row is not None:
-                    self.splitDockWidget(first_row[0].dockwidget,
-                                         second_row[0].dockwidget,
-                                         Qt.Vertical)
+        # Arrange the widgets in the other direction
+        for column in widgets_layout_clean:
+            for idx in range(len(column) - 1):
+                first_row, second_row = column[idx], column[idx+1]
+                self.splitDockWidget(first_row[0].dockwidget,
+                                     second_row[0].dockwidget,
+                                     Qt.Vertical)
+
         # Tabify
-        for column in widgets_layout :
+        for column in widgets_layout_clean:
             for row in column:
-                for i in range(len(row) - 1):
-                    first, second = row[i], row[i+1]
-                    if first is not None and second is not None:
-                        self.tabify_plugins(first, second)
+                for idx in range(len(row) - 1):
+                    first, second = row[idx], row[idx+1]
+                    self.tabify_plugins(first, second)
 
                 # Raise front widget per row
                 row[0].dockwidget.show()
                 row[0].dockwidget.raise_()
+
+        # Set dockwidget widths
+        width_fractions = layout['width fraction']
+        if len(width_fractions) > 1:
+            _widgets = [col[0][0].dockwidget for col in widgets_layout]
+            self.resizeDocks(_widgets, width_fractions, Qt.Horizontal)
+
+        # Set dockwidget heights
+        height_fractions = layout['height fraction']
+        for idx, column in enumerate(widgets_layout_clean):
+            if len(column) > 1:
+                _widgets = [row[0].dockwidget for row in column]
+                self.resizeDocks(_widgets, height_fractions[idx], Qt.Vertical)
 
         # Hide toolbars
         hidden_toolbars = global_hidden_toolbars + layout['hidden toolbars']
@@ -1706,64 +1803,24 @@ class MainWindow(QMainWindow):
                 toolbar.close()
 
         # Hide widgets
-        hidden_widgets = global_hidden_widgets + layout['hidden widgets']
+        hidden_widgets = layout['hidden widgets']
         for widget in hidden_widgets:
             if widget is not None:
                 widget.dockwidget.close()
 
-        # set the width and height
-        self._layout_widget_info = []
-        width, height = self.window_size.width(), self.window_size.height()
+        if first_spyder_run:
+            self.first_spyder_run = False
+        else:
+            self.setMinimumWidth(min_width)
+            self.setMaximumWidth(max_width)
 
-        # fix column width
-#        for c in range(len(widgets_layout)):
-#            widget = widgets_layout[c][0][0].dockwidget
-#            min_width, max_width = widget.minimumWidth(), widget.maximumWidth()
-#            info = {'widget': widget,
-#                    'min width': min_width,
-#                    'max width': max_width}
-#            self._layout_widget_info.append(info)
-#            new_width = int(layout['width fraction'][c] * width * 0.95)
-#            widget.setMinimumWidth(new_width)
-#            widget.setMaximumWidth(new_width)
-#            widget.updateGeometry()
-
-        # fix column height
-        for c, column in enumerate(widgets_layout):
-            for r in range(len(column) - 1):
-                widget = column[r][0]
-                dockwidget = widget.dockwidget
-                dock_min_h = dockwidget.minimumHeight()
-                dock_max_h = dockwidget.maximumHeight()
-                info = {'widget': widget,
-                        'dock min height': dock_min_h,
-                        'dock max height': dock_max_h}
-                self._layout_widget_info.append(info)
-                # The 0.95 factor is to adjust height based on usefull
-                # estimated area in the window
-                new_height = int(layout['height fraction'][c][r]*height*0.95)
-                dockwidget.setMinimumHeight(new_height)
-                dockwidget.setMaximumHeight(new_height)
-
-        self._custom_layout_timer = QTimer(self)
-        self._custom_layout_timer.timeout.connect(self.layout_fix_timer)
-        self._custom_layout_timer.setSingleShot(True)
-        self._custom_layout_timer.start(5000)
-
-    def layout_fix_timer(self):
-        """Fixes the height of docks after a new layout is set."""
-        info = self._layout_widget_info
-        for i in info:
-            dockwidget = i['widget'].dockwidget
-            if 'dock min width' in i:
-                dockwidget.setMinimumWidth(i['dock min width'])
-                dockwidget.setMaximumWidth(i['dock max width'])
-            if 'dock min height' in i:
-                dockwidget.setMinimumHeight(i['dock min height'])
-                dockwidget.setMaximumHeight(i['dock max height'])
-            dockwidget.updateGeometry()
+            if not (self.isMaximized() or self.maximized_flag):
+                self.showMaximized()
 
         self.setUpdatesEnabled(True)
+        self.sig_layout_setup_ready.emit(layout)
+
+        return layout
 
     @Slot()
     def toggle_previous_layout(self):
@@ -1968,7 +2025,7 @@ class MainWindow(QMainWindow):
 
         # make sure the flags are correctly set for visible panes
         for plugin in (self.widgetlist + self.thirdparty_plugins):
-            action = plugin.toggle_view_action
+            action = plugin._toggle_view_action
             action.setChecked(plugin.dockwidget.isVisible())
 
     # --- Show/Hide toolbars
@@ -2168,7 +2225,7 @@ class MainWindow(QMainWindow):
                  'profiler', 'breakpoints', 'pylint', None,
                  'onlinehelp', 'internal_console', None]
         for plugin in self.widgetlist:
-            action = plugin.toggle_view_action
+            action = plugin._toggle_view_action
             action.setChecked(plugin.dockwidget.isVisible())
             try:
                 name = plugin.CONF_SECTION
@@ -2251,7 +2308,7 @@ class MainWindow(QMainWindow):
         try:
             for plugin in (self.widgetlist + self.thirdparty_plugins):
                 if plugin.isAncestorOf(self.last_focused_widget):
-                    plugin.visibility_changed(True)
+                    plugin._visibility_changed(True)
             QMainWindow.hideEvent(self, event)
         except RuntimeError:
             QMainWindow.hideEvent(self, event)
@@ -2281,31 +2338,33 @@ class MainWindow(QMainWindow):
         if CONF.get('main', 'single_instance') and self.open_files_server:
             self.open_files_server.close()
         for plugin in (self.widgetlist + self.thirdparty_plugins):
-            plugin.close_window()
+            plugin._close_window()
             if not plugin.closing_plugin(cancelable):
                 return False
         self.dialog_manager.close_all()
         if self.toolbars_visible:
             self.save_visible_toolbars()
         self.lspmanager.shutdown()
+        self.fallback_completions.stop()
         self.already_closed = True
         return True
 
-    def add_dockwidget(self, child):
-        """Add QDockWidget and toggleViewAction"""
-        dockwidget, location = child.create_dockwidget()
-        if CONF.get('main', 'vertical_dockwidget_titlebars'):
-            dockwidget.setFeatures(dockwidget.features()|
-                                   QDockWidget.DockWidgetVerticalTitleBar)
-        self.addDockWidget(location, dockwidget)
-        self.widgetlist.append(child)
+    def add_dockwidget(self, plugin):
+        """Add a plugin QDockWidget to the window."""
+        if plugin._is_compatible:
+            dockwidget, location = plugin._create_dockwidget()
+            if CONF.get('main', 'vertical_dockwidget_titlebars'):
+                dockwidget.setFeatures(dockwidget.features()|
+                                       QDockWidget.DockWidgetVerticalTitleBar)
+            self.addDockWidget(location, dockwidget)
+            self.widgetlist.append(plugin)
 
     @Slot()
     def close_current_dockwidget(self):
         widget = QApplication.focusWidget()
         for plugin in (self.widgetlist + self.thirdparty_plugins):
             if plugin.isAncestorOf(widget):
-                plugin.toggle_view_action.setChecked(False)
+                plugin._toggle_view_action.setChecked(False)
                 break
 
     def toggle_lock(self, value):
@@ -2372,13 +2431,13 @@ class MainWindow(QMainWindow):
             # Maximize last_plugin
             self.last_plugin.dockwidget.toggleViewAction().setDisabled(True)
             self.setCentralWidget(self.last_plugin)
-            self.last_plugin.ismaximized = True
+            self.last_plugin._ismaximized = True
 
             # Workaround to solve an issue with editor's outline explorer:
             # (otherwise the whole plugin is hidden and so is the outline explorer
             #  and the latter won't be refreshed if not visible)
             self.last_plugin.show()
-            self.last_plugin.visibility_changed(True)
+            self.last_plugin._visibility_changed(True)
             if self.last_plugin is self.editor:
                 # Automatically show the outline if the editor was maximized:
                 self.addDockWidget(Qt.RightDockWidgetArea,
@@ -2389,7 +2448,7 @@ class MainWindow(QMainWindow):
             self.last_plugin.dockwidget.setWidget(self.last_plugin)
             self.last_plugin.dockwidget.toggleViewAction().setEnabled(True)
             self.setCentralWidget(None)
-            self.last_plugin.ismaximized = False
+            self.last_plugin._ismaximized = False
             self.restoreState(self.state_before_maximizing)
             self.state_before_maximizing = None
             self.last_plugin.get_focus_widget().setFocus()
@@ -2457,41 +2516,60 @@ class MainWindow(QMainWindow):
             rev = versions['revision']
             revlink = " (<a href='https://github.com/spyder-ide/spyder/"\
                       "commit/%s'>Commit: %s</a>)" % (rev, rev)
+
+        # Get current font properties
+        font = self.font()
+        font_family = font.family()
+        font_size = font.pointSize()
+        if sys.platform == 'darwin':
+            font_size -= 2
+
         msgBox = QMessageBox(self)
         msgBox.setText(
             """
+            <div style='font-family: "{font_family}";
+                        font-size: {font_size}pt;
+                        font-weight: normal;
+                        '>
+            <p>
             <b>Spyder {spyder_ver}</b> {revision}
-            <br>The Scientific Python Development Environment |
+            <br>
+            The Scientific Python Development Environment |
             <a href="{website_url}">Spyder-IDE.org</a>
-            <br>Copyright &copy; 2009-2019 Spyder Project Contributors and
-            <a href="{github_url}/blob/master/AUTHORS.txt">others</a>
-            <br>Distributed under the terms of the
+            <br>
+            Copyright &copy; 2009-2019 Spyder Project Contributors and
+            <a href="{github_url}/blob/master/AUTHORS.txt">others</a>.
+            <br>
+            Distributed under the terms of the
             <a href="{github_url}/blob/master/LICENSE.txt">MIT License</a>.
-
-            <p>Created by Pierre Raybaut; current maintainer is Carlos Cordoba.
-            <br>Developed by the
+            </p>
+            <p>
+            Created by Pierre Raybaut; current maintainer is Carlos Cordoba.
+            Developed by the
             <a href="{github_url}/graphs/contributors">international
-            Spyder community</a>.
-            <br>Many thanks to all the Spyder beta testers and dedicated users.
-
+            Spyder community</a>. Many thanks to all the Spyder beta testers
+            and dedicated users.
+            </p>
             <p>For help with Spyder errors and crashes, please read our
             <a href="{trouble_url}">Troubleshooting Guide</a>, and for bug
             reports and feature requests, visit our
-            <a href="{github_url}">Github site</a>.
-            For project discussion, see our
-            <a href="{forum_url}">Google Group</a>.
-            <p>This project is part of a larger effort to promote and
+            <a href="{github_url}">Github site</a>. For project discussion,
+            see our <a href="{forum_url}">Google Group</a>.
+            </p>
+            <p>
+            This project is part of a larger effort to promote and
             facilitate the use of Python for scientific and engineering
             software development.
             The popular Python distributions
             <a href="https://www.anaconda.com/download/">Anaconda</a> and
             <a href="https://winpython.github.io/">WinPython</a>
             also contribute to this plan.
-
-            <p>Python {python_ver} {bitness}-bit | Qt {qt_ver} |
+            </p>
+            <p>
+            Python {python_ver} {bitness}-bit | Qt {qt_ver} |
             {qt_api} {qt_api_ver} | {os_name} {os_ver}
-
-            <small><p>Certain source files under other compatible permissive
+            </p>
+            <p><small>Certain source files under other compatible permissive
             licenses and/or originally by other authors.
             Spyder 3 theme icons derived from
             <a href="https://fontawesome.com/">Font Awesome</a> 4.7
@@ -2508,23 +2586,29 @@ class MainWindow(QMainWindow):
             Silk icon set</a> 1.3 (&copy; 2006 Mark James; CC-BY 2.5), and
             the <a href="https://www.kde.org/">KDE Oxygen icons</a>
             (&copy; 2007 KDE Artists; LGPL 3.0+).</small>
-
-            <p>See the <a href="{github_url}/blob/master/NOTICE.txt">NOTICE</a>
+            </p>
+            <p>
+            See the <a href="{github_url}/blob/master/NOTICE.txt">NOTICE</a>
             file for full legal information.
-            """
-            .format(spyder_ver=versions['spyder'],
-                    revision=revlink,
-                    website_url=__website_url__,
-                    github_url=__project_url__,
-                    trouble_url=__trouble_url__,
-                    forum_url=__forum_url__,
-                    python_ver=versions['python'],
-                    bitness=versions['bitness'],
-                    qt_ver=versions['qt'],
-                    qt_api=versions['qt_api'],
-                    qt_api_ver=versions['qt_api_ver'],
-                    os_name=versions['system'],
-                    os_ver=versions['release'])
+            </p>
+            </div>
+            """.format(
+                spyder_ver=versions['spyder'],
+                revision=revlink,
+                website_url=__website_url__,
+                github_url=__project_url__,
+                trouble_url=__trouble_url__,
+                forum_url=__forum_url__,
+                python_ver=versions['python'],
+                bitness=versions['bitness'],
+                qt_ver=versions['qt'],
+                qt_api=versions['qt_api'],
+                qt_api_ver=versions['qt_api_ver'],
+                os_name=versions['system'],
+                os_ver=versions['release'],
+                font_family=font_family,
+                font_size=font_size,
+            )
         )
         msgBox.setWindowTitle(_("About %s") % "Spyder")
         msgBox.setStandardButtons(QMessageBox.Ok)
@@ -2808,11 +2892,11 @@ class MainWindow(QMainWindow):
     def apply_panes_settings(self):
         """Update dockwidgets features settings"""
         for plugin in (self.widgetlist + self.thirdparty_plugins):
-            features = plugin.FEATURES
+            features = plugin._FEATURES
             if CONF.get('main', 'vertical_dockwidget_titlebars'):
                 features = features | QDockWidget.DockWidgetVerticalTitleBar
             plugin.dockwidget.setFeatures(features)
-            plugin.update_margins()
+            plugin._update_margins()
 
     def apply_statusbar_settings(self):
         """Update status bar widgets settings"""
@@ -2832,32 +2916,52 @@ class MainWindow(QMainWindow):
     def edit_preferences(self):
         """Edit Spyder preferences"""
         from spyder.preferences.configdialog import ConfigDialog
-        dlg = ConfigDialog(self)
-        dlg.size_change.connect(self.set_prefs_size)
-        if self.prefs_dialog_size is not None:
-            dlg.resize(self.prefs_dialog_size)
-        for PrefPageClass in self.general_prefs:
-            widget = PrefPageClass(dlg, main=self)
-            widget.initialize()
-            dlg.add_page(widget)
-        for plugin in [self.workingdirectory, self.editor,
-                       self.projects, self.ipyconsole,
-                       self.historylog, self.help, self.variableexplorer,
-                       self.onlinehelp, self.explorer, self.findinfiles
-                       ]+self.thirdparty_plugins:
-            if plugin is not None:
-                try:
-                    widget = plugin.create_configwidget(dlg)
-                    if widget is not None:
-                        dlg.add_page(widget)
-                except Exception:
-                    traceback.print_exc(file=sys.stderr)
-        if self.prefs_index is not None:
-            dlg.set_current_index(self.prefs_index)
-        dlg.show()
-        dlg.check_all_settings()
-        dlg.pages_widget.currentChanged.connect(self.__preference_page_changed)
-        dlg.exec_()
+
+        def _dialog_finished(result_code):
+            """Restore preferences dialog instance variable."""
+            self.prefs_dialog_instance = None
+
+        if self.prefs_dialog_instance is None:
+            dlg = ConfigDialog(self)
+            self.prefs_dialog_instance = dlg
+
+            # Signals
+            dlg.finished.connect(_dialog_finished)
+            dlg.pages_widget.currentChanged.connect(
+                self.__preference_page_changed)
+            dlg.size_change.connect(self.set_prefs_size)
+
+            # Setup
+            if self.prefs_dialog_size is not None:
+                dlg.resize(self.prefs_dialog_size)
+
+            for PrefPageClass in self.general_prefs:
+                widget = PrefPageClass(dlg, main=self)
+                widget.initialize()
+                dlg.add_page(widget)
+
+            for plugin in [self.workingdirectory, self.editor,
+                           self.projects, self.ipyconsole,
+                           self.historylog, self.help, self.variableexplorer,
+                           self.onlinehelp, self.explorer, self.findinfiles
+                           ] + self.thirdparty_plugins:
+                if plugin is not None:
+                    try:
+                        widget = plugin._create_configwidget(dlg)
+                        if widget is not None:
+                            dlg.add_page(widget)
+                    except Exception:
+                        # Avoid a crash at startup if a plugin's config
+                        # page fails to load.
+                        traceback.print_exc(file=sys.stderr)
+
+            if self.prefs_index is not None:
+                dlg.set_current_index(self.prefs_index)
+
+            # Check settings and show dialog
+            dlg.show()
+            dlg.check_all_settings()
+            dlg.exec_()
 
     def __preference_page_changed(self, index):
         """Preference page index has changed"""
@@ -2869,19 +2973,19 @@ class MainWindow(QMainWindow):
 
     #---- Shortcuts
     def register_shortcut(self, qaction_or_qshortcut, context, name,
-                          add_sc_to_tip=False):
+                          add_shortcut_to_tip=False):
         """
         Register QAction or QShortcut to Spyder main application,
         with shortcut (context, name, default)
         """
-        self.shortcut_data.append( (qaction_or_qshortcut, context,
-                                    name, add_sc_to_tip) )
+        self.shortcut_data.append((qaction_or_qshortcut, context,
+                                   name, add_shortcut_to_tip))
 
     def apply_shortcuts(self):
         """Apply shortcuts settings to all widgets/plugins"""
         toberemoved = []
         for index, (qobject, context, name,
-                    add_sc_to_tip) in enumerate(self.shortcut_data):
+                    add_shortcut_to_tip) in enumerate(self.shortcut_data):
             keyseq = QKeySequence( get_shortcut(context, name) )
             try:
                 if isinstance(qobject, QAction):
@@ -2890,7 +2994,7 @@ class MainWindow(QMainWindow):
                         qobject._shown_shortcut = keyseq
                     else:
                         qobject.setShortcut(keyseq)
-                    if add_sc_to_tip:
+                    if add_shortcut_to_tip:
                         add_shortcut_to_tooltip(qobject, context, name)
                 elif isinstance(qobject, QShortcut):
                     qobject.setKey(keyseq)
@@ -3047,9 +3151,8 @@ class MainWindow(QMainWindow):
             self.fileswitcher = FileSwitcher(self, plugin, tabs, data, icon)
         else:
             self.fileswitcher.add_plugin(plugin, tabs, data, icon)
-
         self.fileswitcher.sig_goto_file.connect(
-                plugin.get_current_tab_manager().set_stack_index)
+            plugin.get_current_tab_manager().set_stack_index)
 
     # ---- Check for Spyder Updates
     def _check_updates_ready(self):

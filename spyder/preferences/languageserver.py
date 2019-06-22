@@ -11,48 +11,45 @@ Language server preferences
 # Standard library imports
 import json
 import re
+import sys
 
 # Third party imports
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import (Qt, Slot, QAbstractTableModel, QModelIndex)
-from qtpy.QtWidgets import (QDialog,
-                            QGroupBox, QHBoxLayout, QLabel,
-                            QVBoxLayout, QTableView,
-                            QAbstractItemView, QPushButton, QComboBox,
-                            QLineEdit, QSpinBox, QCheckBox, QDialogButtonBox)
+from qtpy.QtCore import Qt, Slot, QAbstractTableModel, QModelIndex, QSize
+from qtpy.QtWidgets import (QAbstractItemView, QCheckBox,
+                            QComboBox, QDialog, QDialogButtonBox, QGroupBox,
+                            QGridLayout, QHBoxLayout, QLabel, QLineEdit,
+                            QPushButton, QSpinBox, QTableView, QTabWidget,
+                            QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.config.main import CONF
-from spyder.utils import icon_manager as ima
 from spyder.config.base import _
-from spyder.utils.programs import find_program
-from spyder.preferences.configdialog import GeneralConfigPage
-from spyder.widgets.helperwidgets import ItemDelegate
-from spyder.config.gui import get_font
+from spyder.config.main import CONF
+from spyder.config.gui import get_font, is_dark_interface
+from spyder.plugins.editor.lsp import LSP_LANGUAGES
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+from spyder.preferences.configdialog import GeneralConfigPage
+from spyder.utils import icon_manager as ima
+from spyder.utils.programs import find_program
+from spyder.widgets.helperwidgets import ItemDelegate
 
-
-LSP_LANGUAGES = [
-    'C#', 'CSS/LESS/SASS', 'Go', 'GraphQL', 'Groovy', 'Haxe', 'HTML',
-    'Java', 'JavaScript', 'JSON', 'Julia', 'OCaml', 'PHP',
-    'Python', 'Rust', 'Scala', 'Swift', 'TypeScript', 'Erlang',
-    'Fortran'
-]
 LSP_LANGUAGE_NAME = {x.lower(): x for x in LSP_LANGUAGES}
+LSP_URL = "https://microsoft.github.io/language-server-protocol"
 
 
 def iter_servers():
     for option in CONF.options('lsp-server'):
-        server = LSPServer(language=option)
-        server.load()
-        yield server
+        if option in [l.lower() for l in LSP_LANGUAGES]:
+            server = LSPServer(language=option)
+            server.load()
+            yield server
 
 
-class LSPServer:
+class LSPServer(object):
     """Convenience class to store LSP Server configuration values."""
 
     def __init__(self, language=None, cmd='', host='127.0.0.1',
-                 port=2084, args='', external=False,
+                 port=2084, args='', external=False, stdio=False,
                  configurations={}):
         self.index = 0
         self.language = language
@@ -64,11 +61,15 @@ class LSPServer:
         self.port = port
         self.host = host
         self.external = external
+        self.stdio = stdio
 
     def __repr__(self):
         base_str = '[{0}] {1} {2} ({3}:{4})'
         fmt_args = [self.language, self.cmd, self.args,
                     self.host, self.port]
+        if self.stdio:
+            base_str = '[{0}] {1} {2}'
+            fmt_args = [self.language, self.cmd, self.args]
         if self.external:
             base_str = '[{0}] {1}:{2}'
             fmt_args = [self.language, self.host, self.port]
@@ -103,84 +104,93 @@ class LSPServerEditor(QDialog):
     DEFAULT_ARGS = ''
     DEFAULT_CONFIGURATION = '{}'
     DEFAULT_EXTERNAL = False
+    DEFAULT_STDIO = False
     HOST_REGEX = re.compile(r'^\w+([.]\w+)*$')
     NON_EMPTY_REGEX = re.compile(r'^\S+$')
-    JSON_VALID = _('JSON valid')
-    JSON_INVALID = _('JSON invalid')
+    JSON_VALID = _('Valid JSON')
+    JSON_INVALID = _('Invalid JSON')
+    MIN_SIZE = QSize(850, 600)
+    INVALID_CSS = "QLineEdit {border: 1px solid red;}"
+    VALID_CSS = "QLineEdit {border: 1px solid green;}"
 
     def __init__(self, parent, language=None, cmd='', host='127.0.0.1',
-                 port=2084, args='', external=False, configurations={},
-                 **kwargs):
+                 port=2084, args='', external=False, stdio=False,
+                 configurations={}, **kwargs):
         super(LSPServerEditor, self).__init__(parent)
+
+        description = _(
+            "To create a new server configuration, you need to select a "
+            "programming language, set the command to start its associated "
+            "server and enter any arguments that should be passed to it on "
+            "startup. Additionally, you can set the server's hostname and "
+            "port if connecting to an external server, "
+            "or to a local one using TCP instead of stdio pipes."
+            "<br><br>"
+            "<i>Note</i>: You can use the placeholders <tt>{host}</tt> and "
+            "<tt>{port}</tt> in the server arguments field to automatically "
+            "fill in the respective values.<br>"
+        )
         self.parent = parent
         self.external = external
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        self.button_ok = bbox.button(QDialogButtonBox.Ok)
-        self.button_cancel = bbox.button(QDialogButtonBox.Cancel)
-        self.button_ok.setEnabled(False)
 
-        description = _('To create a new configuration, '
-                        'you need to select a programming '
-                        'language, along with a executable '
-                        'name for the server to execute '
-                        '(If the instance is local), '
-                        'and the host and port. Finally, '
-                        'you need to provide the '
-                        'arguments that the server accepts. '
-                        'The placeholders <tt>{host}</tt> and '
-                        '<tt>{port}</tt> refer to the host '
-                        'and the port, respectively.')
-        server_settings_description = QLabel(description)
-        server_settings_description.setWordWrap(True)
-
-        lang_label = QLabel(_('Language:'))
+        # Widgets
+        self.server_settings_description = QLabel(description)
         self.lang_cb = QComboBox(self)
-        self.lang_cb.setToolTip(_('Programming language provided '
-                                  'by the LSP server'))
+        self.external_cb = QCheckBox(_('External server'), self)
+        self.host_label = QLabel(_('Host:'))
+        self.host_input = QLineEdit(self)
+        self.port_label = QLabel(_('Port:'))
+        self.port_spinner = QSpinBox(self)
+        self.cmd_label = QLabel(_('Command:'))
+        self.cmd_input = QLineEdit(self)
+        self.args_label = QLabel(_('Arguments:'))
+        self.args_input = QLineEdit(self)
+        self.json_label = QLabel(self.JSON_VALID, self)
+        self.conf_label = QLabel(_('<b>Server Configuration:</b>'))
+        self.conf_input = CodeEditor(None)
+
+        self.bbox = QDialogButtonBox(QDialogButtonBox.Ok |
+                                     QDialogButtonBox.Cancel)
+        self.button_ok = self.bbox.button(QDialogButtonBox.Ok)
+        self.button_cancel = self.bbox.button(QDialogButtonBox.Cancel)
+
+        # Widget setup
+        self.setMinimumSize(self.MIN_SIZE)
+        self.setWindowTitle(_('LSP server editor'))
+
+        self.server_settings_description.setWordWrap(True)
+
+        self.lang_cb.setToolTip(
+            _('Programming language provided by the LSP server'))
         self.lang_cb.addItem(_('Select a language'))
         self.lang_cb.addItems(LSP_LANGUAGES)
 
+        self.button_ok.setEnabled(False)
         if language is not None:
             idx = LSP_LANGUAGES.index(language)
             self.lang_cb.setCurrentIndex(idx + 1)
             self.button_ok.setEnabled(True)
 
-        host_label = QLabel(_('Host:'))
-        self.host_input = QLineEdit(self)
-        self.host_input.setToolTip(_('Name of the host that will provide '
-                                     'access to the server'))
+        self.host_input.setPlaceholderText('127.0.0.1')
         self.host_input.setText(host)
         self.host_input.textChanged.connect(lambda x: self.validate())
 
-        port_label = QLabel(_('Port:'))
-        self.port_spinner = QSpinBox(self)
         self.port_spinner.setToolTip(_('TCP port number of the server'))
         self.port_spinner.setMinimum(1)
         self.port_spinner.setMaximum(60000)
         self.port_spinner.setValue(port)
 
-        cmd_label = QLabel(_('Command to execute:'))
-        self.cmd_input = QLineEdit(self)
-        self.cmd_input.setToolTip(_('Command used to start the '
-                                    'LSP server locally'))
         self.cmd_input.setText(cmd)
+        self.cmd_input.setPlaceholderText('/absolute/path/to/command')
 
-        if not external:
-            self.cmd_input.textChanged.connect(lambda x: self.validate())
-
-        args_label = QLabel(_('Server arguments:'))
-        self.args_input = QLineEdit(self)
-        self.args_input.setToolTip(_('Additional arguments required to '
-                                     'start the server'))
+        self.args_input.setToolTip(
+            _('Additional arguments required to start the server'))
         self.args_input.setText(args)
+        self.args_input.setPlaceholderText(r'--host {host} --port {port}')
 
-        conf_label = QLabel(_('LSP Server Configurations:'))
-        self.conf_input = CodeEditor(None)
-        self.conf_input.textChanged.connect(self.validate)
-        color_scheme = CONF.get('appearance', 'selected')
         self.conf_input.setup_editor(
-            language='JSON',
-            color_scheme=color_scheme,
+            language='json',
+            color_scheme=CONF.get('appearance', 'selected'),
             wrap=False,
             edge_line=True,
             highlight_current_line=True,
@@ -188,122 +198,150 @@ class LSPServerEditor(QDialog):
             occurrence_highlighting=True,
             auto_unindent=True,
             font=get_font(),
-            filename='config.json')
-        self.conf_input.setToolTip(_('Additional LSP server configurations '
+            filename='config.json',
+            folding=False
+        )
+        self.conf_input.set_language('json', 'config.json')
+        self.conf_input.setToolTip(_('Additional LSP server configuration '
                                      'set at runtime. JSON required'))
-        conf_text = '{}'
         try:
             conf_text = json.dumps(configurations, indent=4, sort_keys=True)
         except Exception:
-            pass
+            conf_text = '{}'
         self.conf_input.set_text(conf_text)
-        self.json_label = QLabel(self.JSON_VALID, self)
 
-        self.external_cb = QCheckBox(_('External server'), self)
-        self.external_cb.setToolTip(_('Check if the server runs '
-                                      'on a remote location'))
+        self.external_cb.setToolTip(
+            _('Check if the server runs on a remote location'))
         self.external_cb.setChecked(external)
-        self.external_cb.stateChanged.connect(self.set_local_options)
 
+        self.stdio_cb = QCheckBox(_('Use stdio pipes for communication'), self)
+        self.stdio_cb.setToolTip(_('Check if the server communicates '
+                                   'using stdin/out pipes'))
+        self.stdio_cb.setChecked(stdio)
+
+        # Layout setup
         hlayout = QHBoxLayout()
         general_vlayout = QVBoxLayout()
-        general_vlayout.addWidget(server_settings_description)
+        general_vlayout.addWidget(self.server_settings_description)
 
         vlayout = QVBoxLayout()
+
+        lang_group = QGroupBox(_('Language'))
         lang_layout = QVBoxLayout()
-        lang_layout.addWidget(lang_label)
         lang_layout.addWidget(self.lang_cb)
+        lang_group.setLayout(lang_layout)
+        vlayout.addWidget(lang_group)
 
-        # layout2 = QHBoxLayout()
-        # layout2.addLayout(lang_layout)
-        lang_layout.addWidget(self.external_cb)
-        vlayout.addLayout(lang_layout)
+        server_group = QGroupBox(_('Language server'))
+        server_layout = QGridLayout()
+        server_layout.addWidget(self.cmd_label, 0, 0)
+        server_layout.addWidget(self.cmd_input, 0, 1)
+        server_layout.addWidget(self.args_label, 1, 0)
+        server_layout.addWidget(self.args_input, 1, 1)
+        server_group.setLayout(server_layout)
+        vlayout.addWidget(server_group)
 
+        address_group = QGroupBox(_('Server address'))
         host_layout = QVBoxLayout()
-        host_layout.addWidget(host_label)
+        host_layout.addWidget(self.host_label)
         host_layout.addWidget(self.host_input)
 
         port_layout = QVBoxLayout()
-        port_layout.addWidget(port_label)
+        port_layout.addWidget(self.port_label)
         port_layout.addWidget(self.port_spinner)
 
         conn_info_layout = QHBoxLayout()
         conn_info_layout.addLayout(host_layout)
         conn_info_layout.addLayout(port_layout)
-        vlayout.addLayout(conn_info_layout)
+        address_group.setLayout(conn_info_layout)
+        vlayout.addWidget(address_group)
 
-        cmd_layout = QVBoxLayout()
-        cmd_layout.addWidget(cmd_label)
-        cmd_layout.addWidget(self.cmd_input)
-        vlayout.addLayout(cmd_layout)
-
-        args_layout = QVBoxLayout()
-        args_layout.addWidget(args_label)
-        args_layout.addWidget(self.args_input)
-        vlayout.addLayout(args_layout)
+        advanced_group = QGroupBox(_('Advanced'))
+        advanced_layout = QVBoxLayout()
+        advanced_layout.addWidget(self.external_cb)
+        advanced_layout.addWidget(self.stdio_cb)
+        advanced_group.setLayout(advanced_layout)
+        vlayout.addWidget(advanced_group)
 
         conf_layout = QVBoxLayout()
-        conf_layout.addWidget(conf_label)
+        conf_layout.addWidget(self.conf_label)
         conf_layout.addWidget(self.conf_input)
         conf_layout.addWidget(self.json_label)
 
-        hlayout.addLayout(vlayout)
-        hlayout.addLayout(conf_layout)
+        vlayout.addStretch()
+        hlayout.addLayout(vlayout, 2)
+        hlayout.addLayout(conf_layout, 3)
         general_vlayout.addLayout(hlayout)
 
-        general_vlayout.addWidget(bbox)
+        general_vlayout.addWidget(self.bbox)
         self.setLayout(general_vlayout)
-        bbox.accepted.connect(self.accept)
-        bbox.rejected.connect(self.reject)
-        self.lang_cb.currentIndexChanged.connect(
-            self.lang_selection_changed)
         self.form_status(False)
+
+        # Signals
+        if not external:
+            self.cmd_input.textChanged.connect(lambda x: self.validate())
+        self.external_cb.stateChanged.connect(self.set_local_options)
+        self.stdio_cb.stateChanged.connect(self.set_stdio_options)
+        self.lang_cb.currentIndexChanged.connect(self.lang_selection_changed)
+        self.conf_input.textChanged.connect(self.validate)
+        self.bbox.accepted.connect(self.accept)
+        self.bbox.rejected.connect(self.reject)
+
+        # Final setup
         if language is not None:
             self.form_status(True)
             self.validate()
+            if stdio:
+                self.set_stdio_options(True)
+            if external:
+                self.set_local_options(True)
 
     @Slot()
     def validate(self):
         host_text = self.host_input.text()
         cmd_text = self.cmd_input.text()
+
         if not self.HOST_REGEX.match(host_text):
             self.button_ok.setEnabled(False)
-            self.host_input.setStyleSheet("QLineEdit{border: 1px solid red;}")
-            self.host_input.setToolTip('Hostname must be valid')
-            return
+            self.host_input.setStyleSheet(self.INVALID_CSS)
+            if bool(host_text):
+                self.host_input.setToolTip(_('Hostname must be valid'))
+            else:
+                self.host_input.setToolTip(
+                    _('Hostname or IP address of the host on which the server '
+                      'is running. Must be non empty.'))
         else:
-            self.host_input.setStyleSheet(
-                "QLineEdit{border: 1px solid green;}")
-            self.host_input.setToolTip('Hostname is valid')
+            self.host_input.setStyleSheet(self.VALID_CSS)
+            self.host_input.setToolTip(_('Hostname is valid'))
             self.button_ok.setEnabled(True)
 
         if not self.external:
             if not self.NON_EMPTY_REGEX.match(cmd_text):
                 self.button_ok.setEnabled(False)
-                self.cmd_input.setStyleSheet(
-                    "QLineEdit{border: 1px solid red;}")
-                self.cmd_input.setToolTip('Command must be non empty')
+                self.cmd_input.setStyleSheet(self.INVALID_CSS)
+                self.cmd_input.setToolTip(
+                    _('Command used to start the LSP server locally. Must be '
+                      'non empty'))
                 return
 
             if find_program(cmd_text) is None:
                 self.button_ok.setEnabled(False)
-                self.cmd_input.setStyleSheet(
-                    "QLineEdit{border: 1px solid red;}")
-                self.cmd_input.setToolTip('Program was not found '
-                                          'on your system')
-                return
+                self.cmd_input.setStyleSheet(self.INVALID_CSS)
+                self.cmd_input.setToolTip(_('Program was not found '
+                                            'on your system'))
             else:
-                self.cmd_input.setStyleSheet(
-                    "QLineEdit{border: 1px solid green;}")
-                self.cmd_input.setToolTip('Program was found on your system')
+                self.cmd_input.setStyleSheet(self.VALID_CSS)
+                self.cmd_input.setToolTip(_('Program was found on your '
+                                            'system'))
                 self.button_ok.setEnabled(True)
+
         try:
             json.loads(self.conf_input.toPlainText())
             try:
                 self.json_label.setText(self.JSON_VALID)
             except Exception:
                 pass
-        except (ValueError, json.decoder.JSONDecodeError):
+        except ValueError:
             try:
                 self.json_label.setText(self.JSON_INVALID)
                 self.button_ok.setEnabled(False)
@@ -314,6 +352,7 @@ class LSPServerEditor(QDialog):
         self.host_input.setEnabled(status)
         self.port_spinner.setEnabled(status)
         self.external_cb.setEnabled(status)
+        self.stdio_cb.setEnabled(status)
         self.cmd_input.setEnabled(status)
         self.args_input.setEnabled(status)
         self.conf_input.setEnabled(status)
@@ -333,6 +372,7 @@ class LSPServerEditor(QDialog):
                 self.host_input.setText(server.host)
                 self.port_spinner.setValue(server.port)
                 self.external_cb.setChecked(server.external)
+                self.stdio_cb.setChecked(server.stdio)
                 self.cmd_input.setText(server.cmd)
                 self.args_input.setText(server.args)
                 self.conf_input.set_text(json.dumps(server.configurations))
@@ -347,6 +387,7 @@ class LSPServerEditor(QDialog):
         self.host_input.setText(self.DEFAULT_HOST)
         self.port_spinner.setValue(self.DEFAULT_PORT)
         self.external_cb.setChecked(self.DEFAULT_EXTERNAL)
+        self.stdio_cb.setChecked(self.DEFAULT_STDIO)
         self.cmd_input.setText(self.DEFAULT_CMD)
         self.args_input.setText(self.DEFAULT_ARGS)
         self.conf_input.set_text(self.DEFAULT_CONFIGURATION)
@@ -362,6 +403,41 @@ class LSPServerEditor(QDialog):
             self.cmd_input.setEnabled(False)
             self.cmd_input.setStyleSheet('')
             self.args_input.setEnabled(False)
+            self.stdio_cb.stateChanged.disconnect()
+            self.stdio_cb.setChecked(False)
+            self.stdio_cb.setEnabled(False)
+        else:
+            self.cmd_input.setEnabled(True)
+            self.args_input.setEnabled(True)
+            self.stdio_cb.setEnabled(True)
+            self.stdio_cb.setChecked(False)
+            self.stdio_cb.stateChanged.connect(self.set_stdio_options)
+        try:
+            self.validate()
+        except Exception:
+            pass
+
+    @Slot(bool)
+    @Slot(int)
+    def set_stdio_options(self, enabled):
+        self.stdio = enabled
+        if enabled:
+            self.cmd_input.setEnabled(True)
+            self.args_input.setEnabled(True)
+            self.external_cb.stateChanged.disconnect()
+            self.external_cb.setChecked(False)
+            self.external_cb.setEnabled(False)
+            self.host_input.setStyleSheet('')
+            self.host_input.setEnabled(False)
+            self.port_spinner.setEnabled(False)
+        else:
+            self.cmd_input.setEnabled(True)
+            self.args_input.setEnabled(True)
+            self.external_cb.setChecked(False)
+            self.external_cb.setEnabled(True)
+            self.external_cb.stateChanged.connect(self.set_local_options)
+            self.host_input.setEnabled(True)
+            self.port_spinner.setEnabled(True)
         try:
             self.validate()
         except Exception:
@@ -373,12 +449,13 @@ class LSPServerEditor(QDialog):
         host = self.host_input.text()
         port = int(self.port_spinner.value())
         external = self.external_cb.isChecked()
+        stdio = self.stdio_cb.isChecked()
         args = self.args_input.text()
         cmd = self.cmd_input.text()
         configurations = json.loads(self.conf_input.toPlainText())
         server = LSPServer(language=language.lower(), cmd=cmd, args=args,
                            host=host, port=port, external=external,
-                           configurations=configurations)
+                           stdio=stdio, configurations=configurations)
         return server
 
 
@@ -497,6 +574,7 @@ class LSPServerTable(QTableView):
         self.setEditTriggers(QAbstractItemView.AllEditTriggers)
         self.selectionModel().selectionChanged.connect(self.selection)
         self.verticalHeader().hide()
+
         self.load_servers()
 
     def focusOutEvent(self, e):
@@ -521,7 +599,8 @@ class LSPServerTable(QTableView):
         self.resizeColumnsToContents()
         fm = self.horizontalHeader().fontMetrics()
         names = [fm.width(s.cmd) for s in self.source_model.servers]
-        self.setColumnWidth(CMD, max(names))
+        if names:
+            self.setColumnWidth(CMD, max(names))
         self.horizontalHeader().setStretchLastSection(True)
 
     def get_server_by_lang(self, lang):
@@ -595,8 +674,6 @@ class LSPServerTable(QTableView):
             self.parent().reset_btn.setFocus()
         elif key in [Qt.Key_Up, Qt.Key_Down, Qt.Key_Left, Qt.Key_Right]:
             super(LSPServerTable, self).keyPressEvent(event)
-        elif key in [Qt.Key_Escape]:
-            self.finder.keyPressEvent(event)
         else:
             super(LSPServerTable, self).keyPressEvent(event)
 
@@ -608,29 +685,413 @@ class LSPServerTable(QTableView):
 class LSPManagerConfigPage(GeneralConfigPage):
     """Language Server Protocol manager preferences."""
     CONF_SECTION = 'lsp-server'
-    NAME = _('Language Server Protocol')
+    NAME = _('Completion and linting')
     ICON = ima.icon('lspserver')
+    CTRL = "Cmd" if sys.platform == 'darwin' else "Ctrl"
 
     def setup_page(self):
+        newcb = self.create_checkbox
+
+        # --- Introspection ---
+        # Basic features group
+        basic_features_group = QGroupBox(_("Basic features"))
+        completion_box = newcb(_("Enable code completion"), 'code_completion')
+        enable_hover_hints_box = newcb(
+            _("Enable hover hints"),
+            'enable_hover_hints',
+            tip=_("If enabled, hovering the mouse pointer over an object\n"
+                  "name will display that object's signature and/or\n"
+                  "docstring (if present)."))
+        goto_definition_box = newcb(
+            _("Enable Go to definition"),
+            'jedi_definition',
+            tip=_("If enabled, left-clicking on an object name while \n"
+                  "pressing the {} key will go to that object's definition\n"
+                  "(if resolved).".format(self.CTRL)))
+        follow_imports_box = newcb(_("Follow imports when going to a "
+                                     "definition"),
+                                   'jedi_definition/follow_imports')
+        show_signature_box = newcb(_("Show calltips"), 'jedi_signature_help')
+
+        basic_features_layout = QVBoxLayout()
+        basic_features_layout.addWidget(completion_box)
+        basic_features_layout.addWidget(enable_hover_hints_box)
+        basic_features_layout.addWidget(goto_definition_box)
+        basic_features_layout.addWidget(follow_imports_box)
+        basic_features_layout.addWidget(show_signature_box)
+        basic_features_group.setLayout(basic_features_layout)
+
+        # Advanced group
+        advanced_group = QGroupBox(_("Advanced"))
+        modules_textedit = self.create_textedit(
+            _("Preload the following modules to make completion faster "
+              "and more accurate:"),
+            'preload_modules'
+        )
+        if is_dark_interface():
+            modules_textedit.textbox.setStyleSheet(
+                "border: 1px solid #32414B;"
+            )
+
+        advanced_layout = QVBoxLayout()
+        advanced_layout.addWidget(modules_textedit)
+        advanced_group.setLayout(advanced_layout)
+
+        # --- Linting ---
+        # Linting options
+        linting_label = QLabel(_("Spyder can optionally highlight syntax "
+                                 "errors and possible problems with your "
+                                 "code in the editor."))
+        linting_label.setOpenExternalLinks(True)
+        linting_label.setWordWrap(True)
+        linting_check = self.create_checkbox(
+            _("Enable basic linting"),
+            'pyflakes')
+
+        linting_complexity_box = self.create_checkbox(
+            _("Enable complexity linting with "
+              "the Mccabe package"), 'mccabe')
+
+        # Linting layout
+        linting_layout = QVBoxLayout()
+        linting_layout.addWidget(linting_label)
+        linting_layout.addWidget(linting_check)
+        linting_layout.addWidget(linting_complexity_box)
+        linting_widget = QWidget()
+        linting_widget.setLayout(linting_layout)
+
+        # --- Code style tab ---
+        # Code style label
+        pep_url = (
+            '<a href="https://www.python.org/dev/peps/pep-0008">PEP 8</a>')
+        code_style_codes_url = _(
+            "<a href='http://pycodestyle.pycqa.org/en/stable"
+            "/intro.html#error-codes'>pycodestyle error codes</a>")
+        code_style_label = QLabel(
+            _("Spyder can use pycodestyle to analyze your code for "
+              "conformance to the {} convention. You can also "
+              "manually show or hide specific warnings by their "
+              "{}.").format(pep_url, code_style_codes_url))
+        code_style_label.setOpenExternalLinks(True)
+        code_style_label.setWordWrap(True)
+
+        # Code style checkbox
+        code_style_check = self.create_checkbox(
+            _("Enable code style linting"),
+            'pycodestyle')
+
+        # Code style options
+        self.code_style_filenames_match = self.create_lineedit(
+            _("Only check filenames matching these patterns:"),
+            'pycodestyle/filename', alignment=Qt.Horizontal, word_wrap=False,
+            placeholder=_("Check Python files: *.py"))
+        self.code_style_exclude = self.create_lineedit(
+            _("Exclude files or directories matching these patterns:"),
+            'pycodestyle/exclude', alignment=Qt.Horizontal, word_wrap=False,
+            placeholder=_("Exclude all test files: (?!test_).*\\.py"))
+        code_style_select = self.create_lineedit(
+            _("Show the following errors or warnings:").format(
+                code_style_codes_url),
+            'pycodestyle/select', alignment=Qt.Horizontal, word_wrap=False,
+            placeholder=_("Example codes: E113, W391"))
+        code_style_ignore = self.create_lineedit(
+            _("Ignore the following errors or warnings:"),
+            'pycodestyle/ignore', alignment=Qt.Horizontal, word_wrap=False,
+            placeholder=_("Example codes: E201, E303"))
+        code_style_max_line_length = self.create_spinbox(
+            _("Maximum allowed line length:"), None,
+            'pycodestyle/max_line_length', min_=10, max_=500, step=1,
+            tip=_("Default is 79"))
+
+        # Code style layout
+        code_style_g_layout = QGridLayout()
+        code_style_g_layout.addWidget(
+            self.code_style_filenames_match.label, 1, 0)
+        code_style_g_layout.addWidget(
+            self.code_style_filenames_match.textbox, 1, 1)
+        code_style_g_layout.addWidget(self.code_style_exclude.label, 2, 0)
+        code_style_g_layout.addWidget(self.code_style_exclude.textbox, 2, 1)
+        code_style_g_layout.addWidget(code_style_select.label, 3, 0)
+        code_style_g_layout.addWidget(code_style_select.textbox, 3, 1)
+        code_style_g_layout.addWidget(code_style_ignore.label, 4, 0)
+        code_style_g_layout.addWidget(code_style_ignore.textbox, 4, 1)
+        code_style_g_layout.addWidget(code_style_max_line_length.plabel, 5, 0)
+        code_style_g_layout.addWidget(
+            code_style_max_line_length.spinbox, 5, 1)
+
+        # Set Code style options enabled/disabled
+        code_style_g_widget = QWidget()
+        code_style_g_widget.setLayout(code_style_g_layout)
+        code_style_g_widget.setEnabled(self.get_option('pycodestyle'))
+        code_style_check.toggled.connect(code_style_g_widget.setEnabled)
+
+        # Code style layout
+        code_style_layout = QVBoxLayout()
+        code_style_layout.addWidget(code_style_label)
+        code_style_layout.addWidget(code_style_check)
+        code_style_layout.addWidget(code_style_g_widget)
+
+        code_style_widget = QWidget()
+        code_style_widget.setLayout(code_style_layout)
+
+        # --- Docstring tab ---
+        # Docstring style label
+        numpy_url = (
+            "<a href='https://numpydoc.readthedocs.io/en/"
+            "latest/format.html'>Numpy</a>")
+        pep257_url = (
+            "<a href='https://www.python.org/dev/peps/pep-0257/'>PEP 257</a>")
+        docstring_style_codes = _(
+            "<a href='http://www.pydocstyle.org/en/stable"
+            "/error_codes.html'>page</a>")
+        docstring_style_label = QLabel(
+            _("Here you can decide if you want to perform style analysis on "
+              "your docstrings according to the {} or {} conventions. You can "
+              "also decide if you want to show or ignore specific errors, "
+              "according to the codes found on this {}.").format(
+                  numpy_url, pep257_url, docstring_style_codes))
+        docstring_style_label.setOpenExternalLinks(True)
+        docstring_style_label.setWordWrap(True)
+
+        # Docstring style checkbox
+        docstring_style_check = self.create_checkbox(
+            _("Enable docstring style linting"),
+            'pydocstyle')
+
+        # Docstring style options
+        docstring_style_convention = self.create_combobox(
+            _("Choose the convention used to lint docstrings: "),
+            (("Numpy", 'numpy'),
+             ("PEP 257", 'pep257'),
+             ("Custom", 'custom')),
+            'pydocstyle/convention')
+        self.docstring_style_select = self.create_lineedit(
+            _("Show the following errors:"),
+            'pydocstyle/select', alignment=Qt.Horizontal, word_wrap=False,
+            placeholder=_("Example codes: D413, D414"))
+        self.docstring_style_ignore = self.create_lineedit(
+            _("Ignore the following errors:"),
+            'pydocstyle/ignore', alignment=Qt.Horizontal, word_wrap=False,
+            placeholder=_("Example codes: D107, D402"))
+        self.docstring_style_match = self.create_lineedit(
+            _("Only check filenames matching these patterns:"),
+            'pydocstyle/match', alignment=Qt.Horizontal, word_wrap=False,
+            placeholder=_("Skip test files: (?!test_).*\\.py"))
+        self.docstring_style_match_dir = self.create_lineedit(
+            _("Only check in directories matching these patterns:"),
+            'pydocstyle/match_dir', alignment=Qt.Horizontal, word_wrap=False,
+            placeholder=_("Skip dot directories: [^\\.].*"))
+
+        # Custom option handling
+        docstring_style_convention.combobox.currentTextChanged.connect(
+                self.setup_docstring_style_convention)
+        current_convention = docstring_style_convention.combobox.currentText()
+        self.setup_docstring_style_convention(current_convention)
+
+        # Docstring style layout
+        docstring_style_g_layout = QGridLayout()
+        docstring_style_g_layout.addWidget(
+            docstring_style_convention.label, 1, 0)
+        docstring_style_g_layout.addWidget(
+            docstring_style_convention.combobox, 1, 1)
+        docstring_style_g_layout.addWidget(
+            self.docstring_style_select.label, 2, 0)
+        docstring_style_g_layout.addWidget(
+            self.docstring_style_select.textbox, 2, 1)
+        docstring_style_g_layout.addWidget(
+            self.docstring_style_ignore.label, 3, 0)
+        docstring_style_g_layout.addWidget(
+            self.docstring_style_ignore.textbox, 3, 1)
+        docstring_style_g_layout.addWidget(
+            self.docstring_style_match.label, 4, 0)
+        docstring_style_g_layout.addWidget(
+            self.docstring_style_match.textbox, 4, 1)
+        docstring_style_g_layout.addWidget(
+            self.docstring_style_match_dir.label, 5, 0)
+        docstring_style_g_layout.addWidget(
+            self.docstring_style_match_dir.textbox, 5, 1)
+
+        # Set Docstring style options enabled/disabled
+        docstring_style_g_widget = QWidget()
+        docstring_style_g_widget.setLayout(docstring_style_g_layout)
+        docstring_style_g_widget.setEnabled(self.get_option('pydocstyle'))
+        docstring_style_check.toggled.connect(
+            docstring_style_g_widget.setEnabled)
+
+        # Docstring style layout
+        docstring_style_layout = QVBoxLayout()
+        docstring_style_layout.addWidget(docstring_style_label)
+        docstring_style_layout.addWidget(docstring_style_check)
+        docstring_style_layout.addWidget(docstring_style_g_widget)
+
+        docstring_style_widget = QWidget()
+        docstring_style_widget.setLayout(docstring_style_layout)
+
+        # --- Advanced tab ---
+        # Advanced label
+        advanced_label = QLabel(
+            _("<b>Warning</b>: Only modify these values if "
+              "you know what you're doing!"))
+        advanced_label.setWordWrap(True)
+        advanced_label.setAlignment(Qt.AlignJustify)
+
+        # Advanced options
+        self.advanced_command_launch = self.create_lineedit(
+            _("Command to launch the Python language server: "),
+            'advanced/command_launch', alignment=Qt.Horizontal,
+            word_wrap=False)
+        self.advanced_host = self.create_lineedit(
+            _("IP Address and port to bind the server to: "),
+            'advanced/host', alignment=Qt.Horizontal,
+            word_wrap=False)
+        self.advanced_port = self.create_spinbox(
+            ":", "", 'advanced/port', min_=1, max_=65535, step=1)
+        self.external_server = self.create_checkbox(
+            _("This is an external server"),
+            'advanced/external')
+        self.use_stdio = self.create_checkbox(
+            _("Use stdio pipes to communicate with server"),
+            'advanced/stdio')
+        self.use_stdio.stateChanged.connect(self.disable_tcp)
+        self.external_server.stateChanged.connect(self.disable_stdio)
+
+        # Advanced layout
+        advanced_g_layout = QGridLayout()
+        advanced_g_layout.addWidget(self.advanced_command_launch.label, 1, 0)
+        advanced_g_layout.addWidget(self.advanced_command_launch.textbox, 1, 1)
+        advanced_g_layout.addWidget(self.advanced_host.label, 2, 0)
+
+        advanced_host_port_g_layout = QGridLayout()
+        advanced_host_port_g_layout.addWidget(self.advanced_host.textbox, 1, 0)
+        advanced_host_port_g_layout.addWidget(self.advanced_port.plabel, 1, 1)
+        advanced_host_port_g_layout.addWidget(self.advanced_port.spinbox, 1, 2)
+        advanced_g_layout.addLayout(advanced_host_port_g_layout, 2, 1)
+
+        advanced_widget = QWidget()
+        advanced_layout = QVBoxLayout()
+        advanced_layout.addWidget(advanced_label)
+        advanced_layout.addSpacing(12)
+        advanced_layout.addLayout(advanced_g_layout)
+        advanced_layout.addWidget(self.external_server)
+        advanced_layout.addWidget(self.use_stdio)
+        advanced_widget.setLayout(advanced_layout)
+
+        # --- Other servers tab ---
+        # Section label
+        servers_label = QLabel(
+            _("Spyder uses the <a href=\"{lsp_url}\">Language Server "
+              "Protocol</a> to provide code completion and linting "
+              "for its Editor. Here, you can setup and configure LSP servers "
+              "for languages other than Python, so Spyder can provide such "
+              "features for those languages as well."
+              ).format(lsp_url=LSP_URL))
+        servers_label.setOpenExternalLinks(True)
+        servers_label.setWordWrap(True)
+        servers_label.setAlignment(Qt.AlignJustify)
+
+        # Servers table
+        table_group = QGroupBox(_('Available servers:'))
         self.table = LSPServerTable(self, text_color=ima.MAIN_FG_COLOR)
+        self.table.setMaximumHeight(150)
+        table_layout = QVBoxLayout()
+        table_layout.addWidget(self.table)
+        table_group.setLayout(table_layout)
+
+        # Buttons
         self.reset_btn = QPushButton(_("Reset to default values"))
-        self.new_btn = QPushButton(_("Setup a new server"))
+        self.new_btn = QPushButton(_("Set up a new server"))
         self.delete_btn = QPushButton(_("Delete currently selected server"))
         self.delete_btn.setEnabled(False)
-        server_group = QGroupBox(_('Available LSP Servers'))
 
-        vlayout = QVBoxLayout()
-        vlayout.addWidget(server_group)
-        # vlayout.addWidget(server_settings_description)
-        vlayout.addWidget(self.table)
-        vlayout.addWidget(self.new_btn)
-        vlayout.addWidget(self.delete_btn)
-        vlayout.addWidget(self.reset_btn)
-        self.setLayout(vlayout)
-
+        # Slots connected to buttons
         self.new_btn.clicked.connect(self.create_new_server)
         self.reset_btn.clicked.connect(self.reset_to_default)
         self.delete_btn.clicked.connect(self.delete_server)
+
+        # Buttons layout
+        btns = [self.new_btn, self.delete_btn, self.reset_btn]
+        buttons_layout = QGridLayout()
+        for i, btn in enumerate(btns):
+            buttons_layout.addWidget(btn, i, 1)
+        buttons_layout.setColumnStretch(0, 1)
+        buttons_layout.setColumnStretch(1, 2)
+        buttons_layout.setColumnStretch(2, 1)
+
+        # Combined layout
+        servers_widget = QWidget()
+        servers_layout = QVBoxLayout()
+        servers_layout.addSpacing(-10)
+        servers_layout.addWidget(servers_label)
+        servers_layout.addWidget(table_group)
+        servers_layout.addSpacing(10)
+        servers_layout.addLayout(buttons_layout)
+        servers_widget.setLayout(servers_layout)
+
+        # --- Tabs organization ---
+        tabs = QTabWidget()
+        tabs.addTab(self.create_tab(basic_features_group, advanced_group),
+                    _('Introspection'))
+        tabs.addTab(self.create_tab(linting_widget), _('Linting'))
+        tabs.addTab(self.create_tab(code_style_widget), _('Code style'))
+        tabs.addTab(self.create_tab(docstring_style_widget),
+                    _('Docstring style'))
+        tabs.addTab(self.create_tab(advanced_widget),
+                    _('Advanced'))
+        tabs.addTab(self.create_tab(servers_widget), _('Other languages'))
+
+        vlayout = QVBoxLayout()
+        vlayout.addWidget(tabs)
+        self.setLayout(vlayout)
+
+    def disable_tcp(self, state):
+        if state == Qt.Checked:
+            # self.advanced_command_launch.textbox.setEnabled(False)
+            self.advanced_host.textbox.setEnabled(False)
+            self.advanced_port.spinbox.setEnabled(False)
+            self.external_server.stateChanged.disconnect()
+            self.external_server.setChecked(False)
+            self.external_server.setEnabled(False)
+        else:
+            # self.advanced_command_launch.textbox.setEnabled(True)
+            self.advanced_host.textbox.setEnabled(True)
+            self.advanced_port.spinbox.setEnabled(True)
+            self.external_server.setChecked(False)
+            self.external_server.setEnabled(True)
+            self.external_server.stateChanged.connect(self.disable_stdio)
+
+    def disable_stdio(self, state):
+        if state == Qt.Checked:
+            # self.advanced_command_launch.textbox.setEnabled(False)
+            self.advanced_host.textbox.setEnabled(True)
+            self.advanced_port.spinbox.setEnabled(True)
+            self.advanced_command_launch.textbox.setEnabled(False)
+            self.use_stdio.stateChanged.disconnect()
+            self.use_stdio.setChecked(False)
+            self.use_stdio.setEnabled(False)
+        else:
+            # self.advanced_command_launch.textbox.setEnabled(True)
+            self.advanced_host.textbox.setEnabled(True)
+            self.advanced_port.spinbox.setEnabled(True)
+            self.advanced_command_launch.textbox.setEnabled(True)
+            self.use_stdio.setChecked(False)
+            self.use_stdio.setEnabled(True)
+            self.use_stdio.stateChanged.connect(self.disable_tcp)
+
+    @Slot(str)
+    def setup_docstring_style_convention(self, text):
+        """Handle convention changes."""
+        if text == 'Custom':
+            self.docstring_style_select.label.setText(
+                _("Show the following errors:"))
+            self.docstring_style_ignore.label.setText(
+                _("Ignore the following errors:"))
+        else:
+            self.docstring_style_select.label.setText(
+                _("Show the following errors in addition "
+                  "to the specified convention:"))
+            self.docstring_style_ignore.label.setText(
+                _("Ignore the following errors in addition "
+                  "to the specified convention:"))
 
     def reset_to_default(self):
         CONF.reset_to_defaults(section='lsp-server')
@@ -647,7 +1108,47 @@ class LSPManagerConfigPage(GeneralConfigPage):
         self.set_modified(True)
         self.delete_btn.setEnabled(False)
 
-    def apply_changes(self):
+    def apply_settings(self, options):
+        # Check regex of code style options
+        try:
+            code_style_filenames_matches = (
+                self.code_style_filenames_match.textbox.text().split(","))
+            for match in code_style_filenames_matches:
+                re.compile(match.strip())
+        except re.error:
+            self.set_option('pycodestyle/filename', '')
+
+        try:
+            code_style_excludes = (
+                self.code_style_exclude.textbox.text().split(","))
+            for match in code_style_excludes:
+                re.compile(match.strip())
+        except re.error:
+            self.set_option('pycodestyle/exclude', '')
+
+        # Check regex of docstring style options
+        try:
+            docstring_style_match = (
+                self.docstring_style_match.textbox.text())
+            re.compile(docstring_style_match)
+        except re.error:
+            self.set_option('pydocstyle/match', '')
+
+        try:
+            docstring_style_match_dir = (
+                self.docstring_style_match.textbox.text())
+            re.compile(docstring_style_match_dir)
+        except re.error:
+            self.set_option('pydocstyle/match_dir', '')
+
         self.table.save_servers()
+
+        # Update entries in the source menu
+        for name, action in self.main.editor.checkable_actions.items():
+            if name in options:
+                state = self.get_option(name)
+                action.setChecked(state)
+                action.trigger()
+
         # TODO: Reset Manager
         self.main.lspmanager.update_server_list()

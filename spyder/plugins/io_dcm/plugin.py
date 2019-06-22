@@ -27,7 +27,7 @@ try:
             try:
                 data = dicomio.read_file(filename, force=True)
             except TypeError:
-                data = dicomio.read_file(filename)                
+                data = dicomio.read_file(filename)
             arr = data.pixel_array
             return {name: arr}, None
         except Exception as error:

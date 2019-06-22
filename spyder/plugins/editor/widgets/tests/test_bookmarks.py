@@ -8,9 +8,18 @@
 Tests for bookmarks.
 """
 
+# Stdlib imports
+try:
+    from unittest.mock import Mock
+except ImportError:
+    from mock import Mock  # Python 2
+
 # Third party imports
 import pytest
 from qtpy.QtGui import QTextCursor
+
+# Local imports
+import spyder.plugins.editor.widgets.codeeditor as codeeditor
 
 
 # -----------------------------------------------------------------------------
@@ -40,12 +49,34 @@ def editor_assert_helper(editor, block=None, bm=None, emits=True):
 
 
 # -----------------------------------------------------------------------------
+# --- Fixtures
+# -----------------------------------------------------------------------------
+@pytest.fixture
+def code_editor_bookmarks(qtbot):
+    """Create code editor with default Python code."""
+    editor = codeeditor.CodeEditor(parent=None)
+    indent_chars = ' ' * 4
+    tab_stop_width_spaces = 4
+    editor.setup_editor(language='Python', indent_chars=indent_chars,
+                        tab_stop_width_spaces=tab_stop_width_spaces)
+    # Mock the signal emit to test when it's been called.
+    editor.sig_bookmarks_changed = Mock()
+    text = ('def f1(a, b):\n'
+            '"Double quote string."\n'
+            '\n'  # Blank line.
+            '    c = a * b\n'
+            '    return c\n'
+            )
+    editor.set_text(text)
+    return editor, qtbot
+
+
+# -----------------------------------------------------------------------------
 # --- Tests
 # -----------------------------------------------------------------------------
-@pytest.mark.usefixtures("code_editor_bot")
-def test_add_bookmark(code_editor_bot):
+def test_add_bookmark(code_editor_bookmarks):
     """Test CodeEditor.add_bookmark. Adds bookmark data to Textblock."""
-    editor, __ = code_editor_bot
+    editor, __ = code_editor_bookmarks
 
     editor.go_to_line(1)
     block = editor.textCursor().block()
@@ -67,10 +98,9 @@ def test_add_bookmark(code_editor_bot):
     editor_assert_helper(editor, block, bm=[(1, 0), (2, 2)], emits=True)
 
 
-@pytest.mark.usefixtures("code_editor_bot")
-def test_get_bookmarks(code_editor_bot):
+def test_get_bookmarks(code_editor_bookmarks):
     """Test CodeEditor.get_bookmarks. Returns data found in textblocks."""
-    editor, __ = code_editor_bot
+    editor, __ = code_editor_bookmarks
     gb = editor.get_bookmarks
 
     assert(gb() == {})
@@ -81,31 +111,29 @@ def test_get_bookmarks(code_editor_bot):
     assert(gb() == {1: [1, 0], 2: [3, 5], 3: [4, 3]})
 
 
-@pytest.mark.usefixtures("code_editor_bot")
-def test_clear_bookmarks(code_editor_bot):
+def test_clear_bookmarks(code_editor_bookmarks):
     """Test CodeEditor.clear_bookmarks. Remove bookmarks from all blocks."""
-    editor, __ = code_editor_bot
+    editor, __ = code_editor_bookmarks
 
-    assert len(editor.blockuserdata_list) == 0
+    assert len(list(editor.blockuserdata_list())) == 1
 
     bm = {1: ('filename', 1, 0), 2: ('filename', 3, 5)}
     editor.set_bookmarks(bm)
     assert editor.get_bookmarks() == {1: [1, 0], 2: [3, 5]}
-    assert len(editor.blockuserdata_list) == 2
+    assert len(list(editor.blockuserdata_list())) == 3
 
     editor.clear_bookmarks()
     assert editor.get_bookmarks() == {}
     # Even though there is a 'del data' that would pop the item from the
     # list, the __del__ funcion isn't called.
-    assert len(editor.blockuserdata_list) == 2
-    for data in editor.blockuserdata_list:
+    assert len(list(editor.blockuserdata_list())) == 3
+    for data in editor.blockuserdata_list():
         assert not data.bookmarks
 
 
-@pytest.mark.usefixtures("code_editor_bot")
-def test_update_bookmarks(code_editor_bot):
+def test_update_bookmarks(code_editor_bookmarks):
     """Test CodeEditor.update_bookmarks. Check if signal is emitted."""
-    editor, __ = code_editor_bot
+    editor, __ = code_editor_bookmarks
     reset_emits(editor)
     editor.sig_bookmarks_changed.emit.assert_not_called()
     # update_bookmarks is the slot for the blockCountChanged signal.
@@ -113,15 +141,14 @@ def test_update_bookmarks(code_editor_bot):
     editor.sig_bookmarks_changed.emit.assert_called_with()
 
 
-@pytest.mark.usefixtures("setup_editor")
-def test_save_bookmark(setup_editor):
+def test_save_bookmark(editor_plugin_open_files):
     """
     Test Plugin.save_bookmark.
 
     Test saving of bookmarks by looking at data in blocks. Reassignment
     should remove data from old block and put it in new.
     """
-    editor = setup_editor
+    editor, _, _ = editor_plugin_open_files(None, None)
 
     # Get current editorstack, active editor and cursor
     editorstack = editor.get_current_editorstack()
@@ -148,15 +175,14 @@ def test_save_bookmark(setup_editor):
     assert bookmarks == []
 
 
-@pytest.mark.usefixtures("setup_editor")
-def test_load_bookmark(setup_editor):
+def test_load_bookmark(editor_plugin_open_files):
     """
     Test that loading a bookmark works.
 
     Check this by saving and loading bookmarks and checking for cursor
     position. Also over multiple files.
     """
-    editor = setup_editor
+    editor, _, _ = editor_plugin_open_files(None, None)
 
     # Get current editorstack, active editor and cursor
     editorstack = editor.get_current_editorstack()

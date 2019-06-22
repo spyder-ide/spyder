@@ -41,9 +41,6 @@ class Explorer(SpyderPluginWidget):
             single_click_to_open=self.get_option('single_click_to_open'),
         )
 
-        # Initialize plugin
-        self.initialize_plugin()
-
         layout = QVBoxLayout()
         layout.addWidget(self.fileexplorer)
         self.setLayout(layout)
@@ -54,7 +51,7 @@ class Explorer(SpyderPluginWidget):
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
-        return _("File explorer")
+        return _("Files")
     
     def get_focus_widget(self):
         """
@@ -72,7 +69,7 @@ class Explorer(SpyderPluginWidget):
         ipyconsole = self.main.ipyconsole
         treewidget = self.fileexplorer.treewidget
 
-        self.main.add_dockwidget(self)
+        self.add_dockwidget()
         self.fileexplorer.sig_open_file.connect(self.main.open_file)
         self.register_widget_shortcuts(treewidget)
 
@@ -110,14 +107,10 @@ class Explorer(SpyderPluginWidget):
         self.fileexplorer.treewidget.update_history(new_path)
         self.fileexplorer.treewidget.refresh(new_path,
                                              force_current=force_current)
-        
-    def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        return True
 
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""
-        self.main.tabify_plugins(self.main.variableexplorer, self)
+        self.tabify(self.main.variableexplorer)
 
     #------ Public API ---------------------------------------------------------
     def chdir(self, directory):
