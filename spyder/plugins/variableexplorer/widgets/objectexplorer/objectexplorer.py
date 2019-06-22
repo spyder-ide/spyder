@@ -375,7 +375,6 @@ class ObjectExplorer(QDialog):
 
     def _update_details_for_item(self, tree_item):
         """Shows the object details in the editor given an tree_item."""
-        self.editor.setStyleSheet("color: {};".format(ima.MAIN_FG_COLOR))
         try:
             # obj = tree_item.obj
             button_id = self.button_group.checkedId()
@@ -395,7 +394,7 @@ class ObjectExplorer(QDialog):
                                      color_scheme=scheme_name,
                                      scroll_past_end=update_scrollbar)
             self.editor.set_text(data)
-            if attr_details.name == 'Source Code':
+            if attr_details.name == 'Source code':
                 self.editor.set_language('Python')
             else:
                 self.editor.set_language('Rst')
