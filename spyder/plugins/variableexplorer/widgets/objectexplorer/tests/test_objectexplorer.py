@@ -69,31 +69,34 @@ def test_objectexplorer(objectexplorer):
                                    Qt.DisplayRole) == "Size"
     assert not header.isSectionHidden(3)
     assert header_model.headerData(3, Qt.Horizontal,
-                                   Qt.DisplayRole) == "Callable"
+                                   Qt.DisplayRole) == "Value"
     assert not header.isSectionHidden(4)
     assert header_model.headerData(4, Qt.Horizontal,
-                                   Qt.DisplayRole) == "Path"
-    assert header.isSectionHidden(5)
+                                   Qt.DisplayRole) == "Callable"
+    assert not header.isSectionHidden(5)
     assert header_model.headerData(5, Qt.Horizontal,
-                                   Qt.DisplayRole) == "Id"
+                                   Qt.DisplayRole) == "Path"
     assert header.isSectionHidden(6)
     assert header_model.headerData(6, Qt.Horizontal,
-                                   Qt.DisplayRole) == "Attribute"
+                                   Qt.DisplayRole) == "Id"
     assert header.isSectionHidden(7)
     assert header_model.headerData(7, Qt.Horizontal,
-                                   Qt.DisplayRole) == "Routine"
+                                   Qt.DisplayRole) == "Attribute"
     assert header.isSectionHidden(8)
     assert header_model.headerData(8, Qt.Horizontal,
-                                   Qt.DisplayRole) == "File"
+                                   Qt.DisplayRole) == "Routine"
     assert header.isSectionHidden(9)
     assert header_model.headerData(9, Qt.Horizontal,
+                                   Qt.DisplayRole) == "File"
+    assert header.isSectionHidden(10)
+    assert header_model.headerData(10, Qt.Horizontal,
                                    Qt.DisplayRole) == "Source file"
 
     model = editor.obj_tree.model()
 
     # Check number of rows
     assert model.rowCount() == 1
-    assert model.columnCount() == 10
+    assert model.columnCount() == 11
 
 
 @pytest.mark.skipif(PY2, reason="Number of rows is different in PY2")
@@ -117,7 +120,7 @@ def test_objectexplorer_types(objectexplorer):
     # Check number of rows
     model = editor.obj_tree.model()
     assert model.rowCount() == 48
-    assert model.columnCount() == 10
+    assert model.columnCount() == 11
 
 
 if __name__ == "__main__":
