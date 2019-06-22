@@ -69,9 +69,6 @@ class Projects(SpyderPluginWidget):
         self.latest_project = None
         self.watcher = WorkspaceWatcher(self)
         self.lsp_ready = False
-
-        # Initialize plugin
-        self.initialize_plugin()
         self.explorer.setup_project(self.get_active_project_path())
         self.watcher.connect_signals(self)
 
@@ -123,7 +120,7 @@ class Projects(SpyderPluginWidget):
                                                 self.delete_project_action,
                                                 MENU_SEPARATOR,
                                                 self.recent_project_menu,
-                                                self.toggle_view_action]
+                                                self._toggle_view_action]
 
         self.setup_menu_actions()
         return []
@@ -134,7 +131,7 @@ class Projects(SpyderPluginWidget):
         treewidget = self.explorer.treewidget
         lspmgr = self.main.lspmanager
 
-        self.main.add_dockwidget(self)
+        self.add_dockwidget()
         self.explorer.sig_open_file.connect(self.main.open_file)
         self.register_widget_shortcuts(treewidget)
 
@@ -191,10 +188,6 @@ class Projects(SpyderPluginWidget):
         if option == 'single_click_to_open':
             self.explorer.treewidget.set_single_click_to_open(value)
 
-    def refresh_plugin(self):
-        """Refresh project explorer widget"""
-        pass
-
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         self.save_config()
@@ -205,15 +198,15 @@ class Projects(SpyderPluginWidget):
         """Switch to plugin."""
         # Unmaxizime currently maximized plugin
         if (self.main.last_plugin is not None and
-                self.main.last_plugin.ismaximized and
+                self.main.last_plugin._ismaximized and
                 self.main.last_plugin is not self):
             self.main.maximize_dockwidget()
 
         # Show plugin only if it was already visible
         if self.get_option('visible_if_project_open'):
-            if not self.toggle_view_action.isChecked():
-                self.toggle_view_action.setChecked(True)
-            self.visibility_changed(True)
+            if not self._toggle_view_action.isChecked():
+                self._toggle_view_action.setChecked(True)
+            self._visibility_changed(True)
 
     # ------ Public API -------------------------------------------------------
     def setup_menu_actions(self):
@@ -291,6 +284,7 @@ class Projects(SpyderPluginWidget):
     def open_project(self, path=None, restart_consoles=True,
                      save_previous_files=True):
         """Open the project located in `path`"""
+        self.notify_project_open(path)
         self.switch_to_plugin()
         if path is None:
             basedir = get_home_dir()
@@ -331,7 +325,6 @@ class Projects(SpyderPluginWidget):
         self.sig_project_loaded.emit(path)
         self.sig_pythonpath_changed.emit()
         self.watcher.start(path)
-        self.notify_project_open(path)
 
         if restart_consoles:
             self.restart_consoles()

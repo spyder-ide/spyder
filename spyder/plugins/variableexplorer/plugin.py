@@ -53,10 +53,6 @@ class VariableExplorer(SpyderPluginWidget):
         layout.addWidget(self.stack)
         self.setLayout(layout)
 
-
-        # Initialize plugin
-        self.initialize_plugin()
-
     def get_settings(self):
         """
         Retrieve all Variable Explorer configuration settings.
@@ -107,7 +103,7 @@ class VariableExplorer(SpyderPluginWidget):
         self.stack.setCurrentWidget(nsb)
         # We update the actions of the options button (cog menu) and we move
         # it to the layout of the current widget.
-        self.refresh_actions()
+        self._refresh_actions()
         nsb.setup_options_button()
 
     def current_widget(self):
@@ -162,9 +158,8 @@ class VariableExplorer(SpyderPluginWidget):
             nsb = self.current_widget()
             nsb.refresh_table()
             nsb.import_data(filenames=fname)
-            if self.dockwidget and not self.ismaximized:
-                self.dockwidget.setVisible(True)
-                self.dockwidget.raise_()
+            if self.dockwidget:
+                self.switch_to_plugin()
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
@@ -188,22 +183,10 @@ class VariableExplorer(SpyderPluginWidget):
         this plugin's dockwidget is raised on top-level
         """
         return self.current_widget()
-        
-    def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        return True
-        
-    def refresh_plugin(self):
-        """Refresh widget"""
-        pass
 
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         return self.current_widget().actions if self.current_widget() else []
-
-    def register_plugin(self):
-        """Register plugin in Spyder's main window"""
-        self.main.add_dockwidget(self)
 
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""

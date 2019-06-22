@@ -67,9 +67,6 @@ class Pylint(SpyderPluginWidget):
         # Follow editorstacks tab change
         self.main.editor.sig_editor_focus_changed.connect(self.set_filename)
 
-        # Initialize plugin
-        self.initialize_plugin()
-
     #------ SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
@@ -99,7 +96,7 @@ class Pylint(SpyderPluginWidget):
 
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""
-        self.main.tabify_plugins(self.main.help, self)
+        self.tabify(self.main.help)
         self.dockwidget.hide()
 
     def register_plugin(self):
@@ -107,7 +104,7 @@ class Pylint(SpyderPluginWidget):
         self.pylint.treewidget.sig_edit_goto.connect(self.main.editor.load)
         self.pylint.redirect_stdio.connect(
             self.main.redirect_internalshell_stdio)
-        self.main.add_dockwidget(self)
+        self.add_dockwidget()
 
         pylint_act = create_action(self, _("Run static code analysis"),
                                    triggered=self.run_pylint)
@@ -121,10 +118,6 @@ class Pylint(SpyderPluginWidget):
     def refresh_plugin(self):
         """Refresh pylint widget"""
         self.pylint.remove_obsolete_items()
-
-    def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        return True
 
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
@@ -163,8 +156,6 @@ class Pylint(SpyderPluginWidget):
 
     def analyze(self, filename):
         """Reimplement analyze method"""
-        if self.dockwidget and not self.ismaximized:
-            self.dockwidget.setVisible(True)
-            self.dockwidget.setFocus()
-            self.dockwidget.raise_()
+        if self.dockwidget:
+            self.switch_to_plugin()
         self.pylint.analyze(filename)

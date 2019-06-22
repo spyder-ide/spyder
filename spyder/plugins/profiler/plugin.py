@@ -48,9 +48,6 @@ class Profiler(SpyderPluginWidget):
         layout.addWidget(self.profiler)
         self.setLayout(layout)
 
-        # Initialize plugin
-        self.initialize_plugin()
-        
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
         """Return widget title"""
@@ -73,14 +70,10 @@ class Profiler(SpyderPluginWidget):
         this plugin's dockwidget is raised on top-level
         """
         return self.profiler.datatree
-    
-    def get_plugin_actions(self):
-        """Return a list of actions related to plugin"""
-        return []
 
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""
-        self.main.tabify_plugins(self.main.help, self)
+        self.tabify(self.main.help)
         self.dockwidget.hide()
 
     def register_plugin(self):
@@ -88,7 +81,7 @@ class Profiler(SpyderPluginWidget):
         self.profiler.datatree.sig_edit_goto.connect(self.main.editor.load)
         self.profiler.redirect_stdio.connect(
             self.main.redirect_internalshell_stdio)
-        self.main.add_dockwidget(self)
+        self.add_dockwidget()
 
         profiler_act = create_action(self, _("Profile"),
                                      icon=self.get_plugin_icon(),
@@ -103,17 +96,8 @@ class Profiler(SpyderPluginWidget):
     def refresh_plugin(self):
         """Refresh profiler widget"""
         #self.remove_obsolete_items()  # FIXME: not implemented yet
-        
-    def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        return True
-            
-    def apply_plugin_settings(self, options):
-        """Apply configuration file's plugin settings"""
-        # The history depth option will be applied at 
-        # next Spyder startup, which is soon enough
         pass
-        
+
     #------ Public API ---------------------------------------------------------        
     def run_profiler(self):
         """Run profiler"""
@@ -123,10 +107,8 @@ class Profiler(SpyderPluginWidget):
 
     def analyze(self, filename):
         """Reimplement analyze method"""
-        if self.dockwidget and not self.ismaximized:
-            self.dockwidget.setVisible(True)
-            self.dockwidget.setFocus()
-            self.dockwidget.raise_()
+        if self.dockwidget:
+            self.switch_to_plugin()
         pythonpath = self.main.get_spyder_pythonpath()
         runconf = get_run_configuration(filename)
         wdir, args = None, []

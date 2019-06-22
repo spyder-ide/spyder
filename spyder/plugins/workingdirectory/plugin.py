@@ -52,9 +52,6 @@ class WorkingDirectory(SpyderPluginWidget):
         self.hide()
 
         self.toolbar = QToolBar(self)
-
-        # Initialize plugin
-        self.initialize_plugin()
         self.options_button.hide()
         
         self.toolbar.setWindowTitle(self.get_plugin_title())
@@ -126,10 +123,6 @@ class WorkingDirectory(SpyderPluginWidget):
     def get_plugin_icon(self):
         """Return widget icon"""
         return ima.icon('DirOpenIcon')
-        
-    def get_plugin_actions(self):
-        """Setup actions"""
-        return [None, None]
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
@@ -149,14 +142,6 @@ class WorkingDirectory(SpyderPluginWidget):
         self.set_next_enabled.emit(self.histindex is not None and \
                                    self.histindex < len(self.history)-1)
 
-    def apply_plugin_settings(self, options):
-        """Apply configuration file's plugin settings"""
-        pass
-        
-    def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        return True
-        
     #------ Public API ---------------------------------------------------------
     def load_wdhistory(self, workdir=None):
         """Load history from a text file in user home directory"""

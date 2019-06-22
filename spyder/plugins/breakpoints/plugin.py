@@ -45,8 +45,6 @@ class Breakpoints(SpyderPluginWidget):
         layout.addWidget(self.breakpoints)
         self.setLayout(layout)
 
-        # Initialize plugin
-        self.initialize_plugin()
         self.breakpoints.set_data()
     
     #------ SpyderPluginWidget API --------------------------------------------
@@ -71,14 +69,10 @@ class Breakpoints(SpyderPluginWidget):
         this plugin's dockwidget is raised on top-level
         """
         return self.breakpoints.dictwidget
-    
-    def get_plugin_actions(self):
-        """Return a list of actions related to plugin"""
-        return []
 
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""
-        self.main.tabify_plugins(self.main.help, self)
+        self.tabify(self.main.help)
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
@@ -91,9 +85,9 @@ class Breakpoints(SpyderPluginWidget):
         self.main.editor.breakpoints_saved.connect(self.breakpoints.set_data)
         self.breakpoints.set_or_edit_conditional_breakpoint.connect(
                            self.main.editor.set_or_edit_conditional_breakpoint)
-        
-        self.main.add_dockwidget(self)
-        
+
+        self.add_dockwidget()
+
         list_action = create_action(self, _("List breakpoints"),
                                    triggered=self.show)
         list_action.setEnabled(True)
@@ -101,18 +95,6 @@ class Breakpoints(SpyderPluginWidget):
         self.main.debug_menu_actions.insert(pos, list_action)
         self.main.editor.pythonfile_dependent_actions += [list_action]
 
-    def refresh_plugin(self):
-        """Refresh widget"""
-        pass
-        
-    def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        return True
-            
-    def apply_plugin_settings(self, options):
-        """Apply configuration file's plugin settings"""
-        pass
-        
     def show(self):
         """Show the breakpoints dockwidget"""
         self.switch_to_plugin()
