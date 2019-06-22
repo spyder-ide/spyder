@@ -17,11 +17,11 @@ import traceback
 
 # Third-party imports
 from qtpy.QtCore import Slot, Signal, QModelIndex, QPoint, QSize, Qt
-from qtpy.QtGui import QFont, QKeySequence, QTextOption
+from qtpy.QtGui import QKeySequence, QTextOption
 from qtpy.QtWidgets import (QAbstractItemView, QAction, QButtonGroup,
                             QDialog, QGroupBox, QHBoxLayout, QHeaderView,
-                            QMenu, QRadioButton, QSplitter, QToolButton,
-                            QVBoxLayout, QWidget)
+                            QLabel, QMenu, QRadioButton, QSplitter,
+                            QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import _
@@ -269,9 +269,11 @@ class ObjectExplorer(QDialog):
         group_box = QGroupBox(_("Details"))
         bottom_layout.addWidget(group_box)
 
-        group_layout = QHBoxLayout()
-        group_layout.setContentsMargins(2, 2, 2, 2)  # left top right bottom
-        group_box.setLayout(group_layout)
+        v_group_layout = QVBoxLayout()
+        h_group_layout = QHBoxLayout()
+        h_group_layout.setContentsMargins(2, 2, 2, 2)  # left top right bottom
+        group_box.setLayout(v_group_layout)
+        v_group_layout.addLayout(h_group_layout)
 
         # Radio buttons
         radio_widget = QWidget()
@@ -290,12 +292,18 @@ class ObjectExplorer(QDialog):
         self.button_group.button(0).setChecked(True)
 
         radio_layout.addStretch(1)
-        group_layout.addWidget(radio_widget)
+        h_group_layout.addWidget(radio_widget)
 
         # Editor widget
         self.editor = CodeEditor(self)
         self.editor.setReadOnly(True)
-        group_layout.addWidget(self.editor)
+        h_group_layout.addWidget(self.editor)
+
+        # Warining label about repr
+        repr_label = QLabel(_("(*) Some objects have very large repr's, "
+                              "which can freeze Spyder. Please use this "
+                              "with care."))
+        v_group_layout.addWidget(repr_label)
 
         # Splitter parameters
         self.central_splitter.setCollapsible(0, False)

@@ -269,7 +269,7 @@ ATTR_MODEL_STR = AttributeModel(
 
 
 ATTR_MODEL_REPR = AttributeModel(
-    'repr',
+    'repr (*)',
     doc=_("The string representation of the "
           "object using the repr() function."),
     data_fn=lambda tree_item: repr(tree_item.obj),
@@ -468,13 +468,14 @@ DEFAULT_ATTR_COLS = (
 DEFAULT_ATTR_DETAILS = (
     # ATTR_MODEL_STR, # Too similar to unicode column
     ATTR_MODEL_GET_DOC,
+    ATTR_MODEL_GET_SOURCE,
     ATTR_MODEL_REPR,
     # ATTR_MODEL_DOC_STRING, # not used, too similar to ATTR_MODEL_GET_DOC
     # ATTR_MODEL_GET_MODULE, # not used, already in table
-    ATTR_MODEL_GET_FILE,
+    ATTR_MODEL_GET_FILE
     # ATTR_MODEL_GET_SOURCE_FILE,  # not used, already in table
     # ATTR_MODEL_GET_SOURCE_LINES, # not used, ATTR_MODEL_GET_SOURCE is better
-    ATTR_MODEL_GET_SOURCE)
+    )
 
 # Sanity check for duplicates
 assert len(ALL_ATTR_MODELS) == len(set(ALL_ATTR_MODELS))

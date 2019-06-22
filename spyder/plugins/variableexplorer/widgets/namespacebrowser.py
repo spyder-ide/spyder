@@ -118,14 +118,14 @@ class NamespaceBrowser(QWidget):
             return
 
         self.editor = RemoteCollectionsEditorTableView(
-                        self,
-                        data=None,
-                        minmax=minmax,
-                        shellwidget=self.shellwidget,
-                        dataframe_format=dataframe_format,
-                        show_callable_attributes=show_callable_attributes,
-                        show_special_attributes=show_special_attributes
-                        )
+            self,
+            data=None,
+            minmax=minmax,
+            shellwidget=self.shellwidget,
+            dataframe_format=dataframe_format,
+            show_callable_attributes=show_callable_attributes,
+            show_special_attributes=show_special_attributes
+        )
 
         self.editor.sig_option_changed.connect(self.sig_option_changed.emit)
         self.editor.sig_files_dropped.connect(self.import_data)
@@ -228,7 +228,6 @@ class NamespaceBrowser(QWidget):
         if not self.options_button:
             self.options_button = create_toolbutton(
                 self, text=_('Options'), icon=ima.icon('tooloptions'))
-            self.options_button.setPopupMode(QToolButton.InstantPopup)
 
             actions = self.actions + [MENU_SEPARATOR] + self.plugin_actions
             self.options_menu = QMenu(self)

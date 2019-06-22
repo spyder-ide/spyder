@@ -1017,7 +1017,7 @@ Classes from objbrowser 1.2.1
 Copyright (c) 2016 Pepijn Kenter
 
 
-Author: Pepijn Kenter | <author-email> | <author-website>
+Author: Pepijn Kenter | titusjan@gmail.com | https://github.com/titusjan
 Site/Source: https://github.com/titusjan/objbrowser
 License: MIT (Expat) License | https://opensource.org/licenses/MIT
 
@@ -1027,13 +1027,13 @@ Modifications made to each class to adapt them to Spyder's needs.
 objbrowser is distributed under the MIT license.
 
 
-Use of the core functionality of the project changing the non-patched
-version of qtpy used for the actual qtpy project (since it is already a
-dependency of Spyder)
+Use the core functionality of the project, mainly changing the code to use
+the upstream version of qtpy project (since it is already a dependency of
+Spyder).
 
 See below for the full text of the MIT (Expat) license.
 
-The current gtabview license can be viewed at:
+The current objbrowser license can be viewed at:
 https://github.com/titusjan/objbrowser/blob/master/LICENSE.txt
 
 The current version of the original files can be viewed at:
@@ -1042,12 +1042,12 @@ https://github.com/titusjan/objbrowser/tree/master/objbrowser
 
 Files covered:
 
-spyder/plugins/variableexplorer/widgets/objecteditor2/attribute_model.py
-spyder/plugins/variableexplorer/widgets/objecteditor2/objecteditor.py
-spyder/plugins/variableexplorer/widgets/objecteditor2/toggle_column_mixin.py
-spyder/plugins/variableexplorer/widgets/objecteditor2/tree_item.py
-spyder/plugins/variableexplorer/widgets/objecteditor2/tree_model.py
-spyder/plugins/variableexplorer/widgets/objecteditor2/utils.py
+spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py
+spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py
+spyder/plugins/variableexplorer/widgets/objectexplorer/toggle_column_mixin.py
+spyder/plugins/variableexplorer/widgets/objectexplorer/tree_item.py
+spyder/plugins/variableexplorer/widgets/objectexplorerr/tree_model.py
+spyder/plugins/variableexplorer/widgets/objectexplorer/utils.py
 
 
 ===============================================================================

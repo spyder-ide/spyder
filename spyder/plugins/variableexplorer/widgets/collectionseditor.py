@@ -56,8 +56,8 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     mimedata2url)
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
-from spyder.plugins.variableexplorer.widgets.objectexplorer.objectexplorer \
-    import ObjectExplorer
+from spyder.plugins.variableexplorer.widgets.objectexplorer import (
+        ObjectExplorer)
 
 if ndarray is not FakeObject:
     from spyder.plugins.variableexplorer.widgets.arrayeditor import (
@@ -497,8 +497,8 @@ class CollectionsDelegate(QItemDelegate):
                                             key=key, readonly=readonly))
             return None
         # ArrayEditor for a Numpy array
-        elif isinstance(value, (ndarray, MaskedArray)) \
-                and ndarray is not FakeObject and not object_explorer:
+        elif (isinstance(value, (ndarray, MaskedArray)) and
+                ndarray is not FakeObject and not object_explorer):
             editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(value, title=key, readonly=readonly):
                 return
@@ -506,8 +506,8 @@ class CollectionsDelegate(QItemDelegate):
                                             key=key, readonly=readonly))
             return None
         # ArrayEditor for an images
-        elif isinstance(value, Image) and ndarray is not FakeObject \
-                and Image is not FakeObject and not object_explorer:
+        elif (isinstance(value, Image) and ndarray is not FakeObject and
+                Image is not FakeObject and not object_explorer):
             arr = array(value)
             editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(arr, title=key, readonly=readonly):
@@ -518,8 +518,8 @@ class CollectionsDelegate(QItemDelegate):
                                             conv=conv_func))
             return None
         # DataFrameEditor for a pandas dataframe, series or index
-        elif isinstance(value, (DataFrame, Index, Series)) \
-                and DataFrame is not FakeObject and not object_explorer:
+        elif (isinstance(value, (DataFrame, Index, Series))
+                and DataFrame is not FakeObject and not object_explorer):
             editor = DataFrameEditor(parent=parent)
             if not editor.setup_and_check(value, title=key):
                 return

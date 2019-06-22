@@ -15,3 +15,5 @@ spyder.plugins.variableexplorer.widgets.objecteditor2
 
 Variable Explorer-Object inspector widget.
 """
+
+from .objectexplorer import ObjectExplorer
