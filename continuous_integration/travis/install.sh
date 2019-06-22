@@ -50,6 +50,9 @@ else
     # Install spyder-kernels from Github
     pip install -q git+https://github.com/spyder-ide/spyder-kernels
 
+    # Downgrade Jedi because 0.14 broke the PyLS
+    pip install jedi==0.13.3
+
     # Install coveralls
     pip install -q coveralls
 fi

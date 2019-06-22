@@ -802,13 +802,18 @@ class Editor(SpyderPluginWidget):
         show_docstring_warnings_action = self._create_checkable_action(
             _("Show docstring style warnings"), 'pydocstyle')
 
+        underline_errors = self._create_checkable_action(
+            _("Underline errors and warnings"),
+            'underline_errors', 'set_underline_errors_enabled')
+
         self.checkable_actions = {
                 'blank_spaces': showblanks_action,
                 'scroll_past_end': scrollpastend_action,
                 'indent_guides': showindentguides_action,
                 'show_class_func_dropdown': show_classfunc_dropdown_action,
                 'pycodestyle': show_codestyle_warnings_action,
-                'pydocstyle': show_docstring_warnings_action}
+                'pydocstyle': show_docstring_warnings_action,
+                'underline_errors': underline_errors}
 
         fixindentation_action = create_action(self, _("Fix indentation"),
                       tip=_("Replace tab characters by space characters"),
@@ -974,6 +979,7 @@ class Editor(SpyderPluginWidget):
             show_classfunc_dropdown_action,
             show_codestyle_warnings_action,
             show_docstring_warnings_action,
+            underline_errors,
             MENU_SEPARATOR,
             self.todo_list_action,
             self.warning_list_action,
@@ -1205,6 +1211,7 @@ class Editor(SpyderPluginWidget):
         settings = (
             ('set_todolist_enabled',                'todo_list'),
             ('set_blanks_enabled',                  'blank_spaces'),
+            ('set_underline_errors_enabled',        'underline_errors'),
             ('set_scrollpastend_enabled',           'scroll_past_end'),
             ('set_linenumbers_enabled',             'line_numbers'),
             ('set_edgeline_enabled',                'edge_line'),

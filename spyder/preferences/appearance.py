@@ -324,6 +324,7 @@ class AppearanceConfigPage(GeneralConfigPage):
                 )
         show_blanks = CONF.get('editor', 'blank_spaces')
         update_scrollbar = CONF.get('editor', 'scroll_past_end')
+        underline_errors = CONF.get('editor', 'underline_errors')
         if scheme_name is None:
             scheme_name = self.current_scheme
         self.preview_editor.setup_editor(linenumbers=True,
@@ -331,6 +332,7 @@ class AppearanceConfigPage(GeneralConfigPage):
                                          tab_mode=False,
                                          font=get_font(),
                                          show_blanks=show_blanks,
+                                         underline_errors=underline_errors,
                                          color_scheme=scheme_name,
                                          scroll_past_end=update_scrollbar)
         self.preview_editor.set_text(text)

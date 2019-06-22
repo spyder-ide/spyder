@@ -26,6 +26,7 @@ import os.path as osp
 import re
 import sre_constants
 import sys
+import textwrap
 import time
 
 # Third party imports
@@ -335,6 +336,9 @@ class CodeEditor(TextEditBaseWidget):
                                                   Panel.Position.FLOATING)
         # Blanks enabled
         self.blanks_enabled = False
+
+        # Underline errors and warnings
+        self.underline_errors_enabled = False
 
         # Scrolling past the end of the document
         self.scrollpastend_enabled = False
@@ -721,6 +725,7 @@ class CodeEditor(TextEditBaseWidget):
                      edge_line=True,
                      edge_line_columns=(79,),
                      show_blanks=False,
+                     underline_errors=False,
                      close_parentheses=True,
                      close_quotes=False,
                      add_colons=True,
@@ -779,6 +784,9 @@ class CodeEditor(TextEditBaseWidget):
         # Lexer
         self.filename = filename
         self.set_language(language, filename)
+
+        # Underline errors and warnings
+        self.set_underline_errors_enabled(underline_errors)
 
         # Highlight current cell
         self.set_highlight_current_cell(highlight_current_cell)
@@ -1233,6 +1241,11 @@ class CodeEditor(TextEditBaseWidget):
     def set_occurrence_timeout(self, timeout):
         """Set occurrence highlighting timeout (ms)"""
         self.occurrence_timer.setInterval(timeout)
+
+    def set_underline_errors_enabled(self, state):
+        """Toggle the underlining of errors and warnings."""
+        self.underline_errors_enabled = state
+        self.document_did_change()
 
     def set_highlight_current_line(self, enable):
         """Enable/disable current line highlighting"""
@@ -1952,8 +1965,9 @@ class CodeEditor(TextEditBaseWidget):
             block.setUserData(data)
             block.selection = QTextCursor(cursor)
             block.color = color
-            self.__highlight_selection('code_analysis', block.selection,
-                                       underline_color=block.color)
+            if self.underline_errors_enabled:
+                self.__highlight_selection('code_analysis', block.selection,
+                                           underline_color=block.color)
 
         self.sig_process_code_analysis.emit()
         self.update_extra_selections()
@@ -2005,6 +2019,11 @@ class CodeEditor(TextEditBaseWidget):
             msg = msg.strip()
             # Avoid messing TODO, FIXME
             msg = msg[0].upper() + msg[1:]
+            msg = textwrap.wrap(msg, width=self._DEFAULT_MAX_WIDTH)
+            if len(msg) > 1:
+                msg = '<br>'.join(msg) + '<br>'
+            else:
+                msg = '<br>'.join(msg)
             base_64 = ima.base64_from_icon(icons[sev], size, size)
             msglist.append(template.format(base_64, msg, src,
                                            code, size=size))
@@ -2015,6 +2034,7 @@ class CodeEditor(TextEditBaseWidget):
                 text='\n'.join(msglist),
                 title_color='#129625',
                 at_line=line_number,
+                with_html_format=True
             )
             self.highlight_line_warning(block_data)
 
@@ -3185,8 +3205,9 @@ class CodeEditor(TextEditBaseWidget):
         if not shift and not ctrl:
             self.hide_tooltip()
 
-        if text in operators or text in delimiters:
-            self.completion_widget.hide()
+        if text not in self.auto_completion_characters:
+            if text in operators or text in delimiters:
+                self.completion_widget.hide()
         if key in (Qt.Key_Enter, Qt.Key_Return):
             if not shift and not ctrl:
                 if self.add_colons_enabled and self.is_python_like() and \
@@ -3252,10 +3273,13 @@ class CodeEditor(TextEditBaseWidget):
             self.stdkey_end(shift, ctrl)
         elif text in self.auto_completion_characters:
             self.insert_text(text)
-            if not self.in_comment_or_string():
-                last_obj = getobj(self.get_text('sol', 'cursor'))
-                if last_obj and not last_obj.isdigit():
-                    self.do_completion(automatic=True)
+            if text == ".":
+                if not self.in_comment_or_string():
+                    last_obj = getobj(self.get_text('sol', 'cursor'))
+                    if last_obj and not last_obj.isdigit():
+                        self.do_completion(automatic=True)
+            else:
+                self.do_completion(automatic=True)
         elif (text != '(' and text in self.signature_completion_characters and
                 not self.has_selected_text()):
             self.insert_text(text)

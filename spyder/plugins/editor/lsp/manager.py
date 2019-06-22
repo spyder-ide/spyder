@@ -99,18 +99,15 @@ class LSPManager(QObject):
 
         # If there's no project, use the output of getcwd_or_home.
         if not path:
-            # We can't use getcwd_or_home for Python because if it
-            # returns home and you have a lot of Python files on it
-            # then computing Rope completions takes a long time
-            # and blocks the PyLS server.
+            # We can't use getcwd_or_home for LSP servers because if it
+            # returns home and you have a lot of files on it
+            # then computing completions takes a long time
+            # and blocks the LSP server.
             # Instead we use an empty directory inside our config one,
             # just like we did for Rope in Spyder 3.
-            if language == 'python':
-                path = get_conf_path('lsp_root_path')
-                if not osp.exists(path):
-                    os.mkdir(path)
-            else:
-                path = getcwd_or_home()
+            path = get_conf_path('lsp_root_path')
+            if not osp.exists(path):
+                os.mkdir(path)
 
         return path
 
@@ -120,9 +117,11 @@ class LSPManager(QObject):
         Send a new initialize message to each LSP server when the project
         path has changed so they can update the respective server root paths.
         """
+        self.main.projects.stop_lsp_services()
         for language in self.clients:
             language_client = self.clients[language]
             if language_client['status'] == self.RUNNING:
+                self.main.editor.stop_lsp_services(language)
                 folder = self.get_root_path(language)
                 instance = language_client['instance']
                 instance.folder = folder
