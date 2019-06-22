@@ -17,6 +17,7 @@ import string
 # Third-party imports
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextOption
+from spyder_kernels.utils.nsview import value_to_display
 
 # Local imports
 from spyder.config.base import _
@@ -210,6 +211,13 @@ class AttributeModel(object):
 #######################
 # Column definitions ##
 #######################
+ATTR_MODEL_VALUE = AttributeModel(
+    'Value',
+    doc=_("The value of the object."),
+    data_fn=lambda tree_item: value_to_display(tree_item.obj),
+    col_visible=True,
+    width=SMALL_COL_WIDTH)
+
 ATTR_MODEL_NAME = AttributeModel(
     'Name',
     doc=_("The name of the object."),
@@ -448,7 +456,7 @@ DEFAULT_ATTR_COLS = (
     ATTR_MODEL_NAME,
     ATTR_MODEL_CLASS,
     ATTR_MODEL_LENGTH,
-    # ATTR_MODEL_VALUE,
+    ATTR_MODEL_VALUE,
     ATTR_MODEL_CALLABLE,
     ATTR_MODEL_PATH,
     ATTR_MODEL_ID,
