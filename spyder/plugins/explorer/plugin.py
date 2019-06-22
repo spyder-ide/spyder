@@ -21,12 +21,15 @@ from qtpy.QtWidgets import QVBoxLayout
 from spyder.config.base import _
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.utils.qthelpers import add_actions, MENU_SEPARATOR
-from spyder.plugins.explorer.widgets import ExplorerWidget
+from spyder.plugins.explorer.widgets.explorer import ExplorerWidget
+from spyder.plugins.explorer.confpage import ExplorerConfigPage
+
 
 class Explorer(SpyderPluginWidget):
     """File and Directories Explorer DockWidget."""
 
     CONF_SECTION = 'explorer'
+    CONFIGWIDGET_CLASS = ExplorerConfigPage
 
     def __init__(self, parent=None):
         """Initialization."""
@@ -39,6 +42,8 @@ class Explorer(SpyderPluginWidget):
             show_icontext=self.get_option('show_icontext'),
             options_button=self.options_button,
             single_click_to_open=self.get_option('single_click_to_open'),
+            file_associations=self.get_option('file_associations',
+                                              default={}),
         )
 
         layout = QVBoxLayout()
@@ -47,6 +52,10 @@ class Explorer(SpyderPluginWidget):
 
         self.fileexplorer.sig_option_changed.connect(
             self._update_config_options)
+
+    def _update_config_options(self, option, value):
+        """Update the config options of the explorer to make them permanent."""
+        self.set_option(option, value)
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
@@ -112,11 +121,28 @@ class Explorer(SpyderPluginWidget):
         """Action to be performed on first plugin registration"""
         self.tabify(self.main.variableexplorer)
 
+    def apply_plugin_settings(self, options):
+        """Handle preference options update."""
+        method_map = {
+            'file_associations':
+                self.fileexplorer.treewidget.set_file_associations,
+            'single_click_to_open':
+                self.fileexplorer.treewidget.set_single_click_to_open,
+            'name_filters':
+                self.fileexplorer.treewidget.set_name_filters,
+            'show_all':
+                self.fileexplorer.treewidget.toggle_all,
+            'show_icontext':
+                self.fileexplorer.toggle_icontext,
+        }
+        for option in options:
+            if option in method_map:
+                value = self.get_option(option)
+                method = method_map.get(option)
+                method(value)
+        self.fileexplorer.treewidget.update_common_actions()
+
     #------ Public API ---------------------------------------------------------
     def chdir(self, directory):
         """Set working directory"""
         self.fileexplorer.treewidget.chdir(directory)
-
-    def _update_config_options(self, option, value):
-        """Update the config options of the explorer to make them permanent."""
-        self.set_option(option, value)

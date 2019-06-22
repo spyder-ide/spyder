@@ -2,22 +2,26 @@
 #
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
-
 """Tests for programs.py"""
 
+# Standard library imports
 import os
 import os.path as osp
 import sys
 
+# Third party impors
 from flaky import flaky
 import pytest
 
-from spyder.utils.programs import (run_python_script_in_terminal,
-                                   is_python_interpreter,
+# Local imports
+from spyder.utils.programs import (check_version, find_program,
+                                   get_application_icon,
+                                   get_installed_applications, get_temp_dir,
+                                   is_module_installed, is_python_interpreter,
                                    is_python_interpreter_valid_name,
-                                   find_program, shell_split, check_version,
-                                   is_module_installed, get_temp_dir)
-
+                                   open_files_with_application,
+                                   parse_linux_desktop_entry,
+                                   run_python_script_in_terminal, shell_split)
 
 if os.name == 'nt':
     python_dir = os.environ['PYTHON'] if os.environ.get('CI', None) else ''
@@ -161,6 +165,68 @@ def test_get_temp_dir_ensure_dir_exists():
 
     assert os.path.exists(another_call)
     assert another_call == temp_dir
+
+
+def test_get_installed_apps_and_icons(qtbot):
+    apps = get_installed_applications()
+    assert apps
+    for app in apps:
+        fpath = apps[app]
+        icon = get_application_icon(fpath)
+        assert icon
+        assert osp.isdir(fpath) or osp.isfile(fpath)
+
+
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="Test for linux only")
+def test_parse_linux_desktop_entry():
+    apps = get_installed_applications()
+    for app in apps:
+        fpath = apps[app]
+        data = parse_linux_desktop_entry(fpath)
+        assert data
+
+        for key in ['name', 'icon_path', 'hidden', 'exec', 'type', 'fpath']:
+            assert key in data
+
+        assert fpath == data['fpath']
+
+
+def test_open_files_with_application(tmp_path):
+    fpath = tmp_path / 'file space.txt'
+    fpath.write_text(u'Hello')
+    fpath_2 = tmp_path / 'file2.txt'
+    fpath_2.write_text(u'Hello 2')
+
+    if os.name == 'nt':
+        ext = '.exe'
+        path_obj = tmp_path / ("some-new app" + ext)
+        path_obj.write_bytes(b'\x00\x00')
+        app_path = str(path_obj)
+    elif sys.platform == 'darwin':
+        ext = '.app'
+        path_obj = tmp_path / ("some-new app" + ext)
+        path_obj.mkdir()
+        app_path = str(path_obj)
+    else:
+        ext = '.desktop'
+        path_obj = tmp_path / ("some-new app" + ext)
+        path_obj.write_text(u'''
+[Desktop Entry]
+Name=Suer app
+Type=Application
+Exec=/something/bleerp
+Icon=/blah/blah.xpm
+''')
+        app_path = str(path_obj)
+
+    fnames = [str(fpath), str(fpath_2)]
+    return_codes = open_files_with_application(app_path, fnames)
+    assert 0 not in return_codes.values()
+
+    # Test raises
+    with pytest.raises(ValueError):
+        return_codes = open_files_with_application('not-valid.ext', fnames)
 
 
 if __name__ == '__main__':
