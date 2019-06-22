@@ -19,8 +19,8 @@ import numpy as np
 import pytest
 
 # Local imports
-from spyder.plugins.variableexplorer.widgets.objectexplorer.objectexplorer \
-    import ObjectExplorer
+from spyder.plugins.variableexplorer.widgets.objectexplorer import (
+        ObjectExplorer)
 from spyder.py3compat import PY2
 
 # =============================================================================

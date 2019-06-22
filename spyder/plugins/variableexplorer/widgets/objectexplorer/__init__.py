@@ -10,8 +10,8 @@
 
 
 """
-spyder.plugins.variableexplorer.widgets.objecteditor2
-=====================================================
+spyder.plugins.variableexplorer.widgets.objectexplorer
+======================================================
 
 Variable Explorer-Object inspector widget.
 """
