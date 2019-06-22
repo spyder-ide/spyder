@@ -16,19 +16,20 @@ import logging
 import traceback
 
 # Third-party imports
-from qtpy.QtCore import (Slot, Signal, QModelIndex, QPoint, QSize, Qt, QTimer)
+from qtpy.QtCore import Slot, Signal, QModelIndex, QPoint, QSize, Qt
 from qtpy.QtGui import QFont, QKeySequence, QTextOption
-from qtpy.QtWidgets import (QAbstractItemView, QAction,
-                            QButtonGroup, QHBoxLayout, QGroupBox,
-                            QMenu, QPlainTextEdit, QRadioButton,
-                            QSplitter, QToolButton, QVBoxLayout, QWidget,
-                            QDialog, QHeaderView)
+from qtpy.QtWidgets import (QAbstractItemView, QAction, QButtonGroup,
+                            QDialog, QGroupBox, QHBoxLayout, QHeaderView,
+                            QMenu, QRadioButton, QSplitter, QToolButton,
+                            QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import is_dark_interface
+from spyder.config.gui import get_font, is_dark_interface
+from spyder.config.main import CONF
 from spyder.utils.qthelpers import (add_actions, create_plugin_layout,
                                     create_toolbutton, qapplication)
+from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.variableexplorer.widgets.objectexplorer.attribute_model \
     import DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS
 from spyder.plugins.variableexplorer.widgets.objectexplorer.tree_model import (
@@ -176,7 +177,6 @@ class ObjectExplorer(QDialog):
         self.toggle_show_special_attribute_action.toggled.connect(
             self._proxy_tree_model.setShowSpecialAttributes)
 
-
     def _setup_menu(self, show_callable_attributes=False,
                     show_special_attributes=False):
         """Sets up the main menu."""
@@ -293,14 +293,8 @@ class ObjectExplorer(QDialog):
         group_layout.addWidget(radio_widget)
 
         # Editor widget
-        font = QFont()
-        font.setFamily('Courier')
-        font.setFixedPitch(True)
-        # font.setPointSize(14)
-
-        self.editor = QPlainTextEdit()
+        self.editor = CodeEditor(self)
         self.editor.setReadOnly(True)
-        self.editor.setFont(font)
         group_layout.addWidget(self.editor)
 
         # Splitter parameters
@@ -366,21 +360,6 @@ class ObjectExplorer(QDialog):
         if button is not None:
             button.setChecked(True)
 
-    def _writeViewSettings(self):
-        """Writes the view settings to the persistent store."""
-        logger.debug("Writing view settings "
-                     "for window: {:d}".format(self._instance_nr))
-#
-#        settings = get_qsettings()
-#        settings.beginGroup(self._settings_group_name('view'))
-#        self.obj_tree.write_view_settings("table/header_state", settings)
-#        settings.setValue("central_splitter/state",
-#                          self.central_splitter.saveState())
-#        settings.setValue("details_button_idx", self.button_group.checkedId())
-#        settings.setValue("main_window/pos", self.pos())
-#        settings.setValue("main_window/size", self.size())
-#        settings.endGroup()
-
     @Slot(QModelIndex, QModelIndex)
     def _update_details(self, current_index, _previous_index):
         """Shows the object details in the editor given an index."""
@@ -406,6 +385,20 @@ class ObjectExplorer(QDialog):
             data = attr_details.data_fn(tree_item)
             self.editor.setPlainText(data)
             self.editor.setWordWrapMode(attr_details.line_wrap)
+            show_blanks = CONF.get('editor', 'blank_spaces')
+            update_scrollbar = CONF.get('editor', 'scroll_past_end')
+            scheme_name = CONF.get('appearance', 'selected')
+            self.editor.setup_editor(markers=True,
+                                     tab_mode=False,
+                                     font=get_font(),
+                                     show_blanks=show_blanks,
+                                     color_scheme=scheme_name,
+                                     scroll_past_end=update_scrollbar)
+            self.editor.set_text(data)
+            if attr_details.name == 'Source Code':
+                self.editor.set_language('Python')
+            else:
+                self.editor.set_language('Rst')
         except Exception as ex:
             self.editor.setStyleSheet("color: red;")
             stack_trace = traceback.format_exc()
@@ -430,7 +423,6 @@ class ObjectExplorer(QDialog):
     def closeEvent(self, event):
         """Called when the window is closed."""
         logger.debug("closeEvent")
-        self._writeViewSettings()
         self._finalize()
         self.close()
         event.accept()
