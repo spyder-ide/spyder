@@ -24,8 +24,7 @@ import re
 
 # Third party imports
 from qtpy.compat import getopenfilename, getsavefilename
-from qtpy.QtCore import (QByteArray, QProcess, QProcessEnvironment, QTextCodec,
-                         Qt, Signal)
+from qtpy.QtCore import QByteArray, QProcess, QProcessEnvironment, Qt, Signal
 from qtpy.QtGui import QColor
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QLabel, QMessageBox,
                             QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget)
@@ -47,9 +46,6 @@ try:
 except KeyError as error:
     import gettext
     _ = gettext.gettext
-
-
-locale_codec = QTextCodec.codecForLocale()
 
 
 def is_profiler_installed():
@@ -320,7 +316,7 @@ class ProfilerWidget(QWidget):
                 qba += self.process.readAllStandardError()
             else:
                 qba += self.process.readAllStandardOutput()
-        text = to_text_string( locale_codec.toUnicode(qba.data()) )
+        text = to_text_string(qba.data(), encoding='utf-8')
         if error:
             self.error_output += text
         else:

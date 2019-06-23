@@ -21,7 +21,7 @@ import time
 # Third party imports
 import pylint
 from qtpy.compat import getopenfilename
-from qtpy.QtCore import QByteArray, QProcess, QTextCodec, Signal, Slot
+from qtpy.QtCore import QByteArray, QProcess, Signal, Slot
 from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMessageBox, QTreeWidgetItem,
                             QVBoxLayout, QWidget)
 
@@ -46,7 +46,6 @@ except KeyError as error:
     import gettext
     _ = gettext.gettext
 
-locale_codec = QTextCodec.codecForLocale()
 PYLINT_REQVER = '>=0.25'
 PYLINT_VER = pylint.__version__
 dependencies.add("pylint", _("Static code analysis"),
@@ -334,7 +333,7 @@ class PylintWidget(QWidget):
                 qba += self.process.readAllStandardError()
             else:
                 qba += self.process.readAllStandardOutput()
-        text = to_text_string( locale_codec.toUnicode(qba.data()) )
+        text = to_text_string(qba.data(), encoding='utf-8')
         if error:
             self.error_output += text
         else:
