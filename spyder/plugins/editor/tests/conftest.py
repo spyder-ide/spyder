@@ -48,6 +48,8 @@ def editor_plugin(qtbot, monkeypatch):
                 projects = Mock()
                 projects.get_active_project.return_value = None
                 return projects
+            elif attr == 'new_instance':
+                return False  # otherwise autosave is disabled
             else:
                 return Mock()
 
