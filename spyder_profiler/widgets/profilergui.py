@@ -49,9 +49,6 @@ except KeyError as error:
     _ = gettext.gettext
 
 
-locale_codec = QTextCodec.codecForLocale()
-
-
 def is_profiler_installed():
     from spyder.utils.programs import is_module_installed
     return is_module_installed('cProfile') and is_module_installed('pstats')
@@ -320,7 +317,7 @@ class ProfilerWidget(QWidget):
                 qba += self.process.readAllStandardError()
             else:
                 qba += self.process.readAllStandardOutput()
-        text = to_text_string( locale_codec.toUnicode(qba.data()) )
+        text = to_text_string(qba.data(), encoding='utf-8')
         if error:
             self.error_output += text
         else:
