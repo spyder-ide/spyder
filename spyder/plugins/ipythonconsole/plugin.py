@@ -1327,7 +1327,11 @@ class IPythonConsole(SpyderPluginWidget):
             if ("<ipython-input-" in fname and
                     self.run_cell_filename is not None):
                 fname = self.run_cell_filename
-            self.edit_goto.emit(osp.abspath(fname), int(lnb), '')
+            # This is needed to fix issue spyder-ide/spyder#9217
+            try:
+                self.edit_goto.emit(osp.abspath(fname), int(lnb), '')
+            except ValueError:
+                pass
 
     @Slot()
     def show_intro(self):
