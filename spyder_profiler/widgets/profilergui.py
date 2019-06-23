@@ -24,8 +24,7 @@ import re
 
 # Third party imports
 from qtpy.compat import getopenfilename, getsavefilename
-from qtpy.QtCore import (QByteArray, QProcess, QProcessEnvironment, QTextCodec,
-                         Qt, Signal)
+from qtpy.QtCore import QByteArray, QProcess, QProcessEnvironment, Qt, Signal
 from qtpy.QtGui import QColor
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QLabel, QMessageBox,
                             QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget)
