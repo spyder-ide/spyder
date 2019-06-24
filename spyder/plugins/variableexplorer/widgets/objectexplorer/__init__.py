@@ -13,7 +13,10 @@
 spyder.plugins.variableexplorer.widgets.objectexplorer
 ======================================================
 
-Variable Explorer-Object inspector widget.
+Object explorer widget.
 """
 
+from .attribute_model import DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS
+from .tree_model import TreeModel, TreeProxyModel
+from .toggle_column_mixin import ToggleColumnTreeView
 from .objectexplorer import ObjectExplorer

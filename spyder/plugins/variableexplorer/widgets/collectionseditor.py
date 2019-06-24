@@ -57,7 +57,7 @@ from spyder.utils.qthelpers import (add_actions, create_action,
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.plugins.variableexplorer.widgets.objectexplorer import (
-        ObjectExplorer)
+    ObjectExplorer)
 
 if ndarray is not FakeObject:
     from spyder.plugins.variableexplorer.widgets.arrayeditor import (

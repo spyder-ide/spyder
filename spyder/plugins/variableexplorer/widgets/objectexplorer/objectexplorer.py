@@ -30,15 +30,14 @@ from spyder.config.main import CONF
 from spyder.utils.qthelpers import (add_actions, create_plugin_layout,
                                     create_toolbutton, qapplication)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
-from spyder.plugins.variableexplorer.widgets.objectexplorer.attribute_model \
-    import DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS
-from spyder.plugins.variableexplorer.widgets.objectexplorer.tree_model import (
+from spyder.plugins.variableexplorer.widgets.objectexplorer import (
+    DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS, ToggleColumnTreeView,
     TreeModel, TreeProxyModel)
-from spyder.plugins.variableexplorer.widgets.objectexplorer.\
-    toggle_column_mixin import ToggleColumnTreeView
 from spyder.utils import icon_manager as ima
 
+
 logger = logging.getLogger(__name__)
+
 
 # About message
 EDITOR_NAME = 'Object'
