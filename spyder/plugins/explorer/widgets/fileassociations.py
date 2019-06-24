@@ -289,10 +289,11 @@ class FileAssociationsWidget(QWidget):
 
         # Widgets
         self.label = QLabel(
-            _('Here you can associate which external applications you want'
-              'to use to open specific file extensions <br> (e.g. .txt '
-              'files with Notepad++ or .csv files with Excel).')
+            _("Here you can associate different external applications "
+              "to open specific file extensions (e.g. .txt "
+              "files with Notepad++ or .csv files with Excel).")
         )
+        self.label.setWordWrap(True)
         self.label_extensions = QLabel(_('File types:'))
         self.list_extensions = QListWidget()
         self.button_add = QPushButton(_('Add'))
