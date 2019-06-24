@@ -1335,7 +1335,11 @@ class IPythonConsole(SpyderPluginWidget):
             if ("<ipython-input-" in fname and
                     self.run_cell_filename is not None):
                 fname = self.run_cell_filename
-            self.edit_goto.emit(osp.abspath(fname), int(lnb), '')
+            # This is needed to fix issue spyder-ide/spyder#9217
+            try:
+                self.edit_goto.emit(osp.abspath(fname), int(lnb), '')
+            except ValueError:
+                pass
 
     @Slot()
     def show_intro(self):
@@ -1465,7 +1469,17 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Create kernel client
         kernel_client = QtKernelClient(connection_file=connection_file)
-        kernel_client.load_connection_file()
+
+        # This is needed for issue spyder-ide/spyder#9304
+        try:
+            kernel_client.load_connection_file()
+        except Exception as e:
+            QMessageBox.critical(self, _('Connection error'),
+                                 _("An error occurred while trying to load "
+                                   "the kernel connection file. The error "
+                                   "was:\n\n") + to_text_string(e))
+            return
+
         if hostname is not None:
             try:
                 connection_info = dict(ip = kernel_client.ip,

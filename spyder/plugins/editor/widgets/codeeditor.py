@@ -3483,6 +3483,7 @@ class CodeEditor(TextEditBaseWidget):
     def go_to_uri_from_cursor(self, uri):
         """Go to url from cursor and defined hover patterns."""
         key = self._last_hover_pattern_key
+        full_uri = uri
         if key in ['file']:
             fname = self._preprocess_file_uri(uri)
 

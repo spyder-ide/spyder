@@ -11,19 +11,24 @@ Fixture to create files folders.
 # Standard imports
 import os
 import os.path as osp
+import sys
 
 # Third party imports
 import pytest
 
 # Local imports
 from spyder.py3compat import to_text_string
+from spyder.plugins.explorer.widgets.fileassociations import (
+    FileAssociationsWidget)
 
 
-@pytest.fixture(params=[['script.py', 'dir1/dir2/dir3/dir4'],
-                        ['script.py', 'script1.py', 'testdir/dir1/script2.py'],
-                        ['subdir/innerdir/dir3/text.txt', 'dir1/dir2/dir3',
-                         'dir1/dir2/dir3/file.txt',
-                         'dir1/dir2/dir3/dir4/python.py']])
+@pytest.fixture(params=[
+        ['script.py', 'dir1/dir2/dir3/dir4'],
+        ['script.py', 'script1.py', 'testdir/dir1/script2.py'],
+        ['subdir/innerdir/dir3/text.txt', 'dir1/dir2/dir3',
+         'dir1/dir2/dir3/file.txt', 'dir1/dir2/dir3/dir4/python.py'],
+    ]
+)
 def create_folders_files(tmpdir, request):
     """A project directory with dirs and files for testing."""
     project_dir = to_text_string(tmpdir.mkdir('project'))
@@ -52,3 +57,41 @@ def create_folders_files(tmpdir, request):
                 fh.write("File Path:\n" + str(item_path).replace(os.sep, '/'))
         list_paths.append(item_path)
     return list_paths, project_dir, destination_dir, top_folder
+
+
+@pytest.fixture
+def file_assoc_widget(qtbot, tmp_path):
+    widget = FileAssociationsWidget()
+    qtbot.addWidget(widget)
+    if os.name == 'nt':
+        ext = '.exe'
+        path_obj = tmp_path / ('app 2' + ext)
+        path_obj.write_bytes(b'Binary file contents')
+        fpath = str(path_obj)
+    elif sys.platform == 'darwin':
+        ext = '.app'
+        path_obj = tmp_path / ('app 2' + ext)
+        path_obj.mkdir()
+        fpath = str(path_obj)
+    else:
+        ext = '.desktop'
+        path_obj = tmp_path / ('app 2' + ext)
+        path_obj.write_text(u'Text file contents')
+        fpath = str(path_obj)
+
+    data = {
+        '*.csv':
+            [
+                ('App name 1', '/path/to/app 1' + ext),
+                ('App name 2', fpath),
+            ],
+        '*.txt':
+            [
+                ('App name 2', fpath),
+                ('App name 3', '/path/to/app 3' + ext),
+            ],
+    }
+    widget.load_values(data)
+    widget.show()
+    widget.test_data = data
+    return qtbot, widget

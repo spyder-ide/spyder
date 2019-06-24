@@ -9,6 +9,7 @@ Configuration dialog / Preferences.
 """
 
 # Standard library imports
+import ast
 import os.path as osp
 
 # Third party imports
@@ -319,13 +320,21 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             if radiobutton.restart_required:
                 self.restart_options[option] = radiobutton.label_text
         for lineedit, (option, default) in list(self.lineedits.items()):
-            lineedit.setText(self.get_option(option, default))
+            data = self.get_option(option, default)
+            if getattr(lineedit, 'content_type', None) == list:
+                data = ', '.join(data)
+            lineedit.setText(data)
             lineedit.textChanged.connect(lambda _foo, opt=option:
                                          self.has_been_modified(opt))
             if lineedit.restart_required:
                 self.restart_options[option] = lineedit.label_text
         for textedit, (option, default) in list(self.textedits.items()):
-            textedit.setPlainText(self.get_option(option, default))
+            data = self.get_option(option, default)
+            if getattr(textedit, 'content_type', None) == list:
+                data = ', '.join(data)
+            elif getattr(textedit, 'content_type', None) == dict:
+                data = to_text_string(data)
+            textedit.setPlainText(data)
             textedit.textChanged.connect(lambda opt=option:
                                          self.has_been_modified(opt))
             if textedit.restart_required:
@@ -412,9 +421,24 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         for radiobutton, (option, _default) in list(self.radiobuttons.items()):
             self.set_option(option, radiobutton.isChecked())
         for lineedit, (option, _default) in list(self.lineedits.items()):
-            self.set_option(option, to_text_string(lineedit.text()))
+            data = lineedit.text()
+            if lineedit.content_type == list:
+                data = [item.strip() for item in data.split(',')]
+            else:
+                data = to_text_string(data)
+            self.set_option(option, data)
         for textedit, (option, _default) in list(self.textedits.items()):
-            self.set_option(option, to_text_string(textedit.toPlainText()))
+            data = textedit.toPlainText()
+            if textedit.content_type == dict:
+                if data:
+                    data = ast.literal_eval(data)
+                else:
+                    data = textedit.content_type()
+            elif textedit.content_type in (tuple, list):
+                data = [item.strip() for item in data.split(',')]
+            else:
+                data = to_text_string(data)
+            self.set_option(option, data)
         for spinbox, (option, _default) in list(self.spinboxes.items()):
             self.set_option(option, spinbox.value())
         for combobox, (option, _default) in list(self.comboboxes.items()):
@@ -485,10 +509,12 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
 
     def create_lineedit(self, text, option, default=NoDefault,
                         tip=None, alignment=Qt.Vertical, regex=None,
-                        restart=False, word_wrap=True, placeholder=None):
+                        restart=False, word_wrap=True, placeholder=None,
+                        content_type=None):
         label = QLabel(text)
         label.setWordWrap(word_wrap)
         edit = QLineEdit()
+        edit.content_type = content_type
         layout = QVBoxLayout() if alignment == Qt.Vertical else QHBoxLayout()
         layout.addWidget(label)
         layout.addWidget(edit)
@@ -509,10 +535,11 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         return widget
 
     def create_textedit(self, text, option, default=NoDefault,
-                        tip=None, restart=False):
+                        tip=None, restart=False, content_type=None):
         label = QLabel(text)
         label.setWordWrap(True)
         edit = QPlainTextEdit()
+        edit.content_type = content_type
         edit.setWordWrapMode(QTextOption.WordWrap)
         layout = QVBoxLayout()
         layout.addWidget(label)

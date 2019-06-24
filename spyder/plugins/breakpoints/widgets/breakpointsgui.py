@@ -19,9 +19,8 @@ import sys
 # Third party imports
 from qtpy import API
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import (QAbstractTableModel, QModelIndex, QTextCodec, Qt,
-                         Signal)
 from qtpy.QtWidgets import QItemDelegate, QMenu, QTableView, QWidget
+from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal
 
 # Local imports
 from spyder.api.toolbar import SpyderPluginToolbar
@@ -37,9 +36,6 @@ try:
 except KeyError as error:
     import gettext
     _ = gettext.gettext
-
-
-locale_codec = QTextCodec.codecForLocale()
 
 
 class BreakpointTableModel(QAbstractTableModel):

@@ -11,18 +11,19 @@ Tests for explorer.py
 # Standard imports
 import os
 import os.path as osp
+import sys
 
 # Third party imports
 import pytest
-from qtpy.QtCore import Qt, QPoint, QEvent
+from qtpy.QtCore import QEvent, QPoint, Qt, QTimer
 from qtpy.QtGui import QMouseEvent
-from qtpy.QtWidgets import QApplication
-from qtpy.QtWidgets import QMessageBox
+from qtpy.QtWidgets import QApplication, QMenu, QMessageBox
 
 # Local imports
-from spyder.plugins.explorer.widgets import (FileExplorerTest,
-                                             ProjectExplorerTest)
-from spyder.plugins.projects.widgets.explorer import ProjectExplorerTest as ProjectExplorerTest2
+from spyder.plugins.explorer.widgets.explorer import (FileExplorerTest,
+                                                      ProjectExplorerTest)
+from spyder.plugins.projects.widgets.explorer import (
+    ProjectExplorerTest as ProjectExplorerTest2)
 
 
 @pytest.fixture
@@ -34,11 +35,46 @@ def file_explorer(qtbot):
 
 
 @pytest.fixture
+def file_explorer_associations(qtbot):
+    """Set up FileExplorerTest."""
+    if os.name == 'nt':
+        ext = '.exe'
+    elif sys.platform == 'darwin':
+        ext = '.app'
+    else:
+        ext = '.desktop'
+
+    associations = {
+        '*.txt': [
+            ('App 1', '/some/fake/some_app_1' + ext),
+        ],
+        '*.json,*.csv': [
+            ('App 2', '/some/fake/some_app_2' + ext),
+            ('App 1', '/some/fake/some_app_1' + ext),
+        ],
+    }
+    widget = FileExplorerTest(file_associations=associations)
+    widget.show()
+    qtbot.addWidget(widget)
+    return widget
+
+
+@pytest.fixture
 def project_explorer(qtbot):
     """Set up FileExplorerTest."""
     widget = ProjectExplorerTest()
     qtbot.addWidget(widget)
     return widget
+
+
+def create_timer(func, interval=500):
+    """Helper function to help interact with modal dialogs."""
+    timer = QTimer()
+    timer.setInterval(interval)
+    timer.setSingleShot(True)
+    timer.timeout.connect(func)
+    timer.start()
+    return timer
 
 
 @pytest.fixture(params=[FileExplorerTest, ProjectExplorerTest2])
@@ -143,7 +179,7 @@ def test_single_click_to_open(qtbot, file_explorer):
         file_explorer.label3.setText('')
         file_explorer.label1.setText('')
 
-        for i in range(4):  # 4 items inside `/spyder/plugins/explorer/`
+        for __ in range(4):  # 4 items inside `/spyder/plugins/explorer/`
             qtbot.keyClick(treewidget, Qt.Key_Down)
             index = treewidget.currentIndex()
             path = model.data(index)
@@ -169,6 +205,145 @@ def test_single_click_to_open(qtbot, file_explorer):
     treewidget.set_single_click_to_open(False)
     assert 'False' in file_explorer.label3.text()
     run_test_helper(single_click=False, initial_index=initial_index)
+
+
+def test_get_common_file_associations(qtbot, file_explorer_associations):
+    widget = file_explorer_associations.explorer.treewidget
+    associations = widget.get_common_file_associations(
+        [
+            '/some/path/file.txt',
+            '/some/path/file1.json',
+            '/some/path/file2.csv',
+        ])
+    if os.name == 'nt':
+        ext = '.exe'
+    elif sys.platform == 'darwin':
+        ext = '.app'
+    else:
+        ext = '.desktop'
+    assert associations[0][-1] == '/some/fake/some_app_1' + ext
+
+
+def test_get_file_associations(qtbot, file_explorer_associations):
+    widget = file_explorer_associations.explorer.treewidget
+    associations = widget.get_file_associations('/some/path/file.txt')
+    if os.name == 'nt':
+        ext = '.exe'
+    elif sys.platform == 'darwin':
+        ext = '.app'
+    else:
+        ext = '.desktop'
+    assert associations[0][-1] == '/some/fake/some_app_1' + ext
+
+
+def test_create_file_manage_actions(qtbot, file_explorer_associations,
+                                    tmp_path):
+    widget = widget = file_explorer_associations.explorer.treewidget
+    fpath = tmp_path / 'text.txt'
+    fpath.write_text(u'hello!')
+    fpath_2 = tmp_path / 'text.json'
+    fpath_2.write_text(u'hello!')
+    fpath_3 = tmp_path / 'text.md'
+    fpath_3.write_text(u'hello!')
+
+    # Single file with valid association
+    actions = widget.create_file_manage_actions([str(fpath)])
+    action_texts = [action.title().lower() for action in actions
+                    if isinstance(action, QMenu)]
+    assert 'open with' in action_texts
+
+    # Two files with valid association
+    actions = widget.create_file_manage_actions([str(fpath), str(fpath_2)])
+    action_texts = [action.title().lower() for action in actions
+                    if isinstance(action, QMenu)]
+    assert 'open with' in action_texts
+
+    # Single file with no association
+    actions = widget.create_file_manage_actions([str(fpath_3)])
+    action_texts = [action.title().lower() for action in actions
+                    if isinstance(action, QMenu)]
+    assert not action_texts
+
+
+def test_clicked(qtbot, file_explorer_associations, tmp_path):
+    widget = file_explorer_associations.explorer.treewidget
+    some_dir = tmp_path / 'some_dir'
+    some_dir.mkdir()
+    fpath = some_dir / 'text.txt'
+    fpath.write_text(u'hello!')
+    widget.set_show_all(True)
+    widget.chdir(str(some_dir))
+    qtbot.wait(500)
+
+    # Select first item
+    qtbot.keyClick(widget, Qt.Key_Up)
+
+    # Test click
+    def interact():
+        msgbox = widget.findChild(QMessageBox)
+        assert msgbox
+        qtbot.keyClick(msgbox, Qt.Key_Return)
+
+    _ = create_timer(interact)
+    qtbot.keyClick(widget, Qt.Key_Return)
+
+    # Test no message box
+    def interact_2():
+        msgbox = widget.findChild(QMessageBox)
+        assert not msgbox
+
+    widget.set_file_associations({})
+    _ = create_timer(interact_2)
+    qtbot.keyClick(widget, Qt.Key_Return)
+
+
+def test_check_launch_error_codes(qtbot, file_explorer_associations):
+    widget = file_explorer_associations.explorer.treewidget
+
+    # Check no problems
+    return_codes = {'some-command': 0, 'some-other-command': 0}
+    assert widget.check_launch_error_codes(return_codes)
+
+    # Check problem
+    def interact():
+        msgbox = widget.findChild(QMessageBox)
+        assert msgbox
+        qtbot.keyClick(msgbox, Qt.Key_Return)
+
+    return_codes = {'some-command': 1}
+    _ = create_timer(interact)
+    res = widget.check_launch_error_codes(return_codes)
+    assert not res
+
+    # Check problems
+    def interact_2():
+        msgbox = widget.findChild(QMessageBox)
+        assert msgbox
+        qtbot.keyClick(msgbox, Qt.Key_Return)
+
+    return_codes = {'some-command': 1, 'some-other-command': 1}
+    _ = create_timer(interact_2)
+    res = widget.check_launch_error_codes(return_codes)
+    assert not res
+
+
+def test_open_association(qtbot, file_explorer_associations, tmp_path):
+    widget = file_explorer_associations.explorer.treewidget
+    some_dir = tmp_path / 'some_dir'
+    some_dir.mkdir()
+    fpath = some_dir / 'text.txt'
+    fpath.write_text(u'hello!')
+
+    # Select first item
+    qtbot.keyClick(widget, Qt.Key_Down)
+
+    def interact():
+        msgbox = widget.findChild(QMessageBox)
+        assert msgbox
+        qtbot.keyClick(msgbox, Qt.Key_Return)
+
+    _ = create_timer(interact)
+    widget.open_association('some-app')
 
 
 if __name__ == "__main__":

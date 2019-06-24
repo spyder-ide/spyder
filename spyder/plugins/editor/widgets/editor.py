@@ -58,7 +58,8 @@ from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
 from spyder.plugins.editor.utils.findtasks import find_tasks
 from spyder.widgets.tabs import BaseTabs
 from spyder.config.main import CONF
-from spyder.plugins.explorer.widgets import show_in_external_file_explorer
+from spyder.plugins.explorer.widgets.explorer import (
+    show_in_external_file_explorer)
 
 
 logger = logging.getLogger(__name__)
@@ -3258,7 +3259,8 @@ def test():
     t0 = time.time()
     test.load(osp.join(spyder_dir, "plugins", "editor", "widgets",
                        "editor.py"))
-    test.load(osp.join(spyder_dir, "plugins", "explorer", "widgets.py"))
+    test.load(osp.join(spyder_dir, "plugins", "explorer", "widgets",
+                       'explorer.py'))
     test.load(osp.join(spyder_dir, "plugins", "variableexplorer", "widgets",
                        "collectionseditor.py"))
     test.load(osp.join(spyder_dir, "plugins", "editor", "widgets",
