@@ -171,7 +171,9 @@ DEFAULTS = [
               'exclude_capitalized': False,
               'exclude_unsupported': True,
               'truncate': True,
-              'minmax': False
+              'minmax': False,
+              'show_callable_attributes': True,
+              'show_special_attributes': False
              }),
             ('plots',
              {
