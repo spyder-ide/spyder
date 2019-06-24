@@ -120,3 +120,19 @@ def editor_plugin_open_files(request, editor_plugin, python_files):
         return editor, expected_filenames, expected_current_filename
 
     return _get_editor_open_files
+
+
+@pytest.fixture
+def conf(request):
+    """
+    Fixture yielding the Spyder config and resetting it after the test.
+
+    You can use conf.set() to change the Spyder config in your test function.
+    If you want to change the config at setup time, then use
+    @pytest.mark.parametrize('conf', [(section, label, value)], indirect=True)
+    in front of your test function
+    """
+    if hasattr(request, 'param'):
+        CONF.set(*request.param)
+    yield CONF
+    CONF.reset_to_defaults()
