@@ -307,7 +307,7 @@ class ObjectExplorer(QDialog):
         # Splitter parameters
         self.central_splitter.setCollapsible(0, False)
         self.central_splitter.setCollapsible(1, True)
-        self.central_splitter.setSizes([400, 200])
+        self.central_splitter.setSizes([500, 320])
         self.central_splitter.setStretchFactor(0, 10)
         self.central_splitter.setStretchFactor(1, 0)
 
@@ -326,7 +326,7 @@ class ObjectExplorer(QDialog):
         :param reset: If True, the program resets to its default settings.
         """
         pos = QPoint(20 * self._instance_nr, 20 * self._instance_nr)
-        window_size = QSize(825, 500)
+        window_size = QSize(825, 650)
         details_button_idx = 0
 
         header = self.obj_tree.header()
