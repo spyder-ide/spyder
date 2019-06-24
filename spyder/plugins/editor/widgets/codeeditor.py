@@ -2029,11 +2029,14 @@ class CodeEditor(TextEditBaseWidget):
             msg = msg.strip()
             # Avoid messing TODO, FIXME
             msg = msg[0].upper() + msg[1:]
-            msg = textwrap.wrap(msg, width=self._DEFAULT_MAX_WIDTH)
-            if len(msg) > 1:
-                msg = '<br>'.join(msg) + '<br>'
-            else:
-                msg = '<br>'.join(msg)
+            paragraphs = msg.splitlines()
+            for paragraph in paragraphs:
+                paragraph = textwrap.wrap(msg, width=self._DEFAULT_MAX_WIDTH)
+                if len(paragraph) > 1:
+                    paragraph = '<br>'.join(paragraph) + '<br>'
+                else:
+                    paragraph = '<br>'.join(paragraph)
+            msg = '<br>'.join(paragraphs)
             base_64 = ima.base64_from_icon(icons[sev], size, size)
             msglist.append(template.format(base_64, msg, src,
                                            code, size=size))

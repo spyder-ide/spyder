@@ -203,11 +203,24 @@ class BaseEditMixin(object):
             text = '\n<i>No documentation available</i>'
 
         if not with_html_format:
-            # Wrap text
-            lines = textwrap.wrap(text, width=max_width)
+            paragraphs = text.splitlines()
+            for paragraph in paragraphs:
+                # Wrap text
+                paragraph = textwrap.wrap(text, width=max_width)
 
-            # Remove empty lines at the beginning
-            lines = [l for l in lines if l.strip()]
+                # Remove empty lines at the beginning
+                paragraph = [l for l in paragraph if l.strip()]
+
+                # Merge paragraph text
+                paragraph = '\n'.join(paragraph)
+
+            # Join paragraphs and split in lines for max_lines check
+            paragraphs = '\n'.join(paragraphs)
+            lines = paragraphs.splitlines()
+
+            # Check that the first line is not empty
+            if not lines[0].strip():
+                lines = lines[1:]
         else:
             lines = [l for l in text.split('\n') if l.strip()]
 
