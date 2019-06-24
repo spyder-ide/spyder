@@ -13,7 +13,7 @@ chardet >=2.0.0
 numpydoc
 pyqt <5.10
 keyring
-spyder-kernels >=1.4
+spyder-kernels >=1.4.0
 python-language-server >=0.19
 qdarkstyle >=2.6.4
 atomicwrites
