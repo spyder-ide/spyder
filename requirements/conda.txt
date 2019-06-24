@@ -14,7 +14,7 @@ numpydoc
 pyqt <5.10
 keyring
 spyder-kernels >=1.4.0
-python-language-server >=0.19
+python-language-server >=0.27.0
 qdarkstyle >=2.6.4
 atomicwrites
 diff-match-patch
