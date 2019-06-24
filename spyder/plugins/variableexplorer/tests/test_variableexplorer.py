@@ -35,9 +35,7 @@ def test_get_settings(monkeypatch):
     settings = VariableExplorer(None).get_settings()
     expected = {'dataframe_format': '%3d',
                 'remote1': 'remote1val',
-                'remote2': 'remote2val',
-                'show_callable_attributes': None,
-                'show_special_attributes': None}
+                'remote2': 'remote2val'}
     assert settings == expected
 
 
