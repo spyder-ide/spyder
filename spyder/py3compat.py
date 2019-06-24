@@ -84,6 +84,15 @@ else:
 #==============================================================================
 # Strings
 #==============================================================================
+def to_unichr(character_code):
+    """
+    Return the Unicode string of the character with the given Unicode code.
+    """
+    if PY2:
+        return unichr(character_code)
+    else:
+        return chr(character_code)
+
 def is_type_text_string(obj):
     """Return True if `obj` is type text string, False if it is anything else,
     like an instance of a class that extends the basestring class."""

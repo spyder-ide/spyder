@@ -212,7 +212,7 @@ install_requires = [
     'pyzmq',
     'chardet>=2.0.0',
     'numpydoc',
-    'spyder-kernels>=1.2',
+    'spyder-kernels>=1.4',
     'qdarkstyle>=2.6.4',
     'atomicwrites',
     'diff-match-patch',
