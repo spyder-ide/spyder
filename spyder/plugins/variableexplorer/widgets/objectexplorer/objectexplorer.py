@@ -394,8 +394,7 @@ class ObjectExplorer(QDialog):
             show_blanks = CONF.get('editor', 'blank_spaces')
             update_scrollbar = CONF.get('editor', 'scroll_past_end')
             scheme_name = CONF.get('appearance', 'selected')
-            self.editor.setup_editor(markers=True,
-                                     tab_mode=False,
+            self.editor.setup_editor(tab_mode=False,
                                      font=get_font(),
                                      show_blanks=show_blanks,
                                      color_scheme=scheme_name,
