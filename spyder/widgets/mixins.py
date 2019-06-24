@@ -230,7 +230,7 @@ class BaseEditMixin(object):
                 text = '\n'.join(lines[:max_lines]) + ' ...'
 
         text = text.replace('\n', '<br>')
-        if text_new_line:
+        if text_new_line and signature:
             text = '<br>' + text
 
         template += BASE_TEMPLATE.format(
@@ -381,7 +381,7 @@ class BaseEditMixin(object):
                 title = title_template
             new_signatures.append(title)
 
-        return '<br><br>'.join(new_signatures)
+        return '<br>'.join(new_signatures)
 
     def _check_signature_and_format(self, signature_or_text, parameter=None,
                                     max_width=_DEFAULT_MAX_WIDTH,
@@ -516,7 +516,9 @@ class BaseEditMixin(object):
                      at_line=None, at_point=None, display_link=False,
                      max_lines=_DEFAULT_MAX_LINES,
                      max_width=_DEFAULT_MAX_WIDTH,
-                     cursor=None, with_html_format=False):
+                     cursor=None,
+                     with_html_format=False,
+                     text_new_line=True):
         """Show tooltip."""
         # Find position of calltip
         point = self._calculate_position(
@@ -534,7 +536,8 @@ class BaseEditMixin(object):
             display_link=display_link,
             max_lines=max_lines,
             max_width=max_width,
-            with_html_format=with_html_format
+            with_html_format=with_html_format,
+            text_new_line=text_new_line
         )
 
         self._update_stylesheet(self.tooltip_widget)
@@ -544,7 +547,8 @@ class BaseEditMixin(object):
 
     def show_hint(self, text, inspect_word, at_point,
                   max_lines=_DEFAULT_MAX_HINT_LINES,
-                  max_width=_DEFAULT_MAX_HINT_WIDTH):
+                  max_width=_DEFAULT_MAX_HINT_WIDTH,
+                  text_new_line=True):
         """Show code hint and crop text as needed."""
         # Check if signature and format
         res = self._check_signature_and_format(text)
@@ -559,7 +563,8 @@ class BaseEditMixin(object):
         self.show_tooltip(signature=html_signature, text=extra_text,
                           at_point=point, inspect_word=inspect_word,
                           display_link=True, max_lines=max_lines,
-                          max_width=max_width, cursor=cursor)
+                          max_width=max_width, cursor=cursor,
+                          text_new_line=text_new_line)
 
     def hide_tooltip(self):
         """
