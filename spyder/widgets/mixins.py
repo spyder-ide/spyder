@@ -191,6 +191,7 @@ class BaseEditMixin(object):
                 template += '<hr>'
 
         if signature:
+            signature = signature.strip('\r\n')
             template += BASE_TEMPLATE.format(
                 font_family=font_family,
                 size=text_size,
@@ -199,8 +200,11 @@ class BaseEditMixin(object):
             )
 
         # Documentation/text handling
-        if not text:
-            text = '\n<i>No documentation available</i>'
+        if (text is None or not text.strip() or
+                text.strip() == '<no docstring>'):
+            text = '<i>No documentation available</i>'
+        else:
+            text = text.strip()
 
         if not with_html_format:
             paragraphs = text.splitlines()
@@ -216,10 +220,11 @@ class BaseEditMixin(object):
 
             # Join paragraphs and split in lines for max_lines check
             paragraphs = '\n'.join(paragraphs)
+            paragraphs = paragraphs.strip('\r\n')
             lines = paragraphs.splitlines()
 
             # Check that the first line is not empty
-            if not lines[0].strip():
+            if len(lines) > 0 and not lines[0].strip():
                 lines = lines[1:]
         else:
             lines = [l for l in text.split('\n') if l.strip()]
