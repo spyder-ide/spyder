@@ -13,7 +13,7 @@ Toolbar widgets designed specifically for Spyder plugin widgets.
 
 # Third party imports
 from qtpy.QtWidgets import (QApplication, QFrame, QHBoxLayout, QStyle,
-                            QWidget, QGridLayout)
+                            QWidget, QGridLayout, QToolBar, QSizePolicy)
 
 # Local imports
 from spyder.utils.qthelpers import set_iconsize_recursively
@@ -67,48 +67,43 @@ class SpyderPluginToolbar(QWidget):
 
     def add_item(self, item, stretch=None, row=0):
         """
-        Add a widget or a layout with an horizontal stretch factor stretch
-        to the end of this toolbar at row.
+        Add a widget, a separator or an empty space to the end of this
+        toolbar's row.
         """
-        row_layout = self._get_hboxlayout_at_row(row)
-
         if item is None:
-            item = QWidget()
-            layout = QGridLayout(item)
-            layout.setContentsMargins(0, 0, 0, 0)
-            layout.setSpacing(0)
-            frame = QFrame()
-            frame.setFrameShape(QFrame.VLine)
-            layout.addWidget(frame, 1, 0)
-            layout.setRowStretch(0, 1)
-            layout.setRowStretch(1, 3)
-            layout.setRowStretch(2, 1)
+            self.add_separator(row)
         elif isinstance(item, int):
             self.add_spacing(spacing=item, row=row)
+        else:
+            self.add_widget(item, stretch, row)
 
-        column = row_layout.count()
-        if row_layout.itemAt(column - 1) is None:
-            column = max(0, column - 1)
-
-        try:
-            row_layout.insertWidget(column, item)
-        except TypeError:
-            row_layout.insertLayout(column, item)
-
-        if stretch is not None:
-            row_layout.setStretchFactor(item, stretch)
+    def add_separator(self, row=0):
+        """
+        Add a separator to the end of this toolbar's row.
+        """
+        separator = QToolBar()
+        separator.addSeparator()
+        separator.setStyleSheet(
+            "QToolBar {border: 0px; background: transparent}")
+        policy = separator.sizePolicy()
+        policy.setVerticalPolicy(QSizePolicy.Expanding)
+        separator.setSizePolicy(policy)
+        self.add_widget(separator, stretch=None, row=row)
 
     def add_widget(self, widget, stretch=None, row=0):
         """
         Add a widget with an horizontal stretch factor stretch to the end
-        of this toolbar at row.
+        of this toolbar's row.
         """
-        self.add_item(widget, stretch=stretch, row=row)
+        row_layout = self._get_hboxlayout_at_row(row)
+        row_layout.addWidget(widget)
+        if stretch is not None:
+            row_layout.setStretchFactor(widget, stretch)
 
     def add_stretch(self, stretch, row=0):
         """
         Add a stretchable space with zero minimum size and stretch factor
-        stretch to the end of this toolbar at row.
+        stretch to the end of this toolbar's row.
         """
         row_layout = self._get_hboxlayout_at_row(row)
         row_layout.addStretch(stretch)
@@ -116,7 +111,7 @@ class SpyderPluginToolbar(QWidget):
     def add_spacing(self, spacing=None, row=0):
         """
         Add a non-stretchable space with size spacing to the end
-        of this toolbar at row.
+        of this toolbar's row.
         """
         row_layout = self._get_hboxlayout_at_row(row)
         if spacing is None:
