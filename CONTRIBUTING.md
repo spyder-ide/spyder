@@ -54,14 +54,11 @@ If you use Anaconda you can create a conda environment with
 the following commands:
 
 ```bash
-  $ conda create -n spyder-dev python=3.6
-  $ source activate spyder-dev
+  $ conda create -n spyder-dev python=3.7
+  $ conda activate spyder-dev
 ```
 
-On Windows, you'll want to run the commands with the Anaconda Prompt,
-and use just ```activate spyder-dev``` for the second command.
-
-You can also use `virtualenv` on Linux, but `conda` is strongly
+You can also use `virtualenv` on Linux, but `conda` is **strongly**
 recommended:
 
 ```bash
