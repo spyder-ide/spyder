@@ -26,6 +26,9 @@ from spyder.utils import encoding
 from spyder.utils.misc import get_python_executable
 from spyder.py3compat import PY2, is_text_string, to_text_string
 
+import logging
+
+logger = logging.getLogger(__name__)
 
 class ProgramError(Exception):
     pass
@@ -315,7 +318,7 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
                                  _("It was not possible to run this file in "
                                    "an external terminal"),
                                  QMessageBox.Ok)
-    elif os.name == 'posix':
+    elif sys.platform.startswith('linux'):
         programs = [{'cmd': 'gnome-terminal',
                      'wdir-option': '--working-directory',
                      'execute-option': '-x'},
@@ -340,7 +343,13 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
                 else:
                     run_program(program['cmd'], arglist)
                 return
-        # TODO: Add a fallback to OSX
+    elif sys.platform == 'darwin':
+        import appscript
+        command = ""
+        if wdir:
+            command += "cd {0}\n".format(wdir)
+        command += "{0} {1}".format(p_args[0], p_args[1])
+        appscript.app('Terminal').do_script(command)
     else:
         raise NotImplementedError
 
