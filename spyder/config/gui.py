@@ -208,11 +208,13 @@ def get_iconsize(panel=False):
         return main_icon_size
 
 
-def get_toolbar_item_spacing(style=None):
+def get_toolbar_item_spacing():
     """Return an integer value to use for toolbar items spacing."""
-    if style is None:
+    if is_dark_interface():
+        return 2
+    else:
         style = QApplication.instance().style()
-    return style.pixelMetric(QStyle.PM_ToolBarItemSpacing)
+        return style.pixelMetric(QStyle.PM_ToolBarItemSpacing)
 
 
 for _name in sh.COLOR_SCHEME_NAMES:
