@@ -199,8 +199,8 @@ def test_set_get_project_filenames_when_closing(create_projects, tmpdir):
     # Close and reopen the project.
     projects.close_project()
     projects.open_project(path=path)
-    assert projects.get_project_filenames() == [os.path.relpath(file, path)
-                                                for file in opened_files]
+    assert projects.get_project_filenames() == opened_files
+
 
 
 def test_set_get_project_filenames_when_switching(create_projects, tmpdir):
@@ -224,8 +224,8 @@ def test_set_get_project_filenames_when_switching(create_projects, tmpdir):
     # Switch back to the first project.
     projects.close_project()
     projects.open_project(path=path1)
-    assert projects.get_project_filenames() == [os.path.relpath(file, path1)
-                                                for file in opened_files]
+    assert projects.get_project_filenames() == opened_files
+
 
 
 def test_recent_projects_menu_action(projects, tmpdir):
