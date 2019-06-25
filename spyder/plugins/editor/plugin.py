@@ -63,7 +63,7 @@ logger = logging.getLogger(__name__)
 
 
 # Dependencies
-PYLS_REQVER = '>=0.19.0;<0.25'
+PYLS_REQVER = '>=0.27.0'
 dependencies.add('pyls',
                  _("Editor's code completion, go-to-definition, help and "
                    "real-time code analysis"),
