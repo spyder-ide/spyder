@@ -1205,8 +1205,8 @@ msgid "Appearance"
 msgstr "Erscheinungsbild"
 
 #: spyder/plugins/configdialog.py:1120 spyder/plugins/ipythonconsole.py:633
-msgid "Advanced Settings"
-msgstr "Erweiterte Einstellungen"
+msgid "Advanced settings"
+msgstr "Erweiterte einstellungen"
 
 #: spyder/plugins/configdialog.py:1155
 msgid ""
@@ -2458,7 +2458,7 @@ msgstr ""
 "angezeigte Meldung ausblenden, wenn der Kernel neugestartet wird."
 
 #: spyder/plugins/ipythonconsole.py:337
-msgid "Completion Type"
+msgid "Completion type"
 msgstr "Vervollständigungstyp"
 
 #: spyder/plugins/ipythonconsole.py:338
@@ -2739,8 +2739,8 @@ msgstr ""
 "vorhanden sind)."
 
 #: spyder/plugins/ipythonconsole.py:580
-msgid "Symbolic Mathematics"
-msgstr "Symbolische Mathematik"
+msgid "Symbolic mathematics"
+msgstr "Symbolische mathematik"
 
 #: spyder/plugins/ipythonconsole.py:581
 msgid ""
@@ -3153,8 +3153,8 @@ msgid "Command line options:"
 msgstr "Befehlszeilenoptionen:"
 
 #: spyder/plugins/runconfig.py:202 spyder/plugins/runconfig.py:514
-msgid "Working Directory settings"
-msgstr "Einstellung des Arbeitsverzeichnises"
+msgid "Working directory settings"
+msgstr "Einstellung des arbeitsverzeichnises"
 
 #: spyder/plugins/runconfig.py:226 spyder/plugins/runconfig.py:548
 msgid "External system terminal"
@@ -3385,8 +3385,8 @@ msgstr ""
 "Projekt aktiv ist)"
 
 #: spyder/plugins/workingdirectory.py:62
-msgid "the following directory:"
-msgstr "das folgende Verzeichnis:"
+msgid "The following directory:"
+msgstr "Das folgende Verzeichnis:"
 
 #: spyder/plugins/workingdirectory.py:64
 msgid "The directory when a new console is open will be the specified path"

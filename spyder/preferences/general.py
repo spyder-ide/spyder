@@ -251,7 +251,7 @@ class MainConfigPage(GeneralConfigPage):
         tabs.addTab(self.create_tab(screen_resolution_group, interface_group),
                     _("Interface"))
         tabs.addTab(self.create_tab(general_group, sbar_group),
-                    _("Advanced Settings"))
+                    _("Advanced settings"))
 
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)
