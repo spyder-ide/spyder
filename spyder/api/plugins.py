@@ -154,6 +154,10 @@ class SpyderPlugin(BasePlugin):
     # Status: Optional
     CONFIGWIDGET_CLASS = None
 
+    # The plugin does not have a UI component
+    # Status: Optional
+    NO_WIDGET = True
+
     # ------------------------------ METHODS ----------------------------------
 
     def check_compatibility(self):
@@ -356,6 +360,8 @@ class SpyderPluginWidget(SpyderPlugin, BasePluginWidget):
     # these actions
     # Status: Optional
     shortcut = None
+
+    NO_WIDGET = False
 
     # ------------------------------ METHODS ----------------------------------
 

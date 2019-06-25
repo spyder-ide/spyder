@@ -57,7 +57,7 @@ from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               DocstringWriterExtension,
                                               QMenuOnlyForEnter,
                                               EditorExtensionsManager)
-from spyder.plugins.editor.lsp import (LSPRequestTypes, TextDocumentSyncKind,
+from spyder.plugins.languageserver import (LSPRequestTypes, TextDocumentSyncKind,
                                        DiagnosticSeverity)
 from spyder.plugins.editor.panels import (ClassFunctionDropdown,
                                           DebuggerPanel, EdgeLine,

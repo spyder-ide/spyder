@@ -21,9 +21,9 @@ import time
 import logging
 
 # Local imports
-from spyder.plugins.editor.lsp.transport.stdio.consumer import (
+from spyder.plugins.languageserver.transport.stdio.consumer import (
     StdioIncomingMessageThread)
-from spyder.plugins.editor.lsp.transport.common.producer import (
+from spyder.plugins.languageserver.transport.common.producer import (
     LanguageServerClient)
 
 from pexpect import popen_spawn

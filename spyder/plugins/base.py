@@ -17,7 +17,7 @@ import qdarkstyle
 from qtpy.QtCore import Qt, Slot
 from qtpy.QtGui import QCursor, QKeySequence
 from qtpy.QtWidgets import (QApplication, QDockWidget, QMainWindow, QMenu,
-                            QMessageBox, QShortcut, QToolButton)
+                            QMessageBox, QShortcut, QToolButton, QWidget)
 
 # Local imports
 from spyder.config.base import _
@@ -88,6 +88,20 @@ class BasePluginMixin(object):
     def _get_plugin_path(self):
         """Return filesystem path to the root directory of the plugin."""
         return os.path.dirname(inspect.getfile(self.__class__))
+
+    def _create_configwidget(self, dlg, main_window):
+        """Create configuration dialog box page widget"""
+        if self.CONFIGWIDGET_CLASS is not None:
+            parent = self
+            main = dlg
+            if self.NO_WIDGET:
+                # Prevent QWidget assignment to a plugin that does not have
+                # a graphical widget.
+                parent = dlg
+                main = main_window
+            configwidget = self.CONFIGWIDGET_CLASS(parent, main)
+            configwidget.initialize()
+            return configwidget
 
 
 class PluginWindow(QMainWindow):
@@ -242,13 +256,6 @@ class BasePluginWidgetMixin(object):
                             self.switch_to_plugin)
             self.register_shortcut(sc, "_", "Switch to %s" % self.CONF_SECTION)
         return (dock, self._LOCATION)
-
-    def _create_configwidget(self, parent):
-        """Create configuration dialog box page widget"""
-        if self.CONFIGWIDGET_CLASS is not None:
-            configwidget = self.CONFIGWIDGET_CLASS(self, parent)
-            configwidget.initialize()
-            return configwidget
 
     def _switch_to_plugin(self):
         """Switch to plugin."""
