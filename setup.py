@@ -213,7 +213,7 @@ install_requires = [
     'chardet>=2.0.0',
     'numpydoc',
     'spyder-kernels>=1.4.0,<1.5.0',
-    'qdarkstyle>=2.6.4',
+    'qdarkstyle>=2.7',
     'atomicwrites',
     'diff-match-patch',
     'watchdog',
