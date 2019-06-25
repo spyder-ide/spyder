@@ -87,8 +87,8 @@ class BaseProject(object):
             return []
 
         recent_files = [recent_file if os.path.isabs(recent_file)
-	                        else os.path.join(self.root_path, recent_file)
-	                        for recent_file in recent_files]
+                        else os.path.join(self.root_path, recent_file)
+                        for recent_file in recent_files]
         for recent_file in recent_files[:]:
             if not os.path.isfile(recent_file):
                 recent_files.remove(recent_file)
