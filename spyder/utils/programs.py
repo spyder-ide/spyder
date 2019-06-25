@@ -26,9 +26,6 @@ from spyder.utils import encoding
 from spyder.utils.misc import get_python_executable
 from spyder.py3compat import PY2, is_text_string, to_text_string
 
-import logging
-
-logger = logging.getLogger(__name__)
 
 class ProgramError(Exception):
     pass

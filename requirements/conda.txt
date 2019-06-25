@@ -20,3 +20,4 @@ atomicwrites
 diff-match-patch
 pexpect
 watchdog
+appscript
