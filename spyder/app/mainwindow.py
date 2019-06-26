@@ -614,18 +614,24 @@ class MainWindow(QMainWindow):
         color_scheme = CONF.get('appearance', 'selected')
 
         if ui_theme == 'dark':
-            qapp = QApplication.instance()
-            qapp.setStyle(SpyderProxyStyle())
-            # Set style proxy to handle combobox popup issues on mac and qdark
+            # Set style proxy to fix combobox popup on mac and qdark
+            if not running_under_pytest():
+                self._proxy_style = SpyderProxyStyle()
+                qapp = QApplication.instance()
+                qapp.setStyle(self._proxy_style)
+
             dark_qss = qdarkstyle.load_stylesheet_from_environment()
             self.setStyleSheet(dark_qss)
             self.statusBar().setStyleSheet(dark_qss)
             css_path = DARK_CSS_PATH
         elif ui_theme == 'automatic':
-            # Set style proxy to handle combobox popup issues on mac and qdark
             if not is_dark_font_color(color_scheme):
-                qapp = QApplication.instance()
-                qapp.setStyle(SpyderProxyStyle())
+                # Set style proxy to fix combobox popup on mac and qdark
+                if not running_under_pytest():
+                    self._proxy_style = SpyderProxyStyle()
+                    qapp = QApplication.instance()
+                    qapp.setStyle(self._proxy_style)
+
                 dark_qss = qdarkstyle.load_stylesheet_from_environment()
                 self.setStyleSheet(dark_qss)
                 self.statusBar().setStyleSheet(dark_qss)
