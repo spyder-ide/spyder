@@ -152,8 +152,29 @@ def ipyconsole(qtbot, request):
 # =============================================================================
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.parametrize(
+        "function,signature,documentation",
+        [("arange",
+          '''
+            <div style='font-family: "Consolas";
+                        font-size: 9pt;
+                        color: #999999'>
+                arange<span style="color:red;font-weight:bold">'''
+          '''(</span>[start<span style="color:red;font-weight:bold">,'''
+          '''</span>]&nbsp;stop[<span style="color:red;font-weight:bold">,'''
+          '''</span>&nbsp;step<span style="color:red;font-weight:bold">,'''
+          '''</span>]<span style="color:red;font-weight:bold">,</span>'''
+          '''&nbsp;dtype=None<span style="color:red;font-weight:bold">)</span>
+            </div>''',
+          '''
+            <div style='font-family: "Consolas";
+                        font-size: 9pt;
+                        color: #999999'>
+                <br>Return evenly spaced values within a given '''
+          '''interval.<br><br>Values are generated within '''
+          '''the half-open interval ``[start, stop)``<br>'''), ])
 @pytest.mark.skipif(sys.platform == 'darwin', reason="Times out on macOS")
-def test_get_calltips(ipyconsole, qtbot):
+def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
     """Test that calltips show the documentation."""
     shell = ipyconsole.get_current_shellwidget()
     control = shell._control
@@ -167,14 +188,16 @@ def test_get_calltips(ipyconsole, qtbot):
     # Write an object in the console that should generate a calltip
     # and wait for the kernel to send its response.
     with qtbot.waitSignal(shell.kernel_client.shell_channel.message_received):
-        qtbot.keyClicks(control, 'np.abs(')
+        qtbot.keyClicks(control, 'np.' + function + '(')
 
     # Wait a little bit for the calltip to appear
     qtbot.wait(500)
 
     # Assert we displayed a calltip
     assert control.calltip_widget.isVisible()
-    assert 'Calculate the absolute value' in control.calltip_widget.text()
+    assert signature in control.calltip_widget.text()
+    assert documentation in control.calltip_widget.text()
+
     # Hide the calltip to avoid focus problems on Linux
     control.calltip_widget.hide()
 
