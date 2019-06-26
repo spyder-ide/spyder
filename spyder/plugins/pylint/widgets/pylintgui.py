@@ -157,7 +157,7 @@ class PylintWidget(QWidget):
 
         self.output = None
         self.error_output = None
-
+        self.filename = None
         self.text_color = text_color
         self.prevrate_color = prevrate_color
 
@@ -183,7 +183,7 @@ class PylintWidget(QWidget):
                                              tip=_("Stop current analysis"),
                                              text_beside_icon=True)
         self.filecombo.valid.connect(self.start_button.setEnabled)
-        self.filecombo.valid.connect(self.show_data)
+        self.filecombo.valid.connect(self.check_new_file)
 
         browse_button = create_toolbutton(self, icon=ima.icon('fileopen'),
                                tip=_('Select Python file'),
@@ -229,6 +229,12 @@ class PylintWidget(QWidget):
             self.start_button.setEnabled(self.filecombo.is_valid())
         else:
             self.start_button.setEnabled(False)
+
+    def check_new_file(self):
+        fname = self.get_filename()
+        if fname != self.filename:
+            self.filename = fname
+            self.show_data()
 
     def get_filename(self):
         """Get current filename in combobox."""
