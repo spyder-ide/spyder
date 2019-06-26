@@ -2028,15 +2028,36 @@ class CodeEditor(TextEditBaseWidget):
 
             msg = msg.strip()
             # Avoid messing TODO, FIXME
-            msg = msg[0].upper() + msg[1:]
+            # Prevent error if msg only has one element
+            if len(msg) > 1:
+                msg = msg[0].upper() + msg[1:]
+
+            # Get individual lines following paragraph format and handle
+            # symbols like '<' and '>' to not mess with br tags
+            msg = msg.replace('<', '&lt;').replace('>', '&gt;')
             paragraphs = msg.splitlines()
+            new_paragraphs = []
+            long_paragraphs = 0
             for paragraph in paragraphs:
-                paragraph = textwrap.wrap(msg, width=self._DEFAULT_MAX_WIDTH)
-                if len(paragraph) > 1:
-                    paragraph = '<br>'.join(paragraph) + '<br>'
+                new_paragraph = textwrap.wrap(
+                    paragraph,
+                    width=self._DEFAULT_MAX_HINT_WIDTH)
+                if len(new_paragraph) > 1:
+                    new_paragraph = '<br>'.join(new_paragraph[:2]) + '...'
+                    long_paragraphs += 1
                 else:
-                    paragraph = '<br>'.join(paragraph)
-            msg = '<br>'.join(paragraphs)
+                    new_paragraph = '<br>'.join(new_paragraph)
+                new_paragraphs.append(new_paragraph)
+
+            if len(new_paragraphs) > 1:
+                # Define max lines taking into account that in the same
+                # tooltip you can find multiple warnings and messages
+                # and each one can have multiple lines
+                max_lines = 7
+                msg = '<br>'.join(new_paragraphs[:max_lines]) + '...<br>'
+            else:
+                msg = '<br>'.join(new_paragraphs)
+
             base_64 = ima.base64_from_icon(icons[sev], size, size)
             msglist.append(template.format(base_64, msg, src,
                                            code, size=size))

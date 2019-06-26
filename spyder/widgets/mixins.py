@@ -57,7 +57,7 @@ class BaseEditMixin(object):
     _DEFAULT_MAX_LINES = 10
     _DEFAULT_MAX_WIDTH = 60
     _DEFAULT_MAX_HINT_LINES = 20
-    _DEFAULT_MAX_HINT_WIDTH = 120
+    _DEFAULT_MAX_HINT_WIDTH = 85
 
     def __init__(self):
         self.eol_chars = None
