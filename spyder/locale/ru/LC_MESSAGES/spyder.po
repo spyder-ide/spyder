@@ -3106,7 +3106,7 @@ msgstr "Опции командной строки:"
 
 #: spyder/plugins/runconfig.py:202 spyder/plugins/runconfig.py:514
 msgid "Working Directory settings"
-msgstr "Настройки Pабочего каталога"
+msgstr "Настройки Рабочего каталога"
 
 #: spyder/plugins/runconfig.py:226 spyder/plugins/runconfig.py:548
 msgid "External system terminal"
