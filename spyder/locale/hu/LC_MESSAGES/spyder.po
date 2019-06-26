@@ -1037,7 +1037,7 @@ msgid "Appearance"
 msgstr "Nézet"
 
 #: spyder/plugins/configdialog.py:969 spyder/plugins/ipythonconsole.py:565
-msgid "Advanced settings"
+msgid "Advanced Settings"
 msgstr "Haladó beállítások"
 
 #: spyder/plugins/configdialog.py:1005
@@ -2490,7 +2490,7 @@ msgid "Ask for confirmation before closing"
 msgstr "Megerősítés kérése a zárás elött."
 
 #: spyder/plugins/ipythonconsole.py:295
-msgid "Completion type"
+msgid "Completion Type"
 msgstr "Kiegészítés típusa"
 
 #: spyder/plugins/ipythonconsole.py:296
@@ -2679,8 +2679,8 @@ msgstr "<b>%s</b> módban, Auto-hívas nem vonatkozik ha a hívható után nincs
 
 #: spyder/plugins/ipythonconsole.py:512
 #, fuzzy
-msgid "Symbolic mathematics"
-msgstr "Szimbolikus matematika"
+msgid "Symbolic Mathematics"
+msgstr "Szimbolikus Matematika"
 
 #: spyder/plugins/ipythonconsole.py:513
 msgid "Perfom symbolic operations in the console (e.g. integrals, derivatives, vector calculus, etc) and get the outputs in a beautifully printed style (it requires the Sympy module)."
@@ -3039,8 +3039,8 @@ msgid "the script directory"
 msgstr "códfájl directory"
 
 #: spyder/plugins/runconfig.py:493 spyder/plugins/workingdirectory.py:57
-msgid "The following directory:"
-msgstr "Bizonyos directory:"
+msgid "the following directory:"
+msgstr "bizonyos directory:"
 
 #: spyder/plugins/runconfig.py:522
 msgid "Show warning when killing running processes"

@@ -1012,7 +1012,7 @@ msgid "Appearance"
 msgstr ""
 
 #: spyder/plugins/configdialog.py:1120 spyder/plugins/ipythonconsole.py:633
-msgid "Advanced settings"
+msgid "Advanced Settings"
 msgstr ""
 
 #: spyder/plugins/configdialog.py:1155
@@ -2141,7 +2141,7 @@ msgid ""
 msgstr ""
 
 #: spyder/plugins/ipythonconsole.py:337
-msgid "Completion type"
+msgid "Completion Type"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole.py:338
@@ -2353,7 +2353,7 @@ msgid "On <b>%s</b> mode, Autocall is not applied if there are no arguments afte
 msgstr ""
 
 #: spyder/plugins/ipythonconsole.py:580
-msgid "Symbolic mathematics"
+msgid "Symbolic Mathematics"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole.py:581
@@ -2661,7 +2661,7 @@ msgid "Command line options:"
 msgstr ""
 
 #: spyder/plugins/runconfig.py:202 spyder/plugins/runconfig.py:514
-msgid "Working directory settings"
+msgid "Working Directory settings"
 msgstr ""
 
 #: spyder/plugins/runconfig.py:226 spyder/plugins/runconfig.py:548
@@ -2866,7 +2866,7 @@ msgid "The current project directory or user home directory (if no project is ac
 msgstr ""
 
 #: spyder/plugins/workingdirectory.py:62
-msgid "The following directory:"
+msgid "the following directory:"
 msgstr ""
 
 #: spyder/plugins/workingdirectory.py:64

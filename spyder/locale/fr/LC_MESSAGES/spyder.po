@@ -1194,7 +1194,7 @@ msgid "Appearance"
 msgstr "Apparence"
 
 #: spyder/plugins/configdialog.py:1120 spyder/plugins/ipythonconsole.py:633
-msgid "Advanced settings"
+msgid "Advanced Settings"
 msgstr "Options avancées"
 
 #: spyder/plugins/configdialog.py:1155
@@ -2450,7 +2450,7 @@ msgstr ""
 "lors du redémarrage du noyau."
 
 #: spyder/plugins/ipythonconsole.py:337
-msgid "Completion type"
+msgid "Completion Type"
 msgstr "Type de complétion de code"
 
 #: spyder/plugins/ipythonconsole.py:338
@@ -2721,7 +2721,7 @@ msgstr ""
 "automatiquement appelés (même s'il n'y a pas d'arguments)"
 
 #: spyder/plugins/ipythonconsole.py:580
-msgid "Symbolic mathematics"
+msgid "Symbolic Mathematics"
 msgstr "Calcul formel"
 
 #: spyder/plugins/ipythonconsole.py:581
@@ -3132,7 +3132,7 @@ msgid "Command line options:"
 msgstr "Options en ligne de commande :"
 
 #: spyder/plugins/runconfig.py:202 spyder/plugins/runconfig.py:514
-msgid "Working directory settings"
+msgid "Working Directory settings"
 msgstr "Paramètres du répertoire de travail"
 
 #: spyder/plugins/runconfig.py:226 spyder/plugins/runconfig.py:548
@@ -3363,8 +3363,8 @@ msgstr ""
 "(si aucun projet n’est actif)"
 
 #: spyder/plugins/workingdirectory.py:62
-msgid "The following directory:"
-msgstr "Le répertoire suivant :"
+msgid "the following directory:"
+msgstr "le répertoire suivant :"
 
 #: spyder/plugins/workingdirectory.py:64
 msgid "The directory when a new console is open will be the specified path"

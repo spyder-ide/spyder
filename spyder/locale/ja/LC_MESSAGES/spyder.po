@@ -1177,7 +1177,7 @@ msgid "Appearance"
 msgstr "外見"
 
 #: spyder/plugins/configdialog.py:1120 spyder/plugins/ipythonconsole.py:633
-msgid "Advanced settings"
+msgid "Advanced Settings"
 msgstr "詳細設定"
 
 #: spyder/plugins/configdialog.py:1155
@@ -2407,7 +2407,7 @@ msgstr ""
 "警告メッセージを隠すことができます。"
 
 #: spyder/plugins/ipythonconsole.py:337
-msgid "Completion type"
+msgid "Completion Type"
 msgstr "補完タイプ"
 
 #: spyder/plugins/ipythonconsole.py:338
@@ -2677,7 +2677,7 @@ msgstr ""
 "ジェクトが自動的に呼ばれます。"
 
 #: spyder/plugins/ipythonconsole.py:580
-msgid "Symbolic mathematics"
+msgid "Symbolic Mathematics"
 msgstr "記号数学"
 
 #: spyder/plugins/ipythonconsole.py:581
@@ -3075,7 +3075,7 @@ msgid "Command line options:"
 msgstr "コマンドラインオプション:"
 
 #: spyder/plugins/runconfig.py:202 spyder/plugins/runconfig.py:514
-msgid "Working directory settings"
+msgid "Working Directory settings"
 msgstr "作業ディレクトリ設定"
 
 #: spyder/plugins/runconfig.py:226 spyder/plugins/runconfig.py:548
@@ -3297,7 +3297,7 @@ msgstr ""
 "ホームディレクトリ"
 
 #: spyder/plugins/workingdirectory.py:62
-msgid "The following directory:"
+msgid "the following directory:"
 msgstr "以下のディレクトリ:"
 
 #: spyder/plugins/workingdirectory.py:64

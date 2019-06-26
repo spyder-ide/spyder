@@ -1012,7 +1012,7 @@ msgid "Appearance"
 msgstr "外观"
 
 #: spyder/plugins/configdialog.py:1120 spyder/plugins/ipythonconsole.py:633
-msgid "Advanced settings"
+msgid "Advanced Settings"
 msgstr "高级设置"
 
 #: spyder/plugins/configdialog.py:1155
@@ -2136,7 +2136,7 @@ msgid ""
 msgstr "该选项会让您隐藏重启 IPython kernel 时的警告信息。"
 
 #: spyder/plugins/ipythonconsole.py:337
-msgid "Completion type"
+msgid "Completion Type"
 msgstr "完成类型"
 
 #: spyder/plugins/ipythonconsole.py:338
@@ -2358,7 +2358,7 @@ msgid "On <b>%s</b> mode, Autocall is not applied if there are no arguments afte
 msgstr "在<b>%s </b>模式下，如果可调用对象后没有参数，则不应用自动调用。 在<b>%s </b>模式下，将自动调用所有可调用对象（即使不存在任何参数）。"
 
 #: spyder/plugins/ipythonconsole.py:580
-msgid "Symbolic mathematics"
+msgid "Symbolic Mathematics"
 msgstr "符号化运算"
 
 #: spyder/plugins/ipythonconsole.py:581
@@ -2681,7 +2681,7 @@ msgid "Command line options:"
 msgstr "命令行选项："
 
 #: spyder/plugins/runconfig.py:202 spyder/plugins/runconfig.py:514
-msgid "Working directory settings"
+msgid "Working Directory settings"
 msgstr "工作目录设置"
 
 #: spyder/plugins/runconfig.py:226 spyder/plugins/runconfig.py:548
@@ -2882,7 +2882,7 @@ msgid "The current project directory or user home directory (if no project is ac
 msgstr "当前项目目录或用户目录（如果没有活动项目）"
 
 #: spyder/plugins/workingdirectory.py:62
-msgid "The following directory:"
+msgid "the following directory:"
 msgstr "以下目录："
 
 #: spyder/plugins/workingdirectory.py:64
