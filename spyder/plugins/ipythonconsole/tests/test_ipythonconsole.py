@@ -155,24 +155,17 @@ def ipyconsole(qtbot, request):
 @pytest.mark.parametrize(
         "function,signature,documentation",
         [("arange",
-          '''
-            <div style='font-family: "Consolas";
-                        font-size: 9pt;
-                        color: #999999'>
-                arange<span style="color:red;font-weight:bold">'''
-          '''(</span>[start<span style="color:red;font-weight:bold">,'''
-          '''</span>]&nbsp;stop[<span style="color:red;font-weight:bold">,'''
-          '''</span>&nbsp;step<span style="color:red;font-weight:bold">,'''
-          '''</span>]<span style="color:red;font-weight:bold">,</span>'''
-          '''&nbsp;dtype=None<span style="color:red;font-weight:bold">)</span>
-            </div>''',
-          '''
-            <div style='font-family: "Consolas";
-                        font-size: 9pt;
-                        color: #999999'>
-                <br>Return evenly spaced values within a given '''
-          '''interval.<br><br>Values are generated within '''
-          '''the half-open interval ``[start, stop)``<br>'''), ])
+          ["start", "stop"],
+          ["Return evenly spaced values within a given interval.<br>",
+           "returns an ndarray rather than a list.<br>"]),
+         ("vectorize",
+          ["pyfunc", "otype", "signature"],
+          ["Generalized function class.<br>",
+           "numpy array or a tuple of numpy ..."]),
+         ("absolute",
+          ["x", "/", "out"],
+          ["Parameters<br>", "x : array_like ..."])]
+        )
 @pytest.mark.skipif(sys.platform == 'darwin', reason="Times out on macOS")
 def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
     """Test that calltips show the documentation."""
@@ -195,11 +188,15 @@ def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
 
     # Assert we displayed a calltip
     assert control.calltip_widget.isVisible()
-    assert signature in control.calltip_widget.text()
-    assert documentation in control.calltip_widget.text()
 
     # Hide the calltip to avoid focus problems on Linux
     control.calltip_widget.hide()
+    
+    # Check spected elements for signature and documentation
+    for element in signature:
+        assert element in control.calltip_widget.text()
+    for element in documentation:
+        assert element in control.calltip_widget.text()
 
 
 @pytest.mark.slow
