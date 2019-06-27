@@ -94,7 +94,7 @@ class BasePluginMixin(object):
         if self.CONFIGWIDGET_CLASS is not None:
             parent = self
             main = dlg
-            if self.NO_WIDGET:
+            if not hasattr(self, 'dockwidget'):
                 # Prevent QWidget assignment to a plugin that does not have
                 # a graphical widget.
                 parent = dlg
