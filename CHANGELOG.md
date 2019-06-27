@@ -2,6 +2,12 @@
 
 ## Version 3.3.5 (2019-06-27)
 
+### New features
+
+* Add option to allow users showing/hiding CMD windows created by the
+  `subprocess` module on Windows. The option can be found in
+  `Preferences > IPython Console > Advanced settings > Windows adjustments`.
+
 ### Issues Closed
 
 * [Issue 9520](https://github.com/spyder-ide/spyder/issues/9520) - Can't run profiler ([PR 9652](https://github.com/spyder-ide/spyder/pull/9652))
