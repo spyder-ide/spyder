@@ -39,7 +39,7 @@ def test_userconfig_get_string_from_inifile(userconfig):
     assert userconfig.get('section', 'option') == 'value'
 
 def test_userconfig_get_does_not_eval_functions(userconfig):
-    # regression test for issue #3354
+    # regression test for spyder-ide/spyder#3354
     userconfig.set('section', 'option', 'print("foo")')
     assert userconfig.get('section', 'option') == 'print("foo")'
 

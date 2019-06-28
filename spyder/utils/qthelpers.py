@@ -84,7 +84,7 @@ def qapplication(translate=True, test_time=3):
         # https://groups.google.com/forum/#!topic/pyside/24qxvwfrRDs
         app = SpyderApplication(['Spyder'])
 
-        # Set application name for KDE (See issue 2207)
+        # Set application name for KDE (See spyder-ide/spyder#2207)
         app.setApplicationName('Spyder')
     if translate:
         install_translator(app)
@@ -339,7 +339,8 @@ def add_actions(target, actions, insert_before=None):
                         continue
             if insert_before is None:
                 # This is needed in order to ignore adding an action whose
-                # wrapped C/C++ object has been deleted. See issue 5074
+                # wrapped C/C++ object has been deleted.
+                # See spyder-ide/spyder#5074
                 try:
                     target.addAction(action)
                 except RuntimeError:

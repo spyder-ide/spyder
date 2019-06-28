@@ -547,7 +547,7 @@ class DirView(QTreeView):
         # Prevent Qt from crashing or showing warnings like:
         # "QSortFilterProxyModel: index from wrong model passed to
         # mapFromSource", probably due to the fact that the file system model
-        # is being built. See Issue 1250.
+        # is being built. See spyder-ide/spyder#1250.
         #
         # This workaround was inspired by the following KDE bug:
         # https://bugs.kde.org/show_bug.cgi?id=172198
@@ -560,7 +560,7 @@ class DirView(QTreeView):
     def contextMenuEvent(self, event):
         """Override Qt method"""
         # Needed to handle not initialized menu.
-        # See issue 6975
+        # See spyder-ide/spyder#6975
         try:
             self.update_menu()
             self.menu.popup(event.globalPos())
@@ -722,7 +722,7 @@ class DirView(QTreeView):
                 shutil.rmtree(dirname, onerror=misc.onerror)
             except Exception as e:
                 # This handles a Windows problem with shutil.rmtree.
-                # See issue #8567.
+                # See spyder-ide/spyder#8567.
                 if type(e).__name__ == "OSError":
                     error_path = to_text_string(e.filename)
                     shutil.rmtree(error_path, ignore_errors=True)
@@ -1508,7 +1508,8 @@ class ExplorerTreeWidget(DirView):
                                  _("You don't have the right permissions to "
                                    "open this directory"))
         except FileNotFoundError:
-            # Handle renaming directories on the fly. See issue #5183
+            # Handle renaming directories on the fly.
+            # See spyder-ide/spyder#5183
             self.history.pop(self.histindex)
 
 

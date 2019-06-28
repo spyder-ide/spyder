@@ -218,7 +218,7 @@ class TabBar(QTabBar):
             # We pass self object ID as a QString, because otherwise it would
             # depend on the platform: long for 64bit, int for 32bit. Replacing
             # by long all the time is not working on some 32bit platforms
-            # (see Issue 1094, Issue 1098)
+            # (see spyder-ide/spyder#1094, spyder-ide/spyder#1098)
             self.sig_move_tab[(str, int, int)].emit(tabwidget_from, index_from,
                                                     index_to)
             event.acceptProposedAction()
@@ -474,6 +474,6 @@ class Tabs(BaseTabs):
         # We pass self object IDs as QString objs, because otherwise it would
         # depend on the platform: long for 64bit, int for 32bit. Replacing
         # by long all the time is not working on some 32bit platforms
-        # (see Issue 1094, Issue 1098)
+        # (see spyder-ide/spyder#1094, spyder-ide/spyder#1098)
         self.sig_move_tab.emit(tabwidget_from, to_text_string(id(self)),
                                index_from, index_to)

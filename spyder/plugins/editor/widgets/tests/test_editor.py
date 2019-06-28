@@ -617,7 +617,7 @@ def test_tab_moves_focus_from_search_to_replace(editor_find_replace_bot, qtbot):
 @pytest.mark.skipif(not os.name == 'nt', reason="Fails on Linux and macOS.")
 def test_tab_copies_find_to_replace(editor_find_replace_bot, qtbot):
     """Check that text in the find box is copied to the replace box on tab
-    keypress. Regression test #4482."""
+    keypress. Regression test spyder-ide/spyder#4482."""
     editor_stack, editor, finder = editor_find_replace_bot
     finder.show()
     finder.show_replace()
@@ -745,7 +745,7 @@ def test_maybe_autosave_does_not_save_after_open(base_editor_bot, mocker,
 
     Files should only be autosaved after the user made changes.
     Editors use different highlighters depending on the filename, so we test
-    both Python and text files. The latter covers issue #8654.
+    both Python and text files. The latter covers spyder-ide/spyder#8654.
     """
     editor_stack = base_editor_bot
     mocker.patch('spyder.plugins.editor.widgets.editor.encoding.read',

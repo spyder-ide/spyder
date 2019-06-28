@@ -53,7 +53,7 @@ class AppearanceConfigPage(GeneralConfigPage):
         styles = [str(txt) for txt in list(QStyleFactory.keys())]
         # Don't offer users the possibility to change to a different
         # style in Gtk-based desktops
-        # Fixes Issue 2036
+        # spyder-ide/spyder#2036
         if is_gtk_desktop() and ('GTK+' in styles):
             styles = ['GTK+']
         choices = list(zip(styles, [style.lower() for style in styles]))

@@ -84,9 +84,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         # Set the color of the matched parentheses here since the qtconsole
         # uses a hard-coded value that is not modified when the color scheme is
-        # set in the qtconsole constructor. See issue #4806.   
+        # set in the qtconsole constructor. See spyder-ide/spyder#4806.
         self.set_bracket_matcher_color_scheme(self.syntax_style)
-                
+
     #---- Public API ----------------------------------------------------------
     def set_exit_callback(self):
         """Set exit callback for this shell."""
@@ -132,7 +132,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             return
         else:
             self.silent_exec_method(code)
-            
+
     def set_bracket_matcher_color_scheme(self, color_scheme):
         """Set color scheme for matched parentheses."""
         bsh = sh.BaseSH(parent=self, color_scheme=color_scheme)
@@ -209,8 +209,8 @@ These commands were executed:
             banner = banner + lines
         if (pylab_o and sympy_o):
             lines = """
-Warning: pylab (numpy and matplotlib) and symbolic math (sympy) are both 
-enabled at the same time. Some pylab functions are going to be overrided by 
+Warning: pylab (numpy and matplotlib) and symbolic math (sympy) are both
+enabled at the same time. Some pylab functions are going to be overrided by
 the sympy module (e.g. plot)
 """
             banner = banner + lines
@@ -461,7 +461,7 @@ the sympy module (e.g. plot)
         %matplotlib, send the same command again to the kernel to
         correctly change it.
 
-        Fixes issue 4002
+        Fixes spyder-ide/spyder#4002
         """
         if command.startswith('%matplotlib') and \
           len(command.splitlines()) == 1:

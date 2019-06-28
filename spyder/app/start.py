@@ -17,11 +17,11 @@ import sys
 import time
 
 # To prevent a race condition with ZMQ
-# See issue 5324
+# See spyder-ide/spyder#5324
 import zmq
 
 # Load GL library to prevent segmentation faults on some Linux systems
-# See issues 3226 and 3332
+# See spyder-ide/spyder#3226 and spyder-ide/spyder#3332
 try:
     ctypes.CDLL("libGL.so.1", mode=ctypes.RTLD_GLOBAL)
 except:
@@ -121,17 +121,17 @@ def main():
 
         # Don't show useless warning in the terminal where Spyder
         # was started
-        # See issue 3730
+        # See spyder-ide/spyder#3730
         os.environ['EVENT_NOKQUEUE'] = '1'
     else:
         # Prevent our kernels to crash when Python fails to identify
         # the system locale.
-        # Fixes issue 7051.
+        # Fixes spyder-ide/spyder#7051.
         try:
             from locale import getlocale
             getlocale()
         except ValueError:
-            # This can fail on Windows. See issue 6886
+            # This can fail on Windows. See spyder-ide/spyder#6886
             try:
                 os.environ['LANG'] = 'C'
                 os.environ['LC_ALL'] = 'C'
@@ -163,7 +163,7 @@ def main():
             # If locking fails because of errors in the lockfile
             # module, try to remove a possibly stale spyder.lock.
             # This is reported to solve all problems with
-            # lockfile (See issue 2363)
+            # lockfile (See spyder-ide/spyder#2363)
             try:
                 if os.name == 'nt':
                     if osp.isdir(lock_file):

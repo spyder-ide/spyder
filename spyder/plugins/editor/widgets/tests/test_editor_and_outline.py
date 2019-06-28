@@ -115,7 +115,7 @@ def test_close_editor(editorstack, outlineexplorer, test_files):
     Test that the content of the outline explorer is empty after the
     editorstack has been closed.
 
-    Regression test for issue #7798.
+    Regression test for spyder-ide/spyder#7798.
     """
     editorstack = editorstack(test_files)
     treewidget = outlineexplorer.treewidget
@@ -131,7 +131,7 @@ def test_close_a_file(editorstack, outlineexplorer, test_files):
     Test that the content of the outline explorer is updated corrrectly
     after a file has been closed in the editorstack.
 
-    Regression test for issue #7798.
+    Regression test for spyder-ide/spyder#7798.
     """
     editorstack = editorstack(test_files)
     treewidget = outlineexplorer.treewidget

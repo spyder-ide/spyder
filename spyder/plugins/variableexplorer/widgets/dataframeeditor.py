@@ -323,7 +323,7 @@ class DataFrameModel(QAbstractTableModel):
                     return to_qvariant(self._format % value)
                 except (ValueError, TypeError):
                     # may happen if format = '%d' and value = NaN;
-                    # see issue 4139
+                    # see spyder-ide/spyder#4139
                     return to_qvariant(DEFAULT_FORMAT % value)
             elif is_type_text_string(value):
                 # Don't perform any conversion on strings
@@ -533,7 +533,7 @@ class DataFrameView(QTableView):
 
         except NameError:
             # Needed to handle a NameError while fetching data when closing
-            # See issue 7880
+            # See spyder-ide/spyder#7880
             pass
 
     def sortByColumn(self, index):

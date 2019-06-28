@@ -221,7 +221,7 @@ class RecoveryDialog(QDialog):
                 os.replace(autosave['name'], orig_name)
             except (AttributeError, OSError):
                 # os.replace() does not exist on Python 2 and fails if the
-                # files are on different file systems (issue #8631)
+                # files are on different file systems, spyder-ide/spyder#8631
                 shutil.copy2(autosave['name'], orig_name)
                 os.remove(autosave['name'])
             self.deactivate(idx)

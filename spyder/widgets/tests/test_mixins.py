@@ -35,7 +35,7 @@ def test_get_unicode_regexp(mixinsbot):
     Test that we can search with regexp's containing unicode
     characters.
 
-    For issue 6812
+    For spyder-ide/spyder#6812
     """
     qtbot, widget = mixinsbot
     get = widget.get_number_matches
@@ -91,7 +91,7 @@ def test_get_number_matches(mixinsbot):
     assert get('e[A-Z]?f', source_text=code, case=True, regexp=True,
                word=True) == 0
 
-    # Issue 5680.
+    # spyder-ide/spyder#5680.
     assert get('(', source_text=code) == 3
     assert get('(', source_text=code, case=True) == 3
     assert get('(', source_text=code, regexp=True) is None
@@ -124,7 +124,7 @@ def test_get_match_number(mixinsbot):
     # Empty pattern.
     assert get('') == 0
 
-    # Issue 5680.
+    # spyder-ide/spyder#5680.
     widget.find_text('(')
     assert get('(') == 1
 

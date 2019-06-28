@@ -186,7 +186,7 @@ def test_set_get_project_filenames_when_closing(create_projects, tmpdir):
     correctly to and from the project config when the project is closed and
     then reopened.
 
-    Regression test for Issue #8375
+    Regression test for spyder-ide/spyder#8375
     """
     path = to_text_string(tmpdir.mkdir('project1'))
     opened_files = [os.path.join(path, file)
@@ -231,7 +231,7 @@ def test_recent_projects_menu_action(projects, tmpdir):
     Test that the actions of the submenu 'Recent Projects' in the 'Projects'
     main menu are working as expected.
 
-    Regression test for Issue #8450.
+    Regression test for spyder-ide/spyder#8450.
     """
     recent_projects_len = len(projects.recent_projects)
 
@@ -262,7 +262,7 @@ def test_project_explorer_tree_root(projects, tmpdir, qtbot):
     Test that the root item of the project explorer tree widget is set
     correctly when switching projects.
 
-    Regression test for Issue #8455
+    Regression test for spyder-ide/spyder#8455
     """
     qtbot.addWidget(projects.explorer)
     projects.show_explorer()

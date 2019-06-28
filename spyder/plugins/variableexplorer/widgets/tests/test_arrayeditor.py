@@ -57,7 +57,7 @@ def test_type_errors(qtbot):
     """
     Verify that we don't get a TypeError for certain structured arrays.
 
-    Fixes issue #5254.
+    Fixes spyder-ide/spyder#5254.
     """
     arr = np.ones(2, dtype=[('X', 'f8', (2,10)), ('S', 'S10')])
     dlg = setup_arrayeditor(qtbot, arr)

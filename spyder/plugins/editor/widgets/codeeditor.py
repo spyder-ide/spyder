@@ -2823,7 +2823,7 @@ class CodeEditor(TextEditBaseWidget):
     def unblockcomment(self):
         """Un-block comment current line or selection."""
         # Needed for backward compatibility with Spyder previous blockcomments.
-        # See issue 2845
+        # See spyder-ide/spyder#2845
         unblockcomment = self.__unblockcomment()
         if not unblockcomment:
             unblockcomment =  self.__unblockcomment(compatibility=True)
@@ -3316,8 +3316,9 @@ class CodeEditor(TextEditBaseWidget):
         elif key == Qt.Key_Home:
             self.stdkey_home(shift, ctrl)
         elif key == Qt.Key_End:
-            # See Issue 495: on MacOS X, it is necessary to redefine this
-            # basic action which should have been implemented natively
+            # See spyder-ide/spyder#495: on MacOS X, it is necessary to
+            # redefine this basic action which should have been implemented
+            # natively
             self.stdkey_end(shift, ctrl)
         elif text in self.auto_completion_characters:
             self.insert_text(text)
