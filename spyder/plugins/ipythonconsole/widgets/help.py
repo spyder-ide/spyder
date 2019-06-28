@@ -48,19 +48,21 @@ class HelpWidget(RichJupyterWidget):
                 signature = self.get_signature(content).split('(')[-1]
 
                 # Base value for the documentation
-                documentation = text.split('Docstring:')[-1].split('Type:')[0]
+                documentation = (text.split('Docstring:')[-1].
+                                 split('Type:')[0].split('File:')[0])
 
                 if signature:
                     # Check if the signature is in the Docstring
                     doc_from_signature = documentation.split(signature)
                     if len(doc_from_signature) > 1:
                         return (doc_from_signature[-1].split('Docstring:')[-1].
-                                split('Type:')[0])
+                                split('Type:')[0].
+                                split('File:')[0]).strip('\r\n')
 
-                return documentation
+                return documentation.strip('\r\n')
             else:
                 text = re.compile(ANSI_PATTERN).sub('', text)
-                return text
+                return text.strip('\r\n')
         else:
             return ''
 
@@ -115,10 +117,10 @@ class HelpWidget(RichJupyterWidget):
                 # recognizing the signature in the logic above.
                 signature = ANSI_OR_SPECIAL_PATTERN.sub('', signature)
 
-                return signature
+                return signature.strip('\r\n')
             else:
                 text = re.compile(ANSI_PATTERN).sub('', text)
-                return text
+                return text.strip('\r\n')
         else:
             return ''
 
