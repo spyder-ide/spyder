@@ -780,7 +780,7 @@ class EditorStack(QWidget):
            and not sys.platform == 'darwin':
             # Don't set document mode to true on OSX because it generates
             # a crash when the editor is detached from the main window
-            # Fixes Issue 561
+            # Fixes spyder-ide/spyder#561
             self.tabs.setDocumentMode(True)
         self.tabs.currentChanged.connect(self.current_changed)
 
@@ -1282,7 +1282,7 @@ class EditorStack(QWidget):
         if set_new_index:
             self.set_stack_index(new_index)
         else:
-            # Fixes Issue 1287
+            # Fixes spyder-ide/spyder#1287
             self.set_current_filename(current_fname)
         if self.outlineexplorer is not None:
             self.outlineexplorer.file_renamed(
@@ -1298,7 +1298,7 @@ class EditorStack(QWidget):
         tab_tip = self.get_tab_tip(fname, is_modified, is_readonly)
 
         # Only update tab text if have changed, otherwise an unwanted scrolling
-        # will happen when changing tabs. See Issue #1170.
+        # will happen when changing tabs. See spyder-ide/spyder#1170.
         if tab_text != self.tabs.tabText(index):
             self.tabs.setTabText(index, tab_text)
         self.tabs.setTabToolTip(index, tab_tip)
@@ -1512,7 +1512,7 @@ class EditorStack(QWidget):
             # We pass self object ID as a QString, because otherwise it would
             # depend on the platform: long for 64bit, int for 32bit. Replacing
             # by long all the time is not working on some 32bit platforms
-            # (see Issue 1094, Issue 1098)
+            # (see spyder-ide/spyder#1094, spyder-ide/spyder#1098)
             self.sig_close_file.emit(str(id(self)), filename)
 
             self.opened_files_list_changed.emit()
@@ -1765,9 +1765,9 @@ class EditorStack(QWidget):
             # We pass self object ID as a QString, because otherwise it would
             # depend on the platform: long for 64bit, int for 32bit. Replacing
             # by long all the time is not working on some 32bit platforms
-            # (see Issue 1094, Issue 1098)
+            # (see spyder-ide/spyder#1094, spyder-ide/spyder#1098)
             # The filename is passed instead of an index in case the tabs
-            # have been rearranged (see issue 5703).
+            # have been rearranged (see spyder-ide/spyder#5703).
             self.file_saved.emit(str(id(self)),
                                  finfo.filename, finfo.filename)
 
@@ -1805,7 +1805,7 @@ class EditorStack(QWidget):
 
         The original filename is passed instead of an index in case the tabs
         on the editor stacks were moved and are now in a different order - see
-        issue 5703.
+        spyder-ide/spyder#5703.
         Filename is passed in case file was just saved as another name.
         """
         index = self.has_filename(original_filename)
@@ -1834,7 +1834,7 @@ class EditorStack(QWidget):
 
         # Don't use filters on KDE to not make the dialog incredible
         # slow
-        # Fixes issue 4156
+        # Fixes spyder-ide/spyder#4156
         if is_kde_desktop() and not is_anaconda():
             filters = ''
             selectedfilter = ''
@@ -1880,7 +1880,7 @@ class EditorStack(QWidget):
         finfo = self.data[index]
         # The next line is necessary to avoid checking if the file exists
         # While running __check_file_status
-        # See issues 3678 and 3026
+        # See spyder-ide/spyder#3678 and spyder-ide/spyder#3026
         finfo.newly_created = True
         original_filename = finfo.filename
         filename = self.select_savename(original_filename)
@@ -1899,7 +1899,7 @@ class EditorStack(QWidget):
             # We pass self object ID as a QString, because otherwise it would
             # depend on the platform: long for 64bit, int for 32bit. Replacing
             # by long all the time is not working on some 32bit platforms
-            # (see Issue 1094, Issue 1098)
+            # (see spyder-ide/spyder#1094, spyder-ide/spyder#1098)
             self.file_renamed_in_data.emit(str(id(self)),
                                            original_filename, filename)
 
@@ -2020,7 +2020,7 @@ class EditorStack(QWidget):
 
         # Needed to avoid an error generated after moving/renaming
         # files outside Spyder while in debug mode.
-        # See issue 8749.
+        # See spyder-ide/spyder#8749.
         try:
             logger.debug("Current changed: %d - %s" %
                          (index, self.data[index].editor.filename))
@@ -2029,12 +2029,12 @@ class EditorStack(QWidget):
 
         self.update_plugin_title.emit()
         # Make sure that any replace happens in the editor on top
-        # See issue 9688
+        # See spyder-ide/spyder#9688
         self.find_widget.set_editor(editor, refresh=False)
 
         if editor is not None:
             # Needed in order to handle the close of files open in a directory
-            # that has been renamed. See issue 5157
+            # that has been renamed. See spyder-ide/spyder#5157
             try:
                 self.current_file_changed.emit(self.data[index].filename,
                                                editor.get_position('cursor'))
@@ -2610,7 +2610,7 @@ class EditorStack(QWidget):
         # can return True but source.urls() is []
         # The third check is needed since a file could be dropped from
         # compressed files. In Windows mimedata2url(source) returns None
-        # Fixes issue 5218
+        # Fixes spyder-ide/spyder#5218
         if source.hasUrls() and source.urls() and mimedata2url(source):
             all_urls = mimedata2url(source)
             text = [encoding.is_text_file(url) for url in all_urls]
@@ -2624,7 +2624,7 @@ class EditorStack(QWidget):
             # This covers cases like dragging from compressed files,
             # which can be opened by the Editor if they are plain
             # text, but doesn't come with url info.
-            # Fixes Issue 2032
+            # Fixes spyder-ide/spyder#2032
             event.acceptProposedAction()
         else:
             event.ignore()
@@ -2635,7 +2635,7 @@ class EditorStack(QWidget):
         source = event.mimeData()
         # The second check is necessary when mimedata2url(source)
         # returns None.
-        # Fixes issue 7742
+        # Fixes spyder-ide/spyder#7742
         if source.hasUrls() and mimedata2url(source):
             files = mimedata2url(source)
             files = [f for f in files if encoding.is_text_file(f)]
@@ -2857,7 +2857,7 @@ class EditorSplitter(QSplitter):
                 editor = finfo.editor
                 # TODO: go_to_line is not working properly (the line it jumps
                 # to is not the corresponding to that file). This will be fixed
-                # in a future PR (which will fix issue #3857)
+                # in a future PR (which will fix spyder-ide/spyder#3857)
                 if dont_goto is not None:
                     # skip go to line for first file because is already there
                     pass
