@@ -419,8 +419,10 @@ def test_selection_escape_characters(editor_find_replace_bot, qtbot):
     cursor.select(QTextCursor.LineUnderCursor)
     assert cursor.selection().toPlainText() == "\\n \\t escape characters"
 
-    #replace
+    # Replace
     finder.replace_find_selection()
+    # Test that selection is correct
+    assert cursor.selection().toPlainText() == "\\n \\t some escape characters"
     assert editor.toPlainText() == expected_new_text
 
 
