@@ -30,6 +30,9 @@ class SpyderCompletionPlugin(QObject, SpyderPlugin):
     # dict: Response dictionary
     sig_response_ready = Signal(str, int, dict)
 
+    # Use this signal to indicate that the plugin is ready
+    sig_plugin_ready = Signal(str)
+
     # ---------------------------- ATTRIBUTES ---------------------------------
 
     # Name of the completion service
@@ -41,7 +44,7 @@ class SpyderCompletionPlugin(QObject, SpyderPlugin):
         SpyderPlugin.__init__(self, parent)
         self.main = parent
 
-    def process_request(self, language, req_type, req):
+    def send_request(self, language, req_type, req, req_id):
         """
         Process completion/introspection request from Spyder.
 
@@ -54,12 +57,43 @@ class SpyderCompletionPlugin(QObject, SpyderPlugin):
             :class:`spyder.plugins.completion.CompletionTypes`
         req: dict
             Request body
+        req_id: int
+            Request identifier for response
         """
         pass
 
-    def process_broadcast(self, req_type, req):
+    def send_notification(self, language, notification_type, notification):
         """
-        Process broadcast requests across all programming languages.
+        Send notification to completion server based on Spyder changes.
+
+        Parameters
+        ==========
+        language: str
+            Programming language for the incoming request
+        notification_type: str
+            Type of request, one of
+            :class:`spyder.plugins.completion.CompletionTypes`
+        notification: dict
+            Request body
+        """
+        pass
+
+    def send_response(self, response, resp_id):
+        """
+        Send response for server request.
+
+        Parameters
+        ==========
+        response: dict
+            Response body for server
+        resp_id: int
+            Request identifier for response
+        """
+        pass
+
+    def broadcast_notification(self, notification_type, notification):
+        """
+        Send a broadcast notification across all programming languages.
 
         Parameters
         ==========
@@ -68,6 +102,8 @@ class SpyderCompletionPlugin(QObject, SpyderPlugin):
             :class:`spyder.plugins.completion.CompletionTypes`
         req: dict
             Request body
+        req_id: int
+            Request identifier for response, None if notification
         """
         pass
 
@@ -85,7 +121,7 @@ class SpyderCompletionPlugin(QObject, SpyderPlugin):
         """
         pass
 
-    def start_language(self, language):
+    def start_client(self, language):
         """
         Start completions/introspection services for a given language.
 
@@ -96,7 +132,7 @@ class SpyderCompletionPlugin(QObject, SpyderPlugin):
         """
         pass
 
-    def stop_language(self, language):
+    def stop_client(self, language):
         """
         Stop completions/introspection services for a given language.
 

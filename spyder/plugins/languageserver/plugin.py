@@ -21,7 +21,7 @@ from qtpy.QtCore import QObject, Slot
 from spyder.config.base import get_conf_path, running_under_pytest
 from spyder.config.lsp import PYTHON_CONFIG
 from spyder.config.main import CONF
-from spyder.api.plugins import SpyderPlugin
+from spyder.api.completion import SpyderCompletionPlugin
 from spyder.utils.misc import select_port, getcwd_or_home
 from spyder.plugins.languageserver import LSP_LANGUAGES
 from spyder.plugins.languageserver.client import LSPClient
@@ -31,8 +31,9 @@ from spyder.plugins.languageserver.confpage import LanguageServerConfigPage
 logger = logging.getLogger(__name__)
 
 
-class LanguageServerPlugin(QObject, SpyderPlugin):
+class LanguageServerPlugin(SpyderCompletionPlugin):
     """Language Server Protocol manager."""
+    COMPLETION_CLIENT_NAME = 'lsp'
     STOPPED = 'stopped'
     RUNNING = 'running'
     CONF_SECTION = 'lsp-server'
@@ -40,9 +41,7 @@ class LanguageServerPlugin(QObject, SpyderPlugin):
     CONFIGWIDGET_CLASS = LanguageServerConfigPage
 
     def __init__(self, parent):
-        QObject.__init__(self, parent)
-        SpyderPlugin.__init__(self, parent)
-        self.main = parent
+        SpyderCompletionPlugin.__init__(self, parent)
 
         self.clients = {}
         self.requests = {}
@@ -116,7 +115,7 @@ class LanguageServerPlugin(QObject, SpyderPlugin):
         return path
 
     @Slot()
-    def reinitialize_all_clients(self):
+    def project_path_update(self, project_path, update_kind):
         """
         Send a new initialize message to each LSP server when the project
         path has changed so they can update the respective server root paths.
