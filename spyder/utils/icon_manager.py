@@ -5,7 +5,6 @@
 # (see spyder/__init__.py for details)
 
 # Standard library imports
-import base64
 import os
 import os.path as osp
 import mimetypes as mime
@@ -20,7 +19,6 @@ from qtpy.QtWidgets import QStyle, QWidget
 from spyder.config.base import get_image_path
 from spyder.config.main import CONF
 from spyder.config.gui import is_dark_interface
-from spyder.py3compat import to_text_string
 from spyder.utils.encoding import is_text_file
 import qtawesome as qta
 
@@ -114,7 +112,6 @@ _qtaargs = {
     'bold':                    [('fa.bold',), {'color': MAIN_FG_COLOR}],
     'italic':                  [('fa.italic',), {'color': MAIN_FG_COLOR}],
     'genprefs':                [('fa.cogs',), {'color': MAIN_FG_COLOR}],
-    'exit':                    [('fa.power-off',), {'color': MAIN_FG_COLOR}],
     'run_small':               [('fa.play',), {'color': 'green'}],
     'stop':                    [('fa.stop',), {'color': 'darkred'}],
     'syspath':                 [('fa.cogs',), {'color': MAIN_FG_COLOR}],
@@ -123,7 +120,6 @@ _qtaargs = {
     'eyedropper':              [('fa.eyedropper',), {'color': MAIN_FG_COLOR}],
     'tooloptions':             [('fa.bars',), {'color': MAIN_FG_COLOR}],
     'edit24':                  [('fa.edit',), {'color': MAIN_FG_COLOR}],
-    'edit':                    [('fa.edit',), {'color': MAIN_FG_COLOR}],
     'filenew':                 [('fa.file-o',), {'color': MAIN_FG_COLOR}],
     'fileopen':                [('fa.folder-open',), {'color': MAIN_FG_COLOR}],
     'revert':                  [('fa.undo',), {'color': MAIN_FG_COLOR}],
@@ -202,7 +198,6 @@ _qtaargs = {
     'restart':                 [('fa.repeat',), {'color': MAIN_FG_COLOR}],
     'editcopy':                [('fa.copy',), {'color': MAIN_FG_COLOR}],
     'editcut':                 [('fa.scissors',), {'color': MAIN_FG_COLOR}],
-    'editpaste':               [('fa.clipboard',), {'color': MAIN_FG_COLOR}],
     'editdelete':              [('fa.eraser',), {'color': MAIN_FG_COLOR}],
     'editclear':               [('fa.times',), {'color': MAIN_FG_COLOR}],
     'selectall':               [('spyder.text-select-all',), {'color': MAIN_FG_COLOR}],
@@ -219,7 +214,6 @@ _qtaargs = {
     'zoom_out':                [('fa.search-minus',), {'color': MAIN_FG_COLOR}],
     'zoom_in':                 [('fa.search-plus',), {'color': MAIN_FG_COLOR}],
     'home':                    [('fa.home',), {'color': MAIN_FG_COLOR}],
-    'find':                    [('fa.search',), {'color': MAIN_FG_COLOR}],
     'plot':                    [('fa.line-chart',), {'color': MAIN_FG_COLOR}],
     'hist':                    [('fa.bar-chart',), {'color': MAIN_FG_COLOR}],
     'imshow':                  [('fa.image',), {'color': MAIN_FG_COLOR}],
@@ -233,13 +227,6 @@ _qtaargs = {
     'versplit':                [('spyder.rows',), {'color': MAIN_FG_COLOR}],
     'horsplit':                [('fa.columns',), {'color': MAIN_FG_COLOR}],
     'close_panel':             [('fa.close',), {'color': MAIN_FG_COLOR}],
-    'class':                   [('spyder.circle-letter-c',), {'color':'#3775a9'}],
-    'private2':                [('spyder.circle-underscore',), {'color':'#e69c9c'}],
-    'private1':                [('spyder.circle-underscore',), {'color':'#e69c9c'}],
-    'method':                  [('spyder.circle-letter-m',), {'color':'#7ea67e'}],
-    'function':                [('spyder.circle-letter-f',), {'color':'orange'}],
-    'blockcomment':            [('spyder.circle-hash',), {'color':'grey'}],
-    'cell':                    [('spyder.circle-percent',), {'color':'red'}],
     'fromcursor':              [('fa.hand-o-right',), {'color': MAIN_FG_COLOR}],
     'filter':                  [('fa.filter',), {'color': MAIN_FG_COLOR}],
     'folder_new':              [('fa.folder-o', 'fa.plus'), {'options': [{'color': MAIN_FG_COLOR}, {'scale_factor': 0.5, 'offset': (0.0, 0.1), 'color': MAIN_FG_COLOR}]}],
@@ -299,7 +286,6 @@ _qtaargs = {
     'expand_selection':        [('fa.plus-square-o',), {'color': MAIN_FG_COLOR}],
     'copywop':                 [('fa.terminal',), {'color': MAIN_FG_COLOR}],
     'editpaste':               [('fa.paste',), {'color': MAIN_FG_COLOR}],
-    'editcopy':                [('fa.copy',), {'color': MAIN_FG_COLOR}],
     'edit':                    [('fa.edit',), {'color': MAIN_FG_COLOR}],
     'convention':              [('spyder.circle-letter-c',), {'color':'#3775a9'}],
     'refactor':                [('spyder.circle-letter-r',), {'color':'#3775a9'}],
