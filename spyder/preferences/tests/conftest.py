@@ -12,7 +12,7 @@ Testing utilities to be used with pytest.
 try:
     from unittest.mock import Mock
 except ImportError:
-    from mock import Mock # Python 2
+    from mock import Mock  # Python 2
 
 # Third party imports
 import pytest

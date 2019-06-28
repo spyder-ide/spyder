@@ -8,8 +8,9 @@
 Tests for configdialog.py
 """
 
-def test_config(qtbot, global_config_dialog):
-    qtbot.wait(1000)
+
+def test_config_dialog_save_to_conf(qtbot, global_config_dialog):
     for index in range(global_config_dialog.pages_widget.count()):
         configpage = global_config_dialog.get_page(index)
+        configpage.save_to_conf()
         assert configpage.is_valid()
