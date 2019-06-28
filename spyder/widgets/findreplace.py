@@ -89,11 +89,13 @@ class FindReplace(QWidget):
 
         self.number_matches_text = QLabel(self)
         self.previous_button = create_toolbutton(self,
-                                             triggered=self.find_previous,
-                                             icon=ima.icon('ArrowUp'))
+                                                 triggered=self.find_previous,
+                                                 icon=ima.icon('ArrowUp'),
+                                                 tip=_("Find previous"))
         self.next_button = create_toolbutton(self,
                                              triggered=self.find_next,
-                                             icon=ima.icon('ArrowDown'))
+                                             icon=ima.icon('ArrowDown'),
+                                             tip=_("Find next"))
         self.next_button.clicked.connect(self.update_search_combo)
         self.previous_button.clicked.connect(self.update_search_combo)
 
