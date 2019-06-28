@@ -553,7 +553,7 @@ class FindReplace(QWidget):
                 pattern = search_text
             else:
                 pattern = re.escape(search_text)
-                replace_text = re.escape(replace_text)
+                replace_text = replace_text.replace('\\', r'\\')
             if words:  # match whole words only
                 pattern = r'\b{pattern}\b'.format(pattern=pattern)
 
@@ -573,8 +573,6 @@ class FindReplace(QWidget):
                 cursor = self.editor.textCursor()
                 cursor.beginEditBlock()
                 cursor.removeSelectedText()
-                if not self.re_button.isChecked():
-                    replacement = re.sub(r'\\(?![nrtf])(.)', r'\1', replacement)
                 cursor.insertText(replacement)
                 cursor.endEditBlock()
             if focus_replace_text:
