@@ -580,13 +580,14 @@ class ThumbnailScrollBar(QFrame):
         scrollarea = self.setup_scrollarea()
         up_btn, down_btn = self.setup_arrow_buttons()
 
-        self.setFixedWidth(150)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         layout.addWidget(up_btn)
         layout.addWidget(scrollarea)
         layout.addWidget(down_btn)
+
+        self.setup_thumbnail_scrollbar_width()
 
     def setup_scrollarea(self):
         """Setup the scrollarea that will contain the FigureThumbnails."""
@@ -638,6 +639,23 @@ class ThumbnailScrollBar(QFrame):
         down_btn.clicked.connect(self.go_down)
 
         return up_btn, down_btn
+
+    def setup_thumbnail_scrollbar_width(self):
+        """
+        Set the width of this scrollbar to that of the thumbnails.
+        """
+        thumbnail = FigureThumbnail(
+            parent=self, background_color=self.background_color)
+        thumbnail.setAttribute(Qt.WA_DontShowOnScreen, True)
+        thumbnail.canvas.setFixedSize(100, 100)
+        thumbnail.show()
+
+        self.setFixedWidth(thumbnail.width() +
+                           self.scrollarea.viewportMargins().left() +
+                           self.scrollarea.viewportMargins().right() +
+                           thumbnail.layout().spacing() +
+                           2 * self.lineWidth())
+        thumbnail.deleteLater()
 
     def set_figureviewer(self, figure_viewer):
         """Set the bamespace for the FigureViewer."""
