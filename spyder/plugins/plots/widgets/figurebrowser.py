@@ -35,6 +35,9 @@ from spyder.utils.misc import getcwd_or_home
 from spyder.config.gui import config_shortcut, get_shortcut
 
 
+THUMBNAIL_SIZE = 100
+
+
 def save_figure_tofile(fig, fmt, fname):
     """Save fig to fname in the format specified by fmt."""
     root, ext = osp.splitext(fname)
@@ -700,7 +703,7 @@ class ThumbnailScrollBar(QFrame):
         fwidth = thumbnail.canvas.fwidth
         fheight = thumbnail.canvas.fheight
 
-        max_length = 100
+        max_length = THUMBNAIL_SIZE
         if fwidth/fheight > 1:
             canvas_width = max_length
             canvas_height = canvas_width / fwidth * fheight
