@@ -445,7 +445,33 @@ def test_selection_escape_characters(editor_find_replace_bot, qtbot):
     cursor.select(QTextCursor.LineUnderCursor)
     assert cursor.selection().toPlainText() == "\\n \\t escape characters"
 
-    #replace
+    # Replace
+    finder.replace_find_selection()
+    # Test that selection is correct
+    assert cursor.selection().toPlainText() == "\\n \\t some escape characters"
+    assert editor.toPlainText() == expected_new_text
+
+
+def test_selection_backslash(editor_find_replace_bot, qtbot):
+    editor_stack, editor, finder = editor_find_replace_bot
+    expected_new_text = ('spam bacon\n'
+                         'spam sausage\n'
+                         'spam egg\n'
+                         r'a = r"\left\{" + "\\}\\right\n"')
+    text_to_add = 'a = r"\\leeft\\{" + "\\\\}\\\\right\\n"'
+    qtbot.keyClicks(editor, text_to_add)
+
+    finder.show()
+    finder.show_replace()
+    qtbot.keyClicks(finder.search_text, 'leeft')
+    qtbot.keyClicks(finder.replace_text, 'left')
+
+    # Select last line
+    cursor = editor.textCursor()
+    cursor.select(QTextCursor.LineUnderCursor)
+    assert cursor.selection().toPlainText() == text_to_add
+
+    # Replace
     finder.replace_find_selection()
     assert editor.toPlainText() == expected_new_text
 

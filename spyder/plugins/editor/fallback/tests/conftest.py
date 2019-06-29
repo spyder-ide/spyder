@@ -7,7 +7,7 @@
 import pytest
 
 from spyder.plugins.editor.fallback.actor import FallbackActor
-from spyder.plugins.editor.lsp.tests.conftest import qtbot_module
+from spyder.plugins.languageserver.tests.conftest import qtbot_module
 
 
 @pytest.fixture(scope='module')

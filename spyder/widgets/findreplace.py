@@ -89,11 +89,13 @@ class FindReplace(QWidget):
 
         self.number_matches_text = QLabel(self)
         self.previous_button = create_toolbutton(self,
-                                             triggered=self.find_previous,
-                                             icon=ima.icon('ArrowUp'))
+                                                 triggered=self.find_previous,
+                                                 icon=ima.icon('ArrowUp'),
+                                                 tip=_("Find previous"))
         self.next_button = create_toolbutton(self,
                                              triggered=self.find_next,
-                                             icon=ima.icon('ArrowDown'))
+                                             icon=ima.icon('ArrowDown'),
+                                             tip=_("Find next"))
         self.next_button.clicked.connect(self.update_search_combo)
         self.previous_button.clicked.connect(self.update_search_combo)
 
@@ -216,8 +218,8 @@ class FindReplace(QWidget):
         togglereplace = config_shortcut(self.show_replace,
                                         context='_', name='Replace text',
                                         parent=parent)
-        hide = config_shortcut(self.hide, context='_', name='hide find and replace',
-                               parent=self)
+        hide = config_shortcut(self.hide, context='_',
+                               name='hide find and replace', parent=self)
 
         return [findnext, findprev, togglefind, togglereplace, hide]
 
@@ -244,7 +246,7 @@ class FindReplace(QWidget):
                 self.hide()
             else:
                 self.show_replace()
-                if len(to_text_string(self.search_text.currentText()))>0:
+                if len(to_text_string(self.search_text.currentText())) > 0:
                     self.replace_text.setFocus()
 
     @Slot(bool)
@@ -268,7 +270,7 @@ class FindReplace(QWidget):
             text = self.editor.get_selected_text()
             # When selecting several lines, and replace box is activated the
             # text won't be replaced for the selection
-            if hide_replace or len(text.splitlines())<=1:
+            if hide_replace or len(text.splitlines()) <= 1:
                 highlighted = True
                 # If no text is highlighted for search, use whatever word is
                 # under the cursor
@@ -550,14 +552,14 @@ class FindReplace(QWidget):
             search_text = to_text_string(self.search_text.currentText())
             case = self.case_button.isChecked()
             word = self.words_button.isChecked()
-            re_flags = re.MULTILINE if case else re.IGNORECASE|re.MULTILINE
+            re_flags = re.MULTILINE if case else re.IGNORECASE | re.MULTILINE
 
             re_pattern = None
             if self.re_button.isChecked():
                 pattern = search_text
             else:
                 pattern = re.escape(search_text)
-                replace_text = re.escape(replace_text)
+                replace_text = replace_text.replace('\\', r'\\')
             if word:  # match whole words only
                 pattern = r'\b{pattern}\b'.format(pattern=pattern)
 
@@ -575,12 +577,18 @@ class FindReplace(QWidget):
             replacement = re_pattern.sub(replace_text, selected_text)
             if replacement != selected_text:
                 cursor = self.editor.textCursor()
+                start_pos = cursor.selectionStart()
                 cursor.beginEditBlock()
                 cursor.removeSelectedText()
-                if not self.re_button.isChecked():
-                    replacement = re.sub(r'\\(?![nrtf])(.)', r'\1', replacement)
                 cursor.insertText(replacement)
+                # Restore selection
+                self.editor.set_cursor_position(start_pos)
+                newl_cnt = replacement.count(self.editor.get_line_separator())
+                sel_len = len(replacement) - newl_cnt
+                for c in range(sel_len):
+                    self.editor.extend_selection_to_next('character', 'right')
                 cursor.endEditBlock()
+
             if focus_replace_text:
                 self.replace_text.setFocus()
             else:
