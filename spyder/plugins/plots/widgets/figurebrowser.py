@@ -599,6 +599,7 @@ class ThumbnailScrollBar(QFrame):
         self.scrollarea.setWidget(self.view)
         self.scrollarea.setWidgetResizable(True)
         self.scrollarea.setFrameStyle(0)
+        self.scrollarea.setViewportMargins(2, 2, 2, 2)
         self.scrollarea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.scrollarea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.scrollarea.setSizePolicy(QSizePolicy(QSizePolicy.Ignored,
