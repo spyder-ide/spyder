@@ -647,7 +647,7 @@ class ThumbnailScrollBar(QFrame):
         thumbnail = FigureThumbnail(
             parent=self, background_color=self.background_color)
         thumbnail.setAttribute(Qt.WA_DontShowOnScreen, True)
-        thumbnail.canvas.setFixedSize(100, 100)
+        thumbnail.canvas.setFixedSize(THUMBNAIL_SIZE, THUMBNAIL_SIZE)
         thumbnail.show()
 
         self.setFixedWidth(thumbnail.width() +
