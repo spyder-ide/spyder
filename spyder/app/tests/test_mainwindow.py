@@ -1688,8 +1688,11 @@ def test_troubleshooting_menu_item_and_url(monkeypatch):
 @flaky(max_runs=3)
 @pytest.mark.slow
 def test_help_opens_when_show_tutorial_full(main_window, qtbot):
-    """Test fix for spyder-ide/spyder#6317 :
-    'Show tutorial' opens the help plugin if closed."""
+    """
+    Test fix for spyder-ide/spyder#6317 :
+
+    'Show tutorial' opens the help plugin if closed.
+    """
     HELP_STR = "Help"
 
     help_pane_menuitem = None
