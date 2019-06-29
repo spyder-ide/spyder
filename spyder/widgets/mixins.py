@@ -1012,7 +1012,7 @@ class BaseEditMixin(object):
             return fcursor
 
     def find_text(self, text, changed=True, forward=True, case=False,
-                  words=False, regexp=False):
+                  word=False, regexp=False):
         """Find text"""
         cursor = self.textCursor()
         findflag = QTextDocument.FindFlag()
@@ -1042,14 +1042,14 @@ class BaseEditMixin(object):
             text = re.escape(to_text_string(text))
 
         if QT55_VERSION:
-            pattern = QRegularExpression(u"\\b{}\\b".format(text) if words else
+            pattern = QRegularExpression(u"\\b{}\\b".format(text) if word else
                                          text)
             if case:
                 pattern.setPatternOptions(
                     QRegularExpression.CaseInsensitiveOption)
         else:
             pattern = QRegExp(u"\\b{}\\b".format(text)
-                              if words else text, Qt.CaseSensitive if case else
+                              if word else text, Qt.CaseSensitive if case else
                               Qt.CaseInsensitive, QRegExp.RegExp2)
 
         for move in moves:
@@ -1073,7 +1073,7 @@ class BaseEditMixin(object):
         return False
 
     def get_number_matches(self, pattern, source_text='', case=False,
-                           regexp=False):
+                           regexp=False, word=False):
         """Get the number of matches for the searched text."""
         pattern = to_text_string(pattern)
         if not pattern:
@@ -1085,11 +1085,11 @@ class BaseEditMixin(object):
         if not source_text:
             source_text = to_text_string(self.toPlainText())
 
+        if word:  # match whole words only
+            pattern = r'\b{pattern}\b'.format(pattern=pattern)
         try:
-            if case:
-                regobj = re.compile(pattern)
-            else:
-                regobj = re.compile(pattern, re.IGNORECASE)
+            re_flags = re.MULTILINE if case else re.IGNORECASE | re.MULTILINE
+            regobj = re.compile(pattern, flags=re_flags)
         except sre_constants.error:
             return None
 
@@ -1099,13 +1099,14 @@ class BaseEditMixin(object):
 
         return number_matches
 
-    def get_match_number(self, pattern, case=False, regexp=False):
+    def get_match_number(self, pattern, case=False, regexp=False, word=False):
         """Get number of the match for the searched text."""
         position = self.textCursor().position()
         source_text = self.get_text(position_from='sof', position_to=position)
         match_number = self.get_number_matches(pattern,
                                                source_text=source_text,
-                                               case=case, regexp=regexp)
+                                               case=case, regexp=regexp,
+                                               word=word)
         return match_number
 
     # --- Numpy matrix/array helper / See 'spyder/widgets/arraybuilder.py'
