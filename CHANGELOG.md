@@ -1,5 +1,169 @@
 # History of changes
 
+## Version 4.0beta3 (2019-06-29)
+
+### Issues Closed
+
+* [Issue 9691](https://github.com/spyder-ide/spyder/issues/9691) - Can't set other Python interpreter ([PR 9706](https://github.com/spyder-ide/spyder/pull/9706))
+* [Issue 9668](https://github.com/spyder-ide/spyder/issues/9668) - Hovers and calltips broken in the Editor ([PR 9670](https://github.com/spyder-ide/spyder/pull/9670))
+* [Issue 9635](https://github.com/spyder-ide/spyder/issues/9635) - Make highlighting of errors and warning synchronized with errors and warnings popup show and hide ([PR 9636](https://github.com/spyder-ide/spyder/pull/9636))
+* [Issue 9631](https://github.com/spyder-ide/spyder/issues/9631) - Highlighting errors and warnings wipe underlining of errors and warning. ([PR 9636](https://github.com/spyder-ide/spyder/pull/9636))
+* [Issue 9628](https://github.com/spyder-ide/spyder/issues/9628) - Python LSP codeeditor configurations are being replaced each time a new LSP server is available ([PR 9633](https://github.com/spyder-ide/spyder/pull/9633))
+* [Issue 9627](https://github.com/spyder-ide/spyder/issues/9627) - Add an option to turn off the underlining of errors and warnings in the Editor. ([PR 9630](https://github.com/spyder-ide/spyder/pull/9630))
+* [Issue 9616](https://github.com/spyder-ide/spyder/issues/9616) - Lowercase in text out of pattern ([PR 9677](https://github.com/spyder-ide/spyder/pull/9677))
+* [Issue 9614](https://github.com/spyder-ide/spyder/issues/9614) - URL awereness is broken in latest master ([PR 9625](https://github.com/spyder-ide/spyder/pull/9625))
+* [Issue 9596](https://github.com/spyder-ide/spyder/issues/9596) - Some completion trigger characters supported by LSP servers are not used ([PR 9605](https://github.com/spyder-ide/spyder/pull/9605))
+* [Issue 9578](https://github.com/spyder-ide/spyder/issues/9578) - WaitSpinner color under the dark theme should be white and suggestion for improving the look of the spinner ([PR 9584](https://github.com/spyder-ide/spyder/pull/9584))
+* [Issue 9577](https://github.com/spyder-ide/spyder/issues/9577) - Remember what was selected in the "Search in" combo box of the "Find"pluggin ([PR 9586](https://github.com/spyder-ide/spyder/pull/9586))
+* [Issue 9570](https://github.com/spyder-ide/spyder/issues/9570) - Error for calltip with empty signature ([PR 9582](https://github.com/spyder-ide/spyder/pull/9582))
+* [Issue 9557](https://github.com/spyder-ide/spyder/issues/9557) - Traceback on Spyder launch when auto-opens previous project
+* [Issue 9549](https://github.com/spyder-ide/spyder/issues/9549) - Create preferences setting to allow file associations ([PR 9504](https://github.com/spyder-ide/spyder/pull/9504))
+* [Issue 9543](https://github.com/spyder-ide/spyder/issues/9543) - Wrap text in warnings and hover tips ([PR 9585](https://github.com/spyder-ide/spyder/pull/9585))
+* [Issue 9542](https://github.com/spyder-ide/spyder/issues/9542) - Text written in Help pane gets automatically selected after match ([PR 9552](https://github.com/spyder-ide/spyder/pull/9552))
+* [Issue 9531](https://github.com/spyder-ide/spyder/issues/9531) - Crash when trying to autocomplete with fallback ([PR 9563](https://github.com/spyder-ide/spyder/pull/9563))
+* [Issue 9529](https://github.com/spyder-ide/spyder/issues/9529) - Calltips in IPython console are empty but work in qtconsole ([PR 9533](https://github.com/spyder-ide/spyder/pull/9533))
+* [Issue 9522](https://github.com/spyder-ide/spyder/issues/9522) - KeyError in PyLS when opening projects ([PR 9482](https://github.com/spyder-ide/spyder/pull/9482))
+* [Issue 9515](https://github.com/spyder-ide/spyder/issues/9515) - Bug with default actions for Ctrl+Tab and Ctrl+Backtab in the Editor ([PR 9517](https://github.com/spyder-ide/spyder/pull/9517))
+* [Issue 9513](https://github.com/spyder-ide/spyder/issues/9513) - Improvements to URL awareness ([PR 9572](https://github.com/spyder-ide/spyder/pull/9572))
+* [Issue 9512](https://github.com/spyder-ide/spyder/issues/9512) - Toggle uppercase/lowercase menu icons ([PR 9518](https://github.com/spyder-ide/spyder/pull/9518))
+* [Issue 9511](https://github.com/spyder-ide/spyder/issues/9511) - Toggling docstring style linting in preferences doesn't work in macOS ([PR 9637](https://github.com/spyder-ide/spyder/pull/9637))
+* [Issue 9506](https://github.com/spyder-ide/spyder/issues/9506) - The vertical position of the tab switcher dialog window is wrong in Spyder 4 ([PR 9507](https://github.com/spyder-ide/spyder/pull/9507))
+* [Issue 9505](https://github.com/spyder-ide/spyder/issues/9505) - Removing all variables on remote kernels fails ([PR 9548](https://github.com/spyder-ide/spyder/pull/9548))
+* [Issue 9501](https://github.com/spyder-ide/spyder/issues/9501) - Cursor is not restore properly in the Editor ([PR 9502](https://github.com/spyder-ide/spyder/pull/9502))
+* [Issue 9497](https://github.com/spyder-ide/spyder/issues/9497) - Moving tabs in the Editor is slow ([PR 9569](https://github.com/spyder-ide/spyder/pull/9569))
+* [Issue 9474](https://github.com/spyder-ide/spyder/issues/9474) - Symbol switcher throws exception after Enter ([PR 9524](https://github.com/spyder-ide/spyder/pull/9524))
+* [Issue 9472](https://github.com/spyder-ide/spyder/issues/9472) - Restore underlining errors and warnings in the Editor ([PR 9597](https://github.com/spyder-ide/spyder/pull/9597))
+* [Issue 9469](https://github.com/spyder-ide/spyder/issues/9469) - EditorStack file and symbol switcher not working ([PR 9521](https://github.com/spyder-ide/spyder/pull/9521))
+* [Issue 9463](https://github.com/spyder-ide/spyder/issues/9463) - Add simplified Github Issue/PR URL recognition ([PR 9473](https://github.com/spyder-ide/spyder/pull/9473))
+* [Issue 9457](https://github.com/spyder-ide/spyder/issues/9457) - Not able to create a new breakpoint after a collapsed function ([PR 9555](https://github.com/spyder-ide/spyder/pull/9555))
+* [Issue 9449](https://github.com/spyder-ide/spyder/issues/9449) - spyder 4 startup error ([PR 9467](https://github.com/spyder-ide/spyder/pull/9467))
+* [Issue 9443](https://github.com/spyder-ide/spyder/issues/9443) - Code cells that fill the whole screen lose their background highlight ([PR 9444](https://github.com/spyder-ide/spyder/pull/9444))
+* [Issue 9442](https://github.com/spyder-ide/spyder/issues/9442) - Information icon in File Switcher is not themed under the dark theme ([PR 9477](https://github.com/spyder-ide/spyder/pull/9477))
+* [Issue 9439](https://github.com/spyder-ide/spyder/issues/9439) - Under the dark theme, the right warning display sidebar is not offset to match the scroll bar position ([PR 9450](https://github.com/spyder-ide/spyder/pull/9450))
+* [Issue 9434](https://github.com/spyder-ide/spyder/issues/9434) - Code folding does not fold correctly when there are blank lines ([PR 9526](https://github.com/spyder-ide/spyder/pull/9526))
+* [Issue 9425](https://github.com/spyder-ide/spyder/issues/9425) - Changing LSP-related settings when another Spyder instance is open stops LSP from working ([PR 9468](https://github.com/spyder-ide/spyder/pull/9468))
+* [Issue 9405](https://github.com/spyder-ide/spyder/issues/9405) - Zoom buttons state and scaling percentage update when "Fits plot to window" is activated ([PR 9407](https://github.com/spyder-ide/spyder/pull/9407))
+* [Issue 9395](https://github.com/spyder-ide/spyder/issues/9395) - using BeautifulSoup4 to webscrape wikipedia ([PR 9401](https://github.com/spyder-ide/spyder/pull/9401))
+* [Issue 9393](https://github.com/spyder-ide/spyder/issues/9393) - Hover Tooltips make change focus off the spyder main window on Linux ([PR 9394](https://github.com/spyder-ide/spyder/pull/9394))
+* [Issue 9390](https://github.com/spyder-ide/spyder/issues/9390) - Error when launching Preferences in Chinese ([PR 9571](https://github.com/spyder-ide/spyder/pull/9571))
+* [Issue 9381](https://github.com/spyder-ide/spyder/issues/9381) - Overwritten file permissions on save ([PR 9550](https://github.com/spyder-ide/spyder/pull/9550))
+* [Issue 9368](https://github.com/spyder-ide/spyder/issues/9368) - Resizing plot panes does not resize the content ([PR 9386](https://github.com/spyder-ide/spyder/pull/9386))
+* [Issue 9357](https://github.com/spyder-ide/spyder/issues/9357) - Help Panel: LaTeX rendering is unreadable when using dark theme ([PR 9377](https://github.com/spyder-ide/spyder/pull/9377))
+* [Issue 9303](https://github.com/spyder-ide/spyder/issues/9303) - Single click to open files doesn't work in project explorer ([PR 9402](https://github.com/spyder-ide/spyder/pull/9402))
+* [Issue 9265](https://github.com/spyder-ide/spyder/issues/9265) - Autosaves are created for unmodified files and not removed on close with split Editor panes ([PR 9485](https://github.com/spyder-ide/spyder/pull/9485))
+* [Issue 9247](https://github.com/spyder-ide/spyder/issues/9247) - Improve messages of code analysis tooltip ([PR 9422](https://github.com/spyder-ide/spyder/pull/9422))
+* [Issue 9194](https://github.com/spyder-ide/spyder/issues/9194) - Pass language from console and editor on calltip call ([PR 9290](https://github.com/spyder-ide/spyder/pull/9290))
+* [Issue 9085](https://github.com/spyder-ide/spyder/issues/9085) - Default code cell name  ([PR 9082](https://github.com/spyder-ide/spyder/pull/9082))
+* [Issue 9007](https://github.com/spyder-ide/spyder/issues/9007) - Connect our LSP client to the workspace functionality provided by the PyLS. ([PR 9482](https://github.com/spyder-ide/spyder/pull/9482))
+* [Issue 8564](https://github.com/spyder-ide/spyder/issues/8564) - New line creates whitespaces that conflict with PEP 8 ([PR 8734](https://github.com/spyder-ide/spyder/pull/8734))
+* [Issue 8371](https://github.com/spyder-ide/spyder/issues/8371) - Support color scheme Sublime Text Monokai Extended (and more) ([PR 8381](https://github.com/spyder-ide/spyder/pull/8381))
+* [Issue 8076](https://github.com/spyder-ide/spyder/issues/8076) - Incorrect custom shortcut displayed in menus for Run Cell command ([PR 9458](https://github.com/spyder-ide/spyder/pull/9458))
+* [Issue 8068](https://github.com/spyder-ide/spyder/issues/8068) - Fully implement Spyder's new dark theme
+* [Issue 8000](https://github.com/spyder-ide/spyder/issues/8000) - IndexError for some shortcuts in the Editor ([PR 9523](https://github.com/spyder-ide/spyder/pull/9523))
+* [Issue 7976](https://github.com/spyder-ide/spyder/issues/7976) - Automatic Updates on Outline Explorer ([PR 9082](https://github.com/spyder-ide/spyder/pull/9082))
+* [Issue 6055](https://github.com/spyder-ide/spyder/issues/6055) - Ctrl-Tab doesn't switch between Editor files in macOS ([PR 9400](https://github.com/spyder-ide/spyder/pull/9400))
+* [Issue 1536](https://github.com/spyder-ide/spyder/issues/1536) - Pylint should follow the opened file ([PR 9430](https://github.com/spyder-ide/spyder/pull/9430))
+* [Issue 885](https://github.com/spyder-ide/spyder/issues/885) - Outline Explorer: Highlight current class/method automatically ([PR 9219](https://github.com/spyder-ide/spyder/pull/9219))
+* [Issue 558](https://github.com/spyder-ide/spyder/issues/558) - Add Object Explorer for exploring an object's properties ([PR 8852](https://github.com/spyder-ide/spyder/pull/8852))
+
+In this release 61 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 9706](https://github.com/spyder-ide/spyder/pull/9706) - PR: Fixes content type attribute error for global config dialog ([9691](https://github.com/spyder-ide/spyder/issues/9691))
+* [PR 9677](https://github.com/spyder-ide/spyder/pull/9677) - PR: Fix texts out of pattern in Preferences ([9616](https://github.com/spyder-ide/spyder/issues/9616))
+* [PR 9670](https://github.com/spyder-ide/spyder/pull/9670) - PR: Fix formating of text/documentation in tooltips and calltips ([9668](https://github.com/spyder-ide/spyder/issues/9668))
+* [PR 9667](https://github.com/spyder-ide/spyder/pull/9667) - PR: Demand PyLS 0.27+ and disable Pylint linting
+* [PR 9660](https://github.com/spyder-ide/spyder/pull/9660) - PR: Disable autosave if not running in single instance mode
+* [PR 9657](https://github.com/spyder-ide/spyder/pull/9657) - PR: Update Contributing guide
+* [PR 9646](https://github.com/spyder-ide/spyder/pull/9646) - PR: Avoid that code analysis tree collapses on selection
+* [PR 9642](https://github.com/spyder-ide/spyder/pull/9642) - PR: Fix EditorPluginExample test
+* [PR 9637](https://github.com/spyder-ide/spyder/pull/9637) - PR: Fix checkboxes loading from config file in macOS ([9511](https://github.com/spyder-ide/spyder/issues/9511))
+* [PR 9636](https://github.com/spyder-ide/spyder/pull/9636) - PR: Fix and improvement to the highlighting and underlining of errors and warnings in the Editor ([9635](https://github.com/spyder-ide/spyder/issues/9635), [9631](https://github.com/spyder-ide/spyder/issues/9631))
+* [PR 9634](https://github.com/spyder-ide/spyder/pull/9634) - PR: Downgrade Jedi in our CIs because the latest version broke the PyLS
+* [PR 9633](https://github.com/spyder-ide/spyder/pull/9633) - PR: Fix project workspace startup ([9628](https://github.com/spyder-ide/spyder/issues/9628))
+* [PR 9630](https://github.com/spyder-ide/spyder/pull/9630) - PR: Add an option to turn on/off the underlining of errors and warnings in the Editor.  ([9627](https://github.com/spyder-ide/spyder/issues/9627))
+* [PR 9625](https://github.com/spyder-ide/spyder/pull/9625) - PR: Fix url awareness missing variable and add regression test ([9614](https://github.com/spyder-ide/spyder/issues/9614))
+* [PR 9605](https://github.com/spyder-ide/spyder/pull/9605) - PR: Enable other LSP completion characters ([9596](https://github.com/spyder-ide/spyder/issues/9596))
+* [PR 9597](https://github.com/spyder-ide/spyder/pull/9597) - PR: Restore underlining errors and warnings in the Editor ([9472](https://github.com/spyder-ide/spyder/issues/9472))
+* [PR 9595](https://github.com/spyder-ide/spyder/pull/9595) - PR: Send fallback completions to the end of the completion widget
+* [PR 9586](https://github.com/spyder-ide/spyder/pull/9586) - PR: Add and get "Search in" combo box index of the "Find" plugin from/to config ([9577](https://github.com/spyder-ide/spyder/issues/9577))
+* [PR 9585](https://github.com/spyder-ide/spyder/pull/9585) - PR: Wrap text in tooltips, hints and calltips ([9543](https://github.com/spyder-ide/spyder/issues/9543))
+* [PR 9584](https://github.com/spyder-ide/spyder/pull/9584) - PR: Style improvement to the wait spinner used in the Find plugin ([9578](https://github.com/spyder-ide/spyder/issues/9578))
+* [PR 9582](https://github.com/spyder-ide/spyder/pull/9582) - PR: Add validation for empty signature while getting calltip in the IPython Console ([9570](https://github.com/spyder-ide/spyder/issues/9570))
+* [PR 9572](https://github.com/spyder-ide/spyder/pull/9572) - PR: URL awareness improvements ([9513](https://github.com/spyder-ide/spyder/issues/9513))
+* [PR 9571](https://github.com/spyder-ide/spyder/pull/9571) - PR: Fix error when launching Preferences in Chinese ([9390](https://github.com/spyder-ide/spyder/issues/9390))
+* [PR 9569](https://github.com/spyder-ide/spyder/pull/9569) - PR: Add a worker to VCSStatus for getting Git active branch, state, branches (plus tags) ([9497](https://github.com/spyder-ide/spyder/issues/9497))
+* [PR 9563](https://github.com/spyder-ide/spyder/pull/9563) - PR: Fix segfault when getting fallback completions ([9531](https://github.com/spyder-ide/spyder/issues/9531))
+* [PR 9560](https://github.com/spyder-ide/spyder/pull/9560) - PR: Add desktop.ini file to .gitignore
+* [PR 9556](https://github.com/spyder-ide/spyder/pull/9556) - PR: Remove extra padding around plots and variable explorer plugins
+* [PR 9555](https://github.com/spyder-ide/spyder/pull/9555) - PR: Fix line count when code is collapsed ([9457](https://github.com/spyder-ide/spyder/issues/9457))
+* [PR 9552](https://github.com/spyder-ide/spyder/pull/9552) - PR: Don't stay with selected text when it's found valid in the Help pane ([9542](https://github.com/spyder-ide/spyder/issues/9542))
+* [PR 9550](https://github.com/spyder-ide/spyder/pull/9550) - PR: Preserve file permissions when saving in the editor ([9381](https://github.com/spyder-ide/spyder/issues/9381))
+* [PR 9548](https://github.com/spyder-ide/spyder/pull/9548) - PR: Enclose kernel_env assignment in a try/except ([9505](https://github.com/spyder-ide/spyder/issues/9505))
+* [PR 9541](https://github.com/spyder-ide/spyder/pull/9541) - PR: Watch a project file tree for changes
+* [PR 9535](https://github.com/spyder-ide/spyder/pull/9535) - PR: Fix calltip size on linux
+* [PR 9533](https://github.com/spyder-ide/spyder/pull/9533) - PR: Add documentation element to calltips in the IPython Console ([9529](https://github.com/spyder-ide/spyder/issues/9529))
+* [PR 9526](https://github.com/spyder-ide/spyder/pull/9526) - PR: Correct indentation folding cases ([9434](https://github.com/spyder-ide/spyder/issues/9434))
+* [PR 9524](https://github.com/spyder-ide/spyder/pull/9524) - PR: Add validation for Enter in the File Switcher ([9474](https://github.com/spyder-ide/spyder/issues/9474))
+* [PR 9523](https://github.com/spyder-ide/spyder/pull/9523) - PR: Fix Prev/Next cursor position for unsaved files ([8000](https://github.com/spyder-ide/spyder/issues/8000))
+* [PR 9521](https://github.com/spyder-ide/spyder/pull/9521) - PR: Fix Fileswitcher for 'EditorStack' instances ([9469](https://github.com/spyder-ide/spyder/issues/9469))
+* [PR 9518](https://github.com/spyder-ide/spyder/pull/9518) - PR: Add icons to toggle uppercase/lowercase menu action ([9512](https://github.com/spyder-ide/spyder/issues/9512))
+* [PR 9517](https://github.com/spyder-ide/spyder/pull/9517) - PR: Prevent indentation/unindentation in the CodeEditor when Ctrl+Tab or Ctrl+Shift+Tab is pressed ([9515](https://github.com/spyder-ide/spyder/issues/9515))
+* [PR 9507](https://github.com/spyder-ide/spyder/pull/9507) - PR: Fix editor tab switcher vertical position ([9506](https://github.com/spyder-ide/spyder/issues/9506))
+* [PR 9504](https://github.com/spyder-ide/spyder/pull/9504) - PR: Add support for configurable file extension associations ([9549](https://github.com/spyder-ide/spyder/issues/9549))
+* [PR 9502](https://github.com/spyder-ide/spyder/pull/9502) - PR: Restore cursor properly in the Editor after a key release or a focus out event. ([9501](https://github.com/spyder-ide/spyder/issues/9501))
+* [PR 9494](https://github.com/spyder-ide/spyder/pull/9494) - PR: Remove cell separator detection from syntax highlighting and use oedata instead ([9443](https://github.com/spyder-ide/spyder/issues/9443))
+* [PR 9485](https://github.com/spyder-ide/spyder/pull/9485) - PR: Use file contents to decide when to autosave ([9265](https://github.com/spyder-ide/spyder/issues/9265))
+* [PR 9482](https://github.com/spyder-ide/spyder/pull/9482) - PR: Add support for LSP workspace calls ([9522](https://github.com/spyder-ide/spyder/issues/9522), [9007](https://github.com/spyder-ide/spyder/issues/9007))
+* [PR 9478](https://github.com/spyder-ide/spyder/pull/9478) - PR: Add icon for binary files
+* [PR 9477](https://github.com/spyder-ide/spyder/pull/9477) - PR: Fix background color of information icon in File Switcher ([9442](https://github.com/spyder-ide/spyder/issues/9442))
+* [PR 9473](https://github.com/spyder-ide/spyder/pull/9473) - PR: Add uri hover and click detection for shorthand github/bitbucket/gitlab issues ([9463](https://github.com/spyder-ide/spyder/issues/9463))
+* [PR 9468](https://github.com/spyder-ide/spyder/pull/9468) - PR: Disable LSP services on CodeEditors before restarting LSP client ([9425](https://github.com/spyder-ide/spyder/issues/9425))
+* [PR 9467](https://github.com/spyder-ide/spyder/pull/9467) - PR: Handle git not found error and add regression test ([9449](https://github.com/spyder-ide/spyder/issues/9449))
+* [PR 9459](https://github.com/spyder-ide/spyder/pull/9459) - PR: Autocomplete only left part of selected word.
+* [PR 9458](https://github.com/spyder-ide/spyder/pull/9458) - PR: Fix custom shortcut not displayed in menu entries for "Run cell" and "Run cell and advance"  ([8076](https://github.com/spyder-ide/spyder/issues/8076))
+* [PR 9450](https://github.com/spyder-ide/spyder/pull/9450) - PR: Fix editor scrollflag area position and height under the dark theme ([9439](https://github.com/spyder-ide/spyder/issues/9439))
+* [PR 9444](https://github.com/spyder-ide/spyder/pull/9444) - PR: Fix code cells that fill the whole screen lose their background highlight ([9443](https://github.com/spyder-ide/spyder/issues/9443))
+* [PR 9437](https://github.com/spyder-ide/spyder/pull/9437) - PR: Try to reduce some flakiness in our tests
+* [PR 9430](https://github.com/spyder-ide/spyder/pull/9430) - PR: Make Code Analysis pane follow the currently active file ([1536](https://github.com/spyder-ide/spyder/issues/1536))
+* [PR 9422](https://github.com/spyder-ide/spyder/pull/9422) - PR: Enhance the display of warnings and errors  ([9247](https://github.com/spyder-ide/spyder/issues/9247))
+* [PR 9417](https://github.com/spyder-ide/spyder/pull/9417) - PR: Reorganize global fixtures in conftest files
+* [PR 9410](https://github.com/spyder-ide/spyder/pull/9410) - PR: Minor layout improvement to the "Appearance" preference panel.
+* [PR 9407](https://github.com/spyder-ide/spyder/pull/9407) - PR: Disable zooming and update displayed scaling percent when "Fits plot to window" is checked ([9405](https://github.com/spyder-ide/spyder/issues/9405))
+* [PR 9404](https://github.com/spyder-ide/spyder/pull/9404) - PR: Add a code of conduct
+* [PR 9402](https://github.com/spyder-ide/spyder/pull/9402) - PR: Connect project explorer to file explorer when "Single click to open" option is updated ([9303](https://github.com/spyder-ide/spyder/issues/9303))
+* [PR 9401](https://github.com/spyder-ide/spyder/pull/9401) - PR: Fix signature format for dict kwargs ([9395](https://github.com/spyder-ide/spyder/issues/9395))
+* [PR 9400](https://github.com/spyder-ide/spyder/pull/9400) - PR: Fix Ctrl+Tab to cycle files on the editor ([6055](https://github.com/spyder-ide/spyder/issues/6055))
+* [PR 9394](https://github.com/spyder-ide/spyder/pull/9394) - PR: Change calltip from tool to tooltip on linux ([9393](https://github.com/spyder-ide/spyder/issues/9393))
+* [PR 9387](https://github.com/spyder-ide/spyder/pull/9387) - PR: Underline URIs in the Editor and enable opening them by Ctrl+click
+* [PR 9386](https://github.com/spyder-ide/spyder/pull/9386) - PR: Resize plot when Plots pane is resized and "Fits plots to window" is checked. ([9368](https://github.com/spyder-ide/spyder/issues/9368))
+* [PR 9385](https://github.com/spyder-ide/spyder/pull/9385) - PR: Improve LSP preferences UI
+* [PR 9382](https://github.com/spyder-ide/spyder/pull/9382) - PR: Don't package our tests in our wheels and tarball
+* [PR 9380](https://github.com/spyder-ide/spyder/pull/9380) - PR: Fix not selecting the right LSP language in "Other languages" tab
+* [PR 9377](https://github.com/spyder-ide/spyder/pull/9377) - PR: Update MathJax to its latest version ([9357](https://github.com/spyder-ide/spyder/issues/9357))
+* [PR 9371](https://github.com/spyder-ide/spyder/pull/9371) - PR: Fix test_get_git_refs when run by Travis on tags
+* [PR 9364](https://github.com/spyder-ide/spyder/pull/9364) - PR: Move test_calltip to test_hints_and_calltips.py
+* [PR 9363](https://github.com/spyder-ide/spyder/pull/9363) - PR: Refactor code in LSPManager to not imply that we're still passing signals around
+* [PR 9362](https://github.com/spyder-ide/spyder/pull/9362) - PR: Show nicer close icons on macOS when hovering on tabs
+* [PR 9320](https://github.com/spyder-ide/spyder/pull/9320) - PR: Reimplement fallback plugin for code completions
+* [PR 9290](https://github.com/spyder-ide/spyder/pull/9290) - PR: Correctly handle programming language in calltips ([9194](https://github.com/spyder-ide/spyder/issues/9194))
+* [PR 9274](https://github.com/spyder-ide/spyder/pull/9274) - PR: Shutdown running kernels more forcefully so they close faster
+* [PR 9249](https://github.com/spyder-ide/spyder/pull/9249) - PR: Add stdio LSP transport client
+* [PR 9226](https://github.com/spyder-ide/spyder/pull/9226) - PR: Add SpyderPlugin class to public API
+* [PR 9219](https://github.com/spyder-ide/spyder/pull/9219) - PR: Highlight current entry in the Outline Explorer and update it on-the-fly ([885](https://github.com/spyder-ide/spyder/issues/885))
+* [PR 9082](https://github.com/spyder-ide/spyder/pull/9082) - PR: Use blocks to identify lines and add unique cell names ([9085](https://github.com/spyder-ide/spyder/issues/9085), [7976](https://github.com/spyder-ide/spyder/issues/7976))
+* [PR 8852](https://github.com/spyder-ide/spyder/pull/8852) - PR: Add an Object Explorer to the Variable Explorer ([558](https://github.com/spyder-ide/spyder/issues/558))
+* [PR 8768](https://github.com/spyder-ide/spyder/pull/8768) - PR: Change IPython Console icon
+* [PR 8734](https://github.com/spyder-ide/spyder/pull/8734) - PR: Remove blanks if no content is added in a line and Enter is pressed to create a new line ([8564](https://github.com/spyder-ide/spyder/issues/8564))
+* [PR 8381](https://github.com/spyder-ide/spyder/pull/8381) - PR: Add some color schemes from Eclipse ([8371](https://github.com/spyder-ide/spyder/issues/8371))
+
+In this release 87 pull requests were closed.
+
+
+----
+
+
 ## Version 4.0beta2 (2019-05-19)
 
 ### Issues Closed
