@@ -26,7 +26,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QCheckBox,
 from spyder.config.base import _
 from spyder.config.main import CONF
 from spyder.config.gui import get_font, is_dark_interface
-from spyder.plugins.editor.lsp import LSP_LANGUAGES
+from spyder.plugins.languageserver import LSP_LANGUAGES
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.utils import icon_manager as ima
@@ -682,7 +682,7 @@ class LSPServerTable(QTableView):
         self.show_editor()
 
 
-class LSPManagerConfigPage(GeneralConfigPage):
+class LanguageServerConfigPage(GeneralConfigPage):
     """Language Server Protocol manager preferences."""
     CONF_SECTION = 'lsp-server'
     NAME = _('Completion and linting')

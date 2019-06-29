@@ -9,20 +9,19 @@
 """
 Spyder MS Language Server Protocol v3.0 transport proxy implementation.
 
-This module handles and processes incoming stdin messages sent by an
-LSP server, then it relays the information to the actual Spyder LSP
-client via ZMQ.
+This module handles and processes incoming TCP messages sent by an LSP server,
+then it relays the information to the actual Spyder LSP client via ZMQ.
 """
 
 import logging
-from spyder.plugins.editor.lsp.transport.common.consumer import (
+from spyder.plugins.languageserver.transport.common.consumer import (
     IncomingMessageThread)
 
 logger = logging.getLogger(__name__)
 
 
-class StdioIncomingMessageThread(IncomingMessageThread):
-    """Stdio socket consumer."""
+class TCPIncomingMessageThread(IncomingMessageThread):
+    """TCP socket consumer."""
 
     def read_num_bytes(self, n):
-        return self.fd.read(n).encode('utf-8')
+        return self.fd.recv(n)

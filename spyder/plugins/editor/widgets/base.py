@@ -34,7 +34,7 @@ from spyder.widgets.calltip import CallTipWidget, ToolTipWidget
 from spyder.widgets.mixins import BaseEditMixin
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
-from spyder.plugins.editor.lsp import CompletionItemKind
+from spyder.plugins.languageserver import CompletionItemKind
 
 
 class CompletionWidget(QListWidget):
