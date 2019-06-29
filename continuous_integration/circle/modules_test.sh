@@ -64,6 +64,9 @@ for f in spyder/*/*/*.py; do
     if [[ $f == spyder/plugins/*/plugin.py ]]; then
         continue
     fi
+    if [[ $f == spyder/plugins/languageserver/*.py ]]; then
+        continue
+    fi
     if [[ $f == spyder/plugins/*/__init__.py ]]; then
         continue
     fi
@@ -82,7 +85,7 @@ for f in spyder/*/*/*/*.py; do
     if [[ $f == *test*/*.* ]]; then
         continue
     fi
-    if [[ $f == spyder/plugins/editor/lsp/*.py ]]; then
+    if [[ $f == spyder/plugins/languageserver/*/*.py ]]; then
         continue
     fi
     if [[ $f == spyder/plugins/help/utils/*.py ]]; then
@@ -107,9 +110,6 @@ done
 # Depth 5
 for f in spyder/*/*/*/*/*.py; do
     if [[ $f == *test*/*.* ]]; then
-        continue
-    fi
-    if [[ $f == spyder/plugins/editor/lsp/*/*.py ]]; then
         continue
     fi
     if [[ $f == spyder/plugins/variableexplorer/widgets/objectexplorer/__init__.py ]]; then

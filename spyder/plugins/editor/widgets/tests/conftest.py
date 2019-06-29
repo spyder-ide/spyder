@@ -22,7 +22,7 @@ from qtpy.QtGui import QFont
 from spyder.plugins.editor.tests.conftest import (
     editor_plugin, editor_plugin_open_files, python_files)
 from spyder.plugins.editor.fallback.tests.conftest import fallback
-from spyder.plugins.editor.lsp.tests.conftest import (
+from spyder.plugins.languageserver.tests.conftest import (
     lsp_manager, qtbot_module)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editor import EditorStack

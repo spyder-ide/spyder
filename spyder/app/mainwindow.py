@@ -415,10 +415,9 @@ class MainWindow(QMainWindow):
         from spyder.preferences.shortcuts import ShortcutsConfigPage
         from spyder.preferences.runconfig import RunConfigPage
         from spyder.preferences.maininterpreter import MainInterpreterConfigPage
-        from spyder.preferences.languageserver import LSPManagerConfigPage
         self.general_prefs = [MainConfigPage, AppearanceConfigPage,
                               ShortcutsConfigPage, MainInterpreterConfigPage,
-                              RunConfigPage, LSPManagerConfigPage]
+                              RunConfigPage]
         self.prefs_index = None
         self.prefs_dialog_size = None
         self.prefs_dialog_instance = None
@@ -882,8 +881,8 @@ class MainWindow(QMainWindow):
 
         # Language Server Protocol Client initialization
         self.set_splash(_("Starting Language Server Protocol manager..."))
-        from spyder.plugins.editor.lsp.manager import LSPManager
-        self.lspmanager = LSPManager(self)
+        from spyder.plugins.languageserver.plugin import LanguageServerPlugin
+        self.lspmanager = LanguageServerPlugin(self)
 
         # Fallback completion thread
         self.set_splash(_("Creating fallback completion engine..."))
@@ -2951,14 +2950,14 @@ class MainWindow(QMainWindow):
                 widget.initialize()
                 dlg.add_page(widget)
 
-            for plugin in [self.workingdirectory, self.editor,
+            for plugin in [self.lspmanager, self.workingdirectory, self.editor,
                            self.projects, self.ipyconsole,
                            self.historylog, self.help, self.variableexplorer,
                            self.onlinehelp, self.explorer, self.findinfiles
                            ] + self.thirdparty_plugins:
                 if plugin is not None:
                     try:
-                        widget = plugin._create_configwidget(dlg)
+                        widget = plugin._create_configwidget(dlg, self)
                         if widget is not None:
                             dlg.add_page(widget)
                     except Exception:

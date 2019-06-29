@@ -316,7 +316,7 @@ class EditorConfigPage(PluginConfigPage):
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(display_widget), _("Display"))
         tabs.addTab(self.create_tab(sourcecode_widget), _("Source code"))
-        tabs.addTab(self.create_tab(run_widget), _('Run Code'))
+        tabs.addTab(self.create_tab(run_widget), _('Run code'))
         tabs.addTab(self.create_tab(template_btn, autosave_group,
                                     docstring_group, annotations_group,
                                     eol_group),
