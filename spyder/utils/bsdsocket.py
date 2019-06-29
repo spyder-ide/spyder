@@ -109,8 +109,8 @@ def communicate(sock, command, settings=[]):
     finally:
         COMMUNICATE_LOCK.release()
 
-## new com implementation:
-## See solution (2) in spyder-ide/spyder#434, comment 13:
+# new com implementation:
+# See solution (2) in spyder-ide/spyder#434, comment 13:
 #def communicate(sock, command, settings=[], timeout=None):
 #    """Communicate with monitor"""
 #    write_packet(sock, command)

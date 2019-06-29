@@ -196,6 +196,7 @@ def test_dataframemodel_sort():
     assert data(dfm, 0, 1) == 'a'
     assert data(dfm, 1, 1) == 'c'
 
+
 def test_dataframemodel_sort_is_stable():   # cf. spyder-ide/spyder#3010
     """Validate the sort function."""
     df = DataFrame([[2,14], [2,13], [2,16], [1,3], [2,9], [1,15], [1,17],
@@ -218,13 +219,15 @@ def test_dataframemodel_max_min_col_update_constant():
     dfm = DataFrameModel(df)
     assert dfm.max_min_col == [[1, 0], [2.0, 1.0]]
 
+
 def test_dataframemodel_with_timezone_aware_timestamps():
     # cf. spyder-ide/spyder#2940
     df = DataFrame([x] for x in date_range('20150101', periods=5, tz='UTC'))
     dfm = DataFrameModel(df)
     assert dfm.max_min_col == [None]
 
-def test_dataframemodel_with_categories(): # cf. spyder-ide/spyder#3308
+
+def test_dataframemodel_with_categories():  # cf. spyder-ide/spyder#3308
     df = DataFrame({"id": [1, 2, 3, 4, 5, 6],
                     "raw_grade": ['a', 'b', 'b', 'a', 'a', 'e']})
     df["grade"] = df["raw_grade"].astype("category")
