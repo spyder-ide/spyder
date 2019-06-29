@@ -15,6 +15,7 @@ from __future__ import division
 import os.path as osp
 
 # ---- Third library imports
+import qdarkstyle
 from qtconsole.svg import svg_to_image, svg_to_clipboard
 from qtpy.compat import getsavefilename, getexistingdirectory
 from qtpy.QtCore import Qt, Signal, QRect, QEvent, QPoint, QSize, QTimer, Slot
@@ -32,7 +33,7 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, create_plugin_layout,
                                     MENU_SEPARATOR)
 from spyder.utils.misc import getcwd_or_home
-from spyder.config.gui import config_shortcut, get_shortcut
+from spyder.config.gui import config_shortcut, get_shortcut, is_dark_interface
 
 
 THUMBNAIL_SIZE = 100
@@ -644,17 +645,25 @@ class ThumbnailScrollBar(QFrame):
         """
         Set the width of this scrollbar to that of the thumbnails.
         """
-        thumbnail = FigureThumbnail(
-            parent=self, background_color=self.background_color)
+        # Create a fake thumbnail.
+        thumbnail = FigureThumbnail()
+        if is_dark_interface():
+            thumbnail.setStyleSheet(
+                qdarkstyle.load_stylesheet_from_environment())
         thumbnail.setAttribute(Qt.WA_DontShowOnScreen, True)
         thumbnail.canvas.setFixedSize(THUMBNAIL_SIZE, THUMBNAIL_SIZE)
         thumbnail.show()
 
-        self.setFixedWidth(thumbnail.width() +
-                           self.scrollarea.viewportMargins().left() +
-                           self.scrollarea.viewportMargins().right() +
-                           thumbnail.layout().spacing() +
-                           2 * self.lineWidth())
+        # Calculate and set the width of the thumbnail scrollbar using
+        # the size of the fake thumbnail.
+        thumbnail_scrollbar_width = (
+            thumbnail.width() +
+            self.scrollarea.viewportMargins().left() +
+            self.scrollarea.viewportMargins().right() +
+            2 * self.lineWidth())
+        if is_dark_interface():
+            thumbnail_scrollbar_width += 4
+        self.setFixedWidth(thumbnail_scrollbar_width)
         thumbnail.deleteLater()
 
     def set_figureviewer(self, figure_viewer):
