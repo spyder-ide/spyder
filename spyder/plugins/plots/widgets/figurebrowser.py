@@ -593,8 +593,7 @@ class ThumbnailScrollBar(QFrame):
         self.view = QWidget()
 
         self.scene = QGridLayout(self.view)
-        self.scene.setColumnStretch(0, 100)
-        self.scene.setColumnStretch(2, 100)
+        self.scene.setContentsMargins(0, 0, 0, 0)
 
         self.scrollarea = QScrollArea()
         self.scrollarea.setWidget(self.view)
@@ -717,8 +716,8 @@ class ThumbnailScrollBar(QFrame):
         thumbnail.sig_save_figure.connect(self.save_figure_as)
         self._thumbnails.append(thumbnail)
 
-        self.scene.setRowStretch(self.scene.rowCount()-1, 0)
-        self.scene.addWidget(thumbnail, self.scene.rowCount()-1, 1)
+        self.scene.setRowStretch(self.scene.rowCount() - 1, 0)
+        self.scene.addWidget(thumbnail, self.scene.rowCount() - 1, 0)
         self.scene.setRowStretch(self.scene.rowCount(), 100)
         self.set_current_thumbnail(thumbnail)
 
