@@ -106,7 +106,7 @@ def test_init(historylog):
     hl = historylog
     assert hl.editors == []
     assert hl.filenames == []
-    assert len(hl.plugin_actions) == 5
+    assert len(hl._plugin_actions) == 5
     assert len(hl.options_button.menu().actions()) == 5
 
 
