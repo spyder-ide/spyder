@@ -392,10 +392,13 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
              ), (option, default) in list(self.scedits.items()):
             edit = clayout.lineedit
             btn = clayout.colorbtn
-            color, bold, italic = self.get_option(option, default)
-            edit.setText(color)
-            cb_bold.setChecked(bold)
-            cb_italic.setChecked(italic)
+            options = self.get_option(option, default)
+            if options:
+                color, bold, italic = options
+                edit.setText(color)
+                cb_bold.setChecked(bold)
+                cb_italic.setChecked(italic)
+
             edit.textChanged.connect(lambda _foo, opt=option:
                                      self.has_been_modified(opt))
             # QAbstractButton works differently for PySide and PyQt
@@ -422,19 +425,21 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             self.set_option(option, radiobutton.isChecked())
         for lineedit, (option, _default) in list(self.lineedits.items()):
             data = lineedit.text()
-            if lineedit.content_type == list:
+            content_type = getattr(lineedit, 'content_type', None)
+            if content_type == list:
                 data = [item.strip() for item in data.split(',')]
             else:
                 data = to_text_string(data)
             self.set_option(option, data)
         for textedit, (option, _default) in list(self.textedits.items()):
             data = textedit.toPlainText()
-            if textedit.content_type == dict:
+            content_type = getattr(textedit, 'content_type', None)
+            if content_type == dict:
                 if data:
                     data = ast.literal_eval(data)
                 else:
                     data = textedit.content_type()
-            elif textedit.content_type in (tuple, list):
+            elif content_type in (tuple, list):
                 data = [item.strip() for item in data.split(',')]
             else:
                 data = to_text_string(data)
