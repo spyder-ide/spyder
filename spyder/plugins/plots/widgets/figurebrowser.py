@@ -842,12 +842,11 @@ class FigureThumbnail(QWidget):
         """Setup the main layout of the widget."""
         layout = QGridLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self.canvas, 0, 1)
-        layout.addLayout(self.setup_toolbar(), 0, 3, 2, 1)
-
-        layout.setColumnStretch(0, 100)
-        layout.setColumnStretch(2, 100)
+        layout.addWidget(self.canvas, 0, 0, Qt.AlignCenter)
+        layout.addLayout(self.setup_toolbar(), 0, 1, 2, 1)
+        layout.setColumnMinimumWidth(0, THUMBNAIL_SIZE)
         layout.setRowStretch(1, 100)
+        layout.setSizeConstraint(layout.SetFixedSize)
 
     def setup_toolbar(self):
         """Setup the toolbar."""
