@@ -67,7 +67,7 @@ class AsyncClient(QObject):
         """
         # Set up the zmq port.
         self.socket = self.context.socket(zmq.PAIR)
-        #we are only listening to localhost
+        # We are only listening to localhost
         self.port = self.socket.bind_to_random_port('tcp://%s' % LOCALHOST)
 
         # Set up the process.
