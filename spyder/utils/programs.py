@@ -23,6 +23,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+import time
 
 # Local imports
 from spyder.config.base import _, get_conf_path, is_stable_version
@@ -717,17 +718,17 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
         f.write(' '.join(p_args))
         f.close()
         os.chmod(f.name, 0o777)
-        
+
         def run_terminal_thread():
             if wdir:
-                proc = run_program(
-                    'open', ['-a', 'Terminal.app', f.name], cwd=wdir)
+                proc = subprocess.Popen(
+                    'open -a Terminal.app ' + f.name, cwd=wdir, shell=True)
             else:
-                proc = run_program(
-                    'open', ['-a', 'Terminal.app', f.name])
-            while proc.poll() is None:
-                print('-----')
-                continue                
+                proc = subprocess.Popen(
+                    'open -a Terminal.app ' + f.name, shell=True)
+            # Prevent race condition
+            time.sleep(3)
+            proc.wait()
             os.remove(f.name)
 
         thread = threading.Thread(target=run_terminal_thread)
