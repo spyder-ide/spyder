@@ -1552,17 +1552,19 @@ class CodeEditor(TextEditBaseWidget):
         self.sig_flags_changed.emit()
 
     #-----highlight found results (find/replace widget)
-    def highlight_found_results(self, pattern, words=False, regexp=False):
+    def highlight_found_results(self, pattern, word=False, regexp=False,
+                                case=False):
         """Highlight all found patterns"""
         pattern = to_text_string(pattern)
         if not pattern:
             return
         if not regexp:
             pattern = re.escape(to_text_string(pattern))
-        pattern = r"\b%s\b" % pattern if words else pattern
+        pattern = r"\b%s\b" % pattern if word else pattern
         text = to_text_string(self.toPlainText())
+        re_flags = re.MULTILINE if case else re.IGNORECASE | re.MULTILINE
         try:
-            regobj = re.compile(pattern)
+            regobj = re.compile(pattern, flags=re_flags)
         except sre_constants.error:
             return
         extra_selections = []
