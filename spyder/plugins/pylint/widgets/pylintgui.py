@@ -21,7 +21,7 @@ import time
 # Third party imports
 import pylint
 from qtpy.compat import getopenfilename
-from qtpy.QtCore import QByteArray, QProcess, QTextCodec, Signal, Slot
+from qtpy.QtCore import QByteArray, QProcess, Signal, Slot
 from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMessageBox, QTreeWidgetItem,
                             QVBoxLayout, QWidget)
 
@@ -46,7 +46,6 @@ except KeyError as error:
     import gettext
     _ = gettext.gettext
 
-locale_codec = QTextCodec.codecForLocale()
 PYLINT_REQVER = '>=0.25'
 PYLINT_VER = pylint.__version__
 dependencies.add("pylint", _("Static code analysis"),
@@ -158,7 +157,7 @@ class PylintWidget(QWidget):
 
         self.output = None
         self.error_output = None
-
+        self.filename = None
         self.text_color = text_color
         self.prevrate_color = prevrate_color
 
@@ -184,7 +183,7 @@ class PylintWidget(QWidget):
                                              tip=_("Stop current analysis"),
                                              text_beside_icon=True)
         self.filecombo.valid.connect(self.start_button.setEnabled)
-        self.filecombo.valid.connect(self.show_data)
+        self.filecombo.valid.connect(self.check_new_file)
 
         browse_button = create_toolbutton(self, icon=ima.icon('fileopen'),
                                tip=_('Select Python file'),
@@ -230,6 +229,12 @@ class PylintWidget(QWidget):
             self.start_button.setEnabled(self.filecombo.is_valid())
         else:
             self.start_button.setEnabled(False)
+
+    def check_new_file(self):
+        fname = self.get_filename()
+        if fname != self.filename:
+            self.filename = fname
+            self.show_data()
 
     def get_filename(self):
         """Get current filename in combobox."""
@@ -358,7 +363,7 @@ class PylintWidget(QWidget):
                 qba += self.process.readAllStandardError()
             else:
                 qba += self.process.readAllStandardOutput()
-        text = to_text_string( locale_codec.toUnicode(qba.data()) )
+        text = to_text_string(qba.data(), encoding='utf-8')
         if error:
             self.error_output += text
         else:

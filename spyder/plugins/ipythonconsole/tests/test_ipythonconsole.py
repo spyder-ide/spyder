@@ -152,8 +152,22 @@ def ipyconsole(qtbot, request):
 # =============================================================================
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.parametrize(
+        "function,signature,documentation",
+        [("arange",
+          ["start", "stop"],
+          ["Return evenly spaced values within a given interval.<br>",
+           "returns an ndarray rather than a list.<br>"]),
+         ("vectorize",
+          ["pyfunc", "otype", "signature"],
+          ["Generalized function class.<br>",
+           "numpy array or a tuple of numpy ..."]),
+         ("absolute",
+          ["x", "/", "out"],
+          ["Parameters<br>", "x : array_like ..."])]
+        )
 @pytest.mark.skipif(sys.platform == 'darwin', reason="Times out on macOS")
-def test_get_calltips(ipyconsole, qtbot):
+def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
     """Test that calltips show the documentation."""
     shell = ipyconsole.get_current_shellwidget()
     control = shell._control
@@ -167,16 +181,22 @@ def test_get_calltips(ipyconsole, qtbot):
     # Write an object in the console that should generate a calltip
     # and wait for the kernel to send its response.
     with qtbot.waitSignal(shell.kernel_client.shell_channel.message_received):
-        qtbot.keyClicks(control, 'np.abs(')
+        qtbot.keyClicks(control, 'np.' + function + '(')
 
     # Wait a little bit for the calltip to appear
     qtbot.wait(500)
 
     # Assert we displayed a calltip
     assert control.calltip_widget.isVisible()
-    assert 'Calculate the absolute value' in control.calltip_widget.text()
+
     # Hide the calltip to avoid focus problems on Linux
     control.calltip_widget.hide()
+    
+    # Check spected elements for signature and documentation
+    for element in signature:
+        assert element in control.calltip_widget.text()
+    for element in documentation:
+        assert element in control.calltip_widget.text()
 
 
 @pytest.mark.slow

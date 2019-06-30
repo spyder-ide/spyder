@@ -128,14 +128,27 @@ def test_editor_has_autosave_component(editor_plugin):
     assert isinstance(editor.autosave, AutosaveForPlugin)
 
 
-def test_autosave_component_do_autosave(editor_plugin, mocker):
+def test_autosave_component_do_autosave(conf, editor_plugin, mocker):
     """Test that AutosaveForPlugin's do_autosave() calls the current editor
     stack's autosave_all()."""
     editor = editor_plugin
     editorStack = editor.get_current_editorstack()
     mocker.patch.object(editorStack.autosave, 'autosave_all')
+    conf.set('main', 'single_instance', True)
     editor.autosave.do_autosave()
     assert editorStack.autosave.autosave_all.called
+
+
+def test_autosave_component_when_not_single_instance(
+        conf, editor_plugin, mocker):
+    """Test that AutosaveForPlugin's do_autosave() does not calls the current
+    editor stack's autosave_all() when not run in single-instance mode."""
+    editor = editor_plugin
+    editorStack = editor.get_current_editorstack()
+    mocker.patch.object(editorStack.autosave, 'autosave_all')
+    conf.set('main', 'single_instance', False)
+    editor.autosave.do_autosave()
+    assert not editorStack.autosave.autosave_all.called
 
 
 def test_editor_transmits_sig_option_changed(editor_plugin, qtbot):
@@ -157,12 +170,13 @@ def test_editorstacks_share_autosave_data(editor_plugin, qtbot):
     assert autosave1.file_hashes is autosave2.file_hashes
 
 
-# The mock_RecoveryDialog fixture needs to be called before setup_editor, so
-# it needs to be mentioned first
+# The conf and mock_RecoveryDialog fixtures need to be called
+# before editor_plugin, so they need to be mentioned first
+@pytest.mark.parametrize('conf', [('main', 'single_instance', True)],
+                         indirect=True)
 def test_editor_calls_recoverydialog_exec_if_nonempty(
-        mock_RecoveryDialog, editor_plugin):
+        conf, mock_RecoveryDialog, editor_plugin):
     """Check that editor tries to exec a recovery dialog on construction."""
-    editor = editor_plugin
     assert mock_RecoveryDialog.return_value.exec_if_nonempty.called
 
 

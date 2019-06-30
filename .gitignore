@@ -34,3 +34,4 @@ spyder_crash.log
 # Rope project folders
 .ropeproject/
 .vscode/
+result.xml

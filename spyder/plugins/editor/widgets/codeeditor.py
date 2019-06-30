@@ -57,8 +57,9 @@ from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               DocstringWriterExtension,
                                               QMenuOnlyForEnter,
                                               EditorExtensionsManager)
-from spyder.plugins.editor.lsp import (LSPRequestTypes, TextDocumentSyncKind,
-                                       DiagnosticSeverity)
+from spyder.plugins.languageserver import (LSPRequestTypes,
+                                           TextDocumentSyncKind,
+                                           DiagnosticSeverity)
 from spyder.plugins.editor.panels import (ClassFunctionDropdown,
                                           DebuggerPanel, EdgeLine,
                                           FoldingPanel, IndentationGuide,
@@ -2020,6 +2021,7 @@ class CodeEditor(TextEditBaseWidget):
         )
 
         msglist = []
+        max_lines_msglist = 25
         sorted_code_analysis = sorted(code_analysis, key=lambda i: i[2])
         for src, code, sev, msg in sorted_code_analysis:
             if '[' in msg and ']' in msg:
@@ -2028,15 +2030,49 @@ class CodeEditor(TextEditBaseWidget):
 
             msg = msg.strip()
             # Avoid messing TODO, FIXME
-            msg = msg[0].upper() + msg[1:]
-            msg = textwrap.wrap(msg, width=self._DEFAULT_MAX_WIDTH)
+            # Prevent error if msg only has one element
             if len(msg) > 1:
-                msg = '<br>'.join(msg) + '<br>'
+                msg = msg[0].upper() + msg[1:]
+
+            # Get individual lines following paragraph format and handle
+            # symbols like '<' and '>' to not mess with br tags
+            msg = msg.replace('<', '&lt;').replace('>', '&gt;')
+            paragraphs = msg.splitlines()
+            new_paragraphs = []
+            long_paragraphs = 0
+            lines_per_message = 6
+            for paragraph in paragraphs:
+                new_paragraph = textwrap.wrap(
+                    paragraph,
+                    width=self._DEFAULT_MAX_HINT_WIDTH)
+                if lines_per_message > 2:
+                    if len(new_paragraph) > 1:
+                        new_paragraph = '<br>'.join(new_paragraph[:2]) + '...'
+                        long_paragraphs += 1
+                        lines_per_message -= 2
+                    else:
+                        new_paragraph = '<br>'.join(new_paragraph)
+                        lines_per_message -= 1
+                    new_paragraphs.append(new_paragraph)
+
+            if len(new_paragraphs) > 1:
+                # Define max lines taking into account that in the same
+                # tooltip you can find multiple warnings and messages
+                # and each one can have multiple lines
+                if long_paragraphs != 0:
+                    max_lines = 3
+                    max_lines_msglist -= max_lines * 2
+                else:
+                    max_lines = 5
+                    max_lines_msglist -= max_lines
+                msg = '<br>'.join(new_paragraphs[:max_lines]) + '<br>'
             else:
-                msg = '<br>'.join(msg)
+                msg = '<br>'.join(new_paragraphs)
+
             base_64 = ima.base64_from_icon(icons[sev], size, size)
-            msglist.append(template.format(base_64, msg, src,
-                                           code, size=size))
+            if max_lines_msglist >= 0:
+                msglist.append(template.format(base_64, msg, src,
+                                               code, size=size))
 
         if msglist:
             self.show_tooltip(
@@ -3483,6 +3519,7 @@ class CodeEditor(TextEditBaseWidget):
     def go_to_uri_from_cursor(self, uri):
         """Go to url from cursor and defined hover patterns."""
         key = self._last_hover_pattern_key
+        full_uri = uri
         if key in ['file']:
             fname = self._preprocess_file_uri(uri)
 

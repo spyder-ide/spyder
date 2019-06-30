@@ -212,8 +212,8 @@ install_requires = [
     'pyzmq',
     'chardet>=2.0.0',
     'numpydoc',
-    'spyder-kernels>=1.2',
-    'qdarkstyle>=2.6.4',
+    'spyder-kernels>=1.4.0,<1.5.0',
+    'qdarkstyle>=2.7',
     'atomicwrites',
     'diff-match-patch',
     'watchdog',
@@ -229,10 +229,12 @@ install_requires = [
     # pyqtwebengine module
     'pyqtwebengine<5.13;python_version>="3"',
     # Pyls with all its dependencies
-    'python-language-server[all]>=0.19.0,<0.25',
+    'python-language-server[all]>=0.27.0',
     # Required to get SSH connections to remote kernels
     'pexpect',
-    'paramiko;platform_system=="Windows"'
+    'paramiko;platform_system=="Windows"',
+    # Required for accesing xdg spec on Linux
+    'pyxdg;platform_system=="Linux"',
 ]
 
 extras_require = {

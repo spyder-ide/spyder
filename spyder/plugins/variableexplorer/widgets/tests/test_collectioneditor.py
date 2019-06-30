@@ -362,22 +362,27 @@ def test_editor_parent_set(monkeypatch):
                               'collectionseditor.TextEditor')
     monkeypatch.setattr(attr_to_patch_textedit, MockTextEditor)
 
+    MockObjectExplorer = Mock()
+    attr_to_patch_objectexplorer = ('spyder.plugins.variableexplorer.widgets.'
+                                    + 'collectionseditor.ObjectExplorer')
+    monkeypatch.setattr(attr_to_patch_objectexplorer, MockObjectExplorer)
+
     editor_data = [[0, 1, 2, 3, 4],
                    numpy.array([1.0, 42.0, 1337.0]),
                    pandas.DataFrame([[1, 2, 3], [20, 30, 40]]),
-                   "012345678901234567890123456789012345678901234567890123456",
-                   os]
+                   os,
+                   "012345678901234567890123456789012345678901234567890123456"]
     col_editor = CollectionsEditorTableView(test_parent, editor_data)
     assert col_editor.parent() is test_parent
 
     for idx, mock_class in enumerate([MockCollectionsEditor,
                                       MockArrayEditor,
                                       MockDataFrameEditor,
-                                      MockTextEditor,
-                                      MockCollectionsEditor]):
+                                      MockObjectExplorer,
+                                      MockTextEditor]):
         col_editor.delegate.createEditor(col_editor.parent(), None,
                                          col_editor.model.createIndex(idx, 3))
-        assert mock_class.call_count == 1 + (idx // 3)
+        assert mock_class.call_count == 1 + (idx // 4)
         assert mock_class.call_args[1]["parent"] is test_parent
 
 

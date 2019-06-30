@@ -89,11 +89,13 @@ class FindReplace(QWidget):
 
         self.number_matches_text = QLabel(self)
         self.previous_button = create_toolbutton(self,
-                                             triggered=self.find_previous,
-                                             icon=ima.icon('ArrowUp'))
+                                                 triggered=self.find_previous,
+                                                 icon=ima.icon('ArrowUp'),
+                                                 tip=_("Find previous"))
         self.next_button = create_toolbutton(self,
                                              triggered=self.find_next,
-                                             icon=ima.icon('ArrowDown'))
+                                             icon=ima.icon('ArrowDown'),
+                                             tip=_("Find next"))
         self.next_button.clicked.connect(self.update_search_combo)
         self.previous_button.clicked.connect(self.update_search_combo)
 
@@ -553,7 +555,7 @@ class FindReplace(QWidget):
                 pattern = search_text
             else:
                 pattern = re.escape(search_text)
-                replace_text = re.escape(replace_text)
+                replace_text = replace_text.replace('\\', r'\\')
             if words:  # match whole words only
                 pattern = r'\b{pattern}\b'.format(pattern=pattern)
 
@@ -571,12 +573,18 @@ class FindReplace(QWidget):
             replacement = re_pattern.sub(replace_text, selected_text)
             if replacement != selected_text:
                 cursor = self.editor.textCursor()
+                start_pos = cursor.selectionStart()
                 cursor.beginEditBlock()
                 cursor.removeSelectedText()
-                if not self.re_button.isChecked():
-                    replacement = re.sub(r'\\(?![nrtf])(.)', r'\1', replacement)
                 cursor.insertText(replacement)
+                # Restore selection
+                self.editor.set_cursor_position(start_pos)
+                newl_cnt = replacement.count(self.editor.get_line_separator())
+                sel_len = len(replacement) - newl_cnt
+                for c in range(sel_len):
+                    self.editor.extend_selection_to_next('character', 'right')
                 cursor.endEditBlock()
+
             if focus_replace_text:
                 self.replace_text.setFocus()
             else:

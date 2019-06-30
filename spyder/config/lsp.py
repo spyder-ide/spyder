@@ -95,6 +95,10 @@ PYTHON_CONFIG = {
                 'preload': {
                     'enabled': True,
                     'modules': []
+                },
+                'pylint': {
+                    'enabled': False,
+                    'args': []
                 }
             },
 

@@ -241,13 +241,14 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 * **Chardet**: Character encoding auto-detection in Python.
 * **Numpydoc**: Used by Jedi to get function return types from Numpydocstrings.
 * **Cloudpickle**: Serialize variables in the IPython kernel to send to Spyder.
-* **spyder-kernels** 1.2.0+: Jupyter kernels for the Spyder console.
+* **spyder-kernels** 1.4.0+: Jupyter kernels for the Spyder console.
 * **keyring**: Save Github credentials to report errors securely.
 * **QDarkStyle** 2.6.4+: A dark stylesheet for Qt applications, used for Spyder's dark theme.
 * **atomicwrites**: Atomic file writes.
 * **pexpect**/**paramiko**: Connect to remote kernels through SSH.
 * **diff-match-patch**: Compute text file diff changes during edition.
 * **watchdog**: Watch file changes on project directories.
+* **pyxdg**: Parse `.desktop` files on Linux
 
 ### Optional dependencies
 
