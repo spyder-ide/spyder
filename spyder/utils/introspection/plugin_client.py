@@ -23,6 +23,7 @@ from spyder.config.base import debug_print, get_module_path
 
 # Heartbeat timer in milliseconds
 HEARTBEAT = 1000
+LOCALHOST = '127.0.0.1'
 
 
 class AsyncClient(QObject):
@@ -66,7 +67,8 @@ class AsyncClient(QObject):
         """
         # Set up the zmq port.
         self.socket = self.context.socket(zmq.PAIR)
-        self.port = self.socket.bind_to_random_port('tcp://*')
+        # We are only listening to localhost
+        self.port = self.socket.bind_to_random_port('tcp://%s' % LOCALHOST)
 
         # Set up the process.
         self.process = QProcess(self)
