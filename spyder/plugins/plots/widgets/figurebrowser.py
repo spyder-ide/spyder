@@ -15,7 +15,6 @@ from __future__ import division
 import os.path as osp
 
 # ---- Third library imports
-import qdarkstyle
 from qtconsole.svg import svg_to_image, svg_to_clipboard
 from qtpy.compat import getsavefilename, getexistingdirectory
 from qtpy.QtCore import Qt, Signal, QRect, QEvent, QPoint, QSize, QTimer, Slot
@@ -646,10 +645,7 @@ class ThumbnailScrollBar(QFrame):
         Set the width of this scrollbar to that of the thumbnails.
         """
         # Create a fake thumbnail.
-        thumbnail = FigureThumbnail()
-        if is_dark_interface():
-            thumbnail.setStyleSheet(
-                qdarkstyle.load_stylesheet_from_environment())
+        thumbnail = FigureThumbnail(parent=self)
         thumbnail.setAttribute(Qt.WA_DontShowOnScreen, True)
         thumbnail.canvas.setFixedSize(THUMBNAIL_SIZE, THUMBNAIL_SIZE)
         thumbnail.show()
@@ -662,7 +658,9 @@ class ThumbnailScrollBar(QFrame):
             self.scrollarea.viewportMargins().right() +
             2 * self.lineWidth())
         if is_dark_interface():
-            thumbnail_scrollbar_width += 4
+            # This is required to take into account some hard-coded padding
+            # and margin in qdarkstyle.
+            thumbnail_scrollbar_width += 6
         self.setFixedWidth(thumbnail_scrollbar_width)
         thumbnail.deleteLater()
 
