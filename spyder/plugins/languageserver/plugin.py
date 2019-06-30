@@ -13,6 +13,7 @@ in our Preferences.
 import logging
 import os
 import os.path as osp
+import functools
 
 # Third-party imports
 from qtpy.QtCore import QObject, Slot
@@ -44,7 +45,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         SpyderCompletionPlugin.__init__(self, parent)
 
         self.clients = {}
-        self.requests = {}
+        self.requests = set({})
         self.register_queue = {}
 
         # Register languages to create clients for
@@ -239,21 +240,37 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 language_client['instance'].stop()
             language_client['status'] = self.STOPPED
 
-    def send_request(self, language, request, params):
+    def recieve_response(self, response_type, response, language, req_id):
+        if req_id in self.requests:
+            self.requests.discard(req_id)
+            self.sig_response_ready.emit(
+                self.COMPLETION_CLIENT_NAME, req_id, response)
+
+    def send_request(self, language, request, params, req_id):
+        if language in self.clients:
+            language_client = self.clients[language]
+            if language_client['status'] == self.RUNNING:
+                self.requests.add(req_id)
+                client = self.clients[language]['instance']
+                params['response_callback'] = functools.partial(
+                    self.recieve_response, language=language, req_id=req_id)
+                client.perform_request(request, params)
+
+    def send_notification(self, language, request, params):
         if language in self.clients:
             language_client = self.clients[language]
             if language_client['status'] == self.RUNNING:
                 client = self.clients[language]['instance']
                 client.perform_request(request, params)
 
-    def broadcast_request(self, request, params):
+    def broadcast_notification(self, request, params):
         """Send notification/request to all available LSP servers."""
         language = params.pop('language', None)
         if language:
-            self.send_request(language, request, params)
+            self.send_notification(language, request, params)
         else:
             for language in self.clients:
-                self.send_request(language, request, params)
+                self.send_notification(language, request, params)
 
     def generate_python_config(self):
         """

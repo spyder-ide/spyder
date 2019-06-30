@@ -13,9 +13,10 @@ Backend plugin to manage multiple code completion and introspection clients.
 import logging
 import os
 import os.path as osp
+import functools
 
 # Third-party imports
-from qtpy.QtCore import QObject, Slot
+from qtpy.QtCore import QObject, Slot, QTimer
 
 # Local imports
 from spyder.config.base import get_conf_path, running_under_pytest
@@ -25,7 +26,7 @@ from spyder.api.completion import SpyderCompletionPlugin
 from spyder.utils.misc import select_port, getcwd_or_home
 from spyder.plugins.languageserver.plugin import LanguageServerPlugin
 from spyder.plugins.fallback.plugin import FallbackPlugin
-# from spyder.plugins.languageserver.client import LSPClient
+from spyder.plugins.languageserver import LSPRequestTypes
 # from spyder.plugins.languageserver.confpage import LanguageServerConfigPage
 
 
@@ -41,7 +42,15 @@ class CompletionPlugin(SpyderCompletionPlugin):
         self.clients = {}
         self.requests = {}
         self.started = False
+        self.first_completion = False
         self.req_id = 0
+        self.completion_first_time = 1500
+        self.waiting_time = 200
+
+        self.plugin_priority = {
+            LSPRequestTypes.DOCUMENT_COMPLETION: ['lsp-server', 'fallback'],
+            LSPRequestTypes.DOCUMENT_SIGNATURE: ['lsp-server']
+        }
 
         lsp_client = LanguageServerPlugin(self)
         fallback = FallbackPlugin(self)
@@ -58,27 +67,53 @@ class CompletionPlugin(SpyderCompletionPlugin):
         plugin.sig_plugin_ready.connect(self.client_available)
 
     @Slot(str, int, dict)
-    def recieve_response(self, language, req_id, resp):
-        pass
+    def recieve_response(self, completion_source, req_id, resp):
+        request_responses = self.requests[req_id]
+        request_responses.append((completion_source, resp))
 
     @Slot(str)
     def client_available(self, client_name):
         client_info = self.clients[client_name]
         client_info['status'] = self.RUNNING
 
-    def send_request(self, language, req_type, req, req_id=None):
-        for client_name in self.clients:
-            client_info = self.clients[client_name]
-            if client_info['status'] == self.RUNNING:
-                client_info['plugin'].send_request(
-                    language, req_type, req, req_id=None)
+    def gather_and_send(self, response_instance, req_type, req_id):
+        responses = []
+        if req_type == LSPRequestTypes.DOCUMENT_COMPLETION:
+            pass
+        elif req_type == LSPRequestTypes.DOCUMENT_SIGNATURE:
+            pass
 
-    def send_broadcast(self, req_type, req, req_id=None):
+    def send_request(self, language, req_type, req, req_id):
         for client_name in self.clients:
             client_info = self.clients[client_name]
             if client_info['status'] == self.RUNNING:
-                client_info['plugin'].send_broadcast(
-                    req_type, req, req_id=req_id)
+                self.requests[req_id] = []
+                client_info['plugin'].send_request(
+                    language, req_type, req, req_id)
+        wait_time = self.waiting_time
+        if req_type == LSPRequestTypes.DOCUMENT_COMPLETION:
+            if not self.first_completion:
+                wait_time = self.completion_first_time
+                self.first_completion = True
+        response_instance = req['response_instance']
+        timer = QTimer()
+        timer.singleShot(
+            wait_time, functools.partial(
+                self.gather_and_send, response_instance, req_type, req_id))
+
+    def send_notification(self, language, notification_type, notification):
+        for client_name in self.clients:
+            client_info = self.clients[client_name]
+            if client_info['status'] == self.RUNNING:
+                client_info['plugin'].send_notification(
+                    language, notification_type, notification)
+
+    def broadcast_notification(self, req_type, req):
+        for client_name in self.clients:
+            client_info = self.clients[client_name]
+            if client_info['status'] == self.RUNNING:
+                client_info['plugin'].broadcast_notification(
+                    req_type, req)
 
     def start(self):
         for client_name in self.clients:

@@ -36,7 +36,7 @@ class DocumentProvider:
         if uri in self.watched_files:
             callbacks = self.watched_files[uri]
             for callback in callbacks:
-                callback.handle_response(
+                callback(
                     LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS,
                     {'params': diagnostics})
         else:
@@ -102,7 +102,7 @@ class DocumentProvider:
                 item['insertText'] = item.get('insertText', item['label'])
 
         if req_id in self.req_reply:
-            self.req_reply[req_id].handle_response(
+            self.req_reply[req_id](
                 LSPRequestTypes.DOCUMENT_COMPLETION, {'params': response})
 
     @send_request(method=LSPRequestTypes.DOCUMENT_SIGNATURE)
@@ -127,7 +127,7 @@ class DocumentProvider:
         else:
             response = None
         if req_id in self.req_reply:
-            self.req_reply[req_id].handle_response(
+            self.req_reply[req_id](
                 LSPRequestTypes.DOCUMENT_SIGNATURE,
                 {'params': response})
 
@@ -157,7 +157,7 @@ class DocumentProvider:
             if 'value' in contents:
                 contents = contents['value']
         if req_id in self.req_reply:
-            self.req_reply[req_id].handle_response(
+            self.req_reply[req_id](
                 LSPRequestTypes.DOCUMENT_HOVER,
                 {'params': contents})
 
@@ -186,7 +186,7 @@ class DocumentProvider:
         elif isinstance(result, dict):
             result['file'] = process_uri(result['uri'])
         if req_id in self.req_reply:
-            self.req_reply[req_id].handle_response(
+            self.req_reply[req_id](
                 LSPRequestTypes.DOCUMENT_DEFINITION,
                 {'params': result})
 

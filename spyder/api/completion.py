@@ -25,7 +25,7 @@ class SpyderCompletionPlugin(QObject, SpyderPlugin):
     """
 
     # Use this signal to send a response back to the completion manager
-    # str: Programming language name
+    # str: Completion client name
     # int: Request sequence identifier
     # dict: Response dictionary
     sig_response_ready = Signal(str, int, dict)
