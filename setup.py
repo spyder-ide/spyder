@@ -217,8 +217,6 @@ install_requires = [
     'atomicwrites',
     'diff-match-patch',
     'watchdog',
-    # Only require appscript for macOS
-    'appscript;sys_platform=="darwin"',
     # Don't require keyring for Python 2 and Linux
     # because it depends on system packages
     'keyring;sys_platform!="linux2"',

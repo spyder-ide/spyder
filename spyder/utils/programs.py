@@ -22,6 +22,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import threading
 
 # Local imports
 from spyder.config.base import _, get_conf_path, is_stable_version
@@ -711,12 +712,26 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
                     run_program(program['cmd'], arglist)
                 return
     elif sys.platform == 'darwin':
-        import appscript
-        command = ""
-        if wdir:
-            command += "cd {0}\n".format(wdir)
-        command += "{0} {1}".format(p_args[0], p_args[1])
-        appscript.app('Terminal').do_script(command)
+        f = tempfile.NamedTemporaryFile('wt', suffix='.sh',
+                                        dir=get_temp_dir(), delete=False)
+        f.write(' '.join(p_args))
+        f.close()
+        os.chmod(f.name, 0o777)
+        
+        def run_terminal_thread():
+            if wdir:
+                proc = run_program(
+                    'open', ['-a', 'Terminal.app', f.name], cwd=wdir)
+            else:
+                proc = run_program(
+                    'open', ['-a', 'Terminal.app', f.name])
+            while proc.poll() is None:
+                print('-----')
+                continue                
+            os.remove(f.name)
+
+        thread = threading.Thread(target=run_terminal_thread)
+        thread.start()
     else:
         raise NotImplementedError
 
