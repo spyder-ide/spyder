@@ -36,7 +36,7 @@ class DocumentProvider:
         if uri in self.watched_files:
             callbacks = self.watched_files[uri]
             for callback in callbacks:
-                callback(
+                callback.handle_response(
                     LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS,
                     {'params': diagnostics})
         else:

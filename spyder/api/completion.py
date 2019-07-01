@@ -44,6 +44,24 @@ class SpyderCompletionPlugin(QObject, SpyderPlugin):
         SpyderPlugin.__init__(self, parent)
         self.main = parent
 
+    def register_file(self, language, filename, codeeditor):
+        """
+        Register file to perform completions.
+        If a language client is not available for a given file, then this
+        method should keep a queue, such that files can be initialized once
+        a server is available.
+
+        Parameters
+        ==========
+        language: str
+            Programming language of the given file
+        filename: str
+            Filename to register
+        codeeditor: spyder.plugins.editor.widgets.codeeditor.CodeEditor
+            Codeeditor to send the client configurations
+        """
+        pass
+
     def send_request(self, language, req_type, req, req_id):
         """
         Process completion/introspection request from Spyder.
@@ -145,7 +163,7 @@ class SpyderCompletionPlugin(QObject, SpyderPlugin):
 
     def start(self):
         """Start completion plugin."""
-        pass
+        self.sig_plugin_ready.emit(self.COMPLETION_CLIENT_NAME)
 
     def shutdown(self):
         """Stop completion plugin."""

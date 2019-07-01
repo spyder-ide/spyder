@@ -14,6 +14,7 @@ updating the file tree explorer associated with a project
 # Standard library imports
 import os.path as osp
 import shutil
+import functools
 
 # Third party imports
 from qtpy.compat import getexistingdirectory
@@ -152,7 +153,9 @@ class Projects(SpyderPluginWidget):
             lambda v: self.main.workingdirectory.chdir(v))
         self.sig_project_loaded.connect(
             lambda v: self.main.set_window_title())
-        self.sig_project_loaded.connect(lspmgr.reinitialize_all_clients)
+        self.sig_project_loaded.connect(
+            functools.partial(lspmgr.project_path_update,
+                              update_kind='addition'))
         self.sig_project_loaded.connect(
             lambda v: self.main.editor.setup_open_files())
         self.sig_project_loaded.connect(self.update_explorer)
@@ -161,7 +164,9 @@ class Projects(SpyderPluginWidget):
                 self.get_last_working_dir()))
         self.sig_project_closed.connect(
             lambda v: self.main.set_window_title())
-        self.sig_project_closed.connect(lspmgr.reinitialize_all_clients)
+        self.sig_project_closed.connect(
+            functools.partial(lspmgr.project_path_update,
+                              update_kind='deletion'))
         self.sig_project_closed.connect(
             lambda v: self.main.editor.setup_open_files())
         self.recent_project_menu.aboutToShow.connect(self.setup_menu_actions)
@@ -525,7 +530,7 @@ class Projects(SpyderPluginWidget):
         """Send request/notification/response to all LSP servers."""
         params['requires_response'] = requires_response
         params['response_instance'] = self
-        self.main.lspmanager.broadcast_request(method, params)
+        self.main.lspmanager.broadcast_notification(method, params)
 
     @Slot(str, dict)
     def handle_response(self, method, params):

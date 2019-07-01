@@ -879,13 +879,13 @@ class MainWindow(QMainWindow):
         self.console.register_plugin()
 
         # Language Server Protocol Client initialization
-        self.set_splash(_("Starting Language Server Protocol manager..."))
-        from spyder.plugins.languageserver.plugin import LanguageServerPlugin
-        self.lspmanager = LanguageServerPlugin(self)
+        self.set_splash(_("Starting Completion plugin..."))
+        from spyder.plugins.completion.plugin import CompletionPlugin
+        self.lspmanager = CompletionPlugin(self)
 
         # Fallback completion thread
         self.set_splash(_("Creating fallback completion engine..."))
-        from spyder.plugins.editor.fallback.actor import FallbackActor
+        from spyder.plugins.fallback.actor import FallbackActor
         self.fallback_completions = FallbackActor(self)
 
         # Working directory plugin
@@ -917,6 +917,7 @@ class MainWindow(QMainWindow):
 
         # Start LSP client
         self.set_splash(_("Launching LSP Client for Python..."))
+        self.lspmanager.start()
         self.lspmanager.start_client(language='python')
 
         # Start fallback plugin
@@ -2939,7 +2940,17 @@ class MainWindow(QMainWindow):
                 widget.initialize()
                 dlg.add_page(widget)
 
-            for plugin in [self.lspmanager, self.workingdirectory, self.editor,
+            widget = self.lspmanager._create_configwidget(dlg, self)
+            if widget is not None:
+                dlg.add_page(widget)
+
+            for completion_plugin in self.lspmanager.clients.values():
+                completion_plugin = completion_plugin['plugin']
+                widget = completion_plugin._create_configwidget(dlg, self)
+                if widget is not None:
+                    dlg.add_page(widget)
+
+            for plugin in [self.workingdirectory, self.editor,
                            self.projects, self.ipyconsole,
                            self.historylog, self.help, self.variableexplorer,
                            self.onlinehelp, self.explorer, self.findinfiles

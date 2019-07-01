@@ -27,7 +27,7 @@ from diff_match_patch import diff_match_patch
 
 # Local imports
 from spyder.plugins.languageserver import CompletionItemKind
-from spyder.plugins.editor.fallback.utils import get_keywords, get_words
+from spyder.plugins.fallback.utils import get_keywords, get_words
 
 
 logger = logging.getLogger(__name__)

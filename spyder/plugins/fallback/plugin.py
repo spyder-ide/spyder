@@ -25,11 +25,11 @@ class FallbackPlugin(SpyderCompletionPlugin):
     COMPLETION_CLIENT_NAME = 'fallback'
 
     def __init__(self, parent):
-        SpyderCompletionPlugin.__init__(parent)
+        SpyderCompletionPlugin.__init__(self, parent)
         self.fallback_actor = FallbackActor(self)
         self.fallback_actor.sig_fallback_ready.connect(
             lambda: self.sig_plugin_ready.emit(self.COMPLETION_CLIENT_NAME))
-        self.fallback_actor.sig_set_tokens.connect(self.sig_response_ready)
+        # self.fallback_actor.sig_set_tokens.connect(self.sig_response_ready)
         self.started = False
         self.requests = {}
 

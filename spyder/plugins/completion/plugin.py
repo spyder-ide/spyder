@@ -44,20 +44,23 @@ class CompletionPlugin(SpyderCompletionPlugin):
         self.started = False
         self.first_completion = False
         self.req_id = 0
-        self.completion_first_time = 1500
-        self.waiting_time = 200
+        self.completion_first_time = 500
+        self.waiting_time = 1000
 
         self.plugin_priority = {
-            LSPRequestTypes.DOCUMENT_COMPLETION: ['lsp-server', 'fallback'],
-            LSPRequestTypes.DOCUMENT_SIGNATURE: ['lsp-server']
+            LSPRequestTypes.DOCUMENT_COMPLETION: 'lsp',
+            LSPRequestTypes.DOCUMENT_SIGNATURE: 'lsp',
+            'all': 'lsp'
         }
 
-        lsp_client = LanguageServerPlugin(self)
-        fallback = FallbackPlugin(self)
+        lsp_client = LanguageServerPlugin(self.main)
+        fallback = FallbackPlugin(self.main)
         self.register_completion_plugin(lsp_client)
         self.register_completion_plugin(fallback)
 
     def register_completion_plugin(self, plugin):
+        logger.debug("Completion plugin: Registering {0}".format(
+            plugin.COMPLETION_CLIENT_NAME))
         plugin_name = plugin.COMPLETION_CLIENT_NAME
         self.clients[plugin_name] = {
             'plugin': plugin,
@@ -68,8 +71,15 @@ class CompletionPlugin(SpyderCompletionPlugin):
 
     @Slot(str, int, dict)
     def recieve_response(self, completion_source, req_id, resp):
+        logger.debug("Completion plugin: Got response from {0}".format(
+            completion_source))
         request_responses = self.requests[req_id]
-        request_responses.append((completion_source, resp))
+        req_type = request_responses['req_type']
+        request_responses['sources'][completion_source] = resp
+        corresponding_source = self.plugin_priority.get(req_type, 'lsp')
+        if corresponding_source == completion_source:
+            response_instance = request_responses['response_instance']
+            self.gather_and_send(response_instance, req_type, req_id)
 
     @Slot(str)
     def client_available(self, client_name):
@@ -77,29 +87,45 @@ class CompletionPlugin(SpyderCompletionPlugin):
         client_info['status'] = self.RUNNING
 
     def gather_and_send(self, response_instance, req_type, req_id):
+        logger.debug('Gather responses for {0}'.format(req_type))
         responses = []
+        req_id_responses = self.requests[req_id]['sources']
         if req_type == LSPRequestTypes.DOCUMENT_COMPLETION:
-            pass
-        elif req_type == LSPRequestTypes.DOCUMENT_SIGNATURE:
-            pass
+            principal_source = self.plugin_priority[req_type]
+            responses = req_id_responses[principal_source]['params']
+            available_completions = {x['insertText'] for x in responses}
+            priority_level = 1
+            for source in req_id_responses:
+                if source == principal_source:
+                    continue
+                source_responses = req_id_responses[source]['params']
+                for response in source_responses:
+                    if response['insertText'] not in available_completions:
+                        response['sortText'] = (
+                            'z' + 'z' * priority_level + response['sortText'])
+                        responses.append(response)
+                priority_level += 1
+            responses = {'params': responses}
+        else:
+            principal_source = self.plugin_priority['all']
+            responses = req_id_responses[principal_source]
+        response_instance.handle_response(req_type, responses)
 
-    def send_request(self, language, req_type, req, req_id):
+    def send_request(self, language, req_type, req, req_id=None):
+        req_id = self.req_id
         for client_name in self.clients:
             client_info = self.clients[client_name]
             if client_info['status'] == self.RUNNING:
-                self.requests[req_id] = []
+                self.requests[req_id] = {
+                    'req_type': req_type,
+                    'response_instance': req['response_instance'],
+                    'language': language,
+                    'sources': {}
+                }
                 client_info['plugin'].send_request(
                     language, req_type, req, req_id)
-        wait_time = self.waiting_time
-        if req_type == LSPRequestTypes.DOCUMENT_COMPLETION:
-            if not self.first_completion:
-                wait_time = self.completion_first_time
-                self.first_completion = True
-        response_instance = req['response_instance']
-        timer = QTimer()
-        timer.singleShot(
-            wait_time, functools.partial(
-                self.gather_and_send, response_instance, req_type, req_id))
+        if req['requires_response']:
+            self.req_id += 1
 
     def send_notification(self, language, notification_type, notification):
         for client_name in self.clients:
@@ -114,6 +140,22 @@ class CompletionPlugin(SpyderCompletionPlugin):
             if client_info['status'] == self.RUNNING:
                 client_info['plugin'].broadcast_notification(
                     req_type, req)
+
+    def project_path_update(self, project_path, update_kind='addition'):
+        for client_name in self.clients:
+            client_info = self.clients[client_name]
+            if client_info['status'] == self.RUNNING:
+                client_info['plugin'].project_path_update(
+                    project_path, update_kind
+                )
+
+    def register_file(self, language, filename, codeeditor):
+        for client_name in self.clients:
+            client_info = self.clients[client_name]
+            if client_info['status'] == self.RUNNING:
+                client_info['plugin'].register_file(
+                    language, filename, codeeditor
+                )
 
     def start(self):
         for client_name in self.clients:
@@ -138,3 +180,9 @@ class CompletionPlugin(SpyderCompletionPlugin):
             client_info = self.clients[client_name]
             if client_info['status'] == self.RUNNING:
                 client_info['plugin'].stop_client(language)
+
+    def __getattr__(self, name):
+        if name in self.clients:
+            return self.clients[name]['plugin']
+        else:
+            return super().__getattr__(name)
