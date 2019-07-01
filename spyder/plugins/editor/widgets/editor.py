@@ -57,7 +57,8 @@ from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
 from spyder.plugins.editor.utils.findtasks import find_tasks
 from spyder.widgets.tabs import BaseTabs
 from spyder.config.main import CONF
-from spyder.plugins.explorer.widgets import show_in_external_file_explorer
+from spyder.plugins.explorer.widgets.explorer import (
+    show_in_external_file_explorer)
 
 
 logger = logging.getLogger(__name__)
@@ -199,7 +200,6 @@ class FileInfo(QObject):
     def text_changed(self):
         """Editor's text has changed"""
         self.default = False
-        self.editor.document().changed_since_autosave = True
         self.text_changed_at.emit(self.filename,
                                   self.editor.get_position('cursor'))
 
@@ -363,7 +363,8 @@ class TabSwitcherWidget(QListWidget):
     def set_dialog_position(self):
         """Positions the tab switcher in the top-center of the editor."""
         left = self.editor.geometry().width()/2 - self.width()/2
-        top = self.editor.tabs.tabBar().geometry().height()
+        top = (self.editor.tabs.tabBar().geometry().height() +
+               self.editor.fname_label.geometry().height())
 
         self.move(self.editor.mapToGlobal(QPoint(left, top)))
 
@@ -444,6 +445,7 @@ class EditorStack(QWidget):
     sig_next_warning = Signal()
     sig_go_to_definition = Signal(str, int, int)
     perform_lsp_request = Signal(str, str, dict)
+    sig_perform_fallback_request = Signal(dict)
     sig_option_changed = Signal(str, object)  # config option needs changing
     sig_save_bookmark = Signal(int)
     sig_load_bookmark = Signal(int)
@@ -541,6 +543,7 @@ class EditorStack(QWidget):
         self.tabmode_enabled = False
         self.stripmode_enabled = False
         self.intelligent_backspace_enabled = True
+        self.underline_errors_enabled = False
         self.highlight_current_line_enabled = False
         self.highlight_current_cell_enabled = False
         self.occurrence_highlighting_enabled = True
@@ -777,7 +780,7 @@ class EditorStack(QWidget):
            and not sys.platform == 'darwin':
             # Don't set document mode to true on OSX because it generates
             # a crash when the editor is detached from the main window
-            # Fixes Issue 561
+            # Fixes spyder-ide/spyder#561
             self.tabs.setDocumentMode(True)
         self.tabs.currentChanged.connect(self.current_changed)
 
@@ -860,6 +863,12 @@ class EditorStack(QWidget):
     def open_symbolfinder_dlg(self):
         self.open_fileswitcher_dlg()
         self.fileswitcher_dlg.set_search_text('@')
+
+    def get_plugin_title(self):
+        """Get the plugin title of the parent widget."""
+        # Needed for the editor stack to use its own fileswitcher instance.
+        # See spyder-ide/spyder#9469
+        return self.parent().plugin.get_plugin_title()
 
     def get_current_tab_manager(self):
         """Get the widget with the TabWidget attribute."""
@@ -1129,6 +1138,12 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 finfo.editor.set_occurrence_timeout(timeout)
 
+    def set_underline_errors_enabled(self, state):
+        self.underline_errors_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_underline_errors_enabled(state)
+
     def set_highlight_current_line_enabled(self, state):
         self.highlight_current_line_enabled = state
         if self.data:
@@ -1267,7 +1282,7 @@ class EditorStack(QWidget):
         if set_new_index:
             self.set_stack_index(new_index)
         else:
-            # Fixes Issue 1287
+            # Fixes spyder-ide/spyder#1287
             self.set_current_filename(current_fname)
         if self.outlineexplorer is not None:
             self.outlineexplorer.file_renamed(
@@ -1283,7 +1298,7 @@ class EditorStack(QWidget):
         tab_tip = self.get_tab_tip(fname, is_modified, is_readonly)
 
         # Only update tab text if have changed, otherwise an unwanted scrolling
-        # will happen when changing tabs. See Issue #1170.
+        # will happen when changing tabs. See spyder-ide/spyder#1170.
         if tab_text != self.tabs.tabText(index):
             self.tabs.setTabText(index, tab_text)
         self.tabs.setTabToolTip(index, tab_tip)
@@ -1349,11 +1364,12 @@ class EditorStack(QWidget):
             actions += [MENU_SEPARATOR, self.new_window_action,
                         close_window_action]
         elif plugin is not None:
-            if plugin.undocked_window is not None:
-                actions += [MENU_SEPARATOR, plugin.dock_action]
+            if plugin._undocked_window is not None:
+                actions += [MENU_SEPARATOR, plugin._dock_action]
             else:
                 actions += [MENU_SEPARATOR, self.new_window_action,
-                            plugin.undock_action, plugin.close_plugin_action]
+                            plugin._undock_action,
+                            plugin._close_plugin_action]
 
         return actions
 
@@ -1496,7 +1512,7 @@ class EditorStack(QWidget):
             # We pass self object ID as a QString, because otherwise it would
             # depend on the platform: long for 64bit, int for 32bit. Replacing
             # by long all the time is not working on some 32bit platforms
-            # (see Issue 1094, Issue 1098)
+            # (see spyder-ide/spyder#1094, spyder-ide/spyder#1098)
             self.sig_close_file.emit(str(id(self)), filename)
 
             self.opened_files_list_changed.emit()
@@ -1516,9 +1532,8 @@ class EditorStack(QWidget):
 
             self.add_last_closed_file(finfo.filename)
 
-            # Remove autosave on successful close to work around issue #9265.
-            # Probably a good idea in general to mitigate any other bugs.
-            self.autosave.remove_autosave_file(finfo.filename)
+            if finfo.filename in self.autosave.file_hashes:
+                del self.autosave.file_hashes[finfo.filename]
 
         if self.get_stack_count() == 0 and self.create_new_file_if_empty:
             self.sig_new_file[()].emit()
@@ -1540,6 +1555,19 @@ class EditorStack(QWidget):
             editor = self.tabs.widget(index)
             if editor.language.lower() == language:
                 editor.start_lsp_services(config)
+
+    def notify_server_down(self, language):
+        """Notify language server unavailability to code editors."""
+        for index in range(self.get_stack_count()):
+            editor = self.tabs.widget(index)
+            if editor.language.lower() == language:
+                editor.stop_lsp_services()
+
+    def notify_fallback_ready(self):
+        """Notify fallback availability to code editors."""
+        for index in range(self.get_stack_count()):
+            editor = self.tabs.widget(index)
+            editor.start_fallback()
 
     def close_all_files(self):
         """Close all opened scripts"""
@@ -1631,7 +1659,7 @@ class EditorStack(QWidget):
                 if not self.save(index):
                     return False
             elif no_all:
-                self.autosave.remove_autosave_file(finfo.filename)
+                self.autosave.remove_autosave_file(finfo)
             elif (finfo.editor.document().isModified() and
                   self.save_dialog_on_tests):
 
@@ -1661,6 +1689,19 @@ class EditorStack(QWidget):
                     return False
         return True
 
+    def compute_hash(self, fileinfo):
+        """Compute hash of contents of editor.
+
+        Args:
+            fileinfo: FileInfo object associated to editor whose hash needs
+                to be computed.
+
+        Returns:
+            int: computed hash.
+        """
+        txt = fileinfo.editor.get_text_with_eol()
+        return hash(txt)
+
     def _write_to_file(self, fileinfo, filename):
         """Low-level function for writing text of editor to file.
 
@@ -1671,7 +1712,7 @@ class EditorStack(QWidget):
         This is a low-level function that only saves the text to file in the
         correct encoding without doing any error handling.
         """
-        txt = to_text_string(fileinfo.editor.get_text_with_eol())
+        txt = fileinfo.editor.get_text_with_eol()
         fileinfo.encoding = encoding.write(txt, filename, fileinfo.encoding)
 
     def save(self, index=None, force=False):
@@ -1714,6 +1755,8 @@ class EditorStack(QWidget):
             self.set_os_eol_chars(osname=osname)
         try:
             self._write_to_file(finfo, finfo.filename)
+            file_hash = self.compute_hash(finfo)
+            self.autosave.file_hashes[finfo.filename] = file_hash
             self.autosave.remove_autosave_file(finfo.filename)
             finfo.newly_created = False
             self.encoding_changed.emit(finfo.encoding)
@@ -1722,14 +1765,13 @@ class EditorStack(QWidget):
             # We pass self object ID as a QString, because otherwise it would
             # depend on the platform: long for 64bit, int for 32bit. Replacing
             # by long all the time is not working on some 32bit platforms
-            # (see Issue 1094, Issue 1098)
+            # (see spyder-ide/spyder#1094, spyder-ide/spyder#1098)
             # The filename is passed instead of an index in case the tabs
-            # have been rearranged (see issue 5703).
+            # have been rearranged (see spyder-ide/spyder#5703).
             self.file_saved.emit(str(id(self)),
                                  finfo.filename, finfo.filename)
 
             finfo.editor.document().setModified(False)
-            finfo.editor.document().changed_since_autosave = False
             self.modification_changed(index=index)
             self.analyze_script(index)
 
@@ -1763,7 +1805,7 @@ class EditorStack(QWidget):
 
         The original filename is passed instead of an index in case the tabs
         on the editor stacks were moved and are now in a different order - see
-        issue 5703.
+        spyder-ide/spyder#5703.
         Filename is passed in case file was just saved as another name.
         """
         index = self.has_filename(original_filename)
@@ -1792,7 +1834,7 @@ class EditorStack(QWidget):
 
         # Don't use filters on KDE to not make the dialog incredible
         # slow
-        # Fixes issue 4156
+        # Fixes spyder-ide/spyder#4156
         if is_kde_desktop() and not is_anaconda():
             filters = ''
             selectedfilter = ''
@@ -1838,7 +1880,7 @@ class EditorStack(QWidget):
         finfo = self.data[index]
         # The next line is necessary to avoid checking if the file exists
         # While running __check_file_status
-        # See issues 3678 and 3026
+        # See spyder-ide/spyder#3678 and spyder-ide/spyder#3026
         finfo.newly_created = True
         original_filename = finfo.filename
         filename = self.select_savename(original_filename)
@@ -1857,7 +1899,7 @@ class EditorStack(QWidget):
             # We pass self object ID as a QString, because otherwise it would
             # depend on the platform: long for 64bit, int for 32bit. Replacing
             # by long all the time is not working on some 32bit platforms
-            # (see Issue 1094, Issue 1098)
+            # (see spyder-ide/spyder#1094, spyder-ide/spyder#1098)
             self.file_renamed_in_data.emit(str(id(self)),
                                            original_filename, filename)
 
@@ -1978,7 +2020,7 @@ class EditorStack(QWidget):
 
         # Needed to avoid an error generated after moving/renaming
         # files outside Spyder while in debug mode.
-        # See issue 8749.
+        # See spyder-ide/spyder#8749.
         try:
             logger.debug("Current changed: %d - %s" %
                          (index, self.data[index].editor.filename))
@@ -1986,9 +2028,13 @@ class EditorStack(QWidget):
             pass
 
         self.update_plugin_title.emit()
+        # Make sure that any replace happens in the editor on top
+        # See spyder-ide/spyder#9688
+        self.find_widget.set_editor(editor, refresh=False)
+
         if editor is not None:
             # Needed in order to handle the close of files open in a directory
-            # that has been renamed. See issue 5157
+            # that has been renamed. See spyder-ide/spyder#5157
             try:
                 self.current_file_changed.emit(self.data[index].filename,
                                                editor.get_position('cursor'))
@@ -2214,7 +2260,7 @@ class EditorStack(QWidget):
         position = finfo.editor.get_position('cursor')
         finfo.editor.set_text(txt)
         finfo.editor.document().setModified(False)
-        finfo.editor.document().changed_since_autosave = False
+        self.autosave.file_hashes[finfo.filename] = hash(txt)
         finfo.editor.set_cursor_position(position)
 
         #XXX CodeEditor-only: re-scan the whole text to rebuild outline
@@ -2279,6 +2325,7 @@ class EditorStack(QWidget):
         editor.setup_editor(
             linenumbers=self.linenumbers_enabled,
             show_blanks=self.blanks_enabled,
+            underline_errors=self.underline_errors_enabled,
             scroll_past_end=self.scrollpastend_enabled,
             edge_line=self.edgeline_enabled,
             edge_line_columns=self.edgeline_columns, language=language,
@@ -2305,7 +2352,6 @@ class EditorStack(QWidget):
         if cloned_from is None:
             editor.set_text(txt)
             editor.document().setModified(False)
-            editor.document().changed_since_autosave = False
         finfo.text_changed_at.connect(
             lambda fname, position:
             self.text_changed_at.emit(fname, position))
@@ -2315,6 +2361,9 @@ class EditorStack(QWidget):
         editor.sig_perform_lsp_request.connect(
             lambda lang, method, params: self.perform_lsp_request.emit(
                 lang, method, params))
+        editor.sig_perform_fallback_request.connect(
+            lambda req: self.sig_perform_fallback_request.emit(req)
+        )
         editor.modificationChanged.connect(
             lambda state: self.modification_changed(state,
                 editor_id=id(editor)))
@@ -2388,6 +2437,9 @@ class EditorStack(QWidget):
     def load(self, filename, set_current=True, add_where='end'):
         """
         Load filename, create an editor instance and return it
+
+        This also sets the hash of the loaded file in the autosave component.
+
         *Warning* This is loading file, creating editor but not executing
         the source code analysis -- the analysis must be done by the editor
         plugin (in case multiple editorstack instances are handled)
@@ -2395,6 +2447,7 @@ class EditorStack(QWidget):
         filename = osp.abspath(to_text_string(filename))
         self.starting_long_process.emit(_("Loading %s...") % filename)
         text, enc = encoding.read(filename)
+        self.autosave.file_hashes[filename] = hash(text)
         finfo = self.create_new_editor(filename, enc, text, set_current,
                                        add_where=add_where)
         index = self.data.index(finfo)
@@ -2477,8 +2530,8 @@ class EditorStack(QWidget):
 
     def run_cell(self):
         """Run current cell."""
-        text, line = self.get_current_editor().get_cell_as_executable_code()
-        self._run_cell_text(text, line)
+        text, block = self.get_current_editor().get_cell_as_executable_code()
+        self._run_cell_text(text, block)
 
     def run_cell_and_advance(self):
         """Run current cell and advance to the next one"""
@@ -2507,11 +2560,25 @@ class EditorStack(QWidget):
 
     def re_run_last_cell(self):
         """Run the previous cell again."""
-        text, line = (self.get_current_editor()
-                      .get_last_cell_as_executable_code())
-        self._run_cell_text(text, line)
+        last_cell = (self.get_current_editor()
+                     .get_last_cell_as_executable_code())
+        if not last_cell:
+            return
+        self._run_cell_text(*last_cell)
 
-    def _run_cell_text(self, text, line):
+    def _get_cell_name(self, block):
+        """Get the cell name from the block."""
+        oe_data = block.userData()
+        if oe_data and oe_data.oedata:
+            cell_name = oe_data.oedata.def_name
+        else:
+            if block.firstLineNumber() == 0:
+                cell_name = 'Cell at line 0'
+            else:
+                raise RuntimeError('Not a cell?')
+        return cell_name
+
+    def _run_cell_text(self, text, block):
         """Run cell code in the console.
 
         Cell code is run in the console by copying it to the console if
@@ -2527,11 +2594,7 @@ class EditorStack(QWidget):
         """
         finfo = self.get_current_finfo()
         editor = self.get_current_editor()
-        oe_data = editor.highlighter.get_outlineexplorer_data()
-        try:
-            cell_name = oe_data.get(line-1).def_name
-        except AttributeError:
-            cell_name = ''
+        cell_name = self._get_cell_name(block)
         if finfo.editor.is_python() and text:
             self.run_cell_in_ipyclient.emit(text, cell_name,
                                             finfo.filename,
@@ -2547,7 +2610,7 @@ class EditorStack(QWidget):
         # can return True but source.urls() is []
         # The third check is needed since a file could be dropped from
         # compressed files. In Windows mimedata2url(source) returns None
-        # Fixes issue 5218
+        # Fixes spyder-ide/spyder#5218
         if source.hasUrls() and source.urls() and mimedata2url(source):
             all_urls = mimedata2url(source)
             text = [encoding.is_text_file(url) for url in all_urls]
@@ -2561,7 +2624,7 @@ class EditorStack(QWidget):
             # This covers cases like dragging from compressed files,
             # which can be opened by the Editor if they are plain
             # text, but doesn't come with url info.
-            # Fixes Issue 2032
+            # Fixes spyder-ide/spyder#2032
             event.acceptProposedAction()
         else:
             event.ignore()
@@ -2572,7 +2635,7 @@ class EditorStack(QWidget):
         source = event.mimeData()
         # The second check is necessary when mimedata2url(source)
         # returns None.
-        # Fixes issue 7742
+        # Fixes spyder-ide/spyder#7742
         if source.hasUrls() and mimedata2url(source):
             files = mimedata2url(source)
             files = [f for f in files if encoding.is_text_file(f)]
@@ -2794,7 +2857,7 @@ class EditorSplitter(QSplitter):
                 editor = finfo.editor
                 # TODO: go_to_line is not working properly (the line it jumps
                 # to is not the corresponding to that file). This will be fixed
-                # in a future PR (which will fix issue #3857)
+                # in a future PR (which will fix spyder-ide/spyder#3857)
                 if dont_goto is not None:
                     # skip go to line for first file because is already there
                     pass
@@ -2991,13 +3054,13 @@ class EditorMainWindow(QMainWindow):
 
     def closeEvent(self, event):
         """Reimplement Qt method"""
-        if self.plugin.undocked_window is not None:
+        if self.plugin._undocked_window is not None:
             self.plugin.dockwidget.setWidget(self.plugin)
             self.plugin.dockwidget.setVisible(True)
         self.plugin.switch_to_plugin()
         QMainWindow.closeEvent(self, event)
-        if self.plugin.undocked_window is not None:
-            self.plugin.undocked_window = None
+        if self.plugin._undocked_window is not None:
+            self.plugin._undocked_window = None
 
     def get_layout_settings(self):
         """Return layout state"""
@@ -3035,10 +3098,10 @@ class EditorPluginExample(QSplitter):
     def __init__(self):
         QSplitter.__init__(self)
 
-        self.dock_action = None
-        self.undock_action = None
-        self.close_plugin_action = None
-        self.undocked_window = None
+        self._dock_action = None
+        self._undock_action = None
+        self._close_plugin_action = None
+        self._undocked_window = None
         menu_actions = []
 
         self.editorstacks = []
@@ -3198,7 +3261,8 @@ def test():
     t0 = time.time()
     test.load(osp.join(spyder_dir, "plugins", "editor", "widgets",
                        "editor.py"))
-    test.load(osp.join(spyder_dir, "plugins", "explorer", "widgets.py"))
+    test.load(osp.join(spyder_dir, "plugins", "explorer", "widgets",
+                       'explorer.py'))
     test.load(osp.join(spyder_dir, "plugins", "variableexplorer", "widgets",
                        "collectionseditor.py"))
     test.load(osp.join(spyder_dir, "plugins", "editor", "widgets",

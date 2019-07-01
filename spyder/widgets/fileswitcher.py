@@ -29,27 +29,15 @@ from spyder.config.main import CONF
 
 
 # --- Python Outline explorer helpers
-def process_python_symbol_data(oedata):
-    """Returns a list with line number, definition name, fold and token."""
-    symbol_list = []
-    for key in oedata:
-        val = oedata[key]
-        if val and key != 'found_cell_separators':
-            if val.is_class_or_function():
-                symbol_list.append((key, val.def_name, val.fold_level,
-                                    val.get_token()))
-    return sorted(symbol_list)
 
 
-def get_python_symbol_icons(oedata):
-    """Return a list of icons for oedata of a python file."""
+def get_python_symbol_icons(symbols):
+    """Return a list of icons for symbols of a python file."""
     class_icon = ima.icon('class')
     method_icon = ima.icon('method')
     function_icon = ima.icon('function')
     private_icon = ima.icon('private1')
     super_private_icon = ima.icon('private2')
-
-    symbols = process_python_symbol_data(oedata)
 
     # line - 1, name, fold level
     fold_levels = sorted(list(set([s[2] for s in symbols])))
@@ -440,7 +428,7 @@ class FileSwitcher(QDialog):
         for i, editor in enumerate(self.widgets):
             if editor is self.initial_widget:
                 self.initial_path = paths[i]
-            # This try is needed to make the fileswitcher work with 
+            # This try is needed to make the fileswitcher work with
             # plugins that does not have a textCursor.
             try:
                 self.initial_cursors[paths[i]] = editor.textCursor()
@@ -652,12 +640,19 @@ class FileSwitcher(QDialog):
 
     # --- Helper methods: Outline explorer
     def get_symbol_list(self):
-        """Get the list of symbols present in the file."""
-        try:
-            oedata = self.get_widget().get_outlineexplorer_data()
-        except AttributeError:
-            oedata = {}
-        return oedata
+        """
+        Get the list of symbols present in the file.
+
+        Returns a list with line number, definition name, fold and token.
+        """
+        symbol_list = []
+        for oedata in self.get_widget().outlineexplorer_data_list():
+            if oedata.is_class_or_function():
+                symbol_list.append((
+                    oedata.block.firstLineNumber(),
+                    oedata.def_name, oedata.fold_level,
+                    oedata.get_token()))
+        return sorted(symbol_list)
 
     # --- Handlers
     def item_selection_changed(self):
@@ -687,17 +682,18 @@ class FileSwitcher(QDialog):
     @Slot()
     @Slot(QListWidgetItem)
     def enter(self, itemClicked=None):
-        row = self.current_row()
-        stack_index = self.paths.index(self.filtered_path[row])
-        self.plugin = self.widgets[stack_index][1]
-        plugin_index = self.plugins_instances.index(self.plugin)
-        # Count the real index in the tabWidget of the
-        # current plugin
-        real_index = self.get_stack_index(stack_index,
-                                          plugin_index)
-        self.sig_goto_file.emit(real_index,
-                                self.plugin.get_current_tab_manager())
-        self.accept()
+        if self.mode == self.FILE_MODE:
+            row = self.current_row()
+            stack_index = self.paths.index(self.filtered_path[row])
+            self.plugin = self.widgets[stack_index][1]
+            plugin_index = self.plugins_instances.index(self.plugin)
+            # Count the real index in the tabWidget of the
+            # current plugin
+            real_index = self.get_stack_index(stack_index,
+                                              plugin_index)
+            self.sig_goto_file.emit(real_index,
+                                    self.plugin.get_current_tab_manager())
+            self.accept()
 
     def setup_file_list(self, filter_text, current_path):
         """Setup list widget content for file list display."""
@@ -783,7 +779,7 @@ class FileSwitcher(QDialog):
                 scale_factor = 0.7
             else:
                 scale_factor = 0.9
-            icon = ima.get_icon_by_extension(path, scale_factor)
+            icon = ima.get_icon_by_extension_or_type(path, scale_factor)
             text = ''
             try:
                 title = self.widgets[index][1].get_plugin_title().split(' - ')
@@ -826,8 +822,8 @@ class FileSwitcher(QDialog):
         filter_text, symbol_text = filter_text.split('@')
 
         # Fetch the Outline explorer data, get the icons and values
-        oedata = self.get_symbol_list()
-        icons = get_python_symbol_icons(oedata)
+        symbol_list = self.get_symbol_list()
+        icons = get_python_symbol_icons(symbol_list)
 
         # The list of paths here is needed in order to have the same
         # point of measurement for the list widget size as in the file list
@@ -836,7 +832,6 @@ class FileSwitcher(QDialog):
         # Update list size
         self.fix_size(paths)
 
-        symbol_list = process_python_symbol_data(oedata)
         line_fold_token = [(item[0], item[2], item[3]) for item in symbol_list]
         choices = [item[1] for item in symbol_list]
         scores = get_search_scores(symbol_text, choices, template="<b>{0}</b>")

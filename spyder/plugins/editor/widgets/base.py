@@ -34,7 +34,7 @@ from spyder.widgets.calltip import CallTipWidget, ToolTipWidget
 from spyder.widgets.mixins import BaseEditMixin
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
-from spyder.plugins.editor.lsp import CompletionItemKind
+from spyder.plugins.languageserver import CompletionItemKind
 
 
 class CompletionWidget(QListWidget):
@@ -184,7 +184,9 @@ class CompletionWidget(QListWidget):
                      CompletionItemKind.CLASS: 'class',
                      CompletionItemKind.MODULE: 'module',
                      CompletionItemKind.CONSTRUCTOR: 'method',
-                     CompletionItemKind.REFERENCE: 'attribute'}
+                     CompletionItemKind.REFERENCE: 'attribute',
+                     CompletionItemKind.KEYWORD: 'keyword',
+                     CompletionItemKind.TEXT: 'text'}
 
         for completion in self.completion_list:
             if not self.is_internal_console:
@@ -397,7 +399,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.calltip_position = None
         self.tooltip_widget = ToolTipWidget(self, as_tooltip=True)
 
-        self.has_cell_separators = False
         self.highlight_current_cell_enabled = False
 
         # The color values may be overridden by the syntax highlighter
@@ -539,7 +540,12 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if whole_file_selected:
             self.clear_extra_selections('current_cell')
         elif whole_screen_selected:
-            if self.has_cell_separators:
+            has_cell_separators = False
+            for oedata in self.outlineexplorer_data_list():
+                if oedata.def_type == oedata.CELL:
+                    has_cell_separators = True
+                    break
+            if has_cell_separators:
                 self.set_extra_selections('current_cell', [selection])
                 self.update_extra_selections()
             else:
@@ -758,24 +764,24 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         cursor, whole_file_selected = self.select_current_cell()
         self.setTextCursor(cursor)
         line_from, line_to = self.get_selection_bounds()
+        block = self.get_selection_first_block()
         text = self.get_selection_as_executable_code()
         self.last_cursor_cell = init_cursor
         self.__restore_selection(start_pos, end_pos)
         if text is not None:
             text = ls * line_from + text
-        return text, line_from
+        return text, block
 
     def get_cell_as_executable_code(self):
         """Return cell contents as executable code"""
         return self.__exec_cell()
 
     def get_last_cell_as_executable_code(self):
-        text = None
         if self.last_cursor_cell:
             self.setTextCursor(self.last_cursor_cell)
             self.highlight_current_cell()
-            text, line = self.__exec_cell()
-        return text, line
+            return self.__exec_cell()
+        return None
 
     def is_cell_separator(self, cursor=None, block=None):
         """Return True if cursor (or text block) is on a block separator"""
@@ -1173,23 +1179,27 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Completion list is active, Enter was just pressed"""
         self.completion_widget.item_selected()
 
-    def insert_completion(self, text, position):
+    def insert_completion(self, text, completion_position):
         if text:
-            # Set position to where the request was made
-            if position is not None:
-                cursor = self.textCursor()
-                cursor.setPosition(position)
-                self.setTextCursor(cursor)
-            # Move to the beginning of the selected word
+            # Get word on the left of the cursor.
             result = self.get_current_word_and_position(completion=True)
+            cursor = self.textCursor()
             if result is not None:
-                position = result[1]
-                cursor = self.textCursor()
-                cursor.setPosition(position)
+                current_text, start_position = result
+                end_position = start_position + len(current_text)
+                # Check if the completion position is in the expected range
+                if not start_position <= completion_position <= end_position:
+                    return
+                cursor.setPosition(start_position)
                 # Remove the word under the cursor
-                cursor.select(QTextCursor.WordUnderCursor)
+                cursor.setPosition(end_position,
+                                   QTextCursor.KeepAnchor)
                 cursor.removeSelectedText()
                 self.setTextCursor(cursor)
+            else:
+                # Check if we are in the correct position
+                if cursor.position() != completion_position:
+                    return
             # Add text
             self.insert_text(text)
             self.document_did_change()

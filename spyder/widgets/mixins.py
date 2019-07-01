@@ -53,6 +53,11 @@ class BaseEditMixin(object):
     _DEFAULT_TITLE_COLOR = '#2D62FF'
     _CHAR_HIGHLIGHT_COLOR = 'red'
     _DEFAULT_TEXT_COLOR = '#999999'
+    _DEFAULT_LANGUAGE = 'python'
+    _DEFAULT_MAX_LINES = 10
+    _DEFAULT_MAX_WIDTH = 60
+    _DEFAULT_MAX_HINT_LINES = 20
+    _DEFAULT_MAX_HINT_WIDTH = 85
 
     def __init__(self):
         self.eol_chars = None
@@ -141,7 +146,8 @@ class BaseEditMixin(object):
 
     def _format_text(self, title=None, signature=None, text=None,
                      inspect_word=None, title_color=None, max_lines=None,
-                     display_link=False):
+                     max_width=_DEFAULT_MAX_WIDTH, display_link=False,
+                     text_new_line=False,  with_html_format=False):
         """
         Create HTML template for calltips and tooltips.
 
@@ -185,6 +191,7 @@ class BaseEditMixin(object):
                 template += '<hr>'
 
         if signature:
+            signature = signature.strip('\r\n')
             template += BASE_TEMPLATE.format(
                 font_family=font_family,
                 size=text_size,
@@ -193,20 +200,44 @@ class BaseEditMixin(object):
             )
 
         # Documentation/text handling
-        if not text:
-            text = '\n<i>No documentation available</i>\n'
+        if (text is None or not text.strip() or
+                text.strip() == '<no docstring>'):
+            text = '<i>No documentation available</i>'
+        else:
+            text = text.strip()
 
-        # Remove empty lines at the beginning
-        lines = [l for l in text.split('\n') if l.strip()]
+        if not with_html_format:
+            paragraphs = text.splitlines()
+            for paragraph in paragraphs:
+                # Wrap text
+                paragraph = textwrap.wrap(text, width=max_width)
+
+                # Remove empty lines at the beginning
+                paragraph = [l for l in paragraph if l.strip()]
+
+                # Merge paragraph text
+                paragraph = '\n'.join(paragraph)
+
+            # Join paragraphs and split in lines for max_lines check
+            paragraphs = '\n'.join(paragraphs)
+            paragraphs = paragraphs.strip('\r\n')
+            lines = paragraphs.splitlines()
+
+            # Check that the first line is not empty
+            if len(lines) > 0 and not lines[0].strip():
+                lines = lines[1:]
+        else:
+            lines = [l for l in text.split('\n') if l.strip()]
 
         # Limit max number of text displayed
         if max_lines:
-            lines = text.split('\n')
             if len(lines) > max_lines:
                 text = '\n'.join(lines[:max_lines]) + ' ...'
-            text = '\n' + text
 
         text = text.replace('\n', '<br>')
+        if text_new_line and signature:
+            text = '<br>' + text
+
         template += BASE_TEMPLATE.format(
             font_family=font_family,
             size=text_size,
@@ -217,8 +248,15 @@ class BaseEditMixin(object):
         help_text = ''
         if inspect_word:
             if display_link:
-                help_text = ('Click anywhere in this tooltip for '
-                             'additional help')
+                help_text = (
+                    '<span style="font-family: \'{font_family}\';'
+                    'font-size:{font_size}pt;">'
+                    'Click anywhere in this tooltip for additional help'
+                    '</span>'.format(
+                        font_size=text_size,
+                        font_family=font_family,
+                    )
+                )
             else:
                 shortcut = self._get_inspect_shortcut()
                 if shortcut:
@@ -256,8 +294,10 @@ class BaseEditMixin(object):
         return template
 
     def _format_signature(self, signatures, parameter=None,
+                          max_width=_DEFAULT_MAX_WIDTH,
                           parameter_color=_PARAMETER_HIGHLIGHT_COLOR,
-                          char_color=_CHAR_HIGHLIGHT_COLOR):
+                          char_color=_CHAR_HIGHLIGHT_COLOR,
+                          language=_DEFAULT_LANGUAGE):
         """
         Create HTML template for signature.
 
@@ -310,7 +350,8 @@ class BaseEditMixin(object):
             formatted_lines = []
             name = signature.split('(')[0]
             indent = ' ' * (len(name) + 1)
-            rows = textwrap.wrap(signature, width=60, subsequent_indent=indent)
+            rows = textwrap.wrap(signature, width=max_width,
+                                 subsequent_indent=indent)
             for row in rows:
                 if parameter:
                     # Add template to highlight the active parameter
@@ -319,7 +360,7 @@ class BaseEditMixin(object):
                 row = row.replace(' ', '&nbsp;')
                 row = row.replace('span&nbsp;', 'span ')
 
-                language = getattr(self, 'language', None)
+                language = getattr(self, 'language', language)
                 if language and 'python' == language.lower():
                     for char in ['(', ')', ',', '*', '**']:
                         new_char = chars_template.format(char=char)
@@ -345,9 +386,11 @@ class BaseEditMixin(object):
                 title = title_template
             new_signatures.append(title)
 
-        return '<br><br>'.join(new_signatures)
+        return '<br>'.join(new_signatures)
 
-    def _check_signature_and_format(self, signature_or_text, parameter=None):
+    def _check_signature_and_format(self, signature_or_text, parameter=None,
+                                    max_width=_DEFAULT_MAX_WIDTH,
+                                    language=_DEFAULT_LANGUAGE):
         """
         LSP hints might provide docstrings instead of signatures.
 
@@ -357,7 +400,7 @@ class BaseEditMixin(object):
         open_func_char = ''
         has_signature = False
         has_multisignature = False
-        language = getattr(self, 'language', '').lower()
+        language = getattr(self, 'language', language).lower()
         signature_or_text = signature_or_text.replace('\\*', '*')
 
         # Remove special symbols that could itefere with ''.format
@@ -397,6 +440,7 @@ class BaseEditMixin(object):
                 new_signature = self._format_signature(
                     signatures=signature,
                     parameter=parameter,
+                    max_width=max_width
                 )
         elif has_multisignature:
             signature = signature_or_text.replace(name_plus_char,
@@ -412,6 +456,7 @@ class BaseEditMixin(object):
             new_signature = self._format_signature(
                 signatures=signatures,
                 parameter=parameter,
+                max_width=max_width
             )
             extra_text = None
         else:
@@ -420,7 +465,9 @@ class BaseEditMixin(object):
 
         return new_signature, extra_text, inspect_word
 
-    def show_calltip(self, signature, parameter=None, documentation=None):
+    def show_calltip(self, signature, parameter=None, documentation=None,
+                     language=_DEFAULT_LANGUAGE, max_lines=_DEFAULT_MAX_LINES,
+                     max_width=_DEFAULT_MAX_WIDTH, text_new_line=True):
         """
         Show calltip.
 
@@ -431,11 +478,13 @@ class BaseEditMixin(object):
         # Find position of calltip
         point = self._calculate_position()
 
-        language = getattr(self, 'language', '').lower()
+        language = getattr(self, 'language', language).lower()
         if language == 'python':
             # Check if documentation is better than signature, sometimes
             # signature has \n stripped for functions like print, type etc
-            check_doc = ' '.join(documentation.split()).replace('\\*', '*')
+            check_doc = ' '
+            if documentation:
+                check_doc.join(documentation.split()).replace('\\*', '*')
             check_sig = ' '.join(signature.split())
             if check_doc == check_sig:
                 signature = documentation
@@ -447,14 +496,18 @@ class BaseEditMixin(object):
             documentation = documentation.replace(signature + '\n', '')
 
         # Format
-        res = self._check_signature_and_format(signature, parameter)
+        res = self._check_signature_and_format(signature, parameter,
+                                               language=language,
+                                               max_width=max_width)
         new_signature, text, inspect_word = res
         text = self._format_text(
             signature=new_signature,
             inspect_word=inspect_word,
             display_link=False,
             text=documentation,
-            max_lines=10,
+            max_lines=max_lines,
+            max_width=max_width,
+            text_new_line=text_new_line
         )
 
         self._update_stylesheet(self.calltip_widget)
@@ -466,7 +519,11 @@ class BaseEditMixin(object):
     def show_tooltip(self, title=None, signature=None, text=None,
                      inspect_word=None, title_color=_DEFAULT_TITLE_COLOR,
                      at_line=None, at_point=None, display_link=False,
-                     max_lines=10, cursor=None):
+                     max_lines=_DEFAULT_MAX_LINES,
+                     max_width=_DEFAULT_MAX_WIDTH,
+                     cursor=None,
+                     with_html_format=False,
+                     text_new_line=True):
         """Show tooltip."""
         # Find position of calltip
         point = self._calculate_position(
@@ -483,6 +540,9 @@ class BaseEditMixin(object):
             inspect_word=inspect_word,
             display_link=display_link,
             max_lines=max_lines,
+            max_width=max_width,
+            with_html_format=with_html_format,
+            text_new_line=text_new_line
         )
 
         self._update_stylesheet(self.tooltip_widget)
@@ -490,7 +550,10 @@ class BaseEditMixin(object):
         # Display tooltip
         self.tooltip_widget.show_tip(point, tiptext, cursor=cursor)
 
-    def show_hint(self, text, inspect_word, at_point):
+    def show_hint(self, text, inspect_word, at_point,
+                  max_lines=_DEFAULT_MAX_HINT_LINES,
+                  max_width=_DEFAULT_MAX_HINT_WIDTH,
+                  text_new_line=True):
         """Show code hint and crop text as needed."""
         # Check if signature and format
         res = self._check_signature_and_format(text)
@@ -504,7 +567,9 @@ class BaseEditMixin(object):
 
         self.show_tooltip(signature=html_signature, text=extra_text,
                           at_point=point, inspect_word=inspect_word,
-                          display_link=True, max_lines=10, cursor=cursor)
+                          display_link=True, max_lines=max_lines,
+                          max_width=max_width, cursor=cursor,
+                          text_new_line=text_new_line)
 
     def hide_tooltip(self):
         """
@@ -768,6 +833,7 @@ class BaseEditMixin(object):
         """Return current word, i.e. word at cursor position,
             and the start position"""
         cursor = self.textCursor()
+        cursor_pos = cursor.position()
 
         if cursor.hasSelection():
             # Removes the selection and moves the cursor to the left side
@@ -809,7 +875,10 @@ class BaseEditMixin(object):
         # find a valid python variable name
         match = re.findall(r'([^\d\W]\w*)', text, re.UNICODE)
         if match:
-            return match[0], cursor.selectionStart()
+            text, startpos = match[0], cursor.selectionStart()
+            if completion:
+                text = text[:cursor_pos - startpos]
+            return text, startpos
 
     def get_current_word(self, completion=False):
         """Return current word, i.e. word at cursor position"""
@@ -866,6 +935,14 @@ class BaseEditMixin(object):
         block_start = self.document().findBlock(start)
         block_end = self.document().findBlock(end)
         return sorted([block_start.blockNumber(), block_end.blockNumber()])
+
+    def get_selection_first_block(self):
+        """Return the first block of the selection."""
+        cursor = self.textCursor()
+        start, end = cursor.selectionStart(), cursor.selectionEnd()
+        if start > 0:
+            start = start - 1
+        return self.document().findBlock(start)
 
 
     #------Text selection
@@ -935,7 +1012,7 @@ class BaseEditMixin(object):
             return fcursor
 
     def find_text(self, text, changed=True, forward=True, case=False,
-                  words=False, regexp=False):
+                  word=False, regexp=False):
         """Find text"""
         cursor = self.textCursor()
         findflag = QTextDocument.FindFlag()
@@ -965,14 +1042,14 @@ class BaseEditMixin(object):
             text = re.escape(to_text_string(text))
 
         if QT55_VERSION:
-            pattern = QRegularExpression(u"\\b{}\\b".format(text) if words else
+            pattern = QRegularExpression(u"\\b{}\\b".format(text) if word else
                                          text)
             if case:
                 pattern.setPatternOptions(
                     QRegularExpression.CaseInsensitiveOption)
         else:
             pattern = QRegExp(u"\\b{}\\b".format(text)
-                              if words else text, Qt.CaseSensitive if case else
+                              if word else text, Qt.CaseSensitive if case else
                               Qt.CaseInsensitive, QRegExp.RegExp2)
 
         for move in moves:
@@ -996,7 +1073,7 @@ class BaseEditMixin(object):
         return False
 
     def get_number_matches(self, pattern, source_text='', case=False,
-                           regexp=False):
+                           regexp=False, word=False):
         """Get the number of matches for the searched text."""
         pattern = to_text_string(pattern)
         if not pattern:
@@ -1008,11 +1085,11 @@ class BaseEditMixin(object):
         if not source_text:
             source_text = to_text_string(self.toPlainText())
 
+        if word:  # match whole words only
+            pattern = r'\b{pattern}\b'.format(pattern=pattern)
         try:
-            if case:
-                regobj = re.compile(pattern)
-            else:
-                regobj = re.compile(pattern, re.IGNORECASE)
+            re_flags = re.MULTILINE if case else re.IGNORECASE | re.MULTILINE
+            regobj = re.compile(pattern, flags=re_flags)
         except sre_constants.error:
             return None
 
@@ -1022,13 +1099,14 @@ class BaseEditMixin(object):
 
         return number_matches
 
-    def get_match_number(self, pattern, case=False, regexp=False):
+    def get_match_number(self, pattern, case=False, regexp=False, word=False):
         """Get number of the match for the searched text."""
         position = self.textCursor().position()
         source_text = self.get_text(position_from='sof', position_to=position)
         match_number = self.get_number_matches(pattern,
                                                source_text=source_text,
-                                               case=case, regexp=regexp)
+                                               case=case, regexp=regexp,
+                                               word=word)
         return match_number
 
     # --- Numpy matrix/array helper / See 'spyder/widgets/arraybuilder.py'
@@ -1189,7 +1267,7 @@ class GetHelpMixin(object):
                         else:
                             tiptext = signature
                         # TODO: Select language and pass it to call
-                        self.show_calltip(tiptext, color='#2D62FF', is_python=True)
+                        self.show_calltip(tiptext)
 
     def get_last_obj(self, last=False):
         """

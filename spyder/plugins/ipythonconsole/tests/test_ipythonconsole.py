@@ -130,6 +130,7 @@ def ipyconsole(qtbot, request):
                              test_dir=test_dir,
                              test_no_stderr=test_no_stderr)
     console.dockwidget = Mock()
+    console._toggle_view_action = Mock()
     console.create_new_client(is_pylab=is_pylab,
                               is_sympy=is_sympy,
                               is_cython=is_cython)
@@ -151,18 +152,36 @@ def ipyconsole(qtbot, request):
 # =============================================================================
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.parametrize(
+        "function,signature,documentation",
+        [("arange",
+          ["start", "stop"],
+          ["Return evenly spaced values within a given interval.<br>",
+           "returns an ndarray rather than a list.<br>"]),
+         ("vectorize",
+          ["pyfunc", "otype", "signature"],
+          ["Generalized function class.<br>",
+           "numpy array or a tuple of numpy ..."]),
+         ("absolute",
+          ["x", "/", "out"],
+          ["Parameters<br>", "x : array_like ..."])]
+        )
 @pytest.mark.skipif(sys.platform == 'darwin', reason="Times out on macOS")
-def test_get_calltips(ipyconsole, qtbot):
-    """Test that calltips work."""
+def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
+    """Test that calltips show the documentation."""
     shell = ipyconsole.get_current_shellwidget()
     control = shell._control
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
+    # Import numpy
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('import numpy as np')
+
     # Write an object in the console that should generate a calltip
     # and wait for the kernel to send its response.
     with qtbot.waitSignal(shell.kernel_client.shell_channel.message_received):
-        qtbot.keyClicks(control, 'range(')
+        qtbot.keyClicks(control, 'np.' + function + '(')
 
     # Wait a little bit for the calltip to appear
     qtbot.wait(500)
@@ -172,6 +191,12 @@ def test_get_calltips(ipyconsole, qtbot):
 
     # Hide the calltip to avoid focus problems on Linux
     control.calltip_widget.hide()
+    
+    # Check spected elements for signature and documentation
+    for element in signature:
+        assert element in control.calltip_widget.text()
+    for element in documentation:
+        assert element in control.calltip_widget.text()
 
 
 @pytest.mark.slow

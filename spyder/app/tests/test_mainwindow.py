@@ -235,27 +235,27 @@ def test_default_plugin_actions(main_window, qtbot):
     file_explorer = main_window.explorer
 
     # Undock action
-    file_explorer.undock_action.triggered.emit(True)
+    file_explorer._undock_action.triggered.emit(True)
     qtbot.wait(500)
     assert not file_explorer.dockwidget.isVisible()
-    assert file_explorer.undocked_window is not None
-    assert isinstance(file_explorer.undocked_window, PluginWindow)
-    assert file_explorer.undocked_window.centralWidget() == file_explorer
+    assert file_explorer._undocked_window is not None
+    assert isinstance(file_explorer._undocked_window, PluginWindow)
+    assert file_explorer._undocked_window.centralWidget() == file_explorer
 
     # Dock action
-    file_explorer.dock_action.triggered.emit(True)
+    file_explorer._dock_action.triggered.emit(True)
     qtbot.wait(500)
     assert file_explorer.dockwidget.isVisible()
-    assert file_explorer.undocked_window is None
+    assert file_explorer._undocked_window is None
 
     # Close action
-    file_explorer.close_plugin_action.triggered.emit(True)
+    file_explorer._close_plugin_action.triggered.emit(True)
     qtbot.wait(500)
     assert not file_explorer.dockwidget.isVisible()
-    assert not file_explorer.toggle_view_action.isChecked()
+    assert not file_explorer._toggle_view_action.isChecked()
 
     # Toggle view action
-    file_explorer.toggle_view_action.setChecked(True)
+    file_explorer._toggle_view_action.setChecked(True)
     assert file_explorer.dockwidget.isVisible()
 
 
@@ -335,20 +335,21 @@ def test_get_help_combo(main_window, qtbot):
     qtbot.waitUntil(lambda: check_text(webpage, "NumPy"), timeout=6000)
 
     # Get help - numpy.arange
-    qtbot.keyClick(help_plugin.combo, Qt.Key_Right)
     qtbot.keyClicks(help_plugin.combo, '.arange', delay=100)
 
     # Check that a expected text is part of the page
     qtbot.waitUntil(lambda: check_text(webpage, "arange"), timeout=6000)
 
     # Get help - np
+    # Clear combo
+    help_plugin.combo.set_current_text('')
+
     qtbot.keyClicks(help_plugin.combo, 'np', delay=100)
 
     # Check that a expected text is part of the page
     qtbot.waitUntil(lambda: check_text(webpage, "NumPy"), timeout=6000)
 
     # Get help - np.arange
-    qtbot.keyClick(help_plugin.combo, Qt.Key_Right)
     qtbot.keyClicks(help_plugin.combo, '.arange', delay=100)
 
     # Check that a expected text is part of the page
@@ -654,7 +655,7 @@ def test_connection_to_external_kernel(main_window, qtbot):
         shell.execute('a = 10')
 
     # Assert that there are no variables in the variable explorer
-    main_window.variableexplorer.visibility_changed(True)
+    main_window.variableexplorer._visibility_changed(True)
     nsb = main_window.variableexplorer.get_focus_widget()
     qtbot.wait(500)
     assert nsb.editor.source_model.rowCount() == 0
@@ -669,7 +670,7 @@ def test_connection_to_external_kernel(main_window, qtbot):
         shell.execute('a = 10')
 
     # Assert that a variable is visible in the variable explorer
-    main_window.variableexplorer.visibility_changed(True)
+    main_window.variableexplorer._visibility_changed(True)
     nsb = main_window.variableexplorer.get_focus_widget()
     qtbot.wait(500)
     assert nsb.editor.source_model.rowCount() == 1
@@ -691,7 +692,7 @@ def test_change_types_in_varexp(main_window, qtbot):
         shell.execute('a = 10')
 
     # Edit object
-    main_window.variableexplorer.visibility_changed(True)
+    main_window.variableexplorer._visibility_changed(True)
     nsb = main_window.variableexplorer.get_focus_widget()
     qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() > 0, timeout=EVAL_TIMEOUT)
     nsb.editor.setFocus()
@@ -1153,11 +1154,11 @@ def test_maximize_minimize_plugins(main_window, qtbot):
     qtbot.mouseClick(max_button, Qt.LeftButton)
 
     # Verify that the Editor is maximized
-    assert main_window.editor.ismaximized
+    assert main_window.editor._ismaximized
 
     # Verify that the action minimizes the plugin too
     qtbot.mouseClick(max_button, Qt.LeftButton)
-    assert not main_window.editor.ismaximized
+    assert not main_window.editor._ismaximized
 
 
 @flaky(max_runs=3)
@@ -1220,7 +1221,7 @@ def test_varexp_edit_inline(main_window, qtbot):
         shell.execute('a = 10')
 
     # Edit object
-    main_window.variableexplorer.visibility_changed(True)
+    main_window.variableexplorer._visibility_changed(True)
     nsb = main_window.variableexplorer.get_focus_widget()
     qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() > 0, timeout=EVAL_TIMEOUT)
     nsb.editor.setFocus()
@@ -1352,7 +1353,8 @@ def test_stop_dbg(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="It only works on Linux")
 def test_change_cwd_dbg(main_window, qtbot):
     """
     Test that using the Working directory toolbar is working while debugging.
@@ -1696,7 +1698,7 @@ def test_help_opens_when_show_tutorial_full(main_window, qtbot):
             break
 
     # Test opening tutorial with Help plguin closed
-    main_window.help.toggle_view_action.setChecked(False)
+    main_window.help._toggle_view_action.setChecked(False)
     qtbot.wait(500)
     help_tabbar, help_index = find_desired_tab_in_window(HELP_STR, main_window)
     assert help_tabbar is None and help_index is None
@@ -1820,6 +1822,44 @@ def test_custom_layouts(main_window, qtbot):
                             if widget not in hidden_widgets:
                                 print(widget)  # spyder: test-skip
                                 assert widget.isVisible()
+
+
+# @pytest.mark.slow
+def test_pylint_follows_file(qtbot, tmpdir, main_window):
+    """Test that file editor focus change updates pylint combobox filename."""
+    for plugin in main_window.thirdparty_plugins:
+        if plugin.CONF_SECTION == 'pylint':
+            pylint_plugin = plugin
+            break
+
+    # Show pylint plugin
+    pylint_plugin.dockwidget.show()
+    pylint_plugin.dockwidget.raise_()
+
+    # Create base temporary directory
+    basedir = tmpdir.mkdir('foo')
+
+    # Open some files
+    for idx in range(2):
+        fh = basedir.join('{}.py'.format(idx))
+        fname = str(fh)
+        fh.write('print("Hello world!")')
+        main_window.open_file(fh)
+        qtbot.wait(200)
+        assert fname == pylint_plugin.get_filename()
+
+    # Create a editor split
+    main_window.editor.editorsplitter.split(orientation=Qt.Vertical)
+    qtbot.wait(500)
+
+    # Open other files
+    for idx in range(4):
+        fh = basedir.join('{}.py'.format(idx))
+        fh.write('print("Hello world!")')
+        fname = str(fh)
+        main_window.open_file(fh)
+        qtbot.wait(200)
+        assert fname == pylint_plugin.get_filename()
 
 
 if __name__ == "__main__":

@@ -66,7 +66,7 @@ CYTHON_REQVER = '>=0.21'
 dependencies.add("cython", _("Run Cython files in the IPython Console"),
                  required_version=CYTHON_REQVER, optional=True)
 
-QTCONSOLE_REQVER = ">=4.2.0"
+QTCONSOLE_REQVER = ">=4.5.0"
 dependencies.add("qtconsole", _("Integrate the IPython console"),
                  required_version=QTCONSOLE_REQVER)
 
@@ -130,7 +130,8 @@ class IPythonConsole(SpyderPluginWidget):
                 os.makedirs(osp.join(test_dir))
 
         layout = QVBoxLayout()
-        self.tabwidget = Tabs(self, menu=self.options_menu, actions=self.menu_actions,
+        self.tabwidget = Tabs(self, menu=self._options_menu,
+                              actions=self.menu_actions,
                               rename_tabs=True,
                               split_char='/', split_index=0)
         if hasattr(self.tabwidget, 'setDocumentMode')\
@@ -177,21 +178,17 @@ class IPythonConsole(SpyderPluginWidget):
         # Accepting drops
         self.setAcceptDrops(True)
 
-        # Initialize plugin
-        self.initialize_plugin()
-
-
     #------ SpyderPluginMixin API ---------------------------------------------
     def update_font(self):
         """Update font from Preferences"""
-        font = self.get_plugin_font()
+        font = self.get_font()
         for client in self.clients:
             client.set_font(font)
 
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
         font_n = 'plugin_font'
-        font_o = self.get_plugin_font()
+        font_o = self.get_font()
         help_n = 'connect_to_oi'
         help_o = CONF.get('help', 'connect/ipython_console')
         color_scheme_n = 'color_scheme_name'
@@ -231,16 +228,16 @@ class IPythonConsole(SpyderPluginWidget):
                     self.create_new_client(give_focus=True)
         else:
             self.dockwidget.hide()
-    
+
     #------ SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
         return _('IPython console')
-    
+
     def get_plugin_icon(self):
         """Return widget icon"""
         return ima.icon('ipython_console')
-    
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
@@ -361,11 +358,11 @@ class IPythonConsole(SpyderPluginWidget):
                _("Connect to an existing kernel"), None, None,
                _("Open a new IPython console connected to an existing kernel"),
                triggered=self.create_client_for_kernel)
-        
+
         rename_tab_action = create_action(self, _("Rename tab"),
                                        icon=ima.icon('rename'),
                                        triggered=self.tab_name_editor)
-        
+
         # Add the action to the 'Consoles' menu on the main window
         main_consoles_menu = self.main.consoles_menu_actions
         main_consoles_menu.insert(0, create_client_action)
@@ -391,7 +388,7 @@ class IPythonConsole(SpyderPluginWidget):
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.main.add_dockwidget(self)
+        self.add_dockwidget()
 
         self.focus_changed.connect(self.main.plugin_focus_changed)
         self.edit_goto.connect(self.main.editor.load)
@@ -404,9 +401,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.main.editor.run_cell_in_ipyclient.connect(self.run_cell)
         self.main.workingdirectory.set_current_console_wd.connect(
                                      self.set_current_client_working_directory)
-
         self.tabwidget.currentChanged.connect(self.update_working_directory)
-
         self._remove_old_stderr_files()
 
     #------ Public API (for clients) ------------------------------------------
@@ -420,7 +415,7 @@ class IPythonConsole(SpyderPluginWidget):
         for client in self.get_clients():
             if widget is client or widget is client.get_control():
                 return client
-    
+
     def get_current_client(self):
         """Return the currently selected client"""
         client = self.tabwidget.currentWidget()
@@ -557,7 +552,7 @@ class IPythonConsole(SpyderPluginWidget):
                     self.execute_code(line)
             except AttributeError:
                 pass
-            self.visibility_changed(True)
+            self._visibility_changed(True)
             self.raise_()
         else:
             # XXX: not sure it can really happen
@@ -920,13 +915,13 @@ class IPythonConsole(SpyderPluginWidget):
             self.main.historylog.add_history(client.history_filename)
             client.append_to_history.connect(
                 self.main.historylog.append_to_history)
-        
+
         # Set font for client
-        client.set_font( self.get_plugin_font() )
-        
+        client.set_font(self.get_font())
+
         # Connect focus signal to client's control widget
         control.focus_changed.connect(lambda: self.focus_changed.emit())
-        
+
         shellwidget.sig_change_cwd.connect(self.set_working_directory)
 
         # Update the find widget if focus changes between control and
@@ -1254,7 +1249,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.activateWindow()
         widget.get_control().setFocus()
         self.update_tabs_text()
-        
+
     def move_tab(self, index_from, index_to):
         """
         Move tab (tabs themselves have already been moved by the tabwidget)
@@ -1332,7 +1327,11 @@ class IPythonConsole(SpyderPluginWidget):
             if ("<ipython-input-" in fname and
                     self.run_cell_filename is not None):
                 fname = self.run_cell_filename
-            self.edit_goto.emit(osp.abspath(fname), int(lnb), '')
+            # This is needed to fix issue spyder-ide/spyder#9217
+            try:
+                self.edit_goto.emit(osp.abspath(fname), int(lnb), '')
+            except ValueError:
+                pass
 
     @Slot()
     def show_intro(self):
@@ -1396,7 +1395,7 @@ class IPythonConsole(SpyderPluginWidget):
             cf_filename = osp.basename(connection_file)
             # To change a possible empty string to None
             cf_path = cf_path if cf_path else None
-            connection_file = find_connection_file(filename=cf_filename, 
+            connection_file = find_connection_file(filename=cf_filename,
                                                    path=cf_path)
         except (IOError, UnboundLocalError):
             QMessageBox.critical(self, _('IPython'),
@@ -1423,7 +1422,7 @@ class IPythonConsole(SpyderPluginWidget):
                 new_slave_ord = ord(cl.id_['str_id'])
                 if new_slave_ord > slave_ord:
                     slave_ord = new_slave_ord
-        
+
         # If we couldn't find a client with the same connection file,
         # it means this is a new master client
         if master_id is None:
@@ -1462,7 +1461,17 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Create kernel client
         kernel_client = QtKernelClient(connection_file=connection_file)
-        kernel_client.load_connection_file()
+
+        # This is needed for issue spyder-ide/spyder#9304
+        try:
+            kernel_client.load_connection_file()
+        except Exception as e:
+            QMessageBox.critical(self, _('Connection error'),
+                                 _("An error occurred while trying to load "
+                                   "the kernel connection file. The error "
+                                   "was:\n\n") + to_text_string(e))
+            return
+
         if hostname is not None:
             try:
                 connection_info = dict(ip = kernel_client.ip,

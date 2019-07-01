@@ -201,7 +201,7 @@ if any(arg == 'bdist_wheel' for arg in sys.argv):
 install_requires = [
     'cloudpickle',
     'pygments>=2.0',
-    'qtconsole>=4.2.0',
+    'qtconsole>=4.5.0',
     'nbconvert',
     'sphinx',
     'pylint',
@@ -212,9 +212,11 @@ install_requires = [
     'pyzmq',
     'chardet>=2.0.0',
     'numpydoc',
-    'spyder-kernels>=1.2',
-    'qdarkstyle>=2.6.4',
+    'spyder-kernels>=1.4.0,<1.5.0',
+    'qdarkstyle>=2.7',
     'atomicwrites',
+    'diff-match-patch',
+    'watchdog',
     # Don't require keyring for Python 2 and Linux
     # because it depends on system packages
     'keyring;sys_platform!="linux2"',
@@ -225,10 +227,12 @@ install_requires = [
     # pyqtwebengine module
     'pyqtwebengine<5.13;python_version>="3"',
     # Pyls with all its dependencies
-    'python-language-server[all]>=0.19.0,<0.25',
+    'python-language-server[all]>=0.27.0',
     # Required to get SSH connections to remote kernels
     'pexpect',
-    'paramiko;platform_system=="Windows"'
+    'paramiko;platform_system=="Windows"',
+    # Required for accesing xdg spec on Linux
+    'pyxdg;platform_system=="Linux"',
 ]
 
 extras_require = {

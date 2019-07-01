@@ -34,6 +34,7 @@ from spyder.py3compat import (builtins, is_text_string, to_text_string, PY3,
                               PY36_OR_MORE)
 from spyder.plugins.editor.utils.languages import CELL_LANGUAGES
 from spyder.plugins.editor.utils.editor import TextBlockHelper as tbh
+from spyder.plugins.editor.utils.editor import BlockUserData
 from spyder.utils.workers import WorkerManager
 from spyder.plugins.outlineexplorer.api import OutlineExplorerData
 
@@ -46,9 +47,17 @@ dependencies.add("pygments", _("Syntax highlighting for Matlab, Julia and "
 # =============================================================================
 # Constants
 # =============================================================================
-URL_PATTERN = r"https?://([\da-z\.-]+)\.([a-z\.]{2,6})([/\w\.-]*)[^ ^'^\"]+"
-FILE_PATTERN = r"file:///?([\S ]*)/"
-MAILTO_PATTERN = r"mailto:\s*([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})"
+DEFAULT_PATTERNS = {
+    'file':
+        r'file:///?(?:[\S]*)',
+    'issue':
+        (r'(?:(?:(?:gh:)|(?:gl:)|(?:bb:))?[\w\-_]*/[\w\-_]*#\d+)|'
+         r'(?:(?:(?:gh-)|(?:gl-)|(?:bb-))\d+)'),
+    'mail':
+        r'(?:mailto:\s*)?([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})',
+    'url':
+        r"https?://([\da-z\.-]+)\.([a-z\.]{2,6})([/\w\.-]*)[^ ^'^\"]+",
+}
 COLOR_SCHEME_KEYS = {
                       "background":     _("Background:"),
                       "currentline":    _("Current line:"),
@@ -109,9 +118,28 @@ def any(name, alternates):
     return "(?P<%s>" % name + "|".join(alternates) + ")"
 
 
-URI_PATTERNS = re.compile(
-    any('uri', [URL_PATTERN, FILE_PATTERN, MAILTO_PATTERN])
-)
+def create_patterns(patterns, compile=False):
+    """
+    Create patterns from pattern dictionary.
+
+    The key correspond to the group name and the values a list of
+    possible pattern alternatives.
+    """
+    all_patterns = []
+    for key, value in patterns.items():
+        all_patterns.append(any(key, [value]))
+
+    regex = '|'.join(all_patterns)
+
+    if compile:
+        regex = re.compile(regex)
+
+    return regex
+
+
+DEFAULT_PATTERNS_TEXT = create_patterns(DEFAULT_PATTERNS, compile=False)
+DEFAULT_COMPILED_PATTERNS = re.compile(create_patterns(DEFAULT_PATTERNS,
+                                                       compile=True))
 
 
 #==============================================================================
@@ -131,8 +159,6 @@ class BaseSH(QSyntaxHighlighter):
 
     def __init__(self, parent, font=None, color_scheme='Spyder'):
         QSyntaxHighlighter.__init__(self, parent)
-
-        self.outlineexplorer_data = {}
 
         self.font = font
         if is_text_string(color_scheme):
@@ -155,7 +181,8 @@ class BaseSH(QSyntaxHighlighter):
         self.cell_separators = None
         self.fold_detector = None
         self.editor = None
-        
+        self.patterns = DEFAULT_COMPILED_PATTERNS
+
     def get_background_color(self):
         return QColor(self.background_color)
 
@@ -235,6 +262,20 @@ class BaseSH(QSyntaxHighlighter):
             previous_block = previous_block.previous()
         return previous_block
 
+    def update_patterns(self, patterns):
+        """Update patterns to underline."""
+        all_patterns = DEFAULT_PATTERNS.copy()
+        additional_patterns = patterns.copy()
+
+        # Check that default keys are not overwritten
+        for key in DEFAULT_PATTERNS.keys():
+            if key in additional_patterns:
+                # TODO: print warning or check this at the plugin level?
+                additional_patterns.pop(key)
+        all_patterns.update(additional_patterns)
+
+        self.patterns = create_patterns(all_patterns, compile=True)
+
     def highlightBlock(self, text):
         """
         Highlights a block of text. Please do not override, this method.
@@ -263,24 +304,24 @@ class BaseSH(QSyntaxHighlighter):
         """
         raise NotImplementedError()
 
-    def highlight_uris(self, text, offset=0):
+    def highlight_patterns(self, text, offset=0):
         """Highlight URI and mailto: patterns."""
-        match = URI_PATTERNS.search(text, offset)
+        match = self.patterns.search(text, offset)
         while match:
-            start, end = match.span()
-            start = max([0, start+offset])
-            end = max([0, end+offset])
-            font = self.format(start)
-            font.setUnderlineStyle(True)
-            self.setFormat(start, end - start, font)
-            match = URI_PATTERNS.search(text, end)
+            for __, value in list(match.groupdict().items()):
+                if value:
+                    start, end = match.span()
+                    start = max([0, start + offset])
+                    end = max([0, end + offset])
+                    font = self.format(start)
+                    font.setUnderlineStyle(True)
+                    self.setFormat(start, end - start, font)
+            match = self.patterns.search(text, end)
 
     def highlight_spaces(self, text, offset=0):
         """
         Make blank space less apparent by setting the foreground alpha.
         This only has an effect when 'Show blank space' is turned on.
-        Derived classes could call this function at the end of
-        highlightBlock().
         """
         flags_text = self.document().defaultTextOption().flags()
         show_blanks =  flags_text & QTextOption.ShowTabsAndSpaces
@@ -305,24 +346,19 @@ class BaseSH(QSyntaxHighlighter):
                 self.setFormat(start, end-start, color_foreground)
                 match = self.BLANKPROG.search(text, match.end())
 
-        self.highlight_uris(text, offset)
-
     def highlight_extras(self, text, offset=0):
-        """Perform additional global text highlight."""
-        self.highlight_spaces(text, offset=offset)
-        self.highlight_uris(text, offset=offset)
+        """
+        Perform additional global text highlight.
 
-    def get_outlineexplorer_data(self):
-        return self.outlineexplorer_data
+        Derived classes could call this function at the end of
+        highlight_block().
+        """
+        self.highlight_spaces(text, offset=offset)
+        self.highlight_patterns(text, offset=offset)
 
     def rehighlight(self):
-        self.outlineexplorer_data = {}
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
-        # rehighlight() triggers the textChanged signal, which in our editor
-        # switches changed_since_autosave to True; we need to prevent this.
-        old_changed = getattr(self.document(), 'changed_since_autosave', False)
         QSyntaxHighlighter.rehighlight(self)
-        self.document().changed_since_autosave = old_changed
         QApplication.restoreOverrideCursor()
 
 
@@ -458,8 +494,6 @@ class PythonSH(BaseSH):
     
     def __init__(self, parent, font=None, color_scheme='Spyder'):
         BaseSH.__init__(self, parent, font, color_scheme)
-        self.import_statements = {}
-        self.found_cell_separators = False
         self.cell_separators = CELL_LANGUAGES['Python']
         # Avoid updating the outline explorer with every single letter typed
         self.outline_explorer_data_update_timer = QTimer()
@@ -524,8 +558,8 @@ class PythonSH(BaseSH):
                         self.setFormat(start, end-start, self.formats[key])
                         if key == "comment":
                             if text.lstrip().startswith(self.cell_separators):
-                                self.found_cell_separators = True
-                                oedata = OutlineExplorerData()
+                                oedata = OutlineExplorerData(
+                                    self.currentBlock())
                                 oedata.text = to_text_string(text).strip()
                                 # cell_head: string contaning the first group
                                 # of '%'s in the cell header
@@ -537,9 +571,11 @@ class PythonSH(BaseSH):
                                     oedata.cell_level = len(cell_head) - 2
                                 oedata.fold_level = start
                                 oedata.def_type = OutlineExplorerData.CELL
-                                oedata.def_name = get_code_cell_name(text)
+                                def_name = get_code_cell_name(text)
+                                oedata.def_name = def_name
                             elif self.OECOMMENT.match(text.lstrip()):
-                                oedata = OutlineExplorerData()
+                                oedata = OutlineExplorerData(
+                                    self.currentBlock())
                                 oedata.text = to_text_string(text).strip()
                                 oedata.fold_level = start
                                 oedata.def_type = OutlineExplorerData.COMMENT
@@ -551,7 +587,8 @@ class PythonSH(BaseSH):
                                     start1, end1 = match1.span(1)
                                     self.setFormat(start1, end1-start1,
                                                    self.formats["definition"])
-                                    oedata = OutlineExplorerData()
+                                    oedata = OutlineExplorerData(
+                                        self.currentBlock())
                                     oedata.text = to_text_string(text)
                                     oedata.fold_level = (len(text)
                                                          - len(text.lstrip()))
@@ -563,7 +600,8 @@ class PythonSH(BaseSH):
                                            "for", "if", "try", "while",
                                            "with"):
                                 if text.lstrip().startswith(value):
-                                    oedata = OutlineExplorerData()
+                                    oedata = OutlineExplorerData(
+                                        self.currentBlock())
                                     oedata.text = to_text_string(text).strip()
                                     oedata.fold_level = start
                                     oedata.def_type = \
@@ -606,21 +644,40 @@ class PythonSH(BaseSH):
             self.formats['trailing'] = self.formats['string']
         self.highlight_extras(text, offset)
 
-        if oedata is not None:
-            block_nb = self.currentBlock().blockNumber()
-            self.outlineexplorer_data[block_nb] = oedata
-            self.outlineexplorer_data['found_cell_separators'] = self.found_cell_separators
+        block = self.currentBlock()
+        data = block.userData()
+
+        need_data = (oedata or import_stmt)
+
+        if need_data and not data:
+            data = BlockUserData(self.editor)
+
+        # Try updating
+        update = False
+        if oedata and data and data.oedata:
+            update = data.oedata.update(oedata)
+
+        if data and not update:
+            data.oedata = oedata
             self.outline_explorer_data_update_timer.start(500)
-        if import_stmt is not None:
-            block_nb = self.currentBlock().blockNumber()
-            self.import_statements[block_nb] = import_stmt
-            
+
+        if (import_stmt) or (data and data.import_statement):
+            data.import_statement = import_stmt
+
+        block.setUserData(data)
+
     def get_import_statements(self):
-        return list(self.import_statements.values())
+        """Get import statment list."""
+        block = self.document().firstBlock()
+        statments = []
+        while block.isValid():
+            data = block.userData()
+            if data and data.import_statement:
+                statments.append(data.import_statement)
+            block = block.next()
+        return statments
             
     def rehighlight(self):
-        self.import_statements = {}
-        self.found_cell_separators = False
         BaseSH.rehighlight(self)
 
 

@@ -415,10 +415,9 @@ class MainWindow(QMainWindow):
         from spyder.preferences.shortcuts import ShortcutsConfigPage
         from spyder.preferences.runconfig import RunConfigPage
         from spyder.preferences.maininterpreter import MainInterpreterConfigPage
-        from spyder.preferences.languageserver import LSPManagerConfigPage
         self.general_prefs = [MainConfigPage, AppearanceConfigPage,
                               ShortcutsConfigPage, MainInterpreterConfigPage,
-                              RunConfigPage, LSPManagerConfigPage]
+                              RunConfigPage]
         self.prefs_index = None
         self.prefs_dialog_size = None
         self.prefs_dialog_instance = None
@@ -661,7 +660,7 @@ class MainWindow(QMainWindow):
                                     triggered=self.open_symbolfinder,
                                     context=Qt.ApplicationShortcut)
         self.register_shortcut(self.symbol_finder_action, context="_",
-                               name="symbol finder", add_sc_to_tip=True)
+                               name="symbol finder", add_shortcut_to_tip=True)
         self.file_toolbar_actions = [self.file_switcher_action,
                                      self.symbol_finder_action]
 
@@ -755,7 +754,7 @@ class MainWindow(QMainWindow):
                                         triggered=self.edit_preferences,
                                         context=Qt.ApplicationShortcut)
         self.register_shortcut(prefs_action, "_", "Preferences",
-                               add_sc_to_tip=True)
+                               add_shortcut_to_tip=True)
         spyder_path_action = create_action(self,
                                 _("PYTHONPATH manager"),
                                 None, icon=ima.icon('pythonpath'),
@@ -854,7 +853,7 @@ class MainWindow(QMainWindow):
                                         triggered=self.toggle_fullscreen,
                                         context=Qt.ApplicationShortcut)
         self.register_shortcut(self.fullscreen_action, "_",
-                               "Fullscreen mode", add_sc_to_tip=True)
+                               "Fullscreen mode", add_shortcut_to_tip=True)
 
         # Main toolbar
         self.main_toolbar_actions = [self.maximize_action,
@@ -881,8 +880,13 @@ class MainWindow(QMainWindow):
 
         # Language Server Protocol Client initialization
         self.set_splash(_("Starting Language Server Protocol manager..."))
-        from spyder.plugins.editor.lsp.manager import LSPManager
-        self.lspmanager = LSPManager(self)
+        from spyder.plugins.languageserver.plugin import LanguageServerPlugin
+        self.lspmanager = LanguageServerPlugin(self)
+
+        # Fallback completion thread
+        self.set_splash(_("Creating fallback completion engine..."))
+        from spyder.plugins.editor.fallback.actor import FallbackActor
+        self.fallback_completions = FallbackActor(self)
 
         # Working directory plugin
         logger.info("Loading working directory...")
@@ -914,6 +918,10 @@ class MainWindow(QMainWindow):
         # Start LSP client
         self.set_splash(_("Launching LSP Client for Python..."))
         self.lspmanager.start_client(language='python')
+
+        # Start fallback plugin
+        self.set_splash(_('Launching fallback completion engine...'))
+        self.fallback_completions.start()
 
         # Populating file menu entries
         quit_action = create_action(self, _("&Quit"),
@@ -974,12 +982,9 @@ class MainWindow(QMainWindow):
             self.explorer.register_plugin()
 
         # Online help widget
-        try:    # Qt >= v4.4
-            from spyder.plugins.onlinehelp.plugin import OnlineHelp
-        except ImportError:    # Qt < v4.4
-            OnlineHelp = None  # analysis:ignore
-        if CONF.get('onlinehelp', 'enable') and OnlineHelp is not None:
+        if CONF.get('onlinehelp', 'enable'):
             self.set_splash(_("Loading online help..."))
+            from spyder.plugins.onlinehelp.plugin import OnlineHelp
             self.onlinehelp = OnlineHelp(self)
             self.onlinehelp.register_plugin()
 
@@ -1318,7 +1323,7 @@ class MainWindow(QMainWindow):
         # Hide Internal Console so that people don't use it instead of
         # the External or IPython ones
         if self.console.dockwidget.isVisible() and DEV is None:
-            self.console.toggle_view_action.setChecked(False)
+            self.console._toggle_view_action.setChecked(False)
             self.console.dockwidget.hide()
 
         # Show Help and Consoles by default
@@ -1330,7 +1335,7 @@ class MainWindow(QMainWindow):
                 plugin.dockwidget.raise_()
 
         # Show history file if no console is visible
-        if not self.ipyconsole.isvisible:
+        if not self.ipyconsole._isvisible:
             self.historylog.add_history(get_conf_path('history.py'))
 
         if self.open_project:
@@ -1554,7 +1559,7 @@ class MainWindow(QMainWindow):
 
         for plugin in (self.widgetlist + self.thirdparty_plugins):
             try:
-                plugin.initialize_plugin_in_mainwindow_layout()
+                plugin._initialize_plugin_in_mainwindow_layout()
             except Exception as error:
                 print("%s: %s" % (plugin, str(error)), file=STDERR)
                 traceback.print_exc(file=STDERR)
@@ -1569,7 +1574,7 @@ class MainWindow(QMainWindow):
             self.set_window_settings(*settings)
         else:
             if self.last_plugin:
-                if self.last_plugin.ismaximized:
+                if self.last_plugin._ismaximized:
                     self.maximize_dockwidget(restore=True)
 
             if not (self.isMaximized() or self.maximized_flag):
@@ -1744,7 +1749,7 @@ class MainWindow(QMainWindow):
         # Make every widget visible
         for widget in widgets:
             widget.toggle_view(True)
-            widget.toggle_view_action.setChecked(True)
+            widget._toggle_view_action.setChecked(True)
 
         # We use both directions to ensure proper update when moving from
         # 'Horizontal Split' to 'Spyder Default'
@@ -2019,7 +2024,7 @@ class MainWindow(QMainWindow):
 
         # make sure the flags are correctly set for visible panes
         for plugin in (self.widgetlist + self.thirdparty_plugins):
-            action = plugin.toggle_view_action
+            action = plugin._toggle_view_action
             action.setChecked(plugin.dockwidget.isVisible())
 
     # --- Show/Hide toolbars
@@ -2219,7 +2224,7 @@ class MainWindow(QMainWindow):
                  'profiler', 'breakpoints', 'pylint', None,
                  'onlinehelp', 'internal_console', None]
         for plugin in self.widgetlist:
-            action = plugin.toggle_view_action
+            action = plugin._toggle_view_action
             action.setChecked(plugin.dockwidget.isVisible())
             try:
                 name = plugin.CONF_SECTION
@@ -2302,7 +2307,7 @@ class MainWindow(QMainWindow):
         try:
             for plugin in (self.widgetlist + self.thirdparty_plugins):
                 if plugin.isAncestorOf(self.last_focused_widget):
-                    plugin.visibility_changed(True)
+                    plugin._visibility_changed(True)
             QMainWindow.hideEvent(self, event)
         except RuntimeError:
             QMainWindow.hideEvent(self, event)
@@ -2332,31 +2337,33 @@ class MainWindow(QMainWindow):
         if CONF.get('main', 'single_instance') and self.open_files_server:
             self.open_files_server.close()
         for plugin in (self.widgetlist + self.thirdparty_plugins):
-            plugin.close_window()
+            plugin._close_window()
             if not plugin.closing_plugin(cancelable):
                 return False
         self.dialog_manager.close_all()
         if self.toolbars_visible:
             self.save_visible_toolbars()
         self.lspmanager.shutdown()
+        self.fallback_completions.stop()
         self.already_closed = True
         return True
 
-    def add_dockwidget(self, child):
-        """Add QDockWidget and toggleViewAction"""
-        dockwidget, location = child.create_dockwidget()
-        if CONF.get('main', 'vertical_dockwidget_titlebars'):
-            dockwidget.setFeatures(dockwidget.features()|
-                                   QDockWidget.DockWidgetVerticalTitleBar)
-        self.addDockWidget(location, dockwidget)
-        self.widgetlist.append(child)
+    def add_dockwidget(self, plugin):
+        """Add a plugin QDockWidget to the window."""
+        if plugin._is_compatible:
+            dockwidget, location = plugin._create_dockwidget()
+            if CONF.get('main', 'vertical_dockwidget_titlebars'):
+                dockwidget.setFeatures(dockwidget.features()|
+                                       QDockWidget.DockWidgetVerticalTitleBar)
+            self.addDockWidget(location, dockwidget)
+            self.widgetlist.append(plugin)
 
     @Slot()
     def close_current_dockwidget(self):
         widget = QApplication.focusWidget()
         for plugin in (self.widgetlist + self.thirdparty_plugins):
             if plugin.isAncestorOf(widget):
-                plugin.toggle_view_action.setChecked(False)
+                plugin._toggle_view_action.setChecked(False)
                 break
 
     def toggle_lock(self, value):
@@ -2423,13 +2430,13 @@ class MainWindow(QMainWindow):
             # Maximize last_plugin
             self.last_plugin.dockwidget.toggleViewAction().setDisabled(True)
             self.setCentralWidget(self.last_plugin)
-            self.last_plugin.ismaximized = True
+            self.last_plugin._ismaximized = True
 
             # Workaround to solve an issue with editor's outline explorer:
             # (otherwise the whole plugin is hidden and so is the outline explorer
             #  and the latter won't be refreshed if not visible)
             self.last_plugin.show()
-            self.last_plugin.visibility_changed(True)
+            self.last_plugin._visibility_changed(True)
             if self.last_plugin is self.editor:
                 # Automatically show the outline if the editor was maximized:
                 self.addDockWidget(Qt.RightDockWidgetArea,
@@ -2440,7 +2447,7 @@ class MainWindow(QMainWindow):
             self.last_plugin.dockwidget.setWidget(self.last_plugin)
             self.last_plugin.dockwidget.toggleViewAction().setEnabled(True)
             self.setCentralWidget(None)
-            self.last_plugin.ismaximized = False
+            self.last_plugin._ismaximized = False
             self.restoreState(self.state_before_maximizing)
             self.state_before_maximizing = None
             self.last_plugin.get_focus_widget().setFocus()
@@ -2884,11 +2891,11 @@ class MainWindow(QMainWindow):
     def apply_panes_settings(self):
         """Update dockwidgets features settings"""
         for plugin in (self.widgetlist + self.thirdparty_plugins):
-            features = plugin.FEATURES
+            features = plugin._FEATURES
             if CONF.get('main', 'vertical_dockwidget_titlebars'):
                 features = features | QDockWidget.DockWidgetVerticalTitleBar
             plugin.dockwidget.setFeatures(features)
-            plugin.update_margins()
+            plugin._update_margins()
 
     def apply_statusbar_settings(self):
         """Update status bar widgets settings"""
@@ -2932,14 +2939,14 @@ class MainWindow(QMainWindow):
                 widget.initialize()
                 dlg.add_page(widget)
 
-            for plugin in [self.workingdirectory, self.editor,
+            for plugin in [self.lspmanager, self.workingdirectory, self.editor,
                            self.projects, self.ipyconsole,
                            self.historylog, self.help, self.variableexplorer,
                            self.onlinehelp, self.explorer, self.findinfiles
                            ] + self.thirdparty_plugins:
                 if plugin is not None:
                     try:
-                        widget = plugin.create_configwidget(dlg)
+                        widget = plugin._create_configwidget(dlg, self)
                         if widget is not None:
                             dlg.add_page(widget)
                     except Exception:
@@ -2965,19 +2972,19 @@ class MainWindow(QMainWindow):
 
     #---- Shortcuts
     def register_shortcut(self, qaction_or_qshortcut, context, name,
-                          add_sc_to_tip=False):
+                          add_shortcut_to_tip=False):
         """
         Register QAction or QShortcut to Spyder main application,
         with shortcut (context, name, default)
         """
-        self.shortcut_data.append( (qaction_or_qshortcut, context,
-                                    name, add_sc_to_tip) )
+        self.shortcut_data.append((qaction_or_qshortcut, context,
+                                   name, add_shortcut_to_tip))
 
     def apply_shortcuts(self):
         """Apply shortcuts settings to all widgets/plugins"""
         toberemoved = []
         for index, (qobject, context, name,
-                    add_sc_to_tip) in enumerate(self.shortcut_data):
+                    add_shortcut_to_tip) in enumerate(self.shortcut_data):
             keyseq = QKeySequence( get_shortcut(context, name) )
             try:
                 if isinstance(qobject, QAction):
@@ -2986,7 +2993,7 @@ class MainWindow(QMainWindow):
                         qobject._shown_shortcut = keyseq
                     else:
                         qobject.setShortcut(keyseq)
-                    if add_sc_to_tip:
+                    if add_shortcut_to_tip:
                         add_shortcut_to_tooltip(qobject, context, name)
                 elif isinstance(qobject, QShortcut):
                     qobject.setKey(keyseq)
@@ -3143,9 +3150,8 @@ class MainWindow(QMainWindow):
             self.fileswitcher = FileSwitcher(self, plugin, tabs, data, icon)
         else:
             self.fileswitcher.add_plugin(plugin, tabs, data, icon)
-
         self.fileswitcher.sig_goto_file.connect(
-                plugin.get_current_tab_manager().set_stack_index)
+            plugin.get_current_tab_manager().set_stack_index)
 
     # ---- Check for Spyder Updates
     def _check_updates_ready(self):
