@@ -59,7 +59,7 @@ from spyder.utils.qthelpers import (add_actions, create_action,
 from spyder.utils.stringmatching import get_search_scores
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
-from spyder.widgets.helperwidgets import CustomSortFilterProxy, HTMLDelegate
+from spyder.widgets.helperwidgets import CustomSortFilterProxy
 from spyder.plugins.variableexplorer.widgets.objectexplorer import (
     ObjectExplorer)
 
@@ -349,15 +349,12 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         self.letters = text
         names = [str(key) for key in self.keys]
         results = get_search_scores(text, names, template='<b>{0}</b>')
-        self.normal_text, self.rich_text, self.scores = zip(*results)
+        self.normal_text, _, self.scores = zip(*results)
         self.reset()
 
     def row(self, row_num):
         """Get row based on model index. Needed for the custom proxy model."""
-        if self.rich_text:
-            return self.rich_text[row_num]
-        else:
-            return self.keys[row_num]
+        return self.keys[row_num]
 
     def data(self, index, role=Qt.DisplayRole):
         """Cell content"""
@@ -381,13 +378,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             else:
                 display = to_text_string(value)
         if role == Qt.DisplayRole:
-            if index.column() == 0 and self.rich_text:  # Name column
-                text = self.rich_text[index.row()]
-                text = '<p style="color:{0}">{1}</p>'.format(ima.MAIN_FG_COLOR,
-                                                             text)
-                return to_qvariant(text)
-            else:
-                return to_qvariant(display)
+            return to_qvariant(display)
         elif role == Qt.EditRole:
             return to_qvariant(value_to_display(value))
         elif role == Qt.TextAlignmentRole:
@@ -1424,7 +1415,6 @@ class CollectionsEditorTableView(BaseTableView):
 
         self.hideColumn(4)  # Column 4 for Score
 
-        self.setItemDelegateForColumn(0, HTMLDelegate(self, margin=5))
         self.delegate = CollectionsDelegate(self)
         self.setItemDelegate(self.delegate)
         self.setSelectionBehavior(QAbstractItemView.SelectItems)
@@ -1733,7 +1723,6 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.delegate = RemoteCollectionsDelegate(self)
         self.delegate.sig_free_memory.connect(self.sig_free_memory.emit)
         self.setItemDelegate(self.delegate)
-        self.setItemDelegateForColumn(0, HTMLDelegate(self, margin=5))
         self.setSelectionBehavior(QAbstractItemView.SelectItems)
         self.setSelectionMode(QAbstractItemView.SingleSelection)
         self.setSortingEnabled(True)
@@ -1865,7 +1854,7 @@ class CollectionsCustomSortFilterProxy(CustomSortFilterProxy):
         Reimplemented from base class to allow the use of custom filtering.
         """
         model = self.sourceModel()
-        name = model.row(row_num)
+        name = to_text_string(model.row(row_num))
         r = re.search(self.pattern, name)
 
         if r is None:
