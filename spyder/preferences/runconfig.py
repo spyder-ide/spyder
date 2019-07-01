@@ -199,7 +199,7 @@ class RunConfigOptions(QWidget):
         common_layout.addWidget(self.clo_edit, 2, 1)
 
         # --- Working directory ---
-        wdir_group = QGroupBox(_("Working Directory settings"))
+        wdir_group = QGroupBox(_("Working directory settings"))
         wdir_layout = QVBoxLayout()
         wdir_group.setLayout(wdir_layout)
 
@@ -511,7 +511,7 @@ class RunConfigPage(GeneralConfigPage):
         general_layout.addWidget(post_mortem)
         general_group.setLayout(general_layout)
 
-        wdir_group = QGroupBox(_("Working Directory settings"))
+        wdir_group = QGroupBox(_("Working directory settings"))
         wdir_bg = QButtonGroup(wdir_group)
         wdir_label = QLabel(_("Default working directory is:"))
         wdir_label.setWordWrap(True)
