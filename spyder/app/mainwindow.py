@@ -881,12 +881,12 @@ class MainWindow(QMainWindow):
         # Language Server Protocol Client initialization
         self.set_splash(_("Starting Completion plugin..."))
         from spyder.plugins.completion.plugin import CompletionPlugin
-        self.lspmanager = CompletionPlugin(self)
+        self.completions = CompletionPlugin(self)
 
         # Fallback completion thread
-        self.set_splash(_("Creating fallback completion engine..."))
-        from spyder.plugins.fallback.actor import FallbackActor
-        self.fallback_completions = FallbackActor(self)
+        # self.set_splash(_("Creating fallback completion engine..."))
+        # # from spyder.plugins.fallback.actor import FallbackActor
+        # # self.fallback_completions = FallbackActor(self)
 
         # Working directory plugin
         logger.info("Loading working directory...")
@@ -917,12 +917,12 @@ class MainWindow(QMainWindow):
 
         # Start LSP client
         self.set_splash(_("Launching LSP Client for Python..."))
-        self.lspmanager.start()
-        self.lspmanager.start_client(language='python')
+        self.completions.start()
+        self.completions.start_client(language='python')
 
         # Start fallback plugin
-        self.set_splash(_('Launching fallback completion engine...'))
-        self.fallback_completions.start()
+        # self.set_splash(_('Launching fallback completion engine...'))
+        # self.fallback_completions.start()
 
         # Populating file menu entries
         quit_action = create_action(self, _("&Quit"),
@@ -2344,7 +2344,7 @@ class MainWindow(QMainWindow):
         self.dialog_manager.close_all()
         if self.toolbars_visible:
             self.save_visible_toolbars()
-        self.lspmanager.shutdown()
+        self.completions.shutdown()
         self.fallback_completions.stop()
         self.already_closed = True
         return True
@@ -2940,11 +2940,11 @@ class MainWindow(QMainWindow):
                 widget.initialize()
                 dlg.add_page(widget)
 
-            widget = self.lspmanager._create_configwidget(dlg, self)
+            widget = self.completions._create_configwidget(dlg, self)
             if widget is not None:
                 dlg.add_page(widget)
 
-            for completion_plugin in self.lspmanager.clients.values():
+            for completion_plugin in self.completions.clients.values():
                 completion_plugin = completion_plugin['plugin']
                 widget = completion_plugin._create_configwidget(dlg, self)
                 if widget is not None:

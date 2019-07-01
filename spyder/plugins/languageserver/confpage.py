@@ -1151,4 +1151,4 @@ class LanguageServerConfigPage(GeneralConfigPage):
                 action.trigger()
 
         # TODO: Reset Manager
-        self.main.lspmanager.lsp.update_server_list()
+        self.main.completions.lsp.update_server_list()

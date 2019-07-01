@@ -291,8 +291,8 @@ class Editor(SpyderPluginWidget):
         language = options['language']
         logger.debug('Call LSP for %s [%s]' % (filename, language))
         codeeditor = options['codeeditor']
-        stat = self.main.lspmanager.start_client(language.lower())
-        self.main.lspmanager.register_file(
+        stat = self.main.completions.start_client(language.lower())
+        self.main.completions.register_file(
             language.lower(), filename, codeeditor)
         if stat:
             if language.lower() in self.lsp_editor_settings:
@@ -327,7 +327,7 @@ class Editor(SpyderPluginWidget):
 
     def send_lsp_request(self, language, request, params):
         logger.debug("LSP request: %r" % request)
-        self.main.lspmanager.send_request(language, request, params)
+        self.main.completions.send_request(language, request, params)
 
     def send_fallback_request(self, msg):
         """Send request to fallback engine."""
@@ -1132,7 +1132,7 @@ class Editor(SpyderPluginWidget):
                 CONF.set('lsp-server', 'pycodestyle', checked)
             elif conf_name == 'pydocstyle':
                 CONF.set('lsp-server', 'pydocstyle', checked)
-            self.main.lspmanager.update_server_list()
+            self.main.completions.update_server_list()
 
     #------ Focus tabwidget
     def __get_focus_editorstack(self):
@@ -1592,7 +1592,7 @@ class Editor(SpyderPluginWidget):
 
     @Slot(set)
     def update_active_languages(self, languages):
-        self.main.lspmanager.update_client_status(languages)
+        self.main.completions.update_client_status(languages)
 
 
     #------ Breakpoints

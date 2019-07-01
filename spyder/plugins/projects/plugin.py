@@ -124,7 +124,7 @@ class Projects(SpyderPluginWidget):
         """Register plugin in Spyder's main window"""
         ipyconsole = self.main.ipyconsole
         treewidget = self.explorer.treewidget
-        lspmgr = self.main.lspmanager
+        lspmgr = self.main.completions
 
         self.add_dockwidget()
         self.explorer.sig_open_file.connect(self.main.open_file)
@@ -530,7 +530,7 @@ class Projects(SpyderPluginWidget):
         """Send request/notification/response to all LSP servers."""
         params['requires_response'] = requires_response
         params['response_instance'] = self
-        self.main.lspmanager.broadcast_notification(method, params)
+        self.main.completions.broadcast_notification(method, params)
 
     @Slot(str, dict)
     def handle_response(self, method, params):
