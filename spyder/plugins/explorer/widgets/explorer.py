@@ -538,9 +538,11 @@ class DirView(QTreeView):
 
     def update_menu(self):
         """Update context menu"""
-        # Next 2 lines used to right justify keyboard shortcuts.
-        self._proxy = MenuProxyStyle(self.menu.style())
-        self.menu.setStyle(self._proxy)
+        # Right justify keyboard shortcuts in this/these menus.
+        # Apply only for none dark themes. Otherwise tests fail.
+        if not is_dark_interface():
+            self._proxy = MenuProxyStyle(self.menu.style())
+            self.menu.setStyle(self._proxy)
         self.menu.clear()
         add_actions(self.menu, self.create_context_menu_actions())
 

@@ -762,9 +762,11 @@ class EditorStack(QWidget):
             menu_btn.setStyleSheet(
                 "QToolButton::menu-indicator{image: none;}")
         self.menu = QMenu(self)
-        # Next 2 lines used to right justify keyboard shortcuts.
-        self._proxy = MenuProxyStyle(self.menu.style())
-        self.menu.setStyle(self._proxy)
+        # Right justify keyboard shortcuts in this/these menus.
+        # Apply only for none dark themes. Otherwise tests fail.
+        if not is_dark_interface():
+            self._proxy = MenuProxyStyle(self.menu.style())
+            self.menu.setStyle(self._proxy)
         menu_btn.setMenu(self.menu)
         menu_btn.setPopupMode(menu_btn.InstantPopup)
         self.menu.aboutToShow.connect(self.__setup_menu)

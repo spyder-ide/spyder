@@ -49,7 +49,7 @@ from spyder_kernels.utils.dochelpers import getobj
 # Local imports
 from spyder.api.panel import Panel
 from spyder.config.base import _, get_debug_level, running_under_pytest
-from spyder.config.gui import get_shortcut, config_shortcut
+from spyder.config.gui import get_shortcut, config_shortcut, is_dark_interface
 from spyder.config.main import CONF
 from spyder.plugins.editor.api.decoration import TextDecoration
 from spyder.plugins.editor.extensions import (CloseBracketsExtension,
@@ -3170,9 +3170,11 @@ class CodeEditor(TextEditBaseWidget):
 
         # Build menu
         self.menu = QMenu(self)
-        # Next 2 lines used to right justify keyboard shortcuts.
-        self._proxy1 = MenuProxyStyle(self.menu.style())
-        self.menu.setStyle(self._proxy1)
+        # Right justify keyboard shortcuts in this/these menus.
+        # Apply only for none dark themes. Otherwise tests fail.
+        if not is_dark_interface():
+            self._proxy1 = MenuProxyStyle(self.menu.style())
+            self.menu.setStyle(self._proxy1)
         actions_1 = [self.run_cell_action, self.run_cell_and_advance_action,
                      self.re_run_last_cell_action, self.run_selection_action,
                      self.gotodef_action, None, self.undo_action,
@@ -3191,9 +3193,11 @@ class CodeEditor(TextEditBaseWidget):
 
         # Read-only context-menu
         self.readonly_menu = QMenu(self)
-        # Next 2 lines used to right justify keyboard shortcuts.
-        self._proxy2 = MenuProxyStyle(self.readonly_menu.style())
-        self.readonly_menu.setStyle(self._proxy2)
+        # Right justify keyboard shortcuts in this/these menus.
+        # Apply only for none dark themes. Otherwise tests fail.
+        if not is_dark_interface():
+            self._proxy2 = MenuProxyStyle(self.readonly_menu.style())
+            self.readonly_menu.setStyle(self._proxy2)
         add_actions(self.readonly_menu,
                     (self.copy_action, None, selectall_action,
                      self.gotodef_action))

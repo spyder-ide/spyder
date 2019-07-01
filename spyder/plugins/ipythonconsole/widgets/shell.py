@@ -17,7 +17,7 @@ from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
 from spyder.config.main import CONF
 from spyder.config.base import _
-from spyder.config.gui import config_shortcut
+from spyder.config.gui import config_shortcut, is_dark_interface
 from spyder.py3compat import PY2, to_text_string
 from spyder.utils import encoding
 from spyder.utils import programs
@@ -480,9 +480,11 @@ the sympy module (e.g. plot)
     def _context_menu_make(self, pos):
         """Reimplement the IPython context menu"""
         menu = super(ShellWidget, self)._context_menu_make(pos)
-        # Next 2 lines used to right justify keyboard shortcuts.
-        self._proxy = MenuProxyStyle(menu.style())
-        menu.setStyle(self._proxy)
+        # Right justify keyboard shortcuts in this/these menus.
+        # Apply only for none dark themes. Otherwise tests fail.
+        if not is_dark_interface():
+            self._proxy = MenuProxyStyle(menu.style())
+            menu.setStyle(self._proxy)
         return self.ipyclient.add_actions_to_context_menu(menu)
 
     def _banner_default(self):

@@ -163,9 +163,11 @@ class BasePluginWidgetMixin(object):
 
         # Options menu
         self._options_menu = QMenu(self)
-        # Next 2 lines used to right justify keyboard shortcuts.
-        self._proxy = MenuProxyStyle(self._options_menu.style())
-        self._options_menu.setStyle(self._proxy)
+        # Right justify keyboard shortcuts in this/these menus.
+        # Apply only for none dark themes. Otherwise tests fail.
+        if not is_dark_interface():
+            self._proxy = MenuProxyStyle(self._options_menu.style())
+            self._options_menu.setStyle(self._proxy)
 
         # NOTE: Don't use the default option of CONF.get to assign a
         # None shortcut to plugins that don't have one. That will mess

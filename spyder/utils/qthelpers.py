@@ -599,11 +599,11 @@ def create_plugin_layout(tools_layout, main_widget=None):
 
 
 class MenuProxyStyle(QProxyStyle):
-    """Menu proxy class to right justify shortcuts in QMenu"""
+    """Menu proxy class to right justify shortcuts in QMenu."""
 
     def drawControl(self, element, option, painter, widget=None):
+        """Reimplement Qt method."""
         shortcut = ""
-
         if element == QStyle.CE_MenuItem:
             vals = option.text.split("\t")
 

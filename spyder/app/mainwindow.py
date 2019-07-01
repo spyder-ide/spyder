@@ -153,7 +153,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.programs import is_module_installed
 from spyder.utils.misc import select_port, getcwd_or_home, get_python_executable
 from spyder.plugins.help.utils.sphinxify import CSS_PATH, DARK_CSS_PATH
-from spyder.config.gui import is_dark_font_color
+from spyder.config.gui import is_dark_font_color, is_dark_interface
 
 #==============================================================================
 # Local gui imports
@@ -1267,19 +1267,24 @@ class MainWindow(QMainWindow):
         # Menu about to show
         for child in self.menuBar().children():
             if isinstance(child, QMenu):
-                # Next 2 lines used to right justify keyboard shortcuts.
-                self._proxy = MenuProxyStyle(child.style())
-                child.setStyle(self._proxy)
+                # Right justify keyboard shortcuts in this/these menus.
+                # Apply only for none dark themes. Otherwise tests fail.
+                if not is_dark_interface():
+                    self._proxy = MenuProxyStyle(child.style())
+                    child.setStyle(self._proxy)
                 try:
                     child.aboutToShow.connect(self.update_edit_menu)
                     child.aboutToShow.connect(self.update_search_menu)
                 except TypeError:
                     pass
 
-        # Right justify shortcuts.
-        for menu_keyb_shortcut in [self.plugins_menu, self.quick_layout_menu]:
-            self._proxy = MenuProxyStyle(menu_keyb_shortcut.style())
-            menu_keyb_shortcut.setStyle(self._proxy)
+        # Right justify keyboard shortcuts in this/these menus.
+        # Apply only for none dark themes. Otherwise tests fail.
+        if not is_dark_interface():
+            for menu_keyb_shortcut in [self.plugins_menu,
+                                       self.quick_layout_menu]:
+                self._proxy = MenuProxyStyle(menu_keyb_shortcut.style())
+                menu_keyb_shortcut.setStyle(self._proxy)
 
         logger.info("*** End of MainWindow setup ***")
         self.is_starting_up = False
@@ -2269,9 +2274,11 @@ class MainWindow(QMainWindow):
 
     def createPopupMenu(self):
         menu = QMenu('', self)
-        # Next 2 lines used to right justify keyboard shortcuts.
-        self._proxy = MenuProxyStyle(menu.style())
-        menu.setStyle(self._proxy)
+        # Right justify keyboard shortcuts in this/these menus.
+        # Apply only for none dark themes. Otherwise tests fail.
+        if not is_dark_interface():
+            self._proxy = MenuProxyStyle(menu.style())
+            menu.setStyle(self._proxy)
         actions = self.help_menu_actions[:3] + \
                     [None, self.help_menu_actions[-1]]
         add_actions(menu, actions)
@@ -2623,7 +2630,6 @@ class MainWindow(QMainWindow):
         msgBox.setWindowTitle(_("About %s") % "Spyder")
         msgBox.setStandardButtons(QMessageBox.Ok)
 
-        from spyder.config.gui import is_dark_interface
         if PYQT5:
             if is_dark_interface():
                 icon_filename = "spyder.svg"
