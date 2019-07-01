@@ -202,7 +202,6 @@ def test_set_get_project_filenames_when_closing(create_projects, tmpdir):
     assert projects.get_project_filenames() == opened_files
 
 
-
 def test_set_get_project_filenames_when_switching(create_projects, tmpdir):
     """
     Test that files in the Editor are loaded and saved correctly when
@@ -225,7 +224,6 @@ def test_set_get_project_filenames_when_switching(create_projects, tmpdir):
     projects.close_project()
     projects.open_project(path=path1)
     assert projects.get_project_filenames() == opened_files
-
 
 
 def test_recent_projects_menu_action(projects, tmpdir):
