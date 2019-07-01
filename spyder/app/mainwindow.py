@@ -1267,24 +1267,23 @@ class MainWindow(QMainWindow):
         # Menu about to show
         for child in self.menuBar().children():
             if isinstance(child, QMenu):
-                # Right justify keyboard shortcuts in this/these menus.
-                # Apply only for none dark themes. Otherwise tests fail.
-                if not is_dark_interface():
-                    self._proxy = MenuProxyStyle(child.style())
-                    child.setStyle(self._proxy)
                 try:
                     child.aboutToShow.connect(self.update_edit_menu)
                     child.aboutToShow.connect(self.update_search_menu)
                 except TypeError:
                     pass
 
-        # Right justify keyboard shortcuts in this/these menus.
-        # Apply only for none dark themes. Otherwise tests fail.
+        # Right justify keyboard shortcuts.
+        # Apply only for none dark themes, otherwise tests fail.
         if not is_dark_interface():
-            for menu_keyb_shortcut in [self.plugins_menu,
-                                       self.quick_layout_menu]:
-                self._proxy = MenuProxyStyle(menu_keyb_shortcut.style())
-                menu_keyb_shortcut.setStyle(self._proxy)
+            sub_menus = [self.plugins_menu, self.quick_layout_menu,
+                         self.explorer.fileexplorer.treewidget.menu,
+                         self.projects.explorer.treewidget.menu]
+            sub_menus += [child for child in self.menuBar().children()]
+            for sub_menu in sub_menus:
+                if isinstance(sub_menu, QMenu):
+                    self._proxy = MenuProxyStyle(sub_menu.style())
+                    sub_menu.setStyle(self._proxy)
 
         logger.info("*** End of MainWindow setup ***")
         self.is_starting_up = False
@@ -2274,8 +2273,8 @@ class MainWindow(QMainWindow):
 
     def createPopupMenu(self):
         menu = QMenu('', self)
-        # Right justify keyboard shortcuts in this/these menus.
-        # Apply only for none dark themes. Otherwise tests fail.
+        # Right justify keyboard shortcuts in the menu.
+        # Apply only for none dark themes, otherwise tests fail.
         if not is_dark_interface():
             self._proxy = MenuProxyStyle(menu.style())
             menu.setStyle(self._proxy)

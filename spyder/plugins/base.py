@@ -163,8 +163,8 @@ class BasePluginWidgetMixin(object):
 
         # Options menu
         self._options_menu = QMenu(self)
-        # Right justify keyboard shortcuts in this/these menus.
-        # Apply only for none dark themes. Otherwise tests fail.
+        # Right justify keyboard shortcuts in the menu.
+        # Apply only for none dark themes, otherwise tests fail.
         if not is_dark_interface():
             self._proxy = MenuProxyStyle(self._options_menu.style())
             self._options_menu.setStyle(self._proxy)

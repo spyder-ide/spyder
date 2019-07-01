@@ -121,8 +121,8 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
     def setup_context_menu(self):
         """Setup shell context menu"""
         self.menu = QMenu(self)
-        # Right justify keyboard shortcuts in this/these menus.
-        # Apply only for none dark themes. Otherwise tests fail.
+        # Right justify keyboard shortcuts in the menus.
+        # Apply only for none dark themes, otherwise tests fail.
         if is_dark_interface():
             self._proxy = MenuProxyStyle(self.menu.style())
             self.menu.setStyle(self._proxy)

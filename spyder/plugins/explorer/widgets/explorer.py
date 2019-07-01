@@ -41,8 +41,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import misc, programs, vcs
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_plugin_layout, file_uri,
-                                    MenuProxyStyle)
+                                    create_plugin_layout, file_uri)
 
 try:
     from nbconvert import PythonExporter as nbexporter
@@ -538,11 +537,6 @@ class DirView(QTreeView):
 
     def update_menu(self):
         """Update context menu"""
-        # Right justify keyboard shortcuts in this/these menus.
-        # Apply only for none dark themes. Otherwise tests fail.
-        if not is_dark_interface():
-            self._proxy = MenuProxyStyle(self.menu.style())
-            self.menu.setStyle(self._proxy)
         self.menu.clear()
         add_actions(self.menu, self.create_context_menu_actions())
 

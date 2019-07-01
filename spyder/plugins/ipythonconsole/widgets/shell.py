@@ -480,8 +480,8 @@ the sympy module (e.g. plot)
     def _context_menu_make(self, pos):
         """Reimplement the IPython context menu"""
         menu = super(ShellWidget, self)._context_menu_make(pos)
-        # Right justify keyboard shortcuts in this/these menus.
-        # Apply only for none dark themes. Otherwise tests fail.
+        # Right justify keyboard shortcuts in the menu.
+        # Apply only for none dark themes, otherwise tests fail.
         if not is_dark_interface():
             self._proxy = MenuProxyStyle(menu.style())
             menu.setStyle(self._proxy)

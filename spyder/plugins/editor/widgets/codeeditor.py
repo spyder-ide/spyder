@@ -3170,8 +3170,8 @@ class CodeEditor(TextEditBaseWidget):
 
         # Build menu
         self.menu = QMenu(self)
-        # Right justify keyboard shortcuts in this/these menus.
-        # Apply only for none dark themes. Otherwise tests fail.
+        # Right justify keyboard shortcuts.
+        # Apply only for none dark themes, otherwise tests fail.
         if not is_dark_interface():
             self._proxy1 = MenuProxyStyle(self.menu.style())
             self.menu.setStyle(self._proxy1)
@@ -3193,8 +3193,8 @@ class CodeEditor(TextEditBaseWidget):
 
         # Read-only context-menu
         self.readonly_menu = QMenu(self)
-        # Right justify keyboard shortcuts in this/these menus.
-        # Apply only for none dark themes. Otherwise tests fail.
+        # Right justify keyboard shortcuts.
+        # Apply only for none dark themes, otherwise tests fail.
         if not is_dark_interface():
             self._proxy2 = MenuProxyStyle(self.readonly_menu.style())
             self.readonly_menu.setStyle(self._proxy2)
