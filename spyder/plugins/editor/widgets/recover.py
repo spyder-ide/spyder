@@ -108,7 +108,7 @@ class RecoveryDialog(QDialog):
                 full_name = osp.join(self.autosave_dir, name)
                 if osp.isdir(full_name):
                     continue
-                for orig, autosave in self.autosave_mapping.items():
+                for orig, autosave in self.autosave_mapping:
                     if autosave == full_name:
                         orig_dict = gather_file_data(orig)
                         break
@@ -297,21 +297,21 @@ def make_temporary_files(tempdir):
     autosave_file = osp.join(autosave_dir, 'ham.py')
     with open(autosave_file, 'w') as f:
         f.write('ham = "autosave"\n')
-    autosave_mapping[orig_file] = autosave_file
+    autosave_mapping = [(orig_file, autosave_file)]
 
     # spam.py: Only autosave file exists, mentioned in mapping
     orig_file = osp.join(orig_dir, 'spam.py')
     autosave_file = osp.join(autosave_dir, 'spam.py')
     with open(autosave_file, 'w') as f:
         f.write('spam = "autosave"\n')
-    autosave_mapping[orig_file] = autosave_file
+    autosave_mapping += [(orig_file, autosave_file)]
 
     # eggs.py: Only original files exists, mentioned in mapping
     orig_file = osp.join(orig_dir, 'eggs.py')
     with open(orig_file, 'w') as f:
         f.write('eggs = "original"\n')
     autosave_file = osp.join(autosave_dir, 'eggs.py')
-    autosave_mapping[orig_file] = autosave_file
+    autosave_mapping += [(orig_file, autosave_file)]
 
     # cheese.py: Only autosave file exists, not mentioned in mapping
     autosave_file = osp.join(autosave_dir, 'cheese.py')

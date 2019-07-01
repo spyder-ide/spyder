@@ -126,9 +126,11 @@ class AutosaveForPlugin(object):
         """
         Get a list of files to recover from the Spyder config file.
 
-        This returns a dict mapping original file names to autosave file names.
+        This returns a list of tuples containing the original file names and
+        the corresponding autosave file names.
         """
-        return CONF.get('editor', 'autosave_mapping', {})
+        result_as_dict = CONF.get('editor', 'autosave_mapping', {})
+        return list(result_as_dict.items())
 
     def try_recover_from_autosave(self):
         """Offer to recover files from autosave."""
