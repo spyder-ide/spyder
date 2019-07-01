@@ -18,10 +18,10 @@ import logging
 from qtpy.compat import to_qvariant, from_qvariant
 from qtpy.QtCore import (QEvent, QLibraryInfo, QLocale, QObject, Qt, QTimer,
                          QTranslator, Signal, Slot)
-from qtpy.QtGui import QIcon, QKeyEvent, QKeySequence, QPixmap
+from qtpy.QtGui import QIcon, QKeyEvent, QKeySequence, QPixmap, QPalette
 from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QLabel,
                             QLineEdit, QMenu, QStyle, QToolBar, QToolButton,
-                            QVBoxLayout, QWidget)
+                            QVBoxLayout, QWidget, QStyle, QProxyStyle)
 
 # Local imports
 from spyder.config.base import get_image_path, running_in_mac_app
@@ -596,6 +596,31 @@ def create_plugin_layout(tools_layout, main_widget=None):
     if main_widget is not None:
         layout.addWidget(main_widget)
     return layout
+
+
+class MenuProxyStyle(QProxyStyle):
+    """Menu proxy class to right justify shortcuts in QMenu"""
+
+    def drawControl(self, element, option, painter, widget=None):
+        shortcut = ""
+
+        if element == QStyle.CE_MenuItem:
+            vals = option.text.split("\t")
+
+            if len(vals) == 2:
+                text, shortcut = vals
+                option.text = text
+        super(MenuProxyStyle, self).drawControl(element, option, painter,
+                                                widget)
+        if shortcut:
+            margin = 10  # Margin from the right of menu column to shortcuts.
+            self.proxy().drawItemText(painter,
+                                      option.rect.adjusted(margin, 0, -margin,
+                                                           0),
+                                      Qt.AlignRight | Qt.AlignVCenter,
+                                      option.palette,
+                                      option.state & QStyle.State_Enabled,
+                                      shortcut, QPalette.Text)
 
 
 MENU_SEPARATOR = None

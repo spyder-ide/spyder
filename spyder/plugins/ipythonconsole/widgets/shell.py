@@ -27,6 +27,7 @@ from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.plugins.ipythonconsole.widgets import (
         ControlWidget, DebuggingWidget, FigureBrowserWidget,
         HelpWidget, NamepaceBrowserWidget, PageControlWidget)
+from spyder.utils.qthelpers import MenuProxyStyle
 
 
 class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
@@ -479,6 +480,9 @@ the sympy module (e.g. plot)
     def _context_menu_make(self, pos):
         """Reimplement the IPython context menu"""
         menu = super(ShellWidget, self)._context_menu_make(pos)
+        # Next 2 lines used to right justify keyboard shortcuts.
+        self._proxy = MenuProxyStyle(menu.style())
+        menu.setStyle(self._proxy)
         return self.ipyclient.add_actions_to_context_menu(menu)
 
     def _banner_default(self):

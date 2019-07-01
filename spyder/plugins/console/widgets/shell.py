@@ -35,7 +35,7 @@ from spyder.py3compat import (builtins, is_string, is_text_string,
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_action, keybinding,
-                                    restore_keyevent)
+                                    restore_keyevent, MenuProxyStyle)
 from spyder.widgets.mixins import (GetHelpMixin, SaveHistoryMixin,
                                    TracebackLinksMixin, BrowseHistoryMixin)
 from spyder.plugins.console.widgets.console import ConsoleBaseWidget
@@ -121,6 +121,9 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
     def setup_context_menu(self):
         """Setup shell context menu"""
         self.menu = QMenu(self)
+        # Next 2 lines used to right justify keyboard shortcuts.
+        self._proxy = MenuProxyStyle(self.menu.style())
+        self.menu.setStyle(self._proxy)
         self.cut_action = create_action(self, _("Cut"),
                                         shortcut=keybinding('Cut'),
                                         icon=ima.icon('editcut'),

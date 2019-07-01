@@ -41,7 +41,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, sourcecode, syntaxhighlighters
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, MENU_SEPARATOR,
-                                    mimedata2url)
+                                    mimedata2url, MenuProxyStyle)
 from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.widgets.fileswitcher import FileSwitcher
@@ -762,6 +762,9 @@ class EditorStack(QWidget):
             menu_btn.setStyleSheet(
                 "QToolButton::menu-indicator{image: none;}")
         self.menu = QMenu(self)
+        # Next 2 lines used to right justify keyboard shortcuts.
+        self._proxy = MenuProxyStyle(self.menu.style())
+        self.menu.setStyle(self._proxy)
         menu_btn.setMenu(self.menu)
         menu_btn.setPopupMode(menu_btn.InstantPopup)
         self.menu.aboutToShow.connect(self.__setup_menu)

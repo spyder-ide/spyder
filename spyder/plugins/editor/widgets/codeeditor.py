@@ -79,7 +79,7 @@ from spyder.utils import encoding, programs, sourcecode
 from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
-                                    mimedata2url)
+                                    mimedata2url, MenuProxyStyle)
 from spyder.utils.vcs import get_git_remotes, remote_to_url
 
 
@@ -3170,6 +3170,9 @@ class CodeEditor(TextEditBaseWidget):
 
         # Build menu
         self.menu = QMenu(self)
+        # Next 2 lines used to right justify keyboard shortcuts.
+        self._proxy1 = MenuProxyStyle(self.menu.style())
+        self.menu.setStyle(self._proxy1)
         actions_1 = [self.run_cell_action, self.run_cell_and_advance_action,
                      self.re_run_last_cell_action, self.run_selection_action,
                      self.gotodef_action, None, self.undo_action,
@@ -3188,6 +3191,9 @@ class CodeEditor(TextEditBaseWidget):
 
         # Read-only context-menu
         self.readonly_menu = QMenu(self)
+        # Next 2 lines used to right justify keyboard shortcuts.
+        self._proxy2 = MenuProxyStyle(self.readonly_menu.style())
+        self.readonly_menu.setStyle(self._proxy2)
         add_actions(self.readonly_menu,
                     (self.copy_action, None, selectall_action,
                      self.gotodef_action))

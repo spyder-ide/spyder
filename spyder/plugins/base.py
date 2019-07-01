@@ -28,7 +28,7 @@ from spyder.py3compat import configparser, is_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (
     add_actions, create_action, create_toolbutton, MENU_SEPARATOR,
-    toggle_actions)
+    toggle_actions, MenuProxyStyle)
 from spyder.widgets.dock import SpyderDockWidget
 
 
@@ -163,6 +163,9 @@ class BasePluginWidgetMixin(object):
 
         # Options menu
         self._options_menu = QMenu(self)
+        # Next 2 lines used to right justify keyboard shortcuts.
+        self._proxy = MenuProxyStyle(self._options_menu.style())
+        self._options_menu.setStyle(self._proxy)
 
         # NOTE: Don't use the default option of CONF.get to assign a
         # None shortcut to plugins that don't have one. That will mess

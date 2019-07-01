@@ -105,7 +105,7 @@ if hasattr(Qt, 'AA_EnableHighDpiScaling'):
 # Create our QApplication instance here because it's needed to render the
 # splash screen created below
 #==============================================================================
-from spyder.utils.qthelpers import qapplication, MENU_SEPARATOR
+from spyder.utils.qthelpers import qapplication, MENU_SEPARATOR, MenuProxyStyle
 from spyder.config.base import get_image_path
 MAIN_APP = qapplication()
 
@@ -1267,11 +1267,19 @@ class MainWindow(QMainWindow):
         # Menu about to show
         for child in self.menuBar().children():
             if isinstance(child, QMenu):
+                # Next 2 lines used to right justify keyboard shortcuts.
+                self._proxy = MenuProxyStyle(child.style())
+                child.setStyle(self._proxy)
                 try:
                     child.aboutToShow.connect(self.update_edit_menu)
                     child.aboutToShow.connect(self.update_search_menu)
                 except TypeError:
                     pass
+
+        # Right justify shortcuts.
+        for menu_keyb_shortcut in [self.plugins_menu, self.quick_layout_menu]:
+            self._proxy = MenuProxyStyle(menu_keyb_shortcut.style())
+            menu_keyb_shortcut.setStyle(self._proxy)
 
         logger.info("*** End of MainWindow setup ***")
         self.is_starting_up = False
@@ -2261,6 +2269,9 @@ class MainWindow(QMainWindow):
 
     def createPopupMenu(self):
         menu = QMenu('', self)
+        # Next 2 lines used to right justify keyboard shortcuts.
+        self._proxy = MenuProxyStyle(menu.style())
+        menu.setStyle(self._proxy)
         actions = self.help_menu_actions[:3] + \
                     [None, self.help_menu_actions[-1]]
         add_actions(menu, actions)

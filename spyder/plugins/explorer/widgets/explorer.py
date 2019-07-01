@@ -41,7 +41,8 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import misc, programs, vcs
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_plugin_layout, file_uri)
+                                    create_plugin_layout, file_uri,
+                                    MenuProxyStyle)
 
 try:
     from nbconvert import PythonExporter as nbexporter
@@ -537,6 +538,9 @@ class DirView(QTreeView):
 
     def update_menu(self):
         """Update context menu"""
+        # Next 2 lines used to right justify keyboard shortcuts.
+        self._proxy = MenuProxyStyle(self.menu.style())
+        self.menu.setStyle(self._proxy)
         self.menu.clear()
         add_actions(self.menu, self.create_context_menu_actions())
 
