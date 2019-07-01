@@ -170,10 +170,12 @@ class CompletionPlugin(SpyderCompletionPlugin):
                 client_info['plugin'].shutdown()
 
     def start_client(self, language):
+        started = False
         for client_name in self.clients:
             client_info = self.clients[client_name]
             if client_info['status'] == self.RUNNING:
-                client_info['plugin'].start_client(language)
+                started |= client_info['plugin'].start_client(language)
+        return started
 
     def stop_client(self, language):
         for client_name in self.clients:

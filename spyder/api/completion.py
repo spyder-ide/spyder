@@ -147,8 +147,13 @@ class SpyderCompletionPlugin(QObject, SpyderPlugin):
         ==========
         language: str
             Programming language to start analyzing
+
+        Returns
+        =======
+        bool
+            True if language client could be started, otherwise False.
         """
-        pass
+        return False
 
     def stop_client(self, language):
         """
