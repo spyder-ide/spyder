@@ -105,6 +105,10 @@ def lsp_codeeditor(qtbot_module, request):
 
     main = MainWindowMock()
     completions = CompletionPlugin(main, ['lsp'])
+    with qtbot_module.waitSignal(
+            main.editor.sig_lsp_initialized, timeout=30000):
+        completions.start_client('python')
+
     editor = codeeditor_factory()
     qtbot_module.addWidget(editor)
     editor.show()
