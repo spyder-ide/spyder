@@ -721,13 +721,12 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
 
         def run_terminal_thread():
             if wdir:
-                proc = subprocess.Popen(
-                    'open -a Terminal.app ' + f.name, cwd=wdir, shell=True)
+                proc = run_shell_command('open -a Terminal.app ' + f.name,
+                                         cwd=wdir)
             else:
-                proc = subprocess.Popen(
-                    'open -a Terminal.app ' + f.name, shell=True)
+                proc = run_shell_command('open -a Terminal.app ' + f.name)
             # Prevent race condition
-            time.sleep(3)
+            time.sleep(2)
             proc.wait()
             os.remove(f.name)
 
