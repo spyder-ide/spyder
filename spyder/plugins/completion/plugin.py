@@ -71,8 +71,8 @@ class CompletionPlugin(SpyderCompletionPlugin):
 
     @Slot(str, int, dict)
     def recieve_response(self, completion_source, req_id, resp):
-        logger.debug("Completion plugin: Got response from {0}".format(
-            completion_source))
+        logger.debug("Completion plugin: Request {0} Got response "
+                     "from {1}".format(req_id, completion_source))
         request_responses = self.requests[req_id]
         req_type = request_responses['req_type']
         request_responses['sources'][completion_source] = resp
@@ -96,6 +96,7 @@ class CompletionPlugin(SpyderCompletionPlugin):
             available_completions = {x['insertText'] for x in responses}
             priority_level = 1
             for source in req_id_responses:
+                logger.debug(source)
                 if source == principal_source:
                     continue
                 source_responses = req_id_responses[source]['params']

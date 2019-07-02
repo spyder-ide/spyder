@@ -16,6 +16,7 @@ import logging
 # Local imports
 from spyder.api.completion import SpyderCompletionPlugin
 from spyder.plugins.fallback.actor import FallbackActor
+# from spyder.plugins.languageserver import LSPRequestTypes
 
 
 logger = logging.getLogger(__name__)
@@ -29,7 +30,9 @@ class FallbackPlugin(SpyderCompletionPlugin):
         self.fallback_actor = FallbackActor(self)
         self.fallback_actor.sig_fallback_ready.connect(
             lambda: self.sig_plugin_ready.emit(self.COMPLETION_CLIENT_NAME))
-        # self.fallback_actor.sig_set_tokens.connect(self.sig_response_ready)
+        self.fallback_actor.sig_set_tokens.connect(
+            lambda _id, resp: self.sig_response_ready.emit(
+                self.COMPLETION_CLIENT_NAME, _id, resp))
         self.started = False
         self.requests = {}
 
@@ -49,4 +52,5 @@ class FallbackPlugin(SpyderCompletionPlugin):
             'id': req_id,
             'msg': req
         }
+        req['language'] = language
         self.fallback_actor.sig_mailbox.emit(request)

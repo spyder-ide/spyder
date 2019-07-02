@@ -925,12 +925,14 @@ class CodeEditor(TextEditBaseWidget):
         """Send textDocument/didChange request to the server."""
         self.text_version += 1
         text = self.toPlainText()
+        patch = self.differ.patch_make(self.previous_text, text)
+        self.previous_text = text
         params = {
             'file': self.filename,
             'version': self.text_version,
-            'text': text
+            'text': text,
+            'diff': patch
         }
-        self.update_fallback(text)
         return params
 
     @handles(LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
@@ -953,7 +955,6 @@ class CodeEditor(TextEditBaseWidget):
             'column': column
         }
         self.completion_args = (self.textCursor().position(), automatic)
-        self.request_fallback()
         return params
 
     @handles(LSPRequestTypes.DOCUMENT_COMPLETION)
@@ -1132,56 +1133,6 @@ class CodeEditor(TextEditBaseWidget):
                 'codeeditor': self
             }
             return params
-        self.close_fallback()
-
-    # ------------- Fallback completions ------------------------------------
-    def start_fallback(self):
-        """Register with fallback engine."""
-        self.previous_text = ''
-        self.update_fallback(self.toPlainText())
-
-    def close_fallback(self):
-        """Close connection with fallback engine."""
-        fallback_request = {
-            'file': self.filename,
-            'type': 'close',
-            'editor': None,
-            'msg': {}
-        }
-        self.sig_perform_fallback_request.emit(fallback_request)
-
-    def update_fallback(self, text):
-        """Send changes to fallback engine."""
-        # Invoke fallback update
-        patch = self.differ.patch_make(self.previous_text, text)
-        self.previous_text = text
-        fallback_request = {
-            'file': self.filename,
-            'type': 'update',
-            'editor': self,
-            'msg': {
-                'language': self.language,
-                'diff': patch
-            }
-        }
-        self.sig_perform_fallback_request.emit(fallback_request)
-
-    def request_fallback(self):
-        """Send request to fallback engine."""
-        request = {
-            'file': self.filename,
-            'type': 'retrieve',
-            'editor': self,
-            'msg': None
-        }
-        self.sig_perform_fallback_request.emit(request)
-
-    def receive_text_tokens(self, tokens):
-        """Handle tokens sent by fallback engine."""
-        self.word_tokens = tokens
-        if not self.lsp_ready:
-            self.completion_args = (self.textCursor().position(), False)
-            self.process_completion({'params': tokens})
 
     # -------------------------------------------------------------------------
     def set_debug_panel(self, debug_panel, language):
