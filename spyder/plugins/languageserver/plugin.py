@@ -125,7 +125,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         for language in self.clients:
             language_client = self.clients[language]
             if language_client['status'] == self.RUNNING:
-                self.main.editor.stop_lsp_services(language)
+                self.main.editor.stop_completion_services(language)
                 folder = self.get_root_path(language)
                 instance = language_client['instance']
                 instance.folder = folder
@@ -214,7 +214,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                     if self.clients[language]['status'] == self.STOPPED:
                         self.clients[language] = config
                     elif self.clients[language]['status'] == self.RUNNING:
-                        self.main.editor.stop_lsp_services(language)
+                        self.main.editor.stop_completion_services(language)
                         self.main.projects.stop_lsp_services()
                         self.close_client(language)
                         self.clients[language] = config

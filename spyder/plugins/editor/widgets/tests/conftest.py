@@ -9,6 +9,7 @@ Testing utilities to be used with pytest.
 """
 
 # Stdlib imports
+import os
 try:
     from unittest.mock import Mock
 except ImportError:
@@ -19,9 +20,11 @@ import pytest
 from qtpy.QtGui import QFont
 
 # Local imports
+from spyder.config.main import CONF
 from spyder.plugins.editor.tests.conftest import (
     editor_plugin, editor_plugin_open_files, python_files)
-from spyder.plugins.languageserver.tests.conftest import qtbot_module
+from spyder.plugins.languageserver.tests.conftest import (
+    qtbot_module, MainWindowMock)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editor import EditorStack
 from spyder.plugins.completion.plugin import CompletionPlugin
@@ -74,7 +77,7 @@ def fallback_codeeditor(fallback, qtbot_module, request):
     editor.show()
 
     # Redirect editor fallback requests to FallbackActor
-    editor.sig_perform_fallback_request.connect(completions.send_request)
+    editor.sig_perform_completion_request.connect(completions.send_request)
     editor.filename = 'test.py'
     editor.language = 'Python'
     editor.completions_available = True
@@ -89,36 +92,44 @@ def fallback_codeeditor(fallback, qtbot_module, request):
 
 
 @pytest.fixture
-def lsp_codeeditor(lsp_manager, qtbot_module, request):
+def lsp_codeeditor(qtbot_module, request):
     """CodeEditor instance with LSP services activated."""
     # Create a CodeEditor instance
-    editor = CodeEditor(parent=None)
-    editor.setup_editor(language='Python',
-                        tab_mode=False,
-                        markers=True,
-                        close_quotes=True,
-                        close_parentheses=True,
-                        color_scheme='spyder/dark',
-                        font=QFont("Monospace", 10))
-    editor.resize(640, 480)
+    # Activate pycodestyle and pydocstyle
+    CONF.set('lsp-server', 'pycodestyle', True)
+    CONF.set('lsp-server', 'pydocstyle', True)
+    CONF.set('lsp-server', 'stdio', False)
+
+    # Create the manager
+    os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
+
+    main = MainWindowMock()
+    completions = CompletionPlugin(main, ['lsp'])
+    editor = codeeditor_factory()
     qtbot_module.addWidget(editor)
     editor.show()
 
     # Redirect editor LSP requests to lsp_manager
-    editor.sig_perform_lsp_request.connect(lsp_manager.send_request)
+    editor.sig_perform_completion_request.connect(completions.send_request)
 
     editor.filename = 'test.py'
     editor.language = 'Python'
-    lsp_manager.register_file('python', 'test.py', editor)
-    server_settings = lsp_manager.main.editor.lsp_editor_settings['python']
-    editor.start_lsp_services(server_settings)
+    completions.register_file('python', 'test.py', editor)
+    server_settings = main.editor.lsp_editor_settings['python']
+    editor.start_completion_services()
+    editor.update_completion_configuration(server_settings)
 
     with qtbot_module.waitSignal(editor.lsp_response_signal, timeout=30000):
         editor.document_did_open()
 
     def teardown():
+        completions.shutdown()
+        os.environ['SPY_TEST_USE_INTROSPECTION'] = 'False'
+        CONF.set('lsp-server', 'pycodestyle', False)
+        CONF.set('lsp-server', 'pydocstyle', False)
+
         editor.hide()
         editor.completion_widget.hide()
 
     request.addfinalizer(teardown)
-    return editor, lsp_manager
+    return editor, completions
