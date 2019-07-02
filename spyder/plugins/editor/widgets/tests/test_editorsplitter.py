@@ -47,28 +47,30 @@ def editor_splitter_bot(qtbot):
 
 
 @pytest.fixture
-def editor_splitter_lsp(qtbot_module, lsp_manager, request):
+def editor_splitter_lsp(qtbot_module, lsp_codeeditor, request):
     text = """
     import sys
     """
+    _, completions = lsp_codeeditor
 
     def report_file_open(options):
         filename = options['filename']
         language = options['language']
         callback = options['codeeditor']
-        lsp_manager.register_file(
+        completions.register_file(
             language.lower(), filename, callback)
-        settings = lsp_manager.main.editor.lsp_editor_settings['python']
-        callback.start_lsp_services(settings)
+        settings = completions.main.editor.lsp_editor_settings['python']
+        callback.start_completion_services()
+        callback.update_completion_configuration(settings)
 
         with qtbot_module.waitSignal(
                 callback.lsp_response_signal, timeout=30000):
             callback.document_did_open()
 
     def register_editorstack(editorstack):
-        editorstack.perform_lsp_request.connect(lsp_manager.send_request)
+        editorstack.perform_lsp_request.connect(completions.send_request)
         editorstack.sig_open_file.connect(report_file_open)
-        settings = lsp_manager.main.editor.lsp_editor_settings['python']
+        settings = completions.main.editor.lsp_editor_settings['python']
         editorstack.notify_server_ready('python', settings)
 
     def clone(editorstack, template=None):
@@ -97,7 +99,7 @@ def editor_splitter_lsp(qtbot_module, lsp_manager, request):
         editorsplitter.close()
 
     request.addfinalizer(teardown)
-    return editorsplitter, lsp_manager
+    return editorsplitter, completions.lsp
 
 
 @pytest.fixture
