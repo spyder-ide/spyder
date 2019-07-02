@@ -18,7 +18,7 @@ def request(req=None, method=None, requires_response=True):
     @functools.wraps(req)
     def wrapper(self, *args, **kwargs):
         params = req(self, *args, **kwargs)
-        if params is not None and self.lsp_ready:
+        if params is not None and self.completions_available:
             self.emit_request(method, params, requires_response)
     return wrapper
 

@@ -21,11 +21,10 @@ from qtpy.QtGui import QFont
 # Local imports
 from spyder.plugins.editor.tests.conftest import (
     editor_plugin, editor_plugin_open_files, python_files)
-from spyder.plugins.fallback.tests.conftest import fallback
-from spyder.plugins.languageserver.tests.conftest import (
-    lsp_manager, qtbot_module)
+from spyder.plugins.languageserver.tests.conftest import qtbot_module
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editor import EditorStack
+from spyder.plugins.completion.plugin import CompletionPlugin
 from spyder.plugins.explorer.widgets.tests.conftest import create_folders_files
 from spyder.widgets.findreplace import FindReplace
 
@@ -66,8 +65,8 @@ def setup_editor(qtbot):
 def fallback_codeeditor(fallback, qtbot_module, request):
     """CodeEditor instance with Fallback enabled."""
 
-    def send_fallback_request(request):
-        fallback.sig_mailbox.emit(request)
+    completions = CompletionPlugin(None, ['fallback'])
+    qtbot_module.addWidget(completions)
 
     # Create a CodeEditor instance
     editor = codeeditor_factory()
@@ -75,10 +74,10 @@ def fallback_codeeditor(fallback, qtbot_module, request):
     editor.show()
 
     # Redirect editor fallback requests to FallbackActor
-    editor.sig_perform_fallback_request.connect(send_fallback_request)
+    editor.sig_perform_fallback_request.connect(completions.send_request)
     editor.filename = 'test.py'
     editor.language = 'Python'
-    editor.start_fallback()
+    editor.completions_available = True
     qtbot_module.wait(2000)
 
     def teardown():

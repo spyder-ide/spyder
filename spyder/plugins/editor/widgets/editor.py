@@ -444,7 +444,7 @@ class EditorStack(QWidget):
     sig_prev_warning = Signal()
     sig_next_warning = Signal()
     sig_go_to_definition = Signal(str, int, int)
-    perform_lsp_request = Signal(str, str, dict)
+    perform_completion_request = Signal(str, str, dict)
     sig_option_changed = Signal(str, object)  # config option needs changing
     sig_save_bookmark = Signal(int)
     sig_load_bookmark = Signal(int)
@@ -1548,25 +1548,26 @@ class EditorStack(QWidget):
                 self.tabs.widget(index).language.lower())
         return set(languages)
 
-    def notify_server_ready(self, language, config):
+    def completion_server_ready(self, language):
         """Notify language server availability to code editors."""
         for index in range(self.get_stack_count()):
             editor = self.tabs.widget(index)
             if editor.language.lower() == language:
-                editor.start_lsp_services(config)
+                editor.start_completion_services()
+
+    def update_server_configuration(self, language, config):
+        """Update language server settings across all editors."""
+        for index in range(self.get_stack_count()):
+            editor = self.tabs.widget(index)
+            if editor.language.lower() == language:
+                editor.update_completion_configuration(config)
 
     def notify_server_down(self, language):
         """Notify language server unavailability to code editors."""
         for index in range(self.get_stack_count()):
             editor = self.tabs.widget(index)
             if editor.language.lower() == language:
-                editor.stop_lsp_services()
-
-    def notify_fallback_ready(self):
-        """Notify fallback availability to code editors."""
-        for index in range(self.get_stack_count()):
-            editor = self.tabs.widget(index)
-            editor.start_fallback()
+                editor.stop_completion_services()
 
     def close_all_files(self):
         """Close all opened scripts"""
@@ -2005,7 +2006,7 @@ class EditorStack(QWidget):
 #            btn.setEnabled(count > 1)
 
         editor = self.get_current_editor()
-        if editor.lsp_ready and not editor.document_opened:
+        if editor.completions_available and not editor.document_opened:
             editor.document_did_open()
         if index != -1:
             editor.setFocus()
@@ -2357,8 +2358,8 @@ class EditorStack(QWidget):
         editor.sig_cursor_position_changed.connect(
                                            self.editor_cursor_position_changed)
         editor.textChanged.connect(self.start_stop_analysis_timer)
-        editor.sig_perform_lsp_request.connect(
-            lambda lang, method, params: self.perform_lsp_request.emit(
+        editor.sig_perform_completion_request.connect(
+            lambda lang, method, params: self.perform_completion_request.emit(
                 lang, method, params))
         editor.modificationChanged.connect(
             lambda state: self.modification_changed(state,

@@ -31,7 +31,7 @@ class EditorMock(QObject):
         self.lsp_editor_settings = {}
 
     @Slot(dict, str)
-    def register_lsp_server_settings(self, settings, language):
+    def register_completion_server_settings(self, settings, language):
         self.lsp_editor_settings[language] = settings
         self.sig_lsp_initialized.emit()
 

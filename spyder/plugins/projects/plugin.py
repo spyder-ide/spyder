@@ -69,7 +69,7 @@ class Projects(SpyderPluginWidget):
         self.current_active_project = None
         self.latest_project = None
         self.watcher = WorkspaceWatcher(self)
-        self.lsp_ready = False
+        self.completions_available = False
         self.explorer.setup_project(self.get_active_project_path())
         self.watcher.connect_signals(self)
 
@@ -517,14 +517,14 @@ class Projects(SpyderPluginWidget):
 
     def register_lsp_server_settings(self, settings):
         """Enable LSP workspace functions."""
-        self.lsp_ready = True
+        self.completions_available = True
         if self.current_active_project:
             path = self.get_active_project_path()
             self.notify_project_open(path)
 
     def stop_lsp_services(self):
         """Disable LSP workspace functions."""
-        self.lsp_ready = False
+        self.completions_available = False
 
     def emit_request(self, method, params, requires_response):
         """Send request/notification/response to all LSP servers."""

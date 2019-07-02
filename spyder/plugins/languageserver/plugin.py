@@ -181,7 +181,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         if self.main:
             if self.main.editor:
                 instance.sig_initialize.connect(
-                    self.main.editor.register_lsp_server_settings)
+                    self.main.editor.register_completion_server_settings)
             if self.main.console:
                 instance.sig_server_error.connect(self.report_server_error)
             if self.main.projects:

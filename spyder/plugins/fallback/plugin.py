@@ -36,6 +36,9 @@ class FallbackPlugin(SpyderCompletionPlugin):
         self.started = False
         self.requests = {}
 
+    def start_client(self, language):
+        return self.started
+
     def start(self):
         if not self.started:
             self.fallback_actor.start()

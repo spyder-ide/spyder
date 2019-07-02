@@ -272,7 +272,7 @@ class CodeEditor(TextEditBaseWidget):
 
     # -- LSP signals
     #: Signal emitted when an LSP request is sent to the LSP manager
-    sig_perform_lsp_request = Signal(str, str, dict)
+    sig_perform_completion_request = Signal(str, str, dict)
 
     #: Signal emitted when a response is received from an LSP server
     # For now it's only used on tests, but it could be used to track
@@ -500,7 +500,7 @@ class CodeEditor(TextEditBaseWidget):
         self.lsp_requests = {}
         self.document_opened = False
         self.filename = None
-        self.lsp_ready = False
+        self.completions_available = False
         self.text_version = 0
         self.save_include_text = True
         self.open_close_notifications = True
@@ -836,7 +836,7 @@ class CodeEditor(TextEditBaseWidget):
         """Send request to LSP manager."""
         params['requires_response'] = requires_response
         params['response_instance'] = self
-        self.sig_perform_lsp_request.emit(
+        self.sig_perform_completion_request.emit(
             self.language.lower(), method, params)
 
     def log_lsp_handle_errors(self, message):
@@ -861,17 +861,20 @@ class CodeEditor(TextEditBaseWidget):
                 logger.error('%', 1, stack_info=True)
 
     # ------------- LSP: Configuration and protocol start/end ----------------
-    def start_lsp_services(self, config):
+
+    def start_completion_services(self):
+        self.completions_available = True
+        self.document_did_open()
+
+    def update_completion_configuration(self, config):
         """Start LSP integration if it wasn't done before."""
-        if not self.lsp_ready:
-            logger.debug("LSP available for: %s" % self.filename)
-            self.parse_lsp_config(config)
-            self.lsp_ready = True
-            self.document_did_open()
+        logger.debug("LSP available for: %s" % self.filename)
+        self.parse_lsp_config(config)
+        self.document_did_open()
 
     def stop_lsp_services(self):
         logger.debug('Stopping LSP services for %s' % self.filename)
-        self.lsp_ready = False
+        self.completions_available = False
         self.document_opened = False
 
     def parse_lsp_config(self, config):
@@ -1123,7 +1126,7 @@ class CodeEditor(TextEditBaseWidget):
              requires_response=False)
     def notify_close(self):
         """Send close request."""
-        if self.lsp_ready:
+        if self.completions_available:
             params = {
                 'file': self.filename,
                 'codeeditor': self

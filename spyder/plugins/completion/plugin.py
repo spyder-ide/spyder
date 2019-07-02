@@ -45,6 +45,7 @@ class CompletionPlugin(SpyderCompletionPlugin):
         SpyderCompletionPlugin.__init__(self, parent)
         self.clients = {}
         self.requests = {}
+        self.language_status = {}
         self.started = False
         self.first_completion = False
         self.req_id = 0
@@ -73,6 +74,9 @@ class CompletionPlugin(SpyderCompletionPlugin):
         }
         plugin.sig_response_ready.connect(self.recieve_response)
         plugin.sig_plugin_ready.connect(self.client_available)
+        for language in self.language_status:
+            server_status = self.language_status[language]
+            server_status[plugin_name]: False
 
     @Slot(str, int, dict)
     def recieve_response(self, completion_source, req_id, resp):
@@ -80,23 +84,34 @@ class CompletionPlugin(SpyderCompletionPlugin):
                      "from {1}".format(req_id, completion_source))
         request_responses = self.requests[req_id]
         req_type = request_responses['req_type']
+        language = request_responses['language']
         request_responses['sources'][completion_source] = resp
         corresponding_source = self.plugin_priority.get(req_type, 'lsp')
+        is_src_ready = self.language_status[language][corresponding_source]
         if corresponding_source == completion_source:
             response_instance = request_responses['response_instance']
-            self.gather_and_send(response_instance, req_type, req_id)
+            self.gather_and_send(
+                completion_source, response_instance, req_type, req_id)
+        else:
+            # Preferred completion source is not available
+            # Requests are handled in a first come, first served basis
+            if not is_src_ready:
+                response_instance = request_responses['response_instance']
+                self.gather_and_send(
+                    completion_source, response_instance, req_type, req_id)
 
     @Slot(str)
     def client_available(self, client_name):
         client_info = self.clients[client_name]
         client_info['status'] = self.RUNNING
 
-    def gather_and_send(self, response_instance, req_type, req_id):
+    def gather_and_send(
+            self, principal_source, response_instance, req_type, req_id):
         logger.debug('Gather responses for {0}'.format(req_type))
         responses = []
         req_id_responses = self.requests[req_id]['sources']
         if req_type == LSPRequestTypes.DOCUMENT_COMPLETION:
-            principal_source = self.plugin_priority[req_type]
+            # principal_source = self.plugin_priority[req_type]
             responses = req_id_responses[principal_source]['params']
             available_completions = {x['insertText'] for x in responses}
             priority_level = 1
@@ -177,10 +192,14 @@ class CompletionPlugin(SpyderCompletionPlugin):
 
     def start_client(self, language):
         started = False
+        language_clients = self.language_status.get(language, {})
         for client_name in self.clients:
             client_info = self.clients[client_name]
             if client_info['status'] == self.RUNNING:
-                started |= client_info['plugin'].start_client(language)
+                client_started = client_info['plugin'].start_client(language)
+                started |= client_started
+                language_clients[client_name] = client_started
+        self.language_status[language] = language_clients
         return started
 
     def stop_client(self, language):
@@ -188,6 +207,7 @@ class CompletionPlugin(SpyderCompletionPlugin):
             client_info = self.clients[client_name]
             if client_info['status'] == self.RUNNING:
                 client_info['plugin'].stop_client(language)
+        self.language_status.pop(language)
 
     def __getattr__(self, name):
         if name in self.clients:
