@@ -6,25 +6,34 @@
 
 import pytest
 
-from spyder.plugins.editor.fallback.actor import FallbackActor
+from qtpy.QtCore import QObject, Signal
+
+from spyder.plugins.fallback.plugin import FallbackPlugin
 from spyder.plugins.languageserver.tests.conftest import qtbot_module
 
 
-@pytest.fixture(scope='module')
-def fallback(qtbot_module, request):
-    fallback = FallbackActor(None)
-    qtbot_module.addWidget(fallback)
+class CompletionPluginMock(QObject):
+    sig_recv_tokens = Signal(list)
 
-    with qtbot_module.waitSignal(fallback.sig_fallback_ready, timeout=30000):
+    def handle_response(self, client, req_id, response):
+        tokens = list(response['params'])
+        self.sig_recv_tokens.emit(list(tokens))
+
+
+@pytest.fixture(scope='module')
+def fallback_completions(qtbot_module, request):
+    fallback = FallbackPlugin(None)
+    completions = CompletionPluginMock(None)
+    qtbot_module.addWidget(fallback)
+    qtbot_module.addWidget(completions)
+
+    with qtbot_module.waitSignal(fallback.sig_plugin_ready, timeout=30000):
         fallback.start()
 
     def teardown():
-        fallback.stop()
+        fallback.shutdown()
 
     request.addfinalizer(teardown)
 
-    def call_editor(editor, tokens):
-        editor.receive_text_tokens(tokens)
-
-    fallback.sig_set_tokens.connect(call_editor)
-    return fallback
+    fallback.sig_response_ready.connect(completions.handle_response)
+    return fallback, completions

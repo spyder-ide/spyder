@@ -324,10 +324,6 @@ class Editor(SpyderPluginWidget):
         logger.debug("LSP request: %r" % request)
         self.main.completions.send_request(language, request, params)
 
-    def send_fallback_request(self, msg):
-        """Send request to fallback engine."""
-        pass
-
     def fallback_ready(self):
         """Notify all stackeditors about fallback availability."""
         logger.debug('Fallback is available')
@@ -1273,8 +1269,6 @@ class Editor(SpyderPluginWidget):
             lambda fname, line, col: self.load(
                 fname, line, start_column=col))
         editorstack.perform_lsp_request.connect(self.send_lsp_request)
-        editorstack.sig_perform_fallback_request.connect(
-            self.send_fallback_request)
         editorstack.todo_results_changed.connect(self.todo_results_changed)
         editorstack.update_code_analysis_actions.connect(
             self.update_code_analysis_actions)

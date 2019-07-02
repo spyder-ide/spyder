@@ -878,8 +878,8 @@ class MainWindow(QMainWindow):
                                     "Please don't use it to run your code\n\n"))
         self.console.register_plugin()
 
-        # Language Server Protocol Client initialization
-        self.set_splash(_("Starting Completion plugin..."))
+        # Code completion client initialization
+        self.set_splash(_("Starting code completion plugin..."))
         from spyder.plugins.completion.plugin import CompletionPlugin
         self.completions = CompletionPlugin(self)
 
@@ -910,8 +910,8 @@ class MainWindow(QMainWindow):
         self.editor = Editor(self)
         self.editor.register_plugin()
 
-        # Start LSP client
-        self.set_splash(_("Launching LSP Client for Python..."))
+        # Start code completion client
+        self.set_splash(_("Launching code completion client for Python..."))
         self.completions.start()
         self.completions.start_client(language='python')
 

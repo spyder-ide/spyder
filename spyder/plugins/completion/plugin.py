@@ -16,7 +16,7 @@ import os.path as osp
 import functools
 
 # Third-party imports
-from qtpy.QtCore import QObject, Slot, QTimer
+from qtpy.QtCore import QObject, Slot
 
 # Local imports
 from spyder.config.base import get_conf_path, running_under_pytest
@@ -36,8 +36,12 @@ logger = logging.getLogger(__name__)
 class CompletionPlugin(SpyderCompletionPlugin):
     STOPPED = 'stopped'
     RUNNING = 'running'
+    BASE_PLUGINS = {
+        'lsp': LanguageServerPlugin,
+        'fallback': FallbackPlugin
+    }
 
-    def __init__(self, parent):
+    def __init__(self, parent, plugins=['lsp', 'fallback']):
         SpyderCompletionPlugin.__init__(self, parent)
         self.clients = {}
         self.requests = {}
@@ -53,10 +57,11 @@ class CompletionPlugin(SpyderCompletionPlugin):
             'all': 'lsp'
         }
 
-        lsp_client = LanguageServerPlugin(self.main)
-        fallback = FallbackPlugin(self.main)
-        self.register_completion_plugin(lsp_client)
-        self.register_completion_plugin(fallback)
+        for plugin in plugins:
+            if plugin in self.BASE_PLUGINS:
+                Plugin = self.BASE_PLUGINS[plugin]
+                plugin_client = Plugin(self.main)
+                self.register_completion_plugin(plugin_client)
 
     def register_completion_plugin(self, plugin):
         logger.debug("Completion plugin: Registering {0}".format(
