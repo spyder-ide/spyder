@@ -713,8 +713,9 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
                     run_program(program['cmd'], arglist)
                 return
     elif sys.platform == 'darwin':
-        f = tempfile.NamedTemporaryFile('wt', suffix='.sh',
-                                        dir=get_temp_dir(), delete=False)
+        f = tempfile.NamedTemporaryFile('wt', prefix='run_spyder_',
+                                        suffix='.sh', dir=get_temp_dir(),
+                                        delete=False)
         f.write(' '.join(p_args))
         f.close()
         os.chmod(f.name, 0o777)
