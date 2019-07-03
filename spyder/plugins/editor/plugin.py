@@ -290,10 +290,9 @@ class Editor(SpyderPluginWidget):
             language.lower(), filename, codeeditor)
         if stat:
             logger.debug('{0} completion server is ready'.format(language))
-            self.completion_server_ready(language.lower())
+            codeeditor.start_completion_services()
             if language.lower() in self.completion_editor_settings:
-                self.completion_server_settings_ready(
-                    language,
+                codeeditor.update_completion_configuration(
                     self.completion_editor_settings[language.lower()])
         else:
             if codeeditor.language == language.lower():
