@@ -76,7 +76,7 @@ class CompletionPlugin(SpyderCompletionPlugin):
         plugin.sig_plugin_ready.connect(self.client_available)
         for language in self.language_status:
             server_status = self.language_status[language]
-            server_status[plugin_name]: False
+            server_status[plugin_name] = False
 
     @Slot(str, int, dict)
     def recieve_response(self, completion_source, req_id, resp):

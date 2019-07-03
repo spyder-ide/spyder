@@ -47,11 +47,11 @@ def editor_splitter_bot(qtbot):
 
 
 @pytest.fixture
-def editor_splitter_lsp(qtbot_module, lsp_codeeditor, request):
+def editor_splitter_lsp(qtbot_module, lsp_plugin, request):
     text = """
     import sys
     """
-    _, completions = lsp_codeeditor
+    completions = lsp_plugin
 
     def report_file_open(options):
         filename = options['filename']
@@ -68,10 +68,11 @@ def editor_splitter_lsp(qtbot_module, lsp_codeeditor, request):
             callback.document_did_open()
 
     def register_editorstack(editorstack):
-        editorstack.perform_lsp_request.connect(completions.send_request)
+        editorstack.perform_completion_request.connect(
+            completions.send_request)
         editorstack.sig_open_file.connect(report_file_open)
         settings = completions.main.editor.lsp_editor_settings['python']
-        editorstack.notify_server_ready('python', settings)
+        editorstack.update_server_configuration('python', settings)
 
     def clone(editorstack, template=None):
         # editorstack.clone_from(template)

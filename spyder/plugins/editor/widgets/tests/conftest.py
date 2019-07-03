@@ -69,6 +69,7 @@ def fallback_codeeditor(fallback, qtbot_module, request):
     """CodeEditor instance with Fallback enabled."""
 
     completions = CompletionPlugin(None, ['fallback'])
+    completions.start()
     qtbot_module.addWidget(completions)
 
     # Create a CodeEditor instance
@@ -84,6 +85,7 @@ def fallback_codeeditor(fallback, qtbot_module, request):
     qtbot_module.wait(2000)
 
     def teardown():
+        completions.shutdown()
         editor.hide()
         editor.completion_widget.hide()
 
@@ -92,9 +94,7 @@ def fallback_codeeditor(fallback, qtbot_module, request):
 
 
 @pytest.fixture
-def lsp_codeeditor(qtbot_module, request):
-    """CodeEditor instance with LSP services activated."""
-    # Create a CodeEditor instance
+def lsp_plugin(qtbot_module, request):
     # Activate pycodestyle and pydocstyle
     CONF.set('lsp-server', 'pycodestyle', True)
     CONF.set('lsp-server', 'pydocstyle', True)
@@ -105,26 +105,10 @@ def lsp_codeeditor(qtbot_module, request):
 
     main = MainWindowMock()
     completions = CompletionPlugin(main, ['lsp'])
+    completions.start()
     with qtbot_module.waitSignal(
             main.editor.sig_lsp_initialized, timeout=30000):
         completions.start_client('python')
-
-    editor = codeeditor_factory()
-    qtbot_module.addWidget(editor)
-    editor.show()
-
-    # Redirect editor LSP requests to lsp_manager
-    editor.sig_perform_completion_request.connect(completions.send_request)
-
-    editor.filename = 'test.py'
-    editor.language = 'Python'
-    completions.register_file('python', 'test.py', editor)
-    server_settings = main.editor.lsp_editor_settings['python']
-    editor.start_completion_services()
-    editor.update_completion_configuration(server_settings)
-
-    with qtbot_module.waitSignal(editor.lsp_response_signal, timeout=30000):
-        editor.document_did_open()
 
     def teardown():
         completions.shutdown()
@@ -132,8 +116,34 @@ def lsp_codeeditor(qtbot_module, request):
         CONF.set('lsp-server', 'pycodestyle', False)
         CONF.set('lsp-server', 'pydocstyle', False)
 
+    request.addfinalizer(teardown)
+    return completions
+
+
+@pytest.fixture
+def lsp_codeeditor(lsp_plugin, qtbot_module, request):
+    """CodeEditor instance with LSP services activated."""
+    # Create a CodeEditor instance
+    editor = codeeditor_factory()
+    qtbot_module.addWidget(editor)
+    editor.show()
+
+    # Redirect editor LSP requests to lsp_manager
+    editor.sig_perform_completion_request.connect(lsp_plugin.send_request)
+
+    editor.filename = 'test.py'
+    editor.language = 'Python'
+    lsp_plugin.register_file('python', 'test.py', editor)
+    server_settings = lsp_plugin.main.editor.lsp_editor_settings['python']
+    editor.start_completion_services()
+    editor.update_completion_configuration(server_settings)
+
+    with qtbot_module.waitSignal(editor.lsp_response_signal, timeout=30000):
+        editor.document_did_open()
+
+    def teardown():
         editor.hide()
         editor.completion_widget.hide()
 
     request.addfinalizer(teardown)
-    return editor, completions
+    return editor, lsp_plugin
