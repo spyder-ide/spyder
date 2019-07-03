@@ -612,10 +612,10 @@ class CollectionsDelegate(QItemDelegate):
                 return editor
         # ObjectExplorer for an arbitrary Python object
         else:
-            show_callable_attributes = (source_index.model()
-                .show_callable_attributes)
-            show_special_attributes = (source_index.model()
-                .show_special_attributes)
+            show_callable_attributes = (
+                source_index.model().show_callable_attributes)
+            show_special_attributes = (
+                source_index.model().show_special_attributes)
 
             if show_callable_attributes is None:
                 show_callable_attributes = False
