@@ -87,7 +87,8 @@ class CompletionPlugin(SpyderCompletionPlugin):
         language = request_responses['language']
         request_responses['sources'][completion_source] = resp
         corresponding_source = self.plugin_priority.get(req_type, 'lsp')
-        is_src_ready = self.language_status[language][corresponding_source]
+        is_src_ready = self.language_status[language].get(
+            corresponding_source, False)
         if corresponding_source == completion_source:
             response_instance = request_responses['response_instance']
             self.gather_and_send(
