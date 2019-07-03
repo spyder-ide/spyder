@@ -146,4 +146,4 @@ def lsp_codeeditor(lsp_plugin, qtbot_module, request):
         editor.completion_widget.hide()
 
     request.addfinalizer(teardown)
-    return editor, lsp_plugin
+    return editor, lsp_plugin.lsp
