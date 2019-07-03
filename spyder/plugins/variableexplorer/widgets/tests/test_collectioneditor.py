@@ -100,9 +100,9 @@ def test_collectionsmodel_with_two_ints():
     assert cm.rowCount() == 2
     assert cm.columnCount() == 5
     # dict is unordered, so first row might be x or y
-    assert data(cm, 0, 0) in {'<p style="color:white">x</p>',
-                              '<p style="color:white">y</p>'}
-    if data(cm, 0, 0) == '<p style="color:white">x</p>':
+    assert data(cm, 0, 0) in {'x',
+                              'y'}
+    if data(cm, 0, 0) == 'x':
         row_with_x = 0
         row_with_y = 1
     else:
@@ -111,7 +111,7 @@ def test_collectionsmodel_with_two_ints():
     assert data(cm, row_with_x, 1) == 'int'
     assert data(cm, row_with_x, 2) == '1'
     assert data(cm, row_with_x, 3) == '1'
-    assert data(cm, row_with_y, 0) == '<p style="color:white">y</p>'
+    assert data(cm, row_with_y, 0) == 'y'
     assert data(cm, row_with_y, 1) == 'int'
     assert data(cm, row_with_y, 2) == '1'
     assert data(cm, row_with_y, 3) == '2'
@@ -121,7 +121,7 @@ def test_collectionsmodel_with_index():
     for rng_name, rng in generate_pandas_indexes().items():
         coll = {'rng': rng}
         cm = CollectionsModel(None, coll)
-        assert data(cm, 0, 0) == '<p style="color:white">rng</p>'
+        assert data(cm, 0, 0) == 'rng'
         assert data(cm, 0, 1) == rng_name
         assert data(cm, 0, 2) == '(20,)' or data(cm, 0, 2) == '(20L,)'
     try:
@@ -149,16 +149,12 @@ def test_sort_collectionsmodel():
     assert cm.rowCount() == 3
     assert cm.columnCount() == 5
     cm.sort(0)  # sort by index
-    assert data_table(cm, 3, 4) == [['<p style="color:white">0</p>',
-                                     '<p style="color:white">1</p>',
-                                     '<p style="color:white">2</p>'],
+    assert data_table(cm, 3, 4) == [['0', '1', '2'],
                                     ['int', 'int', 'int'],
                                     ['1', '1', '1'],
                                     ['1', '3', '2']]
     cm.sort(3)  # sort by value
-    assert data_table(cm, 3, 4) == [['<p style="color:white">0</p>',
-                                     '<p style="color:white">2</p>',
-                                     '<p style="color:white">1</p>'],
+    assert data_table(cm, 3, 4) == [['0', '2', '1'],
                                     ['int', 'int', 'int'],
                                     ['1', '1', '1'],
                                     ['1', '2', '3']]
@@ -167,14 +163,12 @@ def test_sort_collectionsmodel():
     assert cm.rowCount() == 2
     assert cm.columnCount() == 5
     cm.sort(1)  # sort by type
-    assert data_table(cm, 2, 4) == [['<p style="color:white">1</p>',
-                                     '<p style="color:white">0</p>'],
+    assert data_table(cm, 2, 4) == [['1', '0'],
                                     ['int', 'list'],
                                     ['1', '2'],
                                     ['3', '[1, 2]']]
     cm.sort(2)  # sort by size
-    assert data_table(cm, 2, 4) == [['<p style="color:white">1</p>',
-                                     '<p style="color:white">0</p>'],
+    assert data_table(cm, 2, 4) == [['1', '0'],
                                     ['int', 'list'],
                                     ['1', '2'],
                                     ['3', '[1, 2]']]
