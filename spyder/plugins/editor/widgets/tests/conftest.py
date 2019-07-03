@@ -70,6 +70,7 @@ def fallback_codeeditor(qtbot_module, request):
 
     completions = CompletionPlugin(None, ['fallback'])
     completions.start()
+    completions.start_client('python')
     qtbot_module.addWidget(completions)
 
     # Create a CodeEditor instance

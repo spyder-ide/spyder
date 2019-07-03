@@ -1114,7 +1114,7 @@ class Editor(SpyderPluginWidget):
                 CONF.set('lsp-server', 'pycodestyle', checked)
             elif conf_name == 'pydocstyle':
                 CONF.set('lsp-server', 'pydocstyle', checked)
-            self.main.completions.update_server_list()
+            self.main.completions.lsp.update_server_list()
 
     #------ Focus tabwidget
     def __get_focus_editorstack(self):
