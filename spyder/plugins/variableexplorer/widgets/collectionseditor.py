@@ -612,15 +612,16 @@ class CollectionsDelegate(QItemDelegate):
                 return editor
         # ObjectExplorer for an arbitrary Python object
         else:
-            show_callable_attributes = index.model().show_callable_attributes
-            show_special_attributes = index.model().show_special_attributes
+            show_callable_attributes = (source_index.model()
+                .show_callable_attributes)
+            show_special_attributes = (source_index.model()
+                .show_special_attributes)
 
             if show_callable_attributes is None:
                 show_callable_attributes = False
             if show_special_attributes is None:
                 show_special_attributes = False
 
-            key = index.model().keys[index.row()]
             editor = ObjectExplorer(
                 value,
                 name=key,
@@ -628,7 +629,7 @@ class CollectionsDelegate(QItemDelegate):
                 show_callable_attributes=show_callable_attributes,
                 show_special_attributes=show_special_attributes)
             editor.sig_option_changed.connect(self.change_option)
-            self.create_dialog(editor, dict(model=index.model(),
+            self.create_dialog(editor, dict(model=source_index.model(),
                                             editor=editor,
                                             key=key, readonly=readonly))
             return None
