@@ -65,7 +65,7 @@ def setup_editor(qtbot):
 
 
 @pytest.fixture
-def fallback_codeeditor(fallback, qtbot_module, request):
+def fallback_codeeditor(qtbot_module, request):
     """CodeEditor instance with Fallback enabled."""
 
     completions = CompletionPlugin(None, ['fallback'])
@@ -90,7 +90,7 @@ def fallback_codeeditor(fallback, qtbot_module, request):
         editor.completion_widget.hide()
 
     request.addfinalizer(teardown)
-    return editor, fallback
+    return editor, completions.fallback
 
 
 @pytest.fixture
