@@ -493,6 +493,8 @@ class EditorStack(QWidget):
                                        symbolfinder_action,
                                        copy_to_cb_action, None, close_right,
                                        close_all_but_this]
+        # Split_actions are not included by default in menu actions
+        self.split_actions = None
         self.outlineexplorer = None
         self.help = None
         self.unregister_callback = None
@@ -578,6 +580,13 @@ class EditorStack(QWidget):
 
         # Autusave component
         self.autosave = AutosaveForStack(self)
+
+    def verify_menu_actions(self, state):
+        """Check OS to hide icons in menu toolbars"""
+        if self.menu_actions:
+            for action in self.menu_actions + self.split_actions:
+                if isinstance(action, QAction):
+                    action.setIconVisibleInMenu(state)
 
     @Slot()
     def show_in_external_file_explorer(self, fnames=None):
@@ -776,6 +785,11 @@ class EditorStack(QWidget):
             layout.addWidget(tab_container)
         else:
             layout.addWidget(self.tabs)
+
+        # Show icons in Mac plugin menus
+        if sys.platform == 'darwin':
+            self.menu.aboutToHide.connect(
+                lambda: self.verify_menu_actions(False))
 
     @Slot()
     def update_fname_label(self):
@@ -1313,6 +1327,9 @@ class EditorStack(QWidget):
             self.setFocus() # --> Editor.__get_focus_editortabwidget
         add_actions(self.menu, list(actions) + self.__get_split_actions())
         self.close_action.setEnabled(self.is_closable)
+        if sys.platform == 'darwin':
+            self.verify_menu_actions(True)
+
 
 
     #------ Hor/Ver splitting
@@ -1367,6 +1384,8 @@ class EditorStack(QWidget):
             else:
                 actions += [MENU_SEPARATOR, self.new_window_action,
                             plugin.undock_action, plugin.close_plugin_action]
+
+        self.split_actions = actions
 
         return actions
 
@@ -2609,6 +2628,10 @@ class EditorSplitter(QSplitter):
                         Defaults to plugin.unregister_editorstack() to
                         unregister the EditorStack with the Editor plugin.
         """
+        for action in menu_actions:
+            if isinstance(action, QAction):
+                print(action.text())
+
         QSplitter.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setChildrenCollapsible(False)

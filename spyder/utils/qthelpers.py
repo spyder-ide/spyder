@@ -435,6 +435,7 @@ class SpyderAction(QAction):
         """Spyder QAction class wrapper to handle cross platform patches."""
         super(SpyderAction, self).__init__(*args, **kwargs)
         self._action_no_icon = self
+        self.setIconVisibleInMenu(False)
 
     def __getattribute__(self, name):
         """Intercept method calls and apply to both actions, except signals."""
