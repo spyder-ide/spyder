@@ -202,7 +202,9 @@ class ConfigDialog(QDialog):
             widget = self.pages_widget.currentWidget()
         else:
             widget = self.pages_widget.widget(index)
-        return widget.widget()
+
+        if widget:
+            return widget.widget()
 
     @Slot()
     def accept(self):
