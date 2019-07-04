@@ -919,7 +919,7 @@ class BaseTableView(QTableView):
         self.isActiveWindow()
 
     def set_regex(self, regex=None, reset=False):
-        """Update the regex text for the shortcut finder."""
+        """Update the regex text for the variable finder."""
         if reset:
             text = ''
         else:

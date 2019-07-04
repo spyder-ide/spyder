@@ -33,6 +33,8 @@ from qtpy.QtWidgets import QWidget
 from spyder.plugins.variableexplorer.widgets.collectionseditor import (
     CollectionsEditorTableView, CollectionsModel, CollectionsEditor,
     LARGE_NROWS, ROWS_TO_LOAD)
+from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
+    NamespacesBrowserFinder)
 from spyder.plugins.variableexplorer.widgets.tests.test_dataframeeditor import \
     generate_pandas_indexes
 
@@ -70,6 +72,34 @@ def nonsettable_objects_data():
 # =============================================================================
 # Tests
 # ============================================================================
+def test_filter_rows(qtbot):
+    """Test rows filtering."""
+
+    df = pandas.DataFrame(['foo', 'bar'])
+    editor = CollectionsEditorTableView(None, {'dfa': df, 'dfb': df})
+    editor.finder = NamespacesBrowserFinder(editor,
+                                            editor.set_regex)
+    qtbot.addWidget(editor)
+
+    # Initially two rows
+    assert editor.model().rowCount() == 2
+
+    # Match two rows by name
+    editor.finder.setText("df")
+    assert editor.model().rowCount() == 2
+
+    # Match two rows by type
+    editor.finder.setText("DataFrame")
+    assert editor.model().rowCount() == 2
+
+    # Only one match
+    editor.finder.setText("dfb")
+    assert editor.model().rowCount() == 1
+
+    # No match
+    editor.finder.setText("dfbc")
+    assert editor.model().rowCount() == 0
+
 def test_create_dataframeeditor_with_correct_format(qtbot, monkeypatch):
     MockDataFrameEditor = Mock()
     mockDataFrameEditor_instance = MockDataFrameEditor()
