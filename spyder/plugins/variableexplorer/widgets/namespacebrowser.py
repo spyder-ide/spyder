@@ -77,6 +77,7 @@ class NamespaceBrowser(QWidget):
         self.exclude_uppercase_action = None
         self.exclude_capitalized_action = None
         self.exclude_unsupported_action = None
+        self.finder = None
         self.options_button = options_button
         self.actions = None
         self.plugin_actions = plugin_actions
@@ -157,7 +158,11 @@ class NamespaceBrowser(QWidget):
         self.editor.finder = text_finder
         finder_layout.addWidget(label_finder)
         finder_layout.addWidget(text_finder)
-        layout.addLayout(finder_layout)
+        self.finder = QWidget(self)
+        self.finder.setLayout(finder_layout)
+        self.finder.setVisible(False)
+
+        layout.addWidget(self.finder)
 
         self.setLayout(layout)
 
@@ -189,8 +194,13 @@ class NamespaceBrowser(QWidget):
                 self, text=_("Remove all variables"),
                 icon=ima.icon('editdelete'), triggered=self.reset_namespace)
 
+        fuzzy_search_button = create_toolbutton(
+            self, text=_("Fuzzy search"),
+            icon=ima.icon('find'),
+            toggled=lambda state: self.finder.setVisible(state))
+
         return [load_button, self.save_button, save_as_button,
-                reset_namespace_button]
+                reset_namespace_button, fuzzy_search_button]
 
     def setup_option_actions(self, exclude_private, exclude_uppercase,
                              exclude_capitalized, exclude_unsupported):
