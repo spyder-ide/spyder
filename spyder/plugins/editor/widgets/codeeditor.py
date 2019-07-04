@@ -3656,6 +3656,7 @@ class CodeEditor(TextEditBaseWidget):
             self.document_did_change()
             # Correct last change position
             self.last_change_position = line_range[1]
+            self.last_position = self.textCursor().position()
             return line_range[1] - (line_range[0] + len(strip))
         return 0
 
