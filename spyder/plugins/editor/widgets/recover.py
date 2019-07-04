@@ -26,8 +26,9 @@ def gather_file_data(name):
     """
     Gather data about a given file.
 
-    Returns a dict with fields name, mtime and size, containing the relevant
-    data for the fiel.
+    Returns a dict with fields 'name', 'mtime' and 'size', containing the
+    relevant data for the file. If the file does not exists, then the dict
+    contains only the field `name`.
     """
     res = {'name': name}
     try:
@@ -74,50 +75,50 @@ def recovery_data_key_function(item):
 
 
 class RecoveryDialog(QDialog):
-    def __init__(self, autosave_dir, autosave_mapping, parent=None):
-        """Constructor."""
+    """Dialog window to allow users to recover from autosave files."""
+    def __init__(self, autosave_mapping, parent=None):
+        """
+        Constructor
+
+        Parameters
+        ----------
+        autosave_mapping : List[Tuple[str]]
+            List of tuples, containing the name of the original file and the
+            name of the corresponding autosave file. The first entry of the
+            tuple may be `None` to indicate that the original file is unknown.
+        parent : QWidget, optional
+            Parent of the dialog window. The default is None.
+        """
         QDialog.__init__(self, parent)
         self.layout = QVBoxLayout(self)
         self.setLayout(self.layout)
         self.layout.setSpacing(self.layout.spacing() * 3)
-        self.autosave_dir = autosave_dir
-        self.autosave_mapping = autosave_mapping
         self.files_to_open = []
-        self.gather_data()
+        self.gather_data(autosave_mapping)
         self.add_label()
         self.add_table()
         self.add_cancel_button()
         self.setWindowTitle(_('Recover from autosave'))
 
-    def gather_data(self):
+    def gather_data(self, autosave_mapping):
         """
         Gather data about files which may be recovered.
 
         The data is stored in self.data as a list of tuples with the data
         pertaining to the original file and the autosave file. Each element of
-        the tuple is a dict as returned by gather_file_data().
+        the tuple is a dict as returned by gather_file_data(). Autosave files
+        which do not exist, are ignored.
         """
         self.data = []
-        try:
-            FileNotFoundError
-        except NameError:  # Python 2
-            FileNotFoundError = OSError
-        # In Python 3, easier to use os.scandir()
-        try:
-            for name in os.listdir(self.autosave_dir):
-                full_name = osp.join(self.autosave_dir, name)
-                if osp.isdir(full_name):
-                    continue
-                for orig, autosave in self.autosave_mapping:
-                    if autosave == full_name:
-                        orig_dict = gather_file_data(orig)
-                        break
-                else:
-                    orig_dict = None
-                autosave_dict = gather_file_data(full_name)
-                self.data.append((orig_dict, autosave_dict))
-        except FileNotFoundError:  # autosave dir does not exist
-            pass
+        for orig, autosave in autosave_mapping:
+            if orig:
+                orig_dict = gather_file_data(orig)
+            else:
+                orig_dict = None
+            autosave_dict = gather_file_data(autosave)
+            if 'mtime' not in autosave_dict: # autosave file does not exist
+                continue
+            self.data.append((orig_dict, autosave_dict))
         self.data.sort(key=recovery_data_key_function)
         self.num_enabled = len(self.data)
 
@@ -313,10 +314,11 @@ def make_temporary_files(tempdir):
     autosave_file = osp.join(autosave_dir, 'eggs.py')
     autosave_mapping += [(orig_file, autosave_file)]
 
-    # cheese.py: Only autosave file exists, not mentioned in mapping
+    # cheese.py: Only autosave file exists
     autosave_file = osp.join(autosave_dir, 'cheese.py')
     with open(autosave_file, 'w') as f:
         f.write('cheese = "autosave"\n')
+    autosave_mapping += [(None, autosave_file)]
 
     return orig_dir, autosave_dir, autosave_mapping
 

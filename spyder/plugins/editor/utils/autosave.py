@@ -127,20 +127,38 @@ class AutosaveForPlugin(object):
         Get a list of files to recover from the Spyder config file.
 
         This returns a list of tuples containing the original file names and
-        the corresponding autosave file names.
+        the corresponding autosave file names, as recorded in the Spyder
+        config. Any files in the autosave directory are also included, with
+        the original file name set to `None`.
         """
         result_as_dict = CONF.get('editor', 'autosave_mapping', {})
-        return list(result_as_dict.items())
+        result = list(result_as_dict.items())
+        autosavefiles = [autosave for (orig, autosave) in result]
+
+        try:
+            FileNotFoundError
+        except NameError:  # Python 2
+            FileNotFoundError = OSError
+
+        # In Python 3, easier to use os.scandir()
+        autosave_dir = get_conf_path('autosave')
+        try:
+            for name in os.listdir(autosave_dir):
+                full_name = osp.join(autosave_dir, name)
+                if full_name not in autosavefiles:
+                    result.append(None, full_name)
+        except FileNotFoundError:  # autosave dir does not exist
+            pass
+
+        return result
 
     def try_recover_from_autosave(self):
         """Offer to recover files from autosave."""
         if not self.single_instance():
             self.recover_files_to_open = []
             return
-        autosave_dir = get_conf_path('autosave')
         autosave_mapping = self.get_files_to_recover()
-        dialog = RecoveryDialog(autosave_dir, autosave_mapping,
-                                parent=self.editor)
+        dialog = RecoveryDialog(autosave_mapping, parent=self.editor)
         dialog.exec_if_nonempty()
         self.recover_files_to_open = dialog.files_to_open[:]
 
