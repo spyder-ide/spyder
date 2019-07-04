@@ -270,19 +270,6 @@ def qt_message_handler(msg_type, msg_log_context, msg_string):
 qInstallMessageHandler(qt_message_handler)
 
 
-class SpyderProxyStyle(QProxyStyle):
-    """Style proxy to adjust qdarkstyle issues."""
-
-    def styleHint(self, hint, option=0, widget=0, returnData=0):
-        """Override Qt method."""
-        if hint == QStyle.SH_ComboBox_Popup:
-            # Disable combo-box popup top & bottom areas
-            # See: https://stackoverflow.com/a/21019371
-            return 0
-
-        return QProxyStyle.styleHint(self, hint, option, widget, returnData)
-
-
 # =============================================================================
 # Dependencies
 # =============================================================================
@@ -614,24 +601,12 @@ class MainWindow(QMainWindow):
         color_scheme = CONF.get('appearance', 'selected')
 
         if ui_theme == 'dark':
-            # Set style proxy to fix combobox popup on mac and qdark
-            # None needed, see: https://bugreports.qt.io/browse/PYSIDE-922
-            self._proxy_style = SpyderProxyStyle(None)
-            qapp = QApplication.instance()
-            qapp.setStyle(self._proxy_style)
-
             dark_qss = qdarkstyle.load_stylesheet_from_environment()
             self.setStyleSheet(dark_qss)
             self.statusBar().setStyleSheet(dark_qss)
             css_path = DARK_CSS_PATH
         elif ui_theme == 'automatic':
             if not is_dark_font_color(color_scheme):
-                # Set style proxy to fix combobox popup on mac and qdark
-                # None needed, see: https://bugreports.qt.io/browse/PYSIDE-922
-                self._proxy_style = SpyderProxyStyle(None)
-                qapp = QApplication.instance()
-                qapp.setStyle(self._proxy_style)
-
                 dark_qss = qdarkstyle.load_stylesheet_from_environment()
                 self.setStyleSheet(dark_qss)
                 self.statusBar().setStyleSheet(dark_qss)
