@@ -57,8 +57,9 @@ from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               DocstringWriterExtension,
                                               QMenuOnlyForEnter,
                                               EditorExtensionsManager)
-from spyder.plugins.editor.lsp import (LSPRequestTypes, TextDocumentSyncKind,
-                                       DiagnosticSeverity)
+from spyder.plugins.languageserver import (LSPRequestTypes,
+                                           TextDocumentSyncKind,
+                                           DiagnosticSeverity)
 from spyder.plugins.editor.panels import (ClassFunctionDropdown,
                                           DebuggerPanel, EdgeLine,
                                           FoldingPanel, IndentationGuide,
@@ -1551,17 +1552,19 @@ class CodeEditor(TextEditBaseWidget):
         self.sig_flags_changed.emit()
 
     #-----highlight found results (find/replace widget)
-    def highlight_found_results(self, pattern, words=False, regexp=False):
+    def highlight_found_results(self, pattern, word=False, regexp=False,
+                                case=False):
         """Highlight all found patterns"""
         pattern = to_text_string(pattern)
         if not pattern:
             return
         if not regexp:
             pattern = re.escape(to_text_string(pattern))
-        pattern = r"\b%s\b" % pattern if words else pattern
+        pattern = r"\b%s\b" % pattern if word else pattern
         text = to_text_string(self.toPlainText())
+        re_flags = re.MULTILINE if case else re.IGNORECASE | re.MULTILINE
         try:
-            regobj = re.compile(pattern)
+            regobj = re.compile(pattern, flags=re_flags)
         except sre_constants.error:
             return
         extra_selections = []
@@ -2020,6 +2023,7 @@ class CodeEditor(TextEditBaseWidget):
         )
 
         msglist = []
+        max_lines_msglist = 25
         sorted_code_analysis = sorted(code_analysis, key=lambda i: i[2])
         for src, code, sev, msg in sorted_code_analysis:
             if '[' in msg and ']' in msg:
@@ -2028,15 +2032,49 @@ class CodeEditor(TextEditBaseWidget):
 
             msg = msg.strip()
             # Avoid messing TODO, FIXME
-            msg = msg[0].upper() + msg[1:]
-            msg = textwrap.wrap(msg, width=self._DEFAULT_MAX_WIDTH)
+            # Prevent error if msg only has one element
             if len(msg) > 1:
-                msg = '<br>'.join(msg) + '<br>'
+                msg = msg[0].upper() + msg[1:]
+
+            # Get individual lines following paragraph format and handle
+            # symbols like '<' and '>' to not mess with br tags
+            msg = msg.replace('<', '&lt;').replace('>', '&gt;')
+            paragraphs = msg.splitlines()
+            new_paragraphs = []
+            long_paragraphs = 0
+            lines_per_message = 6
+            for paragraph in paragraphs:
+                new_paragraph = textwrap.wrap(
+                    paragraph,
+                    width=self._DEFAULT_MAX_HINT_WIDTH)
+                if lines_per_message > 2:
+                    if len(new_paragraph) > 1:
+                        new_paragraph = '<br>'.join(new_paragraph[:2]) + '...'
+                        long_paragraphs += 1
+                        lines_per_message -= 2
+                    else:
+                        new_paragraph = '<br>'.join(new_paragraph)
+                        lines_per_message -= 1
+                    new_paragraphs.append(new_paragraph)
+
+            if len(new_paragraphs) > 1:
+                # Define max lines taking into account that in the same
+                # tooltip you can find multiple warnings and messages
+                # and each one can have multiple lines
+                if long_paragraphs != 0:
+                    max_lines = 3
+                    max_lines_msglist -= max_lines * 2
+                else:
+                    max_lines = 5
+                    max_lines_msglist -= max_lines
+                msg = '<br>'.join(new_paragraphs[:max_lines]) + '<br>'
             else:
-                msg = '<br>'.join(msg)
+                msg = '<br>'.join(new_paragraphs)
+
             base_64 = ima.base64_from_icon(icons[sev], size, size)
-            msglist.append(template.format(base_64, msg, src,
-                                           code, size=size))
+            if max_lines_msglist >= 0:
+                msglist.append(template.format(base_64, msg, src,
+                                               code, size=size))
 
         if msglist:
             self.show_tooltip(
@@ -3583,7 +3621,12 @@ class CodeEditor(TextEditBaseWidget):
             # Check if still on the line
             return 0
 
-        if not self.strip_trailing_spaces_on_modify:
+        # Check if end of line in string
+        cursor = self.textCursor()
+        cursor.setPosition(line_range[1])
+
+        if (not self.strip_trailing_spaces_on_modify
+                or self.in_string(cursor=cursor)):
             if self.last_auto_indent is None:
                 return 0
             elif (self.last_auto_indent !=
@@ -3595,12 +3638,6 @@ class CodeEditor(TextEditBaseWidget):
             self.last_auto_indent = None
         elif not pos_in_line(self.last_change_position):
             # Should process if pressed return or made a change on the line:
-            return 0
-
-        # Check if end of line in string
-        cursor = self.textCursor()
-        cursor.setPosition(line_range[1])
-        if self.in_string(cursor=cursor):
             return 0
 
         cursor.setPosition(line_range[0])
@@ -3619,6 +3656,7 @@ class CodeEditor(TextEditBaseWidget):
             self.document_did_change()
             # Correct last change position
             self.last_change_position = line_range[1]
+            self.last_position = self.textCursor().position()
             return line_range[1] - (line_range[0] + len(strip))
         return 0
 

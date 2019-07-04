@@ -416,10 +416,9 @@ class MainWindow(QMainWindow):
         from spyder.preferences.shortcuts import ShortcutsConfigPage
         from spyder.preferences.runconfig import RunConfigPage
         from spyder.preferences.maininterpreter import MainInterpreterConfigPage
-        from spyder.preferences.languageserver import LSPManagerConfigPage
         self.general_prefs = [MainConfigPage, AppearanceConfigPage,
                               ShortcutsConfigPage, MainInterpreterConfigPage,
-                              RunConfigPage, LSPManagerConfigPage]
+                              RunConfigPage]
         self.prefs_index = None
         self.prefs_dialog_size = None
         self.prefs_dialog_instance = None
@@ -752,9 +751,9 @@ class MainWindow(QMainWindow):
         logger.info("Creating Tools menu...")
         # Tools + External Tools
         prefs_action = create_action(self, _("Pre&ferences"),
-                                        icon=ima.icon('configure'),
-                                        triggered=self.edit_preferences,
-                                        context=Qt.ApplicationShortcut)
+                                     icon=ima.icon('configure'),
+                                     triggered=self.show_preferences,
+                                     context=Qt.ApplicationShortcut)
         self.register_shortcut(prefs_action, "_", "Preferences",
                                add_shortcut_to_tip=True)
         spyder_path_action = create_action(self,
@@ -882,8 +881,8 @@ class MainWindow(QMainWindow):
 
         # Language Server Protocol Client initialization
         self.set_splash(_("Starting Language Server Protocol manager..."))
-        from spyder.plugins.editor.lsp.manager import LSPManager
-        self.lspmanager = LSPManager(self)
+        from spyder.plugins.languageserver.plugin import LanguageServerPlugin
+        self.lspmanager = LanguageServerPlugin(self)
 
         # Fallback completion thread
         self.set_splash(_("Creating fallback completion engine..."))
@@ -2914,7 +2913,7 @@ class MainWindow(QMainWindow):
             return
 
     @Slot()
-    def edit_preferences(self):
+    def show_preferences(self):
         """Edit Spyder preferences"""
         from spyder.preferences.configdialog import ConfigDialog
 
@@ -2941,14 +2940,14 @@ class MainWindow(QMainWindow):
                 widget.initialize()
                 dlg.add_page(widget)
 
-            for plugin in [self.workingdirectory, self.editor,
+            for plugin in [self.lspmanager, self.workingdirectory, self.editor,
                            self.projects, self.ipyconsole,
                            self.historylog, self.help, self.variableexplorer,
                            self.onlinehelp, self.explorer, self.findinfiles
                            ] + self.thirdparty_plugins:
                 if plugin is not None:
                     try:
-                        widget = plugin._create_configwidget(dlg)
+                        widget = plugin._create_configwidget(dlg, self)
                         if widget is not None:
                             dlg.add_page(widget)
                     except Exception:
@@ -2963,6 +2962,11 @@ class MainWindow(QMainWindow):
             dlg.show()
             dlg.check_all_settings()
             dlg.exec_()
+        else:
+            self.prefs_dialog_instance.show()
+            self.prefs_dialog_instance.activateWindow()
+            self.prefs_dialog_instance.raise_()
+            self.prefs_dialog_instance.setFocus()
 
     def __preference_page_changed(self, index):
         """Preference page index has changed"""

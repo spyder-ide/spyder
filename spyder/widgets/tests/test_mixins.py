@@ -81,11 +81,30 @@ def test_get_number_matches(mixinsbot):
     assert get('e[a-z]?f', source_text=code, case=True, regexp=True) == 4
     assert get('e[A-Z]?f', source_text=code, case=True, regexp=True) == 2
 
+    # No case, regexp, word
+    assert get('e[a-z]?f', source_text=code, regexp=True, word=True) == 0
+    assert get('e[A-Z]?f', source_text=code, regexp=True, word=True) == 0
+
+    # Case, regexp, word
+    assert get('e[a-z]?f', source_text=code, case=True, regexp=True,
+               word=True) == 0
+    assert get('e[A-Z]?f', source_text=code, case=True, regexp=True,
+               word=True) == 0
+
     # Issue 5680.
     assert get('(', source_text=code) == 3
     assert get('(', source_text=code, case=True) == 3
     assert get('(', source_text=code, regexp=True) is None
     assert get('(', source_text=code, case=True, regexp=True) is None
+
+    # spyder-ide/spyder#7960
+    assert get('a', source_text=code) == 4
+    assert get('a', source_text=code, case=True) == 4
+    assert get('a', source_text=code, regexp=True) == 4
+    assert get('a', source_text=code, case=True, regexp=True) == 4
+    assert get('a', source_text=code, case=True, regexp=True, word=True) == 1
+    assert get('a', source_text=code, regexp=True, word=True) == 1
+    assert get('a', source_text=code, case=True, word=True) == 1
 
 
 def test_get_match_number(mixinsbot):
@@ -119,3 +138,49 @@ def test_get_match_number(mixinsbot):
     widget.find_text('self')
     assert get('self') == 2
     assert get('self', case=True) == 2
+
+
+def test_get_number_with_words(mixinsbot):
+    # Dedicated test for spyder-ide/spyder#7960
+    qtbot, widget = mixinsbot
+    getn = widget.get_number_matches
+    getm = widget.get_match_number
+
+    code = ('word\n'
+            'words\n'
+            'Word\n'
+            'Words\n'
+            'sword\n'
+            'word\n')
+
+    widget.setPlainText(code)
+    cursor = widget.textCursor()
+    cursor.setPosition(widget.get_position('sof'))
+
+    widget.find_text('Word')
+    # Six instances of the string in total
+    assert getn('Word', source_text=code) == 6
+    # Found the first
+    assert getm('Word') == 1
+    # Two with same casing
+    assert getn('Word', source_text=code, case=True) == 2
+    # Three [Ww]ord in total
+    assert getn('Word', source_text=code, word=True) == 3
+    # But only one Word
+    assert getn('Word', source_text=code, word=True, case=True) == 1
+    # Find next Word case sensitive
+    widget.find_text('Word', case=True)
+    # This also moves to third row and first instance of Word (case sensitive)
+    assert getm('Word', case=True) == 1
+    # So this should be the third instance if case not considered
+    assert getm('Word') == 3
+    # But the second (out of the three) which is [Ww]ord
+    assert getm('Word', word=True) == 2
+    # Find something on next line just to progress
+    widget.find_text('Words')
+    # Find next [Ww]ord word-sensitive
+    widget.find_text('Word', word=True)
+    # This should be the sixth instance if case not considered
+    assert getm('Word') == 6
+    # But the third (out of the three) which is [Ww]ord
+    assert getm('Word', word=True) == 3

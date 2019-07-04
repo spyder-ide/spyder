@@ -8,10 +8,10 @@
 
 import logging
 
-from spyder.plugins.editor.lsp.providers.utils import (
+from spyder.plugins.languageserver.providers.utils import (
     path_as_uri, process_uri, match_path_to_folder)
-from spyder.plugins.editor.lsp import LSPRequestTypes, ClientConstants
-from spyder.plugins.editor.lsp.decorators import (
+from spyder.plugins.languageserver import LSPRequestTypes, ClientConstants
+from spyder.plugins.languageserver.decorators import (
     handles, send_request, send_response, send_notification)
 
 logger = logging.getLogger(__name__)

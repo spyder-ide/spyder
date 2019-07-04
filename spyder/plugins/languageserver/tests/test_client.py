@@ -11,8 +11,8 @@ import pytest
 from qtpy.QtCore import QObject, Signal, Slot
 
 from spyder.config.lsp import PYTHON_CONFIG
-from spyder.plugins.editor.lsp.client import LSPClient
-from spyder.plugins.editor.lsp import LSPRequestTypes
+from spyder.plugins.languageserver.client import LSPClient
+from spyder.plugins.languageserver import LSPRequestTypes
 
 
 class LSPEditor(QObject):

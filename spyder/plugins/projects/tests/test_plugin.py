@@ -188,8 +188,9 @@ def test_set_get_project_filenames_when_closing(create_projects, tmpdir):
 
     Regression test for Issue #8375
     """
-    opened_files = ['file1', 'file2', 'file3']
     path = to_text_string(tmpdir.mkdir('project1'))
+    opened_files = [os.path.join(path, file)
+                    for file in ['file1', 'file2', 'file3']]
 
     # Create the projects plugin.
     projects = create_projects(path, opened_files)
@@ -206,9 +207,10 @@ def test_set_get_project_filenames_when_switching(create_projects, tmpdir):
     Test that files in the Editor are loaded and saved correctly when
     switching projects.
     """
-    opened_files = ['file1', 'file2', 'file3']
     path1 = to_text_string(tmpdir.mkdir('project1'))
     path2 = to_text_string(tmpdir.mkdir('project2'))
+    opened_files = [os.path.join(path1, file)
+                    for file in ['file1', 'file2', 'file3']]
 
     # Create the projects plugin.
     projects = create_projects(path1, opened_files)

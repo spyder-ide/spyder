@@ -26,14 +26,14 @@ import zmq
 # Local imports
 from spyder.py3compat import PY2
 from spyder.config.base import get_conf_path, get_debug_level
-from spyder.plugins.editor.lsp import (
+from spyder.plugins.languageserver import (
     CLIENT_CAPABILITES, SERVER_CAPABILITES, TRACE,
     TEXT_DOCUMENT_SYNC_OPTIONS, LSPRequestTypes,
     ClientConstants)
-from spyder.plugins.editor.lsp.decorators import (
+from spyder.plugins.languageserver.decorators import (
     send_request, send_notification, class_register, handles)
-from spyder.plugins.editor.lsp.transport import MessageKind
-from spyder.plugins.editor.lsp.providers import LSPMethodProviderMixIn
+from spyder.plugins.languageserver.transport import MessageKind
+from spyder.plugins.languageserver.providers import LSPMethodProviderMixIn
 from spyder.utils.misc import getcwd_or_home
 
 # Conditional imports
@@ -47,6 +47,7 @@ LOCATION = osp.realpath(osp.join(os.getcwd(),
                                  osp.dirname(__file__)))
 PENDING = 'pending'
 SERVER_READY = 'server_ready'
+LOCALHOST = '127.0.0.1'
 
 
 logger = logging.getLogger(__name__)
@@ -128,10 +129,12 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
     def start(self):
         self.zmq_out_socket = self.context.socket(zmq.PAIR)
-        self.zmq_out_port = self.zmq_out_socket.bind_to_random_port('tcp://*')
+        self.zmq_out_port = self.zmq_out_socket.bind_to_random_port(
+            'tcp://{}'.format(LOCALHOST))
         self.zmq_in_socket = self.context.socket(zmq.PAIR)
         self.zmq_in_socket.set_hwm(0)
-        self.zmq_in_port = self.zmq_in_socket.bind_to_random_port('tcp://*')
+        self.zmq_in_port = self.zmq_in_socket.bind_to_random_port(
+            'tcp://{}'.format(LOCALHOST))
         self.transport_args += ['--zmq-in-port', self.zmq_out_port,
                                 '--zmq-out-port', self.zmq_in_port]
 
