@@ -352,9 +352,19 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         self.normal_text, _, self.scores = zip(*results)
         self.reset()
 
-    def row(self, row_num):
-        """Get row based on model index. Needed for the custom proxy model."""
+    def row_key(self, row_num):
+        """
+        Get row name based on model index.
+        Needed for the custom proxy model.
+        """
         return self.keys[row_num]
+
+    def row_type(self, row_num):
+        """
+        Get row type based on model index.
+        Needed for the custom proxy model.
+        """
+        return self.types[row_num]
 
     def data(self, index, role=Qt.DisplayRole):
         """Cell content"""
@@ -1410,7 +1420,6 @@ class CollectionsEditorTableView(BaseTableView):
 
         self.proxy_model.setSourceModel(self.source_model)
         self.proxy_model.setDynamicSortFilter(True)
-        self.proxy_model.setFilterKeyColumn(0)  # Col 0 for Name
         self.proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.setModel(self.proxy_model)
 
@@ -1855,10 +1864,12 @@ class CollectionsCustomSortFilterProxy(CustomSortFilterProxy):
         Reimplemented from base class to allow the use of custom filtering.
         """
         model = self.sourceModel()
-        name = to_text_string(model.row(row_num))
-        r = re.search(self.pattern, name)
+        name = to_text_string(model.row_key(row_num))
+        variable_type = to_text_string(model.row_type(row_num))
+        r_name = re.search(self.pattern, name)
+        r_type = re.search(self.pattern, variable_type)
 
-        if r is None:
+        if r_name is None and r_type is None:
             return False
         else:
             return True
