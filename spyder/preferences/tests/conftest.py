@@ -43,7 +43,7 @@ class MainWindowMock:
 class ConfigDialogTester(ConfigDialog):
 
     def __init__(self, params):
-        main_class, general_config_plugins, plugins  = params
+        main_class, general_config_plugins, plugins = params
         self._main = main_class() if main_class else None
         super(ConfigDialogTester, self).__init__(parent=None)
 
