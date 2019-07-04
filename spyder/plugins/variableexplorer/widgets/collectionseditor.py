@@ -56,7 +56,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     mimedata2url)
-from spyder.utils.stringmatching import get_search_scores
+from spyder.utils.stringmatching import get_search_scores, get_search_regex
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.widgets.helperwidgets import CustomSortFilterProxy
@@ -781,15 +781,17 @@ class BaseHeaderView(QHeaderView):
         super(BaseHeaderView, self).__init__(Qt.Horizontal, parent)
         self._handle_section_is_pressed = False
         self.sectionResized.connect(self.sectionResizeEvent)
+        # Needed to allow sorting
+        self.setSectionsClickable(True)
 
     def mousePressEvent(self, e):
+        super(BaseHeaderView, self).mousePressEvent(e)
         self._handle_section_is_pressed = (self.cursor().shape() ==
                                            Qt.SplitHCursor)
-        super(BaseHeaderView, self).mousePressEvent(e)
 
     def mouseReleaseEvent(self, e):
-        self._handle_section_is_pressed = False
         super(BaseHeaderView, self).mouseReleaseEvent(e)
+        self._handle_section_is_pressed = False
 
     def sectionResizeEvent(self, logicalIndex, oldSize, newSize):
         if self._handle_section_is_pressed:
@@ -1430,6 +1432,7 @@ class CollectionsEditorTableView(BaseTableView):
         self.setSelectionBehavior(QAbstractItemView.SelectItems)
         self.setSelectionMode(QAbstractItemView.SingleSelection)
         self.setSortingEnabled(True)
+        self.setEditTriggers(QAbstractItemView.AllEditTriggers)
         self.selectionModel().selectionChanged.connect(self.selection)
 
         self.setup_table()
@@ -1736,6 +1739,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.setSelectionBehavior(QAbstractItemView.SelectItems)
         self.setSelectionMode(QAbstractItemView.SingleSelection)
         self.setSortingEnabled(True)
+        self.setEditTriggers(QAbstractItemView.AllEditTriggers)
         self.selectionModel().selectionChanged.connect(self.selection)
 
         self.setup_table()
@@ -1855,13 +1859,20 @@ class CollectionsCustomSortFilterProxy(CustomSortFilterProxy):
     """
     Custom column filter based on regex and model data.
 
-    Reimplements the filterAcceptsRow to follow NamespaceBrowser model.
+    Reimplements 'filterAcceptsRow' to follow NamespaceBrowser model.
+    Reimplements 'set_filter' to allow sorting while filtering
     """
+    def set_filter(self, text):
+        """Set regular expression for filter."""
+        self.pattern = get_search_regex(text)
+        self.invalidateFilter()
+
     def filterAcceptsRow(self, row_num, parent):
         """
         Qt override.
 
-        Reimplemented from base class to allow the use of custom filtering.
+        Reimplemented from base class to allow the use of custom filtering
+        using to columns (name and type).
         """
         model = self.sourceModel()
         name = to_text_string(model.row_key(row_num))
