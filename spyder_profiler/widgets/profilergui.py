@@ -479,7 +479,8 @@ class ProfilerDataTree(QTreeWidget):
             try:
                 stats_indi.append(pstats.Stats(self.compare_file))
             except (OSError, IOError) as e:
-                QMessageBox.critical(self, _("Error"),
+                QMessageBox.critical(
+                    self, _("Error"),
                     _("Error when trying to load profiler results. "
                       "The error was<br><br>"
                       "<tt>{0}</tt>").format(e))
