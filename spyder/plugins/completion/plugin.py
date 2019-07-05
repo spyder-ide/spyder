@@ -72,14 +72,14 @@ class CompletionManager(SpyderCompletionManager):
             'plugin': plugin,
             'status': self.STOPPED
         }
-        plugin.sig_response_ready.connect(self.recieve_response)
+        plugin.sig_response_ready.connect(self.receive_response)
         plugin.sig_plugin_ready.connect(self.client_available)
         for language in self.language_status:
             server_status = self.language_status[language]
             server_status[plugin_name] = False
 
     @Slot(str, int, dict)
-    def recieve_response(self, completion_source, req_id, resp):
+    def receive_response(self, completion_source, req_id, resp):
         logger.debug("Completion plugin: Request {0} Got response "
                      "from {1}".format(req_id, completion_source))
         request_responses = self.requests[req_id]
@@ -106,8 +106,8 @@ class CompletionManager(SpyderCompletionManager):
         client_info = self.clients[client_name]
         client_info['status'] = self.RUNNING
 
-    def gather_and_send(
-            self, principal_source, response_instance, req_type, req_id):
+    def gather_and_send(self,
+                        principal_source, response_instance, req_type, req_id):
         logger.debug('Gather responses for {0}'.format(req_type))
         responses = []
         req_id_responses = self.requests[req_id]['sources']

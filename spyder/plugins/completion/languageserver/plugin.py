@@ -241,7 +241,7 @@ class LanguageServerPlugin(SpyderCompletionManager):
                 language_client['instance'].stop()
             language_client['status'] = self.STOPPED
 
-    def recieve_response(self, response_type, response, language, req_id):
+    def receive_response(self, response_type, response, language, req_id):
         if req_id in self.requests:
             self.requests.discard(req_id)
             self.sig_response_ready.emit(
@@ -254,7 +254,7 @@ class LanguageServerPlugin(SpyderCompletionManager):
                 self.requests.add(req_id)
                 client = self.clients[language]['instance']
                 params['response_callback'] = functools.partial(
-                    self.recieve_response, language=language, req_id=req_id)
+                    self.receive_response, language=language, req_id=req_id)
                 client.perform_request(request, params)
 
     def send_notification(self, language, request, params):
