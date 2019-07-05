@@ -1,0 +1,118 @@
+# -*- coding: utf-8 -*-
+
+# Copyright © Spyder Project Contributors
+# Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+
+"""Kite completions HTTP client."""
+
+# Standard library imports
+import logging
+
+# Qt imports
+from qtpy.QtCore import QObject, QThread, Signal, QTimer
+
+# Local imports
+from spyder.plugins.kite import KITE_ENDPOINTS, KITE_REQUEST_MAPPING
+from spyder.plugins.kite.decorators import class_register
+from spyder.plugins.kite.providers import KiteMethodProviderMixIn
+
+# Other imports
+import requests
+
+
+logger = logging.getLogger(__name__)
+
+
+@class_register
+class KiteClient(QObject, KiteMethodProviderMixIn):
+    sig_response_ready = Signal(int, dict)
+    sig_client_started = Signal()
+    sig_client_not_responding = Signal()
+
+    MAX_SERVER_CONTACT_RETRIES = 40
+
+    def __init__(self, parent):
+        QObject.__init__(self, parent)
+        self.contact_retries = 0
+        self.endpoint = None
+        self.requests = {}
+        self.alive = False
+        self.thread_started = False
+        self.thread = QThread()
+        self.moveToThread(self.thread)
+        self.thread.started.connect(self.started)
+
+    def __wait_http_session_to_start(self):
+        try:
+            code = requests.get(KITE_ENDPOINTS.ALIVE_ENDPOINT).status_code
+        except Exception:
+            code = 500
+
+        if self.contact_retries == self.MAX_SERVER_CONTACT_RETRIES:
+            self.sig_client_not_responding.emit()
+
+        elif code != 200:
+            self.server_retries += 1
+            QTimer.singleShot(250, self.__wait_server_to_start)
+        elif code == 200:
+            self.alive = True
+            self.start_client()
+
+    def start(self):
+        self.__wait_http_session_to_start()
+
+    def start_client(self):
+        self.endpoint = requests.Session()
+        if not self.thread_started:
+            self.thread.start()
+
+    def started(self):
+        self.thread_started = True
+
+    def stop(self):
+        self.endpoint.close()
+        self.thread.quit()
+
+    def language_is_available(self, language):
+        verb, url = KITE_ENDPOINTS.LANGUAGES_ENDPOINT
+        success, response = self.perform_http_request(verb, url)
+        return language in response
+
+    def perform_http_request(self, verb, url, params=None):
+        response = None
+        success = False
+        http_method = getattr(self.endpoint, verb)
+        http_response = http_method(url, json=params)
+        success = http_response.code == 200
+        if success:
+            try:
+                response = http_response.json()
+            except Exception:
+                response = http_response.text
+                response = None if response == '' else response
+        return success, response
+
+    def send(self, method, params):
+        response = None
+        if self.endpoint is not None and method in KITE_REQUEST_MAPPING:
+            if self.alive:
+                http_verb, path = KITE_REQUEST_MAPPING['method']
+                try:
+                    success, response = self.perform_http_request(
+                        http_verb, path, params)
+                except ConnectionRefusedError:
+                    self.alive = False
+                    self.endpoint = None
+                    self.contact_retries = 0
+                    self.__wait_http_session_to_start()
+                    return response
+        return response
+
+    def perform_request(self, req_id, method, params):
+        if method in self.sender_registry:
+            handler_name = self.sender_registry[method]
+            handler = getattr(self, handler_name)
+            response = handler(params)
+            if response is not None:
+                self.sig_response_ready(req_id, response)
