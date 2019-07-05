@@ -45,15 +45,26 @@ else:
 @pytest.fixture
 def scriptpath(tmpdir):
     """Save a basic Python script in a file."""
-    script = ("import os\n"
-              "with open('out.txt', 'w') as f:\n"
-              "    f.write('done')\n"
-              "print('*******')\n"
-              "print(os.getcwd())\n")
+    script = ("with open('out.txt', 'w') as f:\n"
+              "    f.write('done')\n")
     scriptpath = tmpdir.join('write-done.py')
     scriptpath.write(script)
     return scriptpath
 
+
+@pytest.fixture
+def scriptpath_with_blanks(tmpdir):
+    """Save a basic Python script in a file."""
+    name_dir = 'test dir'
+    if not osp.exists(name_dir):
+        os.mkdir(name_dir)
+    os.chdir(name_dir)
+    tmpdir.join(name_dir)
+    script = ("with open('out.txt', 'w') as f:\n"
+              "    f.write('done')\n")
+    scriptpath = tmpdir.join('write-done.py')
+    scriptpath.write(script)
+    return scriptpath
 
 # =============================================================================
 # ---- Tests
@@ -75,10 +86,32 @@ def test_run_python_script_in_terminal(scriptpath, qtbot):
     Test running a Python script in an external terminal when specifying
     explicitely the working directory.
     """
-    # Run the script.
+    # Run the script
     outfilepath = osp.join(scriptpath.dirname, 'out.txt')
     run_python_script_in_terminal(
         scriptpath.strpath, scriptpath.dirname, '', False, False, '')
+    qtbot.waitUntil(lambda: osp.exists(outfilepath), timeout=5000)
+    # Assert the result.
+    with open(outfilepath, 'r') as txtfile:
+        res = txtfile.read()
+    assert res == 'done'
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(
+    os.environ.get('CI', None) is None,
+    reason='fails sometimes locally')
+def test_run_python_script_in_terminal_blank_wdir(scriptpath_with_blanks,
+                                                  qtbot):
+    """
+    Test running a Python script in an external terminal when specifying
+    explicitely the working directory.
+    """
+    # Run the script
+    outfilepath = osp.join(scriptpath_with_blanks.dirname, 'out.txt')
+    run_python_script_in_terminal(
+        scriptpath_with_blanks.strpath, scriptpath_with_blanks.dirname,
+        '', False, False, '')
     qtbot.waitUntil(lambda: osp.exists(outfilepath), timeout=5000)
     # Assert the result.
     with open(outfilepath, 'r') as txtfile:
