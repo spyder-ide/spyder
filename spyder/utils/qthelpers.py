@@ -4,32 +4,32 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Qt utilities"""
+"""Qt utilities."""
 
 # Standard library imports
 from math import pi
+import logging
 import os
 import os.path as osp
 import re
 import sys
-import logging
 
 # Third party imports
-from qtpy.compat import to_qvariant, from_qvariant
+from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QEvent, QLibraryInfo, QLocale, QObject, Qt, QTimer,
                          QTranslator, Signal, Slot)
 from qtpy.QtGui import QIcon, QKeyEvent, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QLabel,
-                            QLineEdit, QMenu, QStyle, QToolBar, QToolButton,
-                            QVBoxLayout, QWidget)
+                            QLineEdit, QMenu, QProxyStyle, QStyle, QToolBar,
+                            QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import get_image_path, running_in_mac_app
 from spyder.config.gui import get_shortcut, is_dark_interface
-from spyder.utils import programs
-from spyder.utils import icon_manager as ima
-from spyder.utils.icon_manager import get_icon, get_std_icon
 from spyder.py3compat import is_text_string, to_text_string
+from spyder.utils import icon_manager as ima
+from spyder.utils import programs
+from spyder.utils.icon_manager import get_icon, get_std_icon
 from spyder.widgets.waitingspinner import QWaitingSpinner
 
 # Note: How to redirect a signal from widget *a* to widget *b* ?
@@ -599,6 +599,19 @@ def create_plugin_layout(tools_layout, main_widget=None):
 
 
 MENU_SEPARATOR = None
+
+
+class SpyderProxyStyle(QProxyStyle):
+    """Style proxy to adjust qdarkstyle issues."""
+
+    def styleHint(self, hint, option=0, widget=0, returnData=0):
+        """Override Qt method."""
+        if hint == QStyle.SH_ComboBox_Popup:
+            # Disable combo-box popup top & bottom areas
+            # See: https://stackoverflow.com/a/21019371
+            return 0
+
+        return QProxyStyle.styleHint(self, hint, option, widget, returnData)
 
 
 if __name__ == "__main__":

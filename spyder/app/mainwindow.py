@@ -72,9 +72,8 @@ from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
                          qInstallMessageHandler)
 from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QDesktopWidget, QDockWidget,
-                            QMainWindow, QMenu, QMessageBox, QProxyStyle,
-                            QShortcut, QSplashScreen, QStyle, QStyleFactory,
-                            QWidget)
+                            QMainWindow, QMenu, QMessageBox, QShortcut,
+                            QSplashScreen, QStyle, QStyleFactory, QWidget)
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -270,19 +269,6 @@ def qt_message_handler(msg_type, msg_log_context, msg_string):
 qInstallMessageHandler(qt_message_handler)
 
 
-class SpyderProxyStyle(QProxyStyle):
-    """Style proxy to adjust qdarkstyle issues."""
-
-    def styleHint(self, hint, option=0, widget=0, returnData=0):
-        """Override Qt method."""
-        if hint == QStyle.SH_ComboBox_Popup:
-            # Disable combo-box popup top & bottom areas
-            # See: https://stackoverflow.com/a/21019371
-            return 0
-
-        return QProxyStyle.styleHint(self, hint, option, widget, returnData)
-
-
 # =============================================================================
 # Dependencies
 # =============================================================================
@@ -330,13 +316,13 @@ class MainWindow(QMainWindow):
 
     def __init__(self, options=None):
         QMainWindow.__init__(self)
-
         qapp = QApplication.instance()
 
-        # None is needed, see: https://bugreports.qt.io/browse/PYSIDE-922
+        from spyder.utils.qthelpers import SpyderProxyStyle
         if running_under_pytest():
             self._proxy_style = None
         else:
+            # None is needed, see: https://bugreports.qt.io/browse/PYSIDE-922
             self._proxy_style = SpyderProxyStyle(None)
 
         if PYQT5:
