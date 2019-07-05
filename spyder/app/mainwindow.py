@@ -1012,8 +1012,11 @@ class MainWindow(QMainWindow):
             try:
                 plugin = mod.PLUGIN_CLASS(self)
                 if plugin.check_compatibility()[0]:
-                    self.thirdparty_plugins.append(plugin)
-                    plugin.register_plugin()
+                    if hasattr(plugin, 'COMPLETION_CLIENT_NAME'):
+                        self.completions.register_completion_plugin(plugin)
+                    else:
+                        self.thirdparty_plugins.append(plugin)
+                        plugin.register_plugin()
             except Exception as error:
                 print("%s: %s" % (mod, str(error)), file=STDERR)
                 traceback.print_exc(file=STDERR)
