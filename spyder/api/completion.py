@@ -75,6 +75,13 @@ class SpyderCompletionManager(QObject, SpyderPlugin):
             :class:`spyder.plugins.completion.CompletionTypes`
         req: dict
             Request body
+            {
+                'filename': str,
+                'requires_response': bool,
+                # Widget/Plugin instance that performed the request
+                'response_instance': :class:`SpyderPlugin`,
+                **kwargs: request-specific parameters
+            }
         req_id: int
             Request identifier for response
         """
@@ -93,6 +100,10 @@ class SpyderCompletionManager(QObject, SpyderPlugin):
             :class:`spyder.plugins.completion.CompletionTypes`
         notification: dict
             Request body
+            {
+                'filename': str,
+                **kwargs: request-specific parameters
+            }
         """
         pass
 
@@ -104,6 +115,9 @@ class SpyderCompletionManager(QObject, SpyderPlugin):
         ----------
         response: dict
             Response body for server
+            {
+                **kwargs: response-specific keys
+            }
         resp_id: int
             Request identifier for response
         """
@@ -120,6 +134,9 @@ class SpyderCompletionManager(QObject, SpyderPlugin):
             :class:`spyder.plugins.completion.CompletionTypes`
         req: dict
             Request body
+            {
+                **kwargs: notification-specific parameters
+            }
         req_id: int
             Request identifier for response, None if notification
         """
@@ -149,7 +166,7 @@ class SpyderCompletionManager(QObject, SpyderPlugin):
             Programming language to start analyzing
 
         Returns
-        =======
+        -------
         bool
             True if language client could be started, otherwise False.
         """
