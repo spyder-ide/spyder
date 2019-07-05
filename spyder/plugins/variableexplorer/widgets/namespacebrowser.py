@@ -178,28 +178,31 @@ class NamespaceBrowser(QWidget):
         """Setup the actions to show in the cog menu."""
         self.setup_in_progress = True
 
-        self.include_private_action = create_action(self,
-                _("include private references"),
-                tip=_("include references which name starts"
-                            " with an underscore"),
-                toggled=lambda state:
-                self.sig_option_changed.emit('include_private', state))
+        self.include_private_action = create_action(
+            self,
+            _("include private references"),
+            tip=_("include references which name starts"
+                  " with an underscore"),
+            toggled=lambda state:
+            self.sig_option_changed.emit('include_private', state))
         self.include_private_action.setChecked(include_private)
 
-        self.include_capitalized_action = create_action(self,
-                _("Include capitalized references"),
-                tip=_("Include references which name starts with an "
-                      "uppercase character"),
-                toggled=lambda state:
-                self.sig_option_changed.emit('include_capitalized', state))
+        self.include_capitalized_action = create_action(
+            self,
+            _("Include capitalized references"),
+            tip=_("Include references which name starts with an "
+                  "uppercase character"),
+            toggled=lambda state:
+            self.sig_option_changed.emit('include_capitalized', state))
         self.include_capitalized_action.setChecked(include_capitalized)
 
-        self.include_callables_action = create_action(self,
-                _("Include callable data types"),
-                tip=_("Include references to callable data types"
-                            " (i.e. which won't be handled/saved correctly)"),
-                toggled=lambda state:
-                self.sig_option_changed.emit('include_callables', state))
+        self.include_callables_action = create_action(
+            self,
+            _("Include callable data types"),
+            tip=_("Include references to callable data types"
+                  " (i.e. which won't be handled/saved correctly)"),
+            toggled=lambda state:
+            self.sig_option_changed.emit('include_callables', state))
         self.include_callables_action.setChecked(include_callables)
 
         self.actions = [
