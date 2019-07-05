@@ -444,7 +444,7 @@ class EditorStack(QWidget):
     sig_prev_warning = Signal()
     sig_next_warning = Signal()
     sig_go_to_definition = Signal(str, int, int)
-    perform_completion_request = Signal(str, str, dict)
+    sig_perform_completion_request = Signal(str, str, dict)
     sig_option_changed = Signal(str, object)  # config option needs changing
     sig_save_bookmark = Signal(int)
     sig_load_bookmark = Signal(int)
@@ -2358,9 +2358,12 @@ class EditorStack(QWidget):
         editor.sig_cursor_position_changed.connect(
                                            self.editor_cursor_position_changed)
         editor.textChanged.connect(self.start_stop_analysis_timer)
+
+        def perform_completion_request(lang, method, params):
+            self.sig_perform_completion_request.emit(lang, method, params)
+
         editor.sig_perform_completion_request.connect(
-            lambda lang, method, params: self.perform_completion_request.emit(
-                lang, method, params))
+            perform_completion_request)
         editor.modificationChanged.connect(
             lambda state: self.modification_changed(state,
                 editor_id=id(editor)))
