@@ -102,6 +102,9 @@ class ObjectComboBox(EditableComboBox):
                 # A new item has just been selected
                 if valid:
                     self.selected()
+                    # See spyder-ide/spyder#9542.
+                    # Backport of PR spyder-ide/spyder#9552
+                    self.lineEdit().cursorWordForward(False)
                 else:
                     self.valid.emit(False, False)
 
