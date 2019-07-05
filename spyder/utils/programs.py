@@ -716,18 +716,16 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
         f = tempfile.NamedTemporaryFile('wt', prefix='run_spyder_',
                                         suffix='.sh', dir=get_temp_dir(),
                                         delete=False)
+        if wdir:
+            f.write('cd {}\n'.format(wdir))
         f.write(' '.join(p_args))
         f.close()
         os.chmod(f.name, 0o777)
 
         def run_terminal_thread():
-            if wdir:
-                proc = run_shell_command('open -a Terminal.app ' + f.name,
-                                         cwd=wdir)
-            else:
-                proc = run_shell_command('open -a Terminal.app ' + f.name)
+            proc = run_shell_command('open -a Terminal.app ' + f.name)
             # Prevent race condition
-            time.sleep(2)
+            time.sleep(3)
             proc.wait()
             os.remove(f.name)
 

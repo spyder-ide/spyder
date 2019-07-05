@@ -45,8 +45,11 @@ else:
 @pytest.fixture
 def scriptpath(tmpdir):
     """Save a basic Python script in a file."""
-    script = ("with open('out.txt', 'w') as f:\n"
-              "    f.write('done')\n")
+    script = ("import os\n"
+              "with open('out.txt', 'w') as f:\n"
+              "    f.write('done')\n"
+              "print('*******')\n"
+              "print(os.getcwd())\n")
     scriptpath = tmpdir.join('write-done.py')
     scriptpath.write(script)
     return scriptpath
@@ -66,7 +69,7 @@ def test_is_valid_w_interpreter():
 @flaky(max_runs=3)
 @pytest.mark.skipif(
     os.environ.get('CI', None) is None,
-    reason='fails in macOS and sometimes locally')
+    reason='fails sometimes locally')
 def test_run_python_script_in_terminal(scriptpath, qtbot):
     """
     Test running a Python script in an external terminal when specifying
@@ -76,8 +79,7 @@ def test_run_python_script_in_terminal(scriptpath, qtbot):
     outfilepath = osp.join(scriptpath.dirname, 'out.txt')
     run_python_script_in_terminal(
         scriptpath.strpath, scriptpath.dirname, '', False, False, '')
-    qtbot.waitUntil(lambda: osp.exists(outfilepath), timeout=1000)
-
+    qtbot.waitUntil(lambda: osp.exists(outfilepath), timeout=5000)
     # Assert the result.
     with open(outfilepath, 'r') as txtfile:
         res = txtfile.read()
@@ -87,17 +89,20 @@ def test_run_python_script_in_terminal(scriptpath, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.skipif(
     os.environ.get('CI', None) is None,
-    reason='fails in macOS and sometimes locally')
+    reason='fails sometimes locally')
 def test_run_python_script_in_terminal_with_wdir_empty(scriptpath, qtbot):
     """
     Test running a Python script in an external terminal without specifying
     the working directory.
     """
     # Run the script.
-    outfilepath = osp.join(os.getcwd(), 'out.txt')
-    run_python_script_in_terminal(scriptpath.strpath, '', '', False, False, '')
-    qtbot.waitUntil(lambda: osp.exists(outfilepath), timeout=1000)
+    if sys.platform == 'darwin':
+        outfilepath = osp.join(osp.expanduser('~'), 'out.txt')
+    else:
+        outfilepath = osp.join(os.getcwd(), 'out.txt')
 
+    run_python_script_in_terminal(scriptpath.strpath, '', '', False, False, '')
+    qtbot.waitUntil(lambda: osp.exists(outfilepath), timeout=5000)
     # Assert the result.
     with open(outfilepath, 'r') as txtfile:
         res = txtfile.read()
