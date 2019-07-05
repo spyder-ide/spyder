@@ -315,14 +315,19 @@ class TreeModel(QAbstractItemModel):
         assert len(obj_children) == len(path_strings), "sanity check"
         is_attr_list = [False] * len(obj_children)
 
-        # Object attributes
-        for attr_name, attr_value in sorted(inspect.getmembers(obj)):
-            obj_children.append((attr_name, attr_value))
-            path_strings.append('{}.{}'.format(obj_path,
-                                attr_name) if obj_path else attr_name)
-            is_attr_list.append(True)
+        try:
+            # Object attributes
+            for attr_name, attr_value in sorted(inspect.getmembers(obj)):
+                obj_children.append((attr_name, attr_value))
+                path_strings.append('{}.{}'.format(obj_path,
+                                    attr_name) if obj_path else attr_name)
+                is_attr_list.append(True)
 
-        assert len(obj_children) == len(path_strings), "sanity check"
+            assert len(obj_children) == len(path_strings), "sanity check"
+        except ValueError:
+            # Needed to handle errors while getting object's attributes
+            # Related with spyder-ide/spyder#6728
+            pass
         tree_items = []
         for item, path_str, is_attr in zip(obj_children, path_strings,
                                            is_attr_list):
