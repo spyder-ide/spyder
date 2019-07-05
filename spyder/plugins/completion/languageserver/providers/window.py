@@ -8,8 +8,8 @@
 
 import logging
 
-from spyder.plugins.languageserver import LSPRequestTypes
-from spyder.plugins.languageserver.decorators import handles
+from spyder.plugins.completion.languageserver import LSPRequestTypes
+from spyder.plugins.completion.languageserver.decorators import handles
 
 logger = logging.getLogger(__name__)
 

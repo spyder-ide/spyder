@@ -24,9 +24,10 @@ from spyder.config.lsp import PYTHON_CONFIG
 from spyder.config.main import CONF
 from spyder.api.completion import SpyderCompletionPlugin
 from spyder.utils.misc import select_port, getcwd_or_home
-from spyder.plugins.languageserver import LSP_LANGUAGES
-from spyder.plugins.languageserver.client import LSPClient
-from spyder.plugins.languageserver.confpage import LanguageServerConfigPage
+from spyder.plugins.completion.languageserver import LSP_LANGUAGES
+from spyder.plugins.completion.languageserver.client import LSPClient
+from spyder.plugins.completion.languageserver.confpage import (
+    LanguageServerConfigPage)
 
 
 logger = logging.getLogger(__name__)

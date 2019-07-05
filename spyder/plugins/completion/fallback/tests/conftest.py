@@ -8,8 +8,9 @@ import pytest
 
 from qtpy.QtCore import QObject, Signal
 
-from spyder.plugins.fallback.plugin import FallbackPlugin
-from spyder.plugins.languageserver.tests.conftest import qtbot_module
+from spyder.plugins.completion.fallback.plugin import FallbackPlugin
+from spyder.plugins.completion.languageserver.tests.conftest import (
+    qtbot_module)
 
 
 class CompletionPluginMock(QObject):

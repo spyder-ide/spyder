@@ -23,7 +23,7 @@ from qtpy.QtGui import QFont
 from spyder.config.main import CONF
 from spyder.plugins.editor.tests.conftest import (
     editor_plugin, editor_plugin_open_files, python_files)
-from spyder.plugins.languageserver.tests.conftest import (
+from spyder.plugins.completion.languageserver.tests.conftest import (
     qtbot_module, MainWindowMock)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editor import EditorStack

@@ -10,12 +10,12 @@ import logging
 import os.path as osp
 
 from spyder.py3compat import PY2
-from spyder.plugins.languageserver import (
+from spyder.plugins.completion.languageserver import (
     LSPRequestTypes, InsertTextFormat, CompletionItemKind,
     ClientConstants)
-from spyder.plugins.languageserver.providers.utils import (
+from spyder.plugins.completion.languageserver.providers.utils import (
     path_as_uri, process_uri)
-from spyder.plugins.languageserver.decorators import (
+from spyder.plugins.completion.languageserver.decorators import (
     handles, send_request, send_notification)
 
 

@@ -34,7 +34,8 @@ from spyder.plugins.projects.utils.watcher import WorkspaceWatcher
 from spyder.plugins.projects.widgets.explorer import ProjectExplorerWidget
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
 from spyder.plugins.projects.widgets import EmptyProject
-from spyder.plugins.languageserver import LSPRequestTypes, FileChangeType
+from spyder.plugins.completion.languageserver import (
+    LSPRequestTypes, FileChangeType)
 from spyder.plugins.editor.utils.lsp import request, handles, class_register
 
 
