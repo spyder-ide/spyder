@@ -58,11 +58,10 @@ class NamespaceBrowser(QWidget):
 
         # Remote dict editor settings
         self.check_all = None
-        self.exclude_private = None
-        self.exclude_uppercase = None
-        self.exclude_capitalized = None
-        self.exclude_unsupported = None
-        self.excluded_names = None
+        self.include_private = None
+        self.include_capitalized = None
+        self.include_callables = None
+        self.included_names = None
         self.minmax = None
 
         # Other setting
@@ -71,22 +70,19 @@ class NamespaceBrowser(QWidget):
         self.show_special_attributes = None
 
         self.editor = None
-        self.exclude_private_action = None
-        self.exclude_uppercase_action = None
-        self.exclude_capitalized_action = None
-        self.exclude_unsupported_action = None
+        self.include_private_action = None
+        self.include_capitalized_action = None
+        self.include_callables_action = None
         self.options_button = options_button
         self.actions = None
         self.plugin_actions = plugin_actions
 
         self.filename = None
 
-    def setup(self, check_all=None, exclude_private=None,
-              exclude_uppercase=None, exclude_capitalized=None,
-              exclude_unsupported=None, excluded_names=None,
-              minmax=None, dataframe_format=None,
-              show_callable_attributes=None,
-              show_special_attributes=None):
+    def setup(self, check_all=None, include_private=None,
+              include_capitalized=None, include_callables=None,
+              included_names=None, minmax=None, dataframe_format=None,
+              show_callable_attributes=None, show_special_attributes=None):
         """
         Setup the namespace browser with provided settings.
 
@@ -97,11 +93,10 @@ class NamespaceBrowser(QWidget):
         assert self.shellwidget is not None
         
         self.check_all = check_all
-        self.exclude_private = exclude_private
-        self.exclude_uppercase = exclude_uppercase
-        self.exclude_capitalized = exclude_capitalized
-        self.exclude_unsupported = exclude_unsupported
-        self.excluded_names = excluded_names
+        self.include_private = include_private
+        self.include_capitalized = include_capitalized
+        self.include_callables = include_callables
+        self.included_names = included_names
         self.minmax = minmax
         self.dataframe_format = dataframe_format
         self.show_callable_attributes = show_callable_attributes
@@ -110,10 +105,9 @@ class NamespaceBrowser(QWidget):
         if self.editor is not None:
             self.editor.setup_menu(minmax)
             self.editor.set_dataframe_format(dataframe_format)
-            self.exclude_private_action.setChecked(exclude_private)
-            self.exclude_uppercase_action.setChecked(exclude_uppercase)
-            self.exclude_capitalized_action.setChecked(exclude_capitalized)
-            self.exclude_unsupported_action.setChecked(exclude_unsupported)
+            self.include_private_action.setChecked(include_private)
+            self.include_capitalized_action.setChecked(include_capitalized)
+            self.include_callables_action.setChecked(include_callables)
             self.refresh_table()
             return
 
@@ -131,8 +125,8 @@ class NamespaceBrowser(QWidget):
         self.editor.sig_files_dropped.connect(self.import_data)
         self.editor.sig_free_memory.connect(self.sig_free_memory.emit)
 
-        self.setup_option_actions(exclude_private, exclude_uppercase,
-                                  exclude_capitalized, exclude_unsupported)
+        self.setup_option_actions(include_private, include_capitalized,
+                                  include_callables)
 
         # Setup toolbar layout.
 
@@ -179,45 +173,38 @@ class NamespaceBrowser(QWidget):
         return [load_button, self.save_button, save_as_button,
                 reset_namespace_button]
 
-    def setup_option_actions(self, exclude_private, exclude_uppercase,
-                             exclude_capitalized, exclude_unsupported):
+    def setup_option_actions(self, include_private, include_capitalized,
+                             include_callables):
         """Setup the actions to show in the cog menu."""
         self.setup_in_progress = True
 
-        self.exclude_private_action = create_action(self,
-                _("Exclude private references"),
-                tip=_("Exclude references which name starts"
+        self.include_private_action = create_action(self,
+                _("include private references"),
+                tip=_("include references which name starts"
                             " with an underscore"),
                 toggled=lambda state:
-                self.sig_option_changed.emit('exclude_private', state))
-        self.exclude_private_action.setChecked(exclude_private)
-        
-        self.exclude_uppercase_action = create_action(self,
-                _("Exclude all-uppercase references"),
-                tip=_("Exclude references which name is uppercase"),
-                toggled=lambda state:
-                self.sig_option_changed.emit('exclude_uppercase', state))
-        self.exclude_uppercase_action.setChecked(exclude_uppercase)
-        
-        self.exclude_capitalized_action = create_action(self,
-                _("Exclude capitalized references"),
-                tip=_("Exclude references which name starts with an "
+                self.sig_option_changed.emit('include_private', state))
+        self.include_private_action.setChecked(include_private)
+
+        self.include_capitalized_action = create_action(self,
+                _("Include capitalized references"),
+                tip=_("Include references which name starts with an "
                       "uppercase character"),
                 toggled=lambda state:
-                self.sig_option_changed.emit('exclude_capitalized', state))
-        self.exclude_capitalized_action.setChecked(exclude_capitalized)
-        
-        self.exclude_unsupported_action = create_action(self,
-                _("Exclude unsupported data types"),
-                tip=_("Exclude references to unsupported data types"
+                self.sig_option_changed.emit('include_capitalized', state))
+        self.include_capitalized_action.setChecked(include_capitalized)
+
+        self.include_callables_action = create_action(self,
+                _("Include callable data types"),
+                tip=_("Include references to callable data types"
                             " (i.e. which won't be handled/saved correctly)"),
                 toggled=lambda state:
-                self.sig_option_changed.emit('exclude_unsupported', state))
-        self.exclude_unsupported_action.setChecked(exclude_unsupported)
+                self.sig_option_changed.emit('include_callables', state))
+        self.include_callables_action.setChecked(include_callables)
 
         self.actions = [
-            self.exclude_private_action, self.exclude_uppercase_action,
-            self.exclude_capitalized_action, self.exclude_unsupported_action]
+            self.include_private_action, self.include_capitalized_action,
+            self.include_callables_action]
         if is_module_installed('numpy'):
             self.actions.extend([MENU_SEPARATOR, self.editor.minmax_action])
 

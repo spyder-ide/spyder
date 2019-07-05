@@ -18,10 +18,9 @@ class VariableExplorerConfigPage(PluginConfigPage):
     def setup_page(self):
         filter_group = QGroupBox(_("Filter"))
         filter_data = [
-            ('exclude_private', _("Exclude private references")),
-            ('exclude_capitalized', _("Exclude capitalized references")),
-            ('exclude_uppercase', _("Exclude all-uppercase references")),
-            ('exclude_unsupported', _("Exclude unsupported data types")),
+            ('include_private', _("Include private references")),
+            ('include_capitalized', _("Include capitalized references")),
+            ('include_callables', _("Include callables data types")),
                 ]
         filter_boxes = [self.create_checkbox(text, option)
                         for option, text in filter_data]

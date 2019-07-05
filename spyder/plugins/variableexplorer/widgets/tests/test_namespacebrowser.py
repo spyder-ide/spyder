@@ -22,8 +22,8 @@ from spyder.plugins.variableexplorer.widgets.namespacebrowser import NamespaceBr
 def test_setup_sets_dataframe_format(qtbot):
     browser = NamespaceBrowser(None)
     browser.set_shellwidget(Mock())
-    browser.setup(exclude_private=True, exclude_uppercase=True,
-                  exclude_capitalized=True, exclude_unsupported=True,
+    browser.setup(include_private=False, include_capitalized=False,
+                  include_callables=False,
                   minmax=False, dataframe_format='%10.5f')
     assert browser.editor.model.dataframe_format == '%10.5f'
 
@@ -31,9 +31,8 @@ def test_setup_sets_dataframe_format(qtbot):
 def test_automatic_column_width(qtbot):
     browser = NamespaceBrowser(None)
     browser.set_shellwidget(Mock())
-    browser.setup(exclude_private=True, exclude_uppercase=True,
-                  exclude_capitalized=True, exclude_unsupported=True,
-                  minmax=False)
+    browser.setup(include_private=False, include_capitalized=False,
+                  include_callables=False, minmax=False)
     col_width = [browser.editor.columnWidth(i) for i in range(4)]
     browser.set_data({'a_variable':
             {'type': 'int', 'size': 1, 'color': '#0000ff', 'view': '1'}})
