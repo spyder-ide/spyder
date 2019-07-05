@@ -52,7 +52,7 @@ class SpyderCompletionManager(QObject, SpyderPlugin):
         a server is available.
 
         Parameters
-        ==========
+        ----------
         language: str
             Programming language of the given file
         filename: str
@@ -67,7 +67,7 @@ class SpyderCompletionManager(QObject, SpyderPlugin):
         Process completion/introspection request from Spyder.
 
         Parameters
-        ==========
+        ----------
         language: str
             Programming language for the incoming request
         req_type: str
@@ -85,7 +85,7 @@ class SpyderCompletionManager(QObject, SpyderPlugin):
         Send notification to completion server based on Spyder changes.
 
         Parameters
-        ==========
+        ----------
         language: str
             Programming language for the incoming request
         notification_type: str
@@ -101,7 +101,7 @@ class SpyderCompletionManager(QObject, SpyderPlugin):
         Send response for server request.
 
         Parameters
-        ==========
+        ----------
         response: dict
             Response body for server
         resp_id: int
@@ -114,7 +114,7 @@ class SpyderCompletionManager(QObject, SpyderPlugin):
         Send a broadcast notification across all programming languages.
 
         Parameters
-        ==========
+        ----------
         req_type: str
             Type of request, one of
             :class:`spyder.plugins.completion.CompletionTypes`
@@ -130,7 +130,7 @@ class SpyderCompletionManager(QObject, SpyderPlugin):
         Handle project path updates on Spyder.
 
         Parameters
-        ==========
+        ----------
         project_path: str
             Path to the project folder modified
         update_kind: str
@@ -144,7 +144,7 @@ class SpyderCompletionManager(QObject, SpyderPlugin):
         Start completions/introspection services for a given language.
 
         Parameters
-        ==========
+        ----------
         language: str
             Programming language to start analyzing
 
@@ -160,7 +160,7 @@ class SpyderCompletionManager(QObject, SpyderPlugin):
         Stop completions/introspection services for a given language.
 
         Parameters
-        ==========
+        ----------
         language: str
             Programming language to stop analyzing
         """

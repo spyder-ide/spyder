@@ -100,7 +100,8 @@ def editor_splitter_lsp(qtbot_module, lsp_plugin, request):
         editorsplitter.close()
 
     request.addfinalizer(teardown)
-    return editorsplitter, completions.lsp
+    lsp = completions.get_client('lsp')
+    return editorsplitter, lsp
 
 
 @pytest.fixture

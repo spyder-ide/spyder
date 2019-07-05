@@ -91,7 +91,8 @@ def fallback_codeeditor(qtbot_module, request):
         editor.completion_widget.hide()
 
     request.addfinalizer(teardown)
-    return editor, completions.fallback
+    fallback = completions.get_client('fallback')
+    return editor, fallback
 
 
 @pytest.fixture

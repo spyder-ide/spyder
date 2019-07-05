@@ -210,8 +210,5 @@ class CompletionManager(SpyderCompletionManager):
                 client_info['plugin'].stop_client(language)
         self.language_status.pop(language)
 
-    def __getattr__(self, name):
-        if name in self.clients:
-            return self.clients[name]['plugin']
-        else:
-            return super().__getattr__(name)
+    def get_client(self, name):
+        return self.clients[name]['plugin']
