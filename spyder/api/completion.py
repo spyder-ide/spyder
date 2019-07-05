@@ -16,7 +16,7 @@ from qtpy.QtCore import QObject, Signal
 from spyder.api.plugins import SpyderPlugin
 
 
-class SpyderCompletionPlugin(QObject, SpyderPlugin):
+class SpyderCompletionManager(QObject, SpyderPlugin):
     """
     Spyder plugin API for completion clients.
 

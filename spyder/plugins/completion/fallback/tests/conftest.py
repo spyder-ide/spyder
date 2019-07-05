@@ -13,7 +13,7 @@ from spyder.plugins.completion.languageserver.tests.conftest import (
     qtbot_module)
 
 
-class CompletionPluginMock(QObject):
+class CompletionManagerMock(QObject):
     sig_recv_tokens = Signal(list)
 
     def handle_response(self, client, req_id, response):
@@ -24,7 +24,7 @@ class CompletionPluginMock(QObject):
 @pytest.fixture(scope='module')
 def fallback_completions(qtbot_module, request):
     fallback = FallbackPlugin(None)
-    completions = CompletionPluginMock(None)
+    completions = CompletionManagerMock(None)
     qtbot_module.addWidget(fallback)
     qtbot_module.addWidget(completions)
 

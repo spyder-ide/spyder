@@ -880,8 +880,8 @@ class MainWindow(QMainWindow):
 
         # Code completion client initialization
         self.set_splash(_("Starting code completion plugin..."))
-        from spyder.plugins.completion.plugin import CompletionPlugin
-        self.completions = CompletionPlugin(self)
+        from spyder.plugins.completion.plugin import CompletionManager
+        self.completions = CompletionManager(self)
 
         # Working directory plugin
         logger.info("Loading working directory...")
