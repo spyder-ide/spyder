@@ -36,7 +36,8 @@ from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
 from spyder.plugins.projects.widgets import EmptyProject
 from spyder.plugins.completion.languageserver import (
     LSPRequestTypes, FileChangeType)
-from spyder.plugins.editor.utils.lsp import request, handles, class_register
+from spyder.plugins.completion.decorators import (
+    request, handles, class_register)
 
 
 @class_register
