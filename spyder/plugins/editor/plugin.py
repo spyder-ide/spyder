@@ -835,7 +835,7 @@ class Editor(SpyderPluginWidget):
             _("Clear this list"), tip=_("Clear recent files list"),
             triggered=self.clear_recent_files)
 
-        # Fixes issue 6055
+        # Fixes spyder-ide/spyder#6055.
         # See: https://bugreports.qt.io/browse/QTBUG-8596
         self.tab_navigation_actions = []
         if sys.platform == 'darwin':
@@ -1171,7 +1171,7 @@ class Editor(SpyderPluginWidget):
             # The first editostack is registered automatically with Spyder's
             # main window through the `register_plugin` method. Only additional
             # editors added by splitting need to be registered.
-            # See Issue #5057.
+            # See spyder-ide/spyder#5057.
             self.main.fileswitcher.sig_goto_file.connect(
                       editorstack.set_stack_index)
 
@@ -1859,7 +1859,7 @@ class Editor(SpyderPluginWidget):
         if self.editorwindows and not self.dockwidget.isVisible():
             # We override the editorwindow variable to force a focus on
             # the editor window instead of the hidden editor dockwidget.
-            # See PR #5742.
+            # See spyder-ide/spyder#5742.
             if editorwindow not in self.editorwindows:
                 editorwindow = self.editorwindows[0]
             editorwindow.setFocus()
@@ -2362,11 +2362,11 @@ class Editor(SpyderPluginWidget):
             fname = osp.abspath(self.get_current_filename())
 
             # Get fname's dirname before we escape the single and double
-            # quotes (Fixes Issue #6771)
+            # quotes. Fixes spyder-ide/spyder#6771.
             dirname = osp.dirname(fname)
 
-            # Escape single and double quotes in fname and dirname
-            # (Fixes Issue #2158)
+            # Escape single and double quotes in fname and dirname.
+            # Fixes spyder-ide/spyder#2158.
             fname = fname.replace("'", r"\'").replace('"', r'\"')
             dirname = dirname.replace("'", r"\'").replace('"', r'\"')
 
@@ -2723,8 +2723,9 @@ class Editor(SpyderPluginWidget):
         all_filenames = self.autosave.recover_files_to_open + filenames
         if all_filenames and any([osp.isfile(f) for f in all_filenames]):
             layout = self.get_option('layout_settings', None)
-            # Check if no saved layout settings exist, e.g. clean prefs file
-            # If not, load with default focus/layout, to fix issue #8458 .
+            # Check if no saved layout settings exist, e.g. clean prefs file.
+            # If not, load with default focus/layout, to fix
+            # spyder-ide/spyder#8458.
             if layout:
                 is_vertical, cfname, clines = layout.get('splitsettings')[0]
                 if cfname in filenames:

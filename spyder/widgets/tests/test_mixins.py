@@ -35,7 +35,7 @@ def test_get_unicode_regexp(mixinsbot):
     Test that we can search with regexp's containing unicode
     characters.
 
-    For issue 6812
+    For spyder-ide/spyder#6812.
     """
     qtbot, widget = mixinsbot
     get = widget.get_number_matches
@@ -91,13 +91,13 @@ def test_get_number_matches(mixinsbot):
     assert get('e[A-Z]?f', source_text=code, case=True, regexp=True,
                word=True) == 0
 
-    # Issue 5680.
+    # spyder-ide/spyder#5680.
     assert get('(', source_text=code) == 3
     assert get('(', source_text=code, case=True) == 3
     assert get('(', source_text=code, regexp=True) is None
     assert get('(', source_text=code, case=True, regexp=True) is None
 
-    # spyder-ide/spyder#7960
+    # spyder-ide/spyder#7960.
     assert get('a', source_text=code) == 4
     assert get('a', source_text=code, case=True) == 4
     assert get('a', source_text=code, regexp=True) == 4
@@ -124,7 +124,7 @@ def test_get_match_number(mixinsbot):
     # Empty pattern.
     assert get('') == 0
 
-    # Issue 5680.
+    # spyder-ide/spyder#5680.
     widget.find_text('(')
     assert get('(') == 1
 
@@ -141,7 +141,11 @@ def test_get_match_number(mixinsbot):
 
 
 def test_get_number_with_words(mixinsbot):
-    # Dedicated test for spyder-ide/spyder#7960
+    """
+    Test that find count honours the word setting.
+
+    Dedicated test for spyder-ide/spyder#7960.
+    """
     qtbot, widget = mixinsbot
     getn = widget.get_number_matches
     getm = widget.get_match_number

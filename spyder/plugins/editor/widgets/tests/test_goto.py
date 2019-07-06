@@ -108,7 +108,7 @@ def test_goto_uri(qtbot, editorbot, mocker, params):
         print([args])
         output_1 = args[0]
 
-        # Tests spyder-ide/spyder#9614
+        # Tests spyder-ide/spyder#9614.
         output_2 = code_editor.go_to_uri_from_cursor(expected_output_1)
 
         assert expected_output_1 in output_1

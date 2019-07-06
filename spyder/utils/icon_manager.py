@@ -370,8 +370,8 @@ def get_icon(name, default=None, resample=False):
     default: default image name or icon
     resample: if True, manually resample icon pixmaps for usual sizes
     (16, 24, 32, 48, 96, 128, 256). This is recommended for QMainWindow icons
-    created from SVG images on non-Windows platforms due to a Qt bug (see
-    Issue 1314).
+    created from SVG images on non-Windows platforms due to a Qt bug.
+    See spyder-ide/spyder#1314.
     """
 
     icon_path = get_image_path(name, default=None)
@@ -457,7 +457,7 @@ def get_icon_by_extension_or_type(fname, scale_factor):
                 icon_by_extension = icon('TextFileIcon', scale_factor)
             elif mime_type is not None:
                 try:
-                    # Fix for issue 5080. Even though
+                    # Fix for spyder-ide/spyder#5080. Even though
                     # mimetypes.guess_type documentation states that
                     # the return value will be None or a tuple of
                     # the form type/subtype, in the Windows registry,
