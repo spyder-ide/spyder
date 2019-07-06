@@ -88,14 +88,14 @@ class ProxyObject(object):
 
     def __getitem__(self, key):
         """Get the attribute corresponding to the given key."""
-        # Catch NotImplementedError to fix #6284 in pandas MultiIndex
-        # due to NA checking not being supported on a multiindex.
-        # Catch AttributeError to fix #5642 in certain special classes like xml
-        # when this method is called on certain attributes.
+        # Catch NotImplementedError to fix spyder-ide/spyder#6284 in pandas
+        # MultiIndex due to NA checking not being supported on a multiindex.
+        # Catch AttributeError to fix spyder-ide/spyder#5642 in certain special
+        # classes like xml when this method is called on certain attributes.
         # Catch TypeError to prevent fatal Python crash to desktop after
-        # modifying certain pandas objects. Fix issue #6727 .
+        # modifying certain pandas objects. Fix spyder-ide/spyder#6727.
         # Catch ValueError to allow viewing and editing of pandas offsets.
-        # Fix issue #6728 .
+        # Fix spyder-ide/spyder#6728-
         try:
             attribute_toreturn = getattr(self.__obj__, key)
         except (NotImplementedError, AttributeError, TypeError, ValueError):
@@ -106,7 +106,8 @@ class ProxyObject(object):
         """Set attribute corresponding to key with value."""
         # Catch AttributeError to gracefully handle inability to set an
         # attribute due to it not being writeable or set-table.
-        # Fix issue #6728 . Also, catch NotImplementedError for safety.
+        # Fix spyder-ide/spyder#6728.
+        # Also, catch NotImplementedError for safety.
         try:
             setattr(self.__obj__, key, value)
         except (TypeError, AttributeError, NotImplementedError):
@@ -146,7 +147,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         self.sizes = []
         self.types = []
         self.set_data(data)
-        
+
     def get_data(self):
         """Return model data"""
         return self._data
@@ -202,7 +203,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
 
     def set_size_and_type(self, start=None, stop=None):
         data = self._data
-        
+
         if start is None and stop is None:
             start = 0
             stop = self.rows_loaded
@@ -278,13 +279,13 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             return self.total_rows
         else:
             return self.rows_loaded
-    
+
     def canFetchMore(self, index=QModelIndex()):
         if self.total_rows > self.rows_loaded:
             return True
         else:
             return False
- 
+
     def fetchMore(self, index=QModelIndex()):
         reminder = self.total_rows - self.rows_loaded
         items_to_fetch = min(reminder, ROWS_TO_LOAD)
@@ -294,17 +295,17 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
                              self.rows_loaded + items_to_fetch - 1)
         self.rows_loaded += items_to_fetch
         self.endInsertRows()
-    
+
     def get_index_from_key(self, key):
         try:
             return self.createIndex(self.keys.index(key), 0)
         except (RuntimeError, ValueError):
             return QModelIndex()
-    
+
     def get_key(self, index):
         """Return current key"""
         return self.keys[index.row()]
-    
+
     def get_value(self, index):
         """Return current value"""
         if index.column() == 0:
@@ -430,11 +431,11 @@ class CollectionsDelegate(QItemDelegate):
     def __init__(self, parent=None):
         QItemDelegate.__init__(self, parent)
         self._editors = {} # keep references on opened editors
-        
+
     def get_value(self, index):
         if index.isValid():
             return index.model().get_value(index)
-    
+
     def set_value(self, index, value):
         if index.isValid():
             index.model().set_value(index, value)
@@ -447,7 +448,7 @@ class CollectionsDelegate(QItemDelegate):
         This avoids getting the variables' value to know its
         size and type, using instead those already computed by
         the TableModel.
-        
+
         The problem is when a variable is too big, it can take a
         lot of time just to get its value
         """
@@ -619,16 +620,16 @@ class CollectionsDelegate(QItemDelegate):
             conv_func = data.get('conv', lambda v: v)
             self.set_value(index, conv_func(value))
         # This is needed to avoid the problem reported on
-        # issue 8557
+        # spyder-ide/spyder#8557.
         try:
             self._editors.pop(editor_id)
         except KeyError:
             pass
         self.free_memory()
-        
+
     def editor_rejected(self, editor_id):
         # This is needed to avoid the problem reported on
-        # issue 8557
+        # spyder-ide/spyder#8557.
         try:
             self._editors.pop(editor_id)
         except KeyError:
@@ -681,7 +682,7 @@ class CollectionsDelegate(QItemDelegate):
         if not hasattr(model, "set_value"):
             # Read-only mode
             return
-        
+
         if isinstance(editor, QLineEdit):
             value = editor.text()
             try:
@@ -776,13 +777,13 @@ class BaseTableView(QTableView):
         # Sorting columns
         self.setSortingEnabled(True)
         self.sortByColumn(0, Qt.AscendingOrder)
-    
+
     def setup_menu(self, minmax):
         """Setup context menu"""
         if self.minmax_action is not None:
             self.minmax_action.setChecked(minmax)
             return
-        
+
         resize_action = create_action(self, _("Resize rows to contents"),
                                       triggered=self.resizeRowsToContents)
         resize_columns_action = create_action(
@@ -851,7 +852,7 @@ class BaseTableView(QTableView):
                     [self.insert_action, self.paste_action,
                      None, resize_action, resize_columns_action])
         return menu
-    
+
     #------ Remote/local API --------------------------------------------------
     def remove_values(self, keys):
         """Remove values from data"""
@@ -860,19 +861,19 @@ class BaseTableView(QTableView):
     def copy_value(self, orig_key, new_key):
         """Copy value"""
         raise NotImplementedError
-    
+
     def new_value(self, key, value):
         """Create new value in data"""
         raise NotImplementedError
-        
+
     def is_list(self, key):
         """Return True if variable is a list, a set or a tuple"""
         raise NotImplementedError
-        
+
     def get_len(self, key):
         """Return sequence length"""
         raise NotImplementedError
-        
+
     def is_array(self, key):
         """Return True if variable is a numpy array"""
         raise NotImplementedError
@@ -880,36 +881,36 @@ class BaseTableView(QTableView):
     def is_image(self, key):
         """Return True if variable is a PIL.Image image"""
         raise NotImplementedError
-    
+
     def is_dict(self, key):
         """Return True if variable is a dictionary"""
         raise NotImplementedError
-        
+
     def get_array_shape(self, key):
         """Return array's shape"""
         raise NotImplementedError
-        
+
     def get_array_ndim(self, key):
         """Return array's ndim"""
         raise NotImplementedError
-    
+
     def oedit(self, key):
         """Edit item"""
         raise NotImplementedError
-    
+
     def plot(self, key, funcname):
         """Plot item"""
         raise NotImplementedError
-    
+
     def imshow(self, key):
         """Show item's image"""
         raise NotImplementedError
-    
+
     def show_image(self, key):
         """Show image (item is a PIL image)"""
         raise NotImplementedError
     #--------------------------------------------------------------------------
-            
+
     def refresh_menu(self):
         """Refresh context menu"""
         index = self.currentIndex()
@@ -917,7 +918,7 @@ class BaseTableView(QTableView):
         self.edit_action.setEnabled( condition )
         self.remove_action.setEnabled( condition )
         self.refresh_plot_entries(index)
-        
+
     def refresh_plot_entries(self, index):
         if index.isValid():
             key = self.model.get_key(index)
@@ -971,7 +972,7 @@ class BaseTableView(QTableView):
         else:
             self.clearSelection()
             event.accept()
-    
+
     def mouseDoubleClickEvent(self, event):
         """Reimplement Qt method"""
         index_clicked = self.indexAt(event.pos())
@@ -982,7 +983,7 @@ class BaseTableView(QTableView):
             self.edit(index_clicked)
         else:
             event.accept()
-    
+
     def keyPressEvent(self, event):
         """Reimplement Qt methods"""
         if event.key() == Qt.Key_Delete:
@@ -995,7 +996,7 @@ class BaseTableView(QTableView):
             self.paste()
         else:
             QTableView.keyPressEvent(self, event)
-        
+
     def contextMenuEvent(self, event):
         """Reimplement Qt method"""
         if self.model.showndata:
@@ -1012,7 +1013,7 @@ class BaseTableView(QTableView):
             event.accept()
         else:
             event.ignore()
-    
+
     def dragMoveEvent(self, event):
         """Allow user to move files"""
         if mimedata2url(event.mimeData()):
@@ -1230,7 +1231,7 @@ class BaseTableView(QTableView):
                                      _("<b>Unable to save array</b>"
                                        "<br><br>Error message:<br>%s"
                                        ) % str(error))
-    
+
     @Slot()
     def copy(self):
         """Copy text to clipboard"""
@@ -1346,13 +1347,13 @@ class CollectionsEditorTableView(BaseTableView):
         else:
             data[new_key] = data[orig_key]
         self.set_data(data)
-    
+
     def new_value(self, key, value):
         """Create new value in data"""
         data = self.model.get_data()
         data[key] = value
         self.set_data(data)
-        
+
     def is_list(self, key):
         """Return True if variable is a list or a tuple"""
         data = self.model.get_data()
@@ -1367,27 +1368,27 @@ class CollectionsEditorTableView(BaseTableView):
         """Return sequence length"""
         data = self.model.get_data()
         return len(data[key])
-        
+
     def is_array(self, key):
         """Return True if variable is a numpy array"""
         data = self.model.get_data()
         return isinstance(data[key], (ndarray, MaskedArray))
-        
+
     def is_image(self, key):
         """Return True if variable is a PIL.Image image"""
         data = self.model.get_data()
         return isinstance(data[key], Image)
-    
+
     def is_dict(self, key):
         """Return True if variable is a dictionary"""
         data = self.model.get_data()
         return isinstance(data[key], dict)
-        
+
     def get_array_shape(self, key):
         """Return array's shape"""
         data = self.model.get_data()
         return data[key].shape
-        
+
     def get_array_ndim(self, key):
         """Return array's ndim"""
         data = self.model.get_data()
@@ -1407,7 +1408,7 @@ class CollectionsEditorTableView(BaseTableView):
         plt.figure()
         getattr(plt, funcname)(data[key])
         plt.show()
-    
+
     def imshow(self, key):
         """Show item's image"""
         data = self.model.get_data()
@@ -1415,7 +1416,7 @@ class CollectionsEditorTableView(BaseTableView):
         plt.figure()
         plt.imshow(data[key])
         plt.show()
-            
+
     def show_image(self, key):
         """Show image (item is a PIL image)"""
         data = self.model.get_data()
@@ -1435,7 +1436,7 @@ class CollectionsEditorTableView(BaseTableView):
         condition_rename = not isinstance(data, (tuple, list, set))
         self.rename_action.setEnabled(condition_rename)
         self.refresh_plot_entries(index)
-        
+
     def set_filter(self, dictfilter=None):
         """Set table dict filter"""
         self.dictfilter = dictfilter
@@ -1453,11 +1454,11 @@ class CollectionsEditorWidget(QWidget):
         layout = QVBoxLayout()
         layout.addWidget(self.editor)
         self.setLayout(layout)
-        
+
     def set_data(self, data):
         """Set DictEditor data"""
         self.editor.set_data(data)
-        
+
     def get_title(self):
         """Get model title"""
         return self.editor.model.title
@@ -1503,7 +1504,7 @@ class CollectionsEditor(QDialog):
             datalen = len(get_object_attrs(data))
 
         # If the copy has a different type, then do not allow editing, because
-        # this would change the type after saving; cf. issue #6936
+        # this would change the type after saving; cf. spyder-ide/spyder#6936.
         if type(self.data_copy) != type(data):
             readonly = True
 
@@ -1578,7 +1579,7 @@ class RemoteCollectionsDelegate(CollectionsDelegate):
         if index.isValid():
             name = index.model().keys[index.row()]
             return self.parent().get_value(name)
-    
+
     def set_value(self, index, value):
         if index.isValid():
             name = index.model().keys[index.row()]
@@ -1632,7 +1633,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
             # them to the kernel in Python 2
             svalue = [cloudpickle.dumps(value, protocol=PICKLE_PROTOCOL)]
 
-            # Needed to prevent memory leaks. See issue 7158
+            # Needed to prevent memory leaks. See spyder-ide/spyder#7158.
             if len(svalue) < MAX_SERIALIZED_LENGHT:
                 self.shellwidget.set_value(name, svalue)
             else:
@@ -1804,7 +1805,7 @@ def get_test_data():
             'None': None,
             'unsupported1': np.arccos,
             'unsupported2': np.cast,
-            # Test for Issue #3518
+            # Test for spyder-ide/spyder#3518.
             'big_struct_array': np.zeros(1000, dtype=[('ID', 'f8'),
                                                       ('param1', 'f8', 5000)]),
             }

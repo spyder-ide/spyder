@@ -72,7 +72,7 @@ class TextDecorationsManager(Manager):
         except ValueError:
             return False
         except RuntimeError:
-            # This is needed to fix issue 9173
+            # This is needed to fix spyder-ide/spyder#9173.
             pass
 
     def clear(self):

@@ -47,7 +47,8 @@ class StatusBarWidget(QWidget):
         # Widget setup
         if icon is not None:
             self.label_icon.setPixmap(self._pixmap)
-        self.text_font = QFont(get_font(option='font'))  # See Issue #9044
+        # See spyder-ide/spyder#9044.
+        self.text_font = QFont(get_font(option='font'))
         self.text_font.setPointSize(self.font().pointSize())
         self.text_font.setBold(True)
         self.label_value.setAlignment(Qt.AlignRight)

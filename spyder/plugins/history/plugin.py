@@ -82,11 +82,11 @@ class HistoryLog(SpyderPluginWidget):
     def get_plugin_title(self):
         """Return widget title."""
         return _('History')
-    
+
     def get_plugin_icon(self):
         """Return widget icon."""
         return ima.icon('history')
-    
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
@@ -122,7 +122,7 @@ class HistoryLog(SpyderPluginWidget):
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""
         self.tabify(self.main.ipyconsole)
-    
+
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.focus_changed.connect(self.main.plugin_focus_changed)
@@ -205,7 +205,7 @@ class HistoryLog(SpyderPluginWidget):
             text = text[linebreaks[-maxNline - 1] + 1:]
             # Avoid an error when trying to write the trimmed text to
             # disk.
-            # See issue 9093
+            # See spyder-ide/spyder#9093.
             try:
                 encoding.write(text, filename)
             except (IOError, OSError):
@@ -234,7 +234,7 @@ class HistoryLog(SpyderPluginWidget):
         if self.get_option('go_to_eof'):
             self.editors[index].set_cursor_position('eof')
         self.tabwidget.setCurrentIndex(index)
-    
+
     @Slot()
     def change_history_depth(self):
         "Change history max entries"""

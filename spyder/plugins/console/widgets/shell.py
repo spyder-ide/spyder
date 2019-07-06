@@ -546,7 +546,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
 
     def flush(self, error=False, prompt=False):
         """Flush buffer, write text to console"""
-        # Fix for Issue 2452
+        # Fix for spyder-ide/spyder#2452
         if PY3:
             try:
                 text = "".join(self.__buffer)
