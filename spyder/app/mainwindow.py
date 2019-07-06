@@ -318,10 +318,10 @@ class MainWindow(QMainWindow):
         QMainWindow.__init__(self)
         qapp = QApplication.instance()
 
-        from spyder.utils.qthelpers import SpyderProxyStyle
         if running_under_pytest():
             self._proxy_style = None
         else:
+            from spyder.utils.qthelpers import SpyderProxyStyle
             # None is needed, see: https://bugreports.qt.io/browse/PYSIDE-922
             self._proxy_style = SpyderProxyStyle(None)
 
