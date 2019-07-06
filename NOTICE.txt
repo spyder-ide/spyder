@@ -1214,7 +1214,6 @@ spyder/images/matplotlib.png
 spyder/images/none.png
 spyder/images/not_found.png
 spyder/images/options.svg
-spyder/images/set_workdir.png
 spyder/images/splash.png
 spyder/images/spyder.svg
 spyder/images/spyder_light.svg
@@ -1222,7 +1221,6 @@ spyder/images/whole_words.png
 spyder/images/win_env.png
 spyder/images/actions/hist.png
 spyder/images/console/ipython_console.png
-spyder/images/console/ipython_console_t.png
 spyder/images/editor/attribute.png
 spyder/images/editor/blockcomment.png
 spyder/images/editor/cell.png
@@ -1279,7 +1277,6 @@ spyder/images/arrow.png
 spyder/images/bold.png
 spyder/images/browser.png
 spyder/images/ext_tools.png
-spyder/images/font.png
 spyder/images/genprefs.png
 spyder/images/help.png
 spyder/images/italic.png
@@ -1290,10 +1287,8 @@ spyder/images/actions/1downarrow.png
 spyder/images/actions/1uparrow.png
 spyder/images/actions/2downarrow.png
 spyder/images/actions/2uparrow.png
-spyder/images/actions/auto_reload.png
 spyder/images/actions/browse_tab.png
 spyder/images/actions/check.png
-spyder/images/actions/cmdprompt.png
 spyder/images/actions/configure.png
 spyder/images/actions/copywop.png
 spyder/images/actions/delete.png
@@ -1326,7 +1321,6 @@ spyder/images/actions/options_more.png
 spyder/images/actions/plot.png
 spyder/images/actions/previous.png
 spyder/images/actions/redo.png
-spyder/images/actions/reload.png
 spyder/images/actions/rename.png
 spyder/images/actions/replace.png
 spyder/images/actions/show.png
@@ -1338,11 +1332,9 @@ spyder/images/actions/up.png
 spyder/images/actions/zoom_in.png
 spyder/images/actions/zoom_out.png
 spyder/images/console/clear.png
-spyder/images/console/cmdprompt_t.png
 spyder/images/console/console.png
 spyder/images/console/environ.png
 spyder/images/console/history.png
-spyder/images/console/history24.png
 spyder/images/console/kill.png
 spyder/images/console/prompt.png
 spyder/images/console/restart.png
@@ -1443,7 +1435,6 @@ spyder/images/actions/stop.png
 spyder/images/actions/stop_debug.png
 spyder/images/actions/unmaximize.png
 spyder/images/actions/window_fullscreen.png
-spyder/images/console/terminated.png
 spyder/images/editor/breakpoint_big.png
 spyder/images/editor/breakpoint_cond_big.png
 spyder/images/editor/breakpoint_cond_small.png
