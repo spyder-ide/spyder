@@ -218,8 +218,8 @@ class FindReplace(QWidget):
         togglereplace = config_shortcut(self.show_replace,
                                         context='_', name='Replace text',
                                         parent=parent)
-        hide = config_shortcut(self.hide, context='_', name='hide find and replace',
-                               parent=self)
+        hide = config_shortcut(self.hide, context='_',
+                               name='hide find and replace', parent=self)
 
         return [findnext, findprev, togglefind, togglereplace, hide]
 
@@ -246,7 +246,7 @@ class FindReplace(QWidget):
                 self.hide()
             else:
                 self.show_replace()
-                if len(to_text_string(self.search_text.currentText()))>0:
+                if len(to_text_string(self.search_text.currentText())) > 0:
                     self.replace_text.setFocus()
 
     @Slot(bool)
@@ -270,7 +270,7 @@ class FindReplace(QWidget):
             text = self.editor.get_selected_text()
             # When selecting several lines, and replace box is activated the
             # text won't be replaced for the selection
-            if hide_replace or len(text.splitlines())<=1:
+            if hide_replace or len(text.splitlines()) <= 1:
                 highlighted = True
                 # If no text is highlighted for search, use whatever word is
                 # under the cursor
@@ -376,25 +376,27 @@ class FindReplace(QWidget):
         """Highlight found results"""
         if self.is_code_editor and self.highlight_button.isChecked():
             text = self.search_text.currentText()
-            words = self.words_button.isChecked()
+            case = self.case_button.isChecked()
+            word = self.words_button.isChecked()
             regexp = self.re_button.isChecked()
-            self.editor.highlight_found_results(text, words=words,
-                                                regexp=regexp)
+            self.editor.highlight_found_results(text, word=word,
+                                                regexp=regexp, case=case)
 
     def clear_matches(self):
         """Clear all highlighted matches"""
         if self.is_code_editor:
             self.editor.clear_found_results()
 
-    def find(self, changed=True, forward=True,
-             rehighlight=True, start_highlight_timer=False, multiline_replace_check=True):
+    def find(self, changed=True, forward=True, rehighlight=True,
+             start_highlight_timer=False, multiline_replace_check=True):
         """Call the find function"""
-        # When several lines are selected in the editor and replace box is activated,
-        # dynamic search is deactivated to prevent changing the selection. Otherwise
-        # we show matching items.
-        if multiline_replace_check and self.replace_widgets[0].isVisible() and \
-           len(to_text_string(self.editor.get_selected_text()).splitlines())>1:
-            return None
+        # When several lines are selected in the editor and replace box is
+        # activated, dynamic search is deactivated to prevent changing the
+        # selection. Otherwise we show matching items.
+        if multiline_replace_check and self.replace_widgets[0].isVisible():
+            sel_text = self.editor.get_selected_text()
+            if len(to_text_string(sel_text).splitlines()) > 1:
+                return None
         text = self.search_text.currentText()
         if len(text) == 0:
             self.search_text.lineEdit().setStyleSheet("")
@@ -405,10 +407,10 @@ class FindReplace(QWidget):
             return None
         else:
             case = self.case_button.isChecked()
-            words = self.words_button.isChecked()
+            word = self.words_button.isChecked()
             regexp = self.re_button.isChecked()
             found = self.editor.find_text(text, changed, forward, case=case,
-                                          words=words, regexp=regexp)
+                                          word=word, regexp=regexp)
 
             stylesheet = self.STYLE[found]
             tooltip = self.TOOLTIP[found]
@@ -434,10 +436,12 @@ class FindReplace(QWidget):
                 self.clear_matches()
 
             number_matches = self.editor.get_number_matches(text, case=case,
-                                                            regexp=regexp)
+                                                            regexp=regexp,
+                                                            word=word)
             if hasattr(self.editor, 'get_match_number'):
                 match_number = self.editor.get_match_number(text, case=case,
-                                                            regexp=regexp)
+                                                            regexp=regexp,
+                                                            word=word)
             else:
                 match_number = 0
             self.change_number_matches(current_match=match_number,
@@ -451,11 +455,12 @@ class FindReplace(QWidget):
             replace_text = to_text_string(self.replace_text.currentText())
             search_text = to_text_string(self.search_text.currentText())
             re_pattern = None
-
+            case = self.case_button.isChecked()
+            re_flags = re.MULTILINE if case else re.IGNORECASE | re.MULTILINE
             # Check regexp before proceeding
             if self.re_button.isChecked():
                 try:
-                    re_pattern = re.compile(search_text)
+                    re_pattern = re.compile(search_text, flags=re_flags)
                     # Check if replace_text can be substituted in re_pattern
                     # Fixes issue #7177
                     re_pattern.sub(replace_text, '')
@@ -463,7 +468,6 @@ class FindReplace(QWidget):
                     # Do nothing with an invalid regexp
                     return
 
-            case = self.case_button.isChecked()
             first = True
             cursor = None
             while True:
@@ -547,8 +551,8 @@ class FindReplace(QWidget):
             replace_text = to_text_string(self.replace_text.currentText())
             search_text = to_text_string(self.search_text.currentText())
             case = self.case_button.isChecked()
-            words = self.words_button.isChecked()
-            re_flags = re.MULTILINE if case else re.IGNORECASE|re.MULTILINE
+            word = self.words_button.isChecked()
+            re_flags = re.MULTILINE if case else re.IGNORECASE | re.MULTILINE
 
             re_pattern = None
             if self.re_button.isChecked():
@@ -556,7 +560,7 @@ class FindReplace(QWidget):
             else:
                 pattern = re.escape(search_text)
                 replace_text = replace_text.replace('\\', r'\\')
-            if words:  # match whole words only
+            if word:  # match whole words only
                 pattern = r'\b{pattern}\b'.format(pattern=pattern)
 
             # Check regexp before proceeding

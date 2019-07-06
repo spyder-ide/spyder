@@ -1552,17 +1552,19 @@ class CodeEditor(TextEditBaseWidget):
         self.sig_flags_changed.emit()
 
     #-----highlight found results (find/replace widget)
-    def highlight_found_results(self, pattern, words=False, regexp=False):
+    def highlight_found_results(self, pattern, word=False, regexp=False,
+                                case=False):
         """Highlight all found patterns"""
         pattern = to_text_string(pattern)
         if not pattern:
             return
         if not regexp:
             pattern = re.escape(to_text_string(pattern))
-        pattern = r"\b%s\b" % pattern if words else pattern
+        pattern = r"\b%s\b" % pattern if word else pattern
         text = to_text_string(self.toPlainText())
+        re_flags = re.MULTILINE if case else re.IGNORECASE | re.MULTILINE
         try:
-            regobj = re.compile(pattern)
+            regobj = re.compile(pattern, flags=re_flags)
         except sre_constants.error:
             return
         extra_selections = []
@@ -3619,7 +3621,12 @@ class CodeEditor(TextEditBaseWidget):
             # Check if still on the line
             return 0
 
-        if not self.strip_trailing_spaces_on_modify:
+        # Check if end of line in string
+        cursor = self.textCursor()
+        cursor.setPosition(line_range[1])
+
+        if (not self.strip_trailing_spaces_on_modify
+                or self.in_string(cursor=cursor)):
             if self.last_auto_indent is None:
                 return 0
             elif (self.last_auto_indent !=
@@ -3631,12 +3638,6 @@ class CodeEditor(TextEditBaseWidget):
             self.last_auto_indent = None
         elif not pos_in_line(self.last_change_position):
             # Should process if pressed return or made a change on the line:
-            return 0
-
-        # Check if end of line in string
-        cursor = self.textCursor()
-        cursor.setPosition(line_range[1])
-        if self.in_string(cursor=cursor):
             return 0
 
         cursor.setPosition(line_range[0])
@@ -3655,6 +3656,7 @@ class CodeEditor(TextEditBaseWidget):
             self.document_did_change()
             # Correct last change position
             self.last_change_position = line_range[1]
+            self.last_position = self.textCursor().position()
             return line_range[1] - (line_range[0] + len(strip))
         return 0
 

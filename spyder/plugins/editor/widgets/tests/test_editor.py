@@ -401,6 +401,32 @@ def test_replace_invalid_regex(editor_find_replace_bot, qtbot):
     assert editor.toPlainText() == old_text
 
 
+def test_replace_honouring_case(editor_find_replace_bot, qtbot):
+    editor_stack, editor, finder = editor_find_replace_bot
+    expected_new_text = ('Spam bacon\n'
+                         'Spam sausage\n'
+                         'Spam egg\n'
+                         'Spam potatoes')
+    qtbot.keyClicks(editor, 'SpaM potatoes')
+
+    finder.show()
+    finder.show_replace()
+    qtbot.keyClicks(finder.search_text, 'Spa[a-z]')
+    qtbot.keyClicks(finder.replace_text, 'Spam')
+
+    # Make sure regex button is set
+    if not finder.re_button.isChecked():
+        qtbot.mouseClick(finder.re_button, Qt.LeftButton)
+
+    # Make sure case button is not set
+    if finder.case_button.isChecked():
+        qtbot.mouseClick(finder.case_button, Qt.LeftButton)
+
+    # Replace all
+    qtbot.mouseClick(finder.replace_all_button, Qt.LeftButton)
+    assert editor.toPlainText() == expected_new_text
+
+
 def test_selection_escape_characters(editor_find_replace_bot, qtbot):
     editor_stack, editor, finder = editor_find_replace_bot
     expected_new_text = ('spam bacon\n'
