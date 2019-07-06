@@ -323,7 +323,7 @@ class DataFrameModel(QAbstractTableModel):
                     return to_qvariant(self._format % value)
                 except (ValueError, TypeError):
                     # may happen if format = '%d' and value = NaN;
-                    # see spyder-ide/spyder#4139
+                    # see spyder-ide/spyder#4139.
                     return to_qvariant(DEFAULT_FORMAT % value)
             elif is_type_text_string(value):
                 # Don't perform any conversion on strings
@@ -368,11 +368,13 @@ class DataFrameModel(QAbstractTableModel):
                                  ascending=ascending, inplace=True,
                                  kind='mergesort')
                 except ValueError as e:
-                    # Not possible to sort on duplicate columns #5225
+                    # Not possible to sort on duplicate columns
+                    # See spyder-ide/spyder#5225.
                     QMessageBox.critical(self.dialog, "Error",
                                          "ValueError: %s" % to_text_string(e))
                 except SystemError as e:
-                    # Not possible to sort on category dtypes #5361
+                    # Not possible to sort on category dtypes
+                    # See spyder-ide/spyder#5361.
                     QMessageBox.critical(self.dialog, "Error",
                                          "SystemError: %s" % to_text_string(e))
                 self.update_df_index()
@@ -440,7 +442,7 @@ class DataFrameModel(QAbstractTableModel):
         """DataFrame row number"""
         # Avoid a "Qt exception in virtual methods" generated in our
         # tests on Windows/Python 3.7
-        # See PR 8910
+        # See spyder-ide/spyder#8910.
         try:
             if self.total_rows <= self.rows_loaded:
                 return self.total_rows
@@ -470,7 +472,7 @@ class DataFrameModel(QAbstractTableModel):
         """DataFrame column number"""
         # Avoid a "Qt exception in virtual methods" generated in our
         # tests on Windows/Python 3.7
-        # See PR 8910
+        # See spyder-ide/spyder#8910.
         try:
             # This is done to implement series
             if len(self.df.shape) == 1:
@@ -533,7 +535,7 @@ class DataFrameView(QTableView):
 
         except NameError:
             # Needed to handle a NameError while fetching data when closing
-            # See spyder-ide/spyder#7880
+            # See spyder-ide/spyder#7880.
             pass
 
     def sortByColumn(self, index):

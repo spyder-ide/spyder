@@ -128,7 +128,7 @@ CMDCLASS = {'install_data': MyInstallData}
 #==============================================================================
 # NOTE: the '[...]_win_post_install.py' script is installed even on non-Windows
 # platforms due to a bug in pip installation process
-# (see spyder-ide/spyder#1158)
+# See spyder-ide/spyder#1158.
 SCRIPTS = ['%s_win_post_install.py' % NAME]
 if PY3 and sys.platform.startswith('linux'):
     SCRIPTS.append('spyder3')

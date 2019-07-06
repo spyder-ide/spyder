@@ -577,9 +577,14 @@ def test_get_current_word(base_editor_bot, qtbot):
     assert editor.get_current_word() == 'valid_python_word'
 
 
-def test_tab_keypress_properly_caught_find_replace(editor_find_replace_bot, qtbot):
-    """Test that tab works in find/replace dialog. Regression test for #3674.
-    Mock test—more isolated but less flimsy."""
+def test_tab_keypress_properly_caught_find_replace(editor_find_replace_bot,
+                                                   qtbot):
+    """
+    Test that tab works in find/replace dialog.
+
+    Regression test for spyder-ide/spyder#3674.
+    Mock test—more isolated but less flimsy.
+    """
     editor_stack, editor, finder = editor_find_replace_bot
     text = '  \nspam \nspam \nspam '
     editor.set_text(text)
@@ -593,9 +598,14 @@ def test_tab_keypress_properly_caught_find_replace(editor_find_replace_bot, qtbo
 
 @flaky(max_runs=3)
 @pytest.mark.skipif(platform.startswith('linux'), reason="Fails on Linux.")
-def test_tab_moves_focus_from_search_to_replace(editor_find_replace_bot, qtbot):
-    """Test that tab works in find/replace dialog. Regression test for #3674.
-    "Real world" test—more comprehensive but potentially less robust."""
+def test_tab_moves_focus_from_search_to_replace(editor_find_replace_bot,
+                                                qtbot):
+    """
+    Test that tab works in find/replace dialog.
+
+    Regression test for spyder-ide/spyder#3674.
+    "Real world" test—more comprehensive but potentially less robust.
+    """
     editor_stack, editor, finder = editor_find_replace_bot
     text = '  \nspam \nspam \nspam '
     editor.set_text(text)

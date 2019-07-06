@@ -198,7 +198,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
                 self.refresh_from_pdb(pdb_state)
         elif spyder_msg_type == 'pdb_continue':
             # Run Pdb continue to get to the first breakpoint
-            # Fixes spyder-ide/spyder#2034
+            # Fixes spyder-ide/spyder#2034.
             self.write_to_stdin('continue')
         elif spyder_msg_type == 'set_breakpoints':
             self.set_spyder_breakpoints(force=True)

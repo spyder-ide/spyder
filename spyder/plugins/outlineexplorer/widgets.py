@@ -384,7 +384,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         if editor is None:
             # This is needed when we can't find an editor to attach
             # the outline explorer to.
-            # Fix spyder-ide/spyder#8813
+            # Fix spyder-ide/spyder#8813.
             return
         editor_id = editor.get_id()
         if editor_id in list(self.editor_ids.values()):

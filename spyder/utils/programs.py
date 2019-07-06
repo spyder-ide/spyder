@@ -200,7 +200,7 @@ def start_file(filename):
     # We need to use setUrl instead of setPath because this is the only
     # cross-platform way to open external files. setPath fails completely on
     # Mac and doesn't open non-ascii files on Linux.
-    # Fixes spyder-ide/spyder#740
+    # Fixes spyder-ide/spyder#740.
     url = QUrl()
     url.setUrl(filename)
     return QDesktopServices.openUrl(url)
@@ -672,7 +672,7 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
         # encoding before passing them to subprocess, but only for
         # Python 2.
         # See https://bugs.python.org/issue1759845#msg74142 and
-        # spyder-ide/spyder#1856
+        # spyder-ide/spyder#1856.
         if PY2:
             cmd = encoding.to_fs_from_unicode(cmd)
             wdir = encoding.to_fs_from_unicode(wdir)

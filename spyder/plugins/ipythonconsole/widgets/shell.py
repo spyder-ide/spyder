@@ -241,7 +241,7 @@ the sympy module (e.g. plot)
                      "Are you sure you want to proceed?")
         # This is necessary to make resetting variables work in external
         # kernels.
-        # See spyder-ide/spyder#9505
+        # See spyder-ide/spyder#9505.
         try:
             kernel_env = self.kernel_manager._kernel_spec.env
         except AttributeError:
@@ -461,7 +461,7 @@ the sympy module (e.g. plot)
         %matplotlib, send the same command again to the kernel to
         correctly change it.
 
-        Fixes spyder-ide/spyder#4002
+        Fixes spyder-ide/spyder#4002.
         """
         if command.startswith('%matplotlib') and \
           len(command.splitlines()) == 1:

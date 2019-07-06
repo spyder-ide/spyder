@@ -80,7 +80,7 @@ os.environ['SPYDER_DEV'] = 'True'
 # --- Test environment for surprises
 
 # Warn if Spyder is located on non-ASCII path
-# See spyder-ide/spyder#812
+# See spyder-ide/spyder#812.
 try:
     osp.join(DEVPATH, 'test')
 except UnicodeDecodeError:

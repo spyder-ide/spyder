@@ -281,7 +281,7 @@ def test_filter_numpy_warning(main_window, qtbot):
     values and the Variable Explorer option 'Show arrays min/man'
     is on.
 
-    For spyder-ide/spyder#7063
+    For spyder-ide/spyder#7063.
     """
     shell = main_window.ipyconsole.get_current_shellwidget()
     control = shell._control
@@ -621,7 +621,7 @@ def test_dedicated_consoles(main_window, qtbot):
     assert nsb.editor.model.rowCount() == 4
 
     # --- Assert only runfile text is present and there's no banner text ---
-    # See PR #5301
+    # See spyder-ide/spyder#5301.
     text = control.toPlainText()
     assert ('runfile' in text) and not ('Python' in text or 'IPython' in text)
 
@@ -1104,7 +1104,7 @@ def test_open_files_in_new_editor_window(main_window, qtbot):
     This tests that opening files in a new editor window
     is working as expected.
 
-    Test for spyder-ide/spyder#4085
+    Test for spyder-ide/spyder#4085.
     """
     # Set a timer to manipulate the open dialog while it's running
     QTimer.singleShot(2000, lambda: open_file_in_editor(main_window,
@@ -1689,7 +1689,7 @@ def test_troubleshooting_menu_item_and_url(monkeypatch):
 @pytest.mark.slow
 def test_help_opens_when_show_tutorial_full(main_window, qtbot):
     """
-    Test fix for spyder-ide/spyder#6317 :
+    Test fix for spyder-ide/spyder#6317.
 
     'Show tutorial' opens the help plugin if closed.
     """

@@ -1315,7 +1315,7 @@ class SaveHistoryMixin(object):
             self.HISTORY_FILENAMES.append(self.history_filename)
             text = self.SEPARATOR + text
         # Needed to prevent errors when writing history to disk
-        # See spyder-ide/spyder#6431
+        # See spyder-ide/spyder#6431.
         try:
             encoding.write(text, self.history_filename, mode='ab')
         except EnvironmentError:

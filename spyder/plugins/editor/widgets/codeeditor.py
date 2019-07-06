@@ -398,7 +398,7 @@ class CodeEditor(TextEditBaseWidget):
         # Vertical scrollbar
         # This is required to avoid a "RuntimeError: no access to protected
         # functions or signals for objects not created from Python" in
-        # Linux Ubuntu. See PR #5215.
+        # Linux Ubuntu. See spyder-ide/spyder#5215.
         self.setVerticalScrollBar(QScrollBar())
 
         # Scrollbar flag area
@@ -1847,7 +1847,7 @@ class CodeEditor(TextEditBaseWidget):
         text = to_text_string(clipboard.text())
         if clipboard.mimeData().hasUrls():
             # Have copied file and folder urls pasted as text paths.
-            # See PR: #8644 for details.
+            # See spyder-ide/spyder#8644 for details.
             urls = clipboard.mimeData().urls()
             if all([url.isLocalFile() for url in urls]):
                 if len(urls) > 1:
@@ -2823,7 +2823,7 @@ class CodeEditor(TextEditBaseWidget):
     def unblockcomment(self):
         """Un-block comment current line or selection."""
         # Needed for backward compatibility with Spyder previous blockcomments.
-        # See spyder-ide/spyder#2845
+        # See spyder-ide/spyder#2845.
         unblockcomment = self.__unblockcomment()
         if not unblockcomment:
             unblockcomment =  self.__unblockcomment(compatibility=True)

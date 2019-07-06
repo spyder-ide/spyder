@@ -197,7 +197,7 @@ def get_conf_path(filename=None):
         conf_dir = get_clean_conf_dir()
     elif sys.platform.startswith('linux'):
         # This makes us follow the XDG standard to save our settings
-        # on Linux, as it was requested on spyder-ide/spyder#2629
+        # on Linux, as it was requested on spyder-ide/spyder#2629.
         xdg_config_home = os.environ.get('XDG_CONFIG_HOME', '')
         if not xdg_config_home:
             xdg_config_home = osp.join(get_home_dir(), '.config')
@@ -360,7 +360,7 @@ def get_interface_language():
     locale is either 'pt' or 'pt_BR', this function will return 'pt_BR'
     """
 
-    # Solves spyder-ide/spyder#3627
+    # Solves spyder-ide/spyder#3627.
     try:
         locale_language = locale.getdefaultlocale()[0]
     except ValueError:
@@ -390,7 +390,7 @@ def save_lang_conf(value):
     """Save language setting to language config file"""
     # Needed to avoid an error when trying to save LANG_FILE
     # but the operation fails for some reason.
-    # See spyder-ide/spyder#8807
+    # See spyder-ide/spyder#8807.
     try:
         with open(LANG_FILE, 'w') as f:
             f.write(value)
@@ -439,7 +439,7 @@ def get_translation(modname, dirname=None):
     if os.name == 'nt':
         # Trying to set LANG on Windows can fail when Spyder is
         # run with admin privileges.
-        # Fixes spyder-ide/spyder#6886
+        # Fixes spyder-ide/spyder#6886.
         try:
             os.environ["LANG"] = language      # Works on Windows
         except Exception:

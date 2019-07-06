@@ -93,9 +93,9 @@ class ProxyObject(object):
         # Catch AttributeError to fix spyder-ide/spyder#5642 in certain special
         # classes like xml when this method is called on certain attributes.
         # Catch TypeError to prevent fatal Python crash to desktop after
-        # modifying certain pandas objects. Fix spyder-ide/spyder#6727 .
+        # modifying certain pandas objects. Fix spyder-ide/spyder#6727.
         # Catch ValueError to allow viewing and editing of pandas offsets.
-        # Fix spyder-ide/spyder#6728 .
+        # Fix spyder-ide/spyder#6728-
         try:
             attribute_toreturn = getattr(self.__obj__, key)
         except (NotImplementedError, AttributeError, TypeError, ValueError):
@@ -106,8 +106,8 @@ class ProxyObject(object):
         """Set attribute corresponding to key with value."""
         # Catch AttributeError to gracefully handle inability to set an
         # attribute due to it not being writeable or set-table.
-        # Fix spyder-ide/spyder#6728 . Also, catch NotImplementedError for
-        # safety.
+        # Fix spyder-ide/spyder#6728.
+        # Also, catch NotImplementedError for safety.
         try:
             setattr(self.__obj__, key, value)
         except (TypeError, AttributeError, NotImplementedError):
@@ -620,7 +620,7 @@ class CollectionsDelegate(QItemDelegate):
             conv_func = data.get('conv', lambda v: v)
             self.set_value(index, conv_func(value))
         # This is needed to avoid the problem reported on
-        # spyder-ide/spyder#8557
+        # spyder-ide/spyder#8557.
         try:
             self._editors.pop(editor_id)
         except KeyError:
@@ -629,7 +629,7 @@ class CollectionsDelegate(QItemDelegate):
 
     def editor_rejected(self, editor_id):
         # This is needed to avoid the problem reported on
-        # spyder-ide/spyder#8557
+        # spyder-ide/spyder#8557.
         try:
             self._editors.pop(editor_id)
         except KeyError:
@@ -1504,7 +1504,7 @@ class CollectionsEditor(QDialog):
             datalen = len(get_object_attrs(data))
 
         # If the copy has a different type, then do not allow editing, because
-        # this would change the type after saving; cf. spyder-ide/spyder#6936
+        # this would change the type after saving; cf. spyder-ide/spyder#6936.
         if type(self.data_copy) != type(data):
             readonly = True
 
@@ -1633,7 +1633,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
             # them to the kernel in Python 2
             svalue = [cloudpickle.dumps(value, protocol=PICKLE_PROTOCOL)]
 
-            # Needed to prevent memory leaks. See spyder-ide/spyder#7158
+            # Needed to prevent memory leaks. See spyder-ide/spyder#7158.
             if len(svalue) < MAX_SERIALIZED_LENGHT:
                 self.shellwidget.set_value(name, svalue)
             else:
@@ -1805,7 +1805,7 @@ def get_test_data():
             'None': None,
             'unsupported1': np.arccos,
             'unsupported2': np.cast,
-            # Test for spyder-ide/spyder#3518
+            # Test for spyder-ide/spyder#3518.
             'big_struct_array': np.zeros(1000, dtype=[('ID', 'f8'),
                                                       ('param1', 'f8', 5000)]),
             }

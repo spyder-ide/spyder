@@ -43,7 +43,7 @@ else:
     extensions = ['sphinx.ext.mathjax']
 
 # For scipy and matplotlib docstrings, which need this extension to
-# be rendered correctly (see spyder-ide/spyder#1138)
+# be rendered correctly. See spyder-ide/spyder#1138.
 extensions.append('sphinx.ext.autosummary')
 
 # Add any paths that contain templates here, relative to this directory.
@@ -110,7 +110,7 @@ html_context = {}
 # If true, Smart Quotes will be used to convert quotes and dashes to
 # typographically correct entities.
 # Spyder: Disabled to fix conflict with qtwebview and mathjax.
-# See spyder-ide/spyder##5514
+# See spyder-ide/spyder#5514.
 if sphinx_version < "1.7":
     html_use_smartypants = False
 else:

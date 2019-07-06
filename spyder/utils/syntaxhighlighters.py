@@ -433,7 +433,7 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
     uf_dq3string = r'(\b(%s))?"""[^"\\]*((\\.|"(?!""))[^"\\]*)*(\\)?(?!""")$' \
                    % prefix
     # Needed to achieve correct highlighting in Python 3.6+
-    # See spyder-ide/spyder#7324
+    # See spyder-ide/spyder#7324.
     if PY36_OR_MORE:
         # Based on
         # https://github.com/python/cpython/blob/
@@ -888,7 +888,7 @@ class Fortran77SH(FortranSH):
 # IDL highlighter
 #
 # Contribution from Stuart Mumford (Littlemumford) - 2012-02-02
-# See spyder-ide/spyder#850
+# See spyder-ide/spyder#850.
 #==============================================================================
 def make_idl_patterns():
     """Strongly inspired by idlelib.ColorDelegator.make_pat."""
@@ -1059,8 +1059,8 @@ class BaseWebSH(BaseSH):
                                 self.setFormat(start, end-start,
                                                self.formats[key])
                             except KeyError:
-                                # happens with unmatched end-of-comment;
-                                # see spyder-ide/spyder#1462
+                                # Happens with unmatched end-of-comment.
+                                # See spyder-ide/spyder#1462.
                                 pass
 
             match = self.PROG.search(text, match.end())

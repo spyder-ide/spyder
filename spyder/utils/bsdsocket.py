@@ -69,7 +69,7 @@ def read_packet(sock, timeout=None):
         else:
             #  Linux/MacOSX implementation
             #  Thanks to eborisch:
-            #  See spyder-ide/spyder#1106
+            #  See spyder-ide/spyder#1106.
             datalen = temp_fail_retry(socket.error, sock.recv,
                                       SZ, socket.MSG_WAITALL)
             if len(datalen) == SZ:
@@ -93,7 +93,7 @@ def read_packet(sock, timeout=None):
 
 
 # Using a lock object to avoid communication issues described in
-# spyder-ide/spyder#857
+# spyder-ide/spyder#857.
 COMMUNICATE_LOCK = threading.Lock()
 
 # * Old com implementation *

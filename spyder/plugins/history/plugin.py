@@ -205,7 +205,7 @@ class HistoryLog(SpyderPluginWidget):
             text = text[linebreaks[-maxNline - 1] + 1:]
             # Avoid an error when trying to write the trimmed text to
             # disk.
-            # See spyder-ide/spyder#9093
+            # See spyder-ide/spyder#9093.
             try:
                 encoding.write(text, filename)
             except (IOError, OSError):

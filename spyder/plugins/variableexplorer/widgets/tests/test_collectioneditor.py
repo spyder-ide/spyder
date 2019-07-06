@@ -116,8 +116,8 @@ def test_collectionsmodel_with_two_ints():
     assert data(cm, row_with_y, 3) == '2'
 
 def test_collectionsmodel_with_index():
-    # Regression test for spyder-ide/spyder#3380
-    # modified for spyder-ide/spyder#3758
+    # Regression test for spyder-ide/spyder#3380,
+    # modified for spyder-ide/spyder#3758.
     for rng_name, rng in generate_pandas_indexes().items():
         coll = {'rng': rng}
         cm = CollectionsModel(None, coll)
@@ -209,7 +209,7 @@ def test_edit_mutable_and_immutable_types(monkeypatch):
     """
     Test that mutable objs/vals are editable in VarExp; immutable ones aren't.
 
-    Regression test for spyder-ide/spyder#5991 .
+    Regression test for spyder-ide/spyder#5991.
     """
     MockQLineEdit = Mock()
     attr_to_patch_qlineedit = ('spyder.plugins.variableexplorer.widgets.' +
@@ -309,7 +309,7 @@ def test_view_module_in_coledit():
     Test that modules don't produce an error when opening in Variable Explorer.
 
     Also check that they are set as readonly. Regression test for
-    spyder-ide/spyder#6080 .
+    spyder-ide/spyder#6080.
     """
     editor = CollectionsEditor()
     editor.setup(os, "module_test", readonly=False)
@@ -319,7 +319,7 @@ def test_notimplementederror_multiindex():
     """
     Test that the NotImplementedError when scrolling a MultiIndex is handled.
 
-    Regression test for spyder-ide/spyder#6284 .
+    Regression test for spyder-ide/spyder#6284.
     """
     time_deltas = [pandas.Timedelta(minutes=minute)
                    for minute in range(5, 35, 5)]
@@ -339,7 +339,7 @@ def test_editor_parent_set(monkeypatch):
     """
     Test that editors have their parent set so they close with Spyder.
 
-    Regression test for spyder-ide/spyder#5696 .
+    Regression test for spyder-ide/spyder#5696.
     """
     # Mocking and setup
     test_parent = QWidget()
@@ -392,7 +392,7 @@ def test_xml_dom_element_view():
     """
     Test that XML DOM ``Element``s are able to be viewied in CollectionsEditor.
 
-    Regression test for spyder-ide/spyder#5642 .
+    Regression test for spyder-ide/spyder#5642.
     """
     xml_path = path.join(LOCATION, 'dom_element_test.xml')
     with open(xml_path) as xml_file:
@@ -412,7 +412,7 @@ def test_pandas_dateoffset_view():
     """
     Test that pandas ``DateOffset`` objs can be viewied in CollectionsEditor.
 
-    Regression test for spyder-ide/spyder#6729 .
+    Regression test for spyder-ide/spyder#6729.
     """
     test_dateoffset = pandas.DateOffset()
     col_editor = CollectionsEditor(None)
@@ -426,7 +426,8 @@ def test_set_nonsettable_objects(nonsettable_objects_data):
     """
     Test that errors trying to set attributes in ColEdit are handled properly.
 
-    Unit regression test for issues #6727 and #6728 .
+    Unit regression test for issues spyder-ide/spyder#6727 and
+    spyder-ide/spyder#6728.
     """
     for test_obj, expected_obj, keys in nonsettable_objects_data:
         col_model = CollectionsModel(None, test_obj)
@@ -445,7 +446,8 @@ def test_edit_nonsettable_objects(qtbot, nonsettable_objects_data):
     """
     Test that errors trying to edit attributes in ColEdit are handled properly.
 
-    Integration regression test for issues #6727 and #6728 .
+    Integration regression test for issues spyder-ide/spyder#6727 and
+    spyder-ide/spyder#6728.
     """
     for test_obj, expected_obj, keys in nonsettable_objects_data:
         col_editor = CollectionsEditor(None)

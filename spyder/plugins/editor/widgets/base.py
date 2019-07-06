@@ -321,8 +321,8 @@ class CompletionWidget(QListWidget):
     def focusOutEvent(self, event):
         event.ignore()
         # Don't hide it on Mac when main window loses focus because
-        # keyboard input is lost
-        # Fixes spyder-ide/spyder#1318
+        # keyboard input is lost.
+        # Fixes spyder-ide/spyder#1318.
         if sys.platform == "darwin":
             if event.reason() != Qt.ActiveWindowFocusReason:
                 self.hide()
@@ -682,7 +682,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         # contents under Windows and PY3. This bug leads to
         # corruptions when saving files with certain combinations
         # of unicode chars on them (like the one attached on
-        # spyder-ide/spyder#1546)
+        # spyder-ide/spyder#1546).
         if os.name == 'nt' and PY3:
             text = self.get_text('sof', 'eof')
             return text.replace('\u2028', '\n').replace('\u2029', '\n')\
@@ -695,7 +695,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         ctrl = event.modifiers() & Qt.ControlModifier
         meta = event.modifiers() & Qt.MetaModifier
         # Use our own copy method for {Ctrl,Cmd}+C to avoid Qt
-        # copying text in HTML (See spyder-ide/spyder#2285)
+        # copying text in HTML. See spyder-ide/spyder#2285.
         if (ctrl or meta) and key == Qt.Key_C:
             self.copy()
         else:
@@ -1281,7 +1281,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             QPlainTextEdit.mousePressEvent(self, event)
             QPlainTextEdit.mouseReleaseEvent(self, event)
             # Send selection text to clipboard to be able to use
-            # the paste method and avoid the strange spyder-ide/spyder#1445
+            # the paste method and avoid the strange spyder-ide/spyder#1445.
             # NOTE: This issue seems a focusing problem but it
             # seems really hard to track
             mode_clip = QClipboard.Clipboard
@@ -1309,7 +1309,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
     def wheelEvent(self, event):
         """Reimplemented to emit zoom in/out signals when Ctrl is pressed"""
-        # This feature is disabled on MacOS, see spyder-ide/spyder#1510
+        # This feature is disabled on MacOS, see spyder-ide/spyder#1510.
         if sys.platform != 'darwin':
             if event.modifiers() & Qt.ControlModifier:
                 if hasattr(event, 'angleDelta'):

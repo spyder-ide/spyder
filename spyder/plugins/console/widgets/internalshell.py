@@ -77,11 +77,11 @@ class SysOutput(QObject):
         self.lock.release()
         return s
 
-    # We need to add this method to fix spyder-ide/spyder#1789
+    # We need to add this method to fix spyder-ide/spyder#1789.
     def flush(self):
         pass
 
-    # This is needed to fix spyder-ide/spyder#2984
+    # This is needed to fix spyder-ide/spyder#2984.
     @property
     def closed(self):
         return False

@@ -81,7 +81,7 @@ from qtpy import QtSvg  # analysis:ignore
 # Avoid a bug in Qt: https://bugreports.qt.io/browse/QTBUG-46720
 from qtpy import QtWebEngineWidgets  # analysis:ignore
 
-# For spyder-ide/spyder#7447
+# For spyder-ide/spyder#7447.
 try:
     from qtpy.QtQuick import QQuickWindow, QSGRendererInterface
 except Exception:
@@ -552,7 +552,7 @@ class MainWindow(QMainWindow):
 
         # Server to open external files on a single instance
         # This is needed in order to handle socket creation problems.
-        # See spyder-ide/spyder#4132
+        # See spyder-ide/spyder#4132.
         if os.name == 'nt':
             try:
                 self.open_files_server = socket.socket(socket.AF_INET,
@@ -1281,7 +1281,7 @@ class MainWindow(QMainWindow):
         was triggered"""
         self.restore_scrollbar_position.emit()
 
-        # [Workaround for spyder-ide/spyder#880]
+        # Workaround for spyder-ide/spyder#880.
         # QDockWidget objects are not painted if restored as floating
         # windows, so we must dock them before showing the mainwindow,
         # then set them again as floating windows here.
@@ -1358,7 +1358,7 @@ class MainWindow(QMainWindow):
         self.report_missing_dependencies()
 
         # Raise the menuBar to the top of the main window widget's stack
-        # (Fixes spyder-ide/spyder#3887)
+        # Fixes spyder-ide/spyder#3887.
         self.menuBar().raise_()
         self.is_setting_up = False
 
@@ -1420,7 +1420,7 @@ class MainWindow(QMainWindow):
         pos = get_func(section, prefix+'position')
 
         # It's necessary to verify if the window/position value is valid
-        # with the current screen. See spyder-ide/spyder#3748
+        # with the current screen. See spyder-ide/spyder#3748.
         width = pos[0]
         height = pos[1]
         screen_shape = QApplication.desktop().geometry()
@@ -1467,7 +1467,7 @@ class MainWindow(QMainWindow):
         if hexstate:
             self.restoreState( QByteArray().fromHex(
                     str(hexstate).encode('utf-8')) )
-            # [Workaround for spyder-ide/spyder#880]
+            # Workaround for spyder-ide/spyder#880.
             # QDockWidget objects are not painted if restored as floating
             # windows, so we must dock them before showing the mainwindow.
             for widget in self.children():
@@ -2859,7 +2859,7 @@ class MainWindow(QMainWindow):
         """Apply settings changed in 'Preferences' dialog box"""
         qapp = QApplication.instance()
         # Set 'gtk+' as the default theme in Gtk-based desktops
-        # Fixes spyder-ide/spyder#2036
+        # Fixes spyder-ide/spyder#2036.
         if is_gtk_desktop() and ('GTK+' in QStyleFactory.keys()):
             try:
                 qapp.setStyle('gtk+')
@@ -3026,7 +3026,7 @@ class MainWindow(QMainWindow):
             try:
                 req, dummy = self.open_files_server.accept()
             except socket.error as e:
-                # Seespyder-ide/spyder#1275 for details on why errno EINTR is
+                # See spyder-ide/spyder#1275 for details on why errno EINTR is
                 # silently ignored here.
                 eintr = errno.WSAEINTR if os.name == 'nt' else errno.EINTR
                 # To avoid a traceback after closing on Windows
