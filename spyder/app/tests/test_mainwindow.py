@@ -30,11 +30,11 @@ import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
 from qtpy import PYQT5, PYQT_VERSION
-from qtpy.QtCore import Qt, QTimer, QEvent, QUrl
+from qtpy.QtCore import Qt, QTimer, QUrl
 from qtpy.QtTest import QTest
 from qtpy.QtGui import QImage
 from qtpy.QtWidgets import (QApplication, QFileDialog, QLineEdit, QTabBar,
-                            QToolTip, QWidget)
+                            QWidget)
 from qtpy.QtWebEngineWidgets import WEBENGINE
 from matplotlib.testing.compare import compare_images
 import nbconvert
@@ -45,7 +45,6 @@ from spyder.app import start
 from spyder.app.mainwindow import MainWindow  # Tests fail without this import
 from spyder.config.base import get_home_dir, get_module_path
 from spyder.config.main import CONF
-from spyder.widgets.dock import TabFilter
 from spyder.preferences.runconfig import RunConfiguration
 from spyder.plugins.base import PluginWindow
 from spyder.plugins.help.widgets import ObjectComboBox

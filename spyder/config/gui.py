@@ -24,7 +24,6 @@ from qtpy.QtWidgets import QShortcut
 
 # Local imports
 from spyder.config.main import CONF
-from spyder.config.user import NoDefault
 from spyder.py3compat import to_text_string
 from spyder.utils import syntaxhighlighters as sh
 

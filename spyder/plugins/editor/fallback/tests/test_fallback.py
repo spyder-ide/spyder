@@ -11,8 +11,6 @@ import pytest
 from qtpy.QtCore import QObject, Signal
 from diff_match_patch import diff_match_patch
 
-from spyder.plugins.editor.fallback.actor import FallbackActor
-
 DATA_PATH = osp.join(osp.dirname(osp.abspath(__file__)), "data")
 TOKENS_FILE = osp.join(DATA_PATH, 'tokens.json')
 

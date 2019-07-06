@@ -3,18 +3,11 @@
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
 
-
-# Standard library imports
-import io
-import tokenize
-
 # Third party imports
 from qtpy.QtGui import QTextDocument
-from qtpy.QtGui import QTextCursor
 from qtpy.QtWidgets import QComboBox
 
 import pytest
-from pytestqt import qtbot
 
 # Local imports
 from spyder.plugins.editor.panels import classfunctiondropdown as cfd

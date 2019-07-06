@@ -10,7 +10,6 @@
 
 # Third party imports
 import pytest
-from qtpy.QtCore import Qt
 
 # Local imports
 from spyder.widgets.github.gh_login import DlgGitHubLogin

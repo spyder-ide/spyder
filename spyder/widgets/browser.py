@@ -14,7 +14,7 @@ import sys
 # Third party imports
 from qtpy.QtCore import QUrl, Signal, Slot
 from qtpy.QtWidgets import (QFrame, QHBoxLayout, QLabel, QProgressBar, QMenu,
-                            QVBoxLayout, QWidget)
+                            QWidget)
 from qtpy.QtWebEngineWidgets import (QWebEnginePage, QWebEngineSettings,
                                      QWebEngineView, WEBENGINE)
 from qtpy.QtGui import QFontInfo

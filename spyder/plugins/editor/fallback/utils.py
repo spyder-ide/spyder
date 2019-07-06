@@ -10,7 +10,6 @@ Utilities needed by the fallback completion engine.
 
 import imp
 import os
-import pickle
 import os.path as osp
 import re
 
@@ -23,7 +22,6 @@ from spyder.utils.syntaxhighlighters import (
 from pygments.lexer import words
 from pygments.lexers import (get_lexer_for_filename, get_lexer_by_name,
                              TextLexer)
-from pygments.token import Token
 
 
 # CamelCase and snake_case regex:

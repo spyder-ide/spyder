@@ -16,7 +16,6 @@ import pytest
 from qtpy.QtCore import Qt
 
 # Local imports
-from spyder.py3compat import PY3
 from spyder.widgets import pathmanager as pathmanager_mod
 from spyder.utils.programs import is_module_installed
 

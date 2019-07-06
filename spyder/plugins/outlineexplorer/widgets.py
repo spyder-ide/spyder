@@ -12,8 +12,8 @@ import os.path as osp
 
 # Third party imports
 from qtpy.compat import from_qvariant
-from qtpy.QtCore import QSize, QObject, Qt, Signal, Slot
-from qtpy.QtWidgets import (QHBoxLayout, QTreeWidgetItem, QVBoxLayout, QWidget,
+from qtpy.QtCore import QSize, Qt, Signal, Slot
+from qtpy.QtWidgets import (QHBoxLayout, QTreeWidgetItem, QWidget,
                             QTreeWidgetItemIterator)
 
 # Local imports
@@ -108,7 +108,7 @@ class FunctionItem(TreeItem):
 
     def is_method(self):
         return isinstance(self.parent(), ClassItem)
-    
+
     def setup(self):
         if self.is_method():
             self.setToolTip(0, _("Method defined at line %s") % str(self.line))
@@ -258,7 +258,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.setTextElideMode(Qt.ElideMiddle if state else Qt.ElideRight)
         for index in range(self.topLevelItemCount()):
             self.topLevelItem(index).set_text(fullpath=self.show_fullpath)
-            
+
     def __hide_or_show_root_items(self, item):
         """
         show_all_files option is disabled: hide all root items except *item*
@@ -735,7 +735,7 @@ class OutlineExplorerWidget(QWidget):
                                            icon='outline_explorer_vis.png',
                                            toggled=self.toggle_visibility)
         self.visibility_action.setChecked(True)
-        
+
         btn_layout = QHBoxLayout()
         for btn in self.setup_buttons():
             btn.setAutoRaise(True)
@@ -778,7 +778,7 @@ class OutlineExplorerWidget(QWidget):
             self.remove_editor(editor)
         if editor is not None:
             self.treewidget.set_current_editor(editor, update)
-        
+
     def remove_editor(self, editor):
         self.treewidget.remove_editor(editor)
 

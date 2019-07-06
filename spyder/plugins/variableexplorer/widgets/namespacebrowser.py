@@ -18,7 +18,7 @@ from qtpy.compat import getsavefilename, getopenfilenames
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QCursor
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QInputDialog, QMenu,
-                            QMessageBox, QToolButton, QVBoxLayout, QWidget)
+                            QMessageBox, QWidget)
 
 from spyder_kernels.utils.iofuncs import iofunctions
 from spyder_kernels.utils.misc import fix_reference_name
@@ -51,7 +51,7 @@ class NamespaceBrowser(QWidget):
 
     def __init__(self, parent, options_button=None, plugin_actions=[]):
         QWidget.__init__(self, parent)
-        
+
         self.shellwidget = None
         self.is_visible = True
         self.setup_in_progress = None
@@ -91,11 +91,11 @@ class NamespaceBrowser(QWidget):
         Setup the namespace browser with provided settings.
 
         Args:
-            dataframe_format (string): default floating-point format for 
+            dataframe_format (string): default floating-point format for
                 DataFrame editor
         """
         assert self.shellwidget is not None
-        
+
         self.check_all = check_all
         self.exclude_private = exclude_private
         self.exclude_uppercase = exclude_uppercase
@@ -191,14 +191,14 @@ class NamespaceBrowser(QWidget):
                 toggled=lambda state:
                 self.sig_option_changed.emit('exclude_private', state))
         self.exclude_private_action.setChecked(exclude_private)
-        
+
         self.exclude_uppercase_action = create_action(self,
                 _("Exclude all-uppercase references"),
                 tip=_("Exclude references which name is uppercase"),
                 toggled=lambda state:
                 self.sig_option_changed.emit('exclude_uppercase', state))
         self.exclude_uppercase_action.setChecked(exclude_uppercase)
-        
+
         self.exclude_capitalized_action = create_action(self,
                 _("Exclude capitalized references"),
                 tip=_("Exclude references which name starts with an "
@@ -206,7 +206,7 @@ class NamespaceBrowser(QWidget):
                 toggled=lambda state:
                 self.sig_option_changed.emit('exclude_capitalized', state))
         self.exclude_capitalized_action.setChecked(exclude_capitalized)
-        
+
         self.exclude_unsupported_action = create_action(self,
                 _("Exclude unsupported data types"),
                 tip=_("Exclude references to unsupported data types"
@@ -277,7 +277,7 @@ class NamespaceBrowser(QWidget):
         if data != self.editor.model.get_data():
             self.editor.set_data(data)
             self.editor.adjust_columns()
-        
+
     def collapse(self):
         """Collapse."""
         self.sig_collapse.emit()
@@ -322,7 +322,7 @@ class NamespaceBrowser(QWidget):
                     return
 
             load_func = iofunctions.load_funcs[ext]
-                
+
             # 'import_wizard' (self.setup_io)
             if is_text_string(load_func):
                 # Import data with import wizard
@@ -344,7 +344,7 @@ class NamespaceBrowser(QWidget):
                 self.shellwidget._kernel_reply = None
                 QApplication.restoreOverrideCursor()
                 QApplication.processEvents()
-    
+
             if error_message is not None:
                 QMessageBox.critical(self, title,
                                      _("<b>Unable to load '%s'</b>"

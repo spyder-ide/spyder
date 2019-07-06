@@ -22,11 +22,10 @@ from qtpy.QtCore import (QAbstractTableModel, QItemSelection, QLocale,
                          QItemSelectionRange, QModelIndex, Qt, Slot)
 from qtpy.QtGui import QColor, QCursor, QDoubleValidator, QKeySequence
 from qtpy.QtWidgets import (QAbstractItemDelegate, QApplication, QCheckBox,
-                            QComboBox, QDialog, QDialogButtonBox, QGridLayout,
-                            QHBoxLayout, QInputDialog, QItemDelegate, QLabel,
-                            QLineEdit,  QMenu, QMessageBox, QPushButton,
-                            QSpinBox, QStackedWidget, QTableView, QVBoxLayout,
-                            QWidget)
+                            QComboBox, QDialog, QGridLayout, QHBoxLayout,
+                            QInputDialog, QItemDelegate, QLabel, QLineEdit,
+                            QMenu, QMessageBox, QPushButton, QSpinBox,
+                            QStackedWidget, QTableView, QVBoxLayout, QWidget)
 import numpy as np
 
 # Local imports

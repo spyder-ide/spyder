@@ -7,7 +7,7 @@
 """Variable Explorer Plugin."""
 
 # Third party imports
-from qtpy.QtCore import QTimer, Signal, Slot
+from qtpy.QtCore import QTimer, Slot
 from qtpy.QtWidgets import QStackedWidget, QVBoxLayout
 from spyder_kernels.utils.nsview import REMOTE_SETTINGS
 
@@ -56,10 +56,10 @@ class VariableExplorer(SpyderPluginWidget):
     def get_settings(self):
         """
         Retrieve all Variable Explorer configuration settings.
-        
-        Specifically, return the settings in CONF_SECTION with keys in 
+
+        Specifically, return the settings in CONF_SECTION with keys in
         REMOTE_SETTINGS, and the setting 'dataframe_format'.
-        
+
         Returns:
             dict: settings
         """
@@ -138,7 +138,7 @@ class VariableExplorer(SpyderPluginWidget):
             self.shellwidgets[shellwidget_id] = nsb
             self.set_shellwidget_from_id(shellwidget_id)
             return nsb
-        
+
     def remove_shellwidget(self, shellwidget_id):
         # If shellwidget_id is not in self.shellwidgets, it simply means
         # that shell was not a Python-based console (it was a terminal)
@@ -146,7 +146,7 @@ class VariableExplorer(SpyderPluginWidget):
             nsb = self.shellwidgets.pop(shellwidget_id)
             self.remove_widget(nsb)
             nsb.close()
-    
+
     def set_shellwidget_from_id(self, shellwidget_id):
         if shellwidget_id in self.shellwidgets:
             nsb = self.shellwidgets[shellwidget_id]
@@ -169,7 +169,7 @@ class VariableExplorer(SpyderPluginWidget):
     def get_plugin_icon(self):
         """Return plugin icon"""
         return ima.icon('dictedit')
-    
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when

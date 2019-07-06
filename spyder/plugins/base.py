@@ -17,7 +17,7 @@ import qdarkstyle
 from qtpy.QtCore import Qt, Slot
 from qtpy.QtGui import QCursor, QKeySequence
 from qtpy.QtWidgets import (QApplication, QDockWidget, QMainWindow, QMenu,
-                            QMessageBox, QShortcut, QToolButton, QWidget)
+                            QMessageBox, QShortcut, QToolButton)
 
 # Local imports
 from spyder.config.base import _

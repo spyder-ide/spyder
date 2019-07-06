@@ -22,7 +22,6 @@ except ImportError:
 
 # Third party imports
 import pytest
-from flaky import flaky
 
 # Local imports
 import spyder.plugins.base
