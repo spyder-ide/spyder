@@ -633,40 +633,35 @@ class ThumbnailScrollBar(QFrame):
 
         return up_btn, down_btn
 
-    def _calculate_max_thumbnail_size(self):
+    def _calculate_max_thumbnail_size(self, thumbnail):
         """
         Calculate the maximum witdh the thumbnail canvas must have for
-        the thumbnails to fit the scrollarea.
+        the thumbnail to fit the scrollarea.
         """
         # We create a fake thumbnail to get the width of the toolbar buttons
         # and the spacing of the layout.
-        fake_thumbnail = FigureThumbnail()
-        fake_thumbnail.setAttribute(Qt.WA_DontShowOnScreen, True)
-        fake_thumbnail.show()
-        fake_thumbnail.deleteLater()
-
-        thumbnail_size = (
+        max_thumbnail_size = (
             self.scrollarea.width() -
             2 * self.lineWidth() -
             self.scrollarea.viewportMargins().left() -
             self.scrollarea.viewportMargins().right() -
-            fake_thumbnail.savefig_btn.width() -
-            fake_thumbnail.layout().spacing()
+            thumbnail.savefig_btn.width() -
+            thumbnail.layout().spacing()
             )
         if is_dark_interface():
             # This is required to take into account some hard-coded padding
             # and margin in qdarkstyle.
-            thumbnail_size = thumbnail_size - 6
+            max_thumbnail_size = max_thumbnail_size - 6
+        return max_thumbnail_size
 
-        return thumbnail_size
-
-    def _set_thumbnail_size(self, thumbnail, max_thumbnail_size):
+    def _set_thumbnail_size(self, thumbnail):
         """
         Scale the thumbnail's canvas size, while respecting its associated
         figure dimension ratio.
         """
         fwidth = thumbnail.canvas.fwidth
         fheight = thumbnail.canvas.fheight
+        max_thumbnail_size = self._calculate_max_thumbnail_size(thumbnail)
         if fwidth / fheight > 1:
             canvas_width = max_thumbnail_size
             canvas_height = canvas_width / fwidth * fheight
@@ -684,9 +679,8 @@ class ThumbnailScrollBar(QFrame):
         # NOTE: we hide the view widget while we update the thumbnails size
         # to avoid flickering of this thumbnail scrollbar.
         self.view.hide()
-        max_thumbnail_size = self._calculate_max_thumbnail_size()
         for thumbnail in self._thumbnails:
-            self._set_thumbnail_size(thumbnail, max_thumbnail_size)
+            self._set_thumbnail_size(thumbnail)
         self.view.show()
 
     def set_figureviewer(self, figure_viewer):
@@ -757,11 +751,9 @@ class ThumbnailScrollBar(QFrame):
         """
         Add a new thumbnail to that thumbnail scrollbar.
         """
-        thumbnail = FigureThumbnail(background_color=self.background_color)
+        thumbnail = FigureThumbnail(
+            parent=self, background_color=self.background_color)
         thumbnail.canvas.load_figure(fig, fmt)
-
-        max_thumbnail_size = self._calculate_max_thumbnail_size()
-        self._set_thumbnail_size(thumbnail, max_thumbnail_size)
 
         thumbnail.sig_canvas_clicked.connect(self.set_current_thumbnail)
         thumbnail.sig_remove_figure.connect(self.remove_thumbnail)
@@ -772,6 +764,9 @@ class ThumbnailScrollBar(QFrame):
         self.scene.addWidget(thumbnail, self.scene.rowCount() - 1, 0)
         self.scene.setRowStretch(self.scene.rowCount(), 100)
         self.set_current_thumbnail(thumbnail)
+
+        thumbnail.show()
+        self._set_thumbnail_size(thumbnail)
 
     def remove_current_thumbnail(self):
         """Remove the currently selected thumbnail."""
