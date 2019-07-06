@@ -633,56 +633,6 @@ class ThumbnailScrollBar(QFrame):
 
         return up_btn, down_btn
 
-    def _calculate_max_thumbnail_size(self, thumbnail):
-        """
-        Calculate the maximum witdh the thumbnail canvas must have for
-        the thumbnail to fit the scrollarea.
-        """
-        # We create a fake thumbnail to get the width of the toolbar buttons
-        # and the spacing of the layout.
-        max_thumbnail_size = (
-            self.scrollarea.width() -
-            2 * self.lineWidth() -
-            self.scrollarea.viewportMargins().left() -
-            self.scrollarea.viewportMargins().right() -
-            thumbnail.savefig_btn.width() -
-            thumbnail.layout().spacing()
-            )
-        if is_dark_interface():
-            # This is required to take into account some hard-coded padding
-            # and margin in qdarkstyle.
-            max_thumbnail_size = max_thumbnail_size - 6
-        return max_thumbnail_size
-
-    def _set_thumbnail_size(self, thumbnail):
-        """
-        Scale the thumbnail's canvas size, while respecting its associated
-        figure dimension ratio.
-        """
-        fwidth = thumbnail.canvas.fwidth
-        fheight = thumbnail.canvas.fheight
-        max_thumbnail_size = self._calculate_max_thumbnail_size(thumbnail)
-        if fwidth / fheight > 1:
-            canvas_width = max_thumbnail_size
-            canvas_height = canvas_width / fwidth * fheight
-        else:
-            canvas_height = max_thumbnail_size
-            canvas_width = canvas_height / fheight * fwidth
-        thumbnail.canvas.setFixedSize(canvas_width, canvas_height)
-        thumbnail.layout().setColumnMinimumWidth(0, max_thumbnail_size)
-
-    def _update_thumbnail_size(self):
-        """
-        Update the thumbnails size so that their width fit that of
-        the scrollarea.
-        """
-        # NOTE: we hide the view widget while we update the thumbnails size
-        # to avoid flickering of this thumbnail scrollbar.
-        self.view.hide()
-        for thumbnail in self._thumbnails:
-            self._set_thumbnail_size(thumbnail)
-        self.view.show()
-
     def set_figureviewer(self, figure_viewer):
         """Set the bamespace for the FigureViewer."""
         self.figure_viewer = figure_viewer
@@ -747,6 +697,56 @@ class ThumbnailScrollBar(QFrame):
             save_figure_tofile(fig, fmt, fname)
 
     # ---- Thumbails Handlers
+    def _calculate_max_thumbnail_size(self, thumbnail):
+        """
+        Calculate the maximum witdh the thumbnail canvas must have for
+        the thumbnail to fit the scrollarea.
+        """
+        # We create a fake thumbnail to get the width of the toolbar buttons
+        # and the spacing of the layout.
+        max_thumbnail_size = (
+            self.scrollarea.width() -
+            2 * self.lineWidth() -
+            self.scrollarea.viewportMargins().left() -
+            self.scrollarea.viewportMargins().right() -
+            thumbnail.savefig_btn.width() -
+            thumbnail.layout().spacing()
+            )
+        if is_dark_interface():
+            # This is required to take into account some hard-coded padding
+            # and margin in qdarkstyle.
+            max_thumbnail_size = max_thumbnail_size - 6
+        return max_thumbnail_size
+
+    def _set_thumbnail_size(self, thumbnail):
+        """
+        Scale the thumbnail's canvas size, while respecting its associated
+        figure dimension ratio.
+        """
+        fwidth = thumbnail.canvas.fwidth
+        fheight = thumbnail.canvas.fheight
+        max_thumbnail_size = self._calculate_max_thumbnail_size(thumbnail)
+        if fwidth / fheight > 1:
+            canvas_width = max_thumbnail_size
+            canvas_height = canvas_width / fwidth * fheight
+        else:
+            canvas_height = max_thumbnail_size
+            canvas_width = canvas_height / fheight * fwidth
+        thumbnail.canvas.setFixedSize(canvas_width, canvas_height)
+        thumbnail.layout().setColumnMinimumWidth(0, max_thumbnail_size)
+
+    def _update_thumbnail_size(self):
+        """
+        Update the thumbnails size so that their width fit that of
+        the scrollarea.
+        """
+        # NOTE: we hide the view widget while we update the thumbnails size
+        # to avoid flickering of this thumbnail scrollbar.
+        self.view.hide()
+        for thumbnail in self._thumbnails:
+            self._set_thumbnail_size(thumbnail)
+        self.view.show()
+
     def add_thumbnail(self, fig, fmt):
         """
         Add a new thumbnail to that thumbnail scrollbar.
