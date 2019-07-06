@@ -35,9 +35,6 @@ from spyder.utils.misc import getcwd_or_home
 from spyder.config.gui import config_shortcut, get_shortcut, is_dark_interface
 
 
-THUMBNAIL_SIZE = 100
-
-
 def save_figure_tofile(fig, fmt, fname):
     """Save fig to fname in the format specified by fmt."""
     root, ext = osp.splitext(fname)
@@ -133,6 +130,7 @@ class FigureBrowser(QWidget):
         main_widget = QSplitter()
         main_widget.addWidget(self.figviewer)
         main_widget.addWidget(self.thumbnails_sb)
+        main_widget.setStretchFactor(0, 1)
         main_widget.setFrameStyle(QScrollArea().frameStyle())
 
         self.tools_layout = QHBoxLayout()
@@ -566,6 +564,7 @@ class ThumbnailScrollBar(QFrame):
     that controls what is displayed in the FigureViewer.
     """
     redirect_stdio = Signal(bool)
+    _min_scrollbar_width = 100
 
     def __init__(self, figure_viewer, parent=None, background_color=None):
         super(ThumbnailScrollBar, self).__init__(parent)
@@ -587,8 +586,6 @@ class ThumbnailScrollBar(QFrame):
         layout.addWidget(scrollarea)
         layout.addWidget(down_btn)
 
-        self.setup_thumbnail_scrollbar_width()
-
     def setup_scrollarea(self):
         """Setup the scrollarea that will contain the FigureThumbnails."""
         self.view = QWidget()
@@ -603,13 +600,15 @@ class ThumbnailScrollBar(QFrame):
         self.scrollarea.setViewportMargins(2, 2, 2, 2)
         self.scrollarea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.scrollarea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.scrollarea.setSizePolicy(QSizePolicy(QSizePolicy.Ignored,
-                                                  QSizePolicy.Preferred))
+        self.scrollarea.setMinimumWidth(self._min_scrollbar_width)
 
-        # Set the vertical scrollbar explicitely :
+        # Set the vertical scrollbar explicitely.
         # This is required to avoid a "RuntimeError: no access to protected
         # functions or signals for objects not created from Python" in Linux.
         self.scrollarea.setVerticalScrollBar(QScrollBar())
+
+        # Install an event filter on the scrollbar.
+        self.scrollarea.installEventFilter(self)
 
         return self.scrollarea
 
@@ -634,33 +633,74 @@ class ThumbnailScrollBar(QFrame):
 
         return up_btn, down_btn
 
-    def setup_thumbnail_scrollbar_width(self):
+    def _calculate_max_thumbnail_size(self):
         """
-        Set the width of this scrollbar to that of the thumbnails.
+        Calculate the maximum witdh the thumbnail canvas must have for
+        the thumbnails to fit the scrollarea.
         """
-        # Create a fake thumbnail.
-        thumbnail = FigureThumbnail(parent=self)
-        thumbnail.setAttribute(Qt.WA_DontShowOnScreen, True)
-        thumbnail.canvas.setFixedSize(THUMBNAIL_SIZE, THUMBNAIL_SIZE)
-        thumbnail.show()
+        # We create a fake thumbnail to get the width of the toolbar buttons
+        # and the spacing of the layout.
+        fake_thumbnail = FigureThumbnail()
+        fake_thumbnail.setAttribute(Qt.WA_DontShowOnScreen, True)
+        fake_thumbnail.show()
+        fake_thumbnail.deleteLater()
 
-        # Calculate and set the width of the thumbnail scrollbar using
-        # the size of the fake thumbnail.
-        thumbnail_scrollbar_width = (
-            thumbnail.width() +
-            self.scrollarea.viewportMargins().left() +
-            self.scrollarea.viewportMargins().right() +
-            2 * self.lineWidth())
+        thumbnail_size = (
+            self.scrollarea.width() -
+            2 * self.lineWidth() -
+            self.scrollarea.viewportMargins().left() -
+            self.scrollarea.viewportMargins().right() -
+            fake_thumbnail.savefig_btn.width() -
+            fake_thumbnail.layout().spacing()
+            )
         if is_dark_interface():
             # This is required to take into account some hard-coded padding
             # and margin in qdarkstyle.
-            thumbnail_scrollbar_width += 6
-        self.setFixedWidth(thumbnail_scrollbar_width)
-        thumbnail.deleteLater()
+            thumbnail_size = thumbnail_size - 6
+
+        return thumbnail_size
+
+    def _set_thumbnail_size(self, thumbnail, max_thumbnail_size):
+        """
+        Scale the thumbnail's canvas size, while respecting its associated
+        figure dimension ratio.
+        """
+        fwidth = thumbnail.canvas.fwidth
+        fheight = thumbnail.canvas.fheight
+        if fwidth / fheight > 1:
+            canvas_width = max_thumbnail_size
+            canvas_height = canvas_width / fwidth * fheight
+        else:
+            canvas_height = max_thumbnail_size
+            canvas_width = canvas_height / fheight * fwidth
+        thumbnail.canvas.setFixedSize(canvas_width, canvas_height)
+        thumbnail.layout().setColumnMinimumWidth(0, max_thumbnail_size)
+
+    def _update_thumbnail_size(self):
+        """
+        Update the thumbnails size so that their width fit that of
+        the scrollarea.
+        """
+        # NOTE: we hide the view widget while we update the thumbnails size
+        # to avoid flickering of this thumbnail scrollbar.
+        self.view.hide()
+        max_thumbnail_size = self._calculate_max_thumbnail_size()
+        for thumbnail in self._thumbnails:
+            self._set_thumbnail_size(thumbnail, max_thumbnail_size)
+        self.view.show()
 
     def set_figureviewer(self, figure_viewer):
         """Set the bamespace for the FigureViewer."""
         self.figure_viewer = figure_viewer
+
+    def eventFilter(self, widget, event):
+        """
+        An event filter to trigger an update of the thumbnails size so that
+        their width fit that of the scrollarea.
+        """
+        if event.type() == QEvent.Resize:
+            self._update_thumbnail_size()
+        return super().eventFilter(widget, event)
 
     # ---- Save Figure
     def save_all_figures_as(self):
@@ -714,22 +754,14 @@ class ThumbnailScrollBar(QFrame):
 
     # ---- Thumbails Handlers
     def add_thumbnail(self, fig, fmt):
+        """
+        Add a new thumbnail to that thumbnail scrollbar.
+        """
         thumbnail = FigureThumbnail(background_color=self.background_color)
         thumbnail.canvas.load_figure(fig, fmt)
 
-        # Scale the thumbnail size, while respecting the figure
-        # dimension ratio.
-        fwidth = thumbnail.canvas.fwidth
-        fheight = thumbnail.canvas.fheight
-
-        max_length = THUMBNAIL_SIZE
-        if fwidth/fheight > 1:
-            canvas_width = max_length
-            canvas_height = canvas_width / fwidth * fheight
-        else:
-            canvas_height = max_length
-            canvas_width = canvas_height / fheight * fwidth
-        thumbnail.canvas.setFixedSize(canvas_width, canvas_height)
+        max_thumbnail_size = self._calculate_max_thumbnail_size()
+        self._set_thumbnail_size(thumbnail, max_thumbnail_size)
 
         thumbnail.sig_canvas_clicked.connect(self.set_current_thumbnail)
         thumbnail.sig_remove_figure.connect(self.remove_thumbnail)
@@ -863,7 +895,6 @@ class FigureThumbnail(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.canvas, 0, 0, Qt.AlignCenter)
         layout.addLayout(self.setup_toolbar(), 0, 1, 2, 1)
-        layout.setColumnMinimumWidth(0, THUMBNAIL_SIZE)
         layout.setRowStretch(1, 100)
         layout.setSizeConstraint(layout.SetFixedSize)
 
