@@ -10,6 +10,7 @@
 # - Set font based on caller? editor console? and adjust size of widget
 # - Fix positioning
 # - Use the same font as editor/console?
+# - Generalize separators
 # - Generalize API for registering new array builders
 
 # Standard library imports
@@ -39,6 +40,8 @@ class ArrayBuilderType:
     ROW_SEPARATOR = None
     BRACES = None
     EXTRA_VALUES = None
+    ARRAY_PREFIX = None
+    MATRIX_PREFIX = None
 
     def check_values(self):
         pass
@@ -52,6 +55,8 @@ class ArrayBuilderPython(ArrayBuilderType):
         'np.nan': ['nan', 'NAN', 'NaN', 'Na', 'NA', 'na'],
         'np.inf': ['inf', 'INF'],
     }
+    ARRAY_PREFIX = 'np.array([['
+    MATRIX_PREFIX = 'np.matrix([['
 
 
 _REGISTERED_ARRAY_BUILDERS = {
@@ -314,9 +319,9 @@ class ArrayBuilderDialog(QDialog):
         Construct the text based on the entered content in the widget.
         """
         if array:
-            prefix = 'np.array([['
+            prefix = self._options.ARRAY_PREFIX
         else:
-            prefix = 'np.matrix([['
+            prefix = self._options.MATRIX_PREFIX
 
         suffix = ']])'
         values = self._widget.text().strip()
