@@ -479,6 +479,7 @@ class MainWindow(QMainWindow):
         self.help_menu_actions = []
 
         # Status bar widgets
+        self.conda_status = None
         self.mem_status = None
         self.cpu_status = None
 
@@ -919,6 +920,10 @@ class MainWindow(QMainWindow):
             from spyder.plugins.outlineexplorer.plugin import OutlineExplorer
             self.outlineexplorer = OutlineExplorer(self)
             self.outlineexplorer.register_plugin()
+
+        from spyder.widgets.status import CondaStatus
+        self.conda_status = CondaStatus(self, status,
+                                        icon=ima.icon('environment'))
 
         # Editor plugin
         self.set_splash(_("Loading editor..."))

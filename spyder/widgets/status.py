@@ -8,18 +8,20 @@
 
 # Standard library imports
 import os
+import subprocess
+import sys
 
 # Third party imports
-from qtpy.QtCore import Qt, QSize, QTimer
+from qtpy.QtCore import Qt, QSize, QTimer, Signal
 from qtpy.QtGui import QFont
-from qtpy.QtWidgets import QHBoxLayout, QLabel, QWidget
+from qtpy.QtWidgets import QHBoxLayout, QComboBox, QLabel, QWidget
 
 # Local imports
 from spyder import dependencies
 from spyder.config.base import _
 from spyder.config.gui import get_font
+from spyder.config.utils import is_anaconda
 from spyder.py3compat import to_text_string
-
 
 if not os.name == 'nt':
     PSUTIL_REQVER = '>=0.3'
@@ -28,6 +30,15 @@ if not os.name == 'nt':
         "psutil",
         _("CPU and memory usage info in the status bar"),
         required_version=PSUTIL_REQVER)
+
+
+class ClickLabel(QLabel):
+    sig_clicked = Signal()
+
+    def mousePressEvent(self, event):
+        """Override Qt method to allow for click signal."""
+        super(ClickLabel, self).mousePressEvent(event)
+        self.sig_clicked.emit()
 
 
 class StatusBarWidget(QWidget):
@@ -45,7 +56,7 @@ class StatusBarWidget(QWidget):
         self._icon = icon
         self._pixmap = icon.pixmap(QSize(16, 16)) if icon is not None else None
         self.label_icon = QLabel() if icon is not None else None
-        self.label_value = QLabel()
+        self.label_value = ClickLabel()
 
         # Widget setup
         if icon is not None:
@@ -85,10 +96,10 @@ class StatusBarWidget(QWidget):
 class BaseTimerStatus(StatusBarWidget):
     """Status bar widget base for widgets that update based on timers."""
 
-    def __init__(self, parent, statusbar):
+    def __init__(self, parent, statusbar, icon=None):
         """Status bar widget base for widgets that update based on timers."""
         self.timer = None  # Needs to come before parent call
-        super(BaseTimerStatus, self).__init__(parent, statusbar)
+        super(BaseTimerStatus, self).__init__(parent, statusbar, icon=icon)
         self._interval = 2000
 
         # Widget setup
@@ -175,6 +186,50 @@ class CPUStatus(BaseTimerStatus):
         import psutil
         text = '%d%%' % psutil.cpu_percent(interval=0)
         return 'CPU ' + text.rjust(3)
+
+
+class CondaStatus(BaseTimerStatus):
+    """Status bar widget for displaying the current interpreter/env."""
+
+    def __init__(self, parent, statusbar, icon=None):
+        super(CondaStatus, self).__init__(parent, statusbar, icon=icon)
+        self.label_value.sig_clicked.connect(self.show_env_selection)
+
+    def import_test(self):
+        pass
+
+    def show_env_selection(self):
+        """"""
+        pass
+
+    def _process_conda_env_info(self):
+        """"""
+        executable = sys.executable
+        try:
+            out = subprocess.check_output([executable, '-V'])
+            out = out.decode().split('\n')[0]
+        except Exception:
+            out = ''
+
+        envs_folder = os.path.sep + 'envs' + os.path.sep
+        if envs_folder in executable:
+            env = os.path.basename(sys.prefix)
+        else:
+            env = 'base'
+        text = 'conda: {env} ({version})'.format(env=env, version=out)
+        return text
+
+    def get_value(self):
+        """Return conda env."""
+        if is_anaconda():
+            text = self._process_conda_env_info()
+            tip = sys.executable
+        else:
+            text = sys.executable
+            tip = text
+
+        self.label_value.setToolTip(tip)
+        return text
 
 
 def test():
