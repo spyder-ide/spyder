@@ -71,9 +71,9 @@ from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
                          QThread, QTimer, QUrl, Signal, Slot,
                          qInstallMessageHandler)
 from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence, QPixmap
-from qtpy.QtWidgets import (QAction, QApplication, QDockWidget, QMainWindow,
-                            QMenu, QMessageBox, QShortcut, QSplashScreen,
-                            QStyleFactory, QWidget, QDesktopWidget)
+from qtpy.QtWidgets import (QAction, QApplication, QDesktopWidget, QDockWidget,
+                            QMainWindow, QMenu, QMessageBox, QShortcut,
+                            QSplashScreen, QStyle, QStyleFactory, QWidget)
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -316,8 +316,15 @@ class MainWindow(QMainWindow):
 
     def __init__(self, options=None):
         QMainWindow.__init__(self)
-
         qapp = QApplication.instance()
+
+        if running_under_pytest():
+            self._proxy_style = None
+        else:
+            from spyder.utils.qthelpers import SpyderProxyStyle
+            # None is needed, see: https://bugreports.qt.io/browse/PYSIDE-922
+            self._proxy_style = SpyderProxyStyle(None)
+
         if PYQT5:
             # Enabling scaling for high dpi
             qapp.setAttribute(Qt.AA_UseHighDpiPixmaps)
@@ -599,12 +606,20 @@ class MainWindow(QMainWindow):
         color_scheme = CONF.get('appearance', 'selected')
 
         if ui_theme == 'dark':
+            if not running_under_pytest():
+                # Set style proxy to fix combobox popup on mac and qdark
+                qapp = QApplication.instance()
+                qapp.setStyle(self._proxy_style)
             dark_qss = qdarkstyle.load_stylesheet_from_environment()
             self.setStyleSheet(dark_qss)
             self.statusBar().setStyleSheet(dark_qss)
             css_path = DARK_CSS_PATH
         elif ui_theme == 'automatic':
             if not is_dark_font_color(color_scheme):
+                if not running_under_pytest():
+                    # Set style proxy to fix combobox popup on mac and qdark
+                    qapp = QApplication.instance()
+                    qapp.setStyle(self._proxy_style)
                 dark_qss = qdarkstyle.load_stylesheet_from_environment()
                 self.setStyleSheet(dark_qss)
                 self.statusBar().setStyleSheet(dark_qss)
