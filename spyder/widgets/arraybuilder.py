@@ -89,7 +89,7 @@ class ArrayInline(QLineEdit):
                 # Fix to include in "undo/redo" history
                 if cursor != 0 and text[cursor-1] == ' ':
                     text = (text[:cursor-1] + self._options.ROW_SEPARATOR
-                             + ' ' + text[cursor:])
+                            + ' ' + text[cursor:])
                 else:
                     text = text[:cursor] + ' ' + text[cursor:]
                 self.setCursorPosition(cursor)
@@ -184,7 +184,7 @@ class ArrayBuilderDialog(QDialog):
                  language='python'):
         super(ArrayBuilderDialog, self).__init__(parent=parent)
         self._language = language
-        self._options =  _REGISTERED_ARRAY_BUILDERS.get('python', None)
+        self._options = _REGISTERED_ARRAY_BUILDERS.get('python', None)
         self._parent = parent
         self._text = None
         self._valid = None
@@ -357,7 +357,8 @@ class ArrayBuilderDialog(QDialog):
                         except:
                             pass
                     new_row.append(num)
-                new_values.append(self._options.ELEMENT_SEPARATOR.join(new_row))
+                new_values.append(
+                    self._options.ELEMENT_SEPARATOR.join(new_row))
             new_values = self._options.ROW_SEPARATOR.join(new_values)
             values = new_values
 
@@ -374,10 +375,9 @@ class ArrayBuilderDialog(QDialog):
 
             # Fix offset
             offset = self._offset
-            braces = self._options.BRACES.replace(' ', '\n'
-                                                  + ' '*(offset + len(prefix)
-                                                  - 1))
-
+            braces = self._options.BRACES.replace(
+                ' ',
+                '\n' + ' '*(offset + len(prefix) - 1))
             values = values.replace(self._options.ROW_SEPARATOR,  braces)
             text = "{0}{1}{2}".format(prefix, values, suffix)
 
