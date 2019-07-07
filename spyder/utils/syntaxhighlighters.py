@@ -21,7 +21,7 @@ from pygments.lexer import RegexLexer, bygroups
 from pygments.lexers import get_lexer_by_name
 from pygments.token import (Text, Other, Keyword, Name, String, Number,
                             Comment, Generic, Token)
-from qtpy.QtCore import Qt, QTimer, Signal, Slot
+from qtpy.QtCore import Qt, QTimer, Signal
 from qtpy.QtGui import (QColor, QCursor, QFont, QSyntaxHighlighter,
                         QTextCharFormat, QTextOption)
 from qtpy.QtWidgets import QApplication
