@@ -171,6 +171,10 @@ class SearchThread(QThread):
                     if not self.case_sensitive:
                         line_search = line_search.lower()
                     if self.text_re:
+                        # Handle different line endings as file is opened in
+                        # binary mode. Fixes spyder-ide/spyder#9765.
+                        if text.pattern[-1] == 36:  # 36 = '$'
+                            line_search = line_search.replace(b'\r\n', b'\n')
                         found = re.search(text, line_search)
                         if found is not None:
                             break
@@ -185,6 +189,11 @@ class SearchThread(QThread):
                 if not self.case_sensitive:
                     line = line.lower()
                 if self.text_re:
+                    # Handle different line endings as file is opened in binary
+                    # mode. Fixes spyder-ide/spyder#9765.
+                    if text.pattern[-1] == 36:  # 36 = '$'
+                        line = line.replace(b'\r\n', b'\n')
+
                     for match in re.finditer(text, line):
                         with QMutexLocker(self.mutex):
                             if self.stopped:
