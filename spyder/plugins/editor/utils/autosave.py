@@ -106,17 +106,8 @@ class AutosaveForPlugin(object):
         """Stop the autosave timer."""
         self.timer.stop()
 
-    def single_instance(self):
-        """Return whether Spyder is running in single instance mode."""
-        single_instance = CONF.get('main', 'single_instance')
-        new_instance = self.editor.main.new_instance
-        return single_instance and not new_instance
-
     def do_autosave(self):
         """Instruct current editorstack to autosave files where necessary."""
-        if not self.single_instance():
-            logger.debug('Autosave disabled because not single instance')
-            return
         logger.debug('Autosave triggered')
         stack = self.editor.get_current_editorstack()
         stack.autosave.autosave_all()
@@ -154,9 +145,6 @@ class AutosaveForPlugin(object):
 
     def try_recover_from_autosave(self):
         """Offer to recover files from autosave."""
-        if not self.single_instance():
-            self.recover_files_to_open = []
-            return
         autosave_mapping = self.get_files_to_recover()
         dialog = RecoveryDialog(autosave_mapping, parent=self.editor)
         dialog.exec_if_nonempty()
