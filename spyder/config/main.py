@@ -508,19 +508,3 @@ DEFAULTS = [
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
 CONF_VERSION = '50.2.0'
-
-
-# Main configuration instance
-try:
-    CONF = UserConfig('spyder', defaults=DEFAULTS, load=True,
-                      version=CONF_VERSION, subfolder=SUBFOLDER, backup=True,
-                      raw_mode=True)
-except Exception:
-    CONF = UserConfig('spyder', defaults=DEFAULTS, load=False,
-                      version=CONF_VERSION, subfolder=SUBFOLDER, backup=True,
-                      raw_mode=True)
-
-# Removing old .spyder.ini location:
-old_location = osp.join(get_home_dir(), '.spyder.ini')
-if osp.isfile(old_location):
-    os.remove(old_location)
