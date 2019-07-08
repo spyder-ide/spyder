@@ -160,6 +160,7 @@ _qtaargs = {
     'gotoline':                [('fa.sort-numeric-asc',), {'color': MAIN_FG_COLOR}],
     'error':                   [('fa.times-circle',), {'color': 'darkred'}],
     'warning':                 [('fa.warning',), {'color': 'orange'}],
+    'style-warning':           [('fa.warning',), {'color': '#3775a9'}],
     'information':             [('fa.info-circle',), {'color': '#3775a9'}],
     'hint':                    [('fa.lightbulb-o',), {'color': 'yellow'}],
     'todo':                    [('fa.exclamation',), {'color': '#3775a9'}],

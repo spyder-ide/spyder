@@ -2000,6 +2000,16 @@ class CodeEditor(TextEditBaseWidget):
         self.tooltip_widget.hide()
         self.clear_extra_selections('code_analysis_highlight')
 
+    def get_style_warning_sources(self):
+        """
+        Return sources to take into account for checking style warninigs.
+        """
+        if self.language.lower() == 'python':
+            style_warning_sources = ['pycodestyle', 'pydocstyle']
+        else:
+            style_warning_sources = []
+        return style_warning_sources
+
     def show_code_analysis_results(self, line_number, block_data):
         """Show warning/error messages."""
         from spyder.config.base import get_image_path
@@ -2010,7 +2020,8 @@ class CodeEditor(TextEditBaseWidget):
             DiagnosticSeverity.INFORMATION: 'information',
             DiagnosticSeverity.HINT: 'hint',
         }
-
+        style_icon = 'style-warning'
+        style_sources = self.get_style_warning_sources()
         code_analysis = block_data.code_analysis
 
         # Size must be adapted from font
@@ -2071,7 +2082,11 @@ class CodeEditor(TextEditBaseWidget):
             else:
                 msg = '<br>'.join(new_paragraphs)
 
-            base_64 = ima.base64_from_icon(icons[sev], size, size)
+            if src in style_sources:
+                icon = style_icon
+            else:
+                icon = icons[sev]
+            base_64 = ima.base64_from_icon(icon, size, size)
             if max_lines_msglist >= 0:
                 msglist.append(template.format(base_64, msg, src,
                                                code, size=size))

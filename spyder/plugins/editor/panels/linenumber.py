@@ -45,6 +45,7 @@ class LineNumberArea(Panel):
         self.info_icon = ima.icon('information')
         self.hint_icon = ima.icon('hint')
         self.todo_icon = ima.icon('todo')
+        self.style_warning_icon = ima.icon('style-warning')
 
         # Line number area management
         self._margin = True
@@ -67,7 +68,7 @@ class LineNumberArea(Panel):
         # See spyder-ide/spyder#2296 and spyder-ide/spyder#4811.
         font = self.editor.font()
         font_height = self.editor.fontMetrics().height()
-
+        style_sources = self.editor.get_style_warning_sources()
         active_block = self.editor.textCursor().block()
         active_line_number = active_block.blockNumber() + 1
 
@@ -104,11 +105,16 @@ class LineNumberArea(Panel):
                 if data.code_analysis:
                     errors = 0
                     warnings = 0
+                    style_warnings = 0
                     infos = 0
                     hints = 0
-                    for _, _, sev, _ in data.code_analysis:
+                    for src, _, sev, _ in data.code_analysis:
                         errors += sev == DiagnosticSeverity.ERROR
-                        warnings += sev == DiagnosticSeverity.WARNING
+                        if sev == DiagnosticSeverity.WARNING:
+                            if src in style_sources:
+                                style_warnings += 1
+                            else:
+                                warnings += sev == DiagnosticSeverity.WARNING
                         infos += sev == DiagnosticSeverity.INFORMATION
                         hints += sev == DiagnosticSeverity.HINT
 
@@ -116,6 +122,9 @@ class LineNumberArea(Panel):
                         draw_pixmap(1, top, self.error_icon.pixmap(icon_size))
                     elif warnings:
                         draw_pixmap(1, top, self.warning_icon.pixmap(icon_size))
+                    elif style_warnings:
+                        draw_pixmap(1, top, 
+                                    self.style_warning_icon.pixmap(icon_size))
                     elif infos:
                         draw_pixmap(1, top, self.info_icon.pixmap(icon_size))
                     elif hints:
