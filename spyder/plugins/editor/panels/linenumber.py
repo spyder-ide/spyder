@@ -123,7 +123,7 @@ class LineNumberArea(Panel):
                     elif warnings:
                         draw_pixmap(1, top, self.warning_icon.pixmap(icon_size))
                     elif style_warnings:
-                        draw_pixmap(1, top, 
+                        draw_pixmap(1, top,
                                     self.style_warning_icon.pixmap(icon_size))
                     elif infos:
                         draw_pixmap(1, top, self.info_icon.pixmap(icon_size))
