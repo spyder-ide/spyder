@@ -6,7 +6,7 @@
 
 """Kite client requests and constants."""
 
-from spyder.plugins.languageserver import LSPRequestTypes
+from spyder.plugins.completion.languageserver import LSPRequestTypes
 
 
 class _KiteEndpoints:

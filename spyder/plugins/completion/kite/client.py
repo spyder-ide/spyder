@@ -13,9 +13,9 @@ import logging
 from qtpy.QtCore import QObject, QThread, Signal, QTimer
 
 # Local imports
-from spyder.plugins.kite import KITE_ENDPOINTS, KITE_REQUEST_MAPPING
-from spyder.plugins.kite.decorators import class_register
-from spyder.plugins.kite.providers import KiteMethodProviderMixIn
+from spyder.plugins.completion.kite import KITE_ENDPOINTS, KITE_REQUEST_MAPPING
+from spyder.plugins.completion.kite.decorators import class_register
+from spyder.plugins.completion.kite.providers import KiteMethodProviderMixIn
 
 # Other imports
 import requests
