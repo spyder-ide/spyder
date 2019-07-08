@@ -876,7 +876,7 @@ class CodeEditor(TextEditBaseWidget):
         self.document_did_open()
 
     def stop_completion_services(self):
-        logger.debug('Stopping LSP services for %s' % self.filename)
+        logger.debug('Stopping completion services for %s' % self.filename)
         self.completions_available = False
         self.document_opened = False
 
@@ -951,12 +951,10 @@ class CodeEditor(TextEditBaseWidget):
         """Trigger completion."""
         self.document_did_change('')
         line, column = self.get_cursor_line_column()
-        offset = self.get_position('cursor')
         params = {
             'file': self.filename,
             'line': line,
-            'column': column,
-            'offset': offset
+            'column': column
         }
         self.completion_args = (self.textCursor().position(), automatic)
         return params

@@ -879,7 +879,7 @@ class MainWindow(QMainWindow):
         self.console.register_plugin()
 
         # Code completion client initialization
-        self.set_splash(_("Starting code completion plugin..."))
+        self.set_splash(_("Starting code completion manager..."))
         from spyder.plugins.completion.plugin import CompletionManager
         self.completions = CompletionManager(self)
 

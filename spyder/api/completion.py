@@ -77,9 +77,6 @@ class SpyderCompletionPlugin(QObject, SpyderPlugin):
             Request body
             {
                 'filename': str,
-                'requires_response': bool,
-                # Widget/Plugin instance that performed the request
-                'response_instance': :class:`SpyderPlugin`,
                 **kwargs: request-specific parameters
             }
         req_id: int

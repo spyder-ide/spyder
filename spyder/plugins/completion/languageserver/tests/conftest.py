@@ -10,6 +10,11 @@ try:
 except ImportError:
     from mock import Mock # Python 2
 
+# This is needed to avoid an error because QtAwesome
+# needs a QApplication to work correctly.
+from spyder.utils.qthelpers import qapplication
+app = qapplication()
+
 from qtpy.QtCore import QObject, Signal, Slot
 import pytest
 from pytestqt.plugin import QtBot
