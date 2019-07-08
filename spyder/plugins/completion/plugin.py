@@ -26,6 +26,7 @@ from spyder.api.completion import SpyderCompletionPlugin
 from spyder.utils.misc import select_port, getcwd_or_home
 from spyder.plugins.completion.languageserver.plugin import (
     LanguageServerPlugin)
+from spyder.plugins.completion.kite.plugin import KiteCompletionPlugin
 from spyder.plugins.completion.fallback.plugin import FallbackPlugin
 from spyder.plugins.completion.languageserver import LSPRequestTypes
 
@@ -38,10 +39,11 @@ class CompletionManager(SpyderCompletionPlugin):
     RUNNING = 'running'
     BASE_PLUGINS = {
         'lsp': LanguageServerPlugin,
-        'fallback': FallbackPlugin
+        'fallback': FallbackPlugin,
+        'kite': KiteCompletionPlugin
     }
 
-    def __init__(self, parent, plugins=['lsp', 'fallback']):
+    def __init__(self, parent, plugins=['lsp', 'kite', 'fallback']):
         SpyderCompletionPlugin.__init__(self, parent)
         self.clients = {}
         self.requests = {}

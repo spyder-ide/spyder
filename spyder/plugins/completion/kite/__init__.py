@@ -9,7 +9,7 @@
 from spyder.plugins.completion.languageserver import LSPRequestTypes
 
 
-class _KiteEndpoints:
+class _KiteEndpoints(type):
     """HTTP endpoints supported by Kite"""
     KITE_PORT = 46624
     KITE_URL = 'http://localhost:{0}'.format(KITE_PORT)
@@ -23,8 +23,8 @@ class _KiteEndpoints:
     COMPLETION_ENDPOINT = ('POST', '/clientapi/editor/completions')
     SIGNATURE_ENDPOINT = ('POST', '/clientapi/editor/signatures')
 
-    def __getattr__(self, attr):
-        value = super().__getattr__(self, attr)
+    def __getattribute__(self, attr):
+        value = object.__getattribute__(self, attr)
         if attr.endswith('ENDPOINT'):
             verb, path = value
             url = '{0}{1}'.format(self.KITE_URL, path)
@@ -32,7 +32,8 @@ class _KiteEndpoints:
         return value
 
 
-KITE_ENDPOINTS = _KiteEndpoints()
+KITE_ENDPOINTS = _KiteEndpoints(
+    'KiteEndpoints', (), {'__doc__': 'HTTP endpoints supported by Kite'})
 
 
 KITE_REQUEST_MAPPING = {

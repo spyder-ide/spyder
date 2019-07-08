@@ -875,7 +875,7 @@ class CodeEditor(TextEditBaseWidget):
         self.parse_lsp_config(config)
         self.document_did_open()
 
-    def stop_lsp_services(self):
+    def stop_completion_services(self):
         logger.debug('Stopping LSP services for %s' % self.filename)
         self.completions_available = False
         self.document_opened = False

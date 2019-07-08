@@ -27,8 +27,9 @@ logger = logging.getLogger(__name__)
 @class_register
 class KiteClient(QObject, KiteMethodProviderMixIn):
     sig_response_ready = Signal(int, dict)
-    sig_client_started = Signal()
+    sig_client_started = Signal(list)
     sig_client_not_responding = Signal()
+    sig_perform_request = Signal(int, str, object)
 
     MAX_SERVER_CONTACT_RETRIES = 40
 
@@ -37,54 +38,63 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
         self.contact_retries = 0
         self.endpoint = None
         self.requests = {}
+        self.languages = []
         self.alive = False
         self.thread_started = False
         self.thread = QThread()
         self.moveToThread(self.thread)
         self.thread.started.connect(self.started)
+        self.sig_perform_request.connect(self.perform_request)
 
     def __wait_http_session_to_start(self):
+        logger.debug('Waiting Kite HTTP endpoint to be available...')
+        _, url = KITE_ENDPOINTS.ALIVE_ENDPOINT
         try:
-            code = requests.get(KITE_ENDPOINTS.ALIVE_ENDPOINT).status_code
+            code = requests.get(url).status_code
         except Exception:
             code = 500
 
         if self.contact_retries == self.MAX_SERVER_CONTACT_RETRIES:
+            logger.debug('Kite server is not answering')
             self.sig_client_not_responding.emit()
-
         elif code != 200:
-            self.server_retries += 1
-            QTimer.singleShot(250, self.__wait_server_to_start)
+            self.contact_retries += 1
+            QTimer.singleShot(250, self.__wait_http_session_to_start)
         elif code == 200:
             self.alive = True
             self.start_client()
 
     def start(self):
+        if not self.thread_started:
+            self.thread.start()
         self.__wait_http_session_to_start()
 
     def start_client(self):
+        logger.debug('Starting Kite HTTP session...')
         self.endpoint = requests.Session()
-        if not self.thread_started:
-            self.thread.start()
+        self.languages = self.get_languages()
+        self.sig_client_started.emit(self.languages)
 
     def started(self):
         self.thread_started = True
 
     def stop(self):
-        self.endpoint.close()
-        self.thread.quit()
+        if self.thread_started:
+            logger.debug('Closing Kite HTTP session...')
+            self.endpoint.close()
+            self.thread.quit()
 
-    def language_is_available(self, language):
+    def get_languages(self):
         verb, url = KITE_ENDPOINTS.LANGUAGES_ENDPOINT
         success, response = self.perform_http_request(verb, url)
-        return language in response
+        return response
 
     def perform_http_request(self, verb, url, params=None):
         response = None
         success = False
         http_method = getattr(self.endpoint, verb)
         http_response = http_method(url, json=params)
-        success = http_response.code == 200
+        success = http_response.status_code == 200
         if success:
             try:
                 response = http_response.json()
