@@ -954,7 +954,8 @@ class CodeEditor(TextEditBaseWidget):
         params = {
             'file': self.filename,
             'line': line,
-            'column': column
+            'column': column,
+            'offset': self.get_position('cursor')
         }
         self.completion_args = (self.textCursor().position(), automatic)
         return params
