@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
-#
+# ----------------------------------------------------------------------------
 # Copyright © Spyder Project Contributors
+#
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
+# ----------------------------------------------------------------------------
 
 """Status bar widgets."""
 
@@ -13,7 +15,7 @@ import sys
 
 # Third party imports
 from qtpy.QtCore import Qt, QSize, QTimer, Signal
-from qtpy.QtGui import QFont
+from qtpy.QtGui import QFont, QIcon
 from qtpy.QtWidgets import QHBoxLayout, QComboBox, QLabel, QWidget
 
 # Local imports
@@ -21,7 +23,7 @@ from spyder import dependencies
 from spyder.config.base import _
 from spyder.config.gui import get_font
 from spyder.config.utils import is_anaconda
-from spyder.py3compat import to_text_string
+from spyder.py3compat import PY3, to_text_string
 
 if not os.name == 'nt':
     PSUTIL_REQVER = '>=0.3'
@@ -32,18 +34,10 @@ if not os.name == 'nt':
         required_version=PSUTIL_REQVER)
 
 
-class ClickLabel(QLabel):
-    sig_clicked = Signal()
-
-    def mousePressEvent(self, event):
-        """Override Qt method to allow for click signal."""
-        super(ClickLabel, self).mousePressEvent(event)
-        self.sig_clicked.emit()
-
-
 class StatusBarWidget(QWidget):
     """Status bar widget base."""
-    TIP = None
+    # Signals
+    sig_clicked = Signal()
 
     def __init__(self, parent, statusbar, icon=None):
         """Status bar widget base."""
@@ -53,24 +47,22 @@ class StatusBarWidget(QWidget):
         self.value = None
 
         # Widget
-        self._icon = icon
-        self._pixmap = icon.pixmap(QSize(16, 16)) if icon is not None else None
+        self._status_bar = statusbar
+        self._icon = None
+        self._pixmap = None
+        self._icon_size = QSize(16, 16)  # Should this be adjustable?
         self.label_icon = QLabel() if icon is not None else None
-        self.label_value = ClickLabel()
+        self.label_value = QLabel()
 
         # Widget setup
-        if icon is not None:
-            self.label_icon.setPixmap(self._pixmap)
+        self.set_icon(icon)
+
         # See spyder-ide/spyder#9044.
         self.text_font = QFont(get_font(option='font'))
         self.text_font.setPointSize(self.font().pointSize())
         self.text_font.setBold(True)
         self.label_value.setAlignment(Qt.AlignRight)
         self.label_value.setFont(self.text_font)
-
-        if self.TIP:
-            self.setToolTip(self.TIP)
-            self.label_value.setToolTip(self.TIP)
 
         # Layout
         layout = QHBoxLayout()
@@ -85,12 +77,46 @@ class StatusBarWidget(QWidget):
 
         # Setup
         statusbar.addPermanentWidget(self)
+        self.set_value('')
+        self.update_tooltip()
+
+    # --- Status bar widget API
+    # ------------------------------------------------------------------------
+    def set_icon(self, icon):
+        """Set the icon for the status bar widget."""
+        if icon is not None and isinstance(icon, QIcon):
+            self._icon = icon
+            self._pixmap = icon.pixmap(self._icon_size)
+            self.label_icon.setPixmap(self._pixmap)
 
     def set_value(self, value):
         """Set formatted text value."""
         self.value = value
-        if self.isVisible():
-            self.label_value.setText(value)
+        self.label_value.setText(value)
+
+    def update_tooltip(self):
+        """Update tooltip for widget."""
+        tooltip = self.get_tooltip()
+        if tooltip:
+            self.label_value.setToolTip(tooltip)
+            if self.label_icon:
+                self.label_icon.setToolTip(tooltip)
+            self.setToolTip(tooltip)
+
+    def mouseReleaseEvent(self, event):
+        """Override Qt method to allow for click signal."""
+        super(StatusBarWidget, self).mousePressEvent(event)
+        self.sig_clicked.emit()
+
+    # --- API to be defined by user
+    # ------------------------------------------------------------------------
+    def get_tooltip(self):
+        """Return the widget tooltip text."""
+        raise NotImplementedError
+
+    def get_icon(self):
+        """Return the widget tooltip text."""
+        raise NotImplementedError
 
 
 class BaseTimerStatus(StatusBarWidget):
@@ -114,6 +140,8 @@ class BaseTimerStatus(StatusBarWidget):
         else:
             self.hide()
 
+    # --- Status bar widget API
+    # ------------------------------------------------------------------------
     def setVisible(self, value):
         """Override Qt method to stops timers if widget is not visible."""
         if self.timer is not None:
@@ -123,16 +151,6 @@ class BaseTimerStatus(StatusBarWidget):
                 self.timer.stop()
         super(BaseTimerStatus, self).setVisible(value)
 
-    def set_interval(self, interval):
-        """Set timer interval (ms)."""
-        self._interval = interval
-        if self.timer is not None:
-            self.timer.setInterval(interval)
-
-    def import_test(self):
-        """Raise ImportError if feature is not supported."""
-        raise NotImplementedError
-
     def is_supported(self):
         """Return True if feature is supported."""
         try:
@@ -141,14 +159,26 @@ class BaseTimerStatus(StatusBarWidget):
         except ImportError:
             return False
 
-    def get_value(self):
-        """Return formatted text value."""
-        raise NotImplementedError
-
     def update_status(self):
         """Update status label widget, if widget is visible."""
         if self.isVisible():
             self.label_value.setText(self.get_value())
+
+    def set_interval(self, interval):
+        """Set timer interval (ms)."""
+        self._interval = interval
+        if self.timer is not None:
+            self.timer.setInterval(interval)
+
+    # --- API to be defined by user
+    # ------------------------------------------------------------------------
+    def import_test(self):
+        """Raise ImportError if feature is not supported."""
+        raise NotImplementedError
+
+    def get_value(self):
+        """Return formatted text value."""
+        raise NotImplementedError
 
 
 # =============================================================================
@@ -188,48 +218,56 @@ class CPUStatus(BaseTimerStatus):
         return 'CPU ' + text.rjust(3)
 
 
-class CondaStatus(BaseTimerStatus):
-    """Status bar widget for displaying the current interpreter/env."""
+class CondaStatus(StatusBarWidget):
+    """Status bar widget for displaying the current conda environment."""
 
     def __init__(self, parent, statusbar, icon=None):
+        """Status bar widget for displaying the current conda environment."""
+        self._interpreter = None
         super(CondaStatus, self).__init__(parent, statusbar, icon=icon)
-        self.label_value.sig_clicked.connect(self.show_env_selection)
-
-    def import_test(self):
-        pass
-
-    def show_env_selection(self):
-        """"""
-        pass
+        self.sig_clicked.connect(lambda : print('hello'))
 
     def _process_conda_env_info(self):
-        """"""
-        executable = sys.executable
+        """Get conda environment information."""
+        interpreter = self._interpreter
         try:
-            out = subprocess.check_output([executable, '-V'])
-            out = out.decode().split('\n')[0]
+            out, err = subprocess.Popen(
+                [interpreter, '-V'],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            ).communicate()
+            if PY3:
+                out = out.decode()
+                err = err.decode()
+            out = out or err
+            out = out.split('\n')[0]
         except Exception:
             out = ''
 
         envs_folder = os.path.sep + 'envs' + os.path.sep
-        if envs_folder in executable:
-            env = os.path.basename(sys.prefix)
+        if envs_folder in interpreter:
+            env = os.path.dirname(os.path.dirname(interpreter))
+            env = os.path.basename(env)
         else:
             env = 'base'
         text = 'conda: {env} ({version})'.format(env=env, version=out)
+
         return text
 
-    def get_value(self):
-        """Return conda env."""
+    def get_tooltip(self):
+        """Override api method."""
+        return self._interpreter if self._interpreter else ''
+
+    def update_interpreter(self, interpreter):
+        """Set main interpreter and update information."""
+        self._interpreter = interpreter
         if is_anaconda():
             text = self._process_conda_env_info()
-            tip = sys.executable
         else:
-            text = sys.executable
-            tip = text
+            text = ''
 
-        self.label_value.setToolTip(tip)
-        return text
+        self.set_value(text)
+        self.update_tooltip()
 
 
 def test():
