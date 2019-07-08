@@ -149,7 +149,7 @@ from spyder import dependencies
 from spyder.py3compat import (is_text_string, to_text_string,
                               PY3, qbytearray_to_str, configparser as cp)
 from spyder.utils import encoding, programs
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.programs import is_module_installed
 from spyder.utils.misc import select_port, getcwd_or_home, get_python_executable
 from spyder.plugins.help.utils.sphinxify import CSS_PATH, DARK_CSS_PATH
@@ -2870,6 +2870,94 @@ class MainWindow(QMainWindow):
         self.dialog_manager.show(WinUserEnvDialog(self))
 
     #---- Preferences
+    def update_style(self):
+        """"""
+        # Update theme
+        ui_theme = CONF.get('appearance', 'ui_theme')
+
+        if running_under_pytest():
+            self._proxy_style = None
+        else:
+            from spyder.utils.qthelpers import SpyderProxyStyle
+            # None is needed, see: https://bugreports.qt.io/browse/PYSIDE-922
+            self._proxy_style = SpyderProxyStyle(None)
+
+        if ui_theme == 'dark':
+            if not running_under_pytest():
+                # Set style proxy to fix combobox popup on mac and qdark
+                qapp = QApplication.instance()
+                qapp.setStyle(self._proxy_style)
+            dark_qss = qdarkstyle.load_stylesheet_from_environment()
+            self.setStyleSheet(dark_qss)
+            self.statusBar().setStyleSheet(dark_qss)
+            css_path = DARK_CSS_PATH
+        elif ui_theme == 'automatic':
+            if not is_dark_font_color(color_scheme):
+                if not running_under_pytest():
+                    # Set style proxy to fix combobox popup on mac and qdark
+                    qapp = QApplication.instance()
+                    qapp.setStyle(self._proxy_style)
+                dark_qss = qdarkstyle.load_stylesheet_from_environment()
+                self.setStyleSheet(dark_qss)
+                self.statusBar().setStyleSheet(dark_qss)
+                css_path = DARK_CSS_PATH
+            else:
+                self.setStyleSheet('')
+                self.statusBar().setStyleSheet('')
+                css_path = CSS_PATH
+        else:
+            self.setStyleSheet('')
+            self.statusBar().setStyleSheet('')
+            css_path = CSS_PATH
+
+        # Update actions
+        actions = []
+        actions.extend(self.file_menu_actions)
+        actions.extend(self.edit_menu_actions)
+        actions.extend(self.search_menu_actions)
+        actions.extend(self.source_menu_actions)
+        actions.extend(self.run_menu_actions)
+        actions.extend(self.debug_menu_actions)
+        actions.extend(self.consoles_menu_actions)
+        actions.extend(self.projects_menu_actions)
+        actions.extend(self.tools_menu_actions)
+        actions.extend(self.external_tools_menu_actions)
+        actions.extend(self.plugins_menu_actions)
+        actions.extend(self.help_menu_actions)
+        actions.extend(self.main_toolbar_actions)
+        actions.extend(self.file_toolbar_actions)
+        actions.extend(self.edit_toolbar_actions)
+        actions.extend(self.search_toolbar_actions)
+        actions.extend(self.source_toolbar_actions)
+        actions.extend(self.run_toolbar_actions)
+        actions.extend(self.debug_toolbar_actions)
+        actions.extend(self.layout_toolbar_actions)
+        actions.append(self.lock_interface_action)
+        actions.append(self.show_toolbars_action)
+        actions.append(self.close_dockwidget_action)
+        actions.append(self.undo_action)
+        actions.append(self.redo_action)
+        actions.append(self.copy_action)
+        actions.append(self.cut_action)
+        actions.append(self.paste_action)
+        actions.append(self.selectall_action)
+        actions.append(self.maximize_action)
+        actions.append(self.fullscreen_action)
+
+        for action in actions:
+            if action and not isinstance(action, (QMenu, str)):
+                action.update_icon()
+
+        # Update plugins
+        for plugin in [self.workingdirectory] + self.widgetlist + self.thirdparty_plugins:
+            if plugin:
+                plugin.update_style()
+
+        # Update any dialog that might be open
+        for dlg in [self.prefs_dialog_instance]:
+            if dlg:
+                dlg.update_style()
+
     def apply_settings(self):
         """Apply settings changed in 'Preferences' dialog box"""
         qapp = QApplication.instance()
@@ -2895,6 +2983,7 @@ class MainWindow(QMainWindow):
             default = default|QMainWindow.AnimatedDocks
         self.setDockOptions(default)
 
+        self.update_style()
         self.apply_panes_settings()
         self.apply_statusbar_settings()
 

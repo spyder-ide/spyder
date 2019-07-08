@@ -26,7 +26,7 @@ from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import to_text_string
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils import encoding
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import create_action
 from spyder.widgets.comboboxes import PathComboBox
 from spyder.plugins.workingdirectory.confpage import WorkingDirectoryConfigPage
@@ -101,19 +101,23 @@ class WorkingDirectory(SpyderPluginWidget):
         self.toolbar.addWidget(self.pathedit)
         
         # Browse action
-        browse_action = create_action(self, "browse", None,
-                                      ima.icon('DirOpenIcon'),
-                                      _('Browse a working directory'),
-                                      triggered=self.select_directory)
-        self.toolbar.addAction(browse_action)
+        self.browse_action = create_action(
+            self, "browse", None,
+            ima.icon('DirOpenIcon'),
+            _('Browse a working directory'),
+            triggered=self.select_directory)
+        self.toolbar.addAction(self.browse_action)
 
         # Parent dir action
-        parent_action = create_action(self, "parent", None,
-                                      ima.icon('up'),
-                                      _('Change to parent directory'),
-                                      triggered=self.parent_directory)
-        self.toolbar.addAction(parent_action)
-                
+        self.parent_action = create_action(
+            self,
+            "parent",
+            None,
+            ima.icon('up'),
+            _('Change to parent directory'),
+            triggered=self.parent_directory)
+        self.toolbar.addAction(self.parent_action)
+
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
         """Return widget title"""
@@ -140,6 +144,20 @@ class WorkingDirectory(SpyderPluginWidget):
                              self.histindex is not None and self.histindex > 0)
         self.set_next_enabled.emit(self.histindex is not None and \
                                    self.histindex < len(self.history)-1)
+
+    def update_style(self):
+        """"""
+        super(WorkingDirectory, self).update_style()
+        actions = [
+            self.previous_action,
+            self.next_action,
+            self.browse_action,
+            self.parent_action,
+        ]
+        for action in actions:
+            if action:
+                action.update_icon()
+        print('inside working dir')
 
     #------ Public API ---------------------------------------------------------
     def load_wdhistory(self, workdir=None):

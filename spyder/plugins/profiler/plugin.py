@@ -17,7 +17,7 @@ from spyder.config.base import _
 from spyder.config.gui import is_dark_interface
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.preferences.runconfig import get_run_configuration
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import create_action
 from spyder.plugins.profiler.confpage import ProfilerConfigPage
 from spyder.plugins.profiler.widgets.profilergui import (ProfilerWidget,

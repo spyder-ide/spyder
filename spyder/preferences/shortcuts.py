@@ -27,7 +27,7 @@ from spyder.config.main import CONF
 from spyder.config.gui import (get_shortcut, iter_shortcuts,
                                reset_shortcuts, set_shortcut)
 from spyder.preferences.configdialog import GeneralConfigPage
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import get_std_icon, create_toolbutton
 from spyder.utils.stringmatching import get_search_scores, get_search_regex
 from spyder.widgets.helperwidgets import HTMLDelegate
@@ -860,7 +860,7 @@ class ShortcutsConfigPage(GeneralConfigPage):
     def setup_page(self):
         self.ICON = ima.icon('keyboard')
         # Widgets
-        self.table = ShortcutsTable(self, text_color=ima.MAIN_FG_COLOR)
+        self.table = ShortcutsTable(self, text_color=ima.foreground_color)
         self.finder = ShortcutFinder(self.table, self.table.set_regex)
         self.table.finder = self.finder
         self.label_finder = QLabel(_('Search: '))

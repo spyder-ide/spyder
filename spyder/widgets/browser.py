@@ -25,7 +25,7 @@ from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils.qthelpers import (action2button, add_actions,
                                     create_action, create_toolbutton,
                                     create_plugin_layout)
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.widgets.comboboxes import UrlComboBox
 from spyder.widgets.findreplace import FindReplace
 

@@ -24,7 +24,7 @@ from spyder.config.base import (_, LANGUAGE_CODES, running_in_mac_app,
                                 save_lang_conf)
 from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.py3compat import to_text_string
-import spyder.utils.icon_manager as ima
+from spyder.utils.icon_manager import ima
 
 
 HDPI_QT_PAGE = "https://doc.qt.io/qt-5/highdpi.html"

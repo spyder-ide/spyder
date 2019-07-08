@@ -23,7 +23,7 @@ from qtpy.QtWidgets import QVBoxLayout
 
 # Local imports
 from spyder.config.base import _
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import create_action
 from spyder.api.plugins import SpyderPluginWidget
 

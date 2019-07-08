@@ -31,7 +31,7 @@ from spyder.config.base import _, get_image_path
 from spyder.config.gui import is_dark_interface
 from spyder.py3compat import to_binary_string
 from spyder.utils.qthelpers import add_actions, create_action
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 
 
 if is_dark_interface():

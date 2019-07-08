@@ -27,7 +27,7 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu,
 # ---- Local library imports
 from spyder.config.base import _
 from spyder.py3compat import is_unicode, to_text_string
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, create_plugin_layout,
                                     MENU_SEPARATOR)

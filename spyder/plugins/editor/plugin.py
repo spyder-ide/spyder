@@ -37,7 +37,7 @@ from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter)
 from spyder.py3compat import PY2, qbytearray_to_str, to_text_string
 from spyder.utils import encoding, programs, sourcecode
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import create_action, add_actions, MENU_SEPARATOR
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.findreplace import FindReplace
@@ -1052,6 +1052,11 @@ class Editor(SpyderPluginWidget):
         self.stack_menu_actions = [gotoline_action, workdir_action]
 
         return self.file_dependent_actions
+
+    def update_style(self):
+        for action in self.get_plugin_actions():
+            if action:
+                action.update_icon()
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""

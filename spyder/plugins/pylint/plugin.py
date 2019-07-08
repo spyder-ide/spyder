@@ -23,7 +23,7 @@ from qtpy.QtWidgets import QInputDialog, QVBoxLayout
 from spyder.config.base import _
 from spyder.config.gui import is_dark_interface
 from spyder.api.plugins import SpyderPluginWidget
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.programs import is_module_installed
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from spyder.plugins.pylint.confpage import PylintConfigPage

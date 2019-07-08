@@ -29,7 +29,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QApplication, QListWidget,
 from spyder.config.gui import get_font
 from spyder.config.main import CONF
 from spyder.py3compat import PY3, to_text_string
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.widgets.calltip import CallTipWidget, ToolTipWidget
 from spyder.widgets.mixins import BaseEditMixin
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS

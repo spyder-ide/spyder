@@ -12,7 +12,7 @@ import os.path as osp
 # Local imports
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.workers import WorkerManager
 from spyder.utils.vcs import get_git_refs
 from spyder.widgets.status import StatusBarWidget
@@ -63,13 +63,16 @@ class VCSStatus(StatusBarWidget):
     """Status bar widget for system vcs."""
     TIP = _("Git branch")
 
-    def __init__(self, parent, statusbar):
+    def __init__(self, parent, statusbar, ):
         super(VCSStatus, self).__init__(parent, statusbar,
                                         icon=ima.icon('code_fork'))
         self._worker_manager = WorkerManager(max_threads=1)
         self._git_is_working = None
         self._git_job_queue = None
         self._last_git_job = None
+
+        # Setup
+        self.update_style()
 
     def update_vcs_state(self, idx, fname, fname2):
         """Update vcs status."""

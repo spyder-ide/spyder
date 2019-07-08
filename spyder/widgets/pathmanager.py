@@ -22,7 +22,7 @@ from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
 # Local imports
 from spyder.config.base import _
 from spyder.utils.misc import getcwd_or_home
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import create_toolbutton
 from spyder.py3compat import PY2
 

@@ -46,7 +46,7 @@ from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.utils.qthelpers import create_action, add_actions, MENU_SEPARATOR
 from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.programs import get_temp_dir
 from spyder.utils.misc import get_error_match, remove_backslashes

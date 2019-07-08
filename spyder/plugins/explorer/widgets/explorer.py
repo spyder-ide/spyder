@@ -37,7 +37,7 @@ from spyder.config.base import _, get_home_dir, get_image_path
 from spyder.config.gui import config_shortcut, get_shortcut, is_dark_interface
 from spyder.py3compat import str_lower, to_binary_string, to_text_string
 from spyder.utils import encoding
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils import misc, programs, vcs
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import (add_actions, create_action,

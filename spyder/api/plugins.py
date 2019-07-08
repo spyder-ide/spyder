@@ -19,7 +19,7 @@ from qtpy.QtWidgets import QWidget
 # Local imports
 from spyder.config.user import NoDefault
 from spyder.plugins.base import BasePluginMixin, BasePluginWidgetMixin
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 
 
 # =============================================================================
@@ -471,6 +471,21 @@ class SpyderPluginWidget(SpyderPlugin, BasePluginWidget):
         their fonts.
         """
         pass
+
+    def update_style(self):
+        """
+        This must be reimplemented by plugins that need to adjust
+        their style, dark/light or custom.
+        """
+        print('updating style for', self.get_plugin_title())
+        actions = [
+            self._dock_action,
+            self._undock_action,
+            self._close_plugin_action,
+        ]
+        for action in actions:
+            if action:
+                action.update_icon()
 
     def toggle_view(self, checked):
         """

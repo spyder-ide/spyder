@@ -35,7 +35,7 @@ from qtpy.QtWidgets import (QApplication, QComboBox, QHBoxLayout, QLabel,
 from spyder.config.base import _
 from spyder.config.main import EXCLUDE_PATTERNS
 from spyder.py3compat import to_text_string, PY2
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.encoding import is_text_file, to_unicode_from_fs
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.comboboxes import PatternComboBox

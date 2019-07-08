@@ -9,7 +9,7 @@ This module contains the DebuggerPanel panel
 from qtpy.QtCore import QSize, Qt, QRect, Slot
 from qtpy.QtGui import QPainter, QFontMetrics
 
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.api.panel import Panel
 from spyder.config.base import debug_print
 

@@ -47,6 +47,7 @@ class StatusBarWidget(QWidget):
         # Widget setup
         if icon is not None:
             self.label_icon.setPixmap(self._pixmap)
+
         # See spyder-ide/spyder#9044.
         self.text_font = QFont(get_font(option='font'))
         self.text_font.setPointSize(self.font().pointSize())
@@ -77,6 +78,13 @@ class StatusBarWidget(QWidget):
         self.value = value
         if self.isVisible():
             self.label_value.setText(value)
+
+    def update_style(self):
+        """Update icon style."""
+        icon = self._icon
+        self._pixmap = icon.pixmap(QSize(16, 16)) if icon is not None else None
+        if icon is not None:
+            self.label_icon.setPixmap(self._pixmap)
 
 
 class BaseTimerStatus(StatusBarWidget):

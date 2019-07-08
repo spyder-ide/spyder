@@ -22,7 +22,7 @@ from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLabel, QLineEdit,
 from spyder.config.base import _
 from spyder.py3compat import iteritems, to_text_string
 from spyder.config.utils import is_ubuntu
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.stringmatching import get_search_scores
 from spyder.widgets.helperwidgets import HelperToolButton, HTMLDelegate
 from spyder.config.main import CONF
@@ -236,7 +236,7 @@ class FileSwitcher(QDialog):
     _PADDING = 0
     _MIN_WIDTH = 500
     _STYLES = {
-        'title_color': ima.MAIN_FG_COLOR,
+        'title_color': ima.foreground_color,
         'description_color': 'rgb(153, 153, 153)',
         'section_color': SECTION_COLOR,
         'shortcut_color': 'rgb(153, 153, 153)',

@@ -19,7 +19,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
 # Local imports
 from spyder import __version__
 from spyder.config.base import _
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 
 
 class DependenciesTreeWidget(QTreeWidget):

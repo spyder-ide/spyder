@@ -21,7 +21,7 @@ from spyder.config.base import _
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import create_action
 from spyder.utils.sourcecode import normalize_eols
 from spyder.widgets.tabs import Tabs

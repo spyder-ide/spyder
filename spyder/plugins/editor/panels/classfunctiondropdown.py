@@ -21,7 +21,7 @@ from spyder.api.panel import Panel
 from spyder.plugins.editor.utils.folding import FoldScope
 from spyder.plugins.editor.utils.editor import TextBlockHelper
 from spyder.plugins.outlineexplorer.api import OutlineExplorerData as OED
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 
 
 def populate(combobox, data):

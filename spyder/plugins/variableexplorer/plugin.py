@@ -15,7 +15,7 @@ from spyder_kernels.utils.nsview import REMOTE_SETTINGS
 from spyder import dependencies
 from spyder.config.base import _
 from spyder.api.plugins import SpyderPluginWidget
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
         NamespaceBrowser)
 from spyder.plugins.variableexplorer.confpage import VariableExplorerConfigPage

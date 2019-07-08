@@ -24,7 +24,7 @@ from spyder.api.plugins import SpyderPluginWidget
 from spyder.config.base import _
 from spyder.config.utils import get_edit_extensions
 from spyder.utils.misc import getcwd_or_home
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from spyder.plugins.findinfiles.widgets import FindInFilesWidget
 
@@ -63,7 +63,7 @@ class FindInFiles(SpyderPluginWidget):
                                    case_sensitive, path_history,
                                    search_in_index,
                                    options_button=self.options_button,
-                                   text_color=ima.MAIN_FG_COLOR)
+                                   text_color=ima.foreground_color)
 
         layout = QVBoxLayout()
         layout.addWidget(self.findinfiles)

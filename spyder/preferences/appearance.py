@@ -21,7 +21,7 @@ from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.py3compat import is_text_string
 from spyder.utils import syntaxhighlighters
-import spyder.utils.icon_manager as ima
+from spyder.utils.icon_manager import ima
 
 
 class AppearanceConfigPage(GeneralConfigPage):
@@ -48,7 +48,7 @@ class AppearanceConfigPage(GeneralConfigPage):
         ui_theme_combo = self.create_combobox(_('Interface theme'),
                                               ui_theme_choices,
                                               'ui_theme',
-                                              restart=True)
+                                              restart=False)
 
         styles = [str(txt) for txt in list(QStyleFactory.keys())]
         # Don't offer users the possibility to change to a different
@@ -65,7 +65,7 @@ class AppearanceConfigPage(GeneralConfigPage):
         themes = ['Spyder 2', 'Spyder 3']
         icon_choices = list(zip(themes, [theme.lower() for theme in themes]))
         icons_combo = self.create_combobox(_('Icon theme'), icon_choices,
-                                           'icon_theme', restart=True)
+                                           'icon_theme', restart=False)
 
         theme_comboboxes_layout = QGridLayout()
         theme_comboboxes_layout.addWidget(ui_theme_combo.label, 0, 0)
@@ -192,6 +192,7 @@ class AppearanceConfigPage(GeneralConfigPage):
         color_scheme = self.get_option('selected')
         ui_theme = self.get_option('ui_theme')
         style_sheet = self.main.styleSheet()
+
         if ui_theme == 'automatic':
             if ((not is_dark_font_color(color_scheme) and not style_sheet)
                     or (is_dark_font_color(color_scheme) and style_sheet)):
@@ -229,6 +230,7 @@ class AppearanceConfigPage(GeneralConfigPage):
                     self.main.help.apply_plugin_settings(['color_scheme_name'])
                 self.update_combobox()
                 self.update_preview()
+
         self.main.apply_settings()
 
     # Helpers

@@ -33,7 +33,7 @@ from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.variableexplorer.widgets.objectexplorer import (
     DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS, ToggleColumnTreeView,
     TreeModel, TreeProxyModel)
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 
 
 logger = logging.getLogger(__name__)

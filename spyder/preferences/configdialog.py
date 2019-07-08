@@ -32,7 +32,7 @@ from spyder.config.base import _, load_lang_conf
 from spyder.config.main import CONF
 from spyder.config.user import NoDefault
 from spyder.py3compat import to_text_string
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.colors import ColorLayout
 from spyder.widgets.comboboxes import FileComboBox
@@ -257,7 +257,6 @@ class ConfigDialog(QDialog):
         """
         QDialog.resizeEvent(self, event)
         self.size_change.emit(self.size())
-
 
 class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     """Plugin configuration dialog box page widget"""

@@ -33,7 +33,7 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QLabel, QMessageBox,
 # Local imports
 from spyder.config.base import get_conf_path, get_translation
 from spyder.py3compat import to_text_string
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import (create_toolbutton, get_item_user_text,
                                     set_item_user_text)
 from spyder.utils.programs import shell_split

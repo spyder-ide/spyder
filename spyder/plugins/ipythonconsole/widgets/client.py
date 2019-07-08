@@ -35,7 +35,7 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMenu, QMessageBox,
 from spyder.config.base import (_, get_image_path, get_module_source_path,
                                 running_under_pytest)
 from spyder.config.gui import get_shortcut, is_dark_interface
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils import sourcecode
 from spyder.utils.encoding import get_coding
 from spyder.utils.environ import RemoteEnvDialog

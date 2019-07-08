@@ -25,7 +25,7 @@ from qtpy.QtWidgets import QInputDialog, QLineEdit, QMenu, QHBoxLayout
 # Local imports
 from spyder.config.base import _, DEV, get_debug_level
 from spyder.config.main import CONF
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.environ import EnvDialog
 from spyder.utils.misc import (get_error_match, remove_backslashes,
                                getcwd_or_home)

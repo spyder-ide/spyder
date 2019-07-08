@@ -29,7 +29,7 @@ from spyder.config.gui import get_font, is_dark_interface
 from spyder.plugins.languageserver import LSP_LANGUAGES
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.preferences.configdialog import GeneralConfigPage
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.programs import find_program
 from spyder.widgets.helperwidgets import ItemDelegate
 
@@ -991,7 +991,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
 
         # Servers table
         table_group = QGroupBox(_('Available servers:'))
-        self.table = LSPServerTable(self, text_color=ima.MAIN_FG_COLOR)
+        self.table = LSPServerTable(self, text_color=ima.foreground_color)
         self.table.setMaximumHeight(150)
         table_layout = QVBoxLayout()
         table_layout.addWidget(self.table)
