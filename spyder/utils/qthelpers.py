@@ -27,7 +27,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QLabel,
 from spyder.config.base import get_image_path, running_in_mac_app
 from spyder.config.gui import get_shortcut, is_dark_interface
 from spyder.py3compat import is_text_string, to_text_string
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils import programs
 from spyder.utils.icon_manager import get_icon, get_std_icon
 from spyder.widgets.waitingspinner import QWaitingSpinner
@@ -302,6 +302,12 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
             action.setShortcut(shortcut)
         action.setShortcutContext(context)
 
+    def update_icon(icon, action):
+        if icon:
+            action.setIcon(ima.icon(icon.name))
+
+    action.update_icon = lambda: update_icon(icon, action)
+
     return action
 
 
@@ -471,6 +477,11 @@ class SpyderAction(QAction):
             self._action_no_icon.toggled.connect(self.toggled)
             self._action_no_icon.changed.connect(self.changed)
             self._action_no_icon.hovered.connect(self.hovered)
+
+            def dummy():
+                pass
+
+            self._action_no_icon.update_icon = dummy
         else:
             self._action_no_icon = self
 
