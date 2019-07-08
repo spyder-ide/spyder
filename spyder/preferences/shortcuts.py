@@ -889,6 +889,9 @@ class ShortcutsConfigPage(GeneralConfigPage):
                 lambda i1, i2, opt='': self.has_been_modified(opt))
         self.reset_btn.clicked.connect(self.reset_to_default)
 
+    def get_icon(self):
+        return ima.icon('keyboard')
+
     def check_settings(self):
         self.table.check_shortcuts()
 

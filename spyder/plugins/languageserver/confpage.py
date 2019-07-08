@@ -1108,6 +1108,9 @@ class LanguageServerConfigPage(GeneralConfigPage):
         self.set_modified(True)
         self.delete_btn.setEnabled(False)
 
+    def get_icon(self):
+        return ima.icon('lspserver')
+
     def apply_settings(self, options):
         # Check regex of code style options
         try:

@@ -257,6 +257,9 @@ class MainConfigPage(GeneralConfigPage):
         vlayout.addWidget(tabs)
         self.setLayout(vlayout)
 
+    def get_icon(self):
+        return ima.icon('genprefs')
+
     def apply_settings(self, options):
         self.main.apply_settings()
 

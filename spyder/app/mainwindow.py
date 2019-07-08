@@ -151,7 +151,8 @@ from spyder.py3compat import (is_text_string, to_text_string,
 from spyder.utils import encoding, programs
 from spyder.utils.icon_manager import ima
 from spyder.utils.programs import is_module_installed
-from spyder.utils.misc import select_port, getcwd_or_home, get_python_executable
+from spyder.utils.misc import (select_port, getcwd_or_home,
+                               get_python_executable)
 from spyder.plugins.help.utils.sphinxify import CSS_PATH, DARK_CSS_PATH
 from spyder.config.gui import is_dark_font_color
 
@@ -364,7 +365,8 @@ class MainWindow(QMainWindow):
         if sys.platform == 'darwin':
             spy_path = get_module_source_path('spyder')
             img_path = osp.join(spy_path, 'images')
-            mac_style = open(osp.join(spy_path, 'app', 'mac_stylesheet.qss')).read()
+            with open(osp.join(spy_path, 'app', 'mac_stylesheet.qss')) as fh:
+                mac_style = fh.read()
             mac_style = mac_style.replace('$IMAGE_PATH', img_path)
             self.setStyleSheet(mac_style)
 
@@ -421,7 +423,8 @@ class MainWindow(QMainWindow):
         from spyder.preferences.general import MainConfigPage
         from spyder.preferences.shortcuts import ShortcutsConfigPage
         from spyder.preferences.runconfig import RunConfigPage
-        from spyder.preferences.maininterpreter import MainInterpreterConfigPage
+        from spyder.preferences.maininterpreter import (
+                MainInterpreterConfigPage)
         self.general_prefs = [MainConfigPage, AppearanceConfigPage,
                               ShortcutsConfigPage, MainInterpreterConfigPage,
                               RunConfigPage]
@@ -885,12 +888,13 @@ class MainWindow(QMainWindow):
         self.console = Console(self, namespace, exitfunc=self.closing,
                             profile=self.profile,
                             multithreaded=self.multithreaded,
-                            message=_("Spyder Internal Console\n\n"
-                                    "This console is used to report application\n"
-                                    "internal errors and to inspect Spyder\n"
-                                    "internals with the following commands:\n"
-                                    "  spy.app, spy.window, dir(spy)\n\n"
-                                    "Please don't use it to run your code\n\n"))
+                            message=_(
+                                "Spyder Internal Console\n\n"
+                                "This console is used to report application\n"
+                                "internal errors and to inspect Spyder\n"
+                                "internals with the following commands:\n"
+                                "  spy.app, spy.window, dir(spy)\n\n"
+                                "Please don't use it to run your code\n\n"))
         self.console.register_plugin()
 
         # Language Server Protocol Client initialization
@@ -906,7 +910,8 @@ class MainWindow(QMainWindow):
         # Working directory plugin
         logger.info("Loading working directory...")
         from spyder.plugins.workingdirectory.plugin import WorkingDirectory
-        self.workingdirectory = WorkingDirectory(self, self.init_workdir, main=self)
+        self.workingdirectory = WorkingDirectory(self, self.init_workdir,
+                                                 main=self)
         self.workingdirectory.register_plugin()
         self.toolbarslist.append(self.workingdirectory.toolbar)
 
@@ -1415,8 +1420,8 @@ class MainWindow(QMainWindow):
                   "dependencies, however to have a smooth experience when "
                   "using Spyder we <i>strongly</i> recommend you to install "
                   "all the listed missing dependencies.<br><br>"
-                  "Failing to install these dependencies might result in bugs. "
-                  "Please be sure that any found bugs are not the direct "
+                  "Failing to install these dependencies might result in bugs."
+                  " Please be sure that any found bugs are not the direct "
                   "result of missing dependencies, prior to reporting a new "
                   "issue."
                   ) % missing_deps, QMessageBox.Ok)
@@ -2448,8 +2453,8 @@ class MainWindow(QMainWindow):
             self.last_plugin._ismaximized = True
 
             # Workaround to solve an issue with editor's outline explorer:
-            # (otherwise the whole plugin is hidden and so is the outline explorer
-            #  and the latter won't be refreshed if not visible)
+            # (otherwise the whole plugin is hidden and so is the outline
+            # explorer and the latter won't be refreshed if not visible)
             self.last_plugin.show()
             self.last_plugin._visibility_changed(True)
             if self.last_plugin is self.editor:
@@ -2874,6 +2879,7 @@ class MainWindow(QMainWindow):
         """"""
         # Update theme
         ui_theme = CONF.get('appearance', 'ui_theme')
+        color_scheme = CONF.get('appearance', 'selected')
 
         if running_under_pytest():
             self._proxy_style = None
@@ -2949,7 +2955,8 @@ class MainWindow(QMainWindow):
                 action.update_icon()
 
         # Update plugins
-        for plugin in [self.workingdirectory] + self.widgetlist + self.thirdparty_plugins:
+        for plugin in ([self.workingdirectory] + self.widgetlist +
+                       self.thirdparty_plugins):
             if plugin:
                 plugin.update_style()
 

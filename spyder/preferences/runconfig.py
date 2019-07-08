@@ -567,5 +567,8 @@ class RunConfigPage(GeneralConfigPage):
         vlayout.addStretch(1)
         self.setLayout(vlayout)
 
+    def get_icon(self):
+        return ima.icon('run')
+
     def apply_settings(self, options):
         pass

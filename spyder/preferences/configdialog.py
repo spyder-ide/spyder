@@ -258,6 +258,19 @@ class ConfigDialog(QDialog):
         QDialog.resizeEvent(self, event)
         self.size_change.emit(self.size())
 
+    def update_style(self):
+        """Update icon styles."""
+        for idx in range(self.pages_widget.count()):
+            scrollarea = self.pages_widget.widget(idx)
+            if scrollarea:
+                widget = scrollarea.widget()
+                if widget:
+                    icon = widget.get_icon()
+                    item = self.contents_widget.item(idx)
+                    if icon and item:
+                        item.setIcon(icon)
+
+
 class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     """Plugin configuration dialog box page widget"""
     CONF_SECTION = None

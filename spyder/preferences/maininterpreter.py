@@ -61,6 +61,9 @@ class MainInterpreterConfigPage(GeneralConfigPage):
             self.set_custom_interpreters_list(executable)
             self.validate_custom_interpreters_list()
 
+    def get_icon(self):
+        return ima.icon('python')
+
     def initialize(self):
         GeneralConfigPage.initialize(self)
 

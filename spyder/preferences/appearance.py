@@ -187,6 +187,9 @@ class AppearanceConfigPage(GeneralConfigPage):
         for plugin in plugins:
             plugin.update_font()
 
+    def get_icon(self):
+        return ima.icon('eyedropper')
+
     def apply_settings(self, options):
         self.set_option('selected', self.current_scheme)
         color_scheme = self.get_option('selected')
