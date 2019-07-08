@@ -20,7 +20,7 @@ class _KiteEndpoints(type):
     HOVER_ENDPOINT = (
         'GET', '/api/buffer/spyder/{filename}/{hash}/hover?'
                'cursor_runes={cursor_bytes}&offset_encoding={encoding}')
-    COMPLETION_ENDPOINT = ('POST', '/clientapi/editor/completions')
+    COMPLETION_ENDPOINT = ('POST', '/clientapi/editor/complete')
     SIGNATURE_ENDPOINT = ('POST', '/clientapi/editor/signatures')
 
     def __getattribute__(self, attr):
@@ -41,7 +41,6 @@ KITE_REQUEST_MAPPING = {
     LSPRequestTypes.DOCUMENT_DID_CLOSE: KITE_ENDPOINTS.EVENT_ENDPOINT,
     LSPRequestTypes.DOCUMENT_DID_CHANGE: KITE_ENDPOINTS.EVENT_ENDPOINT,
     LSPRequestTypes.DOCUMENT_HOVER: KITE_ENDPOINTS.HOVER_ENDPOINT,
-    # FIXME: Ask Kite team about completions endpoint
     LSPRequestTypes.DOCUMENT_COMPLETION: KITE_ENDPOINTS.COMPLETION_ENDPOINT,
     LSPRequestTypes.DOCUMENT_SIGNATURE: KITE_ENDPOINTS.SIGNATURE_ENDPOINT
 }

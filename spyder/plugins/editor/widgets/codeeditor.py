@@ -951,10 +951,12 @@ class CodeEditor(TextEditBaseWidget):
         """Trigger completion."""
         self.document_did_change('')
         line, column = self.get_cursor_line_column()
+        offset = self.get_position('cursor')
         params = {
             'file': self.filename,
             'line': line,
-            'column': column
+            'column': column,
+            'offset': offset
         }
         self.completion_args = (self.textCursor().position(), automatic)
         return params

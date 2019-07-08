@@ -48,7 +48,8 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         self.sig_plugin_ready.emit(self.COMPLETION_CLIENT_NAME)
 
     def send_request(self, language, req_type, req, req_id):
-        self.client.sig_perform_request.emit(req_id, req_type, req)
+        if language in self.available_languages:
+            self.client.sig_perform_request.emit(req_id, req_type, req)
 
     def start_client(self, language):
         return language in self.available_languages
@@ -71,7 +72,7 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
     def _check_if_kite_installed(self):
         path = osp.expanduser('~/.local/share/kite/kited')
         if os.name == 'nt':
-            path = 'C:\\Program Files\Kite\kited.exe'
+            path = 'C:\\Program Files\\Kite\\kited.exe'
         elif sys.platform == 'darwin':
             path = '/opt/kite/kited'
         return osp.exists(osp.realpath(path)), path
