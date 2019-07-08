@@ -22,17 +22,18 @@ from qtpy.QtCore import QObject, Slot
 from spyder.config.base import get_conf_path, running_under_pytest
 from spyder.config.lsp import PYTHON_CONFIG
 from spyder.config.main import CONF
-from spyder.api.completion import SpyderCompletionPlugin
+from spyder.api.completion import SpyderCompletionManager
 from spyder.utils.misc import select_port, getcwd_or_home
-from spyder.plugins.languageserver import LSP_LANGUAGES
-from spyder.plugins.languageserver.client import LSPClient
-from spyder.plugins.languageserver.confpage import LanguageServerConfigPage
+from spyder.plugins.completion.languageserver import LSP_LANGUAGES
+from spyder.plugins.completion.languageserver.client import LSPClient
+from spyder.plugins.completion.languageserver.confpage import (
+    LanguageServerConfigPage)
 
 
 logger = logging.getLogger(__name__)
 
 
-class LanguageServerPlugin(SpyderCompletionPlugin):
+class LanguageServerPlugin(SpyderCompletionManager):
     """Language Server Protocol manager."""
     COMPLETION_CLIENT_NAME = 'lsp'
     STOPPED = 'stopped'
@@ -42,7 +43,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
     CONFIGWIDGET_CLASS = LanguageServerConfigPage
 
     def __init__(self, parent):
-        SpyderCompletionPlugin.__init__(self, parent)
+        SpyderCompletionManager.__init__(self, parent)
 
         self.clients = {}
         self.requests = set({})
@@ -240,7 +241,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 language_client['instance'].stop()
             language_client['status'] = self.STOPPED
 
-    def recieve_response(self, response_type, response, language, req_id):
+    def receive_response(self, response_type, response, language, req_id):
         if req_id in self.requests:
             self.requests.discard(req_id)
             self.sig_response_ready.emit(
@@ -253,7 +254,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 self.requests.add(req_id)
                 client = self.clients[language]['instance']
                 params['response_callback'] = functools.partial(
-                    self.recieve_response, language=language, req_id=req_id)
+                    self.receive_response, language=language, req_id=req_id)
                 client.perform_request(request, params)
 
     def send_notification(self, language, request, params):

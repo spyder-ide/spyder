@@ -57,9 +57,9 @@ from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               DocstringWriterExtension,
                                               QMenuOnlyForEnter,
                                               EditorExtensionsManager)
-from spyder.plugins.languageserver import (LSPRequestTypes,
-                                           TextDocumentSyncKind,
-                                           DiagnosticSeverity)
+from spyder.plugins.completion.languageserver import (LSPRequestTypes,
+                                                      TextDocumentSyncKind,
+                                                      DiagnosticSeverity)
 from spyder.plugins.editor.panels import (ClassFunctionDropdown,
                                           DebuggerPanel, EdgeLine,
                                           FoldingPanel, IndentationGuide,
@@ -71,7 +71,8 @@ from spyder.plugins.editor.utils.debugger import DebuggerManager
 from spyder.plugins.editor.utils.folding import IndentFoldDetector, FoldScope
 from spyder.plugins.editor.utils.kill_ring import QtKillRing
 from spyder.plugins.editor.utils.languages import ALL_LANGUAGES, CELL_LANGUAGES
-from spyder.plugins.editor.utils.lsp import request, handles, class_register
+from spyder.plugins.completion.decorators import (
+    request, handles, class_register)
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.outlineexplorer.languages import PythonCFM
 from spyder.py3compat import PY2, to_text_string
@@ -863,6 +864,8 @@ class CodeEditor(TextEditBaseWidget):
     # ------------- LSP: Configuration and protocol start/end ----------------
 
     def start_completion_services(self):
+        logger.debug("Completions services available for: {0}".format(
+            self.filename))
         self.completions_available = True
         self.document_did_open()
 
@@ -3571,7 +3574,12 @@ class CodeEditor(TextEditBaseWidget):
             # Check if still on the line
             return 0
 
-        if not self.strip_trailing_spaces_on_modify:
+        # Check if end of line in string
+        cursor = self.textCursor()
+        cursor.setPosition(line_range[1])
+
+        if (not self.strip_trailing_spaces_on_modify
+                or self.in_string(cursor=cursor)):
             if self.last_auto_indent is None:
                 return 0
             elif (self.last_auto_indent !=
@@ -3583,12 +3591,6 @@ class CodeEditor(TextEditBaseWidget):
             self.last_auto_indent = None
         elif not pos_in_line(self.last_change_position):
             # Should process if pressed return or made a change on the line:
-            return 0
-
-        # Check if end of line in string
-        cursor = self.textCursor()
-        cursor.setPosition(line_range[1])
-        if self.in_string(cursor=cursor):
             return 0
 
         cursor.setPosition(line_range[0])
@@ -3607,6 +3609,7 @@ class CodeEditor(TextEditBaseWidget):
             self.document_did_change()
             # Correct last change position
             self.last_change_position = line_range[1]
+            self.last_position = self.textCursor().position()
             return line_range[1] - (line_range[0] + len(strip))
         return 0
 

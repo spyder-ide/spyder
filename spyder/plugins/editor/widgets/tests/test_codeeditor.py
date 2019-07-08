@@ -129,6 +129,14 @@ def test_editor_log_lsp_handle_errors(editorbot, capsys):
          'a=1\na=2 \na=3',
          [(Qt.LeftButton, 6), Qt.Key_Up],
          True),
+        ('def fun():\n    """fun',
+         'def fun():\n    """fun\n\n    ',
+         [Qt.Key_Enter, Qt.Key_Enter],
+         True),
+        ('def fun():\n    """fun',
+         'def fun():\n    """fun\n\n    ',
+         [Qt.Key_Enter, Qt.Key_Enter],
+         False),
     ])
 def test_editor_rstrip_keypress(
         editorbot, input_text, expected_text, keys, strip_all):

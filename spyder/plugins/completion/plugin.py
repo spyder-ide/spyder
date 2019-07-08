@@ -22,18 +22,18 @@ from qtpy.QtCore import QObject, Slot
 from spyder.config.base import get_conf_path, running_under_pytest
 from spyder.config.lsp import PYTHON_CONFIG
 from spyder.config.main import CONF
-from spyder.api.completion import SpyderCompletionPlugin
+from spyder.api.completion import SpyderCompletionManager
 from spyder.utils.misc import select_port, getcwd_or_home
-from spyder.plugins.languageserver.plugin import LanguageServerPlugin
-from spyder.plugins.fallback.plugin import FallbackPlugin
-from spyder.plugins.languageserver import LSPRequestTypes
-# from spyder.plugins.languageserver.confpage import LanguageServerConfigPage
+from spyder.plugins.completion.languageserver.plugin import (
+    LanguageServerPlugin)
+from spyder.plugins.completion.fallback.plugin import FallbackPlugin
+from spyder.plugins.completion.languageserver import LSPRequestTypes
 
 
 logger = logging.getLogger(__name__)
 
 
-class CompletionPlugin(SpyderCompletionPlugin):
+class CompletionManager(SpyderCompletionManager):
     STOPPED = 'stopped'
     RUNNING = 'running'
     BASE_PLUGINS = {
@@ -42,7 +42,7 @@ class CompletionPlugin(SpyderCompletionPlugin):
     }
 
     def __init__(self, parent, plugins=['lsp', 'fallback']):
-        SpyderCompletionPlugin.__init__(self, parent)
+        SpyderCompletionManager.__init__(self, parent)
         self.clients = {}
         self.requests = {}
         self.language_status = {}
@@ -72,14 +72,14 @@ class CompletionPlugin(SpyderCompletionPlugin):
             'plugin': plugin,
             'status': self.STOPPED
         }
-        plugin.sig_response_ready.connect(self.recieve_response)
+        plugin.sig_response_ready.connect(self.receive_response)
         plugin.sig_plugin_ready.connect(self.client_available)
         for language in self.language_status:
             server_status = self.language_status[language]
             server_status[plugin_name] = False
 
     @Slot(str, int, dict)
-    def recieve_response(self, completion_source, req_id, resp):
+    def receive_response(self, completion_source, req_id, resp):
         logger.debug("Completion plugin: Request {0} Got response "
                      "from {1}".format(req_id, completion_source))
         request_responses = self.requests[req_id]
@@ -106,8 +106,8 @@ class CompletionPlugin(SpyderCompletionPlugin):
         client_info = self.clients[client_name]
         client_info['status'] = self.RUNNING
 
-    def gather_and_send(
-            self, principal_source, response_instance, req_type, req_id):
+    def gather_and_send(self,
+                        principal_source, response_instance, req_type, req_id):
         logger.debug('Gather responses for {0}'.format(req_type))
         responses = []
         req_id_responses = self.requests[req_id]['sources']
@@ -210,8 +210,5 @@ class CompletionPlugin(SpyderCompletionPlugin):
                 client_info['plugin'].stop_client(language)
         self.language_status.pop(language)
 
-    def __getattr__(self, name):
-        if name in self.clients:
-            return self.clients[name]['plugin']
-        else:
-            return super().__getattr__(name)
+    def get_client(self, name):
+        return self.clients[name]['plugin']

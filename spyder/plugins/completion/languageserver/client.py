@@ -26,14 +26,15 @@ import zmq
 # Local imports
 from spyder.py3compat import PY2
 from spyder.config.base import get_conf_path, get_debug_level
-from spyder.plugins.languageserver import (
+from spyder.plugins.completion.languageserver import (
     CLIENT_CAPABILITES, SERVER_CAPABILITES, TRACE,
     TEXT_DOCUMENT_SYNC_OPTIONS, LSPRequestTypes,
     ClientConstants)
-from spyder.plugins.languageserver.decorators import (
+from spyder.plugins.completion.languageserver.decorators import (
     send_request, send_notification, class_register, handles)
-from spyder.plugins.languageserver.transport import MessageKind
-from spyder.plugins.languageserver.providers import LSPMethodProviderMixIn
+from spyder.plugins.completion.languageserver.transport import MessageKind
+from spyder.plugins.completion.languageserver.providers import (
+    LSPMethodProviderMixIn)
 from spyder.utils.misc import getcwd_or_home
 
 # Conditional imports

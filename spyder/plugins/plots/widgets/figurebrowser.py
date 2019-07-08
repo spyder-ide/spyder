@@ -614,24 +614,18 @@ class ThumbnailScrollBar(QFrame):
         Setup the up and down arrow buttons that are placed at the top and
         bottom of the scrollarea.
         """
-        # Get the height of the up/down arrow of the default vertical
-        # scrollbar :
-        vsb = self.scrollarea.verticalScrollBar()
-        style = vsb.style()
-        opt = QStyleOptionSlider()
-        vsb.initStyleOption(opt)
-        vsb_up_arrow = style.subControlRect(
-                QStyle.CC_ScrollBar, opt, QStyle.SC_ScrollBarAddLine, self)
+        # Get the size hint height of the horizontal scrollbar.
+        height = self.scrollarea.horizontalScrollBar().sizeHint().height()
 
-        # Setup the up and down arrow button :
+        # Setup the up and down arrow button.
         up_btn = up_btn = QPushButton(icon=ima.icon('last_edit_location'))
         up_btn.setFlat(True)
-        up_btn.setFixedHeight(vsb_up_arrow.size().height())
+        up_btn.setFixedHeight(height)
         up_btn.clicked.connect(self.go_up)
 
         down_btn = QPushButton(icon=ima.icon('folding.arrow_down_on'))
         down_btn.setFlat(True)
-        down_btn.setFixedHeight(vsb_up_arrow.size().height())
+        down_btn.setFixedHeight(height)
         down_btn.clicked.connect(self.go_down)
 
         return up_btn, down_btn

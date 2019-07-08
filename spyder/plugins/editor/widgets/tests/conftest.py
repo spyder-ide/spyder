@@ -23,11 +23,11 @@ from qtpy.QtGui import QFont
 from spyder.config.main import CONF
 from spyder.plugins.editor.tests.conftest import (
     editor_plugin, editor_plugin_open_files, python_files)
-from spyder.plugins.languageserver.tests.conftest import (
+from spyder.plugins.completion.languageserver.tests.conftest import (
     qtbot_module, MainWindowMock)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editor import EditorStack
-from spyder.plugins.completion.plugin import CompletionPlugin
+from spyder.plugins.completion.plugin import CompletionManager
 from spyder.plugins.explorer.widgets.tests.conftest import create_folders_files
 from spyder.widgets.findreplace import FindReplace
 
@@ -68,7 +68,7 @@ def setup_editor(qtbot):
 def fallback_codeeditor(qtbot_module, request):
     """CodeEditor instance with Fallback enabled."""
 
-    completions = CompletionPlugin(None, ['fallback'])
+    completions = CompletionManager(None, ['fallback'])
     completions.start()
     completions.start_client('python')
     qtbot_module.addWidget(completions)
@@ -91,7 +91,8 @@ def fallback_codeeditor(qtbot_module, request):
         editor.completion_widget.hide()
 
     request.addfinalizer(teardown)
-    return editor, completions.fallback
+    fallback = completions.get_client('fallback')
+    return editor, fallback
 
 
 @pytest.fixture
@@ -105,7 +106,7 @@ def lsp_plugin(qtbot_module, request):
     os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
 
     main = MainWindowMock()
-    completions = CompletionPlugin(main, ['lsp'])
+    completions = CompletionManager(main, ['lsp'])
     completions.start()
     with qtbot_module.waitSignal(
             main.editor.sig_lsp_initialized, timeout=30000):

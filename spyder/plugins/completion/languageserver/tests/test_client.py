@@ -11,11 +11,11 @@ import pytest
 from qtpy.QtCore import QObject, Signal, Slot
 
 from spyder.config.lsp import PYTHON_CONFIG
-from spyder.plugins.languageserver.client import LSPClient
-from spyder.plugins.languageserver import LSPRequestTypes
+from spyder.plugins.completion.languageserver.client import LSPClient
+from spyder.plugins.completion.languageserver import LSPRequestTypes
 
 
-class CompletionPlugin(QObject):
+class CompletionManager(QObject):
     """Dummy completion plugin that can handle LSP responses."""
     sig_response = Signal(str, dict)
 
@@ -29,7 +29,7 @@ class CompletionPlugin(QObject):
     pytest.lazy_fixture('lsp_stdio_manager')])
 def lsp_client_and_completion(request):
     """Create an LSP client/completion pair."""
-    completion = CompletionPlugin()
+    completion = CompletionManager()
     client = request.param.clients['python']['instance']
     return client, completion
 

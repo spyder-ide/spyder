@@ -750,9 +750,9 @@ class MainWindow(QMainWindow):
         logger.info("Creating Tools menu...")
         # Tools + External Tools
         prefs_action = create_action(self, _("Pre&ferences"),
-                                        icon=ima.icon('configure'),
-                                        triggered=self.edit_preferences,
-                                        context=Qt.ApplicationShortcut)
+                                     icon=ima.icon('configure'),
+                                     triggered=self.show_preferences,
+                                     context=Qt.ApplicationShortcut)
         self.register_shortcut(prefs_action, "_", "Preferences",
                                add_shortcut_to_tip=True)
         spyder_path_action = create_action(self,
@@ -880,8 +880,8 @@ class MainWindow(QMainWindow):
 
         # Code completion client initialization
         self.set_splash(_("Starting code completion plugin..."))
-        from spyder.plugins.completion.plugin import CompletionPlugin
-        self.completions = CompletionPlugin(self)
+        from spyder.plugins.completion.plugin import CompletionManager
+        self.completions = CompletionManager(self)
 
         # Working directory plugin
         logger.info("Loading working directory...")
@@ -1012,8 +1012,11 @@ class MainWindow(QMainWindow):
             try:
                 plugin = mod.PLUGIN_CLASS(self)
                 if plugin.check_compatibility()[0]:
-                    self.thirdparty_plugins.append(plugin)
-                    plugin.register_plugin()
+                    if hasattr(plugin, 'COMPLETION_CLIENT_NAME'):
+                        self.completions.register_completion_plugin(plugin)
+                    else:
+                        self.thirdparty_plugins.append(plugin)
+                        plugin.register_plugin()
             except Exception as error:
                 print("%s: %s" % (mod, str(error)), file=STDERR)
                 traceback.print_exc(file=STDERR)
@@ -2903,7 +2906,7 @@ class MainWindow(QMainWindow):
             return
 
     @Slot()
-    def edit_preferences(self):
+    def show_preferences(self):
         """Edit Spyder preferences"""
         from spyder.preferences.configdialog import ConfigDialog
 
@@ -2962,6 +2965,11 @@ class MainWindow(QMainWindow):
             dlg.show()
             dlg.check_all_settings()
             dlg.exec_()
+        else:
+            self.prefs_dialog_instance.show()
+            self.prefs_dialog_instance.activateWindow()
+            self.prefs_dialog_instance.raise_()
+            self.prefs_dialog_instance.setFocus()
 
     def __preference_page_changed(self, index):
         """Preference page index has changed"""

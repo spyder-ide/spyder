@@ -15,8 +15,9 @@ import pytest
 from pytestqt.plugin import QtBot
 
 from spyder.config.main import CONF
-from spyder.plugins.languageserver import SERVER_CAPABILITES
-from spyder.plugins.languageserver.plugin import LanguageServerPlugin
+from spyder.plugins.completion.languageserver import SERVER_CAPABILITES
+from spyder.plugins.completion.languageserver.plugin import (
+    LanguageServerPlugin)
 
 
 class EditorMock(QObject):

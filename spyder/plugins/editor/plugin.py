@@ -285,10 +285,10 @@ class Editor(SpyderPluginWidget):
         logger.debug('Start completion server for %s [%s]' % (
             filename, language))
         codeeditor = options['codeeditor']
-        stat = self.main.completions.start_client(language.lower())
+        status = self.main.completions.start_client(language.lower())
         self.main.completions.register_file(
             language.lower(), filename, codeeditor)
-        if stat:
+        if status:
             logger.debug('{0} completion server is ready'.format(language))
             codeeditor.start_completion_services()
             if language.lower() in self.completion_editor_settings:
@@ -1114,7 +1114,8 @@ class Editor(SpyderPluginWidget):
                 CONF.set('lsp-server', 'pycodestyle', checked)
             elif conf_name == 'pydocstyle':
                 CONF.set('lsp-server', 'pydocstyle', checked)
-            self.main.completions.lsp.update_server_list()
+            lsp = self.main.completions.get_client('lsp')
+            lsp.update_server_list()
 
     #------ Focus tabwidget
     def __get_focus_editorstack(self):
@@ -1259,7 +1260,7 @@ class Editor(SpyderPluginWidget):
         editorstack.sig_go_to_definition.connect(
             lambda fname, line, col: self.load(
                 fname, line, start_column=col))
-        editorstack.perform_completion_request.connect(
+        editorstack.sig_perform_completion_request.connect(
             self.send_completion_request)
         editorstack.todo_results_changed.connect(self.todo_results_changed)
         editorstack.update_code_analysis_actions.connect(

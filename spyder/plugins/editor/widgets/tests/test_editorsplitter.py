@@ -68,7 +68,7 @@ def editor_splitter_lsp(qtbot_module, lsp_plugin, request):
             callback.document_did_open()
 
     def register_editorstack(editorstack):
-        editorstack.perform_completion_request.connect(
+        editorstack.sig_perform_completion_request.connect(
             completions.send_request)
         editorstack.sig_open_file.connect(report_file_open)
         settings = completions.main.editor.lsp_editor_settings['python']
@@ -100,7 +100,8 @@ def editor_splitter_lsp(qtbot_module, lsp_plugin, request):
         editorsplitter.close()
 
     request.addfinalizer(teardown)
-    return editorsplitter, completions.lsp
+    lsp = completions.get_client('lsp')
+    return editorsplitter, lsp
 
 
 @pytest.fixture
