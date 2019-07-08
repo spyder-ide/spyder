@@ -22,7 +22,7 @@ from qtpy.QtWidgets import QHBoxLayout, QComboBox, QLabel, QWidget
 from spyder import dependencies
 from spyder.config.base import _
 from spyder.config.gui import get_font
-from spyder.config.utils import is_anaconda
+from spyder.config import utils
 from spyder.py3compat import PY3, to_text_string
 
 if not os.name == 'nt':
@@ -198,6 +198,14 @@ class MemoryStatus(BaseTimerStatus):
         text = '%d%%' % memory_usage()
         return 'Mem ' + text.rjust(3)
 
+    def get_tooltip(self):
+        """Return the widget tooltip text."""
+        return _('')
+
+    def get_icon(self):
+        """Return the widget tooltip text."""
+        return QIcon()
+
 
 class CPUStatus(BaseTimerStatus):
     """Status bar widget for system cpu usage."""
@@ -216,6 +224,14 @@ class CPUStatus(BaseTimerStatus):
         import psutil
         text = '%d%%' % psutil.cpu_percent(interval=0)
         return 'CPU ' + text.rjust(3)
+
+    def get_tooltip(self):
+        """Return the widget tooltip text."""
+        return _('')
+
+    def get_icon(self):
+        """Return the widget tooltip text."""
+        return QIcon()
 
 
 class CondaStatus(StatusBarWidget):
@@ -249,7 +265,11 @@ class CondaStatus(StatusBarWidget):
             env = os.path.basename(env)
         else:
             env = 'base'
-        text = 'conda: {env} ({version})'.format(env=env, version=out)
+
+        if utils.is_anaconda():
+            text = 'conda: {env} ({version})'.format(env=env, version=out)
+        else:
+            text = ''
 
         return text
 
@@ -260,7 +280,7 @@ class CondaStatus(StatusBarWidget):
     def update_interpreter(self, interpreter):
         """Set main interpreter and update information."""
         self._interpreter = interpreter
-        if is_anaconda():
+        if utils.is_anaconda():
             text = self._process_conda_env_info()
         else:
             text = ''
