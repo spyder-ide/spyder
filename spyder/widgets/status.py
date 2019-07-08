@@ -225,7 +225,6 @@ class CondaStatus(StatusBarWidget):
         """Status bar widget for displaying the current conda environment."""
         self._interpreter = None
         super(CondaStatus, self).__init__(parent, statusbar, icon=icon)
-        self.sig_clicked.connect(lambda : print('hello'))
 
     def _process_conda_env_info(self):
         """Get conda environment information."""

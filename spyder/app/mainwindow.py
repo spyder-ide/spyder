@@ -3291,10 +3291,8 @@ class MainWindow(QMainWindow):
         self.thread_updates.started.connect(self.worker_updates.start)
         self.thread_updates.start()
 
-
-    #==============================================================================
-    # Main interpreter
-    #==============================================================================
+    # --- Main interpreter
+    # ------------------------------------------------------------------------
     def get_main_interpreter(self):
         if CONF.get('main_interpreter', 'default'):
             return sys.executable
