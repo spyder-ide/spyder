@@ -899,7 +899,7 @@ class IPythonConsole(SpyderPluginWidget):
         elif CONF.get('workingdir', 'startup/use_fixed_directory'):
             cwd_path = CONF.get('workingdir', 'startup/fixed_directory')
         elif CONF.get('workingdir', 'console/use_fixed_directory'):
-                cwd_path = CONF.get('workingdir', 'console/fixed_directory')
+            cwd_path = CONF.get('workingdir', 'console/fixed_directory')
 
         if osp.isdir(cwd_path) and self.main is not None:
             shellwidget.set_cwd(cwd_path)

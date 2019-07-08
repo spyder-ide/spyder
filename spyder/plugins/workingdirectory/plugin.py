@@ -112,8 +112,8 @@ class WorkingDirectory(SpyderPluginWidget):
     def get_workdir(self):
         """Get current workdir from the CONF file."""
         if self.get_option('startup/use_fixed_directory'):
-                workdir = self.get_option('startup/fixed_directory',
-                                          default='')
+            workdir = self.get_option('startup/fixed_directory',
+                                      default='')
         elif self.get_option('console/use_project_or_home_directory'):
             workdir = get_home_dir()
         else:
