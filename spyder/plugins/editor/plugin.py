@@ -64,13 +64,14 @@ logger = logging.getLogger(__name__)
 
 # Dependencies
 PYLS_REQVER = '>=0.27.0'
-dependencies.add('pyls',
+dependencies.add('pyls', 'python-language-server',
                  _("Editor's code completion, go-to-definition, help and "
                    "real-time code analysis"),
                  required_version=PYLS_REQVER)
 
 NBCONVERT_REQVER = ">=4.0"
-dependencies.add("nbconvert", _("Manipulate Jupyter notebooks on the Editor"),
+dependencies.add("nbconvert", "nbconvert",
+                 _("Manipulate Jupyter notebooks on the Editor"),
                  required_version=NBCONVERT_REQVER)
 
 WINPDB_PATH = programs.find_program('winpdb')
