@@ -361,14 +361,7 @@ class MainWindow(QMainWindow):
                 # capture the traceback when spyder freezes
                 signal.signal(signal.SIGINT, signal_handler)
 
-        # Use a custom Qt stylesheet
-        if sys.platform == 'darwin':
-            spy_path = get_module_source_path('spyder')
-            img_path = osp.join(spy_path, 'images')
-            with open(osp.join(spy_path, 'app', 'mac_stylesheet.qss')) as fh:
-                mac_style = fh.read()
-            mac_style = mac_style.replace('$IMAGE_PATH', img_path)
-            self.setStyleSheet(mac_style)
+        self._update_custom_stylesheet()
 
         # Shortcut management data
         self.shortcut_data = []
@@ -605,32 +598,8 @@ class MainWindow(QMainWindow):
         logger.info("*** Start of MainWindow setup ***")
 
         logger.info("Applying theme configuration...")
-        ui_theme = CONF.get('appearance', 'ui_theme')
-        color_scheme = CONF.get('appearance', 'selected')
 
-        if ui_theme == 'dark':
-            if not running_under_pytest():
-                # Set style proxy to fix combobox popup on mac and qdark
-                qapp = QApplication.instance()
-                qapp.setStyle(self._proxy_style)
-            dark_qss = qdarkstyle.load_stylesheet_from_environment()
-            self.setStyleSheet(dark_qss)
-            self.statusBar().setStyleSheet(dark_qss)
-            css_path = DARK_CSS_PATH
-        elif ui_theme == 'automatic':
-            if not is_dark_font_color(color_scheme):
-                if not running_under_pytest():
-                    # Set style proxy to fix combobox popup on mac and qdark
-                    qapp = QApplication.instance()
-                    qapp.setStyle(self._proxy_style)
-                dark_qss = qdarkstyle.load_stylesheet_from_environment()
-                self.setStyleSheet(dark_qss)
-                self.statusBar().setStyleSheet(dark_qss)
-                css_path = DARK_CSS_PATH
-            else:
-                css_path = CSS_PATH
-        else:
-            css_path = CSS_PATH
+        css_path = self._update_theme_style()
 
         logger.info("Creating core actions...")
         self.close_dockwidget_action = create_action(
@@ -2874,10 +2843,7 @@ class MainWindow(QMainWindow):
         """Show Windows current user environment variables"""
         self.dialog_manager.show(WinUserEnvDialog(self))
 
-    #---- Preferences
-    def update_style(self):
-        """"""
-        # Update theme
+    def _update_theme_style(self):
         ui_theme = CONF.get('appearance', 'ui_theme')
         color_scheme = CONF.get('appearance', 'selected')
 
@@ -2908,13 +2874,33 @@ class MainWindow(QMainWindow):
                 self.statusBar().setStyleSheet(dark_qss)
                 css_path = DARK_CSS_PATH
             else:
-                self.setStyleSheet('')
-                self.statusBar().setStyleSheet('')
+                self._update_custom_stylesheet()
                 css_path = CSS_PATH
+        else:
+            self._update_custom_stylesheet()
+            css_path = CSS_PATH
+
+        return css_path
+
+    def _update_custom_stylesheet(self):
+        """Use a custom Qt stylesheet."""
+        if sys.platform == 'darwin':
+            spy_path = get_module_source_path('spyder')
+            img_path = osp.join(spy_path, 'images')
+            with open(osp.join(spy_path, 'app', 'mac_stylesheet.qss')) as fh:
+                mac_style = fh.read()
+            mac_style = mac_style.replace('$IMAGE_PATH', img_path)
+            self.setStyleSheet(mac_style)
+            self.statusBar().setStyleSheet(mac_style)
         else:
             self.setStyleSheet('')
             self.statusBar().setStyleSheet('')
-            css_path = CSS_PATH
+
+    #---- Preferences
+    def update_style(self):
+        """"""
+        # Update theme
+        self._update_theme_style()
 
         # Update actions
         actions = []
