@@ -39,7 +39,7 @@ from spyder.utils.workers import WorkerManager
 from spyder.plugins.outlineexplorer.api import OutlineExplorerData
 
 PYGMENTS_REQVER = '>=2.0'
-dependencies.add("pygments", "pygments", 
+dependencies.add("pygments", "pygments",
                  _("Syntax highlighting for Matlab, Julia and "
                    "other file types"),
                  required_version=PYGMENTS_REQVER)
