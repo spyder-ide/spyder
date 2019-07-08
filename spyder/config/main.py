@@ -307,6 +307,9 @@ DEFAULTS = [
               'console/use_project_or_home_directory': False,
               'console/use_cwd': True,
               'console/use_fixed_directory': False,
+              'console/fixed_directory': '',
+              'startup/fixed_directory': '',
+              'startup/use_fixed_directory': False,
               }),
             ('shortcuts',
              {
