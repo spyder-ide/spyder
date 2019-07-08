@@ -7,14 +7,14 @@
 """
 Fallback completion plugin.
 
-Wraps FallbackActor to provide compatibility with SpyderCompletionManager API.
+Wraps FallbackActor to provide compatibility with SpyderCompletionPlugin API.
 """
 
 # Standard library imports
 import logging
 
 # Local imports
-from spyder.api.completion import SpyderCompletionManager
+from spyder.api.completion import SpyderCompletionPlugin
 from spyder.plugins.completion.fallback.actor import FallbackActor
 # from spyder.plugins.completion.languageserver import LSPRequestTypes
 
@@ -22,11 +22,11 @@ from spyder.plugins.completion.fallback.actor import FallbackActor
 logger = logging.getLogger(__name__)
 
 
-class FallbackPlugin(SpyderCompletionManager):
+class FallbackPlugin(SpyderCompletionPlugin):
     COMPLETION_CLIENT_NAME = 'fallback'
 
     def __init__(self, parent):
-        SpyderCompletionManager.__init__(self, parent)
+        SpyderCompletionPlugin.__init__(self, parent)
         self.fallback_actor = FallbackActor(self)
         self.fallback_actor.sig_fallback_ready.connect(
             lambda: self.sig_plugin_ready.emit(self.COMPLETION_CLIENT_NAME))
