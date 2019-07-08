@@ -897,7 +897,8 @@ class IPythonConsole(SpyderPluginWidget):
                     self.main.projects.get_active_project() is not None):
                 cwd_path = self.main.projects.get_active_project_path()
         elif CONF.get('workingdir', 'startup/use_fixed_directory'):
-            cwd_path = CONF.get('workingdir', 'startup/fixed_directory')
+            cwd_path = CONF.get('workingdir', 'startup/fixed_directory',
+                                default=get_home_dir())
         elif CONF.get('workingdir', 'console/use_fixed_directory'):
             cwd_path = CONF.get('workingdir', 'console/fixed_directory')
 
