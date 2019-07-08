@@ -22,7 +22,7 @@ from qtpy.QtCore import QObject, Slot
 from spyder.config.base import get_conf_path, running_under_pytest
 from spyder.config.lsp import PYTHON_CONFIG
 from spyder.config.main import CONF
-from spyder.api.completion import SpyderCompletionManager
+from spyder.api.completion import SpyderCompletionPlugin
 from spyder.utils.misc import select_port, getcwd_or_home
 from spyder.plugins.completion.languageserver.plugin import (
     LanguageServerPlugin)
@@ -33,7 +33,7 @@ from spyder.plugins.completion.languageserver import LSPRequestTypes
 logger = logging.getLogger(__name__)
 
 
-class CompletionManager(SpyderCompletionManager):
+class CompletionManager(SpyderCompletionPlugin):
     STOPPED = 'stopped'
     RUNNING = 'running'
     BASE_PLUGINS = {
@@ -42,7 +42,7 @@ class CompletionManager(SpyderCompletionManager):
     }
 
     def __init__(self, parent, plugins=['lsp', 'fallback']):
-        SpyderCompletionManager.__init__(self, parent)
+        SpyderCompletionPlugin.__init__(self, parent)
         self.clients = {}
         self.requests = {}
         self.language_status = {}

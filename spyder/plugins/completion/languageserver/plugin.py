@@ -22,7 +22,7 @@ from qtpy.QtCore import QObject, Slot
 from spyder.config.base import get_conf_path, running_under_pytest
 from spyder.config.lsp import PYTHON_CONFIG
 from spyder.config.main import CONF
-from spyder.api.completion import SpyderCompletionManager
+from spyder.api.completion import SpyderCompletionPlugin
 from spyder.utils.misc import select_port, getcwd_or_home
 from spyder.plugins.completion.languageserver import LSP_LANGUAGES
 from spyder.plugins.completion.languageserver.client import LSPClient
@@ -33,7 +33,7 @@ from spyder.plugins.completion.languageserver.confpage import (
 logger = logging.getLogger(__name__)
 
 
-class LanguageServerPlugin(SpyderCompletionManager):
+class LanguageServerPlugin(SpyderCompletionPlugin):
     """Language Server Protocol manager."""
     COMPLETION_CLIENT_NAME = 'lsp'
     STOPPED = 'stopped'
@@ -43,7 +43,7 @@ class LanguageServerPlugin(SpyderCompletionManager):
     CONFIGWIDGET_CLASS = LanguageServerConfigPage
 
     def __init__(self, parent):
-        SpyderCompletionManager.__init__(self, parent)
+        SpyderCompletionPlugin.__init__(self, parent)
 
         self.clients = {}
         self.requests = set({})
