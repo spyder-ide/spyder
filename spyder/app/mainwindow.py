@@ -2715,6 +2715,7 @@ class MainWindow(QMainWindow):
         if body is None:
             from spyder.widgets.reporterror import SpyderErrorDialog
             report_dlg = SpyderErrorDialog(self, is_report=True)
+            report_dlg.set_color_scheme(CONF.get('appearance', 'selected'))
             report_dlg.show()
         else:
             if open_webpage:
