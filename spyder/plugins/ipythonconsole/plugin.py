@@ -59,23 +59,28 @@ from spyder.widgets.tabs import Tabs
 
 # Dependencies
 SYMPY_REQVER = '>=0.7.3'
-dependencies.add("sympy", _("Symbolic mathematics in the IPython Console"),
+dependencies.add("sympy", "sympy",
+                 _("Symbolic mathematics in the IPython Console"),
                  required_version=SYMPY_REQVER, optional=True)
 
 CYTHON_REQVER = '>=0.21'
-dependencies.add("cython", _("Run Cython files in the IPython Console"),
+dependencies.add("cython", "cython",
+                 _("Run Cython files in the IPython Console"),
                  required_version=CYTHON_REQVER, optional=True)
 
 QTCONSOLE_REQVER = ">=4.5.0"
-dependencies.add("qtconsole", _("Integrate the IPython console"),
+dependencies.add("qtconsole", "qtconsole",
+                 _("Integrate the IPython console"),
                  required_version=QTCONSOLE_REQVER)
 
 IPYTHON_REQVER = ">=4.0;<6.0" if PY2 else ">=4.0"
-dependencies.add("IPython", _("IPython interactive python environment"),
+dependencies.add("IPython", "IPython",
+                 _("IPython interactive python environment"),
                  required_version=IPYTHON_REQVER)
 
 MATPLOTLIB_REQVER = '>=2.0.0'
-dependencies.add("matplotlib", _("Display 2D graphics in the IPython Console"),
+dependencies.add("matplotlib", "matplotlib",
+                 _("Display 2D graphics in the IPython Console"),
                  required_version=MATPLOTLIB_REQVER, optional=True)
 
 if is_dark_interface():

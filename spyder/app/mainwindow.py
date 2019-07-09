@@ -273,7 +273,8 @@ qInstallMessageHandler(qt_message_handler)
 # Dependencies
 # =============================================================================
 QDARKSTYLE_REQVER = '>=2.6.4'
-dependencies.add("qdarkstyle", _("Dark style for the entire interface"),
+dependencies.add("qdarkstyle", "qdarkstyle",
+                 _("Dark style for the entire interface"),
                  required_version=QDARKSTYLE_REQVER)
 
 #==============================================================================
