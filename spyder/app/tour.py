@@ -884,7 +884,7 @@ class AnimatedTour(QWidget):
                                  combobox_background=MAIN_TOP_COLOR)
 
         # Widgets setup
-        # Needed to fix issue #2204
+        # Needed to fix spyder-ide/spyder#2204.
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
 
         # Signals and slots
