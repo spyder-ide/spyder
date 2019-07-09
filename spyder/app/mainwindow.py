@@ -273,7 +273,8 @@ qInstallMessageHandler(qt_message_handler)
 # Dependencies
 # =============================================================================
 QDARKSTYLE_REQVER = '>=2.6.4'
-dependencies.add("qdarkstyle", _("Dark style for the entire interface"),
+dependencies.add("qdarkstyle", "qdarkstyle",
+                 _("Dark style for the entire interface"),
                  required_version=QDARKSTYLE_REQVER)
 
 #==============================================================================
@@ -2715,6 +2716,7 @@ class MainWindow(QMainWindow):
         if body is None:
             from spyder.widgets.reporterror import SpyderErrorDialog
             report_dlg = SpyderErrorDialog(self, is_report=True)
+            report_dlg.set_color_scheme(CONF.get('appearance', 'selected'))
             report_dlg.show()
         else:
             if open_webpage:

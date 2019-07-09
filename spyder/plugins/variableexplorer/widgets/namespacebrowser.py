@@ -11,6 +11,7 @@ This is the main widget used in the Variable Explorer plugin
 """
 
 # Standard library imports
+import os
 import os.path as osp
 
 # Third library imports (qtpy)
@@ -30,7 +31,7 @@ from spyder.config.main import CONF
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
-from spyder.utils.misc import getcwd_or_home
+from spyder.utils.misc import getcwd_or_home, remove_backslashes
 from spyder.utils.programs import is_module_installed
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, create_plugin_layout,
@@ -301,6 +302,8 @@ class NamespaceBrowser(QWidget):
 
         for filename in filenames:
             self.filename = to_text_string(filename)
+            if os.name == "nt":
+                self.filename = remove_backslashes(self.filename)
             ext = osp.splitext(self.filename)[1].lower()
 
             if ext not in iofunctions.load_funcs:
