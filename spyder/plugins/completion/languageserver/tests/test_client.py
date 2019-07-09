@@ -11,12 +11,12 @@ import pytest
 from qtpy.QtCore import QObject, Signal, Slot
 
 from spyder.config.lsp import PYTHON_CONFIG
-from spyder.plugins.languageserver.client import LSPClient
-from spyder.plugins.languageserver import LSPRequestTypes
+from spyder.plugins.completion.languageserver.client import LSPClient
+from spyder.plugins.completion.languageserver import LSPRequestTypes
 
 
-class LSPEditor(QObject):
-    """Dummy editor that can handle the responses of an LSP client."""
+class CompletionManager(QObject):
+    """Dummy completion plugin that can handle LSP responses."""
     sig_response = Signal(str, dict)
 
     @Slot(str, dict)
@@ -27,17 +27,17 @@ class LSPEditor(QObject):
 @pytest.fixture(scope='module', params=[
     pytest.lazy_fixture('lsp_manager'),
     pytest.lazy_fixture('lsp_stdio_manager')])
-def lsp_client_and_editor(request):
-    """Create an LSP client/editor pair."""
-    editor = LSPEditor()
+def lsp_client_and_completion(request):
+    """Create an LSP client/completion pair."""
+    completion = CompletionManager()
     client = request.param.clients['python']['instance']
-    return client, editor
+    return client, completion
 
 
 @pytest.mark.slow
 @pytest.mark.third
-def test_didOpen(lsp_client_and_editor, qtbot):
-    client, editor = lsp_client_and_editor
+def test_didOpen(lsp_client_and_completion, qtbot):
+    client, completion = lsp_client_and_completion
 
     # Parameters to perform a textDocument/didOpen request
     params = {
@@ -45,12 +45,13 @@ def test_didOpen(lsp_client_and_editor, qtbot):
         'language': 'python',
         'version': 1,
         'text': "",
-        'codeeditor': editor,
+        'response_callback': completion.handle_response,
+        'codeeditor': completion,
         'requires_response': False
     }
 
     # Wait for the client to be started
-    with qtbot.waitSignal(editor.sig_response, timeout=30000) as blocker:
+    with qtbot.waitSignal(completion.sig_response, timeout=30000) as blocker:
         client.perform_request(LSPRequestTypes.DOCUMENT_DID_OPEN, params)
     response, _ = blocker.args
 
@@ -60,8 +61,8 @@ def test_didOpen(lsp_client_and_editor, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.third
-def test_get_signature(lsp_client_and_editor, qtbot):
-    client, editor = lsp_client_and_editor
+def test_get_signature(lsp_client_and_completion, qtbot):
+    client, completion = lsp_client_and_completion
 
     # Parameters to perform a textDocument/didChange request
     params = {
@@ -69,12 +70,12 @@ def test_get_signature(lsp_client_and_editor, qtbot):
         'language': 'python',
         'version': 1,
         'text': "import os\nos.walk(\n",
-        'codeeditor': editor,
+        'codeeditor': completion,
         'requires_response': False
     }
 
     # Perform the request
-    with qtbot.waitSignal(editor.sig_response, timeout=30000):
+    with qtbot.waitSignal(completion.sig_response, timeout=30000):
         client.perform_request(LSPRequestTypes.DOCUMENT_DID_CHANGE, params)
 
     # Parameters to perform a textDocument/signatureHelp request
@@ -83,11 +84,11 @@ def test_get_signature(lsp_client_and_editor, qtbot):
         'line': 1,
         'column': 10,
         'requires_response': True,
-        'response_instance': editor
+        'response_callback': completion.handle_response
     }
 
     # Perform the request
-    with qtbot.waitSignal(editor.sig_response, timeout=30000) as blocker:
+    with qtbot.waitSignal(completion.sig_response, timeout=30000) as blocker:
         client.perform_request(LSPRequestTypes.DOCUMENT_SIGNATURE,
                                signature_params)
     _, response = blocker.args
@@ -98,8 +99,8 @@ def test_get_signature(lsp_client_and_editor, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.third
-def test_get_completions(lsp_client_and_editor, qtbot):
-    client, editor = lsp_client_and_editor
+def test_get_completions(lsp_client_and_completion, qtbot):
+    client, completion = lsp_client_and_completion
 
     # Parameters to perform a textDocument/didChange request
     params = {
@@ -107,12 +108,12 @@ def test_get_completions(lsp_client_and_editor, qtbot):
         'language': 'python',
         'version': 1,
         'text': "import o",
-        'codeeditor': editor,
+        'codeeditor': completion,
         'requires_response': False
     }
 
     # Perform the request
-    with qtbot.waitSignal(editor.sig_response, timeout=30000):
+    with qtbot.waitSignal(completion.sig_response, timeout=30000):
         client.perform_request(LSPRequestTypes.DOCUMENT_DID_CHANGE, params)
 
     # Parameters to perform a textDocument/completion request
@@ -121,11 +122,11 @@ def test_get_completions(lsp_client_and_editor, qtbot):
         'line': 0,
         'column': 8,
         'requires_response': True,
-        'response_instance': editor
+        'response_callback': completion.handle_response
     }
 
     # Perform the request
-    with qtbot.waitSignal(editor.sig_response, timeout=30000) as blocker:
+    with qtbot.waitSignal(completion.sig_response, timeout=30000) as blocker:
         client.perform_request(LSPRequestTypes.DOCUMENT_COMPLETION,
                                completion_params)
     _, response = blocker.args
@@ -137,8 +138,8 @@ def test_get_completions(lsp_client_and_editor, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.third
-def test_go_to_definition(lsp_client_and_editor, qtbot):
-    client, editor = lsp_client_and_editor
+def test_go_to_definition(lsp_client_and_completion, qtbot):
+    client, completion = lsp_client_and_completion
 
     # Parameters to perform a textDocument/didChange request
     params = {
@@ -146,12 +147,12 @@ def test_go_to_definition(lsp_client_and_editor, qtbot):
         'language': 'python',
         'version': 1,
         'text': "import os\nos.walk\n",
-        'codeeditor': editor,
+        'codeeditor': completion,
         'requires_response': False
     }
 
     # Perform the request
-    with qtbot.waitSignal(editor.sig_response, timeout=30000):
+    with qtbot.waitSignal(completion.sig_response, timeout=30000):
         client.perform_request(LSPRequestTypes.DOCUMENT_DID_CHANGE, params)
 
     # Parameters to perform a textDocument/definition request
@@ -160,11 +161,11 @@ def test_go_to_definition(lsp_client_and_editor, qtbot):
         'line': 0,
         'column': 19,
         'requires_response': True,
-        'response_instance': editor
+        'response_callback': completion.handle_response
     }
 
     # Perform the request
-    with qtbot.waitSignal(editor.sig_response, timeout=30000) as blocker:
+    with qtbot.waitSignal(completion.sig_response, timeout=30000) as blocker:
         client.perform_request(LSPRequestTypes.DOCUMENT_DEFINITION,
                                go_to_definition_params)
     _, response = blocker.args
@@ -176,8 +177,8 @@ def test_go_to_definition(lsp_client_and_editor, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.third
-def test_local_signature(lsp_client_and_editor, qtbot):
-    client, editor = lsp_client_and_editor
+def test_local_signature(lsp_client_and_completion, qtbot):
+    client, completion = lsp_client_and_completion
 
     # Parameters to perform a textDocument/didOpen request
     text = dedent('''
@@ -190,12 +191,12 @@ def test_local_signature(lsp_client_and_editor, qtbot):
         'language': 'python',
         'version': 1,
         'text': text,
-        'codeeditor': editor,
+        'codeeditor': completion,
         'requires_response': False
     }
 
     # Perform the request
-    with qtbot.waitSignal(editor.sig_response, timeout=30000) as blocker:
+    with qtbot.waitSignal(completion.sig_response, timeout=30000) as blocker:
         client.perform_request(LSPRequestTypes.DOCUMENT_DID_CHANGE, params)
 
     # Parameters to perform a textDocument/hover request
@@ -204,11 +205,11 @@ def test_local_signature(lsp_client_and_editor, qtbot):
         'line': 4,
         'column': 0,
         'requires_response': True,
-        'response_instance': editor
+        'response_callback': completion.handle_response
     }
 
     # Perform the request
-    with qtbot.waitSignal(editor.sig_response, timeout=30000) as blocker:
+    with qtbot.waitSignal(completion.sig_response, timeout=30000) as blocker:
         client.perform_request(LSPRequestTypes.DOCUMENT_HOVER,
                                signature_params)
     _, response = blocker.args

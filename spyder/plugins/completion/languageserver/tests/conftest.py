@@ -10,13 +10,19 @@ try:
 except ImportError:
     from mock import Mock # Python 2
 
+# This is needed to avoid an error because QtAwesome
+# needs a QApplication to work correctly.
+from spyder.utils.qthelpers import qapplication
+app = qapplication()
+
 from qtpy.QtCore import QObject, Signal, Slot
 import pytest
 from pytestqt.plugin import QtBot
 
 from spyder.config.main import CONF
-from spyder.plugins.languageserver import SERVER_CAPABILITES
-from spyder.plugins.languageserver.plugin import LanguageServerPlugin
+from spyder.plugins.completion.languageserver import SERVER_CAPABILITES
+from spyder.plugins.completion.languageserver.plugin import (
+    LanguageServerPlugin)
 
 
 class EditorMock(QObject):
@@ -31,9 +37,12 @@ class EditorMock(QObject):
         self.lsp_editor_settings = {}
 
     @Slot(dict, str)
-    def register_lsp_server_settings(self, settings, language):
+    def register_completion_server_settings(self, settings, language):
         self.lsp_editor_settings[language] = settings
         self.sig_lsp_initialized.emit()
+
+    def stop_completion_services(self, language):
+        pass
 
 
 class MainWindowMock(QObject):

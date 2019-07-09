@@ -22,9 +22,9 @@ import signal
 from functools import partial
 
 # Local imports
-from spyder.plugins.languageserver.transport.tcp.producer import (
+from spyder.plugins.completion.languageserver.transport.tcp.producer import (
     TCPLanguageServerClient)
-from spyder.plugins.languageserver.transport.stdio.producer import (
+from spyder.plugins.completion.languageserver.transport.stdio.producer import (
     StdioLanguageServerClient)
 from spyder.py3compat import getcwd
 

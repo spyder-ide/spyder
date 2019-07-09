@@ -6,12 +6,20 @@
 """Tests for editor calltips and hover hints tooltips."""
 
 # Standard library imports
+import os
 import sys
 
 # Third party imports
+from qtpy import PYQT_VERSION
 from qtpy.QtCore import Qt, QPoint
 from qtpy.QtGui import QTextCursor
 import pytest
+
+
+if PYQT_VERSION >= '5.10' and os.name == 'nt':
+    pytest.skip("Skip tests on PyQt 5.10+ and Windows",
+                allow_module_level=True)
+
 
 # Constants
 PY2 = sys.version[0] == '2'

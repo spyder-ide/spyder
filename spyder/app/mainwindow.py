@@ -894,15 +894,10 @@ class MainWindow(QMainWindow):
                                     "Please don't use it to run your code\n\n"))
         self.console.register_plugin()
 
-        # Language Server Protocol Client initialization
-        self.set_splash(_("Starting Language Server Protocol manager..."))
-        from spyder.plugins.languageserver.plugin import LanguageServerPlugin
-        self.lspmanager = LanguageServerPlugin(self)
-
-        # Fallback completion thread
-        self.set_splash(_("Creating fallback completion engine..."))
-        from spyder.plugins.editor.fallback.actor import FallbackActor
-        self.fallback_completions = FallbackActor(self)
+        # Code completion client initialization
+        self.set_splash(_("Starting code completion manager..."))
+        from spyder.plugins.completion.plugin import CompletionManager
+        self.completions = CompletionManager(self)
 
         # Working directory plugin
         logger.info("Loading working directory...")
@@ -931,13 +926,10 @@ class MainWindow(QMainWindow):
         self.editor = Editor(self)
         self.editor.register_plugin()
 
-        # Start LSP client
-        self.set_splash(_("Launching LSP Client for Python..."))
-        self.lspmanager.start_client(language='python')
-
-        # Start fallback plugin
-        self.set_splash(_('Launching fallback completion engine...'))
-        self.fallback_completions.start()
+        # Start code completion client
+        self.set_splash(_("Launching code completion client for Python..."))
+        self.completions.start()
+        self.completions.start_client(language='python')
 
         # Populating file menu entries
         quit_action = create_action(self, _("&Quit"),
@@ -1036,8 +1028,11 @@ class MainWindow(QMainWindow):
             try:
                 plugin = mod.PLUGIN_CLASS(self)
                 if plugin.check_compatibility()[0]:
-                    self.thirdparty_plugins.append(plugin)
-                    plugin.register_plugin()
+                    if hasattr(plugin, 'COMPLETION_CLIENT_NAME'):
+                        self.completions.register_completion_plugin(plugin)
+                    else:
+                        self.thirdparty_plugins.append(plugin)
+                        plugin.register_plugin()
             except Exception as error:
                 print("%s: %s" % (mod, str(error)), file=STDERR)
                 traceback.print_exc(file=STDERR)
@@ -2359,8 +2354,7 @@ class MainWindow(QMainWindow):
         self.dialog_manager.close_all()
         if self.toolbars_visible:
             self.save_visible_toolbars()
-        self.lspmanager.shutdown()
-        self.fallback_completions.stop()
+        self.completions.shutdown()
         self.already_closed = True
         return True
 
@@ -2956,7 +2950,17 @@ class MainWindow(QMainWindow):
                 widget.initialize()
                 dlg.add_page(widget)
 
-            for plugin in [self.lspmanager, self.workingdirectory, self.editor,
+            widget = self.completions._create_configwidget(dlg, self)
+            if widget is not None:
+                dlg.add_page(widget)
+
+            for completion_plugin in self.completions.clients.values():
+                completion_plugin = completion_plugin['plugin']
+                widget = completion_plugin._create_configwidget(dlg, self)
+                if widget is not None:
+                    dlg.add_page(widget)
+
+            for plugin in [self.workingdirectory, self.editor,
                            self.projects, self.ipyconsole,
                            self.historylog, self.help, self.variableexplorer,
                            self.onlinehelp, self.explorer, self.findinfiles
