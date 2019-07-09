@@ -41,6 +41,9 @@ class EditorMock(QObject):
         self.lsp_editor_settings[language] = settings
         self.sig_lsp_initialized.emit()
 
+    def stop_completion_services(self, language):
+        pass
+
 
 class MainWindowMock(QObject):
     """Mock for the Main Window."""
