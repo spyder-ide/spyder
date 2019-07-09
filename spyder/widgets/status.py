@@ -112,11 +112,11 @@ class StatusBarWidget(QWidget):
     # ------------------------------------------------------------------------
     def get_tooltip(self):
         """Return the widget tooltip text."""
-        raise NotImplementedError
+        return ''
 
     def get_icon(self):
         """Return the widget tooltip text."""
-        raise NotImplementedError
+        return None
 
 
 class BaseTimerStatus(StatusBarWidget):
@@ -256,6 +256,9 @@ class CondaStatus(StatusBarWidget):
                 err = err.decode()
             out = out or err
             out = out.split('\n')[0]
+            parts = out.split()
+            if parts >= 2:
+                out = ' '.join(parts[:2])
         except Exception:
             out = ''
 

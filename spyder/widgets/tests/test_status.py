@@ -42,15 +42,6 @@ def test_status_bar_time_based_widgets(status_bar, qtbot):
     assert len(swidgets) == 2
 
 
-def test_status_bar_widget_api(status_bar, qtbot):
-    win, statusbar = status_bar
-    with pytest.raises(NotImplementedError):
-        w = StatusBarWidget(win, statusbar)
-
-    with pytest.raises(NotImplementedError):
-        w = BaseTimerStatus(win, statusbar)
-
-
 class StatusBarWidgetTest(StatusBarWidget):
     def get_tooltip(self):
         return 'tooltip'
