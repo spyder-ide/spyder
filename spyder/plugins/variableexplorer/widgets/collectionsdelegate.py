@@ -104,6 +104,7 @@ class CollectionsDelegate(QItemDelegate):
                     or not is_known_type(value))
         # CollectionsEditor for a list, tuple, dict, etc.
         if isinstance(value, (list, set, tuple, dict)) and not object_explorer:
+            from spyder.plugins.variableexplorer.widgets.collectionseditor import CollectionsEditor
             editor = CollectionsEditor(parent=parent)
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
@@ -188,7 +189,8 @@ class CollectionsDelegate(QItemDelegate):
             if show_special_attributes is None:
                 show_special_attributes = False
 
-            key = index.model().keys[index.row()]
+            from spyder.plugins.variableexplorer.widgets.objectexplorer import(
+                ObjectExplorer)
             editor = ObjectExplorer(
                 value,
                 name=key,
