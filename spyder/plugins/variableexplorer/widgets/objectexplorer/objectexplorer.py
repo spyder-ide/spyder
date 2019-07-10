@@ -60,6 +60,7 @@ class ObjectExplorer(QDialog):
                  attribute_details=DEFAULT_ATTR_DETAILS,
                  show_callable_attributes=False,
                  show_special_attributes=False,
+                 dataframe_format=None,
                  reset=False):
         """
         Constructor
@@ -79,6 +80,7 @@ class ObjectExplorer(QDialog):
         :param show_special_attributes: if True rows where the 'is attribute'
             is True and the object name starts and ends with two underscores,
             are displayed. Otherwise they are hidden.
+        :param dataframe_format: Format for the values in the Dataframe Editor.
         :param reset: If true the persistent settings, such as column widths,
             are reset.
         """
@@ -89,13 +91,15 @@ class ObjectExplorer(QDialog):
         # Model
         self._attr_cols = attribute_columns
         self._attr_details = attribute_details
+        self._dataframe_format = dataframe_format
 
         self._tree_model = TreeModel(obj, obj_name=name,
                                      attr_cols=self._attr_cols)
 
         self._proxy_tree_model = TreeProxyModel(
             show_callable_attributes=show_callable_attributes,
-            show_special_attributes=show_special_attributes)
+            show_special_attributes=show_special_attributes,
+            dataframe_format=dataframe_format)
 
         self._proxy_tree_model.setSourceModel(self._tree_model)
         # self._proxy_tree_model.setSortRole(RegistryTableModel.SORT_ROLE)
@@ -231,6 +235,17 @@ class ObjectExplorer(QDialog):
         self.toggle_show_special_attribute_action.setChecked(action_checked)
         self.sig_option_changed.emit('show_special_attributes', action_checked)
 
+    @Slot(str)
+    def _set_dataframe_format(self, new_format):
+        """
+        Set format to use in DataframeEditor.
+
+        Args:
+            new_format (string): e.g. "%.3f"
+        """
+        self.sig_option_changed.emit('dataframe_format', new_format)
+        self._tree_model.dataframe_format = new_format
+
     def _setup_views(self):
         """Creates the UI widgets."""
         self.central_splitter = QSplitter(self, orientation=Qt.Vertical)
@@ -239,7 +254,8 @@ class ObjectExplorer(QDialog):
         self.setLayout(layout)
 
         # Tree widget
-        self.obj_tree = ToggleColumnTreeView()
+        self.obj_tree = ToggleColumnTreeView(
+                dataframe_format=self._dataframe_format)
         self.obj_tree.setAlternatingRowColors(True)
         self.obj_tree.setModel(self._proxy_tree_model)
         self.obj_tree.setSelectionBehavior(QAbstractItemView.SelectRows)

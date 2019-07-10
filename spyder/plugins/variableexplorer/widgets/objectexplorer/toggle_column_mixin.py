@@ -14,10 +14,11 @@ import logging
 # Third-party imports
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QAction, QActionGroup, QTableWidget, QTreeView,
-                            QTreeWidget)
+                            QTreeWidget, QAbstractItemView)
 
 # Local imports
 from spyder.config.base import _
+from spyder.plugins.variableexplorer.widgets.collectionsdelegate import ToggleColumnDelegate
 
 logger = logging.getLogger(__name__)
 
@@ -154,6 +155,13 @@ class ToggleColumnTreeView(QTreeView, ToggleColumnMixIn):
     A QTreeView where right clicking on the header allows the user to
     show/hide columns.
     """
+    def __init__(self, dataframe_format=None, readonly=True):
+        QTreeView.__init__(self)
+        self.readonly = readonly
+        self.dataframe_format = dataframe_format
+        self.setItemDelegate(ToggleColumnDelegate(self))
+        self.setEditTriggers(QAbstractItemView.DoubleClicked)
+
     def _horizontal_header(self):
         """
         Returns the horizontal header (of type QHeaderView).

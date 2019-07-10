@@ -165,6 +165,8 @@ class TreeModel(QAbstractItemModel):
                 return self.special_attribute_font
             else:
                 return self.regular_font
+        elif role == Qt.EditRole:
+            return obj
         else:
             return None
 
@@ -172,7 +174,7 @@ class TreeModel(QAbstractItemModel):
         if not index.isValid():
             return Qt.NoItemFlags
 
-        return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+        return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable
 
     def headerData(self, section, orientation, role):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
@@ -521,6 +523,7 @@ class TreeProxyModel(QSortFilterProxyModel):
     def __init__(self,
                  show_callable_attributes=True,
                  show_special_attributes=True,
+                 dataframe_format=None,
                  parent=None):
         """
         Constructor
@@ -537,6 +540,11 @@ class TreeProxyModel(QSortFilterProxyModel):
 
         self._show_callables = show_callable_attributes
         self._show_special_attributes = show_special_attributes
+        self.dataframe_format = dataframe_format
+
+    def get_key(self, proxy_index):
+        """Get item handler for the given index."""
+        return self.treeItem(proxy_index)
 
     def treeItem(self, proxy_index):
         index = self.mapToSource(proxy_index)
