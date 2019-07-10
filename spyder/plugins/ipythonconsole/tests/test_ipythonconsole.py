@@ -51,7 +51,7 @@ from spyder.utils.programs import get_temp_dir
 SHELL_TIMEOUT = 20000
 TEMP_DIRECTORY = tempfile.gettempdir()
 NON_ASCII_DIR = osp.join(TEMP_DIRECTORY, u'測試', u'اختبار')
-NEW_DIR = 'new_workingdir/'
+NEW_DIR = 'new_workingdir'
 
 
 # =============================================================================
@@ -94,13 +94,9 @@ def ipyconsole(qtbot, request):
     CONF.set('ipython_console', 'pylab/backend', 0)
 
     # Start in a new working directory the console
-    try:
-        use_startup_wdir = request.node.get_marker('use_startup_wdir')
-    except AttributeError:
-        use_startup_wdir = False
-
+    use_startup_wdir = request.node.get_closest_marker('use_startup_wdir')
     if use_startup_wdir:
-        new_wdir = NEW_DIR
+        new_wdir = osp.join(os.getcwd(), NEW_DIR)
         if not osp.exists(new_wdir):
             os.mkdir(new_wdir)
         CONF.set('workingdir', 'console/use_fixed_directory', True)
