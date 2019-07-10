@@ -105,11 +105,12 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
                 response = None if response == '' else response
         return success, response
 
-    def send(self, method, params):
+    def send(self, method, params, url_params):
         response = None
         if self.endpoint is not None and method in KITE_REQUEST_MAPPING:
             if self.alive:
                 http_verb, path = KITE_REQUEST_MAPPING[method]
+                path = path.format(**url_params)
                 try:
                     success, response = self.perform_http_request(
                         http_verb, path, params)

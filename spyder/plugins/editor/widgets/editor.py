@@ -908,8 +908,10 @@ class EditorStack(QWidget):
         cursor = None
         if pos:
             cursor = editor.get_last_hover_cursor()
+        offset = cursor.position()
         line, col = editor.get_cursor_line_column(cursor)
-        editor.request_hover(line, col, show_hint=False, clicked=bool(pos))
+        editor.request_hover(line, col, offset,
+                             show_hint=False, clicked=bool(pos))
 
     @Slot(str, bool)
     def display_help(self, help_text, clicked):

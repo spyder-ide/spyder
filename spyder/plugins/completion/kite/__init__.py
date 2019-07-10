@@ -19,7 +19,7 @@ class _KiteEndpoints(type):
     EVENT_ENDPOINT = ('POST', '/clientapi/editor/event')
     HOVER_ENDPOINT = (
         'GET', '/api/buffer/spyder/{filename}/{hash}/hover?'
-               'cursor_runes={cursor_bytes}&offset_encoding={encoding}')
+               'cursor_runes={cursor_runes}')
     COMPLETION_ENDPOINT = ('POST', '/clientapi/editor/complete')
     SIGNATURE_ENDPOINT = ('POST', '/clientapi/editor/signatures')
 

@@ -16,8 +16,11 @@ def send_request(req=None, method=None):
 
     @functools.wraps(req)
     def wrapper(self, *args, **kwargs):
+        url_params = {}
         params = req(self, *args, **kwargs)
-        response = self.send(method, params)
+        if isinstance(params, tuple):
+            params, url_params = params
+        response = self.send(method, params, url_params)
         return response
     wrapper._sends = method
     return wrapper
