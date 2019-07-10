@@ -16,11 +16,6 @@ from qtpy.QtGui import QTextCursor
 import pytest
 
 
-if PYQT_VERSION >= '5.10' and os.name == 'nt':
-    pytest.skip("Skip tests on PyQt 5.10+ and Windows",
-                allow_module_level=True)
-
-
 # Constants
 PY2 = sys.version[0] == '2'
 TEST_SIG = 'some_function(foo={}, hello=None)'
@@ -98,6 +93,7 @@ def test_get_calltips(qtbot, lsp_codeeditor, params):
 
 @pytest.mark.slow
 @pytest.mark.second
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 @pytest.mark.parametrize('params', [
             # Parameter, Expected Output
             ('dict', '' if PY2 else 'dict'),
