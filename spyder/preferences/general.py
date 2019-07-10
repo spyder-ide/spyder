@@ -256,6 +256,8 @@ class MainConfigPage(GeneralConfigPage):
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)
         self.setLayout(vlayout)
+        self.setStyleSheet("QTabWidget::tab-bar {"
+                           "alignment: left;}")
 
     def apply_settings(self, options):
         self.main.apply_settings()

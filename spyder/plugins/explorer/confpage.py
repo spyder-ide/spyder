@@ -64,6 +64,8 @@ class ExplorerConfigPage(PluginConfigPage):
         associations_widget.setLayout(layout_file)
 
         tabs = QTabWidget()
+        self.setStyleSheet("QTabWidget::tab-bar {"
+                           "alignment: left;}")
         tabs.addTab(self.create_tab(general_widget), _("General"))
         tabs.addTab(self.create_tab(associations_widget),
                     _("File associations"))

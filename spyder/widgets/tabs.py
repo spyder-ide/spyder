@@ -257,6 +257,9 @@ class BaseTabs(QTabWidget):
         self.corner_widgets = {}
         self.menu_use_tooltips = menu_use_tooltips
 
+        self.setStyleSheet("QTabWidget::tab-bar {"
+                           "alignment: left;}")
+
         if menu is None:
             self.menu = QMenu(self)
             if actions:
