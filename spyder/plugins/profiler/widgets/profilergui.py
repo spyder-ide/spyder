@@ -481,7 +481,7 @@ class ProfilerDataTree(QTreeWidget):
     def load_data(self, profdatafile):
         """Load profiler data saved by profile/cProfile module"""
         import pstats
-        # Fixes spyder-ide/spyder#6220
+        # Fixes spyder-ide/spyder#6220.
         try:
             stats_indi = [pstats.Stats(profdatafile), ]
         except (OSError, IOError):
@@ -490,7 +490,7 @@ class ProfilerDataTree(QTreeWidget):
         self.profdata = stats_indi[0]
 
         if self.compare_file is not None:
-            # Fixes spyder-ide/spyder#5587
+            # Fixes spyder-ide/spyder#5587.
             try:
                 stats_indi.append(pstats.Stats(self.compare_file))
             except (OSError, IOError) as e:
@@ -519,7 +519,7 @@ class ProfilerDataTree(QTreeWidget):
 
     def find_root(self):
         """Find a function without a caller"""
-        # Fixes spyder-ide/spyder#8336
+        # Fixes spyder-ide/spyder#8336.
         if self.profdata is not None:
             self.profdata.sort_stats("cumulative")
         else:

@@ -146,7 +146,7 @@ def test_add_remove_breakpoint(code_editor_bot, mocker):
 
 def test_add_remove_breakpoint_with_edit_condition(code_editor_bot, mocker):
     """Test add/remove breakpoint with edit_condition."""
-    # For issue 2179.
+    # For spyder-ide/spyder#2179.
 
     editor, qtbot = code_editor_bot
     arb = editor.debugger.toogle_breakpoint

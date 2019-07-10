@@ -154,7 +154,7 @@ def test_update_warnings_after_delete_line(qtbot, lsp_codeeditor):
     Test that code style warnings are correctly updated after deleting a line
     in the Editor.
 
-    Regression test for #9299.
+    Regression test for spyder-ide/spyder#9299.
     """
     editor, _ = lsp_codeeditor
     editor.set_text(TEXT)
@@ -185,7 +185,7 @@ def test_update_warnings_after_closequotes(qtbot, lsp_codeeditor):
     Test that code errors are correctly updated after activating closequotes
     in the Editor.
 
-    Regression test for #9323.
+    Regression test for spyder-ide/spyder#9323.
     """
     editor, _ = lsp_codeeditor
     editor.textCursor().insertText("print('test)\n")
@@ -217,7 +217,7 @@ def test_update_warnings_after_closebrackets(qtbot, lsp_codeeditor):
     Test that code errors are correctly updated after activating closebrackets
     in the Editor.
 
-    Regression test for #9323.
+    Regression test for spyder-ide/spyder#9323.
     """
     editor, _ = lsp_codeeditor
     editor.textCursor().insertText("print('test'\n")

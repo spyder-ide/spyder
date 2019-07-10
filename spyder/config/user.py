@@ -92,8 +92,8 @@ class DefaultsConfig(cp.ConfigParser):
         """
         Save config into the associated .ini file
         """
-        # See Issue 1086 and 1242 for background on why this
-        # method contains all the exception handling.
+        # See spyder-ide/spyder#1086 and spyder-ide/spyder#1242 for background
+        # on why this method contains all the exception handling.
         fname = self.filename()
 
         def _write_file(fname):

@@ -94,7 +94,8 @@ class WorkerUpdates(QObject):
 
         try:
             if hasattr(ssl, '_create_unverified_context'):
-                # Fix for issue # 2685 [Works only with Python >=2.7.9]
+                # Fix for spyder-ide/spyder#2685.
+                # [Works only with Python >=2.7.9]
                 # More info: https://www.python.org/dev/peps/pep-0476/#opting-out
                 context = ssl._create_unverified_context()
                 page = urlopen(self.url, context=context)

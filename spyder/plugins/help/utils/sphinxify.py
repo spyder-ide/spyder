@@ -53,7 +53,7 @@ DARK_CSS_PATH = osp.join(CONFDIR_PATH, 'static', 'dark_css')
 JS_PATH = osp.join(CONFDIR_PATH, 'js')
 
 # To let Debian packagers redefine the MathJax and JQuery locations so they can
-# use their own packages for them. See Issue 1230, comment #7.
+# use their own packages for them. See spyder-ide/spyder#1230, comment #7.
 MATHJAX_PATH = get_module_data_path('spyder',
                                     relpath=osp.join('utils', 'help',
                                                      JS_PATH, 'mathjax'),

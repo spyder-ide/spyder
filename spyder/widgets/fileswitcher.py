@@ -827,7 +827,7 @@ class FileSwitcher(QDialog):
 
         # The list of paths here is needed in order to have the same
         # point of measurement for the list widget size as in the file list
-        # See issue 4648
+        # See spyder-ide/spyder#4648.
         paths = self.paths
         # Update list size
         self.fix_size(paths)
@@ -865,7 +865,7 @@ class FileSwitcher(QDialog):
         self.list.files_list = False
 
         # Select edit line when using symbol search initially.
-        # See issue 5661
+        # See spyder-ide/spyder#5661.
         self.edit.setFocus()
 
         # Move selected item in list accordingly
@@ -903,7 +903,7 @@ class FileSwitcher(QDialog):
     def show(self):
         """
         Override Qt method to force an update of the fileswitcher before
-        showing it. See Issue #5317 and PR #5389.
+        showing it. See spyder-ide/spyder#5317 and spyder-ide/spyder#5389.
         """
         self.setup()
         super(FileSwitcher, self).show()

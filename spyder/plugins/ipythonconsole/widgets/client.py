@@ -14,8 +14,9 @@ This is the widget used on all its tabs.
 """
 
 
-# Standard library imports
-from __future__ import absolute_import  # Fix for Issue 1356
+# Standard library imports.
+# Fix for spyder-ide/spyder#1356.
+from __future__ import absolute_import
 
 import codecs
 import os
@@ -217,7 +218,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """Get handle to stderr_file."""
         if self.stderr_file is not None:
             # Needed to prevent any error that could appear.
-            # See issue 6267
+            # See spyder-ide/spyder#6267.
             try:
                 handle = codecs.open(self.stderr_file, 'w', encoding='utf-8')
             except Exception:
@@ -297,7 +298,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     def disable_stop_button(self):
         # This avoids disabling automatically the button when
         # re-running files on dedicated consoles.
-        # See issue #5958
+        # See spyder-ide/spyder#5958.
         if not self.shellwidget._executing:
             self.stop_button.setDisabled(True)
 
@@ -486,7 +487,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     def set_color_scheme(self, color_scheme, reset=True):
         """Set IPython color scheme."""
         # Needed to handle not initialized kernel_client
-        # See issue 6996
+        # See spyder-ide/spyder#6996.
         try:
             self.shellwidget.set_color_scheme(color_scheme, reset)
         except AttributeError:
@@ -506,7 +507,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     def interrupt_kernel(self):
         """Interrupt the associanted Spyder kernel if it's running"""
         # Needed to prevent a crash when a kernel is not running.
-        # See issue 6299
+        # See spyder-ide/spyder#6299.
         try:
             self.shellwidget.request_interrupt_kernel()
         except RuntimeError:
@@ -546,9 +547,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                         before_prompt=True
                     )
                 else:
-                    # For issue 6235.  IPython was changing the setting of
-                    # %colors on windows by assuming it was using a dark
-                    # background.  This corrects it based on the scheme.
+                    # For spyder-ide/spyder#6235, IPython was changing the
+                    # setting of %colors on windows by assuming it was using a
+                    # dark background. This corrects it based on the scheme.
                     self.set_color_scheme(sw.syntax_style)
                     sw._append_html(_("<br>Restarting kernel...\n<hr><br>"),
                                     before_prompt=False)
@@ -711,13 +712,13 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
             # This is needed to avoid showing an empty error message
             # when the kernel takes too much time to start.
-            # See issue 8581
+            # See spyder-ide/spyder#8581.
             if not stderr_text:
                 return ''
 
             # This is needed since the stderr file could be encoded
             # in something different to utf-8.
-            # See issue 4191
+            # See spyder-ide/spyder#4191.
             encoding = get_coding(stderr_text)
             stderr_text = to_text_string(stderr_text, encoding)
             return stderr_text

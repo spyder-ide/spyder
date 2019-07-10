@@ -95,7 +95,7 @@ def fallback_codeeditor(qtbot_module, request):
     return editor, fallback
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def lsp_plugin(qtbot_module, request):
     # Activate pycodestyle and pydocstyle
     CONF.set('lsp-server', 'pycodestyle', True)
