@@ -10,7 +10,7 @@
 import pytest
 
 # Local imports
-from spyder.plugins.languageserver.plugin import LanguageServerPlugin
+from spyder.plugins.completion.languageserver.plugin import LanguageServerPlugin
 from spyder.preferences.tests.conftest import config_dialog
 
 

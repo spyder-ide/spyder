@@ -12,7 +12,7 @@ from qtpy.QtGui import QPainter, QBrush, QColor, QCursor
 from qtpy.QtWidgets import (QStyle, QStyleOptionSlider, QApplication)
 
 from spyder.api.panel import Panel
-from spyder.plugins.languageserver import DiagnosticSeverity
+from spyder.plugins.completion.languageserver import DiagnosticSeverity
 
 
 class ScrollFlagArea(Panel):

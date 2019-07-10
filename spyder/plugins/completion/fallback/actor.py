@@ -26,8 +26,9 @@ from pygments.lexers import get_lexer_by_name
 from diff_match_patch import diff_match_patch
 
 # Local imports
-from spyder.plugins.languageserver import CompletionItemKind
-from spyder.plugins.editor.fallback.utils import get_keywords, get_words
+from spyder.plugins.completion.languageserver import CompletionItemKind
+from spyder.plugins.completion.languageserver import LSPRequestTypes
+from spyder.plugins.completion.fallback.utils import get_keywords, get_words
 
 
 logger = logging.getLogger(__name__)
@@ -36,7 +37,7 @@ logger = logging.getLogger(__name__)
 class FallbackActor(QObject):
     #: Signal emitted when the Thread is ready
     sig_fallback_ready = Signal()
-    sig_set_tokens = Signal(object, list)
+    sig_set_tokens = Signal(int, dict)
     sig_mailbox = Signal(dict)
 
     def __init__(self, parent):
@@ -99,9 +100,14 @@ class FallbackActor(QObject):
     @Slot(dict)
     def handle_msg(self, message):
         """Handle one message"""
-        msg_type, file, msg, editor = [
-            message[k] for k in ('type', 'file', 'msg', 'editor')]
-        if msg_type == 'update':
+        msg_type, _id, file, msg = [
+            message[k] for k in ('type', 'id', 'file', 'msg')]
+        logger.debug('Got request id {0}: {1} for file {2}'.format(
+            _id, msg_type, file))
+        if msg_type == LSPRequestTypes.DOCUMENT_DID_OPEN:
+            self.file_tokens[file] = {
+                'text': msg['text'], 'language': msg['language']}
+        elif msg_type == LSPRequestTypes.DOCUMENT_DID_CHANGE:
             if file not in self.file_tokens:
                 self.file_tokens[file] = {
                     'text': '', 'language': msg['language']}
@@ -110,12 +116,13 @@ class FallbackActor(QObject):
             text, _ = self.diff_patch.patch_apply(
                 diff, text['text'])
             self.file_tokens[file]['text'] = text
-        elif msg_type == 'close':
+        elif msg_type == LSPRequestTypes.DOCUMENT_DID_CLOSE:
             self.file_tokens.pop(file, {})
-        elif msg_type == 'retrieve':
+        elif msg_type == LSPRequestTypes.DOCUMENT_COMPLETION:
             tokens = []
             if file in self.file_tokens:
                 text_info = self.file_tokens[file]
                 tokens = self.tokenize(
                     text_info['text'], text_info['language'])
-            self.sig_set_tokens.emit(editor, tokens)
+            tokens = {'params': tokens}
+            self.sig_set_tokens.emit(_id, tokens)

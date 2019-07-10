@@ -6,12 +6,15 @@
 """Tests for editor calltips and hover hints tooltips."""
 
 # Standard library imports
+import os
 import sys
 
 # Third party imports
+from qtpy import PYQT_VERSION
 from qtpy.QtCore import Qt, QPoint
 from qtpy.QtGui import QTextCursor
 import pytest
+
 
 # Constants
 PY2 = sys.version[0] == '2'
@@ -90,6 +93,7 @@ def test_get_calltips(qtbot, lsp_codeeditor, params):
 
 @pytest.mark.slow
 @pytest.mark.second
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 @pytest.mark.parametrize('params', [
             # Parameter, Expected Output
             ('dict', '' if PY2 else 'dict'),

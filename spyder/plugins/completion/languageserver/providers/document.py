@@ -10,12 +10,12 @@ import logging
 import os.path as osp
 
 from spyder.py3compat import PY2
-from spyder.plugins.languageserver import (
+from spyder.plugins.completion.languageserver import (
     LSPRequestTypes, InsertTextFormat, CompletionItemKind,
     ClientConstants)
-from spyder.plugins.languageserver.providers.utils import (
+from spyder.plugins.completion.languageserver.providers.utils import (
     path_as_uri, process_uri)
-from spyder.plugins.languageserver.decorators import (
+from spyder.plugins.completion.languageserver.decorators import (
     handles, send_request, send_notification)
 
 
@@ -102,7 +102,7 @@ class DocumentProvider:
                 item['insertText'] = item.get('insertText', item['label'])
 
         if req_id in self.req_reply:
-            self.req_reply[req_id].handle_response(
+            self.req_reply[req_id](
                 LSPRequestTypes.DOCUMENT_COMPLETION, {'params': response})
 
     @send_request(method=LSPRequestTypes.DOCUMENT_SIGNATURE)
@@ -127,7 +127,7 @@ class DocumentProvider:
         else:
             response = None
         if req_id in self.req_reply:
-            self.req_reply[req_id].handle_response(
+            self.req_reply[req_id](
                 LSPRequestTypes.DOCUMENT_SIGNATURE,
                 {'params': response})
 
@@ -157,7 +157,7 @@ class DocumentProvider:
             if 'value' in contents:
                 contents = contents['value']
         if req_id in self.req_reply:
-            self.req_reply[req_id].handle_response(
+            self.req_reply[req_id](
                 LSPRequestTypes.DOCUMENT_HOVER,
                 {'params': contents})
 
@@ -186,7 +186,7 @@ class DocumentProvider:
         elif isinstance(result, dict):
             result['file'] = process_uri(result['uri'])
         if req_id in self.req_reply:
-            self.req_reply[req_id].handle_response(
+            self.req_reply[req_id](
                 LSPRequestTypes.DOCUMENT_DEFINITION,
                 {'params': result})
 

@@ -8,10 +8,9 @@ import json
 import os.path as osp
 
 import pytest
-from qtpy.QtCore import QObject, Signal
 from diff_match_patch import diff_match_patch
+from spyder.plugins.completion.languageserver import LSPRequestTypes
 
-from spyder.plugins.editor.fallback.actor import FallbackActor
 
 DATA_PATH = osp.join(osp.dirname(osp.abspath(__file__)), "data")
 TOKENS_FILE = osp.join(DATA_PATH, 'tokens.json')
@@ -38,13 +37,6 @@ def func(args):
 """
 
 
-class CodeEditorMock(QObject):
-    sig_recv_tokens = Signal(list)
-
-    def receive_text_tokens(self, tokens):
-        self.sig_recv_tokens.emit(tokens)
-
-
 @pytest.fixture
 def tokens_fixture():
     with open(TOKENS_FILE, 'r') as f:
@@ -63,101 +55,82 @@ def file_fixture(tokens_fixture, request):
 
 
 @pytest.fixture(scope="module")
-def fallback_editor(fallback, qtbot_module, request):
+def fallback_fixture(fallback_completions, qtbot_module, request):
+    fallback, completions = fallback_completions
     diff_match = diff_match_patch()
-    editor = CodeEditorMock()
-    qtbot_module.addWidget(editor)
-    return fallback, editor, diff_match
+    return fallback, completions, diff_match
 
 
 @pytest.mark.slow
-def test_file_open_close(qtbot_module, fallback_editor):
-    fallback, editor, diff_match = fallback_editor
+def test_file_open_close(qtbot_module, fallback_fixture):
+    fallback, completions, diff_match = fallback_fixture
 
-    diff = diff_match.patch_make('', TEST_FILE)
     open_request = {
         'file': 'test.py',
-        'type': 'update',
-        'editor': editor,
-        'msg': {
-            'language': 'python',
-            'diff': diff
-        }
+        'text': TEST_FILE
     }
-    fallback.sig_mailbox.emit(open_request)
+    fallback.send_request(
+        'python', LSPRequestTypes.DOCUMENT_DID_OPEN, open_request)
     qtbot_module.wait(1000)
-    assert 'test.py' in fallback.file_tokens
+    assert 'test.py' in fallback.fallback_actor.file_tokens
 
     close_request = {
         'file': 'test.py',
-        'type': 'close',
-        'editor': editor,
-        'msg': {}
     }
-    fallback.sig_mailbox.emit(close_request)
+    fallback.send_request(
+        'python', LSPRequestTypes.DOCUMENT_DID_CLOSE, close_request)
     qtbot_module.wait(1000)
-    assert 'test.py' not in fallback.file_tokens
+    assert 'test.py' not in fallback.fallback_actor.file_tokens
 
 
 @pytest.mark.slow
 @pytest.mark.parametrize('file_fixture', language_list, indirect=True)
-def test_tokenize(qtbot_module, fallback_editor, file_fixture):
+def test_tokenize(qtbot_module, fallback_fixture, file_fixture):
     filename, expected_tokens, contents = file_fixture
     _, ext = osp.splitext(filename)
-    fallback, editor, diff_match = fallback_editor
-    diff = diff_match.patch_make('', contents)
+    language = extension_map[ext[1:]]
+    fallback, completions, diff_match = fallback_fixture
+    # diff = diff_match.patch_make('', contents)
     open_request = {
         'file': filename,
-        'type': 'update',
-        'editor': editor,
-        'msg': {
-            'language': extension_map[ext[1:]],
-            'diff': diff
-        }
+        'text': contents
     }
-    fallback.sig_mailbox.emit(open_request)
+    fallback.send_request(
+        language, LSPRequestTypes.DOCUMENT_DID_OPEN, open_request)
     qtbot_module.wait(1000)
 
     tokens_request = {
-        'file': filename,
-        'type': 'retrieve',
-        'editor': editor,
-        'msg': None
+        'file': filename
     }
-    with qtbot_module.waitSignal(editor.sig_recv_tokens,
+    with qtbot_module.waitSignal(completions.sig_recv_tokens,
                                  timeout=3000) as blocker:
-        fallback.sig_mailbox.emit(tokens_request)
+        fallback.send_request(
+            language, LSPRequestTypes.DOCUMENT_COMPLETION, tokens_request)
     tokens = blocker.args
     tokens = {token['insertText'] for token in tokens[0]}
     assert len(expected_tokens - tokens) == 0
 
 
 @pytest.mark.slow
-def test_token_update(qtbot_module, fallback_editor):
-    fallback, editor, diff_match = fallback_editor
+def test_token_update(qtbot_module, fallback_fixture):
+    fallback, completions, diff_match = fallback_fixture
 
-    diff = diff_match.patch_make('', TEST_FILE)
+    # diff = diff_match.patch_make('', TEST_FILE)
     open_request = {
         'file': 'test.py',
-        'type': 'update',
-        'editor': editor,
-        'msg': {
-            'language': 'python',
-            'diff': diff
-        }
+        'text': TEST_FILE
     }
-    fallback.sig_mailbox.emit(open_request)
+    fallback.send_request(
+        'python', LSPRequestTypes.DOCUMENT_DID_OPEN, open_request)
     qtbot_module.wait(1000)
 
     tokens_request = {
         'file': 'test.py',
-        'type': 'retrieve',
-        'editor': editor,
-        'msg': None
     }
-    with qtbot_module.waitSignal(editor.sig_recv_tokens,
+    with qtbot_module.waitSignal(completions.sig_recv_tokens,
                                  timeout=3000) as blocker:
-        fallback.sig_mailbox.emit(tokens_request)
+        fallback.send_request(
+            'python', LSPRequestTypes.DOCUMENT_COMPLETION, tokens_request)
     initial_tokens = blocker.args[0]
     initial_tokens = {token['insertText'] for token in initial_tokens}
     assert 'args' not in initial_tokens
@@ -165,18 +138,15 @@ def test_token_update(qtbot_module, fallback_editor):
     diff = diff_match.patch_make(TEST_FILE, TEST_FILE_UPDATE)
     update_request = {
         'file': 'test.py',
-        'type': 'update',
-        'editor': editor,
-        'msg': {
-            'language': 'python',
-            'diff': diff
-        }
+        'diff': diff
     }
-    fallback.sig_mailbox.emit(update_request)
+    fallback.send_request(
+        'python', LSPRequestTypes.DOCUMENT_DID_CHANGE, update_request)
     qtbot_module.wait(1000)
-    with qtbot_module.waitSignal(editor.sig_recv_tokens,
+    with qtbot_module.waitSignal(completions.sig_recv_tokens,
                                  timeout=3000) as blocker:
-        fallback.sig_mailbox.emit(tokens_request)
+        fallback.send_request(
+            'python', LSPRequestTypes.DOCUMENT_COMPLETION, tokens_request)
     updated_tokens = blocker.args[0]
     updated_tokens = {token['insertText'] for token in updated_tokens}
     assert 'args' in updated_tokens

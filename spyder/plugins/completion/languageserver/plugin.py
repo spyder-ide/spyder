@@ -13,6 +13,7 @@ in our Preferences.
 import logging
 import os
 import os.path as osp
+import functools
 
 # Third-party imports
 from qtpy.QtCore import QObject, Slot
@@ -21,18 +22,20 @@ from qtpy.QtCore import QObject, Slot
 from spyder.config.base import get_conf_path, running_under_pytest
 from spyder.config.lsp import PYTHON_CONFIG
 from spyder.config.main import CONF
-from spyder.api.plugins import SpyderPlugin
+from spyder.api.completion import SpyderCompletionPlugin
 from spyder.utils.misc import select_port, getcwd_or_home
-from spyder.plugins.languageserver import LSP_LANGUAGES
-from spyder.plugins.languageserver.client import LSPClient
-from spyder.plugins.languageserver.confpage import LanguageServerConfigPage
+from spyder.plugins.completion.languageserver import LSP_LANGUAGES
+from spyder.plugins.completion.languageserver.client import LSPClient
+from spyder.plugins.completion.languageserver.confpage import (
+    LanguageServerConfigPage)
 
 
 logger = logging.getLogger(__name__)
 
 
-class LanguageServerPlugin(QObject, SpyderPlugin):
+class LanguageServerPlugin(SpyderCompletionPlugin):
     """Language Server Protocol manager."""
+    COMPLETION_CLIENT_NAME = 'lsp'
     STOPPED = 'stopped'
     RUNNING = 'running'
     CONF_SECTION = 'lsp-server'
@@ -40,12 +43,10 @@ class LanguageServerPlugin(QObject, SpyderPlugin):
     CONFIGWIDGET_CLASS = LanguageServerConfigPage
 
     def __init__(self, parent):
-        QObject.__init__(self, parent)
-        SpyderPlugin.__init__(self, parent)
-        self.main = parent
+        SpyderCompletionPlugin.__init__(self, parent)
 
         self.clients = {}
-        self.requests = {}
+        self.requests = set({})
         self.register_queue = {}
 
         # Register languages to create clients for
@@ -116,7 +117,7 @@ class LanguageServerPlugin(QObject, SpyderPlugin):
         return path
 
     @Slot()
-    def reinitialize_all_clients(self):
+    def project_path_update(self, project_path, update_kind):
         """
         Send a new initialize message to each LSP server when the project
         path has changed so they can update the respective server root paths.
@@ -125,7 +126,7 @@ class LanguageServerPlugin(QObject, SpyderPlugin):
         for language in self.clients:
             language_client = self.clients[language]
             if language_client['status'] == self.RUNNING:
-                self.main.editor.stop_lsp_services(language)
+                self.main.editor.stop_completion_services(language)
                 folder = self.get_root_path(language)
                 instance = language_client['instance']
                 instance.folder = folder
@@ -181,7 +182,7 @@ class LanguageServerPlugin(QObject, SpyderPlugin):
         if self.main:
             if self.main.editor:
                 instance.sig_initialize.connect(
-                    self.main.editor.register_lsp_server_settings)
+                    self.main.editor.register_completion_server_settings)
             if self.main.console:
                 instance.sig_server_error.connect(self.report_server_error)
             if self.main.projects:
@@ -214,7 +215,7 @@ class LanguageServerPlugin(QObject, SpyderPlugin):
                     if self.clients[language]['status'] == self.STOPPED:
                         self.clients[language] = config
                     elif self.clients[language]['status'] == self.RUNNING:
-                        self.main.editor.stop_lsp_services(language)
+                        self.main.editor.stop_completion_services(language)
                         self.main.projects.stop_lsp_services()
                         self.close_client(language)
                         self.clients[language] = config
@@ -240,21 +241,37 @@ class LanguageServerPlugin(QObject, SpyderPlugin):
                 language_client['instance'].stop()
             language_client['status'] = self.STOPPED
 
-    def send_request(self, language, request, params):
+    def receive_response(self, response_type, response, language, req_id):
+        if req_id in self.requests:
+            self.requests.discard(req_id)
+            self.sig_response_ready.emit(
+                self.COMPLETION_CLIENT_NAME, req_id, response)
+
+    def send_request(self, language, request, params, req_id):
+        if language in self.clients:
+            language_client = self.clients[language]
+            if language_client['status'] == self.RUNNING:
+                self.requests.add(req_id)
+                client = self.clients[language]['instance']
+                params['response_callback'] = functools.partial(
+                    self.receive_response, language=language, req_id=req_id)
+                client.perform_request(request, params)
+
+    def send_notification(self, language, request, params):
         if language in self.clients:
             language_client = self.clients[language]
             if language_client['status'] == self.RUNNING:
                 client = self.clients[language]['instance']
                 client.perform_request(request, params)
 
-    def broadcast_request(self, request, params):
+    def broadcast_notification(self, request, params):
         """Send notification/request to all available LSP servers."""
         language = params.pop('language', None)
         if language:
-            self.send_request(language, request, params)
+            self.send_notification(language, request, params)
         else:
             for language in self.clients:
-                self.send_request(language, request, params)
+                self.send_notification(language, request, params)
 
     def generate_python_config(self):
         """
