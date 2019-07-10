@@ -115,7 +115,7 @@ def test_close_editor(editorstack, outlineexplorer, test_files):
     Test that the content of the outline explorer is empty after the
     editorstack has been closed.
 
-    Regression test for issue #7798.
+    Regression test for spyder-ide/spyder#7798.
     """
     editorstack = editorstack(test_files)
     treewidget = outlineexplorer.treewidget
@@ -131,7 +131,7 @@ def test_close_a_file(editorstack, outlineexplorer, test_files):
     Test that the content of the outline explorer is updated corrrectly
     after a file has been closed in the editorstack.
 
-    Regression test for issue #7798.
+    Regression test for spyder-ide/spyder#7798.
     """
     editorstack = editorstack(test_files)
     treewidget = outlineexplorer.treewidget
@@ -148,7 +148,7 @@ def test_sort_file_alphabetically(editorstack, outlineexplorer, test_files):
     Test that the option to sort the files in alphabetical order in the
     outline explorer is working as expected.
 
-    This feature was introduced in PR #8015
+    This feature was introduced in spyder-ide/spyder#8015.
     """
     editorstack = editorstack(test_files)
     treewidget = outlineexplorer.treewidget
@@ -166,7 +166,7 @@ def test_sync_file_order(editorstack, outlineexplorer, test_files):
     Test that the order of the files in the Outline Explorer is updated when
     tabs are moved in the EditorStack.
 
-    This feature was introduced in PR #8015
+    This feature was introduced in spyder-ide/spyder#8015.
     """
     editorstack = editorstack(test_files)
     treewidget = outlineexplorer.treewidget

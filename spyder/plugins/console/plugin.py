@@ -204,9 +204,12 @@ class Console(SpyderPluginWidget):
         if CONF.get('main', 'show_internal_errors'):
             if self.error_dlg is None:
                 self.error_dlg = SpyderErrorDialog(self)
+                self.error_dlg.set_color_scheme(CONF.get('appearance',
+                                                         'selected'))
                 self.error_dlg.close_btn.clicked.connect(self.close_error_dlg)
                 self.error_dlg.rejected.connect(self.remove_error_dlg)
                 self.error_dlg.details.go_to_error.connect(self.go_to_error)
+
             if is_pyls_error:
                 title = "Internal Python Language Server error"
                 self.error_dlg.set_title(title)

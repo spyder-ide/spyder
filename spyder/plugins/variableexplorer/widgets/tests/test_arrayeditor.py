@@ -57,7 +57,7 @@ def test_type_errors(qtbot):
     """
     Verify that we don't get a TypeError for certain structured arrays.
 
-    Fixes issue #5254.
+    Fixes spyder-ide/spyder#5254.
     """
     arr = np.ones(2, dtype=[('X', 'f8', (2,10)), ('S', 'S10')])
     dlg = setup_arrayeditor(qtbot, arr)
@@ -200,7 +200,7 @@ def test_arraymodel_set_data_overflow(monkeypatch):
     """
     Test that entry of an overflowing integer is caught and handled properly.
 
-    Unit regression test for #6114 .
+    Unit regression test for spyder-ide/spyder#6114.
     """
     MockQMessageBox = Mock()
     attr_to_patch = 'spyder.plugins.variableexplorer.widgets.arrayeditor.QMessageBox'
@@ -229,7 +229,7 @@ def test_arrayeditor_edit_overflow(qtbot, monkeypatch):
     """
     Test that entry of an overflowing integer is caught and handled properly.
 
-    Integration regression test for #6114 .
+    Integration regression test for spyder-ide/spyder#6114.
     """
     MockQMessageBox = Mock()
     attr_to_patch = 'spyder.plugins.variableexplorer.widgets.arrayeditor.QMessageBox'

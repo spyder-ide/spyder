@@ -23,7 +23,7 @@ def test_preserve_pypath(tmpdir, default_interpreter):
     Test that we preserve PYTHONPATH in the env vars passed to the kernel
     when an external interpreter is used or not.
 
-    Regression test for issue 8681.
+    Regression test for spyder-ide/spyder#8681.
     """
     # Set default interpreter value
     CONF.set('main_interpreter', 'default', default_interpreter)

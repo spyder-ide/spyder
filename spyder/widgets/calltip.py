@@ -319,7 +319,7 @@ class CallTipWidget(QLabel):
         """ Reimplemented to disconnect signal handlers and event filter.
         """
         super(CallTipWidget, self).hideEvent(event)
-        # This is needed for issue spyder-ide/spyder#9221
+        # This is needed for issue spyder-ide/spyder#9221,
         try:
             self._text_edit.cursorPositionChanged.disconnect(
                 self._cursor_position_changed)

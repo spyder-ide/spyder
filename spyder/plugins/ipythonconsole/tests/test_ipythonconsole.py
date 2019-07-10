@@ -526,7 +526,7 @@ def test_set_cwd(ipyconsole, qtbot, tmpdir):
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
-    # Issue 6451.
+    # spyder-ide/spyder#6451.
     savetemp = shell._cwd
     tempdir = to_text_string(tmpdir.mkdir("queen's"))
     shell.set_cwd(tempdir)
@@ -551,7 +551,7 @@ def test_get_cwd(ipyconsole, qtbot, tmpdir):
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
-    # Issue 6451.
+    # spyder-ide/spyder#6451.
     savetemp = shell._cwd
     tempdir = to_text_string(tmpdir.mkdir("queen's"))
     assert shell._cwd != tempdir

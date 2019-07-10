@@ -462,7 +462,7 @@ class FindReplace(QWidget):
                 try:
                     re_pattern = re.compile(search_text, flags=re_flags)
                     # Check if replace_text can be substituted in re_pattern
-                    # Fixes issue #7177
+                    # Fixes spyder-ide/spyder#7177.
                     re_pattern.sub(replace_text, '')
                 except re.error:
                     # Do nothing with an invalid regexp
@@ -567,7 +567,7 @@ class FindReplace(QWidget):
             try:
                 re_pattern = re.compile(pattern, flags=re_flags)
                 # Check if replace_text can be substituted in re_pattern
-                # Fixes issue #7177
+                # Fixes spyder-ide/spyder#7177.
                 re_pattern.sub(replace_text, '')
             except re.error as e:
                 # Do nothing with an invalid regexp

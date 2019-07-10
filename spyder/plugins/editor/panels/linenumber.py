@@ -17,7 +17,7 @@ from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.programs import check_version
 from spyder.api.panel import Panel
-from spyder.plugins.languageserver import DiagnosticSeverity
+from spyder.plugins.completion.languageserver import DiagnosticSeverity
 
 
 QT55_VERSION = check_version(QT_VERSION, "5.5", ">=")
@@ -64,7 +64,7 @@ class LineNumberArea(Panel):
         painter.fillRect(event.rect(), self.editor.sideareas_color)
         # This is needed to make that the font size of line numbers
         # be the same as the text one when zooming
-        # See Issue 2296 and 4811
+        # See spyder-ide/spyder#2296 and spyder-ide/spyder#4811.
         font = self.editor.font()
         font_height = self.editor.fontMetrics().height()
 

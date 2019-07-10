@@ -177,7 +177,7 @@ def test_recoverydialog_restore_fallback(qtbot, recovery_env, mocker):
 
     Test that after pressing the 'Restore' button, if os.replace() fails,
     the fallback to copy and delete kicks in and the restore succeeds.
-    Regression test for issue #8631.
+    Regression test for spyder-ide/spyder#8631.
     """
     orig_dir, autosave_dir, autosave_mapping = recovery_env
     if not PY2:
