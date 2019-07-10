@@ -16,23 +16,24 @@ from spyder.config.base import get_home_dir
 from spyder.config.main import CONF
 
 
-@pytest.fixture
-def setup_workingdirectory(qtbot):
-    """Setup working directory plugin."""
-    workingdirectory = WorkingDirectory(None)
-    qtbot.addWidget(workingdirectory)
-    workingdirectory.show()
+NEW_DIR = 'new_workingdir/'
 
-    return workingdirectory, qtbot
 
 @pytest.fixture
-def setup_workingdirectory_startup(qtbot):
-    new_wdir = 'new_workingdir/'
-    if not osp.exists(new_wdir):
-        os.mkdir(new_wdir)
+def setup_workingdirectory(qtbot, request):
     """Setup working directory plugin."""
-    CONF.set('workingdir', 'startup/use_fixed_directory', True)
-    CONF.set('workingdir', 'startup/fixed_directory', new_wdir)
+    try:
+        use_startup_wdir = request.node.get_marker('use_startup_wdir')
+    except AttributeError:
+        use_startup_wdir = False
+
+    if use_startup_wdir:
+        new_wdir = NEW_DIR
+        if not osp.exists(new_wdir):
+            os.mkdir(new_wdir)
+        CONF.set('workingdir', 'startup/use_fixed_directory', True)
+        CONF.set('workingdir', 'startup/fixed_directory', new_wdir)
+
     workingdirectory = WorkingDirectory(None)
     qtbot.addWidget(workingdirectory)
     workingdirectory.show()
@@ -56,13 +57,13 @@ def test_get_workingdir(setup_workingdirectory):
     assert act_wdir == get_home_dir()
 
 
-def test_get_workingdir_startup(setup_workingdirectory_startup):
+@pytest.mark.use_startup_wdir
+def test_get_workingdir_startup(setup_workingdirectory):
     """Test the method that defines the working directory at home."""
-    workingdirectory, qtbot = setup_workingdirectory_startup
+    workingdirectory, qtbot = setup_workingdirectory
     # Start the working directory on the home directory
     act_wdir = workingdirectory.get_workdir()
-    print(act_wdir)
-    assert act_wdir == 'new_workingdir/'
+    assert act_wdir == NEW_DIR
 
 
 if __name__ == "__main__":
