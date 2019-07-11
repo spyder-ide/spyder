@@ -52,16 +52,6 @@ $(document).ready(function () {
         $('span.math svg').css('margin-bottom', '0px');
     });
 
-    {% if platform == 'win32' %}
-    // Windows fix
-    // -----------
-    // Increase font size of math elements because they appear too small
-    // compared to the surrounding text.
-    // Use this hack because MathJax 'scale' option seems to not be working
-    // for SVG.
-    $('.math').css("color", "transparent");
-    $('.math').css("fontSize", "213%");
-    {% endif %}
 });
 
 {% else %}
