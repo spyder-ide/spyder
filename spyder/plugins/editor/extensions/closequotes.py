@@ -52,17 +52,15 @@ class CloseQuotesExtension(EditorExtension):
         if event.isAccepted():
             return
 
-        key = event.key()
-        if key in (Qt.Key_QuoteDbl, Qt.Key_Apostrophe) and self.enabled:
+        char = event.text()
+        if char in ('"', '\'') and self.enabled:
             self.editor.completion_widget.hide()
-            self._autoinsert_quotes(key)
+            self._autoinsert_quotes(char)
             self.editor.document_did_change()
             event.accept()
 
-    def _autoinsert_quotes(self, key):
+    def _autoinsert_quotes(self, char):
         """Control how to automatically insert quotes in various situations."""
-        char = {Qt.Key_QuoteDbl: '"', Qt.Key_Apostrophe: '\''}[key]
-
         line_text = self.editor.get_text('sol', 'eol')
         line_to_cursor = self.editor.get_text('sol', 'cursor')
         cursor = self.editor.textCursor()
