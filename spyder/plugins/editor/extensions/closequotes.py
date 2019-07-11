@@ -52,6 +52,9 @@ class CloseQuotesExtension(EditorExtension):
         if event.isAccepted():
             return
 
+        # It is necessary to use here the text of the event and not the key
+        # to avoid issues with international keyboards.
+        # See spyder-ide/spyder#9814
         char = event.text()
         if char in ('"', '\'') and self.enabled:
             self.editor.completion_widget.hide()
