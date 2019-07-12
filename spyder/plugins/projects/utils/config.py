@@ -61,40 +61,5 @@ VCS_VERSION = '0.1.0'
 
 
 class ProjectConfig(UserConfig):
-    """ProjectConfig class, based on UserConfig.
-
-    Parameters
-    ----------
-    name: str
-        name of the config
-    defaults: tuple
-        dictionnary containing options *or* list of tuples
-        (section_name, options)
-    version: str
-        version of the configuration file (X.Y.Z format)
-    filename: str
-        configuration file will be saved in %home%/subfolder/%name%.ini
-    """
-    DEFAULT_SECTION_NAME = 'main'
-
-    def __init__(self, name, root_path, filename, defaults=None, load=True,
-                 version=None):
-        self.project_root_path = root_path
-
-        # Config rootpath
-        self._root_path = os.path.join(root_path, PROJECT_FOLDER)
-        self._filename = filename
-
-        # Create folder if non existent
-        if not os.path.isdir(self._root_path):
-            os.makedirs(self._root_path)
-
-        # Add file
-        # NOTE: We have to think better about the uses of this file
-        # with open(os.path.join(root_path, PROJECT_FILENAME), 'w') as f:
-        #    f.write('spyder-ide project\n')
-
-        UserConfig.__init__(self, name, defaults=defaults, load=load,
-                            version=version, subfolder=None, backup=False,
-                            raw_mode=True, remove_obsolete=True)
-
+    """ProjectConfig class, based on UserConfig."""
+    pass
