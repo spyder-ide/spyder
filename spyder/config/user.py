@@ -316,26 +316,26 @@ class UserConfig(DefaultsConfig):
     def _load_old_defaults(self, old_version):
         """Read old defaults."""
         old_defaults = cp.ConfigParser()
-        if check_version(old_version, '3.0.0', '<='):
-            path = self._module_source_path
-        else:
-            path = osp.dirname(self.get_config_path())
-
-        path = osp.join(path, self._defaults_folder)
-        # FIXME: Update default name based no new api
-        default_filename_1 = '{}-{}.ini'.format(self._defaults_prefix,
-                                                'old_version')
-        default_filename_2 = '{}-{}-{}.ini'.format(self._defaults_name_prefix,
-                                               self._name, 'old_version')
-
-        if osp.isfile(default_filename2):
-            default_filename = default_filename_2
-        else:
-            default_filename = default_filename_1
-
-        old_defaults.read(osp.join(path, default_filename))
-
+        path, name = self._get_defaults_config_path_and_name()
+        old_defaults.read(osp.join(path, name))
         return old_defaults
+
+    def _get_defaults_config_path_and_name(self, version):
+        """
+        Helper to provide the correct name of defaults file based on version.
+        """
+        path = osp.dirname(self.get_config_path())
+        if check_version(version, '3.0.0', '<='):
+            name = '{}-{}.ini'.format(self._defaults_prefix, 'old_version')
+            path = self._module_source_path
+        elif check_version(version, '52.0.0', '<'):
+            name = '{}-{}.ini'.format(self._defaults_prefix, 'old_version')
+        else:
+            name = '{}-{}-{}.ini'.format(self._defaults_name_prefix,
+                                         self._name, 'old_version')
+
+        defaults_path = osp.join(path)
+        return defaults_path, name
 
     def _save_new_defaults(self, defaults, new_version, path):
         """Save new defaults."""
