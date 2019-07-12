@@ -55,7 +55,7 @@ def editor_bot(base_editor_bot, request):
     """
     editor_stack, qtbot = base_editor_bot
 
-    show_save_dialog = request.node.get_marker('show_save_dialog')
+    show_save_dialog = request.node.get_closest_marker('show_save_dialog')
     if show_save_dialog:
         editor_stack.save_dialog_on_tests = True
 

@@ -93,34 +93,34 @@ def ipyconsole(qtbot, request):
     CONF.set('ipython_console', 'pylab/backend', 0)
 
     # Test the console with a non-ascii temp dir
-    non_ascii_dir = request.node.get_marker('non_ascii_dir')
+    non_ascii_dir = request.node.get_closest_marker('non_ascii_dir')
     if non_ascii_dir:
         test_dir = NON_ASCII_DIR
     else:
         test_dir = None
 
     # Instruct the console to not use a stderr file
-    no_stderr_file = request.node.get_marker('no_stderr_file')
+    no_stderr_file = request.node.get_closest_marker('no_stderr_file')
     if no_stderr_file:
         test_no_stderr = True
     else:
         test_no_stderr = False
 
     # Use the automatic backend if requested
-    auto_backend = request.node.get_marker('auto_backend')
+    auto_backend = request.node.get_closest_marker('auto_backend')
     if auto_backend:
         CONF.set('ipython_console', 'pylab/backend', 1)
 
     # Start a Pylab client if requested
-    pylab_client = request.node.get_marker('pylab_client')
+    pylab_client = request.node.get_closest_marker('pylab_client')
     is_pylab = True if pylab_client else False
 
     # Start a Sympy client if requested
-    sympy_client = request.node.get_marker('sympy_client')
+    sympy_client = request.node.get_closest_marker('sympy_client')
     is_sympy = True if sympy_client else False
 
     # Start a Cython client if requested
-    cython_client = request.node.get_marker('cython_client')
+    cython_client = request.node.get_closest_marker('cython_client')
     is_cython = True if cython_client else False
 
     # Create the console and a new client
