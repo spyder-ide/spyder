@@ -322,15 +322,24 @@ class UserConfig(DefaultsConfig):
             path = osp.dirname(self.get_config_path())
 
         path = osp.join(path, self._defaults_folder)
-        default_filename = '{}-{}.ini'.format(self._defaults_prefix,
-                                              'old_version')
+        # FIXME: Update default name based no new api
+        default_filename_1 = '{}-{}.ini'.format(self._defaults_prefix,
+                                                'old_version')
+        default_filename_2 = '{}-{}-{}.ini'.format(self._defaults_name_prefix,
+                                               self._name, 'old_version')
+
+        if osp.isfile(default_filename2):
+            default_filename = default_filename_2
+        else:
+            default_filename = default_filename_1
+
         old_defaults.read(osp.join(path, default_filename))
 
         return old_defaults
 
     def _save_new_defaults(self, defaults, new_version, path):
         """Save new defaults."""
-        # Example: 'defaults-spyder-53.ini'
+        # Example: 'defaults-spyder-53'
         name = '{}-{}-{}'.format(self._defaults_name_prefix, self._name,
                                  new_version)
         new_defaults = DefaultsConfig(name=name, path=path)
