@@ -16,8 +16,8 @@ import os.path as osp
 import sys
 
 # Local import
-from spyder.config.base import (CHECK_ALL, EXCLUDED_NAMES, get_home_dir,
-                                SUBFOLDER)
+from spyder.config.base import (CHECK_ALL, EXCLUDED_NAMES, get_conf_path,
+                                get_home_dir)
 from spyder.config.fonts import MEDIUM, SANS_SERIF
 from spyder.config.user import UserConfig
 from spyder.config.utils import IMPORT_EXT
@@ -511,14 +511,21 @@ CONF_VERSION = '50.2.0'
 
 
 # Main configuration instance
-try:
-    CONF = UserConfig('spyder', defaults=DEFAULTS, load=True,
-                      version=CONF_VERSION, subfolder=SUBFOLDER, backup=True,
-                      raw_mode=True)
-except Exception:
-    CONF = UserConfig('spyder', defaults=DEFAULTS, load=False,
-                      version=CONF_VERSION, subfolder=SUBFOLDER, backup=True,
-                      raw_mode=True)
+def get_conf(path):
+    """"""
+    try:
+        conf = UserConfig(name='spyder', path=path, defaults=DEFAULTS,
+                          load=True, version=CONF_VERSION, backup=True,
+                          raw_mode=True)
+    except Exception:
+        conf = UserConfig(name='spyder', path=path, defaults=DEFAULTS,
+                          load=False, version=CONF_VERSION, backup=True,
+                          raw_mode=True)
+    return conf
+
+
+CONF = get_conf(get_conf_path())
+
 
 # Removing old .spyder.ini location:
 old_location = osp.join(get_home_dir(), '.spyder.ini')
