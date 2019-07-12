@@ -94,7 +94,6 @@ class DocumentProvider:
                     'documentation': completion['documentation']['text']
                 }
                 spyder_completions.append(entry)
-        print(spyder_completions)
         return {'params': spyder_completions}
 
     @send_request(method=LSPRequestTypes.DOCUMENT_HOVER)
