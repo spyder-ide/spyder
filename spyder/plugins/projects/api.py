@@ -97,13 +97,13 @@ class BaseProject(object):
     def create_project_config_files(self):
         """ """
         dic = self.CONFIG_SETUP
+        path = osp.join(self.root_path, self.PROJECT_FOLDER)
+
         for key in dic:
             name = key
-            filename = dic[key]['filename']
             defaults = dic[key]['defaults']
             version = dic[key]['version']
-            self.CONF[key] = ProjectConfig(name, self.root_path, filename,
-                                           defaults=defaults, load=True,
+            self.CONF[key] = ProjectConfig(name, path, defaults=defaults, load=True,
                                            version=version)
 
     def get_conf_files(self):

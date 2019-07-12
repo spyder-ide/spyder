@@ -148,7 +148,7 @@ class DefaultsConfig(cp.ConfigParser, object):
             # of the file it is stored inside a folder or not.
             path = osp.join(path, self._defaults_folder)
             if not osp.isdir(path):
-                os.mkdir(path)
+                os.makedirs(path)
 
         config_file = osp.join(path, '{}.ini'.format(self._name))
 
@@ -269,7 +269,7 @@ class UserConfig(DefaultsConfig):
             for sec, options in defaults:
                 assert is_text_string(sec)
                 assert isinstance(options, dict)
-                for opt, val in options.items():
+                for opt, _ in options.items():
                     assert is_text_string(opt)
         else:
             raise ValueError('`defaults` must be a dict or a list of tuples!')
@@ -330,7 +330,9 @@ class UserConfig(DefaultsConfig):
 
     def _save_new_defaults(self, defaults, new_version, path):
         """Save new defaults."""
-        name = '{}-{}'.format(self._defaults_name_prefix, new_version)
+        # Example: 'defaults-spyder-53.ini'
+        name = '{}-{}-{}'.format(self._defaults_name_prefix, self._name,
+                                 new_version)
         new_defaults = DefaultsConfig(name=name, path=path)
         if not osp.isfile(new_defaults.get_config_path()):
             new_defaults.set_defaults(defaults)
