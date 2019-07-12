@@ -116,6 +116,9 @@ def test_get_hints(qtbot, lsp_codeeditor, params):
 
     # Get cursor coordinates
     x, y = code_editor.get_coordinates('cursor')
+    # Get cursor position in characters
+    offset = code_editor.get_position('cursor')
+
     # The `- 5` is to put the mouse on top of the word
     point = code_editor.calculate_real_position(QPoint(x - 5, y))
 
@@ -124,7 +127,7 @@ def test_get_hints(qtbot, lsp_codeeditor, params):
                           timeout=30000) as blocker:
         cursor = code_editor.cursorForPosition(point)
         line, col = cursor.blockNumber(), cursor.columnNumber()
-        code_editor.request_hover(line, col)
+        code_editor.request_hover(line, col, offset)
 
         # This is needed to leave time for the tooltip to appear
         # and make the tests succeed
