@@ -997,10 +997,12 @@ class CodeEditor(TextEditBaseWidget):
         """Ask for signature."""
         self.document_did_change('')
         line, column = self.get_cursor_line_column()
+        offset = self.get_position('cursor')
         params = {
             'file': self.filename,
             'line': line,
-            'column': column
+            'column': column,
+            'offset': offset
         }
         return params
 

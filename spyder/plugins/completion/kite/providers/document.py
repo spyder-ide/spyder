@@ -31,6 +31,7 @@ KITE_DOCUMENT_TYPES = {
 
 logger = logging.getLogger(__name__)
 
+
 class DocumentProvider:
     @send_request(method=LSPRequestTypes.DOCUMENT_DID_OPEN)
     def document_did_open(self, params):
@@ -121,3 +122,54 @@ class DocumentProvider:
         if len(text) == 0:
             text = None
         return {'params': text}
+
+    @send_request(method=LSPRequestTypes.DOCUMENT_SIGNATURE)
+    def request_signature(self, request):
+        text = self.opened_files[request['file']]['text']
+        response = {
+            'editor': 'spyder',
+            'filename': request['file'],
+            'text': text,
+            'cursor_runes': request['offset'],
+            'offset_encoding': 'utf-32'
+        }
+        return response
+
+    @handles(LSPRequestTypes.DOCUMENT_SIGNATURE)
+    def process_signature(self, response):
+        params = None
+        calls = response['calls']
+        if len(calls) > 0:
+            call = calls[0]
+            callee = call['callee']
+            documentation = callee['synopsis']
+            call_label = callee['repr']
+            signatures = call['signatures']
+            arg_idx = call['arg_index']
+
+            signature = signatures[0]
+            parameters = []
+            names = []
+            logger.debug(signature)
+            for arg in signature['args']:
+                parameters.append({
+                    'label': arg['name'],
+                    'documentation': ''
+                })
+                names.append(arg['name'])
+
+            func_args = ', '.join(names)
+            call_label = '{0}({1})'.format(call_label, func_args)
+
+            base_signature = {
+                'label': call_label,
+                'documentation': documentation,
+                'parameters': parameters
+            }
+            # doc_signatures.append(base_signature)
+            params = {
+                'signatures': base_signature,
+                'activeSignature': 0,
+                'activeParameter': arg_idx
+            }
+        return {'params': params}

@@ -137,10 +137,10 @@ class CompletionManager(SpyderCompletionPlugin):
         responses = {'params': responses}
         return responses
 
-    def gather_hover(self, responses):
+    def gather_default(self, responses, default=''):
         response = ''
         for source in self.response_priority:
-            response = responses.get(source, {'params': ''})
+            response = responses.get(source, {'params': default})
             response = response['params']
             if response is not None and len(response) > 0:
                 break
@@ -156,7 +156,9 @@ class CompletionManager(SpyderCompletionPlugin):
             responses = self.gather_completions(
                 principal_source, req_id_responses)
         elif req_type == LSPRequestTypes.DOCUMENT_HOVER:
-            responses = self.gather_hover(req_id_responses)
+            responses = self.gather_default(req_id_responses, '')
+        elif req_type == LSPRequestTypes.DOCUMENT_SIGNATURE:
+            responses = self.gather_default(req_id_responses, None)
         else:
             principal_source = self.plugin_priority['all']
             responses = req_id_responses[principal_source]

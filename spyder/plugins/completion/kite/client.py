@@ -114,7 +114,7 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
                 try:
                     success, response = self.perform_http_request(
                         http_verb, path, params)
-                except ConnectionRefusedError:
+                except (ConnectionRefusedError, ConnectionError):
                     self.alive = False
                     self.endpoint = None
                     self.contact_retries = 0
