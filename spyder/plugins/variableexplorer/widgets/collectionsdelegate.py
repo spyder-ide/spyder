@@ -100,11 +100,13 @@ class CollectionsDelegate(QItemDelegate):
                                    ) % to_text_string(msg))
             return
         key = index.model().get_key(index)
+        # TODO: Check if readonly should be True or False for the O. Explorer
         readonly = (isinstance(value, (tuple, set)) or self.parent().readonly
                     or not is_known_type(value))
         # CollectionsEditor for a list, tuple, dict, etc.
         if isinstance(value, (list, set, tuple, dict)) and not object_explorer:
-            from spyder.plugins.variableexplorer.widgets.collectionseditor import CollectionsEditor
+            from spyder.plugins.variableexplorer.widgets.collectionseditor \
+                import CollectionsEditor
             editor = CollectionsEditor(parent=parent)
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
@@ -183,6 +185,7 @@ class CollectionsDelegate(QItemDelegate):
         else:
             show_callable_attributes = index.model().show_callable_attributes
             show_special_attributes = index.model().show_special_attributes
+            dataframe_format = index.model().dataframe_format
 
             if show_callable_attributes is None:
                 show_callable_attributes = False
@@ -196,7 +199,9 @@ class CollectionsDelegate(QItemDelegate):
                 name=key,
                 parent=parent,
                 show_callable_attributes=show_callable_attributes,
-                show_special_attributes=show_special_attributes)
+                show_special_attributes=show_special_attributes,
+                dataframe_format=dataframe_format,
+                readonly=readonly)
             editor.sig_option_changed.connect(self.change_option)
             self.create_dialog(editor, dict(model=index.model(),
                                             editor=editor,
@@ -331,10 +336,21 @@ class ToggleColumnDelegate(CollectionsDelegate):
     """ToggleColumn Item Delegate"""
     def __init__(self, parent=None):
         CollectionsDelegate.__init__(self, parent)
+        self.current_index = None
 
     def get_value(self, index):
+        """Get object value in index."""
         if index.isValid():
-            return index.model().treeItem(index).obj
+            value = index.model().treeItem(index).obj
+            try:
+                value = value.copy()
+            except AttributeError:
+                pass
+            return value
+
+    def set_value(self, index, value):
+        if index.isValid():
+            index.model().set_value(index, value)
 
     def show_warning(self, index):
         """
@@ -373,7 +389,6 @@ class ToggleColumnDelegate(CollectionsDelegate):
                 return None
         try:
             value = self.get_value(index)
-            print(value)
             if value is None:
                 return None
         except Exception as msg:
@@ -384,12 +399,14 @@ class ToggleColumnDelegate(CollectionsDelegate):
                                    "<i>%s</i>"
                                    ) % to_text_string(msg))
             return
-        key = index.model().get_key(index)
+        self.current_index = index
+        key = index.model().get_key(index).obj_name
         readonly = (isinstance(value, (tuple, set)) or self.parent().readonly
                     or not is_known_type(value))
         # CollectionsEditor for a list, tuple, dict, etc.
-        if isinstance(value, (list, set, tuple, dict)) and not object_explorer:
-            from spyder.plugins.variableexplorer.widgets.collectionseditor import CollectionsEditor
+        if isinstance(value, (list, set, tuple, dict)):
+            from spyder.plugins.variableexplorer.widgets.collectionseditor \
+                import CollectionsEditor
             editor = CollectionsEditor(parent=parent)
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
@@ -398,7 +415,7 @@ class ToggleColumnDelegate(CollectionsDelegate):
             return None
         # ArrayEditor for a Numpy array
         elif (isinstance(value, (ndarray, MaskedArray)) and
-                ndarray is not FakeObject and not object_explorer):
+                ndarray is not FakeObject):
             editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(value, title=key, readonly=readonly):
                 return
@@ -407,7 +424,7 @@ class ToggleColumnDelegate(CollectionsDelegate):
             return None
         # ArrayEditor for an images
         elif (isinstance(value, Image) and ndarray is not FakeObject and
-                Image is not FakeObject and not object_explorer):
+                Image is not FakeObject):
             arr = array(value)
             editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(arr, title=key, readonly=readonly):
@@ -419,7 +436,7 @@ class ToggleColumnDelegate(CollectionsDelegate):
             return None
         # DataFrameEditor for a pandas dataframe, series or index
         elif (isinstance(value, (DataFrame, Index, Series))
-                and DataFrame is not FakeObject and not object_explorer):
+                and DataFrame is not FakeObject):
             editor = DataFrameEditor(parent=parent)
             if not editor.setup_and_check(value, title=key):
                 return
@@ -429,7 +446,7 @@ class ToggleColumnDelegate(CollectionsDelegate):
                                             key=key, readonly=readonly))
             return None
         # QDateEdit and QDateTimeEdit for a dates or datetime respectively
-        elif isinstance(value, datetime.date) and not object_explorer:
+        elif isinstance(value, datetime.date):
             if readonly:
                 return None
             else:
@@ -451,7 +468,7 @@ class ToggleColumnDelegate(CollectionsDelegate):
                                                 readonly=readonly))
             return None
         # QLineEdit for an individual value (int, float, short string, etc)
-        elif is_editable_type(value) and not object_explorer:
+        elif is_editable_type(value):
             if readonly:
                 return None
             else:
@@ -468,3 +485,20 @@ class ToggleColumnDelegate(CollectionsDelegate):
         # Since we are already in the Object Explorer no editor is needed
         else:
             return None
+
+    def editor_accepted(self, editor_id):
+        """Actions to execute when the editor has been closed."""
+        data = self._editors[editor_id]
+        if not data['readonly'] and self.current_index:
+            data['model'].sig_setting_data.emit()
+            index = self.current_index
+            value = data['editor'].get_value()
+            conv_func = data.get('conv', lambda v: v)
+            self.set_value(index, conv_func(value))
+        # This is needed to avoid the problem reported on
+        # spyder-ide/spyder#8557.
+        try:
+            self._editors.pop(editor_id)
+        except KeyError:
+            pass
+        self.free_memory()

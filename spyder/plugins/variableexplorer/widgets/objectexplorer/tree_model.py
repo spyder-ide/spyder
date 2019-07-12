@@ -20,7 +20,7 @@ from collections import OrderedDict
 
 # Third-party imports
 from qtpy.QtCore import (QAbstractItemModel, QModelIndex, Qt,
-                         QSortFilterProxyModel)
+                         QSortFilterProxyModel, Signal)
 from qtpy.QtGui import QFont, QBrush, QColor
 
 # Local imports
@@ -105,7 +105,7 @@ class TreeModel(QAbstractItemModel):
         return self._root_item
 
     @property
-    def inspectedItem(self):  # TODO: needed?
+    def inspectedItem(self):
         """The TreeItem that contains the item under inspection."""
         return self._inspected_item
 
@@ -520,6 +520,8 @@ class TreeModel(QAbstractItemModel):
 
 class TreeProxyModel(QSortFilterProxyModel):
     """Proxy model that overrides the sorting and can filter out items."""
+    sig_setting_data = Signal()
+
     def __init__(self,
                  show_callable_attributes=True,
                  show_special_attributes=True,
@@ -549,6 +551,11 @@ class TreeProxyModel(QSortFilterProxyModel):
     def treeItem(self, proxy_index):
         index = self.mapToSource(proxy_index)
         return self.sourceModel().treeItem(index)
+
+    def set_value(self, proxy_index, value):
+        """Set item value."""
+        index = self.mapToSource(proxy_index)
+        self.sourceModel().treeItem(index).obj = value
 
     def firstItemIndex(self):
         """Returns the first child of the root item."""

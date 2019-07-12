@@ -12,16 +12,22 @@
 import logging
 
 # Third-party imports
-from qtpy.QtCore import Qt
-from qtpy.QtWidgets import (QAction, QActionGroup, QTableWidget, QTreeView,
-                            QTreeWidget, QAbstractItemView)
+import cloudpickle
+from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtWidgets import (QAbstractItemView, QAction, QActionGroup,
+                            QMessageBox, QTableWidget, QTreeView, QTreeWidget)
 
 # Local imports
-from spyder.config.base import _
-from spyder.plugins.variableexplorer.widgets.collectionsdelegate import ToggleColumnDelegate
+from spyder.config.base import _, PICKLE_PROTOCOL
+from spyder.plugins.variableexplorer.widgets.collectionsdelegate import (
+        ToggleColumnDelegate)
+from spyder.py3compat import to_text_string
+
 
 logger = logging.getLogger(__name__)
 
+# Maximum length of a serialized variable to be set in the kernel
+MAX_SERIALIZED_LENGHT = 1e6
 
 # Toggle mixin
 class ToggleColumnMixIn(object):
@@ -155,12 +161,25 @@ class ToggleColumnTreeView(QTreeView, ToggleColumnMixIn):
     A QTreeView where right clicking on the header allows the user to
     show/hide columns.
     """
-    def __init__(self, dataframe_format=None, readonly=True):
+    sig_option_changed = Signal(str, object)
+
+    def __init__(self, dataframe_format=None, readonly=False):
         QTreeView.__init__(self)
         self.readonly = readonly
         self.dataframe_format = dataframe_format
         self.setItemDelegate(ToggleColumnDelegate(self))
         self.setEditTriggers(QAbstractItemView.DoubleClicked)
+
+    @Slot(str)
+    def set_dataframe_format(self, new_format):
+        """
+        Set format to use in DataframeEditor.
+
+        Args:
+            new_format (string): e.g. "%.3f"
+        """
+        self.sig_option_changed.emit('dataframe_format', new_format)
+        self.model().dataframe_format = new_format
 
     def _horizontal_header(self):
         """
