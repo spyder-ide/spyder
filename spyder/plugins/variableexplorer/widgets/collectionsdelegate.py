@@ -43,7 +43,7 @@ class CollectionsDelegate(QItemDelegate):
 
     def __init__(self, parent=None):
         QItemDelegate.__init__(self, parent)
-        self._editors = {} # keep references on opened editors
+        self._editors = {}  # keep references on opened editors
 
     def get_value(self, index):
         if index.isValid():
@@ -68,7 +68,7 @@ class CollectionsDelegate(QItemDelegate):
         try:
             val_size = index.model().sizes[index.row()]
             val_type = index.model().types[index.row()]
-        except:
+        except Exception:
             return False
         if val_type in ['list', 'set', 'tuple', 'dict'] and \
                 int(val_size) > 1e5:
@@ -81,10 +81,11 @@ class CollectionsDelegate(QItemDelegate):
         if index.column() < 3:
             return None
         if self.show_warning(index):
-            answer = QMessageBox.warning(self.parent(), _("Warning"),
-                                      _("Opening this variable can be slow\n\n"
-                                        "Do you want to continue anyway?"),
-                                      QMessageBox.Yes | QMessageBox.No)
+            answer = QMessageBox.warning(
+                self.parent(), _("Warning"),
+                _("Opening this variable can be slow\n\n"
+                  "Do you want to continue anyway?"),
+                QMessageBox.Yes | QMessageBox.No)
             if answer == QMessageBox.No:
                 return None
         try:
@@ -92,12 +93,12 @@ class CollectionsDelegate(QItemDelegate):
             if value is None:
                 return None
         except Exception as msg:
-            QMessageBox.critical(self.parent(), _("Error"),
-                                 _("Spyder was unable to retrieve the value of "
-                                   "this variable from the console.<br><br>"
-                                   "The error mesage was:<br>"
-                                   "<i>%s</i>"
-                                   ) % to_text_string(msg))
+            QMessageBox.critical(
+                self.parent(), _("Error"),
+                _("Spyder was unable to retrieve the value of "
+                  "this variable from the console.<br><br>"
+                  "The error mesage was:<br>"
+                  "<i>%s</i>") % to_text_string(msg))
             return
         key = index.model().get_key(index)
         # TODO: Check if readonly should be True or False for the O. Explorer
@@ -192,8 +193,8 @@ class CollectionsDelegate(QItemDelegate):
             if show_special_attributes is None:
                 show_special_attributes = False
 
-            from spyder.plugins.variableexplorer.widgets.objectexplorer import(
-                ObjectExplorer)
+            from spyder.plugins.variableexplorer.widgets.objectexplorer \
+                import ObjectExplorer
             editor = ObjectExplorer(
                 value,
                 name=key,
@@ -284,7 +285,7 @@ class CollectionsDelegate(QItemDelegate):
             if is_binary_string(value):
                 try:
                     value = to_text_string(value, 'utf8')
-                except:
+                except Exception:
                     pass
             if not is_text_string(value):
                 value = repr(value)
@@ -318,14 +319,14 @@ class CollectionsDelegate(QItemDelegate):
                 return
         elif isinstance(editor, QDateEdit):
             qdate = editor.date()
-            value = datetime.date( qdate.year(), qdate.month(), qdate.day() )
+            value = datetime.date(qdate.year(), qdate.month(), qdate.day())
         elif isinstance(editor, QDateTimeEdit):
             qdatetime = editor.dateTime()
             qdate = qdatetime.date()
             qtime = qdatetime.time()
-            value = datetime.datetime( qdate.year(), qdate.month(),
-                                       qdate.day(), qtime.hour(),
-                                       qtime.minute(), qtime.second() )
+            value = datetime.datetime(qdate.year(), qdate.month(),
+                                      qdate.day(), qtime.hour(),
+                                      qtime.minute(), qtime.second())
         else:
             # Should not happen...
             raise RuntimeError("Unsupported editor widget")
@@ -360,7 +361,7 @@ class ToggleColumnDelegate(CollectionsDelegate):
         This avoids getting the variables' value to know its
         size and type, using instead those already computed by
         the TableModel.
-        
+
         The problem is when a variable is too big, it can take a
         lot of time just to get its value
         """
@@ -368,23 +369,24 @@ class ToggleColumnDelegate(CollectionsDelegate):
             tree_item = index.model().treeItem(index)
             val_size = safe_tio_call(len, tree_item)
             val_type = type(tree_item.obj).__name__
-        except:
+        except Exception:
             return False
         if val_type in ['list', 'set', 'tuple', 'dict'] and \
                 int(val_size) > 1e5:
             return True
         else:
             return False
-    
+
     def createEditor(self, parent, option, index, object_explorer=False):
         """Overriding method createEditor"""
         if index.column() < 3:
             return None
         if self.show_warning(index):
-            answer = QMessageBox.warning(self.parent(), _("Warning"),
-                                      _("Opening this variable can be slow\n\n"
-                                        "Do you want to continue anyway?"),
-                                      QMessageBox.Yes | QMessageBox.No)
+            answer = QMessageBox.warning(
+                self.parent(), _("Warning"),
+                _("Opening this variable can be slow\n\n"
+                  "Do you want to continue anyway?"),
+                QMessageBox.Yes | QMessageBox.No)
             if answer == QMessageBox.No:
                 return None
         try:
@@ -392,12 +394,12 @@ class ToggleColumnDelegate(CollectionsDelegate):
             if value is None:
                 return None
         except Exception as msg:
-            QMessageBox.critical(self.parent(), _("Error"),
-                                 _("Spyder was unable to retrieve the value of "
-                                   "this variable from the console.<br><br>"
-                                   "The error mesage was:<br>"
-                                   "<i>%s</i>"
-                                   ) % to_text_string(msg))
+            QMessageBox.critical(
+                self.parent(), _("Error"),
+                _("Spyder was unable to retrieve the value of "
+                  "this variable from the console.<br><br>"
+                  "The error mesage was:<br>"
+                  "<i>%s</i>") % to_text_string(msg))
             return
         self.current_index = index
         key = index.model().get_key(index).obj_name
