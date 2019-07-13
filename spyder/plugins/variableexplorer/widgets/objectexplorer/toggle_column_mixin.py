@@ -12,22 +12,15 @@
 import logging
 
 # Third-party imports
-import cloudpickle
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import (QAbstractItemView, QAction, QActionGroup,
-                            QMessageBox, QTableWidget, QTreeView, QTreeWidget)
+                            QTableWidget, QTreeView, QTreeWidget)
 
 # Local imports
-from spyder.config.base import _, PICKLE_PROTOCOL
-from spyder.plugins.variableexplorer.widgets.collectionsdelegate import (
-        ToggleColumnDelegate)
-from spyder.py3compat import to_text_string
-
+from spyder.config.base import _
 
 logger = logging.getLogger(__name__)
 
-# Maximum length of a serialized variable to be set in the kernel
-MAX_SERIALIZED_LENGHT = 1e6
 
 # Toggle mixin
 class ToggleColumnMixIn(object):
@@ -167,6 +160,8 @@ class ToggleColumnTreeView(QTreeView, ToggleColumnMixIn):
         QTreeView.__init__(self)
         self.readonly = readonly
         self.dataframe_format = dataframe_format
+        from spyder.plugins.variableexplorer.widgets.collectionsdelegate \
+            import ToggleColumnDelegate
         self.setItemDelegate(ToggleColumnDelegate(self))
         self.setEditTriggers(QAbstractItemView.DoubleClicked)
 
