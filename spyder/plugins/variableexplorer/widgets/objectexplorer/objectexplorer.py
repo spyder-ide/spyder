@@ -32,7 +32,7 @@ from spyder.utils.qthelpers import (add_actions, create_plugin_layout,
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.variableexplorer.widgets.objectexplorer import (
     DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS, ToggleColumnTreeView,
-    TreeModel, TreeProxyModel)
+    TreeItem, TreeModel, TreeProxyModel)
 from spyder.utils import icon_manager as ima
 
 
@@ -90,7 +90,7 @@ class ObjectExplorer(QDialog):
         self._attr_cols = attribute_columns
         self._attr_details = attribute_details
         self._dataframe_format = dataframe_format
-        self._readonly = readonly
+        self.readonly = readonly
 
         self.btn_save_and_close = None
         self.btn_close = None
@@ -301,12 +301,12 @@ class ObjectExplorer(QDialog):
                               "which can freeze Spyder. Please use this "
                               "with care."))
         v_group_layout.addWidget(repr_label)
-        
+
         # Save and close buttons
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
 
-        if not self._readonly:
+        if not self.readonly:
             self.btn_save_and_close = QPushButton(_('Save and Close'))
             self.btn_save_and_close.setDisabled(True)
             self.btn_save_and_close.clicked.connect(self.accept)
@@ -336,6 +336,9 @@ class ObjectExplorer(QDialog):
         # Check if the values of the model have been changed
         self._proxy_tree_model.sig_setting_data.connect(
             self.save_and_close_enable)
+
+        self._proxy_tree_model.sig_update_details.connect(
+            self._update_details_for_item)
 
     # End of setup_methods
     def _readViewSettings(self, reset=False):
@@ -407,6 +410,7 @@ class ObjectExplorer(QDialog):
         tree_item = self._proxy_tree_model.treeItem(current_index)
         self._update_details_for_item(tree_item)
 
+    @Slot(TreeItem)
     def _update_details_for_item(self, tree_item):
         """Shows the object details in the editor given an tree_item."""
         try:

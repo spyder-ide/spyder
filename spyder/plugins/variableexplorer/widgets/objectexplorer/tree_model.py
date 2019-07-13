@@ -521,6 +521,7 @@ class TreeModel(QAbstractItemModel):
 class TreeProxyModel(QSortFilterProxyModel):
     """Proxy model that overrides the sorting and can filter out items."""
     sig_setting_data = Signal()
+    sig_update_details = Signal(object)
 
     def __init__(self,
                  show_callable_attributes=True,
@@ -536,6 +537,7 @@ class TreeProxyModel(QSortFilterProxyModel):
         :param show_special_attributes: if True the objects special attributes,
             i.e. methods with a name that starts and ends with two underscores,
             will be displayed (in italics). If False they are hidden.
+        :param dataframe_format: the dataframe format from config.
         :param parent: the parent widget
         """
         super(TreeProxyModel, self).__init__(parent)
@@ -555,7 +557,10 @@ class TreeProxyModel(QSortFilterProxyModel):
     def set_value(self, proxy_index, value):
         """Set item value."""
         index = self.mapToSource(proxy_index)
-        self.sourceModel().treeItem(index).obj = value
+        tree_item = self.sourceModel().treeItem(index)
+        tree_item.obj = value
+        self.sig_setting_data.emit()
+        self.sig_update_details.emit(tree_item)
 
     def firstItemIndex(self):
         """Returns the first child of the root item."""
@@ -579,7 +584,6 @@ class TreeProxyModel(QSortFilterProxyModel):
                   (self._show_callables or
                    not tree_item.is_callable_attribute))
 
-        # logger.debug("filterAcceptsRow = {}: {}".format(accept, tree_item))
         return accept
 
     def getShowCallables(self):

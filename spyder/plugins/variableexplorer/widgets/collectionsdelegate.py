@@ -8,6 +8,7 @@
 # -----------------------------------------------------------------------------
 
 # Standard library imports
+import copy
 import datetime
 
 # Third party imports
@@ -100,8 +101,8 @@ class CollectionsDelegate(QItemDelegate):
                   "The error mesage was:<br>"
                   "<i>%s</i>") % to_text_string(msg))
             return
+
         key = index.model().get_key(index)
-        # TODO: Check if readonly should be True or False for the O. Explorer
         readonly = (isinstance(value, (tuple, set)) or self.parent().readonly
                     or not is_known_type(value))
         # CollectionsEditor for a list, tuple, dict, etc.
@@ -202,7 +203,7 @@ class CollectionsDelegate(QItemDelegate):
                 show_callable_attributes=show_callable_attributes,
                 show_special_attributes=show_special_attributes,
                 dataframe_format=dataframe_format,
-                readonly=readonly)
+                readonly=True)
             editor.sig_option_changed.connect(self.change_option)
             self.create_dialog(editor, dict(model=index.model(),
                                             editor=editor,
@@ -338,15 +339,18 @@ class ToggleColumnDelegate(CollectionsDelegate):
     def __init__(self, parent=None):
         CollectionsDelegate.__init__(self, parent)
         self.current_index = None
+        self.old_obj = None
+
+    def restore_object(self):
+        """Discart changes made to the current object in edition."""
+        if self.current_index and self.old_obj is not None:
+            index = self.current_index
+            index.model().treeItem(index).obj = self.old_obj
 
     def get_value(self, index):
         """Get object value in index."""
         if index.isValid():
             value = index.model().treeItem(index).obj
-            try:
-                value = value.copy()
-            except AttributeError:
-                pass
             return value
 
     def set_value(self, index, value):
@@ -377,7 +381,7 @@ class ToggleColumnDelegate(CollectionsDelegate):
         else:
             return False
 
-    def createEditor(self, parent, option, index, object_explorer=False):
+    def createEditor(self, parent, option, index):
         """Overriding method createEditor"""
         if index.column() < 3:
             return None
@@ -391,6 +395,10 @@ class ToggleColumnDelegate(CollectionsDelegate):
                 return None
         try:
             value = self.get_value(index)
+            try:
+                self.old_obj = value.copy()
+            except AttributeError:
+                self.old_obj = copy.deepcopy(value)
             if value is None:
                 return None
         except Exception as msg:
@@ -402,9 +410,11 @@ class ToggleColumnDelegate(CollectionsDelegate):
                   "<i>%s</i>") % to_text_string(msg))
             return
         self.current_index = index
+
         key = index.model().get_key(index).obj_name
         readonly = (isinstance(value, (tuple, set)) or self.parent().readonly
                     or not is_known_type(value))
+
         # CollectionsEditor for a list, tuple, dict, etc.
         if isinstance(value, (list, set, tuple, dict)):
             from spyder.plugins.variableexplorer.widgets.collectionseditor \
@@ -460,7 +470,7 @@ class ToggleColumnDelegate(CollectionsDelegate):
                 editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
                 return editor
         # TextEditor for a long string
-        elif is_text_string(value) and len(value) > 40 and not object_explorer:
+        elif is_text_string(value) and len(value) > 40:
             te = TextEditor(None, parent=parent)
             if te.setup_and_check(value):
                 editor = TextEditor(value, key,
@@ -492,7 +502,6 @@ class ToggleColumnDelegate(CollectionsDelegate):
         """Actions to execute when the editor has been closed."""
         data = self._editors[editor_id]
         if not data['readonly'] and self.current_index:
-            data['model'].sig_setting_data.emit()
             index = self.current_index
             value = data['editor'].get_value()
             conv_func = data.get('conv', lambda v: v)
@@ -504,3 +513,8 @@ class ToggleColumnDelegate(CollectionsDelegate):
         except KeyError:
             pass
         self.free_memory()
+
+    def editor_rejected(self, editor_id):
+        """Actions to do when the editor was rejected."""
+        self.restore_object()
+        super(ToggleColumnDelegate, self).editor_rejected(editor_id)
