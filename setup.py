@@ -239,7 +239,7 @@ install_requires = [
 extras_require = {
     'test:python_version == "2.7"': ['mock'],
     'test:platform_system == "Windows"': ['pywin32'],
-    'test': ['pytest<4.1',
+    'test': ['pytest<5.0',
              'pytest-qt',
              'pytest-mock',
              'pytest-cov',
