@@ -51,6 +51,7 @@ from spyder.utils.programs import get_temp_dir
 SHELL_TIMEOUT = 20000
 TEMP_DIRECTORY = tempfile.gettempdir()
 NON_ASCII_DIR = osp.join(TEMP_DIRECTORY, u'測試', u'اختبار')
+NEW_DIR = 'new_workingdir'
 
 
 # =============================================================================
@@ -91,6 +92,15 @@ def ipyconsole(qtbot, request):
 
     # Tests assume inline backend
     CONF.set('ipython_console', 'pylab/backend', 0)
+
+    # Start in a new working directory the console
+    use_startup_wdir = request.node.get_closest_marker('use_startup_wdir')
+    if use_startup_wdir:
+        new_wdir = osp.join(os.getcwd(), NEW_DIR)
+        if not osp.exists(new_wdir):
+            os.mkdir(new_wdir)
+        CONF.set('workingdir', 'console/use_fixed_directory', True)
+        CONF.set('workingdir', 'console/fixed_directory', new_wdir)
 
     # Test the console with a non-ascii temp dir
     non_ascii_dir = request.node.get_closest_marker('non_ascii_dir')
@@ -1167,6 +1177,18 @@ def test_remove_old_stderr_files(ipyconsole, qtbot):
     # Assert that only that file is removed
     ipyconsole._remove_old_stderr_files()
     assert not osp.isfile(osp.join(tmpdir, 'foo.stderr'))
+
+
+@pytest.mark.slow
+@pytest.mark.use_startup_wdir
+def test_console_working_directory(ipyconsole, qtbot):
+    """Test for checking the working directory."""
+    shell = ipyconsole.get_current_shellwidget()
+    shell.execute('import os; cwd = os.getcwd()')
+
+    current_wdir = shell.get_value('cwd')
+    folders = osp.split(current_wdir)
+    assert folders[-1] == NEW_DIR
 
 
 if __name__ == "__main__":
