@@ -1,5 +1,26 @@
 # History of changes
 
+## Version 3.3.6 (2019-07-14)
+
+### Issues Closed
+
+* [Issue 9757](https://github.com/spyder-ide/spyder/issues/9757) - Text in help search bar becomes selected once help is displayed ([PR 9760](https://github.com/spyder-ide/spyder/pull/9760))
+* [Issue 8336](https://github.com/spyder-ide/spyder/issues/8336) - AttributeError in profiler ([PR 9758](https://github.com/spyder-ide/spyder/pull/9758))
+
+In this release 2 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 9760](https://github.com/spyder-ide/spyder/pull/9760) - PR: Backport PR #9552 ([9757](https://github.com/spyder-ide/spyder/issues/9757))
+* [PR 9758](https://github.com/spyder-ide/spyder/pull/9758) - PR: Avoid an error when profdata is None in Profiler ([8336](https://github.com/spyder-ide/spyder/issues/8336))
+* [PR 9718](https://github.com/spyder-ide/spyder/pull/9718) - PR: Fix completion plugins listening to external hosts
+
+In this release 3 pull requests were closed.
+
+
+----
+
+
 ## Version 3.3.5 (2019-06-27)
 
 ### New features
