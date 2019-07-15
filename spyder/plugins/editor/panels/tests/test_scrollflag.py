@@ -104,7 +104,7 @@ def test_flag_painting(editor_bot, qtbot):
 
     # Trigger the painting of all flag types.
     editor.debugger.toogle_breakpoint(line_number=2)
-    editor.process_todo([[True, 3]])
+    editor.process_todo([[True, 3, ""]])
     analysis = [{'source': 'pycodestyle', 'range':{
                     'start': {'line': 4, 'character': 0},
                     'end': {'line': 4, 'character': 1}},
@@ -128,7 +128,7 @@ def test_flag_painting(editor_bot, qtbot):
 
     # Trigger the painting of all flag types.
     editor.debugger.toogle_breakpoint(line_number=2)
-    editor.process_todo([[True, 3]])
+    editor.process_todo([[True, 3, ""]])
     analysis = [{'source': 'pycodestyle', 'range':{
                     'start': {'line': 4, 'character': 0},
                     'end': {'line': 4, 'character': 1}},

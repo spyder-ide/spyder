@@ -2078,6 +2078,24 @@ class CodeEditor(TextEditBaseWidget):
             block = block.next()
         return warnings
 
+    def get_current_warnings_complete_list(self):
+        """
+        Get all warnings for the current editor with line number.
+        """
+        block = self.document().firstBlock()
+        line_count = self.document().blockCount()
+        warnings = []
+        while True:
+            if block.blockNumber() + 1 == line_count:
+                break
+            data = block.userData()
+            if data and data.code_analysis:
+                for warning in data.code_analysis:
+                    warnings.append([warning[0], warning[1], warning[2],
+                                     warning[3], block.blockNumber() + 1])
+            block = block.next()
+        return warnings
+
     def go_to_next_warning(self):
         """Go to next code analysis warning message
         and return new cursor position"""
@@ -2143,7 +2161,7 @@ class CodeEditor(TextEditBaseWidget):
         for data in self.blockuserdata_list():
             data.todo = ''
 
-        for message, line_number in todo_results:
+        for message, line_number, tag in todo_results:
             block = self.document().findBlockByNumber(line_number-1)
             data = block.userData()
             if not data:

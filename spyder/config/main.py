@@ -294,6 +294,14 @@ DEFAULTS = [
              {
               'enable': True,
               }),
+            ('todos',
+             {
+              'enable': True,
+              }),
+            ('warnings',
+             {
+              'enable': True,
+              }),
             ('pylint',
              {
               'enable': True,

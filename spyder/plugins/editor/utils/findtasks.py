@@ -29,5 +29,6 @@ def find_tasks(source_code):
         for todo in re.findall(TASKS_PATTERN, text):
             todo_text = (todo[-1].strip(' :').capitalize() if todo[-1]
                          else todo[-2])
-            results.append((todo_text, line + 1))
+            tag = todo[-2]
+            results.append((todo_text, line + 1, tag))
     return results

@@ -1020,7 +1020,8 @@ class MainWindow(QMainWindow):
         # Load other plugins (former external plugins)
         # TODO: Use this bucle to load all internall plugins and remove
         # duplicated code
-        other_plugins = ['breakpoints', 'profiler', 'pylint']
+        other_plugins = ['breakpoints', 'profiler', 'todos', 'warnings',
+                         'pylint']
         for plugin_name in other_plugins:
             if CONF.get(plugin_name, 'enable'):
                 module = importlib.import_module(
@@ -2278,8 +2279,8 @@ class MainWindow(QMainWindow):
         order = ['editor', 'ipython_console', 'variable_explorer',
                  'help', 'plots', None, 'explorer', 'outline_explorer',
                  'project_explorer', 'find_in_files', None, 'historylog',
-                 'profiler', 'breakpoints', 'pylint', None,
-                 'onlinehelp', 'internal_console', None]
+                 'profiler', 'breakpoints', 'todos', 'warnings', 'pylint',
+                 None, 'onlinehelp', 'internal_console', None]
         for plugin in self.widgetlist:
             action = plugin._toggle_view_action
             action.setChecked(plugin.dockwidget.isVisible())
