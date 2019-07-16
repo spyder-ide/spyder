@@ -3330,11 +3330,12 @@ class CodeEditor(TextEditBaseWidget):
             cursor.select(QTextCursor.WordUnderCursor)
             word_text = to_text_string(cursor.selectedText())
             # Perform completion on the fly
-            if text == '\b':
+            if text == '\b' or text == ' ':
+                offset = 1 + (text == ' ')
                 if len(word_text) > 0:
                     prev_char = word_text[-1]
                 else:
-                    prev_char = self.get_character(cursor.position() - 1)
+                    prev_char = self.get_character(cursor.position() - offset)
                 if (prev_char.isalpha() or
                         (prev_char in self.auto_completion_characters)):
                     self.do_completion(automatic=True)

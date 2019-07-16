@@ -17,6 +17,7 @@ import pytest
 import pytestqt
 
 from qtpy.QtCore import Qt
+from qtpy.QtGui import QTextCursor
 
 # Local imports
 from spyder.py3compat import PY2
@@ -41,10 +42,22 @@ def test_space_completion(lsp_codeeditor, qtbot):
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
 
+    # Due to automatic completion, the completion widget may appear before
+    stop = False
+    while not stop:
+        try:
+            with qtbot.waitSignal(completion.sig_show_completions,
+                                  timeout=500) as sig:
+                pass
+            code_editor.completion_widget.hide()
+        except Exception:
+            stop = True
+
     # press tab and get completions
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
+
     assert "import" in [x['label'] for x in sig.args[0]]
 
     assert code_editor.toPlainText() == 'from numpy import'
@@ -100,6 +113,17 @@ def test_completions(lsp_codeeditor, qtbot):
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
 
+    # Due to automatic completion, the completion widget may appear before
+    stop = False
+    while not stop:
+        try:
+            with qtbot.waitSignal(completion.sig_show_completions,
+                                  timeout=500) as sig:
+                pass
+            code_editor.completion_widget.hide()
+        except Exception:
+            stop = True
+
     # press tab and get completions
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
@@ -118,6 +142,17 @@ def test_completions(lsp_codeeditor, qtbot):
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
 
+    # Due to automatic completion, the completion widget may appear before
+    stop = False
+    while not stop:
+        try:
+            with qtbot.waitSignal(completion.sig_show_completions,
+                                  timeout=500) as sig:
+                pass
+            code_editor.completion_widget.hide()
+        except Exception:
+            stop = True
+
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
@@ -135,6 +170,17 @@ def test_completions(lsp_codeeditor, qtbot):
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
 
+    # Due to automatic completion, the completion widget may appear before
+    stop = False
+    while not stop:
+        try:
+            with qtbot.waitSignal(completion.sig_show_completions,
+                                  timeout=500) as sig:
+                pass
+            code_editor.completion_widget.hide()
+        except Exception:
+            stop = True
+
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
@@ -149,6 +195,17 @@ def test_completions(lsp_codeeditor, qtbot):
     qtbot.keyClicks(code_editor, 'math.a')
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
+
+    # Due to automatic completion, the completion widget may appear before
+    stop = False
+    while not stop:
+        try:
+            with qtbot.waitSignal(completion.sig_show_completions,
+                                  timeout=500) as sig:
+                pass
+            code_editor.completion_widget.hide()
+        except Exception:
+            stop = True
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
@@ -168,6 +225,17 @@ def test_completions(lsp_codeeditor, qtbot):
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
 
+    # Due to automatic completion, the completion widget may appear before
+    stop = False
+    while not stop:
+        try:
+            with qtbot.waitSignal(completion.sig_show_completions,
+                                  timeout=500) as sig:
+                pass
+            code_editor.completion_widget.hide()
+        except Exception:
+            stop = True
+
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
@@ -185,6 +253,17 @@ def test_completions(lsp_codeeditor, qtbot):
     qtbot.keyClicks(code_editor, 'math.a')
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
+
+    # Due to automatic completion, the completion widget may appear before
+    stop = False
+    while not stop:
+        try:
+            with qtbot.waitSignal(completion.sig_show_completions,
+                                  timeout=500) as sig:
+                pass
+            code_editor.completion_widget.hide()
+        except Exception:
+            stop = True
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
@@ -204,6 +283,17 @@ def test_completions(lsp_codeeditor, qtbot):
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
 
+    # Due to automatic completion, the completion widget may appear before
+    stop = False
+    while not stop:
+        try:
+            with qtbot.waitSignal(completion.sig_show_completions,
+                                  timeout=500) as sig:
+                pass
+            code_editor.completion_widget.hide()
+        except Exception:
+            stop = True
+
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
@@ -219,12 +309,22 @@ def test_completions(lsp_codeeditor, qtbot):
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
 
+    # Due to automatic completion, the completion widget may appear before
+    stop = False
+    while not stop:
+        try:
+            with qtbot.waitSignal(completion.sig_show_completions,
+                                  timeout=500) as sig:
+                pass
+            code_editor.completion_widget.hide()
+        except Exception:
+            stop = True
+
     try:
         with qtbot.waitSignal(completion.sig_show_completions,
                               timeout=5000) as sig:
             qtbot.keyPress(code_editor, Qt.Key_Tab)
             qtbot.keyPress(code_editor, Qt.Key_Backspace)
-        raise RuntimeError("The signal should not have been received!")
     except pytestqt.exceptions.TimeoutError:
         pass
 
