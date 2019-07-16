@@ -970,17 +970,14 @@ class CodeEditor(TextEditBaseWidget):
         position, automatic = args
         try:
             completions = params['params']
-            if not automatic:
-                cursor = self.textCursor()
-                cursor.select(QTextCursor.WordUnderCursor)
-                text = to_text_string(cursor.selectedText())
-                completions = [] if completions is None else completions
-                available_completions = {x['insertText'] for x in completions}
-                for entry in self.word_tokens:
-                    if entry['insertText'] == text:
-                        continue
-                    if entry['insertText'] not in available_completions:
-                        completions.append(entry)
+            cursor = self.textCursor()
+            cursor.select(QTextCursor.WordUnderCursor)
+            text = to_text_string(cursor.selectedText())
+            completions = [] if completions is None else completions
+            available_completions = {x['insertText']: x for x in completions}
+            available_completions.pop(text, False)
+            completions = list(available_completions.values())
+
             if completions is not None and len(completions) > 0:
                 completion_list = sorted(completions,
                                          key=lambda x: x['sortText'])
@@ -3328,7 +3325,22 @@ class CodeEditor(TextEditBaseWidget):
             TextEditBaseWidget.keyPressEvent(self, event)
         if len(text) > 0:
             self.document_did_change(text)
-            # self.do_completion(automatic=True)
+
+            cursor = self.textCursor()
+            cursor.select(QTextCursor.WordUnderCursor)
+            word_text = to_text_string(cursor.selectedText())
+            # Perform completion on the fly
+            if text == '\b':
+                if len(word_text) > 0:
+                    prev_char = word_text[-1]
+                else:
+                    prev_char = self.get_character(cursor.position() - 1)
+                if (prev_char.isalnum() or
+                        (prev_char in self.auto_completion_characters)):
+                    self.do_completion(automatic=True)
+            else:
+                if text.isalnum():
+                    self.do_completion(automatic=True)
         if not event.modifiers():
             # Accept event to avoid it being handled by the parent
             # Modifiers should be passed to the parent because they
