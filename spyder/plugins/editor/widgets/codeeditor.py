@@ -3335,11 +3335,11 @@ class CodeEditor(TextEditBaseWidget):
                     prev_char = word_text[-1]
                 else:
                     prev_char = self.get_character(cursor.position() - 1)
-                if (prev_char.isalnum() or
+                if (prev_char.isalpha() or
                         (prev_char in self.auto_completion_characters)):
                     self.do_completion(automatic=True)
             else:
-                if text.isalnum():
+                if text.isalpha():
                     self.do_completion(automatic=True)
         if not event.modifiers():
             # Accept event to avoid it being handled by the parent
