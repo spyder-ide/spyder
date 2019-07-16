@@ -12,7 +12,6 @@ from qtpy.QtGui import QTextCursor
 # Local imports
 from spyder.utils.qthelpers import qapplication
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
-from spyder.plugins.editor.utils.editor import TextHelper
 from spyder.plugins.editor.extensions.closebrackets import (
         CloseBracketsExtension)
 
@@ -50,7 +49,7 @@ def test_close_brackets(qtbot, editor_close_brackets, text, expected_text,
     qtbot.keyClicks(editor, text)
     assert editor.toPlainText() == expected_text
 
-    assert cursor_column == TextHelper(editor).current_column_nbr()
+    assert cursor_column == editor.current_column_nbr()
 
 
 @pytest.mark.parametrize(
@@ -76,7 +75,7 @@ def test_nested_brackets(qtbot, editor_close_brackets, text, expected_text,
     qtbot.keyClicks(editor, '(')
     assert editor.toPlainText() == expected_text
 
-    assert cursor_column == TextHelper(editor).current_column_nbr()
+    assert cursor_column == editor.current_column_nbr()
 
 
 def test_selected_text(qtbot, editor_close_brackets):

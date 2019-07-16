@@ -368,7 +368,6 @@ class Editor(SpyderPluginWidget):
         """Perform actions before parent main window is closed"""
         state = self.splitter.saveState()
         self.set_option('splitter_state', qbytearray_to_str(state))
-        filenames = []
         editorstack = self.editorstacks[0]
 
         active_project_path = None
@@ -1576,19 +1575,6 @@ class Editor(SpyderPluginWidget):
     @Slot(set)
     def update_active_languages(self, languages):
         self.main.completions.update_client_status(languages)
-
-
-    #------ Breakpoints
-    def save_breakpoints(self, filename, breakpoints):
-        filename = to_text_string(filename)
-        breakpoints = to_text_string(breakpoints)
-        filename = osp.normpath(osp.abspath(filename))
-        if breakpoints:
-            breakpoints = eval(breakpoints)
-        else:
-            breakpoints = []
-        save_breakpoints(filename, breakpoints)
-        self.breakpoints_saved.emit()
 
     # ------ Bookmarks
     def save_bookmarks(self, filename, bookmarks):

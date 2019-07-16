@@ -13,7 +13,6 @@ from qtpy.QtGui import QTextCursor
 # Local imports
 from spyder.utils.qthelpers import qapplication
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
-from spyder.plugins.editor.utils.editor import TextHelper
 from spyder.plugins.editor.extensions.closequotes import (
         CloseQuotesExtension)
 
@@ -57,7 +56,7 @@ def test_close_quotes(qtbot, editor_close_quotes, text, expected_text,
     qtbot.keyClicks(editor, text)
     assert editor.toPlainText() == expected_text
 
-    assert cursor_column == TextHelper(editor).current_column_nbr()
+    assert cursor_column == editor.current_column_nbr()
 
 
 @pytest.mark.parametrize(
@@ -84,7 +83,7 @@ def test_trailing_text(qtbot, editor_close_quotes, text, expected_text,
     qtbot.keyClicks(editor, '"')
     assert editor.toPlainText() == expected_text
 
-    assert cursor_column == TextHelper(editor).current_column_nbr()
+    assert cursor_column == editor.current_column_nbr()
 
 
 def test_selected_text(qtbot, editor_close_quotes):

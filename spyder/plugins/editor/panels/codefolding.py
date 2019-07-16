@@ -30,7 +30,7 @@ from qtpy.QtGui import (QTextBlock, QColor, QFontMetricsF, QPainter,
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.utils.folding import FoldScope
 from spyder.api.panel import Panel
-from spyder.plugins.editor.utils.editor import (TextBlockHelper, TextHelper,
+from spyder.plugins.editor.utils.editor import (TextBlockHelper,
                                                 DelayJobRunner, drift_color)
 import spyder.utils.icon_manager as ima
 
@@ -233,13 +233,12 @@ class FoldingPanel(Panel):
         :param painter: QPainter
         """
         r = FoldScope(block)
-        th = TextHelper(self.editor)
         start, end = r.get_range(ignore_blank_lines=True)
         if start > 0:
-            top = th.line_pos_from_number(start)
+            top = self.editor.line_pos_from_number(start)
         else:
             top = 0
-        bottom = th.line_pos_from_number(end + 1)
+        bottom = self.editor.line_pos_from_number(end + 1)
         h = bottom - top
         if h == 0:
             h = self.sizeHint().height()
@@ -400,8 +399,7 @@ class FoldingPanel(Panel):
         :param event: event
         """
         super(FoldingPanel, self).mouseMoveEvent(event)
-        th = TextHelper(self.editor)
-        line = th.line_nbr_from_position(event.pos().y())
+        line = self.editor.line_nbr_from_position(event.pos().y())
         if line >= 0:
             block = FoldScope.find_parent_scope(
                 self.editor.document().findBlockByNumber(line-1))
@@ -535,7 +533,7 @@ class FoldingPanel(Panel):
                     self.toggle_fold_trigger(block)
                     if delete_request and cursor.hasSelection():
                         scope = FoldScope(self.find_parent_scope(block))
-                        tc = TextHelper(self.editor).select_lines(*scope.get_range())
+                        tc = self.editor.select_lines(*scope.get_range())
                         if tc.selectionStart() > cursor.selectionStart():
                             start = cursor.selectionStart()
                         else:
@@ -589,7 +587,7 @@ class FoldingPanel(Panel):
         (don't worry, there is no visual effect, the editor does not grow up
         at all, even with a value = 500)
         """
-        TextHelper(self.editor).mark_whole_doc_dirty()
+        self.editor.mark_whole_doc_dirty()
         self.editor.repaint()
         s = self.editor.size()
         s.setWidth(s.width() + 1)

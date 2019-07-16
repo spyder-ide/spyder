@@ -65,8 +65,7 @@ from spyder.plugins.editor.panels import (ClassFunctionDropdown,
                                           FoldingPanel, IndentationGuide,
                                           LineNumberArea, PanelsManager,
                                           ScrollFlagArea)
-from spyder.plugins.editor.utils.editor import (TextHelper, BlockUserData,
-                                                TextBlockHelper)
+from spyder.plugins.editor.utils.editor import BlockUserData, TextBlockHelper
 from spyder.plugins.editor.utils.debugger import DebuggerManager
 from spyder.plugins.editor.utils.folding import IndentFoldDetector, FoldScope
 from spyder.plugins.editor.utils.kill_ring import QtKillRing
@@ -305,8 +304,6 @@ class CodeEditor(TextEditBaseWidget):
 
         # Caret (text cursor)
         self.setCursorWidth( CONF.get('main', 'cursor/width') )
-
-        self.text_helper = TextHelper(self)
 
         self._panels = PanelsManager(self)
 
@@ -1364,6 +1361,62 @@ class CodeEditor(TextEditBaseWidget):
         cursor.endEditBlock()
         self.document_did_change()
 
+    def cursor_position(self):
+        """
+        Returns the QTextCursor position. The position is a tuple made up of
+        the line number (0 based) and the column number (0 based).
+
+        :return: tuple(line, column)
+        """
+        return (self.textCursor().blockNumber(),
+                self.textCursor().columnNumber())
+
+    def current_line_nbr(self):
+        """
+        Returns the text cursor's line number.
+
+        :return: Line number
+        """
+        return self.cursor_position()[0]
+
+    def current_column_nbr(self):
+        """
+        Returns the text cursor's column number.
+
+        :return: Column number
+        """
+        return self.cursor_position()[1]
+
+    def ensure_single_empty_ending_line(self):
+        """
+        Ensure one single blank line at the end of the QTextDocument.
+        """
+        cursor = self.textCursor()
+        cursor.beginEditBlock()
+
+        # ensure there is only one blank line left at the end of the file
+        i = self.line_count()
+        while i:
+            line = self.line_text(i - 1)
+            if line.strip():
+                break
+            self.remove_last_line()
+            i -= 1
+        if self.line_text(self.line_count() - 1):
+            self.appendPlainText('')
+
+        cursor.beginEditBlock()
+        self.document_did_change()
+
+    def mark_whole_doc_dirty(self):
+        """
+        Marks the whole document as dirty to force a full refresh. **SLOW**
+        """
+        text_cursor = self.textCursor()
+        text_cursor.select(text_cursor.Document)
+        self.document().markContentsDirty(text_cursor.selectionStart(),
+                                          text_cursor.selectionEnd())
+
     def fix_indentation(self):
         """Replace tabs by spaces."""
         text_before = to_text_string(self.toPlainText())
@@ -1860,9 +1913,156 @@ class CodeEditor(TextEditBaseWidget):
 
     def go_to_line(self, line, start_column=0, end_column=0, word=''):
         """Go to line number *line* and eventually highlight it"""
-        self.text_helper.goto_line(line, column=start_column,
+        self.goto_line(line, column=start_column,
                                    end_column=end_column, move=True,
                                    word=word)
+
+    def goto_line(self, line, column=0, end_column=0, move=True, word=''):
+        """
+        Moves the text cursor to the specified position.
+
+        :param line: Number of the line to go to (0 based)
+        :param column: Optional column number. Default is 0 (start of line).
+        :param move: True to move the cursor. False will return the cursor
+                     without setting it on the editor.
+        :param word: Highlight the word, when moving to the line.
+        :return: The new text cursor
+        :rtype: QtGui.QTextCursor
+        """
+        line = min(line, self.line_count())
+        text_cursor = self._move_cursor_to(line)
+        if column:
+            text_cursor.movePosition(text_cursor.Right, text_cursor.MoveAnchor,
+                                     column)
+        if end_column:
+            text_cursor.movePosition(text_cursor.Right, text_cursor.KeepAnchor,
+                                     end_column)
+        if move:
+            block = text_cursor.block()
+            self.unfold_if_colapsed(block)
+            self.setTextCursor(text_cursor)
+
+            if self.isVisible():
+                self.centerCursor()
+            else:
+                self.focus_in.connect(
+                    self.center_cursor_on_next_focus)
+            if word and to_text_string(word) in to_text_string(block.text()):
+                self.find(word, QTextDocument.FindCaseSensitively)
+        return text_cursor
+
+    def line_count(self):
+        """
+        Returns the line count of the specified editor.
+
+        :return: number of lines in the document.
+        """
+        return self.document().blockCount()
+
+    def _move_cursor_to(self, line):
+        cursor = self.textCursor()
+        block = self.document().findBlockByNumber(line-1)
+        cursor.setPosition(block.position())
+        return cursor
+
+    def remove_last_line(self):
+        """Removes the last line of the document."""
+        text_cursor = self.textCursor()
+        text_cursor.movePosition(text_cursor.End, text_cursor.MoveAnchor)
+        text_cursor.select(text_cursor.LineUnderCursor)
+        text_cursor.removeSelectedText()
+        text_cursor.deletePreviousChar()
+        self.setTextCursor(text_cursor)
+
+    def unfold_if_colapsed(self, block):
+        """Unfold parent fold trigger if the block is collapsed.
+
+        :param block: Block to unfold.
+        """
+        try:
+            folding_panel = self.panels.get('FoldingPanel')
+        except KeyError:
+            pass
+        else:
+            from spyder.plugins.editor.utils.folding import FoldScope
+            if not block.isVisible():
+                block = FoldScope.find_parent_scope(block)
+                if TextBlockHelper.is_collapsed(block):
+                    folding_panel.toggle_fold_trigger(block)
+
+    def line_nbr_from_position(self, y_pos):
+        """
+        Returns the line number from the y_pos.
+
+        :param y_pos: Y pos in the editor
+        :return: Line number (0 based), -1 if out of range
+        """
+        height = self.fontMetrics().height()
+        for top, line, block in self.visible_blocks:
+            if top <= y_pos <= top + height:
+                return line
+        return -1
+
+    def select_lines(self, start=0, end=-1, apply_selection=True):
+        """
+        Selects entire lines between start and end line numbers.
+
+        This functions apply the selection and returns the text cursor that
+        contains the selection.
+
+        Optionally it is possible to prevent the selection from being applied
+        on the code editor widget by setting ``apply_selection`` to False.
+
+        :param start: Start line number (0 based)
+        :param end: End line number (0 based). Use -1 to select up to the
+            end of the document
+        :param apply_selection: True to apply the selection before returning
+         the QTextCursor.
+        :returns: A QTextCursor that holds the requested selection
+        """
+        if end == -1:
+            end = self.line_count() - 1
+        if start < 0:
+            start = 0
+        text_cursor = self._move_cursor_to(start)
+        if end > start:  # Going down
+            text_cursor.movePosition(text_cursor.Down,
+                                     text_cursor.KeepAnchor, end - start)
+            text_cursor.movePosition(text_cursor.EndOfLine,
+                                     text_cursor.KeepAnchor)
+        elif end < start:  # going up
+            # don't miss end of line !
+            text_cursor.movePosition(text_cursor.EndOfLine,
+                                     text_cursor.MoveAnchor)
+            text_cursor.movePosition(text_cursor.Up,
+                                     text_cursor.KeepAnchor, start - end)
+            text_cursor.movePosition(text_cursor.StartOfLine,
+                                     text_cursor.KeepAnchor)
+        else:
+            text_cursor.movePosition(text_cursor.EndOfLine,
+                                     text_cursor.KeepAnchor)
+        if apply_selection:
+            self.setTextCursor(text_cursor)
+        return text_cursor
+
+    def line_pos_from_number(self, line_number):
+        """
+        Computes line position on Y-Axis (at the center of the line) from line
+        number.
+
+        :param line_number: The line number for which we want to know the
+                            position in pixels.
+        :return: The center position of the line.
+        """
+        block = self.document().findBlockByNumber(line_number)
+        if block.isValid():
+            return int(self.blockBoundingGeometry(block).translated(
+                self.contentOffset()).top())
+        if line_number <= 0:
+            return 0
+        else:
+            return int(self.blockBoundingGeometry(
+                block.previous()).translated(self.contentOffset()).bottom())
 
     def exec_gotolinedialog(self):
         """Execute the GoToLineDialog dialog box"""
