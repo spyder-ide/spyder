@@ -47,7 +47,7 @@ def test_space_completion(lsp_codeeditor, qtbot):
     while not stop:
         try:
             with qtbot.waitSignal(completion.sig_show_completions,
-                                  timeout=500) as sig:
+                                  timeout=5000) as sig:
                 pass
             code_editor.completion_widget.hide()
         except Exception:
@@ -100,6 +100,54 @@ def test_hide_widget_completion(lsp_codeeditor, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.first
+def test_automatic_completions(lsp_codeeditor, qtbot):
+    """Test on-the-fly completions."""
+    code_editor, _ = lsp_codeeditor
+    completion = code_editor.completion_widget
+
+    # Set cursor to start
+    code_editor.go_to_line(1)
+
+    # Complete f -> from
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyClicks(code_editor, 'f')
+
+    assert "from" in [x['label'] for x in sig.args[0]]
+    # qtbot.keyPress(code_editor, Qt.Key_Tab)
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyClicks(code_editor, 'rom')
+
+    # Due to automatic completion, the completion widget may appear before
+    stop = False
+    while not stop:
+        try:
+            with qtbot.waitSignal(completion.sig_show_completions,
+                                  timeout=5000) as sig:
+                pass
+            code_editor.completion_widget.hide()
+        except Exception:
+            stop = True
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyClicks(code_editor, ' ')
+
+    assert "os" in [x['label'] for x in sig.args[0]]
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyClicks(code_editor, 'n')
+
+    assert "numpy" in [x['label'] for x in sig.args[0]]
+
+
+
+
+@pytest.mark.slow
+@pytest.mark.first
 def test_completions(lsp_codeeditor, qtbot):
     """Exercise code completion in several ways."""
     code_editor, _ = lsp_codeeditor
@@ -118,7 +166,7 @@ def test_completions(lsp_codeeditor, qtbot):
     while not stop:
         try:
             with qtbot.waitSignal(completion.sig_show_completions,
-                                  timeout=500) as sig:
+                                  timeout=5000) as sig:
                 pass
             code_editor.completion_widget.hide()
         except Exception:
@@ -147,7 +195,7 @@ def test_completions(lsp_codeeditor, qtbot):
     while not stop:
         try:
             with qtbot.waitSignal(completion.sig_show_completions,
-                                  timeout=500) as sig:
+                                  timeout=5000) as sig:
                 pass
             code_editor.completion_widget.hide()
         except Exception:
@@ -175,7 +223,7 @@ def test_completions(lsp_codeeditor, qtbot):
     while not stop:
         try:
             with qtbot.waitSignal(completion.sig_show_completions,
-                                  timeout=500) as sig:
+                                  timeout=5000) as sig:
                 pass
             code_editor.completion_widget.hide()
         except Exception:
@@ -201,7 +249,7 @@ def test_completions(lsp_codeeditor, qtbot):
     while not stop:
         try:
             with qtbot.waitSignal(completion.sig_show_completions,
-                                  timeout=500) as sig:
+                                  timeout=5000) as sig:
                 pass
             code_editor.completion_widget.hide()
         except Exception:
@@ -230,7 +278,7 @@ def test_completions(lsp_codeeditor, qtbot):
     while not stop:
         try:
             with qtbot.waitSignal(completion.sig_show_completions,
-                                  timeout=500) as sig:
+                                  timeout=5000) as sig:
                 pass
             code_editor.completion_widget.hide()
         except Exception:
@@ -259,7 +307,7 @@ def test_completions(lsp_codeeditor, qtbot):
     while not stop:
         try:
             with qtbot.waitSignal(completion.sig_show_completions,
-                                  timeout=500) as sig:
+                                  timeout=5000) as sig:
                 pass
             code_editor.completion_widget.hide()
         except Exception:
@@ -288,7 +336,7 @@ def test_completions(lsp_codeeditor, qtbot):
     while not stop:
         try:
             with qtbot.waitSignal(completion.sig_show_completions,
-                                  timeout=500) as sig:
+                                  timeout=5000) as sig:
                 pass
             code_editor.completion_widget.hide()
         except Exception:
@@ -314,7 +362,7 @@ def test_completions(lsp_codeeditor, qtbot):
     while not stop:
         try:
             with qtbot.waitSignal(completion.sig_show_completions,
-                                  timeout=500) as sig:
+                                  timeout=5000) as sig:
                 pass
             code_editor.completion_widget.hide()
         except Exception:
@@ -322,7 +370,7 @@ def test_completions(lsp_codeeditor, qtbot):
 
     try:
         with qtbot.waitSignal(completion.sig_show_completions,
-                              timeout=5000) as sig:
+                              timeout=50000) as sig:
             qtbot.keyPress(code_editor, Qt.Key_Tab)
             qtbot.keyPress(code_editor, Qt.Key_Backspace)
     except pytestqt.exceptions.TimeoutError:
@@ -330,7 +378,7 @@ def test_completions(lsp_codeeditor, qtbot):
 
     try:
         with qtbot.waitSignal(completion.sig_show_completions,
-                              timeout=5000) as sig:
+                              timeout=50000) as sig:
             qtbot.keyPress(code_editor, Qt.Key_Tab)
             qtbot.keyPress(code_editor, Qt.Key_Return)
         raise RuntimeError("The signal should not have been received!")
