@@ -82,6 +82,17 @@ def test_hide_widget_completion(lsp_codeeditor, qtbot):
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
 
+    # Due to automatic completion, the completion widget may appear before
+    stop = False
+    while not stop:
+        try:
+            with qtbot.waitSignal(completion.sig_show_completions,
+                                  timeout=5000) as sig:
+                pass
+            code_editor.completion_widget.hide()
+        except Exception:
+            stop = True
+
     # press tab and get completions
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
@@ -141,9 +152,67 @@ def test_automatic_completions(lsp_codeeditor, qtbot):
                           timeout=10000) as sig:
         qtbot.keyClicks(code_editor, 'n')
 
+    assert "ntpath" in [x['label'] for x in sig.args[0]]
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyClicks(code_editor, 'ump')
+
     assert "numpy" in [x['label'] for x in sig.args[0]]
 
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyPress(code_editor, Qt.Key_Backspace)
 
+    assert "numbers" in [x['label'] for x in sig.args[0]]
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyClicks(code_editor, 'py')
+
+    # Due to automatic completion, the completion widget may appear before
+    stop = False
+    while not stop:
+        try:
+            with qtbot.waitSignal(completion.sig_show_completions,
+                                  timeout=5000) as sig:
+                pass
+            code_editor.completion_widget.hide()
+        except Exception:
+            stop = True
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyClicks(code_editor, ' ')
+
+    assert "import" in [x['label'] for x in sig.args[0]]
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyClicks(code_editor, 'imp')
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+
+    assert code_editor.toPlainText() == 'from numpy import'
+
+    # Due to automatic completion, the completion widget may appear before
+    stop = False
+    while not stop:
+        try:
+            with qtbot.waitSignal(completion.sig_show_completions,
+                                  timeout=5000) as sig:
+                pass
+            code_editor.completion_widget.hide()
+        except Exception:
+            stop = True
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyClicks(code_editor, ' ')
+
+    assert "random" in [x['label'] for x in sig.args[0]]
 
 
 @pytest.mark.slow
