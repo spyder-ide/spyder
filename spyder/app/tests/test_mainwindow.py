@@ -156,10 +156,7 @@ def main_window(request):
 
     # Check if we need to use introspection in a given test
     # (it's faster and less memory consuming not to use it!)
-    try:
-        use_introspection = request.node.get_marker('use_introspection')
-    except AttributeError:
-        use_introspection = False
+    use_introspection = request.node.get_closest_marker('use_introspection')
 
     if use_introspection:
         os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
@@ -170,10 +167,7 @@ def main_window(request):
             pass
 
     # Only use single_instance mode for tests that require it
-    try:
-        single_instance = request.node.get_marker('single_instance')
-    except AttributeError:
-        single_instance = False
+    single_instance = request.node.get_closest_marker('single_instance')
 
     if single_instance:
         CONF.set('main', 'single_instance', True)
@@ -438,10 +432,10 @@ def test_window_title(main_window, tmpdir):
 
 @pytest.mark.slow
 @pytest.mark.single_instance
-@pytest.mark.skipif(PY2 and os.environ.get('CI', None) is None,
-                    reason="It's not meant to be run outside of CIs in Python 2")
+@pytest.mark.skipif(os.environ.get('CI', None) is None,
+                    reason="It's not meant to be run outside of CIs")
 def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
-    """Test single instance mode and for %edit magic."""
+    """Test single instance mode and %edit magic."""
     editorstack = main_window.editor.get_current_editorstack()
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)

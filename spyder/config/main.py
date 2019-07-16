@@ -315,6 +315,7 @@ DEFAULTS = [
               'console/use_project_or_home_directory': False,
               'console/use_cwd': True,
               'console/use_fixed_directory': False,
+              'startup/use_fixed_directory': False,
               # FIXME:
               'startup/fixed_directory': '',
               'console/fixed_directory': '',
