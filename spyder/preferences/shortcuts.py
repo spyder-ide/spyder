@@ -23,7 +23,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.config.gui import (get_shortcut, iter_shortcuts,
                                reset_shortcuts, set_shortcut)
 from spyder.preferences.configdialog import GeneralConfigPage

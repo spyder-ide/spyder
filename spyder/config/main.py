@@ -96,6 +96,9 @@ DEFAULTS = [
               'completion/size': (300, 180),
               'report_error/remember_me': False,
               'report_error/remember_token': False,
+              # TODO:
+              'crash': False,
+              'historylog_filename': '',
               }),
             ('quick_layouts',
              {
@@ -225,6 +228,9 @@ DEFAULTS = [
               'autosave_interval': 60,
               'docstring_type': 'Numpydoc',
               'strip_trailing_spaces_on_modify': True,
+              # TODO:
+              'recent_files': [],
+              'filenames': [],
               }),
             ('historylog',
              {
@@ -286,7 +292,9 @@ DEFAULTS = [
               'search_text': [''],
               'search_text_samples': [TASKS_PATTERN],
               'more_options': True,
-              'case_sensitive': False
+              'case_sensitive': False,
+              # TODO:
+              'path_history': [],
               }),
             ('breakpoints',
              {
@@ -307,6 +315,9 @@ DEFAULTS = [
               'console/use_project_or_home_directory': False,
               'console/use_cwd': True,
               'console/use_fixed_directory': False,
+              # FIXME:
+              'startup/fixed_directory': '',
+              'console/fixed_directory': '',
               }),
             ('shortcuts',
              {
@@ -434,6 +445,9 @@ DEFAULTS = [
               'editor/split horizontally': "Ctrl+_",
               'editor/close split panel': "Alt+Shift+W",
               'editor/docstring': "Ctrl+Alt+D",
+              # FIXME:
+              'Console/Inspect current object' : '',
+              'console/inspect current object' : '',
               # -- In Breakpoints
               '_/switch to breakpoints': "Ctrl+Shift+B",
               # ---- Consoles (in widgets/shell) ----
@@ -493,7 +507,13 @@ DEFAULTS = [
               'advanced/port': 2087,
               'advanced/external': False,
               'advanced/stdio': False
-             })
+             }),
+            ('run',
+             {
+              'configurations': [],
+              'defaultconfiguration': {},
+              'breakpoints': {},
+              }),
             ]
 
 
@@ -508,23 +528,6 @@ DEFAULTS = [
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
 CONF_VERSION = '51.0.0'
-
-
-# Main configuration instance
-def get_conf(path):
-    """"""
-    try:
-        conf = UserConfig(name='spyder', path=path, defaults=DEFAULTS,
-                          load=True, version=CONF_VERSION, backup=True,
-                          raw_mode=True)
-    except Exception:
-        conf = UserConfig(name='spyder', path=path, defaults=DEFAULTS,
-                          load=False, version=CONF_VERSION, backup=True,
-                          raw_mode=True)
-    return conf
-
-
-CONF = get_conf(get_conf_path())
 
 
 # Removing old .spyder.ini location:

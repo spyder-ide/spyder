@@ -95,7 +95,7 @@ from qtawesome.iconic_font import FontError
 # Proper high DPI scaling is available in Qt >= 5.6.0. This attibute must
 # be set before creating the application.
 #==============================================================================
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
     QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling,

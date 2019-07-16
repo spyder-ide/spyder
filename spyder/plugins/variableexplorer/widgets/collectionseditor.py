@@ -1827,7 +1827,7 @@ def remote_editor_test():
     from spyder.utils.qthelpers import qapplication
     app = qapplication()
 
-    from spyder.config.main import CONF
+    from spyder.config.manager import CONF
     from spyder_kernels.utils.nsview import (make_remote_view,
                                              REMOTE_SETTINGS)
 

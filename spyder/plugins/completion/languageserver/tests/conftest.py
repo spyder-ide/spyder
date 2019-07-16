@@ -19,7 +19,7 @@ from qtpy.QtCore import QObject, Signal, Slot
 import pytest
 from pytestqt.plugin import QtBot
 
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.plugins.completion.languageserver import SERVER_CAPABILITES
 from spyder.plugins.completion.languageserver.plugin import (
     LanguageServerPlugin)

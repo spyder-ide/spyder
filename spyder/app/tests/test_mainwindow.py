@@ -44,7 +44,7 @@ from spyder import __trouble_url__, __project_url__
 from spyder.app import start
 from spyder.app.mainwindow import MainWindow  # Tests fail without this import
 from spyder.config.base import get_home_dir, get_module_path
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.widgets.dock import TabFilter
 from spyder.preferences.runconfig import RunConfiguration
 from spyder.plugins.base import PluginWindow

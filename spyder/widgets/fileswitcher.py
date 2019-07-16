@@ -25,7 +25,7 @@ from spyder.config.utils import is_ubuntu
 from spyder.utils import icon_manager as ima
 from spyder.utils.stringmatching import get_search_scores
 from spyder.widgets.helperwidgets import HelperToolButton, HTMLDelegate
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 
 
 # --- Python Outline explorer helpers

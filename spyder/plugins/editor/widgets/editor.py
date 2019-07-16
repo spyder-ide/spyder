@@ -56,7 +56,7 @@ from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   ReadWriteStatus, VCSStatus)
 from spyder.plugins.editor.utils.findtasks import find_tasks
 from spyder.widgets.tabs import BaseTabs
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.plugins.explorer.widgets.explorer import (
     show_in_external_file_explorer)
 

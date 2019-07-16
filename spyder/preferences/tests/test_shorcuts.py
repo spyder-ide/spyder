@@ -16,7 +16,7 @@ import pytest
 from qtpy.QtCore import Qt
 
 # Local imports
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.preferences.shortcuts import (
     ShortcutsTable, ShortcutEditor, NO_WARNING, SEQUENCE_CONFLICT,
     INVALID_KEY, SEQUENCE_EMPTY)

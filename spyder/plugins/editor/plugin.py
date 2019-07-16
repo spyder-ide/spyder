@@ -32,7 +32,7 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
 from spyder import dependencies
 from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.config.gui import get_shortcut
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter)
 from spyder.py3compat import PY2, qbytearray_to_str, to_text_string

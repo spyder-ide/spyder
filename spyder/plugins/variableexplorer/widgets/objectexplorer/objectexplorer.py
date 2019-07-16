@@ -26,7 +26,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QAction, QButtonGroup,
 # Local imports
 from spyder.config.base import _
 from spyder.config.gui import get_font, is_dark_interface
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.utils.qthelpers import (add_actions, create_plugin_layout,
                                     create_toolbutton, qapplication)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor

@@ -22,7 +22,7 @@ from qtpy.QtWidgets import (QApplication, QDockWidget, QMainWindow, QMenu,
 # Local imports
 from spyder.config.base import _
 from spyder.config.gui import get_color_scheme, get_font, is_dark_interface
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.config.user import NoDefault
 from spyder.py3compat import configparser, is_text_string
 from spyder.utils import icon_manager as ima

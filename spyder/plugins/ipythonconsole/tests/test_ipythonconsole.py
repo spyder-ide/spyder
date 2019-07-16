@@ -37,7 +37,7 @@ import sympy
 
 # Local imports
 from spyder.config.gui import get_color_scheme
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.py3compat import PY2, to_text_string
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.plugin import IPythonConsole

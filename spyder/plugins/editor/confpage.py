@@ -12,7 +12,7 @@ from qtpy.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
 
 from spyder.api.preferences import PluginConfigPage
 from spyder.config.base import _
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 import spyder.utils.icon_manager as ima
 
 

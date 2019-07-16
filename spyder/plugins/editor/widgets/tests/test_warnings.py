@@ -14,7 +14,7 @@ import pytest
 from qtpy.QtCore import Qt
 
 # Local imports
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 
 
 TEXT = ("def some_function():\n"  # D100, D103: Missing docstring

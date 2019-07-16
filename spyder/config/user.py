@@ -56,8 +56,6 @@ class DefaultsConfig(cp.ConfigParser, object):
 
         self._name = name
         self._path = path
-        self._defaults_folder = 'defaults'
-        self._defaults_name_prefix = 'defaults'
 
     def _write(self, fp):
         """
@@ -129,6 +127,12 @@ class DefaultsConfig(cp.ConfigParser, object):
                       'the exception shown below')  # spyder: test-skip
                 print(e)  # spyder: test-skip
 
+        # for section in config._sections:
+        #     config._sections[section] = collections.OrderedDict(sorted(config._sections[section].items(), key=lambda t: t[0]))
+
+        # # Order all sections alphabetically
+        # config._sections = collections.OrderedDict(sorted(config._sections.items(), key=lambda t: t[0] ))
+
     # def save(self):
     #     """Trigger a save to ini file."""
     #     self._save()
@@ -140,18 +144,7 @@ class DefaultsConfig(cp.ConfigParser, object):
         This .ini files stores the global preferences.
         """
         path = self._path
-        if self._name.startswith(self._defaults_name_prefix):
-            # Save defaults inside defaults_folder_prefix of self._path
-            # FIXME: This implicit assumption is weird. It would make sense to
-            # have a subfolder parameter for this base class?
-            # By weird is that it is a bit obscure that depending on the name
-            # of the file it is stored inside a folder or not.
-            path = osp.join(path, self._defaults_folder)
-            if not osp.isdir(path):
-                os.makedirs(path)
-
         config_file = osp.join(path, '{}.ini'.format(self._name))
-
         return config_file
 
     def set_defaults(self, defaults):
@@ -160,6 +153,14 @@ class DefaultsConfig(cp.ConfigParser, object):
             for option in options:
                 new_value = options[option]
                 self._set(section, option, new_value, verbose=False)
+
+
+
+class UserConfigMixin(object):
+    """
+    This mixin is used for the global config to define how old versions
+    should be handled.
+    """
 
 
 # ============================================================================
@@ -199,16 +200,15 @@ class UserConfig(DefaultsConfig):
         self._remove_obsolete = remove_obsolete
         self._module_source_path = get_module_source_path('spyder')
 
+        self._defaults_folder = 'defaults'
+        self._backup_folder = 'backups'
+        self._backup_suffix = '.bak'
+        self._defaults_name_prefix = 'defaults'
+
         # This is overriding a method from cp.ConfigParser
         self.defaults = self._check_defaults(defaults)
 
         fpath = self.get_config_path()
-        if backup:
-            try:
-                shutil.copyfile(fpath, '{}.bak'.format(fpath))
-            except IOError:
-                pass
-
         if load:
             # If config file already exists, it overrides Default options:
             self._load_from_ini()
@@ -250,6 +250,17 @@ class UserConfig(DefaultsConfig):
             if defaults is None:
                 # If no defaults are defined, set .ini file settings as default
                 self.set_as_defaults()
+
+        if backup:
+            try:
+                new_path = osp.join(osp.dirname(fpath), self._backup_folder)
+                if not osp.isdir(new_path):
+                    os.makedirs(new_path)
+                new_fpath = osp.join(new_path, osp.basename(fpath))
+                shutil.copyfile(fpath, '{}{}'.format(new_fpath,
+                                                     self._backup_suffix))
+            except IOError:
+                pass
 
     def _check_version(self, version):
         """Check version is compliant with format."""
@@ -339,6 +350,10 @@ class UserConfig(DefaultsConfig):
 
     def _save_new_defaults(self, defaults, new_version, path):
         """Save new defaults."""
+        path = osp.join(path, 'defaults')
+        if not osp.isdir(path):
+            os.makedirs(path)
+
         # Example: 'defaults-spyder-53'
         name = '{}-{}-{}'.format(self._defaults_name_prefix, self._name,
                                  new_version)
