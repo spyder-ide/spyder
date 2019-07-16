@@ -105,6 +105,14 @@ class ConfigurationManager(object):
         # TODO: User project or site config as needed
         self._user_config.set(*args, **kwargs)
 
+    def remove_section(self, section):
+        """Remove `section` and all options within it."""
+        self._user_config.remove_section(section)
+
+    def remove_option(self, section, option):
+        """Remove `option` from `section`."""
+        self._user_config.remove_option(section, option)
+
     def reset_to_defaults(self):
         """"""
         self._user_config.reset_to_defaults()
@@ -308,8 +316,22 @@ class MultiUserConfig(object):
 
     def reset_to_defaults(self):
         """"""
-        for config in self._configs_map:
+        for _, config in self._configs_map.items():
             config.reset_to_defaults()
+
+    def remove_section(self, section):
+        """Remove `section` and all options within it."""
+        config = self._get_config(section, None)
+        if config is None:
+            config = self._configs_map['main']
+        config.remove_section(section)
+
+    def remove_option(self, section, option):
+        """Remove `option` from `section`."""
+        config = self._get_config(section, option)
+        if config is None:
+            config = self._configs_map['main']
+        config.remove_option(section, option)
 
     def cleanup(self):
         """Remove .ini files associated to configurations."""
