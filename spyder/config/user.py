@@ -56,6 +56,8 @@ class DefaultsConfig(cp.ConfigParser, object):
 
         self._name = name
         self._path = path
+        if not osp.isdir(osp.dirname(self._path)):
+            os.makedirs(osp.dirname(self._path))
 
     def _write(self, fp):
         """
@@ -327,7 +329,7 @@ class UserConfig(DefaultsConfig):
     def _load_old_defaults(self, old_version):
         """Read old defaults."""
         old_defaults = cp.ConfigParser()
-        path, name = self._get_defaults_config_path_and_name()
+        path, name = self._get_defaults_config_path_and_name(old_version)
         old_defaults.read(osp.join(path, name))
         return old_defaults
 
@@ -337,10 +339,10 @@ class UserConfig(DefaultsConfig):
         """
         path = osp.dirname(self.get_config_path())
         if check_version(version, '3.0.0', '<='):
-            name = '{}-{}.ini'.format(self._defaults_prefix, 'old_version')
+            name = '{}-{}.ini'.format(self._defaults_name_prefix, 'old_version')
             path = self._module_source_path
         elif check_version(version, '52.0.0', '<'):
-            name = '{}-{}.ini'.format(self._defaults_prefix, 'old_version')
+            name = '{}-{}.ini'.format(self._defaults_name_prefix, 'old_version')
         else:
             name = '{}-{}-{}.ini'.format(self._defaults_name_prefix,
                                          self._name, 'old_version')

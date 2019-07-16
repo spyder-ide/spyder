@@ -39,12 +39,13 @@ def test_empty_project(project_test):
 
     # Assert Project onfigs
     conf_files = project.get_conf_files()
-    for dir_ in [CODESTYLE, WORKSPACE, ENCODING, VCS]:
+    for dir_ in [CODESTYLE, ENCODING, VCS]:
         assert dir_ in conf_files
         project_config = conf_files[dir_]
 
         # assert configurations files
-        assert osp.exists(project_config.filename())
+        fpath = project_config.get_config_path()
+        assert osp.exists(fpath)
 
 
 def test_set_load_recent_files(project_test):

@@ -23,21 +23,14 @@ def tmpconfig(tmpdir, request):
         'name': 'spyder-test',
         'path': path,
         'defaults': DEFAULTS,
-        'load': False,
+        'load': True,
         'version': CONF_VERSION,
         'backup': True,
         'raw_mode': True,
         'remove_obsolete': False,
     }
 
-    param = getattr(request, 'param', None)
-    if param:
-        modified_kwargs = request.param[0]
-        kwargs = default_kwargs.copy().update(modified_kwargs)
-    else:
-        kwargs = default_kwargs
-
-    conf = UserConfig(**kwargs)
+    conf = UserConfig(**default_kwargs)
 
     def fin():
         """Fixture finalizer to delete the temporary CONF element."""

@@ -52,9 +52,9 @@ def test_default_config_save_write(defaultconfig):
     defaultconfig._save()
 
 
-def test_default_config_get_config_path(defaultconfig):
-    check_folder = (os.sep + 'defaults' + os.sep)
-    assert  check_folder in defaultconfig.get_config_path()
+# def test_default_config_get_config_path(defaultconfig):
+#     check_folder = (os.sep + 'defaults' + os.sep)
+#     assert  check_folder in defaultconfig.get_config_path()
 
 
 def test_default_config_set_defaults(defaultconfig):

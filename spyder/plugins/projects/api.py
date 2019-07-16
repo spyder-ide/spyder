@@ -97,7 +97,7 @@ class BaseProject(object):
     def create_project_config_files(self):
         """ """
         dic = self.CONFIG_SETUP
-        path = osp.join(self.root_path, self.PROJECT_FOLDER)
+        path = osp.join(self.root_path, self.PROJECT_FOLDER, 'config')
 
         for key in dic:
             name = key

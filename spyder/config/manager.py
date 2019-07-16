@@ -25,7 +25,6 @@ class ConfigurationManager(object):
     def __init__(self, parent=None):
         """"""
         path = self.get_user_config_path()
-        # print([path])
         if not osp.isdir(path):
             os.makedirs(path)
 
@@ -105,6 +104,9 @@ class ConfigurationManager(object):
         # TODO: User project or site config as needed
         self._user_config.set(*args, **kwargs)
 
+    def get_default(self, section, option):
+        return self._user_config.get_default(section, option)
+
     def remove_section(self, section):
         """Remove `section` and all options within it."""
         self._user_config.remove_section(section)
@@ -170,22 +172,15 @@ class MultiUserConfig(object):
         if option is None:
             return self._configs_map['main']
 
-        # print(section, option)
         for _, config in self._configs_map.items():
             if section is None:
                 section = config.DEFAULT_SECTION_NAME
 
-            # print([_], section, option, config.has_option(section, option))
             if config.has_option(section, option):
                 return config
 
         if config is None:
             return self._configs_map['main']
-
-        # else:
-            # print([_], section, option, config.has_option(section, option))
-        # else:
-        #     raise Exception('option not found in any of the configurations!')
 
     def _check_namemap(self, namemap):
         """TODO:"""
@@ -291,13 +286,17 @@ class MultiUserConfig(object):
 
     def options(self, section):
         """"""
-        # print([section])
         config = self._get_config(section, None)
         return config.options(section=section)
 
+    def get_default(self, section, option):
+        config = self._get_config(section, None)
+        if config is None:
+            config = self._configs_map['main']
+        return config.get_default(section, option)
+
     def get(self, section, option, default=NoDefault):
         """"""
-        # print('GET', section, option, default)
         config = self._get_config(section, option)
         
         if config is None:
@@ -307,7 +306,6 @@ class MultiUserConfig(object):
 
     def set(self, section, option, value, verbose=False, save=True):
         """"""
-        # print('SET', section, option, value)
         config = self._get_config(section, option)
         if config is None:
             config = self._configs_map['main']
@@ -352,7 +350,7 @@ NAMEMAP = {
             'historylog_filename',
             'window/state',
             'window/size',
-            'window/position',
+            # 'window/position',
             'window/prefs_dialog_size',
             'last_visible_toolbars',
             'completion/size',
