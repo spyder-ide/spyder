@@ -449,8 +449,8 @@ DEFAULTS = [
               'editor/close split panel': "Alt+Shift+W",
               'editor/docstring': "Ctrl+Alt+D",
               # FIXME:
-              'Console/Inspect current object' : '',
-              'console/inspect current object' : '',
+              'Console/Inspect current object': '',
+              'console/inspect current object': '',
               # -- In Breakpoints
               '_/switch to breakpoints': "Ctrl+Shift+B",
               # ---- Consoles (in widgets/shell) ----
@@ -518,6 +518,75 @@ DEFAULTS = [
               'breakpoints': {},
               }),
             ]
+
+
+NAMEMAP = {
+    # Empty container object means use the rest of defaults
+    'main': {},
+    # Splitting these files makes sense for projects, we might as well
+    # apply the same split for the app global config
+    # These options change on spyder startup, not good for version control
+    'transient': [
+        ('main', [
+            'completion/size',
+            'crash',
+            'current_version',
+            'historylog_filename',
+            'last_visible_toolbars',
+            # 'window/position',
+            'window/prefs_dialog_size',
+            'window/size',
+            'window/state',
+            ]
+         ),
+        ('appearance', [
+            'windows_style',
+            ]
+         ),
+        ('editor', [
+            'autosave_mapping',
+            'bookmarks',
+            'filenames',
+            'layout_settings',
+            'recent_files',
+            'splitter_state',
+            ]
+         ),
+        ('explorer', [
+            'file_associations',
+        ]),
+        ('find_in_files', [
+            'search_text',
+            'path_history'
+            ]
+         ),
+        ('online_help', [
+            'zoom_factor',
+             ]
+         ),
+        ('outline_explorer', [
+            'expanded_state',
+            'scrollbar_position',
+            ],
+         ),
+        ('project_explorer', [
+            'scrollbar_position',
+          ]
+         ),
+        ('quick_layouts', []),
+        ('run', [
+            'breakpoints',
+            'configurations',
+            'defaultconfiguration',
+          ]
+         ),
+        ('workingdir', [
+            'console/fixed_directory'
+            'startup/fixed_directory',
+          ]
+         ),
+    ]
+}
 
 
 # =============================================================================

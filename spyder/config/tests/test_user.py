@@ -31,7 +31,8 @@ from spyder.utils.fixtures import tmpconfig
         (('sec', 'opt', 50), '[sec][opt] = 50\n'),
         (('sec', 'opt', [50]), '[sec][opt] = [50]\n'),
         (('sec', 'opt', (50, 2)), '[sec][opt] = (50, 2)\n'),
-        (('sec', 'opt', {50}), '[sec][opt] = {}\n'.format('set([50])' if PY2 else '{50}')),
+        (('sec', 'opt', {50}), '[sec][opt] = {}\n'.format(
+            'set([50])' if PY2 else '{50}')),
         (('sec', 'opt', {'k': 50}), "[sec][opt] = {'k': 50}\n"),
         (('sec', 'opt', False), '[sec][opt] = False\n'),
         (('sec', 'opt', True), '[sec][opt] = True\n'),
@@ -95,7 +96,14 @@ def test_userconfig_set_with_string(userconfig):
     assert ini_contents == expected
 
 
-@pytest.mark.parametrize('test_version', [('abc'), ('x.x.x'), ('1.0'), ('-1.0'), ('-1.0.0'), ('')])
+@pytest.mark.parametrize('test_version', [
+    ('abc'),
+    ('x.x.x'),
+    ('1.0'),
+    ('-1.0'),
+    ('-1.0.0'),
+    (''),
+])
 def test_userconfig_check_version(tmpdir, test_version, userconfig):
     name = 'spyder-test'
     path = str(tmpdir)
@@ -293,16 +301,16 @@ def test_userconfig_reset_to_defaults(tmpdir):
     # Skip section, should go to default
     assert conf.defaults == defaults
     conf.set(None, 'opt', True)
-    assert conf.get(None, 'opt') == True
+    assert conf.get(None, 'opt') is True
     conf.reset_to_defaults()
-    assert conf.get(None, 'opt') == False
+    assert conf.get(None, 'opt') is False
 
     # Provide section, should go to sectio
     assert conf.defaults == defaults
     conf.set('test', 'opt', True)
-    assert conf.get('test', 'opt') == True
+    assert conf.get('test', 'opt') is True
     conf.reset_to_defaults()
-    assert conf.get('test', 'opt') == False
+    assert conf.get('test', 'opt') is False
 
 
 def test_userconfig_set_as_defaults(tmpdir):

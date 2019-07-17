@@ -1428,9 +1428,9 @@ class MainWindow(QMainWindow):
             hexstate = None
         else:
             hexstate = get_func(section, prefix+'state', None)
-        print([prefix+'position'])
+
+        # TODO: Check why this might be failing with CONF
         pos = get_func(section, prefix+'position')
-        print([pos])
 
         # It's necessary to verify if the window/position value is valid
         # with the current screen. See spyder-ide/spyder#3748.

@@ -103,8 +103,8 @@ class BaseProject(object):
             name = key
             defaults = dic[key]['defaults']
             version = dic[key]['version']
-            self.CONF[key] = ProjectConfig(name, path, defaults=defaults, load=True,
-                                           version=version)
+            self.CONF[key] = ProjectConfig(name, path, defaults=defaults,
+                                           load=True, version=version)
 
     def get_conf_files(self):
         """ """

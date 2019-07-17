@@ -16,6 +16,7 @@ from __future__ import print_function, unicode_literals
 
 # Standard library imports
 import ast
+import copy
 import io
 import os
 import os.path as osp
@@ -56,6 +57,7 @@ class DefaultsConfig(cp.ConfigParser, object):
 
         self._name = name
         self._path = path
+
         if not osp.isdir(osp.dirname(self._path)):
             os.makedirs(osp.dirname(self._path))
 
@@ -97,7 +99,8 @@ class DefaultsConfig(cp.ConfigParser, object):
             value = repr(value)
 
         if verbose:
-            print('[{}][{}] = {}'.format(section, option, value))  # spyder: test-skip
+            text = '[{}][{}] = {}'.format(section, option, value)
+            print(text)  # spyder: test-skip
 
         super(DefaultsConfig, self).set(section, option, value)
 
@@ -129,16 +132,6 @@ class DefaultsConfig(cp.ConfigParser, object):
                       'the exception shown below')  # spyder: test-skip
                 print(e)  # spyder: test-skip
 
-        # for section in config._sections:
-        #     config._sections[section] = collections.OrderedDict(sorted(config._sections[section].items(), key=lambda t: t[0]))
-
-        # # Order all sections alphabetically
-        # config._sections = collections.OrderedDict(sorted(config._sections.items(), key=lambda t: t[0] ))
-
-    # def save(self):
-    #     """Trigger a save to ini file."""
-    #     self._save()
-
     def get_config_path(self):
         """
         Create a .ini filename located in `self._path`.
@@ -157,12 +150,12 @@ class DefaultsConfig(cp.ConfigParser, object):
                 self._set(section, option, new_value, verbose=False)
 
 
-
-class UserConfigMixin(object):
+class UserConfigPacthes(object):
     """
     This mixin is used for the global config to define how old versions
     should be handled.
     """
+    pass
 
 
 # ============================================================================
@@ -180,7 +173,7 @@ class UserConfig(DefaultsConfig):
         Configuration file will be saved in path/%name%.ini
     defaults: {} or [(str, {}),]
         dictionnary containing options *or* list of tuples (sec_name, options)
-    version: str 
+    version: str
         version of the configuration file in major.minor.micro format.
 
     Notes
@@ -225,10 +218,13 @@ class UserConfig(DefaultsConfig):
             if _minor(version) != _minor(old_ver):
                 if backup:
                     try:
-                        shutil.copyfile(fpath, "{}-{}.bak".format(fpath, old_ver))
+                        shutil.copyfile(fpath, "{}-{}.bak".format(fpath,
+                                                                  old_ver))
                     except IOError:
                         pass
 
+                # TODO: This logic needs to be implemented outside as this is
+                # only valid for the global config not for plugins config
                 if check_version(old_ver, '2.4.0', '<'):
                     self.reset_to_defaults(save=False)
                 else:
@@ -250,7 +246,8 @@ class UserConfig(DefaultsConfig):
                 self.set_version(version, save=False)
 
             if defaults is None:
-                # If no defaults are defined, set .ini file settings as default
+                # If no defaults are defined, set .ini file settings as
+                # default
                 self.set_as_defaults()
 
         if backup:
@@ -318,13 +315,15 @@ class UserConfig(DefaultsConfig):
                         with io.open(fpath, encoding='utf-8') as configfile:
                             self.readfp(configfile)
                     except IOError:
-                        print("Failed reading file", fpath)  # spyder: test-skip
+                        error_text = "Failed reading file", fpath
+                        print(error_text)  # spyder: test-skip
             else:
                 # Python 3
                 self.read(fpath, encoding='utf-8')
 
         except cp.MissingSectionHeaderError:
-            print('Warning: File contains no section headers.')  # spyder: test-skip
+            error_text = 'Warning: File contains no section headers.'
+            print(error_text)  # spyder: test-skip
 
     def _load_old_defaults(self, old_version):
         """Read old defaults."""
@@ -339,10 +338,12 @@ class UserConfig(DefaultsConfig):
         """
         path = osp.dirname(self.get_config_path())
         if check_version(version, '3.0.0', '<='):
-            name = '{}-{}.ini'.format(self._defaults_name_prefix, 'old_version')
+            name = '{}-{}.ini'.format(self._defaults_name_prefix,
+                                      'old_version')
             path = self._module_source_path
         elif check_version(version, '52.0.0', '<'):
-            name = '{}-{}.ini'.format(self._defaults_name_prefix, 'old_version')
+            name = '{}-{}.ini'.format(self._defaults_name_prefix,
+                                      'old_version')
         else:
             name = '{}-{}-{}.ini'.format(self._defaults_name_prefix,
                                          self._name, 'old_version')
@@ -475,7 +476,8 @@ class UserConfig(DefaultsConfig):
                 try:
                     value = value.decode('utf-8')
                     try:
-                        # Some str config values expect to be eval after decoding
+                        # Some str config values expect to be eval after
+                        # decoding
                         new_value = ast.literal_eval(value)
                         if is_text_string(new_value):
                             value = new_value
@@ -549,3 +551,226 @@ class UserConfig(DefaultsConfig):
     def cleanup(self):
         """Remove .ini file associated to config."""
         os.remove(self.get_config_path())
+
+
+class MultiUserConfig(object):
+    """
+    Multi user config class based on UserConfig class.
+
+    This class provides the same interface as UserConfig but allows splitting
+    the configuration sections and options among several files.
+
+    The `name` is now a `namemap` where the sections and options per file name
+    are defined.
+    """
+
+    def __init__(self, namemap, path, defaults=None, load=True, version=None,
+                 backup=False, raw_mode=False, remove_obsolete=False):
+        """Multi user config class based on UserConfig class."""
+        self._namemap = self._check_namemap(namemap)
+        self._path = path
+        self._defaults = defaults
+        self._load = load
+        self._version = version
+        self._backup = backup
+        self._raw_mode = 1 if raw_mode else 0
+        self._remove_obsolete = remove_obsolete
+
+        self._configs_map = {}
+        self._config_defaults_map = self._get_defaults_for_namemap(defaults,
+                                                                   namemap)
+        self._config_kwargs = {
+            'path': path,
+            'defaults': defaults,
+            'load': load,
+            'version': version,
+            'backup': backup,
+            'raw_mode': raw_mode,
+            'remove_obsolete': remove_obsolete,
+        }
+        for name in namemap:
+            defaults = self._config_defaults_map.get(name)
+            mod_kwargs = {
+                'name': name,
+                'defaults': defaults,
+            }
+            new_kwargs = self._config_kwargs.copy()
+            new_kwargs.update(mod_kwargs)
+            self._configs_map[name] = UserConfig(**new_kwargs)
+
+    def _get_config(self, section, option):
+        """Get the correct configuration based on section and option."""
+        config_value = self._configs_map['main']
+
+        if option is None:
+            config_value = self._configs_map['main']
+        else:
+            for _, config in self._configs_map.items():
+                if section is None:
+                    section = config.DEFAULT_SECTION_NAME
+
+                if config.has_option(section, option):
+                    config_value = config
+                    break
+
+        if config_value is None:
+            config_value = self._configs_map['main']
+
+        return config_value
+
+    def _check_namemap(self, namemap):
+        """Check `namemap` follows the correct format."""
+        pass
+        # Check it is not repeated
+        # Check filemap names are not repeated or overide default name
+        return namemap
+
+    @staticmethod
+    def _get_section_from_defaults(defaults, section):
+        """TODO:"""
+        for sec, options in defaults:
+            if section == sec:
+                value = options
+                break
+        else:
+            raise ValueError('section "{}" not found!'.format(section))
+
+        return value
+
+    @staticmethod
+    def _get_option_from_defaults(defaults, section, option):
+        """TODO:"""
+        value = None
+        for sec, options in defaults:
+            if section == sec:
+                value = options.get(option, None)  # Change to No Default!
+                break
+        return value
+
+    @staticmethod
+    def _remove_section_from_defaults(defaults, section):
+        """TODO:"""
+        idx_remove = None
+        for idx, (sec, _) in enumerate(defaults):
+            if section == sec:
+                idx_remove = idx
+                break
+
+        if idx_remove is not None:
+            defaults.pop(idx)
+
+    @staticmethod
+    def _remove_option_from_defaults(defaults, section, option):
+        """TODO:"""
+        for sec, options in defaults:
+            if section == sec:
+                if option in options:
+                    options.pop(option)
+                    break
+
+    @classmethod
+    def _get_defaults_for_namemap(cls, defaults, namemap):
+        """TODO:"""
+        namemap_config = {}
+        defaults_copy = copy.deepcopy(defaults)
+
+        for name, sec_opts in namemap.items():
+            default_map_for_name = []
+            if len(sec_opts) == 0:
+                namemap_config[name] = defaults_copy
+            else:
+                for section, options in sec_opts:
+                    if len(options) == 0:
+                        # Use all on section
+                        sec = cls._get_section_from_defaults(defaults_copy,
+                                                             section)
+
+                        # Remove section from defaults
+                        cls._remove_section_from_defaults(defaults_copy,
+                                                          section)
+
+                    else:
+                        # Iterate and pop!
+                        sec = {}
+                        for opt in options:
+                            val = cls._get_option_from_defaults(defaults_copy,
+                                                                section, opt)
+                            sec[opt] = val
+
+                            # Remove option from defaults
+                            cls._remove_option_from_defaults(defaults_copy,
+                                                             section, opt)
+
+                    # Add to config map
+                    default_map_for_name.append((section, sec))
+
+                namemap_config[name] = default_map_for_name
+
+        return namemap_config
+
+    def items(self, section):
+        """"""
+        config = self._get_config(section, None)
+        if config is None:
+            config = self._configs_map['main']
+
+        return config.items(section=section)
+
+    def options(self, section):
+        """"""
+        config = self._get_config(section, None)
+        return config.options(section=section)
+
+    def get_default(self, section, option):
+        """
+        Get Default value for a given `section` and `option`.
+
+        This is useful for type checking in `get` method.
+        """
+        config = self._get_config(section, None)
+        if config is None:
+            config = self._configs_map['main']
+        return config.get_default(section, option)
+
+    def get(self, section, option, default=NoDefault):
+        """
+        Get an `option` on a given `section`.
+
+        If section is None, the `option` is requested from default section.
+        """
+        config = self._get_config(section, option)
+
+        if config is None:
+            config = self._configs_map['main']
+
+        return config.get(section=section, option=option, default=default)
+
+    def set(self, section, option, value, verbose=False, save=True):
+        """
+        Set an `option` on a given `section`.
+
+        If section is None, the `option` is added to the default section.
+        """
+        config = self._get_config(section, option)
+        config.set(section=section, option=option, value=value,
+                   verbose=verbose, save=save)
+
+    def reset_to_defaults(self):
+        """Reset configuration to Default values."""
+        for _, config in self._configs_map.items():
+            config.reset_to_defaults()
+
+    def remove_section(self, section):
+        """Remove `section` and all options within it."""
+        config = self._get_config(section, None)
+        config.remove_section(section)
+
+    def remove_option(self, section, option):
+        """Remove `option` from `section`."""
+        config = self._get_config(section, option)
+        config.remove_option(section, option)
+
+    def cleanup(self):
+        """Remove .ini files associated to configurations."""
+        for config in self._configs_map:
+            os.remove(config.get_config_path())

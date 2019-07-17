@@ -137,9 +137,9 @@ def get_conf_subfolder():
     if PY3:
         SUBFOLDER = SUBFOLDER + '-py3'
 
-
-    # If running a development/beta version, save config in a separate directory
-    # to avoid wiping or contaiminating the user's saved stable configuration.
+    # If running a development/beta version, save config in a separate
+    # directory to avoid wiping or contaiminating the user's saved stable
+    # configuration.
     if use_dev_config_dir():
         SUBFOLDER = SUBFOLDER + '-dev'
 
