@@ -240,32 +240,37 @@ class CondaStatus(StatusBarWidget):
         self._interpreter = None
         super(CondaStatus, self).__init__(parent, statusbar, icon=icon)
 
-    def _process_conda_env_info(self):
+    def _get_conda_env_info(self):
         """Get conda environment information."""
-        interpreter = self._interpreter
         try:
             out, err = subprocess.Popen(
-                [interpreter, '-V'],
+                [self._interpreter, '-V'],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE
             ).communicate()
+
             if PY3:
                 out = out.decode()
                 err = err.decode()
-
-            out = out or err  # Anaconda base python prints to stderr
-            out = out.split('\n')[0]
-            parts = out.split()
-
-            if len(parts) >= 2:
-                out = ' '.join(parts[:2])
-
         except Exception:
             out = ''
+            err = ''
+
+        return out, err
+
+    def _process_conda_env_info(self):
+        """Process conda environment information."""
+        out, err = self._get_conda_env_info()
+        out = out or err  # Anaconda base python prints to stderr
+        out = out.split('\n')[0]
+        parts = out.split()
+
+        if len(parts) >= 2:
+            out = ' '.join(parts[:2])
 
         envs_folder = os.path.sep + 'envs' + os.path.sep
-        if envs_folder in interpreter:
-            env = os.path.dirname(os.path.dirname(interpreter))
+        if envs_folder in self._interpreter:
+            env = os.path.dirname(os.path.dirname(self._interpreter))
             env = os.path.basename(env)
         else:
             env = 'base'

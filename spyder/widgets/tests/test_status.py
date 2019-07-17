@@ -63,19 +63,31 @@ def test_status_bar_widget_signal(status_bar, qtbot):
 
 def test_status_bar_conda_status(status_bar, qtbot, mocker):
     mocker.patch.object(utils, 'is_anaconda', return_value=True)
+    mock_py_ver = 'Python 6.6.6'
 
     win, statusbar = status_bar
     w = CondaStatus(win, statusbar)
 
-    interpreter = '/miniconda/bin/python'
-    w.update_interpreter(interpreter)
-    assert w.get_tooltip() == interpreter
-    assert 'base' in w._process_conda_env_info()
+    # Check that we process stdout and stderr correctly
+    out_or_err = mock_py_ver + ' (hello!)'
+    for (out, err) in [(out_or_err, ''), ('', out_or_err)]:
+        # We patch the method that calls for info to return values to test
+        mocker.patch.object(w, '_get_conda_env_info', return_value=(out, err))
 
-    interpreter = '/miniconda/envs/foo/bin/python'
-    w.update_interpreter(interpreter)
-    assert w.get_tooltip() == interpreter
-    assert 'foo' in w._process_conda_env_info()
+        interpreter = '/miniconda/bin/python'
+        w.update_interpreter(interpreter)
+        assert w.get_tooltip() == interpreter
+        text = w._process_conda_env_info()
+        assert 'base' in text
+        assert mock_py_ver in text
+
+        # We patch the method that calls for info to return values to test
+        interpreter = '/miniconda/envs/foo/bin/python'
+        w.update_interpreter(interpreter)
+        assert w.get_tooltip() == interpreter
+        text = w._process_conda_env_info()
+        assert 'foo' in text
+        assert mock_py_ver in text
 
 
 def test_status_bar_no_conda_status(status_bar, qtbot, mocker):
