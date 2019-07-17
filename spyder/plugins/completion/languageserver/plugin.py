@@ -338,7 +338,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         # Code completion
         jedi_completion = {
             'enabled': self.get_option('code_completion'),
-            'include_params': False
+            'include_params': True
         }
 
         jedi_signature_help = {
