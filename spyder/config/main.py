@@ -437,9 +437,6 @@ DEFAULTS = [
               'editor/split horizontally': "Ctrl+_",
               'editor/close split panel': "Alt+Shift+W",
               'editor/docstring': "Ctrl+Alt+D",
-              # FIXME:
-              'Console/Inspect current object': '',
-              'console/inspect current object': '',
               # -- In Breakpoints
               '_/switch to breakpoints': "Ctrl+Shift+B",
               # ---- Consoles (in widgets/shell) ----
@@ -505,10 +502,10 @@ DEFAULTS = [
 
 NAMEMAP = {
     # Empty container object means use the rest of defaults
-    'main': {},
+    'main': [],
     # Splitting these files makes sense for projects, we might as well
     # apply the same split for the app global config
-    'lsp': [('lsp-server', [])],
+    'lsp': [('lsp-server', [])], # Empty list means use all options
     # These options change on spyder startup or are tied to a specific OS,
     # not good for version control
     'transient': [
@@ -568,7 +565,7 @@ NAMEMAP = {
             'scrollbar_position',
           ]
          ),
-        ('quick_layouts', []), # Empty container object means use all options
+        ('quick_layouts', []), # Empty list means use all options
         ('run', [
             'breakpoints',
             'configurations',
