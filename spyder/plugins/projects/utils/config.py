@@ -11,10 +11,10 @@
 import os
 
 # Local imports
+from spyder.config.base import get_project_config_folder
 from spyder.config.user import UserConfig
 
 PROJECT_FILENAME = '.spyproj'
-PROJECT_FOLDER = '.spyproject'
 
 
 # Project configuration defaults
@@ -58,8 +58,3 @@ VCS_DEFAULTS = [
       }
      )]
 VCS_VERSION = '0.1.0'
-
-
-class ProjectConfig(UserConfig):
-    """ProjectConfig class, based on UserConfig."""
-    pass

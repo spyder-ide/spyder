@@ -11,7 +11,8 @@ import os
 import os.path as osp
 from collections import OrderedDict
 
-from spyder.config.base import _
+from spyder.config.base import _, get_project_config_folder
+from spyder.config.user import UserConfig
 from spyder.py3compat import to_text_string
 from spyder.plugins.projects.utils.config import (ProjectConfig, CODESTYLE,
                                             CODESTYLE_DEFAULTS,
@@ -29,7 +30,6 @@ class BaseProject(object):
     This base class must not be used directly, but inherited from. It does not
     assume that python is specific to this project.
     """
-    PROJECT_FOLDER = '.spyproject'
     PROJECT_TYPE_NAME = None
     IGNORE_FILE = ""
     CONFIG_SETUP = {WORKSPACE: {'filename': '{0}.ini'.format(WORKSPACE),
@@ -97,14 +97,14 @@ class BaseProject(object):
     def create_project_config_files(self):
         """ """
         dic = self.CONFIG_SETUP
-        path = osp.join(self.root_path, self.PROJECT_FOLDER, 'config')
+        path = osp.join(self.root_path, get_project_config_folder(), 'config')
 
         for key in dic:
             name = key
             defaults = dic[key]['defaults']
             version = dic[key]['version']
-            self.CONF[key] = ProjectConfig(name, path, defaults=defaults,
-                                           load=True, version=version)
+            self.CONF[key] = UserConfig(name, path, defaults=defaults,
+                                        load=True, version=version)
 
     def get_conf_files(self):
         """ """
@@ -141,7 +141,7 @@ class BaseProject(object):
 
     def __get_project_config_folder(self):
         """Return project configuration folder."""
-        return osp.join(self.root_path, self.PROJECT_FOLDER)
+        return osp.join(self.root_path, get_project_config_folder())
 
     def __get_project_config_path(self):
         """Return project configuration path"""

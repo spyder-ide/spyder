@@ -146,6 +146,11 @@ def get_conf_subfolder():
     return SUBFOLDER
 
 
+def get_project_config_folder():
+    """"""
+    return '.spyproject'
+
+
 def get_home_dir():
     """Return user home directory."""
     try:
