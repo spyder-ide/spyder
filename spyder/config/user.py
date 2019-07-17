@@ -440,10 +440,17 @@ class UserConfig(DefaultsConfig):
 
     def get(self, section, option, default=NoDefault):
         """
-        Get an option
-        section=None: attribute a default section name
-        default: default value (if not specified, an exception
-        will be raised if option doesn't exist)
+        Get an option.
+
+        Parameters
+        ----------
+        section: str
+            Section name. If `None` is provide use the default section name.
+        option: str
+            Option name for `section`.
+        default:
+            Default value (if not specified, an exception will be raised if
+            option doesn't exist).
         """
         section = self._check_section_option(section, option)
 
@@ -615,7 +622,7 @@ class MultiUserConfig(object):
 
     @staticmethod
     def _get_section_from_defaults(defaults, section):
-        """TODO:"""
+        """Get the section contents from the defaults."""
         for sec, options in defaults:
             if section == sec:
                 value = options
@@ -627,7 +634,7 @@ class MultiUserConfig(object):
 
     @staticmethod
     def _get_option_from_defaults(defaults, section, option):
-        """TODO:"""
+        """Get the section,option value from the defaults."""
         value = NoDefault
         for sec, options in defaults:
             if section == sec:
@@ -637,7 +644,7 @@ class MultiUserConfig(object):
 
     @staticmethod
     def _remove_section_from_defaults(defaults, section):
-        """TODO:"""
+        """Remove section from defaults."""
         idx_remove = None
         for idx, (sec, _) in enumerate(defaults):
             if section == sec:
@@ -649,7 +656,7 @@ class MultiUserConfig(object):
 
     @staticmethod
     def _remove_option_from_defaults(defaults, section, option):
-        """TODO:"""
+        """Remove section,option from defaults."""
         for sec, options in defaults:
             if section == sec:
                 if option in options:
@@ -668,15 +675,15 @@ class MultiUserConfig(object):
             for sec, options in sec_opts:
                 if sec == section:
                     if len(options) == 0:
-                        return name 
+                        return name
                     else:
                         for opt in options:
                             if opt == option:
-                                return name 
+                                return name
 
     @classmethod
     def _get_defaults_for_namemap(cls, defaults, namemap):
-        """TODO:"""
+        """Split the global defaults using the namemap."""
         namemap_config = {}
         defaults_copy = copy.deepcopy(defaults)
 
@@ -716,7 +723,7 @@ class MultiUserConfig(object):
         return namemap_config
 
     def items(self, section):
-        """"""
+        """Return all the items option/values for the given section."""
         config = self._get_config(section, None)
         if config is None:
             config = self._configs_map['main']
@@ -724,7 +731,7 @@ class MultiUserConfig(object):
         return config.items(section=section)
 
     def options(self, section):
-        """"""
+        """Return all the options for the given section."""
         config = self._get_config(section, None)
         return config.options(section=section)
 
@@ -734,7 +741,7 @@ class MultiUserConfig(object):
 
         This is useful for type checking in `get` method.
         """
-        config = self._get_config(section, None)
+        config = self._get_config(section, option)
         if config is None:
             config = self._configs_map['main']
         return config.get_default(section, option)

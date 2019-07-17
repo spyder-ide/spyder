@@ -1429,7 +1429,6 @@ class MainWindow(QMainWindow):
         else:
             hexstate = get_func(section, prefix+'state', None)
 
-        # TODO: Check why this might be failing with CONF
         pos = get_func(section, prefix+'position')
 
         # It's necessary to verify if the window/position value is valid

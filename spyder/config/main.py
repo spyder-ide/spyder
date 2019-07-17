@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
-#
+# ----------------------------------------------------------------------------
 # Copyright © Spyder Project Contributors
+#
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
+# ----------------------------------------------------------------------------
 
 """
-Spyder configuration options
+Spyder configuration options.
 
 Note: Leave this file free of Qt related imports, so that it can be used to
-quickly load a user config file
+quickly load a user config file.
 """
 
 import os
@@ -506,7 +508,9 @@ NAMEMAP = {
     'main': {},
     # Splitting these files makes sense for projects, we might as well
     # apply the same split for the app global config
-    # These options change on spyder startup, not good for version control
+    'lsp': [('lsp-server', [])],
+    # These options change on spyder startup or are tied to a specific OS,
+    # not good for version control
     'transient': [
         ('main', [
             'completion/size',
@@ -514,6 +518,7 @@ NAMEMAP = {
             'current_version',
             'historylog_filename',
             'last_visible_toolbars',
+            'spyder_pythonpath',
             'window/position',
             'window/prefs_dialog_size',
             'window/size',
@@ -537,9 +542,15 @@ NAMEMAP = {
             'file_associations',
         ]),
         ('find_in_files', [
-            'search_text',
             'path_history'
+            'search_text',
             ]
+         ),
+        ('main_interpreter', [
+            'custom_interpreters_list',
+            'custom_interpreter',
+            'executable',
+             ]
          ),
         ('onlinehelp', [
             'zoom_factor',
@@ -551,19 +562,22 @@ NAMEMAP = {
             ],
          ),
         ('project_explorer', [
+            'current_project_path',
+            'expanded_state',
+            'recent_projects',
             'scrollbar_position',
           ]
          ),
-        # Empty container object means use all the options
-        ('quick_layouts', []),
+        ('quick_layouts', []), # Empty container object means use all options
         ('run', [
             'breakpoints',
             'configurations',
             'defaultconfiguration',
+            'default/wdir/fixed_directory',
           ]
          ),
         ('workingdir', [
-            'console/fixed_directory'
+            'console/fixed_directory',
             'startup/fixed_directory',
           ]
          ),
