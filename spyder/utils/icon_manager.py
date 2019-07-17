@@ -104,7 +104,7 @@ _resource = {
 }
 
 _qtaargs = {
-    'environment':             [('mdi.package-variant',), {'color': MAIN_FG_COLOR}],
+    'environment':             [('mdi.cube-outline',), {'color': MAIN_FG_COLOR}],
     'drag-horizontal':         [('mdi.drag-horizontal',), {'color': MAIN_FG_COLOR}],
     'format_letter_case':      [('mdi.format-letter-case',), {'color': MAIN_FG_COLOR}],
     'regex':                   [('mdi.regex',), {'color': MAIN_FG_COLOR}],

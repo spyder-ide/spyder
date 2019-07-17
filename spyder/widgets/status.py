@@ -186,7 +186,6 @@ class BaseTimerStatus(StatusBarWidget):
 # =============================================================================
 class MemoryStatus(BaseTimerStatus):
     """Status bar widget for system memory usage."""
-    TIP = _("Memory usage")
 
     def import_test(self):
         """Raise ImportError if feature is not supported."""
@@ -200,7 +199,7 @@ class MemoryStatus(BaseTimerStatus):
 
     def get_tooltip(self):
         """Return the widget tooltip text."""
-        return _('')
+        return _('Memory usage')
 
     def get_icon(self):
         """Return the widget tooltip text."""
@@ -209,7 +208,6 @@ class MemoryStatus(BaseTimerStatus):
 
 class CPUStatus(BaseTimerStatus):
     """Status bar widget for system cpu usage."""
-    TIP = _("CPU usage")
 
     def import_test(self):
         """Raise ImportError if feature is not supported."""
@@ -227,7 +225,7 @@ class CPUStatus(BaseTimerStatus):
 
     def get_tooltip(self):
         """Return the widget tooltip text."""
-        return _('')
+        return _('CPU usage')
 
     def get_icon(self):
         """Return the widget tooltip text."""
@@ -254,11 +252,14 @@ class CondaStatus(StatusBarWidget):
             if PY3:
                 out = out.decode()
                 err = err.decode()
-            out = out or err
+
+            out = out or err  # Anaconda base python prints to stderr
             out = out.split('\n')[0]
             parts = out.split()
-            if parts >= 2:
+
+            if len(parts) >= 2:
                 out = ' '.join(parts[:2])
+
         except Exception:
             out = ''
 
