@@ -150,12 +150,11 @@ class DefaultsConfig(cp.ConfigParser, object):
                 self._set(section, option, new_value, verbose=False)
 
 
-class UserConfigPacthes(object):
+class UserConfigPatches(object):
     """
     This mixin is used for the global config to define how old versions
     should be handled.
     """
-    pass
 
 
 # ============================================================================
@@ -463,7 +462,6 @@ class UserConfig(DefaultsConfig):
 
         value = super(UserConfig, self).get(section, option, raw=self._raw)
 
-        # Use type of default_value to parse value correctly
         default_value = self.get_default(section, option)
         if isinstance(default_value, bool):
             value = ast.literal_eval(value)
@@ -600,22 +598,12 @@ class MultiUserConfig(object):
 
     def _get_config(self, section, option):
         """Get the correct configuration based on section and option."""
-        config_value = self._configs_map['main']
-
-        if option is None:
-            config_value = self._configs_map['main']
-        else:
-            for _, config in self._configs_map.items():
-                if section is None:
-                    section = config.DEFAULT_SECTION_NAME
-
-                if config.has_option(section, option):
-                    config_value = config
-                    break
+        # Check the filemap first
+        name = self._get_name_from_map(section, option)
+        config_value = self._configs_map.get(name, None)
 
         if config_value is None:
             config_value = self._configs_map['main']
-
         return config_value
 
     def _check_namemap(self, namemap):
@@ -640,10 +628,10 @@ class MultiUserConfig(object):
     @staticmethod
     def _get_option_from_defaults(defaults, section, option):
         """TODO:"""
-        value = None
+        value = NoDefault
         for sec, options in defaults:
             if section == sec:
-                value = options.get(option, None)  # Change to No Default!
+                value = options.get(option, NoDefault)
                 break
         return value
 
@@ -667,6 +655,24 @@ class MultiUserConfig(object):
                 if option in options:
                     options.pop(option)
                     break
+
+    def _get_name_from_map(self, section=None, option=None):
+        """
+        Search for section and option on the namemap and return the name.
+        """
+        for name, sec_opts in self._namemap.items():
+            # Ignore the main section
+            default_sec_name = self._configs_map.get(name).DEFAULT_SECTION_NAME
+            if name == default_sec_name:
+                continue
+            for sec, options in sec_opts:
+                if sec == section:
+                    if len(options) == 0:
+                        return name 
+                    else:
+                        for opt in options:
+                            if opt == option:
+                                return name 
 
     @classmethod
     def _get_defaults_for_namemap(cls, defaults, namemap):
@@ -695,7 +701,8 @@ class MultiUserConfig(object):
                         for opt in options:
                             val = cls._get_option_from_defaults(defaults_copy,
                                                                 section, opt)
-                            sec[opt] = val
+                            if val is not NoDefault:
+                                sec[opt] = val
 
                             # Remove option from defaults
                             cls._remove_option_from_defaults(defaults_copy,

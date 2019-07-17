@@ -122,23 +122,24 @@ class ConfigurationManager(object):
         config = self.get_active_conf()
         return config.options(section)
 
-    def get(self, *args, **kwargs):
+    def get(self, section, option, default=NoDefault):
         """
         Get an `option` on a given `section`.
 
         If section is None, the `option` is requested from default section.
         """
         config = self.get_active_conf()
-        return config.get(*args, **kwargs)
+        return config.get(section=section, option=option, default=default)
 
-    def set(self, *args, **kwargs):
+    def set(self, section, option, value, verbose=False, save=True):
         """
         Set an `option` on a given `section`.
 
         If section is None, the `option` is added to the default section.
         """
         config = self.get_active_conf()
-        config.set(*args, **kwargs)
+        config.set(section=section, option=option, value=value,
+                   verbose=verbose, save=save)
 
     def get_default(self, section, option):
         """

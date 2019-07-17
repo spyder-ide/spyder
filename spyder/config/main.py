@@ -96,9 +96,6 @@ DEFAULTS = [
               'completion/size': (300, 180),
               'report_error/remember_me': False,
               'report_error/remember_token': False,
-              # TODO:
-              'crash': False,
-              'historylog_filename': '',
               }),
             ('quick_layouts',
              {
@@ -228,9 +225,6 @@ DEFAULTS = [
               'autosave_interval': 60,
               'docstring_type': 'Numpydoc',
               'strip_trailing_spaces_on_modify': True,
-              # TODO:
-              'recent_files': [],
-              'filenames': [],
               }),
             ('historylog',
              {
@@ -281,8 +275,6 @@ DEFAULTS = [
               'show_all': True,
               'show_icontext': False,
               'single_click_to_open': False,
-              # TODO:
-              'file_associations': {},
               }),
             ('find_in_files',
              {
@@ -295,8 +287,6 @@ DEFAULTS = [
               'search_text_samples': [TASKS_PATTERN],
               'more_options': True,
               'case_sensitive': False,
-              # TODO:
-              'path_history': [],
               }),
             ('breakpoints',
              {
@@ -318,9 +308,6 @@ DEFAULTS = [
               'console/use_cwd': True,
               'console/use_fixed_directory': False,
               'startup/use_fixed_directory': False,
-              # FIXME:
-              'startup/fixed_directory': '',
-              'console/fixed_directory': '',
               }),
             ('shortcuts',
              {
@@ -511,12 +498,6 @@ DEFAULTS = [
               'advanced/external': False,
               'advanced/stdio': False
              }),
-            ('run',
-             {
-              'configurations': [],
-              'defaultconfiguration': {},
-              'breakpoints': {},
-              }),
             ]
 
 
@@ -533,7 +514,7 @@ NAMEMAP = {
             'current_version',
             'historylog_filename',
             'last_visible_toolbars',
-            # 'window/position',
+            'window/position',
             'window/prefs_dialog_size',
             'window/size',
             'window/state',
@@ -560,7 +541,7 @@ NAMEMAP = {
             'path_history'
             ]
          ),
-        ('online_help', [
+        ('onlinehelp', [
             'zoom_factor',
              ]
          ),
@@ -573,6 +554,7 @@ NAMEMAP = {
             'scrollbar_position',
           ]
          ),
+        # Empty container object means use all the options
         ('quick_layouts', []),
         ('run', [
             'breakpoints',
@@ -600,9 +582,3 @@ NAMEMAP = {
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
 CONF_VERSION = '51.0.0'
-
-
-# Removing old .spyder.ini location:
-old_location = osp.join(get_home_dir(), '.spyder.ini')
-if osp.isfile(old_location):
-    os.remove(old_location)
