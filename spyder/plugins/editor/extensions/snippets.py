@@ -27,6 +27,8 @@ class SnippetsExtension(EditorExtension):
         self.is_snippet_active = False
         self.snippet_start = -1
         self.snippet_end = -1
+        self.current_idx = -1
+        self.snippet_components = []
 
     def on_state_changed(self, state):
         """Connect/disconnect sig_key_pressed signal."""
@@ -34,3 +36,19 @@ class SnippetsExtension(EditorExtension):
             self.editor.sig_key_pressed.connect(self._on_key_pressed)
         else:
             self.editor.sig_key_pressed.disconnect(self._on_key_pressed)
+
+    def _on_key_pressed(self, event):
+        if event.isAccepted():
+            return
+
+        key = event.key()
+        cursor = self.editor.textCursor()
+        if self.is_snippet_active:
+            if key == Qt.Key_Tab:
+                self.current_idx = ((self.current_idx + 1) %
+                                    len(self.snippet_components))
+                current_snippet = self.snippet_components[self.current_idx]
+                component_start = current_snippet['start']
+                cursor.movePosition(QTextCursor.StartOfBlock)
+                cursor.movePosition(
+                    QTextCursor.NextCharacter, n=component_start)
