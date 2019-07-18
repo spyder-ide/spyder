@@ -34,21 +34,30 @@ class SnippetsExtension(EditorExtension):
         """Connect/disconnect sig_key_pressed signal."""
         if state:
             self.editor.sig_key_pressed.connect(self._on_key_pressed)
+            self.editor.sig_insert_completion.connect(self.insert_snippet)
         else:
             self.editor.sig_key_pressed.disconnect(self._on_key_pressed)
+            self.editor.sig_insert_completion.disconnect(self.insert_snippet)
+            self.editor.sig_insert_completion.connect(self.insert_snippet)
 
     def _on_key_pressed(self, event):
         if event.isAccepted():
             return
 
+        if self.editor.completion_widget.isVisible():
+            return
+
         key = event.key()
         cursor = self.editor.textCursor()
-        if self.is_snippet_active:
-            if key == Qt.Key_Tab:
-                self.current_idx = ((self.current_idx + 1) %
-                                    len(self.snippet_components))
-                current_snippet = self.snippet_components[self.current_idx]
-                component_start = current_snippet['start']
-                cursor.movePosition(QTextCursor.StartOfBlock)
-                cursor.movePosition(
-                    QTextCursor.NextCharacter, n=component_start)
+        # if self.is_snippet_active:
+        #     if key == Qt.Key_Tab:
+        #         self.current_idx = ((self.current_idx + 1) %
+        #                             len(self.snippet_components))
+        #         current_snippet = self.snippet_components[self.current_idx]
+        #         component_start = current_snippet['start']
+        #         cursor.movePosition(QTextCursor.StartOfBlock)
+        #         cursor.movePosition(
+        #             QTextCursor.NextCharacter, n=component_start)
+
+    def insert_snippet(self, text):
+        self.editor.insert_text(text)
