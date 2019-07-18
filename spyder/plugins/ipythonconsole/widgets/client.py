@@ -111,7 +111,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                  show_elapsed_time=False,
                  reset_warning=True,
                  ask_before_restart=True,
-                 css_path=None):
+                 css_path=None,
+                 always_new_console=False):
         super(ClientWidget, self).__init__(plugin)
         SaveHistoryMixin.__init__(self, history_filename)
 
@@ -126,6 +127,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.show_elapsed_time = show_elapsed_time
         self.reset_warning = reset_warning
         self.ask_before_restart = ask_before_restart
+        self.always_new_console = always_new_console
 
         # --- Other attrs
         self.options_button = options_button
@@ -350,7 +352,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             # Adding id to name
             client_id = self.id_['int_id'] + u'/' + self.id_['str_id']
             name = name + u' ' + client_id
-        elif self.given_name in ["Pylab", "SymPy", "Cython"]:
+        elif (self.given_name in ["Pylab", "SymPy", "Cython"] or
+              self.always_new_console):
             client_id = self.id_['int_id'] + u'/' + self.id_['str_id']
             name = self.given_name + u' ' + client_id
         else:

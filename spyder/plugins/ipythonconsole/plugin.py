@@ -434,7 +434,7 @@ class IPythonConsole(SpyderPluginWidget):
             return client.shellwidget
 
     def run_script(self, filename, wdir, args, debug, post_mortem,
-                   current_client, clear_variables):
+                   current_client, clear_variables, new_console):
         """Run script in current or dedicated client"""
         norm = lambda text: remove_backslashes(to_text_string(text))
 
@@ -447,6 +447,11 @@ class IPythonConsole(SpyderPluginWidget):
         is_new_client = False
         if current_client:
             client = self.get_current_client()
+        elif new_console:
+            # Always run in a new console
+            self.create_new_client_for_file(filename, is_cython=is_cython)
+            client = self.get_current_client()
+            is_new_client = True
         else:
             client = self.get_client_for_file(filename)
             if client is None:
@@ -632,7 +637,8 @@ class IPythonConsole(SpyderPluginWidget):
     @Slot(bool, bool)
     @Slot(bool, str, bool)
     def create_new_client(self, give_focus=True, filename='', is_cython=False,
-                          is_pylab=False, is_sympy=False, given_name=None):
+                          is_pylab=False, is_sympy=False, given_name=None,
+                          always_new_console=False):
         """Create a new client"""
         self.master_clients += 1
         client_id = dict(int_id=to_text_string(self.master_clients),
@@ -655,7 +661,8 @@ class IPythonConsole(SpyderPluginWidget):
                               reset_warning=reset_warning,
                               given_name=given_name,
                               ask_before_restart=ask_before_restart,
-                              css_path=self.css_path)
+                              css_path=self.css_path,
+                              always_new_console=always_new_console)
 
         # Change stderr_dir if requested
         if self.test_dir is not None:
@@ -1090,11 +1097,11 @@ class IPythonConsole(SpyderPluginWidget):
         # Don't increase the count of master clients
         self.master_clients -= 1
 
-        # Rename client tab with filename
-        client = self.get_current_client()
-        client.allow_rename = False
-        tab_text = self.disambiguate_fname(filename)
-        self.rename_client_tab(client, tab_text)
+    def create_new_client_for_file(self, filename, is_cython=False):
+        """Create a new client to execute code related to a file."""
+        # Create client
+        self.create_new_client(filename=filename, is_cython=is_cython,
+                               always_new_console=True)
 
     def get_client_for_file(self, filename):
         """Get client associated with a given file."""
@@ -1273,6 +1280,8 @@ class IPythonConsole(SpyderPluginWidget):
         """Generate a file name without ambiguation."""
         files_path_list = [filename for filename in self.filenames
                            if filename]
+        # Get unique file names in case of running in a new console every time
+        files_path_list = list(set(files_path_list))
         return sourcecode.disambiguate_fname(files_path_list, fname)
 
     def update_tabs_text(self):

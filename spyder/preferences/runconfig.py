@@ -29,10 +29,12 @@ from spyder.utils.misc import getcwd_or_home
 CURRENT_INTERPRETER = _("Execute in current console")
 DEDICATED_INTERPRETER = _("Execute in a dedicated console")
 SYSTERM_INTERPRETER = _("Execute in an external system terminal")
+NEW_INTERPRETER = _("Execute in a new console")
 
 CURRENT_INTERPRETER_OPTION = 'default/interpreter/current'
 DEDICATED_INTERPRETER_OPTION = 'default/interpreter/dedicated'
 SYSTERM_INTERPRETER_OPTION = 'default/interpreter/systerm'
+NEW_INTERPRETER_OPTION = 'default/interpreter/new'
 
 WDIR_USE_SCRIPT_DIR_OPTION = 'default/wdir/use_script_directory'
 WDIR_USE_CWD_DIR_OPTION = 'default/wdir/use_cwd_directory'
@@ -80,6 +82,8 @@ class RunConfiguration(object):
                            CONF.get('run', CURRENT_INTERPRETER_OPTION, True))
         self.systerm = options.get('systerm',
                            CONF.get('run', SYSTERM_INTERPRETER_OPTION, False))
+        self.new_console = options.get('new_console',
+                           CONF.get('run', NEW_INTERPRETER_OPTION, False))
         self.interact = options.get('interact',
                            CONF.get('run', 'interact', False))
         self.post_mortem = options.get('post_mortem',
@@ -104,6 +108,7 @@ class RunConfiguration(object):
                 'workdir': self.wdir,
                 'current': self.current,
                 'systerm': self.systerm,
+                'new_console': self.new_console,
                 'interact': self.interact,
                 'post_mortem': self.post_mortem,
                 'python_args/enabled': self.python_args_enabled,
@@ -179,6 +184,9 @@ class RunConfigOptions(QWidget):
 
         self.systerm_radio = QRadioButton(SYSTERM_INTERPRETER)
         interpreter_layout.addWidget(self.systerm_radio)
+
+        self.new_radio = QRadioButton(NEW_INTERPRETER)
+        interpreter_layout.addWidget(self.new_radio)
 
         # --- General settings ----
         common_group = QGroupBox(_("General settings"))
@@ -278,6 +286,8 @@ class RunConfigOptions(QWidget):
             self.current_radio.setChecked(True)
         elif self.runconf.systerm:
             self.systerm_radio.setChecked(True)
+        elif self.runconf.new_console:
+            self.new_radio.setChecked(True)
         else:
             self.dedicated_radio.setChecked(True)
         self.interact_cb.setChecked(self.runconf.interact)
@@ -296,6 +306,7 @@ class RunConfigOptions(QWidget):
         self.runconf.args = to_text_string(self.clo_edit.text())
         self.runconf.current = self.current_radio.isChecked()
         self.runconf.systerm = self.systerm_radio.isChecked()
+        self.runconf.new_console = self.new_radio.isChecked()
         self.runconf.interact = self.interact_cb.isChecked()
         self.runconf.post_mortem = self.post_mortem_cb.isChecked()
         self.runconf.python_args_enabled = self.pclo_cb.isChecked()
@@ -494,12 +505,17 @@ class RunConfigPage(GeneralConfigPage):
         self.systerm_radio = self.create_radiobutton(SYSTERM_INTERPRETER,
                                 SYSTERM_INTERPRETER_OPTION, False,
                                 button_group=interpreter_bg)
+        self.new_radio = self.create_radiobutton(
+                                NEW_INTERPRETER,
+                                NEW_INTERPRETER_OPTION, False,
+                                button_group=interpreter_bg)
 
         interpreter_layout = QVBoxLayout()
         interpreter_group.setLayout(interpreter_layout)
         interpreter_layout.addWidget(self.current_radio)
         interpreter_layout.addWidget(self.dedicated_radio)
         interpreter_layout.addWidget(self.systerm_radio)
+        interpreter_layout.addWidget(self.new_radio)
 
         general_group = QGroupBox(_("General settings"))
         post_mortem = self.create_checkbox(POST_MORTEM, 'post_mortem', False)
