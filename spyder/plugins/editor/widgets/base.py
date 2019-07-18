@@ -53,6 +53,7 @@ class CompletionWidget(QListWidget):
         self.completion_list = None
         self.completion_position = None
         self.automatic = False
+        self.display_index = []
         # Text to be displayed if no match is found.
         self.empty_text = 'No match'
 
@@ -188,12 +189,14 @@ class CompletionWidget(QListWidget):
                      CompletionItemKind.KEYWORD: 'keyword',
                      CompletionItemKind.TEXT: 'text'}
 
-        for completion in self.completion_list:
+        self.display_index = []
+
+        for i, completion in enumerate(self.completion_list):
             if not self.is_internal_console:
                 completion_label = completion['filterText']
                 icon = icons_map.get(completion['kind'], 'no_match')
                 item = QListWidgetItem(ima.icon(icon),
-                                       completion['insertText'])
+                                       completion['label'])
             else:
                 completion_label = completion[0]
                 item = QListWidgetItem(completion_label)
@@ -201,6 +204,7 @@ class CompletionWidget(QListWidget):
             if self.check_can_complete(
                     completion_label, filter_text):
                 self.addItem(item)
+                self.display_index.append(i)
 
         if self.count() > 0:
             self.setCurrentRow(0)
@@ -336,11 +340,18 @@ class CompletionWidget(QListWidget):
 
     def item_selected(self, item=None):
         """Perform the item selected action."""
+        text = None
         if item is None:
             item = self.currentItem()
+            row = self.currentRow()
+            selection_index = self.display_index[row]
+            completion = self.completion_list[selection_index]
+            text = completion['insertText']
+        else:
+            text = item.text()
 
         if item is not None and self.completion_position is not None:
-            self.textedit.insert_completion(to_text_string(item.text()),
+            self.textedit.insert_completion(to_text_string(text),
                                             self.completion_position)
         self.hide()
 

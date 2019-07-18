@@ -113,7 +113,7 @@ class CompletionManager(SpyderCompletionPlugin):
         if req_type == LSPRequestTypes.DOCUMENT_COMPLETION:
             # principal_source = self.plugin_priority[req_type]
             responses = req_id_responses[principal_source]['params']
-            available_completions = {x['insertText'] for x in responses}
+            available_completions = {x['label'] for x in responses}
             priority_level = 1
             for source in req_id_responses:
                 logger.debug(source)
@@ -121,7 +121,7 @@ class CompletionManager(SpyderCompletionPlugin):
                     continue
                 source_responses = req_id_responses[source]['params']
                 for response in source_responses:
-                    if response['insertText'] not in available_completions:
+                    if response['label'] not in available_completions:
                         response['sortText'] = (
                             'z' + 'z' * priority_level + response['sortText'])
                         responses.append(response)
