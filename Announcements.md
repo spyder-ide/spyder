@@ -1,23 +1,19 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 3.3.5 is released!
+**Subject**: [ANN] Spyder 3.3.6 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **3.3.5** has been released and is available for
+I'm pleased to announce that Spyder **3.3.6** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes almost three months version 3.3.4 and it adds the
-following new features:
+This release comes two weeks after version 3.3.5 and it doesn't add new
+features.
 
-* Add option to allow users showing/hiding CMD windows created by the
-  `subprocess` module on Windows. The option can be found in
-  `Preferences > IPython Console > Advanced settings > Windows adjustments`.
-
-In this release we fixed 10 issues and merged 12 pull requests that amount
-to 46 commits. For a full list of fixes, please see our
+In this release we fixed 2 issues and merged 3 pull requests that amount
+to 11 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/3.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's

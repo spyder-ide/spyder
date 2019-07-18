@@ -325,9 +325,10 @@ class CollectionsDelegate(QItemDelegate):
             qdatetime = editor.dateTime()
             qdate = qdatetime.date()
             qtime = qdatetime.time()
-            value = datetime.datetime(qdate.year(), qdate.month(),
-                                      qdate.day(), qtime.hour(),
-                                      qtime.minute(), qtime.second())
+            # datetime uses microseconds, QDateTime returns milliseconds
+            value = datetime.datetime(qdate.year(), qdate.month(), qdate.day(),
+                                      qtime.hour(), qtime.minute(),
+                                      qtime.second(), qtime.msec()*1000)
         else:
             # Should not happen...
             raise RuntimeError("Unsupported editor widget")

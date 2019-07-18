@@ -51,6 +51,7 @@ from spyder.utils.programs import get_temp_dir
 SHELL_TIMEOUT = 20000
 TEMP_DIRECTORY = tempfile.gettempdir()
 NON_ASCII_DIR = osp.join(TEMP_DIRECTORY, u'測試', u'اختبار')
+NEW_DIR = 'new_workingdir'
 
 
 # =============================================================================
@@ -92,35 +93,44 @@ def ipyconsole(qtbot, request):
     # Tests assume inline backend
     CONF.set('ipython_console', 'pylab/backend', 0)
 
+    # Start in a new working directory the console
+    use_startup_wdir = request.node.get_closest_marker('use_startup_wdir')
+    if use_startup_wdir:
+        new_wdir = osp.join(os.getcwd(), NEW_DIR)
+        if not osp.exists(new_wdir):
+            os.mkdir(new_wdir)
+        CONF.set('workingdir', 'console/use_fixed_directory', True)
+        CONF.set('workingdir', 'console/fixed_directory', new_wdir)
+
     # Test the console with a non-ascii temp dir
-    non_ascii_dir = request.node.get_marker('non_ascii_dir')
+    non_ascii_dir = request.node.get_closest_marker('non_ascii_dir')
     if non_ascii_dir:
         test_dir = NON_ASCII_DIR
     else:
         test_dir = None
 
     # Instruct the console to not use a stderr file
-    no_stderr_file = request.node.get_marker('no_stderr_file')
+    no_stderr_file = request.node.get_closest_marker('no_stderr_file')
     if no_stderr_file:
         test_no_stderr = True
     else:
         test_no_stderr = False
 
     # Use the automatic backend if requested
-    auto_backend = request.node.get_marker('auto_backend')
+    auto_backend = request.node.get_closest_marker('auto_backend')
     if auto_backend:
         CONF.set('ipython_console', 'pylab/backend', 1)
 
     # Start a Pylab client if requested
-    pylab_client = request.node.get_marker('pylab_client')
+    pylab_client = request.node.get_closest_marker('pylab_client')
     is_pylab = True if pylab_client else False
 
     # Start a Sympy client if requested
-    sympy_client = request.node.get_marker('sympy_client')
+    sympy_client = request.node.get_closest_marker('sympy_client')
     is_sympy = True if sympy_client else False
 
     # Start a Cython client if requested
-    cython_client = request.node.get_marker('cython_client')
+    cython_client = request.node.get_closest_marker('cython_client')
     is_cython = True if cython_client else False
 
     # Create the console and a new client
@@ -1167,6 +1177,18 @@ def test_remove_old_stderr_files(ipyconsole, qtbot):
     # Assert that only that file is removed
     ipyconsole._remove_old_stderr_files()
     assert not osp.isfile(osp.join(tmpdir, 'foo.stderr'))
+
+
+@pytest.mark.slow
+@pytest.mark.use_startup_wdir
+def test_console_working_directory(ipyconsole, qtbot):
+    """Test for checking the working directory."""
+    shell = ipyconsole.get_current_shellwidget()
+    shell.execute('import os; cwd = os.getcwd()')
+
+    current_wdir = shell.get_value('cwd')
+    folders = osp.split(current_wdir)
+    assert folders[-1] == NEW_DIR
 
 
 if __name__ == "__main__":
