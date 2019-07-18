@@ -203,7 +203,7 @@ class CollectionsDelegate(QItemDelegate):
                 show_callable_attributes=show_callable_attributes,
                 show_special_attributes=show_special_attributes,
                 dataframe_format=dataframe_format,
-                readonly=True)
+                readonly=readonly)
             editor.sig_option_changed.connect(self.change_option)
             self.create_dialog(editor, dict(model=index.model(),
                                             editor=editor,
