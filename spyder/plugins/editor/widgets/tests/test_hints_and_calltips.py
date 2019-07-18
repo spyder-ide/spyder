@@ -49,7 +49,7 @@ def test_hide_calltip(lsp_codeeditor, qtbot):
         qtbot.keyClicks(code_editor, '(', delay=3000)
 
     qtbot.waitUntil(lambda: calltip.isVisible(), timeout=3000)
-    qtbot.keyClicks(code_editor, '"hello"', delay=335)
+    qtbot.keyClicks(code_editor, '"hello"')
     qtbot.keyClicks(code_editor, ')', delay=330)
     assert calltip.isVisible()
     qtbot.keyClicks(code_editor, ')', delay=330)
