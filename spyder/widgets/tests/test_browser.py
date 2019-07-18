@@ -33,7 +33,7 @@ def test_browser(browser):
 
 def test_webview_open_regression(qtbot):
     """Check creating of new window."""
-    wb = WebView()
+    wb = WebView(None)
     qtbot.addWidget(wb)
     wb.setUrl('problem_url')
     wb.createWindow(QWebEnginePage.WebBrowserWindow)
