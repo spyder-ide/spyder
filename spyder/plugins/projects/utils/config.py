@@ -58,3 +58,7 @@ VCS_DEFAULTS = [
       }
      )]
 VCS_VERSION = '0.1.0'
+
+
+class ProjectConfig(UserConfig):
+    pass

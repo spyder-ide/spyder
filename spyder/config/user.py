@@ -25,7 +25,7 @@ import shutil
 import time
 
 # Local imports
-from spyder.config.base import get_module_source_path
+from spyder.config.base import get_conf_path, get_module_source_path
 from spyder.py3compat import configparser as cp
 from spyder.py3compat import is_text_string, PY2, to_text_string
 from spyder.utils.programs import check_version
@@ -160,7 +160,7 @@ class UserConfigPatches(object):
 # ============================================================================
 # User config class
 # ============================================================================
-class UserConfig(DefaultsConfig):
+class BaseUserConfig(DefaultsConfig):
     """
     UserConfig class, based on ConfigParser.
 
@@ -205,13 +205,14 @@ class UserConfig(DefaultsConfig):
         fpath = self.get_config_path()
         if load:
             # If config file already exists, it overrides Default options:
-            self._load_from_ini()
+            previous_fpath = self.get_config_path_from_version()
+            self._load_from_ini(previous_fpath)
             old_ver = self.get_version(version)
             _major = lambda _t: _t[:_t.find('.')]
             _minor = lambda _t: _t[:_t.rfind('.')]
 
             # Save new defaults
-            self._save_new_defaults(defaults, version, path)
+            self._save_new_defaults(defaults)
 
             # Updating defaults only if major/minor version is different
             if _minor(version) != _minor(old_ver):
@@ -303,9 +304,8 @@ class UserConfig(DefaultsConfig):
 
         return section
 
-    def _load_from_ini(self):
-        """Load config from the associated .ini file."""
-        fpath = self.get_config_path()
+    def _load_from_ini(self, fpath):
+        """Load config from the associated .ini file found at `fpath`."""
         try:
             if PY2:
                 # Python 2
@@ -331,34 +331,18 @@ class UserConfig(DefaultsConfig):
         old_defaults.read(osp.join(path, name))
         return old_defaults
 
-    def _get_defaults_config_path_and_name(self, version):
-        """
-        Helper to provide the correct name of defaults file based on version.
-        """
-        path = osp.dirname(self.get_config_path())
-        if check_version(version, '3.0.0', '<='):
-            name = '{}-{}.ini'.format(self._defaults_name_prefix,
-                                      'old_version')
-            path = self._module_source_path
-        elif check_version(version, '52.0.0', '<'):
-            name = '{}-{}.ini'.format(self._defaults_name_prefix,
-                                      'old_version')
-        else:
-            name = '{}-{}-{}.ini'.format(self._defaults_name_prefix,
-                                         self._name, 'old_version')
+    def _get_config_ini_path_from_version(self, version):
+        """"""
+        if check_version(version, '52.0.0', '<'):
+            path = get_conf_path()    
+            name = 'spyder.ini'
+            ini_path = osp.join(path, name)
 
-        defaults_path = osp.join(path)
-        return defaults_path, name
+        return ini_path
 
-    def _save_new_defaults(self, defaults, new_version, path):
+    def _save_new_defaults(self, defaults):
         """Save new defaults."""
-        path = osp.join(path, 'defaults')
-        if not osp.isdir(path):
-            os.makedirs(path)
-
-        # Example: 'defaults-spyder-53'
-        name = '{}-{}-{}'.format(self._defaults_name_prefix, self._name,
-                                 new_version)
+        path, name = self.get_defaults_path_from_version()
         new_defaults = DefaultsConfig(name=name, path=path)
         if not osp.isfile(new_defaults.get_config_path()):
             new_defaults.set_defaults(defaults)
@@ -393,6 +377,44 @@ class UserConfig(DefaultsConfig):
                     except cp.NoSectionError:
                         self.remove_section(section)
 
+    # --- Compatibility API
+    # ------------------------------------------------------------------------
+    def get_config_path_name_from_version(self, version=None):
+        """"""
+        if version is None:
+            # Give latest
+            path, name = self._path, self._name
+
+        return path, name
+
+    def get_backup_path_name_from_version(self, version=None):
+        """"""
+        if version is None:
+            # Give latest
+            path = osp.join(osp.dirname(self.get_config_path(),
+                                        self._backup_folder)
+
+            new_fpath = osp.join(path, osp.basename(fpath))
+            name = '{}{}'.format(new_fpath, self._backup_suffix))
+
+    def get_defaults_path_name_from_version(self, version=None):
+        """"""
+        conf_path = get_conf_path()
+
+        # path = osp.join(path, 'defaults')
+        # if not osp.isdir(path):
+        #     os.makedirs(path)
+
+        if version is None:
+            # Give latest
+            name = '{}-{}-{}'.format(
+                self._defaults_name_prefix,
+                self._name,
+                self._version,
+            )
+
+    # --- Public API
+    # ------------------------------------------------------------------------
     def get_version(self, version='0.0.0'):
         """Return configuration (not application!) version."""
         return self.get(self.DEFAULT_SECTION_NAME, 'version', version)
@@ -556,6 +578,44 @@ class UserConfig(DefaultsConfig):
     def cleanup(self):
         """Remove .ini file associated to config."""
         os.remove(self.get_config_path())
+
+
+class UserConfig(BaseUserConfig):
+
+    def get_previous_config_path(self):
+        """"""
+        previous_paths = [
+            # < ??
+            # < 52.0.0
+            os.path.join(get_conf_path(), 'spyder.ini'),
+            # >= 52.0.0
+            self.get_config_path(),
+        ]
+        for fpath in previous_paths:
+            print(fpath)
+            if osp.isfile(fpath):
+                break
+
+        return fpath
+
+    def get_config_defaults_path_from_version(self, version):
+        """
+        """
+        raise NotImplementedError
+        # path = osp.dirname(get_conf_path())
+        # if check_version(version, '3.0.0', '<='):
+        #     name = '{}-{}.ini'.format(self._defaults_name_prefix,
+        #                               'old_version')
+        #     path = self._module_source_path
+        # elif check_version(version, '52.0.0', '<'):
+        #     name = '{}-{}.ini'.format(self._defaults_name_prefix,
+        #                               'old_version')
+        # else:
+        #     name = '{}-{}-{}.ini'.format(self._defaults_name_prefix,
+        #                                  self._name, 'old_version')
+
+        # defaults_path = osp.join(path)
+        # return defaults_path, name
 
 
 class MultiUserConfig(object):
@@ -788,3 +848,21 @@ class MultiUserConfig(object):
         """Remove .ini files associated to configurations."""
         for config in self._configs_map:
             os.remove(config.get_config_path())
+
+
+class PluginConfig(BaseUserConfig):
+    """"""
+
+    def get_previous_config_path(self):
+        """"""
+        return self.get_config_path()
+
+
+    def get_config_defaults_path_from_version(self, version):
+        """"""
+        return self.get_config_path()
+
+
+class PluginMultiConfig(MultiUserConfig):
+    """"""
+    pass

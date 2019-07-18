@@ -43,6 +43,7 @@ class ConfigurationManager(object):
             version=CONF_VERSION,
             backup=True,
             raw_mode=True,
+            remove_obsolete=False,
         )
         # TODO: Implementation to be defined
         self._site_config = None
