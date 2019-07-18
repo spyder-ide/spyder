@@ -536,6 +536,7 @@ class CollectionsDelegate(QItemDelegate):
             else:
                 if isinstance(value, datetime.datetime):
                     editor = QDateTimeEdit(value, parent=parent)
+                    editor.setDisplayFormat('dd/MM/yyyy HH:mm:ss.zzz')
                 else:
                     editor = QDateEdit(value, parent=parent)
                 editor.setCalendarPopup(True)
@@ -698,14 +699,15 @@ class CollectionsDelegate(QItemDelegate):
                 return
         elif isinstance(editor, QDateEdit):
             qdate = editor.date()
-            value = datetime.date( qdate.year(), qdate.month(), qdate.day() )
+            value = datetime.date(qdate.year(), qdate.month(), qdate.day())
         elif isinstance(editor, QDateTimeEdit):
             qdatetime = editor.dateTime()
             qdate = qdatetime.date()
             qtime = qdatetime.time()
-            value = datetime.datetime( qdate.year(), qdate.month(),
-                                       qdate.day(), qtime.hour(),
-                                       qtime.minute(), qtime.second() )
+            # datetime uses microseconds, QDateTime returns milliseconds
+            value = datetime.datetime(qdate.year(), qdate.month(), qdate.day(),
+                                      qtime.hour(), qtime.minute(),
+                                      qtime.second(), qtime.msec()*1000)
         else:
             # Should not happen...
             raise RuntimeError("Unsupported editor widget")
