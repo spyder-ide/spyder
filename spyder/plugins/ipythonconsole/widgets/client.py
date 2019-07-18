@@ -131,7 +131,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.options_button = options_button
         self.stop_button = None
         self.reset_button = None
+        self.enable_history_button = None
         self.stop_icon = ima.icon('stop')
+        self.history_icon = ima.icon('history')
+        self.history_disabled_icon = ima.icon('history_disabled')
         self.history = []
         self.allow_rename = True
         self.stderr_dir = None
@@ -403,6 +406,21 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """Return toolbar buttons list."""
         buttons = []
 
+        # Code to add the history enable/disable button
+        if self.enable_history_button is None:
+            self.enable_history_button = create_toolbutton(
+                                   self,
+                                   text=_("Enable/disable history"),
+                                   icon=self.history_icon,
+                                   tip="",
+                                   toggled=self.history_button_toggle_handler)
+            self.enable_history_button.setChecked(True)
+            if is_dark_interface():
+                self.enable_history_button.setStyleSheet(
+                        "QToolButton{padding: 3px;}")
+        if self.enable_history_button is not None:
+            buttons.append(self.enable_history_button)
+
         # Code to add the stop button
         if self.stop_button is None:
             self.stop_button = create_toolbutton(
@@ -599,6 +617,19 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """Resets the namespace by removing all names defined by the user"""
         self.shellwidget.reset_namespace(warning=self.reset_warning,
                                          message=True)
+
+    @Slot(bool)
+    def history_button_toggle_handler(self, checked):
+        """Handle history logging button toggles."""
+        self.history_enabled = checked
+        if checked:
+            self.enable_history_button.setToolTip(
+                    _("History logging enabled"))
+            self.enable_history_button.setIcon(self.history_icon)
+        else:
+            self.enable_history_button.setToolTip(
+                    _("History logging disabled"))
+            self.enable_history_button.setIcon(self.history_disabled_icon)
 
     def update_history(self):
         self.history = self.shellwidget._history

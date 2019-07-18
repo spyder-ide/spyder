@@ -1284,6 +1284,8 @@ class SaveHistoryMixin(object):
 
     append_to_history = None
 
+    history_enabled = True
+
     def __init__(self, history_filename=''):
         self.history_filename = history_filename
         self.create_history_filename()
@@ -1298,6 +1300,9 @@ class SaveHistoryMixin(object):
 
     def add_to_history(self, command):
         """Add command to history"""
+        if not self.history_enabled:
+            return
+
         command = to_text_string(command)
         if command in ['', '\n'] or command.startswith('Traceback'):
             return

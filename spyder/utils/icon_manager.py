@@ -169,6 +169,7 @@ _qtaargs = {
     'pythonpath':              [('spyder.python-logo-up', 'spyder.python-logo-down'), {'options': [{'color': '#3775a9'}, {'color': '#ffd444'}]}],
     'findf':                   [('fa.file-o', 'fa.search'), {'options': [{'scale_factor': 1.0, 'color': MAIN_FG_COLOR}, {'scale_factor': 0.6, 'color': MAIN_FG_COLOR}]}],
     'history':                 [('fa.history',), {'color': MAIN_FG_COLOR}],
+    'history_disabled':        [('fa.history',), {'color': 'gray'}],
     'help':                    [('fa.question-circle',), {'color': MAIN_FG_COLOR}],
     'lock':                    [('fa.lock',), {'color': MAIN_FG_COLOR}],
     'lock_open':               [('fa.unlock-alt',), {'color': MAIN_FG_COLOR}],
