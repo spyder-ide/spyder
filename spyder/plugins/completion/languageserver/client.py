@@ -209,8 +209,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         python_path = os.pathsep.join(sys.path)[1:]
         new_env['PYTHONPATH'] = python_path
 
-        # This allows running the tests directly without having to install
-        # spyder
+        # This allows running LSP tests directly without having to install
+        # Spyder
         if running_under_pytest():
             new_env['PYTHONPATH'] = os.pathsep.join(sys.path)[:]
 
