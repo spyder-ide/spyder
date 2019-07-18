@@ -167,8 +167,11 @@ class WebView(QWebEngineView):
 
     #------ QWebEngineView API -------------------------------------------------------
     def createWindow(self, webwindowtype):
-        import webbrowser
-        webbrowser.open(to_text_string(self.url().toString()))
+        try:
+            import webbrowser
+            webbrowser.open(to_text_string(self.url().toString()))
+        except ValueError:
+            pass
 
     def contextMenuEvent(self, event):
         menu = QMenu(self)
