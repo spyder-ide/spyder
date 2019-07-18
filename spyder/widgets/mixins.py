@@ -37,7 +37,7 @@ from spyder.config.main import CONF
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding, sourcecode, programs
 from spyder.utils.misc import get_error_match
-from spyder.widgets.arraybuilder import NumpyArrayDialog
+from spyder.widgets.arraybuilder import ArrayBuilderDialog
 
 QT55_VERSION = programs.check_version(QT_VERSION, "5.5", ">=")
 
@@ -1109,20 +1109,20 @@ class BaseEditMixin(object):
                                                word=word)
         return match_number
 
-    # --- Numpy matrix/array helper / See 'spyder/widgets/arraybuilder.py'
+    # --- Array builder helper / See 'spyder/widgets/arraybuilder.py'
     def enter_array_inline(self):
-        """ """
+        """Enter array builder inline mode."""
         self._enter_array(True)
 
     def enter_array_table(self):
-        """ """
+        """Enter array builder table mode."""
         self._enter_array(False)
 
     def _enter_array(self, inline):
-        """ """
+        """Enter array builder mode."""
         offset = self.get_position('cursor') - self.get_position('sol')
         rect = self.cursorRect()
-        dlg = NumpyArrayDialog(self, inline, offset)
+        dlg = ArrayBuilderDialog(self, inline, offset)
 
         # TODO: adapt to font size
         x = rect.left()
@@ -1315,7 +1315,7 @@ class SaveHistoryMixin(object):
             self.HISTORY_FILENAMES.append(self.history_filename)
             text = self.SEPARATOR + text
         # Needed to prevent errors when writing history to disk
-        # See issue 6431
+        # See spyder-ide/spyder#6431.
         try:
             encoding.write(text, self.history_filename, mode='ab')
         except EnvironmentError:

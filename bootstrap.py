@@ -12,7 +12,7 @@
 Bootstrap Spyder.
 
 Detect environment and execute Spyder from source checkout.
-See Issue #741.
+See spyder-ide/spyder#741.
 """
 
 # pylint: disable=C0103
@@ -80,12 +80,12 @@ os.environ['SPYDER_DEV'] = 'True'
 # --- Test environment for surprises
 
 # Warn if Spyder is located on non-ASCII path
-# See Issue 812
+# See spyder-ide/spyder#812.
 try:
     osp.join(DEVPATH, 'test')
 except UnicodeDecodeError:
     print("STOP: Spyder is located in the path with non-ASCII characters,")
-    print("      which is known to cause problems (see issue #812).")
+    print("      which is known to cause problems, see spyder-ide/spyder#812.")
     try:
         input = raw_input
     except NameError:

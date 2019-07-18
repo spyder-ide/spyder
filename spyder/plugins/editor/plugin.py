@@ -64,13 +64,14 @@ logger = logging.getLogger(__name__)
 
 # Dependencies
 PYLS_REQVER = '>=0.27.0'
-dependencies.add('pyls',
+dependencies.add('pyls', 'python-language-server',
                  _("Editor's code completion, go-to-definition, help and "
                    "real-time code analysis"),
                  required_version=PYLS_REQVER)
 
 NBCONVERT_REQVER = ">=4.0"
-dependencies.add("nbconvert", _("Manipulate Jupyter notebooks on the Editor"),
+dependencies.add("nbconvert", "nbconvert",
+                 _("Manipulate Jupyter notebooks on the Editor"),
                  required_version=NBCONVERT_REQVER)
 
 WINPDB_PATH = programs.find_program('winpdb')
@@ -164,8 +165,8 @@ class Editor(SpyderPluginWidget):
         self.cursor_pos_index = None
         self.__ignore_cursor_position = True
 
-        # LSP setup
-        self.lsp_editor_settings = {}
+        # Completions setup
+        self.completion_editor_settings = {}
 
         # Setup new windows:
         self.main.all_actions_defined.connect(self.setup_other_windows)
@@ -234,13 +235,6 @@ class Editor(SpyderPluginWidget):
         self.update_cursorpos_actions()
         self.set_path()
 
-        self.fallback_up = False
-        # Know when the fallback completion engine is up
-        self.main.fallback_completions.sig_fallback_ready.connect(
-            self.fallback_ready)
-        self.main.fallback_completions.sig_set_tokens.connect(
-            self.fallback_set_tokens)
-
     def set_projects(self, projects):
         self.projects = projects
 
@@ -286,63 +280,52 @@ class Editor(SpyderPluginWidget):
 
     @Slot(dict)
     def report_open_file(self, options):
-        """Request to start a LSP server to attend a language."""
+        """Request to start a completion server to attend a language."""
         filename = options['filename']
         language = options['language']
-        logger.debug('Call LSP for %s [%s]' % (filename, language))
+        logger.debug('Start completion server for %s [%s]' % (
+            filename, language))
         codeeditor = options['codeeditor']
-        stat = self.main.lspmanager.start_client(language.lower())
-        self.main.lspmanager.register_file(
+        status = self.main.completions.start_client(language.lower())
+        self.main.completions.register_file(
             language.lower(), filename, codeeditor)
-        if stat:
-            if language.lower() in self.lsp_editor_settings:
-                logger.debug('{0} LSP is ready'.format(language))
-                self.lsp_server_ready(
-                    language.lower(), self.lsp_editor_settings[
-                        language.lower()])
-            else:
-                if codeeditor.language == language.lower():
-                    logger.debug('Setting {0} LSP off'.format(filename))
-                    codeeditor.lsp_ready = False
-        if self.fallback_up:
-            self.fallback_ready()
+        if status:
+            logger.debug('{0} completion server is ready'.format(language))
+            codeeditor.start_completion_services()
+            if language.lower() in self.completion_editor_settings:
+                codeeditor.update_completion_configuration(
+                    self.completion_editor_settings[language.lower()])
+        else:
+            if codeeditor.language == language.lower():
+                logger.debug('Setting {0} completions off'.format(filename))
+                codeeditor.completions_available = False
 
     @Slot(dict, str)
-    def register_lsp_server_settings(self, settings, language):
-        """Register LSP server settings."""
-        self.lsp_editor_settings[language] = dict(settings)
-        logger.debug('LSP server settings for {!s} are: {!r}'.format(
+    def register_completion_server_settings(self, settings, language):
+        """Register completion server settings."""
+        self.completion_editor_settings[language] = dict(settings)
+        logger.debug('Completion server settings for {!s} are: {!r}'.format(
             language, settings))
-        self.lsp_server_ready(language, self.lsp_editor_settings[language])
+        self.completion_server_settings_ready(
+            language, self.completion_editor_settings[language])
 
-    def stop_lsp_services(self, language):
+    def stop_completion_services(self, language):
         """Notify all editorstacks about LSP server unavailability."""
         for editorstack in self.editorstacks:
             editorstack.notify_server_down(language)
 
-    def lsp_server_ready(self, language, configuration):
+    def completion_server_ready(self, language):
+        for editorstack in self.editorstacks:
+            editorstack.completion_server_ready(language)
+
+    def completion_server_settings_ready(self, language, configuration):
         """Notify all stackeditors about LSP server availability."""
         for editorstack in self.editorstacks:
-            editorstack.notify_server_ready(language, configuration)
+            editorstack.update_server_configuration(language, configuration)
 
-    def send_lsp_request(self, language, request, params):
-        logger.debug("LSP request: %r" % request)
-        self.main.lspmanager.send_request(language, request, params)
-
-    def send_fallback_request(self, msg):
-        """Send request to fallback engine."""
-        self.main.fallback_completions.sig_mailbox.emit(msg)
-
-    def fallback_ready(self):
-        """Notify all stackeditors about fallback availability."""
-        logger.debug('Fallback is available')
-        self.fallback_up = True
-        for editorstack in self.editorstacks:
-            editorstack.notify_fallback_ready()
-
-    def fallback_set_tokens(self, editor, tokens):
-        """Set the tokend in the editor."""
-        editor.receive_text_tokens(tokens)
+    def send_completion_request(self, language, request, params):
+        logger.debug("%s completion server request: %r" % (language, request))
+        self.main.completions.send_request(language, request, params)
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
@@ -835,7 +818,7 @@ class Editor(SpyderPluginWidget):
             _("Clear this list"), tip=_("Clear recent files list"),
             triggered=self.clear_recent_files)
 
-        # Fixes issue 6055
+        # Fixes spyder-ide/spyder#6055.
         # See: https://bugreports.qt.io/browse/QTBUG-8596
         self.tab_navigation_actions = []
         if sys.platform == 'darwin':
@@ -1132,7 +1115,8 @@ class Editor(SpyderPluginWidget):
                 CONF.set('lsp-server', 'pycodestyle', checked)
             elif conf_name == 'pydocstyle':
                 CONF.set('lsp-server', 'pydocstyle', checked)
-            self.main.lspmanager.update_server_list()
+            lsp = self.main.completions.get_client('lsp')
+            lsp.update_server_list()
 
     #------ Focus tabwidget
     def __get_focus_editorstack(self):
@@ -1171,7 +1155,7 @@ class Editor(SpyderPluginWidget):
             # The first editostack is registered automatically with Spyder's
             # main window through the `register_plugin` method. Only additional
             # editors added by splitting need to be registered.
-            # See Issue #5057.
+            # See spyder-ide/spyder#5057.
             self.main.fileswitcher.sig_goto_file.connect(
                       editorstack.set_stack_index)
 
@@ -1277,9 +1261,8 @@ class Editor(SpyderPluginWidget):
         editorstack.sig_go_to_definition.connect(
             lambda fname, line, col: self.load(
                 fname, line, start_column=col))
-        editorstack.perform_lsp_request.connect(self.send_lsp_request)
-        editorstack.sig_perform_fallback_request.connect(
-            self.send_fallback_request)
+        editorstack.sig_perform_completion_request.connect(
+            self.send_completion_request)
         editorstack.todo_results_changed.connect(self.todo_results_changed)
         editorstack.update_code_analysis_actions.connect(
             self.update_code_analysis_actions)
@@ -1592,7 +1575,7 @@ class Editor(SpyderPluginWidget):
 
     @Slot(set)
     def update_active_languages(self, languages):
-        self.main.lspmanager.update_client_status(languages)
+        self.main.completions.update_client_status(languages)
 
 
     #------ Breakpoints
@@ -1859,7 +1842,7 @@ class Editor(SpyderPluginWidget):
         if self.editorwindows and not self.dockwidget.isVisible():
             # We override the editorwindow variable to force a focus on
             # the editor window instead of the hidden editor dockwidget.
-            # See PR #5742.
+            # See spyder-ide/spyder#5742.
             if editorwindow not in self.editorwindows:
                 editorwindow = self.editorwindows[0]
             editorwindow.setFocus()
@@ -2362,11 +2345,11 @@ class Editor(SpyderPluginWidget):
             fname = osp.abspath(self.get_current_filename())
 
             # Get fname's dirname before we escape the single and double
-            # quotes (Fixes Issue #6771)
+            # quotes. Fixes spyder-ide/spyder#6771.
             dirname = osp.dirname(fname)
 
-            # Escape single and double quotes in fname and dirname
-            # (Fixes Issue #2158)
+            # Escape single and double quotes in fname and dirname.
+            # Fixes spyder-ide/spyder#2158.
             fname = fname.replace("'", r"\'").replace('"', r'\"')
             dirname = dirname.replace("'", r"\'").replace('"', r'\"')
 
@@ -2723,8 +2706,9 @@ class Editor(SpyderPluginWidget):
         all_filenames = self.autosave.recover_files_to_open + filenames
         if all_filenames and any([osp.isfile(f) for f in all_filenames]):
             layout = self.get_option('layout_settings', None)
-            # Check if no saved layout settings exist, e.g. clean prefs file
-            # If not, load with default focus/layout, to fix issue #8458 .
+            # Check if no saved layout settings exist, e.g. clean prefs file.
+            # If not, load with default focus/layout, to fix
+            # spyder-ide/spyder#8458.
             if layout:
                 is_vertical, cfname, clines = layout.get('splitsettings')[0]
                 if cfname in filenames:

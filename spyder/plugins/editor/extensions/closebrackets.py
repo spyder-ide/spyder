@@ -5,24 +5,18 @@
 # (see spyder/__init__.py for details)
 """This module contains the close quotes editor extension."""
 
-from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
-
 from spyder.api.editorextension import EditorExtension
 
 
 class CloseBracketsExtension(EditorExtension):
     """Editor Extension for insert brackets automatically."""
-    BRACKETS_LIST = ["(", ")", "{", "}", "[", "]"]
-    BRACKETS_KEYS = [Qt.Key_ParenLeft, Qt.Key_ParenRight,
-                     Qt.Key_BraceLeft, Qt.Key_BraceRight,
-                     Qt.Key_BracketLeft, Qt.Key_BracketRight]
-    BRACKETS_CHAR = dict(zip(BRACKETS_KEYS, BRACKETS_LIST))
-    BRACKETS_LEFT = dict(zip(BRACKETS_KEYS[::2], BRACKETS_LIST[::2]))
-    BRACKETS_RIGHT = dict(zip(BRACKETS_KEYS[1::2], BRACKETS_LIST[1::2]))
-    BRACKETS_PAIR = {Qt.Key_ParenLeft: "()", Qt.Key_ParenRight: "()",
-                     Qt.Key_BraceLeft: "{}", Qt.Key_BraceRight: "{}",
-                     Qt.Key_BracketLeft: "[]", Qt.Key_BracketRight: "[]"}
+    BRACKETS_CHAR = ["(", ")", "{", "}", "[", "]"]
+    BRACKETS_LEFT = BRACKETS_CHAR[::2]
+    BRACKETS_RIGHT = BRACKETS_CHAR[1::2]
+    BRACKETS_PAIR = {"(": "()", ")": "()",
+                     "{": "{}", "}": "{}",
+                     "[": "[]", "]": "[]"}
 
     def on_state_changed(self, state):
         """Connect/disconnect sig_key_pressed signal."""
@@ -35,10 +29,13 @@ class CloseBracketsExtension(EditorExtension):
         if event.isAccepted():
             return
 
-        key = event.key()
-        if key in self.BRACKETS_CHAR and self.enabled:
+        # It is necessary to use here the text of the event and not the key
+        # to avoid issues with international keyboards.
+        # See spyder-ide/spyder#9749
+        char = event.text()
+        if char in self.BRACKETS_CHAR and self.enabled:
             self.editor.completion_widget.hide()
-            self._autoinsert_brackets(key)
+            self._autoinsert_brackets(char)
             self.editor.document_did_change()
             event.accept()
 
@@ -50,8 +47,8 @@ class CloseBracketsExtension(EditorExtension):
         (')', ']' or '}')
         """
         if closing_brackets_type is None:
-            opening_brackets = self.BRACKETS_LEFT.values()
-            closing_brackets = self.BRACKETS_RIGHT.values()
+            opening_brackets = self.BRACKETS_LEFT
+            closing_brackets = self.BRACKETS_RIGHT
         else:
             closing_brackets = [closing_brackets_type]
             opening_brackets = [{')': '(', '}': '{',
@@ -71,10 +68,9 @@ class CloseBracketsExtension(EditorExtension):
                     return True
         return False
 
-    def _autoinsert_brackets(self, key):
+    def _autoinsert_brackets(self, char):
         """Control automatic insertation of brackets in various situations."""
-        char = self.BRACKETS_CHAR[key]
-        pair = self.BRACKETS_PAIR[key]
+        pair = self.BRACKETS_PAIR[char]
 
         line_text = self.editor.get_text('sol', 'eol')
         line_to_cursor = self.editor.get_text('sol', 'cursor')
@@ -89,9 +85,9 @@ class CloseBracketsExtension(EditorExtension):
             cursor.movePosition(QTextCursor.Left, QTextCursor.KeepAnchor,
                                 len(text))
             self.editor.setTextCursor(cursor)
-        elif key in self.BRACKETS_LEFT:
+        elif char in self.BRACKETS_LEFT:
             if (not trailing_text or
-                    trailing_text[0] in self.BRACKETS_RIGHT.values() or
+                    trailing_text[0] in self.BRACKETS_RIGHT or
                     trailing_text[0] in [',', ':', ';']):
                 # Automatic insertion of brackets
                 self.editor.insert_text(pair)
@@ -101,7 +97,7 @@ class CloseBracketsExtension(EditorExtension):
                 self.editor.insert_text(char)
             if char in self.editor.signature_completion_characters:
                 self.editor.request_signature()
-        elif key in self.BRACKETS_RIGHT:
+        elif char in self.BRACKETS_RIGHT:
             if (self.editor.next_char() == char and
                     not self.editor.textCursor().atBlockEnd() and
                     not self.unmatched_brackets_in_line(

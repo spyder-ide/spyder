@@ -156,10 +156,7 @@ def main_window(request):
 
     # Check if we need to use introspection in a given test
     # (it's faster and less memory consuming not to use it!)
-    try:
-        use_introspection = request.node.get_marker('use_introspection')
-    except AttributeError:
-        use_introspection = False
+    use_introspection = request.node.get_closest_marker('use_introspection')
 
     if use_introspection:
         os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
@@ -170,10 +167,7 @@ def main_window(request):
             pass
 
     # Only use single_instance mode for tests that require it
-    try:
-        single_instance = request.node.get_marker('single_instance')
-    except AttributeError:
-        single_instance = False
+    single_instance = request.node.get_closest_marker('single_instance')
 
     if single_instance:
         CONF.set('main', 'single_instance', True)
@@ -281,7 +275,7 @@ def test_filter_numpy_warning(main_window, qtbot):
     values and the Variable Explorer option 'Show arrays min/man'
     is on.
 
-    For issue 7063
+    For spyder-ide/spyder#7063.
     """
     shell = main_window.ipyconsole.get_current_shellwidget()
     control = shell._control
@@ -438,10 +432,10 @@ def test_window_title(main_window, tmpdir):
 
 @pytest.mark.slow
 @pytest.mark.single_instance
-@pytest.mark.skipif(PY2 and os.environ.get('CI', None) is None,
-                    reason="It's not meant to be run outside of CIs in Python 2")
+@pytest.mark.skipif(os.environ.get('CI', None) is None,
+                    reason="It's not meant to be run outside of CIs")
 def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
-    """Test single instance mode and for %edit magic."""
+    """Test single instance mode and %edit magic."""
     editorstack = main_window.editor.get_current_editorstack()
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
@@ -621,7 +615,7 @@ def test_dedicated_consoles(main_window, qtbot):
     assert nsb.editor.source_model.rowCount() == 4
 
     # --- Assert only runfile text is present and there's no banner text ---
-    # See PR #5301
+    # See spyder-ide/spyder#5301.
     text = control.toPlainText()
     assert ('runfile' in text) and not ('Python' in text or 'IPython' in text)
 
@@ -1104,7 +1098,7 @@ def test_open_files_in_new_editor_window(main_window, qtbot):
     This tests that opening files in a new editor window
     is working as expected.
 
-    Test for issue 4085
+    Test for spyder-ide/spyder#4085.
     """
     # Set a timer to manipulate the open dialog while it's running
     QTimer.singleShot(2000, lambda: open_file_in_editor(main_window,
@@ -1688,7 +1682,11 @@ def test_troubleshooting_menu_item_and_url(monkeypatch):
 @flaky(max_runs=3)
 @pytest.mark.slow
 def test_help_opens_when_show_tutorial_full(main_window, qtbot):
-    """Test fix for #6317 : 'Show tutorial' opens the help plugin if closed."""
+    """
+    Test fix for spyder-ide/spyder#6317.
+
+    'Show tutorial' opens the help plugin if closed.
+    """
     HELP_STR = "Help"
 
     help_pane_menuitem = None

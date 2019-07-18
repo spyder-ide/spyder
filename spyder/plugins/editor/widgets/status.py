@@ -20,17 +20,19 @@ from spyder.widgets.status import StatusBarWidget
 
 class ReadWriteStatus(StatusBarWidget):
     """Status bar widget for current file read/write mode."""
-    TIP = _("File permissions")
 
     def update_readonly(self, readonly):
         """Update read/write file status."""
         value = "R" if readonly else "RW"
         self.set_value(value.ljust(3))
 
+    def get_tooltip(self):
+        """Return localized tool tip for widget."""
+        return _("File permissions")
+
 
 class EOLStatus(StatusBarWidget):
     """Status bar widget for the current file end of line."""
-    TIP = _("End of line")
 
     def update_eol(self, os_name):
         """Update end of line status."""
@@ -41,27 +43,32 @@ class EOLStatus(StatusBarWidget):
 
 class EncodingStatus(StatusBarWidget):
     """Status bar widget for the current file encoding."""
-    TIP = _("Encoding")
 
     def update_encoding(self, encoding):
         """Update encoding of current file."""
         value = str(encoding).upper()
         self.set_value(value)
 
+    def get_tooltip(self):
+        """Return localized tool tip for widget."""
+        return _("Encoding")
+
 
 class CursorPositionStatus(StatusBarWidget):
     """Status bar widget for the current file cursor postion."""
-    TIP = _("Cursor position")
 
     def update_cursor_position(self, line, index):
         """Update cursor position."""
         value = 'Line {}, Col {}'.format(line + 1, index + 1)
         self.set_value(value)
 
+    def get_tooltip(self):
+        """Return localized tool tip for widget."""
+        return _("Cursor position")
+
 
 class VCSStatus(StatusBarWidget):
     """Status bar widget for system vcs."""
-    TIP = _("Git branch")
 
     def __init__(self, parent, statusbar):
         super(VCSStatus, self).__init__(parent, statusbar,
@@ -114,6 +121,10 @@ class VCSStatus(StatusBarWidget):
     def change_branch(self):
         """Change current branch."""
         pass
+
+    def get_tooltip(self):
+        """Return localized tool tip for widget."""
+        return _("Git branch")
 
 
 def test():

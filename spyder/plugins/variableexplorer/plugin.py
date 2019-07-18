@@ -21,13 +21,15 @@ from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
 from spyder.plugins.variableexplorer.confpage import VariableExplorerConfigPage
 
 PANDAS_REQVER = '>=0.13.1'
-dependencies.add('pandas',  _("View and edit DataFrames and Series in the "
-                              "Variable Explorer"),
+dependencies.add('pandas', 'pandas',
+                 _("View and edit DataFrames and Series in the "
+                   "Variable Explorer"),
                  required_version=PANDAS_REQVER, optional=True)
 
 NUMPY_REQVER = '>=1.7'
-dependencies.add("numpy", _("View and edit two and three dimensional arrays "
-                            "in the Variable Explorer"),
+dependencies.add("numpy", "numpy",
+                 _("View and edit two and three dimensional arrays "
+                   "in the Variable Explorer"),
                  required_version=NUMPY_REQVER, optional=True)
 
 

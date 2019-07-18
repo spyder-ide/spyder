@@ -71,9 +71,9 @@ from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
                          QThread, QTimer, QUrl, Signal, Slot,
                          qInstallMessageHandler)
 from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence, QPixmap
-from qtpy.QtWidgets import (QAction, QApplication, QDockWidget, QMainWindow,
-                            QMenu, QMessageBox, QShortcut, QSplashScreen,
-                            QStyleFactory, QWidget, QDesktopWidget)
+from qtpy.QtWidgets import (QAction, QApplication, QDesktopWidget, QDockWidget,
+                            QMainWindow, QMenu, QMessageBox, QShortcut,
+                            QSplashScreen, QStyle, QStyleFactory, QWidget)
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -81,7 +81,7 @@ from qtpy import QtSvg  # analysis:ignore
 # Avoid a bug in Qt: https://bugreports.qt.io/browse/QTBUG-46720
 from qtpy import QtWebEngineWidgets  # analysis:ignore
 
-# For issue 7447
+# For spyder-ide/spyder#7447.
 try:
     from qtpy.QtQuick import QQuickWindow, QSGRendererInterface
 except Exception:
@@ -143,7 +143,7 @@ from spyder.config.base import (get_conf_path, get_module_source_path, STDERR,
                                 running_in_mac_app, get_module_path,
                                 reset_config_files)
 from spyder.config.main import OPEN_FILES_PORT
-from spyder.config.utils import IMPORT_EXT, is_gtk_desktop
+from spyder.config.utils import IMPORT_EXT, is_anaconda, is_gtk_desktop
 from spyder.app.cli_options import get_options
 from spyder import dependencies
 from spyder.py3compat import (is_text_string, to_text_string,
@@ -214,7 +214,7 @@ def set_opengl_implementation(option):
     """
     Set the OpenGL implementation used by Spyder.
 
-    See issue 7447 for the details.
+    See spyder-ide/spyder#7447 for the details.
     """
     if option == 'software':
         QCoreApplication.setAttribute(Qt.AA_UseSoftwareOpenGL)
@@ -273,7 +273,8 @@ qInstallMessageHandler(qt_message_handler)
 # Dependencies
 # =============================================================================
 QDARKSTYLE_REQVER = '>=2.6.4'
-dependencies.add("qdarkstyle", _("Dark style for the entire interface"),
+dependencies.add("qdarkstyle", "qdarkstyle",
+                 _("Dark style for the entire interface"),
                  required_version=QDARKSTYLE_REQVER)
 
 #==============================================================================
@@ -316,8 +317,15 @@ class MainWindow(QMainWindow):
 
     def __init__(self, options=None):
         QMainWindow.__init__(self)
-
         qapp = QApplication.instance()
+
+        if running_under_pytest():
+            self._proxy_style = None
+        else:
+            from spyder.utils.qthelpers import SpyderProxyStyle
+            # None is needed, see: https://bugreports.qt.io/browse/PYSIDE-922
+            self._proxy_style = SpyderProxyStyle(None)
+
         if PYQT5:
             # Enabling scaling for high dpi
             qapp.setAttribute(Qt.AA_UseHighDpiPixmaps)
@@ -471,6 +479,7 @@ class MainWindow(QMainWindow):
         self.help_menu_actions = []
 
         # Status bar widgets
+        self.conda_status = None
         self.mem_status = None
         self.cpu_status = None
 
@@ -552,7 +561,7 @@ class MainWindow(QMainWindow):
 
         # Server to open external files on a single instance
         # This is needed in order to handle socket creation problems.
-        # See issue 4132
+        # See spyder-ide/spyder#4132.
         if os.name == 'nt':
             try:
                 self.open_files_server = socket.socket(socket.AF_INET,
@@ -599,12 +608,20 @@ class MainWindow(QMainWindow):
         color_scheme = CONF.get('appearance', 'selected')
 
         if ui_theme == 'dark':
+            if not running_under_pytest():
+                # Set style proxy to fix combobox popup on mac and qdark
+                qapp = QApplication.instance()
+                qapp.setStyle(self._proxy_style)
             dark_qss = qdarkstyle.load_stylesheet_from_environment()
             self.setStyleSheet(dark_qss)
             self.statusBar().setStyleSheet(dark_qss)
             css_path = DARK_CSS_PATH
         elif ui_theme == 'automatic':
             if not is_dark_font_color(color_scheme):
+                if not running_under_pytest():
+                    # Set style proxy to fix combobox popup on mac and qdark
+                    qapp = QApplication.instance()
+                    qapp.setStyle(self._proxy_style)
                 dark_qss = qdarkstyle.load_stylesheet_from_environment()
                 self.setStyleSheet(dark_qss)
                 self.statusBar().setStyleSheet(dark_qss)
@@ -750,9 +767,9 @@ class MainWindow(QMainWindow):
         logger.info("Creating Tools menu...")
         # Tools + External Tools
         prefs_action = create_action(self, _("Pre&ferences"),
-                                        icon=ima.icon('configure'),
-                                        triggered=self.edit_preferences,
-                                        context=Qt.ApplicationShortcut)
+                                     icon=ima.icon('configure'),
+                                     triggered=self.show_preferences,
+                                     context=Qt.ApplicationShortcut)
         self.register_shortcut(prefs_action, "_", "Preferences",
                                add_shortcut_to_tip=True)
         spyder_path_action = create_action(self,
@@ -809,7 +826,7 @@ class MainWindow(QMainWindow):
         gdgq_act = []
         # Guidata and Guiqwt don't support PyQt5 yet and they fail
         # with an AssertionError when imported using those bindings
-        # (see issue 2274)
+        # (see spyder-ide/spyder#2274)
         try:
             from guidata import configtools
             from guidata import config       # analysis:ignore
@@ -878,15 +895,10 @@ class MainWindow(QMainWindow):
                                     "Please don't use it to run your code\n\n"))
         self.console.register_plugin()
 
-        # Language Server Protocol Client initialization
-        self.set_splash(_("Starting Language Server Protocol manager..."))
-        from spyder.plugins.languageserver.plugin import LanguageServerPlugin
-        self.lspmanager = LanguageServerPlugin(self)
-
-        # Fallback completion thread
-        self.set_splash(_("Creating fallback completion engine..."))
-        from spyder.plugins.editor.fallback.actor import FallbackActor
-        self.fallback_completions = FallbackActor(self)
+        # Code completion client initialization
+        self.set_splash(_("Starting code completion manager..."))
+        from spyder.plugins.completion.plugin import CompletionManager
+        self.completions = CompletionManager(self)
 
         # Working directory plugin
         logger.info("Loading working directory...")
@@ -909,19 +921,22 @@ class MainWindow(QMainWindow):
             self.outlineexplorer = OutlineExplorer(self)
             self.outlineexplorer.register_plugin()
 
+        if is_anaconda():
+            from spyder.widgets.status import CondaStatus
+            self.conda_status = CondaStatus(self, status,
+                                            icon=ima.icon('environment'))
+            self.conda_status.update_interpreter(self.get_main_interpreter())
+
         # Editor plugin
         self.set_splash(_("Loading editor..."))
         from spyder.plugins.editor.plugin import Editor
         self.editor = Editor(self)
         self.editor.register_plugin()
 
-        # Start LSP client
-        self.set_splash(_("Launching LSP Client for Python..."))
-        self.lspmanager.start_client(language='python')
-
-        # Start fallback plugin
-        self.set_splash(_('Launching fallback completion engine...'))
-        self.fallback_completions.start()
+        # Start code completion client
+        self.set_splash(_("Launching code completion client for Python..."))
+        self.completions.start()
+        self.completions.start_client(language='python')
 
         # Populating file menu entries
         quit_action = create_action(self, _("&Quit"),
@@ -1020,8 +1035,11 @@ class MainWindow(QMainWindow):
             try:
                 plugin = mod.PLUGIN_CLASS(self)
                 if plugin.check_compatibility()[0]:
-                    self.thirdparty_plugins.append(plugin)
-                    plugin.register_plugin()
+                    if hasattr(plugin, 'COMPLETION_CLIENT_NAME'):
+                        self.completions.register_completion_plugin(plugin)
+                    else:
+                        self.thirdparty_plugins.append(plugin)
+                        plugin.register_plugin()
             except Exception as error:
                 print("%s: %s" % (mod, str(error)), file=STDERR)
                 traceback.print_exc(file=STDERR)
@@ -1281,7 +1299,7 @@ class MainWindow(QMainWindow):
         was triggered"""
         self.restore_scrollbar_position.emit()
 
-        # [Workaround for Issue 880]
+        # Workaround for spyder-ide/spyder#880.
         # QDockWidget objects are not painted if restored as floating
         # windows, so we must dock them before showing the mainwindow,
         # then set them again as floating windows here.
@@ -1358,7 +1376,7 @@ class MainWindow(QMainWindow):
         self.report_missing_dependencies()
 
         # Raise the menuBar to the top of the main window widget's stack
-        # (Fixes issue 3887)
+        # Fixes spyder-ide/spyder#3887.
         self.menuBar().raise_()
         self.is_setting_up = False
 
@@ -1420,7 +1438,7 @@ class MainWindow(QMainWindow):
         pos = get_func(section, prefix+'position')
 
         # It's necessary to verify if the window/position value is valid
-        # with the current screen. See issue 3748
+        # with the current screen. See spyder-ide/spyder#3748.
         width = pos[0]
         height = pos[1]
         screen_shape = QApplication.desktop().geometry()
@@ -1467,7 +1485,7 @@ class MainWindow(QMainWindow):
         if hexstate:
             self.restoreState( QByteArray().fromHex(
                     str(hexstate).encode('utf-8')) )
-            # [Workaround for Issue 880]
+            # Workaround for spyder-ide/spyder#880.
             # QDockWidget objects are not painted if restored as floating
             # windows, so we must dock them before showing the mainwindow.
             for widget in self.children():
@@ -2001,7 +2019,7 @@ class MainWindow(QMainWindow):
             if hexstate is None:
                 # The value for hexstate shouldn't be None for a custom saved
                 # layout (ie, where the index is greater than the number of
-                # defaults).  See issue 6202.
+                # defaults).  See spyder-ide/spyder#6202.
                 if index != 'default' and index >= self.DEFAULT_LAYOUTS:
                     QMessageBox.critical(
                             self, _("Warning"),
@@ -2343,8 +2361,7 @@ class MainWindow(QMainWindow):
         self.dialog_manager.close_all()
         if self.toolbars_visible:
             self.save_visible_toolbars()
-        self.lspmanager.shutdown()
-        self.fallback_completions.stop()
+        self.completions.shutdown()
         self.already_closed = True
         return True
 
@@ -2482,7 +2499,7 @@ class MainWindow(QMainWindow):
                 # Due to limitations of the Windows DWM, compositing is not
                 # handled correctly for OpenGL based windows when going into
                 # full screen mode, so we need to use this workaround.
-                # See Issue #4291.
+                # See spyder-ide/spyder#4291.
                 self.setWindowFlags(self.windowFlags()
                                     | Qt.FramelessWindowHint
                                     | Qt.WindowStaysOnTopHint)
@@ -2700,6 +2717,7 @@ class MainWindow(QMainWindow):
         if body is None:
             from spyder.widgets.reporterror import SpyderErrorDialog
             report_dlg = SpyderErrorDialog(self, is_report=True)
+            report_dlg.set_color_scheme(CONF.get('appearance', 'selected'))
             report_dlg.show()
         else:
             if open_webpage:
@@ -2859,7 +2877,7 @@ class MainWindow(QMainWindow):
         """Apply settings changed in 'Preferences' dialog box"""
         qapp = QApplication.instance()
         # Set 'gtk+' as the default theme in Gtk-based desktops
-        # Fixes Issue 2036
+        # Fixes spyder-ide/spyder#2036.
         if is_gtk_desktop() and ('GTK+' in QStyleFactory.keys()):
             try:
                 qapp.setStyle('gtk+')
@@ -2908,11 +2926,16 @@ class MainWindow(QMainWindow):
                 if widget is not None:
                     widget.setVisible(CONF.get('main', '%s/enable' % name))
                     widget.set_interval(CONF.get('main', '%s/timeout' % name))
+
+            # Update conda status widget
+            if is_anaconda() and self.conda_status:
+                interpreter = self.get_main_interpreter()
+                self.conda_status.update_interpreter(interpreter)
         else:
             return
 
     @Slot()
-    def edit_preferences(self):
+    def show_preferences(self):
         """Edit Spyder preferences"""
         from spyder.preferences.configdialog import ConfigDialog
 
@@ -2939,7 +2962,17 @@ class MainWindow(QMainWindow):
                 widget.initialize()
                 dlg.add_page(widget)
 
-            for plugin in [self.lspmanager, self.workingdirectory, self.editor,
+            widget = self.completions._create_configwidget(dlg, self)
+            if widget is not None:
+                dlg.add_page(widget)
+
+            for completion_plugin in self.completions.clients.values():
+                completion_plugin = completion_plugin['plugin']
+                widget = completion_plugin._create_configwidget(dlg, self)
+                if widget is not None:
+                    dlg.add_page(widget)
+
+            for plugin in [self.workingdirectory, self.editor,
                            self.projects, self.ipyconsole,
                            self.historylog, self.help, self.variableexplorer,
                            self.onlinehelp, self.explorer, self.findinfiles
@@ -2961,6 +2994,11 @@ class MainWindow(QMainWindow):
             dlg.show()
             dlg.check_all_settings()
             dlg.exec_()
+        else:
+            self.prefs_dialog_instance.show()
+            self.prefs_dialog_instance.activateWindow()
+            self.prefs_dialog_instance.raise_()
+            self.prefs_dialog_instance.setFocus()
 
     def __preference_page_changed(self, index):
         """Preference page index has changed"""
@@ -3021,7 +3059,7 @@ class MainWindow(QMainWindow):
             try:
                 req, dummy = self.open_files_server.accept()
             except socket.error as e:
-                # See Issue 1275 for details on why errno EINTR is
+                # See spyder-ide/spyder#1275 for details on why errno EINTR is
                 # silently ignored here.
                 eintr = errno.WSAEINTR if os.name == 'nt' else errno.EINTR
                 # To avoid a traceback after closing on Windows
@@ -3252,6 +3290,14 @@ class MainWindow(QMainWindow):
         self.worker_updates.moveToThread(self.thread_updates)
         self.thread_updates.started.connect(self.worker_updates.start)
         self.thread_updates.start()
+
+    # --- Main interpreter
+    # ------------------------------------------------------------------------
+    def get_main_interpreter(self):
+        if CONF.get('main_interpreter', 'default'):
+            return sys.executable
+        else:
+            return CONF.get('main_interpreter', 'custom_interpreter')
 
     # --- For OpenGL
     def _test_setting_opengl(self, option):

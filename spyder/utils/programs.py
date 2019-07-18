@@ -22,6 +22,8 @@ import re
 import subprocess
 import sys
 import tempfile
+import threading
+import time
 
 # Local imports
 from spyder.config.base import _, get_conf_path, is_stable_version
@@ -198,7 +200,7 @@ def start_file(filename):
     # We need to use setUrl instead of setPath because this is the only
     # cross-platform way to open external files. setPath fails completely on
     # Mac and doesn't open non-ascii files on Linux.
-    # Fixes Issue 740
+    # Fixes spyder-ide/spyder#740.
     url = QUrl()
     url.setUrl(filename)
     return QDesktopServices.openUrl(url)
@@ -669,7 +671,8 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
         # Command line and cwd have to be converted to the filesystem
         # encoding before passing them to subprocess, but only for
         # Python 2.
-        # See https://bugs.python.org/issue1759845#msg74142 and Issue 1856
+        # See https://bugs.python.org/issue1759845#msg74142 and
+        # spyder-ide/spyder#1856.
         if PY2:
             cmd = encoding.to_fs_from_unicode(cmd)
             wdir = encoding.to_fs_from_unicode(wdir)
@@ -685,7 +688,7 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
                                  _("It was not possible to run this file in "
                                    "an external terminal"),
                                  QMessageBox.Ok)
-    elif os.name == 'posix':
+    elif sys.platform.startswith('linux'):
         programs = [{'cmd': 'gnome-terminal',
                      'wdir-option': '--working-directory',
                      'execute-option': '-x'},
@@ -710,7 +713,25 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
                 else:
                     run_program(program['cmd'], arglist)
                 return
-        # TODO: Add a fallback to OSX
+    elif sys.platform == 'darwin':
+        f = tempfile.NamedTemporaryFile('wt', prefix='run_spyder_',
+                                        suffix='.sh', dir=get_temp_dir(),
+                                        delete=False)
+        if wdir:
+            f.write('cd {}\n'.format(wdir))
+        f.write(' '.join(p_args))
+        f.close()
+        os.chmod(f.name, 0o777)
+
+        def run_terminal_thread():
+            proc = run_shell_command('open -a Terminal.app ' + f.name)
+            # Prevent race condition
+            time.sleep(3)
+            proc.wait()
+            os.remove(f.name)
+
+        thread = threading.Thread(target=run_terminal_thread)
+        thread.start()
     else:
         raise NotImplementedError
 

@@ -10,7 +10,7 @@ pickleshare
 psutil
 pygments >=2.0
 pylint
-pyqt <5.10
+pyqt <5.13
 python-language-server >=0.27.0
 pyxdg
 pyzmq

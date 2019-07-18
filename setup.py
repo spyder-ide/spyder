@@ -127,7 +127,8 @@ CMDCLASS = {'install_data': MyInstallData}
 # Main scripts
 #==============================================================================
 # NOTE: the '[...]_win_post_install.py' script is installed even on non-Windows
-# platforms due to a bug in pip installation process (see Issue 1158)
+# platforms due to a bug in pip installation process
+# See spyder-ide/spyder#1158.
 SCRIPTS = ['%s_win_post_install.py' % NAME]
 if PY3 and sys.platform.startswith('linux'):
     SCRIPTS.append('spyder3')
@@ -139,7 +140,7 @@ else:
 # Files added to the package
 #==============================================================================
 EXTLIST = ['.pot', '.po', '.mo', '.svg', '.png', '.css', '.html', '.js',
-           '.ini', '.txt', '.qss', '.ttf', '.json']
+           '.ini', '.txt', '.qss', '.ttf', '.json', '.rst']
 if os.name == 'nt':
     SCRIPTS += ['spyder.bat']
     EXTLIST += ['.ico']
@@ -238,7 +239,7 @@ install_requires = [
 extras_require = {
     'test:python_version == "2.7"': ['mock'],
     'test:platform_system == "Windows"': ['pywin32'],
-    'test': ['pytest<4.1',
+    'test': ['pytest<5.0',
              'pytest-qt',
              'pytest-mock',
              'pytest-cov',

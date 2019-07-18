@@ -57,9 +57,9 @@ from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               DocstringWriterExtension,
                                               QMenuOnlyForEnter,
                                               EditorExtensionsManager)
-from spyder.plugins.languageserver import (LSPRequestTypes,
-                                           TextDocumentSyncKind,
-                                           DiagnosticSeverity)
+from spyder.plugins.completion.languageserver import (LSPRequestTypes,
+                                                      TextDocumentSyncKind,
+                                                      DiagnosticSeverity)
 from spyder.plugins.editor.panels import (ClassFunctionDropdown,
                                           DebuggerPanel, EdgeLine,
                                           FoldingPanel, IndentationGuide,
@@ -71,7 +71,8 @@ from spyder.plugins.editor.utils.debugger import DebuggerManager
 from spyder.plugins.editor.utils.folding import IndentFoldDetector, FoldScope
 from spyder.plugins.editor.utils.kill_ring import QtKillRing
 from spyder.plugins.editor.utils.languages import ALL_LANGUAGES, CELL_LANGUAGES
-from spyder.plugins.editor.utils.lsp import request, handles, class_register
+from spyder.plugins.completion.decorators import (
+    request, handles, class_register)
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.outlineexplorer.languages import PythonCFM
 from spyder.py3compat import PY2, to_text_string
@@ -272,16 +273,12 @@ class CodeEditor(TextEditBaseWidget):
 
     # -- LSP signals
     #: Signal emitted when an LSP request is sent to the LSP manager
-    sig_perform_lsp_request = Signal(str, str, dict)
+    sig_perform_completion_request = Signal(str, str, dict)
 
     #: Signal emitted when a response is received from an LSP server
     # For now it's only used on tests, but it could be used to track
     # and profile LSP diagnostics.
     lsp_response_signal = Signal(str, dict)
-
-    # -- Fallback Signal
-    #: Signal emitted to get fallback completions
-    sig_perform_fallback_request = Signal(dict)
 
     #: Signal to display object information on the Help plugin
     sig_display_object_info = Signal(str, bool)
@@ -398,7 +395,7 @@ class CodeEditor(TextEditBaseWidget):
         # Vertical scrollbar
         # This is required to avoid a "RuntimeError: no access to protected
         # functions or signals for objects not created from Python" in
-        # Linux Ubuntu. See PR #5215.
+        # Linux Ubuntu. See spyder-ide/spyder#5215.
         self.setVerticalScrollBar(QScrollBar())
 
         # Scrollbar flag area
@@ -504,7 +501,7 @@ class CodeEditor(TextEditBaseWidget):
         self.lsp_requests = {}
         self.document_opened = False
         self.filename = None
-        self.lsp_ready = False
+        self.completions_available = False
         self.text_version = 0
         self.save_include_text = True
         self.open_close_notifications = True
@@ -840,7 +837,7 @@ class CodeEditor(TextEditBaseWidget):
         """Send request to LSP manager."""
         params['requires_response'] = requires_response
         params['response_instance'] = self
-        self.sig_perform_lsp_request.emit(
+        self.sig_perform_completion_request.emit(
             self.language.lower(), method, params)
 
     def log_lsp_handle_errors(self, message):
@@ -865,17 +862,22 @@ class CodeEditor(TextEditBaseWidget):
                 logger.error('%', 1, stack_info=True)
 
     # ------------- LSP: Configuration and protocol start/end ----------------
-    def start_lsp_services(self, config):
-        """Start LSP integration if it wasn't done before."""
-        if not self.lsp_ready:
-            logger.debug("LSP available for: %s" % self.filename)
-            self.parse_lsp_config(config)
-            self.lsp_ready = True
-            self.document_did_open()
 
-    def stop_lsp_services(self):
-        logger.debug('Stopping LSP services for %s' % self.filename)
-        self.lsp_ready = False
+    def start_completion_services(self):
+        logger.debug("Completions services available for: {0}".format(
+            self.filename))
+        self.completions_available = True
+        self.document_did_open()
+
+    def update_completion_configuration(self, config):
+        """Start LSP integration if it wasn't done before."""
+        logger.debug("LSP available for: %s" % self.filename)
+        self.parse_lsp_config(config)
+        self.document_did_open()
+
+    def stop_completion_services(self):
+        logger.debug('Stopping completion services for %s' % self.filename)
+        self.completions_available = False
         self.document_opened = False
 
     def parse_lsp_config(self, config):
@@ -925,12 +927,14 @@ class CodeEditor(TextEditBaseWidget):
         """Send textDocument/didChange request to the server."""
         self.text_version += 1
         text = self.toPlainText()
+        patch = self.differ.patch_make(self.previous_text, text)
+        self.previous_text = text
         params = {
             'file': self.filename,
             'version': self.text_version,
-            'text': text
+            'text': text,
+            'diff': patch
         }
-        self.update_fallback(text)
         return params
 
     @handles(LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
@@ -953,7 +957,6 @@ class CodeEditor(TextEditBaseWidget):
             'column': column
         }
         self.completion_args = (self.textCursor().position(), automatic)
-        self.request_fallback()
         return params
 
     @handles(LSPRequestTypes.DOCUMENT_COMPLETION)
@@ -1126,62 +1129,12 @@ class CodeEditor(TextEditBaseWidget):
              requires_response=False)
     def notify_close(self):
         """Send close request."""
-        if self.lsp_ready:
+        if self.completions_available:
             params = {
                 'file': self.filename,
                 'codeeditor': self
             }
             return params
-        self.close_fallback()
-
-    # ------------- Fallback completions ------------------------------------
-    def start_fallback(self):
-        """Register with fallback engine."""
-        self.previous_text = ''
-        self.update_fallback(self.toPlainText())
-
-    def close_fallback(self):
-        """Close connection with fallback engine."""
-        fallback_request = {
-            'file': self.filename,
-            'type': 'close',
-            'editor': None,
-            'msg': {}
-        }
-        self.sig_perform_fallback_request.emit(fallback_request)
-
-    def update_fallback(self, text):
-        """Send changes to fallback engine."""
-        # Invoke fallback update
-        patch = self.differ.patch_make(self.previous_text, text)
-        self.previous_text = text
-        fallback_request = {
-            'file': self.filename,
-            'type': 'update',
-            'editor': self,
-            'msg': {
-                'language': self.language,
-                'diff': patch
-            }
-        }
-        self.sig_perform_fallback_request.emit(fallback_request)
-
-    def request_fallback(self):
-        """Send request to fallback engine."""
-        request = {
-            'file': self.filename,
-            'type': 'retrieve',
-            'editor': self,
-            'msg': None
-        }
-        self.sig_perform_fallback_request.emit(request)
-
-    def receive_text_tokens(self, tokens):
-        """Handle tokens sent by fallback engine."""
-        self.word_tokens = tokens
-        if not self.lsp_ready:
-            self.completion_args = (self.textCursor().position(), False)
-            self.process_completion({'params': tokens})
 
     # -------------------------------------------------------------------------
     def set_debug_panel(self, debug_panel, language):
@@ -1847,7 +1800,7 @@ class CodeEditor(TextEditBaseWidget):
         text = to_text_string(clipboard.text())
         if clipboard.mimeData().hasUrls():
             # Have copied file and folder urls pasted as text paths.
-            # See PR: #8644 for details.
+            # See spyder-ide/spyder#8644 for details.
             urls = clipboard.mimeData().urls()
             if all([url.isLocalFile() for url in urls]):
                 if len(urls) > 1:
@@ -2823,7 +2776,7 @@ class CodeEditor(TextEditBaseWidget):
     def unblockcomment(self):
         """Un-block comment current line or selection."""
         # Needed for backward compatibility with Spyder previous blockcomments.
-        # See issue 2845
+        # See spyder-ide/spyder#2845.
         unblockcomment = self.__unblockcomment()
         if not unblockcomment:
             unblockcomment =  self.__unblockcomment(compatibility=True)
@@ -3316,8 +3269,9 @@ class CodeEditor(TextEditBaseWidget):
         elif key == Qt.Key_Home:
             self.stdkey_home(shift, ctrl)
         elif key == Qt.Key_End:
-            # See Issue 495: on MacOS X, it is necessary to redefine this
-            # basic action which should have been implemented natively
+            # See spyder-ide/spyder#495: on MacOS X, it is necessary to
+            # redefine this basic action which should have been implemented
+            # natively
             self.stdkey_end(shift, ctrl)
         elif text in self.auto_completion_characters:
             self.insert_text(text)
@@ -3621,7 +3575,12 @@ class CodeEditor(TextEditBaseWidget):
             # Check if still on the line
             return 0
 
-        if not self.strip_trailing_spaces_on_modify:
+        # Check if end of line in string
+        cursor = self.textCursor()
+        cursor.setPosition(line_range[1])
+
+        if (not self.strip_trailing_spaces_on_modify
+                or self.in_string(cursor=cursor)):
             if self.last_auto_indent is None:
                 return 0
             elif (self.last_auto_indent !=
@@ -3633,12 +3592,6 @@ class CodeEditor(TextEditBaseWidget):
             self.last_auto_indent = None
         elif not pos_in_line(self.last_change_position):
             # Should process if pressed return or made a change on the line:
-            return 0
-
-        # Check if end of line in string
-        cursor = self.textCursor()
-        cursor.setPosition(line_range[1])
-        if self.in_string(cursor=cursor):
             return 0
 
         cursor.setPosition(line_range[0])
@@ -3657,6 +3610,7 @@ class CodeEditor(TextEditBaseWidget):
             self.document_did_change()
             # Correct last change position
             self.last_change_position = line_range[1]
+            self.last_position = self.textCursor().position()
             return line_range[1] - (line_range[0] + len(strip))
         return 0
 

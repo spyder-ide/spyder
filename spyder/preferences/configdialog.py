@@ -148,6 +148,7 @@ class ConfigDialog(QDialog):
         # (e.g. the editor's analysis thread in Spyder), thus leading to
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setWindowFlags(Qt.Dialog | Qt.WindowStaysOnTopHint)
         self.setWindowTitle(_('Preferences'))
         self.setWindowIcon(ima.icon('configure'))
         self.contents_widget.setMovement(QListView.Static)
@@ -201,7 +202,9 @@ class ConfigDialog(QDialog):
             widget = self.pages_widget.currentWidget()
         else:
             widget = self.pages_widget.widget(index)
-        return widget.widget()
+
+        if widget:
+            return widget.widget()
 
     @Slot()
     def accept(self):
