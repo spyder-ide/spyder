@@ -340,7 +340,7 @@ def test_completions(lsp_codeeditor, qtbot):
 
     try:
         with qtbot.waitSignal(completion.sig_show_completions,
-                              timeout=50000) as sig:
+                              timeout=5000) as sig:
             qtbot.keyPress(code_editor, Qt.Key_Tab)
             qtbot.keyPress(code_editor, Qt.Key_Backspace)
         raise RuntimeError("The signal should not have been received!")
@@ -349,7 +349,7 @@ def test_completions(lsp_codeeditor, qtbot):
 
     try:
         with qtbot.waitSignal(completion.sig_show_completions,
-                              timeout=50000) as sig:
+                              timeout=5000) as sig:
             qtbot.keyPress(code_editor, Qt.Key_Tab)
             qtbot.keyPress(code_editor, Qt.Key_Return)
         raise RuntimeError("The signal should not have been received!")
