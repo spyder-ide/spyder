@@ -36,8 +36,15 @@ def test_ignore_warnings(qtbot, lsp_codeeditor):
 
     CONF.set('lsp-server', 'pydocstyle/ignore', 'D100')
     CONF.set('lsp-server', 'pycodestyle/ignore', 'E261')
+
+    # After this call the manager needs to be reinitialized
     manager.update_server_list()
-    qtbot.wait(2000)
+    editorstack = manager.main.editor
+    with qtbot.waitSignal(editorstack.sig_lsp_initialized, timeout=30000):
+        manager.start_client('python')
+
+    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
+        editor.document_did_open()
 
     # Notify changes
     with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
