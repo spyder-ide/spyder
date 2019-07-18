@@ -150,13 +150,6 @@ class DefaultsConfig(cp.ConfigParser, object):
                 self._set(section, option, new_value, verbose=False)
 
 
-class UserConfigPatches(object):
-    """
-    This mixin is used for the global config to define how old versions
-    should be handled.
-    """
-
-
 # ============================================================================
 # User config class
 # ============================================================================
@@ -205,7 +198,7 @@ class BaseUserConfig(DefaultsConfig):
         fpath = self.get_config_path()
         if load:
             # If config file already exists, it overrides Default options:
-            previous_fpath = self.get_config_path_from_version()
+            previous_fpath = self.get_config_fpath_from_version()
             self._load_from_ini(previous_fpath)
             old_ver = self.get_version(version)
             _major = lambda _t: _t[:_t.find('.')]
@@ -331,18 +324,9 @@ class BaseUserConfig(DefaultsConfig):
         old_defaults.read(osp.join(path, name))
         return old_defaults
 
-    def _get_config_ini_path_from_version(self, version):
-        """"""
-        if check_version(version, '52.0.0', '<'):
-            path = get_conf_path()    
-            name = 'spyder.ini'
-            ini_path = osp.join(path, name)
-
-        return ini_path
-
     def _save_new_defaults(self, defaults):
         """Save new defaults."""
-        path, name = self.get_defaults_path_from_version()
+        path, name = self.get_defaults_path_name_from_version()
         new_defaults = DefaultsConfig(name=name, path=path)
         if not osp.isfile(new_defaults.get_config_path()):
             new_defaults.set_defaults(defaults)
@@ -379,13 +363,16 @@ class BaseUserConfig(DefaultsConfig):
 
     # --- Compatibility API
     # ------------------------------------------------------------------------
-    def get_config_path_name_from_version(self, version=None):
+    def get_config_fpath_from_version(self, version=None):
         """"""
-        if version is None:
-            # Give latest
-            path, name = self._path, self._name
+        fpath = self.get_config_path()
 
-        return path, name
+        if version is None:
+            fpath = self.get_config_path()
+        elif check_version(version, '52.0.0', '<'):
+            fpath = osp.join(get_conf_path(), 'spyder.ini')
+
+        return fpath
 
     def get_backup_path_name_from_version(self, version=None):
         """"""
@@ -400,6 +387,9 @@ class BaseUserConfig(DefaultsConfig):
     def get_defaults_path_name_from_version(self, version=None):
         """"""
         conf_path = get_conf_path()
+
+        if check_version(version, '52.0.0', '<'):
+            pass
 
         # path = osp.join(path, 'defaults')
         # if not osp.isdir(path):
