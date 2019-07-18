@@ -381,5 +381,3 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)
         self.setLayout(vlayout)
-        self.setStyleSheet("QTabWidget::tab-bar {"
-                           "alignment: left;}")

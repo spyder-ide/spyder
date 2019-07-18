@@ -1042,8 +1042,6 @@ class LanguageServerConfigPage(GeneralConfigPage):
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)
         self.setLayout(vlayout)
-        self.setStyleSheet("QTabWidget::tab-bar {"
-                           "alignment: left;}")
 
     def disable_tcp(self, state):
         if state == Qt.Checked:
