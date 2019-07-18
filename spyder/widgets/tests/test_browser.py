@@ -10,9 +10,9 @@ Tests for browser.py
 
 # Test library imports
 import pytest
-
+from qtpy.QtWebEngineWidgets import QWebEnginePage
 # Local imports
-from spyder.widgets.browser import WebBrowser
+from spyder.widgets.browser import WebBrowser, WebView
 
 
 @pytest.fixture
@@ -29,6 +29,14 @@ def test_browser(browser):
     browser.go_home()
     browser.show()
     assert browser
+
+
+def test_webview_open_regression(qtbot):
+    """Check creating of new window."""
+    wb = WebView()
+    qtbot.addWidget(wb)
+    wb.setUrl('problem_url')
+    wb.createWindow(QWebEnginePage.WebBrowserWindow)
 
 
 if __name__ == "__main__":
