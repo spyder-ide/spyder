@@ -68,7 +68,7 @@ from spyder.plugins.editor.panels import (ClassFunctionDropdown,
 from spyder.plugins.editor.utils.editor import (TextHelper, BlockUserData,
                                                 TextBlockHelper)
 from spyder.plugins.editor.utils.debugger import DebuggerManager
-from spyder.plugins.editor.utils.folding import IndentFoldDetector, FoldScope
+from spyder.plugins.editor.utils.folding import IndentFoldDetector
 from spyder.plugins.editor.utils.kill_ring import QtKillRing
 from spyder.plugins.editor.utils.languages import ALL_LANGUAGES, CELL_LANGUAGES
 from spyder.plugins.completion.decorators import (
@@ -620,8 +620,10 @@ class CodeEditor(TextEditBaseWidget):
             ('editor', 'toggle comment', self.toggle_comment),
             ('editor', 'blockcomment', self.blockcomment),
             ('editor', 'unblockcomment', self.unblockcomment),
-            ('editor', 'transform to uppercase', self.transform_to_uppercase),
-            ('editor', 'transform to lowercase', self.transform_to_lowercase),
+            ('editor', 'transform to uppercase',
+             lambda: self.text_helper.transform_to_uppercase()),
+            ('editor', 'transform to lowercase',
+             lambda: self.text_helper.transform_to_lowercase()),
             ('editor', 'indent', lambda: self.indent(force=True)),
             ('editor', 'unindent', lambda: self.unindent(force=True)),
             ('editor', 'start of line',
@@ -1566,55 +1568,6 @@ class CodeEditor(TextEditBaseWidget):
         point.setY(point.y() + self.panels.margin_size(Panel.Position.TOP))
         return point
 
-    def get_linenumber_from_mouse_event(self, event):
-        """Return line number from mouse event"""
-        block = self.firstVisibleBlock()
-        line_number = block.blockNumber()
-        top = self.blockBoundingGeometry(block).translated(
-                                                    self.contentOffset()).top()
-        bottom = top + self.blockBoundingRect(block).height()
-
-        while block.isValid() and top < event.pos().y():
-            block = block.next()
-            collapsed = TextBlockHelper.is_collapsed(block)
-            if block.isVisible():  # skip collapsed blocks
-                top = bottom
-                bottom = top + self.blockBoundingRect(block).height()
-                line_number += 1
-            if collapsed:
-                scope = FoldScope(block)
-                start, end = scope.get_range(ignore_blank_lines=True)
-                line_number += (end - start)
-        return line_number
-
-    def select_lines(self, linenumber_pressed, linenumber_released):
-        """Select line(s) after a mouse press/mouse press drag event"""
-        find_block_by_line_number = self.document().findBlockByLineNumber
-        move_n_blocks = (linenumber_released - linenumber_pressed)
-        start_line = linenumber_pressed
-        start_block = find_block_by_line_number(start_line - 1)
-
-        cursor = self.textCursor()
-        cursor.setPosition(start_block.position())
-
-        # Select/drag downwards
-        if move_n_blocks > 0:
-            for n in range(abs(move_n_blocks) + 1):
-                cursor.movePosition(cursor.NextBlock, cursor.KeepAnchor)
-        # Select/drag upwards or select single line
-        else:
-            cursor.movePosition(cursor.NextBlock)
-            for n in range(abs(move_n_blocks) + 1):
-                cursor.movePosition(cursor.PreviousBlock, cursor.KeepAnchor)
-
-        # Account for last line case
-        if linenumber_released == self.blockCount():
-            cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
-        else:
-            cursor.movePosition(cursor.StartOfBlock, cursor.KeepAnchor)
-
-        self.setTextCursor(cursor)
-
     # ----- Code bookmarks
     def add_bookmark(self, slot_num, line=None, column=None):
         """Add bookmark to current block's userData."""
@@ -1849,6 +1802,44 @@ class CodeEditor(TextEditBaseWidget):
         block = self.document().findBlockByNumber(block_nb)
         return self.get_block_data(block).fold_level
 
+    @Slot()
+    def clear_all_output(self):
+        """Removes all ouput in the ipynb format (Json only)"""
+        try:
+            nb = nbformat.reads(self.toPlainText(), as_version=4)
+            if nb.cells:
+                for cell in nb.cells:
+                    if 'outputs' in cell:
+                        cell['outputs'] = []
+                    if 'prompt_number' in cell:
+                        cell['prompt_number'] = None
+            # We do the following rather than using self.setPlainText
+            # to benefit from QTextEdit's undo/redo feature.
+            self.selectAll()
+            self.skip_rstrip = True
+            self.insertPlainText(nbformat.writes(nb))
+            self.skip_rstrip = False
+        except Exception as e:
+            QMessageBox.critical(self, _('Removal error'),
+                           _("It was not possible to remove outputs from "
+                             "this notebook. The error is:\n\n") + \
+                             to_text_string(e))
+            return
+
+    @Slot()
+    def convert_notebook(self):
+        """Convert an IPython notebook to a Python script in editor"""
+        try:
+            nb = nbformat.reads(self.toPlainText(), as_version=4)
+            script = nbexporter().from_notebook_node(nb)[0]
+        except Exception as e:
+            QMessageBox.critical(self, _('Conversion error'),
+                                 _("It was not possible to convert this "
+                                 "notebook. The error is:\n\n") + \
+                                 to_text_string(e))
+            return
+        self.sig_new_file.emit(script)
+
 # =============================================================================
 #    High-level editor features
 # =============================================================================
@@ -1857,6 +1848,8 @@ class CodeEditor(TextEditBaseWidget):
         """QPlainTextEdit's "centerCursor" requires the widget to be visible"""
         self.centerCursor()
         self.focus_in.disconnect(self.center_cursor_on_next_focus)
+
+    # ------ Go to line
 
     def go_to_line(self, line, start_column=0, end_column=0, word=''):
         """Go to line number *line* and eventually highlight it"""
@@ -1869,6 +1862,8 @@ class CodeEditor(TextEditBaseWidget):
         dlg = GoToLineDialog(self)
         if dlg.exec_():
             self.go_to_line(dlg.get_line_number())
+
+    # ------ Code analysis
 
     def cleanup_code_analysis(self):
         """Remove all code analysis markers"""
@@ -2101,8 +2096,7 @@ class CodeEditor(TextEditBaseWidget):
         self.show_code_analysis_results(line_number, data)
         return self.get_position('cursor')
 
-
-    #------Tasks management
+    # -----Tasks management
     def go_to_next_todo(self):
         """Go to next todo and return new cursor position"""
         block = self.textCursor().block()
@@ -2140,8 +2134,7 @@ class CodeEditor(TextEditBaseWidget):
             block.setUserData(data)
         self.sig_flags_changed.emit()
 
-
-    #------Comments/Indentation
+    # ------Comments/Indentation
     def add_prefix(self, prefix):
         """Add prefix to current line or selected line(s)"""
         cursor = self.textCursor()
@@ -2331,13 +2324,13 @@ class CodeEditor(TextEditBaseWidget):
         """
         Get if there is a correct indentation from a group of spaces of a line.
         """
-        spaces = re.findall('\s+', line_text)
+        spaces = re.findall(r'\s+', line_text)
         if len(spaces) - 1 >= group:
             return len(spaces[group]) % len(self.indent_chars) == 0
 
     def __number_of_spaces(self, line_text, group=0):
         """Get the number of spaces from a group of spaces in a line."""
-        spaces = re.findall('\s+', line_text)
+        spaces = re.findall(r'\s+', line_text)
         if len(spaces) - 1 >= group:
             return len(spaces[group])
 
@@ -2396,8 +2389,8 @@ class CodeEditor(TextEditBaseWidget):
                 prevtext = prevtext[:inline_comment]
 
             if ((self.is_python_like() and
-               not prevtext.strip().startswith('#') and prevtext) or
-               prevtext):
+                 not prevtext.strip().startswith('#') and prevtext) or
+                prevtext):
 
                 if not "return" in prevtext.strip().split()[:1] and \
                     (prevtext.strip().endswith(')') or
@@ -2548,44 +2541,6 @@ class CodeEditor(TextEditBaseWidget):
             cursor.insertText(indent_text)
             return True
 
-    @Slot()
-    def clear_all_output(self):
-        """Removes all ouput in the ipynb format (Json only)"""
-        try:
-            nb = nbformat.reads(self.toPlainText(), as_version=4)
-            if nb.cells:
-                for cell in nb.cells:
-                    if 'outputs' in cell:
-                        cell['outputs'] = []
-                    if 'prompt_number' in cell:
-                        cell['prompt_number'] = None
-            # We do the following rather than using self.setPlainText
-            # to benefit from QTextEdit's undo/redo feature.
-            self.selectAll()
-            self.skip_rstrip = True
-            self.insertPlainText(nbformat.writes(nb))
-            self.skip_rstrip = False
-        except Exception as e:
-            QMessageBox.critical(self, _('Removal error'),
-                           _("It was not possible to remove outputs from "
-                             "this notebook. The error is:\n\n") + \
-                             to_text_string(e))
-            return
-
-    @Slot()
-    def convert_notebook(self):
-        """Convert an IPython notebook to a Python script in editor"""
-        try:
-            nb = nbformat.reads(self.toPlainText(), as_version=4)
-            script = nbexporter().from_notebook_node(nb)[0]
-        except Exception as e:
-            QMessageBox.critical(self, _('Conversion error'),
-                                 _("It was not possible to convert this "
-                                 "notebook. The error is:\n\n") + \
-                                 to_text_string(e))
-            return
-        self.sig_new_file.emit(script)
-
     def indent(self, force=False):
         """
         Indent current line or selection
@@ -2708,38 +2663,6 @@ class CodeEditor(TextEditBaseWidget):
             blockcomment_bar = self.comment_string + '=' * (
                                     79 - len(self.comment_string))
         return blockcomment_bar
-
-    def transform_to_uppercase(self):
-        """Change to uppercase current line or selection."""
-        cursor = self.textCursor()
-        prev_pos = cursor.position()
-        selected_text = to_text_string(cursor.selectedText())
-
-        if len(selected_text) == 0:
-            prev_pos = cursor.position()
-            cursor.select(QTextCursor.WordUnderCursor)
-            selected_text = to_text_string(cursor.selectedText())
-
-        s = selected_text.upper()
-        cursor.insertText(s)
-        self.set_cursor_position(prev_pos)
-        self.document_did_change()
-
-    def transform_to_lowercase(self):
-        """Change to lowercase current line or selection."""
-        cursor = self.textCursor()
-        prev_pos = cursor.position()
-        selected_text = to_text_string(cursor.selectedText())
-
-        if len(selected_text) == 0:
-            prev_pos = cursor.position()
-            cursor.select(QTextCursor.WordUnderCursor)
-            selected_text = to_text_string(cursor.selectedText())
-
-        s = selected_text.lower()
-        cursor.insertText(s)
-        self.set_cursor_position(prev_pos)
-        self.document_did_change()
 
     def blockcomment(self):
         """Block comment current line or selection."""

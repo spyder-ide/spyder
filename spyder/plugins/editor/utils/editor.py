@@ -140,7 +140,7 @@ class TextHelper(object):
     Qt text api for an easier usage.
 
     FIXME: Some of this methods are already implemented in CodeEditor, move
-    and unify redundant methods.
+    and unify redundant methods from CodeEditor in this class.
     """
     @property
     def _editor(self):
@@ -200,8 +200,9 @@ class TextHelper(object):
         except KeyError:
             pass
         else:
-            from spyder.plugins.editor.utils.folding import FoldScope
             if not block.isVisible():
+                # Must be imported here, not at the top
+                from spyder.plugins.editor.utils.folding import FoldScope
                 block = FoldScope.find_parent_scope(block)
                 if TextBlockHelper.is_collapsed(block):
                     folding_panel.toggle_fold_trigger(block)
@@ -640,6 +641,34 @@ class TextHelper(object):
             text_cursor.MoveAnchor, nb_chars)
         self._editor.setTextCursor(text_cursor)
 
+    def transform_to_uppercase(self):
+        """Change to uppercase current word or selection."""
+        editor = self._editor
+        cursor = editor.textCursor()
+        prev_pos = cursor.position()
+        selected_text = self.selected_text()
+
+        if len(selected_text) == 0:
+            self.word_under_cursor(select_whole_word=True)
+
+        self.selected_text_to_upper()
+        editor.set_cursor_position(prev_pos)
+        editor.document_did_change()
+
+    def transform_to_lowercase(self):
+        """Change to lowercase current word or selection."""
+        editor = self._editor
+        cursor = editor.textCursor()
+        prev_pos = cursor.position()
+        selected_text = self.selected_text()
+
+        if len(selected_text) == 0:
+            self.word_under_cursor(select_whole_word=True)
+
+        self.selected_text_to_lower()
+        editor.set_cursor_position(prev_pos)
+        editor.document_did_change()
+
     def selected_text_to_lower(self):
         """Replaces the selected text by its lower version."""
         txt = self.selected_text()
@@ -865,6 +894,30 @@ class TextHelper(object):
             return True
         else:
             return False
+
+    def get_linenumber_from_mouse_event(self, event):
+        """Return line number from mouse event"""
+        editor = self._editor
+        block = editor.firstVisibleBlock()
+        line_number = block.blockNumber()
+        top = editor.blockBoundingGeometry(block).translated(
+                editor.contentOffset()).top()
+        bottom = top + editor.blockBoundingRect(block).height()
+
+        while block.isValid() and top < event.pos().y():
+            block = block.next()
+            collapsed = TextBlockHelper.is_collapsed(block)
+            if block.isVisible():  # skip collapsed blocks
+                top = bottom
+                bottom = top + editor.blockBoundingRect(block).height()
+                line_number += 1
+            if collapsed:
+                # Must be imported here, not at the top
+                from spyder.plugins.editor.utils.folding import FoldScope
+                scope = FoldScope(block)
+                start, end = scope.get_range(ignore_blank_lines=True)
+                line_number += (end - start)
+        return line_number
 
 
 class TextBlockHelper(object):

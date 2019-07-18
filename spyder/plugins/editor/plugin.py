@@ -50,6 +50,7 @@ from spyder.plugins.editor.utils.bookmarks import (load_bookmarks,
                                                    save_bookmarks)
 from spyder.plugins.editor.utils.debugger import (clear_all_breakpoints,
                                                   clear_breakpoint)
+from spyder.plugins.editor.utils.editor import TextHelper
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
@@ -368,7 +369,6 @@ class Editor(SpyderPluginWidget):
         """Perform actions before parent main window is closed"""
         state = self.splitter.saveState()
         self.set_option('splitter_state', qbytearray_to_str(state))
-        filenames = []
         editorstack = self.editorstacks[0]
 
         active_project_path = None
@@ -1577,19 +1577,6 @@ class Editor(SpyderPluginWidget):
     def update_active_languages(self, languages):
         self.main.completions.update_client_status(languages)
 
-
-    #------ Breakpoints
-    def save_breakpoints(self, filename, breakpoints):
-        filename = to_text_string(filename)
-        breakpoints = to_text_string(breakpoints)
-        filename = osp.normpath(osp.abspath(filename))
-        if breakpoints:
-            breakpoints = eval(breakpoints)
-        else:
-            breakpoints = []
-        save_breakpoints(filename, breakpoints)
-        self.breakpoints_saved.emit()
-
     # ------ Bookmarks
     def save_bookmarks(self, filename, bookmarks):
         """Receive bookmark changes and save them."""
@@ -2080,14 +2067,14 @@ class Editor(SpyderPluginWidget):
         """Change current line or selection to uppercase."""
         editor = self.get_current_editor()
         if editor is not None:
-            editor.transform_to_uppercase()
+            TextHelper(editor).transform_to_uppercase()
 
     @Slot()
     def text_lowercase(self):
         """Change current line or selection to lowercase."""
         editor = self.get_current_editor()
         if editor is not None:
-            editor.transform_to_lowercase()
+            TextHelper(editor).transform_to_lowercase()
 
     @Slot()
     def toggle_comment(self):

@@ -12,6 +12,7 @@ from qtpy.QtGui import QPainter, QFontMetrics
 from spyder.utils import icon_manager as ima
 from spyder.api.panel import Panel
 from spyder.config.base import debug_print
+from spyder.plugins.editor.utils.editor import TextHelper
 
 
 class DebuggerPanel(Panel):
@@ -33,6 +34,12 @@ class DebuggerPanel(Panel):
                       'transparent': ima.icon('breakpoint_transparent'),
                       'condition': ima.icon('breakpoint_cond_big'),
                       'arrow': ima.icon('arrow_debugger')}
+
+        self.th = TextHelper(self.editor)
+
+    def on_install(self, editor):
+        Panel.on_install(self, editor)
+        self.th = TextHelper(self.editor)
 
     def set_current_line_arrow(self, n):
         self._current_line_arrow = n
@@ -106,7 +113,7 @@ class DebuggerPanel(Panel):
 
         Add/remove breakpoints by single click.
         """
-        line_number = self.editor.get_linenumber_from_mouse_event(event)
+        line_number = self.th.get_linenumber_from_mouse_event(event)
         shift = event.modifiers() & Qt.ShiftModifier
         self.editor.debugger.toogle_breakpoint(line_number,
                                                edit_condition=shift)
@@ -116,8 +123,7 @@ class DebuggerPanel(Panel):
 
         Draw semitransparent breakpoint hint.
         """
-        self.line_number_hint = self.editor.get_linenumber_from_mouse_event(
-            event)
+        self.line_number_hint = self.th.get_linenumber_from_mouse_event(event)
         self.update()
 
     def leaveEvent(self, event):

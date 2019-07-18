@@ -41,7 +41,7 @@ def test_editor_upper_to_lower(editorbot):
     cursor.movePosition(QTextCursor.NextCharacter,
                         QTextCursor.KeepAnchor)
     widget.setTextCursor(cursor)
-    widget.transform_to_lowercase()
+    widget.text_helper.transform_to_lowercase()
     new_text = widget.get_text('sof', 'eof')
     assert text != new_text
 
@@ -54,7 +54,7 @@ def test_editor_lower_to_upper(editorbot):
     cursor.movePosition(QTextCursor.NextCharacter,
                         QTextCursor.KeepAnchor)
     widget.setTextCursor(cursor)
-    widget.transform_to_uppercase()
+    widget.text_helper.transform_to_uppercase()
     new_text = widget.get_text('sof', 'eof')
     assert text != new_text
 

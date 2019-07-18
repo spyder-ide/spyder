@@ -18,6 +18,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.programs import check_version
 from spyder.api.panel import Panel
 from spyder.plugins.completion.languageserver import DiagnosticSeverity
+from spyder.plugins.editor.utils.editor import TextHelper
 
 
 QT55_VERSION = check_version(QT_VERSION, "5.5", ">=")
@@ -50,6 +51,12 @@ class LineNumberArea(Panel):
         self._margin = True
         self._pressed = -1
         self._released = -1
+
+        self.th = TextHelper(self.editor)
+
+    def on_install(self, editor):
+        Panel.on_install(self, editor)
+        self.th = TextHelper(self.editor)
 
     def sizeHint(self):
         """Override Qt method."""
@@ -133,7 +140,7 @@ class LineNumberArea(Panel):
 
         Show code analisis, if left button pressed select lines.
         """
-        line_number = self.editor.get_linenumber_from_mouse_event(event)
+        line_number = self.th.get_linenumber_from_mouse_event(event)
         block = self.editor.document().findBlockByNumber(line_number-1)
         data = block.userData()
 
@@ -148,18 +155,17 @@ class LineNumberArea(Panel):
 
         if event.buttons() == Qt.LeftButton:
             self._released = line_number
-            self.editor.select_lines(self._pressed, self._released)
+            self.th.select_lines(self._pressed, self._released)
 
     def mousePressEvent(self, event):
         """Override Qt method
 
         Select line, and starts selection
         """
-        line_number = self.editor.get_linenumber_from_mouse_event(event)
+        line_number = self.th.get_linenumber_from_mouse_event(event)
         self._pressed = line_number
         self._released = line_number
-        self.editor.select_lines(self._pressed,
-                                 self._released)
+        self.th.select_lines(self._pressed, self._released)
 
     def mouseReleaseEvent(self, event):
         """Override Qt method."""
