@@ -16,7 +16,7 @@ import os.path as osp
 
 # Local imports
 from spyder.config.base import get_conf_path, get_conf_subfolder, get_home_dir
-from spyder.config.main import CONF_VERSION, DEFAULTS, NAMEMAP
+from spyder.config.main import CONF_VERSION, DEFAULTS, NAME_MAP
 from spyder.config.user import MultiUserConfig, NoDefault
 
 
@@ -36,7 +36,7 @@ class ConfigurationManager(object):
         self._parent = parent
         self._active_project_callback = active_project_callback
         self._user_config = MultiUserConfig(
-            NAMEMAP,
+            NAME_MAP,
             path=path,
             defaults=DEFAULTS,
             load=True,

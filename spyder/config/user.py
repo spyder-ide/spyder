@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
-# ----------------------------------------------------------------------------
 # Copyright © Spyder Project Contributors
-#
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
-# ----------------------------------------------------------------------------
 
 """
 This module provides user configuration file management features for Spyder.
@@ -108,7 +105,7 @@ class DefaultsConfig(cp.ConfigParser, object):
         """Save config into the associated .ini file."""
         # See spyder-ide/spyder#1086 and spyder-ide/spyder#1242 for background
         # on why this method contains all the exception handling.
-        fpath = self.get_config_path()
+        fpath = self.get_config_fpath()
 
         def _write_file(fpath):
             with io.open(fpath, 'w', encoding='utf-8') as configfile:
@@ -132,12 +129,8 @@ class DefaultsConfig(cp.ConfigParser, object):
                       'the exception shown below')  # spyder: test-skip
                 print(e)  # spyder: test-skip
 
-    def get_config_path(self):
-        """
-        Create a .ini filename located in `self._path`.
-
-        This .ini files stores the global preferences.
-        """
+    def get_config_fpath(self):
+        """Return the ini file where this configuration is stored."""
         path = self._path
         config_file = osp.join(path, '{}.ini'.format(self._name))
         return config_file
@@ -153,7 +146,7 @@ class DefaultsConfig(cp.ConfigParser, object):
 # ============================================================================
 # User config class
 # ============================================================================
-class BaseUserConfig(DefaultsConfig):
+class UserConfig(DefaultsConfig):
     """
     UserConfig class, based on ConfigParser.
 
@@ -165,13 +158,21 @@ class BaseUserConfig(DefaultsConfig):
         Configuration file will be saved in path/%name%.ini
     defaults: {} or [(str, {}),]
         dictionnary containing options *or* list of tuples (sec_name, options)
+    load: bool
+        TODO:
     version: str
-        version of the configuration file in major.minor.micro format.
+        version of the configuration file in 'major.minor.micro' format.
+    backup: bool
+        TODO:
+    raw_mode: bool
+        TODO:
+    remove_obsolete: bool
+        TODO:
 
     Notes
     -----
     The 'get' and 'set' arguments number and type differ from the overriden
-    methods.
+    methods. 'defaults' is an attribute and not a method.
     """
     DEFAULT_SECTION_NAME = 'main'
 
@@ -192,69 +193,61 @@ class BaseUserConfig(DefaultsConfig):
         self._backup_suffix = '.bak'
         self._defaults_name_prefix = 'defaults'
 
-        # This is overriding a method from cp.ConfigParser
+        # This attribute is overriding a method from cp.ConfigParser
         self.defaults = self._check_defaults(defaults)
 
-        fpath = self.get_config_path()
         if load:
-            # If config file already exists, it overrides Default options:
-            previous_fpath = self.get_config_fpath_from_version()
+            # If config file already exists, it overrides Default options
+            previous_fpath = self.get_previous_config_fpath()
             self._load_from_ini(previous_fpath)
-            old_ver = self.get_version(version)
-            _major = lambda _t: _t[:_t.find('.')]
-            _minor = lambda _t: _t[:_t.rfind('.')]
+            old_version = self.get_version(version)
+            self._old_version = old_version
 
             # Save new defaults
             self._save_new_defaults(defaults)
 
             # Updating defaults only if major/minor version is different
-            if _minor(version) != _minor(old_ver):
+            if (self._get_minor_version(version=version)
+                    != self._get_minor_version(version=old_version)):
+
                 if backup:
-                    try:
-                        shutil.copyfile(fpath, "{}-{}.bak".format(fpath,
-                                                                  old_ver))
-                    except IOError:
-                        pass
+                    self._make_backup(version=old_version)
 
-                # TODO: This logic needs to be implemented outside as this is
-                # only valid for the global config not for plugins config
-                if check_version(old_ver, '2.4.0', '<'):
-                    self.reset_to_defaults(save=False)
-                else:
-                    self._update_defaults(defaults, old_ver)
-
-                if check_version(old_ver, '44.1.0', '<'):
-                    run_lines = to_text_string(self.get('ipython_console',
-                                                        'startup/run_lines'))
-                    if run_lines is not NoDefault:
-                        run_lines = run_lines.replace(',', '; ')
-                        self.set('ipython_console',
-                                 'startup/run_lines', run_lines)
+                self.apply_configuration_patches(old_version=old_version)
 
                 # Remove deprecated options if major version has changed
-                if remove_obsolete or _major(version) != _major(old_ver):
-                    self._remove_deprecated_options(old_ver)
+                # TODO: This might be problematic for the multi file config
+                # This needs to be called from the multiconfig manager
+                # another option should be added on init for this
+                # if (remove_obsolete or self._get_major_version(version)
+                #         != self._get_major_version(old_version)):
+                if remove_obsolete:
+                    self._remove_deprecated_options(old_version)
 
                 # Set new version number
                 self.set_version(version, save=False)
 
             if defaults is None:
-                # If no defaults are defined, set .ini file settings as
-                # default
+                # If no defaults are defined set .ini file settings as default
                 self.set_as_defaults()
 
         if backup:
-            try:
-                new_path = osp.join(osp.dirname(fpath), self._backup_folder)
-                if not osp.isdir(new_path):
-                    os.makedirs(new_path)
-                new_fpath = osp.join(new_path, osp.basename(fpath))
-                shutil.copyfile(fpath, '{}{}'.format(new_fpath,
-                                                     self._backup_suffix))
-            except IOError:
-                pass
+            self._make_backup()
 
-    def _check_version(self, version):
+    # --- Helpers and checkers
+    # ------------------------------------------------------------------------
+    @staticmethod
+    def _get_minor_version(version):
+        """Return the 'major.minor' components of the version."""
+        return version[:version.rfind('.')]
+
+    @staticmethod
+    def _get_major_version(version):
+        """Return the 'major' component of the version."""
+        return version[:version.find('.')]
+
+    @staticmethod
+    def _check_version(version):
         """Check version is compliant with format."""
         regex_check = re.match(r'^(\d+).(\d+).(\d+)$', version)
         if version is not None and regex_check is None:
@@ -277,7 +270,7 @@ class BaseUserConfig(DefaultsConfig):
         else:
             raise ValueError('`defaults` must be a dict or a list of tuples!')
 
-        # This is overriding a method
+        # This attribute is overriding a method from cp.ConfigParser
         self.defaults = defaults
 
         if defaults is not None:
@@ -285,10 +278,11 @@ class BaseUserConfig(DefaultsConfig):
 
         return defaults
 
-    def _check_section_option(self, section, option):
+    @classmethod
+    def _check_section_option(cls, section, option):
         """Check section and option types."""
         if section is None:
-            section = self.DEFAULT_SECTION_NAME
+            section = cls.DEFAULT_SECTION_NAME
         elif not is_text_string(section):
             raise RuntimeError("Argument 'section' must be a string")
 
@@ -296,6 +290,27 @@ class BaseUserConfig(DefaultsConfig):
             raise RuntimeError("Argument 'option' must be a string")
 
         return section
+
+    def _make_backup(self, version=None, old_version=None):
+        """
+        Make a backup of the configuration file.
+
+        If `old_version` is `None` a normal backup is made. If `old_version`
+        is provided, then the backup was requested for minor version changes
+        and appends the version number to the backup file.
+        """
+        fpath = self.get_config_fpath()
+        fpath_backup = self.get_backup_fpath_from_version(
+            version=version, old_version=old_version)
+        path = os.path.dirname(fpath_backup)
+
+        if not osp.isdir(path):
+            os.makedirs(path)
+
+        try:
+            shutil.copyfile(fpath, fpath_backup)
+        except IOError:
+            pass
 
     def _load_from_ini(self, fpath):
         """Load config from the associated .ini file found at `fpath`."""
@@ -317,6 +332,7 @@ class BaseUserConfig(DefaultsConfig):
             error_text = 'Warning: File contains no section headers.'
             print(error_text)  # spyder: test-skip
 
+    # TODO: check with test
     def _load_old_defaults(self, old_version):
         """Read old defaults."""
         old_defaults = cp.ConfigParser()
@@ -324,14 +340,16 @@ class BaseUserConfig(DefaultsConfig):
         old_defaults.read(osp.join(path, name))
         return old_defaults
 
+    # TODO: check with test
     def _save_new_defaults(self, defaults):
         """Save new defaults."""
         path, name = self.get_defaults_path_name_from_version()
         new_defaults = DefaultsConfig(name=name, path=path)
-        if not osp.isfile(new_defaults.get_config_path()):
+        if not osp.isfile(new_defaults.get_config_fpath()):
             new_defaults.set_defaults(defaults)
             new_defaults._save()
 
+    # TODO: check with test
     def _update_defaults(self, defaults, old_version, verbose=False):
         """Update defaults after a change in version."""
         old_defaults = self._load_old_defaults(old_version)
@@ -346,6 +364,7 @@ class BaseUserConfig(DefaultsConfig):
                 if old_val is None or to_text_string(new_value) != old_val:
                     self._set(section, option, new_value, verbose)
 
+    # TODO: check with test
     def _remove_deprecated_options(self, old_version):
         """
         Remove options which are present in the .ini file but not in defaults.
@@ -363,45 +382,62 @@ class BaseUserConfig(DefaultsConfig):
 
     # --- Compatibility API
     # ------------------------------------------------------------------------
+    def get_previous_config_fpath(self):
+        """Return the last configuration file used if found."""
+        return self.get_config_fpath()
+
     def get_config_fpath_from_version(self, version=None):
-        """"""
-        fpath = self.get_config_path()
+        """
+        Return the configuration path for given version.
 
+        If no version is provided, it returns the current file path.
+        """
+        return self.get_config_fpath()
+
+    def get_backup_fpath_from_version(self, version=None, old_version=None):
+        """
+        Get backup location based on version.
+
+        `old_version` can be used for checking compatibility whereas `version`
+        relates to adding the version to the file name.
+
+        To be overriden if versions changed backup location.
+        """
+        fpath = self.get_config_fpath()
+        path = osp.join(osp.dirname(fpath), self._backup_folder)
+        new_fpath = osp.join(path, osp.basename(fpath))
         if version is None:
-            fpath = self.get_config_path()
-        elif check_version(version, '52.0.0', '<'):
-            fpath = osp.join(get_conf_path(), 'spyder.ini')
+            backup_fpath = '{}{}'.format(new_fpath, self._backup_suffix)
+        else:
+            backup_fpath = "{}-{}{}".format(new_fpath, version,
+                                            self._backup_suffix)
+        return backup_fpath
 
-        return fpath
+    def get_defaults_path_name_from_version(self, old_version=None):
+        """
+        Get defaults location based on version.
 
-    def get_backup_path_name_from_version(self, version=None):
-        """"""
-        if version is None:
-            # Give latest
-            path = osp.join(osp.dirname(self.get_config_path(),
-                                        self._backup_folder)
+        To be overriden if versions changed defaults location.
+        """
+        defaults_path = osp.join(osp.dirname(self.get_config_fpath()),
+                                 self._defaults_folder)
+        name = '{}-{}-{}'.format(
+            self._defaults_name_prefix,
+            self._name,
+            self._version,
+        )
+        if not osp.isdir(defaults_path):
+            os.makedirs(defaults_path)
 
-            new_fpath = osp.join(path, osp.basename(fpath))
-            name = '{}{}'.format(new_fpath, self._backup_suffix))
+        return defaults_path, name
 
-    def get_defaults_path_name_from_version(self, version=None):
-        """"""
-        conf_path = get_conf_path()
-
-        if check_version(version, '52.0.0', '<'):
-            pass
-
-        # path = osp.join(path, 'defaults')
-        # if not osp.isdir(path):
-        #     os.makedirs(path)
-
-        if version is None:
-            # Give latest
-            name = '{}-{}-{}'.format(
-                self._defaults_name_prefix,
-                self._name,
-                self._version,
-            )
+    def apply_configuration_patches(self, old_version=None):
+        """
+        Apply any patch to configuration values on version changes.
+        
+        To be overriden if patches to configuration values are needed.
+        """
+        pass
 
     # --- Public API
     # ------------------------------------------------------------------------
@@ -567,62 +603,127 @@ class BaseUserConfig(DefaultsConfig):
 
     def cleanup(self):
         """Remove .ini file associated to config."""
-        os.remove(self.get_config_path())
+        os.remove(self.get_config_fpath())
 
 
-class UserConfig(BaseUserConfig):
+class SpyderUserConfig(UserConfig):
 
-    def get_previous_config_path(self):
-        """"""
+    def get_previous_config_fpath(self):
+        """
+        Override method.
+
+        Return the last configuration file used if found.
+        """
+        fpath = self.get_config_fpath()
         previous_paths = [
-            # < ??
+            # >= 52.0.0
+            fpath,
             # < 52.0.0
             os.path.join(get_conf_path(), 'spyder.ini'),
-            # >= 52.0.0
-            self.get_config_path(),
+            # < ??
         ]
         for fpath in previous_paths:
-            print(fpath)
             if osp.isfile(fpath):
                 break
 
         return fpath
 
-    def get_config_defaults_path_from_version(self, version):
+    def get_config_fpath_from_version(self, version=None):
         """
-        """
-        raise NotImplementedError
-        # path = osp.dirname(get_conf_path())
-        # if check_version(version, '3.0.0', '<='):
-        #     name = '{}-{}.ini'.format(self._defaults_name_prefix,
-        #                               'old_version')
-        #     path = self._module_source_path
-        # elif check_version(version, '52.0.0', '<'):
-        #     name = '{}-{}.ini'.format(self._defaults_name_prefix,
-        #                               'old_version')
-        # else:
-        #     name = '{}-{}-{}.ini'.format(self._defaults_name_prefix,
-        #                                  self._name, 'old_version')
+        Override method.
 
-        # defaults_path = osp.join(path)
-        # return defaults_path, name
+        Return the configuration path for given version.
+
+        If no version is provided, it returns the current file path.
+        """
+        fpath = self.get_config_fpath()
+
+        if version is None:
+            fpath = self.get_config_fpath()
+        elif check_version(version, '52.0.0', '<'):
+            fpath = osp.join(get_conf_path(), 'spyder.ini')
+        elif check_version(version, '2.4.0', '<'):
+            # TODO: Should this still be supported?
+            pass
+
+        return fpath
+
+    def get_backup_fpath_from_version(self, version=None, old_version=None):
+        """
+        Override method.
+
+        Make a backup of the configuration file.
+        """
+        if old_version and check_version(old_version, '52.0.0', '<'):
+            name = 'spyder.ini'
+            fpath = os.path.join(get_conf_path(), name)
+            if version is None:
+                backup_fpath = "{}{}".format(fpath, self._backup_suffix)
+            else:
+                backup_fpath = "{}-{}{}".format(fpath, version,
+                                                self._backup_suffix)
+        else:
+            backup_fpath = super(SpyderUserConfig,
+                self).get_backup_fpath_from_version(version, old_version)
+
+        return backup_fpath
+
+    # TODO:
+    def get_defaults_path_name_from_version(self, old_version=None):
+        """
+        Override method.
+
+        Get defaults location based on version.
+        """
+        if old_version:
+            if check_version(old_version, '3.0.0', '<='):
+                name = '{}-{}'.format('defaults', old_version)
+                path = self._module_source_path
+            elif check_version(old_version, '52.0.0', '<'):
+                name = '{}-{}'.format(self._defaults_name_prefix, old_version)
+                path = osp.join(get_conf_path(), 'defaults')
+        else:
+            super_class = super(SpyderUserConfig, self)
+            path, name = super_class.get_defaults_path_name_from_version()
+
+        return path, name
+
+    def apply_configuration_patches(self, old_version=None):
+        """
+        Override method.
+
+        Apply any patch to configuration values on version changes.
+        """
+        if old_version and check_version(old_version, '2.4.0', '<'):
+            self.reset_to_defaults(save=False)
+        else:
+            # TODO: Remove comment if tests pass ok
+            # self._update_defaults(defaults, old_version)
+            self._update_defaults(self.defaults, old_version)
+
+        if old_version and check_version(old_version, '44.1.0', '<'):
+            run_lines = to_text_string(self.get('ipython_console',
+                                                'startup/run_lines'))
+            if run_lines is not NoDefault:
+                run_lines = run_lines.replace(',', '; ')
+                self.set('ipython_console', 'startup/run_lines', run_lines)
 
 
 class MultiUserConfig(object):
     """
-    Multi user config class based on UserConfig class.
+    Multi user config class based emulating the basic interface to UserConfig.
 
-    This class provides the same interface as UserConfig but allows splitting
-    the configuration sections and options among several files.
+    This class provides the same basic interface as UserConfig but allows
+    splitting the configuration sections and options among several files.
 
-    The `name` is now a `namemap` where the sections and options per file name
+    The `name` is now a `name_map` where the sections and options per file name
     are defined.
     """
 
-    def __init__(self, namemap, path, defaults=None, load=True, version=None,
+    def __init__(self, name_map, path, defaults=None, load=True, version=None,
                  backup=False, raw_mode=False, remove_obsolete=False):
         """Multi user config class based on UserConfig class."""
-        self._namemap = self._check_namemap(namemap)
+        self._name_map = self._check_name_map(name_map)
         self._path = path
         self._defaults = defaults
         self._load = load
@@ -632,8 +733,8 @@ class MultiUserConfig(object):
         self._remove_obsolete = remove_obsolete
 
         self._configs_map = {}
-        self._config_defaults_map = self._get_defaults_for_namemap(defaults,
-                                                                   namemap)
+        self._config_defaults_map = self._get_defaults_for_name_map(defaults,
+                                                                    name_map)
         self._config_kwargs = {
             'path': path,
             'defaults': defaults,
@@ -643,7 +744,7 @@ class MultiUserConfig(object):
             'raw_mode': raw_mode,
             'remove_obsolete': remove_obsolete,
         }
-        for name in namemap:
+        for name in name_map:
             defaults = self._config_defaults_map.get(name)
             mod_kwargs = {
                 'name': name,
@@ -651,7 +752,8 @@ class MultiUserConfig(object):
             }
             new_kwargs = self._config_kwargs.copy()
             new_kwargs.update(mod_kwargs)
-            self._configs_map[name] = UserConfig(**new_kwargs)
+            config_class = self.get_config_class()
+            self._configs_map[name] = config_class(**new_kwargs)
 
     def _get_config(self, section, option):
         """Get the correct configuration based on section and option."""
@@ -663,12 +765,12 @@ class MultiUserConfig(object):
             config_value = self._configs_map['main']
         return config_value
 
-    def _check_namemap(self, namemap):
-        """Check `namemap` follows the correct format."""
+    def _check_name_map(self, name_map):
+        """Check `name_map` follows the correct format."""
         pass
         # Check it is not repeated
         # Check filemap names are not repeated or overide default name
-        return namemap
+        return name_map
 
     @staticmethod
     def _get_section_from_defaults(defaults, section):
@@ -715,9 +817,9 @@ class MultiUserConfig(object):
 
     def _get_name_from_map(self, section=None, option=None):
         """
-        Search for section and option on the namemap and return the name.
+        Search for section and option on the name_map and return the name.
         """
-        for name, sec_opts in self._namemap.items():
+        for name, sec_opts in self._name_map.items():
             # Ignore the main section
             default_sec_name = self._configs_map.get(name).DEFAULT_SECTION_NAME
             if name == default_sec_name:
@@ -732,15 +834,15 @@ class MultiUserConfig(object):
                                 return name
 
     @classmethod
-    def _get_defaults_for_namemap(cls, defaults, namemap):
-        """Split the global defaults using the namemap."""
-        namemap_config = {}
+    def _get_defaults_for_name_map(cls, defaults, name_map):
+        """Split the global defaults using the name_map."""
+        name_map_config = {}
         defaults_copy = copy.deepcopy(defaults)
 
-        for name, sec_opts in namemap.items():
+        for name, sec_opts in name_map.items():
             default_map_for_name = []
             if len(sec_opts) == 0:
-                namemap_config[name] = defaults_copy
+                name_map_config[name] = defaults_copy
             else:
                 for section, options in sec_opts:
                     if len(options) == 0:
@@ -768,9 +870,13 @@ class MultiUserConfig(object):
                     # Add to config map
                     default_map_for_name.append((section, sec))
 
-                namemap_config[name] = default_map_for_name
+                name_map_config[name] = default_map_for_name
 
-        return namemap_config
+        return name_map_config
+
+    def get_config_class(self):
+        """Return the UserConfig class to use."""
+        return SpyderUserConfig
 
     def items(self, section):
         """Return all the items option/values for the given section."""
@@ -837,22 +943,15 @@ class MultiUserConfig(object):
     def cleanup(self):
         """Remove .ini files associated to configurations."""
         for config in self._configs_map:
-            os.remove(config.get_config_path())
+            os.remove(config.get_config_fpath())
 
 
-class PluginConfig(BaseUserConfig):
-    """"""
-
-    def get_previous_config_path(self):
-        """"""
-        return self.get_config_path()
-
-
-    def get_config_defaults_path_from_version(self, version):
-        """"""
-        return self.get_config_path()
+class PluginConfig(UserConfig):
+    """Plugin configuration handler."""
 
 
 class PluginMultiConfig(MultiUserConfig):
-    """"""
-    pass
+    """Plugin configuration handler with multifile support."""
+
+    def get_config_class(self):
+        return PluginConfig

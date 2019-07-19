@@ -500,7 +500,7 @@ DEFAULTS = [
             ]
 
 
-NAMEMAP = {
+NAME_MAP = {
     # Empty container object means use the rest of defaults
     'main': [],
     # Splitting these files makes sense for projects, we might as well
