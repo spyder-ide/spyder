@@ -154,7 +154,7 @@ class PylintWidget(QWidget):
         QWidget.__init__(self, parent)
 
         self.setWindowTitle("Pylint")
-
+        self.parent = parent
         self.output = None
         self.error_output = None
         self.filename = None
@@ -312,6 +312,14 @@ class PylintWidget(QWidget):
 
     @Slot()
     def start(self):
+        """ Start the code analysis. """
+        # Check if the file should be automatically saved before analysis
+        if self.parent and self.parent.get_option('save_before', True):
+            # Try saving it
+            if not self.parent.main.editor.save():
+                # Saving failed for some reason, do not analyze
+                return
+
         filename = to_text_string(self.filecombo.currentText())
 
         self.process = QProcess(self)
