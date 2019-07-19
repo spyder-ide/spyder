@@ -350,8 +350,9 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         self.letters = text
         names = [str(key) for key in self.keys]
         results = get_search_scores(text, names, template='<b>{0}</b>')
-        self.normal_text, _, self.scores = zip(*results)
-        self.reset()
+        if results:
+            self.normal_text, _, self.scores = zip(*results)
+            self.reset()
 
     def row_key(self, row_num):
         """
@@ -929,7 +930,6 @@ class BaseTableView(QTableView):
             text = ''
         else:
             text = self.finder.text().replace(' ', '').lower()
-
         self.proxy_model.set_filter(text)
         self.source_model.update_search_letters(text)
         # TODO: Use constants for column numbers

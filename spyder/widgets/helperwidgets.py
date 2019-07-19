@@ -27,6 +27,10 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import get_std_icon
 from spyder.utils.stringmatching import get_search_regex
 
+# Valid finder chars. To be improved
+VALID_ACCENT_CHARS = "ÁÉÍOÚáéíúóàèìòùÀÈÌÒÙâêîôûÂÊÎÔÛäëïöüÄËÏÖÜñÑ"
+VALID_FINDER_CHARS = r"[A-Za-z\s{0}]".format(VALID_ACCENT_CHARS)
+
 
 class HelperToolButton(QToolButton):
     """Subclasses QToolButton, to provide a simple tooltip on mousedown.
@@ -288,17 +292,13 @@ class IconLineEdit(QLineEdit):
             self._refresh()
 
 
-# Valid finder chars. To be improved
-VALID_ACCENT_CHARS = "ÁÉÍOÚáéíúóàèìòùÀÈÌÒÙâêîôûÂÊÎÔÛäëïöüÄËÏÖÜñÑ"
-VALID_FINDER_CHARS = r"[A-Za-z\s{0}]".format(VALID_ACCENT_CHARS)
-
-
 class FinderLineEdit(QLineEdit):
     """QLineEdit for filtering listed elements in the parent widget."""
 
-    def __init__(self, parent, callback=None):
+    def __init__(self, parent, callback=None, main=None):
         super(FinderLineEdit, self).__init__(parent)
         self._parent = parent
+        self.main = main
 
         # Widget setup
         regex = QRegExp(VALID_FINDER_CHARS + "{100}")

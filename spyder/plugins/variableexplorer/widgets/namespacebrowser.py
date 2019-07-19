@@ -155,7 +155,8 @@ class NamespaceBrowser(QWidget):
         finder_layout = QHBoxLayout()
         label_finder = QLabel(_("Search: "))
         text_finder = NamespacesBrowserFinder(self.editor,
-                                              self.editor.set_regex)
+                                              callback=self.editor.set_regex,
+                                              main=self)
         self.editor.finder = text_finder
         finder_layout.addWidget(label_finder)
         finder_layout.addWidget(text_finder)
@@ -195,13 +196,14 @@ class NamespaceBrowser(QWidget):
                 self, text=_("Remove all variables"),
                 icon=ima.icon('editdelete'), triggered=self.reset_namespace)
 
-        fuzzy_search_button = create_toolbutton(
-            self, text=_("Fuzzy search"),
+        search_button = create_toolbutton(
+            self, text=_("Search"),
             icon=ima.icon('find'),
-            toggled=lambda state: self.finder.setVisible(state))
+            toggled=lambda: self.finder.setVisible(
+                not self.finder.isVisible()))
 
         return [load_button, self.save_button, save_as_button,
-                reset_namespace_button, fuzzy_search_button]
+                reset_namespace_button, search_button]
 
     def setup_option_actions(self, exclude_private, exclude_uppercase,
                              exclude_capitalized, exclude_unsupported):
@@ -430,6 +432,8 @@ class NamespacesBrowserFinder(FinderLineEdit):
             self._parent.previous_row()
         elif key in [Qt.Key_Down]:
             self._parent.next_row()
+        elif key in [Qt.Key_Escape]:
+            self.main.finder.setVisible(False)
         elif key in [Qt.Key_Enter, Qt.Key_Return]:
             # TODO: Check if an editor needs to be shown
             pass
