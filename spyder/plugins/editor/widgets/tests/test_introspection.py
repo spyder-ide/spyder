@@ -381,17 +381,6 @@ def test_fallback_completions(fallback_codeeditor, qtbot):
     qtbot.keyClicks(code_editor, '# some comment and words')
     code_editor.document_did_change()
 
-    # Due to automatic completion, the completion widget may appear before
-    stop = False
-    while not stop:
-        try:
-            with qtbot.waitSignal(completion.sig_show_completions,
-                                  timeout=5000) as sig:
-                pass
-            code_editor.completion_widget.hide()
-        except Exception:
-            stop = True
-
     # Enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
     with qtbot.waitSignal(completion.sig_show_completions,
