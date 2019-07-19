@@ -49,15 +49,16 @@ class SnippetsExtension(EditorExtension):
 
         key = event.key()
         cursor = self.editor.textCursor()
-        # if self.is_snippet_active:
-        #     if key == Qt.Key_Tab:
-        #         self.current_idx = ((self.current_idx + 1) %
-        #                             len(self.snippet_components))
-        #         current_snippet = self.snippet_components[self.current_idx]
-        #         component_start = current_snippet['start']
-        #         cursor.movePosition(QTextCursor.StartOfBlock)
-        #         cursor.movePosition(
-        #             QTextCursor.NextCharacter, n=component_start)
+        if self.is_snippet_active:
+            if key == Qt.Key_Tab:
+                self.current_idx = ((self.current_idx + 1) %
+                                    len(self.snippet_components))
+                current_snippet = self.snippet_components[self.current_idx]
+                component_start = current_snippet['start']
+                cursor.movePosition(QTextCursor.StartOfBlock)
+                cursor.movePosition(
+                    QTextCursor.NextCharacter, n=component_start)
 
     def insert_snippet(self, text):
         self.editor.insert_text(text)
+        self.editor.document_did_change()

@@ -276,6 +276,8 @@ class CompletionWidget(QListWidget):
         """Check if sub can be completed to text."""
         if not sub:
             return True
+        if not text[0].isalpha():
+            sub = text[0] + sub
         return to_text_string(text).lower().startswith(
                 to_text_string(sub).lower())
 
