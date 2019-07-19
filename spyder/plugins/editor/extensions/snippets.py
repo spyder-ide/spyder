@@ -22,6 +22,9 @@ from spyder.api.editorextension import EditorExtension
 
 
 class SnippetsExtension(EditorExtension):
+    """CodeEditor extension in charge of autocompletion and snippet display."""
+    SNIPPET_POSITION_REGEX = re.compile(r'(\$\d+)|(\$\{\S+[:\/|?+-]\S.*\})')
+
     def __init__(self):
         EditorExtension.__init__(self)
         self.is_snippet_active = False
