@@ -468,7 +468,7 @@ def test():
 
     app = qapplication()
 
-    data = np.random.random_integers(255, size=(100, 100)).astype('uint8')
+    data = np.random.randint(1, 256, size=(100, 100)).astype('uint8')
     image = Image.fromarray(data)
 
     class Foobar(object):

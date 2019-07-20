@@ -115,7 +115,7 @@ try:
         def __init__(self, parent=None):
             super(WinUserEnvDialog, self).__init__(parent)
             self.setup(get_user_env(),
-                       title="HKEY_CURRENT_USER\Environment", width=600)
+                       title=r"HKEY_CURRENT_USER\Environment", width=600)
             if parent is None:
                 parent = self
             QMessageBox.warning(parent, _("Warning"),

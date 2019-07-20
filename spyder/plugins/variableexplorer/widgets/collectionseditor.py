@@ -1449,9 +1449,9 @@ def get_test_data():
     else:
         test_timestamp = pd.Timestamp("1945-05-08T23:01:00.12345")
         test_pd_td = pd.Timedelta(days=2193, hours=12)
-        test_dtindex = pd.DatetimeIndex(start="1939-09-01T",
-                                              end="1939-10-06",
-                                              freq="12H")
+        test_dtindex = pd.date_range(start="1939-09-01T",
+                                     end="1939-10-06",
+                                     freq="12H")
         test_series = pd.Series({"series_name": [0, 1, 2, 3, 4, 5]})
         test_df = pd.DataFrame({"string_col": ["a", "b", "c", "d"],
                                 "int_col": [0, 1, 2, 3],
