@@ -559,6 +559,9 @@ class TreeProxyModel(QSortFilterProxyModel):
         index = self.mapToSource(proxy_index)
         tree_item = self.sourceModel().treeItem(index)
         tree_item.obj = value
+        obj_name = tree_item.obj_name
+        parent = tree_item.parent_item.obj
+        setattr(parent, obj_name, value)
         self.sig_setting_data.emit()
         self.sig_update_details.emit(tree_item)
 
