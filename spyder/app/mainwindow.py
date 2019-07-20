@@ -143,7 +143,7 @@ from spyder.config.base import (get_conf_path, get_module_source_path, STDERR,
                                 running_in_mac_app, get_module_path,
                                 reset_config_files)
 from spyder.config.main import OPEN_FILES_PORT
-from spyder.config.utils import IMPORT_EXT, is_gtk_desktop
+from spyder.config.utils import IMPORT_EXT, is_anaconda, is_gtk_desktop
 from spyder.app.cli_options import get_options
 from spyder import dependencies
 from spyder.py3compat import (is_text_string, to_text_string,
@@ -479,6 +479,7 @@ class MainWindow(QMainWindow):
         self.help_menu_actions = []
 
         # Status bar widgets
+        self.conda_status = None
         self.mem_status = None
         self.cpu_status = None
 
@@ -919,6 +920,12 @@ class MainWindow(QMainWindow):
             from spyder.plugins.outlineexplorer.plugin import OutlineExplorer
             self.outlineexplorer = OutlineExplorer(self)
             self.outlineexplorer.register_plugin()
+
+        if is_anaconda():
+            from spyder.widgets.status import CondaStatus
+            self.conda_status = CondaStatus(self, status,
+                                            icon=ima.icon('environment'))
+            self.conda_status.update_interpreter(self.get_main_interpreter())
 
         # Editor plugin
         self.set_splash(_("Loading editor..."))
@@ -2920,6 +2927,11 @@ class MainWindow(QMainWindow):
                 if widget is not None:
                     widget.setVisible(CONF.get('main', '%s/enable' % name))
                     widget.set_interval(CONF.get('main', '%s/timeout' % name))
+
+            # Update conda status widget
+            if is_anaconda() and self.conda_status:
+                interpreter = self.get_main_interpreter()
+                self.conda_status.update_interpreter(interpreter)
         else:
             return
 
@@ -3279,6 +3291,14 @@ class MainWindow(QMainWindow):
         self.worker_updates.moveToThread(self.thread_updates)
         self.thread_updates.started.connect(self.worker_updates.start)
         self.thread_updates.start()
+
+    # --- Main interpreter
+    # ------------------------------------------------------------------------
+    def get_main_interpreter(self):
+        if CONF.get('main_interpreter', 'default'):
+            return sys.executable
+        else:
+            return CONF.get('main_interpreter', 'custom_interpreter')
 
     # --- For OpenGL
     def _test_setting_opengl(self, option):
