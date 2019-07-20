@@ -314,14 +314,12 @@ class PylintWidget(QWidget):
 
     @Slot()
     def analyze_button_handler(self):
-        """ Try to start code analysis when Analyze button pressed."""
-
+        """Try to start code analysis when Analyze button pressed."""
         self.start_analysis.emit()
 
     @Slot()
     def start(self):
-        """ Start the code analysis. """
-
+        """Start the code analysis."""
         filename = to_text_string(self.filecombo.currentText())
 
         self.process = QProcess(self)
