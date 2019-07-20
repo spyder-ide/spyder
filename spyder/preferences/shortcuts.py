@@ -659,7 +659,7 @@ class CustomSortFilterProxy(QSortFilterProxyModel):
     def set_filter(self, text):
         """Set regular expression for filter."""
         self.pattern = get_search_regex(text)
-        if self.pattern:
+        if self.pattern and text:
             self._parent.setSortingEnabled(False)
         else:
             self._parent.setSortingEnabled(True)
