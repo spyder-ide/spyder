@@ -8,11 +8,17 @@ services:
 matrix:
   fast_finish: true
   include:
-    - env: PYTHON_VERSION=2.7 USE_CONDA=yes
-    - env: PYTHON_VERSION=3.6 USE_CONDA=yes
-    - env: PYTHON_VERSION=3.7 USE_CONDA=yes
-    - env: PYTHON_VERSION=3.6 USE_CONDA=no
-    - env: PYTHON_VERSION=3.7 USE_CONDA=no
+  #  - env: PYTHON_VERSION=2.7 USE_CONDA=yes
+  #  - env: PYTHON_VERSION=3.6 USE_CONDA=yes
+  #  - env: PYTHON_VERSION=3.7 USE_CONDA=yes
+  #  - env: PYTHON_VERSION=3.8-dev USE_CONDA=yes
+  #  - env: PYTHON_VERSION=3.6 USE_CONDA=no
+  #  - env: PYTHON_VERSION=3.7 USE_CONDA=no
+  #  - env: PYTHON_VERSION=3.8-dev USE_CONDA=no
+    - language: python
+      sudo: true
+      python: 3.8-dev
+      env: PYTHON_VERSION=3.8-dev USE_CONDA=no
 
 before_install:
   # Avoid annoying focus problems when running tests
@@ -20,6 +26,7 @@ before_install:
   - sudo apt-get -qq update
   - sudo apt-get install -y matchbox-window-manager xterm libxkbcommon-x11-0
   - matchbox-window-manager&
+  - sudo apt-get install libzmq3-dev
   - sleep 5
 
 install:

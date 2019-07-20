@@ -2,8 +2,6 @@
 
 set -ex
 
-source $HOME/miniconda/etc/profile.d/conda.sh
-conda activate test
 
 export TEST_CI_WIDGETS=True
 export PYTHONPATH=.

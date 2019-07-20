@@ -20,11 +20,13 @@ jobs:
   # Run the pipeline with multiple Python versions
   strategy:
     matrix:
-      Python27:
-        python.version: '2.7'
-      Python36:
-        python.version: '3.6'
-      Python37:
+      #Python27:
+      #  python.version: '2.7'
+      #Python36:
+      #  python.version: '3.6'
+      #Python37:
+      #  python.version: '3.7'
+      Python38:
         python.version: '3.7'
     maxParallel: 4
 
@@ -92,10 +94,16 @@ jobs:
     matrix:
       #Python27:
       #  python.version: '2.7'
-      Python36:
-        python.version: '3.6'
-        use.conda: "yes"
-      Python37_pip:
+      #Python36:
+      #  python.version: '3.6'
+      #  use.conda: "yes"
+      #Python37_pip:
+      #  python.version: '3.7'
+      #  use.conda: "no"
+      #Python38:
+        #python.version: '3.7'
+       # use.conda: "yes"
+      Python38_pip:
         python.version: '3.7'
         use.conda: "no"
     maxParallel: 4

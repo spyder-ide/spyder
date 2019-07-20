@@ -23,6 +23,10 @@ if %USE_CONDA% == yes (
     if errorlevel 1 exit 1
 )
 
+if %PYTHON_VERSION% == 3.7 (
+    conda create -n py38 -c conda-forge/label/pre-3.8 python
+    conda activate py38
+)
 :: The newly introduced changes to the Python packages in Anaconda
 :: are breaking our tests. Reverting to known working builds.
 ::if %PYTHON_VERSION% == 2.7 (
