@@ -19,8 +19,7 @@ from qtpy.QtCore import Qt, QPoint
 
 # Local imports
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import NamespaceBrowser
-from spyder.plugins.variableexplorer.widgets.tests.test_collectioneditor \
-    import data_table
+from spyder.plugins.variableexplorer.widgets.tests.test_collectioneditor import data_table
 
 def test_setup_sets_dataframe_format(qtbot):
     browser = NamespaceBrowser(None)
