@@ -64,7 +64,7 @@ from spyder.plugins.editor.panels import (ClassFunctionDropdown,
                                           DebuggerPanel, EdgeLine,
                                           FoldingPanel, IndentationGuide,
                                           LineNumberArea, PanelsManager,
-                                          ScrollFlagArea)
+                                          ScrollFlagArea, BookmarksPanel)
 from spyder.plugins.editor.utils.editor import (TextHelper, BlockUserData,
                                                 TextBlockHelper)
 from spyder.plugins.editor.utils.debugger import DebuggerManager
@@ -354,6 +354,9 @@ class CodeEditor(TextEditBaseWidget):
 
         # Line number area management
         self.linenumberarea = self.panels.register(LineNumberArea(self))
+
+        # Bookmarks panel
+        self.bookmarks_panel = self.panels.register(BookmarksPanel())
 
         # Class and Method/Function Dropdowns
         self.classfuncdropdown = self.panels.register(
@@ -742,7 +745,8 @@ class CodeEditor(TextEditBaseWidget):
                      indent_guides=False,
                      scroll_past_end=False,
                      debug_panel=True,
-                     folding=True):
+                     folding=True,
+                     bookmarks=True):
 
         self.set_close_parentheses_enabled(close_parentheses)
         self.set_close_quotes_enabled(close_quotes)
@@ -755,6 +759,9 @@ class CodeEditor(TextEditBaseWidget):
 
         # Show/hide folding panel depending on parameter
         self.set_folding_panel(folding)
+
+        # Show/hide bookmarks panel depending on parameter
+        self.set_bookmarks_panel(bookmarks)
 
         # Scrollbar flag area
         self.scrollflagarea.set_enabled(scrollflagarea)
@@ -1159,6 +1166,11 @@ class CodeEditor(TextEditBaseWidget):
         """Enable/disable folding panel."""
         folding_panel = self.panels.get(FoldingPanel)
         folding_panel.setVisible(folding)
+
+    def set_bookmarks_panel(self, bookmarks):
+        """Enable/disable debug panel."""
+        bookmarks_panel = self.panels.get(BookmarksPanel)
+        bookmarks_panel.setVisible(bookmarks)
 
     def set_tab_mode(self, enable):
         """
@@ -1638,7 +1650,7 @@ class CodeEditor(TextEditBaseWidget):
         data = block.userData()
         if not data:
             data = BlockUserData(self)
-        if slot_num not in data.bookmarks:
+        if (slot_num, column) not in data.bookmarks:
             data.bookmarks.append((slot_num, column))
         block.setUserData(data)
         self.sig_bookmarks_changed.emit()
@@ -1669,6 +1681,34 @@ class CodeEditor(TextEditBaseWidget):
 
     def update_bookmarks(self):
         """Emit signal to update bookmarks."""
+        self.sig_bookmarks_changed.emit()
+
+    # ----- Code bookmarks
+    def add_next_bookmark(self, line):
+        """Add bookmark to current block's userData."""
+
+        block = self.document().firstBlock()
+        # Find free slot number
+        used_slots = set()
+        for line_number in range(0, self.document().blockCount()):
+            data = block.userData()
+            if data and data.bookmarks:
+                for slot_num, column in data.bookmarks:
+                    used_slots.add(slot_num)
+            block = block.next()
+
+        print(used_slots)
+        slot_num = min(set(range(10))-used_slots)
+        print(slot_num)
+
+        # Assign bookmark to slot
+        block = self.document().findBlockByNumber(line)
+        data = block.userData()
+        if not data:
+            data = BlockUserData(self)
+        if slot_num not in data.bookmarks:
+            data.bookmarks.append(slot_num)
+        block.setUserData(data)
         self.sig_bookmarks_changed.emit()
 
     #-----Code introspection

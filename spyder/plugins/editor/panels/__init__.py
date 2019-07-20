@@ -17,3 +17,4 @@ from .indentationguides import IndentationGuide
 from .linenumber import LineNumberArea
 from .manager import PanelsManager
 from .scrollflag import ScrollFlagArea
+from .bookmarks import BookmarksPanel
