@@ -65,6 +65,8 @@ if PY2:
     import thread as _thread
     import repr as reprlib
     import Queue
+    from time import clock as perf_counter
+    from base64 import decodestring as decodebytes
 else:
     # Python 3
     import builtins
@@ -80,6 +82,8 @@ else:
     import _thread
     import reprlib
     import queue as Queue
+    from time import perf_counter
+    from base64 import decodebytes
 
 
 #==============================================================================

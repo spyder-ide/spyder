@@ -57,7 +57,7 @@ from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font, config_shortcut
 from spyder.py3compat import (io, is_text_string, is_type_text_string, PY2,
-                              to_text_string)
+                              to_text_string, perf_counter)
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     keybinding, qapplication)
@@ -1131,14 +1131,14 @@ class DataFrameEditor(QDialog):
     def _sizeHintForColumn(self, table, col, limit_ms=None):
         """Get the size hint for a given column in a table."""
         max_row = table.model().rowCount()
-        lm_start = time.perf_counter()
+        lm_start = perf_counter()
         lm_row = 64 if limit_ms else max_row
         max_width = self.min_trunc
         for row in range(max_row):
             v = table.sizeHintForIndex(table.model().index(row, col))
             max_width = max(max_width, v.width())
             if row > lm_row:
-                lm_now = time.perf_counter()
+                lm_now = perf_counter()
                 lm_elapsed = (lm_now - lm_start) * 1000
                 if lm_elapsed >= limit_ms:
                     break
