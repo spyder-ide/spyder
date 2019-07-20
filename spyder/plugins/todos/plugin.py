@@ -19,6 +19,7 @@
 import os.path as osp
 
 # Third party imports
+from qtpy.QtCore import Slot
 from qtpy.QtWidgets import QVBoxLayout
 
 # Local imports
@@ -44,7 +45,7 @@ class Todos(SpyderPluginWidget):
         layout.addWidget(self.todos)
         self.setLayout(layout)
 
-        self.todos.set_data()
+        self.update_data()
         # Follow editorstacks tab change
         self.main.editor.sig_editor_focus_changed.connect(self.update_data)
         # Follow Todo list updates
@@ -87,14 +88,10 @@ class Todos(SpyderPluginWidget):
         """Show the todos dockwidget"""
         self.switch_to_plugin()
 
-    def get_todo_list(self):
-        editorstack = self.main.editor.get_current_editorstack()
-        results = editorstack.get_todo_results()
-        return results
-
-    def get_filename(self):
-        return self.main.editor.get_current_filename()
-
+    @Slot()
     def update_data(self):
         """Update table"""
-        self.todos.set_data()
+        editorstack = self.main.editor.get_current_editorstack()
+        results = editorstack.get_todo_results()
+        filename = self.main.editor.get_current_filename()
+        self.todos.set_data(results, filename)

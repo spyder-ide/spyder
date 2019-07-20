@@ -19,6 +19,7 @@
 import os.path as osp
 
 # Third party imports
+from qtpy.QtCore import Slot
 from qtpy.QtWidgets import QVBoxLayout
 
 # Local imports
@@ -44,12 +45,12 @@ class Warnings(SpyderPluginWidget):
         layout.addWidget(self.warnings)
         self.setLayout(layout)
 
-        self.warnings.set_data()
         # Follow editorstacks tab change
         self.main.editor.sig_editor_focus_changed.connect(self.update_data)
         # Follow updated code anaylsis
         editorstack = self.main.editor.get_current_editorstack()
         editorstack.update_code_analysis_actions.connect(self.update_data)
+        self.update_data()
 
     # ----- SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
@@ -87,15 +88,10 @@ class Warnings(SpyderPluginWidget):
         """Show the warnings dockwidget"""
         self.switch_to_plugin()
 
-    def get_warning_list(self):
-        editor = self.main.editor.get_current_editor()
-        if editor:
-            results = editor.get_current_warnings_complete_list()
-            return results
-
-    def get_filename(self):
-        return self.main.editor.get_current_filename()
-
+    @Slot()
     def update_data(self):
         """Update table"""
-        self.warnings.set_data()
+        editor = self.main.editor.get_current_editor()
+        results = editor.get_current_warnings_complete_list()
+        filename = self.main.editor.get_current_filename()
+        self.warnings.set_data(results, filename)

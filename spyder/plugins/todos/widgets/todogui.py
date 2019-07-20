@@ -17,7 +17,7 @@ import sys
 # Third party imports
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QModelIndex, Qt, Signal,
-                         QSortFilterProxyModel)
+                         QSortFilterProxyModel, Slot)
 from qtpy.QtWidgets import (QTableView, QHBoxLayout, QHeaderView,
                             QVBoxLayout, QWidget, QAbstractItemView)
 
@@ -32,12 +32,17 @@ except KeyError:
     import gettext
     _ = gettext.gettext
 
+COLUMN_COUNT = 3
+COL_TYPE, COL_LINE, COL_COMMENT = range(COLUMN_COUNT)
+COLUMN_HEADERS = (_("Type"), _("Line"), _("Comment"))
+
 
 class TodoTableModel(QAbstractTableModel):
     """
     Table model for Todo list
 
     """
+
     def __init__(self, parent, data):
         QAbstractTableModel.__init__(self, parent)
         if data is None:
@@ -68,8 +73,7 @@ class TodoTableModel(QAbstractTableModel):
             return to_qvariant()
         i_column = int(section)
         if orientation == Qt.Horizontal:
-            headers = (_("Type"), _("Line"), _("Comment"))
-            return to_qvariant(headers[i_column])
+            return to_qvariant(COLUMN_HEADERS[i_column])
         else:
             return to_qvariant()
 
@@ -85,7 +89,7 @@ class TodoTableModel(QAbstractTableModel):
             value = self.get_value(index)
             return to_qvariant(value)
         elif role == Qt.TextAlignmentRole:
-            if index.column() == 1:
+            if index.column() == COL_LINE:
                 # Align line number right
                 return to_qvariant(int(Qt.AlignRight | Qt.AlignVCenter))
             else:
@@ -97,7 +101,7 @@ class TodoTableModel(QAbstractTableModel):
 
 
 class TodoTableView(QTableView):
-    edit_goto = Signal(str, int, str)
+    edit_goto = Signal(int)
 
     def __init__(self, parent, data):
         QTableView.__init__(self, parent)
@@ -107,7 +111,6 @@ class TodoTableView(QTableView):
         self.sortmodel = QSortFilterProxyModel()
         self.sortmodel.setSourceModel(self.model)
         self.setModel(self.sortmodel)
-        self.parent = parent
 
     def setup_table(self):
         """Setup table"""
@@ -123,15 +126,15 @@ class TodoTableView(QTableView):
         self.clicked.connect(self.onClick)
 
     def adjust_columns(self):
-        """Resize three first columns to contents"""
-        for col in range(2):
+        """Resize all but last column to contents"""
+        for col in range(COLUMN_COUNT - 1):
             self.resizeColumnToContents(col)
 
     def onClick(self, item):
         """Double-click event"""
         original_item = self.sortmodel.mapToSource(item)
         data = self.model.todos[original_item.row()]
-        self.edit_goto.emit(self.parent.get_filename(), data[1], '')
+        self.edit_goto.emit(data[COL_LINE])
 
 
 class TodoWidget(QWidget):
@@ -143,10 +146,9 @@ class TodoWidget(QWidget):
 
     def __init__(self, parent, options_button=None):
         QWidget.__init__(self, parent)
-        self.parent = parent
-
-        self.setWindowTitle("Todos")
-        self.todotable = TodoTableView(self, self._load_all_todos())
+        self.filename = None
+        self.setWindowTitle(_("Todos"))
+        self.todotable = TodoTableView(self, None)
         if options_button:
             btn_layout = QHBoxLayout()
             btn_layout.setAlignment(Qt.AlignLeft)
@@ -157,23 +159,20 @@ class TodoWidget(QWidget):
             layout = QVBoxLayout()
             layout.addWidget(self.todotable)
         self.setLayout(layout)
-        self.todotable.edit_goto.connect(
-                        lambda s1, lino, s2: self.edit_goto.emit(s1, lino, s2))
+        # Connect signal
+        self.todotable.edit_goto.connect(self.edit_goto_handler)
 
-    def _load_all_todos(self):
-        if self.parent:
-            return self.parent.get_todo_list()
+    @Slot(int)
+    def edit_goto_handler(self, line_number):
+        self.edit_goto.emit(self.filename, line_number, '')
 
     def get_data(self):
         pass
 
-    def get_filename(self):
-        return self.parent.get_filename()
-
-    def set_data(self):
-        res = self._load_all_todos()
-        self.todotable.model.set_data(res)
+    def set_data(self, todo_data, filename):
+        self.todotable.model.set_data(todo_data)
         self.todotable.adjust_columns()
+        self.filename = filename
 
 
 # =============================================================================
