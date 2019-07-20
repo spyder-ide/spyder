@@ -2643,7 +2643,21 @@ class CodeEditor(TextEditBaseWidget):
         force=True: unindent even if cursor is not a the beginning of the line
         """
         if self.has_selected_text():
-            self.remove_prefix(self.indent_chars)
+            if self.indent_chars == "\t":
+                # Tabs, remove one tab
+                self.remove_prefix(self.indent_chars)
+            else:
+                # Spaces
+                space_count = len(self.indent_chars)
+                leading_spaces = self.__spaces_for_prefix()
+                remainder = leading_spaces % space_count
+                if remainder:
+                    # Get block on "space multiple grid".
+                    # See spyder-ide/spyder#5734.
+                    self.remove_prefix(" "*remainder)
+                else:
+                    # Unindent one space multiple
+                    self.remove_prefix(self.indent_chars)
         else:
             leading_text = self.get_text('sol', 'cursor')
             if force or not leading_text.strip() \
