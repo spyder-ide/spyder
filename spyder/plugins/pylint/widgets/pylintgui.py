@@ -148,6 +148,7 @@ class PylintWidget(QWidget):
     DATAPATH = get_conf_path('pylint.results')
     VERSION = '1.1.0'
     redirect_stdio = Signal(bool)
+    start_analysis = Signal()
 
     def __init__(self, parent, max_entries=100, options_button=None,
                  text_color=None, prevrate_color=None):
@@ -176,7 +177,8 @@ class PylintWidget(QWidget):
         self.start_button = create_toolbutton(self, icon=ima.icon('run'),
                                     text=_("Analyze"),
                                     tip=_("Run analysis"),
-                                    triggered=self.start, text_beside_icon=True)
+                                    triggered=self.analyze_button_handler,
+                                    text_beside_icon=True)
         self.stop_button = create_toolbutton(self,
                                              icon=ima.icon('stop'),
                                              text=_("Stop"),
@@ -311,7 +313,13 @@ class PylintWidget(QWidget):
                        readonly=True, size=(700, 500)).exec_()
 
     @Slot()
+    def analyze_button_handler(self):
+        """Try to start code analysis when Analyze button pressed."""
+        self.start_analysis.emit()
+
+    @Slot()
     def start(self):
+        """Start the code analysis."""
         filename = to_text_string(self.filecombo.currentText())
 
         self.process = QProcess(self)
