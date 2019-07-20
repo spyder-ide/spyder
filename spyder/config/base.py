@@ -118,7 +118,7 @@ def debug_print(*message):
 # Configuration paths
 #==============================================================================
 def get_conf_subfolder():
-    """"""
+    """Return the configuration subfolder for different ooperating systems."""
     # Spyder settings dir
     # NOTE: During the 2.x.x series this dir was named .spyder2, but
     # since 3.0+ we've reverted back to use .spyder to simplify major
@@ -147,7 +147,7 @@ def get_conf_subfolder():
 
 
 def get_project_config_folder():
-    """"""
+    """Return the default project configuration folder."""
     return '.spyproject'
 
 

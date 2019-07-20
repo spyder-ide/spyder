@@ -84,7 +84,7 @@ def test_userconfig_get_does_not_eval_functions(userconfig):
 
 def test_userconfig_set_with_string(userconfig):
     userconfig.set('section', 'option', 'new value')
-    with open(userconfig.get_config_path()) as inifile:
+    with open(userconfig.get_config_fpath()) as inifile:
         ini_contents = inifile.read()
 
     expected = '[main]\nversion = 1.0.0\n\n'
@@ -108,8 +108,8 @@ def test_userconfig_check_version(tmpdir, test_version, userconfig):
     name = 'spyder-test'
     path = str(tmpdir)
     with pytest.raises(ValueError):
-        conf = UserConfig(name=name, path=path, defaults=DEFAULTS,
-                          load=False, version=test_version, raw_mode=True)
+        UserConfig(name=name, path=path, defaults=DEFAULTS,
+                   load=False, version=test_version, raw_mode=True)
 
     # Check that setting a wrong version also runs the version checks
     with pytest.raises(ValueError):
@@ -164,6 +164,41 @@ def test_userconfig_remove_deprecated_options(userconfig, tmpconfig):
     pass
 
 
+@pytest.mark.parametrize('value,expected', [
+    ('3.2.1', '3.2'),
+    ('3.2.0', '3.2'),
+])
+def test_userconfig_get_minor_version(value, expected):
+    result = UserConfig._get_minor_version(value)
+    assert result == expected
+
+
+@pytest.mark.parametrize('value,expected', [
+    ('3.2.1', '3'),
+    ('0.2.0', '0'),
+])
+def test_userconfig_get_major_version(value, expected):
+    result = UserConfig._get_major_version(value)
+    assert result == expected
+
+
+def test_userconfig_load_from_ini(tmpdir, capsys):
+    # Test error on loading
+    name = 'foobar'
+    path = str(tmpdir)
+    fpath = os.path.join(path, '{}.ini'.format(name))
+    with open(fpath, 'w') as fh:
+        fh.write('[sec\n')
+
+    conf = UserConfig(name=name, path=path, defaults=DEFAULTS,
+                      load=True, version=CONF_VERSION, backup=False,
+                      raw_mode=True)
+    assert conf.get_config_fpath() == fpath
+
+    captured = capsys.readouterr()
+    assert 'Warning' in captured.out
+
+
 def test_userconfig_get_version(userconfig, tmpconfig):
     assert tmpconfig.get_version() == CONF_VERSION
     assert userconfig.get_version() == '1.0.0'
@@ -177,62 +212,53 @@ def test_userconfig_set_version(userconfig):
     assert userconfig.get_version() == version
 
 
-@pytest.mark.parametrize('defaults,value', [
-    # Valid values
-    ([('test', {'opt': 'value'})], 'other'),
-    ([('test', {'opt': 'éàÇÃãéèï'})], u'ãéèï'),
-    ([('test', {'opt': True})], False),
-    ([('test', {'opt': UserConfig})], dict),
-    ([('test', {'opt': 123})], 345),
-    ([('test', {'opt': 123.123})], 345.345),
-    ([('test', {'opt': [1]})], [1]),
-    ([('test', {'opt': {'key': 'val'}})], {'key2': 'val2'}),
-    # Value not in defaults
-    ([('test', {'opt1': 'value'})], 'other'),
-])
-def test_userconfig_set_valid(defaults, value, tmpdir):
+def test_userconfig_reset_to_defaults(tmpdir):
     name = 'foobar'
     path = str(tmpdir)
+    defaults = [('main', {'opt': False}), ('test', {'opt': False})]
     conf = UserConfig(name=name, path=path, defaults=defaults,
                       load=False, version='1.0.0', backup=False,
                       raw_mode=True)
-    conf.set('test', 'opt', value)
+    # Skip section, should go to default
+    assert conf.defaults == defaults
+    conf.set(None, 'opt', True)
+    assert conf.get(None, 'opt') is True
+    conf.reset_to_defaults()
+    assert conf.get(None, 'opt') is False
+
+    # Provide section, should go to sectio
+    assert conf.defaults == defaults
+    conf.set('test', 'opt', True)
+    assert conf.get('test', 'opt') is True
+    conf.reset_to_defaults()
+    assert conf.get('test', 'opt') is False
 
 
-@pytest.mark.parametrize('defaults,value', [
-    ([('test', {'opt': 123})], 'no'),
-    ([('test', {'opt': 123.123})], 'n9'),
-    ([('test', {'opt': 123.123})], 'n9'),
-])
-def test_userconfig_set_invalid(defaults, value, tmpdir):
+def test_userconfig_set_as_defaults(tmpdir):
     name = 'foobar'
     path = str(tmpdir)
-    conf = UserConfig(name=name, path=path, defaults=defaults,
+    conf = UserConfig(name=name, path=path, defaults={},
                       load=False, version='1.0.0', backup=False,
                       raw_mode=True)
 
-    with pytest.raises(ValueError):
-        conf.set('test', 'opt', value)
+    # TODO: Is this expected? this seems inconsistent
+    assert conf.defaults == [('main', {})]
+    conf.set_as_defaults()
+    assert conf.defaults == []
 
 
-def test_userconfig_set_default(userconfig):
+def test_userconfig_get_default(userconfig, tmpconfig):
+    # Not existing and no defaults
+    value = userconfig.get_default('other_section', 'other_option')
+    assert value == NoDefault
+
+    # Existing and no defaults
     value = userconfig.get_default('section', 'option')
     assert value == NoDefault
 
-    # TODO: Is this expected behavior? should. If no defaults are provided
-    # then they cannot be set individually until set_as_defaults() is ran?
-    default_value = 'foobar'
-    value = userconfig.set_default('section', 'option', default_value)
-    value = userconfig.get_default('section', 'option')
-    assert value == NoDefault
-
-    userconfig.set_as_defaults()
-    value = userconfig.get_default('section', 'option')
-    expected = "'value'" if PY2 else 'value'
-    assert value == expected
-    value = userconfig.set_default('section', 'option', default_value)
-    value = userconfig.get_default('section', 'option')
-    assert value == default_value
+    # Existing and defaults
+    value = tmpconfig.get_default('main', 'window/is_maximized')
+    assert value is True
 
 
 @pytest.mark.parametrize('defaults,value', [
@@ -277,70 +303,62 @@ def test_userconfig_get2(defaults, default, raises, tmpdir):
         conf.get('test', 'opt', default)
 
 
-def test_userconfig_get_default(userconfig, tmpconfig):
-    # Not existing and no defaults
-    value = userconfig.get_default('other_section', 'other_option')
-    assert value == NoDefault
-
-    # Existing and no defaults
+def test_userconfig_set_default(userconfig):
     value = userconfig.get_default('section', 'option')
     assert value == NoDefault
 
-    # Existing and defaults
-    value = tmpconfig.get_default('main', 'window/is_maximized')
-    assert value is True
+    # TODO: Is this expected behavior? should. If no defaults are provided
+    # then they cannot be set individually until set_as_defaults() is ran?
+    default_value = 'foobar'
+    value = userconfig.set_default('section', 'option', default_value)
+    value = userconfig.get_default('section', 'option')
+    assert value == NoDefault
+
+    userconfig.set_as_defaults()
+    value = userconfig.get_default('section', 'option')
+    expected = "'value'" if PY2 else 'value'
+    assert value == expected
+    value = userconfig.set_default('section', 'option', default_value)
+    value = userconfig.get_default('section', 'option')
+    assert value == default_value
 
 
-def test_userconfig_reset_to_defaults(tmpdir):
+@pytest.mark.parametrize('defaults,value', [
+    # Valid values
+    ([('test', {'opt': 'value'})], 'other'),
+    ([('test', {'opt': 'éàÇÃãéèï'})], u'ãéèï'),
+    ([('test', {'opt': True})], False),
+    ([('test', {'opt': UserConfig})], dict),
+    ([('test', {'opt': 123})], 345),
+    ([('test', {'opt': 123.123})], 345.345),
+    ([('test', {'opt': [1]})], [1]),
+    ([('test', {'opt': {'key': 'val'}})], {'key2': 'val2'}),
+    # Value not in defaults
+    ([('test', {'opt1': 'value'})], 'other'),
+])
+def test_userconfig_set_valid(defaults, value, tmpdir):
     name = 'foobar'
     path = str(tmpdir)
-    defaults = [('main', {'opt': False}), ('test', {'opt': False})]
     conf = UserConfig(name=name, path=path, defaults=defaults,
                       load=False, version='1.0.0', backup=False,
                       raw_mode=True)
-    # Skip section, should go to default
-    assert conf.defaults == defaults
-    conf.set(None, 'opt', True)
-    assert conf.get(None, 'opt') is True
-    conf.reset_to_defaults()
-    assert conf.get(None, 'opt') is False
-
-    # Provide section, should go to sectio
-    assert conf.defaults == defaults
-    conf.set('test', 'opt', True)
-    assert conf.get('test', 'opt') is True
-    conf.reset_to_defaults()
-    assert conf.get('test', 'opt') is False
+    conf.set('test', 'opt', value)
 
 
-def test_userconfig_set_as_defaults(tmpdir):
+@pytest.mark.parametrize('defaults,value', [
+    ([('test', {'opt': 123})], 'no'),
+    ([('test', {'opt': 123.123})], 'n9'),
+    ([('test', {'opt': 123.123})], 'n9'),
+])
+def test_userconfig_set_invalid(defaults, value, tmpdir):
     name = 'foobar'
     path = str(tmpdir)
-    conf = UserConfig(name=name, path=path, defaults={},
+    conf = UserConfig(name=name, path=path, defaults=defaults,
                       load=False, version='1.0.0', backup=False,
                       raw_mode=True)
 
-    # TODO: Is this expected? this seems inconsistent
-    assert conf.defaults == [('main', {})]
-    conf.set_as_defaults()
-    assert conf.defaults == []
-
-
-def test_userconfig_load_from_ini(tmpdir, capsys):
-    # Test error on loading
-    name = 'foobar'
-    path = str(tmpdir)
-    fpath = os.path.join(path, '{}.ini'.format(name))
-    with open(fpath, 'w') as fh:
-        fh.write('[sec\n')
-
-    conf = UserConfig(name=name, path=path, defaults=DEFAULTS,
-                      load=True, version=CONF_VERSION, backup=False,
-                      raw_mode=True)
-    assert conf.get_config_path() == fpath
-
-    captured = capsys.readouterr()
-    assert 'Warning' in captured.out
+    with pytest.raises(ValueError):
+        conf.set('test', 'opt', value)
 
 
 def test_userconfig_remove_section(userconfig):
@@ -357,10 +375,15 @@ def test_userconfig_remove_option(userconfig):
 
 
 def test_userconfig_cleanup(userconfig):
-    configpath = userconfig.get_config_path()
+    configpath = userconfig.get_config_fpath()
     assert os.path.isfile(configpath)
     userconfig.cleanup()
     assert not os.path.isfile(configpath)
+
+
+# --- Tests for MultiUserConfig
+# ----------------------------------------------------------------------------
+
 
 
 if __name__ == "__main__":

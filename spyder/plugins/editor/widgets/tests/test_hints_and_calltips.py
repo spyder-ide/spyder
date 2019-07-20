@@ -28,29 +28,29 @@ def {SIG}:
 some_function""".format(SIG=TEST_SIG, DOC=TEST_DOCSTRING)
 
 
-# @pytest.mark.slow
-# @pytest.mark.second
-# def test_hide_calltip(lsp_codeeditor, qtbot):
-#     """Test that calltips are hidden when a matching ')' is found."""
-#     code_editor, _ = lsp_codeeditor
+@pytest.mark.slow
+@pytest.mark.second
+def test_hide_calltip(lsp_codeeditor, qtbot):
+    """Test that calltips are hidden when a matching ')' is found."""
+    code_editor, _ = lsp_codeeditor
 
-#     text = 'a = [1,2,3]\n(max'
-#     # Set text to start
-#     code_editor.set_text(text)
-#     code_editor.go_to_line(2)
-#     code_editor.move_cursor(4)
-#     calltip = code_editor.calltip_widget
-#     assert not calltip.isVisible()
+    text = 'a = [1,2,3]\n(max'
+    # Set text to start
+    code_editor.set_text(text)
+    code_editor.go_to_line(2)
+    code_editor.move_cursor(4)
+    calltip = code_editor.calltip_widget
+    assert not calltip.isVisible()
 
-#     with qtbot.waitSignal(code_editor.sig_signature_invoked, timeout=30000):
-#         qtbot.keyPress(code_editor, Qt.Key_ParenLeft, delay=3000)
+    with qtbot.waitSignal(code_editor.sig_signature_invoked, timeout=30000):
+        qtbot.keyPress(code_editor, Qt.Key_ParenLeft, delay=3000)
 
-#     qtbot.waitUntil(lambda: calltip.isVisible(), timeout=3000)
-#     qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
-#     qtbot.keyPress(code_editor, Qt.Key_Space)
-#     qtbot.waitUntil(lambda: not calltip.isVisible(), timeout=3000)
-#     qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
-#     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
+    qtbot.waitUntil(lambda: calltip.isVisible(), timeout=3000)
+    qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
+    qtbot.keyPress(code_editor, Qt.Key_Space)
+    qtbot.waitUntil(lambda: not calltip.isVisible(), timeout=3000)
+    qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
 
 
 @pytest.mark.slow

@@ -25,37 +25,37 @@ TEXT = ("def some_function():\n"  # D100, D103: Missing docstring
         "    return a\n")
 
 
-# @pytest.mark.slow
-# @pytest.mark.second
-# def test_ignore_warnings(qtbot, lsp_codeeditor):
-#     """Test that the editor is ignoring some warnings."""
-#     editor, manager = lsp_codeeditor
+@pytest.mark.slow
+@pytest.mark.second
+def test_ignore_warnings(qtbot, lsp_codeeditor):
+    """Test that the editor is ignoring some warnings."""
+    editor, manager = lsp_codeeditor
 
-#     # Set text in editor
-#     editor.set_text(TEXT)
+    # Set text in editor
+    editor.set_text(TEXT)
 
-#     CONF.set('lsp-server', 'pydocstyle/ignore', 'D100')
-#     CONF.set('lsp-server', 'pycodestyle/ignore', 'E261')
-#     manager.update_server_list()
-#     qtbot.wait(2000)
+    CONF.set('lsp-server', 'pydocstyle/ignore', 'D100')
+    CONF.set('lsp-server', 'pycodestyle/ignore', 'E261')
+    manager.update_server_list()
+    qtbot.wait(2000)
 
-#     # Notify changes
-#     with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
-#         editor.document_did_change()
+    # Notify changes
+    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
+        editor.document_did_change()
 
-#     # Get current warnings
-#     warnings = editor.get_current_warnings()
+    # Get current warnings
+    warnings = editor.get_current_warnings()
 
-#     expected = [['D103: Missing docstring in public function', 1],
-#                 ['W293 blank line contains whitespace', 2],
-#                 ["undefined name 's'", 5]]
+    expected = [['D103: Missing docstring in public function', 1],
+                ['W293 blank line contains whitespace', 2],
+                ["undefined name 's'", 5]]
 
-#     CONF.set('lsp-server', 'pydocstyle/ignore', '')
-#     CONF.set('lsp-server', 'pycodestyle/ignore', '')
-#     manager.update_server_list()
-#     qtbot.wait(2000)
+    CONF.set('lsp-server', 'pydocstyle/ignore', '')
+    CONF.set('lsp-server', 'pycodestyle/ignore', '')
+    manager.update_server_list()
+    qtbot.wait(2000)
 
-#     assert warnings == expected
+    assert warnings == expected
 
 
 @pytest.mark.slow
