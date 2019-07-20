@@ -2338,13 +2338,13 @@ class CodeEditor(TextEditBaseWidget):
         """
         Get if there is a correct indentation from a group of spaces of a line.
         """
-        spaces = re.findall('\s+', line_text)
+        spaces = re.findall(r'\s+', line_text)
         if len(spaces) - 1 >= group:
             return len(spaces[group]) % len(self.indent_chars) == 0
 
     def __number_of_spaces(self, line_text, group=0):
         """Get the number of spaces from a group of spaces in a line."""
-        spaces = re.findall('\s+', line_text)
+        spaces = re.findall(r'\s+', line_text)
         if len(spaces) - 1 >= group:
             return len(spaces[group])
 
