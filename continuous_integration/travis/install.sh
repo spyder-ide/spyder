@@ -38,7 +38,7 @@
     # Install Spyder and its dependencies from our setup.py
      pip install pyzmq
      pip install tornado
-     pip install qtconsole
+     pip install git+https://github.com/oscargus/qtconsole.git@python38deprecationwarnings
      pip install pyqt5
      pip install PyQtWebEngine
     # pip install nomkl
