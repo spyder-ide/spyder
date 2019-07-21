@@ -88,6 +88,7 @@
     pip install psutil
     pip install pylint
     pip install watchdog
+    pip install xdg
     # Remove pytest-xvfb because it causes hangs
      pip uninstall -q -y pytest-xvfb
 #fi
