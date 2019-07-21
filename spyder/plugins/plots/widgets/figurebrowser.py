@@ -531,7 +531,6 @@ class FigureViewer(QScrollArea):
 
         if self.figcanvas.size() != QSize(new_width, new_height):
             self.figcanvas.setFixedSize(new_width, new_height)
-            scaling = self.get_scaling()
             self.sig_zoom_changed.emit(self.get_scaling())
 
     def get_scaling(self):
