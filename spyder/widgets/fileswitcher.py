@@ -513,7 +513,7 @@ class FileSwitcher(QDialog):
                 max_entries = len(content)
             else:
                 max_entries = 15
-            max_height = height * max_entries * 1.7
+            max_height = round(height * max_entries * 1.7)
             self.list.setMinimumHeight(max_height)
 
             # Resize

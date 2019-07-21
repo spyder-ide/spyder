@@ -701,7 +701,7 @@ class ThumbnailScrollBar(QFrame):
         else:
             canvas_height = max_length
             canvas_width = canvas_height / fheight * fwidth
-        thumbnail.canvas.setFixedSize(canvas_width, canvas_height)
+        thumbnail.canvas.setFixedSize(int(canvas_width), int(canvas_height))
 
         thumbnail.sig_canvas_clicked.connect(self.set_current_thumbnail)
         thumbnail.sig_remove_figure.connect(self.remove_thumbnail)
