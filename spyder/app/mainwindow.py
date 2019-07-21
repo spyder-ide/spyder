@@ -127,8 +127,9 @@ if not running_under_pytest():
     SPLASH_FONT.setPixelSize(10)
     SPLASH.setFont(SPLASH_FONT)
     SPLASH.show()
-    SPLASH.showMessage(_("Initializing..."), Qt.AlignBottom | Qt.AlignCenter |
-                    Qt.AlignAbsolute, QColor(Qt.white))
+    SPLASH.showMessage(_("Initializing..."),
+                       int(Qt.AlignBottom | Qt.AlignCenter | Qt.AlignAbsolute),
+                       QColor(Qt.white))
     QApplication.processEvents()
 else:
     SPLASH = None
@@ -2292,8 +2293,10 @@ class MainWindow(QMainWindow):
         if message:
             logger.info(message)
         self.splash.show()
-        self.splash.showMessage(message, Qt.AlignBottom | Qt.AlignCenter |
-                                Qt.AlignAbsolute, QColor(Qt.white))
+        self.splash.showMessage(message,
+                                int(Qt.AlignBottom | Qt.AlignCenter |
+                                    Qt.AlignAbsolute),
+                                QColor(Qt.white))
         QApplication.processEvents()
 
     def closeEvent(self, event):

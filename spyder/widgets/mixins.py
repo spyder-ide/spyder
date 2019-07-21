@@ -98,12 +98,12 @@ class BaseEditMixin(object):
         else:
             # Showing tooltip at cursor position
             cx, cy = self.get_coordinates('cursor')
-            cy = cy - font.pointSize() / 2
+            cy = int(cy - font.pointSize() / 2)
 
         # Calculate vertical delta
         # The needed delta changes with font size, so we use a power law
         if sys.platform == 'darwin':
-            delta = int((font.pointSize() * 1.20) ** 0.98) + 4.5
+            delta = int((font.pointSize() * 1.20) ** 0.98 + 4.5)
         elif os.name == 'nt':
             delta = int((font.pointSize() * 1.20) ** 1.05) + 7
         else:

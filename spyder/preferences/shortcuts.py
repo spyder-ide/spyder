@@ -526,7 +526,7 @@ class ShortcutsModel(QAbstractTableModel):
         """Qt Override."""
         if not index.isValid():
             return Qt.ItemIsEnabled
-        return Qt.ItemFlags(QAbstractTableModel.flags(self, index))
+        return Qt.ItemFlags(int(QAbstractTableModel.flags(self, index)))
 
     def data(self, index, role=Qt.DisplayRole):
         """Qt Override."""
