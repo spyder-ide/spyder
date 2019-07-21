@@ -475,7 +475,7 @@ class FileSwitcher(QDialog):
             left += geo.left()
             parent = parent.parent()
 
-        self.move(left, top)
+        self.move(round(left), top)
 
     def get_item_size(self, content):
         """

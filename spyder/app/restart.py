@@ -105,8 +105,10 @@ class Restarter(QWidget):
 
     def _show_message(self, text):
         """Show message on splash screen."""
-        self.splash.showMessage(text, Qt.AlignBottom | Qt.AlignCenter |
-                                Qt.AlignAbsolute, QColor(Qt.white))
+        self.splash.showMessage(text,
+                                int(Qt.AlignBottom | Qt.AlignCenter |
+                                    Qt.AlignAbsolute),
+                                QColor(Qt.white))
 
     def animate_ellipsis(self):
         """Animate dots at the end of the splash screen message."""
