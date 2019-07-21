@@ -65,14 +65,14 @@
 
      pip install atomicwrites
      pip install Pillow
-     pip install qtawesome
+     pip install git+https://github.com/oscargus/qtawesome.git@py38deprecationwarnings
      pip install diff_match_patch
      pip install chardet>=2.0
      pip install 'pytest<5.0'
      pip install pytest-cov
      pip install pytest-mock
      pip install pytest-qt
-     pip install pytest-ordering
+     pip install git+https://github.com/ftobia/pytest-ordering.git
      pip install pytest-lazy-fixture
      pip install mock
      pip install numpy
