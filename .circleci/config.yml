@@ -12,6 +12,7 @@ jobs:
             sudo apt-get -qq update
             sudo apt-get install libegl1-mesa
             sudo apt-get install libzmq3-dev
+            sudo apt-get -y --reinstall install libxcb*
       - run:
           command: sudo ./continuous_integration/travis/install.sh
       - run:
