@@ -38,8 +38,7 @@ def main(run_slow=False, extra_args=None):
                    '--durations=10']
 
     if RUN_CI:
-        pytest_args += ['-x',
-                        '--run-slow']
+        pytest_args += ['--run-slow']
         # To display nice tests resume in Azure's web page
         if os.environ.get('AZURE', None) is not None:
             pytest_args += ['--cache-clear', '--junitxml=result.xml']
