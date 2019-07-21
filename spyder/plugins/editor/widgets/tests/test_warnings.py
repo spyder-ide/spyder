@@ -105,7 +105,7 @@ def test_adding_warnings(qtbot, lsp_codeeditor):
 
 @pytest.mark.slow
 @pytest.mark.second
-@pytest.skip
+@pytest.mark.skip
 def test_move_warnings(qtbot, lsp_codeeditor):
     """Test that moving to next/previous warnings is working."""
     editor, _ = lsp_codeeditor
