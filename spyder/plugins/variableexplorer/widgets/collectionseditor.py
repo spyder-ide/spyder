@@ -425,6 +425,9 @@ class BaseHeaderView(QHeaderView):
         super(BaseHeaderView, self).__init__(Qt.Horizontal, parent)
         self._handle_section_is_pressed = False
         self.sectionResized.connect(self.sectionResizeEvent)
+        # Needed to enable sorting by column
+        # See spyder-ide/spyder#9835
+        self.setSectionsClickable(True)
 
     def mousePressEvent(self, e):
         self._handle_section_is_pressed = (self.cursor().shape() ==
