@@ -29,20 +29,19 @@ import warnings
 # Third party imports
 import cloudpickle
 from qtpy.compat import getsavefilename, to_qvariant
-from qtpy.QtCore import (QAbstractTableModel, QDateTime, QModelIndex, Qt,
+from qtpy.QtCore import (QAbstractTableModel, QModelIndex, Qt,
                          Signal, Slot)
 from qtpy.QtGui import QColor, QKeySequence
-from qtpy.QtWidgets import (QAbstractItemDelegate, QAbstractItemView,
-                            QApplication, QDateEdit,
-                            QDateTimeEdit, QDialog, QHBoxLayout, QHeaderView,
-                            QInputDialog, QItemDelegate, QLineEdit, QMenu,
-                            QMessageBox, QPushButton, QTableView,
-                            QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
+                            QHBoxLayout, QHeaderView, QInputDialog,
+                            QLineEdit, QMenu, QMessageBox,
+                            QPushButton, QTableView, QVBoxLayout,
+                            QWidget)
 from spyder_kernels.utils.misc import fix_reference_name
 from spyder_kernels.utils.nsview import (
-    array, DataFrame, Index, display_to_value, FakeObject,
-    get_color_name, get_human_readable_type, get_size, Image, is_editable_type,
-    is_known_type, MaskedArray, ndarray, np_savetxt, Series, sort_against,
+    DataFrame, display_to_value, FakeObject,
+    get_color_name, get_human_readable_type, get_size, Image,
+    MaskedArray, ndarray, np_savetxt, Series, sort_against,
     try_to_eval, unsorted_unique, value_to_display, get_object_attrs,
     get_type_string)
 
@@ -50,26 +49,17 @@ from spyder_kernels.utils.nsview import (
 from spyder.config.base import _, PICKLE_PROTOCOL
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
-from spyder.py3compat import (io, is_binary_string, is_text_string,
-                              PY3, to_text_string, is_type_text_string)
+from spyder.py3compat import (io, is_binary_string, PY3, to_text_string,
+                              is_type_text_string)
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     mimedata2url)
 from spyder.utils.stringmatching import get_search_scores, get_search_regex
+from spyder.plugins.variableexplorer.widgets.collectionsdelegate import (
+    CollectionsDelegate)
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
-from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.widgets.helperwidgets import CustomSortFilterProxy
-from spyder.plugins.variableexplorer.widgets.objectexplorer import (
-    ObjectExplorer)
-
-if ndarray is not FakeObject:
-    from spyder.plugins.variableexplorer.widgets.arrayeditor import (
-            ArrayEditor)
-
-if DataFrame is not FakeObject:
-    from spyder.plugins.variableexplorer.widgets.dataframeeditor import (
-            DataFrameEditor)
 
 
 # Maximum length of a serialized variable to be set in the kernel
@@ -470,310 +460,6 @@ class CollectionsModel(ReadOnlyCollectionsModel):
         return True
 
 
-class CollectionsDelegate(QItemDelegate):
-    """CollectionsEditor Item Delegate"""
-    sig_free_memory = Signal()
-
-    def __init__(self, parent=None):
-        QItemDelegate.__init__(self, parent)
-        self._editors = {} # keep references on opened editors
-
-    def get_value(self, index):
-        if index.isValid():
-            source_index = index.model().mapToSource(index)
-            return source_index.model().get_value(index)
-
-    def set_value(self, index, value):
-        if index.isValid():
-            source_index = index.model().mapToSource(index)
-            source_index.model().set_value(index, value)
-
-    def show_warning(self, index):
-        """
-        Decide if showing a warning when the user is trying to view
-        a big variable associated to a Tablemodel index
-
-        This avoids getting the variables' value to know its
-        size and type, using instead those already computed by
-        the TableModel.
-
-        The problem is when a variable is too big, it can take a
-        lot of time just to get its value
-        """
-        try:
-            source_index = index.model().mapToSource(index)
-            val_size = source_index.model().sizes[source_index.row()]
-            val_type = source_index.model().types[source_index.row()]
-        except Exception:
-            return False
-        if val_type in ['list', 'set', 'tuple', 'dict'] and \
-                int(val_size) > 1e5:
-            return True
-        else:
-            return False
-
-    def createEditor(self, parent, option, index, object_explorer=False):
-        """Overriding method createEditor"""
-        if index.column() < 3:
-            return None
-        if self.show_warning(index):
-            answer = QMessageBox.warning(
-                self.parent(), _("Warning"),
-                _("Opening this variable can be slow\n\n"
-                  "Do you want to continue anyway?"),
-                QMessageBox.Yes | QMessageBox.No)
-            if answer == QMessageBox.No:
-                return None
-        try:
-            value = self.get_value(index)
-            if value is None:
-                return None
-        except Exception as msg:
-            QMessageBox.critical(
-                self.parent(), _("Error"),
-                _("Spyder was unable to retrieve the value of "
-                  "this variable from the console.<br><br>"
-                  "The error mesage was:<br>"
-                  "<i>%s</i>") % to_text_string(msg))
-            return
-        source_index = index.model().mapToSource(index)
-        key = source_index.model().get_key(source_index)
-        readonly = (isinstance(value, (tuple, set)) or self.parent().readonly
-                    or not is_known_type(value))
-        # CollectionsEditor for a list, tuple, dict, etc.
-        if isinstance(value, (list, set, tuple, dict)) and not object_explorer:
-            editor = CollectionsEditor(parent=parent)
-            editor.setup(value, key, icon=self.parent().windowIcon(),
-                         readonly=readonly)
-            self.create_dialog(editor, dict(model=source_index.model(),
-                                            editor=editor,
-                                            key=key, readonly=readonly))
-            return None
-        # ArrayEditor for a Numpy array
-        elif (isinstance(value, (ndarray, MaskedArray)) and
-                ndarray is not FakeObject and not object_explorer):
-            editor = ArrayEditor(parent=parent)
-            if not editor.setup_and_check(value, title=key, readonly=readonly):
-                return
-            self.create_dialog(editor, dict(model=source_index.model(),
-                                            editor=editor,
-                                            key=key, readonly=readonly))
-            return None
-        # ArrayEditor for an images
-        elif (isinstance(value, Image) and ndarray is not FakeObject and
-                Image is not FakeObject and not object_explorer):
-            arr = array(value)
-            editor = ArrayEditor(parent=parent)
-            if not editor.setup_and_check(arr, title=key, readonly=readonly):
-                return
-            conv_func = lambda arr: Image.fromarray(arr, mode=value.mode)
-            self.create_dialog(editor, dict(model=source_index.model(),
-                                            editor=editor,
-                                            key=key, readonly=readonly,
-                                            conv=conv_func))
-            return None
-        # DataFrameEditor for a pandas dataframe, series or index
-        elif (isinstance(value, (DataFrame, Index, Series))
-                and DataFrame is not FakeObject and not object_explorer):
-            editor = DataFrameEditor(parent=parent)
-            if not editor.setup_and_check(value, title=key):
-                return
-            editor.dataModel.set_format(
-                index.model().sourceModel().dataframe_format)
-            editor.sig_option_changed.connect(self.change_option)
-            self.create_dialog(editor, dict(model=source_index.model(),
-                                            editor=editor,
-                                            key=key, readonly=readonly))
-            return None
-        # QDateEdit and QDateTimeEdit for a dates or datetime respectively
-        elif isinstance(value, datetime.date) and not object_explorer:
-            if readonly:
-                return None
-            else:
-                if isinstance(value, datetime.datetime):
-                    editor = QDateTimeEdit(value, parent=parent)
-                    editor.setDisplayFormat('dd/MM/yyyy HH:mm:ss.zzz')
-                else:
-                    editor = QDateEdit(value, parent=parent)
-                editor.setCalendarPopup(True)
-                editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
-                return editor
-        # TextEditor for a long string
-        elif is_text_string(value) and len(value) > 40 and not object_explorer:
-            te = TextEditor(None, parent=parent)
-            if te.setup_and_check(value):
-                editor = TextEditor(value, key,
-                                    readonly=readonly, parent=parent)
-                self.create_dialog(editor,
-                                   dict(model=source_index.model(),
-                                        editor=editor, key=key,
-                                        readonly=readonly))
-            return None
-        # QLineEdit for an individual value (int, float, short string, etc)
-        elif is_editable_type(value) and not object_explorer:
-            if readonly:
-                return None
-            else:
-                editor = QLineEdit(parent=parent)
-                editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
-                editor.setAlignment(Qt.AlignLeft)
-                # This is making Spyder crash because the QLineEdit that it's
-                # been modified is removed and a new one is created after
-                # evaluation. So the object on which this method is trying to
-                # act doesn't exist anymore.
-                # editor.returnPressed.connect(self.commitAndCloseEditor)
-                return editor
-        # ObjectExplorer for an arbitrary Python object
-        else:
-            show_callable_attributes = (
-                source_index.model().show_callable_attributes)
-            show_special_attributes = (
-                source_index.model().show_special_attributes)
-
-            if show_callable_attributes is None:
-                show_callable_attributes = False
-            if show_special_attributes is None:
-                show_special_attributes = False
-
-            editor = ObjectExplorer(
-                value,
-                name=key,
-                parent=parent,
-                show_callable_attributes=show_callable_attributes,
-                show_special_attributes=show_special_attributes)
-            editor.sig_option_changed.connect(self.change_option)
-            self.create_dialog(editor, dict(model=source_index.model(),
-                                            editor=editor,
-                                            key=key, readonly=readonly))
-            return None
-
-    def create_dialog(self, editor, data):
-        self._editors[id(editor)] = data
-        editor.accepted.connect(
-                     lambda eid=id(editor): self.editor_accepted(eid))
-        editor.rejected.connect(
-                     lambda eid=id(editor): self.editor_rejected(eid))
-        editor.show()
-
-    @Slot(str, object)
-    def change_option(self, option_name, new_value):
-        """
-        Change configuration option.
-
-        This function is called when a `sig_option_changed` signal is received.
-        At the moment, this signal can only come from a DataFrameEditor
-        or an ObjectExplorer.
-        """
-        if option_name == 'dataframe_format':
-            self.parent().set_dataframe_format(new_value)
-        elif option_name == 'show_callable_attributes':
-            self.parent().toggle_show_callable_attributes(new_value)
-        elif option_name == 'show_special_attributes':
-            self.parent().toggle_show_special_attributes(new_value)
-
-    def editor_accepted(self, editor_id):
-        data = self._editors[editor_id]
-        if not data['readonly']:
-            index = data['model'].get_index_from_key(data['key'])
-            value = data['editor'].get_value()
-            conv_func = data.get('conv', lambda v: v)
-            self.set_value(index, conv_func(value))
-        # This is needed to avoid the problem reported on
-        # spyder-ide/spyder#8557.
-        try:
-            self._editors.pop(editor_id)
-        except KeyError:
-            pass
-        self.free_memory()
-
-    def editor_rejected(self, editor_id):
-        # This is needed to avoid the problem reported on
-        # spyder-ide/spyder#8557.
-        try:
-            self._editors.pop(editor_id)
-        except KeyError:
-            pass
-        self.free_memory()
-
-    def free_memory(self):
-        """Free memory after closing an editor."""
-        try:
-            self.sig_free_memory.emit()
-        except RuntimeError:
-            pass
-
-    def commitAndCloseEditor(self):
-        """Overriding method commitAndCloseEditor"""
-        editor = self.sender()
-        # Avoid a segfault with PyQt5. Variable value won't be changed
-        # but at least Spyder won't crash. It seems generated by a bug in sip.
-        try:
-            self.commitData.emit(editor)
-        except AttributeError:
-            pass
-        self.closeEditor.emit(editor, QAbstractItemDelegate.NoHint)
-
-    def setEditorData(self, editor, index):
-        """
-        Overriding method setEditorData
-        Model --> Editor
-        """
-        value = self.get_value(index)
-        if isinstance(editor, QLineEdit):
-            if is_binary_string(value):
-                try:
-                    value = to_text_string(value, 'utf8')
-                except:
-                    pass
-            if not is_text_string(value):
-                value = repr(value)
-            editor.setText(value)
-        elif isinstance(editor, QDateEdit):
-            editor.setDate(value)
-        elif isinstance(editor, QDateTimeEdit):
-            editor.setDateTime(QDateTime(value.date(), value.time()))
-
-
-    def setModelData(self, editor, model, index):
-        """
-        Overriding method setModelData
-        Editor --> Model
-        """
-        model = model.sourceModel()
-        if not hasattr(model, "set_value"):
-            # Read-only mode
-            return
-
-        if isinstance(editor, QLineEdit):
-            value = editor.text()
-            try:
-                value = display_to_value(to_qvariant(value),
-                                         self.get_value(index),
-                                         ignore_errors=False)
-            except Exception as msg:
-                raise
-                QMessageBox.critical(editor, _("Edit item"),
-                                     _("<b>Unable to assign data to item.</b>"
-                                       "<br><br>Error message:<br>%s"
-                                       ) % str(msg))
-                return
-        elif isinstance(editor, QDateEdit):
-            qdate = editor.date()
-            value = datetime.date(qdate.year(), qdate.month(), qdate.day())
-        elif isinstance(editor, QDateTimeEdit):
-            qdatetime = editor.dateTime()
-            qdate = qdatetime.date()
-            qtime = qdatetime.time()
-            # datetime uses microseconds, QDateTime returns milliseconds
-            value = datetime.datetime(qdate.year(), qdate.month(), qdate.day(),
-                                      qtime.hour(), qtime.minute(),
-                                      qtime.second(), qtime.msec()*1000)
-        else:
-            # Should not happen...
-            raise RuntimeError("Unsupported editor widget")
-        self.set_value(index, value)
-
-
 class BaseHeaderView(QHeaderView):
     """
     A header view for the BaseTableView that emits a signal when the width of
@@ -841,8 +527,8 @@ class BaseTableView(QTableView):
         self.adjust_columns()
         # Sorting columns
         self.setSortingEnabled(True)
-        self.sortByColumn(4, Qt.DescendingOrder)
-    
+        self.sortByColumn(0, Qt.AscendingOrder)
+
     def setup_menu(self, minmax):
         """Setup context menu"""
         if self.minmax_action is not None:
@@ -926,17 +612,18 @@ class BaseTableView(QTableView):
 
     def set_regex(self, regex=None, reset=False):
         """Update the regex text for the variable finder."""
-        if reset:
+        if reset or not self.finder.text():
             text = ''
         else:
             text = self.finder.text().replace(' ', '').lower()
+
         self.proxy_model.set_filter(text)
         self.source_model.update_search_letters(text)
-        # TODO: Use constants for column numbers
-        self.sortByColumn(4, Qt.DescendingOrder)  # Col 4 for score
 
-        if self.last_regex != regex:
-            self.selectRow(0)
+        if text:
+            # TODO: Use constants for column numbers
+            self.sortByColumn(4, Qt.DescendingOrder)  # Col 4 for index
+
         self.last_regex = regex
 
     def next_row(self):
@@ -1056,7 +743,7 @@ class BaseTableView(QTableView):
         """Set table data"""
         if data is not None:
             self.source_model.set_data(data, self.dictfilter)
-            self.sortByColumn(4, Qt.DescendingOrder)
+            self.sortByColumn(0, Qt.AscendingOrder)
 
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
@@ -1149,7 +836,7 @@ class BaseTableView(QTableView):
     def toggle_minmax(self, state):
         """Toggle min/max display for numpy arrays"""
         self.sig_option_changed.emit('minmax', state)
-        self.source_model.minmax = state
+        self.model.minmax = state
 
     @Slot(str)
     def set_dataframe_format(self, new_format):
@@ -1160,7 +847,7 @@ class BaseTableView(QTableView):
             new_format (string): e.g. "%.3f"
         """
         self.sig_option_changed.emit('dataframe_format', new_format)
-        self.source_model.dataframe_format = new_format
+        self.model.dataframe_format = new_format
 
     @Slot()
     def edit_item(self):
@@ -1422,6 +1109,7 @@ class CollectionsEditorTableView(BaseTableView):
                                                   names=names,
                                                   minmax=minmax)
         self.proxy_model = CollectionsCustomSortFilterProxy(self)
+        self.model = self.proxy_model
 
         self.proxy_model.setSourceModel(self.source_model)
         self.proxy_model.setDynamicSortFilter(True)
@@ -1434,8 +1122,9 @@ class CollectionsEditorTableView(BaseTableView):
         self.setItemDelegate(self.delegate)
         self.setSelectionBehavior(QAbstractItemView.SelectItems)
         self.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.setEditTriggers(QAbstractItemView.AllEditTriggers)
         self.setSortingEnabled(True)
-        self.selectionModel().selectionChanged.connect(self.selection)
+#        self.selectionModel().selectionChanged.connect(self.selection)
 
         self.setup_table()
         self.menu = self.setup_menu(minmax)
@@ -1726,6 +1415,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
             remote=True)
 
         self.proxy_model = CollectionsCustomSortFilterProxy(self)
+        self.model = self.proxy_model
 
         self.proxy_model.setSourceModel(self.source_model)
         self.proxy_model.setDynamicSortFilter(True)
@@ -1740,8 +1430,9 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.setItemDelegate(self.delegate)
         self.setSelectionBehavior(QAbstractItemView.SelectItems)
         self.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.setEditTriggers(QAbstractItemView.AllEditTriggers)
         self.setSortingEnabled(True)
-        self.selectionModel().selectionChanged.connect(self.selection)
+#        self.selectionModel().selectionChanged.connect(self.selection)
 
         self.setup_table()
         self.menu = self.setup_menu(minmax)
@@ -1863,6 +1554,71 @@ class CollectionsCustomSortFilterProxy(CustomSortFilterProxy):
     Reimplements 'filterAcceptsRow' to follow NamespaceBrowser model.
     Reimplements 'set_filter' to allow sorting while filtering
     """
+
+    @property
+    def show_callable_attributes(self):
+        """Get show_callable_attributes from source model."""
+        return self.sourceModel().show_callable_attributes
+
+    @show_callable_attributes.setter
+    def show_callable_attributes(self, value):
+        """Set show_callable_attributes to source model."""
+        self.sourceModel().show_callable_attributes = value
+
+    @property
+    def show_special_attributes(self):
+        """Get show_special_attributes from source model."""
+        return self.sourceModel().show_special_attributes
+
+    @show_special_attributes.setter
+    def show_special_attributes(self, value):
+        """Set show_special_attributes to source model."""
+        self.sourceModel().show_special_attributes = value
+
+    @property
+    def minmax(self):
+        """Get minmax from source model."""
+        return self.sourceModel().minmax
+
+    @minmax.setter
+    def minmax(self, value):
+        """Set minmax to source model."""
+        self.sourceModel().minmax = value
+
+    @property
+    def dataframe_format(self):
+        """Get dataframe_format from source model."""
+        return self.sourceModel().dataframe_format
+
+    @dataframe_format.setter
+    def dataframe_format(self, value):
+        """Set dataframe_format to source model."""
+        self.sourceModel().dataframe_format = value
+
+    def get_key(self, index):
+        """Return current key from source model."""
+        source_index = self.mapToSource(index)
+        return self.sourceModel().get_key(source_index)
+
+    def get_index_from_key(self, key):
+        """Return index using key from source model."""
+        source_index = self.sourceModel().get_index_from_key(key)
+        return self.mapFromSource(source_index)
+
+    def get_value(self, index):
+        """Return current value from source model."""
+        source_index = self.mapToSource(index)
+        return self.sourceModel().get_value(source_index)
+
+    def set_value(self, index, value):
+        """Set value in source model."""
+        try:
+            source_index = self.mapToSource(index)
+            self.sourceModel().set_value(source_index, value)
+        except AttributeError:
+            # Read-only models don't have set_value method
+            pass
+
     def set_filter(self, text):
         """Set regular expression for filter."""
         self.pattern = get_search_regex(text)

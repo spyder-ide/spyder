@@ -45,18 +45,36 @@ class EditorMock(QObject):
         pass
 
 
+class ProjectsMock(QObject):
+    """
+    Mock for the projects plugin with the interface needed by
+    LanguageServerPlugin.
+    """
+    register_lsp_server_settings = Signal()
+
+    def __init__(self):
+        QObject.__init__(self)
+
+    def get_active_project_path(self):
+        return ''
+
+    def stop_lsp_services(self):
+        pass
+
+
 class MainWindowMock(QObject):
     """Mock for the Main Window."""
     def __init__(self):
         QObject.__init__(self)
         self.editor = EditorMock()
+        self.projects = ProjectsMock()
 
     def __getattr__(self, attr):
         if attr == 'editor':
             return self.editor
         elif attr == 'projects':
             # TODO: Add tests for project switching
-            return None
+            return self.projects
         else:
             return Mock()
 
