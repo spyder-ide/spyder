@@ -381,7 +381,7 @@ def test_zoom_figure_viewer(figbrowser, tmpdir, fmt):
         scale = scaling_step**scaling_factor
 
         assert (figbrowser.zoom_disp.value() ==
-                np.floor(int(fwidth * scale) / fwidth * 100))
+                np.round(int(fwidth * scale) / fwidth * 100))
         assert figcanvas.width() == int(fwidth * scale)
         assert figcanvas.height() == int(fheight * scale)
 
@@ -420,7 +420,7 @@ def test_autofit_figure_viewer(figbrowser, tmpdir, fmt):
         new_width = int(height / fheight * fwidth)
 
     assert (figbrowser.zoom_disp.value() ==
-            np.floor(figcanvas.width() / fwidth * 100))
+            np.round(figcanvas.width() / fwidth * 100))
     assert figcanvas.width() == new_width
     assert figcanvas.height() == new_height
 
