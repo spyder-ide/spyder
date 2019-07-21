@@ -257,7 +257,11 @@ def test_completions(lsp_codeeditor, qtbot):
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
-    assert "hypot(x, y)" in [x['label'] for x in sig.args[0]]
+    if PY2:
+        assert "hypot(x, y)" in [x['label'] for x in sig.args[0]]
+    else:
+        assert [x['label'] for x in sig.args[0]][0] in ["hypot(x, y)",
+                                                        "hypot(*coordinates)"]
 
     # right for () + enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Right, delay=300)
