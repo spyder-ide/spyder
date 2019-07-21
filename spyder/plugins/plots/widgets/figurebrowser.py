@@ -381,7 +381,7 @@ class FigureViewer(QScrollArea):
     capability with CTRL + Mouse_wheel and Left-press mouse button event.
     """
 
-    sig_zoom_changed = Signal(float)
+    sig_zoom_changed = Signal(int)
 
     def __init__(self, parent=None, background_color=None):
         super(FigureViewer, self).__init__(parent)
@@ -531,11 +531,12 @@ class FigureViewer(QScrollArea):
 
         if self.figcanvas.size() != QSize(new_width, new_height):
             self.figcanvas.setFixedSize(new_width, new_height)
+            scaling = self.get_scaling()
             self.sig_zoom_changed.emit(self.get_scaling())
 
     def get_scaling(self):
         """Get the current scaling of the figure in percent."""
-        return self.figcanvas.width() / self.figcanvas.fwidth * 100
+        return round(self.figcanvas.width() / self.figcanvas.fwidth * 100)
 
     def reset_original_image(self):
         """Reset the image to its original size."""
