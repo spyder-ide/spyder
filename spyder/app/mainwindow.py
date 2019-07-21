@@ -1630,8 +1630,8 @@ class MainWindow(QMainWindow):
         # Layout definition
         # --------------------------------------------------------------------
         # Layouts are organized by columns, each column is organized by rows.
-        # Widths have to add 1.0 (except if hidden), height per column has to
-        # add 1.0 as well
+        # Widths have to accumulate to 100 (except if hidden), height per
+        # column has to accumulate to 100 as well
 
         # Spyder Default Initial Layout
         s_layout = {
@@ -1647,14 +1647,14 @@ class MainWindow(QMainWindow):
                   helper, explorer_file, finder] + plugins,
                  [console_int, console_ipy, history]]        # Row 1
                 ],
-            'width fraction': [0.05,            # Column 0 width
-                               0.55,            # Column 1 width
-                               0.05,            # Column 2 width
-                               0.45],           # Column 3 width
-            'height fraction': [[1.0],          # Column 0, row heights
-                                [1.0],          # Column 1, row heights
-                                [1.0],          # Column 2, row heights
-                                [0.46, 0.54]],  # Column 3, row heights
+            'width fraction': [ 5,            # Column 0 width
+                               55,            # Column 1 width
+                                5,            # Column 2 width
+                               45],           # Column 3 width
+            'height fraction': [[100],          # Column 0, row heights
+                                [100],          # Column 1, row heights
+                                [100],          # Column 2, row heights
+                                [46, 54]],  # Column 3, row heights
             'hidden widgets': [outline] + global_hidden_widgets,
             'hidden toolbars': [],
         }
@@ -1671,10 +1671,10 @@ class MainWindow(QMainWindow):
                  [explorer_file, explorer_project,    # Row 1
                   help_plugin, helper]]
                 ],
-            'width fraction': [0.55,            # Column 0 width
-                               0.45],           # Column 1 width
-            'height fraction': [[0.55, 0.45],   # Column 0, row heights
-                                [0.55, 0.45]],  # Column 1, row heights
+            'width fraction': [55,            # Column 0 width
+                               45],           # Column 1 width
+            'height fraction': [[55, 45],   # Column 0, row heights
+                                [55, 45]],  # Column 1, row heights
             'hidden widgets': [outline] + global_hidden_widgets,
             'hidden toolbars': [],
         }
@@ -1692,12 +1692,12 @@ class MainWindow(QMainWindow):
                 [[explorer_variable, plots, finder] + plugins,
                  [history, help_plugin, helper]]
                 ],
-            'width fraction': [0.10,            # Column 0 width
-                               0.45,            # Column 1 width
-                               0.45],           # Column 2 width
-            'height fraction': [[0.55, 0.45],   # Column 0, row heights
-                                [0.55, 0.45],   # Column 1, row heights
-                                [0.55, 0.45]],  # Column 2, row heights
+            'width fraction': [10,            # Column 0 width
+                               45,            # Column 1 width
+                               45],           # Column 2 width
+            'height fraction': [[55, 45],   # Column 0, row heights
+                                [55, 45],   # Column 1, row heights
+                                [55, 45]],  # Column 2, row heights
             'hidden widgets': global_hidden_widgets,
             'hidden toolbars': [],
         }
@@ -1711,8 +1711,8 @@ class MainWindow(QMainWindow):
                   explorer_project, help_plugin, explorer_variable, plots,
                   history, outline, finder, helper] + plugins]
                 ],
-            'width fraction': [1.0],            # Column 0 width
-            'height fraction': [[0.55, 0.45]],  # Column 0, row heights
+            'width fraction': [100],            # Column 0 width
+            'height fraction': [[55, 45]],  # Column 0, row heights
             'hidden widgets': [outline] + global_hidden_widgets,
             'hidden toolbars': [],
         }
@@ -1727,10 +1727,10 @@ class MainWindow(QMainWindow):
                   explorer_project, help_plugin, explorer_variable, plots,
                   history, outline, finder, helper] + plugins]
                 ],
-            'width fraction': [0.55,      # Column 0 width
-                               0.45],     # Column 1 width
-            'height fraction': [[1.0],    # Column 0, row heights
-                                [1.0]],   # Column 1, row heights
+            'width fraction': [55,      # Column 0 width
+                               45],     # Column 1 width
+            'height fraction': [[100],    # Column 0, row heights
+                                [100]],   # Column 1, row heights
             'hidden widgets': [outline] + global_hidden_widgets,
             'hidden toolbars': []
         }
