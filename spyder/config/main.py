@@ -208,6 +208,7 @@ DEFAULTS = [
               'convert_eol_on_save_to': 'LF',
               'tab_always_indent': False,
               'intelligent_backspace': True,
+              'automatic_completions': True,
               'underline_errors': False,
               'highlight_current_line': True,
               'highlight_current_cell': True,

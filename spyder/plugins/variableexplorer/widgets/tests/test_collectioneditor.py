@@ -73,7 +73,7 @@ def nonsettable_objects_data():
 def test_create_dataframeeditor_with_correct_format(qtbot, monkeypatch):
     MockDataFrameEditor = Mock()
     mockDataFrameEditor_instance = MockDataFrameEditor()
-    monkeypatch.setattr('spyder.plugins.variableexplorer.widgets.collectionseditor.DataFrameEditor',
+    monkeypatch.setattr('spyder.plugins.variableexplorer.widgets.collectionsdelegate.DataFrameEditor',
                         MockDataFrameEditor)
     df = pandas.DataFrame(['foo', 'bar'])
     editor = CollectionsEditorTableView(None, {'df': df})
@@ -134,7 +134,7 @@ def test_shows_dataframeeditor_when_editing_index(qtbot, monkeypatch):
     for rng_name, rng in generate_pandas_indexes().items():
         MockDataFrameEditor = Mock()
         mockDataFrameEditor_instance = MockDataFrameEditor()
-        monkeypatch.setattr('spyder.plugins.variableexplorer.widgets.collectionseditor.DataFrameEditor',
+        monkeypatch.setattr('spyder.plugins.variableexplorer.widgets.collectionsdelegate.DataFrameEditor',
                             MockDataFrameEditor)
         coll = {'rng': rng}
         editor = CollectionsEditorTableView(None, coll)
@@ -213,17 +213,17 @@ def test_edit_mutable_and_immutable_types(monkeypatch):
     """
     MockQLineEdit = Mock()
     attr_to_patch_qlineedit = ('spyder.plugins.variableexplorer.widgets.' +
-                               'collectionseditor.QLineEdit')
+                               'collectionsdelegate.QLineEdit')
     monkeypatch.setattr(attr_to_patch_qlineedit, MockQLineEdit)
 
     MockTextEditor = Mock()
     attr_to_patch_textedit = ('spyder.plugins.variableexplorer.widgets.' +
-                              'collectionseditor.TextEditor')
+                              'collectionsdelegate.TextEditor')
     monkeypatch.setattr(attr_to_patch_textedit, MockTextEditor)
 
     MockQDateTimeEdit = Mock()
     attr_to_patch_qdatetimeedit = ('spyder.plugins.variableexplorer.widgets.' +
-                                   'collectionseditor.QDateTimeEdit')
+                                   'collectionsdelegate.QDateTimeEdit')
     monkeypatch.setattr(attr_to_patch_qdatetimeedit, MockQDateTimeEdit)
 
     MockCollectionsEditor = Mock()
@@ -351,22 +351,22 @@ def test_editor_parent_set(monkeypatch):
 
     MockArrayEditor = Mock()
     attr_to_patch_arredit = ('spyder.plugins.variableexplorer.widgets.' +
-                             'collectionseditor.ArrayEditor')
+                             'collectionsdelegate.ArrayEditor')
     monkeypatch.setattr(attr_to_patch_arredit, MockArrayEditor)
 
     MockDataFrameEditor = Mock()
     attr_to_patch_dfedit = ('spyder.plugins.variableexplorer.widgets.' +
-                            'collectionseditor.DataFrameEditor')
+                            'collectionsdelegate.DataFrameEditor')
     monkeypatch.setattr(attr_to_patch_dfedit, MockDataFrameEditor)
 
     MockTextEditor = Mock()
     attr_to_patch_textedit = ('spyder.plugins.variableexplorer.widgets.' +
-                              'collectionseditor.TextEditor')
+                              'collectionsdelegate.TextEditor')
     monkeypatch.setattr(attr_to_patch_textedit, MockTextEditor)
 
     MockObjectExplorer = Mock()
     attr_to_patch_objectexplorer = ('spyder.plugins.variableexplorer.widgets.'
-                                    + 'collectionseditor.ObjectExplorer')
+                                    + 'objectexplorer.ObjectExplorer')
     monkeypatch.setattr(attr_to_patch_objectexplorer, MockObjectExplorer)
 
     editor_data = [[0, 1, 2, 3, 4],
