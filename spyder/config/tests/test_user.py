@@ -385,19 +385,6 @@ def test_userconfig_cleanup(userconfig):
 # --- SpyderUserConfig tests
 # ============================================================================
 # --- Compatibility API
-def test_spyderconfig_get_previous_config_fpath(spyderconfig_previous,
-                                                mocker):
-    value = spyderconfig_previous.get_previous_config_fpath()
-    print(value)
-    assert False
-
-
-def test_spyderconfig_get_previous_config_fpath2(spyderconfig_previous):
-    value = spyderconfig_previous.get_previous_config_fpath()
-    print(value)
-    assert False
-
-
 class TestSpyderConfigApplyPatches:
 
     def test_spyderconfig_apply_configuration_patches_42(
