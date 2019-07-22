@@ -111,13 +111,13 @@ startup/run_lines = value1,value2
     return SpyderUserConfig(**kwargs)
 
 
-
 @pytest.fixture
 def spyderconfig_patches_42(tmpdir):
     ini_contents = '[main]\nversion = 42.0.0\n\n'
     if PY2:
         # Strings are quoted in Python2 but not in Python3
-        ini_contents += "[ipython_console]\nstartup/run_lines = 'value1,value2'"
+        ini_contents += ("[ipython_console]\nstartup/run_lines = "
+                         "'value1,value2'")
     else:
         ini_contents += '[ipython_console]\nstartup/run_lines = value1,value2'
 
@@ -135,7 +135,8 @@ def spyderconfig_patches_45(tmpdir):
     ini_contents = '[main]\nversion = 45.0.0\n\n'
     if PY2:
         # Strings are quoted in Python2 but not in Python3
-        ini_contents += "[ipython_console]\nstartup/run_lines = 'value1,value2'"
+        ini_contents += ("[ipython_console]\nstartup/run_lines = "
+                         "'value1,value2'")
     else:
         ini_contents += '[ipython_console]\nstartup/run_lines = value1,value2'
 

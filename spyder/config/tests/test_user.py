@@ -224,39 +224,45 @@ def test_userconfig_get_default(userconfig, tmpconfig):
 
 class TestUserConfigGet:
 
-    @pytest.mark.parametrize('defaults,value', [
-        # Valid values
-        ([('test', {'opt': 'value'})], 'value'),
-        ([('test', {'opt': u'"éàÇÃãéèï"'})], u'"éàÇÃãéèï"'),
-        ([('test', {'opt': 'éàÇÃãéèï'})], u'éàÇÃãéèï'),
-        ([('test', {'opt': True})], True),
-        ([('test', {'opt': UserConfig})], repr(UserConfig)),
-        ([('test', {'opt': 123})], 123),
-        ([('test', {'opt': 123.123})], 123.123),
-        ([('test', {'opt': [1]})], [1]),
-        ([('test', {'opt': {'key': 'val'}})], {'key': 'val'}),
-    ])
+    @pytest.mark.parametrize(
+        'defaults,value',
+        [
+            # Valid values
+            ([('test', {'opt': 'value'})], 'value'),
+            ([('test', {'opt': u'"éàÇÃãéèï"'})], u'"éàÇÃãéèï"'),
+            ([('test', {'opt': 'éàÇÃãéèï'})], u'éàÇÃãéèï'),
+            ([('test', {'opt': True})], True),
+            ([('test', {'opt': UserConfig})], repr(UserConfig)),
+            ([('test', {'opt': 123})], 123),
+            ([('test', {'opt': 123.123})], 123.123),
+            ([('test', {'opt': [1]})], [1]),
+            ([('test', {'opt': {'key': 'val'}})], {'key': 'val'}),
+        ]
+    )
     def test_userconfig_get(self, defaults, value, tmpdir):
         name = 'foobar'
         path = str(tmpdir)
         conf = UserConfig(name=name, path=path, defaults=defaults,
-                        load=False, version='1.0.0', backup=False,
-                        raw_mode=True)
+                          load=False, version='1.0.0', backup=False,
+                          raw_mode=True)
 
         assert conf.get('test', 'opt') == value
 
-    @pytest.mark.parametrize('defaults,default,raises', [
-        # Valid values
-        ([('test2', {'opt': 'value'})], 'val', True),
-        ([('test2', {'opt': 'value'})], 'val', False),
-        ([('test', {'opt': 'value'})], 'val', False),
-    ])
+    @pytest.mark.parametrize(
+        'defaults,default,raises',
+        [
+            # Valid values
+            ([('test2', {'opt': 'value'})], 'val', True),
+            ([('test2', {'opt': 'value'})], 'val', False),
+            ([('test', {'opt': 'value'})], 'val', False),
+        ]
+    )
     def test_userconfig_get2(self, defaults, default, raises, tmpdir):
         name = 'foobar'
         path = str(tmpdir)
         conf = UserConfig(name=name, path=path, defaults=defaults,
-                        load=False, version='1.0.0', backup=False,
-                        raw_mode=True)
+                          load=False, version='1.0.0', backup=False,
+                          raw_mode=True)
 
         if raises:
             with pytest.raises(cp.NoSectionError):
@@ -295,38 +301,44 @@ def test_userconfig_set_default(userconfig):
 
 class TestUserConfigSet:
 
-    @pytest.mark.parametrize('defaults,value', [
-        # Valid values
-        ([('test', {'opt': 'value'})], 'other'),
-        ([('test', {'opt': 'éàÇÃãéèï'})], u'ãéèï'),
-        ([('test', {'opt': True})], False),
-        ([('test', {'opt': UserConfig})], dict),
-        ([('test', {'opt': 123})], 345),
-        ([('test', {'opt': 123.123})], 345.345),
-        ([('test', {'opt': [1]})], [1]),
-        ([('test', {'opt': {'key': 'val'}})], {'key2': 'val2'}),
-        # Value not in defaults
-        ([('test', {'opt1': 'value'})], 'other'),
-    ])
+    @pytest.mark.parametrize(
+        'defaults,value',
+        [
+            # Valid values
+            ([('test', {'opt': 'value'})], 'other'),
+            ([('test', {'opt': 'éàÇÃãéèï'})], u'ãéèï'),
+            ([('test', {'opt': True})], False),
+            ([('test', {'opt': UserConfig})], dict),
+            ([('test', {'opt': 123})], 345),
+            ([('test', {'opt': 123.123})], 345.345),
+            ([('test', {'opt': [1]})], [1]),
+            ([('test', {'opt': {'key': 'val'}})], {'key2': 'val2'}),
+            # Value not in defaults
+            ([('test', {'opt1': 'value'})], 'other'),
+        ]
+    )
     def test_userconfig_set_valid(self, defaults, value, tmpdir):
         name = 'foobar'
         path = str(tmpdir)
         conf = UserConfig(name=name, path=path, defaults=defaults,
-                        load=False, version='1.0.0', backup=False,
-                        raw_mode=True)
+                          load=False, version='1.0.0', backup=False,
+                          raw_mode=True)
         conf.set('test', 'opt', value)
 
-    @pytest.mark.parametrize('defaults,value', [
-        ([('test', {'opt': 123})], 'no'),
-        ([('test', {'opt': 123.123})], 'n9'),
-        ([('test', {'opt': 123.123})], 'n9'),
-    ])
+    @pytest.mark.parametrize(
+        'defaults,value',
+        [
+            ([('test', {'opt': 123})], 'no'),
+            ([('test', {'opt': 123.123})], 'n9'),
+            ([('test', {'opt': 123.123})], 'n9'),
+        ]
+    )
     def test_userconfig_set_invalid(self, defaults, value, tmpdir):
         name = 'foobar'
         path = str(tmpdir)
         conf = UserConfig(name=name, path=path, defaults=defaults,
-                        load=False, version='1.0.0', backup=False,
-                        raw_mode=True)
+                         load=False, version='1.0.0', backup=False,
+                          raw_mode=True)
 
         with pytest.raises(ValueError):
             conf.set('test', 'opt', value)
@@ -373,7 +385,8 @@ def test_userconfig_cleanup(userconfig):
 # --- SpyderUserConfig tests
 # ============================================================================
 # --- Compatibility API
-def test_spyderconfig_get_previous_config_fpath(spyderconfig_previous, mocker):
+def test_spyderconfig_get_previous_config_fpath(spyderconfig_previous,
+                                                mocker):
     value = spyderconfig_previous.get_previous_config_fpath()
     print(value)
     assert False
@@ -387,16 +400,19 @@ def test_spyderconfig_get_previous_config_fpath2(spyderconfig_previous):
 
 class TestSpyderConfigApplyPatches:
 
-    def test_spyderconfig_apply_configuration_patches_42(self, spyderconfig_patches_42):
+    def test_spyderconfig_apply_configuration_patches_42(
+            self, spyderconfig_patches_42):
         # Check that the value is updated
-        value = spyderconfig_patches_42.get('ipython_console', 'startup/run_lines')
+        value = spyderconfig_patches_42.get('ipython_console',
+                                            'startup/run_lines')
         expected_value = 'value1; value2'
         assert value == expected_value
 
-
-    def test_spyderconfig_apply_configuration_patches_45(self, spyderconfig_patches_45):
+    def test_spyderconfig_apply_configuration_patches_45(
+            self, spyderconfig_patches_45):
         # Check that the value is not updated
-        value = spyderconfig_patches_45.get('ipython_console', 'startup/run_lines')
+        value = spyderconfig_patches_45.get('ipython_console',
+                                            'startup/run_lines')
         expected_value = 'value1,value2'
         assert value == expected_value
 

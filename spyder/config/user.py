@@ -432,7 +432,7 @@ class UserConfig(DefaultsConfig):
     def apply_configuration_patches(self, old_version=None):
         """
         Apply any patch to configuration values on version changes.
-        
+
         To be overriden if patches to configuration values are needed.
         """
         pass
@@ -662,8 +662,9 @@ class SpyderUserConfig(UserConfig):
                 backup_fpath = "{}-{}{}".format(fpath, version,
                                                 self._backup_suffix)
         else:
-            backup_fpath = super(SpyderUserConfig,
-                self).get_backup_fpath_from_version(version, old_version)
+            super_class = super(SpyderUserConfig, self)
+            backup_fpath = super_class.get_backup_fpath_from_version(
+                version, old_version)
 
         return backup_fpath
 
