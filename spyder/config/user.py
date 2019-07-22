@@ -104,8 +104,6 @@ class DefaultsConfig(cp.ConfigParser, object):
 
     def _save(self):
         """Save config into the associated .ini file."""
-        # See spyder-ide/spyder#1086 and spyder-ide/spyder#1242 for background
-        # on why this method contains all the exception handling.
         fpath = self.get_config_fpath()
 
         def _write_file(fpath):
@@ -114,6 +112,9 @@ class DefaultsConfig(cp.ConfigParser, object):
                     self._write(configfile)
                 else:
                     self.write(configfile)
+
+        # See spyder-ide/spyder#1086 and spyder-ide/spyder#1242 for background
+        # on why this method contains all the exception handling.
         try:
             # The "easy" way
             _write_file(fpath)
@@ -333,15 +334,13 @@ class UserConfig(DefaultsConfig):
             error_text = 'Warning: File contains no section headers.'
             print(error_text)  # spyder: test-skip
 
-    # TODO: check with test
     def _load_old_defaults(self, old_version):
         """Read old defaults."""
         old_defaults = cp.ConfigParser()
-        path, name = self._get_defaults_config_path_and_name(old_version)
-        old_defaults.read(osp.join(path, name))
+        path, name = self.get_defaults_path_name_from_version(old_version)
+        old_defaults.read(osp.join(path, name + '.ini'))
         return old_defaults
 
-    # TODO: check with test
     def _save_new_defaults(self, defaults):
         """Save new defaults."""
         path, name = self.get_defaults_path_name_from_version()
@@ -350,7 +349,6 @@ class UserConfig(DefaultsConfig):
             new_defaults.set_defaults(defaults)
             new_defaults._save()
 
-    # TODO: check with test
     def _update_defaults(self, defaults, old_version, verbose=False):
         """Update defaults after a change in version."""
         old_defaults = self._load_old_defaults(old_version)
@@ -365,7 +363,6 @@ class UserConfig(DefaultsConfig):
                 if old_val is None or to_text_string(new_value) != old_val:
                     self._set(section, option, new_value, verbose)
 
-    # TODO: check with test
     def _remove_deprecated_options(self, old_version):
         """
         Remove options which are present in the .ini file but not in defaults.
@@ -624,6 +621,7 @@ class SpyderUserConfig(UserConfig):
             # < ??
         ]
         for fpath in previous_paths:
+            print('fpath', fpath)
             if osp.isfile(fpath):
                 break
 
@@ -695,6 +693,7 @@ class SpyderUserConfig(UserConfig):
 
         Apply any patch to configuration values on version changes.
         """
+        # TODO: is this check still needed?
         if old_version and check_version(old_version, '2.4.0', '<'):
             self.reset_to_defaults(save=False)
         else:
@@ -720,6 +719,7 @@ class MultiUserConfig(object):
     The `name` is now a `name_map` where the sections and options per file name
     are defined.
     """
+    DEFAULT_FILE_NAME = 'spyder'
 
     def __init__(self, name_map, path, defaults=None, load=True, version=None,
                  backup=False, raw_mode=False, remove_obsolete=False):
@@ -763,7 +763,7 @@ class MultiUserConfig(object):
         config_value = self._configs_map.get(name, None)
 
         if config_value is None:
-            config_value = self._configs_map['main']
+            config_value = self._configs_map[self.DEFAULT_FILE_NAME]
         return config_value
 
     def _check_name_map(self, name_map):
@@ -883,7 +883,7 @@ class MultiUserConfig(object):
         """Return all the items option/values for the given section."""
         config = self._get_config(section, None)
         if config is None:
-            config = self._configs_map['main']
+            config = self._configs_map[self.DEFAULT_FILE_NAME]
 
         return config.items(section=section)
 
@@ -900,7 +900,7 @@ class MultiUserConfig(object):
         """
         config = self._get_config(section, option)
         if config is None:
-            config = self._configs_map['main']
+            config = self._configs_map[self.DEFAULT_FILE_NAME]
         return config.get_default(section, option)
 
     def get(self, section, option, default=NoDefault):
@@ -912,7 +912,7 @@ class MultiUserConfig(object):
         config = self._get_config(section, option)
 
         if config is None:
-            config = self._configs_map['main']
+            config = self._configs_map[self.DEFAULT_FILE_NAME]
 
         return config.get(section=section, option=option, default=default)
 

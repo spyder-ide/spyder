@@ -30,6 +30,7 @@ def project_test(tmpdir_factory):
         project: EmptyProject object.
     """
     project_dir = tmpdir_factory.mktemp("test_project")
+    os.makedirs(osp.join(str(project_dir), '.spyproject', 'config'))
     project = EmptyProject(str(project_dir))
     return project_dir, project
 
@@ -51,7 +52,7 @@ def test_empty_project(project_test, qtbot):
         project_config = conf_files[filename]
 
         # assert configurations files
-        fpath = project_config.get_config_path()
+        fpath = project_config.get_config_fpath()
         print([fpath])
         assert osp.isfile(fpath)
 

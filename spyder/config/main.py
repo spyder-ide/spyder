@@ -500,7 +500,7 @@ DEFAULTS = [
 
 NAME_MAP = {
     # Empty container object means use the rest of defaults
-    'main': [],
+    'spyder': [],
     # Splitting these files makes sense for projects, we might as well
     # apply the same split for the app global config
     # These options change on spyder startup or are tied to a specific OS,

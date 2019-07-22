@@ -13,8 +13,8 @@ import os
 import pytest
 
 # Local imports
-from spyder.config.user import NoDefault, UserConfig
 from spyder.config.main import CONF_VERSION, DEFAULTS
+from spyder.config.user import NoDefault, UserConfig
 from spyder.py3compat import PY2
 from spyder.py3compat import configparser as cp
 from spyder.utils.fixtures import tmpconfig
@@ -51,11 +51,6 @@ def test_default_config_save_write(defaultconfig):
     defaultconfig._save()
 
 
-# def test_default_config_get_config_path(defaultconfig):
-#     check_folder = (os.sep + 'defaults' + os.sep)
-#     assert  check_folder in defaultconfig.get_config_path()
-
-
 def test_default_config_set_defaults(defaultconfig):
     defaults = [('main2', {'opt': 1})]
     defaultconfig.set_defaults(defaults)
@@ -63,35 +58,24 @@ def test_default_config_set_defaults(defaultconfig):
 
 
 # --- User config tests
-# ----------------------------------------------------------------------------
-def test_userconfig_set_percentage_string(userconfig):
-    """Test to set an option with a '%'."""
-    userconfig.set('section', 'option', '%value')
-    assert userconfig.get('section', 'option') == '%value'
+# ============================================================================
+# --- Helpers and checkers
+@pytest.mark.parametrize('value,expected', [
+    ('3.2.1', '3.2'),
+    ('3.2.0', '3.2'),
+])
+def test_userconfig_get_minor_version(value, expected):
+    result = UserConfig._get_minor_version(value)
+    assert result == expected
 
 
-def test_userconfig_get_string_from_inifile(userconfig):
-    assert userconfig.get('section', 'option') == 'value'
-
-
-def test_userconfig_get_does_not_eval_functions(userconfig):
-    # Regression test for spyder-ide/spyder#3354.
-    userconfig.set('section', 'option', 'print("foo")')
-    assert userconfig.get('section', 'option') == 'print("foo")'
-
-
-def test_userconfig_set_with_string(userconfig):
-    userconfig.set('section', 'option', 'new value')
-    with open(userconfig.get_config_fpath()) as inifile:
-        ini_contents = inifile.read()
-
-    expected = '[main]\nversion = 1.0.0\n\n'
-    if PY2:
-        expected += "[section]\noption = 'new value'\n\n"
-    else:
-        expected += "[section]\noption = new value\n\n"
-
-    assert ini_contents == expected
+@pytest.mark.parametrize('value,expected', [
+    ('3.2.1', '3'),
+    ('0.2.0', '0'),
+])
+def test_userconfig_get_major_version(value, expected):
+    result = UserConfig._get_major_version(value)
+    assert result == expected
 
 
 @pytest.mark.parametrize('test_version', [
@@ -112,25 +96,6 @@ def test_userconfig_check_version(tmpdir, test_version, userconfig):
     # Check that setting a wrong version also runs the version checks
     with pytest.raises(ValueError):
         userconfig.set_version(test_version)
-
-
-def test_userconfig_check_section_option(userconfig):
-    section = userconfig._check_section_option(None, 'version')
-    assert section == userconfig.DEFAULT_SECTION_NAME
-
-    section = userconfig._check_section_option(None, 'opt')
-    assert section == userconfig.DEFAULT_SECTION_NAME
-
-    section = userconfig._check_section_option('sec', 'opt')
-    assert section == 'sec'
-
-    # Check with invalid section
-    with pytest.raises(RuntimeError):
-        section = userconfig._check_section_option(123, 'opt')
-
-    # Check with invalid option
-    with pytest.raises(RuntimeError):
-        section = userconfig._check_section_option(None, 123)
 
 
 def test_userconfig_check_defaults(tmpdir, capsys):
@@ -158,26 +123,23 @@ def test_userconfig_check_defaults(tmpdir, capsys):
         conf._check_defaults('asd')
 
 
-def test_userconfig_remove_deprecated_options(userconfig, tmpconfig):
-    pass
+def test_userconfig_check_section_option(userconfig):
+    section = userconfig._check_section_option(None, 'version')
+    assert section == userconfig.DEFAULT_SECTION_NAME
 
+    section = userconfig._check_section_option(None, 'opt')
+    assert section == userconfig.DEFAULT_SECTION_NAME
 
-@pytest.mark.parametrize('value,expected', [
-    ('3.2.1', '3.2'),
-    ('3.2.0', '3.2'),
-])
-def test_userconfig_get_minor_version(value, expected):
-    result = UserConfig._get_minor_version(value)
-    assert result == expected
+    section = userconfig._check_section_option('sec', 'opt')
+    assert section == 'sec'
 
+    # Check with invalid section
+    with pytest.raises(RuntimeError):
+        section = userconfig._check_section_option(123, 'opt')
 
-@pytest.mark.parametrize('value,expected', [
-    ('3.2.1', '3'),
-    ('0.2.0', '0'),
-])
-def test_userconfig_get_major_version(value, expected):
-    result = UserConfig._get_major_version(value)
-    assert result == expected
+    # Check with invalid option
+    with pytest.raises(RuntimeError):
+        section = userconfig._check_section_option(None, 123)
 
 
 def test_userconfig_load_from_ini(tmpdir, capsys):
@@ -197,6 +159,7 @@ def test_userconfig_load_from_ini(tmpdir, capsys):
     assert 'Warning' in captured.out
 
 
+# --- Public API
 def test_userconfig_get_version(userconfig, tmpconfig):
     assert tmpconfig.get_version() == CONF_VERSION
     assert userconfig.get_version() == '1.0.0'
@@ -259,46 +222,55 @@ def test_userconfig_get_default(userconfig, tmpconfig):
     assert value is True
 
 
-@pytest.mark.parametrize('defaults,value', [
-    # Valid values
-    ([('test', {'opt': 'value'})], 'value'),
-    ([('test', {'opt': u'"éàÇÃãéèï"'})], u'"éàÇÃãéèï"'),
-    ([('test', {'opt': 'éàÇÃãéèï'})], u'éàÇÃãéèï'),
-    ([('test', {'opt': True})], True),
-    ([('test', {'opt': UserConfig})], repr(UserConfig)),
-    ([('test', {'opt': 123})], 123),
-    ([('test', {'opt': 123.123})], 123.123),
-    ([('test', {'opt': [1]})], [1]),
-    ([('test', {'opt': {'key': 'val'}})], {'key': 'val'}),
-])
-def test_userconfig_get(defaults, value, tmpdir):
-    name = 'foobar'
-    path = str(tmpdir)
-    conf = UserConfig(name=name, path=path, defaults=defaults,
-                      load=False, version='1.0.0', backup=False,
-                      raw_mode=True)
+class TestUserConfigGet:
 
-    assert conf.get('test', 'opt') == value
+    @pytest.mark.parametrize('defaults,value', [
+        # Valid values
+        ([('test', {'opt': 'value'})], 'value'),
+        ([('test', {'opt': u'"éàÇÃãéèï"'})], u'"éàÇÃãéèï"'),
+        ([('test', {'opt': 'éàÇÃãéèï'})], u'éàÇÃãéèï'),
+        ([('test', {'opt': True})], True),
+        ([('test', {'opt': UserConfig})], repr(UserConfig)),
+        ([('test', {'opt': 123})], 123),
+        ([('test', {'opt': 123.123})], 123.123),
+        ([('test', {'opt': [1]})], [1]),
+        ([('test', {'opt': {'key': 'val'}})], {'key': 'val'}),
+    ])
+    def test_userconfig_get(self, defaults, value, tmpdir):
+        name = 'foobar'
+        path = str(tmpdir)
+        conf = UserConfig(name=name, path=path, defaults=defaults,
+                        load=False, version='1.0.0', backup=False,
+                        raw_mode=True)
 
+        assert conf.get('test', 'opt') == value
 
-@pytest.mark.parametrize('defaults,default,raises', [
-    # Valid values
-    ([('test2', {'opt': 'value'})], 'val', True),
-    ([('test2', {'opt': 'value'})], 'val', False),
-    ([('test', {'opt': 'value'})], 'val', False),
-])
-def test_userconfig_get2(defaults, default, raises, tmpdir):
-    name = 'foobar'
-    path = str(tmpdir)
-    conf = UserConfig(name=name, path=path, defaults=defaults,
-                      load=False, version='1.0.0', backup=False,
-                      raw_mode=True)
+    @pytest.mark.parametrize('defaults,default,raises', [
+        # Valid values
+        ([('test2', {'opt': 'value'})], 'val', True),
+        ([('test2', {'opt': 'value'})], 'val', False),
+        ([('test', {'opt': 'value'})], 'val', False),
+    ])
+    def test_userconfig_get2(self, defaults, default, raises, tmpdir):
+        name = 'foobar'
+        path = str(tmpdir)
+        conf = UserConfig(name=name, path=path, defaults=defaults,
+                        load=False, version='1.0.0', backup=False,
+                        raw_mode=True)
 
-    if raises:
-        with pytest.raises(cp.NoSectionError):
-            conf.get('test', 'opt')
-    else:
-        conf.get('test', 'opt', default)
+        if raises:
+            with pytest.raises(cp.NoSectionError):
+                conf.get('test', 'opt')
+        else:
+            conf.get('test', 'opt', default)
+
+    def test_userconfig_get_string_from_inifile(self, userconfig):
+        assert userconfig.get('section', 'option') == 'value'
+
+    def test_userconfig_get_does_not_eval_functions(self, userconfig):
+        # Regression test for spyder-ide/spyder#3354.
+        userconfig.set('section', 'option', 'print("foo")')
+        assert userconfig.get('section', 'option') == 'print("foo")'
 
 
 def test_userconfig_set_default(userconfig):
@@ -321,42 +293,61 @@ def test_userconfig_set_default(userconfig):
     assert value == default_value
 
 
-@pytest.mark.parametrize('defaults,value', [
-    # Valid values
-    ([('test', {'opt': 'value'})], 'other'),
-    ([('test', {'opt': 'éàÇÃãéèï'})], u'ãéèï'),
-    ([('test', {'opt': True})], False),
-    ([('test', {'opt': UserConfig})], dict),
-    ([('test', {'opt': 123})], 345),
-    ([('test', {'opt': 123.123})], 345.345),
-    ([('test', {'opt': [1]})], [1]),
-    ([('test', {'opt': {'key': 'val'}})], {'key2': 'val2'}),
-    # Value not in defaults
-    ([('test', {'opt1': 'value'})], 'other'),
-])
-def test_userconfig_set_valid(defaults, value, tmpdir):
-    name = 'foobar'
-    path = str(tmpdir)
-    conf = UserConfig(name=name, path=path, defaults=defaults,
-                      load=False, version='1.0.0', backup=False,
-                      raw_mode=True)
-    conf.set('test', 'opt', value)
+class TestUserConfigSet:
 
-
-@pytest.mark.parametrize('defaults,value', [
-    ([('test', {'opt': 123})], 'no'),
-    ([('test', {'opt': 123.123})], 'n9'),
-    ([('test', {'opt': 123.123})], 'n9'),
-])
-def test_userconfig_set_invalid(defaults, value, tmpdir):
-    name = 'foobar'
-    path = str(tmpdir)
-    conf = UserConfig(name=name, path=path, defaults=defaults,
-                      load=False, version='1.0.0', backup=False,
-                      raw_mode=True)
-
-    with pytest.raises(ValueError):
+    @pytest.mark.parametrize('defaults,value', [
+        # Valid values
+        ([('test', {'opt': 'value'})], 'other'),
+        ([('test', {'opt': 'éàÇÃãéèï'})], u'ãéèï'),
+        ([('test', {'opt': True})], False),
+        ([('test', {'opt': UserConfig})], dict),
+        ([('test', {'opt': 123})], 345),
+        ([('test', {'opt': 123.123})], 345.345),
+        ([('test', {'opt': [1]})], [1]),
+        ([('test', {'opt': {'key': 'val'}})], {'key2': 'val2'}),
+        # Value not in defaults
+        ([('test', {'opt1': 'value'})], 'other'),
+    ])
+    def test_userconfig_set_valid(self, defaults, value, tmpdir):
+        name = 'foobar'
+        path = str(tmpdir)
+        conf = UserConfig(name=name, path=path, defaults=defaults,
+                        load=False, version='1.0.0', backup=False,
+                        raw_mode=True)
         conf.set('test', 'opt', value)
+
+    @pytest.mark.parametrize('defaults,value', [
+        ([('test', {'opt': 123})], 'no'),
+        ([('test', {'opt': 123.123})], 'n9'),
+        ([('test', {'opt': 123.123})], 'n9'),
+    ])
+    def test_userconfig_set_invalid(self, defaults, value, tmpdir):
+        name = 'foobar'
+        path = str(tmpdir)
+        conf = UserConfig(name=name, path=path, defaults=defaults,
+                        load=False, version='1.0.0', backup=False,
+                        raw_mode=True)
+
+        with pytest.raises(ValueError):
+            conf.set('test', 'opt', value)
+
+    def test_userconfig_set_with_string(self, userconfig):
+        userconfig.set('section', 'option', 'new value')
+        with open(userconfig.get_config_fpath()) as inifile:
+            ini_contents = inifile.read()
+
+        expected = '[main]\nversion = 1.0.0\n\n'
+        if PY2:
+            expected += "[section]\noption = 'new value'\n\n"
+        else:
+            expected += "[section]\noption = new value\n\n"
+
+        assert ini_contents == expected
+
+    def test_userconfig_set_percentage_string(self, userconfig):
+        """Test to set an option with a '%'."""
+        userconfig.set('section', 'option', '%value')
+        assert userconfig.get('section', 'option') == '%value'
 
 
 def test_userconfig_remove_section(userconfig):
@@ -379,9 +370,35 @@ def test_userconfig_cleanup(userconfig):
     assert not os.path.isfile(configpath)
 
 
-# --- Tests for MultiUserConfig
-# ----------------------------------------------------------------------------
+# --- SpyderUserConfig tests
+# ============================================================================
+# --- Compatibility API
+def test_spyderconfig_get_previous_config_fpath(spyderconfig_previous, mocker):
+    value = spyderconfig_previous.get_previous_config_fpath()
+    print(value)
+    assert False
 
+
+def test_spyderconfig_get_previous_config_fpath2(spyderconfig_previous):
+    value = spyderconfig_previous.get_previous_config_fpath()
+    print(value)
+    assert False
+
+
+class TestSpyderConfigApplyPatches:
+
+    def test_spyderconfig_apply_configuration_patches_42(self, spyderconfig_patches_42):
+        # Check that the value is updated
+        value = spyderconfig_patches_42.get('ipython_console', 'startup/run_lines')
+        expected_value = 'value1; value2'
+        assert value == expected_value
+
+
+    def test_spyderconfig_apply_configuration_patches_45(self, spyderconfig_patches_45):
+        # Check that the value is not updated
+        value = spyderconfig_patches_45.get('ipython_console', 'startup/run_lines')
+        expected_value = 'value1,value2'
+        assert value == expected_value
 
 
 if __name__ == "__main__":
