@@ -29,7 +29,7 @@ from spyder_kernels.utils.nsview import get_supported_types, REMOTE_SETTINGS
 # Local imports
 from spyder.config.base import _
 from spyder.config.main import CONF
-from spyder.py3compat import is_text_string, to_text_string
+from spyder.py3compat import is_text_string, PY2, to_text_string
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import getcwd_or_home, remove_backslashes
@@ -44,6 +44,11 @@ from spyder.widgets.helperwidgets import FinderLineEdit
 
 
 SUPPORTED_TYPES = get_supported_types()
+
+if PY2:
+    VALID_VARIABLE_CHARS = r"^[^\W]\w*\Z"
+else:
+    VALID_VARIABLE_CHARS = r"^[^\W]\w*\Z"
 
 
 class NamespaceBrowser(QWidget):
@@ -156,7 +161,8 @@ class NamespaceBrowser(QWidget):
         label_finder = QLabel(_("Search: "))
         text_finder = NamespacesBrowserFinder(self.editor,
                                               callback=self.editor.set_regex,
-                                              main=self)
+                                              main=self,
+                                              regex_base=VALID_VARIABLE_CHARS)
         self.editor.finder = text_finder
         finder_layout.addWidget(label_finder)
         finder_layout.addWidget(text_finder)

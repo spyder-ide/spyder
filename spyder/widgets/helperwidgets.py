@@ -295,13 +295,14 @@ class IconLineEdit(QLineEdit):
 class FinderLineEdit(QLineEdit):
     """QLineEdit for filtering listed elements in the parent widget."""
 
-    def __init__(self, parent, callback=None, main=None):
+    def __init__(self, parent, callback=None, main=None,
+                 regex_base=VALID_FINDER_CHARS):
         super(FinderLineEdit, self).__init__(parent)
         self._parent = parent
         self.main = main
 
         # Widget setup
-        regex = QRegExp(VALID_FINDER_CHARS + "{100}")
+        regex = QRegExp(regex_base + "{100}")
         self.setValidator(QRegExpValidator(regex))
 
         # Signals
@@ -345,7 +346,7 @@ class CustomSortFilterProxy(QSortFilterProxyModel):
     def set_filter(self, text):
         """Set regular expression for filter."""
         self.pattern = get_search_regex(text)
-        if self.pattern:
+        if self.pattern and text:
             self._parent.setSortingEnabled(False)
         else:
             self._parent.setSortingEnabled(True)

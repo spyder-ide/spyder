@@ -76,7 +76,7 @@ def test_sort_by_column(qtbot):
 
     # Base check of the model
     assert model.rowCount() == 2
-    assert model.columnCount() == 4
+    assert model.columnCount() == 5
     assert data_table(model, 2, 4) == [['a_variable', 'b_variable'],
                                        ['int', 'int'],
                                        ['1', '1'],
