@@ -11,6 +11,7 @@ import os
 
 # Local imports
 from spyder.utils import programs
+from spyder.config.base import _
 
 
 class Dependency(object):
@@ -64,7 +65,7 @@ class Dependency(object):
 DEPENDENCIES = []
 
 
-def add(modname, package_name, features, required_version,
+def add(modname, package_name, features, required_version=None,
         installed_version=None, optional=False):
     """Add Spyder dependency"""
     global DEPENDENCIES
@@ -113,3 +114,9 @@ def missing_dependencies():
         return status(deps=missing_deps, linesep='<br>')
     else:
         return ""
+
+def declare_dependencies():
+    QDARKSTYLE_REQVER = '>=2.6.4'
+    add("qdarkstyle", "qdarkstyle", _("Dark style for the entire interface"),
+                 required_version=QDARKSTYLE_REQVER)
+    add("diff_match_patch", "diff_match_patch", _("Dsdlfkjsdlkfs"))
