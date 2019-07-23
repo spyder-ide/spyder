@@ -893,10 +893,11 @@ class CodeEditor(TextEditBaseWidget):
         completion_options = config['completionProvider']
         signature_options = config['signatureHelpProvider']
         range_formatting_options = config['documentOnTypeFormattingProvider']
-        self.open_close_notifications = sync_options['openClose']
-        self.sync_mode = sync_options['change']
-        self.will_save_notify = sync_options['willSave']
-        self.will_save_until_notify = sync_options['willSaveWaitUntil']
+        self.open_close_notifications = sync_options.get('openClose', False)
+        self.sync_mode = sync_options.get('change', TextDocumentSyncKind.NONE)
+        self.will_save_notify = sync_options.get('willSave', False)
+        self.will_save_until_notify = sync_options.get('willSaveWaitUntil',
+                                                       False)
         self.save_include_text = sync_options['save']['includeText']
         self.enable_hover = config['hoverProvider']
         self.auto_completion_characters = (
