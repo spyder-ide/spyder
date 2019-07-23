@@ -23,7 +23,7 @@ except ImportError:
 
 # Third party imports
 from pandas import (DataFrame, date_range, read_csv, concat, Index, RangeIndex,
-                    DatetimeIndex, MultiIndex, CategoricalIndex)
+                    MultiIndex, CategoricalIndex)
 from qtpy.QtGui import QColor
 from qtpy.QtCore import Qt, QTimer
 import numpy
@@ -72,8 +72,7 @@ def generate_pandas_indexes():
         'Index': Index(list('ABCDEFGHIJKLMNOPQRST')),
         'RangeIndex': RangeIndex(0, 20),
         'Float64Index': Index([i/10 for i in range(20)]),
-        'DatetimeIndex': DatetimeIndex(start='2017-01-01', periods=20,
-                                       freq='D'),
+        'DatetimeIndex': date_range(start='2017-01-01', periods=20, freq='D'),
         'MultiIndex': MultiIndex.from_product(
             [list('ABCDEFGHIJ'), ('foo', 'bar')], names=['first', 'second']),
         'CategoricalIndex': CategoricalIndex(list('abcaadaccbbacabacccb'),
