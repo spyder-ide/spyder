@@ -46,9 +46,9 @@ from spyder.widgets.helperwidgets import FinderLineEdit
 SUPPORTED_TYPES = get_supported_types()
 
 if PY2:
-    VALID_VARIABLE_CHARS = r"^[^\W]\w*\Z"
+    VALID_VARIABLE_CHARS = r"[^\W]\w*\Z"
 else:
-    VALID_VARIABLE_CHARS = r"^[^\W]\w*\Z"
+    VALID_VARIABLE_CHARS = r"[^\w+*=¡!¿?'\"#$%&()/<>\-\[\]{}^`´;,|¬]*\w"
 
 
 class NamespaceBrowser(QWidget):
