@@ -167,6 +167,7 @@ class NamespaceBrowser(QWidget):
         self.editor.finder = text_finder
         finder_layout.addWidget(label_finder)
         finder_layout.addWidget(text_finder)
+        finder_layout.setContentsMargins(0, 0, 0, 0)
         self.finder = QWidget(self)
         self.finder.setLayout(finder_layout)
         self.finder.setVisible(False)
