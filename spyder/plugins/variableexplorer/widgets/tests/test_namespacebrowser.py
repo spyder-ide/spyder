@@ -27,7 +27,7 @@ def test_setup_sets_dataframe_format(qtbot):
     browser.setup(exclude_private=True, exclude_uppercase=True,
                   exclude_capitalized=True, exclude_unsupported=True,
                   minmax=False, dataframe_format='%10.5f')
-    assert browser.editor.model.dataframe_format == '%10.5f'
+    assert browser.editor.source_model.dataframe_format == '%10.5f'
 
 
 def test_automatic_column_width(qtbot):
@@ -76,7 +76,7 @@ def test_sort_by_column(qtbot):
 
     # Base check of the model
     assert model.rowCount() == 2
-    assert model.columnCount() == 4
+    assert model.columnCount() == 5
     assert data_table(model, 2, 4) == [['a_variable', 'b_variable'],
                                        ['int', 'int'],
                                        ['1', '1'],

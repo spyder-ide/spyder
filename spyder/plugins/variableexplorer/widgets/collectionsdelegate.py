@@ -301,7 +301,9 @@ class CollectionsDelegate(QItemDelegate):
         Overriding method setModelData
         Editor --> Model
         """
-        if not hasattr(model, "set_value"):
+        if ((hasattr(model, "sourceModel")
+                and not hasattr(model.sourceModel(), "set_value"))
+                or not hasattr(model, "set_value")):
             # Read-only mode
             return
 
