@@ -131,13 +131,7 @@ def test_automatic_completions(lsp_codeeditor, qtbot):
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
-        qtbot.keyClicks(code_editor, ' ')
-
-    assert "os" in [x['label'] for x in sig.args[0]]
-
-    with qtbot.waitSignal(completion.sig_show_completions,
-                          timeout=10000) as sig:
-        qtbot.keyClicks(code_editor, 'n')
+        qtbot.keyClicks(code_editor, ' n')
 
     assert "ntpath" in [x['label'] for x in sig.args[0]]
 
@@ -149,13 +143,7 @@ def test_automatic_completions(lsp_codeeditor, qtbot):
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
-        qtbot.keyPress(code_editor, Qt.Key_Backspace)
-
-    assert "numbers" in [x['label'] for x in sig.args[0]]
-
-    with qtbot.waitSignal(completion.sig_show_completions,
-                          timeout=10000) as sig:
-        qtbot.keyClicks(code_editor, 'py')
+        qtbot.keyClicks(code_editor, 'y')
 
     # Due to automatic completion, the completion widget may appear before
     stop = False
@@ -170,13 +158,7 @@ def test_automatic_completions(lsp_codeeditor, qtbot):
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
-        qtbot.keyClicks(code_editor, ' ')
-
-    assert "import" in [x['label'] for x in sig.args[0]]
-
-    with qtbot.waitSignal(completion.sig_show_completions,
-                          timeout=10000) as sig:
-        qtbot.keyClicks(code_editor, 'imp')
+        qtbot.keyClicks(code_editor, ' imp')
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
@@ -197,7 +179,7 @@ def test_automatic_completions(lsp_codeeditor, qtbot):
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
-        qtbot.keyClicks(code_editor, ' ')
+        qtbot.keyClicks(code_editor, ' r')
 
     assert "random" in [x['label'] for x in sig.args[0]]
 
