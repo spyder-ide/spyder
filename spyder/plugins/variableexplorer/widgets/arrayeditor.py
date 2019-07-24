@@ -22,10 +22,10 @@ from qtpy.QtCore import (QAbstractTableModel, QItemSelection, QLocale,
                          QItemSelectionRange, QModelIndex, Qt, Slot)
 from qtpy.QtGui import QColor, QCursor, QDoubleValidator, QKeySequence
 from qtpy.QtWidgets import (QAbstractItemDelegate, QApplication, QCheckBox,
-                            QComboBox, QDialog, QDialogButtonBox, QGridLayout,
-                            QHBoxLayout, QInputDialog, QItemDelegate, QLabel,
-                            QLineEdit,  QMenu, QMessageBox, QPushButton,
-                            QSpinBox, QStackedWidget, QTableView, QVBoxLayout,
+                            QComboBox, QDialog, QGridLayout, QHBoxLayout,
+                            QInputDialog, QItemDelegate, QLabel, QLineEdit,
+                            QMenu, QMessageBox, QPushButton, QSpinBox,
+                            QStackedWidget, QTableView, QVBoxLayout,
                             QWidget)
 import numpy as np
 
@@ -647,13 +647,14 @@ class ArrayEditor(QDialog):
             if dtn == 'object':
                 # If the array doesn't have shape, we can't display it
                 if data.shape == ():
-                    self.error(_("Object arrays without shape are not supported"))
+                    self.error(_("Object arrays without shape are not "
+                                 "supported"))
                     return False
                 # We don't know what's inside these arrays, so we can't handle
                 # edits
                 self.readonly = readonly = True
-            elif dtn not in SUPPORTED_FORMATS and not dtn.startswith('str') \
-              and not dtn.startswith('unicode'):
+            elif (dtn not in SUPPORTED_FORMATS and not dtn.startswith('str')
+                    and not dtn.startswith('unicode')):
                 arr = _("%s arrays") % data.dtype.name
                 self.error(_("%s are currently not supported") % arr)
                 return False
@@ -836,7 +837,7 @@ class ArrayEditor(QDialog):
 
     def get_value(self):
         """Return modified array -- this is *not* a copy"""
-        # It is import to avoid accessing Qt C++ object as it has probably
+        # It is important to avoid accessing Qt C++ object as it has probably
         # already been destroyed, due to the Qt.WA_DeleteOnClose attribute
         return self.data
 
