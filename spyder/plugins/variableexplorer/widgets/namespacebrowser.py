@@ -28,6 +28,7 @@ from spyder_kernels.utils.nsview import get_supported_types, REMOTE_SETTINGS
 
 # Local imports
 from spyder.config.base import _
+from spyder.config.gui import config_shortcut
 from spyder.config.main import CONF
 from spyder.py3compat import is_text_string, PY2, to_text_string
 from spyder.utils import encoding
@@ -202,14 +203,15 @@ class NamespaceBrowser(QWidget):
                 self, text=_("Remove all variables"),
                 icon=ima.icon('editdelete'), triggered=self.reset_namespace)
 
-        search_button = create_toolbutton(
+        self.search_button = create_toolbutton(
             self, text=_("Search"),
             icon=ima.icon('find'),
-            toggled=lambda: self.finder.setVisible(
-                not self.finder.isVisible()))
+            triggered=self.search)
+        config_shortcut(self.search, context='variable_explorer',
+                        name='search', parent=self)
 
         return [load_button, self.save_button, save_as_button,
-                reset_namespace_button, search_button]
+                reset_namespace_button, self.search_button]
 
     def setup_option_actions(self, exclude_private, exclude_uppercase,
                              exclude_capitalized, exclude_unsupported):
@@ -284,6 +286,18 @@ class NamespaceBrowser(QWidget):
         for name in REMOTE_SETTINGS:
             settings[name] = getattr(self, name)
         return settings
+
+    def search(self):
+        """Handle showing/hiding search widget."""
+        self.editor.finder.setText('')
+        state = not self.finder.isVisible()
+        self.finder.setVisible(state)
+        self.search_button.setChecked(state)
+
+        if self.finder.isVisible():
+            self.editor.finder.setFocus()
+        else:
+            self.editor.setFocus()
 
     def refresh_table(self):
         """Refresh variable table"""
@@ -439,7 +453,7 @@ class NamespacesBrowserFinder(FinderLineEdit):
         elif key in [Qt.Key_Down]:
             self._parent.next_row()
         elif key in [Qt.Key_Escape]:
-            self.main.finder.setVisible(False)
+            self._parent.parent().search()
         elif key in [Qt.Key_Enter, Qt.Key_Return]:
             # TODO: Check if an editor needs to be shown
             pass

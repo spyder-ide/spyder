@@ -453,8 +453,10 @@ DEFAULTS = [
               # ---- In widgets/arraybuider.py ----
               'array_builder/enter array inline': "Ctrl+Alt+M",
               'array_builder/enter array table': "Ctrl+M",
-              # ---- In widgets/variableexplorer/aarayeditor.py ----
+              # ---- In widgets/variableexplorer/arrayeditor.py ----
               'variable_explorer/copy': 'Ctrl+C',
+              # ---- In widgets/variableexplorer/namespacebrowser.py ----
+              'variable_explorer/search': 'Ctrl+Alt+F',
               # ---- In widgets/plots/figurebrowser.py ----
               'plots/copy': 'Ctrl+C',
               'plots/previous figure': 'Ctrl+PgUp',
