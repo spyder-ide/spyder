@@ -17,6 +17,7 @@ NumPy Array Editor Dialog based on Qt
 from __future__ import print_function
 
 # Third party imports
+import numpy as np
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QItemSelection, QLocale,
                          QItemSelectionRange, QModelIndex, Qt, Slot)
@@ -27,7 +28,7 @@ from qtpy.QtWidgets import (QAbstractItemDelegate, QApplication, QCheckBox,
                             QMenu, QMessageBox, QPushButton, QSpinBox,
                             QStackedWidget, QTableView, QVBoxLayout,
                             QWidget)
-import numpy as np
+from spyder_kernels.utils.nsview import value_to_display
 
 # Local imports
 from spyder.config.base import _
@@ -165,6 +166,10 @@ class ArrayModel(QAbstractTableModel):
             self.dhue = None
             self.bgcolor_enabled = False
 
+        # Deactivate coloring for object arrays
+        if self._data.dtype.name == 'object':
+            self.bgcolor_enabled = False
+
         # Use paging when the total size, number of rows or number of
         # columns is too large
         if size > LARGE_SIZE:
@@ -251,28 +256,39 @@ class ArrayModel(QAbstractTableModel):
         return self.changes.get((i, j), value)
 
     def data(self, index, role=Qt.DisplayRole):
-        """Cell content"""
+        """Cell content."""
         if not index.isValid():
             return to_qvariant()
         value = self.get_value(index)
+        dtn = self._data.dtype.name
+
+        # Tranform binary string to unicode so they are displayed
+        # correctly
         if is_binary_string(value):
             try:
                 value = to_text_string(value, 'utf8')
-            except:
+            except Exception:
                 pass
+
+        # Handle roles
         if role == Qt.DisplayRole:
             if value is np.ma.masked:
                 return ''
             else:
-                try:
-                    return to_qvariant(self._format % value)
-                except TypeError:
-                    self.readonly = True
-                    return repr(value)
+                if dtn == 'object':
+                    # We don't know what's inside an object array, so
+                    # we can't trust value repr's here.
+                    return value_to_display(value)
+                else:
+                    try:
+                        return to_qvariant(self._format % value)
+                    except TypeError:
+                        self.readonly = True
+                        return repr(value)
         elif role == Qt.TextAlignmentRole:
             return to_qvariant(int(Qt.AlignCenter|Qt.AlignVCenter))
-        elif role == Qt.BackgroundColorRole and self.bgcolor_enabled \
-          and value is not np.ma.masked:
+        elif (role == Qt.BackgroundColorRole and self.bgcolor_enabled
+                and value is not np.ma.masked):
             try:
                 hue = (self.hue0 +
                        self.dhue * (float(self.vmax) - self.color_func(value))
@@ -676,7 +692,8 @@ class ArrayEditor(QDialog):
         if is_record_array:
             for name in data.dtype.names:
                 self.stack.addWidget(ArrayEditorWidget(self, data[name],
-                                                   readonly, xlabels, ylabels))
+                                                       readonly, xlabels,
+                                                       ylabels))
         elif is_masked_array:
             self.stack.addWidget(ArrayEditorWidget(self, data, readonly,
                                                    xlabels, ylabels))
@@ -692,7 +709,7 @@ class ArrayEditor(QDialog):
         self.arraywidget = self.stack.currentWidget()
         if self.arraywidget:
             self.arraywidget.model.dataChanged.connect(
-                                                    self.save_and_close_enable)
+                self.save_and_close_enable)
         self.stack.currentChanged.connect(self.current_widget_changed)
         self.layout.addWidget(self.stack, 1, 0)
 
