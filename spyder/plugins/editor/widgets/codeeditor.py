@@ -3356,19 +3356,8 @@ class CodeEditor(TextEditBaseWidget):
             word_text = to_text_string(cursor.selectedText())
             # Perform completion on the fly
             if self.automatic_completions:
-                if text == '\b' or text == ' ':
-                    offset = 1 + (text == ' ')
-                    if len(word_text) > 0:
-                        prev_char = word_text[-1]
-                    else:
-                        prev_char = self.get_character(
-                            cursor.position() - offset)
-                    if (prev_char.isalpha() or
-                            (prev_char in self.auto_completion_characters)):
-                        self.do_completion(automatic=True)
-                else:
-                    if text.isalpha():
-                        self.do_completion(automatic=True)
+                if text.isalpha():
+                    self.do_completion(automatic=True)
         if not event.modifiers():
             # Accept event to avoid it being handled by the parent
             # Modifiers should be passed to the parent because they
