@@ -471,7 +471,6 @@ class ArrayView(QTableView):
                     new_selection.append(part)
                 self.selectionModel().select
                 (new_selection, self.selectionModel().ClearAndSelect)
-
         except NameError:
             # Needed to handle a NameError while fetching data when closing
             # See isue 7880
