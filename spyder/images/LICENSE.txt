@@ -1,0 +1,21 @@
+Images and Icons License Information
+####################################
+
+Spyder incorporates icon and image assets from external sources as well as its
+own, each of which is covered by its own license and copyright notice.
+These are all listed in full in NOTICE.txt at the root of this repo/package,
+which should be included with any distribution that includes these files.
+The NOTICE.txt file can also be viewed online at Spyder's Github repository:
+https://github.com/spyder-ide/spyder/blob/master/NOTICE.txt
+
+Any file not otherwise listed is covered by Spyder's MIT (Expat) License,
+described in the LICENSE.txt file in this repository and Spyder's __init__.py,
+which should also be included with any distribution.
+The current version can also be viewed online at:
+https://github.com/spyder-ide/spyder/blob/master/LICENSE.txt
+
+Images, icons and font gyphs that include trademarked elements are used for
+informational purposes only, and do not necessarily constitute any endorsement,
+association or ownership by or of the marks or their respective owners.
+
+All trademarks are the property of their respective owners.

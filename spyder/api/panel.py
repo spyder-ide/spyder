@@ -1,20 +1,32 @@
 # -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2013-2016 Colin Duquesnoy and others (see pyqode/AUTHORS.rst)
+# Copyright (c) 2016- Spyder Project Contributors (see AUTHORS.txt)
 #
-# Copyright © Spyder Project Contributors
-# Copyright © <2013-2016> <Colin Duquesnoy and others, see pyqode/AUTHORS.rst>
-# Licensed under the terms of the MIT License
-# (see spyder/__init__.py for details)
+# Distributed under the terms of the MIT License
+# (see NOTICE.txt in the Spyder root directory for details)
+# -----------------------------------------------------------------------------
 
 """
 This module contains the panel API.
-Adapted from https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/api/panel.py
+
+Adapted from pyqode/core/api/panel.py of the
+`PyQode project <https://github.com/pyQode/pyQode>`_.
+Original file:
+<https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/api/panel.py>
 """
+
+
+# Third party imports
+import logging
 from qtpy.QtWidgets import QWidget, QApplication
 from qtpy.QtGui import QBrush, QColor, QPen, QPainter
 from qtpy.QtCore import Qt, QPoint, QRect
 
+# Local imports
 from spyder.api.editorextension import EditorExtension
-from spyder.config.base import debug_print
+
+logger = logging.getLogger(__name__)
 
 
 class Panel(QWidget, EditorExtension):
@@ -86,7 +98,7 @@ class Panel(QWidget, EditorExtension):
             method!
 
         :param editor: editor instance
-        :type editor: spyder.widgets.sourcecode.CodeEditor
+        :type editor: spyder.plugins.editor.widgets.codeeditor.CodeEditor
         """
         EditorExtension.on_install(self, editor)
         self.setParent(editor)
@@ -120,7 +132,7 @@ class Panel(QWidget, EditorExtension):
 
         :param visible: Visible state
         """
-        debug_print('{} visibility changed'.format(self.name))
+        logger.debug('%s visibility changed', self.name)
         super(Panel, self).setVisible(visible)
         if self.editor:
             self.editor.panels.refresh()

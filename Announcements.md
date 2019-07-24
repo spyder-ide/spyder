@@ -1,31 +1,23 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 3.2.3 is released!
+**Subject**: [ANN] Spyder 3.3.6 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **3.2.3** has been released and is available for
+I'm pleased to announce that Spyder **3.3.6** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes one week after version 3.2.2 and it adds the following new
-features:
+This release comes two weeks after version 3.3.5 and it doesn't add new
+features.
 
-* A button to the Variable Explorer to remove to remove all variables at
-  once.
-
-It also fixes one critical problem:
-
-* An AttributeError when running code in the IPython console while using
-  old versions of the qtconsole package.
-
-In this release we fixed 10 issues and merged 9 pull requests that amount
-to almost 40 commits. For a full list of fixes, please see our
+In this release we fixed 2 issues and merged 3 pull requests that amount
+to 11 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/3.x/CHANGELOG.md).
 
-Don't forget to follow Spyder updates/news on the project
-[Github website](https://github.com/spyder-ide/spyder).
+Don't forget to follow Spyder updates/news on the project's
+[website](https://www.spyder-ide.org).
 
 Last, but not least, we welcome any contribution that helps making Spyder an
 efficient scientific development and computing environment. Join us to help
@@ -96,7 +88,7 @@ Last, but not least, we welcome any contribution that helps making Spyder an
 efficient scientific development/computing environment. Join us to help creating
 your favorite environment!
 
-Enjoy!<br>
+Enjoy!
 -Carlos
 
 
@@ -132,63 +124,72 @@ scientific computing and software development.
 
 # Beta release
 
-**Subject**: [ANN] Spyder 3.0 seventh public beta release
+**Subject**: [ANN] Spyder 4.0 third public beta release
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce the seventh beta of our next major version: Spyder **3.0**.
+I'm pleased to announce the third beta of our next major version: Spyder **4.0**.
 
-We've been working on this version for more than two years now and as far as we know
+We've been working on this version for almost three years now and as far as we know
 it's working very well. There are still several bugs to squash but we encourage all
 people who like the bleeding edge to give it a try. This beta version is released
-two weeks after our sixth one and it includes more than 200 commits.
+6 weeks after Spyder 4.0 beta2 and it includes more than 600 commits.
 
-Spyder 3.0 comes with several interesting and exciting new features. The most
+Spyder 4.0 comes with several interesting and exciting new features. The most
 important ones are:
 
-* Third-party plugins: External developers can now create plugins that extend Spyder in
-  novel and interesting ways. For example, we already have plugins for the line-profiler
-  and memory-profiler projects, and also a graphical frontend for the conda package
-  manager. These plugins can be distributed as pip and/or conda packages for authors
-  convenience.
-* Improved projects support: Projects have been revamped and improved significantly in
-  Spyder 3.0. With our new projects support, people will have the possibility of easily
-  working on different coding efforts at the same time. That's because projects save the
-  state of open files in the Editor and allow Python packages created as part of the
-  project to be imported in our consoles.
-* Support for much more programming languages: Spyder relies now on the excellent Pygments
-  library to provide syntax highlight and suggest code completions in the Editor, for all
-  programming languages supported by it.
-* A new file switcher: Spyder 3.0 comes with a fancy file switcher, very similar in
-  spirit to the one present in Sublime Text. This is a dialog to select among the open
-  files in the Editor, by doing a fuzzy search through their names. It also lets users to
-  view the list of classes, methods and functions defined in the current file, and select
-  one of them. This dialog is activated with `Ctrl+P`.
-* A Numpy array graphical builder: Users who need to create NumPy arrays in Spyder for
-  matrices and vectors can do it now in a graphical way by pressing `Ctrl+M` in the Editor
-  or the Consoles. This will open an empty 2D table widget to be filled with the data
-  required by the user.
-* A new icon theme based on FontAwesome.
-* A new set of default pane layouts for those coming from Rstudio or Matlab (under
-  `View > Window layouts`).
-* A simpler and more intuitive way to introduce keyboard shortcuts.
-* Support for PyQt5, which fixes problems in MacOS X and in high definition screens.
+- Main Window
+    * Dark theme for the entire application.
+    * A new Plots pane to browse all inline figures generated by the
+      IPython console.
+    * Create a separate window when undocking all panes.
 
-For a complete list of changes, please see our
+- Editor
+    * Code folding.
+    * Indent guides.
+    * A class/method/function lookup “context panel”.
+    * Autosave functionality to recover unsaved files after a crash.
+    * Code completion and linting are provided by the Python Language Server.
+
+- IPython Console
+    * Add menu options to start consoles in Pylab, Sympy and Cython modes.
+    * Cells are run through a new function called `runcell`.
+
+- Variable Explorer
+    * Add a new viewer to inspect any Python object in a tree-like view.
+    * Add MultiIndex display support to the Dataframe viewer.
+    * Add support for all Pandas indexes.
+    * Add support for sets.
+
+- Files
+    * Add the possibility to associate different external applications to open
+      specific file extensions.
+    * Add a context menu action called `Open externally` to all files to open
+      them with the default program associated with the file type.
+    * Add multi-select functionality (Ctrl/Shift+click).
+    * Add the ability to copy/paste files and their absolute or relative paths.
+    * Use special icons for different file types.
+    * Add an option to open files and directories with a single click.
+
+- Outline
+    * Show cells grouped in sections.
+    * Add a default name to all cells.
+
+
+For a more complete list of changes, please see our
 [changelog](https://github.com/spyder-ide/spyder/wiki/Beta-version-changelog)
 
 You can easily install this beta if you use Anaconda by running:
 
     conda update qt pyqt
-    conda install -c qttesting qt pyqt
-    conda install -c spyder-ide spyder==3.0.0b7
+    conda install -c spyder-ide spyder=4.0.0b3
 
 Or you can use pip with this command:
 
     pip install --pre -U spyder
 
 
-Enjoy!<br>
--Carlos
+Enjoy!
+Carlos

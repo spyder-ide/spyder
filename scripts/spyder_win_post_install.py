@@ -141,7 +141,7 @@ def install():
     if not osp.isdir(ico_dir):
         ico_dir = osp.dirname(osp.abspath(__file__))
 
-    desc = 'Scientific Python Development EnvironmEnt, an alternative to IDLE'
+    desc = 'The Scientific Python Development Environment'
     fname = osp.join(start_menu, 'Spyder (full).lnk')
     create_shortcut(python, desc, fname, '"%s"' % script, workdir,
                     osp.join(ico_dir, 'spyder.ico'))
@@ -164,7 +164,7 @@ def install():
     # Create desktop shortcut file
     desktop_folder = get_special_folder_path("CSIDL_DESKTOPDIRECTORY")
     fname = osp.join(desktop_folder, 'Spyder.lnk')
-    desc = 'Scientific Python Development EnvironmEnt, an alternative to IDLE'
+    desc = 'The Scientific Python Development Environment'
     create_shortcut(pythonw, desc, fname, '"%s"' % script, workdir,
                     osp.join(ico_dir, 'spyder.ico'))
     file_created(fname)

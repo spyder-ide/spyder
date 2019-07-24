@@ -1,0 +1,14 @@
+pytest <5.0
+pytest-mock
+pytest-cov
+pytest-qt
+pytest-ordering
+pytest-lazy-fixture
+mock
+pandas
+scipy
+sympy
+pillow
+matplotlib
+cython
+flaky

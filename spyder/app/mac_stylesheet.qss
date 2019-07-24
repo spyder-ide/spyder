@@ -21,6 +21,10 @@ QToolButton {
     border: none;
 }
 
+QToolButton:checked{
+    background-color: darkgrey;
+}
+
 QSplitter::handle:horizontal {
     border: 1px solid darkgrey;
     width: 2px;
@@ -114,6 +118,17 @@ QTabBar#plugin-tab QToolButton::right-arrow {
     background: lightgrey;
     image: url($IMAGE_PATH/chevron-right.png);
 }
+
+QTabBar::close-button{
+    background-image: url($IMAGE_PATH/CloseButton.png);
+}
+
+
+
+QTabBar::close-button:hover{
+    background-color: darkgrey;
+}
+
 
 
 /* ------------------ Dock widgets ------------------- */

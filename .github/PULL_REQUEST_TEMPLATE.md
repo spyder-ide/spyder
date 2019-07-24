@@ -1,15 +1,37 @@
-Before submitting your pull request be sure that:
+<!--- Make sure to read the Contributing Guidelines:                   --->
+<!--- https://github.com/spyder-ide/spyder/blob/master/CONTRIBUTING.md --->
+<!--- and follow PEP 8, PEP 257 and Spyder's code style:               --->
+<!--- https://github.com/spyder-ide/spyder/wiki/Dev:-Coding-Style      --->
 
-1. You haven't touched any file in the `spyder/defaults` directory.
-  - There is *absolutely* no need to touch those files.
-  - If you want to add new configuration options, please go to
-    `spyder/config/main.py`.
-2. You haven't eliminated unnecessary blank lines or spaces during your work.
-   That makes our reviewing work harder and it could introduce unnecessary
-   conflicts with other pull requests.
-3. You haven't added new icons to Spyder. Please leave decisions about what
-   icons to use to us :)
+## Description of Changes
 
-----
 
-*Note*: You can safely remove this text before submitting your work.
+* [ ] Wrote at least one-line docstrings (for any new functions)
+* [ ] Added unit test(s) covering the changes (if testable)
+<!--- Remember that an image/animation is worth a thousand words! --->
+* [ ] Included a screenshot or animation (if affecting the UI, see [Licecap](https://www.cockos.com/licecap/))
+
+
+<!--- Explain what you've done and why --->
+
+
+
+
+### Issue(s) Resolved
+
+<!--- List the issue(s) below, in the form "Fixes #1234"; one per line --->
+
+Fixes #
+
+
+### Affirmation
+
+By submitting this Pull Request or typing my (user)name below,
+I affirm the [Developer Certificate of Origin](https://developercertificate.org)
+with respect to all commits and content included in this PR,
+and understand I am releasing the same under Spyder's MIT (Expat) license.
+
+<!--- TYPE YOUR USER/NAME AFTER THE FOLLOWING: --->
+I certify the above statement is true and correct:
+
+<!--- Thanks for your help making Spyder better for everyone! --->

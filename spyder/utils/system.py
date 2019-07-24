@@ -1,12 +1,18 @@
 # -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2009- Spyder Project Contributors
 #
-# Copyright © Spyder Project Contributors
-# Licensed under the terms of the MIT License
+# Distributed under the terms of the MIT License
 # (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
 
-"""Operating system utilities"""
+
+"""
+Operating-system-specific utilities.
+"""
 
 
+# Standard library imports
 import os
 
 # Local imports
@@ -31,7 +37,7 @@ def windows_memory_usage():
     memorystatus = MemoryStatus()
     # MSDN documetation states that dwLength must be set to MemoryStatus
     # size before calling GlobalMemoryStatusEx
-    # http://msdn.microsoft.com/en-us/library/aa366770(v=vs.85)
+    # https://msdn.microsoft.com/en-us/library/aa366770(v=vs.85)
     memorystatus.dwLength = sizeof(memorystatus)
     windll.kernel32.GlobalMemoryStatusEx(byref(memorystatus))
     return float(memorystatus.dwMemoryLoad)
@@ -40,7 +46,7 @@ def psutil_phymem_usage():
     """
     Return physical memory usage (float)
     Requires the cross-platform psutil (>=v0.3) library
-    (http://code.google.com/p/psutil/)
+    (https://github.com/giampaolo/psutil)
     """
     import psutil
     # This is needed to avoid a deprecation warning error with

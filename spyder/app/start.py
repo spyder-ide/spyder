@@ -1,6 +1,14 @@
 # -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2009- Spyder Project Contributors
+#
+# Distributed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
 
-# Std imports
+
+# Standard library imports
+import ctypes
 import os
 import os.path as osp
 import random
@@ -8,17 +16,21 @@ import socket
 import sys
 import time
 
-# This import is needed to fix errors with OpenGL when installed using pip
-# See issue #3332
+# To prevent a race condition with ZMQ
+# See spyder-ide/spyder#5324.
+import zmq
+
+# Load GL library to prevent segmentation faults on some Linux systems
+# See spyder-ide/spyder#3226 and spyder-ide/spyder#3332.
 try:
-    from OpenGL import GL
-except ImportError:
-    # pyopengl is not present when installed using conda
+    ctypes.CDLL("libGL.so.1", mode=ctypes.RTLD_GLOBAL)
+except:
     pass
 
 # Local imports
 from spyder.app.cli_options import get_options
-from spyder.config.base import get_conf_path, running_in_mac_app
+from spyder.config.base import (get_conf_path, running_in_mac_app,
+                                running_under_pytest)
 from spyder.config.main import CONF
 from spyder.utils.external import lockfile
 from spyder.py3compat import is_unicode
@@ -26,7 +38,7 @@ from spyder.py3compat import is_unicode
 
 def send_args_to_spyder(args):
     """
-    Simple socket client used to send the args passed to the Spyder 
+    Simple socket client used to send the args passed to the Spyder
     executable to an already running instance.
 
     Args can be Python scripts or files with these extensions: .spydata, .mat,
@@ -35,7 +47,7 @@ def send_args_to_spyder(args):
     port = CONF.get('main', 'open_files_port')
 
     # Wait ~50 secs for the server to be up
-    # Taken from http://stackoverflow.com/a/4766598/438386
+    # Taken from https://stackoverflow.com/a/4766598/438386
     for _x in range(200):
         try:
             for arg in args:
@@ -61,7 +73,19 @@ def main():
     options to the application.
     """
     # Parse command line options
-    options, args = get_options()
+    if running_under_pytest():
+        try:
+            from unittest.mock import Mock
+        except ImportError:
+            from mock import Mock # Python 2
+
+        options = Mock()
+        options.new_instance = False
+        options.reset_config_files = False
+        options.debug_info = None
+        args = None
+    else:
+        options, args = get_options()
 
     # Store variable to be used in self.restart (restart spyder instance)
     os.environ['SPYDER_ARGS'] = str(sys.argv[1:])
@@ -81,8 +105,8 @@ def main():
         os.environ['QT_SCALE_FACTOR'] = ''
         os.environ['QT_SCREEN_SCALE_FACTORS'] = ''
 
-    # Prevent Spyder from crashing in macOS if locale is not defined
     if sys.platform == 'darwin':
+        # Prevent Spyder from crashing in macOS if locale is not defined
         LANG = os.environ.get('LANG')
         LC_ALL = os.environ.get('LC_ALL')
         if bool(LANG) and not bool(LC_ALL):
@@ -94,6 +118,29 @@ def main():
 
         os.environ['LANG'] = LANG
         os.environ['LC_ALL'] = LC_ALL
+
+        # Don't show useless warning in the terminal where Spyder
+        # was started.
+        # See spyder-ide/spyder#3730.
+        os.environ['EVENT_NOKQUEUE'] = '1'
+    else:
+        # Prevent our kernels to crash when Python fails to identify
+        # the system locale.
+        # Fixes spyder-ide/spyder#7051.
+        try:
+            from locale import getlocale
+            getlocale()
+        except ValueError:
+            # This can fail on Windows. See spyder-ide/spyder#6886.
+            try:
+                os.environ['LANG'] = 'C'
+                os.environ['LC_ALL'] = 'C'
+            except Exception:
+                pass
+
+    if options.debug_info:
+        levels = {'minimal': '2', 'verbose': '3'}
+        os.environ['SPYDER_DEBUG'] = levels[options.debug_info]
 
     if CONF.get('main', 'single_instance') and not options.new_instance \
       and not options.reset_config_files and not running_in_mac_app():
@@ -115,8 +162,8 @@ def main():
         except:
             # If locking fails because of errors in the lockfile
             # module, try to remove a possibly stale spyder.lock.
-            # This is reported to solve all problems with
-            # lockfile (See issue 2363)
+            # This is reported to solve all problems with lockfile.
+            # See spyder-ide/spyder#2363.
             try:
                 if os.name == 'nt':
                     if osp.isdir(lock_file):
@@ -132,13 +179,19 @@ def main():
             # executing this script because it doesn't make
             # sense
             from spyder.app import mainwindow
-            mainwindow.main()
-            return
+            if running_under_pytest():
+                return mainwindow.main()
+            else:
+                mainwindow.main()
+                return
 
         if lock_created:
             # Start a new instance
             from spyder.app import mainwindow
-            mainwindow.main()
+            if running_under_pytest():
+                return mainwindow.main()
+            else:
+                mainwindow.main()
         else:
             # Pass args to Spyder or print an informative
             # message
@@ -149,7 +202,10 @@ def main():
                       "instance, please pass to it the --new-instance option")
     else:
         from spyder.app import mainwindow
-        mainwindow.main()
+        if running_under_pytest():
+            return mainwindow.main()
+        else:
+            mainwindow.main()
 
 
 if __name__ == "__main__":

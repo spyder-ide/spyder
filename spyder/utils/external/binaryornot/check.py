@@ -1,10 +1,20 @@
 # -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2013-2016 Audrey Roy
+# Copyright (c) 2016- Spyder Project Contributors
+#
+# Licensed under the terms of the BSD 3-clause license
+# (see LICENSE.txt in this directory for details)
+# -----------------------------------------------------------------------------
 
 """
 binaryornot.check
 -----------------
 
 Main code for checking if a file is binary or text.
+
+Adapted from binaryornot/check.py of
+`BinaryOrNot <https://github.com/audreyr/binaryornot>`_.
 """
 
 import logging

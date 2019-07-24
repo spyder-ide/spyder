@@ -17,7 +17,11 @@ import re
 import weakref
 
 # Third party imports
-from qtpy.QtCore import Qt
+from pygments.lexer import RegexLexer, bygroups
+from pygments.lexers import get_lexer_by_name
+from pygments.token import (Text, Other, Keyword, Name, String, Number,
+                            Comment, Generic, Token)
+from qtpy.QtCore import Qt, QTimer, Signal
 from qtpy.QtGui import (QColor, QCursor, QFont, QSyntaxHighlighter,
                         QTextCharFormat, QTextOption)
 from qtpy.QtWidgets import QApplication
@@ -26,20 +30,35 @@ from qtpy.QtWidgets import QApplication
 from spyder import dependencies
 from spyder.config.base import _
 from spyder.config.main import CONF
-from spyder.py3compat import builtins, is_text_string, to_text_string, PY3
-from spyder.utils.sourcecode import CELL_LANGUAGES
-from spyder.utils.editor import TextBlockHelper as tbh
+from spyder.py3compat import (builtins, is_text_string, to_text_string, PY3,
+                              PY36_OR_MORE)
+from spyder.plugins.editor.utils.languages import CELL_LANGUAGES
+from spyder.plugins.editor.utils.editor import TextBlockHelper as tbh
+from spyder.plugins.editor.utils.editor import BlockUserData
 from spyder.utils.workers import WorkerManager
+from spyder.plugins.outlineexplorer.api import OutlineExplorerData
 
 PYGMENTS_REQVER = '>=2.0'
-dependencies.add("pygments", _("Syntax highlighting for Matlab, Julia and "
-                               "other file types"),
+dependencies.add("pygments", "pygments",
+                 _("Syntax highlighting for Matlab, Julia and "
+                   "other file types"),
                  required_version=PYGMENTS_REQVER)
 
 
 # =============================================================================
 # Constants
 # =============================================================================
+DEFAULT_PATTERNS = {
+    'file':
+        r'file:///?(?:[\S]*)',
+    'issue':
+        (r'(?:(?:(?:gh:)|(?:gl:)|(?:bb:))?[\w\-_]*/[\w\-_]*#\d+)|'
+         r'(?:(?:(?:gh-)|(?:gl-)|(?:bb-))\d+)'),
+    'mail':
+        r'(?:mailto:\s*)?([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})',
+    'url':
+        r"https?://([\da-z\.-]+)\.([a-z\.]{2,6})([/\w\.-]*)[^ ^'^\"]+",
+}
 COLOR_SCHEME_KEYS = {
                       "background":     _("Background:"),
                       "currentline":    _("Current line:"),
@@ -58,7 +77,7 @@ COLOR_SCHEME_KEYS = {
                       "number":         _("Number:"),
                       "instance":       _("Instance:"),
                       }
-COLOR_SCHEME_NAMES = CONF.get('color_schemes', 'names')
+COLOR_SCHEME_NAMES = CONF.get('appearance', 'names')
 # Mapping for file extensions that use Pygments highlighting but should use
 # different lexers than Pygments' autodetection suggests.  Keys are file
 # extensions or tuples of extensions, values are Pygments lexer names.
@@ -89,10 +108,39 @@ def get_color_scheme(name):
     scheme = {}
     for key in COLOR_SCHEME_KEYS:
         try:
-            scheme[key] = CONF.get('color_schemes', name+'/'+key)
+            scheme[key] = CONF.get('appearance', name+'/'+key)
         except:
-            scheme[key] = CONF.get('color_schemes', 'spyder/'+key)
+            scheme[key] = CONF.get('appearance', 'spyder/'+key)
     return scheme
+
+
+def any(name, alternates):
+    "Return a named group pattern matching list of alternates."
+    return "(?P<%s>" % name + "|".join(alternates) + ")"
+
+
+def create_patterns(patterns, compile=False):
+    """
+    Create patterns from pattern dictionary.
+
+    The key correspond to the group name and the values a list of
+    possible pattern alternatives.
+    """
+    all_patterns = []
+    for key, value in patterns.items():
+        all_patterns.append(any(key, [value]))
+
+    regex = '|'.join(all_patterns)
+
+    if compile:
+        regex = re.compile(regex)
+
+    return regex
+
+
+DEFAULT_PATTERNS_TEXT = create_patterns(DEFAULT_PATTERNS, compile=False)
+DEFAULT_COMPILED_PATTERNS = re.compile(create_patterns(DEFAULT_PATTERNS,
+                                                       compile=True))
 
 
 #==============================================================================
@@ -102,23 +150,23 @@ class BaseSH(QSyntaxHighlighter):
     """Base Syntax Highlighter Class"""
     # Syntax highlighting rules:
     PROG = None
-    BLANKPROG = re.compile("\s+")
+    BLANKPROG = re.compile(r"\s+")
     # Syntax highlighting states (from one text block to another):
     NORMAL = 0
     # Syntax highlighting parameters.
     BLANK_ALPHA_FACTOR = 0.31
 
+    sig_outline_explorer_data_changed = Signal()
+
     def __init__(self, parent, font=None, color_scheme='Spyder'):
         QSyntaxHighlighter.__init__(self, parent)
-
-        self.outlineexplorer_data = {}
 
         self.font = font
         if is_text_string(color_scheme):
             self.color_scheme = get_color_scheme(color_scheme)
         else:
             self.color_scheme = color_scheme
-        
+
         self.background_color = None
         self.currentline_color = None
         self.currentcell_color = None
@@ -130,43 +178,44 @@ class BaseSH(QSyntaxHighlighter):
 
         self.formats = None
         self.setup_formats(font)
-        
+
         self.cell_separators = None
         self.fold_detector = None
         self.editor = None
-        
+        self.patterns = DEFAULT_COMPILED_PATTERNS
+
     def get_background_color(self):
         return QColor(self.background_color)
 
     def get_foreground_color(self):
         """Return foreground ('normal' text) color"""
         return self.formats["normal"].foreground().color()
-		
+
     def get_currentline_color(self):
         return QColor(self.currentline_color)
 
     def get_currentcell_color(self):
         return QColor(self.currentcell_color)
-        
+
     def get_occurrence_color(self):
         return QColor(self.occurrence_color)
-    
+
     def get_ctrlclick_color(self):
         return QColor(self.ctrlclick_color)
-    
+
     def get_sideareas_color(self):
         return QColor(self.sideareas_color)
-    
+
     def get_matched_p_color(self):
         return QColor(self.matched_p_color)
-    
+
     def get_unmatched_p_color(self):
         return QColor(self.unmatched_p_color)
 
     def get_comment_color(self):
         """ Return color for the comments """
         return self.formats['comment'].foreground().color()
-    
+
     def get_color_name(self, fmt):
         """Return color name assigned to a given format"""
         return self.formats[fmt].foreground().color().name()
@@ -214,6 +263,20 @@ class BaseSH(QSyntaxHighlighter):
             previous_block = previous_block.previous()
         return previous_block
 
+    def update_patterns(self, patterns):
+        """Update patterns to underline."""
+        all_patterns = DEFAULT_PATTERNS.copy()
+        additional_patterns = patterns.copy()
+
+        # Check that default keys are not overwritten
+        for key in DEFAULT_PATTERNS.keys():
+            if key in additional_patterns:
+                # TODO: print warning or check this at the plugin level?
+                additional_patterns.pop(key)
+        all_patterns.update(additional_patterns)
+
+        self.patterns = create_patterns(all_patterns, compile=True)
+
     def highlightBlock(self, text):
         """
         Highlights a block of text. Please do not override, this method.
@@ -242,12 +305,24 @@ class BaseSH(QSyntaxHighlighter):
         """
         raise NotImplementedError()
 
+    def highlight_patterns(self, text, offset=0):
+        """Highlight URI and mailto: patterns."""
+        match = self.patterns.search(text, offset)
+        while match:
+            for __, value in list(match.groupdict().items()):
+                if value:
+                    start, end = match.span()
+                    start = max([0, start + offset])
+                    end = max([0, end + offset])
+                    font = self.format(start)
+                    font.setUnderlineStyle(True)
+                    self.setFormat(start, end - start, font)
+            match = self.patterns.search(text, end)
+
     def highlight_spaces(self, text, offset=0):
         """
         Make blank space less apparent by setting the foreground alpha.
         This only has an effect when 'Show blank space' is turned on.
-        Derived classes could call this function at the end of
-        highlightBlock().
         """
         flags_text = self.document().defaultTextOption().flags()
         show_blanks =  flags_text & QTextOption.ShowTabsAndSpaces
@@ -259,7 +334,7 @@ class BaseSH(QSyntaxHighlighter):
                 start, end = match.span()
                 start = max([0, start+offset])
                 end = max([0, end+offset])
-                # Format trailing spaces at the end of the line. 
+                # Format trailing spaces at the end of the line.
                 if end == len(text) and format_trailing is not None:
                     self.setFormat(start, end, format_trailing)
                 # Format leading spaces, e.g. indentation.
@@ -271,12 +346,18 @@ class BaseSH(QSyntaxHighlighter):
                 color_foreground.setAlphaF(alpha_new)
                 self.setFormat(start, end-start, color_foreground)
                 match = self.BLANKPROG.search(text, match.end())
-    
-    def get_outlineexplorer_data(self):
-        return self.outlineexplorer_data
+
+    def highlight_extras(self, text, offset=0):
+        """
+        Perform additional global text highlight.
+
+        Derived classes could call this function at the end of
+        highlight_block().
+        """
+        self.highlight_spaces(text, offset=offset)
+        self.highlight_patterns(text, offset=offset)
 
     def rehighlight(self):
-        self.outlineexplorer_data = {}
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         QSyntaxHighlighter.rehighlight(self)
         QApplication.restoreOverrideCursor()
@@ -286,7 +367,7 @@ class TextSH(BaseSH):
     """Simple Text Syntax Highlighter Class (only highlight spaces)"""
     def highlight_block(self, text):
         """Implement highlight, only highlight spaces."""
-        self.highlight_spaces(text)
+        self.highlight_extras(text)
 
 
 class GenericSH(BaseSH):
@@ -298,7 +379,7 @@ class GenericSH(BaseSH):
         """Implement highlight using regex defined in children classes."""
         text = to_text_string(text)
         self.setFormat(0, len(text), self.formats["normal"])
-        
+
         match = self.PROG.search(text)
         index = 0
         while match:
@@ -307,19 +388,15 @@ class GenericSH(BaseSH):
                     start, end = match.span(key)
                     index += end-start
                     self.setFormat(start, end-start, self.formats[key])
-                    
+
             match = self.PROG.search(text, match.end())
-        
-        self.highlight_spaces(text)
+
+        self.highlight_extras(text)
 
 
 #==============================================================================
 # Python syntax highlighter
 #==============================================================================
-def any(name, alternates):
-    "Return a named group pattern matching list of alternates."
-    return "(?P<%s>" % name + "|".join(alternates) + ")"
-
 def make_python_patterns(additional_keywords=[], additional_builtins=[]):
     "Strongly inspired from idlelib.ColorDelegator.make_pat"
     kwlist = keyword.kwlist + additional_keywords
@@ -332,14 +409,14 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
     builtin = r"([^.'\"\\#]\b|^)" + any("builtin", builtinlist) + r"\b"
     comment = any("comment", [r"#[^\n]*"])
     instance = any("instance", [r"\bself\b",
+                                r"\bcls\b",
                                 (r"^\s*@([a-zA-Z_][a-zA-Z0-9_]*)"
                                      r"(\.[a-zA-Z_][a-zA-Z0-9_]*)*")])
-    number = any("number",
-                 [r"\b[+-]?[0-9]+[lLjJ]?\b",
-                  r"\b[+-]?0[xX][0-9A-Fa-f]+[lL]?\b",
-                  r"\b[+-]?0[oO][0-7]+[lL]?\b",
-                  r"\b[+-]?0[bB][01]+[lL]?\b",
-                  r"\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?[jJ]?\b"])
+    number_regex = [r"\b[+-]?[0-9]+[lLjJ]?\b",
+                    r"\b[+-]?0[xX][0-9A-Fa-f]+[lL]?\b",
+                    r"\b[+-]?0[oO][0-7]+[lL]?\b",
+                    r"\b[+-]?0[bB][01]+[lL]?\b",
+                    r"\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?[jJ]?\b"]
     if PY3:
         prefix = "r|u|R|U|f|F|fr|Fr|fR|FR|rf|rF|Rf|RF|b|B|br|Br|bR|BR|rb|rB|Rb|RB"
     else:
@@ -348,56 +425,56 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
     dqstring =     r'(\b(%s))?"[^"\\\n]*(\\.[^"\\\n]*)*"?' % prefix
     uf_sqstring =  r"(\b(%s))?'[^'\\\n]*(\\.[^'\\\n]*)*(\\)$(?!')$" % prefix
     uf_dqstring =  r'(\b(%s))?"[^"\\\n]*(\\.[^"\\\n]*)*(\\)$(?!")$' % prefix
+    ufe_sqstring = r"(\b(%s))?'[^'\\\n]*(\\.[^'\\\n]*)*(?!\\)$(?!')$" % prefix
+    ufe_dqstring = r'(\b(%s))?"[^"\\\n]*(\\.[^"\\\n]*)*(?!\\)$(?!")$' % prefix
     sq3string =    r"(\b(%s))?'''[^'\\]*((\\.|'(?!''))[^'\\]*)*(''')?" % prefix
     dq3string =    r'(\b(%s))?"""[^"\\]*((\\.|"(?!""))[^"\\]*)*(""")?' % prefix
     uf_sq3string = r"(\b(%s))?'''[^'\\]*((\\.|'(?!''))[^'\\]*)*(\\)?(?!''')$" \
                    % prefix
     uf_dq3string = r'(\b(%s))?"""[^"\\]*((\\.|"(?!""))[^"\\]*)*(\\)?(?!""")$' \
                    % prefix
+    # Needed to achieve correct highlighting in Python 3.6+
+    # See spyder-ide/spyder#7324.
+    if PY36_OR_MORE:
+        # Based on
+        # https://github.com/python/cpython/blob/
+        # 81950495ba2c36056e0ce48fd37d514816c26747/Lib/tokenize.py#L117
+        # In order: Hexnumber, Binnumber, Octnumber, Decnumber,
+        # Pointfloat + Exponent, Expfloat, Imagnumber
+        number_regex = [
+                r"\b[+-]?0[xX](?:_?[0-9A-Fa-f])+[lL]?\b",
+                r"\b[+-]?0[bB](?:_?[01])+[lL]?\b",
+                r"\b[+-]?0[oO](?:_?[0-7])+[lL]?\b",
+                r"\b[+-]?(?:0(?:_?0)*|[1-9](?:_?[0-9])*)[lL]?\b",
+                r"\b((\.[0-9](?:_?[0-9])*')|\.[0-9](?:_?[0-9])*)"
+                "([eE][+-]?[0-9](?:_?[0-9])*)?[jJ]?\b",
+                r"\b[0-9](?:_?[0-9])*([eE][+-]?[0-9](?:_?[0-9])*)?[jJ]?\b",
+                r"\b[0-9](?:_?[0-9])*[jJ]\b"]
+    number = any("number", number_regex)
+
     string = any("string", [sq3string, dq3string, sqstring, dqstring])
     ufstring1 = any("uf_sqstring", [uf_sqstring])
     ufstring2 = any("uf_dqstring", [uf_dqstring])
     ufstring3 = any("uf_sq3string", [uf_sq3string])
     ufstring4 = any("uf_dq3string", [uf_dq3string])
+    ufstring5 = any("ufe_sqstring", [ufe_sqstring])
+    ufstring6 = any("ufe_dqstring", [ufe_dqstring])
     return "|".join([instance, kw, builtin, comment,
-                     ufstring1, ufstring2, ufstring3, ufstring4, string,
-                     number, any("SYNC", [r"\n"])])
+                     ufstring1, ufstring2, ufstring3, ufstring4, ufstring5,
+                     ufstring6, string, number, any("SYNC", [r"\n"])])
 
-class OutlineExplorerData(object):
-    CLASS, FUNCTION, STATEMENT, COMMENT, CELL = list(range(5))
-    FUNCTION_TOKEN = 'def'
-    CLASS_TOKEN = 'class'
 
-    def __init__(self):
-        self.text = None
-        self.fold_level = None
-        self.def_type = None
-        self.def_name = None
-        
-    def is_not_class_nor_function(self):
-        return self.def_type not in (self.CLASS, self.FUNCTION)
-
-    def is_class_or_function(self):
-        return self.def_type in (self.CLASS, self.FUNCTION)
-    
-    def is_comment(self):
-        return self.def_type in (self.COMMENT, self.CELL)
-        
-    def get_class_name(self):
-        if self.def_type == self.CLASS:
-            return self.def_name
-        
-    def get_function_name(self):
-        if self.def_type == self.FUNCTION:
-            return self.def_name
-
-    def get_token(self):
-        if self.def_type == self.FUNCTION:
-            token = self.FUNCTION_TOKEN
-        elif self.def_type == self.CLASS:
-            token = self.CLASS_TOKEN
-
-        return token
+def get_code_cell_name(text):
+    """Returns a code cell name from a code cell comment."""
+    name = text.strip().lstrip("#% ")
+    if name.startswith("<codecell>"):
+        name = name[10:].lstrip()
+    elif name.startswith("In["):
+        name = name[2:]
+        if name.endswith("]:"):
+            name = name[:-1]
+        name = name.strip()
+    return name
 
 
 class PythonSH(BaseSH):
@@ -409,17 +486,21 @@ class PythonSH(BaseSH):
     ASPROG = re.compile(r".*?\b(as)\b")
     # Syntax highlighting states (from one text block to another):
     (NORMAL, INSIDE_SQ3STRING, INSIDE_DQ3STRING,
-     INSIDE_SQSTRING, INSIDE_DQSTRING) = list(range(5))
+     INSIDE_SQSTRING, INSIDE_DQSTRING,
+     INSIDE_NON_MULTILINE_STRING) = list(range(6))
     DEF_TYPES = {"def": OutlineExplorerData.FUNCTION,
                  "class": OutlineExplorerData.CLASS}
     # Comments suitable for Outline Explorer
-    OECOMMENT = re.compile('^(# ?--[-]+|##[#]+ )[ -]*[^- ]+')
-    
+    OECOMMENT = re.compile(r'^(# ?--[-]+|##[#]+ )[ -]*[^- ]+')
+
     def __init__(self, parent, font=None, color_scheme='Spyder'):
         BaseSH.__init__(self, parent, font, color_scheme)
-        self.import_statements = {}
-        self.found_cell_separators = False
         self.cell_separators = CELL_LANGUAGES['Python']
+        # Avoid updating the outline explorer with every single letter typed
+        self.outline_explorer_data_update_timer = QTimer()
+        self.outline_explorer_data_update_timer.setSingleShot(True)
+        self.outline_explorer_data_update_timer.timeout.connect(
+            self.sig_outline_explorer_data_changed)
 
     def highlight_block(self, text):
         """Implement specific highlight for Python."""
@@ -440,12 +521,12 @@ class PythonSH(BaseSH):
         else:
             offset = 0
             prev_state = self.NORMAL
-        
+
         oedata = None
         import_stmt = None
 
         self.setFormat(0, len(text), self.formats["normal"])
-        
+
         state = self.NORMAL
         match = self.PROG.search(text)
         while match:
@@ -470,18 +551,32 @@ class PythonSH(BaseSH):
                         self.setFormat(start, end-start,
                                        self.formats["string"])
                         state = self.INSIDE_DQSTRING
+                    elif key in ["ufe_sqstring", "ufe_dqstring"]:
+                        self.setFormat(start, end-start,
+                                       self.formats["string"])
+                        state = self.INSIDE_NON_MULTILINE_STRING
                     else:
                         self.setFormat(start, end-start, self.formats[key])
                         if key == "comment":
                             if text.lstrip().startswith(self.cell_separators):
-                                self.found_cell_separators = True
-                                oedata = OutlineExplorerData()
+                                oedata = OutlineExplorerData(
+                                    self.currentBlock())
                                 oedata.text = to_text_string(text).strip()
+                                # cell_head: string contaning the first group
+                                # of '%'s in the cell header
+                                cell_head = re.search(r"%+|$",
+                                                      text.lstrip()).group()
+                                if cell_head == '':
+                                    oedata.cell_level = 0
+                                else:
+                                    oedata.cell_level = len(cell_head) - 2
                                 oedata.fold_level = start
                                 oedata.def_type = OutlineExplorerData.CELL
-                                oedata.def_name = text.strip()
+                                def_name = get_code_cell_name(text)
+                                oedata.def_name = def_name
                             elif self.OECOMMENT.match(text.lstrip()):
-                                oedata = OutlineExplorerData()
+                                oedata = OutlineExplorerData(
+                                    self.currentBlock())
                                 oedata.text = to_text_string(text).strip()
                                 oedata.fold_level = start
                                 oedata.def_type = OutlineExplorerData.COMMENT
@@ -493,9 +588,11 @@ class PythonSH(BaseSH):
                                     start1, end1 = match1.span(1)
                                     self.setFormat(start1, end1-start1,
                                                    self.formats["definition"])
-                                    oedata = OutlineExplorerData()
+                                    oedata = OutlineExplorerData(
+                                        self.currentBlock())
                                     oedata.text = to_text_string(text)
-                                    oedata.fold_level = start
+                                    oedata.fold_level = (len(text)
+                                                         - len(text.lstrip()))
                                     oedata.def_type = self.DEF_TYPES[
                                                         to_text_string(value)]
                                     oedata.def_name = text[start1:end1]
@@ -504,7 +601,8 @@ class PythonSH(BaseSH):
                                            "for", "if", "try", "while",
                                            "with"):
                                 if text.lstrip().startswith(value):
-                                    oedata = OutlineExplorerData()
+                                    oedata = OutlineExplorerData(
+                                        self.currentBlock())
                                     oedata.text = to_text_string(text).strip()
                                     oedata.fold_level = start
                                     oedata.def_type = \
@@ -527,30 +625,60 @@ class PythonSH(BaseSH):
                                     start, end = match1.span(1)
                                     self.setFormat(start, end-start,
                                                    self.formats["keyword"])
-                    
+
             match = self.PROG.search(text, match.end())
-        
+
         tbh.set_state(self.currentBlock(), state)
-        
-        # Use normal format for indentation and trailing spaces.
+
+        # Use normal format for indentation and trailing spaces
+        # Unless we are in a string
+        states_multiline_string = [
+            self.INSIDE_DQ3STRING, self.INSIDE_SQ3STRING,
+            self.INSIDE_DQSTRING, self.INSIDE_SQSTRING]
+        states_string = states_multiline_string + [
+            self.INSIDE_NON_MULTILINE_STRING]
         self.formats['leading'] = self.formats['normal']
+        if prev_state in states_multiline_string:
+            self.formats['leading'] = self.formats["string"]
         self.formats['trailing'] = self.formats['normal']
-        self.highlight_spaces(text, offset)
-        
-        if oedata is not None:
-            block_nb = self.currentBlock().blockNumber()
-            self.outlineexplorer_data[block_nb] = oedata
-            self.outlineexplorer_data['found_cell_separators'] = self.found_cell_separators
-        if import_stmt is not None:
-            block_nb = self.currentBlock().blockNumber()
-            self.import_statements[block_nb] = import_stmt
-            
+        if state in states_string:
+            self.formats['trailing'] = self.formats['string']
+        self.highlight_extras(text, offset)
+
+        block = self.currentBlock()
+        data = block.userData()
+
+        need_data = (oedata or import_stmt)
+
+        if need_data and not data:
+            data = BlockUserData(self.editor)
+
+        # Try updating
+        update = False
+        if oedata and data and data.oedata:
+            update = data.oedata.update(oedata)
+
+        if data and not update:
+            data.oedata = oedata
+            self.outline_explorer_data_update_timer.start(500)
+
+        if (import_stmt) or (data and data.import_statement):
+            data.import_statement = import_stmt
+
+        block.setUserData(data)
+
     def get_import_statements(self):
-        return list(self.import_statements.values())
-            
+        """Get import statment list."""
+        block = self.document().firstBlock()
+        statments = []
+        while block.isValid():
+            data = block.userData()
+            if data and data.import_statement:
+                statments.append(data.import_statement)
+            block = block.next()
+        return statments
+
     def rehighlight(self):
-        self.import_statements = {}
-        self.found_cell_separators = False
         BaseSH.rehighlight(self)
 
 
@@ -636,7 +764,7 @@ class CppSH(BaseSH):
         inside_comment = tbh.get_state(self.currentBlock().previous()) == self.INSIDE_COMMENT
         self.setFormat(0, len(text),
                        self.formats["comment" if inside_comment else "normal"])
-        
+
         match = self.PROG.search(text)
         index = 0
         while match:
@@ -660,11 +788,11 @@ class CppSH(BaseSH):
                                        self.formats["number"])
                     else:
                         self.setFormat(start, end-start, self.formats[key])
-                    
+
             match = self.PROG.search(text, match.end())
-        
-        self.highlight_spaces(text)
-        
+
+        self.highlight_extras(text)
+
         last_state = self.INSIDE_COMMENT if inside_comment else self.NORMAL
         tbh.set_state(self.currentBlock(), last_state)
 
@@ -690,7 +818,6 @@ class OpenCLSH(CppSH):
 #==============================================================================
 # Fortran Syntax Highlighter
 #==============================================================================
-
 def make_fortran_patterns():
     "Strongly inspired from idlelib.ColorDelegator.make_pat"
     kwstr = 'access action advance allocatable allocate apostrophe assign assignment associate asynchronous backspace bind blank blockdata call case character class close common complex contains continue cycle data deallocate decimal delim default dimension direct do dowhile double doubleprecision else elseif elsewhere encoding end endassociate endblockdata enddo endfile endforall endfunction endif endinterface endmodule endprogram endselect endsubroutine endtype endwhere entry eor equivalence err errmsg exist exit external file flush fmt forall form format formatted function go goto id if implicit in include inout integer inquire intent interface intrinsic iomsg iolength iostat kind len logical module name named namelist nextrec nml none nullify number only open opened operator optional out pad parameter pass pause pending pointer pos position precision print private program protected public quote read readwrite real rec recl recursive result return rewind save select selectcase selecttype sequential sign size stat status stop stream subroutine target then to type unformatted unit use value volatile wait where while write'
@@ -723,7 +850,7 @@ class FortranSH(BaseSH):
         """Implement highlight specific for Fortran."""
         text = to_text_string(text)
         self.setFormat(0, len(text), self.formats["normal"])
-        
+
         match = self.PROG.search(text)
         index = 0
         while match:
@@ -738,10 +865,10 @@ class FortranSH(BaseSH):
                             start1, end1 = match1.span(1)
                             self.setFormat(start1, end1-start1,
                                            self.formats["definition"])
-                    
+
             match = self.PROG.search(text, match.end())
-        
-        self.highlight_spaces(text)
+
+        self.highlight_extras(text)
 
 class Fortran77SH(FortranSH):
     """Fortran 77 Syntax Highlighter"""
@@ -750,7 +877,7 @@ class Fortran77SH(FortranSH):
         text = to_text_string(text)
         if text.startswith(("c", "C")):
             self.setFormat(0, len(text), self.formats["comment"])
-            self.highlight_spaces(text)
+            self.highlight_extras(text)
         else:
             FortranSH.highlight_block(self, text)
             self.setFormat(0, 5, self.formats["comment"])
@@ -761,11 +888,11 @@ class Fortran77SH(FortranSH):
 #==============================================================================
 # IDL highlighter
 #
-# Contribution from Stuart Mumford (Littlemumford) - 02/02/2012
-# See Issue #850
+# Contribution from Stuart Mumford (Littlemumford) - 2012-02-02
+# See spyder-ide/spyder#850.
 #==============================================================================
 def make_idl_patterns():
-    "Strongly inspired from idlelib.ColorDelegator.make_pat"
+    """Strongly inspired by idlelib.ColorDelegator.make_pat."""
     kwstr = 'begin of pro function endfor endif endwhile endrep endcase endswitch end if then else for do while repeat until break case switch common continue exit return goto help message print read retall stop'
     bistr1 = 'a_correlate abs acos adapt_hist_equal alog alog10 amoeba arg_present arra_equal array_indices ascii_template asin assoc atan beseli beselj besel k besely beta bilinear bin_date binary_template dinfgen dinomial blk_con broyden bytarr byte bytscl c_correlate call_external call_function ceil chebyshev check_math chisqr_cvf chisqr_pdf choldc cholsol cindgen clust_wts cluster color_quan colormap_applicable comfit complex complexarr complexround compute_mesh_normals cond congrid conj convert_coord convol coord2to3 correlate cos cosh cramer create_struct crossp crvlength ct_luminance cti_test curvefit cv_coord cvttobm cw_animate cw_arcball cw_bgroup cw_clr_index cw_colorsel cw_defroi cw_field cw_filesel cw_form cw_fslider cw_light_editor cw_orient cw_palette_editor cw_pdmenu cw_rgbslider cw_tmpl cw_zoom dblarr dcindgen dcomplexarr defroi deriv derivsig determ diag_matrix dialog_message dialog_pickfile pialog_printersetup dialog_printjob dialog_read_image dialog_write_image digital_filter dilate dindgen dist double eigenql eigenvec elmhes eof erode erf erfc erfcx execute exp expand_path expint extrac extract_slice f_cvf f_pdf factorial fft file_basename file_dirname file_expand_path file_info file_same file_search file_test file_which filepath findfile findgen finite fix float floor fltarr format_axis_values fstat fulstr fv_test fx_root fz_roots gamma gauss_cvf gauss_pdf gauss2dfit gaussfit gaussint get_drive_list get_kbrd get_screen_size getenv grid_tps grid3 griddata gs_iter hanning hdf_browser hdf_read hilbert hist_2d hist_equal histogram hough hqr ibeta identity idl_validname idlitsys_createtool igamma imaginary indgen int_2d int_3d int_tabulated intarr interpol interpolate invert ioctl ishft julday keword_set krig2d kurtosis kw_test l64indgen label_date label_region ladfit laguerre la_cholmprove la_cholsol la_Determ la_eigenproblem la_eigenql la_eigenvec la_elmhes la_gm_linear_model la_hqr la_invert la_least_square_equality la_least_squares la_linear_equation la_lumprove la_lusol la_trimprove la_trisol leefit legendre linbcg lindgen linfit ll_arc_distance lmfit lmgr lngamma lnp_test locale_get logical_and logical_or logical_true lon64arr lonarr long long64 lsode lu_complex lumprove lusol m_correlate machar make_array map_2points map_image map_patch map_proj_forward map_proj_init map_proj_inverse matrix_multiply matrix_power max md_test mean meanabsdev median memory mesh_clip mesh_decimate mesh_issolid mesh_merge mesh_numtriangles mesh_smooth mesh_surfacearea mesh_validate mesh_volume min min_curve_surf moment morph_close morph_distance morph_gradient morph_histormiss morph_open morph_thin morph_tophat mpeg_open msg_cat_open n_elements n_params n_tags newton norm obj_class obj_isa obj_new obj_valid objarr p_correlate path_sep pcomp pnt_line polar_surface poly poly_2d poly_area poly_fit polyfillv ployshade primes product profile profiles project_vol ptr_new ptr_valid ptrarr qgrid3 qromb qromo qsimp query_bmp query_dicom query_image query_jpeg query_mrsid query_pict query_png query_ppm query_srf query_tiff query_wav r_correlate r_test radon randomn randomu ranks read_ascii read_binary read_bmp read_dicom read_image read_mrsid read_png read_spr read_sylk read_tiff read_wav read_xwd real_part rebin recall_commands recon3 reform region_grow regress replicate reverse rk4 roberts rot rotate round routine_info rs_test s_test savgol search2d search3d sfit shift shmdebug shmvar simplex sin sindgen sinh size skewness smooth sobel sort sph_scat spher_harm spl_init spl_interp spline spline_p sprsab sprsax sprsin sprstp sqrt standardize stddev strarr strcmp strcompress stregex string strjoin strlen strlowcase strmatch strmessage strmid strpos strsplit strtrim strupcase svdfit svsol swap_endian systime t_cvf t_pdf tag_names tan tanh temporary tetra_clip tetra_surface tetra_volume thin timegen tm_test total trace transpose tri_surf trigrid trisol ts_coef ts_diff ts_fcast ts_smooth tvrd uindgen unit uintarr ul64indgen ulindgen ulon64arr ulonarr ulong ulong64 uniq value_locate variance vert_t3d voigt voxel_proj warp_tri watershed where widget_actevix widget_base widget_button widget_combobox widget_draw widget_droplist widget_event widget_info widget_label widget_list widget_propertsheet widget_slider widget_tab widget_table widget_text widget_tree write_sylk wtn xfont xregistered xsq_test'
     bistr2 = 'annotate arrow axis bar_plot blas_axpy box_cursor breakpoint byteorder caldata calendar call_method call_procedure catch cd cir_3pnt close color_convert compile_opt constrained_min contour copy_lun cpu create_view cursor cw_animate_getp cw_animate_load cw_animate_run cw_light_editor_get cw_light_editor_set cw_palette_editor_get cw_palette_editor_set define_key define_msgblk define_msgblk_from_file defsysv delvar device dfpmin dissolve dlm_load doc_librar draw_roi efont empty enable_sysrtn erase errplot expand file_chmod file_copy file_delete file_lines file_link file_mkdir file_move file_readlink flick flow3 flush forward_function free_lun funct gamma_ct get_lun grid_input h_eq_ct h_eq_int heap_free heap_gc hls hsv icontour iimage image_cont image_statistics internal_volume iplot isocontour isosurface isurface itcurrent itdelete itgetcurrent itregister itreset ivolume journal la_choldc la_ludc la_svd la_tridc la_triql la_trired linkimage loadct ludc make_dll map_continents map_grid map_proj_info map_set mesh_obj mk_html_help modifyct mpeg_close mpeg_put mpeg_save msg_cat_close msg_cat_compile multi obj_destroy on_error on_ioerror online_help openr openw openu oplot oploterr particle_trace path_cache plot plot_3dbox plot_field ploterr plots point_lun polar_contour polyfill polywarp popd powell printf printd ps_show_fonts psafm pseudo ptr_free pushd qhull rdpix readf read_interfile read_jpeg read_pict read_ppm read_srf read_wave read_x11_bitmap reads readu reduce_colors register_cursor replicate_inplace resolve_all resolve_routine restore save scale3 scale3d set_plot set_shading setenv setup_keys shade_surf shade_surf_irr shade_volume shmmap show3 showfont skip_lun slicer3 slide_image socket spawn sph_4pnt streamline stretch strput struct_assign struct_hide surface surfr svdc swap_enian_inplace t3d tek_color threed time_test2 triangulate triql trired truncate_lun tv tvcrs tvlct tvscl usersym vector_field vel velovect voronoi wait wdelete wf_draw widget_control widget_displaycontextmenu window write_bmp write_image write_jpeg write_nrif write_pict write_png write_ppm write_spr write_srf write_tiff write_wav write_wave writeu wset wshow xbm_edit xdisplayfile xdxf xinteranimate xloadct xmanager xmng_tmpl xmtool xobjview xobjview_rotate xobjview_write_image xpalette xpcolo xplot3d xroi xsurface xvaredit xvolume xyouts zoom zoom_24'
@@ -791,7 +918,6 @@ class IdlSH(GenericSH):
 #==============================================================================
 # Diff/Patch highlighter
 #==============================================================================
-
 class DiffSH(BaseSH):
     """Simple Diff/Patch Syntax Highlighter Class"""
     def highlight_block(self, text):
@@ -807,13 +933,12 @@ class DiffSH(BaseSH):
             self.setFormat(0, len(text), self.formats["number"])
         elif text.startswith("@"):
             self.setFormat(0, len(text), self.formats["builtin"])
-        
-        self.highlight_spaces(text)
+
+        self.highlight_extras(text)
 
 #==============================================================================
 # NSIS highlighter
 #==============================================================================
-
 def make_nsis_patterns():
     "Strongly inspired from idlelib.ColorDelegator.make_pat"
     kwstr1 = 'Abort AddBrandingImage AddSize AllowRootDirInstall AllowSkipFiles AutoCloseWindow BGFont BGGradient BrandingText BringToFront Call CallInstDLL Caption ClearErrors CompletedText ComponentText CopyFiles CRCCheck CreateDirectory CreateFont CreateShortCut Delete DeleteINISec DeleteINIStr DeleteRegKey DeleteRegValue DetailPrint DetailsButtonText DirText DirVar DirVerify EnableWindow EnumRegKey EnumRegValue Exec ExecShell ExecWait Exch ExpandEnvStrings File FileBufSize FileClose FileErrorText FileOpen FileRead FileReadByte FileSeek FileWrite FileWriteByte FindClose FindFirst FindNext FindWindow FlushINI Function FunctionEnd GetCurInstType GetCurrentAddress GetDlgItem GetDLLVersion GetDLLVersionLocal GetErrorLevel GetFileTime GetFileTimeLocal GetFullPathName GetFunctionAddress GetInstDirError GetLabelAddress GetTempFileName Goto HideWindow ChangeUI CheckBitmap Icon IfAbort IfErrors IfFileExists IfRebootFlag IfSilent InitPluginsDir InstallButtonText InstallColors InstallDir InstallDirRegKey InstProgressFlags InstType InstTypeGetText InstTypeSetText IntCmp IntCmpU IntFmt IntOp IsWindow LangString LicenseBkColor LicenseData LicenseForceSelection LicenseLangString LicenseText LoadLanguageFile LogSet LogText MessageBox MiscButtonText Name OutFile Page PageCallbacks PageEx PageExEnd Pop Push Quit ReadEnvStr ReadINIStr ReadRegDWORD ReadRegStr Reboot RegDLL Rename ReserveFile Return RMDir SearchPath Section SectionEnd SectionGetFlags SectionGetInstTypes SectionGetSize SectionGetText SectionIn SectionSetFlags SectionSetInstTypes SectionSetSize SectionSetText SendMessage SetAutoClose SetBrandingImage SetCompress SetCompressor SetCompressorDictSize SetCtlColors SetCurInstType SetDatablockOptimize SetDateSave SetDetailsPrint SetDetailsView SetErrorLevel SetErrors SetFileAttributes SetFont SetOutPath SetOverwrite SetPluginUnload SetRebootFlag SetShellVarContext SetSilent ShowInstDetails ShowUninstDetails ShowWindow SilentInstall SilentUnInstall Sleep SpaceTexts StrCmp StrCpy StrLen SubCaption SubSection SubSectionEnd UninstallButtonText UninstallCaption UninstallIcon UninstallSubCaption UninstallText UninstPage UnRegDLL Var VIAddVersionKey VIProductVersion WindowIcon WriteINIStr WriteRegBin WriteRegDWORD WriteRegExpandStr WriteRegStr WriteUninstaller XPStyle'
@@ -836,7 +961,6 @@ class NsisSH(CppSH):
 #==============================================================================
 # gettext highlighter
 #==============================================================================
-
 def make_gettext_patterns():
     "Strongly inspired from idlelib.ColorDelegator.make_pat"
     kwstr = 'msgid msgstr'
@@ -862,7 +986,6 @@ class GetTextSH(GenericSH):
 #==============================================================================
 # yaml highlighter
 #==============================================================================
-
 def make_yaml_patterns():
     "Strongly inspired from sublime highlighter "
     kw = any("keyword", [r":|>|-|\||\[|\]|[A-Za-z][\w\s\-\_ ]+(?=:)"])
@@ -875,7 +998,7 @@ def make_yaml_patterns():
     sqstring = r"(\b[rRuU])?'[^'\\\n]*(\\.[^'\\\n]*)*'?"
     dqstring = r'(\b[rRuU])?"[^"\\\n]*(\\.[^"\\\n]*)*"?'
     string = any("string", [sqstring, dqstring])
-    return "|".join([kw, string, number, links, comment, 
+    return "|".join([kw, string, number, links, comment,
                      any("SYNC", [r"\n"])])
 
 class YamlSH(GenericSH):
@@ -887,28 +1010,27 @@ class YamlSH(GenericSH):
 #==============================================================================
 # HTML highlighter
 #==============================================================================
-
 class BaseWebSH(BaseSH):
     """Base class for CSS and HTML syntax highlighters"""
     NORMAL  = 0
     COMMENT = 1
-    
+
     def __init__(self, parent, font=None, color_scheme=None):
         BaseSH.__init__(self, parent, font, color_scheme)
-    
+
     def highlight_block(self, text):
         """Implement highlight specific for CSS and HTML."""
         text = to_text_string(text)
         previous_state = tbh.get_state(self.currentBlock().previous())
-        
+
         if previous_state == self.COMMENT:
             self.setFormat(0, len(text), self.formats["comment"])
         else:
             previous_state = self.NORMAL
             self.setFormat(0, len(text), self.formats["normal"])
-        
+
         tbh.set_state(self.currentBlock(), previous_state)
-        match = self.PROG.search(text)        
+        match = self.PROG.search(text)
 
         match_count = 0
         n_characters = len(text)
@@ -938,14 +1060,14 @@ class BaseWebSH(BaseSH):
                                 self.setFormat(start, end-start,
                                                self.formats[key])
                             except KeyError:
-                                # happens with unmatched end-of-comment;
-                                # see issue 1462
+                                # Happens with unmatched end-of-comment.
+                                # See spyder-ide/spyder#1462.
                                 pass
-            
+
             match = self.PROG.search(text, match.end())
             match_count += 1
-        
-        self.highlight_spaces(text)
+
+        self.highlight_extras(text)
 
 def make_html_patterns():
     """Strongly inspired from idlelib.ColorDelegator.make_pat """
@@ -956,8 +1078,8 @@ def make_html_patterns():
     multiline_comment_start = any("multiline_comment_start", [r"<!--"])
     multiline_comment_end = any("multiline_comment_end", [r"-->"])
     return "|".join([comment, multiline_comment_start,
-                     multiline_comment_end, tags, keywords, string]) 
-    
+                     multiline_comment_end, tags, keywords, string])
+
 class HtmlSH(BaseWebSH):
     """HTML Syntax Highlighter"""
     PROG = re.compile(make_html_patterns(), re.S)
@@ -966,7 +1088,6 @@ class HtmlSH(BaseWebSH):
 # =============================================================================
 # Markdown highlighter
 # =============================================================================
-
 def make_md_patterns():
     h1 = '^#[^#]+'
     h2 = '^##[^#]+'
@@ -1064,7 +1185,7 @@ class MarkdownSH(BaseSH):
             match = self.PROG.search(text, match.end())
             match_count += 1
 
-        self.highlight_spaces(text)
+        self.highlight_extras(text)
 
     def setup_formats(self, font=None):
         super(MarkdownSH, self).setup_formats(font)
@@ -1094,14 +1215,13 @@ class MarkdownSH(BaseSH):
 #==============================================================================
 # Pygments based omni-parser
 #==============================================================================
-
 # IMPORTANT NOTE:
 # --------------
-# Do not be tempted to generalize the use of PygmentsSH (that is tempting 
-# because it would lead to more generic and compact code, and not only in 
+# Do not be tempted to generalize the use of PygmentsSH (that is tempting
+# because it would lead to more generic and compact code, and not only in
 # this very module) because this generic syntax highlighter is far slower
 # than the native ones (all classes above). For example, a Python syntax
-# highlighter based on PygmentsSH would be 2 to 3 times slower than the 
+# highlighter based on PygmentsSH would be 2 to 3 times slower than the
 # current native PythonSH syntax highlighter.
 
 class PygmentsSH(BaseSH):
@@ -1113,14 +1233,9 @@ class PygmentsSH(BaseSH):
     # Syntax highlighting states (from one text block to another):
     NORMAL = 0
     def __init__(self, parent, font=None, color_scheme=None):
-        # Warning: do not move out those import statements
-        # (pygments is an optional dependency)
-        from pygments.lexers import get_lexer_by_name
-        from pygments.token import (Text, Other, Keyword, Name, String, Number,
-                                    Comment, Generic, Token)
         # Map Pygments tokens to Spyder tokens
-        self._tokmap = {Text: "normal", 
-                        Generic: "normal", 
+        self._tokmap = {Text: "normal",
+                        Generic: "normal",
                         Other: "normal",
                         Keyword: "keyword",
                         Token.Operator: "normal",
@@ -1215,7 +1330,46 @@ class PygmentsSH(BaseSH):
             for i, (fmt, letter) in enumerate(self._charlist[start:end]):
                 self.setFormat(i, 1, fmt)
             self.setCurrentBlockState(end)
-            self.highlight_spaces(text)
+            self.highlight_extras(text)
+
+
+class PythonLoggingLexer(RegexLexer):
+    """
+    A lexer for logs generated by the Python builtin 'logging' library.
+
+    Taken from
+    https://bitbucket.org/birkenfeld/pygments-main/pull-requests/451/add-python-logging-lexer
+    """
+
+    name = 'Python Logging'
+    aliases = ['pylog', 'pythonlogging']
+    filenames = ['*.log']
+    tokens = {
+        'root': [
+            (r'^(\d{4}-\d\d-\d\d \d\d:\d\d:\d\d\,?\d*)(\s\w+)',
+             bygroups(Comment.Preproc, Number.Integer), 'message'),
+            (r'"(.*?)"|\'(.*?)\'', String),
+            (r'(\d)', Number.Integer),
+            (r'(\s.+/n)', Text)
+        ],
+
+        'message': [
+            (r'(\s-)(\sDEBUG)(\s-)(\s*[\d\w]+([.]?[\d\w]+)+\s*)',
+             bygroups(Text, Number, Text, Name.Builtin), '#pop'),
+            (r'(\s-)(\sINFO\w*)(\s-)(\s*[\d\w]+([.]?[\d\w]+)+\s*)',
+             bygroups(Generic.Heading, Text, Text, Name.Builtin), '#pop'),
+            (r'(\sWARN\w*)(\s.+)', bygroups(String, String), '#pop'),
+            (r'(\sERROR)(\s.+)',
+             bygroups(Generic.Error, Name.Constant), '#pop'),
+            (r'(\sCRITICAL)(\s.+)',
+             bygroups(Generic.Error, Name.Constant), '#pop'),
+            (r'(\sTRACE)(\s.+)',
+             bygroups(Generic.Error, Name.Constant), '#pop'),
+            (r'(\s\w+)(\s.+)',
+             bygroups(Comment, Generic.Output), '#pop'),
+        ],
+
+    }
 
 
 def guess_pygments_highlighter(filename):
@@ -1229,16 +1383,20 @@ def guess_pygments_highlighter(filename):
     """
     try:
         from pygments.lexers import get_lexer_for_filename, get_lexer_by_name
-        from pygments.util import ClassNotFound
-    except ImportError:
+    except Exception:
         return TextSH
     root, ext = os.path.splitext(filename)
     if ext in custom_extension_lexer_mapping:
-        lexer = get_lexer_by_name(custom_extension_lexer_mapping[ext])
+        try:
+            lexer = get_lexer_by_name(custom_extension_lexer_mapping[ext])
+        except Exception:
+            return TextSH
+    elif ext == '.log':
+        lexer = PythonLoggingLexer()
     else:
         try:
             lexer = get_lexer_for_filename(filename)
-        except ClassNotFound:
+        except Exception:
             return TextSH
     class GuessedPygmentsSH(PygmentsSH):
         _lexer = lexer

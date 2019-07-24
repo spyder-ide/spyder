@@ -37,7 +37,7 @@ def get_search_regex(query, ignore_case=True):
     regex_text = [char for char in query if char != ' ']
     regex_text = '.*'.join(regex_text)
 
-    regex = '({0})'.format(regex_text)
+    regex = r'({0})'.format(regex_text)
 
     if ignore_case:
         pattern = re.compile(regex, re.IGNORECASE)
@@ -269,7 +269,7 @@ def test():
     # Full results
     for r in a:
         print(r)  # spyder: test-skip
-    
+
     # Ordered and filtered results
     print('\n')  # spyder: test-skip
 

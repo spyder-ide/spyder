@@ -1,15 +1,21 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Wed Feb 23 15:44:03 2011
+# -----------------------------------------------------------------------------
+# Copyright (c) 2009- Spyder Project Contributors
+#
+# Distributed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
 
-@author: Pierre Raybaut
-"""
 
-import time, os.path as osp
+# Standard library imports
+import os.path as osp
+import time
 
+# Third party imports
 import rope.base.project
 import rope.base.libutils
 import rope.contrib.codeassist
+
 
 ROPE_PREFS = {
                'ignore_syntax_errors': True,
@@ -31,19 +37,19 @@ ROPE_PREFS = {
 def ropetest():
     project = rope.base.project.Project('src', **ROPE_PREFS)
     project.validate(project.root)
-    
+
     filename = osp.join('src', 'script.py')
     source_code = file(filename, 'rb').read()
     offset = len(source_code)
-    
+
     resource = rope.base.libutils.path_to_resource(project, filename)
-    
+
     t0 = time.time()
-    
+
     proposals = rope.contrib.codeassist.code_assist(project, source_code,
                                                     offset, resource)
     proposals = rope.contrib.codeassist.sorted_proposals(proposals)
-    
+
     print "%s: %d ms" % ("completion", 10*round(1e2*(time.time()-t0)))
     print 'loadtxt' in [proposal.name for proposal in proposals]
 
@@ -71,22 +77,22 @@ rope_patch.apply()
 def other_features():
     project = rope.base.project.Project('src', **ROPE_PREFS)
     project.validate(project.root)
-    
+
     filename = osp.join('src', 'script2.py')
     source_code = file(filename, 'rb').read()
     offset = len(source_code)
-    
+
     resource = rope.base.libutils.path_to_resource(project, filename)
-    
+
     t0 = time.time()
-    
+
     cts = rope.contrib.codeassist.get_calltip(
                                     project, source_code, offset, resource)
     doc_text = rope.contrib.codeassist.get_doc(
                                     project, source_code, offset, resource)
     def_loc = rope.contrib.codeassist.get_definition_location(
                                     project, source_code, offset, resource)
-    
+
     msg = "Testing other rope instrospection features"
     print msg
     print "="*len(msg)
@@ -99,7 +105,8 @@ def other_features():
     print '*** DOCUMENTATION ***' + '*'*60
     print doc_text
     print '*********************' + '*'*60
-    
+
+
 if __name__ == '__main__':
-#    ropetest()
+    # ropetest()
     other_features()

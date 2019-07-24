@@ -2,18 +2,11 @@
 
 set -ex
 
+source $HOME/miniconda/etc/profile.d/conda.sh
+conda activate test
+
 export TEST_CI_WIDGETS=True
 export PYTHONPATH=.
-export PATH="$HOME/miniconda/bin:$PATH"
-source activate test
-
-
-if [ "$USE_PYQT" = "pyqt5" ]; then
-    conda install -q qt=5.* pyqt=5.* qtconsole matplotlib
-else
-    conda install -q qt=4.* pyqt=4.* qtconsole matplotlib
-fi
-
 
 # Depth 1
 for f in spyder/*.py; do
@@ -41,13 +34,16 @@ for f in spyder/*/*.py; do
     if [[ $f == spyder/plugins/*.py ]]; then
         continue
     fi
-    if [[ $f == spyder/utils/inputhooks.py ]]; then
-        continue
-    fi
     if [[ $f == spyder/utils/qthelpers.py ]]; then
         continue
     fi
     if [[ $f == spyder/utils/windows.py ]]; then
+        continue
+    fi
+    if [[ $f == spyder/utils/workers.py ]]; then
+        continue
+    fi
+    if [[ $f == spyder/widgets/browser.py ]]; then
         continue
     fi
     python "$f"
@@ -62,31 +58,19 @@ for f in spyder/*/*/*.py; do
     if [[ $f == *test*/*.* ]]; then
         continue
     fi
-    if [[ $f == spyder/external/*/*.py ]]; then
-        continue
-    fi
     if [[ $f == spyder/utils/external/*.py ]]; then
         continue
     fi
-    if [[ $f == spyder/utils/help/*.py ]]; then
+    if [[ $f == spyder/plugins/*/plugin.py ]]; then
         continue
     fi
-    if [[ $f == spyder/utils/ipython/start_kernel.py ]]; then
+    if [[ $f == spyder/plugins/completion/*.py ]]; then
         continue
     fi
-    if [[ $f == spyder/utils/ipython/spyder_kernel.py ]]; then
+    if [[ $f == spyder/plugins/*/__init__.py ]]; then
         continue
     fi
-    if [[ $f == spyder/utils/site/sitecustomize.py ]]; then
-        continue
-    fi
-    if [[ $f == spyder/utils/introspection/plugin_client.py ]]; then
-        continue
-    fi
-    if [[ $f == spyder/widgets/externalshell/systemshell.py ]]; then
-        continue
-    fi
-    if [[ $f == spyder/widgets/ipythonconsole/__init__.py ]]; then
+    if [[ $f == spyder/utils/introspection/old_fallback.py ]]; then
         continue
     fi
     python "$f"
@@ -101,6 +85,21 @@ for f in spyder/*/*/*/*.py; do
     if [[ $f == *test*/*.* ]]; then
         continue
     fi
+    if [[ $f == spyder/plugins/completion/*/*.py ]]; then
+        continue
+    fi
+    if [[ $f == spyder/plugins/help/utils/*.py ]]; then
+        continue
+    fi
+    if [[ $f == spyder/plugins/ipythonconsole/widgets/__init__.py ]]; then
+        continue
+    fi
+    if [[ $f == spyder/plugins/editor/extensions/__init__.py ]]; then
+        continue
+    fi
+    if [[ $f == spyder/plugins/editor/panels/__init__.py ]]; then
+        continue
+    fi
     python "$f"
     if [ $? -ne 0 ]; then
         exit 1
@@ -108,9 +107,15 @@ for f in spyder/*/*/*/*.py; do
 done
 
 
-# Spyderplugins
-for f in spyder_*/widgets/*.py; do
+# Depth 5
+for f in spyder/*/*/*/*/*.py; do
     if [[ $f == *test*/*.* ]]; then
+        continue
+    fi
+    if [[ $f == spyder/plugins/completion/*/*/*.py ]]; then
+        continue
+    fi
+    if [[ $f == spyder/plugins/variableexplorer/widgets/objectexplorer/__init__.py ]]; then
         continue
     fi
     python "$f"

@@ -8,5 +8,5 @@
 This module contains the code editor API.
 """
 
-from spyder.widgets.sourcecode.api.folding import print_tree, FoldDetector
-from spyder.widgets.sourcecode.api.decoration import TextDecoration
+from spyder.plugins.editor.api.folding import print_tree, FoldDetector
+from spyder.plugins.editor.api.decoration import TextDecoration

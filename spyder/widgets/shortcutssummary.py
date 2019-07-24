@@ -13,9 +13,9 @@ from itertools import groupby
 
 # Third party imports
 from qtpy.QtCore import Qt
-from qtpy.QtGui import QFont
+from qtpy.QtGui import QFont, QKeySequence
 from qtpy.QtWidgets import (QDialog, QLabel, QGridLayout, QGroupBox,
-                            QVBoxLayout, QHBoxLayout, QDesktopWidget, 
+                            QVBoxLayout, QHBoxLayout, QDesktopWidget,
                             QScrollArea, QWidget)
 
 # Local imports
@@ -106,6 +106,8 @@ class ShortcutsSummaryDialog(QDialog):
                 # Widgets
                 label_name = QLabel(name.capitalize().replace('_', ' '))
                 label_name.setFont(font_names)
+
+                keystr = QKeySequence(keystr).toString(QKeySequence.NativeText)
                 label_keystr = QLabel(keystr)
                 label_keystr.setFont(font_keystr)
 

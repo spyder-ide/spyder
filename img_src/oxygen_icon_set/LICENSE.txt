@@ -1,0 +1,25 @@
+Oxygen Icon Theme SVG Sources
+#############################
+
+The icon assets in this directory were created by and for the KDE Oxygen icons,
+and are licensed under the GNU Lesser General Public License 2.1 or later.
+They originate from https://techbase.kde.org/Projects/Oxygen , and are part of
+the KDE project, https://www.kde.org/ .
+
+These icons are free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 3 of the License, or (at your option) any later version.
+
+These icons are distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library. If not, see <https://www.gnu.org/licenses/>.
+
+Please see NOTICE.txt at the root of this repo/package for full details,
+which should be included with any distribution that uses these files.
+The NOTICE.txt file can also be viewed online at Spyder's Github repository:
+https://github.com/spyder-ide/spyder/blob/master/NOTICE.txt

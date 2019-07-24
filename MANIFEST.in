@@ -1,16 +1,12 @@
-recursive-include spyder *.pot *.po *.svg *.png *.css *.qss *.c, *.cpp, *.html, *.java, *.md, *.R, *.csv, *.pyx, *.ipynb
-recursive-include spyder_breakpoints *.pot *.po *.svg *.png
-recursive-include spyder_profiler *.pot *.po *.svg *.png
-recursive-include spyder_pylint *.pot *.po *.svg *.png
-recursive-include doc *.py *.rst *.png *.ico *.
-include spyder/fonts/spyder.ttf
-include spyder/fonts/spyder-charmap.json
 include scripts/*
 include img_src/*.ico
 include img_src/spyder.png
 include img_src/spyder3.png
+include img_src/oxygen_icon_set/*
 include MANIFEST.in
 include README.md
-include LICENSE
+include LICENSE.txt
 include CHANGELOG.md
+include AUTHORS.txt
+include NOTICE.txt
 include bootstrap.py

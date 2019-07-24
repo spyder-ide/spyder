@@ -1,14 +1,22 @@
 # -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2013-2016 Colin Duquesnoy and others (see pyqode/AUTHORS.rst)
+# Copyright (c) 2016- Spyder Project Contributors (see AUTHORS.txt)
 #
-# Copyright © Spyder Project Contributors
-# Copyright © <2013-2016> <Colin Duquesnoy and others, see pyqode/AUTHORS.rst>
-# Licensed under the terms of the MIT License
-# (see spyder/__init__.py for details)
+# Distributed under the terms of the MIT License
+# (see NOTICE.txt in the Spyder root directory for details)
+# -----------------------------------------------------------------------------
 
 """
 This module contains the Manager API.
-Adapted from https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/api/manager.py
+
+Adapted from pyqode/core/api/manager.py of the
+`PyQode project <https://github.com/pyQode/pyQode>`_.
+Original file:
+<https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/api/manager.py>
 """
+
+# Standard library imports
 import weakref
 
 

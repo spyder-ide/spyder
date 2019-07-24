@@ -1,11 +1,20 @@
 # -*- coding: utf-8 -*-
-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2013-2016 Audrey Roy
+# Copyright (c) 2016- Spyder Project Contributors
+#
+# Licensed under the terms of the BSD 3-clause license
+# (see LICENSE.txt in this directory for details)
+# -----------------------------------------------------------------------------
 
 """
 binaryornot.helpers
 -------------------
 
 Helper utilities used by BinaryOrNot.
+
+Adapted from binaryornot/helpers.py of
+`BinaryOrNot <https://github.com/audreyr/binaryornot>`_.
 """
 
 import chardet
@@ -49,7 +58,7 @@ def is_binary_string(bytes_to_check):
     """
     Uses a simplified version of the Perl detection algorithm,
     based roughly on Eli Bendersky's translation to Python:
-    http://eli.thegreenplace.net/2011/10/19/perls-guess-if-file-is-text-or-binary-implemented-in-python/
+    https://eli.thegreenplace.net/2011/10/19/perls-guess-if-file-is-text-or-binary-implemented-in-python/
 
     This is biased slightly more in favour of deeming files as text
     files than the Perl algorithm, since all ASCII compatible character

@@ -17,7 +17,8 @@ from qtpy.QtWidgets import QDialog, QMessageBox
 # Local imports
 from spyder.config.base import _
 from spyder.utils import icon_manager as ima
-from spyder.widgets.variableexplorer.collectionseditor import CollectionsEditor
+from spyder.plugins.variableexplorer.widgets.collectionseditor import (
+        CollectionsEditor)
 
 
 def envdict2listdict(envdict):
@@ -42,17 +43,29 @@ class RemoteEnvDialog(CollectionsEditor):
 
     def __init__(self, environ, parent=None):
         super(RemoteEnvDialog, self).__init__(parent)
-        self.setup(envdict2listdict(environ),
-                   title=_("Environment variables"),
-                   width=700,
-                   readonly=True,
-                   icon=ima.icon('environ'))
+        try:
+            self.setup(
+                envdict2listdict(environ),
+                title=_("Environment variables"),
+                width=700,
+                readonly=True,
+                icon=ima.icon('environ')
+            )
+        except Exception as e:
+            QMessageBox.warning(
+                parent,
+                _("Warning"),
+                _("An error occurred while trying to show your "
+                  "environment variables. The error was<br><br>"
+                  "<tt>{0}</tt>").format(e),
+                QMessageBox.Ok
+            )
 
 
 class EnvDialog(RemoteEnvDialog):
     """Environment variables Dialog"""
-    def __init__(self):
-        RemoteEnvDialog.__init__(self, dict(os.environ))
+    def __init__(self, parent=None):
+        RemoteEnvDialog.__init__(self, dict(os.environ), parent=parent)
 
 
 # For Windows only
@@ -70,7 +83,7 @@ try:
             except:
                 break
         return envdict2listdict(reg)
-    
+
     def set_user_env(reg, parent=None):
         """Set HKCU (current user) environment variables"""
         reg = listdict2envdict(reg)
@@ -91,7 +104,7 @@ try:
                                   SMTO_ABORTIFHUNG)
             SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, 0,
                                "Environment", SMTO_ABORTIFHUNG, 5000)
-        except ImportError:
+        except Exception:
             QMessageBox.warning(parent, _("Warning"),
                         _("Module <b>pywin32 was not found</b>.<br>"
                           "Please restart this Windows <i>session</i> "
@@ -102,7 +115,7 @@ try:
         def __init__(self, parent=None):
             super(WinUserEnvDialog, self).__init__(parent)
             self.setup(get_user_env(),
-                       title="HKEY_CURRENT_USER\Environment", width=600)
+                       title=r"HKEY_CURRENT_USER\Environment", width=600)
             if parent is None:
                 parent = self
             QMessageBox.warning(parent, _("Warning"),
@@ -116,13 +129,13 @@ try:
                           "from a Windows shortcut, otherwise restart any "
                           "application from which you may have executed it, "
                           "like <i>Python(x,y) Home</i> for example)"))
-            
+
         def accept(self):
             """Reimplement Qt method"""
             set_user_env(listdict2envdict(self.get_value()), parent=self)
             QDialog.accept(self)
 
-except ImportError:
+except Exception:
     pass
 
 def main():

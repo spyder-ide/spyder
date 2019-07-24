@@ -1,0 +1,23 @@
+atomicwrites
+chardet >=2.0.0
+cloudpickle
+diff-match-patch
+keyring
+nbconvert
+numpydoc
+pexpect
+pickleshare
+psutil
+pygments >=2.0
+pylint
+pyqt <5.13
+python-language-server >=0.27.0
+pyxdg
+pyzmq
+qdarkstyle >=2.7
+qtawesome >=0.5.7
+qtconsole >=4.5.0
+qtpy >=1.5.0
+sphinx
+spyder-kernels >=1.4.0
+watchdog

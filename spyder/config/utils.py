@@ -12,8 +12,9 @@ import os
 import os.path as osp
 import sys
 
+from spyder_kernels.utils import iofuncs
+
 from spyder.config.base import _
-from spyder.utils import iofuncs
 
 
 #==============================================================================
@@ -26,11 +27,12 @@ EDIT_FILETYPES = [
     (_("C files"), ('.c', '.h')),
     (_("C++ files"), ('.cc', '.cpp', '.cxx', '.h', '.hh', '.hpp', '.hxx')),
     (_("OpenCL files"), ('.cl', )),
-    (_("Fortran files"), ('.f', '.for', '.f77', '.f90', '.f95', '.f2k')),
+    (_("Fortran files"), ('.f', '.for', '.f77', '.f90', '.f95', '.f2k',
+                          '.f03', '.f08')),
     (_("IDL files"), ('.pro', )),
     (_("MATLAB files"), ('.m', )),
     (_("Julia files"), ('.jl',)),
-    (_("Yaml files"), ('.yaml','.yml',)),
+    (_("Yaml files"), ('.yaml', '.yml',)),
     (_("Patch and diff files"), ('.patch', '.diff', '.rej')),
     (_("Batch files"), ('.bat', '.cmd')),
     (_("Text files"), ('.txt',)),
@@ -121,7 +123,10 @@ def get_edit_filetypes():
     if os.name == 'nt':
         supported_exts = []
     else:
-        supported_exts = _get_pygments_extensions()
+        try:
+            supported_exts = _get_pygments_extensions()
+        except Exception:
+            supported_exts = []
 
     # NOTE: Try to not add too much extensions to this list to not
     # make the filter look too big on Windows
@@ -157,7 +162,7 @@ def get_edit_extensions():
 # Detection of OS specific versions
 #==============================================================================
 def is_ubuntu():
-    "Detect if we are running in an Ubuntu-based distribution"
+    """Detect if we are running in an Ubuntu-based distribution"""
     if sys.platform.startswith('linux') and osp.isfile('/etc/lsb-release'):
         release_info = open('/etc/lsb-release').read()
         if 'Ubuntu' in release_info:
@@ -169,7 +174,7 @@ def is_ubuntu():
 
 
 def is_gtk_desktop():
-    "Detect if we are running in a Gtk-based desktop"
+    """Detect if we are running in a Gtk-based desktop"""
     if sys.platform.startswith('linux'):
         xdg_desktop = os.environ.get('XDG_CURRENT_DESKTOP', '')
         if xdg_desktop:
@@ -185,7 +190,7 @@ def is_gtk_desktop():
 
 
 def is_kde_desktop():
-    "Detect if we are running in a KDE desktop"
+    """Detect if we are running in a KDE desktop"""
     if sys.platform.startswith('linux'):
         xdg_desktop = os.environ.get('XDG_CURRENT_DESKTOP', '')
         if xdg_desktop:
@@ -200,8 +205,10 @@ def is_kde_desktop():
 
 
 def is_anaconda():
-    "Detect if we are running under Anaconda."
-    for var in os.environ:
-        if var.startswith('CONDA'):
-            return True
-    return False
+    """
+    Detect if we are running under Anaconda.
+
+    Taken from https://stackoverflow.com/a/47610844/438386
+    """
+    is_conda = osp.exists(osp.join(sys.prefix, 'conda-meta'))
+    return is_conda
