@@ -213,7 +213,7 @@ class FindReplace(QWidget):
                                    name='Find next', parent=parent)
         findprev = config_shortcut(self.find_previous, context='_',
                                    name='Find previous', parent=parent)
-        togglefind = config_shortcut(self.show, context='_',
+        togglefind = config_shortcut(self.show, context='find_replace',
                                      name='Find text', parent=parent)
         togglereplace = config_shortcut(self.show_replace,
                                         context='_', name='Replace text',

@@ -352,7 +352,7 @@ DEFAULTS = [
               '_/switch to explorer': "Ctrl+Shift+X",
               '_/switch to plots': "Ctrl+Shift+G",
               # -- In widgets/findreplace.py
-              '_/find text': "Ctrl+F",
+              'find_replace/find text': "Ctrl+F",
               '_/find next': "F3",
               '_/find previous': "Shift+F3",
               '_/replace text': "Ctrl+R",
@@ -456,7 +456,7 @@ DEFAULTS = [
               # ---- In widgets/variableexplorer/arrayeditor.py ----
               'variable_explorer/copy': 'Ctrl+C',
               # ---- In widgets/variableexplorer/namespacebrowser.py ----
-              'variable_explorer/search': 'Ctrl+Alt+F',
+              'variable_explorer/search': 'Ctrl+F',
               # ---- In widgets/plots/figurebrowser.py ----
               'plots/copy': 'Ctrl+C',
               'plots/previous figure': 'Ctrl+PgUp',
@@ -511,7 +511,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '50.2.0'
+CONF_VERSION = '51.0.0'
 
 
 # Main configuration instance
