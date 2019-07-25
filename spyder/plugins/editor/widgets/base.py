@@ -31,10 +31,25 @@ from spyder.config.main import CONF
 from spyder.py3compat import PY3, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.widgets.calltip import CallTipWidget, ToolTipWidget
+from spyder.widgets.helperwidgets import HTMLDelegate
 from spyder.widgets.mixins import BaseEditMixin
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
 from spyder.plugins.completion.languageserver import CompletionItemKind
+
+COMPLETION_ITEM_TEMPLATE = """
+<table width="{width}" height="{height}">
+    <tr>
+        <td valign="middle" style="color:{color}">
+            {completion}
+        </td>
+
+        <td valign="middle" align="right" float="right" style="color:{color}">
+            {type}
+        </td>
+    </tr>
+</table>
+"""
 
 
 class CompletionWidget(QListWidget):
@@ -54,7 +69,14 @@ class CompletionWidget(QListWidget):
         self.completion_position = None
         self.automatic = False
         # Text to be displayed if no match is found.
-        self.empty_text = 'No match'
+        height = 15
+        width = min(self.width(), 250)
+
+        self.empty_text = self.get_html_item_representation('No match', '',
+                                                            height=height,
+                                                            width=width)
+
+        self.setItemDelegate(HTMLDelegate(self, margin=3))
 
     def setup_appearance(self, size, font):
         self.resize(*size)
@@ -188,15 +210,26 @@ class CompletionWidget(QListWidget):
                      CompletionItemKind.KEYWORD: 'keyword',
                      CompletionItemKind.TEXT: 'text'}
 
+        height = 15
+        width = min(self.width(), 250)
+
         for completion in self.completion_list:
             if not self.is_internal_console:
                 completion_label = completion['filterText']
                 icon = icons_map.get(completion['kind'], 'no_match')
+                completion_data = completion['insertText']
+                completion_text = self.get_html_item_representation(
+                    completion_data, icon, height=height, width=width)
                 item = QListWidgetItem(ima.icon(icon),
-                                       completion['insertText'])
+                                       completion_text)
+                item.setData(Qt.UserRole, completion_data)
             else:
                 completion_label = completion[0]
-                item = QListWidgetItem(completion_label)
+                completion_text = self.get_html_item_representation(
+                    completion_label, '', height=height, width=width)
+                item = QListWidgetItem()
+                item.setData(Qt.UserRole, completion_label)
+                item.setText(completion_text)
 
             if self.check_can_complete(
                     completion_label, filter_text):
@@ -208,6 +241,16 @@ class CompletionWidget(QListWidget):
                           QAbstractItemView.PositionAtTop)
         else:
             self.addItem(QListWidgetItem(self.empty_text))
+
+    def get_html_item_representation(self, item_completion, item_type,
+                                     height=10, width=300):
+        """Get HTML representation of and item."""
+
+        return COMPLETION_ITEM_TEMPLATE.format(completion=item_completion,
+                                               type=item_type,
+                                               color=ima.MAIN_FG_COLOR,
+                                               height=height,
+                                               width=width)
 
     def hide(self):
         """Hide the widget."""
@@ -265,7 +308,7 @@ class CompletionWidget(QListWidget):
         if not self.is_position_correct():
             return False
         completion_text = self.textedit.get_current_word(completion=True)
-        selected_text = self.currentItem().text()
+        selected_text = self.currentItem().data(Qt.UserRole)
         return self.check_can_complete(selected_text, completion_text)
 
     def check_can_complete(self, text, sub):
@@ -340,8 +383,9 @@ class CompletionWidget(QListWidget):
             item = self.currentItem()
 
         if item is not None and self.completion_position is not None:
-            self.textedit.insert_completion(to_text_string(item.text()),
-                                            self.completion_position)
+            self.textedit.insert_completion(
+                to_text_string(item.data(Qt.UserRole)),
+                self.completion_position)
         self.hide()
 
     @Slot(int)
