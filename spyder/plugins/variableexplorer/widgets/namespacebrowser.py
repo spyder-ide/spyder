@@ -159,13 +159,14 @@ class NamespaceBrowser(QWidget):
 
         # Fuzzy search layout
         finder_layout = QHBoxLayout()
-        label_finder = QLabel(_("Search: "))
+        close_button = create_toolbutton(self, triggered=self.search,
+                                         icon=ima.icon('DialogCloseButton'))
         text_finder = NamespacesBrowserFinder(self.editor,
                                               callback=self.editor.set_regex,
                                               main=self,
                                               regex_base=VALID_VARIABLE_CHARS)
         self.editor.finder = text_finder
-        finder_layout.addWidget(label_finder)
+        finder_layout.addWidget(close_button)
         finder_layout.addWidget(text_finder)
         finder_layout.setContentsMargins(0, 0, 0, 0)
         self.finder = QWidget(self)
@@ -205,7 +206,7 @@ class NamespaceBrowser(QWidget):
                 icon=ima.icon('editdelete'), triggered=self.reset_namespace)
 
         self.search_button = create_toolbutton(
-            self, text=_("Search"),
+            self, text=_("Search variable names and types"),
             icon=ima.icon('find'),
             triggered=self.search)
         config_shortcut(self.search, context='variable_explorer',
