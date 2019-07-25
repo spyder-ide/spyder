@@ -11,6 +11,7 @@ import os
 import sys
 
 # Third party imports
+from flaky import flaky
 import pytest
 from qtpy.QtCore import Qt
 
@@ -193,6 +194,7 @@ def test_update_warnings_after_delete_line(qtbot, lsp_codeeditor):
 
 @pytest.mark.slow
 @pytest.mark.second
+@flaky(max_runs=5)
 def test_update_warnings_after_closequotes(qtbot, lsp_codeeditor):
     """
     Test that code errors are correctly updated after activating closequotes
