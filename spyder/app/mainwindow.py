@@ -2946,6 +2946,8 @@ class MainWindow(QMainWindow):
 
         if self.prefs_dialog_instance is None:
             dlg = ConfigDialog(self)
+            dlg.setStyleSheet("QTabWidget::tab-bar {"
+                              "alignment: left;}")
             self.prefs_dialog_instance = dlg
 
             # Signals
