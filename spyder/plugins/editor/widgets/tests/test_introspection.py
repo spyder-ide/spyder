@@ -13,6 +13,7 @@ import random
 import sys
 
 # Third party imports
+from flaky import flaky
 import pytest
 import pytestqt
 
@@ -98,6 +99,7 @@ def test_hide_widget_completion(lsp_codeeditor, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.first
+@flaky(max_runs=5)
 def test_automatic_completions(lsp_codeeditor, qtbot):
     """Test on-the-fly completions."""
     code_editor, _ = lsp_codeeditor
