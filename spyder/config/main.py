@@ -353,10 +353,10 @@ DEFAULTS = [
               '_/switch to plots': "Ctrl+Shift+G",
               # -- In widgets/findreplace.py
               'find_replace/find text': "Ctrl+F",
-              '_/find next': "F3",
-              '_/find previous': "Shift+F3",
-              '_/replace text': "Ctrl+R",
-              '_/hide find and replace': "Escape",
+              'find_replace/find next': "F3",
+              'find_replace/find previous': "Shift+F3",
+              'find_replace/replace text': "Ctrl+R",
+              'find_replace/hide find and replace': "Escape",
               # ---- Editor ----
               # -- In widgets/sourcecode/codeeditor.py
               'editor/code completion': CTRL+'+Space',

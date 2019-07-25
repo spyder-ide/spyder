@@ -209,16 +209,17 @@ class FindReplace(QWidget):
     def create_shortcuts(self, parent):
         """Create shortcuts for this widget"""
         # Configurable
-        findnext = config_shortcut(self.find_next, context='_',
+        findnext = config_shortcut(self.find_next, context='find_replace',
                                    name='Find next', parent=parent)
-        findprev = config_shortcut(self.find_previous, context='_',
+        findprev = config_shortcut(self.find_previous, context='find_replace',
                                    name='Find previous', parent=parent)
         togglefind = config_shortcut(self.show, context='find_replace',
                                      name='Find text', parent=parent)
         togglereplace = config_shortcut(self.show_replace,
-                                        context='_', name='Replace text',
+                                        context='find_replace',
+                                        name='Replace text',
                                         parent=parent)
-        hide = config_shortcut(self.hide, context='_',
+        hide = config_shortcut(self.hide, context='find_replace',
                                name='hide find and replace', parent=self)
 
         return [findnext, findprev, togglefind, togglereplace, hide]

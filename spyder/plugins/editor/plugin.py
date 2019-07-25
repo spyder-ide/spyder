@@ -485,19 +485,19 @@ class Editor(SpyderPluginWidget):
                                          icon=ima.icon('findnext'),
                                          triggered=self.find_next,
                                          context=Qt.WidgetShortcut)
-        self.register_shortcut(find_next_action, context="_",
+        self.register_shortcut(find_next_action, context="find_replace",
                                name="Find next")
         find_previous_action = create_action(self, _("Find &previous"),
                                              icon=ima.icon('findprevious'),
                                              triggered=self.find_previous,
                                              context=Qt.WidgetShortcut)
-        self.register_shortcut(find_previous_action, context="_",
+        self.register_shortcut(find_previous_action, context="find_replace",
                                name="Find previous")
         _text = _("&Replace text")
         replace_action = create_action(self, _text, icon=ima.icon('replace'),
                                        tip=_text, triggered=self.replace,
                                        context=Qt.WidgetShortcut)
-        self.register_shortcut(replace_action, context="_",
+        self.register_shortcut(replace_action, context="find_replace",
                                name="Replace text")
 
         # ---- Debug menu and toolbar ----
