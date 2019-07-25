@@ -893,10 +893,11 @@ class CodeEditor(TextEditBaseWidget):
         completion_options = config['completionProvider']
         signature_options = config['signatureHelpProvider']
         range_formatting_options = config['documentOnTypeFormattingProvider']
-        self.open_close_notifications = sync_options['openClose']
-        self.sync_mode = sync_options['change']
-        self.will_save_notify = sync_options['willSave']
-        self.will_save_until_notify = sync_options['willSaveWaitUntil']
+        self.open_close_notifications = sync_options.get('openClose', False)
+        self.sync_mode = sync_options.get('change', TextDocumentSyncKind.NONE)
+        self.will_save_notify = sync_options.get('willSave', False)
+        self.will_save_until_notify = sync_options.get('willSaveWaitUntil',
+                                                       False)
         self.save_include_text = sync_options['save']['includeText']
         self.enable_hover = config['hoverProvider']
         self.auto_completion_characters = (
@@ -3355,19 +3356,8 @@ class CodeEditor(TextEditBaseWidget):
             word_text = to_text_string(cursor.selectedText())
             # Perform completion on the fly
             if self.automatic_completions:
-                if text == '\b' or text == ' ':
-                    offset = 1 + (text == ' ')
-                    if len(word_text) > 0:
-                        prev_char = word_text[-1]
-                    else:
-                        prev_char = self.get_character(
-                            cursor.position() - offset)
-                    if (prev_char.isalpha() or
-                            (prev_char in self.auto_completion_characters)):
-                        self.do_completion(automatic=True)
-                else:
-                    if text.isalpha():
-                        self.do_completion(automatic=True)
+                if text.isalpha():
+                    self.do_completion(automatic=True)
         if not event.modifiers():
             # Accept event to avoid it being handled by the parent
             # Modifiers should be passed to the parent because they

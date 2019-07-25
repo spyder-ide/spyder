@@ -53,6 +53,23 @@ def setup_arrayeditor(qbot, data, title="", xlabels=None, ylabels=None):
 # =============================================================================
 # Tests
 # =============================================================================
+def test_object_arrays(qtbot):
+    """Test that object arrays are working properly."""
+    arr = np.array([u'a', 1, [2]], dtype=object)
+    assert_array_equal(arr, launch_arrayeditor(arr, "object array"))
+
+
+def test_object_arrays_display(qtbot):
+    """
+    Test that value_to_display is being used to display the values of
+    object arrays.
+    """
+    arr = np.array([[np.array([1, 2])], 2], dtype=object)
+    dlg = setup_arrayeditor(qtbot, arr)
+    idx = dlg.arraywidget.model.index(0, 0)
+    assert u'[Numpy array]' == dlg.arraywidget.model.data(idx)
+
+
 def test_type_errors(qtbot):
     """
     Verify that we don't get a TypeError for certain structured arrays.

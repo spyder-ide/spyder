@@ -29,6 +29,10 @@ class TabFilter(QObject):
         self.main = main
         self.from_index = None
 
+        # Center dockwidget tabs to differentiate them from plugin tabs.
+        # See spyder-ide/spyder#9763
+        self.dock_tabbar.setStyleSheet("QTabBar {alignment: center;}")
+
     def eventFilter(self, obj, event):
         """Filter mouse press events.
 
@@ -218,6 +222,7 @@ class SpyderDockWidget(QDockWidget):
                 if title == self.title:
                     dock_tabbar = tabbar
                     break
+
         if dock_tabbar is not None:
             self.dock_tabbar = dock_tabbar
             # Install filter only once per QTabBar
