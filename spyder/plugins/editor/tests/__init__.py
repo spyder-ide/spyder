@@ -6,4 +6,4 @@
 # (see LICENSE.txt for details)
 # -----------------------------------------------------------------------------
 
-"""Tests."""
+"""Tests for the Editor plugin."""

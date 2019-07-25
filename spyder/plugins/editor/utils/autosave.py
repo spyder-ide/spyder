@@ -25,7 +25,15 @@ logger = logging.getLogger(__name__)
 
 
 class AutosaveForPlugin(object):
-    """Component of editor plugin implementing autosave functionality."""
+    """
+    Component of editor plugin implementing autosave functionality.
+
+    Attributes:
+        name_mapping (dict): map between names of opened and autosave files.
+        file_hashes (dict): map between file names and hash of their contents.
+            This is used for both files opened in the editor and their
+            corresponding autosave files.
+    """
 
     # Interval (in ms) between two autosaves
     DEFAULT_AUTOSAVE_INTERVAL = 60 * 1000
@@ -41,6 +49,8 @@ class AutosaveForPlugin(object):
             editor (Editor): editor plugin.
         """
         self.editor = editor
+        self.name_mapping = {}
+        self.file_hashes = {}
         self.timer = QTimer(self.editor)
         self.timer.setSingleShot(True)
         self.timer.timeout.connect(self.do_autosave)
@@ -96,8 +106,17 @@ class AutosaveForPlugin(object):
         """Stop the autosave timer."""
         self.timer.stop()
 
+    def single_instance(self):
+        """Return whether Spyder is running in single instance mode."""
+        single_instance = CONF.get('main', 'single_instance')
+        new_instance = self.editor.main.new_instance
+        return single_instance and not new_instance
+
     def do_autosave(self):
         """Instruct current editorstack to autosave files where necessary."""
+        if not self.single_instance():
+            logger.debug('Autosave disabled because not single instance')
+            return
         logger.debug('Autosave triggered')
         stack = self.editor.get_current_editorstack()
         stack.autosave.autosave_all()
@@ -105,6 +124,9 @@ class AutosaveForPlugin(object):
 
     def try_recover_from_autosave(self):
         """Offer to recover files from autosave."""
+        if not self.single_instance():
+            self.recover_files_to_open = []
+            return
         autosave_dir = get_conf_path('autosave')
         autosave_mapping = CONF.get('editor', 'autosave_mapping', {})
         dialog = RecoveryDialog(autosave_dir, autosave_mapping,
@@ -112,14 +134,32 @@ class AutosaveForPlugin(object):
         dialog.exec_if_nonempty()
         self.recover_files_to_open = dialog.files_to_open[:]
 
+    def register_autosave_for_stack(self, autosave_for_stack):
+        """
+        Register an AutosaveForStack object.
+
+        This replaces the `name_mapping` and `file_hashes` attributes
+        in `autosave_for_stack` with references to the corresponding
+        attributes of `self`, so that all AutosaveForStack objects
+        share the same data.
+        """
+        autosave_for_stack.name_mapping = self.name_mapping
+        autosave_for_stack.file_hashes = self.file_hashes
+
 
 class AutosaveForStack(object):
     """
     Component of EditorStack implementing autosave functionality.
 
+    In Spyder, the `name_mapping` and `file_hashes` are set to references to
+    the corresponding variables in `AutosaveForPlugin`.
+
     Attributes:
         stack (EditorStack): editor stack this component belongs to.
         name_mapping (dict): map between names of opened and autosave files.
+        file_hashes (dict): map between file names and hash of their contents.
+            This is used for both files opened in the editor and their
+            corresponding autosave files.
     """
 
     def __init__(self, editorstack):
@@ -131,6 +171,7 @@ class AutosaveForStack(object):
         """
         self.stack = editorstack
         self.name_mapping = {}
+        self.file_hashes = {}
 
     def create_unique_autosave_filename(self, filename, autosave_dir):
         """
@@ -151,14 +192,12 @@ class AutosaveForStack(object):
                 autosave_filename = osp.join(autosave_dir, autosave_basename)
         return autosave_filename
 
-    def remove_autosave_file(self, fileinfo):
+    def remove_autosave_file(self, filename):
         """
         Remove autosave file for specified file.
 
-        This function also updates `self.autosave_mapping` and clears the
-        `changed_since_autosave` flag.
+        This function also updates `self.name_mapping` and `self.file_hashes`.
         """
-        filename = fileinfo.filename
         if filename not in self.name_mapping:
             return
         autosave_filename = self.name_mapping[filename]
@@ -170,6 +209,7 @@ class AutosaveForStack(object):
             msgbox = AutosaveErrorDialog(action, error)
             msgbox.exec_if_enabled()
         del self.name_mapping[filename]
+        del self.file_hashes[autosave_filename]
         self.stack.sig_option_changed.emit(
                 'autosave_mapping', self.name_mapping)
         logger.debug('Removing autosave file %s', autosave_filename)
@@ -204,28 +244,55 @@ class AutosaveForStack(object):
             logger.debug('New autosave file name')
         return autosave_filename
 
-    def autosave(self, index):
+    def maybe_autosave(self, index):
         """
-        Autosave a file.
+        Autosave a file if necessary.
 
-        Do nothing if the `changed_since_autosave` flag is not set or the file
-        is newly created (and thus not named by the user). Otherwise, save a
-        copy of the file with the name given by `self.get_autosave_filename()`
-        and clear the `changed_since_autosave` flag. Errors raised when saving
-        are silently ignored.
+        If the file is newly created (and thus not named by the user), do
+        nothing.  If the current contents are the same as the autosave file
+        (if it exists) or the original file (if no autosave filee exists),
+        then do nothing. If the current contents are the same as the file on
+        disc, but the autosave file is different, then remove the autosave
+        file. In all other cases, autosave the file.
 
         Args:
             index (int): index into self.stack.data
         """
         finfo = self.stack.data[index]
-        document = finfo.editor.document()
-        if not document.changed_since_autosave or finfo.newly_created:
+        if finfo.newly_created:
             return
+        orig_filename = finfo.filename
+        orig_hash = self.file_hashes[orig_filename]
+        new_hash = self.stack.compute_hash(finfo)
+        if orig_filename in self.name_mapping:
+            autosave_filename = self.name_mapping[orig_filename]
+            autosave_hash = self.file_hashes[autosave_filename]
+            if new_hash != autosave_hash:
+                if new_hash == orig_hash:
+                    self.remove_autosave_file(orig_filename)
+                else:
+                    self.autosave(finfo)
+        else:
+            if new_hash != orig_hash:
+                self.autosave(finfo)
+
+    def autosave(self, finfo):
+        """
+        Autosave a file.
+
+        Save a copy in a file with name `self.get_autosave_filename()` and
+        update the cached hash of the autosave file. An error dialog notifies
+        the user of any errors raised when saving.
+
+        Args:
+            fileinfo (FileInfo): file that is to be autosaved.
+        """
         autosave_filename = self.get_autosave_filename(finfo.filename)
         logger.debug('Autosaving %s to %s', finfo.filename, autosave_filename)
         try:
             self.stack._write_to_file(finfo, autosave_filename)
-            document.changed_since_autosave = False
+            autosave_hash = self.stack.compute_hash(finfo)
+            self.file_hashes[autosave_filename] = autosave_hash
         except EnvironmentError as error:
             action = (_('Error while autosaving {} to {}')
                       .format(finfo.filename, autosave_filename))
@@ -233,6 +300,6 @@ class AutosaveForStack(object):
             msgbox.exec_if_enabled()
 
     def autosave_all(self):
-        """Autosave all opened files."""
+        """Autosave all opened files where necessary."""
         for index in range(self.stack.get_stack_count()):
-            self.autosave(index)
+            self.maybe_autosave(index)

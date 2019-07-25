@@ -3,7 +3,7 @@
 if %PYTHON_VERSION% == 2.7 (
     python runtests.py || exit 0
 ) else (
-    python runtests.py || python runtests.py || python runtests.py || exit 1
+    python runtests.py || python runtests.py || python runtests.py || python runtests.py || python runtests.py || exit 1
 )
 
 :: Run codecov if things were successful

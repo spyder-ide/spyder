@@ -57,18 +57,26 @@ class BlockUserData(QTextBlockUserData):
         self.editor = editor
         self.breakpoint = False
         self.breakpoint_condition = None
+        self.bookmarks = []
         self.code_analysis = []
         self.todo = ''
         self.selection = cursor
         self.color = color
-        self.editor.blockuserdata_list.append(self)
+        self.oedata = None
+        self.import_statement = None
 
-    def is_empty(self):
-        return not self.breakpoint and not self.code_analysis and not self.todo
-
-    def __del__(self):
-        bud_list = self.editor.blockuserdata_list
-        bud_list.pop(bud_list.index(self))
+        # Add a reference to the user data in the editor as the block won't.
+        # The list should /not/ be used to list BlockUserData as the blocks
+        # they refer to might not exist anymore.
+        # This prevent a segmentation fault.
+        if editor is None:
+            # Won't be destroyed
+            self.refloop = self
+            return
+        # Destroy with the editor
+        if not hasattr(editor, '_user_data_reference_list'):
+            editor._user_data_reference_list = []
+        editor._user_data_reference_list.append(self)
 
 
 class DelayJobRunner(object):

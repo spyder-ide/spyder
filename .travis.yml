@@ -4,9 +4,6 @@ language: generic
 dist: xenial
 services:
     - xvfb
-env:
-  global:
-    - CI_PYTEST: "true"
 
 matrix:
   fast_finish: true
@@ -21,7 +18,7 @@ before_install:
   # Avoid annoying focus problems when running tests
   # See discussion in e.g. https://github.com/spyder-ide/spyder/pull/6132
   - sudo apt-get -qq update
-  - sudo apt-get install -y matchbox-window-manager xterm
+  - sudo apt-get install -y matchbox-window-manager xterm libxkbcommon-x11-0
   - matchbox-window-manager&
   - sleep 5
 
@@ -29,7 +26,7 @@ install:
   - ./continuous_integration/travis/install.sh
 
 script:
-  - ./continuous_integration/travis/runtests.sh || ./continuous_integration/travis/runtests.sh || ./continuous_integration/travis/runtests.sh
+  - ./continuous_integration/travis/runtests.sh || ./continuous_integration/travis/runtests.sh || ./continuous_integration/travis/runtests.sh || ./continuous_integration/travis/runtests.sh
 
 after_success:
   - source $HOME/miniconda/etc/profile.d/conda.sh && conda activate test && coveralls

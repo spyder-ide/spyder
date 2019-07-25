@@ -17,17 +17,18 @@ NumPy Array Editor Dialog based on Qt
 from __future__ import print_function
 
 # Third party imports
+import numpy as np
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QItemSelection, QLocale,
                          QItemSelectionRange, QModelIndex, Qt, Slot)
 from qtpy.QtGui import QColor, QCursor, QDoubleValidator, QKeySequence
 from qtpy.QtWidgets import (QAbstractItemDelegate, QApplication, QCheckBox,
-                            QComboBox, QDialog, QDialogButtonBox, QGridLayout,
-                            QHBoxLayout, QInputDialog, QItemDelegate, QLabel,
-                            QLineEdit,  QMenu, QMessageBox, QPushButton,
-                            QSpinBox, QStackedWidget, QTableView, QVBoxLayout,
+                            QComboBox, QDialog, QGridLayout, QHBoxLayout,
+                            QInputDialog, QItemDelegate, QLabel, QLineEdit,
+                            QMenu, QMessageBox, QPushButton, QSpinBox,
+                            QStackedWidget, QTableView, QVBoxLayout,
                             QWidget)
-import numpy as np
+from spyder_kernels.utils.nsview import value_to_display
 
 # Local imports
 from spyder.config.base import _
@@ -136,7 +137,7 @@ class ArrayModel(QAbstractTableModel):
             self.color_func = np.abs
         else:
             self.color_func = np.real
-        
+
         # Backgroundcolor settings
         huerange = [.66, .99] # Hue
         self.sat = .7 # Saturation
@@ -145,11 +146,11 @@ class ArrayModel(QAbstractTableModel):
 
         self._data = data
         self._format = format
-        
+
         self.total_rows = self._data.shape[0]
         self.total_cols = self._data.shape[1]
         size = self.total_rows * self.total_cols
-        
+
         try:
             self.vmin = np.nanmin(self.color_func(data))
             self.vmax = np.nanmax(self.color_func(data))
@@ -164,7 +165,11 @@ class ArrayModel(QAbstractTableModel):
             self.hue0 = None
             self.dhue = None
             self.bgcolor_enabled = False
-        
+
+        # Deactivate coloring for object arrays
+        if self._data.dtype.name == 'object':
+            self.bgcolor_enabled = False
+
         # Use paging when the total size, number of rows or number of
         # columns is too large
         if size > LARGE_SIZE:
@@ -179,16 +184,16 @@ class ArrayModel(QAbstractTableModel):
                 self.cols_loaded = self.COLS_TO_LOAD
             else:
                 self.cols_loaded = self.total_cols
-        
+
     def get_format(self):
         """Return current format"""
         # Avoid accessing the private attribute _format from outside
         return self._format
-    
+
     def get_data(self):
         """Return data"""
         return self._data
-    
+
     def set_format(self, format):
         """Change display format"""
         self._format = format
@@ -207,7 +212,7 @@ class ArrayModel(QAbstractTableModel):
             return self.total_rows
         else:
             return self.rows_loaded
-    
+
     def can_fetch_more(self, rows=False, columns=False):
         if rows:
             if self.total_rows > self.rows_loaded:
@@ -251,28 +256,39 @@ class ArrayModel(QAbstractTableModel):
         return self.changes.get((i, j), value)
 
     def data(self, index, role=Qt.DisplayRole):
-        """Cell content"""
+        """Cell content."""
         if not index.isValid():
             return to_qvariant()
         value = self.get_value(index)
+        dtn = self._data.dtype.name
+
+        # Tranform binary string to unicode so they are displayed
+        # correctly
         if is_binary_string(value):
             try:
                 value = to_text_string(value, 'utf8')
-            except:
+            except Exception:
                 pass
+
+        # Handle roles
         if role == Qt.DisplayRole:
             if value is np.ma.masked:
                 return ''
             else:
-                try:
-                    return to_qvariant(self._format % value)
-                except TypeError:
-                    self.readonly = True
-                    return repr(value)
+                if dtn == 'object':
+                    # We don't know what's inside an object array, so
+                    # we can't trust value repr's here.
+                    return value_to_display(value)
+                else:
+                    try:
+                        return to_qvariant(self._format % value)
+                    except TypeError:
+                        self.readonly = True
+                        return repr(value)
         elif role == Qt.TextAlignmentRole:
             return to_qvariant(int(Qt.AlignCenter|Qt.AlignVCenter))
-        elif role == Qt.BackgroundColorRole and self.bgcolor_enabled \
-          and value is not np.ma.masked:
+        elif (role == Qt.BackgroundColorRole and self.bgcolor_enabled
+                and value is not np.ma.masked):
             try:
                 hue = (self.hue0 +
                        self.dhue * (float(self.vmax) - self.color_func(value))
@@ -280,7 +296,7 @@ class ArrayModel(QAbstractTableModel):
                 hue = float(np.abs(hue))
                 color = QColor.fromHsvF(hue, self.sat, self.val, self.alp)
                 return to_qvariant(color)
-            except TypeError:
+            except (TypeError, ValueError):
                 return to_qvariant()
         elif role == Qt.FontRole:
             return to_qvariant(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
@@ -338,7 +354,7 @@ class ArrayModel(QAbstractTableModel):
             return Qt.ItemIsEnabled
         return Qt.ItemFlags(QAbstractTableModel.flags(self, index)|
                             Qt.ItemIsEditable)
-                
+
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Set header data"""
         if role != Qt.DisplayRole:
@@ -416,7 +432,7 @@ class ArrayView(QTableView):
                             lambda val: self.load_more_data(val, columns=True))
         self.verticalScrollBar().valueChanged.connect(
                                lambda val: self.load_more_data(val, rows=True))
-    
+
     def load_more_data(self, value, rows=False, columns=False):
 
         try:
@@ -455,7 +471,6 @@ class ArrayView(QTableView):
                     new_selection.append(part)
                 self.selectionModel().select
                 (new_selection, self.selectionModel().ClearAndSelect)
-
         except NameError:
             # Needed to handle a NameError while fetching data when closing
             # See isue 7880
@@ -484,7 +499,7 @@ class ArrayView(QTableView):
         """Reimplement Qt method"""
         self.menu.popup(event.globalPos())
         event.accept()
-        
+
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
         if event == QKeySequence.Copy:
@@ -499,12 +514,12 @@ class ArrayView(QTableView):
         row_min, row_max, col_min, col_max = get_idx_rect(cell_range)
         if col_min == 0 and col_max == (self.model().cols_loaded-1):
             # we've selected a whole column. It isn't possible to
-            # select only the first part of a column without loading more, 
+            # select only the first part of a column without loading more,
             # so we can treat it as intentional and copy the whole thing
             col_max = self.model().total_cols-1
         if row_min == 0 and row_max == (self.model().rows_loaded-1):
             row_max = self.model().total_rows-1
-        
+
         _data = self.model().get_data()
         if PY3:
             output = io.BytesIO()
@@ -548,7 +563,7 @@ class ArrayEditorWidget(QWidget):
         self.model = ArrayModel(self.data, format=format, xlabels=xlabels,
                                 ylabels=ylabels, readonly=readonly, parent=self)
         self.view = ArrayView(self, self.model, data.dtype, data.shape)
-        
+
         btn_layout = QHBoxLayout()
         btn_layout.setAlignment(Qt.AlignLeft)
         btn = QPushButton(_( "Format"))
@@ -564,24 +579,24 @@ class ArrayEditorWidget(QWidget):
         bgcolor.setEnabled(self.model.bgcolor_enabled)
         bgcolor.stateChanged.connect(self.model.bgcolor)
         btn_layout.addWidget(bgcolor)
-        
+
         layout = QVBoxLayout()
         layout.addWidget(self.view)
-        layout.addLayout(btn_layout)        
+        layout.addLayout(btn_layout)
         self.setLayout(layout)
-        
+
     def accept_changes(self):
         """Accept changes"""
         for (i, j), value in list(self.model.changes.items()):
             self.data[i, j] = value
         if self.old_data_shape is not None:
             self.data.shape = self.old_data_shape
-            
+
     def reject_changes(self):
         """Reject changes"""
         if self.old_data_shape is not None:
             self.data.shape = self.old_data_shape
-        
+
     def change_format(self):
         """Change display format"""
         format, valid = QInputDialog.getText(self, _( 'Format'),
@@ -595,20 +610,20 @@ class ArrayEditorWidget(QWidget):
                 QMessageBox.critical(self, _("Error"),
                                      _("Format (%s) is incorrect") % format)
                 return
-            self.model.set_format(format)    
+            self.model.set_format(format)
 
 
 class ArrayEditor(QDialog):
-    """Array Editor Dialog"""    
+    """Array Editor Dialog"""
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
-        
+
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
         # (e.g. the editor's analysis thread in Spyder), thus leading to
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
-        
+
         self.data = None
         self.arraywidget = None
         self.stack = None
@@ -618,7 +633,7 @@ class ArrayEditor(QDialog):
         # Values for 3d array editor
         self.dim_indexes = [{}, {}, {}]
         self.last_dim = 0  # Adjust this for changing the startup dimension
-        
+
     def setup_and_check(self, data, title='', readonly=False,
                         xlabels=None, ylabels=None):
         """
@@ -644,12 +659,21 @@ class ArrayEditor(QDialog):
             return False
         if not is_record_array:
             dtn = data.dtype.name
-            if dtn not in SUPPORTED_FORMATS and not dtn.startswith('str') \
-               and not dtn.startswith('unicode'):
+            if dtn == 'object':
+                # If the array doesn't have shape, we can't display it
+                if data.shape == ():
+                    self.error(_("Object arrays without shape are not "
+                                 "supported"))
+                    return False
+                # We don't know what's inside these arrays, so we can't handle
+                # edits
+                self.readonly = readonly = True
+            elif (dtn not in SUPPORTED_FORMATS and not dtn.startswith('str')
+                    and not dtn.startswith('unicode')):
                 arr = _("%s arrays") % data.dtype.name
                 self.error(_("%s are currently not supported") % arr)
                 return False
-        
+
         self.layout = QGridLayout()
         self.setLayout(self.layout)
         self.setWindowIcon(ima.icon('arredit'))
@@ -661,13 +685,14 @@ class ArrayEditor(QDialog):
             title += ' (' + _('read only') + ')'
         self.setWindowTitle(title)
         self.resize(600, 500)
-        
+
         # Stack widget
         self.stack = QStackedWidget(self)
         if is_record_array:
             for name in data.dtype.names:
                 self.stack.addWidget(ArrayEditorWidget(self, data[name],
-                                                   readonly, xlabels, ylabels))
+                                                       readonly, xlabels,
+                                                       ylabels))
         elif is_masked_array:
             self.stack.addWidget(ArrayEditorWidget(self, data, readonly,
                                                    xlabels, ylabels))
@@ -683,7 +708,7 @@ class ArrayEditor(QDialog):
         self.arraywidget = self.stack.currentWidget()
         if self.arraywidget:
             self.arraywidget.model.dataChanged.connect(
-                                                    self.save_and_close_enable)
+                self.save_and_close_enable)
         self.stack.currentChanged.connect(self.current_widget_changed)
         self.layout.addWidget(self.stack, 1, 0)
 
@@ -712,7 +737,7 @@ class ArrayEditor(QDialog):
                 names = [str(i) for i in range(3)]
                 ra_combo = QComboBox(self)
                 ra_combo.addItems(names)
-                ra_combo.currentIndexChanged.connect(self.current_dim_changed)    
+                ra_combo.currentIndexChanged.connect(self.current_dim_changed)
                 # Adding the widgets to layout
                 label = QLabel(_("Axis:"))
                 btn_layout.addWidget(label)
@@ -754,10 +779,10 @@ class ArrayEditor(QDialog):
         self.layout.addLayout(btn_layout, 2, 0)
 
         self.setMinimumSize(400, 300)
-        
+
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
-        
+
         return True
 
     @Slot(QModelIndex, QModelIndex)
@@ -771,7 +796,7 @@ class ArrayEditor(QDialog):
     def current_widget_changed(self, index):
         self.arraywidget = self.stack.widget(index)
         self.arraywidget.model.dataChanged.connect(self.save_and_close_enable)
-            
+
     def change_active_widget(self, index):
         """
         This is implemented for handling negative values in index for
@@ -825,10 +850,10 @@ class ArrayEditor(QDialog):
         for index in range(self.stack.count()):
             self.stack.widget(index).accept_changes()
         QDialog.accept(self)
-        
+
     def get_value(self):
         """Return modified array -- this is *not* a copy"""
-        # It is import to avoid accessing Qt C++ object as it has probably
+        # It is important to avoid accessing Qt C++ object as it has probably
         # already been destroyed, due to the Qt.WA_DeleteOnClose attribute
         return self.data
 

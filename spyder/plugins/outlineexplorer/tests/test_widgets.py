@@ -126,20 +126,43 @@ CODE = """# -*- coding: utf-8 -*-
             return x
     # %%% MGroup4
         x = 'test'
+    # %% Unnamed Cell
+
+    # %%%
+
+    # %% Unnamed Cell
+
+    # %% Unnamed Cell, #1
+
+    # %%% Unnamed Cell, #1
+
+    # %%
+
+    # %% a
+
+    def a():
+        pass
+
+    # %% a
+
+    # %% b
+
+    def b():
+        pass
 """
 
 
 # ---- Qt Test Fixtures
 @pytest.fixture
 def create_outlineexplorer(qtbot):
-    def _create_outlineexplorer(code, filename):
+    def _create_outlineexplorer(code, filename, follow_cursor=False):
         code_editor = CodeEditor(None)
         code_editor.set_language('py', filename)
         code_editor.set_text(code)
 
         editor = OutlineExplorerProxyEditor(code_editor, filename)
 
-        outlineexplorer = OutlineExplorerWidget()
+        outlineexplorer = OutlineExplorerWidget(follow_cursor=follow_cursor)
         outlineexplorer.set_current_editor(editor, False, False)
         outlineexplorer.show()
         outlineexplorer.setFixedSize(400, 350)
@@ -191,10 +214,9 @@ def test_go_to_cursor_position(create_outlineexplorer, qtbot):
     Test that clicking on the 'Go to cursor position' button located in the
     toolbar of the outline explorer is working as expected.
 
-    Regression test for issue #7729.
+    Regression test for spyder-ide/spyder#7729.
     """
     outlineexplorer = create_outlineexplorer(TEXT, 'test.py')
-
     # Move the mouse cursor in the editor to line 31 :
     editor = outlineexplorer.treewidget.current_editor
     editor._editor.go_to_line(31)
@@ -207,13 +229,59 @@ def test_go_to_cursor_position(create_outlineexplorer, qtbot):
     assert outlineexplorer.treewidget.currentItem().text(0) == 'method1'
 
 
+def test_follow_cursor(create_outlineexplorer, qtbot):
+    """
+    Test that the cursor is followed.
+    """
+    outlineexplorer = create_outlineexplorer(TEXT, 'test.py',
+                                             follow_cursor=True)
+    # Move the mouse cursor in the editor to line 31 :
+    editor = outlineexplorer.treewidget.current_editor
+    editor._editor.go_to_line(31)
+    assert editor._editor.get_text_line(31) == "        if False:"
+    # method1 is collapsed
+    assert outlineexplorer.treewidget.currentItem().text(0) == 'test.py'
+
+    # Go to cursor to open the cursor
+    qtbot.mouseClick(outlineexplorer.fromcursor_btn, Qt.LeftButton)
+
+    # Check if follows
+    editor._editor.go_to_line(1)
+    assert outlineexplorer.treewidget.currentItem().text(0) == 'test.py'
+    editor._editor.go_to_line(31)
+    assert outlineexplorer.treewidget.currentItem().text(0) == 'method1'
+
+
+def test_outlineexplorer_updates(create_outlineexplorer, qtbot):
+    """
+    Test that the cursor is followed
+    """
+    outlineexplorer = create_outlineexplorer(TEXT, 'test.py',
+                                             follow_cursor=True)
+    # Move the mouse cursor in the editor to line 5 :
+    editor = outlineexplorer.treewidget.current_editor
+    editor._editor.go_to_line(4)
+    assert editor._editor.get_text_line(4) == ""
+    # Go to cursor to open the cursor
+    qtbot.mouseClick(outlineexplorer.fromcursor_btn, Qt.LeftButton)
+
+    newcell_txt = "# %% newcell"
+    with qtbot.waitSignal(editor.sig_outline_explorer_data_changed):
+        qtbot.keyClicks(editor._editor, newcell_txt)
+
+    # editor._editor.go_to_line(3)
+    assert editor._editor.get_text_line(3) == newcell_txt
+    # check the outline explorer is up to date
+    assert outlineexplorer.treewidget.currentItem().text(0) == 'newcell'
+
+
 def test_go_to_cursor_position_with_new_file(create_outlineexplorer, qtbot):
     """
     Test that clicking on the 'Go to cursor position' button located in the
     toolbar of the outline explorer is working as expected for newly created
     files.
 
-    Regression test for issue  #8510.
+    Regression test for spyder-ide/spyder#8510.
     """
     text = "# -*- coding: utf-8 -*-\nSome newly created\nPython file."
     outlineexplorer = create_outlineexplorer(text, 'new_file.py')
@@ -231,7 +299,7 @@ def test_go_to_last_item(create_outlineexplorer, qtbot):
     toolbar of the outline explorer is working as expected when the cursor
     is located in the editor under the last item of the outline tree widget.
 
-    Regression test for issue #7744.
+    Regression test for spyder-ide/spyder#7744.
     """
     outlineexplorer = create_outlineexplorer(TEXT, 'test.py')
 
@@ -285,7 +353,19 @@ def test_code_cell_grouping(create_outlineexplorer):
         ('medthod1', FunctionItem, 'Class4', 'Class4', True),
         ('MGroup3', CellItem, 'test_file.py', 'test_file.py'),
         ('function6', FunctionItem, 'MGroup3', 'MGroup3', False),
-        ('MGroup4', CellItem, 'MGroup3', 'test_file.py')
+        ('MGroup4', CellItem, 'MGroup3', 'test_file.py'),
+        ('Unnamed Cell, #2', CellItem, 'test_file.py', 'test_file.py'),
+        ('Unnamed Cell, #3', CellItem, 'Unnamed Cell, #2', 'test_file.py'),
+        ('Unnamed Cell, #4', CellItem, 'test_file.py', 'test_file.py'),
+        ('Unnamed Cell, #1, #1', CellItem, 'test_file.py', 'test_file.py'),
+        ('Unnamed Cell, #1, #2', CellItem, 'Unnamed Cell, #1, #1',
+         'test_file.py'),
+        ('Unnamed Cell, #5', CellItem, 'test_file.py', 'test_file.py'),
+        ('a, #1', CellItem, 'test_file.py', 'test_file.py'),
+        ('a', FunctionItem, 'a, #1', 'test_file.py', False),
+        ('a, #2', CellItem, 'test_file.py', 'test_file.py'),
+        ('b', CellItem, 'test_file.py', 'test_file.py'),
+        ('b', FunctionItem, 'b', 'test_file.py', False),
         ]
 
     outlineexplorer.treewidget.expandAll()

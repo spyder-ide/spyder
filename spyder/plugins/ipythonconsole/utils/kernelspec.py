@@ -54,7 +54,7 @@ class SpyderKernelSpec(KernelSpec):
                 CONF.set('main_interpreter', 'default', True)
                 CONF.set('main_interpreter', 'custom', False)
 
-        # Fixes Issue #3427
+        # Fixes spyder-ide/spyder#3427.
         if os.name == 'nt':
             dir_pyexec = osp.dirname(pyexec)
             pyexec_w = osp.join(dir_pyexec, 'pythonw.exe')
@@ -120,7 +120,8 @@ class SpyderKernelSpec(KernelSpec):
             'SPY_GREEDY_O': CONF.get('ipython_console', 'greedy_completer'),
             'SPY_JEDI_O': CONF.get('ipython_console', 'jedi_completer'),
             'SPY_SYMPY_O': CONF.get('ipython_console', 'symbolic_math'),
-            'SPY_TESTING': running_under_pytest() or SAFE_MODE
+            'SPY_TESTING': running_under_pytest() or SAFE_MODE,
+            'SPY_HIDE_CMD': CONF.get('ipython_console', 'hide_cmd_windows')
         }
 
         if self.is_pylab is True:

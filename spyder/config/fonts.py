@@ -41,7 +41,8 @@ elif os.name == 'nt':
 elif is_ubuntu():
     SANS_SERIF = ['Ubuntu'] + SANS_SERIF
     MONOSPACE = ['Ubuntu Mono'] + MONOSPACE
-    BIG = MEDIUM = SMALL = 10
+    BIG = MEDIUM = 11
+    SMALL = 10
 else:
     BIG = 10
     MEDIUM = SMALL = 9

@@ -13,7 +13,14 @@ import os
 import sys
 import argparse
 
+# To activate/deactivate certain things for pytest's only
+# NOTE: Please leave this before any other import here!!
+os.environ['SPYDER_PYTEST'] = 'True'
+
 # Third party imports
+# NOTE: This needs to be imported before any QApplication.
+# Don't remove it or change it to a different location!
+from qtpy import QtWebEngineWidgets
 import pytest
 
 

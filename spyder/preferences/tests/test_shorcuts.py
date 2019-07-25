@@ -24,36 +24,73 @@ from spyder.preferences.shortcuts import (
 
 # ---- Qt Test Fixtures
 @pytest.fixture
-def shorcut_table(qtbot):
+def shortcut_table(qtbot):
     """Set up shortcuts."""
-    shorcut_table = ShortcutsTable()
-    qtbot.addWidget(shorcut_table)
-    return shorcut_table
+    shortcut_table = ShortcutsTable()
+    qtbot.addWidget(shortcut_table)
+    return shortcut_table
 
 
 @pytest.fixture
-def create_shortcut_editor(shorcut_table, qtbot):
-    shortcuts = shorcut_table.source_model.shortcuts
+def create_shortcut_editor(shortcut_table, qtbot):
+    shortcuts = shortcut_table.source_model.shortcuts
 
     def _create_bot(context, name):
         sequence = CONF.get('shortcuts', "{}/{}".format(context, name))
         shortcut_editor = ShortcutEditor(
-            shorcut_table, context, name, sequence, shortcuts)
+            shortcut_table, context, name, sequence, shortcuts)
         qtbot.addWidget(shortcut_editor)
         shortcut_editor.show()
         return shortcut_editor
     return _create_bot
 
 
+# ---- Filter text mock
+class FilterTextMock():
+    def __init__(self, text):
+        self.txt = text
+
+    def text(self):
+        return self.txt
+
+
 # ---- Tests ShortcutsTable
 @pytest.mark.skipif(
     sys.platform.startswith('linux') and os.environ.get('CI') is not None,
     reason="It fails on Linux due to the lack of a proper X server.")
-def test_shortcuts(shorcut_table):
+def test_shortcuts(shortcut_table):
     """Run shortcuts table."""
-    shorcut_table.show()
-    shorcut_table.check_shortcuts()
-    assert shorcut_table
+    shortcut_table.show()
+    shortcut_table.check_shortcuts()
+    assert shortcut_table
+
+
+def test_shortcuts_filtering(shortcut_table):
+    """Run shortcuts table."""
+    # Store original row count
+    row_count = shortcut_table.model().rowCount()
+    # Filter for "debug"
+    shortcut_table.finder = FilterTextMock('debug')
+    shortcut_table.set_regex()
+    # Sorting should be disabled
+    assert not shortcut_table.isSortingEnabled()
+    # Six hits (causes a bit of an issue to hardcode it like this if new
+    # shortcuts are added...)
+    assert shortcut_table.model().rowCount() == 6
+    # Remove filter text
+    shortcut_table.finder = FilterTextMock('')
+    shortcut_table.set_regex()
+    # Should be sortable again
+    assert shortcut_table.isSortingEnabled()
+    # All entries restored
+    assert shortcut_table.model().rowCount() == row_count
+
+    # Same thing, but using reset instead
+    shortcut_table.finder = FilterTextMock('debug')
+    shortcut_table.set_regex()
+    shortcut_table.set_regex(reset=True)
+    assert shortcut_table.isSortingEnabled()
+    assert shortcut_table.model().rowCount() == row_count
 
 
 # ---- Tests ShortcutEditor
@@ -114,13 +151,13 @@ def test_clear_back_new_sequence(create_shortcut_editor, qtbot):
     qtbot.mouseClick(shortcut_editor.button_back_sequence, Qt.LeftButton)
     assert shortcut_editor.new_sequence == 'Ctrl+X, A, Ctrl+B'
     assert shortcut_editor.warning == SEQUENCE_CONFLICT
-    assert not shortcut_editor.button_ok.isEnabled()
+    assert shortcut_editor.button_ok.isEnabled()
 
     # Remove second to last key sequence entered.
     qtbot.mouseClick(shortcut_editor.button_back_sequence, Qt.LeftButton)
     assert shortcut_editor.new_sequence == 'Ctrl+X, A'
     assert shortcut_editor.warning == SEQUENCE_CONFLICT
-    assert not shortcut_editor.button_ok.isEnabled()
+    assert shortcut_editor.button_ok.isEnabled()
 
     # Clear all entered key sequences.
     qtbot.mouseClick(shortcut_editor.btn_clear_sequence, Qt.LeftButton)
@@ -140,13 +177,13 @@ def test_sequence_conflict(create_shortcut_editor, qtbot):
     qtbot.keyClick(shortcut_editor, Qt.Key_X, modifier=Qt.ControlModifier)
     assert shortcut_editor.new_sequence == 'Ctrl+X'
     assert shortcut_editor.warning == SEQUENCE_CONFLICT
-    assert not shortcut_editor.button_ok.isEnabled()
+    assert shortcut_editor.button_ok.isEnabled()
 
     # Check that the conflict is detected for a compound of key sequences.
     qtbot.keyClick(shortcut_editor, Qt.Key_X)
     assert shortcut_editor.new_sequence == 'Ctrl+X, X'
     assert shortcut_editor.warning == SEQUENCE_CONFLICT
-    assert not shortcut_editor.button_ok.isEnabled()
+    assert shortcut_editor.button_ok.isEnabled()
 
 
 def test_sequence_single_key(create_shortcut_editor, qtbot):

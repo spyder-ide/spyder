@@ -13,9 +13,8 @@ import re
 # Third party imports
 from qtpy import PYQT5
 from qtpy.compat import from_qvariant, to_qvariant
-from qtpy.QtCore import (QAbstractTableModel, QModelIndex, QRegExp,
-                         QSortFilterProxyModel, Qt, Slot, QEvent)
-from qtpy.QtGui import (QKeySequence, QRegExpValidator, QIcon)
+from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Slot, QEvent
+from qtpy.QtGui import QKeySequence, QIcon
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
                             QGridLayout, QHBoxLayout, QLabel,
                             QLineEdit, QMessageBox, QPushButton, QSpacerItem,
@@ -29,9 +28,10 @@ from spyder.config.gui import (get_shortcut, iter_shortcuts,
 from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import get_std_icon, create_toolbutton
-from spyder.utils.stringmatching import get_search_scores, get_search_regex
-from spyder.widgets.helperwidgets import HTMLDelegate
-from spyder.widgets.helperwidgets import HelperToolButton
+from spyder.utils.stringmatching import get_search_scores
+from spyder.widgets.helperwidgets import (CustomSortFilterProxy,
+                                          FinderLineEdit, HelperToolButton,
+                                          HTMLDelegate, VALID_FINDER_CHARS)
 
 
 # Valid shortcut keys
@@ -40,11 +40,6 @@ EDITOR_SINGLE_KEYS = SINGLE_KEYS + ["Home", "End", "Ins", "Enter",
                                     "Return", "Backspace", "Tab",
                                     "PageUp", "PageDown", "Clear",  "Pause",
                                     "Left", "Up", "Right", "Down"]
-
-# Valid finder chars. To be improved
-VALID_ACCENT_CHARS = "ÁÉÍOÚáéíúóàèìòùÀÈÌÒÙâêîôûÂÊÎÔÛäëïöüÄËÏÖÜñÑ"
-VALID_FINDER_CHARS = r"[A-Za-z\s{0}]".format(VALID_ACCENT_CHARS)
-
 
 # Key sequences blacklist for the shortcut editor dialog
 BLACKLIST = {}
@@ -118,29 +113,11 @@ class ShortcutLineEdit(QLineEdit):
         super(ShortcutLineEdit, self).setText(sequence)
 
 
-class ShortcutFinder(QLineEdit):
+class ShortcutFinder(FinderLineEdit):
     """Textbox for filtering listed shortcuts in the table."""
 
-    def __init__(self, parent, callback=None):
-        super(ShortcutFinder, self).__init__(parent)
-        self._parent = parent
-
-        # Widget setup
-        regex = QRegExp(VALID_FINDER_CHARS + "{100}")
-        self.setValidator(QRegExpValidator(regex))
-
-        # Signals
-        if callback:
-            self.textChanged.connect(callback)
-
-    def set_text(self, text):
-        """Set the filter text."""
-        text = text.strip()
-        new_text = self.text() + text
-        self.setText(new_text)
-
     def keyPressEvent(self, event):
-        """Qt Override."""
+        """Qt and FilterLineEdit Override."""
         key = event.key()
         if key in [Qt.Key_Up]:
             self._parent.previous_row()
@@ -214,8 +191,6 @@ class ShortcutEditor(QDialog):
         self.label_warning = QLabel()
         self.label_warning.setWordWrap(True)
         self.label_warning.setAlignment(Qt.AlignTop | Qt.AlignLeft)
-        self.label_warning.setMinimumHeight(
-            3 * self.label_warning.sizeHint().height())
 
         self.button_default = QPushButton(_('Default'))
         self.button_ok = QPushButton(_('Ok'))
@@ -281,7 +256,7 @@ class ShortcutEditor(QDialog):
         self.setLayout(layout)
 
         # Signals
-        self.button_ok.clicked.connect(self.accept)
+        self.button_ok.clicked.connect(self.accept_override)
         self.button_clear.clicked.connect(self.unbind_shortcut)
         self.button_cancel.clicked.connect(self.reject)
         self.button_default.clicked.connect(self.set_sequence_to_default)
@@ -299,18 +274,18 @@ class ShortcutEditor(QDialog):
     @Slot()
     def reject(self):
         """Slot for rejected signal."""
-        # Added for issue #5426.  Due to the focusPolicy of Qt.NoFocus for the
-        # buttons, if the cancel button was clicked without first setting focus
-        # to the button, it would cause a seg fault crash.
+        # Added for spyder-ide/spyder#5426.  Due to the focusPolicy of
+        # Qt.NoFocus for the buttons, if the cancel button was clicked without
+        # first setting focus to the button, it would cause a seg fault crash.
         self.button_cancel.setFocus()
         super(ShortcutEditor, self).reject()
 
     @Slot()
     def accept(self):
         """Slot for accepted signal."""
-        # Added for issue #5426.  Due to the focusPolicy of Qt.NoFocus for the
-        # buttons, if the ok button was clicked without first setting focus to
-        # the button, it would cause a seg fault crash.
+        # Added for spyder-ide/spyder#5426.  Due to the focusPolicy of
+        # Qt.NoFocus for the buttons, if the cancel button was clicked without
+        # first setting focus to the button, it would cause a seg fault crash.
         self.button_ok.setFocus()
         super(ShortcutEditor, self).accept()
 
@@ -405,13 +380,16 @@ class ShortcutEditor(QDialog):
             icon = QIcon()
         elif conflicts:
             warning = SEQUENCE_CONFLICT
-            template = '<i>{0}<b>{1}</b></i>'
+            template = '<i>{0}<b>{1}</b>{2}</i>'
             tip_title = _('The new shortcut conflicts with:') + '<br>'
             tip_body = ''
             for s in conflicts:
                 tip_body += ' - {0}: {1}<br>'.format(s.context, s.name)
             tip_body = tip_body[:-4]  # Removing last <br>
-            tip = template.format(tip_title, tip_body)
+            tip_override = '<br>Press <b>OK</b> to unbind '
+            tip_override += 'it' if len(conflicts) == 1 else 'them'
+            tip_override += ' and assign it to <b>{}</b>'.format(self.name)
+            tip = template.format(tip_title, tip_body, tip_override)
             icon = get_std_icon('MessageBoxWarning')
         elif new_sequence in BLACKLIST:
             warning = IN_BLACKLIST
@@ -437,8 +415,12 @@ class ShortcutEditor(QDialog):
         self.conflicts = conflicts
 
         self.helper_button.setIcon(icon)
-        self.button_ok.setEnabled(self.warning == NO_WARNING)
+        self.button_ok.setEnabled(
+            self.warning in [NO_WARNING, SEQUENCE_CONFLICT])
         self.label_warning.setText(tip)
+        # Everytime after update warning message, update the label height
+        new_height = self.label_warning.sizeHint().height()
+        self.label_warning.setMaximumHeight(new_height)
 
     def set_sequence_from_str(self, sequence):
         """
@@ -468,6 +450,14 @@ class ShortcutEditor(QDialog):
     def unbind_shortcut(self):
         """Unbind the shortcut."""
         self._qsequences = []
+        self.accept()
+
+    def accept_override(self):
+        """Unbind all conflicted shortcuts, and accept the new one"""
+        conflicts = self.check_conflicts()
+        if conflicts:
+            for shortcut in conflicts:
+                shortcut.key = ''
         self.accept()
 
 
@@ -633,38 +623,6 @@ class ShortcutsModel(QAbstractTableModel):
         """"Reset model to take into account new search letters."""
         self.beginResetModel()
         self.endResetModel()
-
-
-class CustomSortFilterProxy(QSortFilterProxyModel):
-    """Custom column filter based on regex."""
-
-    def __init__(self, parent=None):
-        super(CustomSortFilterProxy, self).__init__(parent)
-        self._parent = parent
-        self.pattern = re.compile(r'')
-
-    def set_filter(self, text):
-        """Set regular expression for filter."""
-        self.pattern = get_search_regex(text)
-        if self.pattern:
-            self._parent.setSortingEnabled(False)
-        else:
-            self._parent.setSortingEnabled(True)
-        self.invalidateFilter()
-
-    def filterAcceptsRow(self, row_num, parent):
-        """Qt override.
-
-        Reimplemented from base class to allow the use of custom filtering.
-        """
-        model = self.sourceModel()
-        name = model.row(row_num).name
-        r = re.search(self.pattern, name)
-
-        if r is None:
-            return False
-        else:
-            return True
 
 
 class ShortcutsTable(QTableView):

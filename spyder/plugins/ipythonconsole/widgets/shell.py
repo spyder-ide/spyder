@@ -84,9 +84,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         # Set the color of the matched parentheses here since the qtconsole
         # uses a hard-coded value that is not modified when the color scheme is
-        # set in the qtconsole constructor. See issue #4806.   
+        # set in the qtconsole constructor. See spyder-ide/spyder#4806.
         self.set_bracket_matcher_color_scheme(self.syntax_style)
-                
+
     #---- Public API ----------------------------------------------------------
     def set_exit_callback(self):
         """Set exit callback for this shell."""
@@ -132,7 +132,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             return
         else:
             self.silent_exec_method(code)
-            
+
     def set_bracket_matcher_color_scheme(self, color_scheme):
         """Set color scheme for matched parentheses."""
         bsh = sh.BaseSH(parent=self, color_scheme=color_scheme)
@@ -209,8 +209,8 @@ These commands were executed:
             banner = banner + lines
         if (pylab_o and sympy_o):
             lines = """
-Warning: pylab (numpy and matplotlib) and symbolic math (sympy) are both 
-enabled at the same time. Some pylab functions are going to be overrided by 
+Warning: pylab (numpy and matplotlib) and symbolic math (sympy) are both
+enabled at the same time. Some pylab functions are going to be overrided by
 the sympy module (e.g. plot)
 """
             banner = banner + lines
@@ -239,7 +239,13 @@ the sympy module (e.g. plot)
         reset_str = _("Remove all variables")
         warn_str = _("All user-defined variables will be removed. "
                      "Are you sure you want to proceed?")
-        kernel_env = self.kernel_manager._kernel_spec.env
+        # This is necessary to make resetting variables work in external
+        # kernels.
+        # See spyder-ide/spyder#9505.
+        try:
+            kernel_env = self.kernel_manager._kernel_spec.env
+        except AttributeError:
+            kernel_env = {}
 
         if warning:
             box = MessageCheckBox(icon=QMessageBox.Warning, parent=self)
@@ -445,9 +451,9 @@ the sympy module (e.g. plot)
                     calling_mayavi = True
                     break
         if calling_mayavi:
-            message = _("Changing backend to Qt4 for Mayavi")
+            message = _("Changing backend to Qt for Mayavi")
             self._append_plain_text(message + '\n')
-            self.silent_execute("%gui inline\n%gui qt4")
+            self.silent_execute("%gui inline\n%gui qt")
 
     def change_mpl_backend(self, command):
         """
@@ -455,7 +461,7 @@ the sympy module (e.g. plot)
         %matplotlib, send the same command again to the kernel to
         correctly change it.
 
-        Fixes issue 4002
+        Fixes spyder-ide/spyder#4002.
         """
         if command.startswith('%matplotlib') and \
           len(command.splitlines()) == 1:

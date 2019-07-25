@@ -51,6 +51,7 @@ from spyder.utils.programs import get_temp_dir
 SHELL_TIMEOUT = 20000
 TEMP_DIRECTORY = tempfile.gettempdir()
 NON_ASCII_DIR = osp.join(TEMP_DIRECTORY, u'測試', u'اختبار')
+NEW_DIR = 'new_workingdir'
 
 
 # =============================================================================
@@ -92,43 +93,54 @@ def ipyconsole(qtbot, request):
     # Tests assume inline backend
     CONF.set('ipython_console', 'pylab/backend', 0)
 
+    # Start in a new working directory the console
+    use_startup_wdir = request.node.get_closest_marker('use_startup_wdir')
+    if use_startup_wdir:
+        new_wdir = osp.join(os.getcwd(), NEW_DIR)
+        if not osp.exists(new_wdir):
+            os.mkdir(new_wdir)
+        CONF.set('workingdir', 'console/use_fixed_directory', True)
+        CONF.set('workingdir', 'console/fixed_directory', new_wdir)
+
     # Test the console with a non-ascii temp dir
-    non_ascii_dir = request.node.get_marker('non_ascii_dir')
+    non_ascii_dir = request.node.get_closest_marker('non_ascii_dir')
     if non_ascii_dir:
         test_dir = NON_ASCII_DIR
     else:
         test_dir = None
 
     # Instruct the console to not use a stderr file
-    no_stderr_file = request.node.get_marker('no_stderr_file')
+    no_stderr_file = request.node.get_closest_marker('no_stderr_file')
     if no_stderr_file:
         test_no_stderr = True
     else:
         test_no_stderr = False
 
     # Use the automatic backend if requested
-    auto_backend = request.node.get_marker('auto_backend')
+    auto_backend = request.node.get_closest_marker('auto_backend')
     if auto_backend:
         CONF.set('ipython_console', 'pylab/backend', 1)
 
     # Start a Pylab client if requested
-    pylab_client = request.node.get_marker('pylab_client')
+    pylab_client = request.node.get_closest_marker('pylab_client')
     is_pylab = True if pylab_client else False
 
     # Start a Sympy client if requested
-    sympy_client = request.node.get_marker('sympy_client')
+    sympy_client = request.node.get_closest_marker('sympy_client')
     is_sympy = True if sympy_client else False
 
     # Start a Cython client if requested
-    cython_client = request.node.get_marker('cython_client')
+    cython_client = request.node.get_closest_marker('cython_client')
     is_cython = True if cython_client else False
 
     # Create the console and a new client
     window = MainWindowMock()
     console = IPythonConsole(parent=window,
+                             testing=True,
                              test_dir=test_dir,
                              test_no_stderr=test_no_stderr)
     console.dockwidget = Mock()
+    console._toggle_view_action = Mock()
     console.create_new_client(is_pylab=is_pylab,
                               is_sympy=is_sympy,
                               is_cython=is_cython)
@@ -148,6 +160,55 @@ def ipyconsole(qtbot, request):
 # =============================================================================
 # Tests
 # =============================================================================
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.parametrize(
+        "function,signature,documentation",
+        [("arange",
+          ["start", "stop"],
+          ["Return evenly spaced values within a given interval.<br>",
+           "returns an ndarray rather than a list.<br>"]),
+         ("vectorize",
+          ["pyfunc", "otype", "signature"],
+          ["Generalized function class.<br>",
+           "numpy array or a tuple of numpy ..."]),
+         ("absolute",
+          ["x", "/", "out"],
+          ["Parameters<br>", "x : array_like ..."])]
+        )
+@pytest.mark.skipif(sys.platform == 'darwin', reason="Times out on macOS")
+def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
+    """Test that calltips show the documentation."""
+    shell = ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Import numpy
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('import numpy as np')
+
+    # Write an object in the console that should generate a calltip
+    # and wait for the kernel to send its response.
+    with qtbot.waitSignal(shell.kernel_client.shell_channel.message_received):
+        qtbot.keyClicks(control, 'np.' + function + '(')
+
+    # Wait a little bit for the calltip to appear
+    qtbot.wait(500)
+
+    # Assert we displayed a calltip
+    assert control.calltip_widget.isVisible()
+
+    # Hide the calltip to avoid focus problems on Linux
+    control.calltip_widget.hide()
+    
+    # Check spected elements for signature and documentation
+    for element in signature:
+        assert element in control.calltip_widget.text()
+    for element in documentation:
+        assert element in control.calltip_widget.text()
+
+
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.auto_backend
@@ -475,7 +536,7 @@ def test_set_cwd(ipyconsole, qtbot, tmpdir):
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
-    # Issue 6451.
+    # spyder-ide/spyder#6451.
     savetemp = shell._cwd
     tempdir = to_text_string(tmpdir.mkdir("queen's"))
     shell.set_cwd(tempdir)
@@ -500,7 +561,7 @@ def test_get_cwd(ipyconsole, qtbot, tmpdir):
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
-    # Issue 6451.
+    # spyder-ide/spyder#6451.
     savetemp = shell._cwd
     tempdir = to_text_string(tmpdir.mkdir("queen's"))
     assert shell._cwd != tempdir
@@ -1078,6 +1139,8 @@ def test_stderr_file_remains_two_kernels(ipyconsole, qtbot, monkeypatch):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="It only works on Linux")
 def test_kernel_crash(ipyconsole, mocker, qtbot):
     """Test that we show kernel error messages when a kernel crash occurs."""
     # Patch create_kernel_spec method to make it return a faulty
@@ -1114,6 +1177,18 @@ def test_remove_old_stderr_files(ipyconsole, qtbot):
     # Assert that only that file is removed
     ipyconsole._remove_old_stderr_files()
     assert not osp.isfile(osp.join(tmpdir, 'foo.stderr'))
+
+
+@pytest.mark.slow
+@pytest.mark.use_startup_wdir
+def test_console_working_directory(ipyconsole, qtbot):
+    """Test for checking the working directory."""
+    shell = ipyconsole.get_current_shellwidget()
+    shell.execute('import os; cwd = os.getcwd()')
+
+    current_wdir = shell.get_value('cwd')
+    folders = osp.split(current_wdir)
+    assert folders[-1] == NEW_DIR
 
 
 if __name__ == "__main__":

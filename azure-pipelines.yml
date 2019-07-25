@@ -5,10 +5,12 @@ jobs:
 ################################################################################
 # macOS
 ################################################################################
-- job: 'macOS_Conda'
+- job: 'macOS'
 
   pool:
     vmImage: 'macOS-10.13'
+
+  timeoutInMinutes: 100
 
   variables:
     USE_CONDA: "yes"
@@ -57,7 +59,7 @@ jobs:
 
     # Run Tests
   - script: |
-      ./continuous_integration/azure/runtests.sh || ./continuous_integration/azure/runtests.sh || ./continuous_integration/azure/runtests.sh
+      ./continuous_integration/azure/runtests.sh || ./continuous_integration/azure/runtests.sh || ./continuous_integration/azure/runtests.sh || ./continuous_integration/azure/runtests.sh
     displayName: 'Run tests'
     continueOnError: false
 
@@ -72,10 +74,12 @@ jobs:
 ################################################################################
 # Windows
 ################################################################################
-- job: 'Windows_Conda'
+- job: 'Windows'
 
   pool:
     vmImage: 'vs2017-win2016'
+
+  timeoutInMinutes: 100
 
   variables:
     CI: True
@@ -86,15 +90,14 @@ jobs:
   # Run the pipeline with multiple Python versions
   strategy:
     matrix:
-      Python27:
-        python.version: '2.7'
+      #Python27:
+      #  python.version: '2.7'
       Python36:
         python.version: '3.6'
-      # There are some strange issues with Windows/Python 3.7
-      # and the latest pyls. However, things are working
-      # well locally, so we're skipping this for now.
-      # Python37:
-      #   python.version: '3.7'
+        use.conda: "yes"
+      Python37_pip:
+        python.version: '3.7'
+        use.conda: "no"
     maxParallel: 4
 
   steps:

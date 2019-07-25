@@ -57,7 +57,7 @@ from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font, config_shortcut
 from spyder.py3compat import (io, is_text_string, is_type_text_string, PY2,
-                              to_text_string)
+                              to_text_string, perf_counter)
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     keybinding, qapplication)
@@ -84,7 +84,7 @@ BACKGROUND_NUMBER_MINHUE = 0.66 # hue for largest number
 BACKGROUND_NUMBER_HUERANGE = 0.33 # (hue for smallest) minus (hue for largest)
 BACKGROUND_NUMBER_SATURATION = 0.7
 BACKGROUND_NUMBER_VALUE = 1.0
-BACKGROUND_NUMBER_ALPHA = 0.6 
+BACKGROUND_NUMBER_ALPHA = 0.6
 BACKGROUND_NONNUMBER_COLOR = Qt.lightGray
 BACKGROUND_INDEX_ALPHA = 0.8
 BACKGROUND_STRING_ALPHA = 0.05
@@ -128,7 +128,7 @@ class DataFrameModel(QAbstractTableModel):
         self._format = format
         self.complex_intran = None
         self.display_error_idxs = []
-        
+
         self.total_rows = self.df.shape[0]
         self.total_cols = self.df.shape[1]
         size = self.total_rows * self.total_cols
@@ -215,12 +215,12 @@ class DataFrameModel(QAbstractTableModel):
         Determines the maximum and minimum number in each column.
 
         The result is a list whose k-th entry is [vmax, vmin], where vmax and
-        vmin denote the maximum and minimum of the k-th column (ignoring NaN). 
+        vmin denote the maximum and minimum of the k-th column (ignoring NaN).
         This list is stored in self.max_min_col.
 
         If the k-th column has a non-numerical dtype, then the k-th entry
         is set to None. If the dtype is complex, then compute the maximum and
-        minimum of the absolute values. If vmax equals vmin, then vmin is 
+        minimum of the absolute values. If vmax equals vmin, then vmin is
         decreased by one.
         """
         if self.df.shape[0] == 0: # If no rows to compute max/min then return
@@ -323,7 +323,7 @@ class DataFrameModel(QAbstractTableModel):
                     return to_qvariant(self._format % value)
                 except (ValueError, TypeError):
                     # may happen if format = '%d' and value = NaN;
-                    # see issue 4139
+                    # see spyder-ide/spyder#4139.
                     return to_qvariant(DEFAULT_FORMAT % value)
             elif is_type_text_string(value):
                 # Don't perform any conversion on strings
@@ -368,11 +368,13 @@ class DataFrameModel(QAbstractTableModel):
                                  ascending=ascending, inplace=True,
                                  kind='mergesort')
                 except ValueError as e:
-                    # Not possible to sort on duplicate columns #5225
+                    # Not possible to sort on duplicate columns
+                    # See spyder-ide/spyder#5225.
                     QMessageBox.critical(self.dialog, "Error",
                                          "ValueError: %s" % to_text_string(e))
                 except SystemError as e:
-                    # Not possible to sort on category dtypes #5361
+                    # Not possible to sort on category dtypes
+                    # See spyder-ide/spyder#5361.
                     QMessageBox.critical(self.dialog, "Error",
                                          "SystemError: %s" % to_text_string(e))
                 self.update_df_index()
@@ -438,10 +440,16 @@ class DataFrameModel(QAbstractTableModel):
 
     def rowCount(self, index=QModelIndex()):
         """DataFrame row number"""
-        if self.total_rows <= self.rows_loaded:
-            return self.total_rows
-        else:
-            return self.rows_loaded
+        # Avoid a "Qt exception in virtual methods" generated in our
+        # tests on Windows/Python 3.7
+        # See spyder-ide/spyder#8910.
+        try:
+            if self.total_rows <= self.rows_loaded:
+                return self.total_rows
+            else:
+                return self.rows_loaded
+        except AttributeError:
+            return 0
 
     def fetch_more(self, rows=False, columns=False):
         """Get more columns and/or rows."""
@@ -462,13 +470,19 @@ class DataFrameModel(QAbstractTableModel):
 
     def columnCount(self, index=QModelIndex()):
         """DataFrame column number"""
-        # This is done to implement series
-        if len(self.df.shape) == 1:
-            return 2
-        elif self.total_cols <= self.cols_loaded:
-            return self.total_cols
-        else:
-            return self.cols_loaded
+        # Avoid a "Qt exception in virtual methods" generated in our
+        # tests on Windows/Python 3.7
+        # See spyder-ide/spyder#8910.
+        try:
+            # This is done to implement series
+            if len(self.df.shape) == 1:
+                return 2
+            elif self.total_cols <= self.cols_loaded:
+                return self.total_cols
+            else:
+                return self.cols_loaded
+        except AttributeError:
+            return 0
 
     def reset(self):
         self.beginResetModel()
@@ -521,7 +535,7 @@ class DataFrameView(QTableView):
 
         except NameError:
             # Needed to handle a NameError while fetching data when closing
-            # See issue 7880
+            # See spyder-ide/spyder#7880.
             pass
 
     def sortByColumn(self, index):
@@ -1117,14 +1131,14 @@ class DataFrameEditor(QDialog):
     def _sizeHintForColumn(self, table, col, limit_ms=None):
         """Get the size hint for a given column in a table."""
         max_row = table.model().rowCount()
-        lm_start = time.clock()
+        lm_start = perf_counter()
         lm_row = 64 if limit_ms else max_row
         max_width = self.min_trunc
         for row in range(max_row):
             v = table.sizeHintForIndex(table.model().index(row, col))
             max_width = max(max_width, v.width())
             if row > lm_row:
-                lm_now = time.clock()
+                lm_now = perf_counter()
                 lm_elapsed = (lm_now - lm_start) * 1000
                 if lm_elapsed >= limit_ms:
                     break
