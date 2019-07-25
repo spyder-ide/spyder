@@ -61,14 +61,15 @@ class ConfigPage(QWidget):
         self.apply_callback = apply_callback
         self.is_modified = False
 
-    def initialize(self):
+    def initialize(self, load=True):
         """
         Initialize configuration page:
             * setup GUI widgets
             * load settings and change widgets accordingly
         """
         self.setup_page()
-        self.load_from_conf()
+        if load:
+            self.load_from_conf()
 
     def get_name(self):
         """Return configuration page name"""
@@ -493,6 +494,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                            msg_if_enabled=False, button_group=None,
                            restart=False):
         radiobutton = QRadioButton(text)
+        radiobutton.button = radiobutton
         if button_group is None:
             if self.default_button_group is None:
                 self.default_button_group = QButtonGroup(self)

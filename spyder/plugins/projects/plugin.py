@@ -113,10 +113,12 @@ class Projects(SpyderPluginWidget):
             self.main.projects_menu_actions += [self.new_project_action,
                                                 MENU_SEPARATOR,
                                                 self.open_project_action,
+                                                self.edit_project_preferences_action
                                                 self.close_project_action,
                                                 self.delete_project_action,
                                                 MENU_SEPARATOR,
                                                 self.recent_project_menu,
+                                                self.pro
                                                 self._toggle_view_action]
 
         self.setup_menu_actions()
