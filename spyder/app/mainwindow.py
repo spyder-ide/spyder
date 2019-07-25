@@ -1302,7 +1302,6 @@ class MainWindow(QMainWindow):
         # This is a workaround because we can't disable shortcuts
         # by setting context=Qt.WidgetShortcut there
         if sys.platform == 'darwin':
-
             for name in ['file', 'edit', 'search', 'source', 'run', 'debug',
                          'projects', 'tools', 'plugins']:
                 menu_object = getattr(self, name + '_menu')
@@ -3446,7 +3445,7 @@ def run_spyder(app, options, args):
         for a in args:
             main.open_external_file(a)
 
-    # Don't show icons in menus for Mac        
+    # Don't show icons in menus for Mac
     if sys.platform == 'darwin':
         QCoreApplication.setAttribute(Qt.AA_DontShowIconsInMenus, True)
 

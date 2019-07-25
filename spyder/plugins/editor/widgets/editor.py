@@ -594,8 +594,14 @@ class EditorStack(QWidget):
         # Autusave component
         self.autosave = AutosaveForStack(self)
 
-    def verify_menu_actions(self, state):
-        """Check OS to hide icons in menu toolbars"""
+    def _verify_menu_actions(self, state):
+        """
+        Check OS to hide icons in menu toolbars.
+
+        This function is defined for any other plugin besides the
+        editor in spyder/plugins/base.py@_verify_menu_actions
+        See spyder-ide/spyder#8923
+        """
         if self.menu_actions:
             for action in self.menu_actions + self.split_actions:
                 if isinstance(action, QAction):
@@ -805,7 +811,7 @@ class EditorStack(QWidget):
         # Show icons in Mac plugin menus
         if sys.platform == 'darwin':
             self.menu.aboutToHide.connect(
-                lambda: self.verify_menu_actions(False))
+                lambda: self._verify_menu_actions(False))
 
     @Slot()
     def update_fname_label(self):
@@ -1335,7 +1341,7 @@ class EditorStack(QWidget):
         add_actions(self.menu, list(actions) + self.__get_split_actions())
         self.close_action.setEnabled(self.is_closable)
         if sys.platform == 'darwin':
-            self.verify_menu_actions(True)
+            self._verify_menu_actions(True)
 
 
 
@@ -2699,9 +2705,6 @@ class EditorSplitter(QSplitter):
                         Defaults to plugin.unregister_editorstack() to
                         unregister the EditorStack with the Editor plugin.
         """
-        for action in menu_actions:
-            if isinstance(action, QAction):
-                print(action.text())
 
         QSplitter.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
