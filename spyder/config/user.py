@@ -618,10 +618,8 @@ class SpyderUserConfig(UserConfig):
             fpath,
             # < 52.0.0
             os.path.join(get_conf_path(), 'spyder.ini'),
-            # < ??
         ]
         for fpath in previous_paths:
-            print('fpath', fpath)
             if osp.isfile(fpath):
                 break
 
@@ -769,9 +767,16 @@ class MultiUserConfig(object):
 
     def _check_name_map(self, name_map):
         """Check `name_map` follows the correct format."""
-        pass
-        # Check it is not repeated
-        # Check filemap names are not repeated or overide default name
+        # Check section option paris are not repeated
+        sections_options = []
+        for _, sec_opts in name_map.items():
+            for section, options in sec_opts:
+                for option in options:
+                    sec_opt = (section, option)
+                    if sec_opt not in sections_options:
+                        sections_options.append(sec_opt)
+                    else:
+                        raise ValueError('Different files are holding the same section/option: "{}/{}"!'.format(section, option))
         return name_map
 
     @staticmethod

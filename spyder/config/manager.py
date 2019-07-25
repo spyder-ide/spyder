@@ -82,7 +82,7 @@ class ConfigurationManager(object):
     # ------------------------------------------------------------------------
     def register_config(self, root_path, config):
         """
-        Register confgiuration with `root_path`.
+        Register configuration with `root_path`.
 
         Useful for registering project configurations as they are opened.
         """

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# # Copyright © Spyder Project Contributors
+# Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
@@ -506,77 +506,77 @@ NAME_MAP = {
     # apply the same split for the app global config
     # These options change on spyder startup or are tied to a specific OS,
     # not good for version control
-    # 'transient': [
-    #     ('main', [
-    #         'completion/size',
-    #         'crash',
-    #         'current_version',
-    #         'historylog_filename',
-    #         'last_visible_toolbars',
-    #         'spyder_pythonpath',
-    #         'window/position',
-    #         'window/prefs_dialog_size',
-    #         'window/size',
-    #         'window/state',
-    #         ]
-    #      ),
-    #     ('appearance', [
-    #         'windows_style',
-    #         ]
-    #      ),
-    #     ('editor', [
-    #         'autosave_mapping',
-    #         'bookmarks',
-    #         'filenames',
-    #         'layout_settings',
-    #         'recent_files',
-    #         'splitter_state',
-    #         ]
-    #      ),
-    #     ('explorer', [
-    #         'file_associations',
-    #     ]),
-    #     ('find_in_files', [
-    #         'path_history'
-    #         'search_text',
-    #         ]
-    #      ),
-    #     ('main_interpreter', [
-    #         'custom_interpreters_list',
-    #         'custom_interpreter',
-    #         'executable',
-    #          ]
-    #      ),
-    #     ('onlinehelp', [
-    #         'zoom_factor',
-    #          ]
-    #      ),
-    #     ('outline_explorer', [
-    #         'expanded_state',
-    #         'scrollbar_position',
-    #         ],
-    #      ),
-    #     ('project_explorer', [
-    #         'current_project_path',
-    #         'expanded_state',
-    #         'recent_projects',
-    #         'scrollbar_position',
-    #       ]
-    #      ),
-    #     ('quick_layouts', []), # Empty list means use all options
-    #     ('run', [
-    #         'breakpoints',
-    #         'configurations',
-    #         'defaultconfiguration',
-    #         'default/wdir/fixed_directory',
-    #       ]
-    #      ),
-    #     ('workingdir', [
-    #         'console/fixed_directory',
-    #         'startup/fixed_directory',
-    #       ]
-    #      ),
-    # ]
+    'transient': [
+        ('main', [
+            'completion/size',
+            'crash',
+            'current_version',
+            'historylog_filename',
+            'last_visible_toolbars',
+            'spyder_pythonpath',
+            'window/position',
+            'window/prefs_dialog_size',
+            'window/size',
+            'window/state',
+            ]
+         ),
+        ('appearance', [
+            'windows_style',
+            ]
+         ),
+        ('editor', [
+            'autosave_mapping',
+            'bookmarks',
+            'filenames',
+            'layout_settings',
+            'recent_files',
+            'splitter_state',
+            ]
+         ),
+        ('explorer', [
+            'file_associations',
+        ]),
+        ('find_in_files', [
+            'path_history'
+            'search_text',
+            ]
+         ),
+        ('main_interpreter', [
+            'custom_interpreters_list',
+            'custom_interpreter',
+            'executable',
+             ]
+         ),
+        ('onlinehelp', [
+            'zoom_factor',
+             ]
+         ),
+        ('outline_explorer', [
+            'expanded_state',
+            'scrollbar_position',
+            ],
+         ),
+        ('project_explorer', [
+            'current_project_path',
+            'expanded_state',
+            'recent_projects',
+            'scrollbar_position',
+          ]
+         ),
+        ('quick_layouts', []), # Empty list means use all options
+        ('run', [
+            'breakpoints',
+            'configurations',
+            'defaultconfiguration',
+            'default/wdir/fixed_directory',
+          ]
+         ),
+        ('workingdir', [
+            'console/fixed_directory',
+            'startup/fixed_directory',
+          ]
+         ),
+    ]
 }
 
 
