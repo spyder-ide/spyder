@@ -159,17 +159,20 @@ class UserConfig(DefaultsConfig):
     path: str
         Configuration file will be saved in path/%name%.ini
     defaults: {} or [(str, {}),]
-        dictionnary containing options *or* list of tuples (sec_name, options)
+        Dictionary containing options *or* list of tuples (sec_name, options)
     load: bool
-        TODO:
+        If a previous configuration file is found, load will take the values
+        from this existing file, instead of using default values.
     version: str
         version of the configuration file in 'major.minor.micro' format.
     backup: bool
-        TODO:
+        A backup will be created on version changes and on initial setup.
     raw_mode: bool
-        TODO:
+        If `True` do not apply any automatic conversion on values read from
+        the configuration.
     remove_obsolete: bool
-        TODO:
+        If `True`, values that were removed from the configuration on version
+        change, are removed from the saved configuration file.
 
     Notes
     -----
@@ -198,6 +201,9 @@ class UserConfig(DefaultsConfig):
         # This attribute is overriding a method from cp.ConfigParser
         self.defaults = self._check_defaults(defaults)
 
+        if backup:
+            self._make_backup()
+
         if load:
             # If config file already exists, it overrides Default options
             previous_fpath = self.get_previous_config_fpath()
@@ -209,8 +215,8 @@ class UserConfig(DefaultsConfig):
             self._save_new_defaults(defaults)
 
             # Updating defaults only if major/minor version is different
-            if (self._get_minor_version(version=version)
-                    != self._get_minor_version(version=old_version)):
+            if (self._get_minor_version(version)
+                    != self._get_minor_version(old_version)):
 
                 if backup:
                     self._make_backup(version=old_version)
@@ -218,11 +224,6 @@ class UserConfig(DefaultsConfig):
                 self.apply_configuration_patches(old_version=old_version)
 
                 # Remove deprecated options if major version has changed
-                # TODO: This might be problematic for the multi file config
-                # This needs to be called from the multiconfig manager
-                # another option should be added on init for this
-                # if (remove_obsolete or self._get_major_version(version)
-                #         != self._get_major_version(old_version)):
                 if remove_obsolete:
                     self._remove_deprecated_options(old_version)
 
@@ -232,9 +233,6 @@ class UserConfig(DefaultsConfig):
             if defaults is None:
                 # If no defaults are defined set .ini file settings as default
                 self.set_as_defaults()
-
-        if backup:
-            self._make_backup()
 
     # --- Helpers and checkers
     # ------------------------------------------------------------------------
@@ -469,7 +467,7 @@ class UserConfig(DefaultsConfig):
 
     def get_default(self, section, option):
         """
-        Get Default value for a given `section` and `option`.
+        Get default value for a given `section` and `option`.
 
         This is useful for type checking in `get` method.
         """
@@ -639,9 +637,6 @@ class SpyderUserConfig(UserConfig):
             fpath = self.get_config_fpath()
         elif check_version(version, '52.0.0', '<'):
             fpath = osp.join(get_conf_path(), 'spyder.ini')
-        elif check_version(version, '2.4.0', '<'):
-            # TODO: Should this still be supported?
-            pass
 
         return fpath
 
@@ -666,7 +661,6 @@ class SpyderUserConfig(UserConfig):
 
         return backup_fpath
 
-    # TODO:
     def get_defaults_path_name_from_version(self, old_version=None):
         """
         Override method.
@@ -692,12 +686,9 @@ class SpyderUserConfig(UserConfig):
 
         Apply any patch to configuration values on version changes.
         """
-        # TODO: is this check still needed?
         if old_version and check_version(old_version, '2.4.0', '<'):
             self.reset_to_defaults(save=False)
         else:
-            # TODO: Remove comment if tests pass ok
-            # self._update_defaults(defaults, old_version)
             self._update_defaults(self.defaults, old_version)
 
         if old_version and check_version(old_version, '44.1.0', '<'):
@@ -710,7 +701,7 @@ class SpyderUserConfig(UserConfig):
 
 class MultiUserConfig(object):
     """
-    Multi user config class based emulating the basic interface to UserConfig.
+    Multiuser config class which emulates the basic UserConfig interface.
 
     This class provides the same basic interface as UserConfig but allows
     splitting the configuration sections and options among several files.
@@ -742,8 +733,9 @@ class MultiUserConfig(object):
             'version': version,
             'backup': backup,
             'raw_mode': raw_mode,
-            'remove_obsolete': remove_obsolete,
+            'remove_obsolete': False,  # This will be handled later on
         }
+
         for name in name_map:
             defaults = self._config_defaults_map.get(name)
             mod_kwargs = {
@@ -754,6 +746,11 @@ class MultiUserConfig(object):
             new_kwargs.update(mod_kwargs)
             config_class = self.get_config_class()
             self._configs_map[name] = config_class(**new_kwargs)
+
+        # Now we can apply remove_obsolete
+        if remove_obsolete:
+            for _, config in self._configs_map.items():
+                config._remove_deprecated_options(config._old_version)
 
     def _get_config(self, section, option):
         """Get the correct configuration based on section and option."""

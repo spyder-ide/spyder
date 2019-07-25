@@ -41,12 +41,12 @@ class ConfigurationManager(object):
             version=CONF_VERSION,
             backup=True,
             raw_mode=True,
-            remove_obsolete=False,
+            remove_obsolete=True,
         )
-        # TODO: Implementation to be defined
+        # TODO: Implementation to be defined in following PR
         self._site_config = None
 
-        # TODO: To be implemented in the following PR
+        # TODO: To be implemented in following PR
         self._project_configs = {}  # Cache project configurations
 
         # Setup
