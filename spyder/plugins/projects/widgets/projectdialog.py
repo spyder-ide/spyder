@@ -242,6 +242,7 @@ class CondaProjectPage(BaseProjectPage):
             self,
         )
         self.combobox = QComboBox(self)
+        self.label_warning = QLabel()
 
         # Widget setup
         self.button_group.addButton(self.radio_use_project)
@@ -258,7 +259,8 @@ class CondaProjectPage(BaseProjectPage):
         layout.addWidget(self.radio_use_project, 1, 0, 1, 2)
         layout.addWidget(self.radio_use_existing, 2, 0)
         layout.addWidget(self.combobox, 2, 1)
-        layout.setRowStretch(3, 1000)
+        layout.addWidget(self.label_warning, 3, 0, 1, 2)
+        layout.setRowStretch(4, 1000)
  
         self.setLayout(layout)
 
@@ -270,10 +272,17 @@ class CondaProjectPage(BaseProjectPage):
 
     def validate(self):
         error = ''
-        self.combobox.setEnabled(self.radio_use_existing.isChecked())
-        if self.button_group.checkedButton():
+        if self.radio_use_existing.isChecked():
+            self.combobox.setEnabled(True)
+            self.label_warning.setText(_('This project is not reproducible!'))
             is_valid = True
+            error = ''
+        elif self.radio_use_project.isChecked():
+            self.label_warning.setText('')
+            is_valid = True
+            error = ''
         else:
+            self.label_warning.setText('')
             is_valid = False
             error = 'Select an option!'
 
@@ -281,6 +290,13 @@ class CondaProjectPage(BaseProjectPage):
         return is_valid, error
 
     def create(self, context):
+        if self.radio_use_existing.isChecked():
+            env = self.combobox.currentData()
+        else:
+            env = ''
+    
+        context['conda_enviroment'] = env
+
         return context
 
 
@@ -433,11 +449,14 @@ class ProjectDialog(QDialog):
         if is_first:
             self.button_create.setVisible(False)
             self.button_previous.setEnabled(False)
+            self.button_next.setVisible(True)
             self.button_next.setEnabled(self.pages_widget.isTabEnabled(idx + 1))
         elif is_last:
+            self.button_create.setVisible(False)
             self.button_next.setVisible(False)
             self.button_create.setVisible(True)
         else:
+            self.button_create.setVisible(False)
             self.button_previous.setEnabled(True)
             self.button_next.setEnabled(self.pages_widget.isTabEnabled(idx + 1))
             self.button_next.setVisible(True)
@@ -462,7 +481,9 @@ class ProjectDialog(QDialog):
 
     def add_page(self, widget):
         """Add a config page widget to the project dialog."""
-        self.pages_widget.addTab(widget, widget.get_name())
+        count = self.pages_widget.count()
+        self.pages_widget.addTab(
+            widget, '{}: {}'.format(count + 1, widget.get_name()))
         widget.sig_validated.connect(self.validate)
 
     def validate(self):
@@ -522,6 +543,7 @@ class ProjectDialog(QDialog):
                     'Project configuration context must be a dictionary!'
                 )
         self.sig_project_creation_requested.emit(context)
+        print(context)
         self.accept()
 
 
