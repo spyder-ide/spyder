@@ -505,10 +505,7 @@ class MainWindow(QMainWindow):
         self.layout_toolbar = None
         self.layout_toolbar_actions = []
 
-        self.menus = [self.file_menu, self.edit_menu, self.search_menu,
-                      self.source_menu, self.run_menu, self.debug_menu,
-                      self.consoles_menu, self.projects_menu, self.tools_menu,
-                      self.help_menu]
+        self.menus = []
 
         if running_under_pytest():
             # Show errors in internal console when testing.
@@ -606,8 +603,7 @@ class MainWindow(QMainWindow):
         self.toolbarslist.append(toolbar)
         return toolbar
 
-    def setup(self):  
-
+    def setup(self):
         """Setup main window"""
         logger.info("*** Start of MainWindow setup ***")
 
@@ -762,9 +758,6 @@ class MainWindow(QMainWindow):
 
         # Help menu
         self.help_menu = self.menuBar().addMenu(_("&Help"))
-
-        # Setup menus
-        self.setup_menus()
 
         # Status bar
         status = self.statusBar()
@@ -1291,7 +1284,15 @@ class MainWindow(QMainWindow):
         self.is_starting_up = False
 
     def setup_menus(self):
-        """Show and hide shortcuts and icons in menus for macOS."""
+        """Setup menus."""
+        # Update menus list
+        default_menus = [self.file_menu, self.edit_menu, self.search_menu,
+                         self.source_menu, self.run_menu, self.debug_menu,
+                         self.consoles_menu, self.projects_menu, self.tools_menu,
+                         self.help_menu]
+        self.menus = self.menus + default_menus
+
+        # Show and hide shortcuts and icons in menus for macOS
         if sys.platform == 'darwin':
             for menu in self.menus:
                 if menu is not None:
@@ -1303,6 +1304,7 @@ class MainWindow(QMainWindow):
                     menu.aboutToShow.connect(
                         lambda actions=actions:
                         self.verify_menu_actions(actions, False))
+                    menu.aboutToShow.connect(self.hide_options_menus)
 
     def post_visible_setup(self):
         """Actions to be performed only after the main window's `show` method
@@ -1376,6 +1378,9 @@ class MainWindow(QMainWindow):
             # If no project is active, load last session
             if self.projects.get_active_project() is None:
                 self.editor.setup_open_files()
+
+        # Setup menus
+        self.setup_menus()
 
         # Check for spyder updates
         if DEV is None and CONF.get('main', 'check_updates_on_startup'):
@@ -2171,6 +2176,10 @@ class MainWindow(QMainWindow):
         for action in menu_actions:
             if isinstance(action, QAction):
                 action.setIconVisibleInMenu(state)
+
+    def hide_options_menus(self):
+        for plugin in self.widgetlist + self.thirdparty_plugins:
+            plugin._options_menu.hide()
 
     def get_focus_widget_properties(self):
         """Get properties of focus widget
