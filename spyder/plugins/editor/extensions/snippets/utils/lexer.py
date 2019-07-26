@@ -12,12 +12,11 @@ from collections import OrderedDict
 whitespace = re.compile(r'\s')
 
 token_regex = OrderedDict({
+    'text_colon': r'^\\:$',
     'colon': r'^:$',
     'colon_plus': r'^:\+$',
     'colon_dash': r'^:-$',
     'colon_question': r'^:\?$',
-    'if': r'^if$',
-    'else': r'^else$',
     'text_dollar': r'^\\\$$',
     'text_pipe': r'^\\\|$',
     'text_right_curly': r'^\\}$',
