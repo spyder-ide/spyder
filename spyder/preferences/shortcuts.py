@@ -14,7 +14,7 @@ import re
 from qtpy import PYQT5
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Slot, QEvent
-from qtpy.QtGui import QKeySequence, QIcon
+from qtpy.QtGui import QKeySequence, QIcon, QCursor, QMouseEvent
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
                             QGridLayout, QHBoxLayout, QLabel,
                             QLineEdit, QMessageBox, QPushButton, QSpacerItem,
@@ -656,15 +656,15 @@ class ShortcutsTable(QTableView):
         self.verticalHeader().hide()
         self.load_shortcuts()
 
-    def focusOutEvent(self, e):
-        """Qt Override."""
-        self.source_model.update_active_row()
-        super(ShortcutsTable, self).focusOutEvent(e)
+    # def focusOutEvent(self, e):
+    #     """Qt Override."""
+    #     self.source_model.update_active_row()
+    #     super(ShortcutsTable, self).focusOutEvent(e)
 
-    def focusInEvent(self, e):
-        """Qt Override."""
-        super(ShortcutsTable, self).focusInEvent(e)
-        self.selectRow(self.currentIndex().row())
+    # def focusInEvent(self, e):
+    #     """Qt Override."""
+    #     super(ShortcutsTable, self).focusInEvent(e)
+    #     self.selectRow(self.currentIndex().row())
 
     def selection(self, index):
         """Update selected row."""
@@ -796,6 +796,15 @@ class ShortcutsTable(QTableView):
     def mouseDoubleClickEvent(self, event):
         """Qt Override."""
         self.show_editor()
+        self.update()
+
+    def mouseMoveEvent(self, event):
+        """Qt Override."""
+        QApplication.setOverrideCursor(QCursor(Qt.PointingHandCursor))
+
+    def leaveEvent(self, event):
+        """Qt Override."""
+        QApplication.setOverrideCursor(QCursor(Qt.ArrowCursor))
 
 
 class ShortcutsConfigPage(GeneralConfigPage):
@@ -808,12 +817,20 @@ class ShortcutsConfigPage(GeneralConfigPage):
         self.table = ShortcutsTable(self, text_color=ima.MAIN_FG_COLOR)
         self.finder = ShortcutFinder(self.table, self.table.set_regex)
         self.table.finder = self.finder
+        self.table.setMouseTracking(True)
         self.label_finder = QLabel(_('Search: '))
         self.reset_btn = QPushButton(_("Reset to default values"))
+        self.label = QLabel()
+        self.label.setText(
+            _("Here you can browse the list of all available shortcuts in "
+              "Spyder. You can also customize them by clicking on any entry "
+              "in this table."))
+        self.label.setWordWrap(True)
 
         # Layout
         hlayout = QHBoxLayout()
         vlayout = QVBoxLayout()
+        vlayout.addWidget(self.label)
         hlayout.addWidget(self.label_finder)
         hlayout.addWidget(self.finder)
         vlayout.addWidget(self.table)
