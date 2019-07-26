@@ -8,8 +8,10 @@
 
 # Stdlib imports
 import os
+import sys
 
 # Third party imports
+from flaky import flaky
 import pytest
 from qtpy.QtCore import Qt
 
@@ -36,8 +38,20 @@ def test_ignore_warnings(qtbot, lsp_codeeditor):
 
     CONF.set('lsp-server', 'pydocstyle/ignore', 'D100')
     CONF.set('lsp-server', 'pycodestyle/ignore', 'E261')
+
+    # After this call the manager needs to be reinitialized
     manager.update_server_list()
-    qtbot.wait(2000)
+
+    if os.environ.get('CI', None) is None and sys.platform == 'darwin':
+        # To be able to run local tests on mac this modification is needed
+        editorstack = manager.main.editor
+        with qtbot.waitSignal(editorstack.sig_lsp_initialized, timeout=30000):
+            manager.start_client('python')
+
+        with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
+            editor.document_did_open()
+    else:
+        qtbot.wait(2000)
 
     # Notify changes
     with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
@@ -180,6 +194,7 @@ def test_update_warnings_after_delete_line(qtbot, lsp_codeeditor):
 
 @pytest.mark.slow
 @pytest.mark.second
+@flaky(max_runs=5)
 def test_update_warnings_after_closequotes(qtbot, lsp_codeeditor):
     """
     Test that code errors are correctly updated after activating closequotes

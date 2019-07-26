@@ -467,6 +467,9 @@ class CodeEditor(TextEditBaseWidget):
         # Intelligent backspace mode
         self.intelligent_backspace = True
 
+        # Automatic (on the fly) completions
+        self.automatic_completions = True
+
         self.close_parentheses_enabled = True
         self.close_quotes_enabled = False
         self.add_colons_enabled = True
@@ -718,6 +721,7 @@ class CodeEditor(TextEditBaseWidget):
                      tab_mode=True,
                      strip_mode=False,
                      intelligent_backspace=True,
+                     automatic_completions=True,
                      highlight_current_line=True,
                      highlight_current_cell=True,
                      occurrence_highlighting=True,
@@ -804,6 +808,9 @@ class CodeEditor(TextEditBaseWidget):
         # Intelligent backspace
         self.toggle_intelligent_backspace(intelligent_backspace)
 
+        # Automatic completions
+        self.toggle_automatic_completions(automatic_completions)
+
         if cloned_from is not None:
             self.set_as_clone(cloned_from)
             self.panels.refresh()
@@ -888,10 +895,11 @@ class CodeEditor(TextEditBaseWidget):
         completion_options = config['completionProvider']
         signature_options = config['signatureHelpProvider']
         range_formatting_options = config['documentOnTypeFormattingProvider']
-        self.open_close_notifications = sync_options['openClose']
-        self.sync_mode = sync_options['change']
-        self.will_save_notify = sync_options['willSave']
-        self.will_save_until_notify = sync_options['willSaveWaitUntil']
+        self.open_close_notifications = sync_options.get('openClose', False)
+        self.sync_mode = sync_options.get('change', TextDocumentSyncKind.NONE)
+        self.will_save_notify = sync_options.get('willSave', False)
+        self.will_save_until_notify = sync_options.get('willSaveWaitUntil',
+                                                       False)
         self.save_include_text = sync_options['save']['includeText']
         self.enable_hover = config['hoverProvider']
         self.auto_completion_characters = (
@@ -972,17 +980,14 @@ class CodeEditor(TextEditBaseWidget):
         position, automatic = args
         try:
             completions = params['params']
-            if not automatic:
-                cursor = self.textCursor()
-                cursor.select(QTextCursor.WordUnderCursor)
-                text = to_text_string(cursor.selectedText())
-                completions = [] if completions is None else completions
-                available_completions = {x['insertText'] for x in completions}
-                for entry in self.word_tokens:
-                    if entry['insertText'] == text:
-                        continue
-                    if entry['insertText'] not in available_completions:
-                        completions.append(entry)
+            cursor = self.textCursor()
+            cursor.select(QTextCursor.WordUnderCursor)
+            text = to_text_string(cursor.selectedText())
+            completions = [] if completions is None else completions
+            available_completions = {x['insertText']: x for x in completions}
+            available_completions.pop(text, False)
+            completions = list(available_completions.values())
+
             if completions is not None and len(completions) > 0:
                 completion_list = sorted(completions,
                                          key=lambda x: x['sortText'])
@@ -1167,6 +1172,9 @@ class CodeEditor(TextEditBaseWidget):
 
     def toggle_intelligent_backspace(self, state):
         self.intelligent_backspace = state
+
+    def toggle_automatic_completions(self, state):
+        self.automatic_completions = state
 
     def set_close_parentheses_enabled(self, enable):
         """Enable/disable automatic parentheses insertion feature"""
@@ -2333,13 +2341,13 @@ class CodeEditor(TextEditBaseWidget):
         """
         Get if there is a correct indentation from a group of spaces of a line.
         """
-        spaces = re.findall('\s+', line_text)
+        spaces = re.findall(r'\s+', line_text)
         if len(spaces) - 1 >= group:
             return len(spaces[group]) % len(self.indent_chars) == 0
 
     def __number_of_spaces(self, line_text, group=0):
         """Get the number of spaces from a group of spaces in a line."""
-        spaces = re.findall('\s+', line_text)
+        spaces = re.findall(r'\s+', line_text)
         if len(spaces) - 1 >= group:
             return len(spaces[group])
 
@@ -2638,7 +2646,21 @@ class CodeEditor(TextEditBaseWidget):
         force=True: unindent even if cursor is not a the beginning of the line
         """
         if self.has_selected_text():
-            self.remove_prefix(self.indent_chars)
+            if self.indent_chars == "\t":
+                # Tabs, remove one tab
+                self.remove_prefix(self.indent_chars)
+            else:
+                # Spaces
+                space_count = len(self.indent_chars)
+                leading_spaces = self.__spaces_for_prefix()
+                remainder = leading_spaces % space_count
+                if remainder:
+                    # Get block on "space multiple grid".
+                    # See spyder-ide/spyder#5734.
+                    self.remove_prefix(" "*remainder)
+                else:
+                    # Unindent one space multiple
+                    self.remove_prefix(self.indent_chars)
         else:
             leading_text = self.get_text('sol', 'cursor')
             if force or not leading_text.strip() \
@@ -3330,7 +3352,14 @@ class CodeEditor(TextEditBaseWidget):
             TextEditBaseWidget.keyPressEvent(self, event)
         if len(text) > 0:
             self.document_did_change(text)
-            # self.do_completion(automatic=True)
+
+            cursor = self.textCursor()
+            cursor.select(QTextCursor.WordUnderCursor)
+            word_text = to_text_string(cursor.selectedText())
+            # Perform completion on the fly
+            if self.automatic_completions:
+                if text.isalpha():
+                    self.do_completion(automatic=True)
         if not event.modifiers():
             # Accept event to avoid it being handled by the parent
             # Modifiers should be passed to the parent because they
