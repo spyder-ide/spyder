@@ -1288,8 +1288,8 @@ class MainWindow(QMainWindow):
         # Update menus list
         default_menus = [self.file_menu, self.edit_menu, self.search_menu,
                          self.source_menu, self.run_menu, self.debug_menu,
-                         self.consoles_menu, self.projects_menu, self.tools_menu,
-                         self.help_menu]
+                         self.consoles_menu, self.projects_menu,
+                         self.tools_menu, self.view_menu, self.help_menu]
         self.menus = self.menus + default_menus
 
         # Show and hide shortcuts and icons in menus for macOS
@@ -2160,16 +2160,32 @@ class MainWindow(QMainWindow):
     def show_shortcuts(self, menu_actions):
         """Show action shortcuts in menu"""
         for action in menu_actions:
-            if isinstance(action, QAction):
+            if getattr(action, '_shown_shortcut', False):
+                # This is a SpyderAction
                 if action._shown_shortcut is not None:
-                    action.setShortcut(element._shown_shortcut)
+                    action.setShortcut(action._shown_shortcut)
+            elif action.menu() is not None:
+                # This is submenu, so we need to call this again
+                submenu_actions = action.menu().actions()
+                self.show_shortcuts(submenu_actions)
+            else:
+                # We don't need to do anything for other elements
+                continue
 
     def hide_shortcuts(self, menu_actions):
         """Hide action shortcuts in menu"""
         for action in menu_actions:
-            if isinstance(action, QAction):
+            if getattr(action, '_shown_shortcut', False):
+                # This is a SpyderAction
                 if action._shown_shortcut is not None:
                     action.setShortcut(QKeySequence())
+            elif action.menu() is not None:
+                # This is submenu, so we need to call this again
+                submenu_actions = action.menu().actions()
+                self.hide_shortcuts(submenu_actions)
+            else:
+                # We don't need to do anything for other elements
+                continue
 
     def verify_menu_actions(self, menu_actions, state):
         """Check OS to hide icons in menu toolbars"""
