@@ -331,12 +331,6 @@ def add_actions(target, actions, insert_before=None):
             else:
                 target.insertMenu(insert_before, action)
         elif isinstance(action, QAction):
-            if isinstance(action, SpyderAction):
-                if isinstance(target, QMenu) or not isinstance(target, QToolBar):
-                    try:
-                        action = action.no_icon_action
-                    except RuntimeError:
-                        continue
             if insert_before is None:
                 # This is needed in order to ignore adding an action whose
                 # wrapped C/C++ object has been deleted.
@@ -462,32 +456,8 @@ class SpyderAction(QAction):
     def __init__(self, *args, **kwargs):
         """Spyder QAction class wrapper to handle cross platform patches."""
         super(SpyderAction, self).__init__(*args, **kwargs)
-        self._action_no_icon = self
         if sys.platform == "darwin":
             self.setIconVisibleInMenu(False)
-
-    def __getattribute__(self, name):
-        """Intercept method calls and apply to both actions, except signals."""
-        attr = super(SpyderAction, self).__getattribute__(name)
-
-        if hasattr(attr, '__call__') and name not in ['triggered', 'toggled',
-                                                      'changed', 'hovered']:
-            def newfunc(*args, **kwargs):
-                result = attr(*args, **kwargs)
-                if name not in ['setIcon']:
-                    action_no_icon = self.__dict__['_action_no_icon']
-                    attr_no_icon = super(QAction,
-                                         action_no_icon).__getattribute__(name)
-                    attr_no_icon(*args, **kwargs)
-                return result
-            return newfunc
-        else:
-            return attr
-
-    @property
-    def no_icon_action(self):
-        """Return the action without an Icon."""
-        return self._action_no_icon
 
 
 class ShowStdIcons(QWidget):
