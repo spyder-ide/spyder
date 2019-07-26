@@ -725,7 +725,6 @@ class MainWindow(QMainWindow):
                                   None, self.cut_action, self.copy_action,
                                   self.paste_action, self.selectall_action]
 
-        namespace = None
         logger.info("Creating toolbars...")
         # File menu/toolbar
         self.file_menu = self.menuBar().addMenu(_("&File"))
@@ -809,6 +808,7 @@ class MainWindow(QMainWindow):
         # External Tools submenu
         self.external_tools_menu = QMenu(_("External Tools"))
         self.external_tools_menu_actions = []
+
         # WinPython control panel
         self.wp_action = create_action(self, _("WinPython control panel"),
                     icon=get_icon('winpython.svg'),
@@ -897,7 +897,7 @@ class MainWindow(QMainWindow):
         # Internal console plugin
         logger.info("Loading internal console...")
         from spyder.plugins.console.plugin import Console
-        self.console = Console(self, namespace, exitfunc=self.closing,
+        self.console = Console(self, namespace=None, exitfunc=self.closing,
                             profile=self.profile,
                             multithreaded=self.multithreaded,
                             message=_("Spyder Internal Console\n\n"
