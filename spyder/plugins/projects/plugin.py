@@ -46,7 +46,7 @@ class Projects(SpyderPluginWidget):
 
     CONF_SECTION = 'project_explorer'
     sig_pythonpath_changed = Signal()
-    sig_project_created = Signal(object, object, object)
+    sig_project_created = Signal(dict)
     sig_project_loaded = Signal(object)
     sig_project_closed = Signal(object)
 
@@ -113,12 +113,11 @@ class Projects(SpyderPluginWidget):
             self.main.projects_menu_actions += [self.new_project_action,
                                                 MENU_SEPARATOR,
                                                 self.open_project_action,
-                                                self.edit_project_preferences_action
+                                                self.edit_project_preferences_action,
                                                 self.close_project_action,
                                                 self.delete_project_action,
                                                 MENU_SEPARATOR,
                                                 self.recent_project_menu,
-                                                self.pro
                                                 self._toggle_view_action]
 
         self.setup_menu_actions()
@@ -278,8 +277,9 @@ class Projects(SpyderPluginWidget):
             self.sig_pythonpath_changed.emit()
             self.restart_consoles()
 
-    def _create_project(self, path):
+    def _create_project(self, context):
         """Create a new project."""
+        path = context.get('path')
         self.open_project(path=path)
         self.setup_menu_actions()
         self.add_to_recent(path)

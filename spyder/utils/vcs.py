@@ -242,3 +242,47 @@ def remote_to_url(remote):
         url = remote.replace('.git', '')
 
     return url
+
+
+def git_init(path):
+    git = programs.find_program('git')
+    if git:
+        try:
+            out, err = programs.run_program(
+                git, ['init'],
+                cwd=path,
+            ).communicate()
+        except Exception as e:
+            print(e)
+
+        if PY3:
+            out = out.decode(sys.getdefaultencoding())
+            err = err.decode(sys.getdefaultencoding())
+
+    return out, err
+
+
+def git_clone(path, repo):
+    """Clone repository `repo` in given path."""
+    git = programs.find_program('git')
+    commands = [
+        ['init'],
+        ['remote', 'add', 'origin', '{}'.format(repo)],
+        ['fetch'],
+        ['checkout', 'origin/master', '-ft'],
+    ]
+    if git:
+        for command in commands:
+            try:
+                out, err = programs.run_program(
+                    git, command,
+                    cwd=path,
+                ).communicate()
+            except Exception as e:
+                print(e)
+
+            if PY3:
+                out = out.decode(sys.getdefaultencoding())
+                err = err.decode(sys.getdefaultencoding())
+
+    return out, err
