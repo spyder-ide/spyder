@@ -19,6 +19,8 @@ from qtpy.QtWidgets import QMenu
 from spyder.config.main import CONF
 from spyder.py3compat import to_text_string
 from spyder.api.editorextension import EditorExtension
+from spyder.plugins.editor.extensions.snippets.utils.ast import (
+    build_snippet_ast)
 
 
 class SnippetsExtension(EditorExtension):
@@ -63,5 +65,6 @@ class SnippetsExtension(EditorExtension):
                     QTextCursor.NextCharacter, n=component_start)
 
     def insert_snippet(self, text):
+        build_snippet_ast(text)
         self.editor.insert_text(text)
         self.editor.document_did_change()

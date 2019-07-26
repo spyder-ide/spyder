@@ -14,8 +14,8 @@ Compilers: Principles, Techniques, and Tools, Addison-Wesley, 1986
 # The following grammar extracts snippets from a given text, regardless of the
 # programming language used.
 
-GRAMMAR = r"""
-P -> EXPRLIST
+GRAMMAR = """
+START -> EXPRLIST
 EXPRLIST -> EXPR MOREEXPR
 MOREEXPR -> EXPR MOREEXPR | EPSILON
 
@@ -55,7 +55,10 @@ OPTIONS -> TEXT | EPSILON
 
 FORMATTEXT -> FORMAT MOREFORMAT
 MOREFORMAT -> FORMAT MOREFORMAT | EPSILON
-FORMAT -> FORMATEXPR | TEXT
+FORMAT -> FORMATEXPR | FORTEXT
+
+FORTEXT -> ANY FOLLOW_ANY
+FOLLOW_ANY -> ANY FOLLOW_ANY | EPSILON
 
 FORMATTEXT_NO_COL -> FORMAT_NO_COL MOREFORMAT_NO_COL
 MOREFORMAT_NO_COL -> FORMAT_NO_COL MOREFORMAT_NO_COL | EPSILON
@@ -89,7 +92,7 @@ def _preprocess_grammar(grammar):
     return grammar
 
 
-def create_LL1_parsing_table(grammar=GRAMMAR, starting_rule='P'):
+def create_LL1_parsing_table(grammar=GRAMMAR, starting_rule='START'):
     """Create LL(1) parsing table for a given grammar."""
     grammar = _preprocess_grammar(grammar)
     fne = first_no_epsilon(grammar)

@@ -45,11 +45,8 @@ class Token(object):
         self.line = line
         self.col = col
 
-    def __unicode__(self):
-        return f'<{self.token}, {self.value}>'
-
     def __str__(self):
-        return f'<{self.token}, {self.value}>'
+        return u'<{0}, {1}>'.format(self.token, self.value)
 
     def __repr__(self):
         return self.__str__()
@@ -62,7 +59,7 @@ class Token(object):
     def __neq__(self, y):
         if not isinstance(y, Token):
             return True
-        return not self.token == y.token
+        return self.token != y.token
 
     def __hash__(self):
         return hash(self.token)
