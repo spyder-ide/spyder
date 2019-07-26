@@ -1302,14 +1302,13 @@ class MainWindow(QMainWindow):
         # This is a workaround because we can't disable shortcuts
         # by setting context=Qt.WidgetShortcut there
         if sys.platform == 'darwin':
-            for name in ['file', 'edit', 'search', 'source', 'run', 'debug',
-                         'projects', 'tools', 'plugins']:
-                menu_object = getattr(self, name + '_menu')
-                if menu_object is not None:
-                    menu_object.aboutToShow.connect(
-                        lambda name=name: self.show_shortcuts(name))
-                    menu_object.aboutToHide.connect(
-                        lambda name=name: self.hide_shortcuts(name))
+            for menu in self.menus:
+                if menu is not None:
+                    actions = menu.actions()
+                    menu.aboutToShow.connect(
+                        lambda actions=actions: self.show_shortcuts(actions))
+                    menu.aboutToHide.connect(
+                        lambda actions=actions: self.hide_shortcuts(actions))
             for idx, menu in enumerate(self.menus):
                 if menu is not None:
                     menu.aboutToShow.connect(
@@ -2178,19 +2177,19 @@ class MainWindow(QMainWindow):
         self.update_edit_menu()
         self.update_search_menu()
 
-    def show_shortcuts(self, menu):
+    def show_shortcuts(self, menu_actions):
         """Show action shortcuts in menu"""
-        for element in getattr(self, menu + '_menu_actions'):
-            if element and isinstance(element, QAction):
-                if element._shown_shortcut is not None:
-                    element.setShortcut(element._shown_shortcut)
+        for action in menu_actions:
+            if isinstance(action, QAction):
+                if action._shown_shortcut is not None:
+                    action.setShortcut(element._shown_shortcut)
 
-    def hide_shortcuts(self, menu):
+    def hide_shortcuts(self, menu_actions):
         """Hide action shortcuts in menu"""
-        for element in getattr(self, menu + '_menu_actions'):
-            if element and isinstance(element, QAction):
-                if element._shown_shortcut is not None:
-                    element.setShortcut(QKeySequence())
+        for action in menu_actions:
+            if isinstance(action, QAction):
+                if action._shown_shortcut is not None:
+                    action.setShortcut(QKeySequence())
 
     def get_focus_widget_properties(self):
         """Get properties of focus widget
