@@ -278,10 +278,12 @@ class CondaProjectPage(BaseProjectPage):
             is_valid = True
             error = ''
         elif self.radio_use_project.isChecked():
+            self.combobox.setEnabled(False)
             self.label_warning.setText('')
             is_valid = True
             error = ''
         else:
+            self.combobox.setEnabled(False)
             self.label_warning.setText('')
             is_valid = False
             error = 'Select an option!'
@@ -337,6 +339,7 @@ class VersionProjectPage(BaseProjectPage):
     def validate(self):
         error = ''
         if self.radio_vcs_clone.isChecked():
+            self.line_repository.setEnabled(True)
             repo = self.line_repository.text()
             if repo:
                 try:
@@ -351,10 +354,13 @@ class VersionProjectPage(BaseProjectPage):
                 error = 'Write a valid url for the repository!'
         elif self.radio_vcs_init.isChecked():
             is_valid = True
+            self.line_repository.setEnabled(False)
         elif self.radio_vcs_disabled.isChecked():
             is_valid = True
+            self.line_repository.setEnabled(False)
         else:
             is_valid = False
+            self.line_repository.setEnabled(False)
             error = 'Select an option!'
 
         self.sig_validated.emit(is_valid, error)
@@ -452,7 +458,6 @@ class ProjectDialog(QDialog):
             self.button_next.setVisible(True)
             self.button_next.setEnabled(self.pages_widget.isTabEnabled(idx + 1))
         elif is_last:
-            self.button_create.setVisible(False)
             self.button_next.setVisible(False)
             self.button_create.setVisible(True)
         else:
@@ -471,7 +476,7 @@ class ProjectDialog(QDialog):
             widget_enabled = self.pages_widget.isTabEnabled(idx)
 
             widget.blockSignals(True)
-            valid = widget.validate()
+            valid, _ = widget.validate()
             widget.blockSignals(False)
  
             if valid is False or not widget_enabled:
