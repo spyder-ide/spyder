@@ -509,13 +509,6 @@ class MainWindow(QMainWindow):
                       self.source_menu, self.run_menu, self.debug_menu,
                       self.consoles_menu, self.projects_menu, self.tools_menu,
                       self.help_menu]
-        self.menu_actions = [self.file_menu_actions, self.edit_menu_actions,
-                             self.search_menu_actions,
-                             self.source_menu_actions, self.run_menu_actions,
-                             self.debug_menu_actions,
-                             self.consoles_menu_actions,
-                             self.projects_menu_actions,
-                             self.tools_menu_actions, self.help_menu_actions]
 
         if running_under_pytest():
             # Show errors in internal console when testing.
@@ -770,7 +763,9 @@ class MainWindow(QMainWindow):
         # Help menu
         self.help_menu = self.menuBar().addMenu(_("&Help"))
 
+        # Setup menus
         self.setup_menus()
+
         # Status bar
         status = self.statusBar()
         status.setObjectName("StatusBar")
@@ -1296,11 +1291,7 @@ class MainWindow(QMainWindow):
         self.is_starting_up = False
 
     def setup_menus(self):
-        """Hide icon menus in toolbars before displaying them"""
-
-        # Show and hide shortcuts in menus for Mac.
-        # This is a workaround because we can't disable shortcuts
-        # by setting context=Qt.WidgetShortcut there
+        """Show and hide shortcuts and icons in menus for macOS."""
         if sys.platform == 'darwin':
             for menu in self.menus:
                 if menu is not None:
@@ -1309,12 +1300,9 @@ class MainWindow(QMainWindow):
                         lambda actions=actions: self.show_shortcuts(actions))
                     menu.aboutToHide.connect(
                         lambda actions=actions: self.hide_shortcuts(actions))
-            for idx, menu in enumerate(self.menus):
-                if menu is not None:
                     menu.aboutToShow.connect(
-                        lambda menu_actions=self.menu_actions[idx]:
-                        self.verify_menu_actions(menu_actions, False))
-                    menu.aboutToShow.connect(self.hide_menus)
+                        lambda actions=actions:
+                        self.verify_menu_actions(actions, False))
 
     def post_visible_setup(self):
         """Actions to be performed only after the main window's `show` method
@@ -1953,19 +1941,6 @@ class MainWindow(QMainWindow):
         else:
             self.ql_preferences.setEnabled(True)
 
-    def verify_menu_actions(self, menu_actions, state):
-        """Check OS to hide icons in menu toolbars"""
-        for action in menu_actions:
-            if isinstance(action, QAction):
-                action.setIconVisibleInMenu(state)
-
-    def hide_menus(self):
-        """Hide options menu of the plugins"""
-
-        for plugin in self.widgetlist + self.thirdparty_plugins:
-            plugin.options_menu.hide()
-
-
     @Slot()
     def reset_window_layout(self):
         """Reset window layout to default"""
@@ -2190,6 +2165,12 @@ class MainWindow(QMainWindow):
             if isinstance(action, QAction):
                 if action._shown_shortcut is not None:
                     action.setShortcut(QKeySequence())
+
+    def verify_menu_actions(self, menu_actions, state):
+        """Check OS to hide icons in menu toolbars"""
+        for action in menu_actions:
+            if isinstance(action, QAction):
+                action.setIconVisibleInMenu(state)
 
     def get_focus_widget_properties(self):
         """Get properties of focus widget
