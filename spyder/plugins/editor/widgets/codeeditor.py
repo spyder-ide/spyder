@@ -50,7 +50,7 @@ from spyder_kernels.utils.dochelpers import getobj
 from spyder.api.panel import Panel
 from spyder.config.base import _, get_debug_level, running_under_pytest
 from spyder.config.gui import get_shortcut, config_shortcut
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.plugins.editor.api.decoration import TextDecoration
 from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               CloseQuotesExtension,

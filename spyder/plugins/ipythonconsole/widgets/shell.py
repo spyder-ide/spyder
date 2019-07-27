@@ -15,7 +15,7 @@ from textwrap import dedent
 
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.config.base import _
 from spyder.config.gui import config_shortcut
 from spyder.py3compat import PY2, to_text_string

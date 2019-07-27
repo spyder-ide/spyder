@@ -81,6 +81,7 @@ def use_dev_config_dir(use_dev_config_dir=USE_DEV_CONFIG_DIR):
             use_dev_config_dir = False
     else:
         use_dev_config_dir = DEV or not is_stable_version(__version__)
+
     return use_dev_config_dir
 
 
@@ -116,36 +117,42 @@ def debug_print(*message):
 #==============================================================================
 # Configuration paths
 #==============================================================================
-# Spyder settings dir
-# NOTE: During the 2.x.x series this dir was named .spyder2, but
-# since 3.0+ we've reverted back to use .spyder to simplify major
-# updates in version (required when we change APIs by Linux
-# packagers)
-if sys.platform.startswith('linux'):
-    SUBFOLDER = 'spyder'
-else:
-    SUBFOLDER = '.spyder'
+def get_conf_subfolder():
+    """Return the configuration subfolder for different ooperating systems."""
+    # Spyder settings dir
+    # NOTE: During the 2.x.x series this dir was named .spyder2, but
+    # since 3.0+ we've reverted back to use .spyder to simplify major
+    # updates in version (required when we change APIs by Linux
+    # packagers)
+    if sys.platform.startswith('linux'):
+        SUBFOLDER = 'spyder'
+    else:
+        SUBFOLDER = '.spyder'
+
+    # We can't have PY2 and PY3 settings in the same dir because:
+    # 1. This leads to ugly crashes and freezes (e.g. by trying to
+    #    embed a PY2 interpreter in PY3)
+    # 2. We need to save the list of installed modules (for code
+    #    completion) separately for each version
+    if PY3:
+        SUBFOLDER = SUBFOLDER + '-py3'
+
+    # If running a development/beta version, save config in a separate
+    # directory to avoid wiping or contaiminating the user's saved stable
+    # configuration.
+    if use_dev_config_dir():
+        SUBFOLDER = SUBFOLDER + '-dev'
+
+    return SUBFOLDER
 
 
-# We can't have PY2 and PY3 settings in the same dir because:
-# 1. This leads to ugly crashes and freezes (e.g. by trying to
-#    embed a PY2 interpreter in PY3)
-# 2. We need to save the list of installed modules (for code
-#    completion) separately for each version
-if PY3:
-    SUBFOLDER = SUBFOLDER + '-py3'
-
-
-# If running a development/beta version, save config in a seperate directory
-# to avoid wiping or contaiminating the user's saved stable configuration.
-if use_dev_config_dir():
-    SUBFOLDER = SUBFOLDER + '-dev'
+def get_project_config_folder():
+    """Return the default project configuration folder."""
+    return '.spyproject'
 
 
 def get_home_dir():
-    """
-    Return user home directory
-    """
+    """Return user home directory."""
     try:
         # expanduser() returns a raw byte string which needs to be
         # decoded with the codec that the OS is using to represent
@@ -185,7 +192,7 @@ def get_clean_conf_dir():
 
     conf_dir = osp.join(str(tempfile.gettempdir()),
                         'pytest-spyder{0!s}'.format(current_user),
-                        SUBFOLDER)
+                        get_conf_subfolder())
     return conf_dir
 
 
@@ -201,11 +208,13 @@ def get_conf_path(filename=None):
         xdg_config_home = os.environ.get('XDG_CONFIG_HOME', '')
         if not xdg_config_home:
             xdg_config_home = osp.join(get_home_dir(), '.config')
+
         if not osp.isdir(xdg_config_home):
             os.makedirs(xdg_config_home)
-        conf_dir = osp.join(xdg_config_home, SUBFOLDER)
+
+        conf_dir = osp.join(xdg_config_home, get_conf_subfolder())
     else:
-        conf_dir = osp.join(get_home_dir(), SUBFOLDER)
+        conf_dir = osp.join(get_home_dir(), get_conf_subfolder())
 
     # Create conf_dir
     if not osp.isdir(conf_dir):
@@ -213,6 +222,7 @@ def get_conf_path(filename=None):
             os.makedirs(conf_dir)
         else:
             os.mkdir(conf_dir)
+
     if filename is None:
         return conf_dir
     else:

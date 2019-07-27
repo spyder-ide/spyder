@@ -17,7 +17,7 @@ from qtpy.QtWidgets import QStyle, QWidget
 
 # Local imports
 from spyder.config.base import get_image_path
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.config.gui import is_dark_interface
 from spyder.utils.encoding import is_text_file
 import qtawesome as qta

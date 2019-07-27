@@ -31,7 +31,7 @@ except:
 from spyder.app.cli_options import get_options
 from spyder.config.base import (get_conf_path, running_in_mac_app,
                                 running_under_pytest)
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.utils.external import lockfile
 from spyder.py3compat import is_unicode
 

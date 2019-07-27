@@ -38,7 +38,7 @@ from zmq.ssh import tunnel as zmqtunnel
 from spyder import dependencies
 from spyder.config.base import _, get_conf_path, get_home_dir
 from spyder.config.gui import get_font, is_dark_interface
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import is_string, PY2, to_text_string
 from spyder.plugins.ipythonconsole.confpage import IPythonConsoleConfigPage
