@@ -250,17 +250,32 @@ class Projects(SpyderPluginWidget):
 
     def edit_project_preferences(self):
         """Edit Spyder active project preferences"""
-        from spyder.plugins.projects.confpage import ProjectPreferences
-        if self.project_active:
-            active_project = self.project_list[0]
-            dlg = ProjectPreferences(self, active_project)
+        from spyder.plugins.projects.widgets.preferences import (
+                ProjectPreferences, GeneralProjectConfigPage,
+                EnvironmentVariablesConfigPage,
+                CondaEnvironmentConfigPage)
+        # if self.project_active:
+            # active_project = self.project_list[0]
+        dlg = ProjectPreferences(self.main)
+
+
+        pages = [GeneralProjectConfigPage, EnvironmentVariablesConfigPage]
+        pages.append(CondaEnvironmentConfigPage)
+        # pages.append(VersionControlConfigPage)
+
+        for CLASS in pages:
+            widget = CLASS(dlg)
+            widget.initialize(load=False)
+            dlg.add_page(widget)
+
+
 #            dlg.size_change.connect(self.set_project_prefs_size)
 #            if self.projects_prefs_dialog_size is not None:
 #                dlg.resize(self.projects_prefs_dialog_size)
-            dlg.show()
+        dlg.show()
 #        dlg.check_all_settings()
 #        dlg.pages_widget.currentChanged.connect(self.__preference_page_changed)
-            dlg.exec_()
+        dlg.exec_()
 
     @Slot()
     def create_new_project(self):

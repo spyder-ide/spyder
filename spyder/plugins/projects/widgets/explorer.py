@@ -17,7 +17,7 @@ import shutil
 # Third party imports
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import (QAbstractItemView, QHBoxLayout, QHeaderView,
-                            QLabel, QMessageBox, QVBoxLayout, QWidget)
+                            QLabel, QMessageBox, QVBoxLayout, QWidget, QTreeView)
 
 # Local imports
 from spyder.config.base import _
@@ -25,15 +25,17 @@ from spyder.py3compat import to_text_string
 from spyder.utils import misc
 from spyder.utils.qthelpers import create_action, create_plugin_layout
 from spyder.plugins.explorer.widgets.explorer import FilteredDirView
+from spyder.plugins.projects.widgets.tree import MultiFileSystemModel
 
 
 class ExplorerTreeWidget(FilteredDirView):
-    """Explorer tree widget"""
+    """Explorer tree widget."""
 
     sig_delete_project = Signal()
 
     def __init__(self, parent, show_hscrollbar=True):
-        FilteredDirView.__init__(self, parent)
+        """Explorer tree widget."""
+        super(ExplorerTreeWidget, self).__init__(parent)
         self.last_folder = None
         self.setSelectionMode(FilteredDirView.ExtendedSelection)
         self.show_hscrollbar = show_hscrollbar
@@ -167,6 +169,63 @@ class ExplorerTreeWidget(FilteredDirView):
                     break
 
 
+class MultiProjectTreeView(QTreeView):
+    """"""
+    sig_edit = Signal(str)
+    sig_removed = Signal(str)
+    sig_removed_tree = Signal(str)
+    sig_renamed = Signal(str, str)
+    sig_renamed_tree = Signal(str, str)
+    sig_create_module = Signal(str)
+    sig_run = Signal(str)
+    sig_new_file = Signal(str)
+    sig_open_interpreter = Signal(str)
+    redirect_stdio = Signal(bool)
+    sig_delete_project = Signal()
+
+    def __init__(self, parent):
+        super(MultiProjectTreeView, self).__init__(parent)
+        self._count = 1
+        self.setHeaderHidden(True)
+        self.setAnimated(False)
+        self.setSortingEnabled(True)
+        self.sortByColumn(0, Qt.AscendingOrder)
+
+    def get_shortcut_data(self):
+        return []
+
+    def get_expanded_state(self):
+        pass
+
+    def get_scrollbar_position(self):
+        pass
+
+    def set_scrollbar_position(self):
+        pass
+
+
+    def remove_root_path(self, path):
+        """"""
+        pass
+
+    def add_root_path(self, path):
+        """"""
+        self.model().add_root(
+            name='project-{}'.format(self._count),
+            path=path,
+        )
+        self._count += 1
+        self.reset()
+
+    def mouseReleaseEvent(self, event):
+        """Reimplement Qt method."""
+        self.clicked()
+        QTreeView.mouseReleaseEvent(self, event)
+
+    def clicked(self):
+        print('hello!')
+
+
 class ProjectExplorerWidget(QWidget):
     """Project Explorer"""
     sig_option_changed = Signal(str, object)
@@ -180,17 +239,19 @@ class ProjectExplorerWidget(QWidget):
         self.name_filters = name_filters
         self.show_all = show_all
         self.show_hscrollbar = show_hscrollbar
+        self.model = MultiFileSystemModel()
+        self.treewidget = MultiProjectTreeView(self)
+        self.treewidget.setModel(self.model)
+        # self.treewidget = ExplorerTreeWidget(self, self.show_hscrollbar)
+        # self.treewidget.setup(
+        #     name_filters=self.name_filters,
+        #     show_all=self.show_all,
+        #     single_click_to_open=False,
+        # )
+        # self.treewidget.setup_view()
+        # self.treewidget.hide()
 
-        self.treewidget = ExplorerTreeWidget(self, self.show_hscrollbar)
-        self.treewidget.setup(
-            name_filters=self.name_filters,
-            show_all=self.show_all,
-            single_click_to_open=False,
-        )
-        self.treewidget.setup_view()
-        self.treewidget.hide()
-
-        self.emptywidget = ExplorerTreeWidget(self)
+        # self.emptywidget = ExplorerTreeWidget(self)
 
         if options_button:
             btn_layout = QHBoxLayout()
@@ -201,7 +262,7 @@ class ProjectExplorerWidget(QWidget):
         else:
             layout = QVBoxLayout()
             layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self.emptywidget)
+        # layout.addWidget(self.emptywidget)
         layout.addWidget(self.treewidget)
         self.setLayout(layout)
 
@@ -209,26 +270,28 @@ class ProjectExplorerWidget(QWidget):
         """Perform actions before widget is closed"""
         pass
 
-    def set_project_dir(self, directory):
+    def set_project_dir(self, path):
         """Set the project directory"""
-        if directory is not None:
-            self.treewidget.set_root_path(osp.dirname(directory))
-            self.treewidget.set_folder_names([osp.basename(directory)])
-        self.treewidget.setup_project_view()
-        try:
-            self.treewidget.setExpanded(self.treewidget.get_index(directory),
-                                        True)
-        except TypeError:
-            pass
+        if path is not None:
+            self.treewidget.setModel(self.model)
+            self.treewidget.add_root_path(path)
+        #     self.treewidget.set_root_path(osp.dirname(directory))
+        #     self.treewidget.set_folder_names([osp.basename(directory)])
+        # self.treewidget.setup_project_view()
+        # try:
+        #     self.treewidget.setExpanded(self.treewidget.get_index(directory),
+        #                                 True)
+        # except TypeError:
+        #     pass
 
     def clear(self):
         """Show an empty view"""
-        self.treewidget.hide()
-        self.emptywidget.show()
+        # self.treewidget.hide()
+        # self.emptywidget.show()
 
     def setup_project(self, directory):
         """Setup project"""
-        self.emptywidget.hide()
+        # self.emptywidget.hide()
         self.treewidget.show()
 
         # Setup the directory shown by the tree

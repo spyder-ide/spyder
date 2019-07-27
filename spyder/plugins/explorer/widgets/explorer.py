@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Files and Directories Explorer"""
+"""Files and Directories Explorer."""
 
 # pylint: disable=C0103
 # pylint: disable=R0903
@@ -122,6 +122,7 @@ class IconProvider(QFileIconProvider):
     def __init__(self, treeview):
         super(IconProvider, self).__init__()
         self.treeview = treeview
+        # TODO: Add qicon cache!
 
     @Slot(int)
     @Slot(QFileInfo)
@@ -1299,6 +1300,7 @@ class ProxyModel(QSortFilterProxyModel):
             if index.data() == root_dir:
                 return osp.join(self.root_path, root_dir)
         return QSortFilterProxyModel.data(self, index, role)
+
 
 class FilteredDirView(DirView):
     """Filtered file/directory tree view"""
