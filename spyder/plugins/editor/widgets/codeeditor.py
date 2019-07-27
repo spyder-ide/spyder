@@ -32,7 +32,7 @@ import time
 # Third party imports
 from diff_match_patch import diff_match_patch
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import QRegExp, Qt, QTimer, QUrl, Signal, Slot, QEvent
+from qtpy.QtCore import QPoint, QRegExp, Qt, QTimer, QUrl, Signal, Slot, QEvent
 from qtpy.QtGui import (QColor, QCursor, QFont, QIntValidator,
                         QKeySequence, QPaintEvent, QPainter, QMouseEvent,
                         QTextCharFormat, QTextCursor, QDesktopServices,
@@ -533,9 +533,30 @@ class CodeEditor(TextEditBaseWidget):
         self.differ = diff_match_patch()
         self.previous_text = ''
         self.word_tokens = []
+        self.completion_widget.currentRowChanged.connect(
+            self._show_calltip_for_completion)
 
     # --- Helper private methods
     # ------------------------------------------------------------------------
+
+    # --- Calltip in completions
+    @Slot(int)
+    def _show_calltip_for_completion(self, currentRow):
+        """Show calltip for completion element."""
+        self.hide_tooltip()
+        if (self.is_completion_widget_visible()
+                and self.completion_widget.completion_list):
+            completion_element = (
+                self.completion_widget.completion_list[currentRow])
+            word = completion_element.get('label', '')
+            documentation = completion_element.get('documentation', '')
+            at_point = completion_element.get('point', self._last_point)
+            point = QPoint(at_point.x() - 63,
+                           at_point.y())
+            self.show_hint(documentation, inspect_word=word,
+                           at_point=point, position_point=True,
+                           max_lines=5,
+                           max_width=self._DEFAULT_MAX_WIDTH)
 
     # --- Hover/Hints
     def _should_display_hover(self, point):
@@ -991,6 +1012,7 @@ class CodeEditor(TextEditBaseWidget):
                                          key=lambda x: x['sortText'])
                 self.completion_widget.show_list(
                         completion_list, position, automatic)
+                self._show_calltip_for_completion(0)
         except Exception:
             self.log_lsp_handle_errors('Error when processing completions')
 

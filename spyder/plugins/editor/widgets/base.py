@@ -1002,4 +1002,5 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 return
         QPlainTextEdit.wheelEvent(self, event)
         self.completion_widget.hide()
+        QToolTip.hideText()
         self.highlight_current_cell()

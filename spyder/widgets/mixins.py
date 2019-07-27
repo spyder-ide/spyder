@@ -553,12 +553,15 @@ class BaseEditMixin(object):
     def show_hint(self, text, inspect_word, at_point,
                   max_lines=_DEFAULT_MAX_HINT_LINES,
                   max_width=_DEFAULT_MAX_HINT_WIDTH,
-                  text_new_line=True):
+                  text_new_line=True, position_point=None):
         """Show code hint and crop text as needed."""
         # Check if signature and format
         res = self._check_signature_and_format(text)
         html_signature, extra_text, _ = res
-        point = self.get_word_start_pos(at_point)
+        if not position_point:
+            point = self.get_word_start_pos(at_point)
+        else:
+            point = at_point
 
         # This is needed to get hover hints
         cursor = self.cursorForPosition(at_point)
