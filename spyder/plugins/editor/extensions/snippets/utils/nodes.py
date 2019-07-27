@@ -72,6 +72,10 @@ class ASTNode:
         """
         pass
 
+    def accept(self, visitor):
+        """Accept visitor to iterate through the AST."""
+        visitor.visit(self)
+
 
 class TextNode(ASTNode):
     """
@@ -92,6 +96,11 @@ class TextNode(ASTNode):
 
     def text(self):
         return ''.join([token.text() for token in self.tokens])
+
+    def accept(self, visitor):
+        visitor.visit(self)
+        for token in self.tokens:
+            visitor.visit(token)
 
 
 class LeafNode(ASTNode):
@@ -316,6 +325,12 @@ class FormatSequenceNode(FormatNode):
                 result += fmt.text()
             elif isinstance(fmt, FormatNode):
                 result += fmt.transform_regex(regex_result)
+        return result
+
+    def accept(self, visitor):
+        visitor.visit(self)
+        for fmt in self.formatting_nodes:
+            visitor.visit(fmt)
 
 
 class SimpleFormatNode(FormatNode):

@@ -19,12 +19,25 @@ from qtpy.QtWidgets import QMenu
 from spyder.config.main import CONF
 from spyder.py3compat import to_text_string
 from spyder.api.editorextension import EditorExtension
+import spyder.plugins.editor.extensions.snippets.utils.nodes as nodes
 from spyder.plugins.editor.extensions.snippets.utils.ast import (
     build_snippet_ast)
 
 
+class SnippetSearcherVisitor:
+    def __init__(self):
+        self.snippet_map = {}
+
+    def visit(self, node):
+        if isinstance(node, nodes.TabstopSnippetNode):
+            snippet_number = node.number
+            number_snippets = self.snippet_map.get(snippet_number, [])
+            number_snippets.append(node)
+            self.snippet_map[snippet_number] = number_snippets
+
+
 class SnippetsExtension(EditorExtension):
-    """CodeEditor extension in charge of autocompletion and snippet display."""
+    """CodeEditor extension on charge of autocompletion and snippet display."""
 
     def __init__(self):
         EditorExtension.__init__(self)
@@ -64,6 +77,11 @@ class SnippetsExtension(EditorExtension):
                     QTextCursor.NextCharacter, n=component_start)
 
     def insert_snippet(self, text):
+        visitor = SnippetSearcherVisitor()
         ast = build_snippet_ast(text)
+        ast.accept(visitor)
+        if len(visitor.snippet_map) > 0:
+            # Completion contains snippets
+            pass
         self.editor.insert_text(ast.text())
         self.editor.document_did_change()
