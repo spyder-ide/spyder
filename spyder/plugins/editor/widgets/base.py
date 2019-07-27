@@ -1001,4 +1001,5 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                         self.zoom_in.emit()
                 return
         QPlainTextEdit.wheelEvent(self, event)
+        self.completion_widget.hide()
         self.highlight_current_cell()
