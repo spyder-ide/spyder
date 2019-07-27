@@ -72,7 +72,7 @@ class ConfigurationManager(object):
     def get_user_config_path(self):
         """Return the user configuration path."""
         base_path = get_conf_path()
-        path = osp.join(base_path, 'app', 'config')
+        path = osp.join(base_path, 'config')
         if not osp.isdir(path):
             os.makedirs(path)
 
