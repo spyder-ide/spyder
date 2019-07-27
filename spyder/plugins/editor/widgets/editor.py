@@ -511,8 +511,6 @@ class EditorStack(QWidget):
                                        symbolfinder_action,
                                        copy_to_cb_action, None, close_right,
                                        close_all_but_this, sort_tabs]
-        # Split_actions are not included by default in menu actions
-        self.split_actions = None
         self.outlineexplorer = None
         self.help = None
         self.unregister_callback = None
@@ -1384,8 +1382,6 @@ class EditorStack(QWidget):
                 actions += [MENU_SEPARATOR, self.new_window_action,
                             plugin._undock_action,
                             plugin._close_plugin_action]
-
-        self.split_actions = actions
 
         return actions
 
