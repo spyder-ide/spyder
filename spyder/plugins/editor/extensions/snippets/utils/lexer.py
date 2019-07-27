@@ -17,6 +17,7 @@ token_regex = OrderedDict({
     'colon_plus': r'^:\+$',
     'colon_dash': r'^:-$',
     'colon_question': r'^:\?$',
+    'text_comma': r'^\\\,$',
     'text_dollar': r'^\\\$$',
     'text_pipe': r'^\\\|$',
     'text_right_curly': r'^\\}$',

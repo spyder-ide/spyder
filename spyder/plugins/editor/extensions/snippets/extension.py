@@ -25,7 +25,6 @@ from spyder.plugins.editor.extensions.snippets.utils.ast import (
 
 class SnippetsExtension(EditorExtension):
     """CodeEditor extension in charge of autocompletion and snippet display."""
-    SNIPPET_POSITION_REGEX = re.compile(r'(\$\d+)|(\$\{\S+[:\/|?+-]\S.*\})')
 
     def __init__(self):
         EditorExtension.__init__(self)
@@ -65,6 +64,6 @@ class SnippetsExtension(EditorExtension):
                     QTextCursor.NextCharacter, n=component_start)
 
     def insert_snippet(self, text):
-        build_snippet_ast(text)
-        self.editor.insert_text(text)
+        ast = build_snippet_ast(text)
+        self.editor.insert_text(ast.text())
         self.editor.document_did_change()

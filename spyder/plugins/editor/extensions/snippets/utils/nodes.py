@@ -49,7 +49,7 @@ class ASTNode:
     # Status: Required
     KIND = None
 
-    def __init__(self, position):
+    def __init__(self, position=(0, 0)):
         self.position = position
 
     def update_position(self, position):
@@ -82,8 +82,8 @@ class TextNode(ASTNode):
 
     KIND = NodeKind.TEXT
 
-    def __init__(self, position, tokens=[]):
-        ASTNode.__init__(self, position)
+    def __init__(self, *tokens):
+        ASTNode.__init__(self)
         self.tokens = tokens
 
     def add_token(self, token):
@@ -99,8 +99,8 @@ class LeafNode(ASTNode):
 
     KIND = NodeKind.LEAF
 
-    def __init__(self, position, name, value):
-        ASTNode.__init__(self, position)
+    def __init__(self, name='EPSILON', value=''):
+        ASTNode.__init__(self)
         self.name = name
         self.value = value
 
@@ -109,6 +109,12 @@ class LeafNode(ASTNode):
         if self.name == 'left_curly_name':
             text = text[1:]
         return text
+
+    def __str__(self):
+        return 'LeafNode({0}: {1})'.format(self.name, self.value)
+
+    def __repr__(self):
+        return r'{0}'.format(self.__str__())
 
 
 class SnippetASTNode(ASTNode):
@@ -150,9 +156,9 @@ class TabstopSnippetNode(SnippetASTNode):
     KIND = SnippetKind.TABSTOP
     DEFAULT_PLACEHOLDER = ''
 
-    def __init__(self, position, number, placeholder=None):
-        SnippetASTNode.__init__(self, position)
-        self.number = number
+    def __init__(self, number, placeholder=None):
+        SnippetASTNode.__init__(self)
+        self.number = int(number.value)
         self.placeholder = (placeholder if placeholder is not None else
                             self.DEFAULT_PLACEHOLDER)
 
@@ -173,18 +179,18 @@ class PlaceholderNode(TabstopSnippetNode):
 
     KIND = SnippetKind.PLACEHOLDER
 
-    def __init__(self, position, number, placeholder):
-        TabstopSnippetNode.__init__(self, position, number, placeholder)
+    def __init__(self, number, placeholder=''):
+        TabstopSnippetNode.__init__(self, number, placeholder)
 
     def text(self):
-        if isinstance(self._placeholder, str):
-            return self._placeholder
-        elif isinstance(self._placeholder, ASTNode):
-            return self._placeholder.text()
+        if isinstance(self.placeholder, str):
+            return self.placeholder
+        elif isinstance(self.placeholder, ASTNode):
+            return self.placeholder.text()
         else:
             raise ValueError('Placeholder should be of type '
                              'SnippetASTNode or str, got {0}'.format(
-                                 type(self._placeholder)))
+                                 type(self.placeholder)))
 
 
 class ChoiceNode(TabstopSnippetNode):
@@ -197,8 +203,8 @@ class ChoiceNode(TabstopSnippetNode):
 
     KIND = SnippetKind.CHOICE
 
-    def __init__(self, position, number, choices):
-        TabstopSnippetNode.__init__(self, position, number, choices[0])
+    def __init__(self, number, choices):
+        TabstopSnippetNode.__init__(self, number, choices[0])
         self.current_choice = choices[0]
         self.choices = []
 
@@ -210,7 +216,7 @@ class ChoiceNode(TabstopSnippetNode):
                               'snippet, expected any of {1}'.format(
                                   choice, self.choices))
         self.current_choice = choice
-        self._placeholder = choice
+        self.placeholder = choice
 
 
 # --------------------- Variable snippet node classes -------------------------
@@ -226,8 +232,8 @@ class VariableSnippetNode(SnippetASTNode):
 
     KIND = SnippetKind.VARIABLE
 
-    def __init__(self, position, variable):
-        SnippetASTNode.__init__(self, position)
+    def __init__(self, variable):
+        SnippetASTNode.__init__(self)
         self.variable = variable
         self.value = variable
 
@@ -248,8 +254,8 @@ class VariablePlaceholderNode(VariableSnippetNode):
 
     KIND = SnippetKind.VARIABLE_PLACEHOLDER
 
-    def __init__(self, position, variable, placeholder):
-        VariableSnippetNode.__init__(self, position, variable)
+    def __init__(self, variable, placeholder):
+        VariableSnippetNode.__init__(self, variable)
         self.placeholder = placeholder
 
     def update(self, placeholder):
@@ -275,8 +281,8 @@ class RegexNode(VariableSnippetNode):
 
     KIND = SnippetKind.REGEX
 
-    def __init__(self, position, variable, regex, fmt, options):
-        VariableSnippetNode.__init__(self, position, variable)
+    def __init__(self, variable, regex, fmt, options):
+        VariableSnippetNode.__init__(self, variable)
         self.regex = re.compile(regex.text())
         self.format = fmt
         self.options = options
@@ -296,8 +302,8 @@ class FormatSequenceNode(FormatNode):
 
     KIND = FormatKind.SIMPLE
 
-    def __init__(self, position, formatting_nodes=[]):
-        FormatNode.__init__(self, position)
+    def __init__(self, *formatting_nodes):
+        FormatNode.__init__(self)
         self.formatting_nodes = formatting_nodes
 
     def add_format(self, fmt):
@@ -322,8 +328,8 @@ class SimpleFormatNode(FormatNode):
 
     KIND = NodeKind.FORMAT
 
-    def __init__(self, position, group_number):
-        FormatNode.__init__(self, position)
+    def __init__(self, group_number):
+        FormatNode.__init__(self)
         self.group_number = group_number
 
     def transform_regex(self, regex_result):
@@ -340,8 +346,8 @@ class IfFormatNode(SimpleFormatNode):
 
     KIND = FormatKind.IF
 
-    def __init__(self, position, group_number, positive_match):
-        SimpleFormatNode.__init__(self, position, group_number)
+    def __init__(self, group_number, positive_match):
+        SimpleFormatNode.__init__(self, group_number)
         self.positive_match = positive_match
 
     def transform_regex(self, regex_result):
@@ -363,8 +369,8 @@ class IfElseNode(SimpleFormatNode):
 
     KIND = FormatKind.IF_ELSE
 
-    def __init__(self, position, group_number, positive_match, negative_match):
-        SimpleFormatNode.__init__(self, position, group_number)
+    def __init__(self, group_number, positive_match, negative_match):
+        SimpleFormatNode.__init__(self, group_number)
         self.positive_match = positive_match
         self.negative_match = negative_match
 
@@ -388,8 +394,8 @@ class ElseNode(SimpleFormatNode):
 
     KIND = FormatKind.ELSE
 
-    def __init__(self, position, group_number, negative_match):
-        SimpleFormatNode.__init__(self, position, group_number)
+    def __init__(self, group_number, negative_match):
+        SimpleFormatNode.__init__(self, group_number)
         self.negative_match = negative_match
 
     def transform_regex(self, regex_result):

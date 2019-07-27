@@ -25,41 +25,155 @@ GRAMMAR, _, _, PARSE_TABLE = create_LL1_parsing_table(
     starting_rule=STARTING_RULE)
 
 
-class ParserContext:
-    TABSTOP_SNIPPET = 1
-    PLACEHOLDER_SNIPPET = 2
-    CHOICE_SNIPPET = 3
-    VARIABLE_SNIPPET = 4
-    NO_SNIPPET = 5
-    FORMAT_CONTEXT = 6
+CONTEXT_SWITCHER = {
+    'TEXT': {
+        'default': nodes.TextNode,
+        'args': True
+    },
+    'TEXT_SNIPPETS': {
+        'default': nodes.TextNode,
+        'args': True
+    },
+    'TEXT_NO_COL': {
+        'default': nodes.TextNode,
+        'args': True
+    },
+    'TEXT_COL': {
+        'default': nodes.TextNode,
+        'args': True
+    },
+    'TEXT_REGEX': {
+        'default': nodes.TextNode,
+        'args': True
+    },
+    'TEXT_FORMAT': {
+        'default': nodes.TextNode,
+        'args': True
+    },
+    'EXPRLIST': {
+        'default': nodes.TextNode,
+        'args': True
+    },
+    'SNIPPET': {
+        'default': None,
+        'args': True
+    },
+    'INTSNIPPET': {
+        'SNIPPET': nodes.TabstopSnippetNode,
+        'args': False
+    },
+    'VARSNIPPET': {
+        'SNIPPET': nodes.VariableSnippetNode,
+        'args': False
+    },
+    'COLONBODY': {
+        'INTSNIPPET': nodes.PlaceholderNode,
+        'VARSNIPPET': nodes.VariablePlaceholderNode,
+        'args': False
+    },
+    'PIPEBODY': {
+        'INTSNIPPET': nodes.ChoiceNode,
+        'args': False
+    },
+
+}
+
+IGNORE_TERMINALS = {
+    'SNIPPET': {'dollar'},
+    'INTSNIPPET': {'left_curly', 'right_curly'},
+    'VARSNIPPET': {'right_curly'},
+    'COLONBODY': {'colon', 'right_curly'},
+    'PIPEBODY': {'pipe', 'right_curly'},
+    'REGEXBODY': {'slash', 'right_curly'},
+    'FORMATEXPR': {'dollar'},
+    'FORMATBODY': {'left_curly', 'right_curly'},
+    'TEXTSEQ': {'comma'}
+}
+
+
+def switch_context(current_rule, current_ctx, current_args, current_prefix,
+                   context_stack, args_stack, prefix_stack):
+    new_ctx = current_ctx
+    new_args = current_args
+    new_prefix = current_prefix
+    if current_rule in CONTEXT_SWITCHER:
+        rule_switch = CONTEXT_SWITCHER[current_rule]
+        Node = None
+        current_ctx_name, _ = current_ctx
+        if current_ctx_name in rule_switch:
+            Node = rule_switch[current_ctx_name]
+        elif 'default' in rule_switch:
+            Node = rule_switch['default']
+        else:
+            raise ValueError('Cannot transition to '
+                             'context {0} from {1}'.format(
+                                 current_rule, current_ctx_name))
+        new_ctx = (current_rule, Node)
+
+        if rule_switch['args']:
+            args_stack.insert(0, current_args)
+            context_stack.insert(0, current_ctx)
+            prefix_stack.insert(0, current_prefix)
+            new_args = []
+            new_prefix = []
+    return (new_ctx, new_args, new_prefix,
+            context_stack, args_stack, prefix_stack)
 
 
 def build_snippet_ast(snippet_text):
     """Given a snippet string, return its abstract syntax tree (AST)."""
     snippet_text = codecs.decode(snippet_text, 'unicode_escape')
-    logger.debug(snippet_text)
+    # logger.debug(snippet_text)
     tokens = tokenize(snippet_text)
     tokens += [Token('eof', '<eof>')]
 
     stack = [STARTING_RULE]
+
+    current_ctx = (STARTING_RULE, None)
+    current_args = []
+    current_prefix = [STARTING_RULE]
+
+    context_stack = []
+    args_stack = []
+    prefix_stack = []
+
     while len(stack) > 0:
-        tokens_repr = [t.value for t in tokens]
-        logger.debug('Tokens: {0} - Stack: {1}'.format(tokens_repr, stack))
+        # tokens_repr = ''.join([t.value for t in tokens])
+        # logger.debug('Tokens: {0} - Stack: {1}'.format(tokens_repr, stack))
+        # print('Current rule: {0} - Node: {1}'.format(*current_ctx))
+        # print('Current args: {0}'.format(current_args))
+        # print('Current prefix: {0}'.format(current_prefix))
+
+        # print('\nCtx stack: {0}'.format(context_stack))
+        # print('Args stack: {0}'.format(args_stack))
+        # print('Prefix stack: {0}'.format(prefix_stack))
+
         peek_token = tokens[0]
         current_rule = stack.pop(0)
         if current_rule in GRAMMAR:
             # A grammar production rule
             follow_predictions = PARSE_TABLE[current_rule]
+            next_productions = []
             if peek_token.token in follow_predictions:
-                stack = follow_predictions[peek_token.token] + stack
+                next_productions = follow_predictions[peek_token.token]
             elif peek_token.value in follow_predictions:
-                stack = follow_predictions[peek_token.value] + stack
+                next_productions = follow_predictions[peek_token.value]
             else:
                 raise SyntaxError('Syntax Error: Expected any of the following'
                                   ' characters: {0}, got {1}'.format(
                                       list(follow_predictions.keys()),
                                       peek_token
                                     ))
+            current_prefix.pop(0)
+            stack = next_productions + stack
+            new_ctx = switch_context(current_rule, current_ctx, current_args,
+                                     current_prefix, context_stack, args_stack,
+                                     prefix_stack)
+            (current_ctx, current_args, current_prefix,
+             context_stack, args_stack, prefix_stack) = new_ctx
+            current_prefix = next_productions + current_prefix
+            # print('\nNew rule: {0} - Node: {1}'.format(*current_ctx))
+            # print('New prefix: {0}'.format(current_prefix))
         else:
             # A terminal symbol
             if peek_token.token == current_rule:
@@ -69,3 +183,29 @@ def build_snippet_ast(snippet_text):
             else:
                 raise SyntaxError('Syntax Error: Expected {0}, got {1}'.format(
                     repr(peek_token.value), repr(current_rule)))
+
+            current_name, _ = current_ctx
+            add_to_args = True
+            if current_name in IGNORE_TERMINALS:
+                add_to_args = (peek_token.token not in
+                               IGNORE_TERMINALS[current_name])
+
+            if add_to_args:
+                leaf = nodes.LeafNode(peek_token.token, peek_token.value)
+                current_args.append(leaf)
+                # print('Adding {0} to args'.format(leaf))
+            current_prefix.pop(0)
+            # print('\nNew prefix: {0}'.format(current_prefix))
+
+        if len(current_prefix) == 0:
+            _, Node = current_ctx
+            # print('\nCreating node : {0}'.format(Node))
+            # print('Args: {0}'.format(current_args))
+            node = Node(*current_args)
+            current_ctx = context_stack.pop(0)
+            current_args = args_stack.pop(0)
+            current_prefix = prefix_stack.pop(0)
+            current_args.append(node)
+
+    assert len(current_args) == 1
+    return current_args[0]
