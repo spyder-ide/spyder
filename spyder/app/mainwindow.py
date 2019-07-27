@@ -2194,8 +2194,13 @@ class MainWindow(QMainWindow):
                 action.setIconVisibleInMenu(state)
 
     def hide_options_menus(self):
+        """Hide options menu when menubar is pressed in macOS."""
         for plugin in self.widgetlist + self.thirdparty_plugins:
-            plugin._options_menu.hide()
+            if plugin.CONF_SECTION == 'editor':
+                editorstack = self.editor.get_current_editorstack()
+                editorstack.menu.hide()
+            else:
+                plugin._options_menu.hide()
 
     def get_focus_widget_properties(self):
         """Get properties of focus widget
