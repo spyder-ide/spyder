@@ -223,6 +223,7 @@ class DirView(QTreeView):
 
     def get_index(self, filename):
         """Return index associated with filename"""
+        print(filename, self.fsmodel.index(filename))
         return self.fsmodel.index(filename)
 
     def get_selected_filenames(self):

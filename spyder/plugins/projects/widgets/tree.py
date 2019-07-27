@@ -22,7 +22,7 @@ from spyder.utils import icon_manager as ima
 class FileSystemNode(object):
     """"""
 
-    def __init__(self, data, root=False):
+    def __init__(self, data):
         """"""
         # Variables
         self._data = self._check_data(data)
@@ -33,7 +33,6 @@ class FileSystemNode(object):
         self._columncount = len(self._data)
         self._children = []
         self._row = 0
-        self._root = root
 
     def _check_data(self, data):
         """Check that data has the correct format."""
@@ -84,7 +83,7 @@ class FileSystemNode(object):
     def set_path(self, path, paths):
         """"""
         self._path = path
-        items = os.listdir(path)
+        items = sorted(os.listdir(path), reverse=True)
         for item in items:
             node = FileSystemNode([item])
             fullpath = os.path.join(path, item)
@@ -123,6 +122,7 @@ class MultiFileSystemModel(QAbstractItemModel):
         self._icon_cache = {'__': QIcon()}
 
         self._icon_provider = QFileIconProvider()
+        self._model_index = {}
 
     # --- API
     def rowCount(self, index):
@@ -141,7 +141,7 @@ class MultiFileSystemModel(QAbstractItemModel):
 
     def _index_for_path(self, path, column):
         """"""
-        return QModelIndex()
+        return self._model_index.get((path, column), QModelIndex())
 
     def _index(self, row, column, parent_index=None):
         """"""
@@ -155,8 +155,11 @@ class MultiFileSystemModel(QAbstractItemModel):
 
         child_node = parent_node.child(row)
         if child_node:
-            return QAbstractItemModel.createIndex(self, row, column,
-                                                  child_node)
+            index =  QAbstractItemModel.createIndex(self, row, column,
+                                                    child_node)
+
+            self._model_index[(child_node._fullpath, column)] = index
+            return index
         else:
             return QModelIndex()
 
@@ -205,15 +208,21 @@ class MultiFileSystemModel(QAbstractItemModel):
                 finfo = QFileInfo(node._fullpath)
                 icon = self._icon_provider.icon(finfo)
             return icon
-            # if index.column() == 0:
-                # if node._root:
-                #     return self._get_icon('environment')
-                # elif node._is_dir:
-                #     return self._get_icon('DirClosedIcon')
-                # else:
-                #     fname = node.data(index.column())
-                #     return self._get_icon_by_extension(fname)
+
         return None
+
+    def sort(self, column, order=Qt.AscendingOrder):
+        self.layoutAboutToBeChanged.emit()
+        reverse = order == Qt.AscendingOrder
+        self._sort(self._root, column, reverse)
+        self.layoutChanged.emit()
+
+    def _sort(self, node, column, reverse=False):
+        # old_list = self.persistentIndexList()
+        node._children.sort(key=lambda n: n.data(column), reverse=reverse)
+        # self.changePersistentIndexList(old_list, new_list)
+        for child in node._children:
+            self._sort(child, column, reverse)
 
     # --- QFileSystemModel API
     def iconProvider(self, icon_provider):
@@ -235,6 +244,9 @@ class MultiFileSystemModel(QAbstractItemModel):
 
     def filePath(self, index):
         """"""
+        if index.isValid():
+            node = index.internalPointer()
+            return node._fullpath
 
     def setRootPath(self, index):
         """"""
@@ -253,7 +265,7 @@ class MultiFileSystemModel(QAbstractItemModel):
             paths = []
 
             # This should be done in a thread to avoid locking the GUI
-            node = FileSystemNode([name], root=True)
+            node = FileSystemNode([name])
             paths = node.set_path(path, paths)
             self.directoryLoaded.emit(path)
             watcher.addPaths(paths)
@@ -270,22 +282,29 @@ class MultiFileSystemModel(QAbstractItemModel):
         print(watcher, path)
 
 
+class TreeView(QTreeView):
+    pass
+
+
 def main():
     import qdarkstyle
 
-    v = QTreeView()
+    v = TreeView()
     dark_qss = qdarkstyle.load_stylesheet_from_environment()
     v.setStyleSheet(dark_qss)
-    v.setHeaderHidden(True)
+    v.setSortingEnabled(True)
+    # v.setHeaderHidden(True)
     model = MultiFileSystemModel()
     v.setModel(model)
     model.add_root_path(name='project-1', path='/Users/gpena-castellanos/tester2/')
     model.add_root_path(name='project-2', path='/Users/gpena-castellanos/Downloads/')
     model.add_root_path(name='project-3', path='/Users/gpena-castellanos/Google Drive/develop/quansight/spyder')
     model.add_root_path(name='project-4', path='/Users/gpena-castellanos/Google Drive/develop/quansight/QDarkStyleSheet')
+
     v.show()
     return v
 
 app = QApplication([])
 v = main()
+path = '/Users/gpena-castellanos/Downloads/Image from iOS1.jpg'
 app.exec_()
