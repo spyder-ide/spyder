@@ -384,14 +384,22 @@ class BasePluginWidgetMixin(object):
         add_actions(self._options_menu, self._plugin_actions)
 
         if sys.platform == 'darwin':
-            self._verify_menu_actions(True)
+            self._verify_menu_actions(self._options_menu.actions(), True)
 
-    def _verify_menu_actions(self, state):
+    def _verify_menu_actions(self, menu_actions, state):
         """Check OS to hide icons in menu toolbars"""
-        if self._plugin_actions:
-            for action in self._plugin_actions:
-                if isinstance(action, QAction):
+        for action in menu_actions:
+            try:
+                if action.menu() is not None:
+                    # This is submenu, so we need to call this again
+                    submenu_actions = action.menu().actions()
+                    self._verify_menu_actions(submenu_actions, state)
+                elif action.isSeparator():
+                    continue
+                else:
                     action.setIconVisibleInMenu(state)
+            except RuntimeError:
+                continue
 
     def _setup(self):
         """
@@ -409,8 +417,10 @@ class BasePluginWidgetMixin(object):
 
         # Show icons in Mac plugin menus
         if sys.platform == 'darwin':
+            actions = self._options_menu.actions()
             self._options_menu.aboutToHide.connect(
-                lambda: self._verify_menu_actions(False))
+                lambda actions=actions:
+                self._verify_menu_actions(actions, False))
 
         # Update title
         self.sig_update_plugin_title.connect(self._update_plugin_title)

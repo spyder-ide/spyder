@@ -594,7 +594,7 @@ class EditorStack(QWidget):
         # Autusave component
         self.autosave = AutosaveForStack(self)
 
-    def _verify_menu_actions(self, state):
+    def _verify_menu_actions(self, menu_actions, state):
         """
         Check OS to hide icons in menu toolbars.
 
@@ -602,10 +602,20 @@ class EditorStack(QWidget):
         editor in spyder/plugins/base.py@_verify_menu_actions
         See spyder-ide/spyder#8923
         """
-        if self.menu_actions:
-            for action in self.menu_actions + self.split_actions:
-                if isinstance(action, QAction):
+        if menu_actions is None:
+            menu_actions = self.menu.actions()
+        for action in menu_actions:
+            try:
+                if action.menu() is not None:
+                    # This is submenu, so we need to call this again
+                    submenu_actions = action.menu().actions()
+                    self._verify_menu_actions(submenu_actions, state)
+                elif action.isSeparator():
+                    continue
+                else:
                     action.setIconVisibleInMenu(state)
+            except RuntimeError:
+                continue
 
     @Slot()
     def show_in_external_file_explorer(self, fnames=None):
@@ -808,10 +818,10 @@ class EditorStack(QWidget):
         else:
             layout.addWidget(self.tabs)
 
-        # Show icons in Mac plugin menus
+        # Show/hide icons in plugin menus for Mac
         if sys.platform == 'darwin':
             self.menu.aboutToHide.connect(
-                lambda: self._verify_menu_actions(False))
+                lambda: self._verify_menu_actions(None, False))
 
     @Slot()
     def update_fname_label(self):
@@ -1328,7 +1338,6 @@ class EditorStack(QWidget):
             self.tabs.setTabText(index, tab_text)
         self.tabs.setTabToolTip(index, tab_tip)
 
-
     #------ Context menu
     def __setup_menu(self):
         """Setup tab context menu before showing it"""
@@ -1341,9 +1350,7 @@ class EditorStack(QWidget):
         add_actions(self.menu, list(actions) + self.__get_split_actions())
         self.close_action.setEnabled(self.is_closable)
         if sys.platform == 'darwin':
-            self._verify_menu_actions(True)
-
-
+            self._verify_menu_actions(self.menu.actions(), True)
 
     #------ Hor/Ver splitting
     def __get_split_actions(self):

@@ -2190,7 +2190,13 @@ class MainWindow(QMainWindow):
     def verify_menu_actions(self, menu_actions, state):
         """Check OS to hide icons in menu toolbars"""
         for action in menu_actions:
-            if isinstance(action, QAction):
+            if action.menu() is not None:
+                # This is submenu, so we need to call this again
+                submenu_actions = action.menu().actions()
+                self.verify_menu_actions(submenu_actions, state)
+            elif action.isSeparator():
+                continue
+            else:
                 action.setIconVisibleInMenu(state)
 
     def hide_options_menus(self):
