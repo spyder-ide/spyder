@@ -40,7 +40,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, sourcecode, syntaxhighlighters
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, MENU_SEPARATOR,
-                                    mimedata2url)
+                                    mimedata2url, set_menu_icons)
 from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.widgets.fileswitcher import FileSwitcher
@@ -594,29 +594,6 @@ class EditorStack(QWidget):
         # Autusave component
         self.autosave = AutosaveForStack(self)
 
-    def _verify_menu_actions(self, menu_actions, state):
-        """
-        Check OS to hide icons in menu toolbars.
-
-        This function is defined for any other plugin besides the
-        editor in spyder/plugins/base.py@_verify_menu_actions
-        See spyder-ide/spyder#8923
-        """
-        if menu_actions is None:
-            menu_actions = self.menu.actions()
-        for action in menu_actions:
-            try:
-                if action.menu() is not None:
-                    # This is submenu, so we need to call this again
-                    submenu_actions = action.menu().actions()
-                    self._verify_menu_actions(submenu_actions, state)
-                elif action.isSeparator():
-                    continue
-                else:
-                    action.setIconVisibleInMenu(state)
-            except RuntimeError:
-                continue
-
     @Slot()
     def show_in_external_file_explorer(self, fnames=None):
         """Show file in external file explorer"""
@@ -821,7 +798,8 @@ class EditorStack(QWidget):
         # Show/hide icons in plugin menus for Mac
         if sys.platform == 'darwin':
             self.menu.aboutToHide.connect(
-                lambda: self._verify_menu_actions(None, False))
+                lambda menu=self.menu:
+                set_menu_icons(menu, False))
 
     @Slot()
     def update_fname_label(self):
@@ -1349,8 +1327,9 @@ class EditorStack(QWidget):
             self.setFocus() # --> Editor.__get_focus_editortabwidget
         add_actions(self.menu, list(actions) + self.__get_split_actions())
         self.close_action.setEnabled(self.is_closable)
+
         if sys.platform == 'darwin':
-            self._verify_menu_actions(self.menu.actions(), True)
+            set_menu_icons(self.menu, True)
 
     #------ Hor/Ver splitting
     def __get_split_actions(self):

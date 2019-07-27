@@ -41,7 +41,9 @@ from spyder.widgets.waitingspinner import QWaitingSpinner
 # (self.listwidget is widget *a* and self is widget *b*)
 #    self.connect(self.listwidget, SIGNAL('option_changed'),
 #                 lambda *args: self.emit(SIGNAL('option_changed'), *args))
+
 logger = logging.getLogger(__name__)
+MENU_SEPARATOR = None
 
 
 def get_image_label(name, default="not_found.png"):
@@ -561,7 +563,20 @@ def create_plugin_layout(tools_layout, main_widget=None):
     return layout
 
 
-MENU_SEPARATOR = None
+def set_menu_icons(menu, state):
+    """Show/hide icons for menu actions."""
+    menu_actions = menu.actions()
+    for action in menu_actions:
+        try:
+            if action.menu() is not None:
+                # This is submenu, so we need to call this again
+                set_menu_icons(action.menu(), state)
+            elif action.isSeparator():
+                continue
+            else:
+                action.setIconVisibleInMenu(state)
+        except RuntimeError:
+            continue
 
 
 class SpyderProxyStyle(QProxyStyle):

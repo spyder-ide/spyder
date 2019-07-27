@@ -30,7 +30,7 @@ from spyder.py3compat import configparser, is_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (
     add_actions, create_action, create_toolbutton, MENU_SEPARATOR,
-    toggle_actions)
+    toggle_actions, set_menu_icons)
 from spyder.widgets.dock import SpyderDockWidget
 
 
@@ -384,22 +384,7 @@ class BasePluginWidgetMixin(object):
         add_actions(self._options_menu, self._plugin_actions)
 
         if sys.platform == 'darwin':
-            self._verify_menu_actions(self._options_menu.actions(), True)
-
-    def _verify_menu_actions(self, menu_actions, state):
-        """Check OS to hide icons in menu toolbars"""
-        for action in menu_actions:
-            try:
-                if action.menu() is not None:
-                    # This is submenu, so we need to call this again
-                    submenu_actions = action.menu().actions()
-                    self._verify_menu_actions(submenu_actions, state)
-                elif action.isSeparator():
-                    continue
-                else:
-                    action.setIconVisibleInMenu(state)
-            except RuntimeError:
-                continue
+            set_menu_icons(self._options_menu, True)
 
     def _setup(self):
         """
@@ -417,10 +402,9 @@ class BasePluginWidgetMixin(object):
 
         # Show icons in Mac plugin menus
         if sys.platform == 'darwin':
-            actions = self._options_menu.actions()
             self._options_menu.aboutToHide.connect(
-                lambda actions=actions:
-                self._verify_menu_actions(actions, False))
+                lambda menu=self._options_menu:
+                set_menu_icons(menu, False))
 
         # Update title
         self.sig_update_plugin_title.connect(self._update_plugin_title)

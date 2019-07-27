@@ -106,7 +106,7 @@ if hasattr(Qt, 'AA_EnableHighDpiScaling'):
 # Create our QApplication instance here because it's needed to render the
 # splash screen created below
 #==============================================================================
-from spyder.utils.qthelpers import qapplication, MENU_SEPARATOR
+from spyder.utils.qthelpers import qapplication
 from spyder.config.base import get_image_path
 MAIN_APP = qapplication()
 
@@ -171,7 +171,8 @@ from spyder.utils.qthelpers import (create_action, add_actions, get_icon,
                                     add_shortcut_to_tooltip,
                                     create_module_bookmark_actions,
                                     create_program_action, DialogManager,
-                                    create_python_script_action, file_uri)
+                                    create_python_script_action, file_uri,
+                                    MENU_SEPARATOR, set_menu_icons)
 from spyder.config.gui import get_shortcut
 from spyder.otherplugins import get_spyderplugins_mods
 from spyder.app import tour
@@ -1302,8 +1303,7 @@ class MainWindow(QMainWindow):
                     menu.aboutToHide.connect(
                         lambda actions=actions: self.hide_shortcuts(actions))
                     menu.aboutToShow.connect(
-                        lambda actions=actions:
-                        self.verify_menu_actions(actions, False))
+                        lambda menu=menu: set_menu_icons(menu, False))
                     menu.aboutToShow.connect(self.hide_options_menus)
 
     def post_visible_setup(self):
@@ -2186,18 +2186,6 @@ class MainWindow(QMainWindow):
             else:
                 # We don't need to do anything for other elements
                 continue
-
-    def verify_menu_actions(self, menu_actions, state):
-        """Check OS to hide icons in menu toolbars"""
-        for action in menu_actions:
-            if action.menu() is not None:
-                # This is submenu, so we need to call this again
-                submenu_actions = action.menu().actions()
-                self.verify_menu_actions(submenu_actions, state)
-            elif action.isSeparator():
-                continue
-            else:
-                action.setIconVisibleInMenu(state)
 
     def hide_options_menus(self):
         """Hide options menu when menubar is pressed in macOS."""
