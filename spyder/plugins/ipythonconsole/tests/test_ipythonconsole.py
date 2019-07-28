@@ -45,6 +45,12 @@ from spyder.plugins.ipythonconsole.utils.style import create_style_class
 from spyder.utils.programs import get_temp_dir
 
 
+# Global skip
+if sys.platform == 'darwin' and PY2:
+    pytest.skip("These tests are segfaulting too much in macOS and Python 2",
+                allow_module_level=True)
+
+
 # =============================================================================
 # Constants
 # =============================================================================
