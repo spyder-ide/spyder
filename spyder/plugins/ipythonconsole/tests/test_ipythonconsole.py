@@ -18,7 +18,6 @@ import shutil
 import sys
 import tempfile
 from textwrap import dedent
-import sys
 try:
     from unittest.mock import Mock
 except ImportError:
