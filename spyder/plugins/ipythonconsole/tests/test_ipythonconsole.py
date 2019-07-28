@@ -18,6 +18,7 @@ import shutil
 import sys
 import tempfile
 from textwrap import dedent
+import sys
 try:
     from unittest.mock import Mock
 except ImportError:
@@ -43,6 +44,12 @@ from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.plugin import IPythonConsole
 from spyder.plugins.ipythonconsole.utils.style import create_style_class
 from spyder.utils.programs import get_temp_dir
+
+
+# Global skip
+if sys.platform == 'darwin' and PY2:
+    pytest.skip("These tests are segfaulting too much in macOS and Python 2",
+                allow_module_level=True)
 
 
 # =============================================================================
