@@ -8,10 +8,11 @@
 """
 This module contains the indentation guide panel.
 """
-
-from qtpy.QtCore import Qt, QRect, QPoint
+# Third party imports
+from qtpy.QtCore import Qt
 from qtpy.QtGui import QPainter, QColor
 
+# Local imports
 from spyder.plugins.editor.utils.editor import TextBlockHelper
 from spyder.api.panel import Panel
 

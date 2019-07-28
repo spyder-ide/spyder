@@ -9,9 +9,6 @@
 # root directory for details
 # -----------------------------------------------------------------------------
 
-# Standard library imports
-import logging
-
 
 def cut_off_str(obj, max_len):
     """

@@ -10,19 +10,12 @@ Backend plugin to manage multiple code completion and introspection clients.
 
 # Standard library imports
 import logging
-import os
-import os.path as osp
-import functools
 
 # Third-party imports
-from qtpy.QtCore import QObject, Slot
+from qtpy.QtCore import Slot
 
 # Local imports
-from spyder.config.base import get_conf_path, running_under_pytest
-from spyder.config.lsp import PYTHON_CONFIG
-from spyder.config.manager import CONF
 from spyder.api.completion import SpyderCompletionPlugin
-from spyder.utils.misc import select_port, getcwd_or_home
 from spyder.plugins.completion.languageserver.plugin import (
     LanguageServerPlugin)
 from spyder.plugins.completion.fallback.plugin import FallbackPlugin

@@ -11,9 +11,8 @@ import os.path as osp
 import sys
 
 # Third party imports
-from qtpy.QtCore import (Signal, Slot, QEvent, QFileInfo, QObject, QRegExp,
-                         QSize, Qt)
-from qtpy.QtGui import (QIcon, QRegExpValidator, QTextCursor)
+from qtpy.QtCore import Signal, Slot, QEvent, QObject, QRegExp, QSize, Qt
+from qtpy.QtGui import QIcon, QRegExpValidator, QTextCursor
 from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLabel, QLineEdit,
                             QListWidget, QListWidgetItem, QVBoxLayout,
                             QMainWindow)

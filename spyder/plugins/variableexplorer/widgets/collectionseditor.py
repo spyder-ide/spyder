@@ -21,7 +21,6 @@ Collections (i.e. dictionary, list, set and tuple) editor widget and dialog.
 # Standard library imports
 from __future__ import print_function
 import datetime
-import gc
 import re
 import sys
 import warnings

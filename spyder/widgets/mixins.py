@@ -13,7 +13,6 @@ IPython console plugin.
 
 # Standard library imports
 from __future__ import print_function
-from xml.sax.saxutils import escape
 import os
 import os.path as osp
 import re
@@ -23,15 +22,14 @@ import textwrap
 
 # Third party imports
 import qdarkstyle
-from qtpy.QtCore import QPoint, Qt, QCoreApplication
+from qtpy.QtCore import QPoint, Qt
 from qtpy.QtGui import QCursor, QTextCursor, QTextDocument
-from qtpy.QtWidgets import QApplication, QToolTip
+from qtpy.QtWidgets import QApplication
 from qtpy import QT_VERSION
 from spyder_kernels.utils.dochelpers import (getargspecfromtext, getobj,
                                              getsignaturefromtext)
 
 # Local imports
-from spyder.config.base import _
 from spyder.config.gui import is_dark_interface
 from spyder.config.manager import CONF
 from spyder.py3compat import is_text_string, to_text_string

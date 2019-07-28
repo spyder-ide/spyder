@@ -26,7 +26,7 @@ import threading
 import time
 
 # Local imports
-from spyder.config.base import _, get_conf_path, is_stable_version
+from spyder.config.base import is_stable_version
 from spyder.config.utils import is_anaconda
 from spyder.py3compat import PY2, is_text_string, to_text_string
 from spyder.utils import encoding

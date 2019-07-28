@@ -13,7 +13,7 @@ import os
 import os.path as osp
 
 # Local imports
-from spyder.config.base import get_conf_path, get_conf_subfolder, get_home_dir
+from spyder.config.base import get_conf_path, get_home_dir
 from spyder.config.main import CONF_VERSION, DEFAULTS, NAME_MAP
 from spyder.config.user import MultiUserConfig, NoDefault
 

@@ -1963,7 +1963,6 @@ class CodeEditor(TextEditBaseWidget):
 
     def show_code_analysis_results(self, line_number, block_data):
         """Show warning/error messages."""
-        from spyder.config.base import get_image_path
         # Diagnostic severity
         icons = {
             DiagnosticSeverity.ERROR: 'error',

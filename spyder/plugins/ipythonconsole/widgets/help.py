@@ -9,18 +9,19 @@ Widget that handles communications between the IPython Console and
 the Help plugin
 """
 
+# Standard library imports
 from __future__ import absolute_import
 
 import re
 
+# Third party imports
 from qtconsole.ansi_code_processor import ANSI_OR_SPECIAL_PATTERN, ANSI_PATTERN
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from qtpy.QtCore import QEventLoop
+
+# Local imports
 from spyder_kernels.utils.dochelpers import (getargspecfromtext,
                                              getsignaturefromtext)
-
-from spyder.config.base import _
-from spyder.py3compat import PY3
 
 
 class HelpWidget(RichJupyterWidget):

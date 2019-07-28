@@ -16,7 +16,7 @@ import os.path as osp
 import functools
 
 # Third-party imports
-from qtpy.QtCore import QObject, Slot
+from qtpy.QtCore import Slot
 
 # Local imports
 from spyder.config.base import get_conf_path, running_under_pytest
