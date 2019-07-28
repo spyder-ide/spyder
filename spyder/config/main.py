@@ -12,13 +12,11 @@ quickly load a user config file.
 """
 
 import os
-import os.path as osp
 import sys
 
 # Local import
 from spyder.config.base import CHECK_ALL, EXCLUDED_NAMES
 from spyder.config.fonts import MEDIUM, SANS_SERIF
-from spyder.config.user import UserConfig
 from spyder.config.utils import IMPORT_EXT
 from spyder.config.appearance import APPEARANCE
 from spyder.plugins.editor.utils.findtasks import TASKS_PATTERN

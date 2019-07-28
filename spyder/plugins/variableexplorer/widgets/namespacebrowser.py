@@ -19,8 +19,7 @@ from qtpy.compat import getsavefilename, getopenfilenames
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QCursor
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QInputDialog, QMenu,
-                            QMessageBox, QLabel, QToolButton, QVBoxLayout,
-                            QWidget)
+                            QMessageBox, QLabel, QWidget)
 
 from spyder_kernels.utils.iofuncs import iofunctions
 from spyder_kernels.utils.misc import fix_reference_name

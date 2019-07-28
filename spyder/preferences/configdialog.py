@@ -24,8 +24,7 @@ from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
                             QLineEdit, QListView, QListWidget, QListWidgetItem,
                             QMessageBox, QPushButton, QRadioButton,
                             QScrollArea, QSpinBox, QSplitter, QStackedWidget,
-                            QStyleFactory, QTabWidget, QVBoxLayout, QWidget,
-                            QApplication, QPlainTextEdit)
+                            QVBoxLayout, QWidget, QPlainTextEdit)
 
 # Local imports
 from spyder.config.base import _, load_lang_conf
