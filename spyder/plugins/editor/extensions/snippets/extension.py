@@ -13,7 +13,6 @@ from collections import OrderedDict
 # Third party imports
 from qtpy.QtGui import QTextCursor
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QMenu
 
 # Local imports
 from spyder.config.main import CONF
@@ -25,15 +24,21 @@ from spyder.plugins.editor.extensions.snippets.utils.ast import (
 
 
 class SnippetSearcherVisitor:
-    def __init__(self):
+    def __init__(self, line, column):
+        self.line = line
+        self.column = column
+        self.line_offset = 0
+        self.column_offset = 0
         self.snippet_map = {}
 
     def visit(self, node):
         if isinstance(node, nodes.TabstopSnippetNode):
+            node.update_position((self.line, self.column))
             snippet_number = node.number
             number_snippets = self.snippet_map.get(snippet_number, [])
             number_snippets.append(node)
             self.snippet_map[snippet_number] = number_snippets
+
 
 
 class SnippetsExtension(EditorExtension):
@@ -77,7 +82,9 @@ class SnippetsExtension(EditorExtension):
                     QTextCursor.NextCharacter, n=component_start)
 
     def insert_snippet(self, text):
-        visitor = SnippetSearcherVisitor()
+        cursor = self.editor.textCursor()
+        line, column = self.editor.get_cursor_line_column()
+        visitor = SnippetSearcherVisitor(line, column)
         ast = build_snippet_ast(text)
         ast.accept(visitor)
         if len(visitor.snippet_map) > 0:
