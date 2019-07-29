@@ -298,6 +298,10 @@ DEFAULTS = [
              {
               'enable': True,
               }),
+            ('bookmarks',
+             {
+              'enable': True,
+              }),
             ('workingdir',
              {
               'working_dir_adjusttocontents': False,

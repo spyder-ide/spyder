@@ -31,7 +31,7 @@ class BookmarksPanel(Panel):
         # Diccionary of QIcons to draw in the panel
         self.icons = {'bookmark': ima.icon('bookmark'),
                       'transparent': ima.icon('bookmark_transparent'),
-                      'multiple': ima.icon('bookmark_multiple')}
+                      'multiple': ima.icon('bookmarks')}
 
     def set_current_line_arrow(self, n):
         self._current_line_arrow = n

@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Contains the bookmarsks utilities.
+Contains the bookmarks utilities.
 """
 # Standard imports
 import os.path as osp

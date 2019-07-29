@@ -284,7 +284,7 @@ _qtaargs = {
     'close_pane':              [('fa.window-close-o',), {'color': MAIN_FG_COLOR}],
     'bookmark':                [('mdi.bookmark',), {'color': MAIN_FG_COLOR}],
     'bookmark_transparent':    [('mdi.bookmark',), {'color': MAIN_FG_COLOR, 'opacity': 0.75, 'scale_factor': 0.9}],
-    'bookmark_multiple':       [('mdi.bookmark', 'mdi.bookmark'), {'options': [{'scale_factor': 0.5, 'offset': (0.0, 0.0), 'color': MAIN_FG_COLOR}, {'scale_factor': 0.5, 'offset': (0.3, 0.3), 'color': MAIN_FG_COLOR}]}],
+    'bookmarks':               [('mdi.bookmark', 'mdi.bookmark'), {'options': [{'scale_factor': 0.5, 'offset': (0.0, 0.0), 'color': MAIN_FG_COLOR}, {'scale_factor': 0.5, 'offset': (0.3, 0.3), 'color': MAIN_FG_COLOR}]}],
     # --- Autocompletion type icons --------------
     'keyword':                 [('mdi.alpha-k-box',), {'color': '#df2935', 'scale_factor': BIG_ATTR_FACTOR}],
     'text':                    [('mdi.alpha-t-box',), {'color': 'gray', 'scale_factor': BIG_ATTR_FACTOR}],
