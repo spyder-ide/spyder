@@ -72,8 +72,8 @@ from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
                          qInstallMessageHandler)
 from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QDesktopWidget, QDockWidget,
-                            QMainWindow, QMenu, QMessageBox, QShortcut,
-                            QSplashScreen, QStyleFactory, QWidget)
+                            QMainWindow, QMenu, QMenuBar, QMessageBox,
+                            QShortcut, QSplashScreen, QStyleFactory, QWidget)
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -105,7 +105,7 @@ if hasattr(Qt, 'AA_EnableHighDpiScaling'):
 # Create our QApplication instance here because it's needed to render the
 # splash screen created below
 #==============================================================================
-from spyder.utils.qthelpers import qapplication, MENU_SEPARATOR
+from spyder.utils.qthelpers import qapplication
 from spyder.config.base import get_image_path
 MAIN_APP = qapplication()
 
@@ -170,7 +170,8 @@ from spyder.utils.qthelpers import (create_action, add_actions, get_icon,
                                     add_shortcut_to_tooltip,
                                     create_module_bookmark_actions,
                                     create_program_action, DialogManager,
-                                    create_python_script_action, file_uri)
+                                    create_python_script_action, file_uri,
+                                    MENU_SEPARATOR, set_menu_icons)
 from spyder.config.gui import get_shortcut
 from spyder.otherplugins import get_spyderplugins_mods
 from spyder.app import tour
@@ -280,6 +281,7 @@ dependencies.add("qdarkstyle", "qdarkstyle",
 #==============================================================================
 # Main Window
 #==============================================================================
+
 class MainWindow(QMainWindow):
     """Spyder main window"""
     DOCKOPTIONS = QMainWindow.AllowTabbedDocks|QMainWindow.AllowNestedDocks
@@ -503,6 +505,8 @@ class MainWindow(QMainWindow):
         self.layout_toolbar = None
         self.layout_toolbar_actions = []
 
+        self.menus = []
+
         if running_under_pytest():
             # Show errors in internal console when testing.
             CONF.set('main', 'show_internal_errors', False)
@@ -710,28 +714,23 @@ class MainWindow(QMainWindow):
                                   None, self.cut_action, self.copy_action,
                                   self.paste_action, self.selectall_action]
 
-        namespace = None
         logger.info("Creating toolbars...")
         # File menu/toolbar
         self.file_menu = self.menuBar().addMenu(_("&File"))
         self.file_toolbar = self.create_toolbar(_("File toolbar"),
                                                 "file_toolbar")
-
         # Edit menu/toolbar
         self.edit_menu = self.menuBar().addMenu(_("&Edit"))
         self.edit_toolbar = self.create_toolbar(_("Edit toolbar"),
                                                 "edit_toolbar")
-
         # Search menu/toolbar
         self.search_menu = self.menuBar().addMenu(_("&Search"))
         self.search_toolbar = self.create_toolbar(_("Search toolbar"),
-                                                    "search_toolbar")
-
+                                                   "search_toolbar")
         # Source menu/toolbar
         self.source_menu = self.menuBar().addMenu(_("Sour&ce"))
         self.source_toolbar = self.create_toolbar(_("Source toolbar"),
                                                     "source_toolbar")
-
         # Run menu/toolbar
         self.run_menu = self.menuBar().addMenu(_("&Run"))
         self.run_toolbar = self.create_toolbar(_("Run toolbar"),
@@ -750,6 +749,7 @@ class MainWindow(QMainWindow):
         # Projects menu
         self.projects_menu = self.menuBar().addMenu(_("&Projects"))
         self.projects_menu.aboutToShow.connect(self.valid_project)
+
         # Tools menu
         self.tools_menu = self.menuBar().addMenu(_("&Tools"))
 
@@ -796,6 +796,7 @@ class MainWindow(QMainWindow):
         # External Tools submenu
         self.external_tools_menu = QMenu(_("External Tools"))
         self.external_tools_menu_actions = []
+
         # WinPython control panel
         self.wp_action = create_action(self, _("WinPython control panel"),
                     icon=get_icon('winpython.svg'),
@@ -884,7 +885,7 @@ class MainWindow(QMainWindow):
         # Internal console plugin
         logger.info("Loading internal console...")
         from spyder.plugins.console.plugin import Console
-        self.console = Console(self, namespace, exitfunc=self.closing,
+        self.console = Console(self, namespace=None, exitfunc=self.closing,
                             profile=self.profile,
                             multithreaded=self.multithreaded,
                             message=_("Spyder Internal Console\n\n"
@@ -1261,18 +1262,6 @@ class MainWindow(QMainWindow):
         logger.info("Setting up window...")
         self.setup_layout(default=False)
 
-        # Show and hide shortcuts in menus for Mac.
-        # This is a workaround because we can't disable shortcuts
-        # by setting context=Qt.WidgetShortcut there
-        if sys.platform == 'darwin':
-            for name in ['file', 'edit', 'search', 'source', 'run', 'debug',
-                         'projects', 'tools', 'plugins']:
-                menu_object = getattr(self, name + '_menu')
-                menu_object.aboutToShow.connect(
-                    lambda name=name: self.show_shortcuts(name))
-                menu_object.aboutToHide.connect(
-                    lambda name=name: self.hide_shortcuts(name))
-
         if self.splash is not None:
             self.splash.hide()
 
@@ -1293,6 +1282,27 @@ class MainWindow(QMainWindow):
 
         logger.info("*** End of MainWindow setup ***")
         self.is_starting_up = False
+
+    def setup_menus(self):
+        """Setup menus."""
+        # Update menus list
+        default_menus = [self.file_menu, self.edit_menu, self.search_menu,
+                         self.source_menu, self.run_menu, self.debug_menu,
+                         self.consoles_menu, self.projects_menu,
+                         self.tools_menu, self.view_menu, self.help_menu]
+        self.menus = self.menus + default_menus
+
+        # Show and hide shortcuts and icons in menus for macOS
+        if sys.platform == 'darwin':
+            for menu in self.menus:
+                if menu is not None:
+                    menu.aboutToShow.connect(
+                        lambda menu=menu: self.show_shortcuts(menu))
+                    menu.aboutToHide.connect(
+                        lambda menu=menu: self.hide_shortcuts(menu))
+                    menu.aboutToShow.connect(
+                        lambda menu=menu: set_menu_icons(menu, False))
+                    menu.aboutToShow.connect(self.hide_options_menus)
 
     def post_visible_setup(self):
         """Actions to be performed only after the main window's `show` method
@@ -1366,6 +1376,9 @@ class MainWindow(QMainWindow):
             # If no project is active, load last session
             if self.projects.get_active_project() is None:
                 self.editor.setup_open_files()
+
+        # Setup menus
+        self.setup_menus()
 
         # Check for spyder updates
         if DEV is None and CONF.get('main', 'check_updates_on_startup'):
@@ -2144,18 +2157,43 @@ class MainWindow(QMainWindow):
         self.update_search_menu()
 
     def show_shortcuts(self, menu):
-        """Show action shortcuts in menu"""
-        for element in getattr(self, menu + '_menu_actions'):
-            if element and isinstance(element, QAction):
-                if element._shown_shortcut is not None:
-                    element.setShortcut(element._shown_shortcut)
+        """Show action shortcuts in menu."""
+        menu_actions = menu.actions()
+        for action in menu_actions:
+            if getattr(action, '_shown_shortcut', False):
+                # This is a SpyderAction
+                if action._shown_shortcut is not None:
+                    action.setShortcut(action._shown_shortcut)
+            elif action.menu() is not None:
+                # This is submenu, so we need to call this again
+                self.show_shortcuts(action.menu())
+            else:
+                # We don't need to do anything for other elements
+                continue
 
     def hide_shortcuts(self, menu):
-        """Hide action shortcuts in menu"""
-        for element in getattr(self, menu + '_menu_actions'):
-            if element and isinstance(element, QAction):
-                if element._shown_shortcut is not None:
-                    element.setShortcut(QKeySequence())
+        """Hide action shortcuts in menu."""
+        menu_actions = menu.actions()
+        for action in menu_actions:
+            if getattr(action, '_shown_shortcut', False):
+                # This is a SpyderAction
+                if action._shown_shortcut is not None:
+                    action.setShortcut(QKeySequence())
+            elif action.menu() is not None:
+                # This is submenu, so we need to call this again
+                self.hide_shortcuts(action.menu())
+            else:
+                # We don't need to do anything for other elements
+                continue
+
+    def hide_options_menus(self):
+        """Hide options menu when menubar is pressed in macOS."""
+        for plugin in self.widgetlist + self.thirdparty_plugins:
+            if plugin.CONF_SECTION == 'editor':
+                editorstack = self.editor.get_current_editorstack()
+                editorstack.menu.hide()
+            else:
+                plugin._options_menu.hide()
 
     def get_focus_widget_properties(self):
         """Get properties of focus widget

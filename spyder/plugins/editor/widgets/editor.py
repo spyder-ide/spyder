@@ -40,7 +40,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, sourcecode, syntaxhighlighters
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, MENU_SEPARATOR,
-                                    mimedata2url)
+                                    mimedata2url, set_menu_icons)
 from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.widgets.fileswitcher import FileSwitcher
@@ -793,6 +793,12 @@ class EditorStack(QWidget):
         else:
             layout.addWidget(self.tabs)
 
+        # Show/hide icons in plugin menus for Mac
+        if sys.platform == 'darwin':
+            self.menu.aboutToHide.connect(
+                lambda menu=self.menu:
+                set_menu_icons(menu, False))
+
     @Slot()
     def update_fname_label(self):
         """Upadte file name label."""
@@ -1308,7 +1314,6 @@ class EditorStack(QWidget):
             self.tabs.setTabText(index, tab_text)
         self.tabs.setTabToolTip(index, tab_tip)
 
-
     #------ Context menu
     def __setup_menu(self):
         """Setup tab context menu before showing it"""
@@ -1321,6 +1326,8 @@ class EditorStack(QWidget):
         add_actions(self.menu, list(actions) + self.__get_split_actions())
         self.close_action.setEnabled(self.is_closable)
 
+        if sys.platform == 'darwin':
+            set_menu_icons(self.menu, True)
 
     #------ Hor/Ver splitting
     def __get_split_actions(self):
@@ -2680,6 +2687,7 @@ class EditorSplitter(QSplitter):
                         Defaults to plugin.unregister_editorstack() to
                         unregister the EditorStack with the Editor plugin.
         """
+
         QSplitter.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setChildrenCollapsible(False)
