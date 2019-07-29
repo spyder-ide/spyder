@@ -46,6 +46,9 @@ class Breakpoints(SpyderPluginWidget):
         self.setLayout(layout)
 
         self.breakpoints.set_data()
+
+        path = osp.join(self.PLUGIN_PATH, self.IMG_PATH)
+        self.icon = ima.icon('breakpoints', icon_path=path)
     
     #------ SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
@@ -54,9 +57,8 @@ class Breakpoints(SpyderPluginWidget):
     
     def get_plugin_icon(self):
         """Return widget icon"""
-        path = osp.join(self.PLUGIN_PATH, self.IMG_PATH)
-        return ima.icon('profiler', icon_path=path)
-    
+        return self.icon
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
@@ -83,7 +85,7 @@ class Breakpoints(SpyderPluginWidget):
         self.add_dockwidget()
 
         list_action = create_action(self, _("List breakpoints"),
-                                   triggered=self.show)
+                                   triggered=self.show, icon=self.icon)
         list_action.setEnabled(True)
         pos = self.main.debug_menu_actions.index('list_breakpoints')
         self.main.debug_menu_actions.insert(pos, list_action)
