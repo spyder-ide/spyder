@@ -19,8 +19,7 @@ from qtpy.compat import getsavefilename, getopenfilenames
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QCursor
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QInputDialog, QMenu,
-                            QMessageBox, QLabel, QToolButton, QVBoxLayout,
-                            QWidget)
+                            QMessageBox, QLabel, QWidget)
 
 from spyder_kernels.utils.iofuncs import iofunctions
 from spyder_kernels.utils.misc import fix_reference_name
@@ -29,8 +28,8 @@ from spyder_kernels.utils.nsview import get_supported_types, REMOTE_SETTINGS
 # Local imports
 from spyder.config.base import _
 from spyder.config.gui import config_shortcut
-from spyder.config.main import CONF
-from spyder.py3compat import is_text_string, PY2, to_text_string
+from spyder.config.manager import CONF
+from spyder.py3compat import PY2, is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import getcwd_or_home, remove_backslashes
