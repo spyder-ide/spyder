@@ -24,12 +24,11 @@ from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
                             QLineEdit, QListView, QListWidget, QListWidgetItem,
                             QMessageBox, QPushButton, QRadioButton,
                             QScrollArea, QSpinBox, QSplitter, QStackedWidget,
-                            QStyleFactory, QTabWidget, QVBoxLayout, QWidget,
-                            QApplication, QPlainTextEdit)
+                            QVBoxLayout, QWidget, QPlainTextEdit)
 
 # Local imports
 from spyder.config.base import _, load_lang_conf
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.config.user import NoDefault
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima

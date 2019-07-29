@@ -5,21 +5,18 @@
 # (see spyder/__init__.py for details)
 
 """
-Spyder configuration options
+Spyder configuration options.
 
 Note: Leave this file free of Qt related imports, so that it can be used to
-quickly load a user config file
+quickly load a user config file.
 """
 
 import os
-import os.path as osp
 import sys
 
 # Local import
-from spyder.config.base import (CHECK_ALL, EXCLUDED_NAMES, get_home_dir,
-                                SUBFOLDER)
+from spyder.config.base import CHECK_ALL, EXCLUDED_NAMES
 from spyder.config.fonts import MEDIUM, SANS_SERIF
-from spyder.config.user import UserConfig
 from spyder.config.utils import IMPORT_EXT
 from spyder.config.appearance import APPEARANCE
 from spyder.plugins.editor.utils.findtasks import TASKS_PATTERN
@@ -208,6 +205,7 @@ DEFAULTS = [
               'convert_eol_on_save_to': 'LF',
               'tab_always_indent': False,
               'intelligent_backspace': True,
+              'automatic_completions': True,
               'underline_errors': False,
               'highlight_current_line': True,
               'highlight_current_cell': True,
@@ -286,7 +284,7 @@ DEFAULTS = [
               'search_text': [''],
               'search_text_samples': [TASKS_PATTERN],
               'more_options': True,
-              'case_sensitive': False
+              'case_sensitive': False,
               }),
             ('breakpoints',
              {
@@ -307,6 +305,7 @@ DEFAULTS = [
               'console/use_project_or_home_directory': False,
               'console/use_cwd': True,
               'console/use_fixed_directory': False,
+              'startup/use_fixed_directory': False,
               }),
             ('shortcuts',
              {
@@ -493,8 +492,89 @@ DEFAULTS = [
               'advanced/port': 2087,
               'advanced/external': False,
               'advanced/stdio': False
-             })
+             }),
             ]
+
+
+NAME_MAP = {
+    # Empty container object means use the rest of defaults
+    'spyder': [],
+    # Splitting these files makes sense for projects, we might as well
+    # apply the same split for the app global config
+    # These options change on spyder startup or are tied to a specific OS,
+    # not good for version control
+    'transient': [
+        ('main', [
+            'completion/size',
+            'crash',
+            'current_version',
+            'historylog_filename',
+            'last_visible_toolbars',
+            'spyder_pythonpath',
+            'window/position',
+            'window/prefs_dialog_size',
+            'window/size',
+            'window/state',
+            ]
+         ),
+        ('appearance', [
+            'windows_style',
+            ]
+         ),
+        ('editor', [
+            'autosave_mapping',
+            'bookmarks',
+            'filenames',
+            'layout_settings',
+            'recent_files',
+            'splitter_state',
+            ]
+         ),
+        ('explorer', [
+            'file_associations',
+        ]),
+        ('find_in_files', [
+            'path_history'
+            'search_text',
+            ]
+         ),
+        ('main_interpreter', [
+            'custom_interpreters_list',
+            'custom_interpreter',
+            'executable',
+             ]
+         ),
+        ('onlinehelp', [
+            'zoom_factor',
+             ]
+         ),
+        ('outline_explorer', [
+            'expanded_state',
+            'scrollbar_position',
+            ],
+         ),
+        ('project_explorer', [
+            'current_project_path',
+            'expanded_state',
+            'recent_projects',
+            'scrollbar_position',
+          ]
+         ),
+        ('quick_layouts', []), # Empty list means use all options
+        ('run', [
+            'breakpoints',
+            'configurations',
+            'defaultconfiguration',
+            'default/wdir/fixed_directory',
+          ]
+         ),
+        ('workingdir', [
+            'console/fixed_directory',
+            'startup/fixed_directory',
+          ]
+         ),
+    ]
+}
 
 
 # =============================================================================
@@ -507,20 +587,4 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '50.2.0'
-
-
-# Main configuration instance
-try:
-    CONF = UserConfig('spyder', defaults=DEFAULTS, load=True,
-                      version=CONF_VERSION, subfolder=SUBFOLDER, backup=True,
-                      raw_mode=True)
-except Exception:
-    CONF = UserConfig('spyder', defaults=DEFAULTS, load=False,
-                      version=CONF_VERSION, subfolder=SUBFOLDER, backup=True,
-                      raw_mode=True)
-
-# Removing old .spyder.ini location:
-old_location = osp.join(get_home_dir(), '.spyder.ini')
-if osp.isfile(old_location):
-    os.remove(old_location)
+CONF_VERSION = '51.0.0'

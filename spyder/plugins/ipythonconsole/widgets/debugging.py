@@ -17,7 +17,7 @@ from qtpy.QtCore import Qt
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 from spyder.config.base import PICKLE_PROTOCOL
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 
 

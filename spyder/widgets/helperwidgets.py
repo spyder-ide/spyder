@@ -8,10 +8,14 @@
 Helper widgets.
 """
 
+# Standard imports
+import re
+
 # Third party imports
 from qtpy import PYQT5
-from qtpy.QtCore import QPoint, QSize, Qt
-from qtpy.QtGui import QAbstractTextDocumentLayout, QPainter, QTextDocument
+from qtpy.QtCore import QPoint, QRegExp, QSize, QSortFilterProxyModel, Qt
+from qtpy.QtGui import (QAbstractTextDocumentLayout, QPainter,
+                        QRegExpValidator, QTextDocument)
 from qtpy.QtWidgets import (QApplication, QCheckBox, QLineEdit, QMessageBox,
                             QSpacerItem, QStyle, QStyledItemDelegate,
                             QStyleOptionViewItem, QToolButton, QToolTip,
@@ -21,6 +25,11 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QLineEdit, QMessageBox,
 from spyder.config.base import _
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import get_std_icon
+from spyder.utils.stringmatching import get_search_regex
+
+# Valid finder chars. To be improved
+VALID_ACCENT_CHARS = "ÁÉÍOÚáéíúóàèìòùÀÈÌÒÙâêîôûÂÊÎÔÛäëïöüÄËÏÖÜñÑ"
+VALID_FINDER_CHARS = r"[A-Za-z\s{0}]".format(VALID_ACCENT_CHARS)
 
 
 class HelperToolButton(QToolButton):
@@ -281,6 +290,81 @@ class IconLineEdit(QLineEdit):
         if self._paint_count < 5:
             self._paint_count += 1
             self._refresh()
+
+
+class FinderLineEdit(QLineEdit):
+    """QLineEdit for filtering listed elements in the parent widget."""
+
+    def __init__(self, parent, callback=None, main=None,
+                 regex_base=VALID_FINDER_CHARS):
+        super(FinderLineEdit, self).__init__(parent)
+        self._parent = parent
+        self.main = main
+
+        # Widget setup
+        regex = QRegExp(regex_base + "{100}")
+        self.setValidator(QRegExpValidator(regex))
+
+        # Signals
+        if callback:
+            self.textChanged.connect(callback)
+
+    def set_text(self, text):
+        """Set the filter text."""
+        text = text.strip()
+        new_text = self.text() + text
+        self.setText(new_text)
+
+    def keyPressEvent(self, event):
+        """
+        Qt Override.
+
+        The parent needs to implement the methods to handle focus on the
+        next/previous row and a action over the selected element.
+
+        This should be override.
+        """
+        key = event.key()
+        if key in [Qt.Key_Up]:
+            self._parent.previous_row()
+        elif key in [Qt.Key_Down]:
+            self._parent.next_row()
+        elif key in [Qt.Key_Enter, Qt.Key_Return]:
+            self._parent.selected_element()
+        else:
+            super(FinderLineEdit, self).keyPressEvent(event)
+
+
+class CustomSortFilterProxy(QSortFilterProxyModel):
+    """Custom column filter based on regex."""
+
+    def __init__(self, parent=None):
+        super(CustomSortFilterProxy, self).__init__(parent)
+        self._parent = parent
+        self.pattern = re.compile(r'')
+
+    def set_filter(self, text):
+        """Set regular expression for filter."""
+        self.pattern = get_search_regex(text)
+        if self.pattern and text:
+            self._parent.setSortingEnabled(False)
+        else:
+            self._parent.setSortingEnabled(True)
+        self.invalidateFilter()
+
+    def filterAcceptsRow(self, row_num, parent):
+        """Qt override.
+
+        Reimplemented from base class to allow the use of custom filtering.
+        """
+        model = self.sourceModel()
+        name = model.row(row_num).name
+        r = re.search(self.pattern, name)
+
+        if r is None:
+            return False
+        else:
+            return True
 
 
 def test_msgcheckbox():

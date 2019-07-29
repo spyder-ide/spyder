@@ -13,10 +13,12 @@ import random
 import sys
 
 # Third party imports
+from flaky import flaky
 import pytest
 import pytestqt
 
 from qtpy.QtCore import Qt
+from qtpy.QtGui import QTextCursor
 
 # Local imports
 from spyder.py3compat import PY2
@@ -31,6 +33,8 @@ LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
 def test_space_completion(lsp_codeeditor, qtbot):
     """Validate completion's space character handling."""
     code_editor, _ = lsp_codeeditor
+    code_editor.toggle_automatic_completions(False)
+
     completion = code_editor.completion_widget
 
     # Set cursor to start
@@ -45,10 +49,13 @@ def test_space_completion(lsp_codeeditor, qtbot):
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
+
     assert "import" in [x['label'] for x in sig.args[0]]
 
     assert code_editor.toPlainText() == 'from numpy import'
     assert not completion.isVisible()
+
+    code_editor.toggle_automatic_completions(True)
 
 
 @pytest.mark.slow
@@ -61,6 +68,9 @@ def test_hide_widget_completion(lsp_codeeditor, qtbot):
     delimiters = ['(', ')', '[', ']', '{', '}', ',', ':', ';', '@', '=', '->',
                   '+=', '-=', '*=', '/=', '//=', '%=', '@=', '&=', '|=', '^=',
                   '>>=', '<<=', '**=']
+
+    code_editor.toggle_automatic_completions(False)
+
     # Set cursor to start
     code_editor.go_to_line(1)
 
@@ -84,6 +94,97 @@ def test_hide_widget_completion(lsp_codeeditor, qtbot):
     # Check the completion widget is not visible
     assert completion.isHidden() is True
 
+    code_editor.toggle_automatic_completions(True)
+
+
+@pytest.mark.slow
+@pytest.mark.first
+@flaky(max_runs=5)
+def test_automatic_completions(lsp_codeeditor, qtbot):
+    """Test on-the-fly completions."""
+    code_editor, _ = lsp_codeeditor
+    completion = code_editor.completion_widget
+
+    # Set cursor to start
+    code_editor.go_to_line(1)
+
+    # Complete f -> from
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyClicks(code_editor, 'f')
+
+    assert "from" in [x['label'] for x in sig.args[0]]
+    # qtbot.keyPress(code_editor, Qt.Key_Tab)
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyClicks(code_editor, 'rom')
+
+    # Due to automatic completion, the completion widget may appear before
+    stop = False
+    while not stop:
+        try:
+            with qtbot.waitSignal(completion.sig_show_completions,
+                                  timeout=5000) as sig:
+                pass
+            code_editor.completion_widget.hide()
+        except Exception:
+            stop = True
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyClicks(code_editor, ' n')
+
+    assert "ntpath" in [x['label'] for x in sig.args[0]]
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyClicks(code_editor, 'ump')
+
+    assert "numpy" in [x['label'] for x in sig.args[0]]
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyClicks(code_editor, 'y')
+
+    # Due to automatic completion, the completion widget may appear before
+    stop = False
+    while not stop:
+        try:
+            with qtbot.waitSignal(completion.sig_show_completions,
+                                  timeout=5000) as sig:
+                pass
+            code_editor.completion_widget.hide()
+        except Exception:
+            stop = True
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyClicks(code_editor, ' imp')
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+
+    assert code_editor.toPlainText() == 'from numpy import'
+
+    # Due to automatic completion, the completion widget may appear before
+    stop = False
+    while not stop:
+        try:
+            with qtbot.waitSignal(completion.sig_show_completions,
+                                  timeout=5000) as sig:
+                pass
+            code_editor.completion_widget.hide()
+        except Exception:
+            stop = True
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyClicks(code_editor, ' r')
+
+    assert "random" in [x['label'] for x in sig.args[0]]
+
 
 @pytest.mark.slow
 @pytest.mark.first
@@ -91,6 +192,8 @@ def test_completions(lsp_codeeditor, qtbot):
     """Exercise code completion in several ways."""
     code_editor, _ = lsp_codeeditor
     completion = code_editor.completion_widget
+
+    code_editor.toggle_automatic_completions(False)
 
     # Set cursor to start
     code_editor.go_to_line(1)
@@ -242,6 +345,7 @@ def test_completions(lsp_codeeditor, qtbot):
                                         'math.c\nmath.asin\n'\
                                         'math.asinangle\n'\
                                         'math.\n'
+    code_editor.toggle_automatic_completions(True)
 
 
 @pytest.mark.slow
@@ -251,6 +355,8 @@ def test_completions(lsp_codeeditor, qtbot):
 def test_fallback_completions(fallback_codeeditor, qtbot):
     code_editor, _ = fallback_codeeditor
     completion = code_editor.completion_widget
+
+    code_editor.toggle_automatic_completions(False)
 
     # Set cursor to start
     code_editor.go_to_line(1)
@@ -273,6 +379,7 @@ def test_fallback_completions(fallback_codeeditor, qtbot):
 
     # Insert another word
     qtbot.keyClicks(code_editor, 'another')
+
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
@@ -295,6 +402,8 @@ def test_fallback_completions(fallback_codeeditor, qtbot):
         qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
     word_set = {x['insertText'] for x in sig.args[0]}
     assert 'another' not in word_set
+
+    code_editor.toggle_automatic_completions(True)
 
 
 if __name__ == '__main__':

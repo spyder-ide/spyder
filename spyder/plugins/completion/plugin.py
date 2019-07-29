@@ -20,7 +20,6 @@ from qtpy.QtCore import QObject, Slot, QMutex, QMutexLocker
 # Local imports
 from spyder.config.base import get_conf_path, running_under_pytest
 from spyder.config.lsp import PYTHON_CONFIG
-from spyder.config.main import CONF
 from spyder.api.completion import SpyderCompletionPlugin
 from spyder.utils.misc import select_port, getcwd_or_home
 from spyder.plugins.completion.languageserver.plugin import (

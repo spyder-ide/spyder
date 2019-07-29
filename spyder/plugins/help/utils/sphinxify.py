@@ -183,6 +183,10 @@ def sphinxify(docstring, context, buildername='html'):
     # docstrings
     if context['right_sphinx_version'] and context['math_on']:
         docstring = docstring.replace('\\\\', '\\\\\\\\')
+        # Needed to prevent MathJax render the '\*' red.
+        # Also the '\*' seems to actually by a simple '*'
+        # See spyder-ide/spyder#9785
+        docstring = docstring.replace("\\*", "*")
 
     # Add a class to several characters on the argspec. This way we can
     # highlight them using css, in a similar way to what IPython does.

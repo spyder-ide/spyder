@@ -8,22 +8,23 @@
 Utilities needed by the fallback completion engine.
 """
 
+# Standard imports
 import imp
 import os
-import pickle
 import os.path as osp
 import re
 
+# Local imports
 from spyder.utils.misc import memoize
 
 from spyder.utils.syntaxhighlighters import (
     custom_extension_lexer_mapping
 )
 
+# Other imports
 from pygments.lexer import words
 from pygments.lexers import (get_lexer_for_filename, get_lexer_by_name,
                              TextLexer)
-from pygments.token import Token
 
 
 # CamelCase and snake_case regex:

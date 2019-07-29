@@ -8,13 +8,15 @@
 
 # Stdlib imports
 import os
+import sys
 
 # Third party imports
+from flaky import flaky
 import pytest
 from qtpy.QtCore import Qt
 
 # Local imports
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 
 
 TEXT = ("def some_function():\n"  # D100, D103: Missing docstring
@@ -27,6 +29,7 @@ TEXT = ("def some_function():\n"  # D100, D103: Missing docstring
 
 @pytest.mark.slow
 @pytest.mark.second
+@flaky(max_runs=5)
 def test_ignore_warnings(qtbot, lsp_codeeditor):
     """Test that the editor is ignoring some warnings."""
     editor, manager = lsp_codeeditor
@@ -36,8 +39,20 @@ def test_ignore_warnings(qtbot, lsp_codeeditor):
 
     CONF.set('lsp-server', 'pydocstyle/ignore', 'D100')
     CONF.set('lsp-server', 'pycodestyle/ignore', 'E261')
+
+    # After this call the manager needs to be reinitialized
     manager.update_server_list()
-    qtbot.wait(2000)
+
+    if os.environ.get('CI', None) is None and sys.platform == 'darwin':
+        # To be able to run local tests on mac this modification is needed
+        editorstack = manager.main.editor
+        with qtbot.waitSignal(editorstack.sig_lsp_initialized, timeout=30000):
+            manager.start_client('python')
+
+        with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
+            editor.document_did_open()
+    else:
+        qtbot.wait(2000)
 
     # Notify changes
     with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
@@ -60,6 +75,7 @@ def test_ignore_warnings(qtbot, lsp_codeeditor):
 
 @pytest.mark.slow
 @pytest.mark.second
+@flaky(max_runs=5)
 def test_adding_warnings(qtbot, lsp_codeeditor):
     """Test that warnings are saved in the editor blocks."""
     editor, _ = lsp_codeeditor
@@ -92,6 +108,7 @@ def test_adding_warnings(qtbot, lsp_codeeditor):
 
 @pytest.mark.slow
 @pytest.mark.second
+@flaky(max_runs=5)
 def test_move_warnings(qtbot, lsp_codeeditor):
     """Test that moving to next/previous warnings is working."""
     editor, _ = lsp_codeeditor
@@ -124,6 +141,7 @@ def test_move_warnings(qtbot, lsp_codeeditor):
 
 @pytest.mark.slow
 @pytest.mark.second
+@flaky(max_runs=5)
 def test_get_warnings(qtbot, lsp_codeeditor):
     """Test that the editor is returning the right list of warnings."""
     editor, _ = lsp_codeeditor
@@ -149,6 +167,7 @@ def test_get_warnings(qtbot, lsp_codeeditor):
 
 @pytest.mark.slow
 @pytest.mark.second
+@flaky(max_runs=5)
 def test_update_warnings_after_delete_line(qtbot, lsp_codeeditor):
     """
     Test that code style warnings are correctly updated after deleting a line
@@ -180,6 +199,7 @@ def test_update_warnings_after_delete_line(qtbot, lsp_codeeditor):
 
 @pytest.mark.slow
 @pytest.mark.second
+@flaky(max_runs=5)
 def test_update_warnings_after_closequotes(qtbot, lsp_codeeditor):
     """
     Test that code errors are correctly updated after activating closequotes
@@ -212,6 +232,7 @@ def test_update_warnings_after_closequotes(qtbot, lsp_codeeditor):
 
 @pytest.mark.slow
 @pytest.mark.second
+@flaky(max_runs=5)
 def test_update_warnings_after_closebrackets(qtbot, lsp_codeeditor):
     """
     Test that code errors are correctly updated after activating closebrackets

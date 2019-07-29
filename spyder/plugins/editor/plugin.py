@@ -22,7 +22,6 @@ import time
 # Third party imports
 from qtpy.compat import from_qvariant, getopenfilenames, to_qvariant
 from qtpy.QtCore import QByteArray, Qt, Signal, Slot
-from qtpy.QtGui import QKeySequence
 from qtpy.QtPrintSupport import QAbstractPrintDialog, QPrintDialog, QPrinter
 from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
                             QFileDialog, QInputDialog, QMenu, QSplitter,
@@ -32,7 +31,7 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
 from spyder import dependencies
 from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.config.gui import get_shortcut
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter)
 from spyder.py3compat import PY2, qbytearray_to_str, to_text_string
@@ -368,7 +367,6 @@ class Editor(SpyderPluginWidget):
         """Perform actions before parent main window is closed"""
         state = self.splitter.saveState()
         self.set_option('splitter_state', qbytearray_to_str(state))
-        filenames = []
         editorstack = self.editorstacks[0]
 
         active_project_path = None
@@ -1208,6 +1206,7 @@ class Editor(SpyderPluginWidget):
             ('set_tabmode_enabled',                 'tab_always_indent'),
             ('set_stripmode_enabled',               'strip_trailing_spaces_on_modify'),
             ('set_intelligent_backspace_enabled',   'intelligent_backspace'),
+            ('set_automatic_completions_enabled',   'automatic_completions'),
             ('set_highlight_current_line_enabled',  'highlight_current_line'),
             ('set_highlight_current_cell_enabled',  'highlight_current_cell'),
             ('set_occurrence_highlighting_enabled',  'occurrence_highlighting'),
@@ -1577,18 +1576,6 @@ class Editor(SpyderPluginWidget):
     def update_active_languages(self, languages):
         self.main.completions.update_client_status(languages)
 
-
-    #------ Breakpoints
-    def save_breakpoints(self, filename, breakpoints):
-        filename = to_text_string(filename)
-        breakpoints = to_text_string(breakpoints)
-        filename = osp.normpath(osp.abspath(filename))
-        if breakpoints:
-            breakpoints = eval(breakpoints)
-        else:
-            breakpoints = []
-        save_breakpoints(filename, breakpoints)
-        self.breakpoints_saved.emit()
 
     # ------ Bookmarks
     def save_bookmarks(self, filename, bookmarks):
@@ -2575,6 +2562,8 @@ class Editor(SpyderPluginWidget):
             stripindent_o = self.get_option(stripindent_n)
             ibackspace_n = 'intelligent_backspace'
             ibackspace_o = self.get_option(ibackspace_n)
+            autocompletions_n = 'automatic_completions'
+            autocompletions_o = self.get_option(autocompletions_n)
             removetrail_n = 'always_remove_trailing_spaces'
             removetrail_o = self.get_option(removetrail_n)
             converteol_n = 'convert_eol_on_save'
@@ -2609,6 +2598,9 @@ class Editor(SpyderPluginWidget):
                 if linenb_n in options:
                     editorstack.set_linenumbers_enabled(linenb_o,
                                                         current_finfo=finfo)
+                if autocompletions_n in options:
+                    editorstack.set_automatic_completions_enabled(
+                        autocompletions_o)
                 if edgeline_n in options:
                     editorstack.set_edgeline_enabled(edgeline_o)
                 if edgelinecols_n in options:

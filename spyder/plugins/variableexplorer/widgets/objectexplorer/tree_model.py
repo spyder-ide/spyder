@@ -20,7 +20,7 @@ from collections import OrderedDict
 
 # Third-party imports
 from qtpy.QtCore import (QAbstractItemModel, QModelIndex, Qt,
-                         QSortFilterProxyModel)
+                         QSortFilterProxyModel, Signal)
 from qtpy.QtGui import QFont, QBrush, QColor
 
 # Local imports
@@ -105,7 +105,7 @@ class TreeModel(QAbstractItemModel):
         return self._root_item
 
     @property
-    def inspectedItem(self):  # TODO: needed?
+    def inspectedItem(self):
         """The TreeItem that contains the item under inspection."""
         return self._inspected_item
 
@@ -165,6 +165,8 @@ class TreeModel(QAbstractItemModel):
                 return self.special_attribute_font
             else:
                 return self.regular_font
+        elif role == Qt.EditRole:
+            return obj
         else:
             return None
 
@@ -172,7 +174,7 @@ class TreeModel(QAbstractItemModel):
         if not index.isValid():
             return Qt.NoItemFlags
 
-        return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+        return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable
 
     def headerData(self, section, orientation, role):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
@@ -315,14 +317,19 @@ class TreeModel(QAbstractItemModel):
         assert len(obj_children) == len(path_strings), "sanity check"
         is_attr_list = [False] * len(obj_children)
 
-        # Object attributes
-        for attr_name, attr_value in sorted(inspect.getmembers(obj)):
-            obj_children.append((attr_name, attr_value))
-            path_strings.append('{}.{}'.format(obj_path,
-                                attr_name) if obj_path else attr_name)
-            is_attr_list.append(True)
+        try:
+            # Object attributes
+            for attr_name, attr_value in sorted(inspect.getmembers(obj)):
+                obj_children.append((attr_name, attr_value))
+                path_strings.append('{}.{}'.format(obj_path,
+                                    attr_name) if obj_path else attr_name)
+                is_attr_list.append(True)
 
-        assert len(obj_children) == len(path_strings), "sanity check"
+            assert len(obj_children) == len(path_strings), "sanity check"
+        except ValueError:
+            # Needed to handle errors while getting object's attributes
+            # Related with spyder-ide/spyder#6728
+            pass
         tree_items = []
         for item, path_str, is_attr in zip(obj_children, path_strings,
                                            is_attr_list):
@@ -518,9 +525,13 @@ class TreeModel(QAbstractItemModel):
 
 class TreeProxyModel(QSortFilterProxyModel):
     """Proxy model that overrides the sorting and can filter out items."""
+    sig_setting_data = Signal()
+    sig_update_details = Signal(object)
+
     def __init__(self,
                  show_callable_attributes=True,
                  show_special_attributes=True,
+                 dataframe_format=None,
                  parent=None):
         """
         Constructor
@@ -531,16 +542,33 @@ class TreeProxyModel(QSortFilterProxyModel):
         :param show_special_attributes: if True the objects special attributes,
             i.e. methods with a name that starts and ends with two underscores,
             will be displayed (in italics). If False they are hidden.
+        :param dataframe_format: the dataframe format from config.
         :param parent: the parent widget
         """
         super(TreeProxyModel, self).__init__(parent)
 
         self._show_callables = show_callable_attributes
         self._show_special_attributes = show_special_attributes
+        self.dataframe_format = dataframe_format
+
+    def get_key(self, proxy_index):
+        """Get item handler for the given index."""
+        return self.treeItem(proxy_index)
 
     def treeItem(self, proxy_index):
         index = self.mapToSource(proxy_index)
         return self.sourceModel().treeItem(index)
+
+    def set_value(self, proxy_index, value):
+        """Set item value."""
+        index = self.mapToSource(proxy_index)
+        tree_item = self.sourceModel().treeItem(index)
+        tree_item.obj = value
+        obj_name = tree_item.obj_name
+        parent = tree_item.parent_item.obj
+        setattr(parent, obj_name, value)
+        self.sig_setting_data.emit()
+        self.sig_update_details.emit(tree_item)
 
     def firstItemIndex(self):
         """Returns the first child of the root item."""
@@ -564,7 +592,6 @@ class TreeProxyModel(QSortFilterProxyModel):
                   (self._show_callables or
                    not tree_item.is_callable_attribute))
 
-        # logger.debug("filterAcceptsRow = {}: {}".format(accept, tree_item))
         return accept
 
     def getShowCallables(self):
