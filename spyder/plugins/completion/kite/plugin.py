@@ -9,7 +9,6 @@
 # Standard library imports
 import os
 import os.path as osp
-
 import sys
 import logging
 import functools
@@ -70,9 +69,11 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
             self.kite_process.kill()
 
     def _check_if_kite_installed(self):
-        path = osp.expanduser('~/.local/share/kite/kited')
+        path = ''
         if os.name == 'nt':
             path = 'C:\\Program Files\\Kite\\kited.exe'
+        elif sys.platform.startswith('linux'):
+            osp.expanduser('~/.local/share/kite/kited')
         elif sys.platform == 'darwin':
             path = '/opt/kite/kited'
         return osp.exists(osp.realpath(path)), path

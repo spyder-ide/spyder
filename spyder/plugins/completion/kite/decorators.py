@@ -10,7 +10,7 @@ import functools
 
 
 def send_request(req=None, method=None):
-    """Call function req and then send its results via ZMQ."""
+    """Call function req and then send its results via HTTP."""
     if req is None:
         return functools.partial(send_request, method=method)
 
@@ -27,7 +27,7 @@ def send_request(req=None, method=None):
 
 
 def class_register(cls):
-    """Class decorator that allows to map LSP method names to class methods."""
+    """Class decorator that maps Kite HTTP method names to class methods."""
     cls.handler_registry = {}
     cls.sender_registry = {}
     for method_name in dir(cls):
@@ -40,7 +40,7 @@ def class_register(cls):
 
 
 def handles(method_name):
-    """Assign an LSP method name to a python handler."""
+    """Assign a Kite HTTP method name to a python handler."""
     def wrapper(func):
         func._handle = method_name
         return func
