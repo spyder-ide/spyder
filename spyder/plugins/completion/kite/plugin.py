@@ -73,7 +73,7 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         if os.name == 'nt':
             path = 'C:\\Program Files\\Kite\\kited.exe'
         elif sys.platform.startswith('linux'):
-            osp.expanduser('~/.local/share/kite/kited')
+            path = osp.expanduser('~/.local/share/kite/kited')
         elif sys.platform == 'darwin':
             path = '/opt/kite/kited'
         return osp.exists(osp.realpath(path)), path
