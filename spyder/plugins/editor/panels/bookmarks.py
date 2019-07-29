@@ -78,13 +78,8 @@ class BookmarksPanel(Panel):
                 self._draw_bookmark_icon(top, painter, 'transparent')
 
             data = block.userData()
-            if data is None or not data.bookmarks:
+            if data is None or data.bookmark is None:
                 continue
-
-            if data.bookmarks is None:
-                self._draw_bookmark_icon(top, painter, 'transparent')
-            elif len(data.bookmarks) > 1:
-                self._draw_bookmark_icon(top, painter, 'multiple')
             else:
                 self._draw_bookmark_icon(top, painter, 'bookmark')
 
@@ -94,7 +89,7 @@ class BookmarksPanel(Panel):
         Add/remove breakpoints by single click.
         """
         line_number = self.editor.get_linenumber_from_mouse_event(event)
-        self.editor.add_next_bookmark(line_number-1)
+        self.editor.toggle_bookmark(line_number-1)
 
     def mouseMoveEvent(self, event):
         """Override Qt method.

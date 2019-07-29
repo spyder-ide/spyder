@@ -57,7 +57,7 @@ class BlockUserData(QTextBlockUserData):
         self.editor = editor
         self.breakpoint = False
         self.breakpoint_condition = None
-        self.bookmarks = []
+        self.bookmark = None
         self.code_analysis = []
         self.todo = ''
         self.selection = cursor

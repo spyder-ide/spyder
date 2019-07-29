@@ -67,6 +67,7 @@ from spyder.plugins.editor.panels import (ClassFunctionDropdown,
                                           ScrollFlagArea, BookmarksPanel)
 from spyder.plugins.editor.utils.editor import (TextHelper, BlockUserData,
                                                 TextBlockHelper)
+from spyder.plugins.editor.utils.bookmarks import get_free_bookmark_slot
 from spyder.plugins.editor.utils.debugger import DebuggerManager
 from spyder.plugins.editor.utils.folding import IndentFoldDetector, FoldScope
 from spyder.plugins.editor.utils.kill_ring import QtKillRing
@@ -1641,7 +1642,7 @@ class CodeEditor(TextEditBaseWidget):
         self.setTextCursor(cursor)
 
     # ----- Code bookmarks
-    def add_bookmark(self, slot_num, line=None, column=None):
+    def add_bookmark(self, slot_num, line=None):
         """Add bookmark to current block's userData."""
         if line is None:
             # Triggered by shortcut, else by spyder start
@@ -1650,10 +1651,10 @@ class CodeEditor(TextEditBaseWidget):
         data = block.userData()
         if not data:
             data = BlockUserData(self)
-        if (slot_num, column) not in data.bookmarks:
-            data.bookmarks.append((slot_num, column))
-        block.setUserData(data)
-        self.sig_bookmarks_changed.emit()
+        if not slot_num == data.bookmark:
+            data.bookmark = slot_num
+            block.setUserData(data)
+            self.update_bookmarks()
 
     def get_bookmarks(self):
         """Get bookmarks by going over all blocks."""
@@ -1661,9 +1662,8 @@ class CodeEditor(TextEditBaseWidget):
         block = self.document().firstBlock()
         for line_number in range(0, self.document().blockCount()):
             data = block.userData()
-            if data and data.bookmarks:
-                for slot_num, column in data.bookmarks:
-                    bookmarks[slot_num] = [line_number, column]
+            if data and data.bookmark:
+                bookmarks[data.bookmark] = line_number
             block = block.next()
         return bookmarks
 
@@ -1671,45 +1671,37 @@ class CodeEditor(TextEditBaseWidget):
         """Clear bookmarks for all blocks."""
         self.bookmarks = {}
         for data in self.blockuserdata_list():
-            data.bookmarks = []
+            data.bookmark = None
 
     def set_bookmarks(self, bookmarks):
         """Set bookmarks when opening file."""
         self.clear_bookmarks()
         for slot_num, bookmark in bookmarks.items():
-            self.add_bookmark(slot_num, bookmark[1], bookmark[2])
+            self.add_bookmark(slot_num, bookmark[1])
 
     def update_bookmarks(self):
         """Emit signal to update bookmarks."""
         self.sig_bookmarks_changed.emit()
 
     # ----- Code bookmarks
-    def add_next_bookmark(self, line):
-        """Add bookmark to current block's userData."""
-
-        block = self.document().firstBlock()
-        # Find free slot number
-        used_slots = set()
-        for line_number in range(0, self.document().blockCount()):
-            data = block.userData()
-            if data and data.bookmarks:
-                for slot_num, column in data.bookmarks:
-                    used_slots.add(slot_num)
-            block = block.next()
-
-        print(used_slots)
-        slot_num = min(set(range(10))-used_slots)
-        print(slot_num)
-
-        # Assign bookmark to slot
+    def toggle_bookmark(self, line, slot_num=None):
+        """Toggle bookmark to current block's userData."""
         block = self.document().findBlockByNumber(line)
         data = block.userData()
         if not data:
             data = BlockUserData(self)
-        if slot_num not in data.bookmarks:
-            data.bookmarks.append(slot_num)
-        block.setUserData(data)
-        self.sig_bookmarks_changed.emit()
+
+        if data.bookmark:
+            # Bookmark available, remove it
+            data.bookmark = None
+            self.update_bookmarks()
+            return
+
+        if not slot_num:
+            slot_num = get_free_bookmark_slot()
+
+        # Assign bookmark to slot
+        self.add_bookmark(slot_num, line)
 
     #-----Code introspection
     def show_object_info(self, position):
