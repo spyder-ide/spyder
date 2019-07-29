@@ -37,6 +37,11 @@ except KeyError as error:
     import gettext
     _ = gettext.gettext
 
+COLUMN_COUNT = 4
+EXTRA_COLUMNS = 1
+COL_FILE, COL_LINE, COL_CONDITION, COL_BLANK, COL_FULL = range(COLUMN_COUNT +
+                                                               EXTRA_COLUMNS)
+COLUMN_HEADERS = (_("File"), _("Line"), _("Condition"), (""))
 
 class BreakpointTableModel(QAbstractTableModel):
     """
@@ -71,18 +76,18 @@ class BreakpointTableModel(QAbstractTableModel):
 
     def columnCount(self, qindex=QModelIndex()):
         """Array column count"""
-        return 4
+        return COLUMN_COUNT
 
     def sort(self, column, order=Qt.DescendingOrder):
         """Overriding sort method"""
-        if column == 0:
-            self.breakpoints.sort(key=lambda breakpoint: breakpoint[1])
-            self.breakpoints.sort(key=lambda breakpoint: breakpoint[0])
-        elif column == 1:
+        if column == COL_FILE:
+            self.breakpoints.sort(key=lambda breakp: int(breakp[COL_LINE]))
+            self.breakpoints.sort(key=lambda breakp: breakp[COL_FILE])
+        elif column == COL_LINE:
             pass
-        elif column == 2:
+        elif column == COL_CONDITION:
             pass
-        elif column == 3:
+        elif column == COL_BLANK:
             pass
         self.reset()
 
@@ -92,8 +97,7 @@ class BreakpointTableModel(QAbstractTableModel):
             return to_qvariant()
         i_column = int(section)
         if orientation == Qt.Horizontal:
-            headers = (_("File"), _("Line"), _("Condition"), "")
-            return to_qvariant( headers[i_column] )
+            return to_qvariant(COLUMN_HEADERS[i_column])
         else:
             return to_qvariant()
 
@@ -109,11 +113,15 @@ class BreakpointTableModel(QAbstractTableModel):
             value = self.get_value(index)
             return to_qvariant(value)
         elif role == Qt.TextAlignmentRole:
-            return to_qvariant(int(Qt.AlignLeft|Qt.AlignVCenter))
+            if index.column() == COL_LINE:
+                # Align line number right
+                return to_qvariant(int(Qt.AlignRight | Qt.AlignVCenter))
+            else:
+                return to_qvariant(int(Qt.AlignLeft | Qt.AlignVCenter))
         elif role == Qt.ToolTipRole:
-            if index.column() == 0:
-                # Return full file name
-                value = self.breakpoints[index.row()][4]
+            if index.column() == COL_FILE:
+                # Return full file name (in last position)
+                value = self.breakpoints[index.row()][COL_FULL]
                 return to_qvariant(value)
             else:
                 return to_qvariant()
@@ -150,7 +158,7 @@ class BreakpointTableView(QTableView):
         self.columnAt(0)
         # Sorting columns
         self.setSortingEnabled(False)
-        self.sortByColumn(0, Qt.DescendingOrder)
+        self.sortByColumn(COL_FILE, Qt.DescendingOrder)
 
     def adjust_columns(self):
         """Resize three first columns to contents"""
@@ -161,10 +169,11 @@ class BreakpointTableView(QTableView):
         """Reimplement Qt method"""
         index_clicked = self.indexAt(event.pos())
         if self.model.breakpoints:
-            filename = self.model.breakpoints[index_clicked.row()][4]
-            line_number_str = self.model.breakpoints[index_clicked.row()][1]
+            c_row = index_clicked.row()
+            filename = self.model.breakpoints[c_row][COL_FULL]
+            line_number_str = self.model.breakpoints[c_row][COL_LINE]
             self.edit_goto.emit(filename, int(line_number_str), '')
-        if index_clicked.column()==2:
+        if index_clicked.column() == COL_CONDITION:
             self.set_or_edit_conditional_breakpoint.emit()
 
     def contextMenuEvent(self, event):
@@ -176,8 +185,9 @@ class BreakpointTableView(QTableView):
             triggered=lambda: self.clear_all_breakpoints.emit())
         actions.append(clear_all_breakpoints_action)
         if self.model.breakpoints:
-            filename = self.model.breakpoints[index_clicked.row()][4]
-            lineno = int(self.model.breakpoints[index_clicked.row()][1])
+            c_row = index_clicked.row()
+            filename = self.model.breakpoints[c_row][COL_FULL]
+            lineno = int(self.model.breakpoints[c_row][COL_LINE])
             # QAction.triggered works differently for PySide and PyQt
             if not API == 'pyside':
                 clear_slot = lambda _checked, filename=filename, lineno=lineno: \
@@ -255,7 +265,7 @@ class BreakpointWidget(QWidget):
         bp_dict = self._load_all_breakpoints()
         self.dictwidget.model.set_data(bp_dict)
         self.dictwidget.adjust_columns()
-        self.dictwidget.sortByColumn(0, Qt.DescendingOrder)
+        self.dictwidget.sortByColumn(COL_FILE, Qt.DescendingOrder)
 
 
 #==============================================================================
