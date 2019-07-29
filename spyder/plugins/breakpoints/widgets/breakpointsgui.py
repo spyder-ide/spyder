@@ -28,6 +28,7 @@ from spyder.config.base import get_translation
 from spyder.config.manager import CONF
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_plugin_layout)
+from spyder.utils.sourcecode import disambiguate_fname
 
 # This is needed for testing this module as a stand alone script
 try:
@@ -59,7 +60,9 @@ class BreakpointTableModel(QAbstractTableModel):
             bp_list = data[key]
             if bp_list:
                 for item in data[key]:
-                    self.breakpoints.append((key, item[0], item[1], ""))
+                    # Store full file name in last position, which is not shown
+                    self.breakpoints.append((disambiguate_fname(keys, key),
+                                             item[0], item[1], "", key))
         self.reset()
 
     def rowCount(self, qindex=QModelIndex()):
@@ -73,10 +76,8 @@ class BreakpointTableModel(QAbstractTableModel):
     def sort(self, column, order=Qt.DescendingOrder):
         """Overriding sort method"""
         if column == 0:
-            self.breakpoints.sort(
-                key=lambda breakpoint: breakpoint[1])
-            self.breakpoints.sort(
-                key=lambda breakpoint: osp.basename(breakpoint[0]))
+            self.breakpoints.sort(key=lambda breakpoint: breakpoint[1])
+            self.breakpoints.sort(key=lambda breakpoint: breakpoint[0])
         elif column == 1:
             pass
         elif column == 2:
@@ -105,17 +106,14 @@ class BreakpointTableModel(QAbstractTableModel):
         if not index.isValid():
             return to_qvariant()
         if role == Qt.DisplayRole:
-            if index.column() == 0:
-                value = osp.basename(self.get_value(index))
-                return to_qvariant(value)
-            else:
-                value = self.get_value(index)
-                return to_qvariant(value)
+            value = self.get_value(index)
+            return to_qvariant(value)
         elif role == Qt.TextAlignmentRole:
             return to_qvariant(int(Qt.AlignLeft|Qt.AlignVCenter))
         elif role == Qt.ToolTipRole:
             if index.column() == 0:
-                value = self.get_value(index)
+                # Return full file name
+                value = self.breakpoints[index.row()][4]
                 return to_qvariant(value)
             else:
                 return to_qvariant()
@@ -163,7 +161,7 @@ class BreakpointTableView(QTableView):
         """Reimplement Qt method"""
         index_clicked = self.indexAt(event.pos())
         if self.model.breakpoints:
-            filename = self.model.breakpoints[index_clicked.row()][0]
+            filename = self.model.breakpoints[index_clicked.row()][4]
             line_number_str = self.model.breakpoints[index_clicked.row()][1]
             self.edit_goto.emit(filename, int(line_number_str), '')
         if index_clicked.column()==2:
@@ -178,7 +176,7 @@ class BreakpointTableView(QTableView):
             triggered=lambda: self.clear_all_breakpoints.emit())
         actions.append(clear_all_breakpoints_action)
         if self.model.breakpoints:
-            filename = self.model.breakpoints[index_clicked.row()][0]
+            filename = self.model.breakpoints[index_clicked.row()][4]
             lineno = int(self.model.breakpoints[index_clicked.row()][1])
             # QAction.triggered works differently for PySide and PyQt
             if not API == 'pyside':
