@@ -30,7 +30,7 @@ from qtpy.QtWidgets import QApplication, QMessageBox, QSplashScreen, QWidget
 from spyder.config.base import _, get_image_path
 from spyder.py3compat import to_text_string
 from spyder.utils.qthelpers import qapplication
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 
 
 PY2 = sys.version[0] == '2'

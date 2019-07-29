@@ -13,9 +13,8 @@ import os.path as osp
 
 from jupyter_client.kernelspec import KernelSpec
 
-from spyder.config.base import (SAFE_MODE, get_module_source_path,
-                                running_under_pytest)
-from spyder.config.main import CONF
+from spyder.config.base import SAFE_MODE, running_under_pytest
+from spyder.config.manager import CONF
 from spyder.utils.encoding import to_unicode_from_fs
 from spyder.utils.programs import is_python_interpreter
 from spyder.py3compat import PY2, iteritems, to_text_string, to_binary_string
