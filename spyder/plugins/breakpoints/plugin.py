@@ -49,12 +49,12 @@ class Breakpoints(SpyderPluginWidget):
 
         path = osp.join(self.PLUGIN_PATH, self.IMG_PATH)
         self.icon = ima.icon('breakpoints', icon_path=path)
-    
+
     #------ SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
         return _("Breakpoints")
-    
+
     def get_plugin_icon(self):
         """Return widget icon"""
         return self.icon
@@ -85,7 +85,7 @@ class Breakpoints(SpyderPluginWidget):
         self.add_dockwidget()
 
         list_action = create_action(self, _("List breakpoints"),
-                                   triggered=self.show, icon=self.icon)
+                                    triggered=self.show, icon=self.icon)
         list_action.setEnabled(True)
         pos = self.main.debug_menu_actions.index('list_breakpoints')
         self.main.debug_menu_actions.insert(pos, list_action)
