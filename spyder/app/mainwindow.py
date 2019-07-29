@@ -1296,11 +1296,10 @@ class MainWindow(QMainWindow):
         if sys.platform == 'darwin':
             for menu in self.menus:
                 if menu is not None:
-                    actions = menu.actions()
                     menu.aboutToShow.connect(
-                        lambda actions=actions: self.show_shortcuts(actions))
+                        lambda menu=menu: self.show_shortcuts(menu))
                     menu.aboutToHide.connect(
-                        lambda actions=actions: self.hide_shortcuts(actions))
+                        lambda menu=menu: self.hide_shortcuts(menu))
                     menu.aboutToShow.connect(
                         lambda menu=menu: set_menu_icons(menu, False))
                     menu.aboutToShow.connect(self.hide_options_menus)
@@ -2157,8 +2156,9 @@ class MainWindow(QMainWindow):
         self.update_edit_menu()
         self.update_search_menu()
 
-    def show_shortcuts(self, menu_actions):
-        """Show action shortcuts in menu"""
+    def show_shortcuts(self, menu):
+        """Show action shortcuts in menu."""
+        menu_actions = menu.actions()
         for action in menu_actions:
             if getattr(action, '_shown_shortcut', False):
                 # This is a SpyderAction
@@ -2166,14 +2166,14 @@ class MainWindow(QMainWindow):
                     action.setShortcut(action._shown_shortcut)
             elif action.menu() is not None:
                 # This is submenu, so we need to call this again
-                submenu_actions = action.menu().actions()
-                self.show_shortcuts(submenu_actions)
+                self.show_shortcuts(action.menu())
             else:
                 # We don't need to do anything for other elements
                 continue
 
-    def hide_shortcuts(self, menu_actions):
-        """Hide action shortcuts in menu"""
+    def hide_shortcuts(self, menu):
+        """Hide action shortcuts in menu."""
+        menu_actions = menu.actions()
         for action in menu_actions:
             if getattr(action, '_shown_shortcut', False):
                 # This is a SpyderAction
@@ -2181,8 +2181,7 @@ class MainWindow(QMainWindow):
                     action.setShortcut(QKeySequence())
             elif action.menu() is not None:
                 # This is submenu, so we need to call this again
-                submenu_actions = action.menu().actions()
-                self.hide_shortcuts(submenu_actions)
+                self.hide_shortcuts(action.menu())
             else:
                 # We don't need to do anything for other elements
                 continue
