@@ -674,6 +674,9 @@ class SpyderUserConfig(UserConfig):
             elif check_version(old_version, '52.0.0', '<'):
                 name = '{}-{}'.format(self._defaults_name_prefix, old_version)
                 path = osp.join(get_conf_path(), 'defaults')
+            else:
+                super_class = super(SpyderUserConfig, self)
+                path, name = super_class.get_defaults_path_name_from_version()
         else:
             super_class = super(SpyderUserConfig, self)
             path, name = super_class.get_defaults_path_name_from_version()
