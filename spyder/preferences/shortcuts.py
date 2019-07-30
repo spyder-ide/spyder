@@ -656,15 +656,15 @@ class ShortcutsTable(QTableView):
         self.verticalHeader().hide()
         self.load_shortcuts()
 
-    # def focusOutEvent(self, e):
-    #     """Qt Override."""
-    #     self.source_model.update_active_row()
-    #     super(ShortcutsTable, self).focusOutEvent(e)
+    def focusOutEvent(self, e):
+        """Qt Override."""
+        self.source_model.update_active_row()
+        super(ShortcutsTable, self).focusOutEvent(e)
 
-    # def focusInEvent(self, e):
-    #     """Qt Override."""
-    #     super(ShortcutsTable, self).focusInEvent(e)
-    #     self.selectRow(self.currentIndex().row())
+    def focusInEvent(self, e):
+        """Qt Override."""
+        super(ShortcutsTable, self).focusInEvent(e)
+        self.selectRow(self.currentIndex().row())
 
     def selection(self, index):
         """Update selected row."""
@@ -817,14 +817,16 @@ class ShortcutsConfigPage(GeneralConfigPage):
         self.table = ShortcutsTable(self, text_color=ima.MAIN_FG_COLOR)
         self.finder = ShortcutFinder(self.table, self.table.set_regex)
         self.table.finder = self.finder
+        self.table.finder.setPlaceholderText(
+            _("Search a shortcut in the table"))
         self.table.setMouseTracking(True)
         self.label_finder = QLabel(_('Search: '))
         self.reset_btn = QPushButton(_("Reset to default values"))
         self.label = QLabel()
         self.label.setText(
             _("Here you can browse the list of all available shortcuts in "
-              "Spyder. You can also customize them by clicking on any entry "
-              "in this table."))
+              "Spyder. You can also customize them by double-clicking on any "
+              "entry in this table."))
         self.label.setWordWrap(True)
 
         # Layout
