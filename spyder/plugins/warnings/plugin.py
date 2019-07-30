@@ -92,6 +92,6 @@ class Warnings(SpyderPluginWidget):
     def update_data(self):
         """Update table"""
         editor = self.main.editor.get_current_editor()
-        results = editor.get_current_warnings_complete_list()
+        results = editor.get_current_warnings(complete=True)
         filename = self.main.editor.get_current_filename()
         self.warnings.set_data(results, filename)

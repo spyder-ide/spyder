@@ -17,10 +17,11 @@ import sys
 # Third party imports
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QModelIndex, Qt, Signal,
-                         QSortFilterProxyModel, Slot)
-from qtpy.QtWidgets import (QTableView, QHBoxLayout, QStyledItemDelegate,
+                         QSortFilterProxyModel, Slot, QSize)
+from qtpy.QtWidgets import (QTableView, QHBoxLayout,
                             QVBoxLayout, QWidget, QAbstractItemView,
                             QHeaderView)
+from qtpy.QtGui import QFontMetrics
 
 # Local imports
 from spyder.config.base import get_translation
@@ -50,8 +51,18 @@ class WarningTableModel(QAbstractTableModel):
         QAbstractTableModel.__init__(self, parent)
         if data is None:
             data = {}
+        self.iconnames = {
+            DiagnosticSeverity.ERROR: 'error',
+            DiagnosticSeverity.WARNING: 'warning',
+            DiagnosticSeverity.INFORMATION: 'information',
+            DiagnosticSeverity.HINT: 'hint',
+        }
+        self.icons = {}
+        for key, iconname in self.iconnames.items():
+            self.icons[key] = ima.icon(iconname)
         self._data = None
         self.warnings = None
+        self.parent = parent
         self.set_data(data)
 
     def set_data(self, data):
@@ -91,35 +102,36 @@ class WarningTableModel(QAbstractTableModel):
         if not index.isValid():
             return to_qvariant()
         if role == Qt.DisplayRole:
+            if index.column() == COL_ICON:
+                return to_qvariant()
             value = self.get_value(index)
             return to_qvariant(value)
         elif role == Qt.TextAlignmentRole:
             if index.column() == COL_LINE:
                 # Align line number right
                 return to_qvariant(int(Qt.AlignRight | Qt.AlignVCenter))
+            elif index.column() == COL_ICON:
+                return to_qvariant(int(Qt.AlignCenter))
             else:
                 return to_qvariant(int(Qt.AlignLeft | Qt.AlignVCenter))
+        elif role == Qt.SizeHintRole:
+            if index.column() == COL_ICON:
+                fm = QFontMetrics(self.parent.font())
+                size = min(16, round(0.8*fm.height()))
+                return to_qvariant(QSize(size, size))
+            else:
+                return to_qvariant()
+        elif role == Qt.DecorationRole:
+            if index.column() == COL_ICON:
+                severity = self.warnings[index.row()][COL_ICON]
+                icon = self.icons[severity]
+                return to_qvariant(icon)
+            else:
+                return to_qvariant()
 
     def reset(self):
         self.beginResetModel()
         self.endResetModel()
-
-
-class WarningIconDelegate(QStyledItemDelegate):
-    def __init__(self, parent):
-        super(WarningIconDelegate, self).__init__(parent)
-        self.parent = parent
-        self.icons = {
-            DiagnosticSeverity.ERROR: 'error',
-            DiagnosticSeverity.WARNING: 'warning',
-            DiagnosticSeverity.INFORMATION: 'information',
-            DiagnosticSeverity.HINT: 'hint',
-        }
-
-    def paint(self, painter, option, index):
-        idx = self.parent.getIcon(index)
-        icon = ima.icon(self.icons[idx])
-        icon.paint(painter, option.rect, Qt.AlignCenter)
 
 
 class WarningTableView(QTableView):
@@ -146,8 +158,6 @@ class WarningTableView(QTableView):
         self.setSortingEnabled(True)
         self.setShowGrid(False)
         self.clicked.connect(self.onClick)
-        delegate = WarningIconDelegate(self)
-        self.setItemDelegateForColumn(COL_ICON, delegate)
         self.adjust_columns()
 
     def adjust_columns(self):
@@ -162,8 +172,7 @@ class WarningTableView(QTableView):
         self.edit_goto.emit(data[COL_LINE])
 
     def getIcon(self, item):
-        original_item = self.sortmodel.mapToSource(item)
-        data = self.model.warnings[original_item.row()]
+        data = self.model.warnings[item.row()]
         return data[COL_ICON]
 
 
