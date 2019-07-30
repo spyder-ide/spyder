@@ -206,18 +206,22 @@ class BaseEditMixin(object):
 
         if not with_html_format:
             paragraphs = text.splitlines()
+            new_paragraphs = []
             for paragraph in paragraphs:
                 # Wrap text
-                paragraph = textwrap.wrap(text, width=max_width)
+                new_paragraph = textwrap.wrap(paragraph, width=max_width)
 
                 # Remove empty lines at the beginning
-                paragraph = [l for l in paragraph if l.strip()]
+                new_paragraph = [l for l in new_paragraph if l.strip()]
 
                 # Merge paragraph text
-                paragraph = '\n'.join(paragraph)
+                new_paragraph = '\n'.join(new_paragraph)
+
+                # Add new paragraph
+                new_paragraphs.append(new_paragraph)
 
             # Join paragraphs and split in lines for max_lines check
-            paragraphs = '\n'.join(paragraphs)
+            paragraphs = '\n'.join(new_paragraphs)
             paragraphs = paragraphs.strip('\r\n')
             lines = paragraphs.splitlines()
 
