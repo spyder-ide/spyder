@@ -469,6 +469,9 @@ class CodeEditor(TextEditBaseWidget):
         # Automatic (on the fly) completions
         self.automatic_completions = True
 
+        # Completions hint
+        self.completions_hint = True
+
         self.close_parentheses_enabled = True
         self.close_quotes_enabled = False
         self.add_colons_enabled = True
@@ -534,18 +537,19 @@ class CodeEditor(TextEditBaseWidget):
         self.previous_text = ''
         self.word_tokens = []
         self.completion_widget.currentRowChanged.connect(
-            self._show_calltip_for_completion)
+            self._show_hint_for_completion)
 
     # --- Helper private methods
     # ------------------------------------------------------------------------
 
-    # --- Calltip in completions
+    # --- Hint in completions
     @Slot(int)
-    def _show_calltip_for_completion(self, currentRow):
-        """Show calltip for completion element."""
+    def _show_hint_for_completion(self, currentRow):
+        """Show hint for completion element."""
         self.hide_tooltip()
         if (self.is_completion_widget_visible()
-                and self.completion_widget.completion_list):
+                and self.completion_widget.completion_list
+                and self.completions_hint):
             completion_element = (
                 self.completion_widget.completion_list[currentRow])
             word = completion_element.get('label', '')
@@ -743,6 +747,7 @@ class CodeEditor(TextEditBaseWidget):
                      strip_mode=False,
                      intelligent_backspace=True,
                      automatic_completions=True,
+                     completions_hint=True,
                      highlight_current_line=True,
                      highlight_current_cell=True,
                      occurrence_highlighting=True,
@@ -831,6 +836,9 @@ class CodeEditor(TextEditBaseWidget):
 
         # Automatic completions
         self.toggle_automatic_completions(automatic_completions)
+
+        # Completions hint
+        self.toggle_completions_hint(completions_hint)
 
         if cloned_from is not None:
             self.set_as_clone(cloned_from)
@@ -1014,7 +1022,7 @@ class CodeEditor(TextEditBaseWidget):
                                          key=lambda x: x['sortText'])
                 self.completion_widget.show_list(
                         completion_list, position, automatic)
-                self._show_calltip_for_completion(0)
+                self._show_hint_for_completion(0)
         except Exception:
             self.log_lsp_handle_errors('Error when processing completions')
 
@@ -1197,6 +1205,10 @@ class CodeEditor(TextEditBaseWidget):
 
     def toggle_automatic_completions(self, state):
         self.automatic_completions = state
+
+    def toggle_completions_hint(self, state):
+        """Enable/disable completion hint."""
+        self.completions_hint = state
 
     def set_close_parentheses_enabled(self, enable):
         """Enable/disable automatic parentheses insertion feature"""
