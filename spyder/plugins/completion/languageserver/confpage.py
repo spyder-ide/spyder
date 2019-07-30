@@ -24,7 +24,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QCheckBox,
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.config.gui import get_font, is_dark_interface
 from spyder.plugins.completion.languageserver import LSP_LANGUAGES
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor

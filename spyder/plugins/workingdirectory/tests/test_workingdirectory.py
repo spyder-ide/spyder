@@ -13,8 +13,7 @@ import os.path as osp
 # Local imports
 from spyder.plugins.workingdirectory.plugin import WorkingDirectory
 from spyder.config.base import get_home_dir
-from spyder.config.main import CONF
-
+from spyder.config.manager import CONF
 
 NEW_DIR = 'new_workingdir'
 

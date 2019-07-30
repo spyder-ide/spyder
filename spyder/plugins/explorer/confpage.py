@@ -7,9 +7,7 @@
 """File explorer configuration page."""
 
 # Third party imports
-from qtpy.QtCore import Qt
-from qtpy.QtWidgets import (QGroupBox, QHBoxLayout, QLabel, QListWidget,
-                            QPushButton, QTabWidget, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import QTabWidget, QVBoxLayout, QWidget
 
 # Local imports
 from spyder.api.preferences import PluginConfigPage

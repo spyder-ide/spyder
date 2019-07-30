@@ -5,9 +5,10 @@
 # (see spyder/__init__.py for details)
 """This module contains the close quotes editor extension."""
 
-from qtpy.QtCore import Qt
+# Third party imports
 from qtpy.QtGui import QTextCursor
 
+# Local imports
 from spyder.api.editorextension import EditorExtension
 
 

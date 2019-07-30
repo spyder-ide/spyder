@@ -40,7 +40,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, sourcecode, syntaxhighlighters
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, MENU_SEPARATOR,
-                                    mimedata2url)
+                                    mimedata2url, set_menu_icons)
 from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.widgets.fileswitcher import FileSwitcher
@@ -55,7 +55,7 @@ from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   ReadWriteStatus, VCSStatus)
 from spyder.plugins.editor.utils.findtasks import find_tasks
 from spyder.widgets.tabs import BaseTabs
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.plugins.explorer.widgets.explorer import (
     show_in_external_file_explorer)
 
@@ -793,6 +793,12 @@ class EditorStack(QWidget):
         else:
             layout.addWidget(self.tabs)
 
+        # Show/hide icons in plugin menus for Mac
+        if sys.platform == 'darwin':
+            self.menu.aboutToHide.connect(
+                lambda menu=self.menu:
+                set_menu_icons(menu, False))
+
     @Slot()
     def update_fname_label(self):
         """Upadte file name label."""
@@ -906,10 +912,13 @@ class EditorStack(QWidget):
         editor = self.get_current_editor()
         editor.sig_display_object_info.connect(self.display_help)
         cursor = None
+        offset = editor.get_position('cursor')
         if pos:
             cursor = editor.get_last_hover_cursor()
+            offset = cursor.position()
         line, col = editor.get_cursor_line_column(cursor)
-        editor.request_hover(line, col, show_hint=False, clicked=bool(pos))
+        editor.request_hover(line, col, offset,
+                             show_hint=False, clicked=bool(pos))
 
     @Slot(str, bool)
     def display_help(self, help_text, clicked):
@@ -1308,7 +1317,6 @@ class EditorStack(QWidget):
             self.tabs.setTabText(index, tab_text)
         self.tabs.setTabToolTip(index, tab_tip)
 
-
     #------ Context menu
     def __setup_menu(self):
         """Setup tab context menu before showing it"""
@@ -1321,6 +1329,8 @@ class EditorStack(QWidget):
         add_actions(self.menu, list(actions) + self.__get_split_actions())
         self.close_action.setEnabled(self.is_closable)
 
+        if sys.platform == 'darwin':
+            set_menu_icons(self.menu, True)
 
     #------ Hor/Ver splitting
     def __get_split_actions(self):
@@ -2680,6 +2690,7 @@ class EditorSplitter(QSplitter):
                         Defaults to plugin.unregister_editorstack() to
                         unregister the EditorStack with the Editor plugin.
         """
+
         QSplitter.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setChildrenCollapsible(False)

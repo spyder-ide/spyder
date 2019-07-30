@@ -20,8 +20,7 @@ import re
 # Third party imports
 from qtpy.QtCore import QEvent, QPoint, Qt
 from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLineEdit, QTableWidget,
-                            QTableWidgetItem, QToolButton, QToolTip,
-                            QWidget)
+                            QTableWidgetItem, QToolButton, QToolTip)
 
 # Local imports
 from spyder.config.base import _

@@ -4,17 +4,10 @@
 # Licensed under the terms of the MIT License
 #
 
-"""
-Testing utilities to be used with pytest.
-"""
+"""Testing utilities to be used with pytest."""
 
 # Standard library imports
 import shutil
-import tempfile
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from mock import Mock # Python 2
 
 # Third party imports
 import pytest
@@ -24,23 +17,25 @@ from spyder.config.main import CONF_VERSION, DEFAULTS
 
 
 @pytest.fixture
-def tmpconfig(request):
-    """
-    Fixtures that returns a temporary CONF element.
-    """
-    SUBFOLDER = tempfile.mkdtemp()
-    CONF = UserConfig('spyder-test',
-                      defaults=DEFAULTS,
-                      version=CONF_VERSION,
-                      subfolder=SUBFOLDER,
-                      raw_mode=True,
-                      )
+def tmpconfig(tmpdir, request):
+    path = str(tmpdir)
+    default_kwargs = {
+        'name': 'spyder-test',
+        'path': path,
+        'defaults': DEFAULTS,
+        'load': True,
+        'version': CONF_VERSION,
+        'backup': True,
+        'raw_mode': True,
+        'remove_obsolete': False,
+    }
+
+    conf = UserConfig(**default_kwargs)
 
     def fin():
-        """
-        Fixture finalizer to delete the temporary CONF element.
-        """
-        shutil.rmtree(SUBFOLDER)
+        """Fixture finalizer to delete the temporary CONF element."""
+        shutil.rmtree(path)
 
     request.addfinalizer(fin)
-    return CONF
+
+    return conf

@@ -6,10 +6,10 @@
 
 """Spyder Language Server Protocol Client document handler routines."""
 
+# Standard library imports
 import logging
-import os.path as osp
 
-from spyder.py3compat import PY2
+# Local imports
 from spyder.plugins.completion.languageserver import (
     LSPRequestTypes, InsertTextFormat, CompletionItemKind,
     ClientConstants)

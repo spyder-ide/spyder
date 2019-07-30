@@ -14,14 +14,12 @@ programming language of that file.
 """
 
 # Standard library imports
-import re
 import logging
 
 # Qt imports
 from qtpy.QtCore import QObject, QThread, QMutex, QMutexLocker, Signal, Slot
 
 # Other imports
-import pygments
 from pygments.lexers import get_lexer_by_name
 from diff_match_patch import diff_match_patch
 

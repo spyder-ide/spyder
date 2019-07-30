@@ -15,7 +15,6 @@ from qtpy.QtGui import QTextCursor
 from qtpy.QtCore import Qt
 
 # Local imports
-from spyder.config.main import CONF
 from spyder.py3compat import to_text_string
 from spyder.api.editorextension import EditorExtension
 import spyder.plugins.editor.extensions.snippets.utils.nodes as nodes

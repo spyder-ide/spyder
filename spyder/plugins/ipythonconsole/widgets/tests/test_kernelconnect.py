@@ -19,7 +19,7 @@ import time
 # Local imports
 from spyder.plugins.ipythonconsole.widgets.kernelconnect import (
     KernelConnectionDialog)
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 
 
 # =============================================================================
