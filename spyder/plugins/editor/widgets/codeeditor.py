@@ -550,7 +550,9 @@ class CodeEditor(TextEditBaseWidget):
                 self.completion_widget.completion_list[currentRow])
             word = completion_element.get('label', '')
             documentation = completion_element.get('documentation', '')
-            at_point = completion_element.get('point', self._last_point)
+            default_point = self._last_point if self._last_point else QPoint(0,
+                                                                             0)
+            at_point = completion_element.get('point', default_point)
             point = QPoint(at_point.x() - 63,
                            at_point.y())
             self.show_hint(documentation, inspect_word=word,
