@@ -39,7 +39,7 @@ from spyder.plugins.variableexplorer.widgets.objecteditor import oedit
 # In fact, this 'CONF' object has nothing to do in package spyder/widgets
 # which should not contain anything directly related to Spyder's main app
 from spyder.config.base import _, get_conf_path, get_debug_level
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 
 
 builtins.oedit = oedit

@@ -27,7 +27,7 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import qApp, QMessageBox
 
 
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.config.base import _, running_under_pytest
 from spyder.py3compat import PY2
 from spyder.utils.external import github

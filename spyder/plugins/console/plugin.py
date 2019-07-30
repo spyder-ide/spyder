@@ -24,7 +24,7 @@ from qtpy.QtWidgets import QInputDialog, QLineEdit, QMenu, QHBoxLayout
 
 # Local imports
 from spyder.config.base import _, DEV, get_debug_level
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.utils import icon_manager as ima
 from spyder.utils.environ import EnvDialog
 from spyder.utils.misc import (get_error_match, remove_backslashes,
@@ -55,7 +55,6 @@ class Console(SpyderPluginWidget):
     def __init__(self, parent=None, namespace=None, commands=[], message=None,
                  exitfunc=None, profile=False, multithreaded=False):
         SpyderPluginWidget.__init__(self, parent)
-
         logger.info("Initializing...")
         self.dialog_manager = DialogManager()
 

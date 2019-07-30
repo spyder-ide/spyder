@@ -25,7 +25,7 @@ from qtpy.QtWidgets import (QItemDelegate, QMenu, QTableView, QHBoxLayout,
 
 # Local imports
 from spyder.config.base import get_translation
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_plugin_layout)
 

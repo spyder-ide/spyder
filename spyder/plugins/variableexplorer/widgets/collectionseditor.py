@@ -21,7 +21,6 @@ Collections (i.e. dictionary, list, set and tuple) editor widget and dialog.
 # Standard library imports
 from __future__ import print_function
 import datetime
-import gc
 import re
 import sys
 import warnings
@@ -1744,7 +1743,7 @@ def remote_editor_test():
     from spyder.utils.qthelpers import qapplication
     app = qapplication()
 
-    from spyder.config.main import CONF
+    from spyder.config.manager import CONF
     from spyder_kernels.utils.nsview import (make_remote_view,
                                              REMOTE_SETTINGS)
 

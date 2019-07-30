@@ -50,7 +50,7 @@ from spyder_kernels.utils.dochelpers import getobj
 from spyder.api.panel import Panel
 from spyder.config.base import _, get_debug_level, running_under_pytest
 from spyder.config.gui import get_shortcut, config_shortcut
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.plugins.editor.api.decoration import TextDecoration
 from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               CloseQuotesExtension,
@@ -1987,7 +1987,6 @@ class CodeEditor(TextEditBaseWidget):
 
     def show_code_analysis_results(self, line_number, block_data):
         """Show warning/error messages."""
-        from spyder.config.base import get_image_path
         # Diagnostic severity
         icons = {
             DiagnosticSeverity.ERROR: 'error',
@@ -3380,19 +3379,8 @@ class CodeEditor(TextEditBaseWidget):
             word_text = to_text_string(cursor.selectedText())
             # Perform completion on the fly
             if self.automatic_completions:
-                if text == '\b' or text == ' ':
-                    offset = 1 + (text == ' ')
-                    if len(word_text) > 0:
-                        prev_char = word_text[-1]
-                    else:
-                        prev_char = self.get_character(
-                            cursor.position() - offset)
-                    if (prev_char.isalpha() or
-                            (prev_char in self.auto_completion_characters)):
-                        self.do_completion(automatic=True)
-                else:
-                    if text.isalpha():
-                        self.do_completion(automatic=True)
+                if text.isalpha():
+                    self.do_completion(automatic=True)
         if not event.modifiers():
             # Accept event to avoid it being handled by the parent
             # Modifiers should be passed to the parent because they
