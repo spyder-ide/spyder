@@ -6,9 +6,12 @@
 """
 This module contains the Bookmarks panel
 """
+
+# Third party imports
 from qtpy.QtCore import QSize, QRect
 from qtpy.QtGui import QPainter, QFontMetrics
 
+# Local imports
 from spyder.utils import icon_manager as ima
 from spyder.api.panel import Panel
 from spyder.config.base import debug_print
@@ -30,8 +33,7 @@ class BookmarksPanel(Panel):
 
         # Diccionary of QIcons to draw in the panel
         self.icons = {'bookmark': ima.icon('bookmark'),
-                      'transparent': ima.icon('bookmark_transparent'),
-                      'multiple': ima.icon('bookmarks')}
+                      'transparent': ima.icon('bookmark_transparent')}
 
     def set_current_line_arrow(self, n):
         self._current_line_arrow = n
@@ -89,7 +91,7 @@ class BookmarksPanel(Panel):
         Add/remove breakpoints by single click.
         """
         line_number = self.editor.get_linenumber_from_mouse_event(event)
-        self.editor.toggle_bookmark(line_number-1)
+        self.editor.toggle_bookmark(line_number)
 
     def mouseMoveEvent(self, event):
         """Override Qt method.
@@ -121,6 +123,8 @@ class BookmarksPanel(Panel):
         Args:
             state (bool): Activate/deactivate.
         """
+        print("Bookmarks panel editor")
+        print(self.editor)
         if state:
             self.editor.sig_bookmarks_changed.connect(self.repaint)
         else:

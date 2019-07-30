@@ -93,6 +93,9 @@ class Editor(SpyderPluginWidget):
     redirect_stdio = Signal(bool)
     open_dir = Signal(str)
     breakpoints_saved = Signal()
+    bookmarks_changed = Signal()
+    delete_all_bookmarks = Signal()
+    delete_bookmark = Signal(str, int, int)
     run_in_current_extconsole = Signal(str, str, str, bool, bool)
     open_file_update = Signal(str)
 
@@ -1272,6 +1275,7 @@ class Editor(SpyderPluginWidget):
         editorstack.refresh_save_all_action.connect(self.refresh_save_all_action)
         editorstack.sig_refresh_eol_chars.connect(self.refresh_eol_chars)
         editorstack.sig_breakpoints_saved.connect(self.breakpoints_saved)
+        editorstack.sig_bookmarks_changed.connect(self.bookmarks_changed)
         editorstack.text_changed_at.connect(self.text_changed_at)
         editorstack.current_file_changed.connect(self.current_file_changed)
         editorstack.plugin_load.connect(self.load)

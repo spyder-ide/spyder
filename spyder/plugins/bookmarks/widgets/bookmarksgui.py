@@ -16,16 +16,18 @@ import os.path as osp
 import sys
 
 # Third party imports
+from qtpy import API
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QModelIndex, Qt, Signal,
                          QSortFilterProxyModel, Slot)
-from qtpy.QtWidgets import (QTableView, QHBoxLayout,
+from qtpy.QtWidgets import (QTableView, QHBoxLayout, QMenu,
                             QVBoxLayout, QWidget, QAbstractItemView,
                             QHeaderView)
 
 # Local imports
 from spyder.config.base import get_translation
-from spyder.utils.qthelpers import create_plugin_layout
+from spyder.utils.qthelpers import (add_actions, create_action,
+                                    create_plugin_layout)
 from spyder.config.manager import CONF
 from spyder.utils.sourcecode import disambiguate_fname
 
@@ -64,7 +66,9 @@ class BookmarkTableModel(QAbstractTableModel):
         filenames = []
         if data:
             for slot_num in list(data.keys()):
-                filenames.append(data[slot_num][0])
+                filename = data[slot_num][0]
+                if filename not in filenames:
+                    filenames.append(filename)
             for slot_num in list(data.keys()):
                 filename = data[slot_num][0]
                 line_number = data[slot_num][1]
@@ -116,6 +120,8 @@ class BookmarkTableModel(QAbstractTableModel):
 
 class BookmarkTableView(QTableView):
     edit_goto = Signal(str, int)
+    delete_bookmark = Signal(str, int, int)
+    delete_all_bookmarks = Signal()
 
     def __init__(self, parent, data):
         QTableView.__init__(self, parent)
@@ -137,7 +143,6 @@ class BookmarkTableView(QTableView):
         self.setSelectionMode(QAbstractItemView.SingleSelection)
         self.setSortingEnabled(True)
         self.setShowGrid(False)
-        self.clicked.connect(self.onClick)
         self.adjust_columns()
 
     def adjust_columns(self):
@@ -145,12 +150,43 @@ class BookmarkTableView(QTableView):
         for col in range(COLUMN_COUNT - 1):
             self.resizeColumnToContents(col)
 
-    def onClick(self, item):
+    def mouseDoubleClickEvent(self, event):
         """Double-click event"""
-        original_item = self.sortmodel.mapToSource(item)
-        data = self.model.bookmarks[original_item.row()]
-        self.edit_goto.emit(data[COL_FULL], data[COL_LINE])
+        if self.model.bookmarks:
+            item_clicked = self.indexAt(event.pos())
+            item_row = self.sortmodel.mapToSource(item_clicked).row()
+            filename = self.model.bookmarks[item_row][COL_FULL]
+            line_number_str = self.model.bookmarks[item_row][COL_LINE]
+            self.edit_goto.emit(filename, int(line_number_str))
 
+    def contextMenuEvent(self, event):
+        index_clicked = self.indexAt(event.pos())
+        actions = []
+        self.popup_menu = QMenu(self)
+        delete_all_bookmarks_action = create_action(self,
+            _("Delete bookmarks in all files"),
+            triggered=lambda: self.delete_all_bookmarks.emit())
+        actions.append(delete_all_bookmarks_action)
+        if self.model.bookmarks:
+            slot = int(self.model.bookmarks[index_clicked.row()][COL_SLOT])
+            filename = self.model.bookmarks[index_clicked.row()][COL_FILE]
+            lineno = int(self.model.bookmarks[index_clicked.row()][COL_LINE])
+            # QAction.triggered works differently for PySide and PyQt
+            if not API == 'pyside':
+                clear_slot = lambda _checked, filename=filename, lineno=lineno, slot=slot: \
+                    self.delete_bookmark.emit(filename, lineno, slot)
+            else:
+                clear_slot = lambda filename=filename, lineno=lineno, slot=slot: \
+                    self.delete_bookmark.emit(filename, lineno, slot)
+
+            clear_bookmark_action = create_action(self,
+                                                  _("Delete this bookmark"),
+                                                  triggered=clear_slot)
+            actions.insert(0, clear_bookmark_action)
+
+        add_actions(self.popup_menu, actions)
+        self.popup_menu.popup(event.globalPos())
+        event.accept()
 
 
 class BookmarkWidget(QWidget):
@@ -159,6 +195,8 @@ class BookmarkWidget(QWidget):
     """
     VERSION = '1.0.0'
     edit_goto = Signal(str, int, str)
+    delete_bookmark = Signal(str, int, int)
+    delete_all_bookmarks = Signal()
 
     def __init__(self, parent, options_button=None):
         QWidget.__init__(self, parent)
@@ -176,6 +214,8 @@ class BookmarkWidget(QWidget):
             layout.addWidget(self.bookmarktable)
         self.setLayout(layout)
         self.bookmarktable.edit_goto.connect(self.edit_goto_handler)
+        self.bookmarktable.delete_all_bookmarks.connect(self.delete_all_bookmarks)
+        self.bookmarktable.delete_bookmark.connect(self.delete_bookmark)
 
     @Slot(str, int)
     def edit_goto_handler(self, filename, line_number):
@@ -186,9 +226,7 @@ class BookmarkWidget(QWidget):
 
     @Slot()
     def set_data(self):
-        print("Set data")
         bookmarks = self._load_all_bookmarks()
-        print(bookmarks)
         self.bookmarktable.model.set_data(bookmarks)
         self.bookmarktable.adjust_columns()
         self.bookmarktable.sortByColumn(COL_FILE, Qt.DescendingOrder)
@@ -199,7 +237,6 @@ class BookmarkWidget(QWidget):
             if not osp.isfile(slots[slot_num][0]):
                 slots.pop(slot_num)
         return slots
-
 
 
 # =============================================================================

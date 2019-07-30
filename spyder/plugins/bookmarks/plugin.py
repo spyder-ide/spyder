@@ -39,12 +39,12 @@ class Bookmarks(SpyderPluginWidget):
         """Initialization."""
         SpyderPluginWidget.__init__(self, parent)
 
-        self.bookmarks = BookmarkWidget(self, options_button=self.options_button)
+        self.bookmarks = BookmarkWidget(self,
+                                        options_button=self.options_button)
 
         layout = QVBoxLayout()
         layout.addWidget(self.bookmarks)
         self.setLayout(layout)
-
 
     # ----- SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
@@ -72,8 +72,9 @@ class Bookmarks(SpyderPluginWidget):
         self.bookmarks.edit_goto.connect(self.main.editor.load)
 
         # Follow bookmark changes
-        self.main.editor.get_current_editor().sig_bookmarks_changed.connect(self.set_data)
-
+        self.main.editor.bookmarks_changed.connect(self.set_data)
+        self.bookmarks.delete_all_bookmarks.connect(self.main.editor.delete_all_bookmarks)
+        self.bookmarks.delete_bookmark.connect(self.main.editor.delete_bookmark)
         self.add_dockwidget()
 
         list_action = create_action(self, _("List bookmarks/errors"),

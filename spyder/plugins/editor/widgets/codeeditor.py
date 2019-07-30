@@ -1647,7 +1647,7 @@ class CodeEditor(TextEditBaseWidget):
         if line is None:
             # Triggered by shortcut, else by spyder start
             line, column = self.get_cursor_line_column()
-        block = self.document().findBlockByNumber(line)
+        block = self.document().findBlockByNumber(line-1)
         data = block.userData()
         if not data:
             data = BlockUserData(self)
@@ -1663,7 +1663,7 @@ class CodeEditor(TextEditBaseWidget):
         for line_number in range(0, self.document().blockCount()):
             data = block.userData()
             if data and data.bookmark:
-                bookmarks[data.bookmark] = line_number
+                bookmarks[data.bookmark] = line_number + 1
             block = block.next()
         return bookmarks
 
@@ -1686,7 +1686,7 @@ class CodeEditor(TextEditBaseWidget):
     # ----- Code bookmarks
     def toggle_bookmark(self, line, slot_num=None):
         """Toggle bookmark to current block's userData."""
-        block = self.document().findBlockByNumber(line)
+        block = self.document().findBlockByNumber(line-1)
         data = block.userData()
         if not data:
             data = BlockUserData(self)
