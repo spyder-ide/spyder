@@ -183,16 +183,25 @@ class CompletionWidget(QListWidget):
         If returns False, the autocompletion should stop.
         """
         self.clear()
-        icons_map = {CompletionItemKind.PROPERTY: 'attribute',
-                     CompletionItemKind.VARIABLE: 'attribute',
+        icons_map = {CompletionItemKind.TEXT: 'text',
                      CompletionItemKind.METHOD: 'method',
                      CompletionItemKind.FUNCTION: 'function',
+                     CompletionItemKind.CONSTRUCTOR: 'constructor',
+                     CompletionItemKind.FIELD: 'field',
+                     CompletionItemKind.VARIABLE: 'variable',
                      CompletionItemKind.CLASS: 'class',
+                     CompletionItemKind.INTERFACE: 'interface',
                      CompletionItemKind.MODULE: 'module',
-                     CompletionItemKind.CONSTRUCTOR: 'method',
-                     CompletionItemKind.REFERENCE: 'attribute',
+                     CompletionItemKind.PROPERTY: 'property',
+                     CompletionItemKind.UNIT: 'unit',
+                     CompletionItemKind.VALUE: 'value',
+                     CompletionItemKind.ENUM: 'enum',
                      CompletionItemKind.KEYWORD: 'keyword',
-                     CompletionItemKind.TEXT: 'text'}
+                     CompletionItemKind.SNIPPET: 'snippet',
+                     CompletionItemKind.COLOR: 'color',
+                     CompletionItemKind.FILE: 'filenew',
+                     CompletionItemKind.REFERENCE: 'reference',
+                     }
 
         height = 15
         width = min(self.width(), 250)
