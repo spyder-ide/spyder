@@ -33,7 +33,7 @@ from spyder.utils.sourcecode import disambiguate_fname
 # This is needed for testing this module as a stand alone script
 try:
     _ = get_translation("breakpoints", "spyder_breakpoints")
-except KeyError as error:
+except KeyError:
     import gettext
     _ = gettext.gettext
 
@@ -43,11 +43,12 @@ COL_FILE, COL_LINE, COL_CONDITION, COL_BLANK, COL_FULL = range(COLUMN_COUNT +
                                                                EXTRA_COLUMNS)
 COLUMN_HEADERS = (_("File"), _("Line"), _("Condition"), (""))
 
+
 class BreakpointTableModel(QAbstractTableModel):
     """
     Table model for breakpoints dictionary
-
     """
+
     def __init__(self, parent, data):
         QAbstractTableModel.__init__(self, parent)
         if data is None:
@@ -59,15 +60,18 @@ class BreakpointTableModel(QAbstractTableModel):
     def set_data(self, data):
         """Set model data"""
         self._data = data
-        keys = list(data.keys())
         self.breakpoints = []
-        for key in keys:
-            bp_list = data[key]
-            if bp_list:
-                for item in data[key]:
-                    # Store full file name in last position, which is not shown
-                    self.breakpoints.append((disambiguate_fname(keys, key),
-                                             item[0], item[1], "", key))
+        files = []
+        # Generate list of filenames with active breakpoints
+        for key in data.keys():
+            if data[key] and key not in files:
+                files.append(key)
+        # Insert items
+        for key in files:
+            for item in data[key]:
+                # Store full file name in last position, which is not shown
+                self.breakpoints.append((disambiguate_fname(files, key),
+                                         item[0], item[1], "", key))
         self.reset()
 
     def rowCount(self, qindex=QModelIndex()):
@@ -162,7 +166,7 @@ class BreakpointTableView(QTableView):
 
     def adjust_columns(self):
         """Resize three first columns to contents"""
-        for col in range(3):
+        for col in range(COLUMN_COUNT-1):
             self.resizeColumnToContents(col)
 
     def mouseDoubleClickEvent(self, event):
