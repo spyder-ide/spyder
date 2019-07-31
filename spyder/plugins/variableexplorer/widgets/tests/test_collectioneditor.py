@@ -48,12 +48,15 @@ LOCATION = path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 # =============================================================================
 # Utility functions
 # =============================================================================
-def data(cm, i, j):
+def data(cm, i, j, sortmodel=None):
+    if sortmodel:
+        return cm.data(sortmodel.mapToSource(sortmodel.index(i, j)))
     return cm.data(cm.index(i, j))
 
 
-def data_table(cm, n_rows, n_cols):
-    return [[data(cm, i, j) for i in range(n_rows)] for j in range(n_cols)]
+def data_table(cm, n_rows, n_cols, sortmodel=None):
+    return [[data(cm, i, j, sortmodel) for i in range(n_rows)]
+            for j in range(n_cols)]
 
 
 # =============================================================================

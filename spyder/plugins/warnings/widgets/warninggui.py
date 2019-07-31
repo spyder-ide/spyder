@@ -17,11 +17,10 @@ import sys
 # Third party imports
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QModelIndex, Qt, Signal,
-                         QSortFilterProxyModel, Slot, QSize)
+                         QSortFilterProxyModel, Slot)
 from qtpy.QtWidgets import (QTableView, QHBoxLayout,
                             QVBoxLayout, QWidget, QAbstractItemView,
                             QHeaderView)
-from qtpy.QtGui import QFontMetrics
 
 # Local imports
 from spyder.config.base import get_translation
@@ -37,8 +36,10 @@ except KeyError:
     _ = gettext.gettext
 
 COLUMN_COUNT = 5
-COL_ICON, COL_CODE, COL_LINE, COL_COMMENT, COL_SOURCE = range(COLUMN_COUNT)
-COLUMN_HEADERS = ("", _("Code"), _("Line"), _("Comment"), _("Source"))
+EXTRA_COLUMNS = 1
+COL_CODE, COL_LINE, COL_COMMENT, COL_SOURCE, COL_BLANK, COL_SEVERITY = range(
+        COLUMN_COUNT + EXTRA_COLUMNS)
+COLUMN_HEADERS = (_("Code"), _("Line"), _("Comment"), _("Source"), "")
 
 
 class WarningTableModel(QAbstractTableModel):
@@ -71,8 +72,8 @@ class WarningTableModel(QAbstractTableModel):
         self.warnings = []
         if data:
             for item in data:
-                self.warnings.append((item[2], item[1], item[4], item[3],
-                                      item[0]))
+                self.warnings.append((item[1], item[4], item[3],
+                                      item[0], "", item[2]))
         self.reset()
 
     def rowCount(self, qindex=QModelIndex()):
@@ -102,28 +103,18 @@ class WarningTableModel(QAbstractTableModel):
         if not index.isValid():
             return to_qvariant()
         if role == Qt.DisplayRole:
-            if index.column() == COL_ICON:
-                return to_qvariant()
             value = self.get_value(index)
             return to_qvariant(value)
         elif role == Qt.TextAlignmentRole:
             if index.column() == COL_LINE:
                 # Align line number right
                 return to_qvariant(int(Qt.AlignRight | Qt.AlignVCenter))
-            elif index.column() == COL_ICON:
-                return to_qvariant(int(Qt.AlignCenter))
             else:
                 return to_qvariant(int(Qt.AlignLeft | Qt.AlignVCenter))
-        elif role == Qt.SizeHintRole:
-            if index.column() == COL_ICON:
-                fm = QFontMetrics(self.parent.font())
-                size = min(16, round(0.8*fm.height()))
-                return to_qvariant(QSize(size, size))
-            else:
-                return to_qvariant()
         elif role == Qt.DecorationRole:
-            if index.column() == COL_ICON:
-                severity = self.warnings[index.row()][COL_ICON]
+            # Add icon in front of code
+            if index.column() == COL_CODE:
+                severity = self.warnings[index.row()][COL_SEVERITY]
                 icon = self.icons[severity]
                 return to_qvariant(icon)
             else:
@@ -156,6 +147,7 @@ class WarningTableView(QTableView):
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.setSelectionMode(QAbstractItemView.SingleSelection)
         self.setSortingEnabled(True)
+        self.sortByColumn(COL_LINE, Qt.AscendingOrder)
         self.setShowGrid(False)
         self.clicked.connect(self.onClick)
         self.adjust_columns()
@@ -170,10 +162,6 @@ class WarningTableView(QTableView):
         original_item = self.sortmodel.mapToSource(item)
         data = self.model.warnings[original_item.row()]
         self.edit_goto.emit(data[COL_LINE])
-
-    def getIcon(self, item):
-        data = self.model.warnings[item.row()]
-        return data[COL_ICON]
 
 
 class WarningWidget(QWidget):

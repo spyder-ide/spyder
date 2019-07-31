@@ -32,9 +32,9 @@ except KeyError:
     import gettext
     _ = gettext.gettext
 
-COLUMN_COUNT = 3
-COL_TYPE, COL_LINE, COL_COMMENT = range(COLUMN_COUNT)
-COLUMN_HEADERS = (_("Type"), _("Line"), _("Comment"))
+COLUMN_COUNT = 4
+COL_TYPE, COL_LINE, COL_COMMENT, COL_BLANK = range(COLUMN_COUNT)
+COLUMN_HEADERS = (_("Type"), _("Line"), _("Comment"), "")
 
 
 class TodoTableModel(QAbstractTableModel):
@@ -56,7 +56,7 @@ class TodoTableModel(QAbstractTableModel):
         self._data = data
         self.todos = []
         for item in data:
-            self.todos.append((item[2], item[1], item[0]))
+            self.todos.append((item[2], item[1], item[0], ""))
         self.reset()
 
     def rowCount(self, qindex=QModelIndex()):
@@ -65,7 +65,7 @@ class TodoTableModel(QAbstractTableModel):
 
     def columnCount(self, qindex=QModelIndex()):
         """Array column count"""
-        return 3
+        return COLUMN_COUNT
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Overriding method headerData"""
@@ -122,6 +122,7 @@ class TodoTableView(QTableView):
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.setSelectionMode(QAbstractItemView.SingleSelection)
         self.setSortingEnabled(True)
+        self.sortByColumn(COL_LINE, Qt.AscendingOrder)
         self.setShowGrid(False)
         self.clicked.connect(self.onClick)
 
