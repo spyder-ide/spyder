@@ -158,7 +158,7 @@ class NamespaceBrowser(QWidget):
 
         # Fuzzy search layout
         finder_layout = QHBoxLayout()
-        close_button = create_toolbutton(self, triggered=self.search,
+        close_button = create_toolbutton(self, triggered=self.show_finder,
                                          icon=ima.icon('DialogCloseButton'))
         text_finder = NamespacesBrowserFinder(self.editor,
                                               callback=self.editor.set_regex,
@@ -169,6 +169,7 @@ class NamespaceBrowser(QWidget):
         finder_layout.addWidget(text_finder)
         finder_layout.setContentsMargins(0, 0, 0, 0)
         self.finder = QWidget(self)
+        self.finder.text_finder = text_finder
         self.finder.setLayout(finder_layout)
         self.finder.setVisible(False)
 
@@ -207,8 +208,8 @@ class NamespaceBrowser(QWidget):
         self.search_button = create_toolbutton(
             self, text=_("Search variable names and types"),
             icon=ima.icon('find'),
-            triggered=self.search)
-        config_shortcut(self.search, context='variable_explorer',
+            toggled=self.show_finder)
+        config_shortcut(self.show_finder, context='variable_explorer',
                         name='search', parent=self)
 
         return [load_button, self.save_button, save_as_button,
@@ -288,15 +289,16 @@ class NamespaceBrowser(QWidget):
             settings[name] = getattr(self, name)
         return settings
 
-    def search(self):
+    def show_finder(self, state=None):
         """Handle showing/hiding search widget."""
-        self.editor.finder.setText('')
-        state = not self.finder.isVisible()
+        self.finder.text_finder.setText('')
+        if state is None:
+            state = not self.finder.isVisible()
         self.finder.setVisible(state)
         self.search_button.setChecked(state)
 
         if self.finder.isVisible():
-            self.editor.finder.setFocus()
+            self.finder.text_finder.setFocus()
         else:
             self.editor.setFocus()
 
@@ -454,7 +456,7 @@ class NamespacesBrowserFinder(FinderLineEdit):
         elif key in [Qt.Key_Down]:
             self._parent.next_row()
         elif key in [Qt.Key_Escape]:
-            self._parent.parent().search()
+            self._parent.parent().show_finder(state=False)
         elif key in [Qt.Key_Enter, Qt.Key_Return]:
             # TODO: Check if an editor needs to be shown
             pass
