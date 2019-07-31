@@ -92,6 +92,14 @@ class DebuggerManager(Manager):
         elif not edit_condition:
             data.breakpoint = not data.breakpoint
             data.breakpoint_condition = None
+        if data.breakpoint or edit_condition:
+            text = to_text_string(block.text()).strip()
+            if len(text) == 0 or text.startswith(('#', '"', "'")):
+                # Cannot add a breakpoint on a non-code line
+                data.breakpoint = False
+                data.breakpoint_condition = None
+                block.setUserData(data)
+                return
         if condition is not None:
             data.breakpoint_condition = condition
         if edit_condition:
@@ -105,10 +113,6 @@ class DebuggerManager(Manager):
                 return
             data.breakpoint = True
             data.breakpoint_condition = str(condition) if condition else None
-        if data.breakpoint:
-            text = to_text_string(block.text()).strip()
-            if len(text) == 0 or text.startswith(('#', '"', "'")):
-                data.breakpoint = False
         block.setUserData(data)
         self.editor.sig_flags_changed.emit()
         self.editor.sig_breakpoints_changed.emit()

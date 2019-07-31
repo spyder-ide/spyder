@@ -27,6 +27,7 @@ class DebuggerPanel(Panel):
         self.scrollable = True
 
         self.line_number_hint = None
+        self.line_number_hint_shift = None
         self._current_line_arrow = None
         self.stop = False
 
@@ -34,6 +35,7 @@ class DebuggerPanel(Panel):
         self.icons = {'breakpoint': ima.icon('breakpoint_big'),
                       'transparent': ima.icon('breakpoint_transparent'),
                       'condition': ima.icon('breakpoint_cond_big'),
+                      'condition_trans': ima.icon('breakpoint_cond_trans'),
                       'arrow': ima.icon('arrow_debugger')}
 
     def set_current_line_arrow(self, n):
@@ -90,7 +92,11 @@ class DebuggerPanel(Panel):
 
         for top, line_number, block in self.editor.visible_blocks:
             if self.line_number_hint == line_number:
-                self._draw_breakpoint_icon(top, painter, 'transparent')
+                if self.line_number_hint_shift:
+                    self._draw_breakpoint_icon(top, painter, 'condition_trans')
+                else:
+                    self._draw_breakpoint_icon(top, painter, 'transparent')
+
             if self._current_line_arrow == line_number and not self.stop:
                 self._draw_breakpoint_icon(top, painter, 'arrow')
 
@@ -120,6 +126,7 @@ class DebuggerPanel(Panel):
         """
         self.line_number_hint = self.editor.get_linenumber_from_mouse_event(
             event)
+        self.line_number_hint_shift = event.modifiers() & Qt.ShiftModifier
         self.update()
 
     def leaveEvent(self, event):
@@ -128,6 +135,7 @@ class DebuggerPanel(Panel):
         Remove semitransparent breakpoint hint
         """
         self.line_number_hint = None
+        self.line_number_hint_shift = None
         self.update()
 
     def wheelEvent(self, event):
