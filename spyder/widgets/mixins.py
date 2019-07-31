@@ -205,14 +205,16 @@ class BaseEditMixin(object):
             text = text.strip()
 
         if not with_html_format:
-            # All the replacement are need to properly divide the
+            # All these replacements are need to properly divide the
             # text in actual paragraphs and wrap the text on each one
-            paragraphs = (text.replace("\n\n", "<!DOUBLE_ENTER!>")
+            paragraphs = (text
+                          .replace("\n\n", "<!DOUBLE_ENTER!>")
                           .replace(".\n", ".<!SINGLE_ENTER!>")
                           .replace("\n-", "<!SINGLE_ENTER!>-")
                           .replace("-\n", "-<!SINGLE_ENTER!>")
                           .replace("\n ", "<!SINGLE_ENTER!> ")
-                          .replace("\n", "")
+                          .replace(" \n", " <!SINGLE_ENTER!>")
+                          .replace("\n", " ")
                           .replace("<!DOUBLE_ENTER!>", "\n\n")
                           .replace("<!SINGLE_ENTER!>", "\n").splitlines())
             new_paragraphs = []
@@ -490,7 +492,7 @@ class BaseEditMixin(object):
         point = self._calculate_position()
 
         language = getattr(self, 'language', language).lower()
-        if language == 'python':
+        if language == 'python' and signature.strip():
             # Check if documentation is better than signature, sometimes
             # signature has \n stripped for functions like print, type etc
             check_doc = ' '
@@ -504,7 +506,8 @@ class BaseEditMixin(object):
         # Remove duplicate signature inside documentation
         if documentation:
             documentation = documentation.replace('\\*', '*')
-            documentation = documentation.replace(signature + '\n', '')
+            if signature.strip():
+                documentation = documentation.replace(signature + '\n', '')
 
         # Format
         res = self._check_signature_and_format(signature, parameter,
