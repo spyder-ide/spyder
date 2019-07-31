@@ -162,7 +162,7 @@ class BaseEditMixin(object):
         | Link or shortcut with `inspect_word` |
         ----------------------------------------
         """
-        BASE_TEMPLATE = '''
+        BASE_TEMPLATE = u'''
             <div style=\'font-family: "{font_family}";
                         font-size: {size}pt;
                         color: {color}\'>

@@ -553,7 +553,8 @@ class CodeEditor(TextEditBaseWidget):
             completion_element = (
                 self.completion_widget.completion_list[currentRow])
             word = completion_element.get('label', '')
-            documentation = completion_element.get('documentation', '')
+            documentation = to_text_string(
+                completion_element.get('documentation', ''))
             default_point = self._last_point if self._last_point else QPoint(0,
                                                                              0)
             at_point = completion_element.get('point', default_point)
@@ -1022,6 +1023,7 @@ class CodeEditor(TextEditBaseWidget):
                                          key=lambda x: x['sortText'])
                 self.completion_widget.show_list(
                         completion_list, position, automatic)
+                # Show hint for first completion element
                 self._show_hint_for_completion(0)
         except Exception:
             self.log_lsp_handle_errors('Error when processing completions')
