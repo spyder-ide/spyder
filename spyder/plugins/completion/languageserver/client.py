@@ -301,10 +301,12 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                     logger.debug('{} Response error: {}'
                                  .format(self.language, repr(resp['error'])))
                     if self.language == 'python':
+                        message = resp['error'].get('message', '')
                         traceback = (resp['error'].get('data', {}).
                                      get('traceback'))
-                        if traceback:
+                        if traceback is not None:
                             traceback = ''.join(traceback)
+                            traceback = traceback + '\n' + message
                             self.sig_server_error.emit(traceback)
                 elif 'method' in resp:
                     if resp['method'][0] != '$':
