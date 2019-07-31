@@ -41,15 +41,15 @@ def save_bookmarks(filename, bookmarks):
         return
     slots = load_bookmarks_without_file(filename)
     for slot_num, content in bookmarks.items():
-        slots[slot_num] = [filename, content]
+        slots[slot_num] = [filename, content[0], content[1]]
     CONF.set('editor', 'bookmarks', slots)
 
 
 def get_free_bookmark_slot():
     """Get the lowest available bookmark slot."""
-    # Limited to 99 bookmarks with current implementation
     bookmarks = _load_all_bookmarks()
-    return min(set(range(1, 100)) - set(bookmarks.keys()))
+    used = bookmarks.keys()
+    return min(set(range(1, len(used) + 2)) - set(bookmarks.keys()))
 
 
 def load_filenames_with_bookmarks():

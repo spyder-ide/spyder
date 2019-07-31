@@ -188,6 +188,7 @@ DEFAULTS = [
               'realtime_analysis/timeout': 2500,
               'outline_explorer': True,
               'line_numbers': True,
+              'bookmarks_panel_enabled': True,
               'blank_spaces': False,
               'edge_line': True,
               'edge_line_columns': '79',

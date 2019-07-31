@@ -1196,6 +1196,13 @@ class EditorStack(QWidget):
         """If `state` is ``True``, code cells will be copied to the console."""
         self.run_cell_copy = state
 
+    def set_bookmarks_panel_enabled(self, state):
+        # CONF.get(self.CONF_SECTION, 'bookmarks_panel_enabled')
+        self.bookmarks_panel_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_bookmarks_panel(state)
+
     #------ Stacked widget management
     def get_stack_index(self):
         return self.tabs.currentIndex()

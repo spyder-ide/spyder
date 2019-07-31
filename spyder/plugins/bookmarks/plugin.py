@@ -69,7 +69,7 @@ class Bookmarks(SpyderPluginWidget):
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.bookmarks.edit_goto.connect(self.main.editor.load)
+        self.bookmarks.load_bookmark.connect(self.main.editor.load_bookmark)
 
         # Follow bookmark changes
         self.main.editor.bookmarks_changed.connect(self.set_data)

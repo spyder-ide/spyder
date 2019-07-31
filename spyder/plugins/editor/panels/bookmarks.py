@@ -18,7 +18,7 @@ from spyder.config.base import debug_print
 
 
 class BookmarksPanel(Panel):
-    """Bookmarks panel for show information about the debugging in process."""
+    """Bookmarks panel."""
 
     def __init__(self):
         """Initialize panel."""
@@ -53,7 +53,7 @@ class BookmarksPanel(Panel):
         """Draw the given bookmark pixmap.
 
         Args:
-            top (int): top of the line to draw the breakpoint icon.
+            top (int): top of the line to draw the bookmark icon.
             painter (QPainter)
             icon_name (srt): key of icon to draw (see: self.icons)
         """
@@ -69,7 +69,7 @@ class BookmarksPanel(Panel):
     def paintEvent(self, event):
         """Override Qt method.
 
-        Paint breakpoints icons.
+        Paint bookmark icons.
         """
         super(BookmarksPanel, self).paintEvent(event)
         painter = QPainter(self)
@@ -88,10 +88,15 @@ class BookmarksPanel(Panel):
     def mousePressEvent(self, event):
         """Override Qt method
 
-        Add/remove breakpoints by single click.
+        Add/remove bookmarks by single click.
         """
         line_number = self.editor.get_linenumber_from_mouse_event(event)
-        self.editor.toggle_bookmark(line_number)
+        cursor = self.editor.textCursor()
+        if line_number == cursor.blockNumber() + 1:
+            column_number = cursor.columnNumber() + 1
+        else:
+            column_number = 1
+        self.editor.toggle_bookmark(line_number, column=column_number)
 
     def mouseMoveEvent(self, event):
         """Override Qt method.
@@ -105,7 +110,7 @@ class BookmarksPanel(Panel):
     def leaveEvent(self, event):
         """Override Qt method.
 
-        Remove semitransparent breakpoint hint
+        Remove semitransparent bookmark hint
         """
         self.line_number_hint = None
         self.update()
@@ -123,8 +128,6 @@ class BookmarksPanel(Panel):
         Args:
             state (bool): Activate/deactivate.
         """
-        print("Bookmarks panel editor")
-        print(self.editor)
         if state:
             self.editor.sig_bookmarks_changed.connect(self.repaint)
         else:

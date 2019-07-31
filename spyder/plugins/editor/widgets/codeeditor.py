@@ -1642,17 +1642,20 @@ class CodeEditor(TextEditBaseWidget):
         self.setTextCursor(cursor)
 
     # ----- Code bookmarks
-    def add_bookmark(self, slot_num, line=None):
+    def add_bookmark(self, slot_num, line=None, column=None):
         """Add bookmark to current block's userData."""
         if line is None:
             # Triggered by shortcut, else by spyder start
             line, column = self.get_cursor_line_column()
-        block = self.document().findBlockByNumber(line-1)
+            block = self.document().findBlockByNumber(line)
+        else:
+            block = self.document().findBlockByNumber(line-1)
+
         data = block.userData()
         if not data:
             data = BlockUserData(self)
-        if not slot_num == data.bookmark:
-            data.bookmark = slot_num
+        if [slot_num, column] != data.bookmark:
+            data.bookmark = [slot_num, column]
             block.setUserData(data)
             self.update_bookmarks()
 
@@ -1663,7 +1666,8 @@ class CodeEditor(TextEditBaseWidget):
         for line_number in range(0, self.document().blockCount()):
             data = block.userData()
             if data and data.bookmark:
-                bookmarks[data.bookmark] = line_number + 1
+                bookmarks[data.bookmark[0]] = [line_number + 1,
+                                               data.bookmark[1]]
             block = block.next()
         return bookmarks
 
@@ -1677,14 +1681,13 @@ class CodeEditor(TextEditBaseWidget):
         """Set bookmarks when opening file."""
         self.clear_bookmarks()
         for slot_num, bookmark in bookmarks.items():
-            self.add_bookmark(slot_num, bookmark[1])
+            self.add_bookmark(slot_num, bookmark[1], bookmark[2])
 
     def update_bookmarks(self):
         """Emit signal to update bookmarks."""
         self.sig_bookmarks_changed.emit()
 
-    # ----- Code bookmarks
-    def toggle_bookmark(self, line, slot_num=None):
+    def toggle_bookmark(self, line, slot_num=None, column=None):
         """Toggle bookmark to current block's userData."""
         block = self.document().findBlockByNumber(line-1)
         data = block.userData()
@@ -1700,8 +1703,11 @@ class CodeEditor(TextEditBaseWidget):
         if not slot_num:
             slot_num = get_free_bookmark_slot()
 
+        if column is None:
+            column = 1
+            
         # Assign bookmark to slot
-        self.add_bookmark(slot_num, line)
+        self.add_bookmark(slot_num, line, column )
 
     #-----Code introspection
     def show_object_info(self, position):

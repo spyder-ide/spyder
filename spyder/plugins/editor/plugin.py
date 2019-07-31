@@ -95,7 +95,7 @@ class Editor(SpyderPluginWidget):
     breakpoints_saved = Signal()
     bookmarks_changed = Signal()
     delete_all_bookmarks = Signal()
-    delete_bookmark = Signal(str, int, int)
+    delete_bookmark = Signal(int)
     run_in_current_extconsole = Signal(str, str, str, bool, bool)
     open_file_update = Signal(str)
 
@@ -1220,6 +1220,7 @@ class Editor(SpyderPluginWidget):
             ('set_always_remove_trailing_spaces',   'always_remove_trailing_spaces'),
             ('set_convert_eol_on_save',             'convert_eol_on_save'),
             ('set_convert_eol_on_save_to',          'convert_eol_on_save_to'),
+            ('set_bookmarks_panel_enabled',         'bookmarks_panel_enabled'),
                     )
         for method, setting in settings:
             getattr(editorstack, method)(self.get_option(setting))
@@ -1763,6 +1764,7 @@ class Editor(SpyderPluginWidget):
 
     @Slot()
     @Slot(str)
+    @Slot(str, int)
     @Slot(str, int, str)
     @Slot(str, int, str, object)
     def load(self, filenames=None, goto=None, word='',
@@ -2463,8 +2465,9 @@ class Editor(SpyderPluginWidget):
                 index = editorstack.has_filename(filename)
                 if index is not None:
                     block = (editorstack.tabs.widget(index).document()
-                             .findBlockByNumber(line_num))
-                    block.userData().bookmarks.remove((slot_num, column))
+                             .findBlockByNumber(line_num-1))
+                    if block.userData() is not None:
+                        block.userData().bookmark = None
         if editorstack is not None:
             self.switch_to_plugin()
             editorstack.set_bookmark(slot_num)
@@ -2486,10 +2489,10 @@ class Editor(SpyderPluginWidget):
             linelength = len(editor.document()
                              .findBlockByNumber(line_num).text())
             if column <= linelength:
-                editor.go_to_line(line_num + 1, column)
+                editor.go_to_line(line_num, column - 1)
             else:
                 # Last column
-                editor.go_to_line(line_num + 1, linelength)
+                editor.go_to_line(line_num, linelength)
 
     #------ Zoom in/out/reset
     def zoom(self, factor):
@@ -2592,6 +2595,8 @@ class Editor(SpyderPluginWidget):
             help_o = CONF.get('help', 'connect/editor')
             todo_n = 'todo_list'
             todo_o = self.get_option(todo_n)
+            bookmarks_panel_n = 'bookmarks_panel_enabled'
+            bookmarks_panel_o = self.get_option(bookmarks_panel_n)
 
             finfo = self.get_current_finfo()
 
@@ -2642,6 +2647,8 @@ class Editor(SpyderPluginWidget):
                 if todo_n in options:
                     editorstack.set_todolist_enabled(todo_o,
                                                      current_finfo=finfo)
+                if bookmarks_panel_n in options:
+                    editorstack.set_bookmarks_panel_enabled(bookmarks_panel_o)
 
             for name, action in self.checkable_actions.items():
                 if name in options:

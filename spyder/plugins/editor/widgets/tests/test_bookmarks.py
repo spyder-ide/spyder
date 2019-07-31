@@ -41,7 +41,7 @@ def editor_assert_helper(editor, block=None, bm=None, emits=True):
         emits (bool): Boolean to test if signals were emitted?
     """
     data = block.userData()
-    assert data.bookmarks == bm
+    assert data.bookmark == bm
     if emits:
         editor.sig_bookmarks_changed.emit.assert_called_with()
     else:
@@ -84,9 +84,9 @@ def test_add_bookmark(code_editor_bookmarks):
     # Test with default call to slot 1 on text line containing code.
     reset_emits(editor)
     editor.add_bookmark(1)
-    editor_assert_helper(editor, block, bm=[(1, 0)], emits=True)
+    editor_assert_helper(editor, block, bm=[1, 0], emits=True)
 
-    # Test on indented line and add multiple bookmarks.
+    # Test on indented line and add overwrite old bookmark.
     reset_emits(editor)
     editor.go_to_line(4)
     block = editor.textCursor().block()
@@ -95,7 +95,7 @@ def test_add_bookmark(code_editor_bookmarks):
     cursor.movePosition(QTextCursor.Right, n=2)
     editor.setTextCursor(cursor)
     editor.add_bookmark(2)
-    editor_assert_helper(editor, block, bm=[(1, 0), (2, 2)], emits=True)
+    editor_assert_helper(editor, block, bm=[2, 2], emits=True)
 
 
 def test_get_bookmarks(code_editor_bookmarks):
@@ -117,9 +117,9 @@ def test_clear_bookmarks(code_editor_bookmarks):
 
     assert len(list(editor.blockuserdata_list())) == 1
 
-    bm = {1: ('filename', 1, 0), 2: ('filename', 3, 5)}
+    bm = {1: ('filename', 2, 0), 2: ('filename', 3, 5)}
     editor.set_bookmarks(bm)
-    assert editor.get_bookmarks() == {1: [1, 0], 2: [3, 5]}
+    assert editor.get_bookmarks() == {1: [2, 0], 2: [3, 5]}
     assert len(list(editor.blockuserdata_list())) == 3
 
     editor.clear_bookmarks()
@@ -128,7 +128,7 @@ def test_clear_bookmarks(code_editor_bookmarks):
     # list, the __del__ funcion isn't called.
     assert len(list(editor.blockuserdata_list())) == 3
     for data in editor.blockuserdata_list():
-        assert not data.bookmarks
+        assert not data.bookmark
 
 
 def test_update_bookmarks(code_editor_bookmarks):
@@ -157,8 +157,8 @@ def test_save_bookmark(editor_plugin_open_files):
 
     # Basic functionality: save a bookmark and check if it's there
     editor.save_bookmark(1)
-    bookmarks = edtr.document().findBlockByNumber(0).userData().bookmarks
-    assert bookmarks == [(1, 0)]
+    bookmarks = edtr.document().findBlockByNumber(0).userData().bookmark
+    assert bookmarks == [1, 0]
 
     # Move the cursor and reset the same bookmark
     cursor.movePosition(QTextCursor.Down, n=1)
@@ -167,12 +167,12 @@ def test_save_bookmark(editor_plugin_open_files):
     editor.save_bookmark(1)
 
     # Check if bookmark is there
-    bookmarks = edtr.document().findBlockByNumber(1).userData().bookmarks
-    assert bookmarks == [(1, 2)]
+    bookmarks = edtr.document().findBlockByNumber(1).userData().bookmark
+    assert bookmarks == [1, 2]
 
     # Check if bookmark was removed from previous block
-    bookmarks = edtr.document().findBlockByNumber(0).userData().bookmarks
-    assert bookmarks == []
+    bookmarks = edtr.document().findBlockByNumber(0).userData().bookmark
+    assert bookmarks == None
 
 
 def test_load_bookmark(editor_plugin_open_files):

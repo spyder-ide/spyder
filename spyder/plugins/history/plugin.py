@@ -186,7 +186,8 @@ class HistoryLog(SpyderPluginWidget):
             language = 'bat'
         editor.setup_editor(linenumbers=self.get_option('line_numbers'),
                             language=language,
-                            scrollflagarea=False)
+                            scrollflagarea=False,
+                            bookmarks=False)
         editor.focus_changed.connect(lambda: self.focus_changed.emit())
         editor.setReadOnly(True)
         color_scheme = self.get_color_scheme()
