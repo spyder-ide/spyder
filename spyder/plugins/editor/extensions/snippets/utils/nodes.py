@@ -10,6 +10,19 @@ import re
 
 BACKSLASH_REPLACE_REGEX = re.compile(r'(\\)([^\\\s])')
 
+# ------------------------ Misc functions -------------------------------------
+
+
+def _compute_offset_str(offset, value):
+    line, col = offset
+    if value == '\n':
+        line += 1
+        col = 0
+    else:
+        col += len(value)
+    return (line, col)
+
+
 # ------------------------ ASTNode identifiers --------------------------------
 
 
@@ -49,12 +62,16 @@ class ASTNode:
     # Status: Required
     KIND = None
 
-    def __init__(self, position=(0, 0)):
+    def __init__(self, position=((0, 0), (0, 0))):
         self.position = position
 
     def update_position(self, position):
         """Updates node text position."""
         self.position = position
+
+    def compute_position(self, offset):
+        """Given a (line, col) position, compute actual node position."""
+        return offset
 
     def update(self, value):
         """
@@ -94,13 +111,20 @@ class TextNode(ASTNode):
         """Adds a token to the text sequence."""
         self.tokens.append(token)
 
+    def compute_position(self, offset):
+        current_offset = offset
+        for token in self.tokens:
+            current_offset = token.compute_position(current_offset)
+        self.position = (offset, current_offset)
+        return current_offset
+
     def text(self):
         return ''.join([token.text() for token in self.tokens])
 
     def accept(self, visitor):
         visitor.visit(self)
         for token in self.tokens:
-            visitor.visit(token)
+            token.accept(visitor)
 
 
 class LeafNode(ASTNode):
@@ -112,6 +136,11 @@ class LeafNode(ASTNode):
         ASTNode.__init__(self)
         self.name = name
         self.value = value
+
+    def compute_position(self, offset):
+        new_offset = _compute_offset_str(offset, self.value)
+        self.position = (offset, new_offset)
+        return new_offset
 
     def text(self):
         text = BACKSLASH_REPLACE_REGEX.sub(r'\2', self.value)
@@ -163,7 +192,7 @@ class TabstopSnippetNode(SnippetASTNode):
     """
 
     KIND = SnippetKind.TABSTOP
-    DEFAULT_PLACEHOLDER = ''
+    DEFAULT_PLACEHOLDER = LeafNode()
 
     def __init__(self, number, placeholder=None):
         SnippetASTNode.__init__(self)
@@ -171,11 +200,23 @@ class TabstopSnippetNode(SnippetASTNode):
         self.placeholder = (placeholder if placeholder is not None else
                             self.DEFAULT_PLACEHOLDER)
 
+    def compute_position(self, offset):
+        if isinstance(self.placeholder, ASTNode):
+            end_position = self.placeholder.compute_position(offset)
+        elif isinstance(self.placeholder, str):
+            end_position = _compute_offset_str(offset, self.placeholder)
+        self.position = (offset, end_position)
+        return end_position
+
     def update(self, new_placeholder):
         self.placeholder = new_placeholder
 
     def text(self):
-        return self.placeholder
+        return self.placeholder.text()
+
+    def accept(self, visitor):
+        visitor.visit(self)
+        self.placeholder.accept(visitor)
 
 
 class PlaceholderNode(TabstopSnippetNode):
@@ -212,10 +253,10 @@ class ChoiceNode(TabstopSnippetNode):
 
     KIND = SnippetKind.CHOICE
 
-    def __init__(self, number, choices):
+    def __init__(self, number, *choices):
         TabstopSnippetNode.__init__(self, number, choices[0])
         self.current_choice = choices[0]
-        self.choices = []
+        self.choices = choices
 
     def update(self, choice):
         if choice not in self.choices:

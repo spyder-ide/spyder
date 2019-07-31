@@ -83,7 +83,7 @@ IGNORE_TERMINALS = {
     'INTSNIPPET': {'left_curly', 'right_curly'},
     'VARSNIPPET': {'right_curly'},
     'COLONBODY': {'colon', 'right_curly'},
-    'PIPEBODY': {'pipe', 'right_curly'},
+    'PIPEBODY': {'pipe', 'right_curly', 'comma'},
     'REGEXBODY': {'slash', 'right_curly'},
     'FORMATEXPR': {'dollar'},
     'FORMATBODY': {'left_curly', 'right_curly'},

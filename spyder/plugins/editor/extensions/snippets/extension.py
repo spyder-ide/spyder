@@ -28,7 +28,9 @@ class SnippetSearcherVisitor:
         self.column = column
         self.line_offset = 0
         self.column_offset = 0
+        self.node_number = 0
         self.snippet_map = {}
+        self.position_map = {}
 
     def visit(self, node):
         if isinstance(node, nodes.TabstopSnippetNode):
@@ -37,7 +39,8 @@ class SnippetSearcherVisitor:
             number_snippets = self.snippet_map.get(snippet_number, [])
             number_snippets.append(node)
             self.snippet_map[snippet_number] = number_snippets
-
+        self.position_map[self.node_number] = (node.position, node)
+        self.node_number += 1
 
 
 class SnippetsExtension(EditorExtension):
@@ -85,7 +88,9 @@ class SnippetsExtension(EditorExtension):
         line, column = self.editor.get_cursor_line_column()
         visitor = SnippetSearcherVisitor(line, column)
         ast = build_snippet_ast(text)
+        ast.compute_position((line, column))
         ast.accept(visitor)
+        print(visitor.position_map)
         if len(visitor.snippet_map) > 0:
             # Completion contains snippets
             pass
