@@ -205,7 +205,16 @@ class BaseEditMixin(object):
             text = text.strip()
 
         if not with_html_format:
-            paragraphs = text.splitlines()
+            # All the replacement are need to properly divide the
+            # text in actual paragraphs and wrap the text on each one
+            paragraphs = (text.replace("\n\n", "<!DOUBLE_ENTER!>")
+                          .replace(".\n", ".<!SINGLE_ENTER!>")
+                          .replace("\n-", "<!SINGLE_ENTER!>-")
+                          .replace("-\n", "-<!SINGLE_ENTER!>")
+                          .replace("\n ", "<!SINGLE_ENTER!> ")
+                          .replace("\n", "")
+                          .replace("<!DOUBLE_ENTER!>", "\n\n")
+                          .replace("<!SINGLE_ENTER!>", "\n").splitlines())
             new_paragraphs = []
             for paragraph in paragraphs:
                 # Wrap text

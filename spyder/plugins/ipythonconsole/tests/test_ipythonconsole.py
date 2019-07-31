@@ -173,11 +173,11 @@ def ipyconsole(qtbot, request):
         [("arange",
           ["start", "stop"],
           ["Return evenly spaced values within a given interval.<br>",
-           "returns an ndarray rather than a list.<br>"]),
+           "<br>Python built-in`range` function, but returns an ndarray ..."]),
          ("vectorize",
           ["pyfunc", "otype", "signature"],
           ["Generalized function class.<br>",
-           "numpy array or a tuple of numpy ..."]),
+           "Define a vectorized function which takes a nested sequence ..."]),
          ("absolute",
           ["x", "/", "out"],
           ["Parameters<br>", "x : array_like ..."])]
