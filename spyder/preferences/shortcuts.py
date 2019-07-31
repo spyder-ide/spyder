@@ -14,7 +14,7 @@ import re
 from qtpy import PYQT5
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Slot, QEvent
-from qtpy.QtGui import QKeySequence, QIcon, QCursor, QMouseEvent
+from qtpy.QtGui import QKeySequence, QIcon
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
                             QGridLayout, QHBoxLayout, QLabel,
                             QLineEdit, QMessageBox, QPushButton, QSpacerItem,
@@ -798,14 +798,6 @@ class ShortcutsTable(QTableView):
         self.show_editor()
         self.update()
 
-    def mouseMoveEvent(self, event):
-        """Qt Override."""
-        QApplication.setOverrideCursor(QCursor(Qt.PointingHandCursor))
-
-    def leaveEvent(self, event):
-        """Qt Override."""
-        QApplication.setOverrideCursor(QCursor(Qt.ArrowCursor))
-
 
 class ShortcutsConfigPage(GeneralConfigPage):
     CONF_SECTION = "shortcuts"
@@ -818,21 +810,19 @@ class ShortcutsConfigPage(GeneralConfigPage):
         self.finder = ShortcutFinder(self.table, self.table.set_regex)
         self.table.finder = self.finder
         self.table.finder.setPlaceholderText(
-            _("Search a shortcut in the table"))
-        self.table.setMouseTracking(True)
+            _("Search for a shortcut in the table above"))
         self.label_finder = QLabel(_('Search: '))
         self.reset_btn = QPushButton(_("Reset to default values"))
-        self.label = QLabel()
-        self.label.setText(
+        self.top_label = QLabel(
             _("Here you can browse the list of all available shortcuts in "
               "Spyder. You can also customize them by double-clicking on any "
               "entry in this table."))
-        self.label.setWordWrap(True)
+        self.top_label.setWordWrap(True)
 
         # Layout
         hlayout = QHBoxLayout()
         vlayout = QVBoxLayout()
-        vlayout.addWidget(self.label)
+        vlayout.addWidget(self.top_label)
         hlayout.addWidget(self.label_finder)
         hlayout.addWidget(self.finder)
         vlayout.addWidget(self.table)
