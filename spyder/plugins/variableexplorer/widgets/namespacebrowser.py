@@ -209,7 +209,8 @@ class NamespaceBrowser(QWidget):
             self, text=_("Search variable names and types"),
             icon=ima.icon('find'),
             toggled=self.show_finder)
-        config_shortcut(self.show_finder, context='variable_explorer',
+        config_shortcut(lambda: self.show_finder(set_visible=True),
+                        context='variable_explorer',
                         name='search', parent=self)
 
         return [load_button, self.save_button, save_as_button,
@@ -289,13 +290,11 @@ class NamespaceBrowser(QWidget):
             settings[name] = getattr(self, name)
         return settings
 
-    def show_finder(self, state=None):
-        """Handle showing/hiding search widget."""
+    def show_finder(self, set_visible=False):
+        """Handle showing/hiding *the finder* widget."""
         self.finder.text_finder.setText('')
-        if state is None:
-            state = not self.finder.isVisible()
-        self.finder.setVisible(state)
-        self.search_button.setChecked(state)
+        self.finder.setVisible(set_visible)
+        self.search_button.setChecked(set_visible)
 
         if self.finder.isVisible():
             self.finder.text_finder.setFocus()
@@ -456,7 +455,7 @@ class NamespacesBrowserFinder(FinderLineEdit):
         elif key in [Qt.Key_Down]:
             self._parent.next_row()
         elif key in [Qt.Key_Escape]:
-            self._parent.parent().show_finder(state=False)
+            self._parent.parent().show_finder(set_visible=False)
         elif key in [Qt.Key_Enter, Qt.Key_Return]:
             # TODO: Check if an editor needs to be shown
             pass
