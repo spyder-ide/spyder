@@ -1140,7 +1140,6 @@ class EditorStack(QWidget):
         self.completions_hint_enabled = state
         if self.data:
             for finfo in self.data:
-                print(state)
                 finfo.editor.toggle_completions_hint(state)
 
     def set_occurrence_highlighting_enabled(self, state):

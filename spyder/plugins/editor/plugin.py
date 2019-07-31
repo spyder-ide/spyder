@@ -2604,7 +2604,6 @@ class Editor(SpyderPluginWidget):
                 if autocompletions_n in options:
                     editorstack.set_automatic_completions_enabled(
                         autocompletions_o)
-                print(completionshint_n in options)
                 if completionshint_n in options:
                     editorstack.set_completions_hint_enabled(completionshint_o)
                 if edgeline_n in options:
