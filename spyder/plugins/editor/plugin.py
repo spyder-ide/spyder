@@ -2643,7 +2643,8 @@ class Editor(SpyderPluginWidget):
                 if name in options:
                     state = self.get_option(name)
                     action.setChecked(state)
-                    action.trigger()
+                    # See: spyder-ide/spyder#9915
+                    # action.trigger()
 
             # Multiply by 1000 to convert seconds to milliseconds
             self.autosave.interval = (

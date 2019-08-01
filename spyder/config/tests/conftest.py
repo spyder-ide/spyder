@@ -151,7 +151,7 @@ def spyderconfig_patches_45(tmpdir):
 
 @pytest.fixture
 def spyderconfig_previous(tmpdir, mocker):
-    ini_contents = '[main]\nversion = 51.0.0\n\n'
+    ini_contents = '[main]\nversion = 50.0.0\n\n'
     if PY2:
         # Strings are quoted in Python2 but not in Python3
         ini_contents += "[section]\noption = 'value'"
@@ -172,5 +172,5 @@ def spyderconfig_previous(tmpdir, mocker):
     inifile2.write(ini_contents + '\n\n')
 
     return SpyderUserConfig(name=name, path=path, defaults={}, load=True,
-                            version='51.0.0', backup=False, raw_mode=True,
+                            version='50.0.0', backup=False, raw_mode=True,
                             remove_obsolete=False)
