@@ -11,6 +11,7 @@ import sys
 
 # Third psrty imports
 from qtpy.QtCore import QPoint, Qt, Signal, Slot
+from qtpy.QtGui import QFontMetrics
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QListWidget,
                             QListWidgetItem, QToolTip)
 
@@ -52,15 +53,18 @@ class CompletionWidget(QListWidget):
         self.completion_list = None
         self.completion_position = None
         self.automatic = False
-        # Text to be displayed if no match is found.
-        height = 15
-        width = min(self.width(), 250)
 
-        self.empty_text = self.get_html_item_representation('No match', '',
-                                                            height=height,
-                                                            width=width)
-
+        # Setup item rendering
         self.setItemDelegate(HTMLDelegate(self, margin=3))
+        self.setMinimumWidth(250)
+
+        # Initial item height and width
+        fm = QFontMetrics(self.textedit.font())
+        self.item_height = fm.height()
+        self.item_width = self.width()
+
+        # Text to be displayed if no match is found.
+        self.empty_text = self.get_html_item_representation('No match', '')
 
     def setup_appearance(self, size, font):
         self.resize(*size)
@@ -203,8 +207,8 @@ class CompletionWidget(QListWidget):
                      CompletionItemKind.REFERENCE: 'reference',
                      }
 
-        height = 15
-        width = min(self.width(), 250)
+        height = self.item_height
+        width = self.item_width
 
         for completion in self.completion_list:
             if not self.is_internal_console:
