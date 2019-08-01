@@ -404,5 +404,19 @@ class TestSpyderConfigApplyPatches:
         assert value == expected_value
 
 
+def test_spyderconfig_get_defaults_path_name_from_version(spyderconfig):
+    func = spyderconfig.get_defaults_path_name_from_version
+    _, name = func('50.0.0')
+    assert name == 'defaults-50.0.0'
+
+    path, name = func('51.0.0')
+    assert name == 'defaults-spyder-test-51.0.0'
+    assert path.endswith('defaults')
+
+    path, name = func('53.0.0')
+    assert name == 'defaults-spyder-test-53.0.0'
+    assert path.endswith('defaults')
+
+
 if __name__ == "__main__":
     pytest.main()
