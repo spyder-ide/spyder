@@ -291,7 +291,7 @@ class NamespaceBrowser(QWidget):
         return settings
 
     def show_finder(self, set_visible=False):
-        """Handle showing/hiding *the finder* widget."""
+        """Handle showing/hiding the finder widget."""
         self.finder.text_finder.setText('')
         self.finder.setVisible(set_visible)
         self.search_button.setChecked(set_visible)
