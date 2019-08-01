@@ -27,6 +27,7 @@ from spyder_kernels.utils.nsview import get_supported_types, REMOTE_SETTINGS
 
 # Local imports
 from spyder.config.base import _
+from spyder.config.gui import config_shortcut
 from spyder.config.manager import CONF
 from spyder.py3compat import PY2, is_text_string, to_text_string
 from spyder.utils import encoding
@@ -157,15 +158,18 @@ class NamespaceBrowser(QWidget):
 
         # Fuzzy search layout
         finder_layout = QHBoxLayout()
-        label_finder = QLabel(_("Search: "))
+        close_button = create_toolbutton(self, triggered=self.show_finder,
+                                         icon=ima.icon('DialogCloseButton'))
         text_finder = NamespacesBrowserFinder(self.editor,
                                               callback=self.editor.set_regex,
                                               main=self,
                                               regex_base=VALID_VARIABLE_CHARS)
         self.editor.finder = text_finder
-        finder_layout.addWidget(label_finder)
+        finder_layout.addWidget(close_button)
         finder_layout.addWidget(text_finder)
+        finder_layout.setContentsMargins(0, 0, 0, 0)
         self.finder = QWidget(self)
+        self.finder.text_finder = text_finder
         self.finder.setLayout(finder_layout)
         self.finder.setVisible(False)
 
@@ -201,14 +205,16 @@ class NamespaceBrowser(QWidget):
                 self, text=_("Remove all variables"),
                 icon=ima.icon('editdelete'), triggered=self.reset_namespace)
 
-        search_button = create_toolbutton(
-            self, text=_("Search"),
+        self.search_button = create_toolbutton(
+            self, text=_("Search variable names and types"),
             icon=ima.icon('find'),
-            toggled=lambda: self.finder.setVisible(
-                not self.finder.isVisible()))
+            toggled=self.show_finder)
+        config_shortcut(lambda: self.show_finder(set_visible=True),
+                        context='variable_explorer',
+                        name='search', parent=self)
 
         return [load_button, self.save_button, save_as_button,
-                reset_namespace_button, search_button]
+                reset_namespace_button, self.search_button]
 
     def setup_option_actions(self, exclude_private, exclude_uppercase,
                              exclude_capitalized, exclude_unsupported):
@@ -283,6 +289,17 @@ class NamespaceBrowser(QWidget):
         for name in REMOTE_SETTINGS:
             settings[name] = getattr(self, name)
         return settings
+
+    def show_finder(self, set_visible=False):
+        """Handle showing/hiding the finder widget."""
+        self.finder.text_finder.setText('')
+        self.finder.setVisible(set_visible)
+        self.search_button.setChecked(set_visible)
+
+        if self.finder.isVisible():
+            self.finder.text_finder.setFocus()
+        else:
+            self.editor.setFocus()
 
     def refresh_table(self):
         """Refresh variable table"""
@@ -438,7 +455,7 @@ class NamespacesBrowserFinder(FinderLineEdit):
         elif key in [Qt.Key_Down]:
             self._parent.next_row()
         elif key in [Qt.Key_Escape]:
-            self.main.finder.setVisible(False)
+            self._parent.parent().show_finder(set_visible=False)
         elif key in [Qt.Key_Enter, Qt.Key_Return]:
             # TODO: Check if an editor needs to be shown
             pass

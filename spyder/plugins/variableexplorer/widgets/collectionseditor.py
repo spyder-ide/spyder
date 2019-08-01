@@ -605,11 +605,6 @@ class BaseTableView(QTableView):
         return menu
 
     # ------ Remote/local API -------------------------------------------------
-    def selection(self, index):
-        """Update selected row."""
-        self.update()
-        self.isActiveWindow()
-
     def set_regex(self, regex=None, reset=False):
         """Update the regex text for the variable finder."""
         if reset or not self.finder.text():
@@ -1124,7 +1119,6 @@ class CollectionsEditorTableView(BaseTableView):
         self.setSelectionMode(QAbstractItemView.SingleSelection)
         self.setEditTriggers(QAbstractItemView.AllEditTriggers)
         self.setSortingEnabled(True)
-#        self.selectionModel().selectionChanged.connect(self.selection)
 
         self.setup_table()
         self.menu = self.setup_menu(minmax)
@@ -1432,7 +1426,6 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.setSelectionMode(QAbstractItemView.SingleSelection)
         self.setEditTriggers(QAbstractItemView.AllEditTriggers)
         self.setSortingEnabled(True)
-#        self.selectionModel().selectionChanged.connect(self.selection)
 
         self.setup_table()
         self.menu = self.setup_menu(minmax)
