@@ -47,6 +47,7 @@ class HistoryLog(SpyderPluginWidget):
         self.dockviewer = None
         self.wrap_action = None
         self.linenumbers_action = None
+        self.folding_action = None
 
         self.editors = []
         self.filenames = []
@@ -114,9 +115,12 @@ class HistoryLog(SpyderPluginWidget):
         self.linenumbers_action = create_action(
                 self, _("Show line numbers"), toggled=self.toggle_line_numbers)
         self.linenumbers_action.setChecked(self.get_option('line_numbers'))
+        self.folding_action = create_action(
+                self, _("Show code folding"), toggled=self.toggle_folding)
+        self.folding_action.setChecked(self.get_option('folding'))
 
         menu_actions = [self.history_action, self.wrap_action,
-                        self.linenumbers_action]
+                        self.linenumbers_action, self.folding_action]
         return menu_actions
 
     def on_first_registration(self):
@@ -188,7 +192,8 @@ class HistoryLog(SpyderPluginWidget):
                             language=language,
                             scrollflagarea=False,
                             show_class_func_dropdown=False,
-                            debug_panel=False)
+                            debug_panel=False,
+                            folding=self.get_option('folding'))
         editor.focus_changed.connect(lambda: self.focus_changed.emit())
         editor.setReadOnly(True)
         color_scheme = self.get_color_scheme()
@@ -264,3 +269,12 @@ class HistoryLog(SpyderPluginWidget):
         for editor in self.editors:
             editor.toggle_line_numbers(linenumbers=checked, markers=False)
         self.set_option('line_numbers', checked)
+
+    @Slot(bool)
+    def toggle_folding(self, checked):
+        """Toggle code folding."""
+        if self.tabwidget is None:
+            return
+        for editor in self.editors:
+            editor.toggle_folding(folding=checked)
+        self.set_option('folding', checked)

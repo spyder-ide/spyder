@@ -10,6 +10,7 @@ from qtpy.QtGui import QTextOption
 
 from spyder.plugins.history import plugin as history
 from spyder.py3compat import to_text_string
+from spyder.plugins.editor.panels import FoldingPanel
 
 #==============================================================================
 # Utillity Functions
@@ -70,6 +71,7 @@ def historylog_with_tab(historylog, mocker, monkeypatch):
     hl.set_option('line_numbers', False)
     hl.set_option('max_entries', 100)
     hl.set_option('go_to_eof', True)
+    hl.set_option('folding', False)
     hl.add_history('test_history.py')
     return hl
 
@@ -106,8 +108,8 @@ def test_init(historylog):
     hl = historylog
     assert hl.editors == []
     assert hl.filenames == []
-    assert len(hl._plugin_actions) == 5
-    assert len(hl.tabwidget.cornerWidget().menu().actions()) == 5
+    assert len(hl._plugin_actions) == 6
+    assert len(hl.tabwidget.cornerWidget().menu().actions()) == 6
 
 
 def test_add_history(historylog, mocker, monkeypatch):
@@ -133,6 +135,7 @@ def test_add_history(historylog, mocker, monkeypatch):
     text1 = 'a = 5\nb= 10\na + b\n'
     hl.set_option('line_numbers', False)
     hl.set_option('wrap', False)
+    hl.set_option('folding', False)
     history.encoding.read.return_value = (text1, '')
     hl.add_history(tab1)
     # Check tab and editor were created correctly.
@@ -146,11 +149,13 @@ def test_add_history(historylog, mocker, monkeypatch):
 
     hl.set_option('line_numbers', True)
     hl.set_option('wrap', True)
+    hl.set_option('folding', True)
     # Try to add same file -- does not process filename again, so
     # linenumbers and wrap doesn't change.
     hl.add_history(tab1)
     assert hl.tabwidget.currentIndex() == 0
     assert not hl.editors[0].linenumberarea.isVisible()
+    assert not hl.editors[0].panels.get(FoldingPanel).isVisible()
 
     # Add another file.
     tab2 = 'history2.js'
@@ -162,6 +167,7 @@ def test_add_history(historylog, mocker, monkeypatch):
     assert hl.filenames == [tab1, tab2]
     assert hl.tabwidget.currentIndex() == 1
     assert hle[1].linenumberarea.isVisible()
+    assert hle[1].panels.get(FoldingPanel).isVisible()
     assert hle[1].wordWrapMode() == QTextOption.WrapAtWordBoundaryOrAnywhere
     assert hl.tabwidget.tabText(1) == tab2
     assert hl.tabwidget.tabToolTip(1) == tab2
@@ -281,6 +287,30 @@ def test_toggle_line_numbers(historylog_with_tab):
     action.setChecked(False)
     assert not hl.editors[0].linenumberarea.isVisible()
     assert not hl.get_option('line_numbers')
+
+
+def test_toggle_folding(historylog_with_tab):
+    """Test toggle_line_numbers method.
+
+    Toggle the 'Show code folding' config action.
+    """
+    hl = historylog_with_tab
+    action = hl.folding_action
+    action.setChecked(False)
+
+    # Starts without line numbers.
+    assert not hl.editors[0].panels.get(FoldingPanel).isVisible()
+    assert not hl.get_option('folding')
+
+    # Toggles line numbers on.
+    action.setChecked(True)
+    assert hl.editors[0].panels.get(FoldingPanel).isVisible()
+    assert hl.get_option('folding')
+
+    # Toggles line numbers off.
+    action.setChecked(False)
+    assert not hl.editors[0].panels.get(FoldingPanel).isVisible()
+    assert not hl.get_option('folding')
 
 
 if __name__ == "__main__":

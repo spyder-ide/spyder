@@ -231,6 +231,7 @@ DEFAULTS = [
               'wrap': True,
               'go_to_eof': True,
               'line_numbers': False,
+              'folding': False,
               }),
             ('help',
              {

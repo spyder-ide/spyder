@@ -701,6 +701,10 @@ class CodeEditor(TextEditBaseWidget):
         """Enable/disable line numbers."""
         self.linenumberarea.setup_margins(linenumbers, markers)
 
+    def toggle_folding(self, folding=True):
+        """Enable/disable line numbers."""
+        self.set_folding_panel(folding)
+
     @property
     def panels(self):
         """
