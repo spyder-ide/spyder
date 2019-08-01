@@ -2073,6 +2073,7 @@ class CodeEditor(TextEditBaseWidget):
             if data and data.code_analysis:
                 for warning in data.code_analysis:
                     warnings.append([warning[-1], block.blockNumber() + 1])
+            # See spyder-ide/spyder#9924
             if block.blockNumber() + 1 == line_count:
                 break
             block = block.next()
