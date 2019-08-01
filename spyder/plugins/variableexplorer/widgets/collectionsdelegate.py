@@ -15,7 +15,7 @@ import datetime
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import QDateTime, Qt, Signal, Slot
 from qtpy.QtWidgets import (QAbstractItemDelegate, QDateEdit, QDateTimeEdit,
-                            QItemDelegate, QLineEdit, QMessageBox)
+                            QItemDelegate, QLineEdit, QMessageBox, QTableView)
 
 # Local imports
 from spyder.config.base import _
@@ -345,14 +345,18 @@ class CollectionsDelegate(QItemDelegate):
         # to being invisible (has 0 as x, y, width and height)
         # when doing double click over a cell
         # See spyder-ide/spyder#9945
-        row = index.row()
-        column = index.column()
         table_view = editor.parent().parent()
-        y0 = table_view.rowViewportPosition(row)
-        x0 = table_view.columnViewportPosition(column)
-        width = table_view.columnWidth(column)
-        height = table_view.rowHeight(row)
-        editor.setGeometry(x0, y0, width, height)
+        if isinstance(table_view, QTableView):
+            row = index.row()
+            column = index.column()
+            y0 = table_view.rowViewportPosition(row)
+            x0 = table_view.columnViewportPosition(column)
+            width = table_view.columnWidth(column)
+            height = table_view.rowHeight(row)
+            editor.setGeometry(x0, y0, width, height)
+        else:
+            super(CollectionsDelegate, self).updateEditorGeometry(
+                editor, option, index)
 
 
 class ToggleColumnDelegate(CollectionsDelegate):
