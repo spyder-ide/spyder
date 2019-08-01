@@ -169,19 +169,19 @@ def ipyconsole(qtbot, request):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.parametrize(
-        "function,signature,documentation",
-        [("arange",
-          ["start", "stop"],
-          ["Return evenly spaced values within a given interval.<br>",
-           "<br>Python built-in`range` function, but returns an ndarray ..."]),
-         ("vectorize",
-          ["pyfunc", "otype", "signature"],
-          ["Generalized function class.<br>",
-           "Define a vectorized function which takes a nested sequence ..."]),
-         ("absolute",
-          ["x", "/", "out"],
-          ["Parameters<br>", "x : array_like ..."])]
-        )
+    "function,signature,documentation",
+    [("arange",
+      ["start", "stop"],
+      ["Return evenly spaced values within a given interval.<br>",
+       "<br>Python built-in `range` function, but returns an ndarray ..."]),
+     ("vectorize",
+      ["pyfunc", "otype", "signature"],
+      ["Generalized function class.<br>",
+       "Define a vectorized function which takes a nested sequence ..."]),
+     ("absolute",
+      ["x", "/", "out"],
+      ["Parameters<br>", "x : array_like ..."])]
+    )
 @pytest.mark.skipif(sys.platform == 'darwin', reason="Times out on macOS")
 def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
     """Test that calltips show the documentation."""
