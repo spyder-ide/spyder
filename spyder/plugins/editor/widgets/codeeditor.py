@@ -2069,12 +2069,12 @@ class CodeEditor(TextEditBaseWidget):
         line_count = self.document().blockCount()
         warnings = []
         while True:
-            if block.blockNumber() + 1 == line_count:
-                break
             data = block.userData()
             if data and data.code_analysis:
                 for warning in data.code_analysis:
                     warnings.append([warning[-1], block.blockNumber() + 1])
+            if block.blockNumber() + 1 == line_count:
+                break
             block = block.next()
         return warnings
 
