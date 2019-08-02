@@ -156,6 +156,15 @@ class DebuggingWidget(RichJupyterWidget):
         self._readline(prompt=prompt, callback=callback,
                        password=password)
 
+    def _show_prompt(self, prompt=None, html=False, newline=True):
+        """
+        Writes a new prompt at the end of the buffer.
+        """
+        if prompt in ['(Pdb) ', 'ipdb> ']:
+            html = True
+            prompt = '<span class="in-prompt">%s</span>' % prompt
+        super(DebuggingWidget, self)._show_prompt(prompt, html, newline)
+
     def _event_filter_console_keypress(self, event):
         """Handle Key_Up/Key_Down while debugging."""
         key = event.key()
