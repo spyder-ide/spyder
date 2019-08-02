@@ -12,7 +12,7 @@ from collections import OrderedDict
 
 # Third party imports
 from qtpy.QtGui import QTextCursor, QColor
-from qtpy.QtCore import Qt
+from qtpy.QtCore import Qt, Slot
 
 try:
     from rtree import index
@@ -69,10 +69,13 @@ class SnippetsExtension(EditorExtension):
         if state:
             self.editor.sig_key_pressed.connect(self._on_key_pressed)
             self.editor.sig_insert_completion.connect(self.insert_snippet)
+            self.editor.sig_cursor_position_changed.connect(
+                self.cursor_changed)
         else:
             self.editor.sig_key_pressed.disconnect(self._on_key_pressed)
             self.editor.sig_insert_completion.disconnect(self.insert_snippet)
-            self.editor.sig_insert_completion.connect(self.insert_snippet)
+            self.editor.sig_cursor_position_changed.disconnect(
+                self.cursor_changed)
 
     def _on_key_pressed(self, event):
         if event.isAccepted():
@@ -88,6 +91,9 @@ class SnippetsExtension(EditorExtension):
                 next_snippet = ((self.active_snippet + 1) %
                                 len(self.snippets_map))
                 self.select_snippet(next_snippet)
+                event.accept()
+            elif key == Qt.Key_Escape:
+                self.reset()
                 event.accept()
 
     def update_position_tree(self, visitor):
@@ -105,6 +111,14 @@ class SnippetsExtension(EditorExtension):
                 position = tuple(coor for pos in position for coor in pos)
                 self.index.insert(node_position, position)
 
+    def cursor_changed(self, line, col):
+        point = (line, col) * 2
+        node_numbers = list(self.index.intersection(point))
+        if len(node_numbers) == 0:
+            self.reset()
+        else:
+            print(node_numbers)
+
     def reset(self):
         self.node_number = 0
         self.index = None
@@ -113,6 +127,7 @@ class SnippetsExtension(EditorExtension):
         self.node_position = {}
         if rtree_available:
             self.index = index.Index()
+        self.editor.clear_extra_selections('code_snippets')
 
     def draw_snippets(self):
         document = self.editor.document()
