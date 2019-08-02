@@ -600,12 +600,13 @@ class CodeEditor(TextEditBaseWidget):
                 return
 
             cursor = self.cursorForPosition(pos)
+            cursor_offset = cursor.position()
             line, col = cursor.blockNumber(), cursor.columnNumber()
             self._last_point = pos
             if text and self._last_hover_word != text:
                 if all(char not in text for char in ignore_chars):
                     self._last_hover_word = text
-                    self.request_hover(line, col)
+                    self.request_hover(line, col, cursor_offset)
                 else:
                     self.hide_tooltip()
         else:
@@ -994,7 +995,8 @@ class CodeEditor(TextEditBaseWidget):
         params = {
             'file': self.filename,
             'line': line,
-            'column': column
+            'column': column,
+            'offset': self.get_position('cursor')
         }
         self.completion_args = (self.textCursor().position(), automatic)
         return params
@@ -1034,10 +1036,12 @@ class CodeEditor(TextEditBaseWidget):
         """Ask for signature."""
         self.document_did_change('')
         line, column = self.get_cursor_line_column()
+        offset = self.get_position('cursor')
         params = {
             'file': self.filename,
             'line': line,
-            'column': column
+            'column': column,
+            'offset': offset
         }
         return params
 
@@ -1075,12 +1079,13 @@ class CodeEditor(TextEditBaseWidget):
 
     # ------------- LSP: Hover ---------------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_HOVER)
-    def request_hover(self, line, col, show_hint=True, clicked=True):
+    def request_hover(self, line, col, offset, show_hint=True, clicked=True):
         """Request hover information."""
         params = {
             'file': self.filename,
             'line': line,
-            'column': col
+            'column': col,
+            'offset': offset
         }
         self._show_hint = show_hint
         self._request_hover_clicked = clicked
@@ -2102,12 +2107,13 @@ class CodeEditor(TextEditBaseWidget):
         line_count = self.document().blockCount()
         warnings = []
         while True:
-            if block.blockNumber() + 1 == line_count:
-                break
             data = block.userData()
             if data and data.code_analysis:
                 for warning in data.code_analysis:
                     warnings.append([warning[-1], block.blockNumber() + 1])
+            # See spyder-ide/spyder#9924
+            if block.blockNumber() + 1 == line_count:
+                break
             block = block.next()
         return warnings
 

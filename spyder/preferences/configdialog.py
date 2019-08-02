@@ -309,11 +309,10 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         return True
 
     def load_from_conf(self):
-        """Load settings from configuration file"""
+        """Load settings from configuration file."""
         for checkbox, (option, default) in list(self.checkboxes.items()):
             checkbox.setChecked(self.get_option(option, default))
-            # QAbstractButton works differently for PySide and PyQt
-            checkbox.clicked.connect(lambda opt=option:
+            checkbox.clicked.connect(lambda _, opt=option:
                                      self.has_been_modified(opt))
         for radiobutton, (option, default) in list(self.radiobuttons.items()):
             radiobutton.setChecked(self.get_option(option, default))
@@ -326,7 +325,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             if getattr(lineedit, 'content_type', None) == list:
                 data = ', '.join(data)
             lineedit.setText(data)
-            lineedit.textChanged.connect(lambda _foo, opt=option:
+            lineedit.textChanged.connect(lambda _, opt=option:
                                          self.has_been_modified(opt))
             if lineedit.restart_required:
                 self.restart_options[option] = lineedit.label_text
