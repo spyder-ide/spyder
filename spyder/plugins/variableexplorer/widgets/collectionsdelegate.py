@@ -338,13 +338,14 @@ class CollectionsDelegate(QItemDelegate):
 
     def updateEditorGeometry(self, editor, option, index):
         """
-        Overriding method updateEditorGeometry
+        Overriding method updateEditorGeometry.
+
+        This is necessary to set the correct position of the QLineEdit
+        editor since option.rect doesn't have values -> QRect() and
+        makes the editor to be invisible (i.e. it has 0 as x, y, width
+        and height) when doing double click over a cell.
+        See spyder-ide/spyder#9945
         """
-        # Needed to set in the correct position the QLineEdit editor
-        # since option.rect doesn't have values -> QRect() and makes the editor
-        # to being invisible (has 0 as x, y, width and height)
-        # when doing double click over a cell
-        # See spyder-ide/spyder#9945
         table_view = editor.parent().parent()
         if isinstance(table_view, QTableView):
             row = index.row()
