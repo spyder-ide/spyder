@@ -8,14 +8,12 @@
 
 
 # Third party imports
-from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QStackedWidget, QGridLayout
 
 # Local imports
 from spyder.config.base import _
 from spyder.config.gui import is_dark_interface
 from spyder.api.plugins import SpyderPluginWidget
-from spyder.api.preferences import PluginConfigPage
 from spyder.utils import icon_manager as ima
 from spyder.plugins.plots.widgets.figurebrowser import FigureBrowser
 
@@ -26,17 +24,10 @@ else:
     MAIN_BG_COLOR = 'white'
 
 
-class PlotsConfigPage(PluginConfigPage):
-
-    def setup_page(self):
-        pass
-
-
 class Plots(SpyderPluginWidget):
     """Plots plugin."""
 
     CONF_SECTION = 'plots'
-    CONFIGWIDGET_CLASS = PlotsConfigPage
     DISABLE_ACTIONS_WHEN_HIDDEN = False
 
     def __init__(self, parent):
@@ -44,19 +35,18 @@ class Plots(SpyderPluginWidget):
 
         # Widgets
         self.stack = QStackedWidget(self)
+        self.stack.setStyleSheet("QStackedWidget{padding: 0px; border: 0px}")
         self.shellwidgets = {}
 
         # Layout
         layout = QGridLayout(self)
         layout.addWidget(self.stack)
 
-        # Initialize plugin
-        self.initialize_plugin()
-
     def get_settings(self):
         """Retrieve all Plots configuration settings."""
         return {name: self.get_option(name) for name in
-                ['mute_inline_plotting',  'show_plot_outline']}
+                ['mute_inline_plotting', 'show_plot_outline',
+                 'auto_fit_plotting']}
 
     # ---- Stack accesors
     def set_current_widget(self, fig_browser):
@@ -68,7 +58,7 @@ class Plots(SpyderPluginWidget):
         self.stack.setCurrentWidget(fig_browser)
         # We update the actions of the options button (cog menu) and
         # we move it to the layout of the current widget.
-        self.refresh_actions()
+        self._refresh_actions()
         fig_browser.setup_options_button()
 
     def current_widget(self):
@@ -138,21 +128,9 @@ class Plots(SpyderPluginWidget):
         """
         return self.current_widget()
 
-    def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        return True
-
-    def refresh_plugin(self):
-        """Refresh widget"""
-        pass
-
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         return self.current_widget().actions if self.current_widget() else []
-
-    def register_plugin(self):
-        """Register plugin in Spyder's main window"""
-        self.main.add_dockwidget(self)
 
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
@@ -161,4 +139,4 @@ class Plots(SpyderPluginWidget):
 
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""
-        self.main.tabify_plugins(self.main.variableexplorer, self)
+        self.tabify(self.main.variableexplorer)

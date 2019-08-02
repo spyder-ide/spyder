@@ -14,8 +14,9 @@ This is the widget used on all its tabs.
 """
 
 
-# Standard library imports
-from __future__ import absolute_import  # Fix for Issue 1356
+# Standard library imports.
+# Fix for spyder-ide/spyder#1356.
+from __future__ import absolute_import
 
 import codecs
 import os
@@ -26,15 +27,14 @@ import time
 
 # Third party imports (qtpy)
 from qtpy.QtCore import QUrl, QTimer, Signal, Slot
-from qtpy.QtGui import QKeySequence, QColor
+from qtpy.QtGui import QKeySequence
 from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMenu, QMessageBox,
                             QToolButton, QVBoxLayout, QWidget)
-from qtpy.QtWebEngineWidgets import WEBENGINE
 
 # Local imports
 from spyder.config.base import (_, get_image_path, get_module_source_path,
                                 running_under_pytest)
-from spyder.config.gui import get_font, get_shortcut, is_dark_interface
+from spyder.config.gui import get_shortcut, is_dark_interface
 from spyder.utils import icon_manager as ima
 from spyder.utils import sourcecode
 from spyder.utils.encoding import get_coding
@@ -44,7 +44,6 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, DialogManager,
                                     MENU_SEPARATOR)
 from spyder.py3compat import to_text_string
-from spyder.widgets.browser import WebView
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
 from spyder.widgets.mixins import SaveHistoryMixin
 from spyder.plugins.variableexplorer.widgets.collectionseditor import (
@@ -64,11 +63,6 @@ TEMPLATES_PATH = osp.join(PLUGINS_PATH, 'ipythonconsole', 'assets', 'templates')
 BLANK = open(osp.join(TEMPLATES_PATH, 'blank.html')).read()
 LOADING = open(osp.join(TEMPLATES_PATH, 'loading.html')).read()
 KERNEL_ERROR = open(osp.join(TEMPLATES_PATH, 'kernel_error.html')).read()
-
-if is_dark_interface():
-    MAIN_BG_COLOR = '#19232D'
-else:
-    MAIN_BG_COLOR = 'white'
 
 try:
     time.monotonic  # time.monotonic new in 3.3
@@ -97,8 +91,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     """
     Client widget for the IPython Console
 
-    This is a widget composed of a shell widget and a WebView info widget
-    to print different messages there.
+    This widget is necessary to handle the interaction between the
+    plugin and each shell widget.
     """
 
     SEPARATOR = '{0}## ---({1})---'.format(os.linesep*2, time.ctime())
@@ -155,15 +149,13 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                                        interpreter_versions=interpreter_versions,
                                        external_kernel=external_kernel,
                                        local_kernel=True)
-        self.infowidget = WebView(self)
-        if WEBENGINE:
-            self.infowidget.page().setBackgroundColor(QColor(MAIN_BG_COLOR))
-        else:
-            self.infowidget.setStyleSheet(
-                "background:{}".format(MAIN_BG_COLOR))
-        self.set_infowidget_font()
+
+        self.infowidget = plugin.infowidget
         self.blank_page = self._create_blank_page()
         self.loading_page = self._create_loading_page()
+        # To keep a reference to the page to be displayed
+        # in infowidget
+        self.info_page = None
         self._show_loading_page()
 
         # Elapsed time
@@ -174,7 +166,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                                          toggled=self.set_elapsed_time_visible)
 
         # --- Layout
-        vlayout = QVBoxLayout()
+        self.layout = QVBoxLayout()
         toolbar_buttons = self.get_toolbar_buttons()
 
         hlayout = QHBoxLayout()
@@ -183,11 +175,11 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         for button in toolbar_buttons:
             hlayout.addWidget(button)
 
-        vlayout.addLayout(hlayout)
-        vlayout.setContentsMargins(0, 0, 0, 0)
-        vlayout.addWidget(self.shellwidget)
-        vlayout.addWidget(self.infowidget)
-        self.setLayout(vlayout)
+        self.layout.addLayout(hlayout)
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.addWidget(self.shellwidget)
+        self.layout.addWidget(self.infowidget)
+        self.setLayout(self.layout)
 
         # --- Exit function
         self.exit_callback = lambda: plugin.close_client(client=self)
@@ -226,7 +218,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """Get handle to stderr_file."""
         if self.stderr_file is not None:
             # Needed to prevent any error that could appear.
-            # See issue 6267
+            # See spyder-ide/spyder#6267.
             try:
                 handle = codecs.open(self.stderr_file, 'w', encoding='utf-8')
             except Exception:
@@ -306,7 +298,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     def disable_stop_button(self):
         # This avoids disabling automatically the button when
         # re-running files on dedicated consoles.
-        # See issue #5958
+        # See spyder-ide/spyder#5958.
         if not self.shellwidget._executing:
             self.stop_button.setDisabled(True)
 
@@ -334,12 +326,13 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # Create error page
         message = _("An error ocurred while starting the kernel")
         kernel_error_template = Template(KERNEL_ERROR)
-        page = kernel_error_template.substitute(css_path=self.css_path,
-                                                message=message,
-                                                error=error)
+        self.info_page = kernel_error_template.substitute(
+            css_path=self.css_path,
+            message=message,
+            error=error)
 
         # Show error
-        self.infowidget.setHtml(page, QUrl.fromLocalFile(self.css_path))
+        self.set_info_page()
         self.shellwidget.hide()
         self.infowidget.show()
 
@@ -379,10 +372,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def get_options_menu(self):
         """Return options menu"""
-        reset_action = create_action(self, _("Remove all variables"),
-                                     icon=ima.icon('editdelete'),
-                                     triggered=self.reset_namespace)
-
         env_action = create_action(
                         self,
                         _("Show environment variables"),
@@ -398,14 +387,15 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                          )
 
         self.show_time_action.setChecked(self.show_elapsed_time)
-        additional_actions = [reset_action,
-                              MENU_SEPARATOR,
+        additional_actions = [MENU_SEPARATOR,
                               env_action,
                               syspath_action,
                               self.show_time_action]
 
         if self.menu_actions is not None:
-            return self.menu_actions + additional_actions
+            console_menu = self.menu_actions + additional_actions
+            return console_menu
+
         else:
             return additional_actions
 
@@ -494,15 +484,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.shellwidget._control.setFont(font)
         self.shellwidget.font = font
 
-    def set_infowidget_font(self):
-        """Set font for infowidget"""
-        font = get_font(option='rich_font')
-        self.infowidget.set_font(font)
-
     def set_color_scheme(self, color_scheme, reset=True):
         """Set IPython color scheme."""
         # Needed to handle not initialized kernel_client
-        # See issue 6996
+        # See spyder-ide/spyder#6996.
         try:
             self.shellwidget.set_color_scheme(color_scheme, reset)
         except AttributeError:
@@ -511,14 +496,18 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     def shutdown(self):
         """Shutdown kernel"""
         if self.get_kernel() is not None and not self.slave:
-            self.shellwidget.kernel_manager.shutdown_kernel()
+            now = True
+            # This avoids some flakyness with our Cython tests
+            if running_under_pytest():
+                now = False
+            self.shellwidget.kernel_manager.shutdown_kernel(now=now)
         if self.shellwidget.kernel_client is not None:
             background(self.shellwidget.kernel_client.stop_channels)
 
     def interrupt_kernel(self):
         """Interrupt the associanted Spyder kernel if it's running"""
         # Needed to prevent a crash when a kernel is not running.
-        # See issue 6299
+        # See spyder-ide/spyder#6299.
         try:
             self.shellwidget.request_interrupt_kernel()
         except RuntimeError:
@@ -558,9 +547,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                         before_prompt=True
                     )
                 else:
-                    # For issue 6235.  IPython was changing the setting of
-                    # %colors on windows by assuming it was using a dark
-                    # background.  This corrects it based on the scheme.
+                    # For spyder-ide/spyder#6235, IPython was changing the
+                    # setting of %colors on windows by assuming it was using a
+                    # dark background. This corrects it based on the scheme.
                     self.set_color_scheme(sw.syntax_style)
                     sw._append_html(_("<br>Restarting kernel...\n<hr><br>"),
                                     before_prompt=False)
@@ -670,6 +659,14 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         if self.time_label is not None:
             self.time_label.setVisible(state)
 
+    def set_info_page(self):
+        """Set current info_page."""
+        if self.info_page is not None:
+            self.infowidget.setHtml(
+                self.info_page,
+                QUrl.fromLocalFile(self.css_path)
+            )
+
     #------ Private API -------------------------------------------------------
     def _create_loading_page(self):
         """Create html page to show while the kernel is starting"""
@@ -693,25 +690,35 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """Show animation while the kernel is loading."""
         self.shellwidget.hide()
         self.infowidget.show()
-        self.infowidget.setHtml(self.loading_page,
-                                QUrl.fromLocalFile(self.css_path))
+        self.info_page = self.loading_page
+        self.set_info_page()
 
     def _hide_loading_page(self):
         """Hide animation shown while the kernel is loading."""
         self.infowidget.hide()
         self.shellwidget.show()
-        self.infowidget.setHtml(self.blank_page,
-                                QUrl.fromLocalFile(self.css_path))
+        self.info_page = self.blank_page
+        self.set_info_page()
         self.shellwidget.sig_prompt_ready.disconnect(self._hide_loading_page)
 
     def _read_stderr(self):
         """Read the stderr file of the kernel."""
+        # We need to read stderr_file as bytes to be able to
+        # detect its encoding with chardet
         f = open(self.stderr_file, 'rb')
+
         try:
             stderr_text = f.read()
+
+            # This is needed to avoid showing an empty error message
+            # when the kernel takes too much time to start.
+            # See spyder-ide/spyder#8581.
+            if not stderr_text:
+                return ''
+
             # This is needed since the stderr file could be encoded
             # in something different to utf-8.
-            # See issue 4191
+            # See spyder-ide/spyder#4191.
             encoding = get_coding(stderr_text)
             stderr_text = to_text_string(stderr_text, encoding)
             return stderr_text

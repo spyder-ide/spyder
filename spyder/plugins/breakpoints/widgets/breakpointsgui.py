@@ -19,14 +19,13 @@ import sys
 # Third party imports
 from qtpy import API
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import (QAbstractTableModel, QModelIndex, QTextCodec, Qt,
-                         Signal)
+from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal
 from qtpy.QtWidgets import (QItemDelegate, QMenu, QTableView, QHBoxLayout,
                             QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import get_translation
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_plugin_layout)
 
@@ -38,13 +37,10 @@ except KeyError as error:
     _ = gettext.gettext
 
 
-locale_codec = QTextCodec.codecForLocale()
-
-
 class BreakpointTableModel(QAbstractTableModel):
     """
     Table model for breakpoints dictionary
-    
+
     """
     def __init__(self, parent, data):
         QAbstractTableModel.__init__(self, parent)
@@ -52,8 +48,8 @@ class BreakpointTableModel(QAbstractTableModel):
             data = {}
         self._data = None
         self.breakpoints = None
-        self.set_data(data)    
-    
+        self.set_data(data)
+
     def set_data(self, data):
         """Set model data"""
         self._data = data
@@ -64,12 +60,12 @@ class BreakpointTableModel(QAbstractTableModel):
             if bp_list:
                 for item in data[key]:
                     self.breakpoints.append((key, item[0], item[1], ""))
-        self.reset()   
-    
+        self.reset()
+
     def rowCount(self, qindex=QModelIndex()):
         """Array row number"""
         return len(self.breakpoints)
-    
+
     def columnCount(self, qindex=QModelIndex()):
         """Array column count"""
         return 4
@@ -99,11 +95,11 @@ class BreakpointTableModel(QAbstractTableModel):
             return to_qvariant( headers[i_column] )
         else:
             return to_qvariant()
-    
+
     def get_value(self, index):
         """Return current value"""
-        return self.breakpoints[index.row()][index.column()] 
-    
+        return self.breakpoints[index.row()][index.column()]
+
     def data(self, index, role=Qt.DisplayRole):
         """Return data at table index"""
         if not index.isValid():
@@ -128,7 +124,7 @@ class BreakpointTableModel(QAbstractTableModel):
         self.beginResetModel()
         self.endResetModel()
 
-    
+
 class BreakpointDelegate(QItemDelegate):
     def __init__(self, parent=None):
         QItemDelegate.__init__(self, parent)
@@ -139,7 +135,7 @@ class BreakpointTableView(QTableView):
     clear_breakpoint = Signal(str, int)
     clear_all_breakpoints = Signal()
     set_or_edit_conditional_breakpoint = Signal()
-    
+
     def __init__(self, parent, data):
         QTableView.__init__(self, parent)
         self.model = BreakpointTableModel(self, data)
@@ -148,7 +144,7 @@ class BreakpointTableView(QTableView):
         self.setItemDelegate(self.delegate)
 
         self.setup_table()
-        
+
     def setup_table(self):
         """Setup table"""
         self.horizontalHeader().setStretchLastSection(True)
@@ -157,12 +153,12 @@ class BreakpointTableView(QTableView):
         # Sorting columns
         self.setSortingEnabled(False)
         self.sortByColumn(0, Qt.DescendingOrder)
-    
+
     def adjust_columns(self):
         """Resize three first columns to contents"""
         for col in range(3):
-            self.resizeColumnToContents(col)    
-    
+            self.resizeColumnToContents(col)
+
     def mouseDoubleClickEvent(self, event):
         """Reimplement Qt method"""
         index_clicked = self.indexAt(event.pos())
@@ -172,12 +168,12 @@ class BreakpointTableView(QTableView):
             self.edit_goto.emit(filename, int(line_number_str), '')
         if index_clicked.column()==2:
             self.set_or_edit_conditional_breakpoint.emit()
-                           
+
     def contextMenuEvent(self, event):
         index_clicked = self.indexAt(event.pos())
         actions = []
         self.popup_menu = QMenu(self)
-        clear_all_breakpoints_action = create_action(self, 
+        clear_all_breakpoints_action = create_action(self,
             _("Clear breakpoints in all files"),
             triggered=lambda: self.clear_all_breakpoints.emit())
         actions.append(clear_all_breakpoints_action)
@@ -207,7 +203,7 @@ class BreakpointTableView(QTableView):
                     _("Edit this breakpoint"),
                     triggered=edit_slot)
             actions.append(edit_breakpoint_action)
-        add_actions(self.popup_menu, actions)        
+        add_actions(self.popup_menu, actions)
         self.popup_menu.popup(event.globalPos())
         event.accept()
 
@@ -221,12 +217,12 @@ class BreakpointWidget(QWidget):
     set_or_edit_conditional_breakpoint = Signal()
     clear_breakpoint = Signal(str, int)
     edit_goto = Signal(str, int, str)
-    
+
     def __init__(self, parent, options_button=None):
         QWidget.__init__(self, parent)
-        
-        self.setWindowTitle("Breakpoints")        
-        self.dictwidget = BreakpointTableView(self, 
+
+        self.setWindowTitle("Breakpoints")
+        self.dictwidget = BreakpointTableView(self,
                                self._load_all_breakpoints())
         if options_button:
             btn_layout = QHBoxLayout()
@@ -246,17 +242,17 @@ class BreakpointWidget(QWidget):
                         lambda s1, lino, s2: self.edit_goto.emit(s1, lino, s2))
         self.dictwidget.set_or_edit_conditional_breakpoint.connect(
                         lambda: self.set_or_edit_conditional_breakpoint.emit())
-                     
+
     def _load_all_breakpoints(self):
         bp_dict = CONF.get('run', 'breakpoints', {})
         for filename in list(bp_dict.keys()):
             if not osp.isfile(filename):
                 bp_dict.pop(filename)
-        return bp_dict    
-    
+        return bp_dict
+
     def get_data(self):
         pass
-        
+
     def set_data(self):
         bp_dict = self._load_all_breakpoints()
         self.dictwidget.model.set_data(bp_dict)

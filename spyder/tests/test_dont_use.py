@@ -14,7 +14,7 @@ root_path = os.path.realpath(os.path.join(os.getcwd(), 'spyder'))
 
 
 @pytest.mark.parametrize("pattern,exclude_patterns,message", [
-    ("isinstance\(.*,.*str\)", ['py3compat.py', 'example_latin1.py'],
+    (r"isinstance\(.*,.*str\)", ['py3compat.py', 'example_latin1.py'],
      ("Don't use builtin isinstance() function,"
       "use spyder.py3compat.is_text_string() instead")),
 
@@ -35,7 +35,7 @@ def test_dont_use(pattern, exclude_patterns, message):
     If you want to skip some line from this test just use:
         # spyder: test-skip
     """
-    pattern = re.compile(pattern + "((?!# spyder: test-skip)\s)*$")
+    pattern = re.compile(pattern + r"((?!# spyder: test-skip)\s)*$")
 
     found = 0
     for dir_name, _, file_list in os.walk(root_path):

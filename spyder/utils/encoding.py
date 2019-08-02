@@ -75,10 +75,10 @@ def to_unicode_from_fs(string):
             else:
                 return unic
     return string
-    
+
 def to_fs_from_unicode(unic):
     """
-    Return a byte string version of unic encoded using the file 
+    Return a byte string version of unic encoded using the file
     system encoding.
     """
     if is_unicode(unic):
@@ -177,7 +177,7 @@ def encode(text, orig_coding):
     """
     if orig_coding == 'utf-8-bom':
         return BOM_UTF8 + text.encode("utf-8"), 'utf-8-bom'
-    
+
     # Try saving with original encoding
     if orig_coding:
         try:
@@ -200,16 +200,16 @@ def encode(text, orig_coding):
             return text.encode(coding), coding
         except (UnicodeError, LookupError):
             pass
-    
+
     # Try saving as ASCII
     try:
         return text.encode('ascii'), 'ascii'
     except UnicodeError:
         pass
-    
+
     # Save as UTF-8 without BOM
     return text.encode('utf-8'), 'utf-8'
-    
+
 def to_unicode(string):
     """Convert a string to unicode"""
     if not is_unicode(string):
@@ -223,7 +223,7 @@ def to_unicode(string):
             else:
                 return unic
     return string
-    
+
 
 def write(text, filename, encoding='utf-8', mode='wb'):
     """
@@ -235,10 +235,21 @@ def write(text, filename, encoding='utf-8', mode='wb'):
         with open(filename, mode) as textfile:
             textfile.write(text)
     else:
+        # Based in the solution at untitaker/python-atomicwrites#42.
+        # Needed to fix file permissions overwritting.
+        # See spyder-ide/spyder#9381.
+        try:
+            original_mode = os.stat(filename).st_mode
+        except OSError:  # Change to FileNotFoundError for PY3
+            # Creating a new file, emulate what os.open() does
+            umask = os.umask(0)
+            os.umask(umask)
+            original_mode = 0o777 & ~umask
         with atomic_write(filename,
                           overwrite=True,
                           mode=mode) as textfile:
             textfile.write(text)
+        os.chmod(filename, original_mode)
     return encoding
 
 

@@ -16,10 +16,10 @@ from qtpy.QtCore import QObject, Signal
 
 # Local imports
 from spyder import __version__
-from spyder.config.base import _
+from spyder.config.base import _, is_stable_version
 from spyder.py3compat import PY3, is_text_string
 from spyder.config.utils import is_anaconda
-from spyder.utils.programs import check_version, is_stable_version
+from spyder.utils.programs import check_version
 
 
 if PY3:
@@ -94,7 +94,8 @@ class WorkerUpdates(QObject):
 
         try:
             if hasattr(ssl, '_create_unverified_context'):
-                # Fix for issue # 2685 [Works only with Python >=2.7.9]
+                # Fix for spyder-ide/spyder#2685.
+                # [Works only with Python >=2.7.9]
                 # More info: https://www.python.org/dev/peps/pep-0476/#opting-out
                 context = ssl._create_unverified_context()
                 page = urlopen(self.url, context=context)

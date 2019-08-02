@@ -3,20 +3,21 @@
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
+
 """
 This module contains the Line Number panel
 """
-import sys
-
+# Third party imports
 from qtpy import QT_VERSION
 from qtpy.QtCore import QSize, Qt
 from qtpy.QtGui import QPainter, QColor
 
+# Local imports
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.programs import check_version
 from spyder.api.panel import Panel
-from spyder.plugins.editor.lsp import DiagnosticSeverity
+from spyder.plugins.completion.languageserver import DiagnosticSeverity
 
 
 QT55_VERSION = check_version(QT_VERSION, "5.5", ">=")
@@ -37,12 +38,13 @@ class LineNumberArea(Panel):
 
         # Markers
         self._markers_margin = True
-        self._markers_margin_width = 15
-        self.error_pixmap = ima.icon('error').pixmap(QSize(14, 14))
-        self.warning_pixmap = ima.icon('warning').pixmap(QSize(14, 14))
-        self.todo_pixmap = ima.icon('todo').pixmap(QSize(14, 14))
-        self.bp_pixmap = ima.icon('breakpoint_big').pixmap(QSize(14, 14))
-        self.bpc_pixmap = ima.icon('breakpoint_cond_big').pixmap(QSize(14, 14))
+
+        # Icons
+        self.error_icon = ima.icon('error')
+        self.warning_icon = ima.icon('warning')
+        self.info_icon = ima.icon('information')
+        self.hint_icon = ima.icon('hint')
+        self.todo_icon = ima.icon('todo')
 
         # Line number area management
         self._margin = True
@@ -62,20 +64,20 @@ class LineNumberArea(Panel):
         painter.fillRect(event.rect(), self.editor.sideareas_color)
         # This is needed to make that the font size of line numbers
         # be the same as the text one when zooming
-        # See Issue 2296 and 4811
+        # See spyder-ide/spyder#2296 and spyder-ide/spyder#4811.
         font = self.editor.font()
         font_height = self.editor.fontMetrics().height()
 
         active_block = self.editor.textCursor().block()
         active_line_number = active_block.blockNumber() + 1
 
-        def draw_pixmap(ytop, pixmap):
+        def draw_pixmap(xleft, ytop, pixmap):
             if not QT55_VERSION:
                 pixmap_height = pixmap.height()
             else:
                 # scale pixmap height to device independent pixels
                 pixmap_height = pixmap.height() / pixmap.devicePixelRatio()
-            painter.drawPixmap(0, ytop + (font_height-pixmap_height) / 2,
+            painter.drawPixmap(xleft, ytop + (font_height-pixmap_height) / 2,
                                pixmap)
 
         for top, line_number, block in self.editor.visible_blocks:
@@ -94,24 +96,37 @@ class LineNumberArea(Panel):
                                  Qt.AlignRight | Qt.AlignBottom,
                                  to_text_string(line_number))
 
+            size = self.get_markers_margin() - 2
+            icon_size = QSize(size, size)
+
             data = block.userData()
             if self._markers_margin and data:
                 if data.code_analysis:
-                    for source, code, severity, message in data.code_analysis:
-                        error = severity == DiagnosticSeverity.ERROR
-                        if error:
-                            break
-                    if error:
-                        draw_pixmap(top, self.error_pixmap)
-                    else:
-                        draw_pixmap(top, self.warning_pixmap)
+                    errors = 0
+                    warnings = 0
+                    infos = 0
+                    hints = 0
+                    for _, _, sev, _ in data.code_analysis:
+                        errors += sev == DiagnosticSeverity.ERROR
+                        warnings += sev == DiagnosticSeverity.WARNING
+                        infos += sev == DiagnosticSeverity.INFORMATION
+                        hints += sev == DiagnosticSeverity.HINT
+
+                    if errors:
+                        draw_pixmap(1, top, self.error_icon.pixmap(icon_size))
+                    elif warnings:
+                        draw_pixmap(1, top, self.warning_icon.pixmap(icon_size))
+                    elif infos:
+                        draw_pixmap(1, top, self.info_icon.pixmap(icon_size))
+                    elif hints:
+                        draw_pixmap(1, top, self.hint_icon.pixmap(icon_size))
+
                 if data.todo:
-                    draw_pixmap(top, self.todo_pixmap)
-                if data.breakpoint:
-                    if data.breakpoint_condition is None:
-                        draw_pixmap(top, self.bp_pixmap)
-                    else:
-                        draw_pixmap(top, self.bpc_pixmap)
+                    draw_pixmap(1, top, self.todo_icon.pixmap(icon_size))
+
+    def leaveEvent(self, event):
+        """Override Qt method."""
+        self.editor.hide_tooltip()
 
     def mouseMoveEvent(self, event):
         """Override Qt method.
@@ -128,19 +143,12 @@ class LineNumberArea(Panel):
         if data and data.code_analysis and check:
             self.editor.show_code_analysis_results(line_number,
                                                    data)
+        else:
+            self.editor.hide_tooltip()
 
         if event.buttons() == Qt.LeftButton:
             self._released = line_number
             self.editor.select_lines(self._pressed, self._released)
-
-    def mouseDoubleClickEvent(self, event):
-        """Override Qt method.
-
-        Add or remove breakpoints.
-        """
-        line_number = self.editor.get_linenumber_from_mouse_event(event)
-        shift = event.modifiers() & Qt.ShiftModifier
-        self.editor.add_remove_breakpoint(line_number, edit_condition=shift)
 
     def mousePressEvent(self, event):
         """Override Qt method
@@ -182,10 +190,10 @@ class LineNumberArea(Panel):
 
     def get_markers_margin(self):
         if self._markers_margin:
-            return self._markers_margin_width
+            font_height = self.editor.fontMetrics().height() + 2
+            return font_height
         else:
             return 0
-
 
     def setup_margins(self, linenumbers=True, markers=True):
         """

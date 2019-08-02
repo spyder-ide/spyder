@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -ex
 
 source $HOME/miniconda/etc/profile.d/conda.sh
 conda activate test

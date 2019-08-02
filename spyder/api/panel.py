@@ -21,7 +21,7 @@ Original file:
 import logging
 from qtpy.QtWidgets import QWidget, QApplication
 from qtpy.QtGui import QBrush, QColor, QPen, QPainter
-from qtpy.QtCore import Qt, QPoint, QRect
+from qtpy.QtCore import Qt, QRect
 
 # Local imports
 from spyder.api.editorextension import EditorExtension

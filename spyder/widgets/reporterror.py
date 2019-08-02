@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-# -----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Copyright © Spyder Project Contributors
 #
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
-# -----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
-"""Report Error Dialog"""
+"""Report Error Dialog."""
 
 # Standard library imports
 import sys
@@ -21,14 +21,12 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QFormLayout,
 from spyder import __project_url__, __trouble_url__
 from spyder.config.base import _
 from spyder.config.gui import get_font
-from spyder.config.gui import CONF
+from spyder.plugins.console.widgets.console import ConsoleBaseWidget
+from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import restore_keyevent
 from spyder.widgets.github.backend import GithubBackend
-from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.widgets.mixins import BaseEditMixin, TracebackLinksMixin
-from spyder.plugins.editor.widgets.base import ConsoleBaseWidget
-
 
 # Minimum number of characters to introduce in the title and
 # description fields before being able to send the report to
@@ -42,12 +40,10 @@ class DescriptionWidget(CodeEditor):
 
     def __init__(self, parent=None):
         CodeEditor.__init__(self, parent)
-
         # Editor options
         self.setup_editor(
             language='md',
-            color_scheme=CONF.get('appearance',
-                                  'selected'),
+            color_scheme=None,
             linenumbers=False,
             scrollflagarea=False,
             wrap=True,
@@ -126,7 +122,6 @@ class SpyderErrorDialog(QDialog):
     def __init__(self, parent=None, is_report=False):
         QDialog.__init__(self, parent)
         self.is_report = is_report
-
         self.setWindowTitle(_("Issue reporter"))
         self.setModal(True)
 
@@ -148,7 +143,7 @@ class SpyderErrorDialog(QDialog):
               "matching your error message or problem description for a "
               "quicker solution."
               ).format(title=title, trouble_url=__trouble_url__,
-                          project_url=__project_url__))
+                       project_url=__project_url__))
         main_label.setOpenExternalLinks(True)
         main_label.setWordWrap(True)
         main_label.setAlignment(Qt.AlignJustify)
@@ -344,6 +339,18 @@ class SpyderErrorDialog(QDialog):
         submission_enabled = (desc_chars >= DESC_MIN_CHARS and
                               title_chars >= TITLE_MIN_CHARS)
         self.submit_btn.setEnabled(submission_enabled)
+
+    def set_title(self, title):
+        """Set the title for the report."""
+        self.title.setText(title)
+
+    def set_description(self, description):
+        """Set the description for the report."""
+        self.input_description.setPlainText(description)
+
+    def set_color_scheme(self, color_scheme):
+        """Set the color scheme for the description input."""
+        self.input_description.set_color_scheme(color_scheme)
 
 
 def test():

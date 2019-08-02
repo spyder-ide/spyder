@@ -7,13 +7,16 @@
 # -----------------------------------------------------------------------------
 """Project API"""
 
+# Standard library imports
 import os
 import os.path as osp
 from collections import OrderedDict
 
-from spyder.config.base import _
+# Local imports
+from spyder.config.base import _, get_project_config_folder
+from spyder.config.user import UserConfig
 from spyder.py3compat import to_text_string
-from spyder.plugins.projects.utils.config import (ProjectConfig, CODESTYLE,
+from spyder.plugins.projects.utils.config import (CODESTYLE,
                                             CODESTYLE_DEFAULTS,
                                             CODESTYLE_VERSION, WORKSPACE,
                                             WORKSPACE_DEFAULTS,
@@ -29,7 +32,6 @@ class BaseProject(object):
     This base class must not be used directly, but inherited from. It does not
     assume that python is specific to this project.
     """
-    PROJECT_FOLDER = '.spyproject'
     PROJECT_TYPE_NAME = None
     IGNORE_FILE = ""
     CONFIG_SETUP = {WORKSPACE: {'filename': '{0}.ini'.format(WORKSPACE),
@@ -70,6 +72,8 @@ class BaseProject(object):
         for recent_file in recent_files[:]:
             if not os.path.isfile(recent_file):
                 recent_files.remove(recent_file)
+        recent_files = [os.path.relpath(recent_file, self.root_path)
+                        for recent_file in recent_files]
         try:
             self.CONF[WORKSPACE].set('main', 'recent_files',
                                      list(OrderedDict.fromkeys(recent_files)))
@@ -84,6 +88,9 @@ class BaseProject(object):
         except EnvironmentError:
             return []
 
+        recent_files = [recent_file if os.path.isabs(recent_file)
+                        else os.path.join(self.root_path, recent_file)
+                        for recent_file in recent_files]
         for recent_file in recent_files[:]:
             if not os.path.isfile(recent_file):
                 recent_files.remove(recent_file)
@@ -92,14 +99,14 @@ class BaseProject(object):
     def create_project_config_files(self):
         """ """
         dic = self.CONFIG_SETUP
+        path = osp.join(self.root_path, get_project_config_folder(), 'config')
+
         for key in dic:
             name = key
-            filename = dic[key]['filename']
             defaults = dic[key]['defaults']
             version = dic[key]['version']
-            self.CONF[key] = ProjectConfig(name, self.root_path, filename,
-                                           defaults=defaults, load=True,
-                                           version=version)
+            self.CONF[key] = UserConfig(name, path, defaults=defaults,
+                                        load=True, version=version)
 
     def get_conf_files(self):
         """ """
@@ -136,7 +143,7 @@ class BaseProject(object):
 
     def __get_project_config_folder(self):
         """Return project configuration folder."""
-        return osp.join(self.root_path, self.PROJECT_FOLDER)
+        return osp.join(self.root_path, get_project_config_folder())
 
     def __get_project_config_path(self):
         """Return project configuration path"""

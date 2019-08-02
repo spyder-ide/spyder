@@ -3,83 +3,94 @@
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
 #
-'''
-Tests for editor codeanalysis warnings.
-'''
+
+"""Tests for editor codeanalysis warnings."""
+
+# Stdlib imports
+import os
+import sys
 
 # Third party imports
-import os
+from flaky import flaky
 import pytest
-from qtpy.QtCore import Signal, QObject
+from qtpy.QtCore import Qt
 
 # Local imports
-from spyder.utils.qthelpers import qapplication
-from spyder.plugins.editor.widgets.codeeditor import CodeEditor
-from spyder.py3compat import to_binary_string
-from spyder.utils.codeanalysis import check_with_pyflakes, check_with_pep8
-from spyder.plugins.lspmanager import LSPManager
-from spyder.plugins.editor.lsp import LSPEventTypes
-from spyder.py3compat import PY2
+from spyder.config.manager import CONF
 
 
-class LSPEditorWrapper(QObject):
-    sig_initialize = Signal(dict, str)
+TEXT = ("def some_function():\n"  # D100, D103: Missing docstring
+        "    \n"  # W293 trailing spaces
+        "    a = 1 # a comment\n"  # E261 two spaces before inline comment
+        "\n"
+        "    a += s\n"  # Undefined variable s
+        "    return a\n"
+        "undefined_function()")  # Undefined name 'undefined_function'
 
-    def __init__(self, parent, editor, lsp_manager):
-        QObject.__init__(self, parent)
-        self.editor = editor
-        self.lsp_manager = lsp_manager
-        self.editor.sig_perform_lsp_request.connect(self.perform_request)
-        self.sig_initialize.connect(self.initialize_callback)
 
-    def initialize_callback(self, settings, language):
-        self.lsp_manager.register_file(
-            'python', 'test.py', self.editor)
-        self.editor.start_lsp_services(settings)
+@pytest.mark.slow
+@pytest.mark.second
+@flaky(max_runs=5)
+def test_ignore_warnings(qtbot, lsp_codeeditor):
+    """Test that the editor is ignoring some warnings."""
+    editor, manager = lsp_codeeditor
 
-    def perform_request(self, language, request, params):
-        self.lsp_manager.send_request(language, request, params)
+    # Set text in editor
+    editor.set_text(TEXT)
 
-# --- Fixtures
-# -----------------------------------------------------------------------------
-@pytest.fixture
-def construct_editor(qtbot, *args, **kwargs):
-    os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
-    app = qapplication()
-    lsp_manager = LSPManager(parent=None)
-    editor = CodeEditor(parent=None)
-    kwargs['language'] = 'Python'
-    editor.setup_editor(*args, **kwargs)
-    wrapper = LSPEditorWrapper(None, editor, lsp_manager)
+    CONF.set('lsp-server', 'pydocstyle/ignore', 'D100')
+    CONF.set('lsp-server', 'pycodestyle/ignore', 'E261')
 
-    lsp_manager.register_plugin_type(
-        LSPEventTypes.DOCUMENT, wrapper.sig_initialize)
-    with qtbot.waitSignal(wrapper.sig_initialize, timeout=30000):
-        editor.filename = 'test.py'
-        editor.language = 'Python'
-        lsp_manager.start_lsp_client('python')
+    # After this call the manager needs to be reinitialized
+    manager.update_server_list()
 
-    text = ("def some_function():\n"  # D100, D103: Missing docstring
-            "    \n"  # W293 trailing spaces
-            "    a = 1 # a comment\n"  # E261 two spaces before inline comment
-            "\n"
-            "    a += s\n"  # Undefined variable s
-            "    return a\n"
-            )
-    editor.set_text(text)
+    if os.environ.get('CI', None) is None and sys.platform == 'darwin':
+        # To be able to run local tests on mac this modification is needed
+        editorstack = manager.main.editor
+        with qtbot.waitSignal(editorstack.sig_lsp_initialized, timeout=30000):
+            manager.start_client('python')
+
+        with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
+            editor.document_did_open()
+    else:
+        qtbot.wait(2000)
+
+    # Notify changes
     with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
-        editor.document_did_open()
+        editor.document_did_change()
 
-    yield editor, lsp_manager
-    os.environ['SPY_TEST_USE_INTROSPECTION'] = 'False'
-    lsp_manager.closing_plugin()
+    # Get current warnings
+    warnings = editor.get_current_warnings()
+
+    expected = [['D103: Missing docstring in public function', 1],
+                ['W293 blank line contains whitespace', 2],
+                ["undefined name 's'", 5],
+                ["undefined name 'undefined_function'", 7],
+                ["W292 no newline at end of file", 7],
+                ["""E305 expected 2 blank lines after class or """
+                 """function definition, found 0""", 7]]
+
+    CONF.set('lsp-server', 'pydocstyle/ignore', '')
+    CONF.set('lsp-server', 'pycodestyle/ignore', '')
+    manager.update_server_list()
+    qtbot.wait(2000)
+
+    assert warnings == expected
 
 
-@pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
-                    reason="Times out on AppVeyor")
-def test_adding_warnings(qtbot, construct_editor):
-    """Test that warning are saved in the blocks of the editor."""
-    editor, lsp_manager = construct_editor
+@pytest.mark.slow
+@pytest.mark.second
+@flaky(max_runs=5)
+def test_adding_warnings(qtbot, lsp_codeeditor):
+    """Test that warnings are saved in the editor blocks."""
+    editor, _ = lsp_codeeditor
+
+    # Set text in editor
+    editor.set_text(TEXT)
+
+    # Notify changes
+    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
+        editor.document_did_change()
 
     block = editor.textCursor().block()
     line_count = editor.document().blockCount()
@@ -92,20 +103,28 @@ def test_adding_warnings(qtbot, construct_editor):
                 warnings.append((i+1, analysis[-1]))
         block = block.next()
 
-    print(warnings)
-    expected_warnings = {# 1: ['D100', 'D103'],
+    expected_warnings = {1: ['D100', 'D103'],
                          2: ['W293'],
-                         3: ['E261'], 5: ['undefined name']}
+                         3: ['E261'],
+                         5: ['undefined name'],
+                         7: ['undefined name', 'W292', 'E305']}
     for i, warning in warnings:
-            assert any([expected in warning
-                        for expected in expected_warnings[i]])
-            # assert expected in warning
+        assert any([expected in warning for expected in expected_warnings[i]])
 
 
-@pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
-                    reason="Times out on AppVeyor")
-def test_move_warnings(qtbot, construct_editor):
-    editor, lsp_manager = construct_editor
+@pytest.mark.slow
+@pytest.mark.second
+@flaky(max_runs=5)
+def test_move_warnings(qtbot, lsp_codeeditor):
+    """Test that moving to next/previous warnings is working."""
+    editor, _ = lsp_codeeditor
+
+    # Set text in editor
+    editor.set_text(TEXT)
+
+    # Notify changes
+    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
+        editor.document_did_change()
 
     # Move between warnings
     editor.go_to_next_warning()
@@ -118,10 +137,142 @@ def test_move_warnings(qtbot, construct_editor):
     assert 2 == editor.get_cursor_line_number()
 
     # Test cycling behaviour
-    editor.go_to_line(5)
+    editor.go_to_line(7)
     editor.go_to_next_warning()
-    assert 2 == editor.get_cursor_line_number()
+    assert 1 == editor.get_cursor_line_number()
 
     editor.go_to_previous_warning()
-    assert 5 == editor.get_cursor_line_number()
-    lsp_manager.close_client('python')
+    assert 7 == editor.get_cursor_line_number()
+
+
+@pytest.mark.slow
+@pytest.mark.second
+@flaky(max_runs=5)
+def test_get_warnings(qtbot, lsp_codeeditor):
+    """Test that the editor is returning the right list of warnings."""
+    editor, _ = lsp_codeeditor
+
+    # Set text in editor
+    editor.set_text(TEXT)
+
+    # Notify changes
+    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
+        editor.document_did_change()
+
+    # Get current warnings
+    warnings = editor.get_current_warnings()
+
+    expected = [['D100: Missing docstring in public module', 1],
+                ['D103: Missing docstring in public function', 1],
+                ['W293 blank line contains whitespace', 2],
+                ['E261 at least two spaces before inline comment', 3],
+                ["undefined name 's'", 5],
+                ["undefined name 'undefined_function'", 7],
+                ["W292 no newline at end of file", 7],
+                ["""E305 expected 2 blank lines after class or """
+                 """function definition, found 0""", 7]]
+
+    assert warnings == expected
+
+
+@pytest.mark.slow
+@pytest.mark.second
+@flaky(max_runs=5)
+def test_update_warnings_after_delete_line(qtbot, lsp_codeeditor):
+    """
+    Test that code style warnings are correctly updated after deleting a line
+    in the Editor.
+
+    Regression test for spyder-ide/spyder#9299.
+    """
+    editor, _ = lsp_codeeditor
+    editor.set_text(TEXT)
+
+    # Notify changes.
+    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
+        editor.document_did_change()
+
+    # Delete the blank line that is causing the W293 warning on line 2.
+    editor.go_to_line(2)
+    editor.delete_line()
+
+    # Wait for the lsp_response_signal.
+    qtbot.waitSignal(editor.lsp_response_signal, timeout=30000)
+
+    # Assert that the W293 warning is gone.
+    expected = [['D100: Missing docstring in public module', 1],
+                ['D103: Missing docstring in public function', 1],
+                ['E261 at least two spaces before inline comment', 2],
+                ["undefined name 's'", 4],
+                ["undefined name 'undefined_function'", 6],
+                ["W292 no newline at end of file", 6],
+                ["""E305 expected 2 blank lines after class or """
+                 """function definition, found 0""", 6]]
+    assert editor.get_current_warnings() == expected
+
+
+@pytest.mark.slow
+@pytest.mark.second
+@flaky(max_runs=5)
+def test_update_warnings_after_closequotes(qtbot, lsp_codeeditor):
+    """
+    Test that code errors are correctly updated after activating closequotes
+    in the Editor.
+
+    Regression test for spyder-ide/spyder#9323.
+    """
+    editor, _ = lsp_codeeditor
+    editor.textCursor().insertText("print('test)\n")
+
+    expected = [['EOL while scanning string literal', 1]]
+
+    # Notify changes.
+    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
+        editor.document_did_change()
+
+    assert editor.get_current_warnings() == expected
+
+    # Wait for the lsp_response_signal.
+    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
+        # Add a single quote to fix the error
+        editor.move_cursor(-2)
+        qtbot.keyPress(editor, Qt.Key_Apostrophe)
+        assert editor.toPlainText() == "print('test')\n"
+
+    # Assert that the error is gone.
+    expected = [['D100: Missing docstring in public module', 1]]
+    assert editor.get_current_warnings() == expected
+
+
+@pytest.mark.slow
+@pytest.mark.second
+@flaky(max_runs=5)
+def test_update_warnings_after_closebrackets(qtbot, lsp_codeeditor):
+    """
+    Test that code errors are correctly updated after activating closebrackets
+    in the Editor.
+
+    Regression test for spyder-ide/spyder#9323.
+    """
+    editor, _ = lsp_codeeditor
+    editor.textCursor().insertText("print('test'\n")
+
+    expected = [['unexpected EOF while parsing', 1],
+                ['E901 TokenError: EOF in multi-line statement', 2]]
+
+    # Notify changes.
+    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
+        editor.document_did_change()
+
+    assert editor.get_current_warnings() == expected
+
+    # Wait for the lsp_response_signal.
+    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
+        # Add a bracket to fix the error
+        editor.move_cursor(-1)
+        qtbot.keyPress(editor, Qt.Key_ParenRight)
+        assert editor.toPlainText() == "print('test')\n"
+
+    # Assert that the error is gone.
+    expected = [['D100: Missing docstring in public module', 1]]
+    assert editor.get_current_warnings() == expected

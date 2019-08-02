@@ -8,10 +8,11 @@
 from __future__ import print_function
 import os
 import os.path as osp
+import sys
 
 # Third party imports
-from qtpy.QtCore import Signal, QEvent, QObject, QRegExp, QSize, Qt
-from qtpy.QtGui import (QIcon, QRegExpValidator, QTextCursor)
+from qtpy.QtCore import Signal, Slot, QEvent, QObject, QRegExp, QSize, Qt
+from qtpy.QtGui import QIcon, QRegExpValidator, QTextCursor
 from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLabel, QLineEdit,
                             QListWidget, QListWidgetItem, QVBoxLayout,
                             QMainWindow)
@@ -19,33 +20,23 @@ from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLabel, QLineEdit,
 # Local imports
 from spyder.config.base import _
 from spyder.py3compat import iteritems, to_text_string
+from spyder.config.utils import is_ubuntu
 from spyder.utils import icon_manager as ima
 from spyder.utils.stringmatching import get_search_scores
 from spyder.widgets.helperwidgets import HelperToolButton, HTMLDelegate
+from spyder.config.manager import CONF
 
 
 # --- Python Outline explorer helpers
-def process_python_symbol_data(oedata):
-    """Returns a list with line number, definition name, fold and token."""
-    symbol_list = []
-    for key in oedata:
-        val = oedata[key]
-        if val and key != 'found_cell_separators':
-            if val.is_class_or_function():
-                symbol_list.append((key, val.def_name, val.fold_level,
-                                    val.get_token()))
-    return sorted(symbol_list)
 
 
-def get_python_symbol_icons(oedata):
-    """Return a list of icons for oedata of a python file."""
+def get_python_symbol_icons(symbols):
+    """Return a list of icons for symbols of a python file."""
     class_icon = ima.icon('class')
     method_icon = ima.icon('method')
     function_icon = ima.icon('function')
     private_icon = ima.icon('private1')
     super_private_icon = ima.icon('private2')
-
-    symbols = process_python_symbol_data(oedata)
 
     # line - 1, name, fold level
     fold_levels = sorted(list(set([s[2] for s in symbols])))
@@ -192,6 +183,7 @@ class KeyPressFilter(QObject):
 
     sig_up_key_pressed = Signal()
     sig_down_key_pressed = Signal()
+    sig_enter_key_pressed = Signal()
 
     def eventFilter(self, src, e):
         if e.type() == QEvent.KeyPress:
@@ -199,7 +191,8 @@ class KeyPressFilter(QObject):
                 self.sig_up_key_pressed.emit()
             elif e.key() == Qt.Key_Down:
                 self.sig_down_key_pressed.emit()
-
+            elif (e.key() == Qt.Key_Return):
+                self.sig_enter_key_pressed.emit()
         return super(KeyPressFilter, self).eventFilter(src, e)
 
 
@@ -227,8 +220,63 @@ class FileSwitcher(QDialog):
     # Constants that define the mode in which the list widget is working
     # FILE_MODE is for a list of files, SYMBOL_MODE if for a list of symbols
     # in a given file when using the '@' symbol.
+    path_text_font_size = CONF.get('appearance', 'rich_font/size')
+    if sys.platform == 'darwin':
+        text_diff = 2
+    else:
+        text_diff = 1
+    filename_text_font_size = path_text_font_size + text_diff
     FILE_MODE, SYMBOL_MODE = [1, 2]
     MAX_WIDTH = 600
+    PATH_FG_COLOR = 'rgb(153, 153, 153)'
+    SECTION_COLOR = 'rgb(70, 179, 239)'
+    _FONT_SIZE = CONF.get('appearance', 'rich_font/size')
+    _HEIGHT = 20
+    _PADDING = 0
+    _MIN_WIDTH = 500
+    _STYLES = {
+        'title_color': ima.MAIN_FG_COLOR,
+        'description_color': 'rgb(153, 153, 153)',
+        'section_color': SECTION_COLOR,
+        'shortcut_color': 'rgb(153, 153, 153)',
+        'title_font_size': filename_text_font_size,
+        'description_font_size': path_text_font_size,
+        'section_font_size': path_text_font_size,
+        'shortcut_font_size': path_text_font_size,
+    }
+    _TEMPLATE = '''<table width="{width}" height="{height}"
+                          cellpadding="{padding}">
+  <tr>
+    <td valign="middle">
+      <span style="color:{title_color};font-size:{title_font_size}pt">
+        {title}
+      </span>&nbsp;
+      <span
+       style="color:{description_color};font-size:{description_font_size}pt">
+        {description}
+      </span>
+    </td>
+    <td valign="middle" align="right" float="right">
+      <span style="color:{shortcut_color};font-size:{shortcut_font_size}pt">
+         <span><code><i>{shortcut}</i></code></span>
+      </span>&nbsp;
+      <span style="color:{section_color};font-size:{section_font_size}pt">
+         {section}
+      </span>
+    </td>
+  </tr>
+</table>'''
+    _SEPARATOR = '_'
+    _HEIGHT_SEP = 0
+    _STYLES_SEP = {
+        'color': 'black',
+        'font_size': CONF.get('appearance', 'rich_font/size', 10),
+    }
+    _TEMPLATE_SEP = \
+        '''<table cellpadding="0" cellspacing="0" width="{width}"
+                  height="{height}" border="0">
+  <tr><td valign="top" align="center"></td></tr>
+</table>'''
 
     def __init__(self, parent, plugin, tabs, data, icon):
         QDialog.__init__(self, parent)
@@ -270,6 +318,8 @@ class FileSwitcher(QDialog):
         self.setWindowOpacity(0.95)
         self.edit.installEventFilter(self.filter)
         self.edit.setValidator(regex_validator)
+        self.edit.setPlaceholderText(_("Start typing the name of an open file "
+                                       "or console to switch to it"))
         self.help.setToolTip(help_text)
         self.list.setItemDelegate(HTMLDelegate(self))
 
@@ -286,6 +336,8 @@ class FileSwitcher(QDialog):
         self.rejected.connect(self.restore_initial_state)
         self.filter.sig_up_key_pressed.connect(self.previous_row)
         self.filter.sig_down_key_pressed.connect(self.next_row)
+        self.filter.sig_enter_key_pressed.connect(self.enter)
+        self.list.itemClicked.connect(self.enter)
         self.edit.returnPressed.connect(self.accept)
         self.edit.textChanged.connect(self.setup)
         self.list.itemSelectionChanged.connect(self.item_selection_changed)
@@ -375,7 +427,7 @@ class FileSwitcher(QDialog):
         for i, editor in enumerate(self.widgets):
             if editor is self.initial_widget:
                 self.initial_path = paths[i]
-            # This try is needed to make the fileswitcher work with 
+            # This try is needed to make the fileswitcher work with
             # plugins that does not have a textCursor.
             try:
                 self.initial_cursors[paths[i]] = editor.textCursor()
@@ -456,11 +508,11 @@ class FileSwitcher(QDialog):
             self.list.setMinimumWidth(relative_width)
 
             # Height
-            if len(content) < 8:
+            if len(content) < 15:
                 max_entries = len(content)
             else:
-                max_entries = 8
-            max_height = height * max_entries * 2.5
+                max_entries = 15
+            max_height = height * max_entries * 1.7
             self.list.setMinimumHeight(max_height)
 
             # Resize
@@ -587,12 +639,19 @@ class FileSwitcher(QDialog):
 
     # --- Helper methods: Outline explorer
     def get_symbol_list(self):
-        """Get the list of symbols present in the file."""
-        try:
-            oedata = self.get_widget().get_outlineexplorer_data()
-        except AttributeError:
-            oedata = {}
-        return oedata
+        """
+        Get the list of symbols present in the file.
+
+        Returns a list with line number, definition name, fold and token.
+        """
+        symbol_list = []
+        for oedata in self.get_widget().outlineexplorer_data_list():
+            if oedata.is_class_or_function():
+                symbol_list.append((
+                    oedata.block.firstLineNumber(),
+                    oedata.def_name, oedata.fold_level,
+                    oedata.get_token()))
+        return sorted(symbol_list)
 
     # --- Handlers
     def item_selection_changed(self):
@@ -605,13 +664,6 @@ class FileSwitcher(QDialog):
                 try:
                     stack_index = self.paths.index(self.filtered_path[row])
                     self.plugin = self.widgets[stack_index][1]
-                    plugin_index = self.plugins_instances.index(self.plugin)
-                    # Count the real index in the tabWidget of the
-                    # current plugin
-                    real_index = self.get_stack_index(stack_index,
-                                                      plugin_index)
-                    self.sig_goto_file.emit(real_index,
-                                            self.plugin.get_current_tab_manager())
                     self.goto_line(self.line_number)
                     try:
                         self.plugin.switch_to_plugin()
@@ -625,6 +677,22 @@ class FileSwitcher(QDialog):
             else:
                 line_number = self.filtered_symbol_lines[row]
                 self.goto_line(line_number)
+
+    @Slot()
+    @Slot(QListWidgetItem)
+    def enter(self, itemClicked=None):
+        if self.mode == self.FILE_MODE:
+            row = self.current_row()
+            stack_index = self.paths.index(self.filtered_path[row])
+            self.plugin = self.widgets[stack_index][1]
+            plugin_index = self.plugins_instances.index(self.plugin)
+            # Count the real index in the tabWidget of the
+            # current plugin
+            real_index = self.get_stack_index(stack_index,
+                                              plugin_index)
+            self.sig_goto_file.emit(real_index,
+                                    self.plugin.get_current_tab_manager())
+            self.accept()
 
     def setup_file_list(self, filter_text, current_path):
         """Setup list widget content for file list display."""
@@ -654,39 +722,69 @@ class FileSwitcher(QDialog):
         self.fix_size(paths)
 
         # Build the text that will appear on the list widget
+        rich_font = CONF.get('appearance', 'rich_font/size', 10)
+        if sys.platform == 'darwin':
+            path_text_font_size = rich_font
+            filename_text_font_size = path_text_font_size + 2
+        elif os.name == 'nt':
+            path_text_font_size = rich_font
+            filename_text_font_size = path_text_font_size + 1
+        elif is_ubuntu():
+            path_text_font_size = rich_font - 2
+            filename_text_font_size = path_text_font_size + 1
+        else:
+            path_text_font_size = rich_font
+            filename_text_font_size = path_text_font_size + 1
+
         for index, score in enumerate(scores):
             text, rich_text, score_value = score
+            linecount = ""
             if score_value != -1:
-                text_item = "<big style='color:{0:}'>{1:}</big>".format(
-                        ima.MAIN_FG_COLOR, rich_text.replace('&', ''))
+                fileName = rich_text.replace('&', '')
                 if trying_for_line_number:
-                    text_item += " [{0:} {1:}]".format(self.line_count[index],
-                                                       _("lines"))
+                    linecount = "[{0:} {1:}]".format(self.line_count[index],
+                                                     _("lines"))
                 if max_width > self.list.width():
-                    text_item += u"<br><i style='color:{0:}'>{1:}</i>".format(
-                            ima.MAIN_FG_COLOR, short_paths[index])
+                    path = short_paths[index]
                 else:
-                    text_item += u"<br><i style='color:{0:}'>{1:}</i>".format(
-                            ima.MAIN_FG_COLOR, paths[index])
-                if (trying_for_line_number and self.line_count[index] != 0 or
-                        not trying_for_line_number):
+                    path = paths[index]
+
+                title = self.widgets[index][1].get_plugin_title().split(
+                    ' - ')[0]
+
+                text_item = self._TEMPLATE.format(
+                    width=self._MIN_WIDTH, height=self._HEIGHT, title=fileName,
+                    section=title, description=path, padding=self._PADDING,
+                    shortcut=linecount, **self._STYLES)
+
+                if ((trying_for_line_number and self.line_count[index] != 0)
+                        or not trying_for_line_number):
                     results.append((score_value, index, text_item))
 
         # Sort the obtained scores and populate the list widget
         self.filtered_path = []
         plugin = None
+        separator = self._TEMPLATE_SEP.format(
+            width=self.list.width()-20, height=self._HEIGHT_SEP,
+            **self._STYLES_SEP)
         for result in sorted(results):
             index = result[1]
             path = paths[index]
-            icon = icons[index]
+            if sys.platform == 'darwin':
+                scale_factor = 0.9
+            elif os.name == 'nt':
+                scale_factor = 0.8
+            elif is_ubuntu():
+                scale_factor = 0.7
+            else:
+                scale_factor = 0.9
+            icon = ima.get_icon_by_extension_or_type(path, scale_factor)
             text = ''
             try:
                 title = self.widgets[index][1].get_plugin_title().split(' - ')
                 if plugin != title[0]:
                     plugin = title[0]
-                    text += ("<br><big style='color:{0:}'>"
-                             "<b>{1:}</b></big><br>").format(ima.MAIN_FG_COLOR,
-                                                             plugin)
+                    text = separator
                     item = QListWidgetItem(text)
                     item.setToolTip(path)
                     item.setSizeHint(QSize(0, 25))
@@ -723,17 +821,16 @@ class FileSwitcher(QDialog):
         filter_text, symbol_text = filter_text.split('@')
 
         # Fetch the Outline explorer data, get the icons and values
-        oedata = self.get_symbol_list()
-        icons = get_python_symbol_icons(oedata)
+        symbol_list = self.get_symbol_list()
+        icons = get_python_symbol_icons(symbol_list)
 
         # The list of paths here is needed in order to have the same
         # point of measurement for the list widget size as in the file list
-        # See issue 4648
+        # See spyder-ide/spyder#4648.
         paths = self.paths
         # Update list size
         self.fix_size(paths)
 
-        symbol_list = process_python_symbol_data(oedata)
         line_fold_token = [(item[0], item[2], item[3]) for item in symbol_list]
         choices = [item[1] for item in symbol_list]
         scores = get_search_scores(symbol_text, choices, template="<b>{0}</b>")
@@ -767,7 +864,7 @@ class FileSwitcher(QDialog):
         self.list.files_list = False
 
         # Select edit line when using symbol search initially.
-        # See issue 5661
+        # See spyder-ide/spyder#5661.
         self.edit.setFocus()
 
         # Move selected item in list accordingly
@@ -805,7 +902,7 @@ class FileSwitcher(QDialog):
     def show(self):
         """
         Override Qt method to force an update of the fileswitcher before
-        showing it. See Issue #5317 and PR #5389.
+        showing it. See spyder-ide/spyder#5317 and spyder-ide/spyder#5389.
         """
         self.setup()
         super(FileSwitcher, self).show()

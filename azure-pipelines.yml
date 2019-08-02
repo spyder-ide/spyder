@@ -5,10 +5,12 @@ jobs:
 ################################################################################
 # macOS
 ################################################################################
-- job: 'macOS_Conda'
+- job: 'macOS'
 
   pool:
     vmImage: 'macOS-10.13'
+
+  timeoutInMinutes: 100
 
   variables:
     USE_CONDA: "yes"
@@ -45,20 +47,19 @@ jobs:
 
     # Install dependencies
   - script: |
-      ./continuous_integration/azure/install.sh
+      bash ./continuous_integration/azure/install.sh
     displayName: 'Install dependencies'
     continueOnError: false
 
     # Show Conda Build Env
   - script: |
-      echo "cwd:" `pwd`
-      conda list | egrep -v '^#' | perl -ne 's/_/-/g; @x=split /\s+/, lc $_; print "$x[0]==$x[1]\n"' | sort | uniq
+      conda list
     displayName: 'Show build environment'
     continueOnError: true
 
     # Run Tests
   - script: |
-      ./continuous_integration/azure/runtests.sh || ./continuous_integration/azure/runtests.sh || ./continuous_integration/azure/runtests.sh
+      bash ./continuous_integration/azure/runtests.sh || bash ./continuous_integration/azure/runtests.sh || bash ./continuous_integration/azure/runtests.sh || bash ./continuous_integration/azure/runtests.sh
     displayName: 'Run tests'
     continueOnError: false
 
@@ -73,10 +74,12 @@ jobs:
 ################################################################################
 # Windows
 ################################################################################
-- job: 'Windows_Conda'
+- job: 'Windows'
 
   pool:
     vmImage: 'vs2017-win2016'
+
+  timeoutInMinutes: 100
 
   variables:
     CI: True
@@ -87,12 +90,14 @@ jobs:
   # Run the pipeline with multiple Python versions
   strategy:
     matrix:
-      Python27:
-        python.version: '2.7'
+      #Python27:
+      #  python.version: '2.7'
       Python36:
         python.version: '3.6'
-      Python37:
+        use.conda: "yes"
+      Python37_pip:
         python.version: '3.7'
+        use.conda: "no"
     maxParallel: 4
 
   steps:

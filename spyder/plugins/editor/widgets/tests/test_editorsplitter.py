@@ -11,8 +11,14 @@ Tests for EditorSplitter class in editor.py
 # Standard library imports
 try:
     from unittest.mock import Mock
+    import pathlib
 except ImportError:
     from mock import Mock  # Python 2
+    import pathlib2 as pathlib
+
+import os
+import os.path as osp
+from functools import partial
 
 # Third party imports
 import pytest
@@ -41,6 +47,64 @@ def editor_splitter_bot(qtbot):
 
 
 @pytest.fixture
+def editor_splitter_lsp(qtbot_module, lsp_plugin, request):
+    text = """
+    import sys
+    """
+    completions = lsp_plugin
+
+    def report_file_open(options):
+        filename = options['filename']
+        language = options['language']
+        callback = options['codeeditor']
+        completions.register_file(
+            language.lower(), filename, callback)
+        settings = completions.main.editor.lsp_editor_settings['python']
+        callback.start_completion_services()
+        callback.update_completion_configuration(settings)
+
+        with qtbot_module.waitSignal(
+                callback.lsp_response_signal, timeout=30000):
+            callback.document_did_open()
+
+    def register_editorstack(editorstack):
+        editorstack.sig_perform_completion_request.connect(
+            completions.send_request)
+        editorstack.sig_open_file.connect(report_file_open)
+        settings = completions.main.editor.lsp_editor_settings['python']
+        editorstack.update_server_configuration('python', settings)
+
+    def clone(editorstack, template=None):
+        # editorstack.clone_from(template)
+        editor_stack = EditorStack(None, [])
+        editor_stack.set_find_widget(Mock())
+        editor_stack.set_io_actions(Mock(), Mock(), Mock(), Mock())
+        # Emulate "cloning"
+        editorsplitter.editorstack.new('test.py', 'utf-8', text)
+
+    mock_plugin = Mock()
+    editorsplitter = EditorSplitter(
+        None, mock_plugin, [], register_editorstack_cb=register_editorstack)
+
+    editorsplitter.editorstack.set_find_widget(Mock())
+    editorsplitter.editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
+    editorsplitter.editorstack.new('test.py', 'utf-8', text)
+
+    mock_plugin.clone_editorstack.side_effect = partial(
+        clone, template=editorsplitter.editorstack)
+    qtbot_module.addWidget(editorsplitter)
+    editorsplitter.show()
+
+    def teardown():
+        editorsplitter.hide()
+        editorsplitter.close()
+
+    request.addfinalizer(teardown)
+    lsp = completions.get_client('lsp')
+    return editorsplitter, lsp
+
+
+@pytest.fixture
 def editor_splitter_layout_bot(editor_splitter_bot):
     """Create editor splitter for testing layouts."""
     es = editor_splitter_bot
@@ -64,7 +128,6 @@ def editor_splitter_layout_bot(editor_splitter_bot):
 
 
 # ---- Tests
-
 def test_init(editor_splitter_bot):
     """"Test __init__."""
     es = editor_splitter_bot
@@ -330,6 +393,29 @@ def test_set_layout_settings_goto(editor_splitter_layout_bot):
     assert get_settings['splitsettings'] == [(False, 'foo.py', [2, 1, 52]),
                                              (False, 'foo.py', [3, 2, 125]),
                                              (False, 'foo.py', [1, 1, 1])]
+
+
+@pytest.mark.slow
+@pytest.mark.first
+@pytest.mark.skipif(os.name == 'nt',
+                    reason="Makes other tests fail on Windows")
+def test_lsp_splitter_close(editor_splitter_lsp):
+    """Test for spyder-ide/spyder#9341."""
+    editorsplitter, lsp_manager = editor_splitter_lsp
+
+    editorsplitter.split()
+    lsp_files = lsp_manager.clients['python']['instance'].watched_files
+    editor = editorsplitter.editorstack.get_current_editor()
+    path = pathlib.Path(osp.abspath(editor.filename)).as_uri()
+    assert len(lsp_files[path]) == 2
+
+    editorstacks = editorsplitter.iter_editorstacks()
+    assert len(editorstacks) == 2
+
+    last_editorstack = editorstacks[0][0]
+    last_editorstack.close()
+    lsp_files = lsp_manager.clients['python']['instance'].watched_files
+    assert len(lsp_files[path]) == 1
 
 
 if __name__ == "__main__":
