@@ -1115,10 +1115,6 @@ class CollectionsEditorTableView(BaseTableView):
 
         self.delegate = CollectionsDelegate(self)
         self.setItemDelegate(self.delegate)
-        self.setSelectionBehavior(QAbstractItemView.SelectItems)
-        self.setSelectionMode(QAbstractItemView.SingleSelection)
-        self.setEditTriggers(QAbstractItemView.AllEditTriggers)
-        self.setSortingEnabled(True)
 
         self.setup_table()
         self.menu = self.setup_menu(minmax)
@@ -1422,10 +1418,6 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.delegate = RemoteCollectionsDelegate(self)
         self.delegate.sig_free_memory.connect(self.sig_free_memory.emit)
         self.setItemDelegate(self.delegate)
-        self.setSelectionBehavior(QAbstractItemView.SelectItems)
-        self.setSelectionMode(QAbstractItemView.SingleSelection)
-        self.setEditTriggers(QAbstractItemView.AllEditTriggers)
-        self.setSortingEnabled(True)
 
         self.setup_table()
         self.menu = self.setup_menu(minmax)
