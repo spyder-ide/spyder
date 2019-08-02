@@ -36,7 +36,8 @@ from qtpy.QtCore import QRegExp, Qt, QTimer, QUrl, Signal, Slot, QEvent
 from qtpy.QtGui import (QColor, QCursor, QFont, QIntValidator,
                         QKeySequence, QPaintEvent, QPainter, QMouseEvent,
                         QTextCharFormat, QTextCursor, QDesktopServices,
-                        QKeyEvent, QTextDocument, QTextFormat, QTextOption)
+                        QKeyEvent, QTextDocument, QTextFormat, QTextOption,
+                        QTextFrameFormat)
 from qtpy.QtPrintSupport import QPrinter
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QGridLayout, QHBoxLayout, QLabel,
@@ -1455,11 +1456,11 @@ class CodeEditor(TextEditBaseWidget):
         self.clear_extra_selections('occurrences')
         self.sig_flags_changed.emit()
 
-    def __highlight_selection(self, key, cursor, foreground_color=None,
-                        background_color=None, underline_color=None,
-                        outline_color=None,
-                        underline_style=QTextCharFormat.SingleUnderline,
-                        update=False):
+    def highlight_selection(self, key, cursor, foreground_color=None,
+                            background_color=None, underline_color=None,
+                            outline_color=None,
+                            underline_style=QTextCharFormat.SingleUnderline,
+                            update=False):
         if cursor is None:
             return
         extra_selections = self.get_extra_selections(key)
@@ -1508,7 +1509,7 @@ class CodeEditor(TextEditBaseWidget):
         self.occurrences = []
         while cursor:
             self.occurrences.append(cursor.blockNumber())
-            self.__highlight_selection('occurrences', cursor,
+            self.highlight_selection('occurrences', cursor,
                                        background_color=self.occurrence_color)
             cursor = self.__find_next(text, cursor)
         self.update_extra_selections()
@@ -1945,7 +1946,7 @@ class CodeEditor(TextEditBaseWidget):
 
             # Underline errors and warnings in this editor.
             if self.underline_errors_enabled:
-                self.__highlight_selection('code_analysis_underline',
+                self.highlight_selection('code_analysis_underline',
                                            block.selection,
                                            underline_color=block.color)
 
@@ -2056,7 +2057,7 @@ class CodeEditor(TextEditBaseWidget):
     def highlight_line_warning(self, block_data):
         """Highlight errors and warnings in this editor."""
         self.clear_extra_selections('code_analysis_highlight')
-        self.__highlight_selection('code_analysis_highlight',
+        self.highlight_selection('code_analysis_highlight',
                                    block_data.selection,
                                    background_color=block_data.color)
         self.update_extra_selections()
@@ -3465,7 +3466,7 @@ class CodeEditor(TextEditBaseWidget):
             cursor = self.cursorForPosition(pos)
             cursor.select(QTextCursor.WordUnderCursor)
             self.clear_extra_selections('ctrl_click')
-            self.__highlight_selection(
+            self.highlight_selection(
                 'ctrl_click', cursor, update=True,
                 foreground_color=self.ctrl_click_color,
                 underline_color=self.ctrl_click_color,
@@ -3489,7 +3490,7 @@ class CodeEditor(TextEditBaseWidget):
                     color = QColor(255, 80, 80)
 
             self.clear_extra_selections('ctrl_click')
-            self.__highlight_selection(
+            self.highlight_selection(
                 'ctrl_click', cursor, update=True,
                 foreground_color=color,
                 underline_color=color,

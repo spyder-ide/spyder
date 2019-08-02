@@ -15,12 +15,16 @@ BACKSLASH_REPLACE_REGEX = re.compile(r'(\\)([^\\\s])')
 
 def _compute_offset_str(offset, value):
     line, col = offset
+    mark_for_position = True
     if value == '\n':
         line += 1
         col = 0
+        mark_for_position = False
+    elif value == '\r':
+        mark_for_position = False
     else:
         col += len(value)
-    return (line, col)
+    return (line, col), mark_for_position
 
 
 # ------------------------ ASTNode identifiers --------------------------------
@@ -64,6 +68,7 @@ class ASTNode:
 
     def __init__(self, position=((0, 0), (0, 0))):
         self.position = position
+        self.mark_for_position = True
 
     def update_position(self, position):
         """Updates node text position."""
@@ -112,10 +117,39 @@ class TextNode(ASTNode):
         self.tokens.append(token)
 
     def compute_position(self, offset):
+        polygon = []
         current_offset = offset
         for token in self.tokens:
             current_offset = token.compute_position(current_offset)
-        self.position = (offset, current_offset)
+            if token.mark_for_position:
+                polygon += list(token.position)
+        flatten_polygon = []
+        for segment in polygon:
+            if isinstance(segment, list):
+                flatten_polygon += segment
+            else:
+                flatten_polygon.append(segment)
+        segments = []
+        current_segment = []
+        current_x = None
+        current_y = None
+        previous_x = None
+        for x, y in flatten_polygon:
+            if current_x is None:
+                previous_x = x
+                current_segment.append((x, y))
+            elif x == current_x + 1:
+                current_segment.append((current_x, current_y))
+                segments.append(current_segment)
+                current_segment = [(x, y)]
+                previous_x = x
+            current_x, current_y = x, y
+        if current_x == previous_x:
+            if len(current_segment) > 0:
+                current_segment.append((current_x, current_y))
+        if len(current_segment) > 0:
+            segments.append(current_segment)
+        self.position = segments
         return current_offset
 
     def text(self):
@@ -138,8 +172,12 @@ class LeafNode(ASTNode):
         self.value = value
 
     def compute_position(self, offset):
-        new_offset = _compute_offset_str(offset, self.value)
-        self.position = (offset, new_offset)
+        new_offset, mark_for_position = _compute_offset_str(offset, self.value)
+        self.mark_for_position = mark_for_position
+        if len(self.value) == 1:
+            self.position = (offset,)
+        else:
+            self.position = (offset, new_offset)
         return new_offset
 
     def text(self):
@@ -204,8 +242,9 @@ class TabstopSnippetNode(SnippetASTNode):
         if isinstance(self.placeholder, ASTNode):
             end_position = self.placeholder.compute_position(offset)
         elif isinstance(self.placeholder, str):
-            end_position = _compute_offset_str(offset, self.placeholder)
-        self.position = (offset, end_position)
+            end_position, _ = _compute_offset_str(offset, self.placeholder)
+        # self.position = (offset, end_position)
+        self.position = self.placeholder.position
         return end_position
 
     def update(self, new_placeholder):
