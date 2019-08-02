@@ -24,7 +24,8 @@ TEXT = ("def some_function():\n"  # D100, D103: Missing docstring
         "    a = 1 # a comment\n"  # E261 two spaces before inline comment
         "\n"
         "    a += s\n"  # Undefined variable s
-        "    return a\n")
+        "    return a\n"
+        "undefined_function()")  # Undefined name 'undefined_function'
 
 
 @pytest.mark.slow
@@ -63,7 +64,11 @@ def test_ignore_warnings(qtbot, lsp_codeeditor):
 
     expected = [['D103: Missing docstring in public function', 1],
                 ['W293 blank line contains whitespace', 2],
-                ["undefined name 's'", 5]]
+                ["undefined name 's'", 5],
+                ["undefined name 'undefined_function'", 7],
+                ["W292 no newline at end of file", 7],
+                ["""E305 expected 2 blank lines after class or """
+                 """function definition, found 0""", 7]]
 
     CONF.set('lsp-server', 'pydocstyle/ignore', '')
     CONF.set('lsp-server', 'pycodestyle/ignore', '')
@@ -101,7 +106,8 @@ def test_adding_warnings(qtbot, lsp_codeeditor):
     expected_warnings = {1: ['D100', 'D103'],
                          2: ['W293'],
                          3: ['E261'],
-                         5: ['undefined name']}
+                         5: ['undefined name'],
+                         7: ['undefined name', 'W292', 'E305']}
     for i, warning in warnings:
         assert any([expected in warning for expected in expected_warnings[i]])
 
@@ -131,12 +137,12 @@ def test_move_warnings(qtbot, lsp_codeeditor):
     assert 2 == editor.get_cursor_line_number()
 
     # Test cycling behaviour
-    editor.go_to_line(5)
+    editor.go_to_line(7)
     editor.go_to_next_warning()
     assert 1 == editor.get_cursor_line_number()
 
     editor.go_to_previous_warning()
-    assert 5 == editor.get_cursor_line_number()
+    assert 7 == editor.get_cursor_line_number()
 
 
 @pytest.mark.slow
@@ -160,7 +166,11 @@ def test_get_warnings(qtbot, lsp_codeeditor):
                 ['D103: Missing docstring in public function', 1],
                 ['W293 blank line contains whitespace', 2],
                 ['E261 at least two spaces before inline comment', 3],
-                ["undefined name 's'", 5]]
+                ["undefined name 's'", 5],
+                ["undefined name 'undefined_function'", 7],
+                ["W292 no newline at end of file", 7],
+                ["""E305 expected 2 blank lines after class or """
+                 """function definition, found 0""", 7]]
 
     assert warnings == expected
 
@@ -193,7 +203,11 @@ def test_update_warnings_after_delete_line(qtbot, lsp_codeeditor):
     expected = [['D100: Missing docstring in public module', 1],
                 ['D103: Missing docstring in public function', 1],
                 ['E261 at least two spaces before inline comment', 2],
-                ["undefined name 's'", 4]]
+                ["undefined name 's'", 4],
+                ["undefined name 'undefined_function'", 6],
+                ["W292 no newline at end of file", 6],
+                ["""E305 expected 2 blank lines after class or """
+                 """function definition, found 0""", 6]]
     assert editor.get_current_warnings() == expected
 
 
@@ -243,7 +257,8 @@ def test_update_warnings_after_closebrackets(qtbot, lsp_codeeditor):
     editor, _ = lsp_codeeditor
     editor.textCursor().insertText("print('test'\n")
 
-    expected = [['unexpected EOF while parsing', 1]]
+    expected = [['unexpected EOF while parsing', 1],
+                ['E901 TokenError: EOF in multi-line statement', 2]]
 
     # Notify changes.
     with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
