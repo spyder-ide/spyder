@@ -562,7 +562,7 @@ class CodeEditor(TextEditBaseWidget):
                            at_point.y())
             self.show_hint(documentation, inspect_word=word,
                            at_point=point, position_point=True,
-                           max_lines=5,
+                           max_lines=self._DEFAULT_MAX_LINES,
                            max_width=self._DEFAULT_MAX_WIDTH)
 
     # --- Hover/Hints
