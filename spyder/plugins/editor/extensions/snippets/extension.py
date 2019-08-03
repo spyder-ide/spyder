@@ -85,16 +85,27 @@ class SnippetsExtension(EditorExtension):
             return
 
         key = event.key()
+        text = to_text_string(event.text())
         cursor = self.editor.textCursor()
         if self.is_snippet_active:
+            line, column = self.editor.get_cursor_line_column()
+            node, snippet = self._find_node_by_position(line, column)
             if key == Qt.Key_Tab:
+                event.accept()
                 next_snippet = ((self.active_snippet + 1) %
                                 len(self.snippets_map))
                 self.select_snippet(next_snippet)
-                event.accept()
             elif key == Qt.Key_Escape:
                 self.reset()
                 event.accept()
+            elif len(text) > 0:
+                if node is not None:
+                    if snippet is None:
+                        # Constant text identifier was modified
+                        self.reset()
+                    else:
+                        # Update placeholder text node
+                        pass
 
     def update_position_tree(self, visitor):
         self.node_number = visitor.node_number
@@ -111,13 +122,25 @@ class SnippetsExtension(EditorExtension):
                 position = tuple(coor for pos in position for coor in pos)
                 self.index.insert(node_position, position)
 
-    def cursor_changed(self, line, col):
+    def _find_node_by_position(self, line, col):
         point = (line, col) * 2
         node_numbers = list(self.index.intersection(point))
-        if len(node_numbers) == 0:
+        node, nearest_snippet = None, None
+        if len(node_numbers) > 0:
+            node = self.node_position[node_numbers[-1]][-1]
+            for node_number in node_numbers:
+                current_node = self.node_position[node_number][-1]
+                if isinstance(current_node, nodes.SnippetASTNode):
+                    nearest_snippet = current_node
+        return node, nearest_snippet
+
+    def cursor_changed(self, line, col):
+        node, nearest_snippet = self._find_node_by_position(line, col)
+        if node is None:
             self.reset()
         else:
-            print(node_numbers)
+            if nearest_snippet is not None:
+                self.active_snippet = nearest_snippet.number
 
     def reset(self):
         self.node_number = 0
@@ -170,6 +193,8 @@ class SnippetsExtension(EditorExtension):
         document = self.editor.document()
         if snippet_number not in self.snippets_map:
             snippet_number = 0
+            if snippet_number not in self.snippets_map:
+                snippet_number = max(self.snippets_map.keys())
         node = self.snippets_map[snippet_number][0]
         self.active_snippet = snippet_number
         node_position = node.position

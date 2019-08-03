@@ -119,10 +119,15 @@ class TextNode(ASTNode):
     def compute_position(self, offset):
         polygon = []
         current_offset = offset
-        for token in self.tokens:
+        for i, token in enumerate(self.tokens):
             current_offset = token.compute_position(current_offset)
             if token.mark_for_position:
-                polygon += list(token.position)
+                position = token.position
+                if i == len(self.tokens) - 1:
+                    if len(position) == 1:
+                        x, y = position[0]
+                        position = ((x, y), (x, y + 1))
+                polygon += list(position)
         flatten_polygon = []
         for segment in polygon:
             if isinstance(segment, list):
@@ -172,7 +177,8 @@ class LeafNode(ASTNode):
         self.value = value
 
     def compute_position(self, offset):
-        new_offset, mark_for_position = _compute_offset_str(offset, self.value)
+        value = self.text()
+        new_offset, mark_for_position = _compute_offset_str(offset, value)
         self.mark_for_position = mark_for_position
         if len(self.value) == 1:
             self.position = (offset,)
