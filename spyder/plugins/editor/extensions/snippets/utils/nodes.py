@@ -69,6 +69,7 @@ class ASTNode:
     def __init__(self, position=((0, 0), (0, 0))):
         self.position = position
         self.mark_for_position = True
+        self.index_in_parent = -1
 
     def update_position(self, position):
         """Updates node text position."""
@@ -111,6 +112,8 @@ class TextNode(ASTNode):
     def __init__(self, *tokens):
         ASTNode.__init__(self)
         self.tokens = tokens
+        for i, token in enumerate(tokens):
+            token.index_in_parent = i
 
     def add_token(self, token):
         """Adds a token to the text sequence."""
@@ -236,7 +239,7 @@ class TabstopSnippetNode(SnippetASTNode):
     """
 
     KIND = SnippetKind.TABSTOP
-    DEFAULT_PLACEHOLDER = LeafNode()
+    DEFAULT_PLACEHOLDER = TextNode(LeafNode())
 
     def __init__(self, number, placeholder=None):
         SnippetASTNode.__init__(self)

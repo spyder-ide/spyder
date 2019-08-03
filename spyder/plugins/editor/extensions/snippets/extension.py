@@ -26,6 +26,10 @@ from spyder.api.editorextension import EditorExtension
 import spyder.plugins.editor.extensions.snippets.utils.nodes as nodes
 from spyder.plugins.editor.extensions.snippets.utils.ast import (
     build_snippet_ast)
+from spyder.plugins.editor.extensions.snippets.utils.lexer import tokenize
+
+
+MERGE_ALLOWED = {'int', 'name', 'whitespace'}
 
 
 class SnippetSearcherVisitor:
@@ -59,6 +63,7 @@ class SnippetsExtension(EditorExtension):
         self.node_number = 0
         self.index = None
         self.ast = None
+        self.starting_position = None
         self.node_position = {}
         self.snippets_map = {}
         if rtree_available:
@@ -89,7 +94,8 @@ class SnippetsExtension(EditorExtension):
         cursor = self.editor.textCursor()
         if self.is_snippet_active:
             line, column = self.editor.get_cursor_line_column()
-            node, snippet = self._find_node_by_position(line, column)
+            node, snippet, text_node = self._find_node_by_position(
+                line, column)
             if key == Qt.Key_Tab:
                 event.accept()
                 next_snippet = ((self.active_snippet + 1) %
@@ -102,10 +108,79 @@ class SnippetsExtension(EditorExtension):
                 if node is not None:
                     if snippet is None:
                         # Constant text identifier was modified
+
                         self.reset()
                     else:
                         # Update placeholder text node
-                        pass
+                        if text != '\b':
+                            leaf_kind = node.name
+                            tokens = tokenize(text)
+                            token_nodes = [nodes.LeafNode(t.token, t.value)
+                                           for t in tokens]
+                            for token in token_nodes:
+                                token.compute_position((line, column))
+                            first_token = token_nodes[0]
+                            first_position = first_token.position[0]
+                            leaf_start, leaf_end = node.position
+                            if first_token.mark_for_position:
+                                if leaf_kind in MERGE_ALLOWED:
+                                    if first_token.name == leaf_kind:
+                                        if first_position == leaf_start:
+                                            node.value = (
+                                                first_token.value + node.value)
+                                        elif first_position == leaf_end:
+                                            node.value = (
+                                                node.value + first_token.value)
+                                        else:
+                                            position = (first_position[1] -
+                                                        leaf_start[1])
+                                            value = node.value
+                                            value = (value[:position] +
+                                                     first_token.value +
+                                                     value[position:])
+                                            node.value = value
+                                        token_nodes = token_nodes[1:]
+                            if len(token_nodes) > 0:
+                                text_tokens = text_node.tokens
+                                next_token = token_nodes[0]
+                                first_position = next_token.position[0]
+                                leaf_position = node.index_in_parent
+                                if first_position == leaf_start:
+                                    # Prepend to parent TextNode
+                                    lower_bound = max(leaf_position - 1, 0)
+                                    first_half = text_tokens[:lower_bound]
+                                    second_half = text_tokens[leaf_position:]
+                                elif first_position == leaf_end:
+                                    # Append to parent TextNode
+                                    first_half = text_tokens
+                                    second_half = []
+                                else:
+                                    # Split current leaf and add in-between
+                                    position = (
+                                        first_position[1] - leaf_start[1])
+                                    leaf_value = node.value
+                                    first_split = leaf_value[:position]
+                                    second_split = leaf_value[position:]
+                                    first_split = nodes.LeafNode(
+                                        node.name, first_split)
+                                    second_split = nodes.LeafNode(
+                                        node.name, second_split)
+                                    first_half = text_tokens[
+                                        :leaf_position - 1]
+                                    first_half += [first_split]
+                                    second_half = text_tokens[
+                                        leaf_position + 1:]
+                                    second_half = [second_split] + second_half
+                                first_half = list(first_half)
+                                second_half = list(second_half)
+                                text_tokens = (
+                                    first_half + token_nodes + second_half)
+                                for i, token in enumerate(text_tokens):
+                                    token.index_in_parent = i
+                                text_node.tokens = text_tokens
+                            # text_node = nodes.TextNode(*token_nodes)
+                            # snippet.placeholder = text_node
+                            # self._update_ast()
 
     def update_position_tree(self, visitor):
         self.node_number = visitor.node_number
@@ -125,29 +200,36 @@ class SnippetsExtension(EditorExtension):
     def _find_node_by_position(self, line, col):
         point = (line, col) * 2
         node_numbers = list(self.index.intersection(point))
-        node, nearest_snippet = None, None
+        node, nearest_text, nearest_snippet = None, None, None
         if len(node_numbers) > 0:
             node = self.node_position[node_numbers[-1]][-1]
             for node_number in node_numbers:
                 current_node = self.node_position[node_number][-1]
                 if isinstance(current_node, nodes.SnippetASTNode):
                     nearest_snippet = current_node
-        return node, nearest_snippet
+                elif isinstance(current_node, nodes.TextNode):
+                    nearest_text = current_node
+        return node, nearest_snippet, nearest_text
 
     def cursor_changed(self, line, col):
-        node, nearest_snippet = self._find_node_by_position(line, col)
+        node, nearest_snippet, _ = self._find_node_by_position(line, col)
         if node is None:
-            self.reset()
+            # self.reset()
+            pass
         else:
             if nearest_snippet is not None:
                 self.active_snippet = nearest_snippet.number
 
-    def reset(self):
+    def reset(self, partial_reset=False):
         self.node_number = 0
         self.index = None
-        self.is_snippet_active = False
-        self.active_snippet = -1
         self.node_position = {}
+        self.snippets_map = {}
+        if not partial_reset:
+            self.ast = None
+            self.is_snippet_active = False
+            self.active_snippet = -1
+            self.starting_position = None
         if rtree_available:
             self.index = index.Index()
         self.editor.clear_extra_selections('code_snippets')
@@ -223,23 +305,72 @@ class SnippetsExtension(EditorExtension):
         self.editor.setTextCursor(cursor)
         self.editor.request_signature()
 
+    def _update_ast(self):
+        self.reset(partial_reset=True)
+        self.is_snippet_active = True
+        self.ast.compute_position(self.starting_position)
+        start_line, start_column = self.starting_position
+        visitor = SnippetSearcherVisitor(
+            start_line, start_column, self.node_number)
+        self.ast.accept(visitor)
+        self.snippets_map = visitor.snippet_map
+        self.update_position_tree(visitor)
+        self.draw_snippets()
+
     def insert_snippet(self, text):
+
+
         line, column = self.editor.get_cursor_line_column()
         visitor = SnippetSearcherVisitor(line, column, self.node_number)
         ast = build_snippet_ast(text)
         ast.compute_position((line, column))
         ast.accept(visitor)
-        self.ast = ast
+
         self.editor.insert_text(ast.text())
         self.editor.document_did_change()
-        # TODO Handle nested snippets
-        self.snippets_map = visitor.snippet_map
-        if len(self.snippets_map) > 0:
-            # Completion contains snippets
-            self.is_snippet_active = True
-            self.update_position_tree(visitor)
-            self.draw_snippets()
-            self.select_snippet(snippet_number=1)
-        else:
-            # Completion does not contain snippets
+
+        new_snippet = True
+        if self.is_snippet_active:
+            # This is a nested snippet / text on snippet
+            leaf, snippet_root, _ = self._find_node_by_position(line, column)
+
+            if snippet_root is not None:
+                new_snippet = False
+                root_number = snippet_root.number
+                next_number = root_number + 1
+                snippet_map = visitor.snippet_map
+                for snippet_number in snippet_map:
+                    snippet_nodes = snippet_map[snippet_number]
+                    for snippet_node in snippet_nodes:
+                        snippet_node.number = next_number
+                    next_number += 1
+                for snippet_number in self.snippets_map:
+                    if snippet_number > root_number:
+                        snippet_nodes = self.snippets_map[snippet_number]
+                        for snippet_node in snippet_nodes:
+                            snippet_node.number = next_number
+                        next_number += 1
+                snippet_root.placeholder = ast
+                self._update_ast()
+                if len(snippet_map) > 0:
+                    self.select_snippet(snippet_number=root_number + 1)
+            elif leaf is not None:
+                self.reset()
+
+        if new_snippet:
             self.reset()
+
+
+
+            self.ast = ast
+            self.snippets_map = visitor.snippet_map
+            if len(self.snippets_map) > 0:
+                # Completion contains snippets
+                self.is_snippet_active = True
+                self.starting_position = (line, column)
+                self.update_position_tree(visitor)
+                self.draw_snippets()
+                self.select_snippet(snippet_number=1)
+            else:
+                # Completion does not contain snippets
+                self.reset()
