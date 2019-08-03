@@ -315,7 +315,7 @@ class BaseSH(QSyntaxHighlighter):
                     start = max([0, start + offset])
                     end = max([0, end + offset])
                     font = self.format(start)
-                    font.setUnderlineStyle(True)
+                    #font.setUnderlineStyle(True)
                     self.setFormat(start, end - start, font)
             match = self.patterns.search(text, end)
 

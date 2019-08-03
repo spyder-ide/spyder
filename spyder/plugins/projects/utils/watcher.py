@@ -32,8 +32,8 @@ class WorkspaceEventHandler(QObject, FileSystemEventHandler):
     sig_file_modified = Signal(str, bool)
 
     def __init__(self, parent=None):
-        super(QObject, self).__init__(parent)
-        super(FileSystemEventHandler, self).__init__()
+        QObject.__init__(self)
+        FileSystemEventHandler.__init__(self)
 
     def fmt_is_dir(self, is_dir):
         return 'directory' if is_dir else 'file'
@@ -76,7 +76,7 @@ class WorkspaceWatcher(QObject):
     """
 
     def __init__(self, parent=None):
-        super(QObject, self).__init__(parent)
+        QObject.__init__(self)
         self.observer = None
         self.event_handler = WorkspaceEventHandler(self)
 

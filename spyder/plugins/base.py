@@ -37,8 +37,6 @@ class BasePluginMixin(object):
     """Implementation of the basic functionality for Spyder plugins."""
 
     def __init__(self, parent=None):
-        super(BasePluginMixin, self).__init__()
-
         # Check compatibility
         check_compatibility, message = self.check_compatibility()
 

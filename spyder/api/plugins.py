@@ -43,8 +43,7 @@ class BasePlugin(BasePluginMixin):
 
     def __init__(self, parent=None):
         super(BasePlugin, self).__init__(parent)
-        BasePluginMixin.__init__(self)
-
+        #BasePluginMixin.__init__(self, parent)
 
         # This is the plugin parent, which corresponds to the main
         # window.
@@ -55,8 +54,8 @@ class BasePlugin(BasePluginMixin):
         self.PLUGIN_PATH = self._get_plugin_path()
 
         # Connect signals to slots.
-        self.sig_show_status_message.connect(self.show_status_message)
-        self.sig_option_changed.connect(self.set_option)
+        #self.sig_show_status_message.connect(self.show_status_message)
+        #self.sig_option_changed.connect(self.set_option)
 
     @Slot(str)
     @Slot(str, int)
@@ -191,7 +190,9 @@ class BasePluginWidget(QWidget, BasePluginWidgetMixin):
     sig_update_plugin_title = Signal()
 
     def __init__(self, main=None):
-        super(BasePluginWidget, self).__init__(main)
+        #super(BasePluginWidget, self).__init__(main)
+        QWidget.__init__(self, parent=main)
+        BasePluginWidgetMixin.__init__(self)
 
         # Dockwidget for the plugin, i.e. the pane that's going to be
         # displayed in Spyder for this plugin.
@@ -360,6 +361,10 @@ class SpyderPluginWidget(SpyderPlugin, BasePluginWidget):
     shortcut = None
 
     # ------------------------------ METHODS ----------------------------------
+
+    def __init__(self, parent=None):
+        SpyderPlugin.__init__(self, parent)
+        BasePluginWidget.__init__(self, parent)
 
     def get_plugin_title(self):
         """
