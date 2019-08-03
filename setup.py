@@ -208,7 +208,7 @@ install_requires = [
     'pylint',
     'psutil',
     'qtawesome>=0.5.7',
-    'qtpy>=1.5.0',
+    'qtpy>=1.6.0',
     'pickleshare',
     'pyzmq',
     'chardet>=2.0.0',
