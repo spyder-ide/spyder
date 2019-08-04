@@ -13,7 +13,7 @@ main window and call other plugins directly.
 """
 
 # Third party imports
-from qtpy.QtCore import Signal, Slot
+from qtpy.QtCore import QObject, Signal, Slot
 from qtpy.QtWidgets import QWidget
 
 # Local imports
@@ -43,7 +43,6 @@ class BasePlugin(BasePluginMixin):
 
     def __init__(self, parent=None):
         super(BasePlugin, self).__init__(parent)
-        #BasePluginMixin.__init__(self, parent)
 
         # This is the plugin parent, which corresponds to the main
         # window.
@@ -52,10 +51,6 @@ class BasePlugin(BasePluginMixin):
         # Filesystem path to the root directory that contains the
         # plugin
         self.PLUGIN_PATH = self._get_plugin_path()
-
-        # Connect signals to slots.
-        #self.sig_show_status_message.connect(self.show_status_message)
-        #self.sig_option_changed.connect(self.set_option)
 
     @Slot(str)
     @Slot(str, int)
@@ -136,7 +131,7 @@ class BasePlugin(BasePluginMixin):
         super(BasePlugin, self)._ending_long_process(message)
 
 
-class SpyderPlugin(BasePlugin):
+class SpyderPlugin(QObject, BasePlugin):
     """
     Spyder plugin class.
 
@@ -156,6 +151,14 @@ class SpyderPlugin(BasePlugin):
     CONFIGWIDGET_CLASS = None
 
     # ------------------------------ METHODS ----------------------------------
+
+    def __init__(self, parent=None):
+        QObject.__init__(self)
+        BasePlugin.__init__(self, parent)
+
+        # Connect signals to slots.
+        self.sig_show_status_message.connect(self.show_status_message)
+        self.sig_option_changed.connect(self.set_option)
 
     def check_compatibility(self):
         """
@@ -179,7 +182,7 @@ class SpyderPlugin(BasePlugin):
 # =============================================================================
 # SpyderPluginWidget
 # =============================================================================
-class BasePluginWidget(QWidget, BasePluginWidgetMixin):
+class BasePluginWidget(QWidget, BasePlugin, BasePluginWidgetMixin):
     """
     Basic functionality for Spyder plugin widgets.
 
@@ -190,9 +193,13 @@ class BasePluginWidget(QWidget, BasePluginWidgetMixin):
     sig_update_plugin_title = Signal()
 
     def __init__(self, main=None):
-        #super(BasePluginWidget, self).__init__(main)
         QWidget.__init__(self, parent=main)
+        BasePlugin.__init__(self, parent=main)
         BasePluginWidgetMixin.__init__(self)
+
+        # Connect signals to slots.
+        self.sig_show_status_message.connect(self.show_status_message)
+        self.sig_option_changed.connect(self.set_option)
 
         # Dockwidget for the plugin, i.e. the pane that's going to be
         # displayed in Spyder for this plugin.
@@ -330,7 +337,7 @@ class BasePluginWidget(QWidget, BasePluginWidgetMixin):
         super(BasePluginWidget, self)._switch_to_plugin()
 
 
-class SpyderPluginWidget(SpyderPlugin, BasePluginWidget):
+class SpyderPluginWidget(BasePluginWidget):
     """
     Spyder plugin widget class.
 
@@ -338,6 +345,17 @@ class SpyderPluginWidget(SpyderPlugin, BasePluginWidget):
     """
 
     # ---------------------------- ATTRIBUTES ---------------------------------
+
+    # Name of the configuration section that's going to be
+    # used to record the plugin's permanent data in Spyder
+    # config system (i.e. in spyder.ini)
+    # Status: Optional
+    CONF_SECTION = None
+
+    # Widget to be used as entry in Spyder Preferences
+    # dialog
+    # Status: Optional
+    CONFIGWIDGET_CLASS = None
 
     # Path for images relative to the plugin path
     # Status: Optional
@@ -362,9 +380,23 @@ class SpyderPluginWidget(SpyderPlugin, BasePluginWidget):
 
     # ------------------------------ METHODS ----------------------------------
 
-    def __init__(self, parent=None):
-        SpyderPlugin.__init__(self, parent)
-        BasePluginWidget.__init__(self, parent)
+    def check_compatibility(self):
+        """
+        This method can be reimplemented to check compatibility of a
+        plugin for a given condition.
+
+        Returns
+        -------
+        (bool, str)
+            The first value tells Spyder if the plugin has passed the
+            compatibility test defined in this method. The second value
+            is a message that must explain users why the plugin was
+            found to be incompatible (e.g. 'This plugin does not work
+            with PyQt4'). It will be shown at startup in a QMessageBox.
+        """
+        message = ''
+        valid = True
+        return valid, message
 
     def get_plugin_title(self):
         """

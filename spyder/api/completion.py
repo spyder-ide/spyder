@@ -12,11 +12,11 @@ Here, 'completion' are Qt objects that provide code completion, introspection
 and workspace managment functions.
 """
 
-from qtpy.QtCore import QObject, Signal
+from qtpy.QtCore import Signal
 from spyder.api.plugins import SpyderPlugin
 
 
-class SpyderCompletionPlugin(QObject, SpyderPlugin):
+class SpyderCompletionPlugin(SpyderPlugin):
     """
     Spyder plugin API for completion clients.
 
@@ -40,7 +40,6 @@ class SpyderCompletionPlugin(QObject, SpyderPlugin):
     COMPLETION_CLIENT_NAME = None
 
     def __init__(self, parent):
-        QObject.__init__(self, parent)
         SpyderPlugin.__init__(self, parent)
         self.main = parent
 
