@@ -12,7 +12,8 @@ except ImportError:
     from mock import Mock  # Python 2
 
 # Third party imports
-from qtpy.QtCore import Signal, QObject
+from qtpy.QtCore import Signal
+from qtpy.QtWidgets import QWidget
 import pytest
 
 # Local imports
@@ -20,7 +21,7 @@ from spyder.plugins.pylint.plugin import Pylint
 from spyder.preferences.tests.conftest import config_dialog
 
 
-class MainWindowMock(QObject):
+class MainWindowMock(QWidget):
     sig_editor_focus_changed = Signal(str)
 
     def __init__(self):

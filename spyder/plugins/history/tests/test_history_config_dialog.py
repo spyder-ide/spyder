@@ -12,6 +12,7 @@ except ImportError:
     from mock import Mock  # Python 2
 
 # Test library imports
+from qtpy.QtWidgets import QWidget
 import pytest
 
 # Local imports
@@ -19,7 +20,7 @@ from spyder.plugins.history.plugin import HistoryLog
 from spyder.preferences.tests.conftest import config_dialog
 
 
-class MainWindowMock:
+class MainWindowMock(QWidget):
     register_shortcut = Mock()
 
 
