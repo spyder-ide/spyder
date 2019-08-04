@@ -80,7 +80,12 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         return osp.exists(osp.realpath(path)), path
 
     def _locate_kite_darwin(self):
-        path = ''
+        """
+        Looks up where Kite.app is installed on macOS systems. The bundle ID
+        is checked first and if nothing is found or an error occurs, the
+        default path is used.
+        """
+        path = '/Applications/Kite.app'
         try:
             out = subprocess.check_output(
                 ['mdfind', 'kMDItemCFBundleIdentifier="com.kite.Kite"'])
