@@ -85,16 +85,17 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         is checked first and if nothing is found or an error occurs, the
         default path is used.
         """
-        path = '/Applications/Kite.app'
+        default_path = '/Applications/Kite.app'
+        path = None
         try:
             out = subprocess.check_output(
                 ['mdfind', 'kMDItemCFBundleIdentifier="com.kite.Kite"'])
             installed = len(out) > 0
             path = (out.decode('utf-8', 'replace').strip().split('\n')[0]
-                    if installed else None)
+                    if installed else default_path)
         except (subprocess.CalledProcessError, UnicodeDecodeError) as ex:
             # Use the default path
-            path = '/Applications/Kite.app'
+            path = default_path
         finally:
             return path
 
