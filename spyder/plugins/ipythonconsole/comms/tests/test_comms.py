@@ -22,8 +22,7 @@ import pytest
 
 # Local imports
 from spyder_kernels.py3compat import PY3, to_text_string
-from spyder_kernels.utils.iofuncs import iofunctions
-from spyder_kernels.utils.test_utils import get_kernel, dummyComm
+from spyder_kernels.utils.test_utils import get_kernel
 from spyder_kernels.comms.frontendcomm import FrontendComm
 from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 
@@ -76,6 +75,29 @@ def kernel(request):
         kernel.do_execute('reset -f', True)
     request.addfinalizer(reset_kernel)
     return kernel
+
+
+class dummyComm():
+    def __init__(self):
+        self.other = None
+        self.message_callback = None
+        self.close_callback = None
+
+    def close(self):
+        self.other.close_callback({'content': None})
+
+    def send(self, msg_dict, buffers=None):
+        msg = {
+            'buffers': buffers,
+            'content': {'data': msg_dict},
+            }
+        self.other.message_callback(msg)
+
+    def on_msg(self, callback):
+        self.message_callback = callback
+
+    def on_close(self, callback):
+        self.close_callback = callback
 
 
 @pytest.fixture
