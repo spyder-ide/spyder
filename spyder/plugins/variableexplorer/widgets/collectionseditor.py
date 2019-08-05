@@ -26,7 +26,6 @@ import sys
 import warnings
 
 # Third party imports
-import cloudpickle
 from qtpy.compat import getsavefilename, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QModelIndex, Qt,
                          Signal, Slot)
@@ -1435,13 +1434,9 @@ class RemoteCollectionsEditorTableView(BaseTableView):
     def new_value(self, name, value):
         """Create new value in data"""
         try:
-            # We need to enclose values in a list to be able to send
-            # them to the kernel in Python 2
-            svalue = [cloudpickle.dumps(value, protocol=PICKLE_PROTOCOL)]
-
             # Needed to prevent memory leaks. See spyder-ide/spyder#7158.
-            if len(svalue) < MAX_SERIALIZED_LENGHT:
-                self.shellwidget.set_value(name, svalue)
+            if sys.getsizeof(value) < MAX_SERIALIZED_LENGHT:
+                self.shellwidget.set_value(name, value)
             else:
                 QMessageBox.warning(self, _("Warning"),
                                     _("The object you are trying to modify is "

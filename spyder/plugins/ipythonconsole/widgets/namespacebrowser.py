@@ -93,9 +93,8 @@ class NamepaceBrowserWidget(RichJupyterWidget):
 
     def set_value(self, name, value):
         """Set value for a variable"""
-        value = to_text_string(value)
         self.call_kernel(interrupt=True, blocking=False
-                         ).set_value(name, value, PY2)
+                         ).set_value(name, value)
 
     def remove_value(self, name):
         """Remove a variable"""
