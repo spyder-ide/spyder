@@ -585,7 +585,7 @@ class IPythonConsole(SpyderPluginWidget):
         """Update working directory to console cwd."""
         shellwidget = self.get_current_shellwidget()
         if shellwidget is not None:
-            shellwidget.get_cwd()
+            shellwidget.update_cwd()
 
     def execute_code(self, lines, current_client=True, clear_variables=False):
         """Execute code instructions."""
@@ -746,8 +746,7 @@ class IPythonConsole(SpyderPluginWidget):
         kc.start_channels(shell=True, iopub=True)
 
         shellwidget = client.shellwidget
-        shellwidget.kernel_manager = km
-        shellwidget.kernel_client = kc
+        shellwidget.set_kernel_client(kc, km)
 
     @Slot(object, object)
     def edit_file(self, filename, line):
@@ -910,7 +909,7 @@ class IPythonConsole(SpyderPluginWidget):
             shellwidget.set_cwd(cwd_path)
             if give_focus:
                 # Syncronice cwd with explorer and cwd widget
-                shellwidget.get_cwd()
+                shellwidget.update_cwd()
 
         # Connect text widget to Help
         if self.main.help is not None:
@@ -939,6 +938,12 @@ class IPythonConsole(SpyderPluginWidget):
             control.visibility_changed.connect(self.refresh_plugin)
             page_control.visibility_changed.connect(self.refresh_plugin)
             page_control.show_find_widget.connect(self.find_widget.show)
+
+        def editorstack():
+            """Get current editor stack."""
+            return self.main.editor.get_current_editorstack()
+
+        shellwidget.editorstack = editorstack
 
     def close_client(self, index=None, client=None, force=False):
         """Close client tab from index or widget (or close current tab)"""
@@ -1500,8 +1505,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Assign kernel manager and client to shellwidget
         kernel_client.start_channels()
-        client.shellwidget.kernel_client = kernel_client
-        client.shellwidget.kernel_manager = kernel_manager
+        client.shellwidget.set_kernel_client(kernel_client, kernel_manager)
         if external_kernel:
             client.shellwidget.sig_is_spykernel.connect(
                     self.connect_external_kernel)

@@ -280,7 +280,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.shellwidget.sig_show_env.connect(self.show_env)
 
         # To sync with working directory toolbar
-        self.shellwidget.executed.connect(self.shellwidget.get_cwd)
+        self.shellwidget.executed.connect(self.shellwidget.update_cwd)
 
         # To apply style
         self.set_color_scheme(self.shellwidget.syntax_style, reset=False)
@@ -730,7 +730,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         Show possible errors when setting the selected Matplotlib backend.
         """
         if not self.external_kernel:
-            self.shellwidget.silent_execute(
-                    "get_ipython().kernel._show_mpl_backend_errors()")
+            self.shellwidget.call_kernel().show_mpl_backend_errors()
         self.shellwidget.sig_prompt_ready.disconnect(
             self._show_mpl_backend_errors)

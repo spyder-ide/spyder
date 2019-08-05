@@ -28,24 +28,24 @@ class DebuggingWidget(RichJupyterWidget):
     Spyder
     """
 
+    def register_message_handler(self, spyder_kernel_comm):
+        """Register messages to be handled by comm."""
+        spyder_kernel_comm.register_call_handler(
+            'get_breakpoints', self.get_spyder_breakpoints)
+
     # --- Public API --------------------------------------------------
     def write_to_stdin(self, line):
         """Send raw characters to the IPython kernel through stdin"""
         self.kernel_client.input(line)
 
+    def get_spyder_breakpoints(self):
+        """Get spyder breakpoints."""
+        return CONF.get('run', 'breakpoints', {})
+
     def set_spyder_breakpoints(self, force=False):
         """Set Spyder breakpoints into a debugging session"""
-        if self._reading or force:
-            breakpoints_dict = CONF.get('run', 'breakpoints', {})
-
-            # We need to enclose pickled values in a list to be able to
-            # send them to the kernel in Python 2
-            serialiazed_breakpoints = [pickle.dumps(breakpoints_dict,
-                                                    protocol=PICKLE_PROTOCOL)]
-            breakpoints = to_text_string(serialiazed_breakpoints)
-
-            cmd = u"!get_ipython().kernel._set_spyder_breakpoints({})"
-            self.kernel_client.input(cmd.format(breakpoints))
+        self.call_kernel(interrupt=True).set_breakpoints(
+            self.get_spyder_breakpoints())
 
     def dbg_exec_magic(self, magic, args=''):
         """Run an IPython magic while debugging."""
@@ -66,12 +66,10 @@ class DebuggingWidget(RichJupyterWidget):
             self.sig_pdb_step.emit(fname, lineno)
 
         if 'namespace_view' in pdb_state:
-            self.sig_namespace_view.emit(ast.literal_eval(
-                    pdb_state['namespace_view']))
+            self.set_namespace_view(pdb_state['namespace_view'])
 
         if 'var_properties' in pdb_state:
-            self.sig_var_properties.emit(ast.literal_eval(
-                    pdb_state['var_properties']))
+            self.set_var_properties(pdb_state['var_properties'])
 
     # ---- Private API (overrode by us) ----------------------------
     def _handle_input_request(self, msg):

@@ -582,7 +582,7 @@ def test_get_cwd(ipyconsole, qtbot, tmpdir):
 
     # Ask for directory.
     with qtbot.waitSignal(shell.sig_change_cwd):
-        shell.get_cwd()
+        shell.update_cwd()
 
     if os.name == 'nt':
         tempdir = tempdir.replace(u"\\\\", u"\\")
