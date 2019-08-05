@@ -14,7 +14,6 @@
 
 # Standard library imports
 import logging
-import inspect
 from difflib import SequenceMatcher
 from collections import OrderedDict
 
@@ -22,7 +21,6 @@ from collections import OrderedDict
 from qtpy.QtCore import (QAbstractItemModel, QModelIndex, Qt,
                          QSortFilterProxyModel, Signal)
 from qtpy.QtGui import QFont, QBrush, QColor
-from spyder_kernels.utils.nsview import get_object_attrs
 
 # Local imports
 from spyder.config.base import _
@@ -321,7 +319,7 @@ class TreeModel(QAbstractItemModel):
         # Object attributes
         # Needed to handle errors while getting object's attributes
         # Related with spyder-ide/spyder#6728 and spyder-ide/spyder#9959
-        for attr_name in get_object_attrs(obj):
+        for attr_name in dir(obj):
             try:
                 attr_value = getattr(obj, attr_name)
                 obj_children.append((attr_name, attr_value))
