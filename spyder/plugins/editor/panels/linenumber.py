@@ -7,6 +7,10 @@
 """
 This module contains the Line Number panel
 """
+
+# Standard library imports
+from math import ceil
+
 # Third party imports
 from qtpy import QT_VERSION
 from qtpy.QtCore import QSize, Qt
@@ -77,7 +81,8 @@ class LineNumberArea(Panel):
             else:
                 # scale pixmap height to device independent pixels
                 pixmap_height = pixmap.height() / pixmap.devicePixelRatio()
-            painter.drawPixmap(xleft, ytop + (font_height-pixmap_height) / 2,
+            painter.drawPixmap(xleft, ceil(ytop +
+                                           (font_height-pixmap_height) / 2),
                                pixmap)
 
         for top, line_number, block in self.editor.visible_blocks:
@@ -93,7 +98,7 @@ class LineNumberArea(Panel):
 
                 painter.drawText(0, top, self.width(),
                                  font_height,
-                                 Qt.AlignRight | Qt.AlignBottom,
+                                 int(Qt.AlignRight | Qt.AlignBottom),
                                  to_text_string(line_number))
 
             size = self.get_markers_margin() - 2

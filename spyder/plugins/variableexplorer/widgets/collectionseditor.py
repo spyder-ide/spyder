@@ -414,8 +414,9 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         # tuple exploration (even without editing), this method was moved here
         if not index.isValid():
             return Qt.ItemIsEnabled
-        return Qt.ItemFlags(QAbstractTableModel.flags(self, index)|
-                            Qt.ItemIsEditable)
+        return Qt.ItemFlags(int(QAbstractTableModel.flags(self, index) |
+                                Qt.ItemIsEditable))
+
     def reset(self):
         self.beginResetModel()
         self.endResetModel()
