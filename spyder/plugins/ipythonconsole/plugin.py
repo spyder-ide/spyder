@@ -28,9 +28,8 @@ from qtconsole.manager import QtKernelManager
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QColor
 from qtpy.QtWebEngineWidgets import WEBENGINE
-from qtpy.QtWidgets import (QActionGroup, QApplication, QGridLayout,
-                            QGroupBox, QHBoxLayout, QLabel, QMenu, QMessageBox,
-                            QTabWidget, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (QActionGroup, QApplication, QHBoxLayout, QMenu,
+                            QMessageBox, QVBoxLayout, QWidget)
 from traitlets.config.loader import Config, load_pyconfig_files
 from zmq.ssh import tunnel as zmqtunnel
 
@@ -68,7 +67,7 @@ dependencies.add("cython", "cython",
                  _("Run Cython files in the IPython Console"),
                  required_version=CYTHON_REQVER, optional=True)
 
-QTCONSOLE_REQVER = ">=4.5.0"
+QTCONSOLE_REQVER = ">=4.5.2"
 dependencies.add("qtconsole", "qtconsole",
                  _("Integrate the IPython console"),
                  required_version=QTCONSOLE_REQVER)

@@ -13,7 +13,7 @@ import os
 import os.path as osp
 
 # Local imports
-from spyder.config.base import get_conf_path, get_conf_subfolder, get_home_dir
+from spyder.config.base import get_conf_path, get_home_dir
 from spyder.config.main import CONF_VERSION, DEFAULTS, NAME_MAP
 from spyder.config.user import MultiUserConfig, NoDefault
 
@@ -41,7 +41,7 @@ class ConfigurationManager(object):
             version=CONF_VERSION,
             backup=True,
             raw_mode=True,
-            remove_obsolete=True,
+            remove_obsolete=False,
         )
         # TODO: Implementation to be defined in following PR
         self._site_config = None

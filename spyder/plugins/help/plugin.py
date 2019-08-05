@@ -13,8 +13,7 @@ import sys
 # Third party imports
 from qtpy.QtCore import QUrl, Signal, Slot
 from qtpy.QtWidgets import (QActionGroup, QComboBox, QHBoxLayout,
-                            QLabel, QLineEdit, QMenu, QMessageBox,
-                            QToolButton, QVBoxLayout)
+                            QLabel, QLineEdit, QMessageBox)
 from qtpy.QtWebEngineWidgets import QWebEnginePage, WEBENGINE
 
 # Local imports

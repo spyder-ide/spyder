@@ -13,7 +13,6 @@ IPython console plugin.
 
 # Standard library imports
 from __future__ import print_function
-from xml.sax.saxutils import escape
 import os
 import os.path as osp
 import re
@@ -23,15 +22,14 @@ import textwrap
 
 # Third party imports
 import qdarkstyle
-from qtpy.QtCore import QPoint, Qt, QCoreApplication
+from qtpy.QtCore import QPoint, Qt
 from qtpy.QtGui import QCursor, QTextCursor, QTextDocument
-from qtpy.QtWidgets import QApplication, QToolTip
+from qtpy.QtWidgets import QApplication
 from qtpy import QT_VERSION
 from spyder_kernels.utils.dochelpers import (getargspecfromtext, getobj,
                                              getsignaturefromtext)
 
 # Local imports
-from spyder.config.base import _
 from spyder.config.gui import is_dark_interface
 from spyder.config.manager import CONF
 from spyder.py3compat import is_text_string, to_text_string
@@ -207,19 +205,34 @@ class BaseEditMixin(object):
             text = text.strip()
 
         if not with_html_format:
-            paragraphs = text.splitlines()
+            # All these replacements are need to properly divide the
+            # text in actual paragraphs and wrap the text on each one
+            paragraphs = (text
+                          .replace("\n\n", "<!DOUBLE_ENTER!>")
+                          .replace(".\n", ".<!SINGLE_ENTER!>")
+                          .replace("\n-", "<!SINGLE_ENTER!>-")
+                          .replace("-\n", "-<!SINGLE_ENTER!>")
+                          .replace("\n ", "<!SINGLE_ENTER!> ")
+                          .replace(" \n", " <!SINGLE_ENTER!>")
+                          .replace("\n", " ")
+                          .replace("<!DOUBLE_ENTER!>", "\n\n")
+                          .replace("<!SINGLE_ENTER!>", "\n").splitlines())
+            new_paragraphs = []
             for paragraph in paragraphs:
                 # Wrap text
-                paragraph = textwrap.wrap(text, width=max_width)
+                new_paragraph = textwrap.wrap(paragraph, width=max_width)
 
                 # Remove empty lines at the beginning
-                paragraph = [l for l in paragraph if l.strip()]
+                new_paragraph = [l for l in new_paragraph if l.strip()]
 
                 # Merge paragraph text
-                paragraph = '\n'.join(paragraph)
+                new_paragraph = '\n'.join(new_paragraph)
+
+                # Add new paragraph
+                new_paragraphs.append(new_paragraph)
 
             # Join paragraphs and split in lines for max_lines check
-            paragraphs = '\n'.join(paragraphs)
+            paragraphs = '\n'.join(new_paragraphs)
             paragraphs = paragraphs.strip('\r\n')
             lines = paragraphs.splitlines()
 
@@ -479,7 +492,7 @@ class BaseEditMixin(object):
         point = self._calculate_position()
 
         language = getattr(self, 'language', language).lower()
-        if language == 'python':
+        if language == 'python' and signature.strip():
             # Check if documentation is better than signature, sometimes
             # signature has \n stripped for functions like print, type etc
             check_doc = ' '
@@ -493,7 +506,8 @@ class BaseEditMixin(object):
         # Remove duplicate signature inside documentation
         if documentation:
             documentation = documentation.replace('\\*', '*')
-            documentation = documentation.replace(signature + '\n', '')
+            if signature.strip():
+                documentation = documentation.replace(signature + '\n', '')
 
         # Format
         res = self._check_signature_and_format(signature, parameter,

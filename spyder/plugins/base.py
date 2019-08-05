@@ -11,13 +11,14 @@ Base plugin class
 # Standard library imports
 import inspect
 import os
+import sys
 
 # Third party imports
 import qdarkstyle
 from qtpy.QtCore import Qt, Slot
 from qtpy.QtGui import QCursor, QKeySequence
-from qtpy.QtWidgets import (QApplication, QDockWidget, QMainWindow, QMenu,
-                            QMessageBox, QShortcut, QToolButton, QWidget)
+from qtpy.QtWidgets import (QAction, QApplication, QDockWidget, QMainWindow,
+                            QMenu, QMessageBox, QShortcut, QToolButton)
 
 # Local imports
 from spyder.config.base import _
@@ -28,7 +29,7 @@ from spyder.py3compat import configparser, is_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (
     add_actions, create_action, create_toolbutton, MENU_SEPARATOR,
-    toggle_actions)
+    toggle_actions, set_menu_icons)
 from spyder.widgets.dock import SpyderDockWidget
 
 
@@ -381,6 +382,9 @@ class BasePluginWidgetMixin(object):
         self._plugin_actions = self.get_plugin_actions() + additional_actions
         add_actions(self._options_menu, self._plugin_actions)
 
+        if sys.platform == 'darwin':
+            set_menu_icons(self._options_menu, True)
+
     def _setup(self):
         """
         Setup Options menu, create toggle action and connect signals.
@@ -394,6 +398,12 @@ class BasePluginWidgetMixin(object):
         add_actions(self._options_menu, self._plugin_actions)
         self.options_button.setMenu(self._options_menu)
         self._options_menu.aboutToShow.connect(self._refresh_actions)
+
+        # Show icons in Mac plugin menus
+        if sys.platform == 'darwin':
+            self._options_menu.aboutToHide.connect(
+                lambda menu=self._options_menu:
+                set_menu_icons(menu, False))
 
         # Update title
         self.sig_update_plugin_title.connect(self._update_plugin_title)

@@ -8,8 +8,7 @@
 Dock widgets for plugins
 """
 
-from qtpy.QtCore import QEvent, QObject, QPoint, Qt, QSize, Signal
-from qtpy.QtGui import QCursor
+from qtpy.QtCore import QEvent, QObject, Qt, QSize, Signal
 from qtpy.QtWidgets import (QApplication, QDockWidget, QHBoxLayout,
                             QSizePolicy, QStyle, QTabBar, QToolButton,
                             QWidget)

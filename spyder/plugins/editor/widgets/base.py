@@ -13,13 +13,12 @@
 
 # Standard library imports
 import os
-import os.path as osp
 import sys
 
 # Third party imports
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import QEvent, QEventLoop, QPoint, Qt, Signal, Slot
-from qtpy.QtGui import (QClipboard, QColor, QMouseEvent, QPalette, QTextFormat,
+from qtpy.QtCore import QEvent, QPoint, Qt, Signal, Slot
+from qtpy.QtGui import (QClipboard, QColor, QMouseEvent, QTextFormat,
                         QTextOption, QTextCursor)
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QListWidget,
                             QListWidgetItem, QMainWindow, QPlainTextEdit,

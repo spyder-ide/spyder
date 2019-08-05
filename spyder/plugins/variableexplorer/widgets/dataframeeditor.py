@@ -33,7 +33,6 @@ Components of gtabview from gtabview/viewer.py and gtabview/models.py of the
 """
 
 # Standard library imports
-import time
 
 # Third party imports
 from qtpy.compat import from_qvariant, to_qvariant

@@ -6,12 +6,15 @@
 
 """IPython Console config page."""
 
+# Standard library imports
 import sys
 
+# Third party imports
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
                             QTabWidget, QVBoxLayout)
 
+# Local imports
 from spyder.api.preferences import PluginConfigPage
 from spyder.config.base import _
 from spyder.py3compat import PY2

@@ -11,19 +11,18 @@
 # Standard library imports
 import os
 import subprocess
-import sys
 
 # Third party imports
 from qtpy.QtCore import Qt, QSize, QTimer, Signal
 from qtpy.QtGui import QFont, QIcon
-from qtpy.QtWidgets import QHBoxLayout, QComboBox, QLabel, QWidget
+from qtpy.QtWidgets import QHBoxLayout, QLabel, QWidget
 
 # Local imports
 from spyder import dependencies
 from spyder.config.base import _
 from spyder.config.gui import get_font
 from spyder.config import utils
-from spyder.py3compat import PY3, to_text_string
+from spyder.py3compat import PY3
 
 if not os.name == 'nt':
     PSUTIL_REQVER = '>=0.3'

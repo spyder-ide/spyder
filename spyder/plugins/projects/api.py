@@ -7,14 +7,16 @@
 # -----------------------------------------------------------------------------
 """Project API"""
 
+# Standard library imports
 import os
 import os.path as osp
 from collections import OrderedDict
 
+# Local imports
 from spyder.config.base import _, get_project_config_folder
 from spyder.config.user import UserConfig
 from spyder.py3compat import to_text_string
-from spyder.plugins.projects.utils.config import (ProjectConfig, CODESTYLE,
+from spyder.plugins.projects.utils.config import (CODESTYLE,
                                             CODESTYLE_DEFAULTS,
                                             CODESTYLE_VERSION, WORKSPACE,
                                             WORKSPACE_DEFAULTS,

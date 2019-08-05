@@ -12,13 +12,11 @@ quickly load a user config file.
 """
 
 import os
-import os.path as osp
 import sys
 
 # Local import
 from spyder.config.base import CHECK_ALL, EXCLUDED_NAMES
 from spyder.config.fonts import MEDIUM, SANS_SERIF
-from spyder.config.user import UserConfig
 from spyder.config.utils import IMPORT_EXT
 from spyder.config.appearance import APPEARANCE
 from spyder.plugins.editor.utils.findtasks import TASKS_PATTERN
@@ -351,11 +349,11 @@ DEFAULTS = [
               '_/switch to explorer': "Ctrl+Shift+X",
               '_/switch to plots': "Ctrl+Shift+G",
               # -- In widgets/findreplace.py
-              '_/find text': "Ctrl+F",
-              '_/find next': "F3",
-              '_/find previous': "Shift+F3",
-              '_/replace text': "Ctrl+R",
-              '_/hide find and replace': "Escape",
+              'find_replace/find text': "Ctrl+F",
+              'find_replace/find next': "F3",
+              'find_replace/find previous': "Shift+F3",
+              'find_replace/replace text': "Ctrl+R",
+              'find_replace/hide find and replace': "Escape",
               # ---- Editor ----
               # -- In widgets/sourcecode/codeeditor.py
               'editor/code completion': CTRL+'+Space',
@@ -452,8 +450,10 @@ DEFAULTS = [
               # ---- In widgets/arraybuider.py ----
               'array_builder/enter array inline': "Ctrl+Alt+M",
               'array_builder/enter array table': "Ctrl+M",
-              # ---- In widgets/variableexplorer/aarayeditor.py ----
+              # ---- In widgets/variableexplorer/arrayeditor.py ----
               'variable_explorer/copy': 'Ctrl+C',
+              # ---- In widgets/variableexplorer/namespacebrowser.py ----
+              'variable_explorer/search': 'Ctrl+F',
               # ---- In widgets/plots/figurebrowser.py ----
               'plots/copy': 'Ctrl+C',
               'plots/previous figure': 'Ctrl+PgUp',
@@ -589,4 +589,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '51.0.0'
+CONF_VERSION = '52.0.0'

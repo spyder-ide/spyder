@@ -7,13 +7,16 @@
 """
 This module contains the Line Number panel
 """
-import sys
+
+# Standard library imports
 from math import ceil
 
+# Third party imports
 from qtpy import QT_VERSION
 from qtpy.QtCore import QSize, Qt
 from qtpy.QtGui import QPainter, QColor
 
+# Local imports
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.programs import check_version

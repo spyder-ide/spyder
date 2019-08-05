@@ -8,13 +8,17 @@
 Shell Widget for the IPython Console
 """
 
+# Standard library imports
 import ast
 import os
 import uuid
 from textwrap import dedent
 
+# Third party imports
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
+
+# Local imports
 from spyder.config.manager import CONF
 from spyder.config.base import _
 from spyder.config.gui import config_shortcut

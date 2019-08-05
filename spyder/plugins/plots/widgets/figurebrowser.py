@@ -22,7 +22,7 @@ from qtpy.QtGui import QPixmap, QPainter, QKeySequence
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu,
                             QVBoxLayout, QWidget, QGridLayout, QFrame,
                             QScrollArea, QPushButton, QScrollBar, QSizePolicy,
-                            QSpinBox, QSplitter, QStyleOptionSlider, QStyle)
+                            QSpinBox, QSplitter, QStyle)
 
 # ---- Local library imports
 from spyder.config.base import _
