@@ -89,7 +89,7 @@ class DebuggingWidget(RichJupyterWidget):
                     and self._control.history[-1] == line):
                 # do not save pdb commands
                 cmd = line.split(" ")[0]
-                if "do_" + cmd not in dir(pdb.Pdb):
+                if cmd and "do_" + cmd not in dir(pdb.Pdb):
                     self._control.history.append(line)
 
             # This is the Spyder addition: add a %plot magic to display
