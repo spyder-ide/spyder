@@ -107,7 +107,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """Set the kernel client and manager"""
         self.spyder_kernel_comm.set_kernel_client(kernel_client)
         self.kernel_manager = kernel_manager
-        self.kernel_client = kernel_client
+        self.kernel_client = self.monkeypatch_kernel_client(kernel_client)
 
     #---- Public API ----------------------------------------------------------
     def set_exit_callback(self):
@@ -242,7 +242,7 @@ the sympy module (e.g. plot)
 
     # --- To define additional shortcuts
     def clear_console(self):
-        if self._reading:
+        if self._reading and self.is_debugging():
             self.dbg_exec_magic('clear')
         else:
             self.execute("%clear")
@@ -286,7 +286,7 @@ the sympy module (e.g. plot)
                 return
 
         try:
-            if self._reading:
+            if self._reading and self.is_debugging():
                 self.dbg_exec_magic('reset', '-f')
             else:
                 if message:

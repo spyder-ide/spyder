@@ -28,10 +28,38 @@ class DebuggingWidget(RichJupyterWidget):
     Spyder
     """
 
+    def __init__(self, *args, **kwargs):
+        super(DebuggingWidget, self).__init__(*args, **kwargs)
+        self._previous_prompt = None
+        self._input_queue = []
+        self._input_ready = False
+
+    def monkeypatch_kernel_client(self, client):
+        """Monkeypatches the kernel client to monitor input calls."""
+        if client:
+            old_input = client.input
+
+            def monkeypatched_input(string):
+                """If input is not ready, save it in a queue."""
+                if self._input_ready:
+                    self._input_ready = False
+                    return old_input(string)
+                elif self.is_debugging():
+                    self._input_queue.append(string)
+
+            client.input = monkeypatched_input
+        return client
+
     def register_message_handler(self, spyder_kernel_comm):
         """Register messages to be handled by comm."""
         spyder_kernel_comm.register_call_handler(
             'get_breakpoints', self.get_spyder_breakpoints)
+        spyder_kernel_comm.sig_debugging.connect(self._debugging_hook)
+
+    def _debugging_hook(self, debugging):
+        """Catches the debugging state."""
+        # If the debugging starts or stops, clear the input queue.
+        self._input_queue = []
 
     # --- Public API --------------------------------------------------
     def write_to_stdin(self, line):
@@ -49,6 +77,8 @@ class DebuggingWidget(RichJupyterWidget):
 
     def dbg_exec_magic(self, magic, args=''):
         """Run an IPython magic while debugging."""
+        if not self.is_debugging():
+            return
         code = "!get_ipython().kernel.shell.run_line_magic('{}', '{}')".format(
                     magic, args)
         self.kernel_client.input(code)
@@ -80,6 +110,21 @@ class DebuggingWidget(RichJupyterWidget):
         # Make sure that all output from the SUB channel has been processed
         # before entering readline mode.
         self.kernel_client.iopub_channel.flush()
+        self._input_ready = True
+        if not self.is_debugging():
+            return super(DebuggingWidget, self)._handle_input_request(msg)
+
+        # While the widget thinks only one input is going on,
+        # Other functions are sending messages to the kernel.
+        # This must be properly processed to avoid dropping messages.
+        # If the kernel was not ready, the messages are queued.
+        # Send the next one
+
+        if len(self._input_queue) > 0:
+            msg = self._input_queue[0]
+            del self._input_queue[0]
+            self.kernel_client.input(msg)
+            return
 
         def callback(line):
             # Save history to browse it later
@@ -90,6 +135,9 @@ class DebuggingWidget(RichJupyterWidget):
                 if "do_" + cmd not in dir(pdb.Pdb):
                     self._control.history.append(line)
 
+            # must match ConsoleWidget.do_execute
+            self._executing = True
+
             # This is the Spyder addition: add a %plot magic to display
             # plots while debugging
             if line.startswith('%plot '):
@@ -98,10 +146,21 @@ class DebuggingWidget(RichJupyterWidget):
                 self.kernel_client.input(code)
             else:
                 self.kernel_client.input(line)
-        if self._reading:
-            self._reading = False
-        self._readline(msg['content']['prompt'], callback=callback,
-                       password=msg['content']['password'])
+
+        prompt, password = msg['content']['prompt'], msg['content']['password']
+        position = self._prompt_pos
+
+        if (self._reading and
+                (prompt, password, position) == self._previous_prompt):
+            # This is a duplicate, don't reprint
+            # This can happen when sending commands to pdb from the frontend.
+            return
+
+        self._previous_prompt = (prompt, password, position)
+        # Reset reading in case it was interrupted
+        self._reading = False
+        self._readline(prompt=prompt, callback=callback,
+                       password=password)
 
     def _event_filter_console_keypress(self, event):
         """Handle Key_Up/Key_Down while debugging."""
@@ -123,3 +182,7 @@ class DebuggingWidget(RichJupyterWidget):
         else:
             return super(DebuggingWidget,
                          self)._event_filter_console_keypress(event)
+
+    def is_debugging(self):
+        """Check if we are debugging."""
+        return self.spyder_kernel_comm._debugging

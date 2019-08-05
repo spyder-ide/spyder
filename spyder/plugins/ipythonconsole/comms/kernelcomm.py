@@ -25,6 +25,7 @@ class KernelComm(CommBase, QObject):
     """
 
     sig_got_reply = Signal(str)
+    sig_debugging = Signal(bool)
 
     def __init__(self):
         super(KernelComm, self).__init__()
@@ -74,6 +75,7 @@ class KernelComm(CommBase, QObject):
     def _handle_debug_state(self, is_debugging):
         """Update the debug state."""
         self._debugging = is_debugging
+        self.sig_debugging.emit(is_debugging)
 
     def _wait_reply(self, call_id, call_name, timeout):
         """Wait for the other side reply."""
