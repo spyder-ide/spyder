@@ -746,7 +746,7 @@ class IPythonConsole(SpyderPluginWidget):
         kc.start_channels(shell=True, iopub=True)
 
         shellwidget = client.shellwidget
-        shellwidget.set_kernel_client(kc, km)
+        shellwidget.set_kernel_client_and_manager(kc, km)
 
     @Slot(object, object)
     def edit_file(self, filename, line):
@@ -1505,7 +1505,8 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Assign kernel manager and client to shellwidget
         kernel_client.start_channels()
-        client.shellwidget.set_kernel_client(kernel_client, kernel_manager)
+        client.shellwidget.set_kernel_client_and_manager(
+            kernel_client, kernel_manager)
         if external_kernel:
             client.shellwidget.sig_is_spykernel.connect(
                     self.connect_external_kernel)

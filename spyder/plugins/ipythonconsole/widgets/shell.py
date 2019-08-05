@@ -104,7 +104,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         return self.spyder_kernel_comm.remote_call(
             interrupt=interrupt, blocking=blocking)
 
-    def set_kernel_client(self, kernel_client, kernel_manager):
+    def set_kernel_client_and_manager(self, kernel_client, kernel_manager):
         """Set the kernel client and manager"""
         self.spyder_kernel_comm.set_kernel_client(kernel_client)
         self.kernel_manager = kernel_manager
