@@ -22,6 +22,7 @@ from collections import OrderedDict
 from qtpy.QtCore import (QAbstractItemModel, QModelIndex, Qt,
                          QSortFilterProxyModel, Signal)
 from qtpy.QtGui import QFont, QBrush, QColor
+from spyder_kernels.utils.nsview import get_object_attrs
 
 # Local imports
 from spyder.config.base import _
@@ -317,19 +318,20 @@ class TreeModel(QAbstractItemModel):
         assert len(obj_children) == len(path_strings), "sanity check"
         is_attr_list = [False] * len(obj_children)
 
-        try:
-            # Object attributes
-            for attr_name, attr_value in sorted(inspect.getmembers(obj)):
+        # Object attributes
+        # Needed to handle errors while getting object's attributes
+        # Related with spyder-ide/spyder#6728 and spyder-ide/spyder#9959
+        for attr_name in get_object_attrs(obj):
+            try:
+                attr_value = getattr(obj, attr_name)
                 obj_children.append((attr_name, attr_value))
-                path_strings.append('{}.{}'.format(obj_path,
-                                    attr_name) if obj_path else attr_name)
+                path_strings.append('{}.{}'.format(obj_path, attr_name)
+                                    if obj_path else attr_name)
                 is_attr_list.append(True)
-
-            assert len(obj_children) == len(path_strings), "sanity check"
-        except ValueError:
-            # Needed to handle errors while getting object's attributes
-            # Related with spyder-ide/spyder#6728
-            pass
+            except Exception:
+                # Attribute could not be get
+                pass
+        assert len(obj_children) == len(path_strings), "sanity check"
         tree_items = []
         for item, path_str, is_attr in zip(obj_children, path_strings,
                                            is_attr_list):
