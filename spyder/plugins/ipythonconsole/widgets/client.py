@@ -500,6 +500,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             # This avoids some flakyness with our Cython tests
             if running_under_pytest():
                 now = False
+            self.shellwidget.spyder_kernel_comm.close()
             self.shellwidget.kernel_manager.shutdown_kernel(now=now)
         if self.shellwidget.kernel_client is not None:
             background(self.shellwidget.kernel_client.stop_channels)
@@ -539,8 +540,13 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                     self.infowidget.hide()
                     sw.show()
                 try:
+                    # Close comm
+                    sw.spyder_kernel_comm.close()
                     sw.kernel_manager.restart_kernel(
                         stderr=self.stderr_handle)
+                    # Reopen comm
+                    sw.spyder_kernel_comm.set_kernel_client(sw.kernel_client)
+
                 except RuntimeError as e:
                     sw._append_plain_text(
                         _('Error restarting kernel: %s\n') % e,
