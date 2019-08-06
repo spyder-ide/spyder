@@ -10,18 +10,13 @@ Tests for the console kernel.
 """
 
 # Standard library imports
-import ast
 import os
-import os.path as osp
-import time
-import signal
 
 # Test imports
 import pytest
 
 
 # Local imports
-from spyder_kernels.py3compat import PY3, to_text_string
 from spyder_kernels.utils.test_utils import get_kernel
 from spyder_kernels.comms.frontendcomm import FrontendComm
 from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
@@ -33,12 +28,6 @@ from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 FILES_PATH = os.path.dirname(os.path.realpath(__file__))
 TIMEOUT = 15
 
-TKINTER_INSTALLED = False
-try:
-    import tkinter
-    TKINTER_INSTALLED = True
-except BaseException:
-    pass
 
 # =============================================================================
 # Fixtures
@@ -82,14 +71,15 @@ class dummyComm():
         self.other = None
         self.message_callback = None
         self.close_callback = None
+        self.comm_id = 1
 
     def close(self):
-        self.other.close_callback({'content': None})
+        self.other.close_callback({'content': {'comm_id': self.comm_id}})
 
     def send(self, msg_dict, buffers=None):
         msg = {
             'buffers': buffers,
-            'content': {'data': msg_dict},
+            'content': {'data': msg_dict, 'comm_id': self.comm_id},
             }
         self.other.message_callback(msg)
 
