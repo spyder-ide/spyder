@@ -541,7 +541,8 @@ class BaseEditMixin(object):
                      max_width=_DEFAULT_MAX_WIDTH,
                      cursor=None,
                      with_html_format=False,
-                     text_new_line=True):
+                     text_new_line=True,
+                     completion_doc=None):
         """Show tooltip."""
         # Find position of calltip
         point = self._calculate_position(
@@ -566,12 +567,13 @@ class BaseEditMixin(object):
         self._update_stylesheet(self.tooltip_widget)
 
         # Display tooltip
-        self.tooltip_widget.show_tip(point, tiptext, cursor=cursor)
+        self.tooltip_widget.show_tip(point, tiptext, cursor=cursor,
+                                     completion_doc=completion_doc)
 
     def show_hint(self, text, inspect_word, at_point,
                   max_lines=_DEFAULT_MAX_HINT_LINES,
                   max_width=_DEFAULT_MAX_HINT_WIDTH,
-                  text_new_line=True, position_point=None):
+                  text_new_line=True, completion_doc=None):
         """Show code hint and crop text as needed."""
         # Check if signature and format
         res = self._check_signature_and_format(text)
@@ -587,7 +589,8 @@ class BaseEditMixin(object):
                           at_point=point, inspect_word=inspect_word,
                           display_link=True, max_lines=max_lines,
                           max_width=max_width, cursor=cursor,
-                          text_new_line=text_new_line)
+                          text_new_line=text_new_line,
+                          completion_doc=completion_doc)
 
     def hide_tooltip(self):
         """

@@ -237,6 +237,7 @@ class CodeEditor(TextEditBaseWidget):
     get_completions = Signal(bool)
     go_to_definition = Signal(str, int, int)
     sig_show_object_info = Signal(int)
+    sig_show_completion_object_info = Signal(str, str, bool)
     sig_run_selection = Signal()
     sig_run_cell_and_advance = Signal()
     sig_run_cell = Signal()
@@ -314,9 +315,12 @@ class CodeEditor(TextEditBaseWidget):
         # See: mouseMoveEvent
         self.tooltip_widget.sig_help_requested.connect(
             self.show_object_info)
+        self.tooltip_widget.sig_completion_help_requested.connect(
+            self.show_completion_object_info)
         self._last_point = None
         self._last_hover_word = None
         self._last_hover_cursor = None
+        self._last_selected_completion = None
         self._timer_mouse_moving = QTimer(self)
         self._timer_mouse_moving.setInterval(350)
         self._timer_mouse_moving.timeout.connect(lambda: self._handle_hover())
@@ -552,12 +556,17 @@ class CodeEditor(TextEditBaseWidget):
                 and self.completions_hint):
             completion_element = (
                 self.completion_widget.completion_list[currentRow])
-            word = completion_element.get('label', '')
+
+            word = completion_element.get('insertText', '')
             documentation = to_text_string(
                 completion_element.get('documentation', ''))
+            completion_doc = {'name': word,
+                              'signature': documentation}
+
             at_point = completion_element.get('point', QPoint(0, 0))
+
             self.show_hint(documentation, inspect_word=word,
-                           at_point=at_point, position_point=True,
+                           at_point=at_point, completion_doc=completion_doc,
                            max_lines=self._DEFAULT_MAX_LINES,
                            max_width=self._DEFAULT_MAX_WIDTH)
             self.tooltip_widget.move(at_point)
@@ -1706,7 +1715,12 @@ class CodeEditor(TextEditBaseWidget):
         """Emit signal to update bookmarks."""
         self.sig_bookmarks_changed.emit()
 
-    #-----Code introspection
+    # -----Code introspection
+    def show_completion_object_info(self, name, signature):
+        """Trigger show completion info in Help Pane."""
+        force = True
+        self.sig_show_completion_object_info.emit(name, signature, force)
+
     def show_object_info(self, position):
         """Trigger a calltip"""
         self.sig_show_object_info.emit(position)
