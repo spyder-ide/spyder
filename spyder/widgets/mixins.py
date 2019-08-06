@@ -251,6 +251,8 @@ class BaseEditMixin(object):
         if max_lines:
             if len(lines) > max_lines:
                 text = '\n'.join(lines[:max_lines]) + ' ...'
+            else:
+                text = '\n'.join(lines)
 
         text = text.replace('\n', '<br>')
         if text_new_line and signature:
