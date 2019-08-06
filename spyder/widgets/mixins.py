@@ -212,6 +212,10 @@ class BaseEditMixin(object):
                           .replace(".\n", ".<!SINGLE_ENTER!>")
                           .replace("\n-", "<!SINGLE_ENTER!>-")
                           .replace("-\n", "-<!SINGLE_ENTER!>")
+                          .replace("\n=", "<!SINGLE_ENTER!>=")
+                          .replace("=\n", "=<!SINGLE_ENTER!>")
+                          .replace("\n*", "<!SINGLE_ENTER!>*")
+                          .replace("*\n", "*<!SINGLE_ENTER!>")
                           .replace("\n ", "<!SINGLE_ENTER!> ")
                           .replace(" \n", " <!SINGLE_ENTER!>")
                           .replace("\n", " ")
@@ -572,10 +576,7 @@ class BaseEditMixin(object):
         # Check if signature and format
         res = self._check_signature_and_format(text)
         html_signature, extra_text, _ = res
-        if not position_point:
-            point = self.get_word_start_pos(at_point)
-        else:
-            point = at_point
+        point = self.get_word_start_pos(at_point)
 
         # This is needed to get hover hints
         cursor = self.cursorForPosition(at_point)

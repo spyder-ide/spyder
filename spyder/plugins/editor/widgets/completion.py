@@ -173,7 +173,7 @@ class CompletionWidget(QListWidget):
         if not self.is_internal_console:
             tooltip_point = QPoint(point)
             tooltip_point.setX(point.x() + self.width())
-            tooltip_point.setY(point.y() - (3 * self.height()) // 4)
+            tooltip_point.setY(point.y() + self.height() // 8)
             for completion in completion_list:
                 completion['point'] = tooltip_point
 

@@ -555,15 +555,12 @@ class CodeEditor(TextEditBaseWidget):
             word = completion_element.get('label', '')
             documentation = to_text_string(
                 completion_element.get('documentation', ''))
-            default_point = self._last_point if self._last_point else QPoint(0,
-                                                                             0)
-            at_point = completion_element.get('point', default_point)
-            point = QPoint(at_point.x() - 63,
-                           at_point.y())
+            at_point = completion_element.get('point', QPoint(0, 0))
             self.show_hint(documentation, inspect_word=word,
-                           at_point=point, position_point=True,
+                           at_point=at_point, position_point=True,
                            max_lines=self._DEFAULT_MAX_LINES,
                            max_width=self._DEFAULT_MAX_WIDTH)
+            self.tooltip_widget.move(at_point)
 
     # --- Hover/Hints
     def _should_display_hover(self, point):
