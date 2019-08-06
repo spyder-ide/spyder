@@ -208,6 +208,7 @@ class BaseEditMixin(object):
             # All these replacements are need to properly divide the
             # text in actual paragraphs and wrap the text on each one
             paragraphs = (text
+                          .replace(u"\xa0", u" ")
                           .replace("\n\n", "<!DOUBLE_ENTER!>")
                           .replace(".\n", ".<!SINGLE_ENTER!>")
                           .replace("\n-", "<!SINGLE_ENTER!>-")
