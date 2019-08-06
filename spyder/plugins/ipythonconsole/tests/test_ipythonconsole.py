@@ -665,6 +665,15 @@ def test_browse_history_dbg(ipyconsole, qtbot):
     qtbot.keyClicks(control, '!aa = 10')
     qtbot.keyClick(control, Qt.Key_Enter)
 
+    # Add a pdb command to make sure it is not saved
+    qtbot.wait(1000)
+    qtbot.keyClicks(control, 'u')
+    qtbot.keyClick(control, Qt.Key_Enter)
+
+    # Add an empty line to make sure it is not saved
+    qtbot.wait(1000)
+    qtbot.keyClick(control, Qt.Key_Enter)
+
     # Clear console (for some reason using shell.clear_console
     # doesn't work here)
     shell.reset(clear=True)
