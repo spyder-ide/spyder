@@ -43,10 +43,10 @@ class KernelComm(CommBase, QObject):
             kernel_client.comm_manager.new_comm(self._comm_name))
         self.kernel_client = kernel_client
 
-    def remote_call(self, interrupt=False, blocking=False):
+    def remote_call(self, interrupt=False, blocking=False, comm_id=None):
         """Get a handler for remote calls."""
         return super(KernelComm, self).remote_call(
-            interrupt=interrupt, blocking=blocking)
+            interrupt=interrupt, blocking=blocking, comm_id=comm_id)
 
     # ---- Private -----
     def _get_call_return_value(self, call_dict):
