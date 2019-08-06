@@ -37,7 +37,7 @@ TKINTER_INSTALLED = False
 try:
     import tkinter
     TKINTER_INSTALLED = True
-except:
+except BaseException:
     pass
 
 # =============================================================================
@@ -174,6 +174,7 @@ def test_request(comms):
     res = frontend_comm.remote_call(blocking=True).test_request('a', b='b')
 
     assert res == 'ab'
+
 
 if __name__ == "__main__":
     pytest.main()
