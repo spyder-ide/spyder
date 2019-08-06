@@ -60,6 +60,9 @@ from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.widgets.helperwidgets import CustomSortFilterProxy
 
 
+# Maximum length of a serialized variable to be set in the kernel
+MAX_SERIALIZED_LENGHT = 1e6
+
 LARGE_NROWS = 100
 ROWS_TO_LOAD = 50
 
@@ -1431,9 +1434,10 @@ class RemoteCollectionsEditorTableView(BaseTableView):
     def new_value(self, name, value):
         """Create new value in data"""
         try:
-            try:
+            # Needed to prevent memory leaks. See spyder-ide/spyder#7158.
+            if sys.getsizeof(value) < MAX_SERIALIZED_LENGHT:
                 self.shellwidget.set_value(name, value)
-            except RuntimeError:
+            else:
                 QMessageBox.warning(self, _("Warning"),
                                     _("The object you are trying to modify is "
                                       "too big to be sent back to the kernel. "
