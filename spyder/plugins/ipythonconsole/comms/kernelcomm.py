@@ -60,7 +60,7 @@ class KernelComm(CommBase, QObject):
         return super(KernelComm, self)._get_call_return_value(call_dict)
 
     def _signal_update_kernel(self):
-        """Interput the kernel to give a chance to read the messages."""
+        """Interrupt the kernel to give a chance to read other messages."""
         self._pdb_update()
 
     def _pdb_update(self):

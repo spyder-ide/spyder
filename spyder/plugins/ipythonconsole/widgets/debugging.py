@@ -9,16 +9,12 @@ Widget that handles communications between a console in debugging
 mode and Spyder
 """
 
-import ast
 import pdb
-import pickle
 
 from qtpy.QtCore import Qt
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
-from spyder.config.base import PICKLE_PROTOCOL
 from spyder.config.manager import CONF
-from spyder.py3compat import to_text_string
 
 
 class DebuggingWidget(RichJupyterWidget):
@@ -34,30 +30,22 @@ class DebuggingWidget(RichJupyterWidget):
         self._input_queue = []
         self._input_ready = False
 
-    def monkeypatch_kernel_client(self, client):
-        """Monkeypatches the kernel client to monitor input calls."""
-        if client:
-            old_input = client.input
+    def set_queued_input(self, client):
+        """Change the kernel client input function queue calls."""
+        old_input = client.input
 
-            def monkeypatched_input(string):
-                """If input is not ready, save it in a queue."""
-                if self._input_ready:
-                    self._input_ready = False
-                    return old_input(string)
-                elif self.is_debugging():
-                    self._input_queue.append(string)
+        def queued_input(string):
+            """If input is not ready, save it in a queue."""
+            if self._input_ready:
+                self._input_ready = False
+                return old_input(string)
+            elif self.is_debugging():
+                self._input_queue.append(string)
 
-            client.input = monkeypatched_input
-        return client
-
-    def register_message_handler(self, spyder_kernel_comm):
-        """Register messages to be handled by comm."""
-        spyder_kernel_comm.register_call_handler(
-            'get_breakpoints', self.get_spyder_breakpoints)
-        spyder_kernel_comm.sig_debugging.connect(self._debugging_hook)
+        client.input = queued_input
 
     def _debugging_hook(self, debugging):
-        """Catches the debugging state."""
+        """Catches debugging state."""
         # If the debugging starts or stops, clear the input queue.
         self._input_queue = []
 
@@ -105,7 +93,8 @@ class DebuggingWidget(RichJupyterWidget):
     def _handle_input_request(self, msg):
         """Save history and add a %plot magic."""
         if self._hidden:
-            raise RuntimeError('Request for raw input during hidden execution.')
+            raise RuntimeError(
+                'Request for raw input during hidden execution.')
 
         # Make sure that all output from the SUB channel has been processed
         # before entering readline mode.
@@ -115,11 +104,9 @@ class DebuggingWidget(RichJupyterWidget):
             return super(DebuggingWidget, self)._handle_input_request(msg)
 
         # While the widget thinks only one input is going on,
-        # Other functions are sending messages to the kernel.
+        # other functions can be sending messages to the kernel.
         # This must be properly processed to avoid dropping messages.
         # If the kernel was not ready, the messages are queued.
-        # Send the next one
-
         if len(self._input_queue) > 0:
             msg = self._input_queue[0]
             del self._input_queue[0]

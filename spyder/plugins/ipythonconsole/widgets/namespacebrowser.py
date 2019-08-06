@@ -45,20 +45,6 @@ class NamepaceBrowserWidget(RichJupyterWidget):
     _kernel_is_starting = True
 
     # --- Public API --------------------------------------------------
-    def register_message_handler(self, spyder_kernel_comm):
-        """Register messages to be handled by comm."""
-        handled = {
-            'pdb_state': self.set_pdb_state,
-            'pdb_continue': self.pdb_continue,
-            'set_namespace_view': self.set_namespace_view,
-            'set_var_properties': self.set_var_properties,
-        }
-        for message_id in handled:
-            spyder_kernel_comm.register_call_handler(
-                message_id, handled[message_id])
-        super(NamepaceBrowserWidget, self).register_message_handler(
-            spyder_kernel_comm)
-
     def set_namespacebrowser(self, namespacebrowser):
         """Set namespace browser widget"""
         self.namespacebrowser = namespacebrowser

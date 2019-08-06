@@ -91,12 +91,18 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.kernel_client = None
         handlers = {
             'remote_set_cwd': self.remote_set_cwd,
+            'pdb_state': self.set_pdb_state,
+            'pdb_continue': self.pdb_continue,
+            'set_namespace_view': self.set_namespace_view,
+            'set_var_properties': self.set_var_properties,
+            'get_breakpoints': self.get_spyder_breakpoints,
         }
 
         for request_id in handlers:
             self.spyder_kernel_comm.register_call_handler(
                 request_id, handlers[request_id])
-        self.register_message_handler(self.spyder_kernel_comm)
+
+        self.spyder_kernel_comm.sig_debugging.connect(self._debugging_hook)
 
     def call_kernel(self, interrupt=False, blocking=False):
         """Send message to spyder."""
@@ -107,7 +113,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """Set the kernel client and manager"""
         self.spyder_kernel_comm.set_kernel_client(kernel_client)
         self.kernel_manager = kernel_manager
-        self.kernel_client = self.monkeypatch_kernel_client(kernel_client)
+        self.kernel_client = kernel_client
+        if self.kernel_client is not None:
+            self.set_queued_input(self.kernel_client)
 
     #---- Public API ----------------------------------------------------------
     def set_exit_callback(self):
