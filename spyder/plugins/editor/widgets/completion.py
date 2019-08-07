@@ -35,6 +35,8 @@ COMPLETION_ITEM_TEMPLATE = """
     </tr>
 </table>
 """
+DEFAULT_COMPLETION_ITEM_HEIGHT = 15
+DEFAULT_COMPLETION_ITEM_WIDTH = 250
 
 
 class CompletionWidget(QListWidget):
@@ -56,7 +58,7 @@ class CompletionWidget(QListWidget):
 
         # Setup item rendering
         self.setItemDelegate(HTMLDelegate(self, margin=3))
-        self.setMinimumWidth(250)
+        self.setMinimumWidth(DEFAULT_COMPLETION_ITEM_WIDTH)
 
         # Initial item height and width
         fm = QFontMetrics(self.textedit.font())
@@ -64,7 +66,10 @@ class CompletionWidget(QListWidget):
         self.item_width = self.width()
 
         # Text to be displayed if no match is found.
-        self.empty_text = self.get_html_item_representation('No match', '')
+        self.empty_text = self.get_html_item_representation(
+            'No match', '',
+            height=self.item_height,
+            width=self.item_width)
 
     def setup_appearance(self, size, font):
         self.resize(*size)
@@ -240,7 +245,8 @@ class CompletionWidget(QListWidget):
             self.addItem(QListWidgetItem(self.empty_text))
 
     def get_html_item_representation(self, item_completion, item_type,
-                                     height=10, width=300):
+                                     height=DEFAULT_COMPLETION_ITEM_HEIGHT,
+                                     width=DEFAULT_COMPLETION_ITEM_WIDTH):
         """Get HTML representation of and item."""
 
         return COMPLETION_ITEM_TEMPLATE.format(completion=item_completion,
