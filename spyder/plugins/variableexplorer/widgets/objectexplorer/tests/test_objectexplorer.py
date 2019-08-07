@@ -47,6 +47,13 @@ def test_objectexplorer(objectexplorer):
 
         def get_text(self):
             return self.text
+
+        @property
+        def error_attribute(self):
+            # Attribute to test that the object explorer
+            # handles errors by getattr gracefully
+            raise AttributeError
+
     foobar = Foobar()
     editor = objectexplorer(foobar,
                             name='foobar',

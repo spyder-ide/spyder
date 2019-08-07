@@ -72,8 +72,8 @@ from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
                          qInstallMessageHandler)
 from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QDesktopWidget, QDockWidget,
-                            QMainWindow, QMenu, QMessageBox, QShortcut,
-                            QSplashScreen, QStyle, QStyleFactory, QWidget)
+                            QMainWindow, QMenu, QMenuBar, QMessageBox,
+                            QShortcut, QSplashScreen, QStyleFactory, QWidget)
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -95,7 +95,7 @@ from qtawesome.iconic_font import FontError
 # Proper high DPI scaling is available in Qt >= 5.6.0. This attibute must
 # be set before creating the application.
 #==============================================================================
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
     QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling,
@@ -105,7 +105,7 @@ if hasattr(Qt, 'AA_EnableHighDpiScaling'):
 # Create our QApplication instance here because it's needed to render the
 # splash screen created below
 #==============================================================================
-from spyder.utils.qthelpers import qapplication, MENU_SEPARATOR
+from spyder.utils.qthelpers import qapplication
 from spyder.config.base import get_image_path
 MAIN_APP = qapplication()
 
@@ -127,8 +127,9 @@ if not running_under_pytest():
     SPLASH_FONT.setPixelSize(10)
     SPLASH.setFont(SPLASH_FONT)
     SPLASH.show()
-    SPLASH.showMessage(_("Initializing..."), Qt.AlignBottom | Qt.AlignCenter |
-                    Qt.AlignAbsolute, QColor(Qt.white))
+    SPLASH.showMessage(_("Initializing..."),
+                       int(Qt.AlignBottom | Qt.AlignCenter | Qt.AlignAbsolute),
+                       QColor(Qt.white))
     QApplication.processEvents()
 else:
     SPLASH = None
@@ -143,7 +144,7 @@ from spyder.config.base import (get_conf_path, get_module_source_path, STDERR,
                                 running_in_mac_app, get_module_path,
                                 reset_config_files)
 from spyder.config.main import OPEN_FILES_PORT
-from spyder.config.utils import IMPORT_EXT, is_gtk_desktop
+from spyder.config.utils import IMPORT_EXT, is_anaconda, is_gtk_desktop
 from spyder.app.cli_options import get_options
 from spyder import dependencies
 from spyder.py3compat import (is_text_string, to_text_string,
@@ -170,7 +171,8 @@ from spyder.utils.qthelpers import (create_action, add_actions, get_icon,
                                     add_shortcut_to_tooltip,
                                     create_module_bookmark_actions,
                                     create_program_action, DialogManager,
-                                    create_python_script_action, file_uri)
+                                    create_python_script_action, file_uri,
+                                    MENU_SEPARATOR, set_menu_icons)
 from spyder.config.gui import get_shortcut
 from spyder.otherplugins import get_spyderplugins_mods
 from spyder.app import tour
@@ -278,6 +280,7 @@ dependencies.declare_dependencies()
 #==============================================================================
 # Main Window
 #==============================================================================
+
 class MainWindow(QMainWindow):
     """Spyder main window"""
     DOCKOPTIONS = QMainWindow.AllowTabbedDocks|QMainWindow.AllowNestedDocks
@@ -477,6 +480,7 @@ class MainWindow(QMainWindow):
         self.help_menu_actions = []
 
         # Status bar widgets
+        self.conda_status = None
         self.mem_status = None
         self.cpu_status = None
 
@@ -499,6 +503,8 @@ class MainWindow(QMainWindow):
         self.debug_toolbar_actions = []
         self.layout_toolbar = None
         self.layout_toolbar_actions = []
+
+        self.menus = []
 
         if running_under_pytest():
             # Show errors in internal console when testing.
@@ -707,28 +713,23 @@ class MainWindow(QMainWindow):
                                   None, self.cut_action, self.copy_action,
                                   self.paste_action, self.selectall_action]
 
-        namespace = None
         logger.info("Creating toolbars...")
         # File menu/toolbar
         self.file_menu = self.menuBar().addMenu(_("&File"))
         self.file_toolbar = self.create_toolbar(_("File toolbar"),
                                                 "file_toolbar")
-
         # Edit menu/toolbar
         self.edit_menu = self.menuBar().addMenu(_("&Edit"))
         self.edit_toolbar = self.create_toolbar(_("Edit toolbar"),
                                                 "edit_toolbar")
-
         # Search menu/toolbar
         self.search_menu = self.menuBar().addMenu(_("&Search"))
         self.search_toolbar = self.create_toolbar(_("Search toolbar"),
-                                                    "search_toolbar")
-
+                                                   "search_toolbar")
         # Source menu/toolbar
         self.source_menu = self.menuBar().addMenu(_("Sour&ce"))
         self.source_toolbar = self.create_toolbar(_("Source toolbar"),
                                                     "source_toolbar")
-
         # Run menu/toolbar
         self.run_menu = self.menuBar().addMenu(_("&Run"))
         self.run_toolbar = self.create_toolbar(_("Run toolbar"),
@@ -747,6 +748,7 @@ class MainWindow(QMainWindow):
         # Projects menu
         self.projects_menu = self.menuBar().addMenu(_("&Projects"))
         self.projects_menu.aboutToShow.connect(self.valid_project)
+
         # Tools menu
         self.tools_menu = self.menuBar().addMenu(_("&Tools"))
 
@@ -793,6 +795,7 @@ class MainWindow(QMainWindow):
         # External Tools submenu
         self.external_tools_menu = QMenu(_("External Tools"))
         self.external_tools_menu_actions = []
+
         # WinPython control panel
         self.wp_action = create_action(self, _("WinPython control panel"),
                     icon=get_icon('winpython.svg'),
@@ -881,7 +884,7 @@ class MainWindow(QMainWindow):
         # Internal console plugin
         logger.info("Loading internal console...")
         from spyder.plugins.console.plugin import Console
-        self.console = Console(self, namespace, exitfunc=self.closing,
+        self.console = Console(self, namespace=None, exitfunc=self.closing,
                             profile=self.profile,
                             multithreaded=self.multithreaded,
                             message=_("Spyder Internal Console\n\n"
@@ -917,6 +920,12 @@ class MainWindow(QMainWindow):
             from spyder.plugins.outlineexplorer.plugin import OutlineExplorer
             self.outlineexplorer = OutlineExplorer(self)
             self.outlineexplorer.register_plugin()
+
+        if is_anaconda():
+            from spyder.widgets.status import CondaStatus
+            self.conda_status = CondaStatus(self, status,
+                                            icon=ima.icon('environment'))
+            self.conda_status.update_interpreter(self.get_main_interpreter())
 
         # Editor plugin
         self.set_splash(_("Loading editor..."))
@@ -1252,18 +1261,6 @@ class MainWindow(QMainWindow):
         logger.info("Setting up window...")
         self.setup_layout(default=False)
 
-        # Show and hide shortcuts in menus for Mac.
-        # This is a workaround because we can't disable shortcuts
-        # by setting context=Qt.WidgetShortcut there
-        if sys.platform == 'darwin':
-            for name in ['file', 'edit', 'search', 'source', 'run', 'debug',
-                         'projects', 'tools', 'plugins']:
-                menu_object = getattr(self, name + '_menu')
-                menu_object.aboutToShow.connect(
-                    lambda name=name: self.show_shortcuts(name))
-                menu_object.aboutToHide.connect(
-                    lambda name=name: self.hide_shortcuts(name))
-
         if self.splash is not None:
             self.splash.hide()
 
@@ -1284,6 +1281,27 @@ class MainWindow(QMainWindow):
 
         logger.info("*** End of MainWindow setup ***")
         self.is_starting_up = False
+
+    def setup_menus(self):
+        """Setup menus."""
+        # Update menus list
+        default_menus = [self.file_menu, self.edit_menu, self.search_menu,
+                         self.source_menu, self.run_menu, self.debug_menu,
+                         self.consoles_menu, self.projects_menu,
+                         self.tools_menu, self.view_menu, self.help_menu]
+        self.menus = self.menus + default_menus
+
+        # Show and hide shortcuts and icons in menus for macOS
+        if sys.platform == 'darwin':
+            for menu in self.menus:
+                if menu is not None:
+                    menu.aboutToShow.connect(
+                        lambda menu=menu: self.show_shortcuts(menu))
+                    menu.aboutToHide.connect(
+                        lambda menu=menu: self.hide_shortcuts(menu))
+                    menu.aboutToShow.connect(
+                        lambda menu=menu: set_menu_icons(menu, False))
+                    menu.aboutToShow.connect(self.hide_options_menus)
 
     def post_visible_setup(self):
         """Actions to be performed only after the main window's `show` method
@@ -1358,6 +1376,9 @@ class MainWindow(QMainWindow):
             if self.projects.get_active_project() is None:
                 self.editor.setup_open_files()
 
+        # Setup menus
+        self.setup_menus()
+
         # Check for spyder updates
         if DEV is None and CONF.get('main', 'check_updates_on_startup'):
             self.give_updates_feedback = False
@@ -1426,6 +1447,7 @@ class MainWindow(QMainWindow):
             hexstate = None
         else:
             hexstate = get_func(section, prefix+'state', None)
+
         pos = get_func(section, prefix+'position')
 
         # It's necessary to verify if the window/position value is valid
@@ -1620,8 +1642,8 @@ class MainWindow(QMainWindow):
         # Layout definition
         # --------------------------------------------------------------------
         # Layouts are organized by columns, each column is organized by rows.
-        # Widths have to add 1.0 (except if hidden), height per column has to
-        # add 1.0 as well
+        # Widths have to accumulate to 100 (except if hidden), height per
+        # column has to accumulate to 100 as well
 
         # Spyder Default Initial Layout
         s_layout = {
@@ -1637,14 +1659,14 @@ class MainWindow(QMainWindow):
                   helper, explorer_file, finder] + plugins,
                  [console_int, console_ipy, history]]        # Row 1
                 ],
-            'width fraction': [0.05,            # Column 0 width
-                               0.55,            # Column 1 width
-                               0.05,            # Column 2 width
-                               0.45],           # Column 3 width
-            'height fraction': [[1.0],          # Column 0, row heights
-                                [1.0],          # Column 1, row heights
-                                [1.0],          # Column 2, row heights
-                                [0.46, 0.54]],  # Column 3, row heights
+            'width fraction': [ 5,            # Column 0 width
+                               55,            # Column 1 width
+                                5,            # Column 2 width
+                               45],           # Column 3 width
+            'height fraction': [[100],          # Column 0, row heights
+                                [100],          # Column 1, row heights
+                                [100],          # Column 2, row heights
+                                [46, 54]],  # Column 3, row heights
             'hidden widgets': [outline] + global_hidden_widgets,
             'hidden toolbars': [],
         }
@@ -1661,10 +1683,10 @@ class MainWindow(QMainWindow):
                  [explorer_file, explorer_project,    # Row 1
                   help_plugin, helper]]
                 ],
-            'width fraction': [0.55,            # Column 0 width
-                               0.45],           # Column 1 width
-            'height fraction': [[0.55, 0.45],   # Column 0, row heights
-                                [0.55, 0.45]],  # Column 1, row heights
+            'width fraction': [55,            # Column 0 width
+                               45],           # Column 1 width
+            'height fraction': [[55, 45],   # Column 0, row heights
+                                [55, 45]],  # Column 1, row heights
             'hidden widgets': [outline] + global_hidden_widgets,
             'hidden toolbars': [],
         }
@@ -1682,12 +1704,12 @@ class MainWindow(QMainWindow):
                 [[explorer_variable, plots, finder] + plugins,
                  [history, help_plugin, helper]]
                 ],
-            'width fraction': [0.10,            # Column 0 width
-                               0.45,            # Column 1 width
-                               0.45],           # Column 2 width
-            'height fraction': [[0.55, 0.45],   # Column 0, row heights
-                                [0.55, 0.45],   # Column 1, row heights
-                                [0.55, 0.45]],  # Column 2, row heights
+            'width fraction': [10,            # Column 0 width
+                               45,            # Column 1 width
+                               45],           # Column 2 width
+            'height fraction': [[55, 45],   # Column 0, row heights
+                                [55, 45],   # Column 1, row heights
+                                [55, 45]],  # Column 2, row heights
             'hidden widgets': global_hidden_widgets,
             'hidden toolbars': [],
         }
@@ -1701,8 +1723,8 @@ class MainWindow(QMainWindow):
                   explorer_project, help_plugin, explorer_variable, plots,
                   history, outline, finder, helper] + plugins]
                 ],
-            'width fraction': [1.0],            # Column 0 width
-            'height fraction': [[0.55, 0.45]],  # Column 0, row heights
+            'width fraction': [100],            # Column 0 width
+            'height fraction': [[55, 45]],  # Column 0, row heights
             'hidden widgets': [outline] + global_hidden_widgets,
             'hidden toolbars': [],
         }
@@ -1717,10 +1739,10 @@ class MainWindow(QMainWindow):
                   explorer_project, help_plugin, explorer_variable, plots,
                   history, outline, finder, helper] + plugins]
                 ],
-            'width fraction': [0.55,      # Column 0 width
-                               0.45],     # Column 1 width
-            'height fraction': [[1.0],    # Column 0, row heights
-                                [1.0]],   # Column 1, row heights
+            'width fraction': [55,      # Column 0 width
+                               45],     # Column 1 width
+            'height fraction': [[100],    # Column 0, row heights
+                                [100]],   # Column 1, row heights
             'hidden widgets': [outline] + global_hidden_widgets,
             'hidden toolbars': []
         }
@@ -2134,18 +2156,43 @@ class MainWindow(QMainWindow):
         self.update_search_menu()
 
     def show_shortcuts(self, menu):
-        """Show action shortcuts in menu"""
-        for element in getattr(self, menu + '_menu_actions'):
-            if element and isinstance(element, QAction):
-                if element._shown_shortcut is not None:
-                    element.setShortcut(element._shown_shortcut)
+        """Show action shortcuts in menu."""
+        menu_actions = menu.actions()
+        for action in menu_actions:
+            if getattr(action, '_shown_shortcut', False):
+                # This is a SpyderAction
+                if action._shown_shortcut is not None:
+                    action.setShortcut(action._shown_shortcut)
+            elif action.menu() is not None:
+                # This is submenu, so we need to call this again
+                self.show_shortcuts(action.menu())
+            else:
+                # We don't need to do anything for other elements
+                continue
 
     def hide_shortcuts(self, menu):
-        """Hide action shortcuts in menu"""
-        for element in getattr(self, menu + '_menu_actions'):
-            if element and isinstance(element, QAction):
-                if element._shown_shortcut is not None:
-                    element.setShortcut(QKeySequence())
+        """Hide action shortcuts in menu."""
+        menu_actions = menu.actions()
+        for action in menu_actions:
+            if getattr(action, '_shown_shortcut', False):
+                # This is a SpyderAction
+                if action._shown_shortcut is not None:
+                    action.setShortcut(QKeySequence())
+            elif action.menu() is not None:
+                # This is submenu, so we need to call this again
+                self.hide_shortcuts(action.menu())
+            else:
+                # We don't need to do anything for other elements
+                continue
+
+    def hide_options_menus(self):
+        """Hide options menu when menubar is pressed in macOS."""
+        for plugin in self.widgetlist + self.thirdparty_plugins:
+            if plugin.CONF_SECTION == 'editor':
+                editorstack = self.editor.get_current_editorstack()
+                editorstack.menu.hide()
+            else:
+                plugin._options_menu.hide()
 
     def get_focus_widget_properties(self):
         """Get properties of focus widget
@@ -2282,8 +2329,10 @@ class MainWindow(QMainWindow):
         if message:
             logger.info(message)
         self.splash.show()
-        self.splash.showMessage(message, Qt.AlignBottom | Qt.AlignCenter |
-                                Qt.AlignAbsolute, QColor(Qt.white))
+        self.splash.showMessage(message,
+                                int(Qt.AlignBottom | Qt.AlignCenter |
+                                    Qt.AlignAbsolute),
+                                QColor(Qt.white))
         QApplication.processEvents()
 
     def closeEvent(self, event):
@@ -2917,6 +2966,11 @@ class MainWindow(QMainWindow):
                 if widget is not None:
                     widget.setVisible(CONF.get('main', '%s/enable' % name))
                     widget.set_interval(CONF.get('main', '%s/timeout' % name))
+
+            # Update conda status widget
+            if is_anaconda() and self.conda_status:
+                interpreter = self.get_main_interpreter()
+                self.conda_status.update_interpreter(interpreter)
         else:
             return
 
@@ -2931,6 +2985,8 @@ class MainWindow(QMainWindow):
 
         if self.prefs_dialog_instance is None:
             dlg = ConfigDialog(self)
+            dlg.setStyleSheet("QTabWidget::tab-bar {"
+                              "alignment: left;}")
             self.prefs_dialog_instance = dlg
 
             # Signals
@@ -3276,6 +3332,14 @@ class MainWindow(QMainWindow):
         self.worker_updates.moveToThread(self.thread_updates)
         self.thread_updates.started.connect(self.worker_updates.start)
         self.thread_updates.start()
+
+    # --- Main interpreter
+    # ------------------------------------------------------------------------
+    def get_main_interpreter(self):
+        if CONF.get('main_interpreter', 'default'):
+            return sys.executable
+        else:
+            return CONF.get('main_interpreter', 'custom_interpreter')
 
     # --- For OpenGL
     def _test_setting_opengl(self, option):

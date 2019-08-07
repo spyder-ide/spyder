@@ -12,8 +12,8 @@ import os.path as osp
 
 # Third party imports
 from qtpy.compat import from_qvariant
-from qtpy.QtCore import QSize, QObject, Qt, Signal, Slot
-from qtpy.QtWidgets import (QHBoxLayout, QTreeWidgetItem, QVBoxLayout, QWidget,
+from qtpy.QtCore import QSize, Qt, Signal, Slot
+from qtpy.QtWidgets import (QHBoxLayout, QTreeWidgetItem, QWidget,
                             QTreeWidgetItemIterator)
 
 # Local imports

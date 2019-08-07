@@ -22,7 +22,7 @@ app = qapplication()
 from qtpy.QtWidgets import QMainWindow
 import pytest
 
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.plugins.editor.plugin import Editor
 
 

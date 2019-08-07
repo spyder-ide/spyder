@@ -20,7 +20,7 @@ from qtpy.QtWidgets import (QDialog, QHBoxLayout, QPushButton, QTextEdit,
 from spyder.config.base import _
 from spyder.config.gui import get_font
 from spyder.py3compat import (is_binary_string, to_binary_string,
-                              to_text_string, PY3, PY2)
+                              to_text_string)
 from spyder.utils import icon_manager as ima
 
 

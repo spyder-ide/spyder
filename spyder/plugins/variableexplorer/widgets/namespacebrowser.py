@@ -19,7 +19,7 @@ from qtpy.compat import getsavefilename, getopenfilenames
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QCursor
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QInputDialog, QMenu,
-                            QMessageBox, QToolButton, QVBoxLayout, QWidget)
+                            QMessageBox, QLabel, QWidget)
 
 from spyder_kernels.utils.iofuncs import iofunctions
 from spyder_kernels.utils.misc import fix_reference_name
@@ -27,8 +27,9 @@ from spyder_kernels.utils.nsview import get_supported_types, REMOTE_SETTINGS
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.main import CONF
-from spyder.py3compat import is_text_string, to_text_string
+from spyder.config.gui import config_shortcut
+from spyder.config.manager import CONF
+from spyder.py3compat import PY2, is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import getcwd_or_home, remove_backslashes
@@ -39,9 +40,15 @@ from spyder.utils.qthelpers import (add_actions, create_action,
 from spyder.plugins.variableexplorer.widgets.collectionseditor import (
     RemoteCollectionsEditorTableView)
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
+from spyder.widgets.helperwidgets import FinderLineEdit
 
 
 SUPPORTED_TYPES = get_supported_types()
+
+if PY2:
+    VALID_VARIABLE_CHARS = r"[a-zA-z0-9_]"
+else:
+    VALID_VARIABLE_CHARS = r"[^\w+*=¡!¿?'\"#$%&()/<>\-\[\]{}^`´;,|¬]*\w"
 
 
 class NamespaceBrowser(QWidget):
@@ -76,6 +83,7 @@ class NamespaceBrowser(QWidget):
         self.exclude_uppercase_action = None
         self.exclude_capitalized_action = None
         self.exclude_unsupported_action = None
+        self.finder = None
         self.options_button = options_button
         self.actions = None
         self.plugin_actions = plugin_actions
@@ -147,6 +155,26 @@ class NamespaceBrowser(QWidget):
         # Setup layout.
 
         layout = create_plugin_layout(self.tools_layout, self.editor)
+
+        # Fuzzy search layout
+        finder_layout = QHBoxLayout()
+        close_button = create_toolbutton(self, triggered=self.show_finder,
+                                         icon=ima.icon('DialogCloseButton'))
+        text_finder = NamespacesBrowserFinder(self.editor,
+                                              callback=self.editor.set_regex,
+                                              main=self,
+                                              regex_base=VALID_VARIABLE_CHARS)
+        self.editor.finder = text_finder
+        finder_layout.addWidget(close_button)
+        finder_layout.addWidget(text_finder)
+        finder_layout.setContentsMargins(0, 0, 0, 0)
+        self.finder = QWidget(self)
+        self.finder.text_finder = text_finder
+        self.finder.setLayout(finder_layout)
+        self.finder.setVisible(False)
+
+        layout.addWidget(self.finder)
+
         self.setLayout(layout)
 
         self.sig_option_changed.connect(self.option_changed)
@@ -177,8 +205,16 @@ class NamespaceBrowser(QWidget):
                 self, text=_("Remove all variables"),
                 icon=ima.icon('editdelete'), triggered=self.reset_namespace)
 
+        self.search_button = create_toolbutton(
+            self, text=_("Search variable names and types"),
+            icon=ima.icon('find'),
+            toggled=self.show_finder)
+        config_shortcut(lambda: self.show_finder(set_visible=True),
+                        context='variable_explorer',
+                        name='search', parent=self)
+
         return [load_button, self.save_button, save_as_button,
-                reset_namespace_button]
+                reset_namespace_button, self.search_button]
 
     def setup_option_actions(self, exclude_private, exclude_uppercase,
                              exclude_capitalized, exclude_unsupported):
@@ -254,6 +290,17 @@ class NamespaceBrowser(QWidget):
             settings[name] = getattr(self, name)
         return settings
 
+    def show_finder(self, set_visible=False):
+        """Handle showing/hiding the finder widget."""
+        self.finder.text_finder.setText('')
+        self.finder.setVisible(set_visible)
+        self.search_button.setChecked(set_visible)
+
+        if self.finder.isVisible():
+            self.finder.text_finder.setFocus()
+        else:
+            self.editor.setFocus()
+
     def refresh_table(self):
         """Refresh variable table"""
         if self.is_visible and self.isVisible():
@@ -275,7 +322,7 @@ class NamespaceBrowser(QWidget):
 
     def set_data(self, data):
         """Set data."""
-        if data != self.editor.model.get_data():
+        if data != self.editor.source_model.get_data():
             self.editor.set_data(data)
             self.editor.adjust_columns()
         
@@ -395,3 +442,22 @@ class NamespaceBrowser(QWidget):
                     '<br><br>Error message:<br>') + error_message
             QMessageBox.critical(self, _("Save data"), save_data_message)
         self.save_button.setEnabled(self.filename is not None)
+
+
+class NamespacesBrowserFinder(FinderLineEdit):
+    """Textbox for filtering listed variables in the table."""
+
+    def keyPressEvent(self, event):
+        """Qt and FilterLineEdit Override."""
+        key = event.key()
+        if key in [Qt.Key_Up]:
+            self._parent.previous_row()
+        elif key in [Qt.Key_Down]:
+            self._parent.next_row()
+        elif key in [Qt.Key_Escape]:
+            self._parent.parent().show_finder(set_visible=False)
+        elif key in [Qt.Key_Enter, Qt.Key_Return]:
+            # TODO: Check if an editor needs to be shown
+            pass
+        else:
+            super(NamespacesBrowserFinder, self).keyPressEvent(event)

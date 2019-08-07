@@ -4,9 +4,6 @@ language: generic
 dist: xenial
 services:
     - xvfb
-env:
-  global:
-    - CI_PYTEST: "true"
 
 matrix:
   fast_finish: true
@@ -26,10 +23,10 @@ before_install:
   - sleep 5
 
 install:
-  - ./continuous_integration/travis/install.sh
+  - bash ./continuous_integration/travis/install.sh
 
 script:
-  - ./continuous_integration/travis/runtests.sh || ./continuous_integration/travis/runtests.sh || ./continuous_integration/travis/runtests.sh || ./continuous_integration/travis/runtests.sh
+  - bash ./continuous_integration/travis/runtests.sh || bash ./continuous_integration/travis/runtests.sh || bash ./continuous_integration/travis/runtests.sh || bash ./continuous_integration/travis/runtests.sh
 
 after_success:
   - source $HOME/miniconda/etc/profile.d/conda.sh && conda activate test && coveralls

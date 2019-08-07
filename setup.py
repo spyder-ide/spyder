@@ -140,7 +140,7 @@ else:
 # Files added to the package
 #==============================================================================
 EXTLIST = ['.pot', '.po', '.mo', '.svg', '.png', '.css', '.html', '.js',
-           '.ini', '.txt', '.qss', '.ttf', '.json']
+           '.ini', '.txt', '.qss', '.ttf', '.json', '.rst']
 if os.name == 'nt':
     SCRIPTS += ['spyder.bat']
     EXTLIST += ['.ico']
@@ -202,7 +202,7 @@ if any(arg == 'bdist_wheel' for arg in sys.argv):
 install_requires = [
     'cloudpickle',
     'pygments>=2.0',
-    'qtconsole>=4.5.0',
+    'qtconsole>=4.5.2',
     'nbconvert',
     'sphinx',
     'pylint',
@@ -239,7 +239,7 @@ install_requires = [
 extras_require = {
     'test:python_version == "2.7"': ['mock'],
     'test:platform_system == "Windows"': ['pywin32'],
-    'test': ['pytest<4.1',
+    'test': ['pytest<5.0',
              'pytest-qt',
              'pytest-mock',
              'pytest-cov',

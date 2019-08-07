@@ -20,7 +20,7 @@ import pytest
 from qtpy.QtGui import QFont
 
 # Local imports
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.plugins.editor.tests.conftest import (
     editor_plugin, editor_plugin_open_files, python_files)
 from spyder.plugins.completion.languageserver.tests.conftest import (
@@ -95,7 +95,7 @@ def fallback_codeeditor(qtbot_module, request):
     return editor, fallback
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def lsp_plugin(qtbot_module, request):
     # Activate pycodestyle and pydocstyle
     CONF.set('lsp-server', 'pycodestyle', True)

@@ -20,19 +20,19 @@ from qtpy.QtCore import Slot, Signal, QModelIndex, QPoint, QSize, Qt
 from qtpy.QtGui import QKeySequence, QTextOption
 from qtpy.QtWidgets import (QAbstractItemView, QAction, QButtonGroup,
                             QDialog, QGroupBox, QHBoxLayout, QHeaderView,
-                            QLabel, QMenu, QRadioButton, QSplitter,
-                            QToolButton, QVBoxLayout, QWidget)
+                            QLabel, QMenu, QPushButton, QRadioButton,
+                            QSplitter, QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import _
 from spyder.config.gui import get_font, is_dark_interface
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.utils.qthelpers import (add_actions, create_plugin_layout,
                                     create_toolbutton, qapplication)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.variableexplorer.widgets.objectexplorer import (
     DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS, ToggleColumnTreeView,
-    TreeModel, TreeProxyModel)
+    TreeItem, TreeModel, TreeProxyModel)
 from spyder.utils import icon_manager as ima
 
 
@@ -48,8 +48,6 @@ class ObjectExplorer(QDialog):
     # TODO: Use signal to trigger update of configs
     sig_option_changed = Signal(str, object)
 
-    _browsers = []  # Keep lists of browser windows.
-
     def __init__(self,
                  obj,
                  name='',
@@ -60,6 +58,8 @@ class ObjectExplorer(QDialog):
                  attribute_details=DEFAULT_ATTR_DETAILS,
                  show_callable_attributes=False,
                  show_special_attributes=False,
+                 dataframe_format=None,
+                 readonly=None,
                  reset=False):
         """
         Constructor
@@ -79,23 +79,29 @@ class ObjectExplorer(QDialog):
         :param show_special_attributes: if True rows where the 'is attribute'
             is True and the object name starts and ends with two underscores,
             are displayed. Otherwise they are hidden.
+        :param dataframe_format: Format for the values in the Dataframe Editor.
         :param reset: If true the persistent settings, such as column widths,
             are reset.
         """
         QDialog.__init__(self, parent=parent)
-
-        self._instance_nr = self._add_instance()
+        self.setAttribute(Qt.WA_DeleteOnClose)
 
         # Model
         self._attr_cols = attribute_columns
         self._attr_details = attribute_details
+        self._dataframe_format = dataframe_format
+        self.readonly = readonly
+
+        self.btn_save_and_close = None
+        self.btn_close = None
 
         self._tree_model = TreeModel(obj, obj_name=name,
                                      attr_cols=self._attr_cols)
 
         self._proxy_tree_model = TreeProxyModel(
             show_callable_attributes=show_callable_attributes,
-            show_special_attributes=show_special_attributes)
+            show_special_attributes=show_special_attributes,
+            dataframe_format=dataframe_format)
 
         self._proxy_tree_model.setSourceModel(self._tree_model)
         # self._proxy_tree_model.setSortRole(RegistryTableModel.SORT_ROLE)
@@ -126,30 +132,9 @@ class ObjectExplorer(QDialog):
         if self._tree_model.inspectedNodeIsVisible or expanded:
             self.obj_tree.expand(first_row_index)
 
-    def _add_instance(self):
-        """
-        Adds the browser window to the list of browser references.
-        If a None is present in the list it is inserted at that position,
-        otherwise it is appended to the list. The index number is returned.
-
-        This mechanism is used so that repeatedly creating and closing windows
-        does not increase the instance number, which is used in writing
-        the persistent settings.
-        """
-        try:
-            idx = self._browsers.index(None)
-        except ValueError:
-            self._browsers.append(self)
-            idx = len(self._browsers) - 1
-        else:
-            self._browsers[idx] = self
-
-        return idx
-
-    def _remove_instance(self):
-        """Sets the reference in the browser list to None."""
-        idx = self._browsers.index(self)
-        self._browsers[idx] = None
+    def get_value(self):
+        """Get editor current object state."""
+        return self._tree_model.inspectedItem.obj
 
     def _make_show_column_function(self, column_idx):
         """Creates a function that shows or hides a column."""
@@ -231,6 +216,17 @@ class ObjectExplorer(QDialog):
         self.toggle_show_special_attribute_action.setChecked(action_checked)
         self.sig_option_changed.emit('show_special_attributes', action_checked)
 
+    @Slot(str)
+    def _set_dataframe_format(self, new_format):
+        """
+        Set format to use in DataframeEditor.
+
+        Args:
+            new_format (string): e.g. "%.3f"
+        """
+        self.sig_option_changed.emit('dataframe_format', new_format)
+        self._tree_model.dataframe_format = new_format
+
     def _setup_views(self):
         """Creates the UI widgets."""
         self.central_splitter = QSplitter(self, orientation=Qt.Vertical)
@@ -239,13 +235,15 @@ class ObjectExplorer(QDialog):
         self.setLayout(layout)
 
         # Tree widget
-        self.obj_tree = ToggleColumnTreeView()
+        self.obj_tree = ToggleColumnTreeView(
+                dataframe_format=self._dataframe_format)
         self.obj_tree.setAlternatingRowColors(True)
         self.obj_tree.setModel(self._proxy_tree_model)
         self.obj_tree.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.obj_tree.setUniformRowHeights(True)
         self.obj_tree.setAnimated(True)
         self.obj_tree.add_header_context_menu()
+        self.obj_tree.sig_option_changed.connect(self.sig_option_changed.emit)
 
         # Stretch last column?
         # It doesn't play nice when columns are hidden and then shown again.
@@ -304,6 +302,23 @@ class ObjectExplorer(QDialog):
                               "with care."))
         v_group_layout.addWidget(repr_label)
 
+        # Save and close buttons
+        btn_layout = QHBoxLayout()
+        btn_layout.addStretch()
+
+        if not self.readonly:
+            self.btn_save_and_close = QPushButton(_('Save and Close'))
+            self.btn_save_and_close.setDisabled(True)
+            self.btn_save_and_close.clicked.connect(self.accept)
+            btn_layout.addWidget(self.btn_save_and_close)
+
+        self.btn_close = QPushButton(_('Close'))
+        self.btn_close.setAutoDefault(True)
+        self.btn_close.setDefault(True)
+        self.btn_close.clicked.connect(self.reject)
+        btn_layout.addWidget(self.btn_close)
+        v_group_layout.addLayout(btn_layout)
+
         # Splitter parameters
         self.central_splitter.setCollapsible(0, False)
         self.central_splitter.setCollapsible(1, True)
@@ -318,6 +333,13 @@ class ObjectExplorer(QDialog):
         selection_model = self.obj_tree.selectionModel()
         selection_model.currentChanged.connect(self._update_details)
 
+        # Check if the values of the model have been changed
+        self._proxy_tree_model.sig_setting_data.connect(
+            self.save_and_close_enable)
+
+        self._proxy_tree_model.sig_update_details.connect(
+            self._update_details_for_item)
+
     # End of setup_methods
     def _readViewSettings(self, reset=False):
         """
@@ -325,7 +347,7 @@ class ObjectExplorer(QDialog):
 
         :param reset: If True, the program resets to its default settings.
         """
-        pos = QPoint(20 * self._instance_nr, 20 * self._instance_nr)
+        pos = QPoint(20, 20)
         window_size = QSize(825, 650)
         details_button_idx = 0
 
@@ -367,6 +389,14 @@ class ObjectExplorer(QDialog):
         if button is not None:
             button.setChecked(True)
 
+    @Slot()
+    def save_and_close_enable(self):
+        """Handle the data change event to enable the save and close button."""
+        if self.btn_save_and_close:
+            self.btn_save_and_close.setEnabled(True)
+            self.btn_save_and_close.setAutoDefault(True)
+            self.btn_save_and_close.setDefault(True)
+
     @Slot(QModelIndex, QModelIndex)
     def _update_details(self, current_index, _previous_index):
         """Shows the object details in the editor given an index."""
@@ -380,6 +410,7 @@ class ObjectExplorer(QDialog):
         tree_item = self._proxy_tree_model.treeItem(current_index)
         self._update_details_for_item(tree_item)
 
+    @Slot(TreeItem)
     def _update_details_for_item(self, tree_item):
         """Shows the object details in the editor given an tree_item."""
         try:
@@ -411,39 +442,6 @@ class ObjectExplorer(QDialog):
             self.editor.setWordWrapMode(
                 QTextOption.WrapAtWordBoundaryOrAnywhere)
 
-    def _finalize(self):
-        """
-        Cleans up resources when this window is closed.
-        Disconnects all signals for this window.
-        """
-        self.toggle_show_callable_action.toggled.disconnect(
-            self._proxy_tree_model.setShowCallables)
-        self.toggle_show_special_attribute_action.toggled.disconnect(
-            self._proxy_tree_model.setShowSpecialAttributes)
-        self.button_group.buttonClicked[int].disconnect(
-            self._change_details_field)
-        selection_model = self.obj_tree.selectionModel()
-        selection_model.currentChanged.disconnect(self._update_details)
-
-    def closeEvent(self, event):
-        """Called when the window is closed."""
-        logger.debug("closeEvent")
-        self._finalize()
-        self.close()
-        event.accept()
-        self._remove_instance()
-        self.about_to_quit()
-        logger.debug("Closed {} window {}".format(EDITOR_NAME,
-                                                  self._instance_nr))
-
-    def about_to_quit(self):
-        """Called when application is about to quit."""
-        # Sanity check
-        for idx, bw in enumerate(self._browsers):
-            if bw is not None:
-                raise AssertionError("Reference not"
-                                     " cleaned up: {}".format(idx))
-
     @classmethod
     def create_explorer(cls, *args, **kwargs):
         """
@@ -470,7 +468,7 @@ def test():
 
     app = qapplication()
 
-    data = np.random.random_integers(255, size=(100, 100)).astype('uint8')
+    data = np.random.randint(1, 256, size=(100, 100)).astype('uint8')
     image = Image.fromarray(data)
 
     class Foobar(object):

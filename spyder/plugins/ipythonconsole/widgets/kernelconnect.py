@@ -22,7 +22,7 @@ from qtpy.QtWidgets import (QCheckBox, QDialog, QDialogButtonBox, QGridLayout,
 
 # Local imports
 from spyder.config.base import _, get_home_dir
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 
 
 class KernelConnectionDialog(QDialog):

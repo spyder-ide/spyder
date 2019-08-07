@@ -25,7 +25,8 @@ import zmq
 
 # Local imports
 from spyder.py3compat import PY2
-from spyder.config.base import get_conf_path, get_debug_level
+from spyder.config.base import (get_conf_path, get_debug_level,
+                                running_under_pytest)
 from spyder.plugins.completion.languageserver import (
     CLIENT_CAPABILITES, SERVER_CAPABILITES, TRACE,
     TEXT_DOCUMENT_SYNC_OPTIONS, LSPRequestTypes,
@@ -207,6 +208,12 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         new_env = dict(os.environ)
         python_path = os.pathsep.join(sys.path)[1:]
         new_env['PYTHONPATH'] = python_path
+
+        # This allows running LSP tests directly without having to install
+        # Spyder
+        if running_under_pytest():
+            new_env['PYTHONPATH'] = os.pathsep.join(sys.path)[:]
+
         self.transport_args = list(map(str, self.transport_args))
         logger.info('Starting transport: {0}'
                     .format(' '.join(self.transport_args)))
@@ -294,10 +301,12 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                     logger.debug('{} Response error: {}'
                                  .format(self.language, repr(resp['error'])))
                     if self.language == 'python':
+                        message = resp['error'].get('message', '')
                         traceback = (resp['error'].get('data', {}).
                                      get('traceback'))
-                        if traceback:
+                        if traceback is not None:
                             traceback = ''.join(traceback)
+                            traceback = traceback + '\n' + message
                             self.sig_server_error.emit(traceback)
                 elif 'method' in resp:
                     if resp['method'][0] != '$':
