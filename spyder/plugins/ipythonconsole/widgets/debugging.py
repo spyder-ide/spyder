@@ -28,6 +28,7 @@ class DebuggingWidget(RichJupyterWidget):
     def __init__(self, *args, **kwargs):
         super(DebuggingWidget, self).__init__(*args, **kwargs)
         # Adapted from qtconsole/frontend_widget.py
+        # This adds 'ipdb> ' as a prompt self._highlighter recognises
         self._highlighter._ipy_prompt_re = re.compile(
             r'^(%s)?([ \t]*ipdb> |[ \t]*In \[\d+\]: |[ \t]*\ \ \ \.\.\.+: )'
             % re.escape(self.other_output_prefix))
