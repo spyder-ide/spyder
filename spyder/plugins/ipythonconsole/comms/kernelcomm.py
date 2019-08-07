@@ -13,7 +13,7 @@ import logging
 from qtpy.QtCore import QEventLoop, QObject, QTimer, Signal
 
 from spyder_kernels.comms.commbase import CommBase
-from spyder_kernels.py3compat import TimeoutError
+from spyder.py3compat import TimeoutError
 
 logger = logging.getLogger(__name__)
 

@@ -21,7 +21,7 @@ from qtpy.QtWidgets import QMessageBox
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 from spyder.config.base import _
-from spyder.py3compat import PY2, to_text_string
+from spyder.py3compat import PY2, to_text_string, TimeoutError
 
 
 logger = logging.getLogger(__name__)
@@ -77,7 +77,11 @@ class NamepaceBrowserWidget(RichJupyterWidget):
 
     def get_value(self, name):
         """Ask kernel for a value"""
-        return self.call_kernel(interrupt=True, blocking=True).get_value(name)
+        try:
+            return self.call_kernel(
+                interrupt=True, blocking=True).get_value(name)
+        except TimeoutError:
+            raise ValueError('Could not read value.')
 
     def set_value(self, name, value):
         """Set value for a variable"""
@@ -95,12 +99,18 @@ class NamepaceBrowserWidget(RichJupyterWidget):
                          ).copy_value(orig_name, new_name)
 
     def load_data(self, filename, ext):
-        return self.call_kernel(interrupt=True, blocking=True
-                                ).load_data(filename, ext)
+        try:
+            return self.call_kernel(interrupt=True, blocking=True
+                                    ).load_data(filename, ext)
+        except TimeoutError:
+            return None
 
     def save_namespace(self, filename):
-        return self.call_kernel(interrupt=True, blocking=True
-                                ).save_namespace(filename)
+        try:
+            return self.call_kernel(interrupt=True, blocking=True
+                                    ).save_namespace(filename)
+        except TimeoutError:
+            return None
 
     def set_pdb_state(self, pdb_state):
         """Set current pdb state."""
