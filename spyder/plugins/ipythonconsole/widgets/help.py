@@ -132,7 +132,7 @@ class HelpWidget(RichJupyterWidget):
             return self.call_kernel(
                 interrupt=True, blocking=True
                 ).is_defined(objtxt, force_import=force_import)
-        except TimeoutError:
+        except Exception:
             return None
 
     def get_doc(self, objtxt):
@@ -140,7 +140,7 @@ class HelpWidget(RichJupyterWidget):
         try:
             return self.call_kernel(interrupt=True, blocking=True
                                     ).get_doc(objtxt)
-        except TimeoutError:
+        except Exception:
             return None
 
     def get_source(self, objtxt):
@@ -148,7 +148,7 @@ class HelpWidget(RichJupyterWidget):
         try:
             return self.call_kernel(interrupt=True, blocking=True
                                     ).get_source(objtxt)
-        except TimeoutError:
+        except Exception:
             return None
 
     #---- Private methods (overrode by us) ---------------------------------

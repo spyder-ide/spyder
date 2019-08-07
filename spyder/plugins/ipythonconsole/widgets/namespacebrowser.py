@@ -80,7 +80,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         try:
             return self.call_kernel(
                 interrupt=True, blocking=True).get_value(name)
-        except TimeoutError:
+        except Exception:
             raise ValueError('Could not read value.')
 
     def set_value(self, name, value):
@@ -102,14 +102,14 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         try:
             return self.call_kernel(interrupt=True, blocking=True
                                     ).load_data(filename, ext)
-        except TimeoutError:
+        except Exception:
             return None
 
     def save_namespace(self, filename):
         try:
             return self.call_kernel(interrupt=True, blocking=True
                                     ).save_namespace(filename)
-        except TimeoutError:
+        except Exception:
             return None
 
     def set_pdb_state(self, pdb_state):
