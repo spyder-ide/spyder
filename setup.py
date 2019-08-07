@@ -234,6 +234,7 @@ install_requires = [
     'paramiko;platform_system=="Windows"',
     # Required for accesing xdg spec on Linux
     'pyxdg;platform_system=="Linux"',
+    'pympler',
 ]
 
 extras_require = {

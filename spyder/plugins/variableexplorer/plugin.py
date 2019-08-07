@@ -32,6 +32,13 @@ dependencies.add("numpy", "numpy",
                    "in the Variable Explorer"),
                  required_version=NUMPY_REQVER, optional=True)
 
+PYMPLER_REQVER = '>=0.7'
+dependencies.add("pympler", "pympler",
+                 _("Development tool to measure, monitor and analyze the"
+                   " memory behavior of Python objects in a running Python"
+                   " application."),
+                 required_version=NUMPY_REQVER, optional=True)
+
 
 class VariableExplorer(SpyderPluginWidget):
     """Variable Explorer plugin."""
