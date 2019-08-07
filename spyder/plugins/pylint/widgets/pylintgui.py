@@ -46,11 +46,6 @@ except KeyError as error:
     import gettext
     _ = gettext.gettext
 
-PYLINT_REQVER = '>=0.25'
-PYLINT_VER = pylint.__version__
-dependencies.add("pylint", "pylint", _("Static code analysis"),
-                 required_version=PYLINT_REQVER, installed_version=PYLINT_VER)
-
 
 #TODO: display results on 3 columns instead of 1: msg_id, lineno, message
 class ResultsTree(OneColumnTree):

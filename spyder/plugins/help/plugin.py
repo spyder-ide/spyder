@@ -35,13 +35,6 @@ from spyder.plugins.help.confpage import HelpConfigPage
 from spyder.plugins.help.utils.sphinxthread import SphinxThread
 from spyder.plugins.help.widgets import PlainText, RichText, ObjectComboBox
 
-# Sphinx dependency
-dependencies.add("sphinx", "sphinx",
-                 _("Show help for objects in the Editor and "
-                   "Consoles in a dedicated pane"),
-                 required_version='>=0.6.6')
-
-
 
 class Help(SpyderPluginWidget):
     """

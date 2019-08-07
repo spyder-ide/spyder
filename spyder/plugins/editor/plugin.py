@@ -69,11 +69,6 @@ dependencies.add('pyls', 'python-language-server',
                    "real-time code analysis"),
                  required_version=PYLS_REQVER)
 
-NBCONVERT_REQVER = ">=4.0"
-dependencies.add("nbconvert", "nbconvert",
-                 _("Manipulate Jupyter notebooks on the Editor"),
-                 required_version=NBCONVERT_REQVER)
-
 WINPDB_PATH = programs.find_program('winpdb')
 
 

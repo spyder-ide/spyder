@@ -10,6 +10,7 @@
 import os
 
 # Local imports
+import pylint
 from spyder.utils import programs
 from spyder.config.base import _
 
@@ -65,7 +66,7 @@ class Dependency(object):
 DEPENDENCIES = []
 
 
-def add(modname, package_name, features, required_version=None,
+def add(modname, package_name, features, required_version,
         installed_version=None, optional=False):
     """Add Spyder dependency"""
     global DEPENDENCIES
@@ -115,8 +116,81 @@ def missing_dependencies():
     else:
         return ""
 
+
 def declare_dependencies():
-    QDARKSTYLE_REQVER = '>=2.6.4'
+    add("cloudpickle", "cloudpickle",
+        _("Serialize variables in the IPython kernel to send to Spyder."),
+        required_version="0.0.0")
+    PYGMENTS_REQVER = '>=2.0'
+    add("pygments", "pygments",
+        _("Syntax highlighting for Matlab, Julia and other file types"),
+        required_version=PYGMENTS_REQVER)
+    QTCONSOLE_REQVER = ">=4.5.0"
+    add("qtconsole", "qtconsole", _("Integrate the IPython console"),
+        required_version=QTCONSOLE_REQVER)
+    NBCONVERT_REQVER = ">=4.0"
+    add("nbconvert", "nbconvert",
+        _("Manipulate Jupyter notebooks on the Editor"),
+        required_version=NBCONVERT_REQVER)
+    add("sphinx", "sphinx", _("Show help for objects in the Editor and "
+                              "Consoles in a dedicated pane"),
+        required_version='>=0.6.6')
+    PYLINT_REQVER = '>=0.25'
+    PYLINT_VER = pylint.__version__
+    add("pylint", "pylint", _("Static code analysis"),
+        required_version=PYLINT_REQVER, installed_version=PYLINT_VER)
+    if not os.name == 'nt':
+        PSUTIL_REQVER = '>=0.3'
+        add("psutil", "psutil",
+            _("CPU and memory usage info in the status bar"),
+            required_version=PSUTIL_REQVER)
+    QTAWESOME_REQVER = '>=0.5.7'
+    add("qtawesome", "qtawesome", _("To have an icon theme based on "
+                                    "FontAwesome."),
+        required_version=QTAWESOME_REQVER)
+    QTPY_REQVER = '>=1.5.0'
+    add("qtpy", "qtpy", _("Abstraction layer for Python Qt bindings "
+                          "so that Spyder can run on multiple Qt "
+                          "bindings and versions."),
+        required_version=QTPY_REQVER)
+    add("pickleshare", "pickleshare", _("Show import completions on the "
+                                        " Python consoles."),
+        required_version='>=0.0.0')
+    add("pyzmq", "pyzmq", _("Client for the language server protocol (LSP)."),
+        required_version='>=0.0.0')
+    add("chardet", "chardet", _("Character encoding auto-detection in "
+                                "Python."),
+        required_version='>=2.0.0')
+    add("numpydoc", "numpydoc", _("Used by Jedi to get function return types "
+                                  "from Numpydocstrings."),
+        required_version='>=0.0.0')
+    add("spyder-kernels", "spyder-kernels", _("Jupyter kernels for the Spyder "
+                                              "console."),
+        required_version='>=1.4.0, <1.5.0')
+    QDARKSTYLE_REQVER = '>=2.7.0'
     add("qdarkstyle", "qdarkstyle", _("Dark style for the entire interface"),
-                 required_version=QDARKSTYLE_REQVER)
-    add("diff_match_patch", "diff_match_patch", _("Dsdlfkjsdlkfs"))
+        required_version=QDARKSTYLE_REQVER)
+    add("atomicwrites", "atomicwrites", _("Atomic file writes."),
+        required_version='>=0.0.0')
+    add("diff_match_patch", "diff_match_patch", _("Compute text file diff "
+                                                  "changes during edition."),
+        required_version='>=0.0.0')
+    add("watchdog", "watchdog", _("Watch file changes on project "
+                                  "directories."),
+        required_version='>=0.0.0')
+    add("keyring", "keyring", _("Save Github credentials to report errors "
+                                "securely."),
+        required_version='>=0.0.0')
+    add("pyqt5", "pyqt5", _("Python bindings for Qt, used for Spyder's GUI "),
+        required_version='>=0.0.0')
+    add("pyqtwebengine", "pyqtwebengine", _("Pyls with all its dependencies"),
+        required_version='>=0.0.0')
+    add("python-language-server[all]", "python-language-server[all]",
+        _("Required to get SSH connections to remote kernels"),
+        required_version='>=0.0.0')
+    add("pexpect", "pexpect", _(".Connect to remote kernels through SSH."),
+        required_version='>=0.0.0')
+    add("paramiko", "paramiko", _("Connect to remote kernels through SSH."),
+        required_version='>=0.0.0')
+    add("pyxdg", "pyxdg", _("Parse `.desktop` files on Linux"),
+        required_version='>=0.0.0')

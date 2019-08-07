@@ -21,15 +21,6 @@ from spyder.config.gui import get_font
 from spyder.py3compat import to_text_string
 
 
-if not os.name == 'nt':
-    PSUTIL_REQVER = '>=0.3'
-    dependencies.add(
-        "psutil",
-        "psutil",
-        _("CPU and memory usage info in the status bar"),
-        required_version=PSUTIL_REQVER)
-
-
 class StatusBarWidget(QWidget):
     """Status bar widget base."""
     TIP = None
