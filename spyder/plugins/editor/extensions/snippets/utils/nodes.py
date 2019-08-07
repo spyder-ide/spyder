@@ -128,8 +128,13 @@ class TextNode(ASTNode):
                 position = token.position
                 if i == len(self.tokens) - 1:
                     if len(position) == 1:
+                        if isinstance(position, list):
+                            position = position[0]
                         x, y = position[0]
                         position = ((x, y), (x, y + 1))
+                        if isinstance(token, LeafNode):
+                            if token.name == 'EPSILON':
+                                position = ((x, y), (x, y))
                 polygon += list(position)
         flatten_polygon = []
         for segment in polygon:
@@ -239,13 +244,15 @@ class TabstopSnippetNode(SnippetASTNode):
     """
 
     KIND = SnippetKind.TABSTOP
-    DEFAULT_PLACEHOLDER = TextNode(LeafNode())
+    # DEFAULT_PLACEHOLDER = TextNode(LeafNode())
 
     def __init__(self, number, placeholder=None):
         SnippetASTNode.__init__(self)
+        default_placeholder = TextNode(LeafNode())
+
         self.number = int(number.value)
         self.placeholder = (placeholder if placeholder is not None else
-                            self.DEFAULT_PLACEHOLDER)
+                            default_placeholder)
 
     def compute_position(self, offset):
         if isinstance(self.placeholder, ASTNode):
