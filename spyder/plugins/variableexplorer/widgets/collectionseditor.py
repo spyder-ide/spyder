@@ -377,7 +377,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             if is_type_text_string(value):
                 display = to_text_string(value, encoding="utf-8")
             else:
-                display = to_text_string(value)
+                display = value
         if role == Qt.DisplayRole:
             return to_qvariant(display)
         elif role == Qt.EditRole:
