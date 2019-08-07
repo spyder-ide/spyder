@@ -106,8 +106,8 @@ class KernelComm(CommBase, QObject):
         wait_timeout.stop()
         self.sig_got_reply.disconnect(wait_loop.quit)
 
-    def _reply_recieved(self, call_id):
+    def _reply_received(self, call_id):
         """A call got a reply."""
-        super(KernelComm, self)._reply_recieved(call_id)
+        super(KernelComm, self)._reply_received(call_id)
         self._wait_list.pop(call_id, None)
         self.sig_got_reply.emit(call_id)

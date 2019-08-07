@@ -119,32 +119,32 @@ def test_comm_base(comms):
     assert commsend.is_open()
     assert commrecv.is_open()
 
-    recieved_messages = []
+    received_messages = []
 
     def handler(msg_dict, buffer, load_exception):
         assert load_exception is None
-        recieved_messages.append((msg_dict, buffer))
+        received_messages.append((msg_dict, buffer))
 
     # Register callback
     commrecv._register_message_handler('test_message', handler)
 
     # Send a message
     commsend._send_message('test_message', content='content', data='data')
-    assert len(recieved_messages) == 1
-    assert recieved_messages[0][0]['spyder_msg_type'] == 'test_message'
-    assert recieved_messages[0][0]['content'] == 'content'
-    assert recieved_messages[0][1] == 'data'
+    assert len(received_messages) == 1
+    assert received_messages[0][0]['spyder_msg_type'] == 'test_message'
+    assert received_messages[0][0]['content'] == 'content'
+    assert received_messages[0][1] == 'data'
 
     # Send another message
     commsend._send_message('test_message', content='content', data='data')
-    assert len(recieved_messages) == 2
+    assert len(received_messages) == 2
 
     # Unregister callback
     commrecv._register_message_handler('test_message', None)
 
     # Send another unhandled message
     commsend._send_message('test_message', content='content', data='data')
-    assert len(recieved_messages) == 2
+    assert len(received_messages) == 2
 
     # Test closing
     commsend.close()
