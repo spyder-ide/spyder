@@ -54,8 +54,10 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         if self.kernel_client is None:
             return
         if self.namespacebrowser:
-            self.call_kernel().update_namespace_view()
-            self.call_kernel().update_var_properties()
+            self.call_kernel(
+                callback=self.set_namespace_view).get_namespace_view()
+            self.call_kernel(
+                callback=self.set_var_properties).get_var_properties()
 
     def set_namespace_view(self, view):
         """Set the current namespace view."""

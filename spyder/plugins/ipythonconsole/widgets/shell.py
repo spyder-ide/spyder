@@ -90,11 +90,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.kernel_manager = None
         self.kernel_client = None
         handlers = {
-            'remote_set_cwd': self.remote_set_cwd,
             'pdb_state': self.set_pdb_state,
             'pdb_continue': self.pdb_continue,
-            'set_namespace_view': self.set_namespace_view,
-            'set_var_properties': self.set_var_properties,
             'get_breakpoints': self.get_spyder_breakpoints,
         }
 
@@ -155,7 +152,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """
         if self.kernel_client is None:
             return
-        self.call_kernel().update_cwd()
+        self.call_kernel(callback=self.remote_set_cwd).get_cwd()
 
     def remote_set_cwd(self, cwd):
         """Get current working directory from kernel."""
