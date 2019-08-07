@@ -46,7 +46,7 @@ class DebuggingWidget(RichJupyterWidget):
 
     def _debugging_hook(self, debugging):
         """Catches debugging state."""
-        # If the debugging starts or stops, clear the input queue.
+        # If debugging starts or stops, clear the input queue.
         self._input_queue = []
 
     # --- Public API --------------------------------------------------
