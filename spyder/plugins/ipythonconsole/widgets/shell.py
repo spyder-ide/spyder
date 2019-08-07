@@ -104,10 +104,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         self.spyder_kernel_comm.sig_debugging.connect(self._debugging_hook)
 
-    def call_kernel(self, interrupt=False, blocking=False):
+    def call_kernel(self, interrupt=False, blocking=False, callback=None):
         """Send message to spyder."""
         return self.spyder_kernel_comm.remote_call(
-            interrupt=interrupt, blocking=blocking)
+            interrupt=interrupt, blocking=blocking, callback=callback)
 
     def set_kernel_client_and_manager(self, kernel_client, kernel_manager):
         """Set the kernel client and manager"""
@@ -182,17 +182,15 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         else:
             self.silent_execute("%colors lightbg")
 
-    def get_syspath(self):
+    def request_syspath(self):
         """Ask the kernel for sys.path contents."""
-        syspath = self.call_kernel(interrupt=True, blocking=True).get_syspath()
-        self.sig_show_syspath.emit(syspath)
-        return syspath
+        self.call_kernel(
+            interrupt=True, callback=self.sig_show_syspath.emit).get_syspath()
 
-    def get_env(self):
+    def request_env(self):
         """Ask the kernel for environment variables."""
-        env = self.call_kernel(interrupt=True, blocking=True).get_env()
-        self.sig_show_env.emit(env)
-        return env
+        self.call_kernel(
+            interrupt=True, callback=self.sig_show_env.emit).get_env()
 
     # --- To handle the banner
     def long_banner(self):

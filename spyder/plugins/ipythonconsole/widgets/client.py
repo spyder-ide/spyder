@@ -376,14 +376,14 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                         self,
                         _("Show environment variables"),
                         icon=ima.icon('environ'),
-                        triggered=self.shellwidget.get_env
+                        triggered=self.shellwidget.request_env
                      )
 
         syspath_action = create_action(
                             self,
                             _("Show sys.path contents"),
                             icon=ima.icon('syspath'),
-                            triggered=self.shellwidget.get_syspath
+                            triggered=self.shellwidget.request_syspath
                          )
 
         self.show_time_action.setChecked(self.show_elapsed_time)

@@ -43,13 +43,15 @@ class KernelComm(CommBase, QObject):
             kernel_client.comm_manager.new_comm(self._comm_name))
         self.kernel_client = kernel_client
 
-    def remote_call(self, interrupt=False, blocking=False, comm_id=None):
+    def remote_call(self, interrupt=False, blocking=False, callback=None,
+                    comm_id=None):
         """Get a handler for remote calls."""
         return super(KernelComm, self).remote_call(
-            interrupt=interrupt, blocking=blocking, comm_id=comm_id)
+            interrupt=interrupt, blocking=blocking, callback=callback,
+            comm_id=comm_id)
 
     # ---- Private -----
-    def _get_call_return_value(self, call_dict):
+    def _get_call_return_value(self, call_dict, callback):
         """
         Interupt the kernel if needed.
         """
@@ -57,7 +59,8 @@ class KernelComm(CommBase, QObject):
         if 'interrupt' in settings and settings['interrupt']:
             self._signal_update_kernel()
 
-        return super(KernelComm, self)._get_call_return_value(call_dict)
+        return super(KernelComm, self)._get_call_return_value(
+            call_dict, callback)
 
     def _signal_update_kernel(self):
         """Interrupt the kernel to give a chance to read other messages."""
@@ -94,14 +97,17 @@ class KernelComm(CommBase, QObject):
         wait_timeout.start(timeout * 1000)
         while len(self._wait_list) > 0:
             if not wait_timeout.isActive():
+                self.sig_got_reply.disconnect(wait_loop.quit)
                 raise TimeoutError(
                     "Timeout while waiting for {}".format(
                         self._wait_list))
             wait_loop.exec_()
 
         wait_timeout.stop()
+        self.sig_got_reply.disconnect(wait_loop.quit)
 
     def _reply_recieved(self, call_id):
         """A call got a reply."""
+        super(KernelComm, self)._reply_recieved(call_id)
         self._wait_list.pop(call_id, None)
         self.sig_got_reply.emit(call_id)

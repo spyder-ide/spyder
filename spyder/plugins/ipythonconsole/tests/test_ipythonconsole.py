@@ -593,7 +593,7 @@ def test_get_cwd(ipyconsole, qtbot, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-def test_get_env(ipyconsole, qtbot):
+def test_request_env(ipyconsole, qtbot):
     """Test that getting env vars from the kernel is working as expected."""
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
@@ -604,7 +604,7 @@ def test_get_env(ipyconsole, qtbot):
 
     # Ask for os.environ contents
     with qtbot.waitSignal(shell.sig_show_env) as blocker:
-        shell.get_env()
+        shell.request_env()
 
     # Get env contents from the signal
     env_contents = blocker.args[0]
@@ -617,7 +617,7 @@ def test_get_env(ipyconsole, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt',
                     reason="Fails due to differences in path handling")
-def test_get_syspath(ipyconsole, qtbot, tmpdir):
+def test_request_syspath(ipyconsole, qtbot, tmpdir):
     """
     Test that getting sys.path contents from the kernel is working as
     expected.
@@ -632,7 +632,7 @@ def test_get_syspath(ipyconsole, qtbot, tmpdir):
 
     # Ask for sys.path contents
     with qtbot.waitSignal(shell.sig_show_syspath) as blocker:
-        shell.get_syspath()
+        shell.request_syspath()
 
     # Get sys.path contents from the signal
     syspath_contents = blocker.args[0]
