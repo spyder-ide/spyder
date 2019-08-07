@@ -563,14 +563,14 @@ class CodeEditor(TextEditBaseWidget):
                               'signature': documentation}
 
             at_point = completion_element.get('point', QPoint(0, 0))
-
             if documentation:
                 self.show_hint(documentation, inspect_word=word,
                                at_point=at_point,
                                completion_doc=completion_doc,
                                max_lines=self._DEFAULT_MAX_LINES,
                                max_width=self._DEFAULT_MAX_WIDTH)
-                self.tooltip_widget.move(at_point)
+                base_point = self.mapToGlobal(at_point)
+                self.tooltip_widget.move(base_point)
 
     # --- Hover/Hints
     def _should_display_hover(self, point):
