@@ -181,14 +181,11 @@ def declare_dependencies():
     add("keyring", "keyring", _("Save Github credentials to report errors "
                                 "securely."),
         required_version='>=0.0.0')
-    add("pyqt5", "pyqt5", _("Python bindings for Qt, used for Spyder's GUI "),
-        required_version='>=0.0.0')
-    add("pyqtwebengine", "pyqtwebengine", _("Pyls with all its dependencies"),
-        required_version='>=0.0.0')
-    add("python-language-server[all]", "python-language-server[all]",
-        _("Required to get SSH connections to remote kernels"),
-        required_version='>=0.0.0')
-    add("pexpect", "pexpect", _(".Connect to remote kernels through SSH."),
+    # add("pyqt5", "pyqt5", _("Python bindings for Qt, used for Spyder's GUI "),
+    #     required_version='>=0.0.0')
+    # add("pyqtwebengine", "pyqtwebengine", _("Pyls with all its dependencies"),
+    #     required_version='>=0.0.0')
+    add("pexpect", "pexpect", _("Connect to remote kernels through SSH."),
         required_version='>=0.0.0')
     add("paramiko", "paramiko", _("Connect to remote kernels through SSH."),
         required_version='>=0.0.0')
