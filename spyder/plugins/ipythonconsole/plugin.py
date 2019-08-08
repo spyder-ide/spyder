@@ -747,6 +747,8 @@ class IPythonConsole(SpyderPluginWidget):
 
         shellwidget = client.shellwidget
         shellwidget.set_kernel_client_and_manager(kc, km)
+        shellwidget.sig_exception_occurred.connect(
+            self.main.console.exception_occurred)
 
     @Slot(object, object)
     def edit_file(self, filename, line):
@@ -1499,12 +1501,15 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Assign kernel manager and client to shellwidget
         kernel_client.start_channels()
-        client.shellwidget.set_kernel_client_and_manager(
+        shellwidget = client.shellwidget
+        shellwidget.set_kernel_client_and_manager(
             kernel_client, kernel_manager)
+        shellwidget.sig_exception_occurred.connect(
+            self.main.console.exception_occurred)
         if external_kernel:
-            client.shellwidget.sig_is_spykernel.connect(
+            shellwidget.sig_is_spykernel.connect(
                     self.connect_external_kernel)
-            client.shellwidget.is_spyder_kernel()
+            shellwidget.is_spyder_kernel()
 
         # Set elapsed time, if possible
         if not external_kernel:

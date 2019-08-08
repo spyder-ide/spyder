@@ -64,6 +64,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     # For global working directory
     sig_change_cwd = Signal(str)
 
+    # For printing internal errors
+    sig_exception_occurred = Signal(str, bool)
+
     def __init__(self, ipyclient, additional_options, interpreter_versions,
                  external_kernel, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
@@ -87,6 +90,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.set_bracket_matcher_color_scheme(self.syntax_style)
 
         self.spyder_kernel_comm = KernelComm()
+        self.spyder_kernel_comm.sig_exception_occurred.connect(
+            self.sig_exception_occurred)
         self.kernel_manager = None
         self.kernel_client = None
         handlers = {

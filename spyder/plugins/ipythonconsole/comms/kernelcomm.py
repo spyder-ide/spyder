@@ -9,6 +9,7 @@ In addition to the remote_call mechanism implemented in CommBase:
  - Send a message to a debugging kernel
 """
 import logging
+import traceback
 
 from qtpy.QtCore import QEventLoop, QObject, QTimer, Signal
 
@@ -24,15 +25,15 @@ class KernelComm(CommBase, QObject):
     communications with a console.
     """
 
-    sig_got_reply = Signal(str)
+    _sig_got_reply = Signal()
     sig_debugging = Signal(bool)
+    sig_exception_occurred = Signal(str, bool)
 
     def __init__(self):
         super(KernelComm, self).__init__()
 
         self.kernel_client = None
         self._debugging = False
-        self._wait_list = {}
 
         self.register_call_handler(
             'set_debug_state', self._handle_debug_state)
@@ -51,7 +52,7 @@ class KernelComm(CommBase, QObject):
             comm_id=comm_id)
 
     # ---- Private -----
-    def _get_call_return_value(self, call_dict, callback):
+    def _get_call_return_value(self, call_dict):
         """
         Interupt the kernel if needed.
         """
@@ -60,7 +61,7 @@ class KernelComm(CommBase, QObject):
             self._signal_update_kernel()
 
         return super(KernelComm, self)._get_call_return_value(
-            call_dict, callback)
+            call_dict)
 
     def _signal_update_kernel(self):
         """Interrupt the kernel to give a chance to read other messages."""
@@ -84,30 +85,43 @@ class KernelComm(CommBase, QObject):
         """Wait for the other side reply."""
         if call_id in self._call_reply_dict:
             return
-        self._wait_list[call_id] = call_name
 
         # Create event loop to wait with
         wait_loop = QEventLoop()
-        self.sig_got_reply.connect(wait_loop.quit)
+        self._sig_got_reply.connect(wait_loop.quit)
         wait_timeout = QTimer()
         wait_timeout.setSingleShot(True)
         wait_timeout.timeout.connect(wait_loop.quit)
 
         # Wait until the kernel returns the value
         wait_timeout.start(timeout * 1000)
-        while len(self._wait_list) > 0:
+        while len(self._reply_waitlist) > 0:
             if not wait_timeout.isActive():
-                self.sig_got_reply.disconnect(wait_loop.quit)
-                raise TimeoutError(
-                    "Timeout while waiting for {}".format(
-                        self._wait_list))
+                self._sig_got_reply.disconnect(wait_loop.quit)
+                if call_id in self._reply_waitlist:
+                    raise TimeoutError(
+                        "Timeout while waiting for {}".format(
+                            self._reply_waitlist))
+                return
             wait_loop.exec_()
 
         wait_timeout.stop()
-        self.sig_got_reply.disconnect(wait_loop.quit)
+        self._sig_got_reply.disconnect(wait_loop.quit)
 
-    def _reply_received(self, call_id):
-        """A call got a reply."""
-        super(KernelComm, self)._reply_received(call_id)
-        self._wait_list.pop(call_id, None)
-        self.sig_got_reply.emit(call_id)
+    def _handle_remote_call_reply(self, msg_dict, buffer, load_exception):
+        """
+        A blocking call received a reply.
+        """
+        super(KernelComm, self)._handle_remote_call_reply(
+            msg_dict, buffer, load_exception)
+        self._sig_got_reply.emit()
+
+    def _async_error(self, name, error, tb):
+        """
+        Handle an error that was raised on the other side and sent back.
+        """
+        lines = (['Exception in comms call {}:\n'.format(name)]
+                 + traceback.format_list(tb)
+                 + traceback.format_exception_only(type(error), error))
+        for text in lines:
+            self.sig_exception_occurred.emit(text, True)
