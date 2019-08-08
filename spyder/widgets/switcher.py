@@ -38,11 +38,13 @@ def clean_string(text):
 
 class KeyPressFilter(QObject):
     """Use with `installEventFilter` to get up/down arrow key press signal."""
+
     sig_up_key_pressed = Signal()
     sig_down_key_pressed = Signal()
     sig_enter_key_pressed = Signal()
 
     def eventFilter(self, src, e):
+        """Override Qt eventFilter."""
         if e.type() == QEvent.KeyPress:
             if e.key() == Qt.Key_Up:
                 self.sig_up_key_pressed.emit()
@@ -58,13 +60,14 @@ class KeyPressFilter(QObject):
 
 class SwitcherBaseItem(QStandardItem):
     """Base List Item."""
+
     _WIDTH = 400
     _HEIGHT = None
     _STYLES = None
     _TEMPLATE = None
 
     def __init__(self, parent=None):
-        """Base List Item."""
+        """Create basic List Item."""
         super(SwitcherBaseItem, self).__init__()
 
         # Style
@@ -179,6 +182,7 @@ class SwitcherItem(SwitcherBaseItem):
     Based on HTML delegate.
     See: https://doc.qt.io/qt-5/richtext-html-subset.html
     """
+
     _FONT_SIZE = CONF.get('appearance', 'rich_font/size', 10)
     _HEIGHT = 20
     _PADDING = 5
@@ -293,7 +297,7 @@ class SwitcherItem(SwitcherBaseItem):
         # cls._STYLES['section_color'] = 'black'
 
     # --- API
-    def set_icon(self, value):
+    def set_icon(self, icon):
         """Set the QIcon for the list item."""
         self._icon = icon
         self.setIcon(icon)
@@ -378,7 +382,7 @@ class SwitcherProxyModel(QSortFilterProxyModel):
     """A proxy model to perform sorting on the scored items."""
 
     def __init__(self, parent=None):
-        """A proxy model to perform sorting on the scored items."""
+        """Proxy model to perform sorting on the scored items."""
         super(SwitcherProxyModel, self).__init__(parent)
         self.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.setSortCaseSensitivity(Qt.CaseInsensitive)
@@ -426,7 +430,7 @@ class Switcher(QDialog):
     _MIN_WIDTH = 500
 
     def __init__(self, parent, help_text=None):
-        """A multi purpose switcher."""
+        """Multi purpose switcher."""
         super(Switcher, self).__init__(parent)
         self._visible_rows = 0
         self._modes = {}
@@ -470,7 +474,7 @@ class Switcher(QDialog):
 
     # --- Helper methods
     def _add_item(self, item):
-        """Helper to erform common actions when adding items."""
+        """Perform common actions when adding items."""
         item.set_width(self._MIN_WIDTH)
         self.model.appendRow(item)
         self.set_current_row(0)
@@ -491,7 +495,7 @@ class Switcher(QDialog):
 
     def add_mode(self, token, description):
         """Add mode by token key and description."""
-        if len(token)== 1:
+        if len(token) == 1:
             self._modes[token] = description
         else:
             raise Exception('Token must be of length 1!')
@@ -529,7 +533,7 @@ class Switcher(QDialog):
         self._add_item(item)
 
     def setup(self):
-        """Setup list widget content based on the filtering."""
+        """Set-up list widget content based on the filtering."""
         # Check exited mode
         mode = self._mode_on
         if mode:
@@ -588,7 +592,7 @@ class Switcher(QDialog):
         self.setup_sections()
 
     def setup_sections(self):
-        """Setup which sections appear on the item list."""
+        """Set-up which sections appear on the item list."""
         mode = self._mode_on
         if mode:
             search_text = self.search_text()[len(mode):]
@@ -652,7 +656,7 @@ class Switcher(QDialog):
 
     # --- Helper methods: List widget
     def _is_separator(self, item):
-        """"""
+        """Check if item is an separator item (SwitcherSeparatorItem)."""
         return isinstance(item, SwitcherSeparatorItem)
 
     def _select_row(self, steps):
@@ -665,15 +669,15 @@ class Switcher(QDialog):
             self.set_current_row(row)
 
     def count(self):
-        """Gets the item count in the list widget."""
+        """Get the item count in the list widget."""
         return self._visible_rows
 
     def current_row(self):
-        """Returns the current selected row in the list widget."""
+        """Return the current selected row in the list widget."""
         return self.list.currentIndex().row()
 
     def set_current_row(self, row):
-        """Sets the current selected row in the list widget."""
+        """Set the current selected row in the list widget."""
         index = self.model.index(row, 0)
         selection_model = self.list.selectionModel()
 
@@ -717,6 +721,7 @@ class Switcher(QDialog):
 
 
 def create_vcs_example_switcher(sw):
+    """Add example data for vcs."""
     sw.clear()
     sw.set_placeholder_text('Select a ref to Checkout')
     sw.add_item(title='Create New Branch', action_item=True,
@@ -728,6 +733,7 @@ def create_vcs_example_switcher(sw):
 
 
 def create_options_example_switcher(sw):
+    """Add example actions."""
     sw.clear()
     sw.set_placeholder_text('Select Action')
     section = _('change view')
@@ -745,6 +751,7 @@ def create_options_example_switcher(sw):
 
 
 def create_help_example_switcher(sw):
+    """Add help data."""
     sw.clear()
     sw.add_item(title=_('Help me!'), section='1')
     sw.add_separator()
@@ -754,17 +761,20 @@ def create_help_example_switcher(sw):
 
 
 def create_line_example_switcher(sw):
+    """Add current line example."""
     sw.clear()
     sw.add_item(title=_('Current line, type something'), action_item=True)
 
 
 def create_symbol_example_switcher(sw):
+    """Add symbol data example."""
     sw.clear()
     sw.add_item(title=_('Some symbol'))
     sw.add_item(title=_('another symbol'))
 
 
 def test():  # pragma: no cover
+    """Launch the switcher with some test values."""
     from spyder.utils.qthelpers import qapplication
     app = qapplication()
     w = QLineEdit()
