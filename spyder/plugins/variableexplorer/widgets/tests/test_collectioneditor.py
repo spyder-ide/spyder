@@ -33,6 +33,8 @@ from qtpy.QtWidgets import QWidget
 from spyder.plugins.variableexplorer.widgets.collectionseditor import (
     CollectionsEditorTableView, CollectionsModel, CollectionsEditor,
     LARGE_NROWS, ROWS_TO_LOAD)
+from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
+    NamespacesBrowserFinder)
 from spyder.plugins.variableexplorer.widgets.tests.test_dataframeeditor import \
     generate_pandas_indexes
 
@@ -47,7 +49,7 @@ LOCATION = path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 # Utility functions
 # =============================================================================
 def data(cm, i, j):
-    return cm.data(cm.createIndex(i, j))
+    return cm.data(cm.index(i, j))
 
 
 def data_table(cm, n_rows, n_cols):
@@ -70,16 +72,44 @@ def nonsettable_objects_data():
 # =============================================================================
 # Tests
 # ============================================================================
+def test_filter_rows(qtbot):
+    """Test rows filtering."""
+
+    df = pandas.DataFrame(['foo', 'bar'])
+    editor = CollectionsEditorTableView(None, {'dfa': df, 'dfb': df})
+    editor.finder = NamespacesBrowserFinder(editor,
+                                            editor.set_regex)
+    qtbot.addWidget(editor)
+
+    # Initially two rows
+    assert editor.model.rowCount() == 2
+
+    # Match two rows by name
+    editor.finder.setText("df")
+    assert editor.model.rowCount() == 2
+
+    # Match two rows by type
+    editor.finder.setText("DataFrame")
+    assert editor.model.rowCount() == 2
+
+    # Only one match
+    editor.finder.setText("dfb")
+    assert editor.model.rowCount() == 1
+
+    # No match
+    editor.finder.setText("dfbc")
+    assert editor.model.rowCount() == 0
+
 def test_create_dataframeeditor_with_correct_format(qtbot, monkeypatch):
     MockDataFrameEditor = Mock()
     mockDataFrameEditor_instance = MockDataFrameEditor()
-    monkeypatch.setattr('spyder.plugins.variableexplorer.widgets.collectionseditor.DataFrameEditor',
+    monkeypatch.setattr('spyder.plugins.variableexplorer.widgets.collectionsdelegate.DataFrameEditor',
                         MockDataFrameEditor)
     df = pandas.DataFrame(['foo', 'bar'])
     editor = CollectionsEditorTableView(None, {'df': df})
     qtbot.addWidget(editor)
     editor.set_dataframe_format('%10d')
-    editor.delegate.createEditor(None, None, editor.model.createIndex(0, 3))
+    editor.delegate.createEditor(None, None, editor.model.index(0, 3))
     mockDataFrameEditor_instance.dataModel.set_format.assert_called_once_with('%10d')
 
 def test_accept_sig_option_changed_from_dataframeeditor(qtbot, monkeypatch):
@@ -87,20 +117,21 @@ def test_accept_sig_option_changed_from_dataframeeditor(qtbot, monkeypatch):
     editor = CollectionsEditorTableView(None, {'df': df})
     qtbot.addWidget(editor)
     editor.set_dataframe_format('%10d')
-    assert editor.model.dataframe_format == '%10d'
-    editor.delegate.createEditor(None, None, editor.model.createIndex(0, 3))
+    assert editor.source_model.dataframe_format == '%10d'
+    editor.delegate.createEditor(None, None, editor.model.index(0, 3))
     dataframe_editor = next(iter(editor.delegate._editors.values()))['editor']
     qtbot.addWidget(dataframe_editor)
     dataframe_editor.sig_option_changed.emit('dataframe_format', '%5f')
-    assert editor.model.dataframe_format == '%5f'
+    assert editor.source_model.dataframe_format == '%5f'
 
 def test_collectionsmodel_with_two_ints():
     coll = {'x': 1, 'y': 2}
     cm = CollectionsModel(None, coll)
     assert cm.rowCount() == 2
-    assert cm.columnCount() == 4
+    assert cm.columnCount() == 5
     # dict is unordered, so first row might be x or y
-    assert data(cm, 0, 0) in {'x', 'y'}
+    assert data(cm, 0, 0) in {'x',
+                              'y'}
     if data(cm, 0, 0) == 'x':
         row_with_x = 0
         row_with_y = 1
@@ -134,12 +165,12 @@ def test_shows_dataframeeditor_when_editing_index(qtbot, monkeypatch):
     for rng_name, rng in generate_pandas_indexes().items():
         MockDataFrameEditor = Mock()
         mockDataFrameEditor_instance = MockDataFrameEditor()
-        monkeypatch.setattr('spyder.plugins.variableexplorer.widgets.collectionseditor.DataFrameEditor',
+        monkeypatch.setattr('spyder.plugins.variableexplorer.widgets.collectionsdelegate.DataFrameEditor',
                             MockDataFrameEditor)
         coll = {'rng': rng}
         editor = CollectionsEditorTableView(None, coll)
         editor.delegate.createEditor(None, None,
-                                     editor.model.createIndex(0, 3))
+                                     editor.model.index(0, 3))
         mockDataFrameEditor_instance.show.assert_called_once_with()
 
 
@@ -147,7 +178,7 @@ def test_sort_collectionsmodel():
     coll = [1, 3, 2]
     cm = CollectionsModel(None, coll)
     assert cm.rowCount() == 3
-    assert cm.columnCount() == 4
+    assert cm.columnCount() == 5
     cm.sort(0)  # sort by index
     assert data_table(cm, 3, 4) == [['0', '1', '2'],
                                     ['int', 'int', 'int'],
@@ -161,7 +192,7 @@ def test_sort_collectionsmodel():
     coll = [[1, 2], 3]
     cm = CollectionsModel(None, coll)
     assert cm.rowCount() == 2
-    assert cm.columnCount() == 4
+    assert cm.columnCount() == 5
     cm.sort(1)  # sort by type
     assert data_table(cm, 2, 4) == [['1', '0'],
                                     ['int', 'list'],
@@ -178,7 +209,7 @@ def test_sort_collectionsmodel_with_many_rows():
     coll = list(range(2*LARGE_NROWS))
     cm = CollectionsModel(None, coll)
     assert cm.rowCount() == cm.rows_loaded == ROWS_TO_LOAD
-    assert cm.columnCount() == 4
+    assert cm.columnCount() == 5
     cm.sort(1)  # This was causing an issue (#5232)
     cm.fetchMore()
     assert cm.rowCount() == 2 * ROWS_TO_LOAD
@@ -196,13 +227,13 @@ def test_rename_and_duplicate_item_in_collection_editor():
         editor = CollectionsEditorTableView(None, coll)
         assert editor.rename_action.isEnabled()
         assert editor.duplicate_action.isEnabled()
-        editor.setCurrentIndex(editor.model.createIndex(0, 0))
+        editor.setCurrentIndex(editor.source_model.index(0, 0))
         editor.refresh_menu()
         assert editor.rename_action.isEnabled() == rename_enabled
         assert editor.duplicate_action.isEnabled() == duplicate_enabled
         if isinstance(coll, list):
             editor.duplicate_item()
-            assert editor.model.get_data() == coll_copy + [coll_copy[0]]
+            assert editor.source_model.get_data() == coll_copy + [coll_copy[0]]
 
 
 def test_edit_mutable_and_immutable_types(monkeypatch):
@@ -213,17 +244,17 @@ def test_edit_mutable_and_immutable_types(monkeypatch):
     """
     MockQLineEdit = Mock()
     attr_to_patch_qlineedit = ('spyder.plugins.variableexplorer.widgets.' +
-                               'collectionseditor.QLineEdit')
+                               'collectionsdelegate.QLineEdit')
     monkeypatch.setattr(attr_to_patch_qlineedit, MockQLineEdit)
 
     MockTextEditor = Mock()
     attr_to_patch_textedit = ('spyder.plugins.variableexplorer.widgets.' +
-                              'collectionseditor.TextEditor')
+                              'collectionsdelegate.TextEditor')
     monkeypatch.setattr(attr_to_patch_textedit, MockTextEditor)
 
     MockQDateTimeEdit = Mock()
     attr_to_patch_qdatetimeedit = ('spyder.plugins.variableexplorer.widgets.' +
-                                   'collectionseditor.QDateTimeEdit')
+                                   'collectionsdelegate.QDateTimeEdit')
     monkeypatch.setattr(attr_to_patch_qdatetimeedit, MockQDateTimeEdit)
 
     MockCollectionsEditor = Mock()
@@ -241,31 +272,31 @@ def test_edit_mutable_and_immutable_types(monkeypatch):
 
     # Directly editable values inside list
     editor_list_value = editor_list.delegate.createEditor(
-        None, None, editor_list.model.createIndex(0, 3))
+        None, None, editor_list.model.index(0, 3))
     assert editor_list_value is not None
     assert MockQLineEdit.call_count == 1
 
     # Text Editor for long text inside list
     editor_list.delegate.createEditor(None, None,
-                                      editor_list.model.createIndex(1, 3))
+                                      editor_list.model.index(1, 3))
     assert MockTextEditor.call_count == 2
     assert not MockTextEditor.call_args[1]["readonly"]
 
     # Datetime inside list
     editor_list_datetime = editor_list.delegate.createEditor(
-        None, None, editor_list.model.createIndex(2, 3))
+        None, None, editor_list.model.index(2, 3))
     assert editor_list_datetime is not None
     assert MockQDateTimeEdit.call_count == 1
 
     # List inside list
     editor_list.delegate.createEditor(None, None,
-                                      editor_list.model.createIndex(3, 3))
+                                      editor_list.model.index(3, 3))
     assert mockCollectionsEditor_instance.show.call_count == 1
     assert not mockCollectionsEditor_instance.setup.call_args[1]["readonly"]
 
     # Tuple inside list
     editor_list.delegate.createEditor(None, None,
-                                      editor_list.model.createIndex(4, 3))
+                                      editor_list.model.index(4, 3))
     assert mockCollectionsEditor_instance.show.call_count == 2
     assert mockCollectionsEditor_instance.setup.call_args[1]["readonly"]
 
@@ -274,31 +305,31 @@ def test_edit_mutable_and_immutable_types(monkeypatch):
 
     # Directly editable values inside tuple
     editor_tup_value = editor_tup.delegate.createEditor(
-        None, None, editor_tup.model.createIndex(0, 3))
+        None, None, editor_tup.model.index(0, 3))
     assert editor_tup_value is None
     assert MockQLineEdit.call_count == 1
 
     # Text Editor for long text inside tuple
     editor_tup.delegate.createEditor(None, None,
-                                     editor_tup.model.createIndex(1, 3))
+                                     editor_tup.model.index(1, 3))
     assert MockTextEditor.call_count == 4
     assert MockTextEditor.call_args[1]["readonly"]
 
     # Datetime inside tuple
     editor_tup_datetime = editor_tup.delegate.createEditor(
-        None, None, editor_tup.model.createIndex(2, 3))
+        None, None, editor_tup.model.index(2, 3))
     assert editor_tup_datetime is None
     assert MockQDateTimeEdit.call_count == 1
 
     # List inside tuple
     editor_tup.delegate.createEditor(None, None,
-                                     editor_tup.model.createIndex(3, 3))
+                                     editor_tup.model.index(3, 3))
     assert mockCollectionsEditor_instance.show.call_count == 3
     assert mockCollectionsEditor_instance.setup.call_args[1]["readonly"]
 
     # Tuple inside tuple
     editor_tup.delegate.createEditor(None, None,
-                                     editor_tup.model.createIndex(4, 3))
+                                     editor_tup.model.index(4, 3))
     assert mockCollectionsEditor_instance.show.call_count == 4
     assert mockCollectionsEditor_instance.setup.call_args[1]["readonly"]
 
@@ -327,7 +358,7 @@ def test_notimplementederror_multiindex():
                                                             time_deltas])
     col_model = CollectionsModel(None, time_delta_multiindex)
     assert col_model.rowCount() == col_model.rows_loaded == ROWS_TO_LOAD
-    assert col_model.columnCount() == 4
+    assert col_model.columnCount() == 5
     col_model.fetchMore()
     assert col_model.rowCount() == 2 * ROWS_TO_LOAD
     for _ in range(3):
@@ -351,22 +382,22 @@ def test_editor_parent_set(monkeypatch):
 
     MockArrayEditor = Mock()
     attr_to_patch_arredit = ('spyder.plugins.variableexplorer.widgets.' +
-                             'collectionseditor.ArrayEditor')
+                             'collectionsdelegate.ArrayEditor')
     monkeypatch.setattr(attr_to_patch_arredit, MockArrayEditor)
 
     MockDataFrameEditor = Mock()
     attr_to_patch_dfedit = ('spyder.plugins.variableexplorer.widgets.' +
-                            'collectionseditor.DataFrameEditor')
+                            'collectionsdelegate.DataFrameEditor')
     monkeypatch.setattr(attr_to_patch_dfedit, MockDataFrameEditor)
 
     MockTextEditor = Mock()
     attr_to_patch_textedit = ('spyder.plugins.variableexplorer.widgets.' +
-                              'collectionseditor.TextEditor')
+                              'collectionsdelegate.TextEditor')
     monkeypatch.setattr(attr_to_patch_textedit, MockTextEditor)
 
     MockObjectExplorer = Mock()
     attr_to_patch_objectexplorer = ('spyder.plugins.variableexplorer.widgets.'
-                                    + 'collectionseditor.ObjectExplorer')
+                                    + 'objectexplorer.ObjectExplorer')
     monkeypatch.setattr(attr_to_patch_objectexplorer, MockObjectExplorer)
 
     editor_data = [[0, 1, 2, 3, 4],
@@ -383,7 +414,7 @@ def test_editor_parent_set(monkeypatch):
                                       MockObjectExplorer,
                                       MockTextEditor]):
         col_editor.delegate.createEditor(col_editor.parent(), None,
-                                         col_editor.model.createIndex(idx, 3))
+                                         col_editor.model.index(idx, 3))
         assert mock_class.call_count == 1 + (idx // 4)
         assert mock_class.call_args[1]["parent"] is test_parent
 
@@ -455,7 +486,7 @@ def test_edit_nonsettable_objects(qtbot, nonsettable_objects_data):
         col_editor.show()
         qtbot.waitForWindowShown(col_editor)
         view = col_editor.widget.editor
-        indicies = [view.model.get_index_from_key(key) for key in keys]
+        indicies = [view.source_model.get_index_from_key(key) for key in keys]
 
         for _ in range(3):
             qtbot.keyClick(view, Qt.Key_Right)

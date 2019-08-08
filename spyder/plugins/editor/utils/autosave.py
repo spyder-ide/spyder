@@ -16,7 +16,7 @@ from qtpy.QtCore import QTimer
 
 # Local imports
 from spyder.config.base import _, get_conf_path
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.plugins.editor.widgets.autosaveerror import AutosaveErrorDialog
 from spyder.plugins.editor.widgets.recover import RecoveryDialog
 

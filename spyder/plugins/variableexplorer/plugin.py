@@ -7,7 +7,7 @@
 """Variable Explorer Plugin."""
 
 # Third party imports
-from qtpy.QtCore import QTimer, Signal, Slot
+from qtpy.QtCore import QTimer, Slot
 from qtpy.QtWidgets import QStackedWidget, QVBoxLayout
 from spyder_kernels.utils.nsview import REMOTE_SETTINGS
 

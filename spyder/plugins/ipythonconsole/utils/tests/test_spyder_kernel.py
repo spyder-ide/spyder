@@ -11,7 +11,7 @@ Tests for the Spyder kernel
 import os
 import pytest
 
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.py3compat import PY2, is_binary_string, to_text_string
 from spyder.utils.encoding import to_fs_from_unicode
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec

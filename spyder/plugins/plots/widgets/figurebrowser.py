@@ -22,7 +22,7 @@ from qtpy.QtGui import QPixmap, QPainter, QKeySequence
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu,
                             QVBoxLayout, QWidget, QGridLayout, QFrame,
                             QScrollArea, QPushButton, QScrollBar, QSizePolicy,
-                            QSpinBox, QSplitter, QStyleOptionSlider, QStyle)
+                            QSpinBox, QSplitter, QStyle)
 
 # ---- Local library imports
 from spyder.config.base import _
@@ -381,7 +381,7 @@ class FigureViewer(QScrollArea):
     capability with CTRL + Mouse_wheel and Left-press mouse button event.
     """
 
-    sig_zoom_changed = Signal(float)
+    sig_zoom_changed = Signal(int)
 
     def __init__(self, parent=None, background_color=None):
         super(FigureViewer, self).__init__(parent)
@@ -535,7 +535,7 @@ class FigureViewer(QScrollArea):
 
     def get_scaling(self):
         """Get the current scaling of the figure in percent."""
-        return self.figcanvas.width() / self.figcanvas.fwidth * 100
+        return round(self.figcanvas.width() / self.figcanvas.fwidth * 100)
 
     def reset_original_image(self):
         """Reset the image to its original size."""
@@ -701,7 +701,7 @@ class ThumbnailScrollBar(QFrame):
         else:
             canvas_height = max_length
             canvas_width = canvas_height / fheight * fwidth
-        thumbnail.canvas.setFixedSize(canvas_width, canvas_height)
+        thumbnail.canvas.setFixedSize(int(canvas_width), int(canvas_height))
 
         thumbnail.sig_canvas_clicked.connect(self.set_current_thumbnail)
         thumbnail.sig_remove_figure.connect(self.remove_thumbnail)

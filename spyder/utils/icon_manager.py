@@ -17,7 +17,7 @@ from qtpy.QtWidgets import QStyle, QWidget
 
 # Local imports
 from spyder.config.base import get_image_path
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.config.gui import is_dark_interface
 from spyder.utils.encoding import is_text_file
 import qtawesome as qta
@@ -104,6 +104,7 @@ _resource = {
 }
 
 _qtaargs = {
+    'environment':             [('mdi.cube-outline',), {'color': MAIN_FG_COLOR}],
     'drag-horizontal':         [('mdi.drag-horizontal',), {'color': MAIN_FG_COLOR}],
     'format_letter_case':      [('mdi.format-letter-case',), {'color': MAIN_FG_COLOR}],
     'regex':                   [('mdi.regex',), {'color': MAIN_FG_COLOR}],

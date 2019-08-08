@@ -217,7 +217,7 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     # Set the cursor position to the center of the editor.
     w = editor.width()
     h = editor.height()
-    qtbot.mousePress(editor, Qt.LeftButton, pos=QPoint(w/2, h/2))
+    qtbot.mousePress(editor, Qt.LeftButton, pos=QPoint(w//2, h//2))
 
     # Hold the alt key and assert that the slider range indicator is visible.
     # Because it is not possible to simulate the action of holding the alt
@@ -232,7 +232,7 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     # to its middle range position.
     with qtbot.waitSignal(editor.sig_alt_left_mouse_pressed, raising=True):
         qtbot.mousePress(editor.viewport(), Qt.LeftButton,
-                         pos=QPoint(w/2, h/2), modifier=Qt.AltModifier)
+                         pos=QPoint(w//2, h//2), modifier=Qt.AltModifier)
     assert vsb.value() == (vsb.minimum()+vsb.maximum())//2
 
     # While the alt key is pressed, click with the mouse at the top of the
@@ -240,7 +240,7 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     # to its minimum position.
     with qtbot.waitSignal(editor.sig_alt_left_mouse_pressed, raising=True):
         qtbot.mousePress(editor.viewport(), Qt.LeftButton,
-                         pos=QPoint(w/2, 1), modifier=Qt.AltModifier)
+                         pos=QPoint(w//2, 1), modifier=Qt.AltModifier)
     assert vsb.value() == vsb.minimum()
 
     # While the alt key is pressed, click with the mouse at the bottom of the
@@ -248,7 +248,7 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     # to its maximum position.
     with qtbot.waitSignal(editor.sig_alt_left_mouse_pressed, raising=True):
         qtbot.mousePress(editor.viewport(), Qt.LeftButton,
-                         pos=QPoint(w/2, h-1), modifier=Qt.AltModifier)
+                         pos=QPoint(w//2, h-1), modifier=Qt.AltModifier)
     assert vsb.value() == vsb.maximum()
 
     # Release the alt key and assert that the slider range indicator is

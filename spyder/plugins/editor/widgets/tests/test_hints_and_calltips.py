@@ -16,11 +16,6 @@ from qtpy.QtGui import QTextCursor
 import pytest
 
 
-if PYQT_VERSION >= '5.10' and os.name == 'nt':
-    pytest.skip("Skip tests on PyQt 5.10+ and Windows",
-                allow_module_level=True)
-
-
 # Constants
 PY2 = sys.version[0] == '2'
 TEST_SIG = 'some_function(foo={}, hello=None)'
@@ -38,24 +33,29 @@ some_function""".format(SIG=TEST_SIG, DOC=TEST_DOCSTRING)
 def test_hide_calltip(lsp_codeeditor, qtbot):
     """Test that calltips are hidden when a matching ')' is found."""
     code_editor, _ = lsp_codeeditor
+    code_editor.show()
+    code_editor.raise_()
+    code_editor.setFocus()
 
-    text = 'a = [1,2,3]\n(max'
+    text = 'a = "sometext {}"\nprint(a.format'
     # Set text to start
     code_editor.set_text(text)
     code_editor.go_to_line(2)
-    code_editor.move_cursor(4)
+    code_editor.move_cursor(14)
     calltip = code_editor.calltip_widget
     assert not calltip.isVisible()
 
     with qtbot.waitSignal(code_editor.sig_signature_invoked, timeout=30000):
-        qtbot.keyPress(code_editor, Qt.Key_ParenLeft, delay=3000)
+        qtbot.keyClicks(code_editor, '(', delay=3000)
 
     qtbot.waitUntil(lambda: calltip.isVisible(), timeout=3000)
-    qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
-    qtbot.keyPress(code_editor, Qt.Key_Space)
+    qtbot.keyClicks(code_editor, '"hello"')
+    qtbot.keyClicks(code_editor, ')', delay=330)
+    assert calltip.isVisible()
+    qtbot.keyClicks(code_editor, ')', delay=330)
     qtbot.waitUntil(lambda: not calltip.isVisible(), timeout=3000)
-    qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
-    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
+    qtbot.keyClick(code_editor, Qt.Key_Enter, delay=330)
+    assert not calltip.isVisible()
 
 
 @pytest.mark.slow
@@ -98,6 +98,7 @@ def test_get_calltips(qtbot, lsp_codeeditor, params):
 
 @pytest.mark.slow
 @pytest.mark.second
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 @pytest.mark.parametrize('params', [
             # Parameter, Expected Output
             ('dict', '' if PY2 else 'dict'),
@@ -120,6 +121,9 @@ def test_get_hints(qtbot, lsp_codeeditor, params):
 
     # Get cursor coordinates
     x, y = code_editor.get_coordinates('cursor')
+    # Get cursor position in characters
+    offset = code_editor.get_position('cursor')
+
     # The `- 5` is to put the mouse on top of the word
     point = code_editor.calculate_real_position(QPoint(x - 5, y))
 
@@ -128,7 +132,7 @@ def test_get_hints(qtbot, lsp_codeeditor, params):
                           timeout=30000) as blocker:
         cursor = code_editor.cursorForPosition(point)
         line, col = cursor.blockNumber(), cursor.columnNumber()
-        code_editor.request_hover(line, col)
+        code_editor.request_hover(line, col, offset)
 
         # This is needed to leave time for the tooltip to appear
         # and make the tests succeed

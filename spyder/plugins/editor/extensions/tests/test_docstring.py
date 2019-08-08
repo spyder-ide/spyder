@@ -12,7 +12,7 @@ from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
 
 # Local imports
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.utils.qthelpers import qapplication
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.extensions.docstring import FunctionInfo

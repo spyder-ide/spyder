@@ -17,7 +17,6 @@ import logging
 import os
 import os.path as osp
 import sys
-from collections import MutableSequence
 import unicodedata
 
 # Third party imports
@@ -36,12 +35,12 @@ from spyder.config.base import _, running_under_pytest
 from spyder.config.gui import config_shortcut, is_dark_interface, get_shortcut
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
-from spyder.py3compat import qbytearray_to_str, to_text_string
+from spyder.py3compat import qbytearray_to_str, to_text_string, MutableSequence
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, sourcecode, syntaxhighlighters
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, MENU_SEPARATOR,
-                                    mimedata2url)
+                                    mimedata2url, set_menu_icons)
 from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.widgets.fileswitcher import FileSwitcher
@@ -56,7 +55,7 @@ from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   ReadWriteStatus, VCSStatus)
 from spyder.plugins.editor.utils.findtasks import find_tasks
 from spyder.widgets.tabs import BaseTabs
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.plugins.explorer.widgets.explorer import (
     show_in_external_file_explorer)
 
@@ -542,6 +541,7 @@ class EditorStack(QWidget):
         self.tabmode_enabled = False
         self.stripmode_enabled = False
         self.intelligent_backspace_enabled = True
+        self.automatic_completions_enabled = True
         self.underline_errors_enabled = False
         self.highlight_current_line_enabled = False
         self.highlight_current_cell_enabled = False
@@ -793,6 +793,12 @@ class EditorStack(QWidget):
         else:
             layout.addWidget(self.tabs)
 
+        # Show/hide icons in plugin menus for Mac
+        if sys.platform == 'darwin':
+            self.menu.aboutToHide.connect(
+                lambda menu=self.menu:
+                set_menu_icons(menu, False))
+
     @Slot()
     def update_fname_label(self):
         """Upadte file name label."""
@@ -906,10 +912,13 @@ class EditorStack(QWidget):
         editor = self.get_current_editor()
         editor.sig_display_object_info.connect(self.display_help)
         cursor = None
+        offset = editor.get_position('cursor')
         if pos:
             cursor = editor.get_last_hover_cursor()
+            offset = cursor.position()
         line, col = editor.get_cursor_line_column(cursor)
-        editor.request_hover(line, col, show_hint=False, clicked=bool(pos))
+        editor.request_hover(line, col, offset,
+                             show_hint=False, clicked=bool(pos))
 
     @Slot(str, bool)
     def display_help(self, help_text, clicked):
@@ -1123,6 +1132,12 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 finfo.editor.toggle_intelligent_backspace(state)
 
+    def set_automatic_completions_enabled(self, state):
+        self.automatic_completions_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.toggle_automatic_completions(state)
+
     def set_occurrence_highlighting_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'occurrence_highlighting')
         self.occurrence_highlighting_enabled = state
@@ -1302,7 +1317,6 @@ class EditorStack(QWidget):
             self.tabs.setTabText(index, tab_text)
         self.tabs.setTabToolTip(index, tab_tip)
 
-
     #------ Context menu
     def __setup_menu(self):
         """Setup tab context menu before showing it"""
@@ -1315,6 +1329,8 @@ class EditorStack(QWidget):
         add_actions(self.menu, list(actions) + self.__get_split_actions())
         self.close_action.setEnabled(self.is_closable)
 
+        if sys.platform == 'darwin':
+            set_menu_icons(self.menu, True)
 
     #------ Hor/Ver splitting
     def __get_split_actions(self):
@@ -1650,7 +1666,7 @@ class EditorStack(QWidget):
             # No file to save
             return True
         if unsaved_nb > 1:
-            buttons |= QMessageBox.YesToAll | QMessageBox.NoToAll
+            buttons |= int(QMessageBox.YesToAll | QMessageBox.NoToAll)
         yes_all = no_all = False
         for index in indexes:
             self.set_stack_index(index)
@@ -2334,6 +2350,7 @@ class EditorStack(QWidget):
             wrap=self.wrap_enabled, tab_mode=self.tabmode_enabled,
             strip_mode=self.stripmode_enabled,
             intelligent_backspace=self.intelligent_backspace_enabled,
+            automatic_completions=self.automatic_completions_enabled,
             highlight_current_line=self.highlight_current_line_enabled,
             highlight_current_cell=self.highlight_current_cell_enabled,
             occurrence_highlighting=self.occurrence_highlighting_enabled,
@@ -2673,6 +2690,7 @@ class EditorSplitter(QSplitter):
                         Defaults to plugin.unregister_editorstack() to
                         unregister the EditorStack with the Editor plugin.
         """
+
         QSplitter.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setChildrenCollapsible(False)
