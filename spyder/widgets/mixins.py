@@ -817,6 +817,7 @@ class BaseEditMixin(object):
         """Insert text at cursor position"""
         if not self.isReadOnly():
             self.textCursor().insertText(text)
+            self.sig_text_inserted.emit()
 
     def replace_text(self, position_from, position_to, text):
         cursor = self.__select_text(position_from, position_to)

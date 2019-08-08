@@ -300,6 +300,9 @@ class CodeEditor(TextEditBaseWidget):
     # the mouse left button is pressed, this signal is emmited
     sig_go_to_uri = Signal(str)
 
+    # Used to indicate if text was inserted into the editor
+    sig_text_inserted = Signal()
+
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
 
@@ -3192,6 +3195,11 @@ class CodeEditor(TextEditBaseWidget):
 
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
+
+        def insert_text(event):
+            TextEditBaseWidget.keyPressEvent(self, event)
+            self.sig_text_inserted.emit()
+
         # Send the signal to the editor's extension.
         event.ignore()
         self.sig_key_pressed.emit(event)
@@ -3264,7 +3272,7 @@ class CodeEditor(TextEditBaseWidget):
                     cmt_or_str = cmt_or_str_cursor and cmt_or_str_line_begin
 
                     self.textCursor().beginEditBlock()
-                    TextEditBaseWidget.keyPressEvent(self, event)
+                    insert_text(event)
                     self.fix_and_strip_indent(comment_or_string=cmt_or_str)
                     self.textCursor().endEditBlock()
         elif key == Qt.Key_Insert and not shift and not ctrl:
@@ -3274,7 +3282,7 @@ class CodeEditor(TextEditBaseWidget):
             leading_length = len(leading_text)
             trailing_spaces = leading_length-len(leading_text.rstrip())
             if has_selection or not self.intelligent_backspace:
-                TextEditBaseWidget.keyPressEvent(self, event)
+                insert_text(event)
             else:
                 trailing_text = self.get_text('cursor', 'eol')
                 if not leading_text.strip() \
@@ -3282,7 +3290,7 @@ class CodeEditor(TextEditBaseWidget):
                     if leading_length % len(self.indent_chars) == 0:
                         self.unindent()
                     else:
-                        TextEditBaseWidget.keyPressEvent(self, event)
+                        insert_text(event)
                 elif trailing_spaces and not trailing_text.strip():
                     self.remove_suffix(leading_text[-trailing_spaces:])
                 elif leading_text and trailing_text and \
@@ -3294,7 +3302,7 @@ class CodeEditor(TextEditBaseWidget):
                                         QTextCursor.KeepAnchor, 2)
                     cursor.removeSelectedText()
                 else:
-                    TextEditBaseWidget.keyPressEvent(self, event)
+                    insert_text(event)
         elif key == Qt.Key_Home:
             self.stdkey_home(shift, ctrl)
         elif key == Qt.Key_End:
@@ -3324,7 +3332,7 @@ class CodeEditor(TextEditBaseWidget):
                                                 ).block().previous().text())
                 if ind(leading_text) == ind(prevtxt):
                     self.unindent(force=True)
-            TextEditBaseWidget.keyPressEvent(self, event)
+            insert_text(event)
         elif key == Qt.Key_Space and not shift and not ctrl \
              and not has_selection and self.auto_unindent_enabled:
             self.completion_widget.hide()
@@ -3335,7 +3343,7 @@ class CodeEditor(TextEditBaseWidget):
                                                 ).block().previous().text())
                 if ind(leading_text) == ind(prevtxt):
                     self.unindent(force=True)
-            TextEditBaseWidget.keyPressEvent(self, event)
+            insert_text(event)
         elif key == Qt.Key_Tab and not ctrl:
             # Important note: <TAB> can't be called with a QShortcut because
             # of its singular role with respect to widget focus management
@@ -3354,7 +3362,7 @@ class CodeEditor(TextEditBaseWidget):
                 self.unindent()
             event.accept()
         elif not event.isAccepted():
-            TextEditBaseWidget.keyPressEvent(self, event)
+            insert_text(event)
         if len(text) > 0:
             self.document_did_change(text)
 

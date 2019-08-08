@@ -76,11 +76,17 @@ class SnippetsExtension(EditorExtension):
             self.editor.sig_insert_completion.connect(self.insert_snippet)
             self.editor.sig_cursor_position_changed.connect(
                 self.cursor_changed)
+            self.editor.sig_text_inserted.connect(self._redraw_snippets)
         else:
             self.editor.sig_key_pressed.disconnect(self._on_key_pressed)
             self.editor.sig_insert_completion.disconnect(self.insert_snippet)
             self.editor.sig_cursor_position_changed.disconnect(
                 self.cursor_changed)
+
+    def _redraw_snippets(self):
+        if self.is_snippet_active:
+            self.editor.clear_extra_selections('code_snippets')
+            self.draw_snippets()
 
     def _on_key_pressed(self, event):
         if event.isAccepted():
@@ -113,7 +119,6 @@ class SnippetsExtension(EditorExtension):
                 if node is not None:
                     if snippet is None:
                         # Constant text identifier was modified
-
                         self.reset()
                     else:
                         # Update placeholder text node
@@ -121,7 +126,20 @@ class SnippetsExtension(EditorExtension):
                             self.insert_text(text, line, column)
                             # text_node = nodes.TextNode(*token_nodes)
                             # snippet.placeholder = text_node
+                        else:
+                            self.delete_text(line, column)
                         self._update_ast()
+
+    def delete_text(self, line, column):
+        node, snippet, text_node = self._find_node_by_position(line, column)
+        leaf_kind = node.name
+        node_position = node.position
+        text_start_position, text_end_position = text_node.position
+        x, y = text_start_position
+        if column == y + 1:
+            self.reset()
+        # if len(node_position) == 1:
+
 
     def insert_text(self, text, line, column):
         node, snippet, text_node = self._find_node_by_position(line, column)
