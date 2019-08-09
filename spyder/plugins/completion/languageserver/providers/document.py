@@ -101,8 +101,6 @@ class DocumentProvider:
                     'insertTextFormat', InsertTextFormat.PLAIN_TEXT)
                 item['insertText'] = item.get('insertText', item['label'])
 
-        logger.debug(response)
-
         if req_id in self.req_reply:
             self.req_reply[req_id](
                 LSPRequestTypes.DOCUMENT_COMPLETION, {'params': response})

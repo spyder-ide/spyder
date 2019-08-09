@@ -68,6 +68,7 @@ class ASTNode:
 
     def __init__(self, position=((0, 0), (0, 0))):
         self.position = position
+        self.parent = None
         self.mark_for_position = True
         self.index_in_parent = -1
 
@@ -111,22 +112,30 @@ class TextNode(ASTNode):
 
     def __init__(self, *tokens):
         ASTNode.__init__(self)
-        self.tokens = tokens
+        self._tokens = tokens
         for i, token in enumerate(tokens):
             token.index_in_parent = i
+            token.parent = self
 
-    def add_token(self, token):
-        """Adds a token to the text sequence."""
-        self.tokens.append(token)
+    @property
+    def tokens(self):
+        return self._tokens
+
+    @tokens.setter
+    def tokens(self, tokens):
+        self._tokens = tokens
+        for i, token in enumerate(tokens):
+            token.index_in_parent = i
+            token.parent = self
 
     def compute_position(self, offset):
         polygon = []
         current_offset = offset
-        for i, token in enumerate(self.tokens):
+        for i, token in enumerate(self._tokens):
             current_offset = token.compute_position(current_offset)
             if token.mark_for_position:
                 position = token.position
-                if i == len(self.tokens) - 1:
+                if i == len(self._tokens) - 1:
                     if len(position) == 1:
                         if isinstance(position, list):
                             position = position[0]
@@ -166,11 +175,11 @@ class TextNode(ASTNode):
         return current_offset
 
     def text(self):
-        return ''.join([token.text() for token in self.tokens])
+        return ''.join([token.text() for token in self._tokens])
 
     def accept(self, visitor):
         visitor.visit(self)
-        for token in self.tokens:
+        for token in self._tokens:
             token.accept(visitor)
 
 
@@ -251,27 +260,37 @@ class TabstopSnippetNode(SnippetASTNode):
         default_placeholder = TextNode(LeafNode())
 
         self.number = int(number.value)
-        self.placeholder = (placeholder if placeholder is not None else
-                            default_placeholder)
+        self._placeholder = (placeholder if placeholder is not None else
+                             default_placeholder)
+        self._placeholder.parent = self
+
+    @property
+    def placeholder(self):
+        return self._placeholder
+
+    @placeholder.setter
+    def placeholder(self, placeholder):
+        self._placeholder = placeholder
+        self._placeholder.parent = self
 
     def compute_position(self, offset):
-        if isinstance(self.placeholder, ASTNode):
-            end_position = self.placeholder.compute_position(offset)
-        elif isinstance(self.placeholder, str):
-            end_position, _ = _compute_offset_str(offset, self.placeholder)
+        if isinstance(self._placeholder, ASTNode):
+            end_position = self._placeholder.compute_position(offset)
+        elif isinstance(self._placeholder, str):
+            end_position, _ = _compute_offset_str(offset, self._placeholder)
         # self.position = (offset, end_position)
-        self.position = self.placeholder.position
+        self.position = self._placeholder.position
         return end_position
 
     def update(self, new_placeholder):
-        self.placeholder = new_placeholder
+        self._placeholder = new_placeholder
 
     def text(self):
-        return self.placeholder.text()
+        return self._placeholder.text()
 
     def accept(self, visitor):
         visitor.visit(self)
-        self.placeholder.accept(visitor)
+        self._placeholder.accept(visitor)
 
 
 class PlaceholderNode(TabstopSnippetNode):
@@ -288,14 +307,14 @@ class PlaceholderNode(TabstopSnippetNode):
         TabstopSnippetNode.__init__(self, number, placeholder)
 
     def text(self):
-        if isinstance(self.placeholder, str):
-            return self.placeholder
-        elif isinstance(self.placeholder, ASTNode):
-            return self.placeholder.text()
+        if isinstance(self._placeholder, str):
+            return self._placeholder
+        elif isinstance(self._placeholder, ASTNode):
+            return self._placeholder.text()
         else:
             raise ValueError('Placeholder should be of type '
                              'SnippetASTNode or str, got {0}'.format(
-                                 type(self.placeholder)))
+                                 type(self._placeholder)))
 
 
 class ChoiceNode(TabstopSnippetNode):
@@ -321,7 +340,7 @@ class ChoiceNode(TabstopSnippetNode):
                               'snippet, expected any of {1}'.format(
                                   choice, self.choices))
         self.current_choice = choice
-        self.placeholder = choice
+        self._placeholder = choice
 
 
 # --------------------- Variable snippet node classes -------------------------
@@ -361,10 +380,10 @@ class VariablePlaceholderNode(VariableSnippetNode):
 
     def __init__(self, variable, placeholder):
         VariableSnippetNode.__init__(self, variable)
-        self.placeholder = placeholder
+        self._placeholder = placeholder
 
     def update(self, placeholder):
-        self.placeholder = placeholder
+        self._placeholder = placeholder
 
     def text(self):
         if isinstance(self._placeholder, str):
