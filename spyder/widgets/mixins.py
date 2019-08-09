@@ -57,6 +57,10 @@ class BaseEditMixin(object):
     _DEFAULT_MAX_HINT_LINES = 20
     _DEFAULT_MAX_HINT_WIDTH = 85
 
+    sig_will_insert_text = None
+    sig_will_remove_selection = None
+    sig_text_was_inserted = None
+
     def __init__(self):
         self.eol_chars = None
         self.calltip_size = 600
@@ -816,16 +820,29 @@ class BaseEditMixin(object):
     def insert_text(self, text):
         """Insert text at cursor position"""
         if not self.isReadOnly():
+            if self.sig_will_insert_text is not None:
+                self.sig_will_insert_text.emit(text)
             self.textCursor().insertText(text)
-            self.sig_text_inserted.emit()
+            if self.sig_text_was_inserted is not None:
+                self.sig_text_was_inserted.emit()
 
     def replace_text(self, position_from, position_to, text):
         cursor = self.__select_text(position_from, position_to)
+        if self.sig_will_remove_selection is not None:
+            start, end = self.get_selection_start_end(cursor)
+            self.sig_will_remove_selection.emit(start, end)
         cursor.removeSelectedText()
+        if self.sig_will_insert_text is not None:
+            self.sig_will_insert_text.emit(text)
         cursor.insertText(text)
+        if self.sig_text_was_inserted is not None:
+            self.sig_text_was_inserted.emit()
 
     def remove_text(self, position_from, position_to):
         cursor = self.__select_text(position_from, position_to)
+        if self.sig_will_remove_selection is not None:
+            start, end = self.get_selection_start_end(cursor)
+            self.sig_will_remove_selection.emit(start, end)
         cursor.removeSelectedText()
 
     def get_current_word_and_position(self, completion=False):
@@ -935,6 +952,17 @@ class BaseEditMixin(object):
         block_end = self.document().findBlock(end)
         return sorted([block_start.blockNumber(), block_end.blockNumber()])
 
+    def get_selection_start_end(self, cursor=None):
+        """Return selection start and end (line, column) position."""
+        if cursor is not None:
+            cursor = self.textCursor()
+        start, end = cursor.selectionStart(), cursor.selectionEnd()
+        start_cursor = QTextCursor(cursor).setPosition(start)
+        end_cursor = QTextCursor(cursor).setPosition(end)
+        start_position = self.get_cursor_line_column(start_cursor)
+        end_position = self.get_cursor_line_column(end_cursor)
+        return start_position, end_position
+
     def get_selection_first_block(self):
         """Return the first block of the selection."""
         cursor = self.textCursor()
@@ -971,11 +999,18 @@ class BaseEditMixin(object):
         cursor.beginEditBlock()
         if pattern is not None:
             seltxt = to_text_string(cursor.selectedText())
+        if self.sig_will_remove_selection is not None:
+            start, end = self.get_selection_start_end(cursor)
+            self.sig_will_remove_selection.emit(start, end)
         cursor.removeSelectedText()
         if pattern is not None:
             text = re.sub(to_text_string(pattern),
                           to_text_string(text), to_text_string(seltxt))
+        if self.sig_will_insert_text is not None:
+            self.sig_will_insert_text.emit(text)
         cursor.insertText(text)
+        if self.sig_text_was_inserted is not None:
+            self.sig_text_was_inserted.emit()
         cursor.endEditBlock()
 
 
@@ -1147,7 +1182,11 @@ class BaseEditMixin(object):
             if text != '':
                 cursor = self.textCursor()
                 cursor.beginEditBlock()
+                if self.sig_will_insert_text is not None:
+                    self.sig_will_insert_text.emit(text)
                 cursor.insertText(text)
+                if self.sig_text_was_inserted is not None:
+                    self.sig_text_was_inserted.emit()
                 cursor.endEditBlock()
 
 

@@ -76,12 +76,15 @@ class SnippetsExtension(EditorExtension):
             self.editor.sig_insert_completion.connect(self.insert_snippet)
             self.editor.sig_cursor_position_changed.connect(
                 self.cursor_changed)
-            self.editor.sig_text_inserted.connect(self._redraw_snippets)
+            self.editor.sig_text_was_inserted.connect(self._redraw_snippets)
+            self.editor.sig_will_insert_text.connect(self._process_text)
         else:
             self.editor.sig_key_pressed.disconnect(self._on_key_pressed)
             self.editor.sig_insert_completion.disconnect(self.insert_snippet)
             self.editor.sig_cursor_position_changed.disconnect(
                 self.cursor_changed)
+            self.editor.sig_text_was_inserted.disconnect(self._redraw_snippets)
+            self.editor.sig_will_insert_text.disconnect(self._process_text)
 
     def _redraw_snippets(self):
         if self.is_snippet_active:
@@ -121,14 +124,18 @@ class SnippetsExtension(EditorExtension):
                         # Constant text identifier was modified
                         self.reset()
                     else:
-                        # Update placeholder text node
-                        if text != '\b':
-                            self.insert_text(text, line, column)
-                            # text_node = nodes.TextNode(*token_nodes)
-                            # snippet.placeholder = text_node
-                        else:
-                            self.delete_text(line, column)
-                        self._update_ast()
+                        self._process_text(text)
+
+    def _process_text(self, text):
+        line, column = self.editor.get_cursor_line_column()
+        # Update placeholder text node
+        if text != '\b':
+            self.insert_text(text, line, column)
+            # text_node = nodes.TextNode(*token_nodes)
+            # snippet.placeholder = text_node
+        else:
+            self.delete_text(line, column)
+        self._update_ast()
 
     def delete_text(self, line, column):
         node, snippet, text_node = self._find_node_by_position(line, column)
@@ -138,8 +145,6 @@ class SnippetsExtension(EditorExtension):
         x, y = text_start_position
         if column == y + 1:
             self.reset()
-        # if len(node_position) == 1:
-
 
     def insert_text(self, text, line, column):
         node, snippet, text_node = self._find_node_by_position(line, column)

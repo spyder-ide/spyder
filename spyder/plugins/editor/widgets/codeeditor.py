@@ -301,7 +301,13 @@ class CodeEditor(TextEditBaseWidget):
     sig_go_to_uri = Signal(str)
 
     # Used to indicate if text was inserted into the editor
-    sig_text_inserted = Signal()
+    sig_text_was_inserted = Signal()
+
+    # Used to indicate that text will be inserted into the editor
+    sig_will_insert_text = Signal(str)
+
+    # Used to indicate that a text selection will be removed
+    sig_will_remove_selection = Signal(tuple, tuple)
 
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
@@ -1834,6 +1840,7 @@ class CodeEditor(TextEditBaseWidget):
             text = eol_chars.join((text + eol_chars).splitlines())
         self.skip_rstrip = True
         TextEditBaseWidget.insertPlainText(self, text)
+
         self.document_did_change(text)
         self.skip_rstrip = False
 
@@ -3198,7 +3205,7 @@ class CodeEditor(TextEditBaseWidget):
 
         def insert_text(event):
             TextEditBaseWidget.keyPressEvent(self, event)
-            self.sig_text_inserted.emit()
+            self.sig_text_was_inserted.emit()
 
         # Send the signal to the editor's extension.
         event.ignore()
