@@ -9,7 +9,7 @@ In addition to the remote_call mechanism implemented in CommBase:
  - Send a message to a debugging kernel
 """
 import logging
-import traceback
+import pickle
 
 from qtpy.QtCore import QEventLoop, QObject, QTimer, Signal
 
@@ -41,7 +41,9 @@ class KernelComm(CommBase, QObject):
     def set_kernel_client(self, kernel_client):
         """Register new kernel client and open comm."""
         self._register_comm(
-            kernel_client.comm_manager.new_comm(self._comm_name))
+            # Create new comm and send the highest protocol
+            kernel_client.comm_manager.new_comm(self._comm_name, data={
+                'pickle protocol': pickle.HIGHEST_PROTOCOL}))
         self.kernel_client = kernel_client
 
     def remote_call(self, interrupt=False, blocking=False, callback=None,
