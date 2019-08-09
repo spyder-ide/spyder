@@ -83,7 +83,7 @@ class KernelComm(CommBase, QObject):
 
     def _wait_reply(self, call_id, call_name, timeout):
         """Wait for the other side reply."""
-        if call_id in self._call_reply_dict:
+        if call_id in self._reply_inbox:
             return
 
         # Create event loop to wait with
