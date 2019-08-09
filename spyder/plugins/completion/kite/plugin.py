@@ -79,7 +79,18 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
             path = self._locate_kite_darwin()
         return osp.exists(osp.realpath(path)), path
 
-    def _locate_kite_darwin(self):
+    def _check_if_kite_running(self):
+        running = False
+        for proc in psutil.process_iter(attrs=['pid', 'name', 'username']):
+            if self._is_proc_kite(proc):
+                logger.debug('Kite process already '
+                             'running with PID {0}'.format(proc.pid))
+                running = True
+                break
+        return running
+
+    @staticmethod
+    def _locate_kite_darwin():
         """
         Looks up where Kite.app is installed on macOS systems. The bundle ID
         is checked first and if nothing is found or an error occurs, the
@@ -99,17 +110,8 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         finally:
             return path
 
-    def _check_if_kite_running(self):
-        running = False
-        for proc in psutil.process_iter(attrs=['pid', 'name', 'username']):
-            if self._is_proc_kite(proc):
-                logger.debug('Kite process already '
-                             'running with PID {0}'.format(proc.pid))
-                running = True
-                break
-        return running
-
-    def _is_proc_kite(self, proc):
+    @staticmethod
+    def _is_proc_kite(proc):
         if os.name == 'nt' or sys.platform.startswith('linux'):
             return 'kited' in proc.name()
         else:
