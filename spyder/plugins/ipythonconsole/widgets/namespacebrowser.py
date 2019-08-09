@@ -16,6 +16,8 @@ try:
 except AttributeError:
     time.monotonic = time.time
 
+from pickle import UnpicklingError
+
 from qtpy.QtWidgets import QMessageBox
 
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
@@ -80,8 +82,8 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         try:
             return self.call_kernel(
                 interrupt=True, blocking=True).get_value(name)
-        except Exception:
-            raise ValueError('Could not read value.')
+        except (TimeoutError, UnpicklingError):
+            raise ValueError('Kernel did not send the value.')
 
     def set_value(self, name, value):
         """Set value for a variable"""
@@ -102,14 +104,14 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         try:
             return self.call_kernel(interrupt=True, blocking=True
                                     ).load_data(filename, ext)
-        except Exception:
+        except (TimeoutError, UnpicklingError):
             return None
 
     def save_namespace(self, filename):
         try:
             return self.call_kernel(interrupt=True, blocking=True
                                     ).save_namespace(filename)
-        except Exception:
+        except (TimeoutError, UnpicklingError):
             return None
 
     def set_pdb_state(self, pdb_state):

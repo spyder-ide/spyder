@@ -15,6 +15,7 @@ from __future__ import absolute_import
 import re
 
 # Third party imports
+from pickle import UnpicklingError
 from qtconsole.ansi_code_processor import ANSI_OR_SPECIAL_PATTERN, ANSI_PATTERN
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from qtpy.QtCore import QEventLoop
@@ -132,7 +133,7 @@ class HelpWidget(RichJupyterWidget):
             return self.call_kernel(
                 interrupt=True, blocking=True
                 ).is_defined(objtxt, force_import=force_import)
-        except Exception:
+        except (TimeoutError, UnpicklingError):
             return None
 
     def get_doc(self, objtxt):
@@ -140,7 +141,7 @@ class HelpWidget(RichJupyterWidget):
         try:
             return self.call_kernel(interrupt=True, blocking=True
                                     ).get_doc(objtxt)
-        except Exception:
+        except (TimeoutError, UnpicklingError):
             return None
 
     def get_source(self, objtxt):
@@ -148,7 +149,7 @@ class HelpWidget(RichJupyterWidget):
         try:
             return self.call_kernel(interrupt=True, blocking=True
                                     ).get_source(objtxt)
-        except Exception:
+        except (TimeoutError, UnpicklingError):
             return None
 
     #---- Private methods (overrode by us) ---------------------------------
