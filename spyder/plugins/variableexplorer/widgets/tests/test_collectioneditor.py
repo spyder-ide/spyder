@@ -139,11 +139,11 @@ def test_collectionsmodel_with_two_ints():
         row_with_x = 1
         row_with_y = 0
     assert data(cm, row_with_x, 1) == 'int'
-    assert data(cm, row_with_x, 2) == '1'
+    assert data(cm, row_with_x, 2) == 1
     assert data(cm, row_with_x, 3) == '1'
     assert data(cm, row_with_y, 0) == 'y'
     assert data(cm, row_with_y, 1) == 'int'
-    assert data(cm, row_with_y, 2) == '1'
+    assert data(cm, row_with_y, 2) == 1
     assert data(cm, row_with_y, 3) == '2'
 
 def test_collectionsmodel_with_index():
@@ -154,7 +154,7 @@ def test_collectionsmodel_with_index():
         cm = CollectionsModel(None, coll)
         assert data(cm, 0, 0) == 'rng'
         assert data(cm, 0, 1) == rng_name
-        assert data(cm, 0, 2) == '(20,)' or data(cm, 0, 2) == '(20L,)'
+        assert data(cm, 0, 2) == (20,)
     try:
         assert data(cm, 0, 3) == rng._summary()
     except AttributeError:
@@ -180,28 +180,28 @@ def test_sort_collectionsmodel():
     assert cm.rowCount() == 3
     assert cm.columnCount() == 5
     cm.sort(0)  # sort by index
-    assert data_table(cm, 3, 4) == [['0', '1', '2'],
+    assert data_table(cm, 3, 4) == [[0, 1, 2],
                                     ['int', 'int', 'int'],
-                                    ['1', '1', '1'],
+                                    [1, 1, 1],
                                     ['1', '3', '2']]
     cm.sort(3)  # sort by value
-    assert data_table(cm, 3, 4) == [['0', '2', '1'],
+    assert data_table(cm, 3, 4) == [[0, 2, 1],
                                     ['int', 'int', 'int'],
-                                    ['1', '1', '1'],
+                                    [1, 1, 1],
                                     ['1', '2', '3']]
     coll = [[1, 2], 3]
     cm = CollectionsModel(None, coll)
     assert cm.rowCount() == 2
     assert cm.columnCount() == 5
     cm.sort(1)  # sort by type
-    assert data_table(cm, 2, 4) == [['1', '0'],
+    assert data_table(cm, 2, 4) == [[1, 0],
                                     ['int', 'list'],
-                                    ['1', '2'],
+                                    [1, 2],
                                     ['3', '[1, 2]']]
     cm.sort(2)  # sort by size
-    assert data_table(cm, 2, 4) == [['1', '0'],
+    assert data_table(cm, 2, 4) == [[1, 0],
                                     ['int', 'list'],
-                                    ['1', '2'],
+                                    [1, 2],
                                     ['3', '[1, 2]']]
 
 
