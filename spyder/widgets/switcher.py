@@ -61,6 +61,7 @@ class KeyPressFilter(QObject):
 class SwitcherBaseItem(QStandardItem):
     """Base List Item."""
 
+    _PADDING = 5
     _WIDTH = 400
     _HEIGHT = None
     _STYLES = None
@@ -73,6 +74,7 @@ class SwitcherBaseItem(QStandardItem):
         # Style
         self._width = self._WIDTH
         self._height = self._HEIGHT
+        self._padding = self._PADDING
         self._action_item = False
         self._score = -1
 
@@ -95,7 +97,7 @@ class SwitcherBaseItem(QStandardItem):
     # --- API
     def set_width(self, value):
         """Set the content width."""
-        self._width = value
+        self._width = value - (self._padding * 3)
         self._set_rendered_text()
 
     def get_width(self):
@@ -135,7 +137,7 @@ class SwitcherSeparatorItem(SwitcherBaseItem):
         'font_size': CONF.get('appearance', 'rich_font/size', 10),
     }
     _TEMPLATE = \
-        '''<table cellpadding="5" cellspacing="0" width="{width}"
+        '''<table cellpadding="{padding}" cellspacing="0" width="{width}"
                   height="{height}" border="0">
   <tr><td valign="top" align="center"><hr></td></tr>
 </table>'''
@@ -166,10 +168,11 @@ class SwitcherSeparatorItem(SwitcherBaseItem):
 
     def _render_text(self):
         """Render the html template for this item."""
+        padding = self._padding
         width = self._width
         height = self._HEIGHT
-        text = self._TEMPLATE.format(width=width - 10, height=height,
-                                     **self._STYLES)
+        text = self._TEMPLATE.format(width=width, height=height,
+                                     padding=padding, **self._STYLES)
         return text
 
 
@@ -185,11 +188,10 @@ class SwitcherItem(SwitcherBaseItem):
 
     _FONT_SIZE = CONF.get('appearance', 'rich_font/size', 10)
     _HEIGHT = 20
-    _PADDING = 5
     _STYLES = {
         'title_color': 'black',
         'description_color': 'rgb(153, 153, 153)',
-        'section_color': 'blue',
+        'section_color': 'rgb(70, 179, 239)',
         'shortcut_color': 'rgb(153, 153, 153)',
         'title_font_size': _FONT_SIZE,
         'description_font_size': _FONT_SIZE,
@@ -263,7 +265,7 @@ class SwitcherItem(SwitcherBaseItem):
             section = ''
 
         padding = self._PADDING
-        width = self._width - padding * 2
+        width = self._width
         height = self._HEIGHT
         shortcut = '&lt;' + self._shortcut + '&gt;' if self._shortcut else ''
         text = self._TEMPLATE.format(width=width, height=height, title=title,
@@ -292,7 +294,7 @@ class SwitcherItem(SwitcherBaseItem):
         cls._STYLES['title_font_size'] = title_font_size
         cls._STYLES['description_font_size'] = description_font_size
         cls._STYLES['section_font_size'] = description_font_size
-        cls._STYLES['title_color'] = 'black'
+        cls._STYLES['title_color'] = ima.MAIN_FG_COLOR
         # cls._STYLES['description_color'] = 'black'
         # cls._STYLES['section_color'] = 'black'
 
@@ -524,7 +526,6 @@ class Switcher(QDialog):
             action_item=action_item,
             tool_tip=tool_tip,
         )
-        item.set_width(self._MIN_WIDTH)
         self._add_item(item)
 
     def add_separator(self):
@@ -565,7 +566,8 @@ class Switcher(QDialog):
             titles.append(title)
 
         search_text = clean_string(search_text)
-        scores = get_search_scores(search_text, titles, template="<b>{0}</b>")
+        scores = get_search_scores(search_text.encode("utf-8"),
+                                   titles, template="<b>{0}</b>")
 
         self._visible_rows = self.model.rowCount()
         for idx, score in enumerate(scores):
@@ -773,14 +775,12 @@ def create_symbol_example_switcher(sw):
     sw.add_item(title=_('another symbol'))
 
 
-def test():  # pragma: no cover
-    """Launch the switcher with some test values."""
-    from spyder.utils.qthelpers import qapplication
-    app = qapplication()
-    w = QLineEdit()
-
+def create_example_switcher(main=None):
+    """Create example switcher."""
     # Create Switcher
-    sw = Switcher(w)
+    if main is None:
+        main = QLineEdit()
+    sw = Switcher(main)
     sw.add_mode('>', _('Commands'))
     sw.add_mode('?', _('Help'))
     sw.add_mode(':', _('Go to Line'))
@@ -808,6 +808,12 @@ def test():  # pragma: no cover
     create_vcs_example_switcher(sw)
     sw.show()
 
+
+def test(main=None):  # pragma: no cover
+    """Launch the switcher with some test values."""
+    from spyder.utils.qthelpers import qapplication
+    app = qapplication()
+    create_example_switcher(main=main)
     app.exec_()
 
 
