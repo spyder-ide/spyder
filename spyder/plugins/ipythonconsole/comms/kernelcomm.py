@@ -116,12 +116,9 @@ class KernelComm(CommBase, QObject):
             msg_dict, buffer, load_exception)
         self._sig_got_reply.emit()
 
-    def _async_error(self, name, error, tb):
+    def _async_error(self, error_wrapper):
         """
         Handle an error that was raised on the other side and sent back.
         """
-        lines = (['Exception in comms call {}:\n'.format(name)]
-                 + traceback.format_list(tb)
-                 + traceback.format_exception_only(type(error), error))
-        for text in lines:
-            self.sig_exception_occurred.emit(text, True)
+        for line in error_wrapper.format_error():
+            self.sig_exception_occurred.emit(line, True)
