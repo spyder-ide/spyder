@@ -1864,7 +1864,8 @@ def test_report_comms_error(qtbot, main_window):
     """Test if a comms error is correctly displayed."""
     CONF.set('main', 'show_internal_errors', True)
     shell = main_window.ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: not shell._executing)
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
     # Create a bogus get_cwd
     with qtbot.waitSignal(shell.executed):
         shell.execute('def get_cwd(): import foo')
@@ -1878,6 +1879,7 @@ def test_report_comms_error(qtbot, main_window):
     assert error_dlg is not None
     assert 'Exception in comms call get_cwd' in error_dlg.error_traceback
     assert 'ImportError: No module named' in error_dlg.error_traceback
+    CONF.set('main', 'show_internal_errors', False)
 
 
 if __name__ == "__main__":
