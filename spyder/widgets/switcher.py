@@ -16,8 +16,8 @@ import sys
 from qtpy.QtCore import (QEvent, QObject, QSize, QSortFilterProxyModel, Qt,
                          Signal, Slot)
 from qtpy.QtGui import QStandardItem, QStandardItemModel
-from qtpy.QtWidgets import (QDialog, QLineEdit, QListWidgetItem, QVBoxLayout,
-                            QListView)
+from qtpy.QtWidgets import (QApplication, QDialog, QLineEdit, QListWidgetItem,
+                            QVBoxLayout, QListView)
 
 # Local imports
 from spyder.config.base import _
@@ -27,6 +27,23 @@ from spyder.py3compat import TEXT_TYPES, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.stringmatching import get_search_scores
 from spyder.widgets.helperwidgets import HTMLDelegate
+
+# Style dict constants
+FONT_SIZE = CONF.get('appearance', 'rich_font/size', 10)
+ITEM_STYLES = {
+        'title_color': ima.MAIN_FG_COLOR,
+        'description_color': 'rgb(153, 153, 153)',
+        'section_color': 'rgb(70, 179, 239)',
+        'shortcut_color': 'rgb(153, 153, 153)',
+        'title_font_size': FONT_SIZE,
+        'description_font_size': FONT_SIZE,
+        'section_font_size': FONT_SIZE,
+        'shortcut_font_size': FONT_SIZE,
+    }
+ITEM_SEPARATOR_STYLES = {
+        'color': ima.MAIN_FG_COLOR,
+        'font_size': FONT_SIZE,
+    }
 
 
 def clean_string(text):
@@ -67,7 +84,7 @@ class SwitcherBaseItem(QStandardItem):
     _STYLES = None
     _TEMPLATE = None
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, styles=_STYLES):
         """Create basic List Item."""
         super(SwitcherBaseItem, self).__init__()
 
@@ -75,6 +92,7 @@ class SwitcherBaseItem(QStandardItem):
         self._width = self._WIDTH
         self._height = self._HEIGHT
         self._padding = self._PADDING
+        self._styles = styles if styles else {}
         self._action_item = False
         self._score = -1
 
@@ -89,8 +107,7 @@ class SwitcherBaseItem(QStandardItem):
         """Set the rendered html template as text of this item."""
         self.setText(self._render_text())
 
-    @classmethod
-    def _set_styles(cls):
+    def _set_styles(self):
         """Set the styles for this item."""
         raise NotImplementedError
 
@@ -132,9 +149,10 @@ class SwitcherSeparatorItem(SwitcherBaseItem):
 
     _SEPARATOR = '_'
     _HEIGHT = 15
+    _STYLE_ATTRIBUTES = ['color', 'font_size']
     _STYLES = {
-        'color': 'black',
-        'font_size': CONF.get('appearance', 'rich_font/size', 10),
+        'color': QApplication.palette().text().color().name(),
+        'font_size': 10,
     }
     _TEMPLATE = \
         '''<table cellpadding="{padding}" cellspacing="0" width="{width}"
@@ -142,17 +160,21 @@ class SwitcherSeparatorItem(SwitcherBaseItem):
   <tr><td valign="top" align="center"><hr></td></tr>
 </table>'''
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, styles=_STYLES):
         """Separator Item represented as <hr>."""
-        super(SwitcherSeparatorItem, self).__init__()
+        super(SwitcherSeparatorItem, self).__init__(parent=parent,
+                                                    styles=styles)
         self.setFlags(Qt.NoItemFlags)
         self._set_rendered_text()
 
     # --- Helpers
-    @classmethod
-    def _set_styles(self, cls):
+    def _set_styles(self):
         """Set the styles for this item."""
-        rich_font = CONF.get('appearance', 'rich_font/size', 10)
+        for attr in self._STYLE_ATTRIBUTES:
+            if attr not in self._styles:
+                self._styles[attr] = self._STYLES[attr]
+
+        rich_font = self._styles['font_size']
 
         if sys.platform == 'darwin':
             font_size = rich_font
@@ -163,8 +185,7 @@ class SwitcherSeparatorItem(SwitcherBaseItem):
         else:
             font_size = rich_font - 2
 
-        cls._STYLES['font_size'] = font_size
-        cls._STYLES['color'] = ima.MAIN_FG_COLOR
+        self._styles['font_size'] = font_size
 
     def _render_text(self):
         """Render the html template for this item."""
@@ -172,7 +193,7 @@ class SwitcherSeparatorItem(SwitcherBaseItem):
         width = self._width
         height = self._HEIGHT
         text = self._TEMPLATE.format(width=width, height=height,
-                                     padding=padding, **self._STYLES)
+                                     padding=padding, **self._styles)
         return text
 
 
@@ -186,10 +207,14 @@ class SwitcherItem(SwitcherBaseItem):
     See: https://doc.qt.io/qt-5/richtext-html-subset.html
     """
 
-    _FONT_SIZE = CONF.get('appearance', 'rich_font/size', 10)
+    _FONT_SIZE = 10
     _HEIGHT = 20
+    _STYLE_ATTRIBUTES = ['title_color', 'description_color', 'section_color',
+                         'shortcut_color', 'title_font_size',
+                         'description_font_size', 'section_font_size',
+                         'shortcut_font_size']
     _STYLES = {
-        'title_color': 'black',
+        'title_color': QApplication.palette().text().color().name(),
         'description_color': 'rgb(153, 153, 153)',
         'section_color': 'rgb(70, 179, 239)',
         'shortcut_color': 'rgb(153, 153, 153)',
@@ -223,9 +248,9 @@ class SwitcherItem(SwitcherBaseItem):
 
     def __init__(self, parent=None, icon=None, title=None, description=None,
                  shortcut=None, section=None, data=None, tool_tip=None,
-                 action_item=False):
+                 action_item=False, styles=_STYLES):
         """Switcher item with title, description, shortcut and section."""
-        super(SwitcherItem, self).__init__()
+        super(SwitcherItem, self).__init__(parent=parent, styles=styles)
 
         self._title = title if title else ''
         self._rich_title = ''
@@ -271,13 +296,17 @@ class SwitcherItem(SwitcherBaseItem):
         text = self._TEMPLATE.format(width=width, height=height, title=title,
                                      section=section, description=description,
                                      padding=padding, shortcut=shortcut,
-                                     **self._STYLES)
+                                     **self._styles)
         return text
 
-    @classmethod
-    def _set_styles(cls):
+    def _set_styles(self):
         """Set the styles for this item."""
-        rich_font = CONF.get('appearance', 'rich_font/size', 10)
+        for attr in self._STYLE_ATTRIBUTES:
+            if attr not in self._styles:
+                self._styles[attr] = self._STYLES[attr]
+
+        rich_font = self._styles['title_font_size']
+
         if sys.platform == 'darwin':
             title_font_size = rich_font
             description_font_size = title_font_size + 2
@@ -291,12 +320,8 @@ class SwitcherItem(SwitcherBaseItem):
             title_font_size = rich_font - 2
             description_font_size = title_font_size + 1
 
-        cls._STYLES['title_font_size'] = title_font_size
-        cls._STYLES['description_font_size'] = description_font_size
-        cls._STYLES['section_font_size'] = description_font_size
-        cls._STYLES['title_color'] = ima.MAIN_FG_COLOR
-        # cls._STYLES['description_color'] = 'black'
-        # cls._STYLES['section_color'] = 'black'
+        self._styles['description_font_size'] = description_font_size
+        self._styles['section_font_size'] = description_font_size
 
     # --- API
     def set_icon(self, icon):
@@ -431,12 +456,15 @@ class Switcher(QDialog):
 
     _MIN_WIDTH = 500
 
-    def __init__(self, parent, help_text=None):
+    def __init__(self, parent, help_text=None, item_styles=ITEM_STYLES,
+                 item_separator_styles=ITEM_SEPARATOR_STYLES):
         """Multi purpose switcher."""
         super(Switcher, self).__init__(parent)
         self._visible_rows = 0
         self._modes = {}
         self._mode_on = ''
+        self._item_styles = item_styles
+        self._item_separator_styles = item_separator_styles
 
         # Widgets
         self.edit = QLineEdit(self)
@@ -525,12 +553,14 @@ class Switcher(QDialog):
             section=section,
             action_item=action_item,
             tool_tip=tool_tip,
+            styles=self._item_styles
         )
         self._add_item(item)
 
     def add_separator(self):
         """Add separator item."""
-        item = SwitcherSeparatorItem(parent=self.list)
+        item = SwitcherSeparatorItem(parent=self.list,
+                                     styles=self._item_separator_styles)
         self._add_item(item)
 
     def setup(self):
