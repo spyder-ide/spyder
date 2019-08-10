@@ -33,7 +33,7 @@ else
     pip install -e .[test]
 
     # Downgrade PyQt5 to 5.11 in Circle.
-    # Else our tests gives segfaults
+    # Else our tests give segfaults
     if [ "$CIRCLECI" = "true" ]; then
         pip install pyqt5==5.11.*
     fi
@@ -49,9 +49,6 @@ else
 
     # Install spyder-kernels from Github
     pip install -q git+https://github.com/spyder-ide/spyder-kernels
-
-    # Downgrade Jedi because 0.14 broke the PyLS
-    pip install jedi==0.13.3
 
     # Install coveralls
     pip install -q coveralls
