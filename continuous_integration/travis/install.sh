@@ -29,6 +29,12 @@ if [ "$USE_CONDA" = "yes" ]; then
     # Install spyder-kernels from Github with no deps
     pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels
 else
+    # Downgrade to Python 3.7.3 because 3.7.4 is not pulling
+    # wheels for all packages
+    if [ "$PYTHON_VERSION" = "3.7" ]; then
+        conda install -q -y python=3.7.3
+    fi
+
     # Install Spyder and its dependencies from our setup.py
     pip install -e .[test]
 
