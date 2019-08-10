@@ -29,11 +29,17 @@ if [ "$USE_CONDA" = "yes" ]; then
     # Install spyder-kernels from Github with no deps
     pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels
 else
+    # Downgrade to Python 3.7.3 because 3.7.4 is not pulling
+    # wheels for all packages
+    if [ "$PYTHON_VERSION" = "3.7" ]; then
+        conda install -q -y python=3.7.3
+    fi
+
     # Install Spyder and its dependencies from our setup.py
     pip install -e .[test]
 
     # Downgrade PyQt5 to 5.11 in Circle.
-    # Else our tests gives segfaults
+    # Else our tests give segfaults
     if [ "$CIRCLECI" = "true" ]; then
         pip install pyqt5==5.11.*
     fi
@@ -49,9 +55,6 @@ else
 
     # Install spyder-kernels from Github
     pip install -q git+https://github.com/spyder-ide/spyder-kernels
-
-    # Downgrade Jedi because 0.14 broke the PyLS
-    pip install jedi==0.13.3
 
     # Install coveralls
     pip install -q coveralls
