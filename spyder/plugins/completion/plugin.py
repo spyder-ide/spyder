@@ -93,20 +93,20 @@ class CompletionManager(SpyderCompletionPlugin):
             req_type = request_responses['req_type']
             language = request_responses['language']
             request_responses['sources'][completion_source] = resp
-        corresponding_source = self.plugin_priority.get(req_type, 'lsp')
-        is_src_ready = self.language_status[language].get(
-            corresponding_source, False)
-        if corresponding_source == completion_source:
-            response_instance = request_responses['response_instance']
-            self.gather_and_send(
-                completion_source, response_instance, req_type, req_id)
-        else:
-            # Preferred completion source is not available
-            # Requests are handled in a first come, first served basis
-            if not is_src_ready:
+            corresponding_source = self.plugin_priority.get(req_type, 'lsp')
+            is_src_ready = self.language_status[language].get(
+                corresponding_source, False)
+            if corresponding_source == completion_source:
                 response_instance = request_responses['response_instance']
                 self.gather_and_send(
                     completion_source, response_instance, req_type, req_id)
+            else:
+                # Preferred completion source is not available
+                # Requests are handled in a first come, first served basis
+                if not is_src_ready:
+                    response_instance = request_responses['response_instance']
+                    self.gather_and_send(
+                        completion_source, response_instance, req_type, req_id)
 
     @Slot(str)
     def client_available(self, client_name):

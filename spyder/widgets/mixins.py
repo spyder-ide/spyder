@@ -817,10 +817,10 @@ class BaseEditMixin(object):
         else:
             return ''
 
-    def insert_text(self, text):
+    def insert_text(self, text, will_insert_text=True):
         """Insert text at cursor position"""
         if not self.isReadOnly():
-            if self.sig_will_insert_text is not None:
+            if will_insert_text and self.sig_will_insert_text is not None:
                 self.sig_will_insert_text.emit(text)
             self.textCursor().insertText(text)
             if self.sig_text_was_inserted is not None:

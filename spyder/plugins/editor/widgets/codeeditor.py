@@ -994,10 +994,27 @@ class CodeEditor(TextEditBaseWidget):
             completions = params['params']
             cursor = self.textCursor()
             cursor.select(QTextCursor.WordUnderCursor)
-            text = to_text_string(cursor.selectedText())
+            text1 = to_text_string(cursor.selectedText())
+
+            cursor.movePosition(QTextCursor.Left, QTextCursor.KeepAnchor, 2)
+            cursor.select(QTextCursor.WordUnderCursor)
+            text2 = to_text_string(cursor.selectedText())
+
             completions = [] if completions is None else completions
-            available_completions = {x['insertText']: x for x in completions}
-            available_completions.pop(text, False)
+            available_completions = {x['label']: x for x in completions}
+            t1 = available_completions.pop(text1, None)
+            t2 = available_completions.pop(text2, None)
+
+            if t1 is not None:
+                if t1['insertText'] != t1['label']:
+                    available_completions[t1['label']] = t1
+
+            if t2 is not None:
+                t1_label = t1['label'] if t1 else None
+                if t2['label'] != t1_label:
+                    if t2['insertText'] != t2['label']:
+                        available_completions[t2['label']] = t2
+
             completions = list(available_completions.values())
 
             if completions is not None and len(completions) > 0:
