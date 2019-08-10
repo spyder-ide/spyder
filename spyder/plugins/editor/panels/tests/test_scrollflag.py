@@ -38,8 +38,27 @@ def editor_bot(qtbot):
 # ---------------------------------------------------------------------------
 # Examples to Test Against
 # ---------------------------------------------------------------------------
-long_code = '\n'.join('Line' + str(i) for i in range(40))
-
+long_code = """Line1
+Line2
+Line3
+Line4
+Line5
+Line6
+Line7
+Line8
+Line9
+Line10
+Line11
+Line12
+Line13
+Line14
+Line15
+Line16
+Line17
+Line18
+Line19
+Line20
+"""
 
 short_code = """line1: Occurences
 line2: Breakpoints
@@ -128,7 +147,7 @@ def test_flag_painting(editor_bot, qtbot):
         editor.setTextCursor(cursor)
 
 
-@pytest.mark.skipif(not os.name == 'nt' or os.name == 'nt', reason="It fails")
+@pytest.mark.skipif(not os.name == 'nt', reason="It fails on Travis")
 def test_range_indicator_visible_on_hover_only(editor_bot, qtbot):
     """Test that the slider range indicator is visible only when hovering
     over the scrollflag area when the editor vertical scrollbar is visible.

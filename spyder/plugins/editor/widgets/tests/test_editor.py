@@ -597,8 +597,7 @@ def test_tab_keypress_properly_caught_find_replace(editor_find_replace_bot,
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(platform.startswith('linux') or os.name == 'nt',
-                    reason="Fails on Linux and Windows.")
+@pytest.mark.skipif(platform.startswith('linux'), reason="Fails on Linux.")
 def test_tab_moves_focus_from_search_to_replace(editor_find_replace_bot,
                                                 qtbot):
     """
