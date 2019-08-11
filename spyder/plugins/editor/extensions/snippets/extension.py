@@ -328,6 +328,7 @@ class SnippetsExtension(EditorExtension):
         if len(leaf_position) == 1:
             x, y = leaf_position[0]
             leaf_position = [(x, y), (x, y + 1)]
+        print(leaf_position, (line, column))
         leaf_start, leaf_end = leaf_position
         leaf_index = leaf.index_in_parent
         placeholder = snippet.placeholder
@@ -335,14 +336,37 @@ class SnippetsExtension(EditorExtension):
         first_tokens = text_tokens[:leaf_index]
         second_tokens = text_tokens[leaf_index + 1:]
         if leaf_start == (line, column):
-            first_tokens.append(new_node)
-            # if not value.startswith(new_node.text()):
-            #     first_tokens.append(leaf)
+            print(value, new_node.text())
+            # first_tokens = first_tokens + new_node.tokens
+            single_token = False
+            if len(text_tokens) == 1:
+                print('Single text_token')
+                print(new_node.tokens)
+                possible_snippet = new_node.tokens[0]
+                print(possible_snippet)
+                single_token = True
+                if isinstance(possible_snippet, nodes.SnippetASTNode):
+                    # Placeholder replacement
+                    print('Moving placeholder to up')
+                    first_tokens = (
+                        list(possible_snippet.placeholder) +
+                        list(new_node.tokens[1:])
+                    )
+                    second_tokens = []
+                else:
+                    first_tokens = list(new_node.tokens)
+                    second_tokens = []
+            if not single_token:
+                first_tokens.append(new_node)
+                if not new_node.text().startswith(value):
+                    first_tokens.append(leaf)
         elif leaf_end == (line, column):
             # if not value.endswith(new_node.text()):
             #     first_tokens.append(leaf)
             # if self.editor.completion_widget.is_empty():
+            # print(value, new_node.text())
             first_tokens.append(leaf)
+            # first_tokens = first_tokens + new_node.tokens
             first_tokens.append(new_node)
         else:
             _, start_pos = leaf_start
