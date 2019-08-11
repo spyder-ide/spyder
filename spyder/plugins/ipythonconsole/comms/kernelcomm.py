@@ -43,7 +43,7 @@ class KernelComm(CommBase, QObject):
         self._register_comm(
             # Create new comm and send the highest protocol
             kernel_client.comm_manager.new_comm(self._comm_name, data={
-                'pickle protocol': pickle.HIGHEST_PROTOCOL}))
+                'pickle_protocol': pickle.HIGHEST_PROTOCOL}))
         self.kernel_client = kernel_client
 
     def remote_call(self, interrupt=False, blocking=False, callback=None,
