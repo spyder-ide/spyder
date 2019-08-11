@@ -98,6 +98,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             'pdb_state': self.set_pdb_state,
             'pdb_continue': self.pdb_continue,
             'get_breakpoints': self.get_spyder_breakpoints,
+            'savefiles': self.handle_kernel_api_savefiles,
         }
 
         for request_id in handlers:
@@ -451,6 +452,26 @@ the sympy module (e.g. plot)
           len(command.splitlines()) == 1:
             if not 'inline' in command:
                 self.silent_execute(command)
+
+    # ---- Spyder-kernels methods -------------------------------------------
+    def get_editor(self, filename=None):
+        """Get editor for filename and set it as the current editor."""
+        editorstack = self.editorstack()
+
+        if not filename:
+            return editorstack.get_current_editor()
+
+        index = editorstack.has_filename(filename)
+        if index is None:
+            return None
+
+        editor = editorstack.data[index].editor
+        editorstack.set_stack_index(index)
+        return editor
+
+    def handle_kernel_api_savefiles(self):
+        """Save the open files."""
+        self.editorstack().save()
 
     # ---- Private methods (overrode by us) ---------------------------------
 

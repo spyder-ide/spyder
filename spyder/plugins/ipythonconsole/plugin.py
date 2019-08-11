@@ -941,6 +941,12 @@ class IPythonConsole(SpyderPluginWidget):
             page_control.visibility_changed.connect(self.refresh_plugin)
             page_control.show_find_widget.connect(self.find_widget.show)
 
+        def editorstack():
+            """Get current editor stack."""
+            return self.main.editor.get_current_editorstack()
+
+        shellwidget.editorstack = editorstack
+
     def close_client(self, index=None, client=None, force=False):
         """Close client tab from index or widget (or close current tab)"""
         if not self.tabwidget.count():
