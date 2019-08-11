@@ -60,6 +60,7 @@ def test_space_completion(lsp_codeeditor, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.first
+@flaky(max_runs=5)
 def test_hide_widget_completion(lsp_codeeditor, qtbot):
     """Validate hiding completion widget after a delimeter or operator."""
     code_editor, _ = lsp_codeeditor
