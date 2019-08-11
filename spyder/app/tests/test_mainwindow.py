@@ -1879,6 +1879,7 @@ def test_report_comms_error(qtbot, main_window):
     assert error_dlg is not None
     assert 'Exception in comms call get_cwd' in error_dlg.error_traceback
     assert 'No module named' in error_dlg.error_traceback
+    main_window.console.close_error_dlg()
     CONF.set('main', 'show_internal_errors', False)
 
 
