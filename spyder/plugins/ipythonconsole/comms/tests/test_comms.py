@@ -105,7 +105,7 @@ def comms(kernel):
 
     # Bypass the target system as this is not what is being tested
     frontend_comm._comm_open(commB,
-                             {'content': {'data': {'pickle protocol': 2}}})
+                             {'content': {'data': {'pickle_protocol': 2}}})
 
     return (kernel_comm, frontend_comm)
 
