@@ -404,7 +404,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.main.editor.run_in_current_ipyclient.connect(self.run_script)
         self.main.editor.run_cell_in_ipyclient.connect(self.run_cell)
         self.main.workingdirectory.set_current_console_wd.connect(
-                                     self.set_current_client_working_directory)
+            self.set_current_client_working_directory)
         self.tabwidget.currentChanged.connect(self.update_working_directory)
         self._remove_old_stderr_files()
 
