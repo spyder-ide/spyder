@@ -1114,7 +1114,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     def go_to_new_line(self):
         """Go to the end of the current line and create a new line"""
         self.stdkey_end(False, False)
-        self.insert_text(self.get_line_separator(), will_insert_text=False)
+        self.insert_text(self.get_line_separator())
 
     def extend_selection_to_complete_lines(self):
         """Extend current selection to complete lines"""
@@ -1246,7 +1246,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.moveCursor(QTextCursor.Down, self.__get_move_mode(shift))
 
     def stdkey_tab(self):
-        self.insert_text(self.indent_chars, will_insert_text=False)
+        self.insert_text(self.indent_chars)
 
     def stdkey_home(self, shift, ctrl, prompt_pos=None):
         """Smart HOME feature: cursor is first moved at

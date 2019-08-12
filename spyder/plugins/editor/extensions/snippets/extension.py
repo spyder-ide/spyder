@@ -210,6 +210,8 @@ class SnippetsExtension(EditorExtension):
                 text_node_tokens.pop(node_index)
         else:
             node_start, node_end = node_position
+            print(node_position, (line, column))
+
 
 
         if len(text_node_tokens) == 0:
@@ -261,8 +263,8 @@ class SnippetsExtension(EditorExtension):
                 text_node_tokens[node_index + right_offset:]
             )
         elif (line, column) == leaf_end:
-            left_offset = 0
-            right_offset = 0
+            left_offset = -1
+            right_offset = 1
             first_token = token_nodes[0]
             last_token = token_nodes[-1]
             if node_index >= 1 and node_index < len(text_node_tokens) - 1:
@@ -277,7 +279,8 @@ class SnippetsExtension(EditorExtension):
             if first_token.mark_for_position:
                 if first_token.name in MERGE_ALLOWED:
                     if first_token.name == node.name:
-                        right_offset = 1
+                        left_offset = 0
+                        # right_offset = 1
                         first_token.value = (
                             node.value + first_token.value)
 
