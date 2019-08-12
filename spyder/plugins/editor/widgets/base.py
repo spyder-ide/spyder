@@ -206,7 +206,7 @@ class CompletionWidget(QListWidget):
             self.scrollTo(self.currentIndex(),
                           QAbstractItemView.PositionAtTop)
         else:
-            self.addItem(QListWidgetItem(self.empty_text))
+            self.hide()
 
     def hide(self):
         """Hide the widget."""
