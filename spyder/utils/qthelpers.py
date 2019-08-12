@@ -4,30 +4,33 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Qt utilities"""
+"""Qt utilities."""
 
 # Standard library imports
+from math import pi
+import logging
 import os
 import os.path as osp
 import re
 import sys
 
 # Third party imports
-from qtpy.compat import to_qvariant, from_qvariant
+from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QEvent, QLibraryInfo, QLocale, QObject, Qt, QTimer,
                          QTranslator, Signal, Slot)
 from qtpy.QtGui import QIcon, QKeyEvent, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QLabel,
-                            QLineEdit, QMenu, QStyle, QToolBar, QToolButton,
-                            QVBoxLayout, QWidget)
+                            QLineEdit, QMenu, QProxyStyle, QStyle, QToolBar,
+                            QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import get_image_path, running_in_mac_app
-from spyder.config.gui import get_shortcut
-from spyder.utils import programs
-from spyder.utils import icon_manager as ima
-from spyder.utils.icon_manager import get_icon, get_std_icon
+from spyder.config.gui import get_shortcut, is_dark_interface
 from spyder.py3compat import is_text_string, to_text_string
+from spyder.utils import icon_manager as ima
+from spyder.utils import programs
+from spyder.utils.icon_manager import get_icon, get_std_icon
+from spyder.widgets.waitingspinner import QWaitingSpinner
 
 # Note: How to redirect a signal from widget *a* to widget *b* ?
 # ----
@@ -39,6 +42,8 @@ from spyder.py3compat import is_text_string, to_text_string
 #    self.connect(self.listwidget, SIGNAL('option_changed'),
 #                 lambda *args: self.emit(SIGNAL('option_changed'), *args))
 
+logger = logging.getLogger(__name__)
+MENU_SEPARATOR = None
 
 
 def get_image_label(name, default="not_found.png"):
@@ -51,7 +56,7 @@ def get_image_label(name, default="not_found.png"):
 class MacApplication(QApplication):
     """Subclass to be able to open external files with our Mac app"""
     sig_open_external_file = Signal(str)
-    
+
     def __init__(self, *args):
         QApplication.__init__(self, *args)
 
@@ -66,7 +71,7 @@ def qapplication(translate=True, test_time=3):
     """
     Return QApplication instance
     Creates it if it doesn't already exist
-    
+
     test_time: Time to maintain open the application when testing. It's given
     in seconds
     """
@@ -74,14 +79,14 @@ def qapplication(translate=True, test_time=3):
         SpyderApplication = MacApplication
     else:
         SpyderApplication = QApplication
-    
+
     app = SpyderApplication.instance()
     if app is None:
         # Set Application name for Gnome 3
         # https://groups.google.com/forum/#!topic/pyside/24qxvwfrRDs
         app = SpyderApplication(['Spyder'])
 
-        # Set application name for KDE (See issue 2207)
+        # Set application name for KDE. See spyder-ide/spyder#2207.
         app.setApplicationName('Spyder')
     if translate:
         install_translator(app)
@@ -168,7 +173,7 @@ def keyevent2tuple(event):
     return (event.type(), event.key(), event.modifiers(), event.text(),
             event.isAutoRepeat(), event.count())
 
-    
+
 def tuple2keyevent(past_event):
     """Convert tuple into a QKeyEvent instance"""
     return QKeyEvent(*past_event)
@@ -211,6 +216,30 @@ def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
     if shortcut is not None:
         button.setShortcut(shortcut)
     return button
+
+
+def create_waitspinner(size=32, n=11, parent=None):
+    """
+    Create a wait spinner with the specified size built with n circling dots.
+    """
+    dot_padding = 1
+
+    # To calculate the size of the dots, we need to solve the following
+    # system of two equations in two variables.
+    # (1) middle_circumference = pi * (size - dot_size)
+    # (2) middle_circumference = n * (dot_size + dot_padding)
+    dot_size = (pi * size - n * dot_padding) / (n + pi)
+    inner_radius = (size - 2 * dot_size) / 2
+
+    spinner = QWaitingSpinner(parent, centerOnParent=False)
+    spinner.setTrailSizeDecreasing(True)
+    spinner.setNumberOfLines(n)
+    spinner.setLineLength(dot_size)
+    spinner.setLineWidth(dot_size)
+    spinner.setInnerRadius(inner_radius)
+    spinner.setColor(Qt.white if is_dark_interface() else Qt.black)
+
+    return spinner
 
 
 def action2button(action, autoraise=True, text_beside_icon=False, parent=None):
@@ -304,15 +333,10 @@ def add_actions(target, actions, insert_before=None):
             else:
                 target.insertMenu(insert_before, action)
         elif isinstance(action, QAction):
-            if isinstance(action, SpyderAction):
-                if isinstance(target, QMenu) or not isinstance(target, QToolBar):
-                    try:
-                        action = action.no_icon_action
-                    except RuntimeError:
-                        continue
             if insert_before is None:
                 # This is needed in order to ignore adding an action whose
-                # wrapped C/C++ object has been deleted. See issue 5074
+                # wrapped C/C++ object has been deleted.
+                # See spyder-ide/spyder#5074.
                 try:
                     target.addAction(action)
                 except RuntimeError:
@@ -334,11 +358,11 @@ def set_item_user_text(item, text):
 
 def create_bookmark_action(parent, url, title, icon=None, shortcut=None):
     """Create bookmark action"""
-    
+
     @Slot()
     def open_url():
         return programs.start_file(url)
-    
+
     return create_action( parent, title, shortcut=shortcut, icon=icon,
                           triggered=open_url)
 
@@ -361,7 +385,7 @@ def create_module_bookmark_actions(parent, bookmarks):
             actions.append(act)
     return actions
 
-        
+
 def create_program_action(parent, text, name, icon=None, nt_name=None):
     """Create action to run a program"""
     if is_text_string(icon):
@@ -373,7 +397,7 @@ def create_program_action(parent, text, name, icon=None, nt_name=None):
         return create_action(parent, text, icon=icon,
                              triggered=lambda: programs.run_program(name))
 
-        
+
 def create_python_script_action(parent, text, icon, package, module, args=[]):
     """Create action to run a GUI based Python script"""
     if is_text_string(icon):
@@ -392,7 +416,7 @@ class DialogManager(QObject):
     def __init__(self):
         QObject.__init__(self)
         self.dialogs = {}
-        
+
     def show(self, dialog):
         """Generic method to show a non-modal dialog and keep reference
         to the Qt C++ object"""
@@ -409,17 +433,17 @@ class DialogManager(QObject):
                               lambda eid=id(dialog): self.dialog_finished(eid))
             dialog.rejected.connect(
                               lambda eid=id(dialog): self.dialog_finished(eid))
-    
+
     def dialog_finished(self, dialog_id):
         """Manage non-modal dialog boxes"""
         return self.dialogs.pop(dialog_id)
-    
+
     def close_all(self):
         """Close all opened dialog boxes"""
         for dlg in list(self.dialogs.values()):
             dlg.reject()
 
-        
+
 def get_filetype_icon(fname):
     """Return file type icon"""
     ext = osp.splitext(fname)[1]
@@ -427,47 +451,15 @@ def get_filetype_icon(fname):
         ext = ext[1:]
     return get_icon( "%s.png" % ext, ima.icon('FileIcon') )
 
-    
+
 class SpyderAction(QAction):
     """Spyder QAction class wrapper to handle cross platform patches."""
 
     def __init__(self, *args, **kwargs):
         """Spyder QAction class wrapper to handle cross platform patches."""
         super(SpyderAction, self).__init__(*args, **kwargs)
-        self._action_no_icon = None
-
-        if sys.platform == 'darwin':
-            self._action_no_icon = QAction(*args, **kwargs)
-            self._action_no_icon.setIcon(QIcon())
-            self._action_no_icon.triggered.connect(self.triggered)
-            self._action_no_icon.toggled.connect(self.toggled)
-            self._action_no_icon.changed.connect(self.changed)
-            self._action_no_icon.hovered.connect(self.hovered)
-        else:
-            self._action_no_icon = self
-
-    def __getattribute__(self, name):
-        """Intercept method calls and apply to both actions, except signals."""
-        attr = super(SpyderAction, self).__getattribute__(name)
-
-        if hasattr(attr, '__call__') and name not in ['triggered', 'toggled',
-                                                      'changed', 'hovered']:
-            def newfunc(*args, **kwargs):
-                result = attr(*args, **kwargs)
-                if name not in ['setIcon']:
-                    action_no_icon = self.__dict__['_action_no_icon']
-                    attr_no_icon = super(QAction,
-                                         action_no_icon).__getattribute__(name)
-                    attr_no_icon(*args, **kwargs)
-                return result
-            return newfunc
-        else:
-            return attr
-
-    @property
-    def no_icon_action(self):
-        """Return the action without an Icon."""
-        return self._action_no_icon
+        if sys.platform == "darwin":
+            self.setIconVisibleInMenu(False)
 
 
 class ShowStdIcons(QWidget):
@@ -492,7 +484,7 @@ class ShowStdIcons(QWidget):
                 col_layout.addLayout(icon_layout)
                 cindex = (cindex+1) % row_nb
                 if cindex == 0:
-                    layout.addLayout(col_layout)                    
+                    layout.addLayout(col_layout)
         self.setLayout(layout)
         self.setWindowTitle('Standard Platform Icons')
         self.setWindowIcon(get_std_icon('TitleBarMenuButton'))
@@ -571,7 +563,33 @@ def create_plugin_layout(tools_layout, main_widget=None):
     return layout
 
 
-MENU_SEPARATOR = None
+def set_menu_icons(menu, state):
+    """Show/hide icons for menu actions."""
+    menu_actions = menu.actions()
+    for action in menu_actions:
+        try:
+            if action.menu() is not None:
+                # This is submenu, so we need to call this again
+                set_menu_icons(action.menu(), state)
+            elif action.isSeparator():
+                continue
+            else:
+                action.setIconVisibleInMenu(state)
+        except RuntimeError:
+            continue
+
+
+class SpyderProxyStyle(QProxyStyle):
+    """Style proxy to adjust qdarkstyle issues."""
+
+    def styleHint(self, hint, option=0, widget=0, returnData=0):
+        """Override Qt method."""
+        if hint == QStyle.SH_ComboBox_Popup:
+            # Disable combo-box popup top & bottom areas
+            # See: https://stackoverflow.com/a/21019371
+            return 0
+
+        return QProxyStyle.styleHint(self, hint, option, widget, returnData)
 
 
 if __name__ == "__main__":

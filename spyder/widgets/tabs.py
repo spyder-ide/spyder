@@ -17,16 +17,14 @@ import sys
 
 # Third party imports
 from qtpy import PYQT5
-from qtpy.QtCore import (QByteArray, QEvent, QMimeData, QPoint, Qt, Signal,
-                         Slot)
-from qtpy.QtGui import QDrag
-from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu, QTabBar,
+from qtpy.QtCore import QEvent, QPoint, Qt, Signal, Slot
+from qtpy.QtWidgets import (QHBoxLayout, QMenu, QTabBar,
                             QTabWidget, QWidget, QLineEdit)
 
 # Local imports
 from spyder.config.base import _
 from spyder.config.gui import config_shortcut
-from spyder.py3compat import PY2, to_binary_string, to_text_string
+from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import get_common_path
 from spyder.utils.qthelpers import (add_actions, create_action,
@@ -136,7 +134,7 @@ class TabBar(QTabBar):
     """Tabs base class with drag and drop support"""
     sig_move_tab = Signal((int, int), (str, int, int))
     sig_change_name = Signal(str)
-    
+
     def __init__(self, parent, ancestor, rename_tabs=False, split_char='',
                  split_index=0):
         QTabBar.__init__(self, parent)
@@ -145,7 +143,7 @@ class TabBar(QTabBar):
         # To style tabs on Mac
         if sys.platform == 'darwin':
             self.setObjectName('plugin-tab')
-            
+
         # Dragging tabs
         self.__drag_start_pos = QPoint()
         self.setAcceptDrops(True)
@@ -166,7 +164,7 @@ class TabBar(QTabBar):
         if event.button() == Qt.LeftButton:
             self.__drag_start_pos = QPoint(event.pos())
         QTabBar.mousePressEvent(self, event)
-    
+
     def mouseMoveEvent(self, event):
         """Override Qt method"""
         # FIXME: This was added by Pierre presumably to move tabs
@@ -193,7 +191,7 @@ class TabBar(QTabBar):
         #    drag.setMimeData(mimeData)
         #    drag.exec_()
         QTabBar.mouseMoveEvent(self, event)
-    
+
     def dragEnterEvent(self, event):
         """Override Qt method"""
         mimeData = event.mimeData()
@@ -204,7 +202,7 @@ class TabBar(QTabBar):
             event.acceptProposedAction()
 
         QTabBar.dragEnterEvent(self, event)
-    
+
     def dropEvent(self, event):
         """Override Qt method"""
         mimeData = event.mimeData()
@@ -214,11 +212,11 @@ class TabBar(QTabBar):
             index_to = self.count()
         if int(mimeData.data("tabbar-id")) != id(self):
             tabwidget_from = to_text_string(mimeData.data("tabwidget-id"))
-            
-            # We pass self object ID as a QString, because otherwise it would 
-            # depend on the platform: long for 64bit, int for 32bit. Replacing 
-            # by long all the time is not working on some 32bit platforms 
-            # (see Issue 1094, Issue 1098)
+
+            # We pass self object ID as a QString, because otherwise it would
+            # depend on the platform: long for 64bit, int for 32bit. Replacing
+            # by long all the time is not working on some 32bit platforms.
+            # See spyder-ide/spyder#1094 and spyder-ide/spyder#1098.
             self.sig_move_tab[(str, int, int)].emit(tabwidget_from, index_from,
                                                     index_to)
             event.acceptProposedAction()
@@ -240,11 +238,11 @@ class TabBar(QTabBar):
             # Event is not interesting, raise to parent
             QTabBar.mouseDoubleClickEvent(self, event)
 
-        
+
 class BaseTabs(QTabWidget):
     """TabWidget with context menu and corner widgets"""
     sig_close_tab = Signal(int)
-    
+
     def __init__(self, parent, actions=None, menu=None,
                  corner_widgets=None, menu_use_tooltips=False):
         QTabWidget.__init__(self, parent)
@@ -256,14 +254,17 @@ class BaseTabs(QTabWidget):
 
         self.corner_widgets = {}
         self.menu_use_tooltips = menu_use_tooltips
-        
+
+        self.setStyleSheet("QTabWidget::tab-bar {"
+                           "alignment: left;}")
+
         if menu is None:
             self.menu = QMenu(self)
             if actions:
                 add_actions(self.menu, actions)
         else:
             self.menu = menu
-            
+
         # Corner widgets
         if corner_widgets is None:
             corner_widgets = {}
@@ -300,7 +301,7 @@ class BaseTabs(QTabWidget):
                 # Testing if tab names are filenames
                 dirnames.append(osp.dirname(text))
         offset = None
-        
+
         # If tab names are all filenames, removing common path:
         if len(names) == len(dirnames):
             common = get_common_path(dirnames)
@@ -348,17 +349,17 @@ class BaseTabs(QTabWidget):
                     clayout.addWidget(widget)
             cwidget.setLayout(clayout)
             cwidget.show()
-            
+
     def add_corner_widgets(self, widgets, corner=Qt.TopRightCorner):
         self.set_corner_widgets({corner:
                                  self.corner_widgets.get(corner, [])+widgets})
-        
+
     def contextMenuEvent(self, event):
         """Override Qt method"""
         self.setCurrentIndex(self.tabBar().tabAt(event.pos()))
         if self.menu:
             self.menu.popup(event.globalPos())
-            
+
     def mousePressEvent(self, event):
         """Override Qt method"""
         if event.button() == Qt.MidButton:
@@ -368,7 +369,7 @@ class BaseTabs(QTabWidget):
                 event.accept()
                 return
         QTabWidget.mousePressEvent(self, event)
-        
+
     def keyPressEvent(self, event):
         """Override Qt method"""
         ctrl = event.modifiers() & Qt.ControlModifier
@@ -400,7 +401,7 @@ class BaseTabs(QTabWidget):
         else:
             index = self.currentIndex()+delta
         self.setCurrentIndex(index)
-        
+
     def set_close_function(self, func):
         """Setting Tabs close function
         None -> tabs are not closable"""
@@ -418,14 +419,14 @@ class BaseTabs(QTabWidget):
                                              tip=_("Close current tab"))
             self.setCornerWidget(close_button if state else None)
 
-        
+
 class Tabs(BaseTabs):
     """BaseTabs widget with movable tabs and tab navigation shortcuts"""
     # Signals
     move_data = Signal(int, int)
     move_tab_finished = Signal()
     sig_move_tab = Signal(str, str, int, int)
-    
+
     def __init__(self, parent, actions=None, menu=None,
                  corner_widgets=None, menu_use_tooltips=False,
                  rename_tabs=False, split_char='',
@@ -458,11 +459,11 @@ class Tabs(BaseTabs):
         tip, text = self.tabToolTip(index_from), self.tabText(index_from)
         icon, widget = self.tabIcon(index_from), self.widget(index_from)
         current_widget = self.currentWidget()
-        
+
         self.removeTab(index_from)
         self.insertTab(index_to, widget, icon, text)
         self.setTabToolTip(index_to, tip)
-        
+
         self.setCurrentWidget(current_widget)
         self.move_tab_finished.emit()
 
@@ -470,10 +471,10 @@ class Tabs(BaseTabs):
     def move_tab_from_another_tabwidget(self, tabwidget_from,
                                         index_from, index_to):
         """Move tab from a tabwidget to another"""
-            
-        # We pass self object IDs as QString objs, because otherwise it would 
-        # depend on the platform: long for 64bit, int for 32bit. Replacing 
-        # by long all the time is not working on some 32bit platforms 
-        # (see Issue 1094, Issue 1098)
+
+        # We pass self object IDs as QString objs, because otherwise it would
+        # depend on the platform: long for 64bit, int for 32bit. Replacing
+        # by long all the time is not working on some 32bit platforms.
+        # See spyder-ide/spyder#1094 and spyder-ide/spyder#1098.
         self.sig_move_tab.emit(tabwidget_from, to_text_string(id(self)),
                                index_from, index_to)

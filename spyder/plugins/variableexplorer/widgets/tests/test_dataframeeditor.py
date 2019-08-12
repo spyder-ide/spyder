@@ -23,7 +23,7 @@ except ImportError:
 
 # Third party imports
 from pandas import (DataFrame, date_range, read_csv, concat, Index, RangeIndex,
-                    DatetimeIndex, MultiIndex, CategoricalIndex)
+                    MultiIndex, CategoricalIndex)
 from qtpy.QtGui import QColor
 from qtpy.QtCore import Qt, QTimer
 import numpy
@@ -72,8 +72,7 @@ def generate_pandas_indexes():
         'Index': Index(list('ABCDEFGHIJKLMNOPQRST')),
         'RangeIndex': RangeIndex(0, 20),
         'Float64Index': Index([i/10 for i in range(20)]),
-        'DatetimeIndex': DatetimeIndex(start='2017-01-01', periods=20,
-                                       freq='D'),
+        'DatetimeIndex': date_range(start='2017-01-01', periods=20, freq='D'),
         'MultiIndex': MultiIndex.from_product(
             [list('ABCDEFGHIJ'), ('foo', 'bar')], names=['first', 'second']),
         'CategoricalIndex': CategoricalIndex(list('abcaadaccbbacabacccb'),
@@ -196,7 +195,8 @@ def test_dataframemodel_sort():
     assert data(dfm, 0, 1) == 'a'
     assert data(dfm, 1, 1) == 'c'
 
-def test_dataframemodel_sort_is_stable():   # cf. issue 3010
+
+def test_dataframemodel_sort_is_stable():   # cf. spyder-ide/spyder#3010.
     """Validate the sort function."""
     df = DataFrame([[2,14], [2,13], [2,16], [1,3], [2,9], [1,15], [1,17],
                     [2,2], [2,10], [1,6], [2,5], [2,8], [1,11], [1,1],
@@ -218,12 +218,15 @@ def test_dataframemodel_max_min_col_update_constant():
     dfm = DataFrameModel(df)
     assert dfm.max_min_col == [[1, 0], [2.0, 1.0]]
 
-def test_dataframemodel_with_timezone_aware_timestamps(): # cf. issue 2940
+
+def test_dataframemodel_with_timezone_aware_timestamps():
+    # cf. spyder-ide/spyder#2940.
     df = DataFrame([x] for x in date_range('20150101', periods=5, tz='UTC'))
     dfm = DataFrameModel(df)
     assert dfm.max_min_col == [None]
 
-def test_dataframemodel_with_categories(): # cf. issue 3308
+
+def test_dataframemodel_with_categories():  # cf. spyder-ide/spyder#3308.
     df = DataFrame({"id": [1, 2, 3, 4, 5, 6],
                     "raw_grade": ['a', 'b', 'b', 'a', 'a', 'e']})
     df["grade"] = df["raw_grade"].astype("category")
@@ -301,7 +304,7 @@ def test_dataframemodel_with_format_percent_d_and_nan():
     """
     Test DataFrameModel with format `%d` and dataframe containing NaN
 
-    Regression test for issue #4139.
+    Regression test for spyder-ide/spyder#4139.
     """
     np_array = numpy.zeros(2)
     np_array[1] = numpy.nan
@@ -377,7 +380,9 @@ def test_dataframeeditor_with_various_indexes():
             assert data(dfm, 2, 0) == 'c'
             assert data(dfm, 19, 0) == 'b'
 
-def test_dataframeeditor_with_OutOfBoundsDatetime():  # Test for #6177
+
+def test_dataframeeditor_with_OutOfBoundsDatetime():
+    # Test for spyder-ide/spyder#6177.
     df = DataFrame([{'DATETIME': datetime.strptime("9999-1-1T00:00",
                                                    "%Y-%m-%dT%H:%M")}])
     model = DataFrameModel(df)
@@ -405,7 +410,8 @@ def test_sort_dataframe_with_duplicate_column(qtbot):
 
 @pytest.mark.skipif(not os.name == 'nt',
                     reason="It segfaults too much on Linux")
-def test_sort_dataframe_with_category_dtypes(qtbot):  # cf. issue 5361
+def test_sort_dataframe_with_category_dtypes(qtbot):
+    # cf. spyder-ide/spyder#5361.
     df = DataFrame({'A': [1, 2, 3, 4],
                     'B': ['a', 'b', 'c', 'd']})
     df = df.astype(dtype={'B': 'category'})
@@ -423,7 +429,7 @@ def test_dataframemodel_set_data_overflow(monkeypatch):
     """
     Test that entry of an overflowing integer is caught and handled properly.
 
-    Unit regression test for issue #6114 .
+    Unit regression test for spyder-ide/spyder#6114.
     """
     MockQMessageBox = Mock()
     attr_to_patch = ('spyder.plugins.variableexplorer.widgets' +
@@ -460,7 +466,7 @@ def test_dataframeeditor_edit_overflow(qtbot, monkeypatch):
     """
     Test that entry of an overflowing integer is caught and handled properly.
 
-    Integration regression test for issue #6114 .
+    Integration regression test for spyder-ide/spyder#6114.
     """
     MockQMessageBox = Mock()
     attr_to_patch = ('spyder.plugins.variableexplorer.widgets' +
@@ -513,7 +519,7 @@ def test_dataframemodel_set_data_complex(monkeypatch):
     """
     Test that editing complex dtypes is handled gracefully in df editor.
 
-    Unit regression test for issue #6115 .
+    Unit regression test for spyder-ide/spyder#6115.
     """
     MockQMessageBox = Mock()
     attr_to_patch = ('spyder.plugins.variableexplorer.widgets' +
@@ -544,7 +550,7 @@ def test_dataframeeditor_edit_complex(qtbot, monkeypatch):
     """
     Test that editing complex dtypes is handled gracefully in df editor.
 
-    Integration regression test for issue #6115 .
+    Integration regression test for spyder-ide/spyder#6115.
     """
     MockQMessageBox = Mock()
     attr_to_patch = ('spyder.plugins.variableexplorer.widgets' +

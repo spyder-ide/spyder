@@ -13,9 +13,8 @@ import re
 # Third party imports
 from qtpy import PYQT5
 from qtpy.compat import from_qvariant, to_qvariant
-from qtpy.QtCore import (QAbstractTableModel, QModelIndex, QRegExp,
-                         QSortFilterProxyModel, Qt, Slot, QEvent)
-from qtpy.QtGui import (QKeySequence, QRegExpValidator, QIcon)
+from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Slot, QEvent
+from qtpy.QtGui import QKeySequence, QIcon
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
                             QGridLayout, QHBoxLayout, QLabel,
                             QLineEdit, QMessageBox, QPushButton, QSpacerItem,
@@ -23,15 +22,16 @@ from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.config.gui import (get_shortcut, iter_shortcuts,
                                reset_shortcuts, set_shortcut)
 from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import get_std_icon, create_toolbutton
-from spyder.utils.stringmatching import get_search_scores, get_search_regex
-from spyder.widgets.helperwidgets import HTMLDelegate
-from spyder.widgets.helperwidgets import HelperToolButton
+from spyder.utils.stringmatching import get_search_scores
+from spyder.widgets.helperwidgets import (CustomSortFilterProxy,
+                                          FinderLineEdit, HelperToolButton,
+                                          HTMLDelegate, VALID_FINDER_CHARS)
 
 
 # Valid shortcut keys
@@ -40,11 +40,6 @@ EDITOR_SINGLE_KEYS = SINGLE_KEYS + ["Home", "End", "Ins", "Enter",
                                     "Return", "Backspace", "Tab",
                                     "PageUp", "PageDown", "Clear",  "Pause",
                                     "Left", "Up", "Right", "Down"]
-
-# Valid finder chars. To be improved
-VALID_ACCENT_CHARS = "ÁÉÍOÚáéíúóàèìòùÀÈÌÒÙâêîôûÂÊÎÔÛäëïöüÄËÏÖÜñÑ"
-VALID_FINDER_CHARS = r"[A-Za-z\s{0}]".format(VALID_ACCENT_CHARS)
-
 
 # Key sequences blacklist for the shortcut editor dialog
 BLACKLIST = {}
@@ -118,29 +113,11 @@ class ShortcutLineEdit(QLineEdit):
         super(ShortcutLineEdit, self).setText(sequence)
 
 
-class ShortcutFinder(QLineEdit):
+class ShortcutFinder(FinderLineEdit):
     """Textbox for filtering listed shortcuts in the table."""
 
-    def __init__(self, parent, callback=None):
-        super(ShortcutFinder, self).__init__(parent)
-        self._parent = parent
-
-        # Widget setup
-        regex = QRegExp(VALID_FINDER_CHARS + "{100}")
-        self.setValidator(QRegExpValidator(regex))
-
-        # Signals
-        if callback:
-            self.textChanged.connect(callback)
-
-    def set_text(self, text):
-        """Set the filter text."""
-        text = text.strip()
-        new_text = self.text() + text
-        self.setText(new_text)
-
     def keyPressEvent(self, event):
-        """Qt Override."""
+        """Qt and FilterLineEdit Override."""
         key = event.key()
         if key in [Qt.Key_Up]:
             self._parent.previous_row()
@@ -297,18 +274,18 @@ class ShortcutEditor(QDialog):
     @Slot()
     def reject(self):
         """Slot for rejected signal."""
-        # Added for issue #5426.  Due to the focusPolicy of Qt.NoFocus for the
-        # buttons, if the cancel button was clicked without first setting focus
-        # to the button, it would cause a seg fault crash.
+        # Added for spyder-ide/spyder#5426.  Due to the focusPolicy of
+        # Qt.NoFocus for the buttons, if the cancel button was clicked without
+        # first setting focus to the button, it would cause a seg fault crash.
         self.button_cancel.setFocus()
         super(ShortcutEditor, self).reject()
 
     @Slot()
     def accept(self):
         """Slot for accepted signal."""
-        # Added for issue #5426.  Due to the focusPolicy of Qt.NoFocus for the
-        # buttons, if the ok button was clicked without first setting focus to
-        # the button, it would cause a seg fault crash.
+        # Added for spyder-ide/spyder#5426.  Due to the focusPolicy of
+        # Qt.NoFocus for the buttons, if the cancel button was clicked without
+        # first setting focus to the button, it would cause a seg fault crash.
         self.button_ok.setFocus()
         super(ShortcutEditor, self).accept()
 
@@ -549,7 +526,7 @@ class ShortcutsModel(QAbstractTableModel):
         """Qt Override."""
         if not index.isValid():
             return Qt.ItemIsEnabled
-        return Qt.ItemFlags(QAbstractTableModel.flags(self, index))
+        return Qt.ItemFlags(int(QAbstractTableModel.flags(self, index)))
 
     def data(self, index, role=Qt.DisplayRole):
         """Qt Override."""
@@ -646,38 +623,6 @@ class ShortcutsModel(QAbstractTableModel):
         """"Reset model to take into account new search letters."""
         self.beginResetModel()
         self.endResetModel()
-
-
-class CustomSortFilterProxy(QSortFilterProxyModel):
-    """Custom column filter based on regex."""
-
-    def __init__(self, parent=None):
-        super(CustomSortFilterProxy, self).__init__(parent)
-        self._parent = parent
-        self.pattern = re.compile(r'')
-
-    def set_filter(self, text):
-        """Set regular expression for filter."""
-        self.pattern = get_search_regex(text)
-        if self.pattern:
-            self._parent.setSortingEnabled(False)
-        else:
-            self._parent.setSortingEnabled(True)
-        self.invalidateFilter()
-
-    def filterAcceptsRow(self, row_num, parent):
-        """Qt override.
-
-        Reimplemented from base class to allow the use of custom filtering.
-        """
-        model = self.sourceModel()
-        name = model.row(row_num).name
-        r = re.search(self.pattern, name)
-
-        if r is None:
-            return False
-        else:
-            return True
 
 
 class ShortcutsTable(QTableView):
@@ -851,6 +796,7 @@ class ShortcutsTable(QTableView):
     def mouseDoubleClickEvent(self, event):
         """Qt Override."""
         self.show_editor()
+        self.update()
 
 
 class ShortcutsConfigPage(GeneralConfigPage):
@@ -863,12 +809,20 @@ class ShortcutsConfigPage(GeneralConfigPage):
         self.table = ShortcutsTable(self, text_color=ima.MAIN_FG_COLOR)
         self.finder = ShortcutFinder(self.table, self.table.set_regex)
         self.table.finder = self.finder
+        self.table.finder.setPlaceholderText(
+            _("Search for a shortcut in the table above"))
         self.label_finder = QLabel(_('Search: '))
         self.reset_btn = QPushButton(_("Reset to default values"))
+        self.top_label = QLabel(
+            _("Here you can browse the list of all available shortcuts in "
+              "Spyder. You can also customize them by double-clicking on any "
+              "entry in this table."))
+        self.top_label.setWordWrap(True)
 
         # Layout
         hlayout = QHBoxLayout()
         vlayout = QVBoxLayout()
+        vlayout.addWidget(self.top_label)
         hlayout.addWidget(self.label_finder)
         hlayout.addWidget(self.finder)
         vlayout.addWidget(self.table)

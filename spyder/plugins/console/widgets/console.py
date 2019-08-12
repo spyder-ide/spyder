@@ -157,7 +157,7 @@ class ConsoleBaseWidget(TextEditBaseWidget):
         # We use an object name to set the right background
         # color when changing interface theme. This seems to
         # be a Qt bug.
-        # Fixes issue 8072
+        # Fixes spyder-ide/spyder#8072.
         self.setObjectName('console')
 
         self.setMaximumBlockCount(300)
@@ -258,7 +258,7 @@ class ConsoleBaseWidget(TextEditBaseWidget):
                 else:
                     # Show error/warning messages in red
                     cursor.insertText(text, self.error_style.format)
-            self.exception_occurred.emit(text, is_traceback)
+                self.exception_occurred.emit(text, is_traceback)
         elif prompt:
             # Show prompt in green
             insert_text_to(cursor, text, self.prompt_style.format)

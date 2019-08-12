@@ -25,16 +25,17 @@ def test_get_settings(monkeypatch):
         if option == 'remote1': return 'remote1val'
         if option == 'remote2': return 'remote2val'
         if option == 'dataframe_format': return '3d'
-        
+
     monkeypatch.setattr(VariableExplorer, 'CONF_SECTION', 'sect')
-    monkeypatch.setattr('spyder.plugins.variableexplorer.plugin.REMOTE_SETTINGS', 
+    monkeypatch.setattr('spyder.plugins.variableexplorer.plugin.REMOTE_SETTINGS',
                         ['remote1', 'remote2'])
     monkeypatch.setattr(VariableExplorer, 'get_option', mock_get_option)
 
     app = qapplication()
     settings = VariableExplorer(None).get_settings()
-    expected = {'remote1': 'remote1val', 'remote2': 'remote2val',
-                'dataframe_format': '%3d'}
+    expected = {'dataframe_format': '%3d',
+                'remote1': 'remote1val',
+                'remote2': 'remote2val'}
     assert settings == expected
 
 

@@ -17,11 +17,18 @@ from pickleshare import PickleShareDB
 
 from spyder.config.base import get_conf_path
 
-# Path to the modules database
-MODULES_PATH = get_conf_path('db')
 
-# Modules database
-modules_db = PickleShareDB(MODULES_PATH)
+# List of preferred modules
+PREFERRED_MODULES = ['numpy', 'scipy', 'sympy', 'pandas', 'networkx',
+                     'statsmodels', 'matplotlib', 'sklearn', 'skimage',
+                     'mpmath', 'os', 'pillow', 'OpenGL', 'array', 'audioop',
+                     'binascii', 'cPickle', 'cStringIO', 'cmath',
+                     'collections', 'datetime', 'errno', 'exceptions', 'gc',
+                     'importlib', 'itertools', 'math', 'mmap',
+                     'msvcrt', 'nt', 'operator', 'ast', 'signal',
+                     'sys', 'threading', 'time', 'wx', 'zipimport',
+                     'zlib', 'pytest', 'PyQt4', 'PyQt5', 'PySide',
+                     'PySide2', 'os.path']
 
 
 def get_submodules(mod):
@@ -40,7 +47,7 @@ def get_submodules(mod):
         return []
     except:
         return [mod]
-    
+
     return submodules
 
 
@@ -49,23 +56,20 @@ def get_preferred_submodules():
     Get all submodules of the main scientific modules and others of our
     interest
     """
+    # Path to the modules database
+    modules_path = get_conf_path('db')
+
+    # Modules database
+    modules_db = PickleShareDB(modules_path)
+
     if 'submodules' in modules_db:
         return modules_db['submodules']
-    
-    mods = ['numpy', 'scipy', 'sympy', 'pandas', 'networkx', 'statsmodels',
-            'matplotlib', 'sklearn', 'skimage', 'mpmath', 'os', 'PIL',
-            'OpenGL', 'array', 'audioop', 'binascii', 'cPickle', 'cStringIO',
-            'cmath', 'collections', 'datetime', 'errno', 'exceptions', 'gc',
-            'imageop', 'imp', 'itertools', 'marshal', 'math', 'mmap', 'msvcrt',
-            'nt', 'operator', 'parser', 'rgbimg', 'signal', 'strop', 'sys',
-            'thread', 'time', 'wx', 'xxsubtype', 'zipimport', 'zlib', 'nose',
-            'PyQt4', 'PySide', 'os.path']
 
     submodules = []
 
-    for m in mods:
+    for m in PREFERRED_MODULES:
         submods = get_submodules(m)
         submodules += submods
-    
+
     modules_db['submodules'] = submodules
     return submodules

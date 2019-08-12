@@ -39,7 +39,7 @@ def test_no_auto_colon_after_simple_statement():
 def test_auto_colon_after_if_statement():
     editor = construct_editor("if x == 1")
     assert editor.autoinsert_colons() == True
-    
+
 def test_no_auto_colon_if_not_at_end_of_line():
     editor = construct_editor("if x == 1")
     cursor = editor.textCursor()
@@ -47,8 +47,8 @@ def test_no_auto_colon_if_not_at_end_of_line():
     editor.setTextCursor(cursor)
     assert editor.autoinsert_colons() == False
 
-def test_no_auto_colon_if_unterminated_string():    
-    editor = construct_editor("if x == '1") 
+def test_no_auto_colon_if_unterminated_string():
+    editor = construct_editor("if x == '1")
     assert editor.autoinsert_colons() == False
 
 def test_no_auto_colon_in_comment():
@@ -56,15 +56,15 @@ def test_no_auto_colon_in_comment():
     assert editor.autoinsert_colons() == False
 
 def test_no_auto_colon_if_already_ends_in_colon():
-    editor = construct_editor("if x == 1:") 
+    editor = construct_editor("if x == 1:")
     assert editor.autoinsert_colons() == False
 
 def test_no_auto_colon_if_ends_in_backslash():
-    editor = construct_editor("if x == 1 \\") 
+    editor = construct_editor("if x == 1 \\")
     assert editor.autoinsert_colons() == False
 
 def test_no_auto_colon_in_one_line_if_statement():
-    editor = construct_editor("if x < 0: x = 0") 
+    editor = construct_editor("if x < 0: x = 0")
     assert editor.autoinsert_colons() == False
 
 def test_auto_colon_even_if_colon_inside_brackets():
@@ -75,7 +75,7 @@ def test_no_auto_colon_in_listcomp_over_two_lines():
     editor = construct_editor("ns = [ n for ns in range(10) \n if n < 5 ]")
     assert editor.autoinsert_colons() == False
 
-    
+
 # --- Failing tests
 # -----------------------------------------------------------------------------
 @pytest.mark.xfail
@@ -94,9 +94,9 @@ def test_no_auto_colon_in_listcomp_over_three_lines():
 
 @pytest.mark.xfail
 def test_auto_colon_in_two_if_statements_on_one_line():
-    editor = construct_editor("if x < 0: x = 0; if x == 0") 
+    editor = construct_editor("if x < 0: x = 0; if x == 0")
     assert editor.autoinsert_colons() == True
-    
+
 
 if __name__ == "__main__":
     pytest.main()

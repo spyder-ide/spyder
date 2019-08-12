@@ -64,13 +64,17 @@ class Pylint(SpyderPluginWidget):
                                        triggered=self.change_history_depth)
         self.pylint.treewidget.common_actions += (None, history_action)
 
-        # Initialize plugin
-        self.initialize_plugin()
-        
+        # Follow editorstacks tab change
+        self.main.editor.sig_editor_focus_changed.connect(self.set_filename)
+
+        # Used by Analyze button to check if file should be saved and start
+        # analysis
+        self.pylint.start_analysis.connect(self.run_pylint_from_analyze_button)
+
     #------ SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
-        return _("Static code analysis")
+        return _("Code Analysis")
 
     def get_plugin_icon(self):
         """Return widget icon"""
@@ -83,14 +87,14 @@ class Pylint(SpyderPluginWidget):
         this plugin's dockwidget is raised on top-level
         """
         return self.pylint.treewidget
-    
+
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         return self.pylint.treewidget.get_menu_actions()
 
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""
-        self.main.tabify_plugins(self.main.help, self)
+        self.tabify(self.main.help)
         self.dockwidget.hide()
 
     def register_plugin(self):
@@ -98,31 +102,27 @@ class Pylint(SpyderPluginWidget):
         self.pylint.treewidget.sig_edit_goto.connect(self.main.editor.load)
         self.pylint.redirect_stdio.connect(
             self.main.redirect_internalshell_stdio)
-        self.main.add_dockwidget(self)
-        
+        self.add_dockwidget()
+
         pylint_act = create_action(self, _("Run static code analysis"),
                                    triggered=self.run_pylint)
         pylint_act.setEnabled(is_module_installed('pylint'))
         self.register_shortcut(pylint_act, context="Pylint",
                                name="Run analysis")
-        
+
         self.main.source_menu_actions += [MENU_SEPARATOR, pylint_act]
         self.main.editor.pythonfile_dependent_actions += [pylint_act]
 
     def refresh_plugin(self):
         """Refresh pylint widget"""
         self.pylint.remove_obsolete_items()
-        
-    def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        return True
-            
+
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
-        # The history depth option will be applied at 
+        # The history depth option will be applied at
         # next Spyder startup, which is soon enough
         pass
-        
+
     #------ Public API --------------------------------------------------------
     @Slot()
     def change_history_depth(self):
@@ -134,6 +134,15 @@ class Pylint(SpyderPluginWidget):
         if valid:
             self.set_option('max_entries', depth)
 
+    def get_filename(self):
+        """Get current filename in combobox."""
+        return self.pylint.get_filename()
+
+    @Slot()
+    def set_filename(self):
+        """Set filename without code analysis."""
+        self.pylint.set_filename(self.main.editor.get_current_filename())
+
     @Slot()
     def run_pylint(self):
         """Run pylint code analysis"""
@@ -142,11 +151,22 @@ class Pylint(SpyderPluginWidget):
             return
         self.switch_to_plugin()
         self.analyze(self.main.editor.get_current_filename())
-        
+
     def analyze(self, filename):
         """Reimplement analyze method"""
-        if self.dockwidget and not self.ismaximized:
-            self.dockwidget.setVisible(True)
-            self.dockwidget.setFocus()
-            self.dockwidget.raise_()
+        if self.dockwidget:
+            self.switch_to_plugin()
         self.pylint.analyze(filename)
+
+    @Slot()
+    def run_pylint_from_analyze_button(self):
+        """
+        See if file should and can be saved and run pylint code analysis.
+
+        Does not check that file name is valid etc, so should only be used for
+        Analyze button.
+        """
+        if (self.get_option('save_before', True)
+                and not self.main.editor.save()):
+            return
+        self.pylint.start()

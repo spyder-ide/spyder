@@ -55,7 +55,7 @@ def editor_bot(base_editor_bot, request):
     """
     editor_stack, qtbot = base_editor_bot
 
-    show_save_dialog = request.node.get_marker('show_save_dialog')
+    show_save_dialog = request.node.get_closest_marker('show_save_dialog')
     if show_save_dialog:
         editor_stack.save_dialog_on_tests = True
 
@@ -172,6 +172,7 @@ def test_save(editor_bot, mocker):
     assert save(index=0) is True
     assert not editor.encoding.write.called
     assert not editor_stack.autosave.remove_autosave_file.called
+    assert editor_stack.autosave.file_hashes == {}
 
     # File modified.
     editor_stack.data[0].editor.document().setModified(True)
@@ -183,6 +184,7 @@ def test_save(editor_bot, mocker):
     editor_stack.save_as.assert_called_with(index=0)
     assert not editor.encoding.write.called
     assert not editor_stack.autosave.remove_autosave_file.called
+    assert editor_stack.autosave.file_hashes == {}
 
     # Force save.
     editor.os.path.isfile.return_value = True
@@ -191,7 +193,9 @@ def test_save(editor_bot, mocker):
     editor_stack.file_saved.emit.assert_called_with(
         str(id(editor_stack)), 'foo.py', 'foo.py')
     editor_stack.autosave.remove_autosave_file.assert_called_with(
-        editor_stack.data[0])
+        editor_stack.data[0].filename)
+    expected = {'foo.py': hash('a = 1\nprint(a)\n\nx = 2\n')}
+    assert editor_stack.autosave.file_hashes == expected
 
     editor_stack.file_saved = save_file_saved
 
@@ -222,7 +226,7 @@ def test_file_saved_in_other_editorstack(editor_splitter_layout_bot):
                                            panel1.data[1].filename)
     # Originally this test showed that using index as an arg instead
     # of the original_filename would incorrectly update the names on panel2.
-    # See issue 5703.
+    # See spyder-ide/spyder#5703.
     assert panel1.data[0].filename == panel2.data[1].filename
     assert panel1.data[1].filename == panel2.data[0].filename
     assert panel1.data[2].filename == panel2.data[2].filename
@@ -299,7 +303,7 @@ def test_save_as_with_outline(editor_bot, mocker, tmpdir):
     """
     Test EditorStack.save_as() when the outline explorer is not None.
 
-    Regression test for issue #7754.
+    Regression test for spyder-ide/spyder#7754.
     """
     editorstack, qtbot = editor_bot
 

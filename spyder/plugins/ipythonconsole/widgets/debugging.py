@@ -9,16 +9,12 @@ Widget that handles communications between a console in debugging
 mode and Spyder
 """
 
-import ast
 import pdb
-import pickle
 
 from qtpy.QtCore import Qt
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
-from spyder.config.base import PICKLE_PROTOCOL
-from spyder.config.main import CONF
-from spyder.py3compat import to_text_string
+from spyder.config.manager import CONF
 
 
 class DebuggingWidget(RichJupyterWidget):
@@ -28,27 +24,49 @@ class DebuggingWidget(RichJupyterWidget):
     Spyder
     """
 
+    def __init__(self, *args, **kwargs):
+        super(DebuggingWidget, self).__init__(*args, **kwargs)
+        self._previous_prompt = None
+        self._input_queue = []
+        self._input_ready = False
+
+    def set_queued_input(self, client):
+        """Change the kernel client input function queue calls."""
+        old_input = client.input
+
+        def queued_input(string):
+            """If input is not ready, save it in a queue."""
+            if self._input_ready:
+                self._input_ready = False
+                return old_input(string)
+            elif self.is_debugging():
+                self._input_queue.append(string)
+
+        client.input = queued_input
+
+    def _debugging_hook(self, debugging):
+        """Catches debugging state."""
+        # If debugging starts or stops, clear the input queue.
+        self._input_queue = []
+
     # --- Public API --------------------------------------------------
     def write_to_stdin(self, line):
         """Send raw characters to the IPython kernel through stdin"""
         self.kernel_client.input(line)
 
+    def get_spyder_breakpoints(self):
+        """Get spyder breakpoints."""
+        return CONF.get('run', 'breakpoints', {})
+
     def set_spyder_breakpoints(self, force=False):
         """Set Spyder breakpoints into a debugging session"""
-        if self._reading or force:
-            breakpoints_dict = CONF.get('run', 'breakpoints', {})
-
-            # We need to enclose pickled values in a list to be able to
-            # send them to the kernel in Python 2
-            serialiazed_breakpoints = [pickle.dumps(breakpoints_dict,
-                                                    protocol=PICKLE_PROTOCOL)]
-            breakpoints = to_text_string(serialiazed_breakpoints)
-
-            cmd = u"!get_ipython().kernel._set_spyder_breakpoints({})"
-            self.kernel_client.input(cmd.format(breakpoints))
+        self.call_kernel(interrupt=True).set_breakpoints(
+            self.get_spyder_breakpoints())
 
     def dbg_exec_magic(self, magic, args=''):
         """Run an IPython magic while debugging."""
+        if not self.is_debugging():
+            return
         code = "!get_ipython().kernel.shell.run_line_magic('{}', '{}')".format(
                     magic, args)
         self.kernel_client.input(code)
@@ -66,22 +84,34 @@ class DebuggingWidget(RichJupyterWidget):
             self.sig_pdb_step.emit(fname, lineno)
 
         if 'namespace_view' in pdb_state:
-            self.sig_namespace_view.emit(ast.literal_eval(
-                    pdb_state['namespace_view']))
+            self.set_namespace_view(pdb_state['namespace_view'])
 
         if 'var_properties' in pdb_state:
-            self.sig_var_properties.emit(ast.literal_eval(
-                    pdb_state['var_properties']))
+            self.set_var_properties(pdb_state['var_properties'])
 
     # ---- Private API (overrode by us) ----------------------------
     def _handle_input_request(self, msg):
         """Save history and add a %plot magic."""
         if self._hidden:
-            raise RuntimeError('Request for raw input during hidden execution.')
+            raise RuntimeError(
+                'Request for raw input during hidden execution.')
 
         # Make sure that all output from the SUB channel has been processed
         # before entering readline mode.
         self.kernel_client.iopub_channel.flush()
+        self._input_ready = True
+        if not self.is_debugging():
+            return super(DebuggingWidget, self)._handle_input_request(msg)
+
+        # While the widget thinks only one input is going on,
+        # other functions can be sending messages to the kernel.
+        # This must be properly processed to avoid dropping messages.
+        # If the kernel was not ready, the messages are queued.
+        if len(self._input_queue) > 0:
+            msg = self._input_queue[0]
+            del self._input_queue[0]
+            self.kernel_client.input(msg)
+            return
 
         def callback(line):
             # Save history to browse it later
@@ -89,8 +119,11 @@ class DebuggingWidget(RichJupyterWidget):
                     and self._control.history[-1] == line):
                 # do not save pdb commands
                 cmd = line.split(" ")[0]
-                if "do_" + cmd not in dir(pdb.Pdb):
+                if cmd and "do_" + cmd not in dir(pdb.Pdb):
                     self._control.history.append(line)
+
+            # must match ConsoleWidget.do_execute
+            self._executing = True
 
             # This is the Spyder addition: add a %plot magic to display
             # plots while debugging
@@ -100,10 +133,21 @@ class DebuggingWidget(RichJupyterWidget):
                 self.kernel_client.input(code)
             else:
                 self.kernel_client.input(line)
-        if self._reading:
-            self._reading = False
-        self._readline(msg['content']['prompt'], callback=callback,
-                       password=msg['content']['password'])
+
+        prompt, password = msg['content']['prompt'], msg['content']['password']
+        position = self._prompt_pos
+
+        if (self._reading and
+                (prompt, password, position) == self._previous_prompt):
+            # This is a duplicate, don't reprint
+            # This can happen when sending commands to pdb from the frontend.
+            return
+
+        self._previous_prompt = (prompt, password, position)
+        # Reset reading in case it was interrupted
+        self._reading = False
+        self._readline(prompt=prompt, callback=callback,
+                       password=password)
 
     def _event_filter_console_keypress(self, event):
         """Handle Key_Up/Key_Down while debugging."""
@@ -125,3 +169,7 @@ class DebuggingWidget(RichJupyterWidget):
         else:
             return super(DebuggingWidget,
                          self)._event_filter_console_keypress(event)
+
+    def is_debugging(self):
+        """Check if we are debugging."""
+        return self.spyder_kernel_comm._debugging

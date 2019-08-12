@@ -7,12 +7,14 @@
 This module contains the Scroll Flag panel
 """
 
+from math import ceil
+
 from qtpy.QtCore import QSize, Qt, QRect
 from qtpy.QtGui import QPainter, QBrush, QColor, QCursor
 from qtpy.QtWidgets import (QStyle, QStyleOptionSlider, QApplication)
 
 from spyder.api.panel import Panel
-from spyder.plugins.editor.lsp import DiagnosticSeverity
+from spyder.plugins.completion.languageserver import DiagnosticSeverity
 
 
 class ScrollFlagArea(Panel):
@@ -50,7 +52,7 @@ class ScrollFlagArea(Panel):
         """This property holds the vertical offset of the scroll flag area
         relative to the top of the text editor."""
         vsb = self.editor.verticalScrollBar()
-        style = vsb.style()
+        style = QApplication.instance().style()
         opt = QStyleOptionSlider()
         vsb.initStyleOption(opt)
 
@@ -172,7 +174,7 @@ class ScrollFlagArea(Panel):
         """Return the pixel span height of the scrollbar area in which
         the slider handle may move"""
         vsb = self.editor.verticalScrollBar()
-        style = vsb.style()
+        style = QApplication.instance().style()
         opt = QStyleOptionSlider()
         vsb.initStyleOption(opt)
 
@@ -210,7 +212,7 @@ class ScrollFlagArea(Panel):
             # The 0.5 offset is used to align the flags with the center of
             # their corresponding text edit block before scaling.
 
-            return QRect(self.FLAGS_DX/2, position-self.FLAGS_DY/2,
+            return QRect(ceil(self.FLAGS_DX/2), ceil(position-self.FLAGS_DY/2),
                          self.WIDTH-self.FLAGS_DX, self.FLAGS_DY)
         else:
             # When the vertical scrollbar is not visible, the flags are
@@ -222,7 +224,7 @@ class ScrollFlagArea(Panel):
             bottom = top + self.editor.blockBoundingRect(block).height()
             middle = (top + bottom)/2
 
-            return QRect(self.FLAGS_DX/2, middle-self.FLAGS_DY/2,
+            return QRect(ceil(self.FLAGS_DX/2), ceil(middle-self.FLAGS_DY/2),
                          self.WIDTH-self.FLAGS_DX, self.FLAGS_DY)
 
     def make_slider_range(self, cursor_pos):
@@ -242,7 +244,8 @@ class ScrollFlagArea(Panel):
         max_ypos = groove_height + self.offset - slider_height
 
         # Determine the bounded y-position of the slider rect.
-        slider_y = max(min_ypos, min(max_ypos, cursor_pos.y()-slider_height/2))
+        slider_y = max(min_ypos, min(max_ypos,
+                                     ceil(cursor_pos.y()-slider_height/2)))
 
         return QRect(1, slider_y, self.WIDTH-2, slider_height)
 

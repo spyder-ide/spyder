@@ -199,6 +199,7 @@ class MainConfigPage(GeneralConfigPage):
                                            "these options (in "
                                            "English).").format(HDPI_QT_PAGE))
         screen_resolution_label.setWordWrap(True)
+        screen_resolution_label.setOpenExternalLinks(True)
 
         normal_radio = self.create_radiobutton(
                                 _("Normal"),
@@ -250,7 +251,7 @@ class MainConfigPage(GeneralConfigPage):
         tabs.addTab(self.create_tab(screen_resolution_group, interface_group),
                     _("Interface"))
         tabs.addTab(self.create_tab(general_group, sbar_group),
-                    _("Advanced Settings"))
+                    _("Advanced settings"))
 
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)
