@@ -1231,8 +1231,8 @@ class IPythonConsole(SpyderPluginWidget):
 
     def connect_external_kernel(self, shellwidget):
         """
-        Connect an external kernel to the Variable Explorer and Help, if
-        it is a Spyder kernel.
+        Connect an external kernel to the Variable Explorer, Help and
+        Plots, but only if it is a Spyder kernel.
         """
         sw = shellwidget
         kc = shellwidget.kernel_client
@@ -1244,6 +1244,10 @@ class IPythonConsole(SpyderPluginWidget):
             sw.refresh_namespacebrowser()
             kc.stopped_channels.connect(lambda :
                 self.main.variableexplorer.remove_shellwidget(id(sw)))
+        if self.main.plots is not None:
+            self.main.plots.add_shellwidget(sw)
+            kc.stopped_channels.connect(lambda :
+                self.main.plots.remove_shellwidget(id(sw)))
 
     #------ Public API (for tabs) ---------------------------------------------
     def add_tab(self, widget, name, filename=''):
