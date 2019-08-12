@@ -145,7 +145,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if os.name == 'nt':
             dirname = dirname.replace(u"\\", u"\\\\")
 
-        if not self.external_kernel:
+        if self.ipyclient.hostname is None:
             self.call_kernel(interrupt=True).set_cwd(dirname)
             self._cwd = dirname
 
