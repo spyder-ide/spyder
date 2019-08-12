@@ -309,6 +309,12 @@ class CodeEditor(TextEditBaseWidget):
     # Used to indicate that a text selection will be removed
     sig_will_remove_selection = Signal(tuple, tuple)
 
+    # Used to indicate that text will be pasted
+    sig_will_paste_text = Signal(str)
+
+    # Used to indicate that text will be cut
+    sig_will_cut_text = Signal(str)
+
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
 
@@ -1856,10 +1862,18 @@ class CodeEditor(TextEditBaseWidget):
             eol_chars = self.get_line_separator()
             text = eol_chars.join((text + eol_chars).splitlines())
         self.skip_rstrip = True
+        self.sig_will_paste_text.emit(text)
         TextEditBaseWidget.insertPlainText(self, text)
 
         self.document_did_change(text)
         self.skip_rstrip = False
+
+    @Slot()
+    def cut(self):
+        """Reimplement redo to signal listeners about changes on the text."""
+        self.sig_will_cut_text()
+        TextEditBaseWidget.cut(self)
+        self.document_did_change('')
 
     @Slot()
     def undo(self):
