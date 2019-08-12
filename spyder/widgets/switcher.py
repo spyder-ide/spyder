@@ -21,7 +21,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QLineEdit, QListWidgetItem,
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.config.utils import is_ubuntu
 from spyder.py3compat import TEXT_TYPES, to_text_string
 from spyder.utils import icon_manager as ima
