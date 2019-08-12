@@ -312,9 +312,6 @@ class CodeEditor(TextEditBaseWidget):
     # Used to indicate that text will be pasted
     sig_will_paste_text = Signal(str)
 
-    # Used to indicate that text will be cut
-    sig_will_cut_text = Signal(str)
-
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
 
@@ -1864,6 +1861,7 @@ class CodeEditor(TextEditBaseWidget):
         self.skip_rstrip = True
         self.sig_will_paste_text.emit(text)
         TextEditBaseWidget.insertPlainText(self, text)
+        self.sig_text_was_inserted.emit()
 
         self.document_did_change(text)
         self.skip_rstrip = False
@@ -1871,8 +1869,13 @@ class CodeEditor(TextEditBaseWidget):
     @Slot()
     def cut(self):
         """Reimplement redo to signal listeners about changes on the text."""
-        self.sig_will_cut_text()
+        has_selected_text = self.has_selected_text()
+        if not has_selected_text:
+            return
+        start, end = self.get_selection_start_end()
+        self.sig_will_remove_selection.emit(start, end)
         TextEditBaseWidget.cut(self)
+        self.sig_text_was_inserted.emit()
         self.document_did_change('')
 
     @Slot()

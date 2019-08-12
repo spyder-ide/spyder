@@ -81,7 +81,8 @@ class SnippetsExtension(EditorExtension):
             self.editor.sig_text_was_inserted.connect(self._redraw_snippets)
             self.editor.sig_will_insert_text.connect(self._process_text)
             self.editor.sig_will_paste_text.connect(self._process_text)
-            self.editor.sig_will_cut_text.connect(self._remove_selection)
+            self.editor.sig_will_remove_selection.connect(
+                self._remove_selection)
         else:
             self.editor.sig_key_pressed.disconnect(self._on_key_pressed)
             self.editor.sig_insert_completion.disconnect(self.insert_snippet)
@@ -90,7 +91,8 @@ class SnippetsExtension(EditorExtension):
             self.editor.sig_text_was_inserted.disconnect(self._redraw_snippets)
             self.editor.sig_will_insert_text.disconnect(self._process_text)
             self.editor.sig_will_paste_text.disconnect(self._process_text)
-            self.editor.sig_will_cut_text.disconnect(self._remove_selection)
+            self.editor.sig_will_remove_selection.disconnect(
+                self._remove_selection)
 
     def _redraw_snippets(self):
         if self.is_snippet_active:
@@ -423,6 +425,10 @@ class SnippetsExtension(EditorExtension):
         text_tokens = first_tokens + second_tokens
         placeholder.tokens = text_tokens
         print(text_tokens)
+
+    def _remove_selection(self, selection_start, selection_end):
+        with QMutexLocker(self.modification_lock):
+            print(selection_start, selection_end)
 
     def update_position_tree(self, visitor):
         self.node_number = visitor.node_number

@@ -954,12 +954,12 @@ class BaseEditMixin(object):
 
     def get_selection_start_end(self, cursor=None):
         """Return selection start and end (line, column) position."""
-        if cursor is not None:
+        if cursor is None:
             cursor = self.textCursor()
         start, end = cursor.selectionStart(), cursor.selectionEnd()
         start_cursor = QTextCursor(cursor).setPosition(start)
-        end_cursor = QTextCursor(cursor).setPosition(end)
         start_position = self.get_cursor_line_column(start_cursor)
+        end_cursor = QTextCursor(cursor).setPosition(end)
         end_position = self.get_cursor_line_column(end_cursor)
         return start_position, end_position
 
