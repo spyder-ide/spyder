@@ -37,6 +37,8 @@ class KernelComm(CommBase, QObject):
 
         self.register_call_handler(
             'set_debug_state', self._handle_debug_state)
+        self.register_call_handler(
+            '_async_error', self._async_error)
 
     def set_kernel_client(self, kernel_client):
         """Register new kernel client and open comm."""
