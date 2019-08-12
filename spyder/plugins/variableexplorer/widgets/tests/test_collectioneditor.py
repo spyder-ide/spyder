@@ -154,7 +154,7 @@ def test_collectionsmodel_with_index():
         cm = CollectionsModel(None, coll)
         assert data(cm, 0, 0) == 'rng'
         assert data(cm, 0, 1) == rng_name
-        assert data(cm, 0, 2) == (20,)
+        assert data(cm, 0, 2) == '(20,)' or data(cm, 0, 2) == '(20L,)'
     try:
         assert data(cm, 0, 3) == rng._summary()
     except AttributeError:
