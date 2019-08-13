@@ -49,7 +49,6 @@ MAC = sys.platform == 'darwin'
 LINUX = sys.platform.startswith('linux')
 CTRL = "Meta" if MAC else "Ctrl"
 
-
 # Modules to be preloaded for Rope and Jedi
 PRELOAD_MDOULES = ', '.join(PREFERRED_MODULES)
 
@@ -426,6 +425,7 @@ DEFAULTS = [
               'editor/close file 2': "Ctrl+F4",
               'editor/run cell': CTRL + '+Return',
               'editor/run cell and advance': 'Shift+Return',
+              'editor/debug cell': 'Alt+Shift+Return',
               'editor/go to next cell': 'Ctrl+Down',
               'editor/go to previous cell': 'Ctrl+Up',
               'editor/re-run last cell': 'Alt+Return',

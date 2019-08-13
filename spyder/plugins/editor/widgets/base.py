@@ -410,8 +410,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.matched_p_color = QColor(Qt.green)
         self.unmatched_p_color = QColor(Qt.red)
 
-        self.last_cursor_cell = None
-
         self.decorations = TextDecorationsManager(self)
 
     def setup_completion(self):
@@ -701,15 +699,15 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             super(TextEditBaseWidget, self).keyPressEvent(event)
 
     #------Text: get, set, ...
-    def get_selection_as_executable_code(self):
+    def get_selection_as_executable_code(self, cursor=None):
         """Return selected text as a processed text,
         to be executable in a Python/IPython interpreter"""
         ls = self.get_line_separator()
 
         _indent = lambda line: len(line)-len(line.lstrip())
 
-        line_from, line_to = self.get_selection_bounds()
-        text = self.get_selected_text()
+        line_from, line_to = self.get_selection_bounds(cursor)
+        text = self.get_selected_text(cursor)
         if not text:
             return
 
@@ -757,31 +755,23 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         return leading_lines_str + ls.join(lines)
 
-    def __exec_cell(self):
+    def __exec_cell(self, cursor=None):
+        """Get text and line number from cursor or current position."""
+        if cursor is None:
+            cursor = self.textCursor()
         ls = self.get_line_separator()
-        init_cursor = QTextCursor(self.textCursor())
-        start_pos, end_pos = self.__save_selection()
-        cursor, whole_file_selected = self.select_current_cell()
-        self.setTextCursor(cursor)
-        line_from, line_to = self.get_selection_bounds()
-        block = self.get_selection_first_block()
-        text = self.get_selection_as_executable_code()
-        self.last_cursor_cell = init_cursor
-        self.__restore_selection(start_pos, end_pos)
+        cursor, whole_file_selected = self.select_current_cell(cursor)
+        line_from, line_to = self.get_selection_bounds(cursor)
+        block = self.get_selection_first_block(cursor)
+        text = self.get_selection_as_executable_code(cursor)
+
         if text is not None:
             text = ls * line_from + text
         return text, block
 
-    def get_cell_as_executable_code(self):
-        """Return cell contents as executable code"""
-        return self.__exec_cell()
-
-    def get_last_cell_as_executable_code(self):
-        if self.last_cursor_cell:
-            self.setTextCursor(self.last_cursor_cell)
-            self.highlight_current_cell()
-            return self.__exec_cell()
-        return None
+    def get_cell_as_executable_code(self, cursor=None):
+        """Return cell contents as executable code."""
+        return self.__exec_cell(cursor)
 
     def is_cell_separator(self, cursor=None, block=None):
         """Return True if cursor (or text block) is on a block separator"""
@@ -797,12 +787,16 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         else:
             return text.lstrip().startswith(self.cell_separators)
 
-    def select_current_cell(self):
-        """Select cell under cursor
+    def select_current_cell(self, cursor=None):
+        """
+        Select cell under cursor.
+
         cell = group of lines separated by CELL_SEPARATORS
         returns the textCursor and a boolean indicating if the
-        entire file is selected"""
-        cursor = self.textCursor()
+        entire file is selected.
+        """
+        if cursor is None:
+            cursor = self.textCursor()
         cursor.movePosition(QTextCursor.StartOfBlock)
         cur_pos = prev_pos = cursor.position()
 

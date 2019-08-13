@@ -403,6 +403,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.main.editor.breakpoints_saved.connect(self.set_spyder_breakpoints)
         self.main.editor.run_in_current_ipyclient.connect(self.run_script)
         self.main.editor.run_cell_in_ipyclient.connect(self.run_cell)
+        self.main.editor.debug_cell_in_ipyclient.connect(self.debug_cell)
         self.main.workingdirectory.set_current_console_wd.connect(
             self.set_current_client_working_directory)
         self.tabwidget.currentChanged.connect(self.update_working_directory)
@@ -505,7 +506,8 @@ class IPythonConsole(SpyderPluginWidget):
                   "<br><br>Please open a new one and try again."
                   ) % osp.basename(filename), QMessageBox.Ok)
 
-    def run_cell(self, code, cell_name, filename, run_cell_copy):
+    def run_cell(self, code, cell_name, filename, run_cell_copy,
+                 function='runcell'):
         """Run cell in current or dedicated client."""
 
         def norm(text):
@@ -518,16 +520,14 @@ class IPythonConsole(SpyderPluginWidget):
         if client is None:
             client = self.get_current_client()
 
-        is_internal_kernel = False
         if client is not None:
             # Internal kernels, use runcell
             if client.get_kernel() is not None and not run_cell_copy:
-                line = (to_text_string("{}('{}','{}')")
-                            .format(to_text_string('runcell'),
-                                (to_text_string(cell_name).replace("\\","\\\\")
-                                    .replace("'", r"\'")),
+                line = (to_text_string(
+                        "{}({}, '{}')").format(
+                                to_text_string(function),
+                                repr(cell_name),
                                 norm(filename).replace("'", r"\'")))
-                is_internal_kernel = True
 
             # External kernels and run_cell_copy, just execute the code
             else:
@@ -546,13 +546,6 @@ class IPythonConsole(SpyderPluginWidget):
                         before_prompt=True)
                     return
                 else:
-                    if is_internal_kernel:
-                        client.shellwidget.silent_execute(
-                            to_text_string('get_ipython().cell_code = '
-                                           '"""{}"""')
-                                .format(to_text_string(code)
-                                .replace('\\', r'\\')
-                                .replace('"""', r'\"\"\"')))
                     self.execute_code(line)
             except AttributeError:
                 pass
@@ -566,6 +559,10 @@ class IPythonConsole(SpyderPluginWidget):
                                   "one and try again."
                                   ).format(osp.basename(filename)),
                                 QMessageBox.Ok)
+
+    def debug_cell(self, code, cell_name, filename, run_cell_copy):
+        """Debug current cell."""
+        self.run_cell(code, cell_name, filename, run_cell_copy, 'debugcell')
 
     def set_current_client_working_directory(self, directory):
         """Set current client working directory."""
