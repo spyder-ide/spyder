@@ -1356,6 +1356,7 @@ class BrowseHistoryMixin(object):
         tocursor = self.get_current_line_to_cursor()
         text, self.histidx = self.find_in_history(tocursor, self.histidx,
                                                   backward)
+        text = text.strip()
         if text is not None:
             if self.hist_wholeline:
                 self.clear_line()

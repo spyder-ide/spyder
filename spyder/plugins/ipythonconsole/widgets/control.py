@@ -5,19 +5,23 @@
 # (see spyder/__init__.py for details)
 
 """Control widgets used by ShellWidget"""
+import os
+import time
 
 from qtpy.QtCore import Qt, Signal
 from qtpy.QtWidgets import QTextEdit
 
+from spyder.config.base import get_conf_path
 from spyder.utils.qthelpers import restore_keyevent
 from spyder.widgets.calltip import CallTipWidget
 from spyder.widgets.mixins import (BaseEditMixin, GetHelpMixin,
                                    TracebackLinksMixin,
-                                   BrowseHistoryMixin)
+                                   BrowseHistoryMixin,
+                                   SaveHistoryMixin)
 
 
 class ControlWidget(TracebackLinksMixin, GetHelpMixin, BrowseHistoryMixin,
-                    QTextEdit, BaseEditMixin):
+                    QTextEdit, BaseEditMixin, SaveHistoryMixin):
     """
     Subclass of QTextEdit with features from Spyder's mixins to use as the
     control widget for IPython widgets
@@ -26,6 +30,9 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin, BrowseHistoryMixin,
     visibility_changed = Signal(bool)
     go_to_error = Signal(str)
     focus_changed = Signal()
+    SEPARATOR = '{0}## ---({1})---'.format(os.linesep*2, time.ctime())
+    INITHISTORY = ['# -*- coding: utf-8 -*-']
+    PDB_HIST_MAX = 400
 
     def __init__(self, parent=None):
         QTextEdit.__init__(self, parent)
@@ -33,6 +40,18 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin, BrowseHistoryMixin,
         TracebackLinksMixin.__init__(self)
         GetHelpMixin.__init__(self)
         BrowseHistoryMixin.__init__(self)
+        history_filename = get_conf_path('pdb_history.py')
+        SaveHistoryMixin.__init__(
+            self, history_filename=history_filename)
+        with open(history_filename) as f:
+            lines = f.readlines()
+        for line in lines:
+            line = line.strip()
+            if line:
+                self.history.append(line)
+        # Remove old history
+        with open(history_filename, 'w') as f:
+            f.writelines(self.history[:self.PDB_HIST_MAX])
 
         self.calltip_widget = CallTipWidget(self, hide_timer_on=False)
         self.found_results = []

@@ -123,10 +123,12 @@ class DebuggingWidget(RichJupyterWidget):
             # Save history to browse it later
             if not (len(self._control.history) > 0
                     and self._control.history[-1] == line):
-                # do not save pdb commands
+                # Do not save pdb commands unless they have arguments
                 cmd = line.split(" ")[0]
-                if cmd and "do_" + cmd not in dir(pdb.Pdb):
-                    self._control.history.append(line)
+                args = line.split(" ")[1:]
+                is_pdb_cmd = "do_" + cmd in dir(pdb.Pdb)
+                if cmd and (not is_pdb_cmd or len(args) > 0):
+                    self._control.add_to_history(line)
 
             # must match ConsoleWidget.do_execute
             self._executing = True
