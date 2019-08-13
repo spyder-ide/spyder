@@ -10,6 +10,7 @@ mode and Spyder
 """
 
 import pdb
+import re
 
 from qtpy.QtCore import Qt
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
@@ -26,6 +27,11 @@ class DebuggingWidget(RichJupyterWidget):
 
     def __init__(self, *args, **kwargs):
         super(DebuggingWidget, self).__init__(*args, **kwargs)
+        # Adapted from qtconsole/frontend_widget.py
+        # This adds 'ipdb> ' as a prompt self._highlighter recognises
+        self._highlighter._ipy_prompt_re = re.compile(
+            r'^(%s)?([ \t]*ipdb> |[ \t]*In \[\d+\]: |[ \t]*\ \ \ \.\.\.+: )'
+            % re.escape(self.other_output_prefix))
         self._previous_prompt = None
         self._input_queue = []
         self._input_ready = False
@@ -133,6 +139,8 @@ class DebuggingWidget(RichJupyterWidget):
                 self.kernel_client.input(code)
             else:
                 self.kernel_client.input(line)
+            self._highlighter.highlighting_on = False
+        self._highlighter.highlighting_on = True
 
         prompt, password = msg['content']['prompt'], msg['content']['password']
         position = self._prompt_pos
@@ -148,6 +156,15 @@ class DebuggingWidget(RichJupyterWidget):
         self._reading = False
         self._readline(prompt=prompt, callback=callback,
                        password=password)
+
+    def _show_prompt(self, prompt=None, html=False, newline=True):
+        """
+        Writes a new prompt at the end of the buffer.
+        """
+        if prompt in ['(Pdb) ', 'ipdb> ']:
+            html = True
+            prompt = '<span class="in-prompt">%s</span>' % prompt
+        super(DebuggingWidget, self)._show_prompt(prompt, html, newline)
 
     def _event_filter_console_keypress(self, event):
         """Handle Key_Up/Key_Down while debugging."""
