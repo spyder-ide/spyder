@@ -454,23 +454,6 @@ the sympy module (e.g. plot)
                 self.silent_execute(command)
 
     # ---- Spyder-kernels methods -------------------------------------------
-    def get_editor(self, filename=None):
-        """Get editor for filename and set it as the current editor."""
-        editorstack = self.get_editorstack()
-        if editorstack is None:
-            return None
-
-        if not filename:
-            return editorstack.get_current_editor()
-
-        index = editorstack.has_filename(filename)
-        if index is None:
-            return None
-
-        editor = editorstack.data[index].editor
-        editorstack.set_stack_index(index)
-        return editor
-
     def get_editorstack(self):
         """Get the current editorstack."""
         plugin = self.ipyclient.plugin
