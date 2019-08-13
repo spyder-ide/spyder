@@ -98,7 +98,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             'pdb_state': self.set_pdb_state,
             'pdb_continue': self.pdb_continue,
             'get_breakpoints': self.get_spyder_breakpoints,
-            'savefiles': self.handle_kernel_api_savefiles,
+            'save_files': self.handle_save_files,
         }
 
         for request_id in handlers:
@@ -469,7 +469,7 @@ the sympy module (e.g. plot)
         editorstack.set_stack_index(index)
         return editor
 
-    def handle_kernel_api_savefiles(self):
+    def handle_save_files(self):
         """Save the open files."""
         self.editorstack().save()
 
