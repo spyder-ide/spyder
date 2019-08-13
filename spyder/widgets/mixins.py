@@ -355,9 +355,14 @@ class BaseEditMixin(object):
 
             # Process signature template
             if parameter:
-                # '*' has a meaning in regex so needs to be escaped
-                if '*' in parameter:
-                    parameter = parameter.replace('*', '\\*')
+                # Escape all possible regex characters
+                # ( ) { } | [ ] . ^ $ * +
+                regex_characters = ['(', ')', '{', '}', '|', '[', ']', '.',
+                                    '^', '$', '*', '+']
+                for regex_char in regex_characters:
+                    escape_char = '\\{char}'.format(char=regex_char)
+                    parameter = parameter.replace(regex_char, escape_char)
+
                 pattern = r'[\*|(|\s](' + parameter + r')[,|)|\s|=]'
 
             formatted_lines = []
