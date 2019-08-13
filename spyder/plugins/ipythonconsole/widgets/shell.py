@@ -456,7 +456,9 @@ the sympy module (e.g. plot)
     # ---- Spyder-kernels methods -------------------------------------------
     def get_editor(self, filename=None):
         """Get editor for filename and set it as the current editor."""
-        editorstack = self.editorstack()
+        editorstack = self.get_editorstack()
+        if editorstack is None:
+            return None
 
         if not filename:
             return editorstack.get_current_editor()
@@ -469,9 +471,18 @@ the sympy module (e.g. plot)
         editorstack.set_stack_index(index)
         return editor
 
+    def get_editorstack(self):
+        """Get the current editorstack."""
+        plugin = self.ipyclient.plugin
+        if plugin.main.editor is not None:
+            editor = plugin.main.editor
+            return editor.get_current_editorstack()
+
     def handle_save_files(self):
         """Save the open files."""
-        self.editorstack().save()
+        editorstack = self.get_editorstack()
+        if editorstack is not None:
+            editorstack.save()
 
     # ---- Private methods (overrode by us) ---------------------------------
 
