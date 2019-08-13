@@ -51,7 +51,9 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin, BrowseHistoryMixin,
                 self.history.append(line)
         # Remove old history
         with open(history_filename, 'w') as f:
-            f.writelines(self.history[:self.PDB_HIST_MAX])
+            for line in self.history[:self.PDB_HIST_MAX]:
+                f.write(line)
+                f.write('\n')
 
         self.calltip_widget = CallTipWidget(self, hide_timer_on=False)
         self.found_results = []
