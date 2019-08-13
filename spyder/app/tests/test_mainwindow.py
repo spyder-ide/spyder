@@ -54,6 +54,7 @@ from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.py3compat import PY2, to_text_string
 from spyder.utils.programs import is_module_installed
 from spyder.widgets.dock import DockTitleBar
+from spyder.utils.misc import remove_backslashes
 
 # For testing various Spyder urls
 if not PY2:
@@ -1820,6 +1821,31 @@ def test_custom_layouts(main_window, qtbot):
                             if widget not in hidden_widgets:
                                 print(widget)  # spyder: test-skip
                                 assert widget.isVisible()
+
+# @pytest.mark.slow
+@flaky(max_runs=3)
+def test_save_on_runfile(main_window, qtbot):
+    """Test that layout are showing the expected widgets visible."""
+    # Load test file
+    test_file = osp.join(LOCATION, 'script.py')
+    test_file_copy = test_file[:-3] + '_copy.py'
+    shutil.copyfile(test_file, test_file_copy)
+    main_window.editor.load(test_file_copy)
+    code_editor = main_window.editor.get_focus_widget()
+
+    # Verify result
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    qtbot.keyClicks(code_editor, 'test_var = 123', delay=100)
+    filename = code_editor.filename
+    with qtbot.waitSignal(shell.sig_prompt_ready):
+        shell.execute('runfile("{}")'.format(remove_backslashes(filename)))
+
+    assert shell.get_value('test_var') == 123
+    main_window.editor.close_file()
+    os.remove(test_file_copy)
 
 
 # @pytest.mark.slow

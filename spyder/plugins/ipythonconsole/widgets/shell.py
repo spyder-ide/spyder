@@ -98,6 +98,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             'pdb_state': self.set_pdb_state,
             'pdb_continue': self.pdb_continue,
             'get_breakpoints': self.get_spyder_breakpoints,
+            'save_files': self.handle_save_files,
         }
 
         for request_id in handlers:
@@ -451,6 +452,20 @@ the sympy module (e.g. plot)
           len(command.splitlines()) == 1:
             if not 'inline' in command:
                 self.silent_execute(command)
+
+    # ---- Spyder-kernels methods -------------------------------------------
+    def get_editorstack(self):
+        """Get the current editorstack."""
+        plugin = self.ipyclient.plugin
+        if plugin.main.editor is not None:
+            editor = plugin.main.editor
+            return editor.get_current_editorstack()
+
+    def handle_save_files(self):
+        """Save the open files."""
+        editorstack = self.get_editorstack()
+        if editorstack is not None:
+            editorstack.save()
 
     # ---- Private methods (overrode by us) ---------------------------------
 

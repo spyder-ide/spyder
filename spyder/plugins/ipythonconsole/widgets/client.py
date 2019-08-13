@@ -116,6 +116,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         SaveHistoryMixin.__init__(self, history_filename)
 
         # --- Init attrs
+        self.plugin = plugin
         self.id_ = id_
         self.connection_file = connection_file
         self.hostname = hostname
