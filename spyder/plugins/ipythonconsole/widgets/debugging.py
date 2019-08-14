@@ -35,6 +35,7 @@ class DebuggingWidget(RichJupyterWidget):
         self._previous_prompt = None
         self._input_queue = []
         self._input_ready = False
+        self._last_pdb_cmd = ''
 
     def set_queued_input(self, client):
         """Change the kernel client input function queue calls."""
@@ -42,6 +43,9 @@ class DebuggingWidget(RichJupyterWidget):
 
         def queued_input(string):
             """If input is not ready, save it in a queue."""
+            if not string.strip():
+                # Must get the last genuine command
+                string = self._last_pdb_cmd
             if self._input_ready:
                 self._input_ready = False
                 return old_input(string)
@@ -129,6 +133,10 @@ class DebuggingWidget(RichJupyterWidget):
                 is_pdb_cmd = "do_" + cmd in dir(pdb.Pdb)
                 if cmd and (not is_pdb_cmd or len(args) > 0):
                     self._control.add_to_history(line)
+
+            line = line.strip()
+            if line:
+                self._last_pdb_cmd = line
 
             # must match ConsoleWidget.do_execute
             self._executing = True
