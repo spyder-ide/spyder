@@ -2,6 +2,14 @@
 
 # -- Installl dependencies
 if [ "$USE_CONDA" = "yes" ]; then
+    # Avoid problems with invalid SSL certificates
+    if [ "$PYTHON_VERSION" = "2.7" ]; then
+        conda install -q -y python=2.7.16=h97142e2_0
+    fi
+
+    # Install nomkl to avoid installing Intel MKL libraries
+    conda install -q -y nomkl
+
     # Install main dependencies
     conda install -q -y -c spyder-ide --file requirements/conda.txt
 
