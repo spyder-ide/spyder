@@ -596,8 +596,8 @@ class Switcher(QDialog):
             titles.append(title)
 
         search_text = clean_string(search_text)
-        scores = get_search_scores(search_text.encode("utf-8"),
-                                   titles, template="<b>{0}</b>")
+        scores = get_search_scores(to_text_string(search_text),
+                                   titles, template=u"<b>{0}</b>")
 
         self._visible_rows = self.model.rowCount()
         for idx, score in enumerate(scores):
