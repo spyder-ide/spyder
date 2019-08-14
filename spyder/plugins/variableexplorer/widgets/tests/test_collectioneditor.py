@@ -139,11 +139,11 @@ def test_collectionsmodel_with_two_ints():
         row_with_x = 1
         row_with_y = 0
     assert data(cm, row_with_x, 1) == 'int'
-    assert data(cm, row_with_x, 2) == '1'
+    assert data(cm, row_with_x, 2) == 1
     assert data(cm, row_with_x, 3) == '1'
     assert data(cm, row_with_y, 0) == 'y'
     assert data(cm, row_with_y, 1) == 'int'
-    assert data(cm, row_with_y, 2) == '1'
+    assert data(cm, row_with_y, 2) == 1
     assert data(cm, row_with_y, 3) == '2'
 
 def test_collectionsmodel_with_index():
@@ -175,34 +175,71 @@ def test_shows_dataframeeditor_when_editing_index(qtbot, monkeypatch):
 
 
 def test_sort_collectionsmodel():
+    var_list1 = [0, 1, 2]
+    var_list2 = [3, 4, 5, 6]
+    var_dataframe1 = pandas.DataFrame([[1, 2, 3], [20, 30, 40], [2, 2, 2]])
+    var_dataframe2 = pandas.DataFrame([[1, 2, 3], [20, 30, 40]])
+    var_series1 = pandas.Series(var_list1)
+    var_series2 = pandas.Series(var_list2)
+
     coll = [1, 3, 2]
     cm = CollectionsModel(None, coll)
     assert cm.rowCount() == 3
     assert cm.columnCount() == 5
     cm.sort(0)  # sort by index
-    assert data_table(cm, 3, 4) == [['0', '1', '2'],
+    assert data_table(cm, 3, 4) == [[0, 1, 2],
                                     ['int', 'int', 'int'],
-                                    ['1', '1', '1'],
+                                    [1, 1, 1],
                                     ['1', '3', '2']]
     cm.sort(3)  # sort by value
-    assert data_table(cm, 3, 4) == [['0', '2', '1'],
+    assert data_table(cm, 3, 4) == [[0, 2, 1],
                                     ['int', 'int', 'int'],
-                                    ['1', '1', '1'],
+                                    [1, 1, 1],
                                     ['1', '2', '3']]
-    coll = [[1, 2], 3]
+
+    coll = [1, var_list1, var_list2, var_dataframe1, var_dataframe2,
+            var_series1, var_series2]
     cm = CollectionsModel(None, coll)
-    assert cm.rowCount() == 2
+    assert cm.rowCount() == 7
     assert cm.columnCount() == 5
+
     cm.sort(1)  # sort by type
-    assert data_table(cm, 2, 4) == [['1', '0'],
-                                    ['int', 'list'],
-                                    ['1', '2'],
-                                    ['3', '[1, 2]']]
+    assert data_table(cm, 7, 4) == [
+        [3, 4, 5, 6, 0, 1, 2],
+        ['DataFrame', 'DataFrame', 'Series', 'Series', 'int', 'list', 'list'],
+        ['(3, 3)', '(2, 3)', '(3,)', '(4,)', 1, 3, 4],
+        ['Column names: 0, 1, 2',
+         'Column names: 0, 1, 2',
+         'Series object of pandas.core.series module',
+         'Series object of pandas.core.series module',
+         '1',
+         '[0, 1, 2]',
+         '[3, 4, 5, 6]']]
+
     cm.sort(2)  # sort by size
-    assert data_table(cm, 2, 4) == [['1', '0'],
-                                    ['int', 'list'],
-                                    ['1', '2'],
-                                    ['3', '[1, 2]']]
+    assert data_table(cm, 7, 4) == [
+        [3, 4, 5, 6, 0, 1, 2],
+        ['DataFrame', 'DataFrame', 'Series', 'Series', 'int', 'list', 'list'],
+        ['(2, 3)', '(3,)', '(3, 3)', '(4,)', 1, 3, 4],
+        ['Column names: 0, 1, 2',
+         'Column names: 0, 1, 2',
+         'Series object of pandas.core.series module',
+         'Series object of pandas.core.series module',
+         '1',
+         '[0, 1, 2]',
+         '[3, 4, 5, 6]']] or data_table(cm, 7, 4) == [
+        [0, 1, 2, 4, 5, 3, 6],
+        [u'int', u'list', u'list', u'DataFrame', u'Series', u'DataFrame',
+         u'Series'],
+        [1, 3, 4, u'(2, 3)', u'(3,)', u'(3, 3)', u'(4,)'],
+        ['1',
+         '[0, 1, 2]',
+         '[3, 4, 5, 6]',
+         'Column names: 0, 1, 2',
+         'Series object of pandas.core.series module',
+         'Column names: 0, 1, 2',
+         'Series object of pandas.core.series module',
+         ]]
 
 
 def test_sort_collectionsmodel_with_many_rows():
