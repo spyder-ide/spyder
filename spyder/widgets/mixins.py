@@ -319,6 +319,7 @@ class BaseEditMixin(object):
 
         Special chars depend on the language.
         """
+        language = getattr(self, 'language', language).lower()
         active_parameter_template = (
             '<span style=\'font-family:"{font_family}";'
             'font-size:{font_size}pt;'
@@ -354,7 +355,7 @@ class BaseEditMixin(object):
             signature = signature.replace('( ', '(')
 
             # Process signature template
-            if parameter:
+            if parameter and language == 'python':
                 # Escape all possible regex characters
                 # ( ) { } | [ ] . ^ $ * +
                 regex_characters = ['(', ')', '{', '}', '|', '[', ']', '.',
@@ -371,15 +372,15 @@ class BaseEditMixin(object):
             rows = textwrap.wrap(signature, width=max_width,
                                  subsequent_indent=indent)
             for row in rows:
-                if parameter:
+                if parameter and language == 'python':
                     # Add template to highlight the active parameter
                     row = re.sub(pattern, handle_sub, row)
 
                 row = row.replace(' ', '&nbsp;')
                 row = row.replace('span&nbsp;', 'span ')
+                row = row.replace('{}', '{{}}')
 
-                language = getattr(self, 'language', language)
-                if language and 'python' == language.lower():
+                if language and language == 'python':
                     for char in ['(', ')', ',', '*', '**']:
                         new_char = chars_template.format(char=char)
                         row = row.replace(char, new_char)
@@ -393,7 +394,7 @@ class BaseEditMixin(object):
             font_family = font.family()
 
             # Format title to display active parameter
-            if parameter:
+            if parameter and language == 'python':
                 title = title_template.format(
                     font_size=font_size,
                     font_family=font_family,
