@@ -111,8 +111,6 @@ class DebuggingWidget(RichJupyterWidget):
         # before entering readline mode.
         self.kernel_client.iopub_channel.flush()
         self._input_ready = True
-        if not self.is_debugging():
-            return super(DebuggingWidget, self)._handle_input_request(msg)
 
         # While the widget thinks only one input is going on,
         # other functions can be sending messages to the kernel.
@@ -125,6 +123,8 @@ class DebuggingWidget(RichJupyterWidget):
             return
 
         def callback(line):
+            if not self.is_debugging():
+                return self.kernel_client.input(line)
             line = line.strip()
 
             # Save history to browse it later
