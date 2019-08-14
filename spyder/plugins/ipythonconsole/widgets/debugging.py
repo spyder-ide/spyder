@@ -9,7 +9,6 @@ Widget that handles communications between a console in debugging
 mode and Spyder
 """
 
-import pdb
 import re
 
 from qtpy.QtCore import Qt
@@ -36,6 +35,7 @@ class DebuggingWidget(RichJupyterWidget):
         self._input_queue = []
         self._input_ready = False
         self._last_pdb_cmd = ''
+        self._pdb_line_num = 0
 
     def set_queued_input(self, client):
         """Change the kernel client input function queue calls."""
@@ -58,6 +58,7 @@ class DebuggingWidget(RichJupyterWidget):
         """Catches debugging state."""
         # If debugging starts or stops, clear the input queue.
         self._input_queue = []
+        self._pdb_line_num = 0
 
     # --- Public API --------------------------------------------------
     def write_to_stdin(self, line):
@@ -124,17 +125,12 @@ class DebuggingWidget(RichJupyterWidget):
             return
 
         def callback(line):
-            # Save history to browse it later
-            if not (len(self._control.history) > 0
-                    and self._control.history[-1] == line):
-                # Do not save pdb commands unless they have arguments
-                cmd = line.split(" ")[0]
-                args = line.split(" ")[1:]
-                is_pdb_cmd = "do_" + cmd in dir(pdb.Pdb)
-                if cmd and (not is_pdb_cmd or len(args) > 0):
-                    self._control.add_to_history(line)
-
             line = line.strip()
+
+            # Save history to browse it later
+            self._pdb_line_num += 1
+            self._control.add_to_pdb_history(self._pdb_line_num, line)
+
             if line:
                 self._last_pdb_cmd = line
 
