@@ -1822,7 +1822,8 @@ def test_custom_layouts(main_window, qtbot):
                                 print(widget)  # spyder: test-skip
                                 assert widget.isVisible()
 
-# @pytest.mark.slow
+
+@pytest.mark.slow
 @flaky(max_runs=3)
 def test_save_on_runfile(main_window, qtbot):
     """Test that layout are showing the expected widgets visible."""
@@ -1848,7 +1849,7 @@ def test_save_on_runfile(main_window, qtbot):
     os.remove(test_file_copy)
 
 
-# @pytest.mark.slow
+@pytest.mark.slow
 def test_pylint_follows_file(qtbot, tmpdir, main_window):
     """Test that file editor focus change updates pylint combobox filename."""
     for plugin in main_window.thirdparty_plugins:
@@ -1886,6 +1887,8 @@ def test_pylint_follows_file(qtbot, tmpdir, main_window):
         assert fname == pylint_plugin.get_filename()
 
 
+@pytest.mark.slow
+@flaky(max_runs=3)
 def test_report_comms_error(qtbot, main_window):
     """Test if a comms error is correctly displayed."""
     CONF.set('main', 'show_internal_errors', True)

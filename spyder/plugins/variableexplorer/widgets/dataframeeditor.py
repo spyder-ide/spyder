@@ -1259,11 +1259,16 @@ class DataFrameEditor(QDialog):
 
     def _update_header_size(self):
         """Update the column width of the header."""
+        self.table_header.resizeColumnsToContents()
         column_count = self.table_header.model().columnCount()
         for index in range(0, column_count):
             if index < column_count:
                 column_width = self.dataTable.columnWidth(index)
-                self.table_header.setColumnWidth(index, column_width)
+                header_width = self.table_header.columnWidth(index)
+                if column_width > header_width:
+                    self.table_header.setColumnWidth(index, column_width)
+                else:
+                    self.dataTable.setColumnWidth(index, header_width)
             else:
                 break
 
