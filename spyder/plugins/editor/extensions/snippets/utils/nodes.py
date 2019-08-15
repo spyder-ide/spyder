@@ -71,6 +71,7 @@ class ASTNode:
         self.parent = None
         self.mark_for_position = True
         self.index_in_parent = -1
+        self.depth = 0
 
     def update_position(self, position):
         """Updates node text position."""
@@ -116,6 +117,7 @@ class TextNode(ASTNode):
         for i, token in enumerate(tokens):
             token.index_in_parent = i
             token.parent = self
+            token.depth = self.depth + 1
 
     @property
     def tokens(self):
@@ -126,12 +128,14 @@ class TextNode(ASTNode):
         self._tokens = tokens
         for i, token in enumerate(tokens):
             token.index_in_parent = i
+            token.depth = self.depth + 1
             token.parent = self
 
     def compute_position(self, offset):
         polygon = []
         current_offset = offset
         for i, token in enumerate(self._tokens):
+            token.depth = self.depth + 1
             current_offset = token.compute_position(current_offset)
             if token.mark_for_position:
                 position = token.position
@@ -263,6 +267,7 @@ class TabstopSnippetNode(SnippetASTNode):
         self._placeholder = (placeholder if placeholder is not None else
                              default_placeholder)
         self._placeholder.parent = self
+        self._placeholder.depth = self.depth + 1
 
     @property
     def placeholder(self):
@@ -271,10 +276,12 @@ class TabstopSnippetNode(SnippetASTNode):
     @placeholder.setter
     def placeholder(self, placeholder):
         self._placeholder = placeholder
+        self._placeholder.depth = self.depth + 1
         self._placeholder.parent = self
 
     def compute_position(self, offset):
         if isinstance(self._placeholder, ASTNode):
+            self._placeholder.depth = self.depth + 1
             end_position = self._placeholder.compute_position(offset)
         elif isinstance(self._placeholder, str):
             end_position, _ = _compute_offset_str(offset, self._placeholder)

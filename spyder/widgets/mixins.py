@@ -957,9 +957,11 @@ class BaseEditMixin(object):
         if cursor is None:
             cursor = self.textCursor()
         start, end = cursor.selectionStart(), cursor.selectionEnd()
-        start_cursor = QTextCursor(cursor).setPosition(start)
+        start_cursor = QTextCursor(cursor)
+        start_cursor.setPosition(start)
         start_position = self.get_cursor_line_column(start_cursor)
-        end_cursor = QTextCursor(cursor).setPosition(end)
+        end_cursor = QTextCursor(cursor)
+        end_cursor.setPosition(end)
         end_position = self.get_cursor_line_column(end_cursor)
         return start_position, end_position
 

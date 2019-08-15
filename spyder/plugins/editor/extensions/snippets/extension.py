@@ -7,7 +7,7 @@
 """Code snippets editor extension."""
 
 # Standard library imports
-import re
+import functools
 from collections import OrderedDict
 
 # Third party imports
@@ -30,6 +30,14 @@ from spyder.plugins.editor.extensions.snippets.utils.lexer import tokenize
 
 
 MERGE_ALLOWED = {'int', 'name', 'whitespace'}
+
+
+def lock(f):
+    @functools.wraps(f)
+    def wrapper(self, *args, **kwargs):
+        with QMutexLocker(self.modification_lock):
+            return f(self, *args, **kwargs)
+    return wrapper
 
 
 class SnippetSearcherVisitor:
@@ -134,18 +142,18 @@ class SnippetsExtension(EditorExtension):
                         else:
                             self._process_text(text)
 
+    @lock
     def _process_text(self, text):
-        with QMutexLocker(self.modification_lock):
-            if self.is_snippet_active:
-                line, column = self.editor.get_cursor_line_column()
-                # Update placeholder text node
-                if text != '\b':
-                    self.insert_text(text, line, column)
-                    # text_node = nodes.TextNode(*token_nodes)
-                    # snippet.placeholder = text_node
-                else:
-                    self.delete_text(line, column)
-                self._update_ast()
+        if self.is_snippet_active:
+            line, column = self.editor.get_cursor_line_column()
+            # Update placeholder text node
+            if text != '\b':
+                self.insert_text(text, line, column)
+                # text_node = nodes.TextNode(*token_nodes)
+                # snippet.placeholder = text_node
+            else:
+                self.delete_text(line, column)
+            self._update_ast()
 
     def delete_text(self, line, column):
         node, snippet, text_node = self._find_node_by_position(line, column)
@@ -426,9 +434,71 @@ class SnippetsExtension(EditorExtension):
         placeholder.tokens = text_tokens
         print(text_tokens)
 
+    def _region_to_polygon(self, start, end):
+        print(start, end)
+        start_line, start_column = start
+        end_line, end_column = end
+        root_position, _ = self.node_position[0]
+        line_limits = {}
+        for segment in root_position:
+            (_, start), (line, end) = segment
+            line_limits[line] = (start, end)
+
+        polygon = []
+        segment = [(start_line, start_column)]
+        # previous_line, previous_column = start_line, start_column
+        for line in range(start_line, end_line + 1):
+            seg_start, seg_end = line_limits[line]
+            if len(segment) == 0:
+                segment = [(line, seg_start)]
+            if line < end_line:
+                segment.append((line, seg_end))
+            elif line == end_line:
+                segment.append((line, min(seg_end, end_column)))
+            polygon.append(segment)
+            segment = []
+        return polygon
+
+    def _find_lowest_common_ancestor(self, start_node, end_node):
+        left_node, right_node = start_node, end_node
+        ancestor = None
+        while left_node is not None and right_node is not None:
+            while left_node.depth > right_node.depth and left_node is not None:
+                left_node = left_node.parent
+
+            if left_node is None:
+                break
+
+            while (right_node.depth > left_node.depth and
+                    right_node is not None):
+                right_node = right_node.parent
+
+            if right_node is None:
+                break
+
+            if id(left_node) == id(right_node):
+                if isinstance(left_node, nodes.SnippetASTNode):
+                    ancestor = left_node
+                    break
+
+            left_node = left_node.parent
+            right_node = right_node.parent
+        return ancestor
+
+    @lock
     def _remove_selection(self, selection_start, selection_end):
-        with QMutexLocker(self.modification_lock):
-            print(selection_start, selection_end)
+        print(selection_start, selection_end)
+        # end_line, end_column = selection_end
+        # selection_end = (end_line, end_column - 1)
+        start_node, _, _ = self._find_node_by_position(*selection_start)
+        end_node, _, _ = self._find_node_by_position(*selection_end)
+        ancestor = self._find_lowest_common_ancestor(start_node, end_node)
+        print(ancestor)
+        if ancestor is None:
+            self.reset()
+            return
+        poly = self._region_to_polygon(selection_start, selection_end)
+        print(poly)
 
     def update_position_tree(self, visitor):
         self.node_number = visitor.node_number
