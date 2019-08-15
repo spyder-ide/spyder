@@ -2128,7 +2128,6 @@ class CodeEditor(TextEditBaseWidget):
 
         If the cell doesn't exist, raises an exception
         """
-
         selected_block = None
         if is_string(cell):
             for oedata in self.cell_list():

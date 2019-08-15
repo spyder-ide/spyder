@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Aug  5 16:43:33 2019
+# -----------------------------------------------------------------------------
+# Copyright © 2018- Spyder Kernels Contributors
+# Licensed under the terms of the MIT License
+# (see spyder_kernels/__init__.py for details)
+# -----------------------------------------------------------------------------
 
-@author: quentinpeter
-"""
 from ipykernel.tests.test_embed_kernel import setup_kernel
 from qtconsole.comms import CommManager
 import pytest
@@ -40,9 +40,10 @@ def test_runcell(tmpdir):
         kernel_comm._register_comm(comm_manager.new_comm('spyder_api', data={
                 'pickle_protocol': 2}))
 
-        def process_msg():
+        def process_msg(call_name):
             msg = {'msg_type': None}
-            while msg['msg_type'] != 'comm_msg':
+            while (msg['msg_type'] != 'comm_msg'
+                   or msg['content']['data']['content']['call_name'] != call_name):
                 msg = client.get_iopub_msg(block=True, timeout=TIMEOUT)
                 iopub_recieved.function(msg)
 
@@ -51,12 +52,10 @@ def test_runcell(tmpdir):
 
         kernel_comm.register_call_handler('run_cell', runcell)
 
-        process_msg()
-
         # Execute runcell
         client.execute(u"runcell('', r'{}')".format(to_text_string(p)))
         # Get the runcell call
-        process_msg()
+        process_msg('run_cell')
         msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
 
         # Verify that the `result` variable is defined
