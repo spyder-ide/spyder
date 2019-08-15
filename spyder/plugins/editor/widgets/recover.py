@@ -18,8 +18,6 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout, QLabel,
                             QMessageBox, QPushButton, QTableWidget,
                             QVBoxLayout, QWidget)
-from spyder.py3compat import to_text_string
-
 # Local imports
 from spyder.config.base import _, running_under_pytest
 
