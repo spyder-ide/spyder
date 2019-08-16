@@ -358,13 +358,21 @@ class BaseEditMixin(object):
             if parameter and language == 'python':
                 # Escape all possible regex characters
                 # ( ) { } | [ ] . ^ $ * +
-                regex_characters = ['(', ')', '{', '}', '|', '[', ']', '.',
-                                    '^', '$', '*', '+']
-                for regex_char in regex_characters:
-                    escape_char = '\\{char}'.format(char=regex_char)
-                    parameter = parameter.replace(regex_char, escape_char)
+                escape_regex_chars = ['|', '.', '^', '$', '*', '+']
+                remove_regex_chars = ['(', ')', '{', '}', '[', ']']
+                regex_parameter = parameter
+                for regex_char in escape_regex_chars + remove_regex_chars:
+                    if regex_char in escape_regex_chars:
+                        escape_char = r'\{char}'.format(char=regex_char)
+                        regex_parameter = regex_parameter.replace(regex_char,
+                                                                  escape_char)
+                    else:
+                        regex_parameter = regex_parameter.replace(regex_char,
+                                                                  '')
+                        parameter = parameter.replace(regex_char, '')
 
-                pattern = r'[\*|(|\s](' + parameter + r')[,|)|\s|=]'
+                pattern = (r'[\*|\(|\[|\s](' + regex_parameter +
+                           r')[,|\)|\]|\s|=]')
 
             formatted_lines = []
             name = signature.split('(')[0]
