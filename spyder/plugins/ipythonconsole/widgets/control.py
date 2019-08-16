@@ -5,31 +5,14 @@
 # (see spyder/__init__.py for details)
 
 """Control widgets used by ShellWidget"""
-import pdb
-
 from qtpy.QtCore import Qt, Signal
 from qtpy.QtWidgets import QTextEdit
-from IPython.core.history import HistoryManager
 
-from spyder.config.base import get_conf_path
 from spyder.utils.qthelpers import restore_keyevent
 from spyder.widgets.calltip import CallTipWidget
 from spyder.widgets.mixins import (BaseEditMixin, GetHelpMixin,
                                    TracebackLinksMixin,
                                    BrowseHistoryMixin)
-
-
-class PdbHistory(HistoryManager):
-
-    def _get_hist_file_name(self, profile=None):
-        """
-        Get default pdb history file name.
-
-        The profile parameter is ignored, but must exist for compatibility with
-        the parent class.
-        """
-
-        return get_conf_path('pdb_history.sqlite')
 
 
 class ControlWidget(TracebackLinksMixin, GetHelpMixin, BrowseHistoryMixin,
@@ -42,7 +25,6 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin, BrowseHistoryMixin,
     visibility_changed = Signal(bool)
     go_to_error = Signal(str)
     focus_changed = Signal()
-    PDB_HIST_MAX = 400
 
     def __init__(self, parent=None):
         QTextEdit.__init__(self, parent)
@@ -50,11 +32,6 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin, BrowseHistoryMixin,
         TracebackLinksMixin.__init__(self)
         GetHelpMixin.__init__(self)
         BrowseHistoryMixin.__init__(self)
-
-        self.pdb_history_file = PdbHistory()
-        self.history = [line[-1]
-                        for line in self.pdb_history_file.get_tail(
-                            self.PDB_HIST_MAX, include_latest=True)]
 
         self.calltip_widget = CallTipWidget(self, hide_timer_on=False)
         self.found_results = []
@@ -94,24 +71,6 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin, BrowseHistoryMixin,
         """Reimplement Qt method to send focus change notification"""
         self.focus_changed.emit()
         return super(ControlWidget, self).focusOutEvent(event)
-
-    def add_to_pdb_history(self, line_num, line):
-        """Add command to history"""
-        self.histidx = None
-        if not line:
-            return
-        line = line.strip()
-
-        # If repeated line
-        if len(self.history) > 0 and self.history[-1] == line:
-            return
-
-        cmd = line.split(" ")[0]
-        args = line.split(" ")[1:]
-        is_pdb_cmd = "do_" + cmd in dir(pdb.Pdb)
-        if cmd and (not is_pdb_cmd or len(args) > 0):
-            self.history.append(line)
-            self.pdb_history_file.store_inputs(line_num, line)
 
 
 class PageControlWidget(QTextEdit, BaseEditMixin):

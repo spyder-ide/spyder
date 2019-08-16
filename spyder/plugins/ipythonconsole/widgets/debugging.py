@@ -10,11 +10,27 @@ mode and Spyder
 """
 
 import re
+import pdb
 
+from IPython.core.history import HistoryManager
 from qtpy.QtCore import Qt
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
+from spyder.config.base import get_conf_path
 from spyder.config.manager import CONF
+
+
+class PdbHistory(HistoryManager):
+
+    def _get_hist_file_name(self, profile=None):
+        """
+        Get default pdb history file name.
+
+        The profile parameter is ignored, but must exist for compatibility with
+        the parent class.
+        """
+
+        return get_conf_path('pdb_history.sqlite')
 
 
 class DebuggingWidget(RichJupyterWidget):
@@ -23,6 +39,7 @@ class DebuggingWidget(RichJupyterWidget):
     communications between a console in debugging mode and
     Spyder
     """
+    PDB_HIST_MAX = 400
 
     def __init__(self, *args, **kwargs):
         super(DebuggingWidget, self).__init__(*args, **kwargs)
@@ -36,6 +53,10 @@ class DebuggingWidget(RichJupyterWidget):
         self._input_ready = False
         self._last_pdb_cmd = ''
         self._pdb_line_num = 0
+        self.pdb_history_file = PdbHistory()
+        self._control.history = [
+            line[-1] for line in self.pdb_history_file.get_tail(
+                self.PDB_HIST_MAX, include_latest=True)]
 
     def set_queued_input(self, client):
         """Change the kernel client input function queue calls."""
@@ -129,7 +150,7 @@ class DebuggingWidget(RichJupyterWidget):
 
             # Save history to browse it later
             self._pdb_line_num += 1
-            self._control.add_to_pdb_history(self._pdb_line_num, line)
+            self.add_to_pdb_history(self._pdb_line_num, line)
 
             if line:
                 self._last_pdb_cmd = line
@@ -196,3 +217,21 @@ class DebuggingWidget(RichJupyterWidget):
     def is_debugging(self):
         """Check if we are debugging."""
         return self.spyder_kernel_comm._debugging
+
+    def add_to_pdb_history(self, line_num, line):
+        """Add command to history"""
+        self._control.histidx = None
+        if not line:
+            return
+        line = line.strip()
+
+        # If repeated line
+        if len(self._control.history) > 0 and self._control.history[-1] == line:
+            return
+
+        cmd = line.split(" ")[0]
+        args = line.split(" ")[1:]
+        is_pdb_cmd = "do_" + cmd in dir(pdb.Pdb)
+        if cmd and (not is_pdb_cmd or len(args) > 0):
+            self._control.history.append(line)
+            self.pdb_history_file.store_inputs(line_num, line)
