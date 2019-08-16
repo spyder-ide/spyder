@@ -8,6 +8,7 @@
 from ipykernel.tests.test_embed_kernel import setup_kernel
 from qtconsole.comms import CommManager
 import pytest
+import time
 
 from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 from spyder_kernels.py3compat import PY3, to_text_string
@@ -15,8 +16,9 @@ from spyder_kernels.py3compat import PY3, to_text_string
 
 TIMEOUT = 15
 
-
-def test_runcell(tmpdir):
+@pytest.mark.parametrize(
+    "debug", [True, False])
+def test_runcell(tmpdir, debug):
     """Test the runcell command."""
     # Command to start the kernel
     cmd = "from spyder_kernels.console import start; start.main()"
@@ -51,12 +53,31 @@ def test_runcell(tmpdir):
             return code
 
         kernel_comm.register_call_handler('run_cell', runcell)
+        kernel_comm.register_call_handler('get_breakpoints', lambda: {})
+        kernel_comm.register_call_handler('pdb_state', lambda state: None)
 
+        if debug:
+            function = 'debugcell'
+        else:
+            function = 'runcell'
         # Execute runcell
-        client.execute(u"runcell('', r'{}')".format(to_text_string(p)))
+        client.execute(function + u"('', r'{}')".format(to_text_string(p)))
+
         # Get the runcell call
         process_msg('run_cell')
+
+        if debug:
+            # Continue
+            process_msg('set_debug_state')
+            process_msg('get_breakpoints')
+            assert kernel_comm._debugging
+            time.sleep(.5)
+            client.input('c')
+            process_msg('set_debug_state')
+            assert not kernel_comm._debugging
+
         msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
+        assert msg['msg_type'] == 'execute_reply'
 
         # Verify that the `result` variable is defined
         client.inspect('result')
