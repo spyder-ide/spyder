@@ -2418,7 +2418,8 @@ class CodeEditor(TextEditBaseWidget):
         forward=False: fix indent only if text is too much indented
                        (otherwise force unindent)
 
-        comment_or_string:
+        comment_or_string: Do not adjust indent level for
+            unmatched opening brackets and keywords
 
         Returns True if indent needed to be fixed
 
@@ -2434,7 +2435,6 @@ class CodeEditor(TextEditBaseWidget):
         prevtext = ""
 
         closing_brackets = []
-
         for prevline in range(block_nb-1, -1, -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
@@ -2447,14 +2447,7 @@ class CodeEditor(TextEditBaseWidget):
             if not prevtext:
                 continue
 
-            # This doesn't seem to be doing anything important?
-# =============================================================================
-#             if not "return" == prevtext.split()[0] and \
-#                     prevtext.endswith((')', ']', '}')):  # What for?
-#                 comment_or_string = True  # prevent further parsing
-#             el
-# =============================================================================
-            if prevtext.endswith(':'):
+            if prevtext.endswith((':', '\\')):
                 # Presume a block was started
                 line_in_block = True  # add one level of indent to correct_indent
                 # Does this variable actually do *anything* of relevance?
@@ -2477,7 +2470,7 @@ class CodeEditor(TextEditBaseWidget):
                     if words[0] in ('class', 'def', 'elif', 'except', 'for',
                                     'if', 'while', 'with'):
                         add_indent += 1
-                    if not (
+                    elif not (  # I'm not sure this block should exist here
                             (
                                 self.tab_stop_width_spaces
                                 if self.indent_chars == '\t' else
@@ -2488,49 +2481,48 @@ class CodeEditor(TextEditBaseWidget):
                     # There's stuff after unmatched opening brackets
                     visual_indent = True
             elif (words[-1] in ('continue', 'break', 'pass',)
-                  or words[0] == "return"
+                  or words[0] == "return" and not line_in_block
                   ):
                 add_indent -= 1
 
         if prevline:
-            correct_indent = self.get_block_indentation(prevline)
+            prevline_indent = self.get_block_indentation(prevline)
         else:
-            correct_indent = 0
+            prevline_indent = 0
 
         if visual_indent:  # can only be true if bracket_stack
             correct_indent = bracket_stack[-1][0] + 1
         elif add_indent:
             # Indent
             if self.indent_chars == '\t':
-                correct_indent += self.tab_stop_width_spaces * add_indent
+                correct_indent = prevline_indent + self.tab_stop_width_spaces * add_indent
             else:
-                correct_indent += len(self.indent_chars) * add_indent
+                correct_indent = prevline_indent + len(self.indent_chars) * add_indent
+        else:
+            correct_indent = prevline_indent
 
-        # TODO this block
+        # TODO untangle this block
         if prevline and not bracket_stack and not prevtext.endswith(':'):
             cur_indent = self.get_block_indentation(block_nb - 1)
             is_blank = not self.get_text_line(block_nb - 1).strip()
-            prevline_indent = self.get_block_indentation(prevline)
             trailing_text = self.get_text_line(block_nb).strip()
+            # If brackets are matched and no block gets opened
+            # Match the above line's indent and nudge to the next multiple of 4
 
-            if cur_indent < prevline_indent and \
-               (trailing_text or is_blank):
-                if cur_indent % len(self.indent_chars) == 0:
-                    correct_indent = cur_indent
-                else:
-                    correct_indent = cur_indent \
-                                   + (len(self.indent_chars) -
-                                      cur_indent % len(self.indent_chars))
+            if cur_indent < prevline_indent and (trailing_text or is_blank):
+                # if line directly above is blank or there is text after cursor
+                # Ceiling division
+                correct_indent = -(-cur_indent // len(self.indent_chars)) * \
+                    len(self.indent_chars)
 
         indent = self.get_block_indentation(block_nb)
 
-        if (forward and indent >= correct_indent) or \
-           (not forward and indent <= correct_indent):
-            # No indentation fix is necessary
-            return False
-
-        # Insert the determined indent
-        if correct_indent >= 0:
+        if correct_indent >= 0 and not (
+                indent == correct_indent or
+                forward and indent > correct_indent or
+                not forward and indent < correct_indent
+                ):
+            # Insert the determined indent
             cursor = self.textCursor()
             cursor.movePosition(QTextCursor.StartOfBlock)
             if self.indent_chars == '\t':
@@ -2544,6 +2536,7 @@ class CodeEditor(TextEditBaseWidget):
                 indent_text = ' '*correct_indent
             cursor.insertText(indent_text)
             return True
+        return False
 
     @Slot()
     def clear_all_output(self):
