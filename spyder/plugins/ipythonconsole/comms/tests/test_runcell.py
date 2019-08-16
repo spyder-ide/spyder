@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-# -----------------------------------------------------------------------------
 # Copyright © 2018- Spyder Kernels Contributors
 # Licensed under the terms of the MIT License
 # (see spyder_kernels/__init__.py for details)
-# -----------------------------------------------------------------------------
 
 from ipykernel.tests.test_embed_kernel import setup_kernel
 from qtconsole.comms import CommManager

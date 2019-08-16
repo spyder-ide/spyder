@@ -2598,7 +2598,6 @@ class EditorStack(QWidget):
         if self.last_cell_call is None:
             return
         filename, cell_name = self.last_cell_call
-
         index = self.has_filename(filename)
         if index is None:
             return
