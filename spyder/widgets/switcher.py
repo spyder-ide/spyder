@@ -805,7 +805,7 @@ def create_symbol_example_switcher(sw):
     sw.add_item(title=_('another symbol'))
 
 
-def create_example_switcher(main=None,item_styles=None,
+def create_example_switcher(main=None, item_styles=None,
                             item_separator_styles=None):
     """Create example switcher."""
     # Create Switcher
