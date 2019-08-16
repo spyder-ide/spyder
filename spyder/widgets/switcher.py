@@ -805,12 +805,13 @@ def create_symbol_example_switcher(sw):
     sw.add_item(title=_('another symbol'))
 
 
-def create_example_switcher(main=None):
+def create_example_switcher(main=None,item_styles=None,
+                            item_separator_styles=None):
     """Create example switcher."""
     # Create Switcher
-    if main is None:
-        main = QLineEdit()
-    sw = Switcher(main)
+
+    sw = Switcher(main, item_styles=item_styles,
+                  item_separator_styles=item_separator_styles)
     sw.add_mode('>', _('Commands'))
     sw.add_mode('?', _('Help'))
     sw.add_mode(':', _('Go to Line'))
@@ -836,15 +837,18 @@ def create_example_switcher(main=None):
     sw.sig_item_selected.connect(item_selected)
 
     create_vcs_example_switcher(sw)
-    sw.show()
+    return sw
 
 
-def test(main=None):  # pragma: no cover
+def test(main=None, item_styles=None,
+         item_separator_styles=None):  # pragma: no cover
     """Launch the switcher with some test values."""
     from spyder.utils.qthelpers import qapplication
     app = qapplication()
-    create_example_switcher(main=main)
-    app.exec_()
+    sw = create_example_switcher(main=main, item_styles=item_styles,
+                                 item_separator_styles=item_separator_styles)
+    sw.show()
+    sys.exit(sw.exec_())
 
 
 if __name__ == "__main__":  # pragma: no cover
