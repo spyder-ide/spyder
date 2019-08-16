@@ -182,6 +182,114 @@ def test_def_with_unindented_comment():
     assert text == "def function():\n# Comment\n    ", repr(text)
 
 
+def test_keywords():
+    # 'def', 'for', 'if', 'while', 'with', 'class', 'elif', 'except'
+    text_input_expected_comment = [
+        ("def func():\n", "def func():\n    ",
+         "function declaration"),
+        ("def function(\n", "def function(\n        ",
+        "partial function declaration"),
+        ("def f(\n", "def f(\n        ",
+         "partial function declaration with short name"),
+        ("def func(): return\n", "def func(): return\n", "single line return"),
+        ("def func():\n    if True:\n        return\n",
+         "def func():\n    if True:\n        return\n    ",
+         "return in if block"),
+        ("if True:\n    varname = multipass\n",
+         "if True:\n    varname = multipass\n    ",
+         "endswith pass, but not keyword"),
+        ("def func():\n    return()\n", "def func():\n    return()\n",
+         "no space between return and bracket"),
+        ("for i in range(\n", "for i in range(\n        ", "partial for"),
+        ]
+    for text_input, expected, comment in text_input_expected_comment:
+        text = get_indent_fix(text_input)
+        assert text == expected, comment
+
+def test_hanging_indentation_without_block():
+    text_input_expected_comment = [
+        ("function(\n",
+         "function(\n    ",
+         "function call"),
+        ("f(\n",
+         "f(\n  ",
+         "function call with short name"),
+        ("def f():\n    return \\\n", "def f():\n    return \\\n        ",
+         "line cont. return"),
+        ("def f():\n    return lambda: \\\n",
+         "def f():\n    return lambda: \\\n        ",
+         "return but indent")
+        ]
+    for text_input, expected, comment in text_input_expected_comment:
+        text = get_indent_fix(text_input)
+        assert text == expected, comment
+
+
+def test_no_hanging_indentation():
+    text_input_expected_comment = [
+        ("f('(')\n",
+         "f('(')\n",
+         "open bracket in string"),
+        ("f('def f(')",
+         "f('def f(')",
+         "keyword in string"),
+        ("'a(a,'\n",
+         "'a(a,'\n",
+         "bracket in string"),
+        ("def f():\n    return()\n",
+         "def f():\n    return()\n",
+         "return without space after"),
+        ("print('#1 w(Earth) =', w)\n",
+         "print('#1 w(Earth) =', w)\n",
+         "# in string")
+        ]
+    for text_input, expected, comment in text_input_expected_comment:
+        text = get_indent_fix(text_input)
+        assert text == expected, comment
+
+
+def test_unintent_in_block():
+    # return, yield, pass, continue, break, raise
+    text = get_indent_fix("def f(x):\n    if True:\n        return\n")
+    assert text == "def f(x):\n    if True:\n        return\n    ", repr(text)
+
+
+def test_multi_line_lists():
+#         "corbin_dallas = multipass"
+# if True: pass
+    # if (
+    #     pass
+    # if True: if True: (invalid syntax)
+    # if True: return
+    # def f():\n# comment\n#
+    text_input_expected_comment = [
+        ('[\n    ("",\n     "",\n     "")\n',
+         '[\n    ("",\n     "",\n     "")\n    ',
+         "multiline args"),
+        ('[\n    ("",\n     "",\n     ""),\n',
+         '[\n    ("",\n     "",\n     ""),\n    ',
+         "multiline args with comma")
+        ]
+    for text_input, expected, comment in text_input_expected_comment:
+        text = get_indent_fix(text_input)
+        assert text == expected, comment
+
+
+def test_string_literals():
+    text_input_expected_comment = [
+        ("'''\n", "'''\n", "bare opening triple-quote"),
+        ("def f():\n    '''\n", "def f():\n    '''\n    ",
+         "opening triple-quote in function declaration"),
+        ("'''Docstring'''\n", "'''Docstring'''\n",
+         "triple-quoted string literal"),
+        ("", "", ""),
+        ("", "", ""),
+        ]
+    for text_input, expected, comment in text_input_expected_comment:
+        text = get_indent_fix(text_input)
+        assert text == expected, comment
+
+
 # ---- Tabs tests
 def test_indentation_with_tabs():
     text_input_expected_comment = [
