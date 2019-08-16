@@ -539,38 +539,9 @@ class CodeEditor(TextEditBaseWidget):
         self.differ = diff_match_patch()
         self.previous_text = ''
         self.word_tokens = []
-        self.completion_widget.currentRowChanged.connect(
-            self._show_hint_for_completion)
 
     # --- Helper private methods
     # ------------------------------------------------------------------------
-
-    # --- Hint in completions
-    @Slot(int)
-    def _show_hint_for_completion(self, currentRow):
-        """Show hint for completion element."""
-        self.hide_tooltip()
-        if (self.is_completion_widget_visible()
-                and self.completion_widget.completion_list
-                and self.completions_hint):
-            completion_element = (
-                self.completion_widget.completion_list[currentRow])
-
-            word = completion_element.get('insertText', '')
-            documentation = to_text_string(
-                completion_element.get('documentation', ''))
-            completion_doc = {'name': word,
-                              'signature': documentation}
-
-            at_point = completion_element.get('point', QPoint(0, 0))
-            if documentation:
-                self.show_hint(documentation, inspect_word=word,
-                               at_point=at_point,
-                               completion_doc=completion_doc,
-                               max_lines=self._DEFAULT_MAX_LINES,
-                               max_width=self._DEFAULT_MAX_WIDTH)
-                base_point = self.mapToGlobal(at_point)
-                self.tooltip_widget.move(base_point)
 
     # --- Hover/Hints
     def _should_display_hover(self, point):
@@ -1032,8 +1003,6 @@ class CodeEditor(TextEditBaseWidget):
                                          key=lambda x: x['sortText'])
                 self.completion_widget.show_list(
                         completion_list, position, automatic)
-                # Show hint for first completion element
-                self._show_hint_for_completion(0)
         except Exception:
             self.log_lsp_handle_errors('Error when processing completions')
 
@@ -2015,6 +1984,25 @@ class CodeEditor(TextEditBaseWidget):
         self._last_hover_word = None
         self.tooltip_widget.hide()
         self.clear_extra_selections('code_analysis_highlight')
+
+    # --- Hint for completions
+    def show_hint_for_completion(self, word, documentation, point):
+        # Change to use signal from list widget
+        """Show hint for completion element."""
+        self.hide_tooltip()
+        if self.completions_hint:
+            completion_doc = {'name': word,
+                              'signature': documentation}
+            at_point = point if point else QPoint(0, 0)
+
+            if documentation:
+                self.show_hint(documentation, inspect_word=word,
+                               at_point=at_point,
+                               completion_doc=completion_doc,
+                               max_lines=self._DEFAULT_MAX_LINES,
+                               max_width=self._DEFAULT_MAX_WIDTH)
+                base_point = self.mapToGlobal(at_point)
+                self.tooltip_widget.move(base_point)
 
     def show_code_analysis_results(self, line_number, block_data):
         """Show warning/error messages."""

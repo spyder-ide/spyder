@@ -43,6 +43,7 @@ class CompletionWidget(QListWidget):
     """Completion list widget"""
 
     sig_show_completions = Signal(object)
+    sig_completion_hint = Signal(str, str, QPoint)
 
     def __init__(self, parent, ancestor):
         QListWidget.__init__(self, ancestor)
@@ -169,9 +170,12 @@ class CompletionWidget(QListWidget):
         if not self.is_internal_console:
             tooltip_point = QPoint(point)
             tooltip_point.setX(point.x() + self.width())
-            tooltip_point.setY(point.y() - (3 * self.height()) // 4)
+            tooltip_point.setY(
+                point.y() - (self.height() // 2 + self.sizeHintForRow(0)))
             for completion in completion_list:
                 completion['point'] = tooltip_point
+            # Show hint for first completion element
+            self.row_changed(0)
 
         # signal used for testing
         self.sig_show_completions.emit(completion_list)
@@ -384,12 +388,14 @@ class CompletionWidget(QListWidget):
 
     @Slot(int)
     def row_changed(self, row):
+        """Set completion hint info and show it."""
         if self.completion_list:
             item = self.completion_list[row]
             if len(item['documentation']) > 0:
-                # TODO: LSP - Define an UI element to display the documentation
-                # self.textedit.show_calltip(
-                #     item['detail'], item['documentation'], color='#daa520',
-                #     at_point=item['point'])
+                if 'point' in item:
+                    self.textedit.show_hint_for_completion(
+                        item['insertText'],
+                        item['documentation'],
+                        item['point'])
                 return
-        QToolTip.hideText()
+        self.textedit.hide_tooltip()
