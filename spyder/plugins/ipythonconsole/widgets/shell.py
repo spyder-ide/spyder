@@ -515,7 +515,7 @@ the sympy module (e.g. plot)
                 "File {} not open in the editor".format(filename))
 
         # The file is open, get cell count from editor
-        return repr(editor.get_cell_count())
+        return editor.get_cell_count()
 
     def handle_current_filename(self):
         """Get the current filename."""
