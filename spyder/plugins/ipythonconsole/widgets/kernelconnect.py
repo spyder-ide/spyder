@@ -159,6 +159,7 @@ class KernelConnectionDialog(QDialog):
         layout.addWidget(self.rm_group)
         layout.addLayout(btns_layout)
 
+        self.cf.setFocus()
         self.load_connection_settings()
 
     def load_connection_settings(self):

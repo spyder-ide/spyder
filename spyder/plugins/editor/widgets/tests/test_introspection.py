@@ -60,6 +60,7 @@ def test_space_completion(lsp_codeeditor, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.first
+@flaky(max_runs=5)
 def test_hide_widget_completion(lsp_codeeditor, qtbot):
     """Validate hiding completion widget after a delimeter or operator."""
     code_editor, _ = lsp_codeeditor
@@ -116,9 +117,7 @@ def test_automatic_completions(lsp_codeeditor, qtbot):
     assert "from" in [x['label'] for x in sig.args[0]]
     # qtbot.keyPress(code_editor, Qt.Key_Tab)
 
-    with qtbot.waitSignal(completion.sig_show_completions,
-                          timeout=10000) as sig:
-        qtbot.keyClicks(code_editor, 'rom')
+    qtbot.keyClicks(code_editor, 'rom')
 
     # Due to automatic completion, the completion widget may appear before
     stop = False
@@ -216,32 +215,40 @@ def test_completions(lsp_codeeditor, qtbot):
     # enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
 
-    # Complete math.d() -> math.degrees()
-    qtbot.keyClicks(code_editor, 'math.d')
+    # Complete math.h() -> math.hypot()
+    qtbot.keyClicks(code_editor, 'math.h')
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
-    assert "degrees(x)" in [x['label'] for x in sig.args[0]]
+    if PY2:
+        assert "hypot(x, y)" in [x['label'] for x in sig.args[0]]
+    else:
+        assert [x['label'] for x in sig.args[0]][0] in ["hypot(x, y)",
+                                                        "hypot(*coordinates)"]
 
-    assert code_editor.toPlainText() == 'import math\nmath.degrees'
+    assert code_editor.toPlainText() == 'import math\nmath.hypot'
 
     # enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
 
-    # Complete math.d() -> math.degrees()
-    qtbot.keyClicks(code_editor, 'math.d(')
+    # Complete math.h() -> math.degrees()
+    qtbot.keyClicks(code_editor, 'math.h(')
     qtbot.keyPress(code_editor, Qt.Key_Left, delay=300)
-    qtbot.keyClicks(code_editor, 'e')
+    qtbot.keyClicks(code_editor, 'y')
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
-    assert "degrees(x)" in [x['label'] for x in sig.args[0]]
+    if PY2:
+        assert "hypot(x, y)" in [x['label'] for x in sig.args[0]]
+    else:
+        assert [x['label'] for x in sig.args[0]][0] in ["hypot(x, y)",
+                                                        "hypot(*coordinates)"]
 
     # right for () + enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Right, delay=300)
@@ -267,19 +274,19 @@ def test_completions(lsp_codeeditor, qtbot):
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
 
     # Check can get list back
-    qtbot.keyClicks(code_editor, 'math.c')
+    qtbot.keyClicks(code_editor, 'math.f')
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
-    assert completion.count() == 4
-    assert "ceil(x)" in [x['label'] for x in sig.args[0]]
-    qtbot.keyClicks(completion, 'e')
+    assert completion.count() == 6
+    assert "floor(x)" in [x['label'] for x in sig.args[0]]
+    qtbot.keyClicks(completion, 'l')
     assert completion.count() == 1
     qtbot.keyPress(completion, Qt.Key_Backspace)
-    assert completion.count() == 4
+    assert completion.count() == 6
 
     # enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
@@ -340,9 +347,9 @@ def test_completions(lsp_codeeditor, qtbot):
     except pytestqt.exceptions.TimeoutError:
         pass
 
-    assert code_editor.toPlainText() == 'import math\nmath.degrees\n'\
-                                        'math.degrees()\nmath.asin\n'\
-                                        'math.c\nmath.asin\n'\
+    assert code_editor.toPlainText() == 'import math\nmath.hypot\n'\
+                                        'math.hypot()\nmath.asin\n'\
+                                        'math.f\nmath.asin\n'\
                                         'math.asinangle\n'\
                                         'math.\n'
     code_editor.toggle_automatic_completions(True)

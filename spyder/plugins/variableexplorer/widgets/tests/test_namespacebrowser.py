@@ -79,7 +79,7 @@ def test_sort_by_column(qtbot):
     assert model.columnCount() == 5
     assert data_table(model, 2, 4) == [['a_variable', 'b_variable'],
                                        ['int', 'int'],
-                                       ['1', '1'],
+                                       [1, 1],
                                        ['1', '2']]
 
     with qtbot.waitSignal(header.sectionClicked):
@@ -89,7 +89,7 @@ def test_sort_by_column(qtbot):
     # Check sort effect
     assert data_table(model, 2, 4) == [['b_variable', 'a_variable'],
                                        ['int', 'int'],
-                                       ['1', '1'],
+                                       [1, 1],
                                        ['2', '1']]
 
 

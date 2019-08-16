@@ -16,6 +16,8 @@ Original file:
 <https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/api/panel.py>
 """
 
+# Standard library imports
+from math import ceil
 
 # Third party imports
 import logging
@@ -167,4 +169,5 @@ class Panel(QWidget, EditorExtension):
             + self.editor.panels.margin_size(Panel.Position.LEFT)
         y = crect.top() + self.editor.panels.margin_size(Panel.Position.TOP)
 
-        self.setGeometry(QRect(x+x0, y+y0, width, height))
+        self.setGeometry(QRect(ceil(x+x0), ceil(y+y0),
+                               ceil(width), ceil(height)))

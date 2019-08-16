@@ -65,12 +65,6 @@ class CompletionWidget(QListWidget):
         self.item_height = fm.height()
         self.item_width = self.width()
 
-        # Text to be displayed if no match is found.
-        self.empty_text = self.get_html_item_representation(
-            'No match', '',
-            height=self.item_height,
-            width=self.item_width)
-
     def setup_appearance(self, size, font):
         self.resize(*size)
         self.setFont(font)
@@ -78,8 +72,6 @@ class CompletionWidget(QListWidget):
     def is_empty(self):
         """Check if widget is empty."""
         if self.count() == 0:
-            return True
-        if self.count() == 1 and self.item(0).text() == self.empty_text:
             return True
         return False
 
@@ -118,8 +110,7 @@ class CompletionWidget(QListWidget):
             return
 
         # If only one, must be chosen if not automatic
-        single_match = (self.count() == 1 and
-                        self.item(0).text() != self.empty_text)
+        single_match = self.count() == 1
         if single_match and not self.automatic:
             self.item_selected()
             self.hide()
@@ -242,7 +233,7 @@ class CompletionWidget(QListWidget):
             self.scrollTo(self.currentIndex(),
                           QAbstractItemView.PositionAtTop)
         else:
-            self.addItem(QListWidgetItem(self.empty_text))
+            self.hide()
 
     def get_html_item_representation(self, item_completion, item_type,
                                      height=DEFAULT_COMPLETION_ITEM_HEIGHT,

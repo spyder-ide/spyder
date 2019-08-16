@@ -26,7 +26,7 @@ import sys
 import warnings
 
 # Third party imports
-import cloudpickle
+from pympler.asizeof import asizeof
 from qtpy.compat import getsavefilename, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QModelIndex, Qt,
                          Signal, Slot)
@@ -376,8 +376,10 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         else:
             if is_type_text_string(value):
                 display = to_text_string(value, encoding="utf-8")
-            else:
+            elif not isinstance(value, int):
                 display = to_text_string(value)
+            else:
+                display = value
         if role == Qt.DisplayRole:
             return to_qvariant(display)
         elif role == Qt.EditRole:
@@ -414,8 +416,9 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         # tuple exploration (even without editing), this method was moved here
         if not index.isValid():
             return Qt.ItemIsEnabled
-        return Qt.ItemFlags(QAbstractTableModel.flags(self, index)|
-                            Qt.ItemIsEditable)
+        return Qt.ItemFlags(int(QAbstractTableModel.flags(self, index) |
+                                Qt.ItemIsEditable))
+
     def reset(self):
         self.beginResetModel()
         self.endResetModel()
@@ -1434,13 +1437,9 @@ class RemoteCollectionsEditorTableView(BaseTableView):
     def new_value(self, name, value):
         """Create new value in data"""
         try:
-            # We need to enclose values in a list to be able to send
-            # them to the kernel in Python 2
-            svalue = [cloudpickle.dumps(value, protocol=PICKLE_PROTOCOL)]
-
             # Needed to prevent memory leaks. See spyder-ide/spyder#7158.
-            if len(svalue) < MAX_SERIALIZED_LENGHT:
-                self.shellwidget.set_value(name, svalue)
+            if asizeof(value) < MAX_SERIALIZED_LENGHT:
+                self.shellwidget.set_value(name, value)
             else:
                 QMessageBox.warning(self, _("Warning"),
                                     _("The object you are trying to modify is "
