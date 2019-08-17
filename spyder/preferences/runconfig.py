@@ -91,7 +91,7 @@ class RunConfiguration(object):
         self.clear_namespace = options.get('clear_namespace',
                                     CONF.get('run', 'clear_namespace', False))
         self.console_namespace = options.get('console_namespace',
-                                CONF.get('run', 'console_namespace', False))
+                                   CONF.get('run', 'console_namespace', False))
         self.file_dir = options.get('file_dir',
                            CONF.get('run', WDIR_USE_SCRIPT_DIR_OPTION, True))
         self.cw_dir = options.get('cw_dir',
@@ -514,12 +514,13 @@ class RunConfigPage(GeneralConfigPage):
         general_group = QGroupBox(_("General settings"))
         post_mortem = self.create_checkbox(POST_MORTEM, 'post_mortem', False)
         clear_variables = self.create_checkbox(CLEAR_ALL_VARIABLES,
-            'clear_namespace', False)
+                                               'clear_namespace', False)
         console_namespace = self.create_checkbox(CONSOLE_NAMESPACE,
-            'console_namespace', False)
+                                                 'console_namespace', False)
 
         general_layout = QVBoxLayout()
         general_layout.addWidget(clear_variables)
+        general_layout.addWidget(console_namespace)
         general_layout.addWidget(post_mortem)
         general_group.setLayout(general_layout)
 
