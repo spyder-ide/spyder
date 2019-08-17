@@ -480,12 +480,9 @@ class IPythonConsole(SpyderPluginWidget):
                     # still an execution taking place
                     # Fixes spyder-ide/spyder#7293.
                     pass
-                elif client.shellwidget._reading:
-                    client.shellwidget._append_html(
-                        _("<br><b>Please exit from debugging before trying to "
-                          "run a file in this console.</b>\n<hr><br>"),
-                        before_prompt=True)
-                    return
+                elif (client.shellwidget._reading and
+                      client.shellwidget.is_debugging()):
+                    client.shellwidget.write_to_stdin('!' + line)
                 elif current_client:
                     self.execute_code(line, current_client, clear_variables)
                 else:
@@ -539,12 +536,9 @@ class IPythonConsole(SpyderPluginWidget):
                     # still an execution taking place
                     # Fixes spyder-ide/spyder#7293.
                     pass
-                elif client.shellwidget._reading:
-                    client.shellwidget._append_html(
-                        _("<br><b>Exit the debugger before trying to "
-                          "run a cell in this console.</b>\n<hr><br>"),
-                        before_prompt=True)
-                    return
+                elif (client.shellwidget._reading and
+                      client.shellwidget.is_debugging()):
+                    client.shellwidget.write_to_stdin('!' + line)
                 else:
                     self.execute_code(line)
             except AttributeError:
