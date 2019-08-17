@@ -458,14 +458,14 @@ the sympy module (e.g. plot)
                 self.silent_execute(command)
 
     # ---- Spyder-kernels methods -------------------------------------------
-    def get_editor(self, filename=None):
+    def get_editor(self, filename):
         """Get editor for filename and set it as the current editor."""
         editorstack = self.get_editorstack()
         if editorstack is None:
             return None
 
         if not filename:
-            return editorstack.get_current_editor()
+            return None
 
         index = editorstack.has_filename(filename)
         if index is None:
@@ -487,7 +487,7 @@ the sympy module (e.g. plot)
         """Save the open files."""
         self.get_editorstack().save()
 
-    def handle_run_cell(self, cell_name, filename=None):
+    def handle_run_cell(self, cell_name, filename):
         """
         Get cell code from cell name and file name.
         """
@@ -504,7 +504,7 @@ the sympy module (e.g. plot)
         # The file is open, load code from editor
         return editor.get_cell_code(cell_name)
 
-    def handle_cell_count(self, filename=None):
+    def handle_cell_count(self, filename):
         """Get number of cells in file to loop."""
         editorstack = self.get_editorstack()
         editorstack.save()
