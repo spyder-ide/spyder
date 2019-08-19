@@ -12,7 +12,7 @@ import pytest
 
 # Local imports
 from spyder.plugins.editor.widgets.editor import codeeditor
-from spyder.py3compat import PY3
+from spyder.py3compat import PY2, PY3
 
 
 # --- Fixtures
@@ -86,6 +86,7 @@ def test_editor_log_lsp_handle_errors(editorbot, capsys):
     assert test_1 or test_2
 
 
+@pytest.mark.skipif(PY2, reason="Python 2 strings don't have attached encoding.")
 @pytest.mark.parametrize(
     "input_text, expected_text, keys, strip_all",
     [
