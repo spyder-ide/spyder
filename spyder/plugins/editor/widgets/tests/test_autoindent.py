@@ -182,13 +182,43 @@ def test_def_with_unindented_comment():
     assert text == "def function():\n# Comment\n    ", repr(text)
 
 
+def test_issue_5606():
+    # See spyder-ide/spyder#5606
+    text_input_expected_comment = [
+        ("if True:\n    print(str(str('foo' \n+ str('bar'))))",
+         "if True:\n    print(str(str('foo' \n                  + str('bar'))))",
+         "Before + 1"),
+        ("if True:\n    print(str(str('foo' +\n str('bar'))))",
+         "if True:\n    print(str(str('foo' +\n                  str('bar'))))",
+         "After + 1"),
+        ("if True:\n    print(str(str(str('foo') \n+ 'bar')))",
+         "if True:\n    print(str(str(str('foo') \n                  + 'bar')))",
+         "Before + 2"),
+        ("if True:\n    print(str(str(str('foo') +\n 'bar')))",
+         "if True:\n    print(str(str(str('foo') +\n                  'bar')))",
+         "After + 2"),
+        ("if True:\n    some_long_variable_name = (\n'foo' + 'bar')",
+         "if True:\n    some_long_variable_name = (\n        'foo' + 'bar')",
+         "Open paren case"),
+        ("if True:\n    (print(str(('Long string ' + 'Yeah')\n.format(some_long_variable_name))",
+         "if True:\n    (print(str(('Long string ' + 'Yeah')\n               .format(some_long_variable_name))",
+         "Before . 1"),
+        ("if True:\n    (print(str(('Long string ' + 'Yeah').\nformat(some_long_variable_name))",
+         "if True:\n    (print(str(('Long string ' + 'Yeah').\n               format(some_long_variable_name))",
+         "After . 1"),
+        ]
+    for text_input, expected, comment in text_input_expected_comment:
+        text = get_indent_fix(text_input)
+        assert text == expected, comment
+
+
 def test_keywords():
     # 'def', 'for', 'if', 'while', 'with', 'class', 'elif', 'except'
     text_input_expected_comment = [
         ("def func():\n", "def func():\n    ",
          "function declaration"),
         ("def function(\n", "def function(\n        ",
-        "partial function declaration"),
+         "partial function declaration"),
         ("def f(\n", "def f(\n        ",
          "partial function declaration with short name"),
         ("def func(): return\n", "def func(): return\n", "single line return"),
@@ -205,6 +235,7 @@ def test_keywords():
     for text_input, expected, comment in text_input_expected_comment:
         text = get_indent_fix(text_input)
         assert text == expected, comment
+
 
 def test_hanging_indentation_without_block():
     text_input_expected_comment = [
@@ -328,14 +359,14 @@ def test_indentation_with_tabs():
 def test_indentation_with_tabs_parenthesis():
     """Simple parenthesis indentation test with different tab stop widths."""
     text_input_expected_tab = [
-        # ("print(''\n)", "print(''\n\t\t)", 1),
-        # ("print(''\n)", "print(''\n\t\t)", 2),
-        ("print(''\n)", "print(''\n\t\t)", 3),
-        ("print(''\n)", "print(''\n\t  )", 4),
-        ("print(''\n)", "print(''\n\t )", 5),
-        ("print(''\n)", "print(''\n\t)", 6),
-        ("print(''\n)", "print(''\n      )", 7),
-        ("print(''\n)", "print(''\n      )", 8),
+        ("print(\n)", "print(\n\t)", 1),
+        ("print(\n)", "print(\n\t)", 2),
+        ("print(\n)", "print(\n\t\t)", 3),
+        ("print(\n)", "print(\n\t  )", 4),
+        ("print(\n)", "print(\n\t )", 5),
+        ("print(\n)", "print(\n\t)", 6),
+        ("print(\n)", "print(\n      )", 7),
+        ("print(\n)", "print(\n      )", 8),
         ("a = (a  #  some comment\n", "a = (a  #  some comment\n\t ", 4)
         ]
     for text_input, expected, tab_stop_width_spaces in text_input_expected_tab:
