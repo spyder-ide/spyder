@@ -3634,10 +3634,13 @@ class CodeEditor(TextEditBaseWidget):
         # remove spaces on the right
         text = cursor.selectedText()
         strip = text.rstrip()
+        # I think all the characters we can strip are in a single QChar.
+        # Therefore there shouldn't be any length problems.
+        N_strip = len(text) - len(strip)
 
-        if line_range[0] + len(strip) < line_range[1]:
+        if N_strip > 0:
             # Select text to remove
-            cursor.setPosition(line_range[0] + len(strip))
+            cursor.setPosition(line_range[1] - N_strip)
             cursor.setPosition(line_range[1],
                                QTextCursor.KeepAnchor)
             cursor.removeSelectedText()
@@ -3645,7 +3648,7 @@ class CodeEditor(TextEditBaseWidget):
             # Correct last change position
             self.last_change_position = line_range[1]
             self.last_position = self.textCursor().position()
-            return line_range[1] - (line_range[0] + len(strip))
+            return N_strip
         return 0
 
     def mouseMoveEvent(self, event):

@@ -31,7 +31,7 @@ from spyder import dependencies
 from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.py3compat import (builtins, is_text_string, to_text_string, PY3,
-                              PY36_OR_MORE)
+                              PY36_OR_MORE, QString_len)
 from spyder.plugins.editor.utils.languages import CELL_LANGUAGES
 from spyder.plugins.editor.utils.editor import TextBlockHelper as tbh
 from spyder.plugins.editor.utils.editor import BlockUserData
@@ -525,7 +525,7 @@ class PythonSH(BaseSH):
         oedata = None
         import_stmt = None
 
-        self.setFormat(0, len(text), self.formats["normal"])
+        self.setFormat(0, QString_len(text), self.formats["normal"])
 
         state = self.NORMAL
         match = self.PROG.search(text)
@@ -535,28 +535,29 @@ class PythonSH(BaseSH):
                     start, end = match.span(key)
                     start = max([0, start+offset])
                     end = max([0, end+offset])
+                    length = QString_len(value)
                     if key == "uf_sq3string":
-                        self.setFormat(start, end-start,
+                        self.setFormat(start, length,
                                        self.formats["string"])
                         state = self.INSIDE_SQ3STRING
                     elif key == "uf_dq3string":
-                        self.setFormat(start, end-start,
+                        self.setFormat(start, length,
                                        self.formats["string"])
                         state = self.INSIDE_DQ3STRING
                     elif key == "uf_sqstring":
-                        self.setFormat(start, end-start,
+                        self.setFormat(start, length,
                                        self.formats["string"])
                         state = self.INSIDE_SQSTRING
                     elif key == "uf_dqstring":
-                        self.setFormat(start, end-start,
+                        self.setFormat(start, length,
                                        self.formats["string"])
                         state = self.INSIDE_DQSTRING
                     elif key in ["ufe_sqstring", "ufe_dqstring"]:
-                        self.setFormat(start, end-start,
+                        self.setFormat(start, length,
                                        self.formats["string"])
                         state = self.INSIDE_NON_MULTILINE_STRING
                     else:
-                        self.setFormat(start, end-start, self.formats[key])
+                        self.setFormat(start, length, self.formats[key])
                         if key == "comment":
                             if text.lstrip().startswith(self.cell_separators):
                                 oedata = OutlineExplorerData(
@@ -623,7 +624,7 @@ class PythonSH(BaseSH):
                                     if not match1:
                                         break
                                     start, end = match1.span(1)
-                                    self.setFormat(start, end-start,
+                                    self.setFormat(start, length,
                                                    self.formats["keyword"])
 
             match = self.PROG.search(text, match.end())
