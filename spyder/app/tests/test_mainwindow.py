@@ -961,8 +961,12 @@ def test_run_code(main_window, qtbot, tmpdir):
     reset_run_code(qtbot, shell, code_editor, nsb)
 
     # ---- Run cell and advance ----
-    # Run the three cells present in file
-    for _ in range(4):
+    # Run the five cells present in file
+    # Add an unnamed cell at the top of the file
+    qtbot.keyClicks(code_editor, 'a = 10')
+    qtbot.keyClick(code_editor, Qt.Key_Return)
+    qtbot.keyClick(code_editor, Qt.Key_Up)
+    for _ in range(5):
         qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
         qtbot.wait(500)
 
@@ -1019,8 +1023,24 @@ def test_run_code(main_window, qtbot, tmpdir):
 
     reset_run_code(qtbot, shell, code_editor, nsb)
 
+    # ---- Debug cell ------
+    qtbot.keyClick(code_editor, Qt.Key_Return,
+                   modifier=Qt.AltModifier | Qt.ShiftModifier)
+    qtbot.waitUntil(
+        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+    qtbot.keyClick(shell._control, 'c')
+    qtbot.keyClick(shell._control, Qt.Key_Enter)
+
+    # Wait until the object has appeared in the variable explorer
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 1,
+                    timeout=EVAL_TIMEOUT)
+
+    reset_run_code(qtbot, shell, code_editor, nsb)
+
     # ---- Re-run last cell ----
-    # Run the first two cells in file
+    # Run the first three cells in file
+    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    qtbot.wait(500)
     qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
     qtbot.wait(500)
     qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
