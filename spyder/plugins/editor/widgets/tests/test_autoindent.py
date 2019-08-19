@@ -212,6 +212,21 @@ def test_issue_5606():
         assert text == expected, comment
 
 
+def test_issue_7377():
+    # See spyder-ide/spyder#7377
+    text_input_expected_comment = [
+        ("print('#1 w(Earth) =', w)\n",
+         "print('#1 w(Earth) =', w)\n",
+         "Indentation made"),
+        ("print('1 w(Earth) =', w)\n",
+         "print('1 w(Earth) =', w)\n",
+         "Indentation made"),
+        ]
+    for text_input, expected, comment in text_input_expected_comment:
+        text = get_indent_fix(text_input)
+        assert text == expected, comment
+
+
 def test_keywords():
     # 'def', 'for', 'if', 'while', 'with', 'class', 'elif', 'except'
     text_input_expected_comment = [
