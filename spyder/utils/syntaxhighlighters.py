@@ -511,7 +511,7 @@ class PythonSH(BaseSH):
         self.outline_explorer_data_update_timer.timeout.connect(
             self.sig_outline_explorer_data_changed)
 
-    def highlight_match(self, text, match, key, offset,
+    def highlight_match(self, text, match, key, value, offset,
                         state, import_stmt, oedata):
         """Highlight a single match."""
         start, end = get_span(match, key)
@@ -619,14 +619,17 @@ class PythonSH(BaseSH):
 
         oedata = None
         import_stmt = None
-        state = self.NORMAL
+
         self.setFormat(0, QString_len(text), self.formats["normal"])
+
+        state = self.NORMAL
         match = self.PROG.search(text)
         while match:
             for key, value in list(match.groupdict().items()):
                 if value:
                     state, import_stmt, oedata = self.highlight_match(
-                        text, match, key, offset, state, import_stmt, oedata)
+                        text, match, key, value, offset,
+                        state, import_stmt, oedata)
 
             match = self.PROG.search(text, match.end())
 
