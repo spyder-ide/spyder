@@ -2409,7 +2409,7 @@ class CodeEditor(TextEditBaseWidget):
         # If no closing brackets are left over from this line,
         # check the ones from previous iterations' prevlines
         if not bracket_unmatched_closing:
-            for c in closing_brackets.copy():
+            for c in list(closing_brackets):
                 if bracket_stack and bracket_stack[-1][1] == \
                         {')': '(', ']': '[', '}': '{'}[c]:
                     bracket_stack.pop()
