@@ -511,6 +511,92 @@ class PythonSH(BaseSH):
         self.outline_explorer_data_update_timer.timeout.connect(
             self.sig_outline_explorer_data_changed)
 
+    def highlight_match(self, text, match, key, offset,
+                        state, import_stmt, oedata):
+        """Highlight a single match."""
+        start, end = get_span(match, key)
+        start = max([0, start+offset])
+        end = max([0, end+offset])
+        length = end - start
+        if key == "uf_sq3string":
+            self.setFormat(start, length, self.formats["string"])
+            state = self.INSIDE_SQ3STRING
+        elif key == "uf_dq3string":
+            self.setFormat(start, length, self.formats["string"])
+            state = self.INSIDE_DQ3STRING
+        elif key == "uf_sqstring":
+            self.setFormat(start, length, self.formats["string"])
+            state = self.INSIDE_SQSTRING
+        elif key == "uf_dqstring":
+            self.setFormat(start, length, self.formats["string"])
+            state = self.INSIDE_DQSTRING
+        elif key in ["ufe_sqstring", "ufe_dqstring"]:
+            self.setFormat(start, length, self.formats["string"])
+            state = self.INSIDE_NON_MULTILINE_STRING
+        else:
+            self.setFormat(start, length, self.formats[key])
+            if key == "comment":
+                if text.lstrip().startswith(self.cell_separators):
+                    oedata = OutlineExplorerData(self.currentBlock())
+                    oedata.text = to_text_string(text).strip()
+                    # cell_head: string contaning the first group
+                    # of '%'s in the cell header
+                    cell_head = re.search(r"%+|$", text.lstrip()).group()
+                    if cell_head == '':
+                        oedata.cell_level = 0
+                    else:
+                        oedata.cell_level = QString_len(cell_head) - 2
+                    oedata.fold_level = start
+                    oedata.def_type = OutlineExplorerData.CELL
+                    def_name = get_code_cell_name(text)
+                    oedata.def_name = def_name
+                elif self.OECOMMENT.match(text.lstrip()):
+                    oedata = OutlineExplorerData(self.currentBlock())
+                    oedata.text = to_text_string(text).strip()
+                    oedata.fold_level = start
+                    oedata.def_type = OutlineExplorerData.COMMENT
+                    oedata.def_name = text.strip()
+            elif key == "keyword":
+                if value in ("def", "class"):
+                    match1 = self.IDPROG.match(text, end)
+                    if match1:
+                        start1, end1 = get_span(match1, 1)
+                        self.setFormat(start1, end1-start1,
+                                       self.formats["definition"])
+                        oedata = OutlineExplorerData(self.currentBlock())
+                        oedata.text = to_text_string(text)
+                        oedata.fold_level = (QString_len(text)
+                                             - QString_len(text.lstrip()))
+                        oedata.def_type = self.DEF_TYPES[to_text_string(value)]
+                        oedata.def_name = text[start1:end1]
+                        oedata.color = self.formats["definition"]
+                elif value in ("elif", "else", "except", "finally",
+                               "for", "if", "try", "while",
+                               "with"):
+                    if text.lstrip().startswith(value):
+                        oedata = OutlineExplorerData(self.currentBlock())
+                        oedata.text = to_text_string(text).strip()
+                        oedata.fold_level = start
+                        oedata.def_type = OutlineExplorerData.STATEMENT
+                        oedata.def_name = text.strip()
+                elif value == "import":
+                    import_stmt = text.strip()
+                    # color all the "as" words on same line, except
+                    # if in a comment; cheap approximation to the
+                    # truth
+                    if '#' in text:
+                        endpos = QString_len(text[:text.index('#')])
+                    else:
+                        endpos = QString_len(text)
+                    while True:
+                        match1 = self.ASPROG.match(text, end, endpos)
+                        if not match1:
+                            break
+                        start, end = get_span(match1, 1)
+                        self.setFormat(start, length, self.formats["keyword"])
+
+        return state, import_stmt, oedata
+
     def highlight_block(self, text):
         """Implement specific highlight for Python."""
         text = to_text_string(text)
@@ -533,108 +619,14 @@ class PythonSH(BaseSH):
 
         oedata = None
         import_stmt = None
-
-        self.setFormat(0, QString_len(text), self.formats["normal"])
-
         state = self.NORMAL
+        self.setFormat(0, QString_len(text), self.formats["normal"])
         match = self.PROG.search(text)
         while match:
             for key, value in list(match.groupdict().items()):
                 if value:
-                    start, end = get_span(match, key)
-                    start = max([0, start+offset])
-                    end = max([0, end+offset])
-                    length = QString_len(value)
-                    if key == "uf_sq3string":
-                        self.setFormat(start, length,
-                                       self.formats["string"])
-                        state = self.INSIDE_SQ3STRING
-                    elif key == "uf_dq3string":
-                        self.setFormat(start, length,
-                                       self.formats["string"])
-                        state = self.INSIDE_DQ3STRING
-                    elif key == "uf_sqstring":
-                        self.setFormat(start, length,
-                                       self.formats["string"])
-                        state = self.INSIDE_SQSTRING
-                    elif key == "uf_dqstring":
-                        self.setFormat(start, length,
-                                       self.formats["string"])
-                        state = self.INSIDE_DQSTRING
-                    elif key in ["ufe_sqstring", "ufe_dqstring"]:
-                        self.setFormat(start, length,
-                                       self.formats["string"])
-                        state = self.INSIDE_NON_MULTILINE_STRING
-                    else:
-                        self.setFormat(start, length, self.formats[key])
-                        if key == "comment":
-                            if text.lstrip().startswith(self.cell_separators):
-                                oedata = OutlineExplorerData(
-                                    self.currentBlock())
-                                oedata.text = to_text_string(text).strip()
-                                # cell_head: string contaning the first group
-                                # of '%'s in the cell header
-                                cell_head = re.search(r"%+|$",
-                                                      text.lstrip()).group()
-                                if cell_head == '':
-                                    oedata.cell_level = 0
-                                else:
-                                    oedata.cell_level = QString_len(cell_head) - 2
-                                oedata.fold_level = start
-                                oedata.def_type = OutlineExplorerData.CELL
-                                def_name = get_code_cell_name(text)
-                                oedata.def_name = def_name
-                            elif self.OECOMMENT.match(text.lstrip()):
-                                oedata = OutlineExplorerData(
-                                    self.currentBlock())
-                                oedata.text = to_text_string(text).strip()
-                                oedata.fold_level = start
-                                oedata.def_type = OutlineExplorerData.COMMENT
-                                oedata.def_name = text.strip()
-                        elif key == "keyword":
-                            if value in ("def", "class"):
-                                match1 = self.IDPROG.match(text, end)
-                                if match1:
-                                    start1, end1 = get_span(match1, 1)
-                                    self.setFormat(start1, end1-start1,
-                                                   self.formats["definition"])
-                                    oedata = OutlineExplorerData(
-                                        self.currentBlock())
-                                    oedata.text = to_text_string(text)
-                                    oedata.fold_level = (QString_len(text)
-                                                         - QString_len(text.lstrip()))
-                                    oedata.def_type = self.DEF_TYPES[
-                                                        to_text_string(value)]
-                                    oedata.def_name = text[start1:end1]
-                                    oedata.color = self.formats["definition"]
-                            elif value in ("elif", "else", "except", "finally",
-                                           "for", "if", "try", "while",
-                                           "with"):
-                                if text.lstrip().startswith(value):
-                                    oedata = OutlineExplorerData(
-                                        self.currentBlock())
-                                    oedata.text = to_text_string(text).strip()
-                                    oedata.fold_level = start
-                                    oedata.def_type = \
-                                        OutlineExplorerData.STATEMENT
-                                    oedata.def_name = text.strip()
-                            elif value == "import":
-                                import_stmt = text.strip()
-                                # color all the "as" words on same line, except
-                                # if in a comment; cheap approximation to the
-                                # truth
-                                if '#' in text:
-                                    endpos = QString_len(text[:text.index('#')])
-                                else:
-                                    endpos = QString_len(text)
-                                while True:
-                                    match1 = self.ASPROG.match(text, end,
-                                                               endpos)
-                                    if not match1:
-                                        break
-                                    start, end = get_span(match1, 1)
-                                    self.setFormat(start, length,
-                                                   self.formats["keyword"])
+                    state, import_stmt, oedata = self.highlight_match(
+                        text, match, key, offset, state, import_stmt, oedata)
 
             match = self.PROG.search(text, match.end())
 
