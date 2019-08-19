@@ -1338,8 +1338,8 @@ def test_stop_dbg(main_window, qtbot):
     qtbot.mouseClick(stop_debug_button, Qt.LeftButton)
     qtbot.wait(1000)
 
-    # Assert that there is only one entry in the Variable Explorer
-    assert nsb.editor.source_model.rowCount() == 1
+    # Assert there are only two ipdb prompts in the console
+    assert shell._control.toPlainText().count('ipdb') == 2
 
     # Remove breakpoint and close test file
     main_window.editor.clear_all_breakpoints()
@@ -1362,10 +1362,6 @@ def test_change_cwd_dbg(main_window, qtbot):
     control = main_window.ipyconsole.get_focus_widget()
     control.setFocus()
 
-    # Import os to get cwd
-    with qtbot.waitSignal(shell.executed):
-        shell.execute('import os')
-
     # Click the debug button
     debug_action = main_window.debug_toolbar_actions[0]
     debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
@@ -1378,8 +1374,11 @@ def test_change_cwd_dbg(main_window, qtbot):
                                        refresh_explorer=True)
     qtbot.wait(1000)
 
+    shell.clear_console()
+    qtbot.wait(500)
+
     # Get cwd in console
-    qtbot.keyClicks(control, 'os.getcwd()')
+    qtbot.keyClicks(control, '!import os; os.getcwd()')
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.wait(1000)
 
