@@ -28,8 +28,7 @@ import warnings
 # Local imports
 from spyder import __version__
 from spyder.utils import encoding
-from spyder.py3compat import (is_unicode, TEXT_TYPES, INT_TYPES, PY3,
-                              to_text_string, is_text_string)
+from spyder.py3compat import is_unicode, PY3, to_text_string, is_text_string
 
 
 #==============================================================================
@@ -81,6 +80,7 @@ def use_dev_config_dir(use_dev_config_dir=USE_DEV_CONFIG_DIR):
             use_dev_config_dir = False
     else:
         use_dev_config_dir = DEV or not is_stable_version(__version__)
+
     return use_dev_config_dir
 
 
@@ -116,36 +116,42 @@ def debug_print(*message):
 #==============================================================================
 # Configuration paths
 #==============================================================================
-# Spyder settings dir
-# NOTE: During the 2.x.x series this dir was named .spyder2, but
-# since 3.0+ we've reverted back to use .spyder to simplify major
-# updates in version (required when we change APIs by Linux
-# packagers)
-if sys.platform.startswith('linux'):
-    SUBFOLDER = 'spyder'
-else:
-    SUBFOLDER = '.spyder'
+def get_conf_subfolder():
+    """Return the configuration subfolder for different ooperating systems."""
+    # Spyder settings dir
+    # NOTE: During the 2.x.x series this dir was named .spyder2, but
+    # since 3.0+ we've reverted back to use .spyder to simplify major
+    # updates in version (required when we change APIs by Linux
+    # packagers)
+    if sys.platform.startswith('linux'):
+        SUBFOLDER = 'spyder'
+    else:
+        SUBFOLDER = '.spyder'
+
+    # We can't have PY2 and PY3 settings in the same dir because:
+    # 1. This leads to ugly crashes and freezes (e.g. by trying to
+    #    embed a PY2 interpreter in PY3)
+    # 2. We need to save the list of installed modules (for code
+    #    completion) separately for each version
+    if PY3:
+        SUBFOLDER = SUBFOLDER + '-py3'
+
+    # If running a development/beta version, save config in a separate
+    # directory to avoid wiping or contaiminating the user's saved stable
+    # configuration.
+    if use_dev_config_dir():
+        SUBFOLDER = SUBFOLDER + '-dev'
+
+    return SUBFOLDER
 
 
-# We can't have PY2 and PY3 settings in the same dir because:
-# 1. This leads to ugly crashes and freezes (e.g. by trying to
-#    embed a PY2 interpreter in PY3)
-# 2. We need to save the list of installed modules (for code
-#    completion) separately for each version
-if PY3:
-    SUBFOLDER = SUBFOLDER + '-py3'
-
-
-# If running a development/beta version, save config in a seperate directory
-# to avoid wiping or contaiminating the user's saved stable configuration.
-if use_dev_config_dir():
-    SUBFOLDER = SUBFOLDER + '-dev'
+def get_project_config_folder():
+    """Return the default project configuration folder."""
+    return '.spyproject'
 
 
 def get_home_dir():
-    """
-    Return user home directory
-    """
+    """Return user home directory."""
     try:
         # expanduser() returns a raw byte string which needs to be
         # decoded with the codec that the OS is using to represent
@@ -185,7 +191,7 @@ def get_clean_conf_dir():
 
     conf_dir = osp.join(str(tempfile.gettempdir()),
                         'pytest-spyder{0!s}'.format(current_user),
-                        SUBFOLDER)
+                        get_conf_subfolder())
     return conf_dir
 
 
@@ -197,15 +203,17 @@ def get_conf_path(filename=None):
         conf_dir = get_clean_conf_dir()
     elif sys.platform.startswith('linux'):
         # This makes us follow the XDG standard to save our settings
-        # on Linux, as it was requested on Issue 2629
+        # on Linux, as it was requested on spyder-ide/spyder#2629.
         xdg_config_home = os.environ.get('XDG_CONFIG_HOME', '')
         if not xdg_config_home:
             xdg_config_home = osp.join(get_home_dir(), '.config')
+
         if not osp.isdir(xdg_config_home):
             os.makedirs(xdg_config_home)
-        conf_dir = osp.join(xdg_config_home, SUBFOLDER)
+
+        conf_dir = osp.join(xdg_config_home, get_conf_subfolder())
     else:
-        conf_dir = osp.join(get_home_dir(), SUBFOLDER)
+        conf_dir = osp.join(get_home_dir(), get_conf_subfolder())
 
     # Create conf_dir
     if not osp.isdir(conf_dir):
@@ -213,6 +221,7 @@ def get_conf_path(filename=None):
             os.makedirs(conf_dir)
         else:
             os.mkdir(conf_dir)
+
     if filename is None:
         return conf_dir
     else:
@@ -360,7 +369,7 @@ def get_interface_language():
     locale is either 'pt' or 'pt_BR', this function will return 'pt_BR'
     """
 
-    # Solves issue #3627
+    # Solves spyder-ide/spyder#3627.
     try:
         locale_language = locale.getdefaultlocale()[0]
     except ValueError:
@@ -390,7 +399,7 @@ def save_lang_conf(value):
     """Save language setting to language config file"""
     # Needed to avoid an error when trying to save LANG_FILE
     # but the operation fails for some reason.
-    # See issue 8807
+    # See spyder-ide/spyder#8807.
     try:
         with open(LANG_FILE, 'w') as f:
             f.write(value)
@@ -439,7 +448,7 @@ def get_translation(modname, dirname=None):
     if os.name == 'nt':
         # Trying to set LANG on Windows can fail when Spyder is
         # run with admin privileges.
-        # Fixes issue 6886
+        # Fixes spyder-ide/spyder#6886.
         try:
             os.environ["LANG"] = language      # Works on Windows
         except Exception:
@@ -506,7 +515,10 @@ SAVED_CONFIG_FILES = ('help', 'onlinehelp', 'path', 'pylint.results',
                       'history.py', 'history_internal.py', 'workingdir',
                       '.projects', '.spyproject', '.ropeproject',
                       'monitor.log', 'monitor_debug.log', 'rope.log',
-                      'langconfig', 'spyder.lock')
+                      'langconfig', 'spyder.lock',
+                      'config{}spyder.ini'.format(os.sep),
+                      'config{}transient.ini'.format(os.sep),
+                      'lsp_root_path', 'plugins')
 
 
 def reset_config_files():

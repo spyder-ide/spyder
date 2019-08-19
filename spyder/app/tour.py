@@ -15,6 +15,7 @@
 from __future__ import division
 
 import sys
+from math import ceil
 
 # Third party imports
 from qtpy.QtCore import (QEasingCurve, QPoint, QPropertyAnimation, QRectF, Qt,
@@ -732,9 +733,9 @@ class FadingTipBox(FadingDialog):
 
     def set_pos(self, x, y):
         """ """
-        self.x = x
-        self.y = y
-        self.move(QPoint(x, y))
+        self.x = ceil(x)
+        self.y = ceil(y)
+        self.move(QPoint(self.x, self.y))
 
     def build_paths(self):
         """ """
@@ -884,7 +885,7 @@ class AnimatedTour(QWidget):
                                  combobox_background=MAIN_TOP_COLOR)
 
         # Widgets setup
-        # Needed to fix issue #2204
+        # Needed to fix spyder-ide/spyder#2204.
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
 
         # Signals and slots

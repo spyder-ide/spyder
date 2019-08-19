@@ -4,9 +4,6 @@ language: generic
 dist: xenial
 services:
     - xvfb
-env:
-  global:
-    - CI_PYTEST: "true"
 
 matrix:
   fast_finish: true

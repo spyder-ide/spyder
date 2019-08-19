@@ -12,7 +12,7 @@ from qtpy.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
 
 from spyder.api.preferences import PluginConfigPage
 from spyder.config.base import _
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 import spyder.utils.icon_manager as ima
 
 
@@ -38,8 +38,12 @@ class EditorConfigPage(PluginConfigPage):
                 'show_class_func_dropdown')
         showindentguides_box = newcb(_("Show indent guides"),
                                      'indent_guides')
+        automatic_completion_box = newcb(_("Show completions on the fly"),
+                                         'automatic_completions')
         linenumbers_box = newcb(_("Show line numbers"), 'line_numbers')
         blanks_box = newcb(_("Show blank spaces"), 'blank_spaces')
+        underline_errors_box = newcb(_("Underline errors and warnings"),
+                                     'underline_errors')
         currentline_box = newcb(_("Highlight current line"),
                                 'highlight_current_line')
         currentcell_box = newcb(_("Highlight current cell"),
@@ -90,8 +94,10 @@ class EditorConfigPage(PluginConfigPage):
         display_layout.addWidget(showtabbar_box)
         display_layout.addWidget(showclassfuncdropdown_box)
         display_layout.addWidget(showindentguides_box)
+        display_layout.addWidget(automatic_completion_box)
         display_layout.addWidget(linenumbers_box)
         display_layout.addWidget(blanks_box)
+        display_layout.addWidget(underline_errors_box)
         display_layout.addWidget(currentline_box)
         display_layout.addWidget(currentcell_box)
         display_layout.addWidget(wrap_mode_box)
@@ -313,7 +319,7 @@ class EditorConfigPage(PluginConfigPage):
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(display_widget), _("Display"))
         tabs.addTab(self.create_tab(sourcecode_widget), _("Source code"))
-        tabs.addTab(self.create_tab(run_widget), _('Run Code'))
+        tabs.addTab(self.create_tab(run_widget), _('Run code'))
         tabs.addTab(self.create_tab(template_btn, autosave_group,
                                     docstring_group, annotations_group,
                                     eol_group),

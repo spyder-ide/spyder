@@ -20,7 +20,7 @@ from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
@@ -43,6 +43,7 @@ ALWAYS_OPEN_FIRST_RUN = _("Always show %s on a first file run")
 ALWAYS_OPEN_FIRST_RUN_OPTION = 'open_on_firstrun'
 
 CLEAR_ALL_VARIABLES = _("Remove all variables before execution")
+CONSOLE_NAMESPACE = _("Run in console’s namespace instead of an empty one")
 POST_MORTEM = _("Directly enter debugging when errors appear")
 INTERACT = _("Interact with the Python console after execution")
 
@@ -66,6 +67,7 @@ class RunConfiguration(object):
         self.python_args = None
         self.python_args_enabled = None
         self.clear_namespace = None
+        self.console_namespace = None
         self.file_dir = None
         self.cw_dir = None
         self.fixed_dir = None
@@ -88,6 +90,8 @@ class RunConfiguration(object):
         self.python_args_enabled = options.get('python_args/enabled', False)
         self.clear_namespace = options.get('clear_namespace',
                                     CONF.get('run', 'clear_namespace', False))
+        self.console_namespace = options.get('console_namespace',
+                                   CONF.get('run', 'console_namespace', False))
         self.file_dir = options.get('file_dir',
                            CONF.get('run', WDIR_USE_SCRIPT_DIR_OPTION, True))
         self.cw_dir = options.get('cw_dir',
@@ -109,6 +113,7 @@ class RunConfiguration(object):
                 'python_args/enabled': self.python_args_enabled,
                 'python_args': self.python_args,
                 'clear_namespace': self.clear_namespace,
+                'console_namespace': self.console_namespace,
                 'file_dir': self.file_dir,
                 'cw_dir': self.cw_dir,
                 'fixed_dir': self.fixed_dir,
@@ -188,18 +193,21 @@ class RunConfigOptions(QWidget):
         self.clear_var_cb = QCheckBox(CLEAR_ALL_VARIABLES)
         common_layout.addWidget(self.clear_var_cb, 0, 0)
 
+        self.console_ns_cb = QCheckBox(CONSOLE_NAMESPACE)
+        common_layout.addWidget(self.console_ns_cb, 1, 0)
+
         self.post_mortem_cb = QCheckBox(POST_MORTEM)
-        common_layout.addWidget(self.post_mortem_cb, 1, 0)
+        common_layout.addWidget(self.post_mortem_cb, 2, 0)
 
         self.clo_cb = QCheckBox(_("Command line options:"))
-        common_layout.addWidget(self.clo_cb, 2, 0)
+        common_layout.addWidget(self.clo_cb, 3, 0)
         self.clo_edit = QLineEdit()
         self.clo_cb.toggled.connect(self.clo_edit.setEnabled)
         self.clo_edit.setEnabled(False)
-        common_layout.addWidget(self.clo_edit, 2, 1)
+        common_layout.addWidget(self.clo_edit, 3, 1)
 
         # --- Working directory ---
-        wdir_group = QGroupBox(_("Working Directory settings"))
+        wdir_group = QGroupBox(_("Working directory settings"))
         wdir_layout = QVBoxLayout()
         wdir_group.setLayout(wdir_layout)
 
@@ -285,6 +293,7 @@ class RunConfigOptions(QWidget):
         self.pclo_cb.setChecked(self.runconf.python_args_enabled)
         self.pclo_edit.setText(self.runconf.python_args)
         self.clear_var_cb.setChecked(self.runconf.clear_namespace)
+        self.console_ns_cb.setChecked(self.runconf.console_namespace)
         self.file_dir_radio.setChecked(self.runconf.file_dir)
         self.cwd_radio.setChecked(self.runconf.cw_dir)
         self.fixed_dir_radio.setChecked(self.runconf.fixed_dir)
@@ -301,6 +310,7 @@ class RunConfigOptions(QWidget):
         self.runconf.python_args_enabled = self.pclo_cb.isChecked()
         self.runconf.python_args = to_text_string(self.pclo_edit.text())
         self.runconf.clear_namespace = self.clear_var_cb.isChecked()
+        self.runconf.console_namespace = self.console_ns_cb.isChecked()
         self.runconf.file_dir = self.file_dir_radio.isChecked()
         self.runconf.cw_dir = self.cwd_radio.isChecked()
         self.runconf.fixed_dir = self.fixed_dir_radio.isChecked()
@@ -504,14 +514,17 @@ class RunConfigPage(GeneralConfigPage):
         general_group = QGroupBox(_("General settings"))
         post_mortem = self.create_checkbox(POST_MORTEM, 'post_mortem', False)
         clear_variables = self.create_checkbox(CLEAR_ALL_VARIABLES,
-            'clear_namespace', False)
+                                               'clear_namespace', False)
+        console_namespace = self.create_checkbox(CONSOLE_NAMESPACE,
+                                                 'console_namespace', False)
 
         general_layout = QVBoxLayout()
         general_layout.addWidget(clear_variables)
+        general_layout.addWidget(console_namespace)
         general_layout.addWidget(post_mortem)
         general_group.setLayout(general_layout)
 
-        wdir_group = QGroupBox(_("Working Directory settings"))
+        wdir_group = QGroupBox(_("Working directory settings"))
         wdir_bg = QButtonGroup(wdir_group)
         wdir_label = QLabel(_("Default working directory is:"))
         wdir_label.setWordWrap(True)

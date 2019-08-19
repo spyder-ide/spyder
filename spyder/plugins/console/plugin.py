@@ -24,7 +24,7 @@ from qtpy.QtWidgets import QInputDialog, QLineEdit, QMenu, QHBoxLayout
 
 # Local imports
 from spyder.config.base import _, DEV, get_debug_level
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.utils import icon_manager as ima
 from spyder.utils.environ import EnvDialog
 from spyder.utils.misc import (get_error_match, remove_backslashes,
@@ -55,25 +55,22 @@ class Console(SpyderPluginWidget):
     def __init__(self, parent=None, namespace=None, commands=[], message=None,
                  exitfunc=None, profile=False, multithreaded=False):
         SpyderPluginWidget.__init__(self, parent)
-
         logger.info("Initializing...")
         self.dialog_manager = DialogManager()
 
         # Shell
         self.shell = InternalShell(parent, namespace, commands, message,
                                    self.get_option('max_line_count'),
-                                   self.get_plugin_font(), exitfunc, profile,
+                                   self.get_font(), exitfunc, profile,
                                    multithreaded)
-        self.shell.status.connect(lambda msg: self.show_message.emit(msg, 0))
+        self.shell.status.connect(lambda msg:
+                                  self.sig_show_status_message.emit(msg, 0))
         self.shell.go_to_error.connect(self.go_to_error)
         self.shell.focus_changed.connect(lambda: self.focus_changed.emit())
 
         # Redirecting some signals:
         self.shell.redirect_stdio.connect(lambda state:
                                           self.redirect_stdio.emit(state))
-        
-        # Initialize plugin
-        self.initialize_plugin()
 
         # Find/replace widget
         self.find_widget = FindReplace(self)
@@ -127,7 +124,7 @@ class Console(SpyderPluginWidget):
 
     def update_font(self):
         """Update font from Preferences"""
-        font = self.get_plugin_font()
+        font = self.get_font()
         self.shell.set_font(font)
 
     def closing_plugin(self, cancelable=False):
@@ -135,10 +132,7 @@ class Console(SpyderPluginWidget):
         self.dialog_manager.close_all()
         self.shell.exit_interpreter()
         return True
-        
-    def refresh_plugin(self):
-        pass
-    
+
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         quit_action = create_action(self, _("&Quit"),
@@ -185,15 +179,14 @@ class Console(SpyderPluginWidget):
                                   exteditor_action))
                     
         plugin_actions = [None, run_action, environ_action, syspath_action,
-                          option_menu, MENU_SEPARATOR, quit_action,
-                          self.undock_action]
+                          option_menu, MENU_SEPARATOR, quit_action]
 
         return plugin_actions
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.focus_changed.connect(self.main.plugin_focus_changed)
-        self.main.add_dockwidget(self)
+        self.add_dockwidget()
         # Connecting the following signal once the dockwidget has been created:
         self.shell.exception_occurred.connect(self.exception_occurred)
     
@@ -210,9 +203,12 @@ class Console(SpyderPluginWidget):
         if CONF.get('main', 'show_internal_errors'):
             if self.error_dlg is None:
                 self.error_dlg = SpyderErrorDialog(self)
+                self.error_dlg.set_color_scheme(CONF.get('appearance',
+                                                         'selected'))
                 self.error_dlg.close_btn.clicked.connect(self.close_error_dlg)
                 self.error_dlg.rejected.connect(self.remove_error_dlg)
                 self.error_dlg.details.go_to_error.connect(self.go_to_error)
+
             if is_pyls_error:
                 title = "Internal Python Language Server error"
                 self.error_dlg.set_title(title)
@@ -272,9 +268,8 @@ class Console(SpyderPluginWidget):
         command = "runfile('%s', args='%s')" % (rbs(filename), rbs(args))
         if set_focus:
             self.shell.setFocus()
-        if self.dockwidget and not self.ismaximized:
-            self.dockwidget.setVisible(True)
-            self.dockwidget.raise_()
+        if self.dockwidget:
+            self.switch_to_plugin()
         self.shell.write(command+'\n')
         self.shell.run_command(command)
 

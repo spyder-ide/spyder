@@ -21,7 +21,7 @@ import time
 # Third party imports
 import pylint
 from qtpy.compat import getopenfilename
-from qtpy.QtCore import QByteArray, QProcess, QTextCodec, Signal, Slot
+from qtpy.QtCore import QByteArray, QProcess, Signal, Slot
 from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMessageBox, QTreeWidgetItem,
                             QVBoxLayout, QWidget)
 
@@ -30,7 +30,6 @@ from spyder import dependencies
 from spyder.config.base import get_conf_path, get_translation
 from spyder.py3compat import pickle, to_text_string
 from spyder.utils import icon_manager as ima
-from spyder.utils.encoding import to_unicode_from_fs
 from spyder.utils.qthelpers import create_toolbutton
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.comboboxes import (is_module_or_package,
@@ -46,10 +45,9 @@ except KeyError as error:
     import gettext
     _ = gettext.gettext
 
-locale_codec = QTextCodec.codecForLocale()
 PYLINT_REQVER = '>=0.25'
 PYLINT_VER = pylint.__version__
-dependencies.add("pylint", _("Static code analysis"),
+dependencies.add("pylint", "pylint", _("Static code analysis"),
                  required_version=PYLINT_REQVER, installed_version=PYLINT_VER)
 
 
@@ -149,6 +147,7 @@ class PylintWidget(QWidget):
     DATAPATH = get_conf_path('pylint.results')
     VERSION = '1.1.0'
     redirect_stdio = Signal(bool)
+    start_analysis = Signal()
 
     def __init__(self, parent, max_entries=100, options_button=None,
                  text_color=None, prevrate_color=None):
@@ -158,7 +157,7 @@ class PylintWidget(QWidget):
 
         self.output = None
         self.error_output = None
-
+        self.filename = None
         self.text_color = text_color
         self.prevrate_color = prevrate_color
 
@@ -177,14 +176,15 @@ class PylintWidget(QWidget):
         self.start_button = create_toolbutton(self, icon=ima.icon('run'),
                                     text=_("Analyze"),
                                     tip=_("Run analysis"),
-                                    triggered=self.start, text_beside_icon=True)
+                                    triggered=self.analyze_button_handler,
+                                    text_beside_icon=True)
         self.stop_button = create_toolbutton(self,
                                              icon=ima.icon('stop'),
                                              text=_("Stop"),
                                              tip=_("Stop current analysis"),
                                              text_beside_icon=True)
         self.filecombo.valid.connect(self.start_button.setEnabled)
-        self.filecombo.valid.connect(self.show_data)
+        self.filecombo.valid.connect(self.check_new_file)
 
         browse_button = create_toolbutton(self, icon=ima.icon('fileopen'),
                                tip=_('Select Python file'),
@@ -230,6 +230,12 @@ class PylintWidget(QWidget):
             self.start_button.setEnabled(self.filecombo.is_valid())
         else:
             self.start_button.setEnabled(False)
+
+    def check_new_file(self):
+        fname = self.get_filename()
+        if fname != self.filename:
+            self.filename = fname
+            self.show_data()
 
     def get_filename(self):
         """Get current filename in combobox."""
@@ -302,11 +308,17 @@ class PylintWidget(QWidget):
     @Slot()
     def show_log(self):
         if self.output:
-            TextEditor(self.output, title=_("Pylint output"),
+            TextEditor(self.output, title=_("Pylint output"), parent=self,
                        readonly=True, size=(700, 500)).exec_()
 
     @Slot()
+    def analyze_button_handler(self):
+        """Try to start code analysis when Analyze button pressed."""
+        self.start_analysis.emit()
+
+    @Slot()
     def start(self):
+        """Start the code analysis."""
         filename = to_text_string(self.filecombo.currentText())
 
         self.process = QProcess(self)
@@ -358,7 +370,7 @@ class PylintWidget(QWidget):
                 qba += self.process.readAllStandardError()
             else:
                 qba += self.process.readAllStandardOutput()
-        text = to_text_string( locale_codec.toUnicode(qba.data()) )
+        text = to_text_string(qba.data(), encoding='utf-8')
         if error:
             self.error_output += text
         else:

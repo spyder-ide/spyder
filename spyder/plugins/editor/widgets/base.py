@@ -13,13 +13,12 @@
 
 # Standard library imports
 import os
-import os.path as osp
 import sys
 
 # Third party imports
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import QEvent, QEventLoop, QPoint, Qt, Signal, Slot
-from qtpy.QtGui import (QClipboard, QColor, QMouseEvent, QPalette, QTextFormat,
+from qtpy.QtCore import QEvent, QPoint, Qt, Signal, Slot
+from qtpy.QtGui import (QClipboard, QColor, QMouseEvent, QTextFormat,
                         QTextOption, QTextCursor)
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QListWidget,
                             QListWidgetItem, QMainWindow, QPlainTextEdit,
@@ -27,14 +26,14 @@ from qtpy.QtWidgets import (QAbstractItemView, QApplication, QListWidget,
 
 # Local imports
 from spyder.config.gui import get_font
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.py3compat import PY3, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.widgets.calltip import CallTipWidget, ToolTipWidget
 from spyder.widgets.mixins import BaseEditMixin
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
-from spyder.plugins.editor.lsp import CompletionItemKind
+from spyder.plugins.completion.languageserver import CompletionItemKind
 
 
 class CompletionWidget(QListWidget):
@@ -53,8 +52,6 @@ class CompletionWidget(QListWidget):
         self.completion_list = None
         self.completion_position = None
         self.automatic = False
-        # Text to be displayed if no match is found.
-        self.empty_text = 'No match'
 
     def setup_appearance(self, size, font):
         self.resize(*size)
@@ -63,8 +60,6 @@ class CompletionWidget(QListWidget):
     def is_empty(self):
         """Check if widget is empty."""
         if self.count() == 0:
-            return True
-        if self.count() == 1 and self.item(0).text() == self.empty_text:
             return True
         return False
 
@@ -103,8 +98,7 @@ class CompletionWidget(QListWidget):
             return
 
         # If only one, must be chosen if not automatic
-        single_match = (self.count() == 1 and
-                        self.item(0).text() != self.empty_text)
+        single_match = self.count() == 1
         if single_match and not self.automatic:
             self.item_selected()
             self.hide()
@@ -207,7 +201,7 @@ class CompletionWidget(QListWidget):
             self.scrollTo(self.currentIndex(),
                           QAbstractItemView.PositionAtTop)
         else:
-            self.addItem(QListWidgetItem(self.empty_text))
+            self.hide()
 
     def hide(self):
         """Hide the widget."""
@@ -321,8 +315,8 @@ class CompletionWidget(QListWidget):
     def focusOutEvent(self, event):
         event.ignore()
         # Don't hide it on Mac when main window loses focus because
-        # keyboard input is lost
-        # Fixes Issue 1318
+        # keyboard input is lost.
+        # Fixes spyder-ide/spyder#1318.
         if sys.platform == "darwin":
             if event.reason() != Qt.ActiveWindowFocusReason:
                 self.hide()
@@ -440,7 +434,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         # use the palette for all drawing (e.g. macOS styles), the background
         # and foreground color of each TextEditBaseWidget instance must be set
         # with a stylesheet extended with an ID Selector.
-        # Fixes Issue 2028, 8069 and 9248.
+        # Fixes spyder-ide/spyder#2028, spyder-ide/spyder#8069 and
+        # spyder-ide/spyder#9248.
         if not self.objectName():
             self.setObjectName(self.__class__.__name__ + str(id(self)))
         style = "QPlainTextEdit#%s {background: %s; color: %s;}" % \
@@ -681,7 +676,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         # contents under Windows and PY3. This bug leads to
         # corruptions when saving files with certain combinations
         # of unicode chars on them (like the one attached on
-        # Issue 1546)
+        # spyder-ide/spyder#1546).
         if os.name == 'nt' and PY3:
             text = self.get_text('sof', 'eof')
             return text.replace('\u2028', '\n').replace('\u2029', '\n')\
@@ -694,7 +689,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         ctrl = event.modifiers() & Qt.ControlModifier
         meta = event.modifiers() & Qt.MetaModifier
         # Use our own copy method for {Ctrl,Cmd}+C to avoid Qt
-        # copying text in HTML (See Issue 2285)
+        # copying text in HTML. See spyder-ide/spyder#2285.
         if (ctrl or meta) and key == Qt.Key_C:
             self.copy()
         else:
@@ -1280,7 +1275,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             QPlainTextEdit.mousePressEvent(self, event)
             QPlainTextEdit.mouseReleaseEvent(self, event)
             # Send selection text to clipboard to be able to use
-            # the paste method and avoid the strange Issue 1445
+            # the paste method and avoid the strange spyder-ide/spyder#1445.
             # NOTE: This issue seems a focusing problem but it
             # seems really hard to track
             mode_clip = QClipboard.Clipboard
@@ -1308,7 +1303,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
     def wheelEvent(self, event):
         """Reimplemented to emit zoom in/out signals when Ctrl is pressed"""
-        # This feature is disabled on MacOS, see Issue 1510
+        # This feature is disabled on MacOS, see spyder-ide/spyder#1510.
         if sys.platform != 'darwin':
             if event.modifiers() & Qt.ControlModifier:
                 if hasattr(event, 'angleDelta'):

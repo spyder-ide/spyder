@@ -15,7 +15,7 @@ from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QFontComboBox,
 from spyder.config.base import _
 from spyder.config.gui import (get_font, set_font, is_dark_font_color,
                                is_dark_interface)
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.config.utils import is_gtk_desktop
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.preferences.configdialog import GeneralConfigPage
@@ -53,7 +53,7 @@ class AppearanceConfigPage(GeneralConfigPage):
         styles = [str(txt) for txt in list(QStyleFactory.keys())]
         # Don't offer users the possibility to change to a different
         # style in Gtk-based desktops
-        # Fixes Issue 2036
+        # See spyder-ide/spyder#2036.
         if is_gtk_desktop() and ('GTK+' in styles):
             styles = ['GTK+']
         choices = list(zip(styles, [style.lower() for style in styles]))
@@ -317,6 +317,7 @@ class AppearanceConfigPage(GeneralConfigPage):
                 )
         show_blanks = CONF.get('editor', 'blank_spaces')
         update_scrollbar = CONF.get('editor', 'scroll_past_end')
+        underline_errors = CONF.get('editor', 'underline_errors')
         if scheme_name is None:
             scheme_name = self.current_scheme
         self.preview_editor.setup_editor(linenumbers=True,
@@ -324,6 +325,7 @@ class AppearanceConfigPage(GeneralConfigPage):
                                          tab_mode=False,
                                          font=get_font(),
                                          show_blanks=show_blanks,
+                                         underline_errors=underline_errors,
                                          color_scheme=scheme_name,
                                          scroll_past_end=update_scrollbar)
         self.preview_editor.set_text(text)

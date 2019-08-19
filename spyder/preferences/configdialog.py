@@ -9,6 +9,7 @@ Configuration dialog / Preferences.
 """
 
 # Standard library imports
+import ast
 import os.path as osp
 
 # Third party imports
@@ -23,12 +24,11 @@ from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
                             QLineEdit, QListView, QListWidget, QListWidgetItem,
                             QMessageBox, QPushButton, QRadioButton,
                             QScrollArea, QSpinBox, QSplitter, QStackedWidget,
-                            QStyleFactory, QTabWidget, QVBoxLayout, QWidget,
-                            QApplication, QPlainTextEdit)
+                            QVBoxLayout, QWidget, QPlainTextEdit)
 
 # Local imports
 from spyder.config.base import _, load_lang_conf
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.config.user import NoDefault
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
@@ -147,6 +147,7 @@ class ConfigDialog(QDialog):
         # (e.g. the editor's analysis thread in Spyder), thus leading to
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setWindowFlags(Qt.Dialog | Qt.WindowStaysOnTopHint)
         self.setWindowTitle(_('Preferences'))
         self.setWindowIcon(ima.icon('configure'))
         self.contents_widget.setMovement(QListView.Static)
@@ -200,7 +201,9 @@ class ConfigDialog(QDialog):
             widget = self.pages_widget.currentWidget()
         else:
             widget = self.pages_widget.widget(index)
-        return widget.widget()
+
+        if widget:
+            return widget.widget()
 
     @Slot()
     def accept(self):
@@ -306,16 +309,11 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         return True
 
     def load_from_conf(self):
-        """Load settings from configuration file"""
+        """Load settings from configuration file."""
         for checkbox, (option, default) in list(self.checkboxes.items()):
             checkbox.setChecked(self.get_option(option, default))
-            # QAbstractButton works differently for PySide and PyQt
-            if not API == 'pyside':
-                checkbox.clicked.connect(lambda _foo, opt=option:
-                                         self.has_been_modified(opt))
-            else:
-                checkbox.clicked.connect(lambda opt=option:
-                                         self.has_been_modified(opt))
+            checkbox.clicked.connect(lambda _, opt=option:
+                                     self.has_been_modified(opt))
         for radiobutton, (option, default) in list(self.radiobuttons.items()):
             radiobutton.setChecked(self.get_option(option, default))
             radiobutton.toggled.connect(lambda _foo, opt=option:
@@ -323,13 +321,21 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             if radiobutton.restart_required:
                 self.restart_options[option] = radiobutton.label_text
         for lineedit, (option, default) in list(self.lineedits.items()):
-            lineedit.setText(self.get_option(option, default))
-            lineedit.textChanged.connect(lambda _foo, opt=option:
+            data = self.get_option(option, default)
+            if getattr(lineedit, 'content_type', None) == list:
+                data = ', '.join(data)
+            lineedit.setText(data)
+            lineedit.textChanged.connect(lambda _, opt=option:
                                          self.has_been_modified(opt))
             if lineedit.restart_required:
                 self.restart_options[option] = lineedit.label_text
         for textedit, (option, default) in list(self.textedits.items()):
-            textedit.setPlainText(self.get_option(option, default))
+            data = self.get_option(option, default)
+            if getattr(textedit, 'content_type', None) == list:
+                data = ', '.join(data)
+            elif getattr(textedit, 'content_type', None) == dict:
+                data = to_text_string(data)
+            textedit.setPlainText(data)
             textedit.textChanged.connect(lambda opt=option:
                                          self.has_been_modified(opt))
             if textedit.restart_required:
@@ -387,10 +393,13 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
              ), (option, default) in list(self.scedits.items()):
             edit = clayout.lineedit
             btn = clayout.colorbtn
-            color, bold, italic = self.get_option(option, default)
-            edit.setText(color)
-            cb_bold.setChecked(bold)
-            cb_italic.setChecked(italic)
+            options = self.get_option(option, default)
+            if options:
+                color, bold, italic = options
+                edit.setText(color)
+                cb_bold.setChecked(bold)
+                cb_italic.setChecked(italic)
+
             edit.textChanged.connect(lambda _foo, opt=option:
                                      self.has_been_modified(opt))
             # QAbstractButton works differently for PySide and PyQt
@@ -416,9 +425,26 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         for radiobutton, (option, _default) in list(self.radiobuttons.items()):
             self.set_option(option, radiobutton.isChecked())
         for lineedit, (option, _default) in list(self.lineedits.items()):
-            self.set_option(option, to_text_string(lineedit.text()))
+            data = lineedit.text()
+            content_type = getattr(lineedit, 'content_type', None)
+            if content_type == list:
+                data = [item.strip() for item in data.split(',')]
+            else:
+                data = to_text_string(data)
+            self.set_option(option, data)
         for textedit, (option, _default) in list(self.textedits.items()):
-            self.set_option(option, to_text_string(textedit.toPlainText()))
+            data = textedit.toPlainText()
+            content_type = getattr(textedit, 'content_type', None)
+            if content_type == dict:
+                if data:
+                    data = ast.literal_eval(data)
+                else:
+                    data = textedit.content_type()
+            elif content_type in (tuple, list):
+                data = [item.strip() for item in data.split(',')]
+            else:
+                data = to_text_string(data)
+            self.set_option(option, data)
         for spinbox, (option, _default) in list(self.spinboxes.items()):
             self.set_option(option, spinbox.value())
         for combobox, (option, _default) in list(self.comboboxes.items()):
@@ -489,10 +515,12 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
 
     def create_lineedit(self, text, option, default=NoDefault,
                         tip=None, alignment=Qt.Vertical, regex=None,
-                        restart=False, word_wrap=True, placeholder=None):
+                        restart=False, word_wrap=True, placeholder=None,
+                        content_type=None):
         label = QLabel(text)
         label.setWordWrap(word_wrap)
         edit = QLineEdit()
+        edit.content_type = content_type
         layout = QVBoxLayout() if alignment == Qt.Vertical else QHBoxLayout()
         layout.addWidget(label)
         layout.addWidget(edit)
@@ -513,10 +541,11 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         return widget
 
     def create_textedit(self, text, option, default=NoDefault,
-                        tip=None, restart=False):
+                        tip=None, restart=False, content_type=None):
         label = QLabel(text)
         label.setWordWrap(True)
         edit = QPlainTextEdit()
+        edit.content_type = content_type
         edit.setWordWrapMode(QTextOption.WordWrap)
         layout = QVBoxLayout()
         layout.addWidget(label)

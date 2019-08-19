@@ -11,7 +11,7 @@ import os.path as osp
 
 from qtpy.QtWidgets import QInputDialog, QLineEdit
 
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
 from spyder.api.manager import Manager

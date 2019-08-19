@@ -11,9 +11,8 @@ import os.path as osp
 import sys
 
 # Third party imports
-from qtpy.QtCore import (Signal, Slot, QEvent, QFileInfo, QObject, QRegExp,
-                         QSize, Qt)
-from qtpy.QtGui import (QIcon, QRegExpValidator, QTextCursor)
+from qtpy.QtCore import Signal, Slot, QEvent, QObject, QRegExp, QSize, Qt
+from qtpy.QtGui import QIcon, QRegExpValidator, QTextCursor
 from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLabel, QLineEdit,
                             QListWidget, QListWidgetItem, QVBoxLayout,
                             QMainWindow)
@@ -25,7 +24,7 @@ from spyder.config.utils import is_ubuntu
 from spyder.utils import icon_manager as ima
 from spyder.utils.stringmatching import get_search_scores
 from spyder.widgets.helperwidgets import HelperToolButton, HTMLDelegate
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 
 
 # --- Python Outline explorer helpers
@@ -475,7 +474,7 @@ class FileSwitcher(QDialog):
             left += geo.left()
             parent = parent.parent()
 
-        self.move(left, top)
+        self.move(round(left), top)
 
     def get_item_size(self, content):
         """
@@ -513,7 +512,7 @@ class FileSwitcher(QDialog):
                 max_entries = len(content)
             else:
                 max_entries = 15
-            max_height = height * max_entries * 1.7
+            max_height = round(height * max_entries * 1.7)
             self.list.setMinimumHeight(max_height)
 
             # Resize
@@ -827,7 +826,7 @@ class FileSwitcher(QDialog):
 
         # The list of paths here is needed in order to have the same
         # point of measurement for the list widget size as in the file list
-        # See issue 4648
+        # See spyder-ide/spyder#4648.
         paths = self.paths
         # Update list size
         self.fix_size(paths)
@@ -865,7 +864,7 @@ class FileSwitcher(QDialog):
         self.list.files_list = False
 
         # Select edit line when using symbol search initially.
-        # See issue 5661
+        # See spyder-ide/spyder#5661.
         self.edit.setFocus()
 
         # Move selected item in list accordingly
@@ -903,7 +902,7 @@ class FileSwitcher(QDialog):
     def show(self):
         """
         Override Qt method to force an update of the fileswitcher before
-        showing it. See Issue #5317 and PR #5389.
+        showing it. See spyder-ide/spyder#5317 and spyder-ide/spyder#5389.
         """
         self.setup()
         super(FileSwitcher, self).show()

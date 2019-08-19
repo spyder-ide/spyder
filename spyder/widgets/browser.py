@@ -14,7 +14,7 @@ import sys
 # Third party imports
 from qtpy.QtCore import QUrl, Signal, Slot
 from qtpy.QtWidgets import (QFrame, QHBoxLayout, QLabel, QProgressBar, QMenu,
-                            QVBoxLayout, QWidget)
+                            QWidget)
 from qtpy.QtWebEngineWidgets import (QWebEnginePage, QWebEngineSettings,
                                      QWebEngineView, WEBENGINE)
 from qtpy.QtGui import QFontInfo
@@ -66,9 +66,8 @@ class WebView(QWebEngineView):
             self.setPage(web_page)
             self.source_text = ''
 
-    def find_text(self, text, changed=True,
-                  forward=True, case=False, words=False,
-                  regexp=False):
+    def find_text(self, text, changed=True, forward=True, case=False,
+                  word=False, regexp=False):
         """Find text"""
         if not WEBENGINE:
             findflag = QWebEnginePage.FindWrapsAroundDocument
@@ -91,7 +90,7 @@ class WebView(QWebEngineView):
         self.source_text = source_text
 
     def get_number_matches(self, pattern, source_text='', case=False,
-                           regexp=False):
+                           regexp=False, word=False):
         """Get the number of matches for the searched text."""
         pattern = to_text_string(pattern)
         if not pattern:
@@ -105,11 +104,15 @@ class WebView(QWebEngineView):
             else:
                 source_text = to_text_string(
                         self.page().mainFrame().toPlainText())
+
+        if word:  # match whole words only
+            pattern = r'\b{pattern}\b'.format(pattern=pattern)
+
         try:
             if case:
-                regobj = re.compile(pattern)
+                regobj = re.compile(pattern, re.MULTILINE)
             else:
-                regobj = re.compile(pattern, re.IGNORECASE)
+                regobj = re.compile(pattern, re.MULTILINE | re.IGNORECASE)
         except sre_constants.error:
             return
 
@@ -165,7 +168,11 @@ class WebView(QWebEngineView):
     #------ QWebEngineView API -------------------------------------------------------
     def createWindow(self, webwindowtype):
         import webbrowser
-        webbrowser.open(to_text_string(self.url().toString()))
+        # See: spyder-ide/spyder#9849
+        try:
+            webbrowser.open(to_text_string(self.url().toString()))
+        except ValueError:
+            pass
 
     def contextMenuEvent(self, event):
         menu = QMenu(self)

@@ -21,7 +21,7 @@ from pygments.lexer import RegexLexer, bygroups
 from pygments.lexers import get_lexer_by_name
 from pygments.token import (Text, Other, Keyword, Name, String, Number,
                             Comment, Generic, Token)
-from qtpy.QtCore import Qt, QTimer, Signal, Slot
+from qtpy.QtCore import Qt, QTimer, Signal
 from qtpy.QtGui import (QColor, QCursor, QFont, QSyntaxHighlighter,
                         QTextCharFormat, QTextOption)
 from qtpy.QtWidgets import QApplication
@@ -29,7 +29,7 @@ from qtpy.QtWidgets import QApplication
 # Local imports
 from spyder import dependencies
 from spyder.config.base import _
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.py3compat import (builtins, is_text_string, to_text_string, PY3,
                               PY36_OR_MORE)
 from spyder.plugins.editor.utils.languages import CELL_LANGUAGES
@@ -39,18 +39,26 @@ from spyder.utils.workers import WorkerManager
 from spyder.plugins.outlineexplorer.api import OutlineExplorerData
 
 PYGMENTS_REQVER = '>=2.0'
-dependencies.add("pygments", _("Syntax highlighting for Matlab, Julia and "
-                               "other file types"),
+dependencies.add("pygments", "pygments",
+                 _("Syntax highlighting for Matlab, Julia and "
+                   "other file types"),
                  required_version=PYGMENTS_REQVER)
 
 
 # =============================================================================
 # Constants
 # =============================================================================
-URL_PATTERN = r"https?://([\da-z\.-]+)\.([a-z\.]{2,6})([/\w\.-]*)[^ ^'^\"]+"
-FILE_PATTERN = r"file:///?([\S ]*)/"
-MAILTO_PATTERN = r"mailto:\s*([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})"
-ISSUE_PATTERN = r'((?:\w\w:)?[\w\-_]*/[\w\-_]*#\d+)'
+DEFAULT_PATTERNS = {
+    'file':
+        r'file:///?(?:[\S]*)',
+    'issue':
+        (r'(?:(?:(?:gh:)|(?:gl:)|(?:bb:))?[\w\-_]*/[\w\-_]*#\d+)|'
+         r'(?:(?:(?:gh-)|(?:gl-)|(?:bb-))\d+)'),
+    'mail':
+        r'(?:mailto:\s*)?([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})',
+    'url':
+        r"https?://([\da-z\.-]+)\.([a-z\.]{2,6})([/\w\.-]*)[^ ^'^\"]+",
+}
 COLOR_SCHEME_KEYS = {
                       "background":     _("Background:"),
                       "currentline":    _("Current line:"),
@@ -111,9 +119,28 @@ def any(name, alternates):
     return "(?P<%s>" % name + "|".join(alternates) + ")"
 
 
-URI_PATTERNS = re.compile(
-    any('uri', [URL_PATTERN, FILE_PATTERN, MAILTO_PATTERN, ISSUE_PATTERN])
-)
+def create_patterns(patterns, compile=False):
+    """
+    Create patterns from pattern dictionary.
+
+    The key correspond to the group name and the values a list of
+    possible pattern alternatives.
+    """
+    all_patterns = []
+    for key, value in patterns.items():
+        all_patterns.append(any(key, [value]))
+
+    regex = '|'.join(all_patterns)
+
+    if compile:
+        regex = re.compile(regex)
+
+    return regex
+
+
+DEFAULT_PATTERNS_TEXT = create_patterns(DEFAULT_PATTERNS, compile=False)
+DEFAULT_COMPILED_PATTERNS = re.compile(create_patterns(DEFAULT_PATTERNS,
+                                                       compile=True))
 
 
 #==============================================================================
@@ -139,7 +166,7 @@ class BaseSH(QSyntaxHighlighter):
             self.color_scheme = get_color_scheme(color_scheme)
         else:
             self.color_scheme = color_scheme
-        
+
         self.background_color = None
         self.currentline_color = None
         self.currentcell_color = None
@@ -151,10 +178,11 @@ class BaseSH(QSyntaxHighlighter):
 
         self.formats = None
         self.setup_formats(font)
-        
+
         self.cell_separators = None
         self.fold_detector = None
         self.editor = None
+        self.patterns = DEFAULT_COMPILED_PATTERNS
 
     def get_background_color(self):
         return QColor(self.background_color)
@@ -162,32 +190,32 @@ class BaseSH(QSyntaxHighlighter):
     def get_foreground_color(self):
         """Return foreground ('normal' text) color"""
         return self.formats["normal"].foreground().color()
-		
+
     def get_currentline_color(self):
         return QColor(self.currentline_color)
 
     def get_currentcell_color(self):
         return QColor(self.currentcell_color)
-        
+
     def get_occurrence_color(self):
         return QColor(self.occurrence_color)
-    
+
     def get_ctrlclick_color(self):
         return QColor(self.ctrlclick_color)
-    
+
     def get_sideareas_color(self):
         return QColor(self.sideareas_color)
-    
+
     def get_matched_p_color(self):
         return QColor(self.matched_p_color)
-    
+
     def get_unmatched_p_color(self):
         return QColor(self.unmatched_p_color)
 
     def get_comment_color(self):
         """ Return color for the comments """
         return self.formats['comment'].foreground().color()
-    
+
     def get_color_name(self, fmt):
         """Return color name assigned to a given format"""
         return self.formats[fmt].foreground().color().name()
@@ -235,6 +263,20 @@ class BaseSH(QSyntaxHighlighter):
             previous_block = previous_block.previous()
         return previous_block
 
+    def update_patterns(self, patterns):
+        """Update patterns to underline."""
+        all_patterns = DEFAULT_PATTERNS.copy()
+        additional_patterns = patterns.copy()
+
+        # Check that default keys are not overwritten
+        for key in DEFAULT_PATTERNS.keys():
+            if key in additional_patterns:
+                # TODO: print warning or check this at the plugin level?
+                additional_patterns.pop(key)
+        all_patterns.update(additional_patterns)
+
+        self.patterns = create_patterns(all_patterns, compile=True)
+
     def highlightBlock(self, text):
         """
         Highlights a block of text. Please do not override, this method.
@@ -263,24 +305,24 @@ class BaseSH(QSyntaxHighlighter):
         """
         raise NotImplementedError()
 
-    def highlight_uris(self, text, offset=0):
+    def highlight_patterns(self, text, offset=0):
         """Highlight URI and mailto: patterns."""
-        match = URI_PATTERNS.search(text, offset)
+        match = self.patterns.search(text, offset)
         while match:
-            start, end = match.span()
-            start = max([0, start+offset])
-            end = max([0, end+offset])
-            font = self.format(start)
-            font.setUnderlineStyle(True)
-            self.setFormat(start, end - start, font)
-            match = URI_PATTERNS.search(text, end)
+            for __, value in list(match.groupdict().items()):
+                if value:
+                    start, end = match.span()
+                    start = max([0, start + offset])
+                    end = max([0, end + offset])
+                    font = self.format(start)
+                    font.setUnderlineStyle(True)
+                    self.setFormat(start, end - start, font)
+            match = self.patterns.search(text, end)
 
     def highlight_spaces(self, text, offset=0):
         """
         Make blank space less apparent by setting the foreground alpha.
         This only has an effect when 'Show blank space' is turned on.
-        Derived classes could call this function at the end of
-        highlightBlock().
         """
         flags_text = self.document().defaultTextOption().flags()
         show_blanks =  flags_text & QTextOption.ShowTabsAndSpaces
@@ -292,7 +334,7 @@ class BaseSH(QSyntaxHighlighter):
                 start, end = match.span()
                 start = max([0, start+offset])
                 end = max([0, end+offset])
-                # Format trailing spaces at the end of the line. 
+                # Format trailing spaces at the end of the line.
                 if end == len(text) and format_trailing is not None:
                     self.setFormat(start, end, format_trailing)
                 # Format leading spaces, e.g. indentation.
@@ -305,12 +347,15 @@ class BaseSH(QSyntaxHighlighter):
                 self.setFormat(start, end-start, color_foreground)
                 match = self.BLANKPROG.search(text, match.end())
 
-        self.highlight_uris(text, offset)
-
     def highlight_extras(self, text, offset=0):
-        """Perform additional global text highlight."""
+        """
+        Perform additional global text highlight.
+
+        Derived classes could call this function at the end of
+        highlight_block().
+        """
         self.highlight_spaces(text, offset=offset)
-        self.highlight_uris(text, offset=offset)
+        self.highlight_patterns(text, offset=offset)
 
     def rehighlight(self):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
@@ -334,7 +379,7 @@ class GenericSH(BaseSH):
         """Implement highlight using regex defined in children classes."""
         text = to_text_string(text)
         self.setFormat(0, len(text), self.formats["normal"])
-        
+
         match = self.PROG.search(text)
         index = 0
         while match:
@@ -343,9 +388,9 @@ class GenericSH(BaseSH):
                     start, end = match.span(key)
                     index += end-start
                     self.setFormat(start, end-start, self.formats[key])
-                    
+
             match = self.PROG.search(text, match.end())
-        
+
         self.highlight_extras(text)
 
 
@@ -389,7 +434,7 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
     uf_dq3string = r'(\b(%s))?"""[^"\\]*((\\.|"(?!""))[^"\\]*)*(\\)?(?!""")$' \
                    % prefix
     # Needed to achieve correct highlighting in Python 3.6+
-    # See issue 7324
+    # See spyder-ide/spyder#7324.
     if PY36_OR_MORE:
         # Based on
         # https://github.com/python/cpython/blob/
@@ -447,7 +492,7 @@ class PythonSH(BaseSH):
                  "class": OutlineExplorerData.CLASS}
     # Comments suitable for Outline Explorer
     OECOMMENT = re.compile(r'^(# ?--[-]+|##[#]+ )[ -]*[^- ]+')
-    
+
     def __init__(self, parent, font=None, color_scheme='Spyder'):
         BaseSH.__init__(self, parent, font, color_scheme)
         self.cell_separators = CELL_LANGUAGES['Python']
@@ -476,7 +521,7 @@ class PythonSH(BaseSH):
         else:
             offset = 0
             prev_state = self.NORMAL
-        
+
         oedata = None
         import_stmt = None
 
@@ -584,7 +629,7 @@ class PythonSH(BaseSH):
             match = self.PROG.search(text, match.end())
 
         tbh.set_state(self.currentBlock(), state)
-        
+
         # Use normal format for indentation and trailing spaces
         # Unless we are in a string
         states_multiline_string = [
@@ -632,7 +677,7 @@ class PythonSH(BaseSH):
                 statments.append(data.import_statement)
             block = block.next()
         return statments
-            
+
     def rehighlight(self):
         BaseSH.rehighlight(self)
 
@@ -719,7 +764,7 @@ class CppSH(BaseSH):
         inside_comment = tbh.get_state(self.currentBlock().previous()) == self.INSIDE_COMMENT
         self.setFormat(0, len(text),
                        self.formats["comment" if inside_comment else "normal"])
-        
+
         match = self.PROG.search(text)
         index = 0
         while match:
@@ -743,11 +788,11 @@ class CppSH(BaseSH):
                                        self.formats["number"])
                     else:
                         self.setFormat(start, end-start, self.formats[key])
-                    
+
             match = self.PROG.search(text, match.end())
-        
+
         self.highlight_extras(text)
-        
+
         last_state = self.INSIDE_COMMENT if inside_comment else self.NORMAL
         tbh.set_state(self.currentBlock(), last_state)
 
@@ -805,7 +850,7 @@ class FortranSH(BaseSH):
         """Implement highlight specific for Fortran."""
         text = to_text_string(text)
         self.setFormat(0, len(text), self.formats["normal"])
-        
+
         match = self.PROG.search(text)
         index = 0
         while match:
@@ -820,9 +865,9 @@ class FortranSH(BaseSH):
                             start1, end1 = match1.span(1)
                             self.setFormat(start1, end1-start1,
                                            self.formats["definition"])
-                    
+
             match = self.PROG.search(text, match.end())
-        
+
         self.highlight_extras(text)
 
 class Fortran77SH(FortranSH):
@@ -844,7 +889,7 @@ class Fortran77SH(FortranSH):
 # IDL highlighter
 #
 # Contribution from Stuart Mumford (Littlemumford) - 2012-02-02
-# See Issue #850
+# See spyder-ide/spyder#850.
 #==============================================================================
 def make_idl_patterns():
     """Strongly inspired by idlelib.ColorDelegator.make_pat."""
@@ -888,7 +933,7 @@ class DiffSH(BaseSH):
             self.setFormat(0, len(text), self.formats["number"])
         elif text.startswith("@"):
             self.setFormat(0, len(text), self.formats["builtin"])
-        
+
         self.highlight_extras(text)
 
 #==============================================================================
@@ -953,7 +998,7 @@ def make_yaml_patterns():
     sqstring = r"(\b[rRuU])?'[^'\\\n]*(\\.[^'\\\n]*)*'?"
     dqstring = r'(\b[rRuU])?"[^"\\\n]*(\\.[^"\\\n]*)*"?'
     string = any("string", [sqstring, dqstring])
-    return "|".join([kw, string, number, links, comment, 
+    return "|".join([kw, string, number, links, comment,
                      any("SYNC", [r"\n"])])
 
 class YamlSH(GenericSH):
@@ -969,23 +1014,23 @@ class BaseWebSH(BaseSH):
     """Base class for CSS and HTML syntax highlighters"""
     NORMAL  = 0
     COMMENT = 1
-    
+
     def __init__(self, parent, font=None, color_scheme=None):
         BaseSH.__init__(self, parent, font, color_scheme)
-    
+
     def highlight_block(self, text):
         """Implement highlight specific for CSS and HTML."""
         text = to_text_string(text)
         previous_state = tbh.get_state(self.currentBlock().previous())
-        
+
         if previous_state == self.COMMENT:
             self.setFormat(0, len(text), self.formats["comment"])
         else:
             previous_state = self.NORMAL
             self.setFormat(0, len(text), self.formats["normal"])
-        
+
         tbh.set_state(self.currentBlock(), previous_state)
-        match = self.PROG.search(text)        
+        match = self.PROG.search(text)
 
         match_count = 0
         n_characters = len(text)
@@ -1015,13 +1060,13 @@ class BaseWebSH(BaseSH):
                                 self.setFormat(start, end-start,
                                                self.formats[key])
                             except KeyError:
-                                # happens with unmatched end-of-comment;
-                                # see issue 1462
+                                # Happens with unmatched end-of-comment.
+                                # See spyder-ide/spyder#1462.
                                 pass
-            
+
             match = self.PROG.search(text, match.end())
             match_count += 1
-        
+
         self.highlight_extras(text)
 
 def make_html_patterns():
@@ -1033,8 +1078,8 @@ def make_html_patterns():
     multiline_comment_start = any("multiline_comment_start", [r"<!--"])
     multiline_comment_end = any("multiline_comment_end", [r"-->"])
     return "|".join([comment, multiline_comment_start,
-                     multiline_comment_end, tags, keywords, string]) 
-    
+                     multiline_comment_end, tags, keywords, string])
+
 class HtmlSH(BaseWebSH):
     """HTML Syntax Highlighter"""
     PROG = re.compile(make_html_patterns(), re.S)
@@ -1172,11 +1217,11 @@ class MarkdownSH(BaseSH):
 #==============================================================================
 # IMPORTANT NOTE:
 # --------------
-# Do not be tempted to generalize the use of PygmentsSH (that is tempting 
-# because it would lead to more generic and compact code, and not only in 
+# Do not be tempted to generalize the use of PygmentsSH (that is tempting
+# because it would lead to more generic and compact code, and not only in
 # this very module) because this generic syntax highlighter is far slower
 # than the native ones (all classes above). For example, a Python syntax
-# highlighter based on PygmentsSH would be 2 to 3 times slower than the 
+# highlighter based on PygmentsSH would be 2 to 3 times slower than the
 # current native PythonSH syntax highlighter.
 
 class PygmentsSH(BaseSH):
@@ -1189,8 +1234,8 @@ class PygmentsSH(BaseSH):
     NORMAL = 0
     def __init__(self, parent, font=None, color_scheme=None):
         # Map Pygments tokens to Spyder tokens
-        self._tokmap = {Text: "normal", 
-                        Generic: "normal", 
+        self._tokmap = {Text: "normal",
+                        Generic: "normal",
                         Other: "normal",
                         Keyword: "keyword",
                         Token.Operator: "normal",

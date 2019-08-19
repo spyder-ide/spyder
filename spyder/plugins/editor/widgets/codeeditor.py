@@ -20,13 +20,14 @@ Editor widget based on QtGui.QPlainTextEdit
 # Standard library imports
 from __future__ import division, print_function
 
+from unicodedata import category
 import logging
 import os.path as osp
 import re
 import sre_constants
 import sys
+import textwrap
 import time
-from unicodedata import category
 
 # Third party imports
 from diff_match_patch import diff_match_patch
@@ -49,15 +50,16 @@ from spyder_kernels.utils.dochelpers import getobj
 from spyder.api.panel import Panel
 from spyder.config.base import _, get_debug_level, running_under_pytest
 from spyder.config.gui import get_shortcut, config_shortcut
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.plugins.editor.api.decoration import TextDecoration
 from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               CloseQuotesExtension,
                                               DocstringWriterExtension,
                                               QMenuOnlyForEnter,
                                               EditorExtensionsManager)
-from spyder.plugins.editor.lsp import (LSPRequestTypes, TextDocumentSyncKind,
-                                       DiagnosticSeverity)
+from spyder.plugins.completion.languageserver import (LSPRequestTypes,
+                                                      TextDocumentSyncKind,
+                                                      DiagnosticSeverity)
 from spyder.plugins.editor.panels import (ClassFunctionDropdown,
                                           DebuggerPanel, EdgeLine,
                                           FoldingPanel, IndentationGuide,
@@ -69,7 +71,8 @@ from spyder.plugins.editor.utils.debugger import DebuggerManager
 from spyder.plugins.editor.utils.folding import IndentFoldDetector, FoldScope
 from spyder.plugins.editor.utils.kill_ring import QtKillRing
 from spyder.plugins.editor.utils.languages import ALL_LANGUAGES, CELL_LANGUAGES
-from spyder.plugins.editor.utils.lsp import request, handles, class_register
+from spyder.plugins.completion.decorators import (
+    request, handles, class_register)
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.outlineexplorer.languages import PythonCFM
 from spyder.py3compat import PY2, to_text_string
@@ -78,6 +81,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
                                     mimedata2url)
+from spyder.utils.vcs import get_git_remotes, remote_to_url
 
 
 try:
@@ -129,11 +133,11 @@ class GoToLineDialog(QDialog):
         last_label_v = QLabel("%d" % editor.get_line_count())
 
         glayout = QGridLayout()
-        glayout.addWidget(label, 0, 0, Qt.AlignVCenter|Qt.AlignRight)
+        glayout.addWidget(label, 0, 0, Qt.AlignVCenter | Qt.AlignRight)
         glayout.addWidget(self.lineedit, 0, 1, Qt.AlignVCenter)
-        glayout.addWidget(cl_label, 1, 0, Qt.AlignVCenter|Qt.AlignRight)
+        glayout.addWidget(cl_label, 1, 0, Qt.AlignVCenter | Qt.AlignRight)
         glayout.addWidget(cl_label_v, 1, 1, Qt.AlignVCenter)
-        glayout.addWidget(last_label, 2, 0, Qt.AlignVCenter|Qt.AlignRight)
+        glayout.addWidget(last_label, 2, 0, Qt.AlignVCenter | Qt.AlignRight)
         glayout.addWidget(last_label_v, 2, 1, Qt.AlignVCenter)
 
         bbox = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Cancel,
@@ -269,16 +273,12 @@ class CodeEditor(TextEditBaseWidget):
 
     # -- LSP signals
     #: Signal emitted when an LSP request is sent to the LSP manager
-    sig_perform_lsp_request = Signal(str, str, dict)
+    sig_perform_completion_request = Signal(str, str, dict)
 
     #: Signal emitted when a response is received from an LSP server
     # For now it's only used on tests, but it could be used to track
     # and profile LSP diagnostics.
     lsp_response_signal = Signal(str, dict)
-
-    # -- Fallback Signal
-    #: Signal emitted to get fallback completions
-    sig_perform_fallback_request = Signal(dict)
 
     #: Signal to display object information on the Help plugin
     sig_display_object_info = Signal(str, bool)
@@ -322,7 +322,8 @@ class CodeEditor(TextEditBaseWidget):
         self._timer_mouse_moving.timeout.connect(lambda: self._handle_hover())
 
         # Goto uri
-        self._last_hover_uri = None
+        self._last_hover_pattern_key = None
+        self._last_hover_pattern_text = None
 
         # 79-col edge line
         self.edge_line = self.panels.register(EdgeLine(self),
@@ -333,6 +334,9 @@ class CodeEditor(TextEditBaseWidget):
                                                   Panel.Position.FLOATING)
         # Blanks enabled
         self.blanks_enabled = False
+
+        # Underline errors and warnings
+        self.underline_errors_enabled = False
 
         # Scrolling past the end of the document
         self.scrollpastend_enabled = False
@@ -391,7 +395,7 @@ class CodeEditor(TextEditBaseWidget):
         # Vertical scrollbar
         # This is required to avoid a "RuntimeError: no access to protected
         # functions or signals for objects not created from Python" in
-        # Linux Ubuntu. See PR #5215.
+        # Linux Ubuntu. See spyder-ide/spyder#5215.
         self.setVerticalScrollBar(QScrollBar())
 
         # Scrollbar flag area
@@ -462,6 +466,9 @@ class CodeEditor(TextEditBaseWidget):
         # Intelligent backspace mode
         self.intelligent_backspace = True
 
+        # Automatic (on the fly) completions
+        self.automatic_completions = True
+
         self.close_parentheses_enabled = True
         self.close_quotes_enabled = False
         self.add_colons_enabled = True
@@ -497,7 +504,7 @@ class CodeEditor(TextEditBaseWidget):
         self.lsp_requests = {}
         self.document_opened = False
         self.filename = None
-        self.lsp_ready = False
+        self.completions_available = False
         self.text_version = 0
         self.save_include_text = True
         self.open_close_notifications = True
@@ -546,19 +553,18 @@ class CodeEditor(TextEditBaseWidget):
         ignore_chars = ['(', ')', '.']
 
         if self._should_display_hover(pos):
-            uri, cursor = self.get_uri_at(pos)
+            key, pattern_text, cursor = self.get_pattern_at(pos)
             text = self.get_word_at(pos)
-            if uri:
+            if pattern_text:
                 ctrl_text = 'Cmd' if sys.platform == "darwin" else 'Ctrl'
-
-                if uri.startswith('file://'):
-                    hint_text = ctrl_text + ' + click to open file'
-                elif uri.startswith('mailto:'):
-                    hint_text = ctrl_text + ' + click to send email'
-                elif uri.startswith('http'):
-                    hint_text = ctrl_text + ' + click to open url'
+                if key in ['file']:
+                    hint_text = ctrl_text + ' + ' + _('click to open file')
+                elif key in ['mail']:
+                    hint_text = ctrl_text + ' + ' + _('click to send email')
+                elif key in ['url']:
+                    hint_text = ctrl_text + ' + ' + _('click to open url')
                 else:
-                    hint_text = ctrl_text + ' + click to open'
+                    hint_text = ctrl_text + ' + ' + _('click to open')
 
                 hint_text = '<span>&nbsp;{}&nbsp;</span>'.format(hint_text)
 
@@ -566,12 +572,13 @@ class CodeEditor(TextEditBaseWidget):
                 return
 
             cursor = self.cursorForPosition(pos)
+            cursor_offset = cursor.position()
             line, col = cursor.blockNumber(), cursor.columnNumber()
             self._last_point = pos
             if text and self._last_hover_word != text:
                 if all(char not in text for char in ignore_chars):
                     self._last_hover_word = text
-                    self.request_hover(line, col)
+                    self.request_hover(line, col, cursor_offset)
                 else:
                     self.hide_tooltip()
         else:
@@ -713,6 +720,7 @@ class CodeEditor(TextEditBaseWidget):
                      tab_mode=True,
                      strip_mode=False,
                      intelligent_backspace=True,
+                     automatic_completions=True,
                      highlight_current_line=True,
                      highlight_current_cell=True,
                      occurrence_highlighting=True,
@@ -720,6 +728,7 @@ class CodeEditor(TextEditBaseWidget):
                      edge_line=True,
                      edge_line_columns=(79,),
                      show_blanks=False,
+                     underline_errors=False,
                      close_parentheses=True,
                      close_quotes=False,
                      add_colons=True,
@@ -779,6 +788,9 @@ class CodeEditor(TextEditBaseWidget):
         self.filename = filename
         self.set_language(language, filename)
 
+        # Underline errors and warnings
+        self.set_underline_errors_enabled(underline_errors)
+
         # Highlight current cell
         self.set_highlight_current_cell(highlight_current_cell)
 
@@ -794,6 +806,9 @@ class CodeEditor(TextEditBaseWidget):
 
         # Intelligent backspace
         self.toggle_intelligent_backspace(intelligent_backspace)
+
+        # Automatic completions
+        self.toggle_automatic_completions(automatic_completions)
 
         if cloned_from is not None:
             self.set_as_clone(cloned_from)
@@ -829,8 +844,8 @@ class CodeEditor(TextEditBaseWidget):
     def emit_request(self, method, params, requires_response):
         """Send request to LSP manager."""
         params['requires_response'] = requires_response
-        params['response_codeeditor'] = self
-        self.sig_perform_lsp_request.emit(
+        params['response_instance'] = self
+        self.sig_perform_completion_request.emit(
             self.language.lower(), method, params)
 
     def log_lsp_handle_errors(self, message):
@@ -855,16 +870,23 @@ class CodeEditor(TextEditBaseWidget):
                 logger.error('%', 1, stack_info=True)
 
     # ------------- LSP: Configuration and protocol start/end ----------------
-    def start_lsp_services(self, config):
-        """Start LSP integration if it wasn't done before."""
-        if not self.lsp_ready:
-            logger.debug("LSP available for: %s" % self.filename)
-            self.parse_lsp_config(config)
-            self.lsp_ready = True
-            self.document_did_open()
 
-    def stop_lsp_services(self):
-        self.lsp_ready = False
+    def start_completion_services(self):
+        logger.debug("Completions services available for: {0}".format(
+            self.filename))
+        self.completions_available = True
+        self.document_did_open()
+
+    def update_completion_configuration(self, config):
+        """Start LSP integration if it wasn't done before."""
+        logger.debug("LSP available for: %s" % self.filename)
+        self.parse_lsp_config(config)
+        self.document_did_open()
+
+    def stop_completion_services(self):
+        logger.debug('Stopping completion services for %s' % self.filename)
+        self.completions_available = False
+        self.document_opened = False
 
     def parse_lsp_config(self, config):
         """Parse and load LSP server editor capabilities."""
@@ -872,10 +894,11 @@ class CodeEditor(TextEditBaseWidget):
         completion_options = config['completionProvider']
         signature_options = config['signatureHelpProvider']
         range_formatting_options = config['documentOnTypeFormattingProvider']
-        self.open_close_notifications = sync_options['openClose']
-        self.sync_mode = sync_options['change']
-        self.will_save_notify = sync_options['willSave']
-        self.will_save_until_notify = sync_options['willSaveWaitUntil']
+        self.open_close_notifications = sync_options.get('openClose', False)
+        self.sync_mode = sync_options.get('change', TextDocumentSyncKind.NONE)
+        self.will_save_notify = sync_options.get('willSave', False)
+        self.will_save_until_notify = sync_options.get('willSaveWaitUntil',
+                                                       False)
         self.save_include_text = sync_options['save']['includeText']
         self.enable_hover = config['hoverProvider']
         self.auto_completion_characters = (
@@ -913,12 +936,14 @@ class CodeEditor(TextEditBaseWidget):
         """Send textDocument/didChange request to the server."""
         self.text_version += 1
         text = self.toPlainText()
+        patch = self.differ.patch_make(self.previous_text, text)
+        self.previous_text = text
         params = {
             'file': self.filename,
             'version': self.text_version,
-            'text': text
+            'text': text,
+            'diff': patch
         }
-        self.update_fallback(text)
         return params
 
     @handles(LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
@@ -938,10 +963,10 @@ class CodeEditor(TextEditBaseWidget):
         params = {
             'file': self.filename,
             'line': line,
-            'column': column
+            'column': column,
+            'offset': self.get_position('cursor')
         }
         self.completion_args = (self.textCursor().position(), automatic)
-        self.request_fallback()
         return params
 
     @handles(LSPRequestTypes.DOCUMENT_COMPLETION)
@@ -955,17 +980,14 @@ class CodeEditor(TextEditBaseWidget):
         position, automatic = args
         try:
             completions = params['params']
-            if not automatic:
-                cursor = self.textCursor()
-                cursor.select(QTextCursor.WordUnderCursor)
-                text = to_text_string(cursor.selectedText())
-                completions = [] if completions is None else completions
-                available_completions = {x['insertText'] for x in completions}
-                for entry in self.word_tokens:
-                    if entry['insertText'] == text:
-                        continue
-                    if entry['insertText'] not in available_completions:
-                        completions.append(entry)
+            cursor = self.textCursor()
+            cursor.select(QTextCursor.WordUnderCursor)
+            text = to_text_string(cursor.selectedText())
+            completions = [] if completions is None else completions
+            available_completions = {x['insertText']: x for x in completions}
+            available_completions.pop(text, False)
+            completions = list(available_completions.values())
+
             if completions is not None and len(completions) > 0:
                 completion_list = sorted(completions,
                                          key=lambda x: x['sortText'])
@@ -980,10 +1002,12 @@ class CodeEditor(TextEditBaseWidget):
         """Ask for signature."""
         self.document_did_change('')
         line, column = self.get_cursor_line_column()
+        offset = self.get_position('cursor')
         params = {
             'file': self.filename,
             'line': line,
-            'column': column
+            'column': column,
+            'offset': offset
         }
         return params
 
@@ -1021,12 +1045,13 @@ class CodeEditor(TextEditBaseWidget):
 
     # ------------- LSP: Hover ---------------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_HOVER)
-    def request_hover(self, line, col, show_hint=True, clicked=True):
+    def request_hover(self, line, col, offset, show_hint=True, clicked=True):
         """Request hover information."""
         params = {
             'file': self.filename,
             'line': line,
-            'column': col
+            'column': col,
+            'offset': offset
         }
         self._show_hint = show_hint
         self._request_hover_clicked = clicked
@@ -1114,62 +1139,12 @@ class CodeEditor(TextEditBaseWidget):
              requires_response=False)
     def notify_close(self):
         """Send close request."""
-        if self.lsp_ready:
+        if self.completions_available:
             params = {
                 'file': self.filename,
                 'codeeditor': self
             }
             return params
-        self.close_fallback()
-
-    # ------------- Fallback completions ------------------------------------
-    def start_fallback(self):
-        """Register with fallback engine."""
-        self.previous_text = ''
-        self.update_fallback(self.toPlainText())
-
-    def close_fallback(self):
-        """Close connection with fallback engine."""
-        fallback_request = {
-            'file': self.filename,
-            'type': 'close',
-            'editor': None,
-            'msg': {}
-        }
-        self.sig_perform_fallback_request.emit(fallback_request)
-
-    def update_fallback(self, text):
-        """Send changes to fallback engine."""
-        # Invoke fallback update
-        patch = self.differ.patch_make(self.previous_text, text)
-        self.previous_text = text
-        fallback_request = {
-            'file': self.filename,
-            'type': 'update',
-            'editor': self,
-            'msg': {
-                'language': self.language,
-                'diff': patch
-            }
-        }
-        self.sig_perform_fallback_request.emit(fallback_request)
-
-    def request_fallback(self):
-        """Send request to fallback engine."""
-        request = {
-            'file': self.filename,
-            'type': 'retrieve',
-            'editor': self,
-            'msg': None
-        }
-        self.sig_perform_fallback_request.emit(request)
-
-    def receive_text_tokens(self, tokens):
-        """Handle tokens sent by fallback engine."""
-        self.word_tokens = tokens
-        if not self.lsp_ready:
-            self.completion_args = (self.textCursor().position(), False)
-            self.process_completion({'params': tokens})
 
     # -------------------------------------------------------------------------
     def set_debug_panel(self, debug_panel, language):
@@ -1200,6 +1175,9 @@ class CodeEditor(TextEditBaseWidget):
 
     def toggle_intelligent_backspace(self, state):
         self.intelligent_backspace = state
+
+    def toggle_automatic_completions(self, state):
+        self.automatic_completions = state
 
     def set_close_parentheses_enabled(self, enable):
         """Enable/disable automatic parentheses insertion feature"""
@@ -1232,6 +1210,14 @@ class CodeEditor(TextEditBaseWidget):
     def set_occurrence_timeout(self, timeout):
         """Set occurrence highlighting timeout (ms)"""
         self.occurrence_timer.setInterval(timeout)
+
+    def set_underline_errors_enabled(self, state):
+        """Toggle the underlining of errors and warnings."""
+        self.underline_errors_enabled = state
+        if state:
+            self.document_did_change()
+        else:
+            self.clear_extra_selections('code_analysis_underline')
 
     def set_highlight_current_line(self, enable):
         """Enable/disable current line highlighting"""
@@ -1470,7 +1456,7 @@ class CodeEditor(TextEditBaseWidget):
     def __highlight_selection(self, key, cursor, foreground_color=None,
                         background_color=None, underline_color=None,
                         outline_color=None,
-                        underline_style=QTextCharFormat.WaveUnderline,
+                        underline_style=QTextCharFormat.SingleUnderline,
                         update=False):
         if cursor is None:
             return
@@ -1532,17 +1518,19 @@ class CodeEditor(TextEditBaseWidget):
         self.sig_flags_changed.emit()
 
     #-----highlight found results (find/replace widget)
-    def highlight_found_results(self, pattern, words=False, regexp=False):
+    def highlight_found_results(self, pattern, word=False, regexp=False,
+                                case=False):
         """Highlight all found patterns"""
         pattern = to_text_string(pattern)
         if not pattern:
             return
         if not regexp:
             pattern = re.escape(to_text_string(pattern))
-        pattern = r"\b%s\b" % pattern if words else pattern
+        pattern = r"\b%s\b" % pattern if word else pattern
         text = to_text_string(self.toPlainText())
+        re_flags = re.MULTILINE if case else re.IGNORECASE | re.MULTILINE
         try:
-            regobj = re.compile(pattern)
+            regobj = re.compile(pattern, flags=re_flags)
         except sre_constants.error:
             return
         extra_selections = []
@@ -1825,7 +1813,7 @@ class CodeEditor(TextEditBaseWidget):
         text = to_text_string(clipboard.text())
         if clipboard.mimeData().hasUrls():
             # Have copied file and folder urls pasted as text paths.
-            # See PR: #8644 for details.
+            # See spyder-ide/spyder#8644 for details.
             urls = clipboard.mimeData().urls()
             if all([url.isLocalFile() for url in urls]):
                 if len(urls) > 1:
@@ -1898,7 +1886,8 @@ class CodeEditor(TextEditBaseWidget):
     def cleanup_code_analysis(self):
         """Remove all code analysis markers"""
         self.setUpdatesEnabled(False)
-        self.clear_extra_selections('code_analysis')
+        self.clear_extra_selections('code_analysis_highlight')
+        self.clear_extra_selections('code_analysis_underline')
         for data in self.blockuserdata_list():
             data.code_analysis = []
 
@@ -1941,7 +1930,7 @@ class CodeEditor(TextEditBaseWidget):
                 QTextCursor.NextCharacter, n=end['character'],
                 mode=QTextCursor.KeepAnchor)
             color = QColor(color)
-            color.setAlpha(50)
+            color.setAlpha(255)
 
             data = block.userData()
             if not data:
@@ -1951,6 +1940,12 @@ class CodeEditor(TextEditBaseWidget):
             block.setUserData(data)
             block.selection = QTextCursor(cursor)
             block.color = color
+
+            # Underline errors and warnings in this editor.
+            if self.underline_errors_enabled:
+                self.__highlight_selection('code_analysis_underline',
+                                           block.selection,
+                                           underline_color=block.color)
 
         self.sig_process_code_analysis.emit()
         self.update_extra_selections()
@@ -1969,10 +1964,10 @@ class CodeEditor(TextEditBaseWidget):
         """
         self._last_hover_word = None
         self.tooltip_widget.hide()
+        self.clear_extra_selections('code_analysis_highlight')
 
     def show_code_analysis_results(self, line_number, block_data):
         """Show warning/error messages."""
-        from spyder.config.base import get_image_path
         # Diagnostic severity
         icons = {
             DiagnosticSeverity.ERROR: 'error',
@@ -1993,6 +1988,7 @@ class CodeEditor(TextEditBaseWidget):
         )
 
         msglist = []
+        max_lines_msglist = 25
         sorted_code_analysis = sorted(code_analysis, key=lambda i: i[2])
         for src, code, sev, msg in sorted_code_analysis:
             if '[' in msg and ']' in msg:
@@ -2001,10 +1997,49 @@ class CodeEditor(TextEditBaseWidget):
 
             msg = msg.strip()
             # Avoid messing TODO, FIXME
-            msg = msg[0].upper() + msg[1:]
+            # Prevent error if msg only has one element
+            if len(msg) > 1:
+                msg = msg[0].upper() + msg[1:]
+
+            # Get individual lines following paragraph format and handle
+            # symbols like '<' and '>' to not mess with br tags
+            msg = msg.replace('<', '&lt;').replace('>', '&gt;')
+            paragraphs = msg.splitlines()
+            new_paragraphs = []
+            long_paragraphs = 0
+            lines_per_message = 6
+            for paragraph in paragraphs:
+                new_paragraph = textwrap.wrap(
+                    paragraph,
+                    width=self._DEFAULT_MAX_HINT_WIDTH)
+                if lines_per_message > 2:
+                    if len(new_paragraph) > 1:
+                        new_paragraph = '<br>'.join(new_paragraph[:2]) + '...'
+                        long_paragraphs += 1
+                        lines_per_message -= 2
+                    else:
+                        new_paragraph = '<br>'.join(new_paragraph)
+                        lines_per_message -= 1
+                    new_paragraphs.append(new_paragraph)
+
+            if len(new_paragraphs) > 1:
+                # Define max lines taking into account that in the same
+                # tooltip you can find multiple warnings and messages
+                # and each one can have multiple lines
+                if long_paragraphs != 0:
+                    max_lines = 3
+                    max_lines_msglist -= max_lines * 2
+                else:
+                    max_lines = 5
+                    max_lines_msglist -= max_lines
+                msg = '<br>'.join(new_paragraphs[:max_lines]) + '<br>'
+            else:
+                msg = '<br>'.join(new_paragraphs)
+
             base_64 = ima.base64_from_icon(icons[sev], size, size)
-            msglist.append(template.format(base_64, msg, src,
-                                           code, size=size))
+            if max_lines_msglist >= 0:
+                msglist.append(template.format(base_64, msg, src,
+                                               code, size=size))
 
         if msglist:
             self.show_tooltip(
@@ -2012,17 +2047,18 @@ class CodeEditor(TextEditBaseWidget):
                 text='\n'.join(msglist),
                 title_color='#129625',
                 at_line=line_number,
+                with_html_format=True
             )
             self.highlight_line_warning(block_data)
 
     def highlight_line_warning(self, block_data):
-        self.clear_extra_selections('code_analysis')
-        self.__highlight_selection('code_analysis', block_data.selection,
+        """Highlight errors and warnings in this editor."""
+        self.clear_extra_selections('code_analysis_highlight')
+        self.__highlight_selection('code_analysis_highlight',
+                                   block_data.selection,
                                    background_color=block_data.color)
         self.update_extra_selections()
         self.linenumberarea.update()
-        QTimer.singleShot(
-            5000, lambda: self.clear_extra_selections('code_analysis'))
 
     def get_current_warnings(self):
         """
@@ -2033,12 +2069,13 @@ class CodeEditor(TextEditBaseWidget):
         line_count = self.document().blockCount()
         warnings = []
         while True:
-            if block.blockNumber() + 1 == line_count:
-                break
             data = block.userData()
             if data and data.code_analysis:
                 for warning in data.code_analysis:
                     warnings.append([warning[-1], block.blockNumber() + 1])
+            # See spyder-ide/spyder#9924
+            if block.blockNumber() + 1 == line_count:
+                break
             block = block.next()
         return warnings
 
@@ -2307,13 +2344,13 @@ class CodeEditor(TextEditBaseWidget):
         """
         Get if there is a correct indentation from a group of spaces of a line.
         """
-        spaces = re.findall('\s+', line_text)
+        spaces = re.findall(r'\s+', line_text)
         if len(spaces) - 1 >= group:
             return len(spaces[group]) % len(self.indent_chars) == 0
 
     def __number_of_spaces(self, line_text, group=0):
         """Get the number of spaces from a group of spaces in a line."""
-        spaces = re.findall('\s+', line_text)
+        spaces = re.findall(r'\s+', line_text)
         if len(spaces) - 1 >= group:
             return len(spaces[group])
 
@@ -2626,7 +2663,21 @@ class CodeEditor(TextEditBaseWidget):
         force=True: unindent even if cursor is not a the beginning of the line
         """
         if self.has_selected_text():
-            self.remove_prefix(self.indent_chars)
+            if self.indent_chars == "\t":
+                # Tabs, remove one tab
+                self.remove_prefix(self.indent_chars)
+            else:
+                # Spaces
+                space_count = len(self.indent_chars)
+                leading_spaces = self.__spaces_for_prefix()
+                remainder = leading_spaces % space_count
+                if remainder:
+                    # Get block on "space multiple grid".
+                    # See spyder-ide/spyder#5734.
+                    self.remove_prefix(" "*remainder)
+                else:
+                    # Unindent one space multiple
+                    self.remove_prefix(self.indent_chars)
         else:
             leading_text = self.get_text('sol', 'cursor')
             if force or not leading_text.strip() \
@@ -2766,7 +2817,7 @@ class CodeEditor(TextEditBaseWidget):
     def unblockcomment(self):
         """Un-block comment current line or selection."""
         # Needed for backward compatibility with Spyder previous blockcomments.
-        # See issue 2845
+        # See spyder-ide/spyder#2845.
         unblockcomment = self.__unblockcomment()
         if not unblockcomment:
             unblockcomment =  self.__unblockcomment(compatibility=True)
@@ -3196,8 +3247,9 @@ class CodeEditor(TextEditBaseWidget):
         if not shift and not ctrl:
             self.hide_tooltip()
 
-        if text in operators or text in delimiters:
-            self.completion_widget.hide()
+        if text not in self.auto_completion_characters:
+            if text in operators or text in delimiters:
+                self.completion_widget.hide()
         if key in (Qt.Key_Enter, Qt.Key_Return):
             if not shift and not ctrl:
                 if self.add_colons_enabled and self.is_python_like() and \
@@ -3258,15 +3310,19 @@ class CodeEditor(TextEditBaseWidget):
         elif key == Qt.Key_Home:
             self.stdkey_home(shift, ctrl)
         elif key == Qt.Key_End:
-            # See Issue 495: on MacOS X, it is necessary to redefine this
-            # basic action which should have been implemented natively
+            # See spyder-ide/spyder#495: on MacOS X, it is necessary to
+            # redefine this basic action which should have been implemented
+            # natively
             self.stdkey_end(shift, ctrl)
         elif text in self.auto_completion_characters:
             self.insert_text(text)
-            if not self.in_comment_or_string():
-                last_obj = getobj(self.get_text('sol', 'cursor'))
-                if last_obj and not last_obj.isdigit():
-                    self.do_completion(automatic=True)
+            if text == ".":
+                if not self.in_comment_or_string():
+                    last_obj = getobj(self.get_text('sol', 'cursor'))
+                    if last_obj and not last_obj.isdigit():
+                        self.do_completion(automatic=True)
+            else:
+                self.do_completion(automatic=True)
         elif (text != '(' and text in self.signature_completion_characters and
                 not self.has_selected_text()):
             self.insert_text(text)
@@ -3313,7 +3369,14 @@ class CodeEditor(TextEditBaseWidget):
             TextEditBaseWidget.keyPressEvent(self, event)
         if len(text) > 0:
             self.document_did_change(text)
-            # self.do_completion(automatic=True)
+
+            cursor = self.textCursor()
+            cursor.select(QTextCursor.WordUnderCursor)
+            word_text = to_text_string(cursor.selectedText())
+            # Perform completion on the fly
+            if self.automatic_completions:
+                if text.isalpha():
+                    self.do_completion(automatic=True)
         if not event.modifiers():
             # Accept event to avoid it being handled by the parent
             # Modifiers should be passed to the parent because they
@@ -3340,9 +3403,12 @@ class CodeEditor(TextEditBaseWidget):
         if isinstance(self.highlighter, sh.PygmentsSH):
             self.highlighter.make_charlist()
 
-    def get_uri_at(self, coordinates):
-        """Return uri and cursor for if uri found at coordinates."""
-        return self.get_pattern_cursor_at(sh.URI_PATTERNS, coordinates)
+    def get_pattern_at(self, coordinates):
+        """
+        Return key, text and cursor for pattern (if found at coordinates).
+        """
+        return self.get_pattern_cursor_at(self.highlighter.patterns,
+                                          coordinates)
 
     def get_pattern_cursor_at(self, pattern, coordinates):
         """
@@ -3350,36 +3416,45 @@ class CodeEditor(TextEditBaseWidget):
 
         This returns the actual match and the cursor that selects the text.
         """
+        cursor, key, text = None, None, None
+        break_loop = False
+
         # Check if the pattern is in line
         line = self.get_line_at(coordinates)
         match = pattern.search(line)
-        uri = None
-        cursor = None
 
         while match:
-            start, end = match.span()
+            for key, value in list(match.groupdict().items()):
+                if value:
+                    start, end = match.span()
 
-            # Get cursor selection if pattern found
-            cursor = self.cursorForPosition(coordinates)
-            cursor.movePosition(QTextCursor.StartOfBlock)
-            line_start_position = cursor.position()
+                    # Get cursor selection if pattern found
+                    cursor = self.cursorForPosition(coordinates)
+                    cursor.movePosition(QTextCursor.StartOfBlock)
+                    line_start_position = cursor.position()
 
-            cursor.setPosition(line_start_position + start, cursor.MoveAnchor)
-            start_rect = self.cursorRect(cursor)
-            cursor.setPosition(line_start_position + end, cursor.MoveAnchor)
-            end_rect = self.cursorRect(cursor)
-            bounding_rect = start_rect.united(end_rect)
+                    cursor.setPosition(line_start_position + start,
+                                       cursor.MoveAnchor)
+                    start_rect = self.cursorRect(cursor)
+                    cursor.setPosition(line_start_position + end,
+                                       cursor.MoveAnchor)
+                    end_rect = self.cursorRect(cursor)
+                    bounding_rect = start_rect.united(end_rect)
 
-            # Check if coordinates are located within the selection rect
-            if bounding_rect.contains(coordinates):
-                uri = line[start:end]
-                cursor.setPosition(line_start_position + start,
-                                   cursor.KeepAnchor)
+                    # Check coordinates are located within the selection rect
+                    if bounding_rect.contains(coordinates):
+                        text = line[start:end]
+                        cursor.setPosition(line_start_position + start,
+                                           cursor.KeepAnchor)
+                        break_loop = True
+                        break
+
+            if break_loop:
                 break
-            else:
-                match = pattern.search(line, end)
 
-        return uri, cursor
+            match = pattern.search(line, end)
+
+        return key, text, cursor
 
     def _preprocess_file_uri(self, uri):
         """Format uri to conform to absolute or relative file paths."""
@@ -3414,12 +3489,15 @@ class CodeEditor(TextEditBaseWidget):
 
     def _handle_goto_uri_event(self, pos):
         """Check if go to uri can be applied and apply highlight."""
-        uri, cursor = self.get_uri_at(pos)
-        if uri and cursor:
+        key, pattern_text, cursor = self.get_pattern_at(pos)
+        if key and pattern_text and cursor:
+            self._last_hover_pattern_key = key
+            self._last_hover_pattern_text = pattern_text
+
             color = self.ctrl_click_color
 
-            if uri.startswith('file://'):
-                fname = self._preprocess_file_uri(uri)
+            if key in ['file']:
+                fname = self._preprocess_file_uri(pattern_text)
                 if not osp.isfile(fname):
                     color = QColor(255, 80, 80)
 
@@ -3429,16 +3507,75 @@ class CodeEditor(TextEditBaseWidget):
                 foreground_color=color,
                 underline_color=color,
                 underline_style=QTextCharFormat.SingleUnderline)
+
             if not self.__cursor_changed:
                 QApplication.setOverrideCursor(
                     QCursor(Qt.PointingHandCursor))
                 self.__cursor_changed = True
-            self._last_hover_uri = uri
-            self.sig_uri_found.emit(uri)
+
+            self.sig_uri_found.emit(pattern_text)
             return True
         else:
-            self._last_hover_uri = uri
+            self._last_hover_pattern_key = key
+            self._last_hover_pattern_text = pattern_text
             return False
+
+    def go_to_uri_from_cursor(self, uri):
+        """Go to url from cursor and defined hover patterns."""
+        key = self._last_hover_pattern_key
+        full_uri = uri
+        if key in ['file']:
+            fname = self._preprocess_file_uri(uri)
+
+            if osp.isfile(fname) and encoding.is_text_file(fname):
+                # Open in editor
+                self.go_to_definition.emit(fname, 0, 0)
+            else:
+                # Use external program
+                fname = file_uri(fname)
+                programs.start_file(fname)
+        elif key in ['mail', 'url']:
+            if '@' in uri and not uri.startswith('mailto:'):
+                full_uri = 'mailto:' + uri
+            quri = QUrl(full_uri)
+            QDesktopServices.openUrl(quri)
+        elif key in ['issue']:
+            # Issue URI
+            repo_url = uri.replace('#', '/issues/')
+            if uri.startswith(('gh-', 'bb-', 'gl-')):
+                number = uri[3:]
+                remotes = get_git_remotes(self.filename)
+                remote = remotes.get('upstream', remotes.get('origin'))
+                if remote:
+                    full_uri = remote_to_url(remote) + '/issues/' + number
+                else:
+                    full_uri = None
+            elif uri.startswith('gh:') or ':' not in uri:
+                # Github
+                repo_and_issue = repo_url
+                if uri.startswith('gh:'):
+                    repo_and_issue = repo_url[3:]
+                full_uri = 'https://github.com/' + repo_and_issue
+            elif uri.startswith('gl:'):
+                # Gitlab
+                full_uri = 'https://gitlab.com/' + repo_url[3:]
+            elif uri.startswith('bb:'):
+                # Bitbucket
+                full_uri = 'https://bitbucket.org/' + repo_url[3:]
+
+            if full_uri:
+                quri = QUrl(full_uri)
+                QDesktopServices.openUrl(quri)
+            else:
+                QMessageBox.information(
+                    self,
+                    _('Information'),
+                    _('This file is not part of a local repository or '
+                      'upstream/origin remotes are not defined!'),
+                    QMessageBox.Ok,
+                )
+        self.sig_go_to_uri.emit(uri)
+        return full_uri
 
     def line_range(self, position):
         """
@@ -3486,7 +3623,12 @@ class CodeEditor(TextEditBaseWidget):
             # Check if still on the line
             return 0
 
-        if not self.strip_trailing_spaces_on_modify:
+        # Check if end of line in string
+        cursor = self.textCursor()
+        cursor.setPosition(line_range[1])
+
+        if (not self.strip_trailing_spaces_on_modify
+                or self.in_string(cursor=cursor)):
             if self.last_auto_indent is None:
                 return 0
             elif (self.last_auto_indent !=
@@ -3498,12 +3640,6 @@ class CodeEditor(TextEditBaseWidget):
             self.last_auto_indent = None
         elif not pos_in_line(self.last_change_position):
             # Should process if pressed return or made a change on the line:
-            return 0
-
-        # Check if end of line in string
-        cursor = self.textCursor()
-        cursor.setPosition(line_range[1])
-        if self.in_string(cursor=cursor):
             return 0
 
         cursor.setPosition(line_range[0])
@@ -3522,9 +3658,9 @@ class CodeEditor(TextEditBaseWidget):
             self.document_did_change()
             # Correct last change position
             self.last_change_position = line_range[1]
+            self.last_position = self.textCursor().position()
             return line_range[1] - (line_range[0] + len(strip))
         return 0
-
 
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""
@@ -3597,45 +3733,9 @@ class CodeEditor(TextEditBaseWidget):
         if event.button() == Qt.LeftButton and ctrl:
             TextEditBaseWidget.mousePressEvent(self, event)
             cursor = self.cursorForPosition(pos)
-
-            if self._last_hover_uri:
-                uri = self._last_hover_uri
-                if uri.startswith('file://'):
-                    fname = self._preprocess_file_uri(uri)
-
-                    if osp.isfile(fname) and encoding.is_text_file(fname):
-                        # Open in editor
-                        self.go_to_definition.emit(fname, 0, 0)
-                    else:
-                        # Use external program
-                        fname = file_uri(fname)
-                        programs.start_file(fname)
-                elif uri.startswith(('http', 'mailto:')):
-                    quri = QUrl(uri)
-                    QDesktopServices.openUrl(quri)
-                else:
-                    # Issue URI
-                    service = 'https://github.com/'
-                    uri = uri.replace('#', '/issues/')
-
-                    if uri.startswith('gh:') or ':' not in uri:
-                        # Github
-                        if uri.startswith('gh:'):
-                            uri = uri[3:]
-                        service = 'https://github.com/'
-                    elif uri.startswith('gl:'):
-                        # Gitlab
-                        uri = uri[3:]
-                        service = 'https://gitlab.com/'
-                    elif uri.startswith('bb:'):
-                        # Bitbucket
-                        uri = uri[3:]
-                        service = 'https://bitbucket.org/'
-
-                    quri = QUrl(service + uri)
-                    QDesktopServices.openUrl(quri)
-
-                self.sig_go_to_uri.emit(uri)
+            uri = self._last_hover_pattern_text
+            if uri:
+                self.go_to_uri_from_cursor(uri)
             else:
                 self.go_to_definition_from_cursor(cursor)
         elif event.button() == Qt.LeftButton and alt:
@@ -3689,7 +3789,8 @@ class CodeEditor(TextEditBaseWidget):
             self.__cursor_changed = False
             QApplication.restoreOverrideCursor()
             self.clear_extra_selections('ctrl_click')
-            self._last_hover_uri = None
+            self._last_hover_pattern_key = None
+            self._last_hover_pattern_text = None
 
     #------ Drag and drop
     def dragEnterEvent(self, event):

@@ -235,9 +235,9 @@ def write(text, filename, encoding='utf-8', mode='wb'):
         with open(filename, mode) as textfile:
             textfile.write(text)
     else:
-        # Based in the solution at untitaker/python-atomicwrites#42
-        # Needed to fix file permissions overwritting
-        # See spyder-ide/spyder#9381
+        # Based in the solution at untitaker/python-atomicwrites#42.
+        # Needed to fix file permissions overwritting.
+        # See spyder-ide/spyder#9381.
         try:
             original_mode = os.stat(filename).st_mode
         except OSError:  # Change to FileNotFoundError for PY3
