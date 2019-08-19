@@ -1049,8 +1049,8 @@ class Editor(SpyderPluginWidget):
         if not editorstack.data:
             self.__load_temp_file()
         self.add_dockwidget()
-        self.main.add_to_fileswitcher(self, editorstack.tabs, editorstack.data,
-                                      ima.icon('TextFileIcon'))
+        # TODO: Change for add_mode and handler
+        self.main.add_to_switcher("", _("Editor"), self.switcher_handler)
 
     def update_font(self):
         """Update font from Preferences"""
@@ -1154,6 +1154,7 @@ class Editor(SpyderPluginWidget):
             # main window through the `register_plugin` method. Only additional
             # editors added by splitting need to be registered.
             # See spyder-ide/spyder#5057.
+            # TODO: Change for Switcher
             self.main.fileswitcher.sig_goto_file.connect(
                       editorstack.set_stack_index)
 
@@ -1445,6 +1446,7 @@ class Editor(SpyderPluginWidget):
         #            self.main.get_spyder_pythonpath())
 
     #------ FileSwitcher API
+    # TODO: Check need with Switcher
     def get_current_tab_manager(self):
         """Get the widget with the TabWidget attribute."""
         return self.get_current_editorstack()

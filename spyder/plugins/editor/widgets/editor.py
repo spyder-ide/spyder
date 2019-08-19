@@ -466,6 +466,7 @@ class EditorStack(QWidget):
         self.setLayout(layout)
 
         self.menu = None
+        # TODO: Change to Switcher>
         self.fileswitcher_dlg = None
 #        self.filelist_btn = None
 #        self.previous_btn = None
@@ -480,9 +481,11 @@ class EditorStack(QWidget):
         self.find_widget = None
 
         self.data = []
+        # TODO: Change to Switcher
         fileswitcher_action = create_action(self, _("File switcher..."),
                 icon=ima.icon('filelist'),
                 triggered=self.open_fileswitcher_dlg)
+        # TODO: Change to Switcher
         symbolfinder_action = create_action(self,
                 _("Find symbols in file..."),
                 icon=ima.icon('symbol_find'),
@@ -853,6 +856,7 @@ class EditorStack(QWidget):
         """Open file list management dialog box"""
         if not self.tabs.count():
             return
+        # TODO: Change to Switcher
         if self.fileswitcher_dlg is not None and \
           self.fileswitcher_dlg.is_visible:
             self.fileswitcher_dlg.hide()
@@ -866,6 +870,7 @@ class EditorStack(QWidget):
 
     @Slot()
     def open_symbolfinder_dlg(self):
+        # TODO: Change to Switcher
         self.open_fileswitcher_dlg()
         self.fileswitcher_dlg.set_search_text('@')
 
@@ -873,14 +878,17 @@ class EditorStack(QWidget):
         """Get the plugin title of the parent widget."""
         # Needed for the editor stack to use its own fileswitcher instance.
         # See spyder-ide/spyder#9469.
+        # TODO: Change to Switcher
         return self.parent().plugin.get_plugin_title()
 
     def get_current_tab_manager(self):
         """Get the widget with the TabWidget attribute."""
+        # TODO: Change to Switcher
         return self
 
     def go_to_line(self, line=None):
         """Go to line dialog"""
+        # TODO: Change to Switcher
         if line is not None:
             # When this method is called from the flileswitcher, a line
             # number is specified, so there is no need for the dialog.

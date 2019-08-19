@@ -1584,6 +1584,7 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot, tmpdir):
 @pytest.mark.slow
 def test_fileswitcher(main_window, qtbot, tmpdir):
     """Test the use of shorten paths when necessary in the fileswitcher."""
+    # TODO: Change to Switcher
     fileswitcher = main_window.fileswitcher
 
     # Assert that the full path of a file is shown in the fileswitcher
