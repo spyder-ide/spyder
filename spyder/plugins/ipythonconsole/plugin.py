@@ -434,7 +434,7 @@ class IPythonConsole(SpyderPluginWidget):
             return client.shellwidget
 
     def run_script(self, filename, wdir, args, debug, post_mortem,
-                   current_client, clear_variables):
+                   current_client, clear_variables, console_namespace):
         """Run script in current or dedicated client"""
         norm = lambda text: remove_backslashes(to_text_string(text))
 
@@ -465,6 +465,8 @@ class IPythonConsole(SpyderPluginWidget):
                     line += ", wdir='%s'" % norm(wdir)
                 if post_mortem:
                     line += ", post_mortem=True"
+                if console_namespace:
+                    line += ", current_namespace=True"
                 line += ")"
             else: # External kernels, use %run
                 line = "%run "
