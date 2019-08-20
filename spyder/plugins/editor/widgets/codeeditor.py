@@ -75,13 +75,14 @@ from spyder.plugins.completion.decorators import (
     request, handles, class_register)
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.outlineexplorer.languages import PythonCFM
-from spyder.py3compat import PY2, to_text_string, is_string, QString_len
+from spyder.py3compat import PY2, to_text_string, is_string
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
                                     mimedata2url)
 from spyder.utils.vcs import get_git_remotes, remote_to_url
+from spyder.utils.qstringhelpers import qstring_length
 
 
 try:
@@ -2255,7 +2256,7 @@ class CodeEditor(TextEditBaseWidget):
         Remove suffix from current line (there should not be any selection)
         """
         cursor = self.textCursor()
-        cursor.setPosition(cursor.position() - QString_len(suffix),
+        cursor.setPosition(cursor.position() - qstring_length(suffix),
                            QTextCursor.KeepAnchor)
         if to_text_string(cursor.selectedText()) == suffix:
             cursor.removeSelectedText()
@@ -3636,7 +3637,7 @@ class CodeEditor(TextEditBaseWidget):
         strip = text.rstrip()
         # I think all the characters we can strip are in a single QChar.
         # Therefore there shouldn't be any length problems.
-        N_strip = QString_len(text[len(strip):])
+        N_strip = qstring_length(text[len(strip):])
 
         if N_strip > 0:
             # Select text to remove

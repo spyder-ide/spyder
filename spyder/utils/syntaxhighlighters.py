@@ -31,12 +31,13 @@ from spyder import dependencies
 from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.py3compat import (builtins, is_text_string, to_text_string, PY3,
-                              PY36_OR_MORE, QString_len)
+                              PY36_OR_MORE)
 from spyder.plugins.editor.utils.languages import CELL_LANGUAGES
 from spyder.plugins.editor.utils.editor import TextBlockHelper as tbh
 from spyder.plugins.editor.utils.editor import BlockUserData
 from spyder.utils.workers import WorkerManager
 from spyder.plugins.outlineexplorer.api import OutlineExplorerData
+from spyder.utils.qstringhelpers import qstring_length
 
 PYGMENTS_REQVER = '>=2.0'
 dependencies.add("pygments", "pygments",
@@ -107,9 +108,10 @@ def get_span(match, key=None):
         start, end = match.span(key)
     else:
         start, end = match.span()
-    start = QString_len(match.string[:start])
-    end = QString_len(match.string[:end])
+    start = qstring_length(match.string[:start])
+    end = qstring_length(match.string[:end])
     return start, end
+
 
 def get_color_scheme(name):
     """Get a color scheme from config using its name"""
@@ -344,7 +346,7 @@ class BaseSH(QSyntaxHighlighter):
                 start = max([0, start+offset])
                 end = max([0, end+offset])
                 # Format trailing spaces at the end of the line.
-                if end == QString_len(text) and format_trailing is not None:
+                if end == qstring_length(text) and format_trailing is not None:
                     self.setFormat(start, end - start, format_trailing)
                 # Format leading spaces, e.g. indentation.
                 if start == 0 and format_leading is not None:
@@ -387,7 +389,7 @@ class GenericSH(BaseSH):
     def highlight_block(self, text):
         """Implement highlight using regex defined in children classes."""
         text = to_text_string(text)
-        self.setFormat(0, QString_len(text), self.formats["normal"])
+        self.setFormat(0, qstring_length(text), self.formats["normal"])
 
         match = self.PROG.search(text)
         index = 0
@@ -545,7 +547,7 @@ class PythonSH(BaseSH):
                     if cell_head == '':
                         oedata.cell_level = 0
                     else:
-                        oedata.cell_level = QString_len(cell_head) - 2
+                        oedata.cell_level = qstring_length(cell_head) - 2
                     oedata.fold_level = start
                     oedata.def_type = OutlineExplorerData.CELL
                     def_name = get_code_cell_name(text)
@@ -565,8 +567,8 @@ class PythonSH(BaseSH):
                                        self.formats["definition"])
                         oedata = OutlineExplorerData(self.currentBlock())
                         oedata.text = to_text_string(text)
-                        oedata.fold_level = (QString_len(text)
-                                             - QString_len(text.lstrip()))
+                        oedata.fold_level = (qstring_length(text)
+                                             - qstring_length(text.lstrip()))
                         oedata.def_type = self.DEF_TYPES[to_text_string(value)]
                         oedata.def_name = text[start1:end1]
                         oedata.color = self.formats["definition"]
@@ -585,9 +587,9 @@ class PythonSH(BaseSH):
                     # if in a comment; cheap approximation to the
                     # truth
                     if '#' in text:
-                        endpos = QString_len(text[:text.index('#')])
+                        endpos = qstring_length(text[:text.index('#')])
                     else:
-                        endpos = QString_len(text)
+                        endpos = qstring_length(text)
                     while True:
                         match1 = self.ASPROG.match(text, end, endpos)
                         if not match1:
@@ -620,7 +622,7 @@ class PythonSH(BaseSH):
         oedata = None
         import_stmt = None
 
-        self.setFormat(0, QString_len(text), self.formats["normal"])
+        self.setFormat(0, qstring_length(text), self.formats["normal"])
 
         state = self.NORMAL
         match = self.PROG.search(text)
@@ -767,7 +769,7 @@ class CppSH(BaseSH):
         """Implement highlight specific for C/C++."""
         text = to_text_string(text)
         inside_comment = tbh.get_state(self.currentBlock().previous()) == self.INSIDE_COMMENT
-        self.setFormat(0, QString_len(text),
+        self.setFormat(0, qstring_length(text),
                        self.formats["comment" if inside_comment else "normal"])
 
         match = self.PROG.search(text)
@@ -779,7 +781,7 @@ class CppSH(BaseSH):
                     index += end-start
                     if key == "comment_start":
                         inside_comment = True
-                        self.setFormat(start, QString_len(text)-start,
+                        self.setFormat(start, qstring_length(text)-start,
                                        self.formats["comment"])
                     elif key == "comment_end":
                         inside_comment = False
@@ -854,7 +856,7 @@ class FortranSH(BaseSH):
     def highlight_block(self, text):
         """Implement highlight specific for Fortran."""
         text = to_text_string(text)
-        self.setFormat(0, QString_len(text), self.formats["normal"])
+        self.setFormat(0, qstring_length(text), self.formats["normal"])
 
         match = self.PROG.search(text)
         index = 0
@@ -881,12 +883,12 @@ class Fortran77SH(FortranSH):
         """Implement highlight specific for Fortran77."""
         text = to_text_string(text)
         if text.startswith(("c", "C")):
-            self.setFormat(0, QString_len(text), self.formats["comment"])
+            self.setFormat(0, qstring_length(text), self.formats["comment"])
             self.highlight_extras(text)
         else:
             FortranSH.highlight_block(self, text)
             self.setFormat(0, 5, self.formats["comment"])
-            self.setFormat(73, max([73, QString_len(text)]),
+            self.setFormat(73, max([73, qstring_length(text)]),
                            self.formats["comment"])
 
 
@@ -929,15 +931,15 @@ class DiffSH(BaseSH):
         """Implement highlight specific Diff/Patch files."""
         text = to_text_string(text)
         if text.startswith("+++"):
-            self.setFormat(0, QString_len(text), self.formats["keyword"])
+            self.setFormat(0, qstring_length(text), self.formats["keyword"])
         elif text.startswith("---"):
-            self.setFormat(0, QString_len(text), self.formats["keyword"])
+            self.setFormat(0, qstring_length(text), self.formats["keyword"])
         elif text.startswith("+"):
-            self.setFormat(0, QString_len(text), self.formats["string"])
+            self.setFormat(0, qstring_length(text), self.formats["string"])
         elif text.startswith("-"):
-            self.setFormat(0, QString_len(text), self.formats["number"])
+            self.setFormat(0, qstring_length(text), self.formats["number"])
         elif text.startswith("@"):
-            self.setFormat(0, QString_len(text), self.formats["builtin"])
+            self.setFormat(0, qstring_length(text), self.formats["builtin"])
 
         self.highlight_extras(text)
 
@@ -1029,16 +1031,16 @@ class BaseWebSH(BaseSH):
         previous_state = tbh.get_state(self.currentBlock().previous())
 
         if previous_state == self.COMMENT:
-            self.setFormat(0, QString_len(text), self.formats["comment"])
+            self.setFormat(0, qstring_length(text), self.formats["comment"])
         else:
             previous_state = self.NORMAL
-            self.setFormat(0, QString_len(text), self.formats["normal"])
+            self.setFormat(0, qstring_length(text), self.formats["normal"])
 
         tbh.set_state(self.currentBlock(), previous_state)
         match = self.PROG.search(text)
 
         match_count = 0
-        n_characters = QString_len(text)
+        n_characters = qstring_length(text)
         # There should never be more matches than characters in the text.
         while match and match_count < n_characters:
             match_dict = match.groupdict()
@@ -1048,16 +1050,16 @@ class BaseWebSH(BaseSH):
                     if previous_state == self.COMMENT:
                         if key == "multiline_comment_end":
                             tbh.set_state(self.currentBlock(), self.NORMAL)
-                            self.setFormat(end, QString_len(text),
+                            self.setFormat(end, qstring_length(text),
                                            self.formats["normal"])
                         else:
                             tbh.set_state(self.currentBlock(), self.COMMENT)
-                            self.setFormat(0, QString_len(text),
+                            self.setFormat(0, qstring_length(text),
                                            self.formats["comment"])
                     else:
                         if key == "multiline_comment_start":
                             tbh.set_state(self.currentBlock(), self.COMMENT)
-                            self.setFormat(start, QString_len(text),
+                            self.setFormat(start, qstring_length(text),
                                            self.formats["comment"])
                         else:
                             tbh.set_state(self.currentBlock(), self.NORMAL)
@@ -1152,16 +1154,16 @@ class MarkdownSH(BaseSH):
         previous_state = self.previousBlockState()
 
         if previous_state == self.CODE:
-            self.setFormat(0, QString_len(text), self.formats["code"])
+            self.setFormat(0, qstring_length(text), self.formats["code"])
         else:
             previous_state = self.NORMAL
-            self.setFormat(0, QString_len(text), self.formats["normal"])
+            self.setFormat(0, qstring_length(text), self.formats["normal"])
 
         self.setCurrentBlockState(previous_state)
 
         match = self.PROG.search(text)
         match_count = 0
-        n_characters = QString_len(text)
+        n_characters = qstring_length(text)
 
         while match and match_count< n_characters:
             for key, value in list(match.groupdict().items()):
@@ -1173,7 +1175,7 @@ class MarkdownSH(BaseSH):
                     if previous_state == self.CODE:
                         if key == "code":
                             # Change to normal
-                            self.setFormat(0, QString_len(text),
+                            self.setFormat(0, qstring_length(text),
                                            self.formats["normal"])
                             self.setCurrentBlockState(self.NORMAL)
                         else:
@@ -1181,7 +1183,8 @@ class MarkdownSH(BaseSH):
                     else:
                         if key == "code":
                             # Change to code
-                            self.setFormat(0, QString_len(text), self.formats["code"])
+                            self.setFormat(0, qstring_length(text),
+                                           self.formats["code"])
                             self.setCurrentBlockState(self.CODE)
                             continue
 
@@ -1331,7 +1334,7 @@ class PygmentsSH(BaseSH):
         # will have the correct behaviour of starting at 0.
         if self._allow_highlight:
             start = self.previousBlockState() + 1
-            end = start + QString_len(text)
+            end = start + qstring_length(text)
             for i, (fmt, letter) in enumerate(self._charlist[start:end]):
                 self.setFormat(i, 1, fmt)
             self.setCurrentBlockState(end)
