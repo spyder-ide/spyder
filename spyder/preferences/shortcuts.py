@@ -22,7 +22,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.config.gui import (get_shortcut, iter_shortcuts,
                                reset_shortcuts, set_shortcut)
 from spyder.preferences.configdialog import GeneralConfigPage
@@ -526,7 +526,7 @@ class ShortcutsModel(QAbstractTableModel):
         """Qt Override."""
         if not index.isValid():
             return Qt.ItemIsEnabled
-        return Qt.ItemFlags(QAbstractTableModel.flags(self, index))
+        return Qt.ItemFlags(int(QAbstractTableModel.flags(self, index)))
 
     def data(self, index, role=Qt.DisplayRole):
         """Qt Override."""
@@ -796,6 +796,7 @@ class ShortcutsTable(QTableView):
     def mouseDoubleClickEvent(self, event):
         """Qt Override."""
         self.show_editor()
+        self.update()
 
 
 class ShortcutsConfigPage(GeneralConfigPage):
@@ -808,12 +809,20 @@ class ShortcutsConfigPage(GeneralConfigPage):
         self.table = ShortcutsTable(self, text_color=ima.MAIN_FG_COLOR)
         self.finder = ShortcutFinder(self.table, self.table.set_regex)
         self.table.finder = self.finder
+        self.table.finder.setPlaceholderText(
+            _("Search for a shortcut in the table above"))
         self.label_finder = QLabel(_('Search: '))
         self.reset_btn = QPushButton(_("Reset to default values"))
+        self.top_label = QLabel(
+            _("Here you can browse the list of all available shortcuts in "
+              "Spyder. You can also customize them by double-clicking on any "
+              "entry in this table."))
+        self.top_label.setWordWrap(True)
 
         # Layout
         hlayout = QHBoxLayout()
         vlayout = QVBoxLayout()
+        vlayout.addWidget(self.top_label)
         hlayout.addWidget(self.label_finder)
         hlayout.addWidget(self.finder)
         vlayout.addWidget(self.table)

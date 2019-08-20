@@ -17,7 +17,7 @@ from qtpy.QtWidgets import QStyle, QWidget
 
 # Local imports
 from spyder.config.base import get_image_path
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.config.gui import is_dark_interface
 from spyder.utils.encoding import is_text_file
 import qtawesome as qta
@@ -131,6 +131,7 @@ _qtaargs = {
     'breakpoint_transparent':  [('fa.circle',), {'color': 'darkred', 'opacity': 0.75, 'scale_factor': 0.9}],
     'breakpoint_big':          [('fa.circle',), {'color': '#cc0000', 'scale_factor': 0.9} ],
     'breakpoint_cond_big':     [('fa.question-circle',), {'color': '#cc0000', 'scale_factor': 0.9},],
+    'breakpoints':             [('mdi.dots-vertical',), {'color': MAIN_FG_COLOR}],
     'arrow_debugger':          [('mdi.arrow-right-bold',), {'color': '#3775a9', 'scale_factor': 2.0}],
     'debug':                   [('spyder.debug',), {'color': '#3775a9'}],
     'arrow-step-over':         [('spyder.step-forward',), {'color': '#3775a9'}],

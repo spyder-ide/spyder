@@ -16,7 +16,7 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QMenu
 
 # Local imports
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 
 

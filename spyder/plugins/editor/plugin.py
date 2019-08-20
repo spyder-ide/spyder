@@ -22,7 +22,6 @@ import time
 # Third party imports
 from qtpy.compat import from_qvariant, getopenfilenames, to_qvariant
 from qtpy.QtCore import QByteArray, Qt, Signal, Slot
-from qtpy.QtGui import QKeySequence
 from qtpy.QtPrintSupport import QAbstractPrintDialog, QPrintDialog, QPrinter
 from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
                             QFileDialog, QInputDialog, QMenu, QSplitter,
@@ -32,7 +31,7 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
 from spyder import dependencies
 from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.config.gui import get_shortcut
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter)
 from spyder.py3compat import PY2, qbytearray_to_str, to_text_string
@@ -88,7 +87,8 @@ class Editor(SpyderPluginWidget):
     DISABLE_ACTIONS_WHEN_HIDDEN = False  # SpyderPluginWidget class attribute
 
     # Signals
-    run_in_current_ipyclient = Signal(str, str, str, bool, bool, bool, bool)
+    run_in_current_ipyclient = Signal(str, str, str,
+                                      bool, bool, bool, bool, bool)
     run_cell_in_ipyclient = Signal(str, str, str, bool)
     exec_in_extconsole = Signal(str, bool)
     redirect_stdio = Signal(bool)
@@ -368,7 +368,6 @@ class Editor(SpyderPluginWidget):
         """Perform actions before parent main window is closed"""
         state = self.splitter.saveState()
         self.set_option('splitter_state', qbytearray_to_str(state))
-        filenames = []
         editorstack = self.editorstacks[0]
 
         active_project_path = None
@@ -479,25 +478,25 @@ class Editor(SpyderPluginWidget):
         find_action = create_action(self, _text, icon=ima.icon('find'),
                                     tip=_text, triggered=self.find,
                                     context=Qt.WidgetShortcut)
-        self.register_shortcut(find_action, context="_",
+        self.register_shortcut(find_action, context="find_replace",
                                name="Find text", add_shortcut_to_tip=True)
         find_next_action = create_action(self, _("Find &next"),
                                          icon=ima.icon('findnext'),
                                          triggered=self.find_next,
                                          context=Qt.WidgetShortcut)
-        self.register_shortcut(find_next_action, context="_",
+        self.register_shortcut(find_next_action, context="find_replace",
                                name="Find next")
         find_previous_action = create_action(self, _("Find &previous"),
                                              icon=ima.icon('findprevious'),
                                              triggered=self.find_previous,
                                              context=Qt.WidgetShortcut)
-        self.register_shortcut(find_previous_action, context="_",
+        self.register_shortcut(find_previous_action, context="find_replace",
                                name="Find previous")
         _text = _("&Replace text")
         replace_action = create_action(self, _text, icon=ima.icon('replace'),
                                        tip=_text, triggered=self.replace,
                                        context=Qt.WidgetShortcut)
-        self.register_shortcut(replace_action, context="_",
+        self.register_shortcut(replace_action, context="find_replace",
                                name="Replace text")
 
         # ---- Debug menu and toolbar ----
@@ -1579,18 +1578,6 @@ class Editor(SpyderPluginWidget):
         self.main.completions.update_client_status(languages)
 
 
-    #------ Breakpoints
-    def save_breakpoints(self, filename, breakpoints):
-        filename = to_text_string(filename)
-        breakpoints = to_text_string(breakpoints)
-        filename = osp.normpath(osp.abspath(filename))
-        if breakpoints:
-            breakpoints = eval(breakpoints)
-        else:
-            breakpoints = []
-        save_breakpoints(filename, breakpoints)
-        self.breakpoints_saved.emit()
-
     # ------ Bookmarks
     def save_bookmarks(self, filename, bookmarks):
         """Receive bookmark changes and save them."""
@@ -2383,6 +2370,7 @@ class Editor(SpyderPluginWidget):
             current = runconf.current
             systerm = runconf.systerm
             clear_namespace = runconf.clear_namespace
+            console_namespace = runconf.console_namespace
 
             if runconf.file_dir:
                 wdir = dirname
@@ -2397,7 +2385,8 @@ class Editor(SpyderPluginWidget):
             # something in a terminal instead of a Python interp.
             self.__last_ec_exec = (fname, wdir, args, interact, debug,
                                    python, python_args, current, systerm,
-                                   post_mortem, clear_namespace)
+                                   post_mortem, clear_namespace,
+                                   console_namespace)
             self.re_run_file()
             if not interact and not debug:
                 # If external console dockwidget is hidden, it will be
@@ -2427,11 +2416,13 @@ class Editor(SpyderPluginWidget):
             return
         (fname, wdir, args, interact, debug,
          python, python_args, current, systerm,
-         post_mortem, clear_namespace) = self.__last_ec_exec
+         post_mortem, clear_namespace,
+         console_namespace) = self.__last_ec_exec
         if not systerm:
             self.run_in_current_ipyclient.emit(fname, wdir, args,
                                                debug, post_mortem,
-                                               current, clear_namespace)
+                                               current, clear_namespace,
+                                               console_namespace)
         else:
             self.main.open_external_console(fname, wdir, args, interact,
                                             debug, python, python_args,
@@ -2657,7 +2648,8 @@ class Editor(SpyderPluginWidget):
                 if name in options:
                     state = self.get_option(name)
                     action.setChecked(state)
-                    action.trigger()
+                    # See: spyder-ide/spyder#9915
+                    # action.trigger()
 
             # Multiply by 1000 to convert seconds to milliseconds
             self.autosave.interval = (

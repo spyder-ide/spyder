@@ -33,7 +33,6 @@ Components of gtabview from gtabview/viewer.py and gtabview/models.py of the
 """
 
 # Standard library imports
-import time
 
 # Third party imports
 from qtpy.compat import from_qvariant, to_qvariant
@@ -392,8 +391,8 @@ class DataFrameModel(QAbstractTableModel):
 
     def flags(self, index):
         """Set flags"""
-        return Qt.ItemFlags(QAbstractTableModel.flags(self, index) |
-                            Qt.ItemIsEditable)
+        return Qt.ItemFlags(int(QAbstractTableModel.flags(self, index) |
+                                Qt.ItemIsEditable))
 
     def setData(self, index, value, role=Qt.EditRole, change_type=None):
         """Cell content change"""
@@ -1260,11 +1259,16 @@ class DataFrameEditor(QDialog):
 
     def _update_header_size(self):
         """Update the column width of the header."""
+        self.table_header.resizeColumnsToContents()
         column_count = self.table_header.model().columnCount()
         for index in range(0, column_count):
             if index < column_count:
                 column_width = self.dataTable.columnWidth(index)
-                self.table_header.setColumnWidth(index, column_width)
+                header_width = self.table_header.columnWidth(index)
+                if column_width > header_width:
+                    self.table_header.setColumnWidth(index, column_width)
+                else:
+                    self.dataTable.setColumnWidth(index, header_width)
             else:
                 break
 

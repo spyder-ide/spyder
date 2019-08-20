@@ -13,13 +13,12 @@
 
 # Standard library imports
 import os
-import os.path as osp
 import sys
 
 # Third party imports
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import QEvent, QEventLoop, QPoint, Qt, Signal, Slot
-from qtpy.QtGui import (QClipboard, QColor, QMouseEvent, QPalette, QTextFormat,
+from qtpy.QtCore import QEvent, QPoint, Qt, Signal, Slot
+from qtpy.QtGui import (QClipboard, QColor, QMouseEvent, QTextFormat,
                         QTextOption, QTextCursor)
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QListWidget,
                             QListWidgetItem, QMainWindow, QPlainTextEdit,
@@ -27,7 +26,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QApplication, QListWidget,
 
 # Local imports
 from spyder.config.gui import get_font
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.py3compat import PY3, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.widgets.calltip import CallTipWidget, ToolTipWidget
@@ -53,8 +52,6 @@ class CompletionWidget(QListWidget):
         self.completion_list = None
         self.completion_position = None
         self.automatic = False
-        # Text to be displayed if no match is found.
-        self.empty_text = 'No match'
 
     def setup_appearance(self, size, font):
         self.resize(*size)
@@ -63,8 +60,6 @@ class CompletionWidget(QListWidget):
     def is_empty(self):
         """Check if widget is empty."""
         if self.count() == 0:
-            return True
-        if self.count() == 1 and self.item(0).text() == self.empty_text:
             return True
         return False
 
@@ -103,8 +98,7 @@ class CompletionWidget(QListWidget):
             return
 
         # If only one, must be chosen if not automatic
-        single_match = (self.count() == 1 and
-                        self.item(0).text() != self.empty_text)
+        single_match = self.count() == 1
         if single_match and not self.automatic:
             self.item_selected()
             self.hide()
@@ -207,7 +201,7 @@ class CompletionWidget(QListWidget):
             self.scrollTo(self.currentIndex(),
                           QAbstractItemView.PositionAtTop)
         else:
-            self.addItem(QListWidgetItem(self.empty_text))
+            self.hide()
 
     def hide(self):
         """Hide the widget."""

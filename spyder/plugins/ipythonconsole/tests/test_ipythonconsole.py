@@ -24,7 +24,6 @@ except ImportError:
     from mock import Mock  # Python 2
 
 # Third party imports
-import cloudpickle
 from flaky import flaky
 from jupyter_client.kernelspec import KernelSpec
 from pygments.token import Name
@@ -37,12 +36,18 @@ import sympy
 
 # Local imports
 from spyder.config.gui import get_color_scheme
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.py3compat import PY2, to_text_string
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.plugin import IPythonConsole
 from spyder.plugins.ipythonconsole.utils.style import create_style_class
 from spyder.utils.programs import get_temp_dir
+
+
+# Global skip
+if sys.platform == 'darwin' and PY2:
+    pytest.skip("These tests are segfaulting too much in macOS and Python 2",
+                allow_module_level=True)
 
 
 # =============================================================================
@@ -163,19 +168,19 @@ def ipyconsole(qtbot, request):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.parametrize(
-        "function,signature,documentation",
-        [("arange",
-          ["start", "stop"],
-          ["Return evenly spaced values within a given interval.<br>",
-           "returns an ndarray rather than a list.<br>"]),
-         ("vectorize",
-          ["pyfunc", "otype", "signature"],
-          ["Generalized function class.<br>",
-           "numpy array or a tuple of numpy ..."]),
-         ("absolute",
-          ["x", "/", "out"],
-          ["Parameters<br>", "x : array_like ..."])]
-        )
+    "function,signature,documentation",
+    [("arange",
+      ["start", "stop"],
+      ["Return evenly spaced values within a given interval.<br>",
+       "<br>Python built-in `range` function, but returns an ndarray ..."]),
+     ("vectorize",
+      ["pyfunc", "otype", "signature"],
+      ["Generalized function class.<br>",
+       "Define a vectorized function which takes a nested sequence ..."]),
+     ("absolute",
+      ["x", "/", "out"],
+      ["Parameters<br>", "x : array_like ..."])]
+    )
 @pytest.mark.skipif(sys.platform == 'darwin', reason="Times out on macOS")
 def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
     """Test that calltips show the documentation."""
@@ -576,7 +581,7 @@ def test_get_cwd(ipyconsole, qtbot, tmpdir):
 
     # Ask for directory.
     with qtbot.waitSignal(shell.sig_change_cwd):
-        shell.get_cwd()
+        shell.update_cwd()
 
     if os.name == 'nt':
         tempdir = tempdir.replace(u"\\\\", u"\\")
@@ -588,7 +593,7 @@ def test_get_cwd(ipyconsole, qtbot, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-def test_get_env(ipyconsole, qtbot):
+def test_request_env(ipyconsole, qtbot):
     """Test that getting env vars from the kernel is working as expected."""
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
@@ -599,7 +604,7 @@ def test_get_env(ipyconsole, qtbot):
 
     # Ask for os.environ contents
     with qtbot.waitSignal(shell.sig_show_env) as blocker:
-        shell.get_env()
+        shell.request_env()
 
     # Get env contents from the signal
     env_contents = blocker.args[0]
@@ -612,7 +617,7 @@ def test_get_env(ipyconsole, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt',
                     reason="Fails due to differences in path handling")
-def test_get_syspath(ipyconsole, qtbot, tmpdir):
+def test_request_syspath(ipyconsole, qtbot, tmpdir):
     """
     Test that getting sys.path contents from the kernel is working as
     expected.
@@ -627,7 +632,7 @@ def test_get_syspath(ipyconsole, qtbot, tmpdir):
 
     # Ask for sys.path contents
     with qtbot.waitSignal(shell.sig_show_syspath) as blocker:
-        shell.get_syspath()
+        shell.request_syspath()
 
     # Get sys.path contents from the signal
     syspath_contents = blocker.args[0]
@@ -657,6 +662,15 @@ def test_browse_history_dbg(ipyconsole, qtbot):
 
     # Enter an expression
     qtbot.keyClicks(control, '!aa = 10')
+    qtbot.keyClick(control, Qt.Key_Enter)
+
+    # Add a pdb command to make sure it is not saved
+    qtbot.wait(1000)
+    qtbot.keyClicks(control, 'u')
+    qtbot.keyClick(control, Qt.Key_Enter)
+
+    # Add an empty line to make sure it is not saved
+    qtbot.wait(1000)
     qtbot.keyClick(control, Qt.Key_Enter)
 
     # Clear console (for some reason using shell.clear_console
@@ -689,7 +703,7 @@ def test_unicode_vars(ipyconsole, qtbot):
     assert shell.get_value('д') == 10
 
     # Change its value and verify
-    shell.set_value('д', [cloudpickle.dumps(20, protocol=2)])
+    shell.set_value('д', 20)
     qtbot.wait(1000)
     assert shell.get_value('д') == 20
 
@@ -743,7 +757,7 @@ def test_values_dbg(ipyconsole, qtbot):
     assert shell.get_value('aa') == 10
 
     # Set value
-    shell.set_value('aa', [cloudpickle.dumps(20, protocol=2)])
+    shell.set_value('aa', 20)
     qtbot.wait(1000)
     assert shell.get_value('aa') == 20
 

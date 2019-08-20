@@ -23,7 +23,7 @@ from qtpy.QtWidgets import QMenu, QMessageBox, QVBoxLayout
 
 # Local imports
 from spyder.config.base import _, get_home_dir
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
@@ -210,6 +210,12 @@ class Projects(SpyderPluginWidget):
                 self._toggle_view_action.setChecked(True)
             self._visibility_changed(True)
 
+    def build_opener(self, project):
+        """Build function opening passed project"""
+        def opener(*args, **kwargs):
+            self.open_project(path=project)
+        return opener
+
     # ------ Public API -------------------------------------------------------
     def setup_menu_actions(self):
         """Setup and update the menu actions."""
@@ -223,14 +229,15 @@ class Projects(SpyderPluginWidget):
                         self,
                         name,
                         icon=ima.icon('project'),
-                        triggered=(
-                            lambda _, p=project: self.open_project(path=p))
-                        )
+                        triggered=self.build_opener(project),
+                    )
                     self.recent_projects_actions.append(action)
                 else:
                     self.recent_projects.remove(project)
-            self.recent_projects_actions += [None,
-                                             self.clear_recent_projects_action]
+            self.recent_projects_actions += [
+                None,
+                self.clear_recent_projects_action,
+            ]
         else:
             self.recent_projects_actions = [self.clear_recent_projects_action]
         add_actions(self.recent_project_menu, self.recent_projects_actions)

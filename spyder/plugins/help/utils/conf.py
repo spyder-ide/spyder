@@ -19,7 +19,7 @@ part of the `SageMath <https://www.sagemath.org/>`_ system.
 from sphinx import __version__ as sphinx_version
 
 # Local imports
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 
 
 #==============================================================================

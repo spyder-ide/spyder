@@ -44,7 +44,7 @@ from spyder import __trouble_url__, __project_url__
 from spyder.app import start
 from spyder.app.mainwindow import MainWindow  # Tests fail without this import
 from spyder.config.base import get_home_dir, get_module_path
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.widgets.dock import TabFilter
 from spyder.preferences.runconfig import RunConfiguration
 from spyder.plugins.base import PluginWindow
@@ -54,6 +54,7 @@ from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.py3compat import PY2, to_text_string
 from spyder.utils.programs import is_module_installed
 from spyder.widgets.dock import DockTitleBar
+from spyder.utils.misc import remove_backslashes
 
 # For testing various Spyder urls
 if not PY2:
@@ -1337,8 +1338,8 @@ def test_stop_dbg(main_window, qtbot):
     qtbot.mouseClick(stop_debug_button, Qt.LeftButton)
     qtbot.wait(1000)
 
-    # Assert that there is only one entry in the Variable Explorer
-    assert nsb.editor.source_model.rowCount() == 1
+    # Assert there are only two ipdb prompts in the console
+    assert shell._control.toPlainText().count('ipdb') == 2
 
     # Remove breakpoint and close test file
     main_window.editor.clear_all_breakpoints()
@@ -1361,10 +1362,6 @@ def test_change_cwd_dbg(main_window, qtbot):
     control = main_window.ipyconsole.get_focus_widget()
     control.setFocus()
 
-    # Import os to get cwd
-    with qtbot.waitSignal(shell.executed):
-        shell.execute('import os')
-
     # Click the debug button
     debug_action = main_window.debug_toolbar_actions[0]
     debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
@@ -1377,8 +1374,11 @@ def test_change_cwd_dbg(main_window, qtbot):
                                        refresh_explorer=True)
     qtbot.wait(1000)
 
+    shell.clear_console()
+    qtbot.wait(500)
+
     # Get cwd in console
-    qtbot.keyClicks(control, 'os.getcwd()')
+    qtbot.keyClicks(control, '!import os; os.getcwd()')
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.wait(1000)
 
@@ -1822,7 +1822,33 @@ def test_custom_layouts(main_window, qtbot):
                                 assert widget.isVisible()
 
 
-# @pytest.mark.slow
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_save_on_runfile(main_window, qtbot):
+    """Test that layout are showing the expected widgets visible."""
+    # Load test file
+    test_file = osp.join(LOCATION, 'script.py')
+    test_file_copy = test_file[:-3] + '_copy.py'
+    shutil.copyfile(test_file, test_file_copy)
+    main_window.editor.load(test_file_copy)
+    code_editor = main_window.editor.get_focus_widget()
+
+    # Verify result
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    qtbot.keyClicks(code_editor, 'test_var = 123', delay=100)
+    filename = code_editor.filename
+    with qtbot.waitSignal(shell.sig_prompt_ready):
+        shell.execute('runfile("{}")'.format(remove_backslashes(filename)))
+
+    assert shell.get_value('test_var') == 123
+    main_window.editor.close_file()
+    os.remove(test_file_copy)
+
+
+@pytest.mark.slow
 def test_pylint_follows_file(qtbot, tmpdir, main_window):
     """Test that file editor focus change updates pylint combobox filename."""
     for plugin in main_window.thirdparty_plugins:
@@ -1858,6 +1884,31 @@ def test_pylint_follows_file(qtbot, tmpdir, main_window):
         main_window.open_file(fh)
         qtbot.wait(200)
         assert fname == pylint_plugin.get_filename()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_report_comms_error(qtbot, main_window):
+    """Test if a comms error is correctly displayed."""
+    CONF.set('main', 'show_internal_errors', True)
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    # Create a bogus get_cwd
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('def get_cwd(): import foo')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("get_ipython().kernel.frontend_comm."
+                      "register_call_handler('get_cwd', get_cwd)")
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('ls')
+
+    error_dlg = main_window.console.error_dlg
+    assert error_dlg is not None
+    assert 'Exception in comms call get_cwd' in error_dlg.error_traceback
+    assert 'No module named' in error_dlg.error_traceback
+    main_window.console.close_error_dlg()
+    CONF.set('main', 'show_internal_errors', False)
 
 
 if __name__ == "__main__":

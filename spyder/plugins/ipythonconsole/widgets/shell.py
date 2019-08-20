@@ -8,14 +8,18 @@
 Shell Widget for the IPython Console
 """
 
+# Standard library imports
 import ast
 import os
 import uuid
 from textwrap import dedent
 
+# Third party imports
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
-from spyder.config.main import CONF
+
+# Local imports
+from spyder.config.manager import CONF
 from spyder.config.base import _
 from spyder.config.gui import config_shortcut
 from spyder.py3compat import PY2, to_text_string
@@ -28,6 +32,7 @@ from spyder.plugins.ipythonconsole.widgets import (
         ControlWidget, DebuggingWidget, FigureBrowserWidget,
         HelpWidget, NamepaceBrowserWidget, PageControlWidget)
 
+from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 
 class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                   FigureBrowserWidget):
@@ -40,8 +45,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     #       That's why we define all needed signals here.
 
     # For NamepaceBrowserWidget
-    sig_namespace_view = Signal(object)
-    sig_var_properties = Signal(object)
     sig_show_syspath = Signal(object)
     sig_show_env = Signal(object)
 
@@ -54,13 +57,15 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     # For ShellWidget
     focus_changed = Signal()
     new_client = Signal()
-    sig_got_reply = Signal()
     sig_is_spykernel = Signal(object)
     sig_kernel_restarted = Signal(str)
     sig_prompt_ready = Signal()
 
     # For global working directory
     sig_change_cwd = Signal(str)
+
+    # For printing internal errors
+    sig_exception_occurred = Signal(str, bool)
 
     def __init__(self, ipyclient, additional_options, interpreter_versions,
                  external_kernel, *args, **kw):
@@ -79,13 +84,41 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Keyboard shortcuts
         self.shortcuts = self.create_shortcuts()
 
-        # To save kernel replies in silent execution
-        self._kernel_reply = None
-
         # Set the color of the matched parentheses here since the qtconsole
         # uses a hard-coded value that is not modified when the color scheme is
         # set in the qtconsole constructor. See spyder-ide/spyder#4806.
         self.set_bracket_matcher_color_scheme(self.syntax_style)
+
+        self.spyder_kernel_comm = KernelComm()
+        self.spyder_kernel_comm.sig_exception_occurred.connect(
+            self.sig_exception_occurred)
+        self.kernel_manager = None
+        self.kernel_client = None
+        handlers = {
+            'pdb_state': self.set_pdb_state,
+            'pdb_continue': self.pdb_continue,
+            'get_breakpoints': self.get_spyder_breakpoints,
+            'save_files': self.handle_save_files,
+        }
+
+        for request_id in handlers:
+            self.spyder_kernel_comm.register_call_handler(
+                request_id, handlers[request_id])
+
+        self.spyder_kernel_comm.sig_debugging.connect(self._debugging_hook)
+
+    def call_kernel(self, interrupt=False, blocking=False, callback=None):
+        """Send message to spyder."""
+        return self.spyder_kernel_comm.remote_call(
+            interrupt=interrupt, blocking=blocking, callback=callback)
+
+    def set_kernel_client_and_manager(self, kernel_client, kernel_manager):
+        """Set the kernel client and manager"""
+        self.spyder_kernel_comm.set_kernel_client(kernel_client)
+        self.kernel_manager = kernel_manager
+        self.kernel_client = kernel_client
+        if self.kernel_client is not None:
+            self.set_queued_input(self.kernel_client)
 
     #---- Public API ----------------------------------------------------------
     def set_exit_callback(self):
@@ -113,25 +146,24 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if os.name == 'nt':
             dirname = dirname.replace(u"\\", u"\\\\")
 
-        if not self.external_kernel:
-            code = u"get_ipython().kernel.set_cwd(u'''{}''')".format(dirname)
-            if self._reading:
-                self.kernel_client.input(u'!' + code)
-            else:
-                self.silent_execute(code)
+        if self.ipyclient.hostname is None:
+            self.call_kernel(interrupt=True).set_cwd(dirname)
             self._cwd = dirname
 
-    def get_cwd(self):
+    def update_cwd(self):
         """Update current working directory.
 
         Retrieve the cwd and emit a signal connected to the working directory
         widget. (see: handle_exec_method())
         """
-        code = u"get_ipython().kernel.get_cwd()"
-        if self._reading:
+        if self.kernel_client is None:
             return
-        else:
-            self.silent_exec_method(code)
+        self.call_kernel(callback=self.remote_set_cwd).get_cwd()
+
+    def remote_set_cwd(self, cwd):
+        """Get current working directory from kernel."""
+        self._cwd = cwd
+        self.sig_change_cwd.emit(self._cwd)
 
     def set_bracket_matcher_color_scheme(self, color_scheme):
         """Set color scheme for matched parentheses."""
@@ -153,21 +185,15 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         else:
             self.silent_execute("%colors lightbg")
 
-    def get_syspath(self):
+    def request_syspath(self):
         """Ask the kernel for sys.path contents."""
-        code = u"get_ipython().kernel.get_syspath()"
-        if self._reading:
-            return
-        else:
-            self.silent_exec_method(code)
+        self.call_kernel(
+            interrupt=True, callback=self.sig_show_syspath.emit).get_syspath()
 
-    def get_env(self):
+    def request_env(self):
         """Ask the kernel for environment variables."""
-        code = u"get_ipython().kernel.get_env()"
-        if self._reading:
-            return
-        else:
-            self.silent_exec_method(code)
+        self.call_kernel(
+            interrupt=True, callback=self.sig_show_env.emit).get_env()
 
     # --- To handle the banner
     def long_banner(self):
@@ -225,7 +251,7 @@ the sympy module (e.g. plot)
 
     # --- To define additional shortcuts
     def clear_console(self):
-        if self._reading:
+        if self._reading and self.is_debugging():
             self.dbg_exec_magic('clear')
         else:
             self.execute("%clear")
@@ -269,7 +295,7 @@ the sympy module (e.g. plot)
                 return
 
         try:
-            if self._reading:
+            if self._reading and self.is_debugging():
                 self.dbg_exec_magic('reset', '-f')
             else:
                 if message:
@@ -294,8 +320,7 @@ the sympy module (e.g. plot)
                 self.refresh_namespacebrowser()
 
                 if not self.external_kernel:
-                    self.silent_execute(
-                        'get_ipython().kernel.close_all_mpl_figures()')
+                    self.call_kernel().close_all_mpl_figures()
         except AttributeError:
             pass
 
@@ -389,51 +414,11 @@ the sympy module (e.g. plot)
                 method = self._kernel_methods[expression]
                 reply = user_exp[expression]
                 data = reply.get('data')
-                if 'get_namespace_view' in method:
-                    if data is not None and 'text/plain' in data:
-                        literal = ast.literal_eval(data['text/plain'])
-                        view = ast.literal_eval(literal)
-                    else:
-                        view = None
-                    self.sig_namespace_view.emit(view)
-                elif 'get_var_properties' in method:
-                    if data is not None and 'text/plain' in data:
-                        literal = ast.literal_eval(data['text/plain'])
-                        properties = ast.literal_eval(literal)
-                    else:
-                        properties = None
-                    self.sig_var_properties.emit(properties)
-                elif 'get_cwd' in method:
-                    if data is not None and 'text/plain' in data:
-                        self._cwd = ast.literal_eval(data['text/plain'])
-                        if PY2:
-                            self._cwd = encoding.to_unicode_from_fs(self._cwd)
-                    else:
-                        self._cwd = ''
-                    self.sig_change_cwd.emit(self._cwd)
-                elif 'get_syspath' in method:
-                    if data is not None and 'text/plain' in data:
-                        syspath = ast.literal_eval(data['text/plain'])
-                    else:
-                        syspath = None
-                    self.sig_show_syspath.emit(syspath)
-                elif 'get_env' in method:
-                    if data is not None and 'text/plain' in data:
-                        env = ast.literal_eval(data['text/plain'])
-                    else:
-                        env = None
-                    self.sig_show_env.emit(env)
-                elif 'getattr' in method:
+                if 'getattr' in method:
                     if data is not None and 'text/plain' in data:
                         is_spyder_kernel = data['text/plain']
                         if 'SpyderKernel' in is_spyder_kernel:
                             self.sig_is_spykernel.emit(self)
-                else:
-                    if data is not None and 'text/plain' in data:
-                        self._kernel_reply = ast.literal_eval(data['text/plain'])
-                    else:
-                        self._kernel_reply = None
-                    self.sig_got_reply.emit()
 
                 # Remove method after being processed
                 self._kernel_methods.pop(expression)
@@ -468,7 +453,22 @@ the sympy module (e.g. plot)
             if not 'inline' in command:
                 self.silent_execute(command)
 
-    #---- Private methods (overrode by us) ---------------------------------
+    # ---- Spyder-kernels methods -------------------------------------------
+    def get_editorstack(self):
+        """Get the current editorstack."""
+        plugin = self.ipyclient.plugin
+        if plugin.main.editor is not None:
+            editor = plugin.main.editor
+            return editor.get_current_editorstack()
+
+    def handle_save_files(self):
+        """Save the open files."""
+        editorstack = self.get_editorstack()
+        if editorstack is not None:
+            editorstack.save()
+
+    # ---- Private methods (overrode by us) ---------------------------------
+
     def _handle_error(self, msg):
         """
         Reimplemented to reset the prompt if the error comes after the reply

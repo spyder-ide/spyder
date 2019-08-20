@@ -116,6 +116,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         SaveHistoryMixin.__init__(self, history_filename)
 
         # --- Init attrs
+        self.plugin = plugin
         self.id_ = id_
         self.connection_file = connection_file
         self.hostname = hostname
@@ -280,7 +281,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.shellwidget.sig_show_env.connect(self.show_env)
 
         # To sync with working directory toolbar
-        self.shellwidget.executed.connect(self.shellwidget.get_cwd)
+        self.shellwidget.executed.connect(self.shellwidget.update_cwd)
 
         # To apply style
         self.set_color_scheme(self.shellwidget.syntax_style, reset=False)
@@ -376,14 +377,14 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                         self,
                         _("Show environment variables"),
                         icon=ima.icon('environ'),
-                        triggered=self.shellwidget.get_env
+                        triggered=self.shellwidget.request_env
                      )
 
         syspath_action = create_action(
                             self,
                             _("Show sys.path contents"),
                             icon=ima.icon('syspath'),
-                            triggered=self.shellwidget.get_syspath
+                            triggered=self.shellwidget.request_syspath
                          )
 
         self.show_time_action.setChecked(self.show_elapsed_time)
@@ -500,6 +501,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             # This avoids some flakyness with our Cython tests
             if running_under_pytest():
                 now = False
+            self.shellwidget.spyder_kernel_comm.close()
             self.shellwidget.kernel_manager.shutdown_kernel(now=now)
         if self.shellwidget.kernel_client is not None:
             background(self.shellwidget.kernel_client.stop_channels)
@@ -539,8 +541,13 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                     self.infowidget.hide()
                     sw.show()
                 try:
+                    # Close comm
+                    sw.spyder_kernel_comm.close()
                     sw.kernel_manager.restart_kernel(
                         stderr=self.stderr_handle)
+                    # Reopen comm
+                    sw.spyder_kernel_comm.set_kernel_client(sw.kernel_client)
+
                 except RuntimeError as e:
                     sw._append_plain_text(
                         _('Error restarting kernel: %s\n') % e,
@@ -730,7 +737,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         Show possible errors when setting the selected Matplotlib backend.
         """
         if not self.external_kernel:
-            self.shellwidget.silent_execute(
-                    "get_ipython().kernel._show_mpl_backend_errors()")
+            self.shellwidget.call_kernel().show_mpl_backend_errors()
         self.shellwidget.sig_prompt_ready.disconnect(
             self._show_mpl_backend_errors)

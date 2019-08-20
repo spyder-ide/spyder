@@ -21,13 +21,12 @@ Collections (i.e. dictionary, list, set and tuple) editor widget and dialog.
 # Standard library imports
 from __future__ import print_function
 import datetime
-import gc
 import re
 import sys
 import warnings
 
 # Third party imports
-import cloudpickle
+from pympler.asizeof import asizeof
 from qtpy.compat import getsavefilename, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QModelIndex, Qt,
                          Signal, Slot)
@@ -377,8 +376,10 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         else:
             if is_type_text_string(value):
                 display = to_text_string(value, encoding="utf-8")
-            else:
+            elif not isinstance(value, int):
                 display = to_text_string(value)
+            else:
+                display = value
         if role == Qt.DisplayRole:
             return to_qvariant(display)
         elif role == Qt.EditRole:
@@ -415,8 +416,9 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         # tuple exploration (even without editing), this method was moved here
         if not index.isValid():
             return Qt.ItemIsEnabled
-        return Qt.ItemFlags(QAbstractTableModel.flags(self, index)|
-                            Qt.ItemIsEditable)
+        return Qt.ItemFlags(int(QAbstractTableModel.flags(self, index) |
+                                Qt.ItemIsEditable))
+
     def reset(self):
         self.beginResetModel()
         self.endResetModel()
@@ -606,11 +608,6 @@ class BaseTableView(QTableView):
         return menu
 
     # ------ Remote/local API -------------------------------------------------
-    def selection(self, index):
-        """Update selected row."""
-        self.update()
-        self.isActiveWindow()
-
     def set_regex(self, regex=None, reset=False):
         """Update the regex text for the variable finder."""
         if reset or not self.finder.text():
@@ -1121,11 +1118,6 @@ class CollectionsEditorTableView(BaseTableView):
 
         self.delegate = CollectionsDelegate(self)
         self.setItemDelegate(self.delegate)
-        self.setSelectionBehavior(QAbstractItemView.SelectItems)
-        self.setSelectionMode(QAbstractItemView.SingleSelection)
-        self.setEditTriggers(QAbstractItemView.AllEditTriggers)
-        self.setSortingEnabled(True)
-#        self.selectionModel().selectionChanged.connect(self.selection)
 
         self.setup_table()
         self.menu = self.setup_menu(minmax)
@@ -1429,11 +1421,6 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.delegate = RemoteCollectionsDelegate(self)
         self.delegate.sig_free_memory.connect(self.sig_free_memory.emit)
         self.setItemDelegate(self.delegate)
-        self.setSelectionBehavior(QAbstractItemView.SelectItems)
-        self.setSelectionMode(QAbstractItemView.SingleSelection)
-        self.setEditTriggers(QAbstractItemView.AllEditTriggers)
-        self.setSortingEnabled(True)
-#        self.selectionModel().selectionChanged.connect(self.selection)
 
         self.setup_table()
         self.menu = self.setup_menu(minmax)
@@ -1450,13 +1437,9 @@ class RemoteCollectionsEditorTableView(BaseTableView):
     def new_value(self, name, value):
         """Create new value in data"""
         try:
-            # We need to enclose values in a list to be able to send
-            # them to the kernel in Python 2
-            svalue = [cloudpickle.dumps(value, protocol=PICKLE_PROTOCOL)]
-
             # Needed to prevent memory leaks. See spyder-ide/spyder#7158.
-            if len(svalue) < MAX_SERIALIZED_LENGHT:
-                self.shellwidget.set_value(name, svalue)
+            if asizeof(value) < MAX_SERIALIZED_LENGHT:
+                self.shellwidget.set_value(name, value)
             else:
                 QMessageBox.warning(self, _("Warning"),
                                     _("The object you are trying to modify is "
@@ -1744,7 +1727,7 @@ def remote_editor_test():
     from spyder.utils.qthelpers import qapplication
     app = qapplication()
 
-    from spyder.config.main import CONF
+    from spyder.config.manager import CONF
     from spyder_kernels.utils.nsview import (make_remote_view,
                                              REMOTE_SETTINGS)
 

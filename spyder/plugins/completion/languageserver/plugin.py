@@ -16,12 +16,12 @@ import os.path as osp
 import functools
 
 # Third-party imports
-from qtpy.QtCore import QObject, Slot
+from qtpy.QtCore import Slot
 
 # Local imports
 from spyder.config.base import get_conf_path, running_under_pytest
 from spyder.config.lsp import PYTHON_CONFIG
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.api.completion import SpyderCompletionPlugin
 from spyder.utils.misc import select_port, getcwd_or_home
 from spyder.plugins.completion.languageserver import LSP_LANGUAGES
@@ -102,7 +102,6 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         if self.main and self.main.projects:
             path = self.main.projects.get_active_project_path()
 
-        # If there's no project, use the output of getcwd_or_home.
         if not path:
             # We can't use getcwd_or_home for LSP servers because if it
             # returns home and you have a lot of files on it

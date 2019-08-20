@@ -15,14 +15,13 @@
 import sys
 
 # Third party imports
-from qtpy.QtCore import Signal, Slot, Qt
+from qtpy.QtCore import Signal, Qt
 from qtpy.QtGui import QKeySequence
 from qtpy.QtWidgets import QApplication, QVBoxLayout
 
 # Local imports
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.config.base import _
-from spyder.config.utils import get_edit_extensions
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
