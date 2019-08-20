@@ -34,6 +34,7 @@ from spyder.config.gui import is_dark_interface
 from spyder.config.manager import CONF
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding, sourcecode, programs
+from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.misc import get_error_match
 from spyder.widgets.arraybuilder import ArrayBuilderDialog
 
@@ -1033,7 +1034,7 @@ class BaseEditMixin(object):
             offset = max([cursor.selectionEnd(), cursor.selectionStart()])
             match = regobj.search(text, offset)
         if match:
-            pos1, pos2 = match.span()
+            pos1, pos2 = sh.get_span(match)
             fcursor = self.textCursor()
             fcursor.setPosition(pos1)
             fcursor.setPosition(pos2, QTextCursor.KeepAnchor)

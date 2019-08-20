@@ -75,13 +75,14 @@ from spyder.plugins.completion.decorators import (
     request, handles, class_register)
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.outlineexplorer.languages import PythonCFM
-from spyder.py3compat import PY2, to_text_string
+from spyder.py3compat import PY2, to_text_string, is_string
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
                                     mimedata2url)
 from spyder.utils.vcs import get_git_remotes, remote_to_url
+from spyder.utils.qstringhelpers import qstring_length
 
 
 try:
@@ -1536,7 +1537,7 @@ class CodeEditor(TextEditBaseWidget):
         extra_selections = []
         self.found_results = []
         for match in regobj.finditer(text):
-            pos1, pos2 = match.span()
+            pos1, pos2 = sh.get_span(match)
             selection = TextDecoration(self.textCursor())
             selection.format.setBackground(self.found_results_color)
             selection.cursor.setPosition(pos1)
@@ -2255,7 +2256,7 @@ class CodeEditor(TextEditBaseWidget):
         Remove suffix from current line (there should not be any selection)
         """
         cursor = self.textCursor()
-        cursor.setPosition(cursor.position()-len(suffix),
+        cursor.setPosition(cursor.position() - qstring_length(suffix),
                            QTextCursor.KeepAnchor)
         if to_text_string(cursor.selectedText()) == suffix:
             cursor.removeSelectedText()
@@ -3412,7 +3413,7 @@ class CodeEditor(TextEditBaseWidget):
         while match:
             for key, value in list(match.groupdict().items()):
                 if value:
-                    start, end = match.span()
+                    start, end = sh.get_span(match)
 
                     # Get cursor selection if pattern found
                     cursor = self.cursorForPosition(coordinates)
@@ -3634,10 +3635,13 @@ class CodeEditor(TextEditBaseWidget):
         # remove spaces on the right
         text = cursor.selectedText()
         strip = text.rstrip()
+        # I think all the characters we can strip are in a single QChar.
+        # Therefore there shouldn't be any length problems.
+        N_strip = qstring_length(text[len(strip):])
 
-        if line_range[0] + len(strip) < line_range[1]:
+        if N_strip > 0:
             # Select text to remove
-            cursor.setPosition(line_range[0] + len(strip))
+            cursor.setPosition(line_range[1] - N_strip)
             cursor.setPosition(line_range[1],
                                QTextCursor.KeepAnchor)
             cursor.removeSelectedText()
@@ -3645,7 +3649,7 @@ class CodeEditor(TextEditBaseWidget):
             # Correct last change position
             self.last_change_position = line_range[1]
             self.last_position = self.textCursor().position()
-            return line_range[1] - (line_range[0] + len(strip))
+            return N_strip
         return 0
 
     def mouseMoveEvent(self, event):
