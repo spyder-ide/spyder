@@ -9,6 +9,7 @@
 # Standard library imports
 import os
 import os.path as osp
+import subprocess
 import sys
 import logging
 import functools
@@ -75,15 +76,43 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         elif sys.platform.startswith('linux'):
             path = osp.expanduser('~/.local/share/kite/kited')
         elif sys.platform == 'darwin':
-            path = '/opt/kite/kited'
+            path = self._locate_kite_darwin()
         return osp.exists(osp.realpath(path)), path
 
     def _check_if_kite_running(self):
         running = False
         for proc in psutil.process_iter(attrs=['pid', 'name', 'username']):
-            if 'kited' in proc.name():
+            if self._is_proc_kite(proc):
                 logger.debug('Kite process already '
                              'running with PID {0}'.format(proc.pid))
                 running = True
                 break
         return running
+
+    @staticmethod
+    def _locate_kite_darwin():
+        """
+        Looks up where Kite.app is installed on macOS systems. The bundle ID
+        is checked first and if nothing is found or an error occurs, the
+        default path is used.
+        """
+        default_path = '/Applications/Kite.app'
+        path = None
+        try:
+            out = subprocess.check_output(
+                ['mdfind', 'kMDItemCFBundleIdentifier="com.kite.Kite"'])
+            installed = len(out) > 0
+            path = (out.decode('utf-8', 'replace').strip().split('\n')[0]
+                    if installed else default_path)
+        except (subprocess.CalledProcessError, UnicodeDecodeError) as ex:
+            # Use the default path
+            path = default_path
+        finally:
+            return path
+
+    @staticmethod
+    def _is_proc_kite(proc):
+        if os.name == 'nt' or sys.platform.startswith('linux'):
+            return 'kited' in proc.name()
+        else:
+            return proc.name() == 'Kite'

@@ -82,7 +82,8 @@ class Editor(SpyderPluginWidget):
     DISABLE_ACTIONS_WHEN_HIDDEN = False  # SpyderPluginWidget class attribute
 
     # Signals
-    run_in_current_ipyclient = Signal(str, str, str, bool, bool, bool, bool)
+    run_in_current_ipyclient = Signal(str, str, str,
+                                      bool, bool, bool, bool, bool)
     run_cell_in_ipyclient = Signal(str, str, str, bool)
     exec_in_extconsole = Signal(str, bool)
     redirect_stdio = Signal(bool)
@@ -2364,6 +2365,7 @@ class Editor(SpyderPluginWidget):
             current = runconf.current
             systerm = runconf.systerm
             clear_namespace = runconf.clear_namespace
+            console_namespace = runconf.console_namespace
 
             if runconf.file_dir:
                 wdir = dirname
@@ -2378,7 +2380,8 @@ class Editor(SpyderPluginWidget):
             # something in a terminal instead of a Python interp.
             self.__last_ec_exec = (fname, wdir, args, interact, debug,
                                    python, python_args, current, systerm,
-                                   post_mortem, clear_namespace)
+                                   post_mortem, clear_namespace,
+                                   console_namespace)
             self.re_run_file()
             if not interact and not debug:
                 # If external console dockwidget is hidden, it will be
@@ -2408,11 +2411,13 @@ class Editor(SpyderPluginWidget):
             return
         (fname, wdir, args, interact, debug,
          python, python_args, current, systerm,
-         post_mortem, clear_namespace) = self.__last_ec_exec
+         post_mortem, clear_namespace,
+         console_namespace) = self.__last_ec_exec
         if not systerm:
             self.run_in_current_ipyclient.emit(fname, wdir, args,
                                                debug, post_mortem,
-                                               current, clear_namespace)
+                                               current, clear_namespace,
+                                               console_namespace)
         else:
             self.main.open_external_console(fname, wdir, args, interact,
                                             debug, python, python_args,

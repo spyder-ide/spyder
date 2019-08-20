@@ -47,7 +47,7 @@ jobs:
 
     # Install dependencies
   - script: |
-      bash ./continuous_integration/azure/install.sh
+      ./continuous_integration/azure/install.sh
     displayName: 'Install dependencies'
     continueOnError: false
 
@@ -59,7 +59,7 @@ jobs:
 
     # Run Tests
   - script: |
-      bash ./continuous_integration/azure/runtests.sh || bash ./continuous_integration/azure/runtests.sh || bash ./continuous_integration/azure/runtests.sh || bash ./continuous_integration/azure/runtests.sh
+      ./continuous_integration/azure/runtests.sh || ./continuous_integration/azure/runtests.sh || ./continuous_integration/azure/runtests.sh || ./continuous_integration/azure/runtests.sh
     displayName: 'Run tests'
     continueOnError: false
 
@@ -95,9 +95,9 @@ jobs:
       Python36:
         python.version: '3.6'
         use.conda: "yes"
-      Python37_pip:
-        python.version: '3.7'
-        use.conda: "no"
+      #Python37_pip:
+      #  python.version: '3.7'
+      #  use.conda: "no"
     maxParallel: 4
 
   steps:

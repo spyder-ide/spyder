@@ -34,6 +34,7 @@ from spyder.config.gui import is_dark_interface
 from spyder.config.manager import CONF
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding, sourcecode, programs
+from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.misc import get_error_match
 from spyder.widgets.arraybuilder import ArrayBuilderDialog
 
@@ -319,6 +320,7 @@ class BaseEditMixin(object):
 
         Special chars depend on the language.
         """
+        language = getattr(self, 'language', language).lower()
         active_parameter_template = (
             '<span style=\'font-family:"{font_family}";'
             'font-size:{font_size}pt;'
@@ -354,11 +356,24 @@ class BaseEditMixin(object):
             signature = signature.replace('( ', '(')
 
             # Process signature template
-            if parameter:
-                # '*' has a meaning in regex so needs to be escaped
-                if '*' in parameter:
-                    parameter = parameter.replace('*', '\\*')
-                pattern = r'[\*|(|\s](' + parameter + r')[,|)|\s|=]'
+            if parameter and language == 'python':
+                # Escape all possible regex characters
+                # ( ) { } | [ ] . ^ $ * +
+                escape_regex_chars = ['|', '.', '^', '$', '*', '+']
+                remove_regex_chars = ['(', ')', '{', '}', '[', ']']
+                regex_parameter = parameter
+                for regex_char in escape_regex_chars + remove_regex_chars:
+                    if regex_char in escape_regex_chars:
+                        escape_char = r'\{char}'.format(char=regex_char)
+                        regex_parameter = regex_parameter.replace(regex_char,
+                                                                  escape_char)
+                    else:
+                        regex_parameter = regex_parameter.replace(regex_char,
+                                                                  '')
+                        parameter = parameter.replace(regex_char, '')
+
+                pattern = (r'[\*|\(|\[|\s](' + regex_parameter +
+                           r')[,|\)|\]|\s|=]')
 
             formatted_lines = []
             name = signature.split('(')[0]
@@ -366,15 +381,15 @@ class BaseEditMixin(object):
             rows = textwrap.wrap(signature, width=max_width,
                                  subsequent_indent=indent)
             for row in rows:
-                if parameter:
+                if parameter and language == 'python':
                     # Add template to highlight the active parameter
                     row = re.sub(pattern, handle_sub, row)
 
                 row = row.replace(' ', '&nbsp;')
                 row = row.replace('span&nbsp;', 'span ')
+                row = row.replace('{}', '{{}}')
 
-                language = getattr(self, 'language', language)
-                if language and 'python' == language.lower():
+                if language and language == 'python':
                     for char in ['(', ')', ',', '*', '**']:
                         new_char = chars_template.format(char=char)
                         row = row.replace(char, new_char)
@@ -388,7 +403,7 @@ class BaseEditMixin(object):
             font_family = font.family()
 
             # Format title to display active parameter
-            if parameter:
+            if parameter and language == 'python':
                 title = title_template.format(
                     font_size=font_size,
                     font_family=font_family,
@@ -1019,7 +1034,7 @@ class BaseEditMixin(object):
             offset = max([cursor.selectionEnd(), cursor.selectionStart()])
             match = regobj.search(text, offset)
         if match:
-            pos1, pos2 = match.span()
+            pos1, pos2 = sh.get_span(match)
             fcursor = self.textCursor()
             fcursor.setPosition(pos1)
             fcursor.setPosition(pos2, QTextCursor.KeepAnchor)

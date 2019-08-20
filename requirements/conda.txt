@@ -21,3 +21,4 @@ qtpy >=1.5.0
 sphinx
 spyder-kernels >=1.4.0
 watchdog
+pympler
