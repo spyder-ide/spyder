@@ -90,7 +90,7 @@ class SnippetsExtension(EditorExtension):
             self.editor.sig_will_insert_text.connect(self._process_text)
             self.editor.sig_will_paste_text.connect(self._process_text)
             self.editor.sig_will_remove_selection.connect(
-                self._remove_selection)
+                self.remove_selection)
         else:
             self.editor.sig_key_pressed.disconnect(self._on_key_pressed)
             self.editor.sig_insert_completion.disconnect(self.insert_snippet)
@@ -100,7 +100,7 @@ class SnippetsExtension(EditorExtension):
             self.editor.sig_will_insert_text.disconnect(self._process_text)
             self.editor.sig_will_paste_text.disconnect(self._process_text)
             self.editor.sig_will_remove_selection.disconnect(
-                self._remove_selection)
+                self.remove_selection)
 
     def _redraw_snippets(self):
         if self.is_snippet_active:
@@ -156,6 +156,10 @@ class SnippetsExtension(EditorExtension):
             self._update_ast()
 
     def delete_text(self, line, column):
+        has_selected_text = self.editor.has_selected_text()
+        start, end = self.editor.get_selection_start_end()
+        if has_selected_text:
+            self._remove_selection(start, end)
         node, snippet, text_node = self._find_node_by_position(line, column)
         leaf_kind = node.name
         node_position = node.position
@@ -267,6 +271,10 @@ class SnippetsExtension(EditorExtension):
         text_node.tokens = text_node_tokens
 
     def insert_text(self, text, line, column):
+        has_selected_text = self.editor.has_selected_text()
+        start, end = self.editor.get_selection_start_end()
+        if has_selected_text:
+            self._remove_selection(start, end)
         node, snippet, text_node = self._find_node_by_position(line, column)
         leaf_kind = node.name
         tokens = tokenize(text)
@@ -486,6 +494,9 @@ class SnippetsExtension(EditorExtension):
         return ancestor
 
     @lock
+    def remove_selection(self, selection_start, selection_end):
+        self._remove_selection(selection_start, selection_end)
+
     def _remove_selection(self, selection_start, selection_end):
         print(selection_start, selection_end)
         # end_line, end_column = selection_end
