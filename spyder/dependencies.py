@@ -10,10 +10,30 @@
 import os
 
 # Local imports
-import pylint
 from spyder.utils import programs
 from spyder.config.base import _
-
+CLOUDPICKLE_REQVER = '>=0.0.0'
+PYGMENTS_REQVER = '>=2.0'
+QTCONSOLE_REQVER = '>=4.5.0'
+NBCONVERT_REQVER = '>=4.0'
+SPHINX_REQVER = '>=0.6.6'
+PYLINT_REQVER = '>=0.25'
+PSUTIL_REQVER = '>=0.3'
+QTAWESOME_REQVER = '>=0.5.7'
+QTPY_REQVER = '>=1.5.0'
+PICKLESHARE_REQVER = '>=0.0.0'
+PYZMQ_REQVER = '>=0.0.0'
+CHARDET_REQVER = '>=2.0.0'
+NUMPYDOC_REQVER = '>=0.0.0'
+SPYDER_KERNELS_REQVER = '>=1.4.0, <1.5.0'
+QDARKSTYLE_REQVER = '>=2.7.0'
+ATOMICWRITES_REQVER = '>=0.0.0'
+DIFF_MATCH_PATCH_REQVER = '>=0.0.0'
+WATCHDOG_REQVER = '>=0.0.0'
+KEYRING_REQVER = '>=0.0.0'
+PEXPECT_REQVER = '>=0.0.0'
+PARAMIKO_REQVER = '>=0.0.0'
+PYXDG_REQVER = '>=0.0.0'
 
 class Dependency(object):
     """Spyder's dependency
@@ -120,74 +140,61 @@ def missing_dependencies():
 def declare_dependencies():
     add("cloudpickle", "cloudpickle",
         _("Serialize variables in the IPython kernel to send to Spyder."),
-        required_version="0.0.0")
-    PYGMENTS_REQVER = '>=2.0'
+        required_version=CLOUDPICKLE_REQVER)
     add("pygments", "pygments",
         _("Syntax highlighting for Matlab, Julia and other file types"),
         required_version=PYGMENTS_REQVER)
-    QTCONSOLE_REQVER = ">=4.5.0"
     add("qtconsole", "qtconsole", _("Integrate the IPython console"),
         required_version=QTCONSOLE_REQVER)
-    NBCONVERT_REQVER = ">=4.0"
     add("nbconvert", "nbconvert",
         _("Manipulate Jupyter notebooks on the Editor"),
         required_version=NBCONVERT_REQVER)
     add("sphinx", "sphinx", _("Show help for objects in the Editor and "
                               "Consoles in a dedicated pane"),
-        required_version='>=0.6.6')
-    PYLINT_REQVER = '>=0.25'
-    PYLINT_VER = pylint.__version__
+        required_version=SPHINX_REQVER)
     add("pylint", "pylint", _("Static code analysis"),
-        required_version=PYLINT_REQVER, installed_version=PYLINT_VER)
+        required_version=PYLINT_REQVER)
     if not os.name == 'nt':
-        PSUTIL_REQVER = '>=0.3'
         add("psutil", "psutil",
             _("CPU and memory usage info in the status bar"),
             required_version=PSUTIL_REQVER)
-    QTAWESOME_REQVER = '>=0.5.7'
     add("qtawesome", "qtawesome", _("To have an icon theme based on "
                                     "FontAwesome."),
         required_version=QTAWESOME_REQVER)
-    QTPY_REQVER = '>=1.5.0'
     add("qtpy", "qtpy", _("Abstraction layer for Python Qt bindings "
                           "so that Spyder can run on multiple Qt "
                           "bindings and versions."),
         required_version=QTPY_REQVER)
     add("pickleshare", "pickleshare", _("Show import completions on the "
                                         " Python consoles."),
-        required_version='>=0.0.0')
+        required_version=PICKLESHARE_REQVER)
     add("pyzmq", "pyzmq", _("Client for the language server protocol (LSP)."),
-        required_version='>=0.0.0')
+        required_version=PYZMQ_REQVER)
     add("chardet", "chardet", _("Character encoding auto-detection in "
                                 "Python."),
-        required_version='>=2.0.0')
+        required_version=CHARDET_REQVER)
     add("numpydoc", "numpydoc", _("Used by Jedi to get function return types "
                                   "from Numpydocstrings."),
-        required_version='>=0.0.0')
+        required_version=NUMPYDOC_REQVER)
     add("spyder-kernels", "spyder-kernels", _("Jupyter kernels for the Spyder "
                                               "console."),
-        required_version='>=1.4.0, <1.5.0')
-    QDARKSTYLE_REQVER = '>=2.7.0'
+        required_version=SPYDER_KERNELS_REQVER)
     add("qdarkstyle", "qdarkstyle", _("Dark style for the entire interface"),
         required_version=QDARKSTYLE_REQVER)
     add("atomicwrites", "atomicwrites", _("Atomic file writes."),
-        required_version='>=0.0.0')
+        required_version=ATOMICWRITES_REQVER)
     add("diff_match_patch", "diff_match_patch", _("Compute text file diff "
                                                   "changes during edition."),
-        required_version='>=0.0.0')
+        required_version=DIFF_MATCH_PATCH_REQVER)
     add("watchdog", "watchdog", _("Watch file changes on project "
                                   "directories."),
-        required_version='>=0.0.0')
+        required_version=WATCHDOG_REQVER)
     add("keyring", "keyring", _("Save Github credentials to report errors "
                                 "securely."),
-        required_version='>=0.0.0')
-    # add("pyqt5", "pyqt5", _("Python bindings for Qt, used for Spyder's GUI "),
-    #     required_version='>=0.0.0')
-    # add("pyqtwebengine", "pyqtwebengine", _("Pyls with all its dependencies"),
-    #     required_version='>=0.0.0')
+        required_version=KEYRING_REQVER)
     add("pexpect", "pexpect", _("Connect to remote kernels through SSH."),
-        required_version='>=0.0.0')
+        required_version=PEXPECT_REQVER)
     add("paramiko", "paramiko", _("Connect to remote kernels through SSH."),
-        required_version='>=0.0.0')
+        required_version=PARAMIKO_REQVER)
     add("pyxdg", "pyxdg", _("Parse `.desktop` files on Linux"),
-        required_version='>=0.0.0')
+        required_version=PYXDG_REQVER)
