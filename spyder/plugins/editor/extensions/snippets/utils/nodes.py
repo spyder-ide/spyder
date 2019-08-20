@@ -71,6 +71,7 @@ class ASTNode:
         self.parent = None
         self.mark_for_position = True
         self.index_in_parent = -1
+        self.to_delete = False
         self.depth = 0
 
     def update_position(self, position):
@@ -96,6 +97,10 @@ class ASTNode:
         Downstream classes can override this method if necessary.
         """
         pass
+
+    def delete(self):
+        """Mark an AST node for deletion."""
+        self.to_delete = True
 
     def accept(self, visitor):
         """Accept visitor to iterate through the AST."""
@@ -185,6 +190,11 @@ class TextNode(ASTNode):
         visitor.visit(self)
         for token in self._tokens:
             token.accept(visitor)
+
+    def delete(self):
+        self.to_delete = True
+        for token in self.tokens:
+            token.delete()
 
 
 class LeafNode(ASTNode):
@@ -298,6 +308,10 @@ class TabstopSnippetNode(SnippetASTNode):
     def accept(self, visitor):
         visitor.visit(self)
         self._placeholder.accept(visitor)
+
+    def delete(self):
+        self.to_delete = True
+        self._placeholder.delete()
 
 
 class PlaceholderNode(TabstopSnippetNode):

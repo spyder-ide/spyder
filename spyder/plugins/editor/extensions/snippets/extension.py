@@ -498,7 +498,89 @@ class SnippetsExtension(EditorExtension):
             self.reset()
             return
         poly = self._region_to_polygon(selection_start, selection_end)
-        print(poly)
+        bboxes = [sum(segment, tuple()) for segment in poly]
+        print(bboxes)
+        for segment in poly:
+            (_, start_column), (_, end_column) = segment
+            bbox = sum(segment, tuple())
+            nodes_spanned = list(self.index.intersection(bbox))
+            current_position = start_column
+            for node_id in nodes_spanned:
+                _, node = self.node_position[node_id]
+                if node.to_delete:
+                    continue
+                if current_position >= end_column:
+                    break
+                node_position = node.position
+                # print(segment, node_position, type(node))
+                if isinstance(node, nodes.SnippetASTNode):
+                    if len(node_position) == 1:
+                        node_position = node_position[0]
+                        node_start, node_end = node_position[0]
+                        if node_position == segment:
+                            node.placeholder.delete()
+                            node.placeholder = nodes.TextNode(nodes.LeafNode())
+                        elif node_start == current_position:
+                            if node_end <= end_column:
+                                node.delete()
+                                node_parent = node.parent
+                                parent_tokens = list(
+                                    node_parent.tokens)
+                                parent_tokens.pop(node.index_in_parent)
+                                node_parent.tokens = parent_tokens
+                                snippet_number = node.number
+                                diff = 0
+                                for num in self.snippets_map:
+                                    if num > snippet_number:
+                                        snippet = self.snippets_map[num]
+                                        snippet.number = snippet_number - diff
+                                        diff += 1
+                elif isinstance(node, nodes.TextNode):
+                    if len(node_position) == 1:
+                        (node_start, node_end) = node_position[0][0]
+                        if node_start == current_position:
+                            if node_end <= end_column:
+                                node.delete()
+                                current_position = node_end
+                                if node.parent is not None:
+                                    node_parent = node.parent
+                                    if isinstance(node_parent, nodes.TextNode):
+                                        parent_tokens = list(
+                                            node.parent.tokens)
+                                        parent_tokens.pop(node.index_in_parent)
+                                        node_parent.tokens = parent_tokens
+                elif isinstance(node, nodes.LeafNode):
+                    print(node, node_position, current_position, end_column)
+                    if len(node_position) == 1:
+                        leaf_line, leaf_col = node_position[0]
+                        node_position = (
+                            (leaf_line, leaf_col), (leaf_line, leaf_col + 1))
+                    (_, node_start), (_, node_end) = node_position
+                    if current_position == node_start:
+                        if node_end <= end_column:
+                            node_parent = node.parent
+                            parent_tokens = list(node_parent.tokens)
+                            parent_tokens.pop(node.index_in_parent)
+                            node_parent.tokens = parent_tokens
+                            current_position = node_end
+                        else:
+                            diff = end_column - node_end
+                            node_value = node.value
+                            node.value = node_value[diff:]
+                            current_position = node_start + diff
+                    elif node_start < current_position:
+                        start_diff = current_position - node_start
+                        end_diff = end_column - node_end
+                        node_value = node.value
+                        print(node_value)
+                        # node.value = node_value[start_diff:end_diff]
+                        node.value = (node_value[:start_diff] +
+                                      node_value[end_diff:])
+                        print(node_value[start_diff:end_diff])
+                        print(node.value)
+                        current_position = (
+                            current_position + (end_diff - start_diff))
+        self._update_ast()
 
     def update_position_tree(self, visitor):
         self.node_number = visitor.node_number
