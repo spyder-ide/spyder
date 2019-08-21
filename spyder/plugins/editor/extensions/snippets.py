@@ -40,6 +40,8 @@ def no_undo(f):
 def lock(f):
     @functools.wraps(f)
     def wrapper(self, *args, **kwargs):
+        if not self.editor.code_snippets:
+            return
         if not rtree_available:
             return
         function_name = f.__name__
@@ -769,6 +771,9 @@ class SnippetsExtension(EditorExtension):
 
         self.editor.insert_text(ast.text(), will_insert_text=False)
         self.editor.document_did_change()
+
+        if not self.editor.code_snippets:
+            return
 
         if not rtree_available:
             return

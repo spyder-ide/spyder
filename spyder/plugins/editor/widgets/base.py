@@ -187,7 +187,11 @@ class CompletionWidget(QListWidget):
 
         for i, completion in enumerate(self.completion_list):
             if not self.is_internal_console:
+                code_snippets_enabled = getattr(
+                    self.textedit, 'code_snippets', False)
                 completion_label = completion['filterText']
+                if not code_snippets_enabled:
+                    completion_label = completion['label']
                 icon = icons_map.get(completion['kind'], 'no_match')
                 item = QListWidgetItem(ima.icon(icon),
                                        completion['label'])
@@ -343,10 +347,10 @@ class CompletionWidget(QListWidget):
             row = self.currentRow()
             selection_index = self.display_index[row]
             completion = self.completion_list[selection_index]
-            if code_snippets_enabled:
-                text = completion['insertText']
-            else:
-                text = completion['label']
+            # if code_snippets_enabled:
+            text = completion['insertText']
+            # else:
+            # text = completion['label']
         else:
             text = item.text()
 

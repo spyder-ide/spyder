@@ -235,6 +235,7 @@ install_requires = [
     # Required for accesing xdg spec on Linux
     'pyxdg;platform_system=="Linux"',
     'pympler',
+    'rtree'
 ]
 
 extras_require = {
