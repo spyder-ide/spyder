@@ -98,15 +98,6 @@ class ASTNode:
         """
         pass
 
-    def copy(self):
-        """Copies a node information and returns a new one."""
-        node = self.__class__()
-        node.position = self.position
-        node.depth = self.depth
-        node.mark_for_position = self.mark_for_position
-        node.index_in_parent = self.index_in_parent
-        return node
-
     def delete(self):
         """Mark an AST node for deletion."""
         self.to_delete = True
@@ -205,12 +196,6 @@ class TextNode(ASTNode):
         for token in self.tokens:
             token.delete()
 
-    def copy(self):
-        tokens = [token.copy() for token in self.tokens]
-        copy_node = ASTNode.copy(self)
-        copy_node.tokens = tokens
-        return copy_node
-
 
 class LeafNode(ASTNode):
     """Node that represents a terminal symbol."""
@@ -237,12 +222,6 @@ class LeafNode(ASTNode):
         if self.name == 'left_curly_name':
             text = text[1:]
         return text
-
-    def copy(self):
-        copy_node = ASTNode.copy(self)
-        copy_node.name = self.name
-        copy_node.value = self.value
-        return copy_node
 
     def __str__(self):
         return 'LeafNode({0}: {1})'.format(self.name, self.value)
@@ -333,12 +312,6 @@ class TabstopSnippetNode(SnippetASTNode):
     def delete(self):
         self.to_delete = True
         self._placeholder.delete()
-
-    def copy(self):
-        copy_node = ASTNode.copy(self)
-        copy_node.number = self.number
-        copy_node.placeholder = self.placeholder.copy()
-        return copy_node
 
 
 class PlaceholderNode(TabstopSnippetNode):
