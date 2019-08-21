@@ -102,6 +102,7 @@ class SnippetsExtension(EditorExtension):
             self.editor.sig_will_remove_selection.disconnect(
                 self.remove_selection)
 
+    @lock
     def _redraw_snippets(self):
         if self.is_snippet_active:
             self.editor.clear_extra_selections('code_snippets')
@@ -160,6 +161,7 @@ class SnippetsExtension(EditorExtension):
         start, end = self.editor.get_selection_start_end()
         if has_selected_text:
             self._remove_selection(start, end)
+            return
         node, snippet, text_node = self._find_node_by_position(line, column)
         leaf_kind = node.name
         node_position = node.position
@@ -275,8 +277,8 @@ class SnippetsExtension(EditorExtension):
         start, end = self.editor.get_selection_start_end()
         if has_selected_text:
             self._remove_selection(start, end)
+            line, column = start
         node, snippet, text_node = self._find_node_by_position(line, column)
-        leaf_kind = node.name
         tokens = tokenize(text)
         token_nodes = [nodes.LeafNode(t.token, t.value) for t in tokens]
         for token in token_nodes:
