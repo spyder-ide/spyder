@@ -46,7 +46,6 @@ def lock(f):
         function_name = f.__name__
         with QMutexLocker(self.modification_lock):
             if not hasattr(f, 'no_undo'):
-                print(function_name)
                 self.update_undo_stack()
             return f(self, *args, **kwargs)
     return wrapper
@@ -129,7 +128,6 @@ class SnippetsExtension(EditorExtension):
     @no_undo
     def _undo(self):
         if self.is_snippet_active:
-            print('Undo')
             if len(self.undo_stack) > 0:
                 info = self.undo_stack.pop(0)
                 ast_copy = copy.deepcopy(self.ast)
@@ -145,7 +143,6 @@ class SnippetsExtension(EditorExtension):
     @no_undo
     def _redo(self):
         if self.is_snippet_active:
-            print('Redo')
             if len(self.redo_stack) > 0:
                 info = self.redo_stack.pop(0)
                 ast_copy = copy.deepcopy(self.ast)
@@ -189,9 +186,6 @@ class SnippetsExtension(EditorExtension):
                     self.reset()
                     event.accept()
                 elif len(text) > 0:
-                    print('-----------------------------------------------')
-                    print(text)
-                    print('-----------------------------------------------')
                     if node is not None:
                         if snippet is None:
                             # Constant text identifier was modified
@@ -222,12 +216,11 @@ class SnippetsExtension(EditorExtension):
         node, snippet, text_node = self._find_node_by_position(line, column)
         leaf_kind = node.name
         node_position = node.position
-        print(node.position)
         if len(node_position) == 1:
             # Single, terminal node
             x, y = node_position[0]
             node_position = ((x, y), (x, y))
-        print(text_node.position)
+
         first_text_position = text_node.position[0][0]
         first_text_start, first_text_end = first_text_position
         node_start, node_end = node_position
@@ -264,14 +257,12 @@ class SnippetsExtension(EditorExtension):
     def _delete_token(self, node, text_node, line, column):
         node_position = node.position
         text_node_tokens = list(text_node.tokens)
-        print(node, node_position)
         node_index = node.index_in_parent
         if len(node_position) == 1:
             # Single character removal
             if node_index > 0 and node_index + 1 < len(text_node_tokens):
                 left_node = text_node_tokens[node_index - 1]
                 right_node = text_node_tokens[node_index + 1]
-                print(left_node, right_node)
                 offset = 1
                 if left_node.mark_for_position:
                     if left_node.name in MERGE_ALLOWED:
@@ -287,7 +278,6 @@ class SnippetsExtension(EditorExtension):
                 text_node_tokens.pop(node_index)
         else:
             node_start, node_end = node_position
-            print(node_position, (line, column))
             if node_start == (line, column):
                 previous_token = text_node_tokens[node_index - 1]
                 previous_value = previous_token.value
@@ -324,7 +314,6 @@ class SnippetsExtension(EditorExtension):
                 node_value = node.value
                 node_value = node_value[:diff] + node_value[diff + 1:]
                 node.value = node_value
-        print(text_node_tokens)
         if len(text_node_tokens) == 0:
             text_node_tokens = [nodes.LeafNode()]
         text_node.tokens = text_node_tokens
@@ -345,7 +334,6 @@ class SnippetsExtension(EditorExtension):
             snippet.placeholder = new_text_node
             return
         position = node.position
-        print(position, (line, column))
         if len(position) == 1:
             x, y = position[0]
             position = ((x, y), (x, y + 1))
@@ -412,8 +400,6 @@ class SnippetsExtension(EditorExtension):
             second_tokens = text_node_tokens[node_index + 1:]
             first_part = value[:diff]
             second_part = value[diff:]
-            print(value)
-            print(first_part, second_part)
             first_token = token_nodes[0]
             last_token = token_nodes[-1]
             left_merge = False
@@ -436,7 +422,6 @@ class SnippetsExtension(EditorExtension):
 
             text_node_tokens = first_tokens + token_nodes + second_tokens
 
-        print(text_node_tokens)
         text_node.tokens = text_node_tokens
 
     def _insert_snippet_at_node(self, leaf, snippet, new_node,
@@ -447,7 +432,7 @@ class SnippetsExtension(EditorExtension):
         if len(leaf_position) == 1:
             x, y = leaf_position[0]
             leaf_position = [(x, y), (x, y + 1)]
-        print(leaf_position, (line, column))
+
         leaf_start, leaf_end = leaf_position
         leaf_index = leaf.index_in_parent
         placeholder = snippet.placeholder
@@ -455,18 +440,12 @@ class SnippetsExtension(EditorExtension):
         first_tokens = text_tokens[:leaf_index]
         second_tokens = text_tokens[leaf_index + 1:]
         if leaf_start == (line, column):
-            print(value, new_node.text())
-            # first_tokens = first_tokens + new_node.tokens
             single_token = False
             if len(text_tokens) == 1:
-                print('Single text_token')
-                print(new_node.tokens)
                 possible_snippet = new_node.tokens[0]
-                print(possible_snippet)
                 single_token = True
                 if isinstance(possible_snippet, nodes.SnippetASTNode):
                     # Placeholder replacement
-                    print('Moving placeholder to up')
                     first_tokens = (
                         list(possible_snippet.placeholder) +
                         list(new_node.tokens[1:])
@@ -480,12 +459,7 @@ class SnippetsExtension(EditorExtension):
                 if not new_node.text().startswith(value):
                     first_tokens.append(leaf)
         elif leaf_end == (line, column):
-            # if not value.endswith(new_node.text()):
-            #     first_tokens.append(leaf)
-            # if self.editor.completion_widget.is_empty():
-            # print(value, new_node.text())
             first_tokens.append(leaf)
-            # first_tokens = first_tokens + new_node.tokens
             first_tokens.append(new_node)
         else:
             _, start_pos = leaf_start
@@ -500,10 +474,8 @@ class SnippetsExtension(EditorExtension):
             first_tokens.append(second_node)
         text_tokens = first_tokens + second_tokens
         placeholder.tokens = text_tokens
-        print(text_tokens)
 
     def _region_to_polygon(self, start, end):
-        print(start, end)
         start_line, start_column = start
         end_line, end_column = end
         root_position, _ = self.node_position[0]
@@ -514,7 +486,6 @@ class SnippetsExtension(EditorExtension):
 
         polygon = []
         segment = [(start_line, start_column)]
-        # previous_line, previous_column = start_line, start_column
         for line in range(start_line, end_line + 1):
             seg_start, seg_end = line_limits[line]
             if len(segment) == 0:
@@ -558,19 +529,14 @@ class SnippetsExtension(EditorExtension):
         self._remove_selection(selection_start, selection_end)
 
     def _remove_selection(self, selection_start, selection_end):
-        print(selection_start, selection_end)
-        # end_line, end_column = selection_end
-        # selection_end = (end_line, end_column - 1)
         start_node, _, _ = self._find_node_by_position(*selection_start)
         end_node, _, _ = self._find_node_by_position(*selection_end)
         ancestor = self._find_lowest_common_ancestor(start_node, end_node)
-        print(ancestor)
         if ancestor is None:
             self.reset()
             return
         poly = self._region_to_polygon(selection_start, selection_end)
         bboxes = [sum(segment, tuple()) for segment in poly]
-        print(bboxes)
         for segment in poly:
             (_, start_column), (_, end_column) = segment
             bbox = sum(segment, tuple())
@@ -583,7 +549,6 @@ class SnippetsExtension(EditorExtension):
                 if current_position >= end_column:
                     break
                 node_position = node.position
-                # print(segment, node_position, type(node))
                 if isinstance(node, nodes.SnippetASTNode):
                     if len(node_position) == 1:
                         node_position = node_position[0]
@@ -621,7 +586,6 @@ class SnippetsExtension(EditorExtension):
                                         parent_tokens.pop(node.index_in_parent)
                                         node_parent.tokens = parent_tokens
                 elif isinstance(node, nodes.LeafNode):
-                    print(node, node_position, current_position, end_column)
                     if len(node_position) == 1:
                         leaf_line, leaf_col = node_position[0]
                         node_position = (
@@ -643,12 +607,8 @@ class SnippetsExtension(EditorExtension):
                         start_diff = current_position - node_start
                         end_diff = end_column - node_end
                         node_value = node.value
-                        print(node_value)
-                        # node.value = node_value[start_diff:end_diff]
                         node.value = (node_value[:start_diff] +
                                       node_value[end_diff:])
-                        print(node_value[start_diff:end_diff])
-                        print(node.value)
                         current_position = (
                             current_position + (end_diff - start_diff))
         self._update_ast()
@@ -800,10 +760,6 @@ class SnippetsExtension(EditorExtension):
         self.draw_snippets()
 
     def insert_snippet(self, text):
-        print('////////////////////////////////////////////')
-        print(text)
-        print('////////////////////////////////////////////')
-
         line, column = self.editor.get_cursor_line_column()
         visitor = SnippetSearcherVisitor(line, column, self.node_number)
         ast = build_snippet_ast(text)
@@ -822,7 +778,6 @@ class SnippetsExtension(EditorExtension):
                 # This is a nested snippet / text on snippet
                 leaf, snippet_root, _ = self._find_node_by_position(
                     line, column)
-                print(leaf, snippet_root)
 
                 if snippet_root is not None:
                     new_snippet = False

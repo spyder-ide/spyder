@@ -138,16 +138,6 @@ def build_snippet_ast(snippet_text):
     prefix_stack = []
 
     while len(stack) > 0:
-        # tokens_repr = ''.join([t.value for t in tokens])
-        # logger.debug('Tokens: {0} - Stack: {1}'.format(tokens_repr, stack))
-        # print('Current rule: {0} - Node: {1}'.format(*current_ctx))
-        # print('Current args: {0}'.format(current_args))
-        # print('Current prefix: {0}'.format(current_prefix))
-
-        # print('\nCtx stack: {0}'.format(context_stack))
-        # print('Args stack: {0}'.format(args_stack))
-        # print('Prefix stack: {0}'.format(prefix_stack))
-
         peek_token = tokens[0]
         current_rule = stack.pop(0)
         if current_rule in GRAMMAR:
@@ -172,8 +162,6 @@ def build_snippet_ast(snippet_text):
             (current_ctx, current_args, current_prefix,
              context_stack, args_stack, prefix_stack) = new_ctx
             current_prefix = next_productions + current_prefix
-            # print('\nNew rule: {0} - Node: {1}'.format(*current_ctx))
-            # print('New prefix: {0}'.format(current_prefix))
         else:
             # A terminal symbol
             if peek_token.token == current_rule:
@@ -193,14 +181,10 @@ def build_snippet_ast(snippet_text):
             if add_to_args:
                 leaf = nodes.LeafNode(peek_token.token, peek_token.value)
                 current_args.append(leaf)
-                # print('Adding {0} to args'.format(leaf))
             current_prefix.pop(0)
-            # print('\nNew prefix: {0}'.format(current_prefix))
 
         if len(current_prefix) == 0:
             _, Node = current_ctx
-            # print('\nCreating node : {0}'.format(Node))
-            # print('Args: {0}'.format(current_args))
             node = Node(*current_args)
             current_ctx = context_stack.pop(0)
             current_args = args_stack.pop(0)
