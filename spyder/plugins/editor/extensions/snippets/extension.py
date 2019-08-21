@@ -651,6 +651,8 @@ class SnippetsExtension(EditorExtension):
         return current_node, nearest_snippet, nearest_text
 
     def cursor_changed(self, line, col):
+        if not rtree_available:
+            return
         node, nearest_snippet, _ = self._find_node_by_position(line, col)
         if node is None:
             # self.reset()
