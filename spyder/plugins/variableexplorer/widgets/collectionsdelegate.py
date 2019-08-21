@@ -15,7 +15,7 @@ import datetime
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import QDateTime, Qt, Signal, Slot
 from qtpy.QtWidgets import (QAbstractItemDelegate, QDateEdit, QDateTimeEdit,
-                            QItemDelegate, QLineEdit, QMessageBox)
+                            QItemDelegate, QLineEdit, QMessageBox, QTableView)
 
 # Local imports
 from spyder.config.base import _
@@ -335,6 +335,29 @@ class CollectionsDelegate(QItemDelegate):
             # Should not happen...
             raise RuntimeError("Unsupported editor widget")
         self.set_value(index, value)
+
+    def updateEditorGeometry(self, editor, option, index):
+        """
+        Overriding method updateEditorGeometry.
+
+        This is necessary to set the correct position of the QLineEdit
+        editor since option.rect doesn't have values -> QRect() and
+        makes the editor to be invisible (i.e. it has 0 as x, y, width
+        and height) when doing double click over a cell.
+        See spyder-ide/spyder#9945
+        """
+        table_view = editor.parent().parent()
+        if isinstance(table_view, QTableView):
+            row = index.row()
+            column = index.column()
+            y0 = table_view.rowViewportPosition(row)
+            x0 = table_view.columnViewportPosition(column)
+            width = table_view.columnWidth(column)
+            height = table_view.rowHeight(row)
+            editor.setGeometry(x0, y0, width, height)
+        else:
+            super(CollectionsDelegate, self).updateEditorGeometry(
+                editor, option, index)
 
 
 class ToggleColumnDelegate(CollectionsDelegate):

@@ -300,6 +300,11 @@ else:
 
     viewitems = operator.methodcaller("viewitems")
 
+if PY2:
+    TimeoutError = RuntimeError
+else:
+    TimeoutError = TimeoutError
+
 
 if __name__ == '__main__':
     pass

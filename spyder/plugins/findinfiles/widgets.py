@@ -750,7 +750,7 @@ class ItemDelegate(QStyledItemDelegate):
         doc.setHtml(options.text)
         doc.setTextWidth(options.rect.width())
 
-        return QSize(doc.idealWidth(), doc.size().height())
+        return QSize(int(doc.idealWidth()), int(doc.size().height()))
 
 
 class ResultsBrowser(OneColumnTree):

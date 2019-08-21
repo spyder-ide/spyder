@@ -34,6 +34,7 @@ from spyder.config.gui import is_dark_interface
 from spyder.config.manager import CONF
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding, sourcecode, programs
+from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.misc import get_error_match
 from spyder.widgets.arraybuilder import ArrayBuilderDialog
 
@@ -100,12 +101,12 @@ class BaseEditMixin(object):
         else:
             # Showing tooltip at cursor position
             cx, cy = self.get_coordinates('cursor')
-            cy = cy - font.pointSize() / 2
+            cy = int(cy - font.pointSize() / 2)
 
         # Calculate vertical delta
         # The needed delta changes with font size, so we use a power law
         if sys.platform == 'darwin':
-            delta = int((font.pointSize() * 1.20) ** 0.98) + 4.5
+            delta = int((font.pointSize() * 1.20) ** 0.98 + 4.5)
         elif os.name == 'nt':
             delta = int((font.pointSize() * 1.20) ** 1.05) + 7
         else:
@@ -209,19 +210,34 @@ class BaseEditMixin(object):
             text = text.strip()
 
         if not with_html_format:
-            paragraphs = text.splitlines()
+            # All these replacements are need to properly divide the
+            # text in actual paragraphs and wrap the text on each one
+            paragraphs = (text
+                          .replace("\n\n", "<!DOUBLE_ENTER!>")
+                          .replace(".\n", ".<!SINGLE_ENTER!>")
+                          .replace("\n-", "<!SINGLE_ENTER!>-")
+                          .replace("-\n", "-<!SINGLE_ENTER!>")
+                          .replace("\n ", "<!SINGLE_ENTER!> ")
+                          .replace(" \n", " <!SINGLE_ENTER!>")
+                          .replace("\n", " ")
+                          .replace("<!DOUBLE_ENTER!>", "\n\n")
+                          .replace("<!SINGLE_ENTER!>", "\n").splitlines())
+            new_paragraphs = []
             for paragraph in paragraphs:
                 # Wrap text
-                paragraph = textwrap.wrap(text, width=max_width)
+                new_paragraph = textwrap.wrap(paragraph, width=max_width)
 
                 # Remove empty lines at the beginning
-                paragraph = [l for l in paragraph if l.strip()]
+                new_paragraph = [l for l in new_paragraph if l.strip()]
 
                 # Merge paragraph text
-                paragraph = '\n'.join(paragraph)
+                new_paragraph = '\n'.join(new_paragraph)
+
+                # Add new paragraph
+                new_paragraphs.append(new_paragraph)
 
             # Join paragraphs and split in lines for max_lines check
-            paragraphs = '\n'.join(paragraphs)
+            paragraphs = '\n'.join(new_paragraphs)
             paragraphs = paragraphs.strip('\r\n')
             lines = paragraphs.splitlines()
 
@@ -308,6 +324,7 @@ class BaseEditMixin(object):
 
         Special chars depend on the language.
         """
+        language = getattr(self, 'language', language).lower()
         active_parameter_template = (
             '<span style=\'font-family:"{font_family}";'
             'font-size:{font_size}pt;'
@@ -343,11 +360,24 @@ class BaseEditMixin(object):
             signature = signature.replace('( ', '(')
 
             # Process signature template
-            if parameter:
-                # '*' has a meaning in regex so needs to be escaped
-                if '*' in parameter:
-                    parameter = parameter.replace('*', '\\*')
-                pattern = r'[\*|(|\s](' + parameter + r')[,|)|\s|=]'
+            if parameter and language == 'python':
+                # Escape all possible regex characters
+                # ( ) { } | [ ] . ^ $ * +
+                escape_regex_chars = ['|', '.', '^', '$', '*', '+']
+                remove_regex_chars = ['(', ')', '{', '}', '[', ']']
+                regex_parameter = parameter
+                for regex_char in escape_regex_chars + remove_regex_chars:
+                    if regex_char in escape_regex_chars:
+                        escape_char = r'\{char}'.format(char=regex_char)
+                        regex_parameter = regex_parameter.replace(regex_char,
+                                                                  escape_char)
+                    else:
+                        regex_parameter = regex_parameter.replace(regex_char,
+                                                                  '')
+                        parameter = parameter.replace(regex_char, '')
+
+                pattern = (r'[\*|\(|\[|\s](' + regex_parameter +
+                           r')[,|\)|\]|\s|=]')
 
             formatted_lines = []
             name = signature.split('(')[0]
@@ -355,15 +385,15 @@ class BaseEditMixin(object):
             rows = textwrap.wrap(signature, width=max_width,
                                  subsequent_indent=indent)
             for row in rows:
-                if parameter:
+                if parameter and language == 'python':
                     # Add template to highlight the active parameter
                     row = re.sub(pattern, handle_sub, row)
 
                 row = row.replace(' ', '&nbsp;')
                 row = row.replace('span&nbsp;', 'span ')
+                row = row.replace('{}', '{{}}')
 
-                language = getattr(self, 'language', language)
-                if language and 'python' == language.lower():
+                if language and language == 'python':
                     for char in ['(', ')', ',', '*', '**']:
                         new_char = chars_template.format(char=char)
                         row = row.replace(char, new_char)
@@ -377,7 +407,7 @@ class BaseEditMixin(object):
             font_family = font.family()
 
             # Format title to display active parameter
-            if parameter:
+            if parameter and language == 'python':
                 title = title_template.format(
                     font_size=font_size,
                     font_family=font_family,
@@ -481,7 +511,7 @@ class BaseEditMixin(object):
         point = self._calculate_position()
 
         language = getattr(self, 'language', language).lower()
-        if language == 'python':
+        if language == 'python' and signature.strip():
             # Check if documentation is better than signature, sometimes
             # signature has \n stripped for functions like print, type etc
             check_doc = ' '
@@ -495,7 +525,8 @@ class BaseEditMixin(object):
         # Remove duplicate signature inside documentation
         if documentation:
             documentation = documentation.replace('\\*', '*')
-            documentation = documentation.replace(signature + '\n', '')
+            if signature.strip():
+                documentation = documentation.replace(signature + '\n', '')
 
         # Format
         res = self._check_signature_and_format(signature, parameter,
@@ -1041,7 +1072,7 @@ class BaseEditMixin(object):
             offset = max([cursor.selectionEnd(), cursor.selectionStart()])
             match = regobj.search(text, offset)
         if match:
-            pos1, pos2 = match.span()
+            pos1, pos2 = sh.get_span(match)
             fcursor = self.textCursor()
             fcursor.setPosition(pos1)
             fcursor.setPosition(pos2, QTextCursor.KeepAnchor)

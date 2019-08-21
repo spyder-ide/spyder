@@ -415,12 +415,13 @@ class UserConfig(DefaultsConfig):
 
         To be overriden if versions changed defaults location.
         """
+        version = old_version if old_version else self._version
         defaults_path = osp.join(osp.dirname(self.get_config_fpath()),
                                  self._defaults_folder)
         name = '{}-{}-{}'.format(
             self._defaults_name_prefix,
             self._name,
-            self._version,
+            version,
         )
         if not osp.isdir(defaults_path):
             os.makedirs(defaults_path)
@@ -612,9 +613,9 @@ class SpyderUserConfig(UserConfig):
         """
         fpath = self.get_config_fpath()
         previous_paths = [
-            # >= 52.0.0
+            # >= 51.0.0
             fpath,
-            # < 52.0.0
+            # < 51.0.0
             os.path.join(get_conf_path(), 'spyder.ini'),
         ]
         for fpath in previous_paths:
@@ -631,12 +632,12 @@ class SpyderUserConfig(UserConfig):
 
         If no version is provided, it returns the current file path.
         """
-        fpath = self.get_config_fpath()
-
         if version is None:
             fpath = self.get_config_fpath()
-        elif check_version(version, '52.0.0', '<'):
+        elif check_version(version, '51.0.0', '<'):
             fpath = osp.join(get_conf_path(), 'spyder.ini')
+        else:
+            fpath = self.get_config_fpath()
 
         return fpath
 
@@ -646,7 +647,7 @@ class SpyderUserConfig(UserConfig):
 
         Make a backup of the configuration file.
         """
-        if old_version and check_version(old_version, '52.0.0', '<'):
+        if old_version and check_version(old_version, '51.0.0', '<'):
             name = 'spyder.ini'
             fpath = os.path.join(get_conf_path(), name)
             if version is None:
@@ -671,9 +672,13 @@ class SpyderUserConfig(UserConfig):
             if check_version(old_version, '3.0.0', '<='):
                 name = '{}-{}'.format('defaults', old_version)
                 path = self._module_source_path
-            elif check_version(old_version, '52.0.0', '<'):
+            elif check_version(old_version, '51.0.0', '<'):
                 name = '{}-{}'.format(self._defaults_name_prefix, old_version)
                 path = osp.join(get_conf_path(), 'defaults')
+            else:
+                super_class = super(SpyderUserConfig, self)
+                path, name = super_class.get_defaults_path_name_from_version(
+                    old_version)
         else:
             super_class = super(SpyderUserConfig, self)
             path, name = super_class.get_defaults_path_name_from_version()
@@ -733,7 +738,7 @@ class MultiUserConfig(object):
             'version': version,
             'backup': backup,
             'raw_mode': raw_mode,
-            'remove_obsolete': False,  # This will be handled later on
+            'remove_obsolete': False,  # This will be handled later on if True
         }
 
         for name in name_map:
@@ -747,8 +752,14 @@ class MultiUserConfig(object):
             config_class = self.get_config_class()
             self._configs_map[name] = config_class(**new_kwargs)
 
+        # Remove deprecated options if major version has changed
+        default_config = self._configs_map.get(self.DEFAULT_FILE_NAME)
+        major_ver = default_config._get_major_version(version)
+        major_old_ver = default_config._get_major_version(
+            default_config._old_version)
+
         # Now we can apply remove_obsolete
-        if remove_obsolete:
+        if remove_obsolete or major_ver != major_old_ver:
             for _, config in self._configs_map.items():
                 config._remove_deprecated_options(config._old_version)
 
