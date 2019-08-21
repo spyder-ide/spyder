@@ -343,12 +343,16 @@ class CompletionWidget(QListWidget):
     def item_selected(self, item=None):
         """Perform the item selected action."""
         text = None
+        code_snippets_enabled = getattr(self.textedit, 'code_snippets', False)
         if item is None:
             item = self.currentItem()
             row = self.currentRow()
             selection_index = self.display_index[row]
             completion = self.completion_list[selection_index]
-            text = completion['insertText']
+            if code_snippets_enabled:
+                text = completion['insertText']
+            else:
+                text = completion['label']
         else:
             text = item.text()
 

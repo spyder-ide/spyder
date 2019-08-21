@@ -10,6 +10,7 @@ LSP client, code introspection and linting utilities.
 """
 
 from spyder.config.base import DEV
+from spyder.config.manager import CONF
 
 
 # Language server communication verbosity at server logs.
@@ -191,7 +192,7 @@ TEXT_EDITOR_CAPABILITES = {
         # the end of the snippet. Placeholders with equal identifiers are
         # linked, that is typing in one will update others too.
         "completionItem": {
-            "snippetSupport": True
+            "snippetSupport": CONF.get('editor', 'code_snippets')
         }
     },
 

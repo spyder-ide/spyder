@@ -489,6 +489,9 @@ class CodeEditor(TextEditBaseWidget):
         # Automatic (on the fly) completions
         self.automatic_completions = True
 
+        # Code snippets
+        self.code_snippets = True
+
         self.close_parentheses_enabled = True
         self.close_quotes_enabled = False
         self.add_colons_enabled = True
@@ -742,6 +745,7 @@ class CodeEditor(TextEditBaseWidget):
                      strip_mode=False,
                      intelligent_backspace=True,
                      automatic_completions=True,
+                     code_snippets=True,
                      highlight_current_line=True,
                      highlight_current_cell=True,
                      occurrence_highlighting=True,
@@ -830,6 +834,9 @@ class CodeEditor(TextEditBaseWidget):
 
         # Automatic completions
         self.toggle_automatic_completions(automatic_completions)
+
+        # Code snippets
+        self.toggle_code_snippets(code_snippets)
 
         if cloned_from is not None:
             self.set_as_clone(cloned_from)
@@ -1216,6 +1223,9 @@ class CodeEditor(TextEditBaseWidget):
 
     def toggle_automatic_completions(self, state):
         self.automatic_completions = state
+
+    def toggle_code_snippets(self, state):
+        self.code_snippets = state
 
     def set_close_parentheses_enabled(self, enable):
         """Enable/disable automatic parentheses insertion feature"""

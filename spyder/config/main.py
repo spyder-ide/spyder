@@ -206,6 +206,7 @@ DEFAULTS = [
               'tab_always_indent': False,
               'intelligent_backspace': True,
               'automatic_completions': True,
+              'code_snippets': True,
               'underline_errors': False,
               'highlight_current_line': True,
               'highlight_current_cell': True,
