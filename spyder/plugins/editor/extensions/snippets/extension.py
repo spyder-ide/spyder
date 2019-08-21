@@ -7,6 +7,7 @@
 """Code snippets editor extension."""
 
 # Standard library imports
+import copy
 import functools
 from collections import OrderedDict
 
@@ -32,10 +33,21 @@ from spyder.plugins.editor.extensions.snippets.utils.lexer import tokenize
 MERGE_ALLOWED = {'int', 'name', 'whitespace'}
 
 
+def no_undo(f):
+    f.no_undo = True
+    return f
+
+
 def lock(f):
     @functools.wraps(f)
     def wrapper(self, *args, **kwargs):
+        if not rtree_available:
+            return
+        function_name = f.__name__
         with QMutexLocker(self.modification_lock):
+            if not hasattr(f, 'no_undo'):
+                print(function_name)
+                self.update_undo_stack()
             return f(self, *args, **kwargs)
     return wrapper
 
@@ -76,6 +88,8 @@ class SnippetsExtension(EditorExtension):
         self.event_lock = QMutex()
         self.node_position = {}
         self.snippets_map = {}
+        self.undo_stack = []
+        self.redo_stack = []
         if rtree_available:
             self.index = index.Index()
 
@@ -91,6 +105,8 @@ class SnippetsExtension(EditorExtension):
             self.editor.sig_will_paste_text.connect(self._process_text)
             self.editor.sig_will_remove_selection.connect(
                 self.remove_selection)
+            self.editor.sig_undo.connect(self._undo)
+            self.editor.sig_redo.connect(self._redo)
         else:
             self.editor.sig_key_pressed.disconnect(self._on_key_pressed)
             self.editor.sig_insert_completion.disconnect(self.insert_snippet)
@@ -101,8 +117,48 @@ class SnippetsExtension(EditorExtension):
             self.editor.sig_will_paste_text.disconnect(self._process_text)
             self.editor.sig_will_remove_selection.disconnect(
                 self.remove_selection)
+            self.editor.sig_undo.disconnect(self._undo)
+            self.editor.sig_redo.disconnect(self._redo)
+
+    def update_undo_stack(self):
+        ast_copy = copy.deepcopy(self.ast)
+        info = (ast_copy, self.starting_position, self.active_snippet)
+        self.undo_stack.insert(0, info)
 
     @lock
+    @no_undo
+    def _undo(self):
+        if self.is_snippet_active:
+            print('Undo')
+            if len(self.undo_stack) > 0:
+                info = self.undo_stack.pop(0)
+                ast_copy = copy.deepcopy(self.ast)
+                redo_info = (ast_copy, self.starting_position,
+                             self.active_snippet)
+                self.redo_stack.insert(0, redo_info)
+                self.ast, self.starting_position, self.active_snippet = info
+                self._update_ast()
+                self.editor.clear_extra_selections('code_snippets')
+                self.draw_snippets()
+
+    @lock
+    @no_undo
+    def _redo(self):
+        if self.is_snippet_active:
+            print('Redo')
+            if len(self.redo_stack) > 0:
+                info = self.redo_stack.pop(0)
+                ast_copy = copy.deepcopy(self.ast)
+                undo_info = (ast_copy, self.starting_position,
+                             self.active_snippet)
+                self.undo_stack.insert(0, undo_info)
+                self.ast, self.starting_position, self.active_snippet = info
+                self._update_ast()
+                self.editor.clear_extra_selections('code_snippets')
+                self.draw_snippets()
+
+    @lock
+    @no_undo
     def _redraw_snippets(self):
         if self.is_snippet_active:
             self.editor.clear_extra_selections('code_snippets')
@@ -155,6 +211,7 @@ class SnippetsExtension(EditorExtension):
             else:
                 self.delete_text(line, column)
             self._update_ast()
+            self.redo_stack = []
 
     def delete_text(self, line, column):
         has_selected_text = self.editor.has_selected_text()
@@ -384,6 +441,7 @@ class SnippetsExtension(EditorExtension):
 
     def _insert_snippet_at_node(self, leaf, snippet, new_node,
                                 line, column):
+        self.redo_stack = []
         value = leaf.value
         leaf_position = leaf.position
         if len(leaf_position) == 1:
@@ -648,6 +706,8 @@ class SnippetsExtension(EditorExtension):
         self.snippets_map = {}
         if not partial_reset:
             self.ast = None
+            self.undo_stack = []
+            self.redo_stack = []
             self.is_snippet_active = False
             self.active_snippet = -1
             self.starting_position = None
@@ -753,6 +813,9 @@ class SnippetsExtension(EditorExtension):
         self.editor.insert_text(ast.text(), will_insert_text=False)
         self.editor.document_did_change()
 
+        if not rtree_available:
+            return
+
         new_snippet = True
         if self.is_snippet_active:
             with QMutexLocker(self.modification_lock):
@@ -777,7 +840,7 @@ class SnippetsExtension(EditorExtension):
                             for snippet_node in snippet_nodes:
                                 snippet_node.number = next_number
                             next_number += 1
-                    # snippet_root.placeholder = ast
+                    self.update_undo_stack()
                     self._insert_snippet_at_node(
                         leaf, snippet_root, ast, line, column)
                     self._update_ast()

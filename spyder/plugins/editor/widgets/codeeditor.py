@@ -312,6 +312,12 @@ class CodeEditor(TextEditBaseWidget):
     # Used to indicate that text will be pasted
     sig_will_paste_text = Signal(str)
 
+    # Used to indicate that an undo operation will take place
+    sig_undo = Signal()
+
+    # Used to indicate that an undo operation will take place
+    sig_redo = Signal()
+
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
 
@@ -1884,7 +1890,9 @@ class CodeEditor(TextEditBaseWidget):
         if self.document().isUndoAvailable():
             self.text_version -= 1
             self.skip_rstrip = True
+            self.sig_undo.emit()
             TextEditBaseWidget.undo(self)
+            self.sig_text_was_inserted.emit()
             self.document_did_change('')
             self.skip_rstrip = False
 
@@ -1894,7 +1902,9 @@ class CodeEditor(TextEditBaseWidget):
         if self.document().isRedoAvailable():
             self.text_version += 1
             self.skip_rstrip = True
+            self.sig_redo.emit()
             TextEditBaseWidget.redo(self)
+            self.sig_text_was_inserted.emit()
             self.document_did_change('text')
             self.skip_rstrip = False
 
