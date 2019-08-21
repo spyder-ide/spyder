@@ -34,6 +34,7 @@ def test_space_completion(lsp_codeeditor, qtbot):
     """Validate completion's space character handling."""
     code_editor, _ = lsp_codeeditor
     code_editor.toggle_automatic_completions(False)
+    code_editor.toggle_code_snippets(False)
 
     completion = code_editor.completion_widget
 
@@ -56,6 +57,7 @@ def test_space_completion(lsp_codeeditor, qtbot):
     assert not completion.isVisible()
 
     code_editor.toggle_automatic_completions(True)
+    code_editor.toggle_code_snippets(True)
 
 
 @pytest.mark.slow
@@ -71,6 +73,7 @@ def test_hide_widget_completion(lsp_codeeditor, qtbot):
                   '>>=', '<<=', '**=']
 
     code_editor.toggle_automatic_completions(False)
+    code_editor.toggle_code_snippets(False)
 
     # Set cursor to start
     code_editor.go_to_line(1)
@@ -96,6 +99,7 @@ def test_hide_widget_completion(lsp_codeeditor, qtbot):
     assert completion.isHidden() is True
 
     code_editor.toggle_automatic_completions(True)
+    code_editor.toggle_code_snippets(True)
 
 
 @pytest.mark.slow
@@ -105,6 +109,7 @@ def test_automatic_completions(lsp_codeeditor, qtbot):
     """Test on-the-fly completions."""
     code_editor, _ = lsp_codeeditor
     completion = code_editor.completion_widget
+    code_editor.toggle_code_snippets(False)
 
     # Set cursor to start
     code_editor.go_to_line(1)
@@ -183,6 +188,7 @@ def test_automatic_completions(lsp_codeeditor, qtbot):
         qtbot.keyClicks(code_editor, ' r')
 
     assert "random" in [x['label'] for x in sig.args[0]]
+    code_editor.toggle_code_snippets(True)
 
 
 @pytest.mark.slow
@@ -193,6 +199,7 @@ def test_completions(lsp_codeeditor, qtbot):
     completion = code_editor.completion_widget
 
     code_editor.toggle_automatic_completions(False)
+    code_editor.toggle_code_snippets(False)
 
     # Set cursor to start
     code_editor.go_to_line(1)
@@ -353,6 +360,7 @@ def test_completions(lsp_codeeditor, qtbot):
                                         'math.asinangle\n'\
                                         'math.\n'
     code_editor.toggle_automatic_completions(True)
+    code_editor.toggle_code_snippets(True)
 
 
 @pytest.mark.slow
@@ -364,6 +372,7 @@ def test_fallback_completions(fallback_codeeditor, qtbot):
     completion = code_editor.completion_widget
 
     code_editor.toggle_automatic_completions(False)
+    code_editor.toggle_code_snippets(False)
 
     # Set cursor to start
     code_editor.go_to_line(1)
@@ -411,6 +420,7 @@ def test_fallback_completions(fallback_codeeditor, qtbot):
     assert 'another' not in word_set
 
     code_editor.toggle_automatic_completions(True)
+    code_editor.toggle_code_snippets(True)
 
 
 if __name__ == '__main__':
