@@ -9,11 +9,9 @@ import logging
 import codecs
 
 # Local imports
-from spyder.plugins.editor.extensions.snippets.utils.lexer import (
-    tokenize, token_regex, Token)
-from spyder.plugins.editor.extensions.snippets.utils.parser import (
-    create_LL1_parsing_table)
-import spyder.plugins.editor.extensions.snippets.utils.nodes as nodes
+from spyder.utils.snippets.lexer import tokenize, token_regex, Token
+from spyder.utils.snippets.parser import create_LL1_parsing_table
+import spyder.utils.snippets.nodes as nodes
 
 
 logger = logging.getLogger(__name__)

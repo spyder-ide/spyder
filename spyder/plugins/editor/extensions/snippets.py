@@ -24,10 +24,9 @@ except ImportError:
 # Local imports
 from spyder.py3compat import to_text_string
 from spyder.api.editorextension import EditorExtension
-import spyder.plugins.editor.extensions.snippets.utils.nodes as nodes
-from spyder.plugins.editor.extensions.snippets.utils.ast import (
-    build_snippet_ast)
-from spyder.plugins.editor.extensions.snippets.utils.lexer import tokenize
+# import spyder.plugins.editor.extensions.snippets.utils.nodes as nodes
+from spyder.utils.snippets.ast import (build_snippet_ast, nodes, tokenize)
+# from spyder.plugins.editor.extensions.snippets.utils.lexer import tokenize
 
 
 MERGE_ALLOWED = {'int', 'name', 'whitespace'}

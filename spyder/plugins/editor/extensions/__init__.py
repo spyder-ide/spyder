@@ -15,4 +15,4 @@ from .closebrackets import CloseBracketsExtension
 from .closequotes import CloseQuotesExtension
 from .docstring import DocstringWriterExtension, QMenuOnlyForEnter
 from .manager import EditorExtensionsManager
-from .snippets.extension import SnippetsExtension
+from .snippets import SnippetsExtension
