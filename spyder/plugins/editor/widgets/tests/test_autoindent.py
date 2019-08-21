@@ -227,6 +227,52 @@ def test_issue_7377():
         assert text == expected, comment
 
 
+def test_issue_887():
+    # See spyder-ide/spyder#887
+    text_input_expected_comment = [
+        ("df = pd.read_csv(fpath,\n" +
+         "                 # HINT indexing begins with 0\n" +
+         "                 header=0, # headers 1st row\n" +
+         "                 index_col=0, #timestamps 1st column\n" +
+         "                 # specify as seconds to recognize as epoch timestamp...\n" +
+         "                 # it's local time (i.e...)\n" +
+         "                 # (section 9.10.3, http://......)\n" +
+         "                 date_parser=lambda x: pd.to_datetime(x, units='s'),\n" +
+         "            parse_dates=True)",
+         "df = pd.read_csv(fpath,\n" +
+         "                 # HINT indexing begins with 0\n" +
+         "                 header=0, # headers 1st row\n" +
+         "                 index_col=0, #timestamps 1st column\n" +
+         "                 # specify as seconds to recognize as epoch timestamp...\n" +
+         "                 # it's local time (i.e...)\n" +
+         "                 # (section 9.10.3, http://......)\n" +
+         "                 date_parser=lambda x: pd.to_datetime(x, units='s'),\n" +
+         "                 parse_dates=True)",
+         "Indentation made"),
+        ("df = pd.read_csv(fpath,\n" +
+         "                 # HINT indexing begins with 0\n" +
+         "                 header=0, # headers 1st row\n" +
+         "                 index_col=0, #timestamps 1st column\n" +
+         "                 # specify as seconds to recognize as epoch timestamp...\n" +
+         "                 # it's local time (i.e...)\n" +
+         "                 # (section 9.10.3, http://......)\n" +
+         "                 #date_parser=lambda x: pd.to_datetime(x, units='s'),\n" +
+         "            parse_dates=True)",
+         "df = pd.read_csv(fpath,\n" +
+         "                 # HINT indexing begins with 0\n" +
+         "                 header=0, # headers 1st row\n" +
+         "                 index_col=0, #timestamps 1st column\n" +
+         "                 # specify as seconds to recognize as epoch timestamp...\n" +
+         "                 # it's local time (i.e...)\n" +
+         "                 # (section 9.10.3, http://......)\n" +
+         "                 #date_parser=lambda x: pd.to_datetime(x, units='s'),\n" +
+         "                 parse_dates=True)",
+         "Indentation made"),        ]
+    for text_input, expected, comment in text_input_expected_comment:
+        text = get_indent_fix(text_input)
+        assert text == expected, comment
+
+
 def test_keywords():
     # 'def', 'for', 'if', 'while', 'with', 'class', 'elif', 'except'
     text_input_expected_comment = [
