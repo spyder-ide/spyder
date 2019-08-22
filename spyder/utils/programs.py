@@ -25,8 +25,11 @@ import tempfile
 import threading
 import time
 
+# Third party imports
+import psutil
+
 # Local imports
-from spyder.config.base import is_stable_version
+from spyder.config.base import is_stable_version, running_under_pytest
 from spyder.config.utils import is_anaconda
 from spyder.py3compat import PY2, is_text_string, to_text_string
 from spyder.utils import encoding
@@ -959,3 +962,28 @@ def check_python_help(filename):
             return False
     except:
         return False
+
+
+def is_spyder_process(pid):
+    """
+    Test whether given PID belongs to a Spyder process.
+
+    This is checked by testing the first three command line arguments. This
+    function returns a bool. If there is no process with this PID, then the
+    function returns False.
+    """
+    if not psutil.pid_exists(pid):
+        return False
+
+    p = psutil.Process(int(pid))
+
+    # Valid names for main script
+    names = set(['spyder', 'spyder3', 'spyder.exe', 'spyder3.exe',
+                 'bootstrap.py', 'spyder-script.py'])
+    if running_under_pytest():
+        names.add('runtests.py')
+
+    # Check the first three command line arguments
+    arguments = set(os.path.basename(arg) for arg in p.cmdline()[:3])
+    conditions = [names & arguments]
+    return any(conditions)
