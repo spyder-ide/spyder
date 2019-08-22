@@ -451,12 +451,15 @@ def test_code_snippets(lsp_codeeditor, qtbot):
     # Replace selection
     qtbot.keyClicks(code_editor, 'arg1')
     qtbot.wait(5000)
+    assert len(snippets.snippets_map) == 4
+    assert snippets.active_snippet == 1
 
     qtbot.keyPress(code_editor, Qt.Key_Right, delay=300)
     qtbot.keyPress(code_editor, Qt.Key_Tab)
     qtbot.keyPress(code_editor, Qt.Key_Tab)
     qtbot.keyPress(code_editor, Qt.Key_Tab)
     qtbot.keyPress(code_editor, Qt.Key_Tab)
+    assert snippets.active_snippet == 1
 
     cursor = code_editor.textCursor()
     text1 = cursor.selectedText()
