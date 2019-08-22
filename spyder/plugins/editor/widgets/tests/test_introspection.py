@@ -20,8 +20,15 @@ import pytestqt
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
 
+try:
+    from rtree import index
+    rtree_available = True
+except (OSError, ImportError):
+    rtree_available = False
+
 # Local imports
 from spyder.py3compat import PY2
+from spyder.config.manager import CONF
 
 
 # Location of this file
@@ -365,10 +372,171 @@ def test_completions(lsp_codeeditor, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.first
+@pytest.mark.skipif(not rtree_available,
+                    reason='Only works if libspatialindex is installed')
+def test_code_snippets(lsp_codeeditor, qtbot):
+    assert rtree_available
+    code_editor, lsp = lsp_codeeditor
+    completion = code_editor.completion_widget
+    snippets = code_editor.editor_extensions.get('SnippetsExtension')
+
+    CONF.set('editor', 'code_snippets', True)
+    lsp.update_server_list()
+
+    code_editor.toggle_automatic_completions(False)
+    code_editor.toggle_code_snippets(True)
+    # Set cursor to start
+    code_editor.go_to_line(1)
+
+    qtbot.keyClicks(code_editor, 'import numpy as np')
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.document_did_change()
+
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyClicks(code_editor, 'np.')
+
+    qtbot.keyClicks(code_editor, 'random')
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyClicks(code_editor, '.')
+        code_editor.document_did_change()
+
+    assert 'beta(a, b, size)' in {x['label'] for x in sig.args[0]}
+    qtbot.keyClicks(code_editor, 'bet')
+
+    # Insert snippet
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+
+    expected_insert = 'beta(${1:a}, ${2:b}, ${3:size})$0'
+    insert = sig.args[0][0]
+    assert expected_insert == insert['insertText']
+
+    assert snippets.is_snippet_active
+    assert code_editor.has_selected_text()
+
+    # Rotate through snippet regions
+    cursor = code_editor.textCursor()
+    arg1 = cursor.selectedText()
+    assert 'a' == arg1
+    assert snippets.active_snippet == 1
+
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    cursor = code_editor.textCursor()
+    arg2 = cursor.selectedText()
+    assert 'b' == arg2
+    assert snippets.active_snippet == 2
+
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    cursor = code_editor.textCursor()
+    arg2 = cursor.selectedText()
+    assert 'size' == arg2
+    assert snippets.active_snippet == 3
+
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    assert snippets.active_snippet == 0
+
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    assert snippets.active_snippet == 1
+
+    # Replace selection
+    qtbot.keyClicks(code_editor, 'arg1')
+
+    qtbot.keyPress(code_editor, Qt.Key_Left, delay=300)
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+
+    cursor = code_editor.textCursor()
+    text1 = cursor.selectedText()
+    assert text1 == 'arg1'
+
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    assert snippets.active_snippet == 2
+
+    # Extend text from right
+    qtbot.keyPress(code_editor, Qt.Key_Right, delay=300)
+    qtbot.keyClicks(code_editor, 'eta')
+
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+
+    cursor = code_editor.textCursor()
+    arg2 = cursor.selectedText()
+    assert 'beta' == arg2
+
+    # Extend text from left
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    qtbot.keyPress(code_editor, Qt.Key_Left, delay=300)
+    qtbot.keyClicks(code_editor, 's')
+
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+
+    cursor = code_editor.textCursor()
+    arg3 = cursor.selectedText()
+    assert 'ssize' == arg3
+
+    # Delete snippet region
+    qtbot.keyPress(code_editor, Qt.Key_Left, delay=300)
+    qtbot.keyPress(code_editor, Qt.Key_Backspace)
+    assert len(snippets.snippets_map) == 3
+
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    cursor = code_editor.textCursor()
+    arg1 = cursor.selectedText()
+    assert 'arg1' == arg1
+
+    # Undo action
+    with qtbot.waitSignal(code_editor.sig_undo,
+                          timeout=10000) as sig:
+        code_editor.undo()
+    assert len(snippets.snippets_map) == 4
+
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    cursor = code_editor.textCursor()
+    arg1 = cursor.selectedText()
+    assert 'ssize' == arg1
+
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+
+    # Delete text
+    qtbot.keyPress(code_editor, Qt.Key_Left, delay=300)
+    qtbot.keyPress(code_editor, Qt.Key_Right, delay=300)
+    qtbot.keyPress(code_editor, Qt.Key_Backspace)
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    cursor = code_editor.textCursor()
+    arg1 = cursor.selectedText()
+    assert 'rg1' == arg1
+
+    # Disable snippets
+    qtbot.keyPress(code_editor, Qt.Key_Escape)
+    assert not snippets.is_snippet_active
+
+
+@pytest.mark.slow
+@pytest.mark.first
 @pytest.mark.skipif(not sys.platform.startswith('linux'),
                     reason='Only works on Linux')
+@flaky(max_runs=5)
 def test_fallback_completions(fallback_codeeditor, qtbot):
-    code_editor, fallback = fallback_codeeditor
+    code_editor, _ = fallback_codeeditor
     completion = code_editor.completion_widget
 
     code_editor.toggle_automatic_completions(False)
@@ -387,8 +555,6 @@ def test_fallback_completions(fallback_codeeditor, qtbot):
                           timeout=10000) as sig:
         qtbot.keyClicks(code_editor, 'w')
         qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
-
-    print(fallback.fallback_actor.file_tokens)
 
     assert 'words' in {x['insertText'] for x in sig.args[0]}
 
