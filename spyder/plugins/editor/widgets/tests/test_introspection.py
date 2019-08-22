@@ -390,7 +390,7 @@ def test_code_snippets(lsp_codeeditor, qtbot):
     code_editor.go_to_line(1)
 
     text = """
-    def test_func(x, y1, some_z):
+    def test_func(xlonger, y1, some_z):
         pass
     """
     text = textwrap.dedent(text)
@@ -408,7 +408,7 @@ def test_code_snippets(lsp_codeeditor, qtbot):
         qtbot.keyPress(code_editor, Qt.Key_Tab)
 
     print({x['label'] for x in sig.args[0]})
-    assert 'test_func(x, y1, some_z)' in {
+    assert 'test_func(xlonger, y1, some_z)' in {
         x['label'] for x in sig.args[0]}
     # qtbot.keyClicks(code_editor, 'dum')
 
@@ -417,7 +417,7 @@ def test_code_snippets(lsp_codeeditor, qtbot):
     #                       timeout=10000) as sig:
     #     qtbot.keyPress(code_editor, Qt.Key_Tab)
 
-    expected_insert = 'test_func(${1:x}, ${2:y1}, ${3:some_z})$0'
+    expected_insert = 'test_func(${1:xlonger}, ${2:y1}, ${3:some_z})$0'
     insert = sig.args[0][0]
     assert expected_insert == insert['insertText']
 
@@ -427,7 +427,7 @@ def test_code_snippets(lsp_codeeditor, qtbot):
     # Rotate through snippet regions
     cursor = code_editor.textCursor()
     arg1 = cursor.selectedText()
-    assert 'x' == arg1
+    assert 'xlonger' == arg1
     assert snippets.active_snippet == 1
 
     qtbot.keyPress(code_editor, Qt.Key_Tab)
@@ -447,10 +447,12 @@ def test_code_snippets(lsp_codeeditor, qtbot):
 
     qtbot.keyPress(code_editor, Qt.Key_Tab)
     assert snippets.active_snippet == 1
+    assert code_editor.has_selected_text()
 
     # Replace selection
     qtbot.keyClicks(code_editor, 'arg1')
     qtbot.wait(5000)
+
     assert len(snippets.snippets_map) == 4
     assert snippets.active_snippet == 1
 
