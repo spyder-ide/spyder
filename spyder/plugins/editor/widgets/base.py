@@ -190,11 +190,13 @@ class CompletionWidget(QListWidget):
                 code_snippets_enabled = getattr(
                     self.textedit, 'code_snippets', False)
                 completion_label = completion['filterText']
+                entry_label = completion['label']
                 if not code_snippets_enabled:
-                    completion_label = completion['label']
+                    completion_label = completion['insertText']
+                    entry_label = completion['insertText']
                 icon = icons_map.get(completion['kind'], 'no_match')
                 item = QListWidgetItem(ima.icon(icon),
-                                       completion['label'])
+                                       entry_label)
             else:
                 completion_label = completion[0]
                 item = QListWidgetItem(completion_label)

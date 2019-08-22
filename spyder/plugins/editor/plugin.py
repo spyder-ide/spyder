@@ -2610,6 +2610,8 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_automatic_completions_enabled(
                         autocompletions_o)
                 if codesnippets_n in options:
+                    lsp = self.main.completions.get_client('lsp')
+                    lsp.update_server_list()
                     editorstack.set_code_snippets_enabled(codesnippets_o)
                 if edgeline_n in options:
                     editorstack.set_edgeline_enabled(edgeline_o)
