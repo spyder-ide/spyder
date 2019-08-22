@@ -885,6 +885,10 @@ class MainWindow(QMainWindow):
         self.main_toolbar = self.create_toolbar(_("Main toolbar"),
                                                 "main_toolbar")
 
+        # Switcher instance
+        self.create_switcher()
+        logger.info("Loading switcher...")
+
         # Internal console plugin
         logger.info("Loading internal console...")
         from spyder.plugins.console.plugin import Console
@@ -3213,40 +3217,59 @@ class MainWindow(QMainWindow):
         # TODO: Change to Switcher
         if self.switcher is not None and self.switcher.isVisible():
             self.switcher.hide()
+            self.switcher.clear()
             return
-        self.switcher.clear()
         if symbol:
             self.switcher.set_search_text('@')
         else:
             self.switcher.set_search_text('')
         self.switcher.show()
+        # Note: the +1 pixel on the top makes it look better
+        delta_top = (self.toolbars_menu.geometry().height() +
+                     self.menuBar().geometry().height() + 1)
+        self.switcher.set_position(delta_top)
+
+        # Set initial items
+        self.editor.create_editor_switcher()
 
     def open_symbolfinder(self):
         """Open symbol list management dialog box."""
         # TODO: Change to Switcher
         self.open_switcher(symbol=True)
 
-    def create_switcher(self, mode_symbol, mode_name, mode_handler):
+    def create_switcher(self):
         """Create switcher dialog instance."""
-        # TODO: Change to Switcher
         if self.switcher is None:
             from spyder.widgets.switcher import Switcher
             self.switcher = Switcher(self)
+
+            # Add base modes to the switcher
             self.switcher.add_mode('>', _('Commands'))
             self.switcher.add_mode('?', _('Help'))
-            self.switcher.add_mode(':', _('Go to Line'))
-            self.switcher.add_mode('@', _('Go to Symbol in File'))
-            self.switcher.sig_mode_selected.connect(self.handle_switcher_modes)
+            self.switcher.sig_mode_selected.connect(
+                self.handle_base_switcher_modes)
 
-    def handle_switcher_modes(self, mode):
+        return self.switcher
+
+    def create_commands_switcher(self):
+        """."""
+        pass
+
+    def create_help_switcher(self):
+        """."""
+        pass
+
+    def handle_base_switcher_modes(self, mode):
         """Handle switcher mode change."""
-        if mode == ':':
-            self.editor.create_line_switcher(self.switcher)
-        elif mode == '@':
-            self.editor.create_symbol_switcher(self.switcher)
+        self.switcher.clear()
+        print(mode)
+        if mode == '>':
+            self.create_commands_switcher()
+        elif mode == '?':
+            self.create_help_switcher()
         elif mode == '':
             # Get list with all the plugins with tabs?
-            self.create_plugins_switcher()
+            self.editor.create_editor_switcher()
 
     # ---- Check for Spyder Updates
     def _check_updates_ready(self):

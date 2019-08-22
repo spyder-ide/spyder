@@ -474,7 +474,7 @@ class Switcher(QDialog):
         self.filter = KeyPressFilter()
 
         # Widgets setup
-        # self.setWindowFlags(Qt.Popup | Qt.FramelessWindowHint)
+        self.setWindowFlags(Qt.Popup | Qt.FramelessWindowHint)
         self.setWindowOpacity(0.95)
         self.edit.installEventFilter(self.filter)
         self.edit.setPlaceholderText(help_text if help_text else '')
@@ -501,6 +501,7 @@ class Switcher(QDialog):
         self.edit.returnPressed.connect(self.enter)
         self.list.clicked.connect(self.enter)
         self.list.clicked.connect(self.edit.setFocus)
+        self.edit.setFocus()
 
     # --- Helper methods
     def _add_item(self, item):
@@ -514,6 +515,10 @@ class Switcher(QDialog):
     # --- API
     def clear(self):
         """Remove all items from the list and clear the search text."""
+        try:
+            self.sig_item_selected.disconnect()
+        except Exception:
+            pass
         self.set_placeholder_text('')
         self.model.beginResetModel()
         self.model.clear()
@@ -654,6 +659,22 @@ class Switcher(QDialog):
                     item.set_section_visible(True)
 
         self.proxy.sortBy('_score')
+
+    def set_position(self, top):
+        """Positions the dialog."""
+        parent = self.parent()
+        if parent is not None:
+            geo = parent.geometry()
+            width = self.list.width()  # This has been set in setup
+            left = parent.geometry().width()/2 - width/2
+
+            while parent:
+                geo = parent.geometry()
+                top += geo.top()
+                left += geo.left()
+                parent = parent.parent()
+
+            self.move(round(left), top)
 
     # --- Qt overrides
     # ------------------------------------------------------------------------

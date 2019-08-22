@@ -1049,8 +1049,12 @@ class Editor(SpyderPluginWidget):
         if not editorstack.data:
             self.__load_temp_file()
         self.add_dockwidget()
-        # TODO: Change for add_mode and handler
-        self.main.add_to_switcher("", _("Editor"), self.switcher_handler)
+
+        # Add modes to switcher
+        self.main.switcher.add_mode(':', _('Go to Line'))
+        self.main.switcher.add_mode('@', _('Go to Symbol in File'))
+        self.main.switcher.sig_mode_selected.connect(
+            self.handle_switcher_modes)
 
     def update_font(self):
         """Update font from Preferences"""
@@ -1450,6 +1454,37 @@ class Editor(SpyderPluginWidget):
     def get_current_tab_manager(self):
         """Get the widget with the TabWidget attribute."""
         return self.get_current_editorstack()
+
+    def handle_switcher_modes(self, mode):
+        """Handle switcher for registered modes."""
+        self.main.switcher.clear()
+        if mode == '@':
+            self.create_symbol_switcher()
+        elif mode == ':':
+            self.create_line_switcher()
+
+    def create_editor_switcher(self):
+        """Populate switcher with ."""
+        self.main.switcher.set_placeholder_text('Select a ref to Checkout')
+        self.main.switcher.add_item(title='Create New Branch',
+                                    action_item=True,
+                                    icon=ima.icon('MessageBoxInformation'))
+        self.main.switcher.add_item(title='master', description='123123')
+        self.main.switcher.add_item(title='develop', description='1231232a')
+        self.main.switcher.add_separator()
+        self.main.switcher.add_item(title='other', description='q2211231232a')
+
+    def create_line_switcher(self):
+        """Populate switcher with line info."""
+        self.main.switcher.set_placeholder_text('Select line')
+        self.main.switcher.add_item(title=_('Current line, type something'),
+                                    action_item=True)
+
+    def create_symbol_switcher(self):
+        """Populate switcher with symbol info."""
+        self.main.switcher.set_placeholder_text('Select symbol')
+        self.main.switcher.add_item(title=_('Some symbol'))
+        self.main.switcher.add_item(title=_('another symbol'))
 
     #------ Refresh methods
     def refresh_file_dependent_actions(self):
