@@ -1021,22 +1021,23 @@ class CodeEditor(TextEditBaseWidget):
             comparison_key = 'label'
             if self.code_snippets:
                 available_completions = {x['label']: x for x in completions}
+                t1 = available_completions.pop(text1, None)
+                t2 = available_completions.pop(text2, None)
+
+                if t1 is not None:
+                    if t1['insertText'] != t1[comparison_key]:
+                        available_completions[t1[comparison_key]] = t1
+
+                if t2 is not None:
+                    t1_label = t1[comparison_key] if t1 else None
+                    if t2[comparison_key] != t1_label:
+                        if t2['insertText'] != t2[comparison_key]:
+                            available_completions[t2[comparison_key]] = t2
             else:
                 comparison_key = 'insertText'
                 available_completions = {x['insertText']: x
                                          for x in completions[::-1]}
-            t1 = available_completions.pop(text1, None)
-            t2 = available_completions.pop(text2, None)
-
-            if t1 is not None:
-                if t1['insertText'] != t1[comparison_key]:
-                    available_completions[t1[comparison_key]] = t1
-
-            if t2 is not None:
-                t1_label = t1[comparison_key] if t1 else None
-                if t2[comparison_key] != t1_label:
-                    if t2['insertText'] != t2[comparison_key]:
-                        available_completions[t2[comparison_key]] = t2
+                available_completions.pop(text1, None)
 
             completions = list(available_completions.values())
 

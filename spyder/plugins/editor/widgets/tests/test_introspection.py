@@ -368,7 +368,7 @@ def test_completions(lsp_codeeditor, qtbot):
 @pytest.mark.skipif(not sys.platform.startswith('linux'),
                     reason='Only works on Linux')
 def test_fallback_completions(fallback_codeeditor, qtbot):
-    code_editor, _ = fallback_codeeditor
+    code_editor, fallback = fallback_codeeditor
     completion = code_editor.completion_widget
 
     code_editor.toggle_automatic_completions(False)
@@ -382,11 +382,13 @@ def test_fallback_completions(fallback_codeeditor, qtbot):
     code_editor.document_did_change()
 
     # Enter for new line
-    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyClicks(code_editor, 'w')
         qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
+
+    print(fallback.fallback_actor.file_tokens)
 
     assert 'words' in {x['insertText'] for x in sig.args[0]}
 
