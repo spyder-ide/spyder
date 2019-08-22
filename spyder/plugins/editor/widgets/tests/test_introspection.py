@@ -388,36 +388,32 @@ def test_code_snippets(lsp_codeeditor, qtbot):
     # Set cursor to start
     code_editor.go_to_line(1)
 
-    qtbot.keyClicks(code_editor, 'import numpy as np')
+    qtbot.keyClicks(code_editor, 'import os')
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
 
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
-    try:
-        with qtbot.waitSignal(completion.sig_show_completions,
-                              timeout=10000) as sig:
-            qtbot.keyClicks(code_editor, 'np.')
-    except pytestqt.exceptions.TimeoutError:
-        with qtbot.waitSignal(completion.sig_show_completions,
-                              timeout=10000) as sig:
-            qtbot.keyPress(code_editor, Qt.Key_Tab)
-
-    qtbot.keyClicks(code_editor, 'random')
-
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
-        qtbot.keyClicks(code_editor, '.')
-        code_editor.document_did_change()
+        qtbot.keyClicks(code_editor, 'os.')
 
-    assert 'beta(a, b, size)' in {x['label'] for x in sig.args[0]}
-    qtbot.keyClicks(code_editor, 'bet')
+    # qtbot.keyClicks(code_editor, 'random')
+
+    # with qtbot.waitSignal(completion.sig_show_completions,
+    #                       timeout=10000) as sig:
+    #     qtbot.keyClicks(code_editor, '.')
+    #     code_editor.document_did_change()
+
+    assert 'setpriority(which, who, priority)' in {
+        x['label'] for x in sig.args[0]}
+    qtbot.keyClicks(code_editor, 'setpri')
 
     # Insert snippet
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
 
-    expected_insert = 'beta(${1:a}, ${2:b}, ${3:size})$0'
+    expected_insert = 'setpriority(${1:which}, ${2:who}, ${3:priority})$0'
     insert = sig.args[0][0]
     assert expected_insert == insert['insertText']
 
@@ -427,19 +423,19 @@ def test_code_snippets(lsp_codeeditor, qtbot):
     # Rotate through snippet regions
     cursor = code_editor.textCursor()
     arg1 = cursor.selectedText()
-    assert 'a' == arg1
+    assert 'which' == arg1
     assert snippets.active_snippet == 1
 
     qtbot.keyPress(code_editor, Qt.Key_Tab)
     cursor = code_editor.textCursor()
     arg2 = cursor.selectedText()
-    assert 'b' == arg2
+    assert 'who' == arg2
     assert snippets.active_snippet == 2
 
     qtbot.keyPress(code_editor, Qt.Key_Tab)
     cursor = code_editor.textCursor()
     arg2 = cursor.selectedText()
-    assert 'size' == arg2
+    assert 'priority' == arg2
     assert snippets.active_snippet == 3
 
     qtbot.keyPress(code_editor, Qt.Key_Tab)
@@ -467,7 +463,7 @@ def test_code_snippets(lsp_codeeditor, qtbot):
 
     # Extend text from right
     qtbot.keyPress(code_editor, Qt.Key_Right, delay=300)
-    qtbot.keyClicks(code_editor, 'eta')
+    qtbot.keyClicks(code_editor, 'sthere')
 
     qtbot.keyPress(code_editor, Qt.Key_Tab)
     qtbot.keyPress(code_editor, Qt.Key_Tab)
@@ -476,7 +472,7 @@ def test_code_snippets(lsp_codeeditor, qtbot):
 
     cursor = code_editor.textCursor()
     arg2 = cursor.selectedText()
-    assert 'beta' == arg2
+    assert 'whosthere' == arg2
 
     # Extend text from left
     qtbot.keyPress(code_editor, Qt.Key_Tab)
@@ -490,7 +486,7 @@ def test_code_snippets(lsp_codeeditor, qtbot):
 
     cursor = code_editor.textCursor()
     arg3 = cursor.selectedText()
-    assert 'ssize' == arg3
+    assert 'spriority' == arg3
 
     # Delete snippet region
     qtbot.keyPress(code_editor, Qt.Key_Left, delay=300)
@@ -514,7 +510,7 @@ def test_code_snippets(lsp_codeeditor, qtbot):
     qtbot.keyPress(code_editor, Qt.Key_Tab)
     cursor = code_editor.textCursor()
     arg1 = cursor.selectedText()
-    assert 'ssize' == arg1
+    assert 'spriority' == arg1
 
     qtbot.keyPress(code_editor, Qt.Key_Tab)
     qtbot.keyPress(code_editor, Qt.Key_Tab)
