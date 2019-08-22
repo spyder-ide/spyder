@@ -450,9 +450,9 @@ def test_code_snippets(lsp_codeeditor, qtbot):
 
     # Replace selection
     qtbot.keyClicks(code_editor, 'arg1')
-    qtbot.wait(1000)
+    qtbot.wait(5000)
 
-    qtbot.keyPress(code_editor, Qt.Key_Left, delay=300)
+    qtbot.keyPress(code_editor, Qt.Key_Right, delay=300)
     qtbot.keyPress(code_editor, Qt.Key_Tab)
     qtbot.keyPress(code_editor, Qt.Key_Tab)
     qtbot.keyPress(code_editor, Qt.Key_Tab)
