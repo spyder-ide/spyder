@@ -29,7 +29,6 @@ class PdbHistory(HistoryManager):
         The profile parameter is ignored, but must exist for compatibility with
         the parent class.
         """
-
         return get_conf_path('pdb_history.sqlite')
 
 

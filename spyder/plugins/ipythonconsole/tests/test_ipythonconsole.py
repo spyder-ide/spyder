@@ -685,9 +685,7 @@ def test_save_history_dbg(ipyconsole, qtbot):
     assert '!aa = 10' in control.toPlainText()
 
     # Open new widget
-    client_name = ipyconsole.get_current_client().get_name()
     ipyconsole.create_new_client()
-    assert client_name != ipyconsole.get_current_client().get_name()
 
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
