@@ -24,7 +24,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QLabel,
                             QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.config.base import get_image_path, running_in_mac_app
+from spyder.config.base import get_image_path, running_in_mac_app, MAC_APP_NAME
 from spyder.config.gui import get_shortcut, is_dark_interface
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import icon_manager as ima
@@ -59,11 +59,16 @@ class MacApplication(QApplication):
 
     def __init__(self, *args):
         QApplication.__init__(self, *args)
+        self._has_started = False
+        self._pending_file_open = []
 
     def event(self, event):
         if event.type() == QEvent.FileOpen:
             fname = str(event.file())
-            self.sig_open_external_file.emit(fname)
+            if self._has_started:
+                self.sig_open_external_file.emit(fname)
+            elif MAC_APP_NAME not in fname:
+                self._pending_file_open.append(fname)
         return QApplication.event(self, event)
 
 
