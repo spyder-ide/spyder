@@ -236,14 +236,14 @@ def test_completions(lsp_codeeditor, qtbot):
         assert [x['label'] for x in sig.args[0]][0] in ["hypot(x, y)",
                                                         "hypot(*coordinates)"]
 
-    assert code_editor.toPlainText() == 'import math\nmath.hypot(x, y)'
+    assert code_editor.toPlainText() == 'import math\nmath.hypot'
 
     # enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
 
     # Complete math.h() -> math.degrees()
-    qtbot.keyClicks(code_editor, 'math.h')
-    # qtbot.keyPress(code_editor, Qt.Key_Left, delay=300)
+    qtbot.keyClicks(code_editor, 'math.h(')
+    qtbot.keyPress(code_editor, Qt.Key_Left, delay=300)
     qtbot.keyClicks(code_editor, 'y')
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
@@ -354,10 +354,10 @@ def test_completions(lsp_codeeditor, qtbot):
     except pytestqt.exceptions.TimeoutError:
         pass
 
-    assert code_editor.toPlainText() == 'import math\nmath.hypot(x, y)\n'\
-                                        'math.hypot(x, y)\nmath.asin(x)\n'\
-                                        'math.f\nmath.asin(x)\n'\
-                                        'math.asin(x)angle\n'\
+    assert code_editor.toPlainText() == 'import math\nmath.hypot\n'\
+                                        'math.hypot()\nmath.asin\n'\
+                                        'math.f\nmath.asin\n'\
+                                        'math.asinangle\n'\
                                         'math.\n'
     code_editor.toggle_automatic_completions(True)
     code_editor.toggle_code_snippets(True)
