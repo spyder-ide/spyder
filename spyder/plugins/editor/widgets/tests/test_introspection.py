@@ -393,9 +393,14 @@ def test_code_snippets(lsp_codeeditor, qtbot):
         code_editor.document_did_change()
 
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
-    with qtbot.waitSignal(completion.sig_show_completions,
-                          timeout=10000) as sig:
-        qtbot.keyClicks(code_editor, 'np.')
+    try:
+        with qtbot.waitSignal(completion.sig_show_completions,
+                              timeout=10000) as sig:
+            qtbot.keyClicks(code_editor, 'np.')
+    except pytestqt.exceptions.TimeoutError:
+        with qtbot.waitSignal(completion.sig_show_completions,
+                              timeout=10000) as sig:
+            qtbot.keyPress(code_editor, Qt.Key_Tab)
 
     qtbot.keyClicks(code_editor, 'random')
 
