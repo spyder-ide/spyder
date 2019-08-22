@@ -18,7 +18,7 @@ from qtpy.QtCore import Qt, Slot, QMutex, QMutexLocker
 try:
     from rtree import index
     rtree_available = True
-except ImportError:
+except (OSError, ImportError):
     rtree_available = False
 
 # Local imports
