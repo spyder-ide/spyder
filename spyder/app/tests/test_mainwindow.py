@@ -1338,8 +1338,8 @@ def test_stop_dbg(main_window, qtbot):
     qtbot.mouseClick(stop_debug_button, Qt.LeftButton)
     qtbot.wait(1000)
 
-    # Assert that there is only one entry in the Variable Explorer
-    assert nsb.editor.source_model.rowCount() == 1
+    # Assert there are only two ipdb prompts in the console
+    assert shell._control.toPlainText().count('ipdb') == 2
 
     # Remove breakpoint and close test file
     main_window.editor.clear_all_breakpoints()
@@ -1362,10 +1362,6 @@ def test_change_cwd_dbg(main_window, qtbot):
     control = main_window.ipyconsole.get_focus_widget()
     control.setFocus()
 
-    # Import os to get cwd
-    with qtbot.waitSignal(shell.executed):
-        shell.execute('import os')
-
     # Click the debug button
     debug_action = main_window.debug_toolbar_actions[0]
     debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
@@ -1378,8 +1374,11 @@ def test_change_cwd_dbg(main_window, qtbot):
                                        refresh_explorer=True)
     qtbot.wait(1000)
 
+    shell.clear_console()
+    qtbot.wait(500)
+
     # Get cwd in console
-    qtbot.keyClicks(control, 'os.getcwd()')
+    qtbot.keyClicks(control, '!import os; os.getcwd()')
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.wait(1000)
 
@@ -1822,7 +1821,8 @@ def test_custom_layouts(main_window, qtbot):
                                 print(widget)  # spyder: test-skip
                                 assert widget.isVisible()
 
-# @pytest.mark.slow
+
+@pytest.mark.slow
 @flaky(max_runs=3)
 def test_save_on_runfile(main_window, qtbot):
     """Test that layout are showing the expected widgets visible."""
@@ -1848,7 +1848,7 @@ def test_save_on_runfile(main_window, qtbot):
     os.remove(test_file_copy)
 
 
-# @pytest.mark.slow
+@pytest.mark.slow
 def test_pylint_follows_file(qtbot, tmpdir, main_window):
     """Test that file editor focus change updates pylint combobox filename."""
     for plugin in main_window.thirdparty_plugins:
@@ -1886,6 +1886,8 @@ def test_pylint_follows_file(qtbot, tmpdir, main_window):
         assert fname == pylint_plugin.get_filename()
 
 
+@pytest.mark.slow
+@flaky(max_runs=3)
 def test_report_comms_error(qtbot, main_window):
     """Test if a comms error is correctly displayed."""
     CONF.set('main', 'show_internal_errors', True)

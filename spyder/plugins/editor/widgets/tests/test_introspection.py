@@ -117,9 +117,7 @@ def test_automatic_completions(lsp_codeeditor, qtbot):
     assert "from" in [x['label'] for x in sig.args[0]]
     # qtbot.keyPress(code_editor, Qt.Key_Tab)
 
-    with qtbot.waitSignal(completion.sig_show_completions,
-                          timeout=10000) as sig:
-        qtbot.keyClicks(code_editor, 'rom')
+    qtbot.keyClicks(code_editor, 'rom')
 
     # Due to automatic completion, the completion widget may appear before
     stop = False
