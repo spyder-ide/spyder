@@ -529,6 +529,12 @@ def test_code_snippets(lsp_codeeditor, qtbot):
     qtbot.keyPress(code_editor, Qt.Key_Escape)
     assert not snippets.is_snippet_active
 
+    CONF.set('editor', 'code_snippets', False)
+    lsp.update_server_list()
+
+    code_editor.toggle_automatic_completions(True)
+    code_editor.toggle_code_snippets(True)
+
 
 @pytest.mark.slow
 @pytest.mark.first
