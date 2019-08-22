@@ -10,6 +10,7 @@
 import os
 import os.path as osp
 import random
+import textwrap
 import sys
 
 # Third party imports
@@ -388,32 +389,35 @@ def test_code_snippets(lsp_codeeditor, qtbot):
     # Set cursor to start
     code_editor.go_to_line(1)
 
-    qtbot.keyClicks(code_editor, 'import os')
+    text = """
+    def test_func(x, y1, some_z):
+        pass
+    """
+    text = textwrap.dedent(text)
+
+    # qtbot.keyClicks(code_editor, 'import json')
+    code_editor.insert_text(text)
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
 
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
-    with qtbot.waitSignal(completion.sig_show_completions,
-                          timeout=10000) as sig:
-        qtbot.keyClicks(code_editor, 'os.')
-
-    # qtbot.keyClicks(code_editor, 'random')
-
-    # with qtbot.waitSignal(completion.sig_show_completions,
-    #                       timeout=10000) as sig:
-    #     qtbot.keyClicks(code_editor, '.')
-    #     code_editor.document_did_change()
-
-    assert 'setpriority(which, who, priority)' in {
-        x['label'] for x in sig.args[0]}
-    qtbot.keyClicks(code_editor, 'setpri')
-
-    # Insert snippet
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
+    qtbot.keyClicks(code_editor, 'test_')
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
 
-    expected_insert = 'setpriority(${1:which}, ${2:who}, ${3:priority})$0'
+    print({x['label'] for x in sig.args[0]})
+    assert 'test_func(x, y1, some_z)' in {
+        x['label'] for x in sig.args[0]}
+    # qtbot.keyClicks(code_editor, 'dum')
+
+    # Insert snippet
+    # with qtbot.waitSignal(completion.sig_show_completions,
+    #                       timeout=10000) as sig:
+    #     qtbot.keyPress(code_editor, Qt.Key_Tab)
+
+    expected_insert = 'test_func(${1:x}, ${2:y1}, ${3:some_z})$0'
     insert = sig.args[0][0]
     assert expected_insert == insert['insertText']
 
@@ -423,19 +427,19 @@ def test_code_snippets(lsp_codeeditor, qtbot):
     # Rotate through snippet regions
     cursor = code_editor.textCursor()
     arg1 = cursor.selectedText()
-    assert 'which' == arg1
+    assert 'x' == arg1
     assert snippets.active_snippet == 1
 
     qtbot.keyPress(code_editor, Qt.Key_Tab)
     cursor = code_editor.textCursor()
     arg2 = cursor.selectedText()
-    assert 'who' == arg2
+    assert 'y1' == arg2
     assert snippets.active_snippet == 2
 
     qtbot.keyPress(code_editor, Qt.Key_Tab)
     cursor = code_editor.textCursor()
     arg2 = cursor.selectedText()
-    assert 'priority' == arg2
+    assert 'some_z' == arg2
     assert snippets.active_snippet == 3
 
     qtbot.keyPress(code_editor, Qt.Key_Tab)
@@ -463,7 +467,7 @@ def test_code_snippets(lsp_codeeditor, qtbot):
 
     # Extend text from right
     qtbot.keyPress(code_editor, Qt.Key_Right, delay=300)
-    qtbot.keyClicks(code_editor, 'sthere')
+    qtbot.keyClicks(code_editor, '_var')
 
     qtbot.keyPress(code_editor, Qt.Key_Tab)
     qtbot.keyPress(code_editor, Qt.Key_Tab)
@@ -472,7 +476,7 @@ def test_code_snippets(lsp_codeeditor, qtbot):
 
     cursor = code_editor.textCursor()
     arg2 = cursor.selectedText()
-    assert 'whosthere' == arg2
+    assert 'y1_var' == arg2
 
     # Extend text from left
     qtbot.keyPress(code_editor, Qt.Key_Tab)
@@ -486,7 +490,7 @@ def test_code_snippets(lsp_codeeditor, qtbot):
 
     cursor = code_editor.textCursor()
     arg3 = cursor.selectedText()
-    assert 'spriority' == arg3
+    assert 'ssome_z' == arg3
 
     # Delete snippet region
     qtbot.keyPress(code_editor, Qt.Key_Left, delay=300)
@@ -510,7 +514,7 @@ def test_code_snippets(lsp_codeeditor, qtbot):
     qtbot.keyPress(code_editor, Qt.Key_Tab)
     cursor = code_editor.textCursor()
     arg1 = cursor.selectedText()
-    assert 'spriority' == arg1
+    assert 'ssome_z' == arg1
 
     qtbot.keyPress(code_editor, Qt.Key_Tab)
     qtbot.keyPress(code_editor, Qt.Key_Tab)
