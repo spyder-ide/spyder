@@ -1256,6 +1256,36 @@ class DirView(QTreeView):
             self.setRowHidden(index.row(), index.parent(), True)
 
 
+class DirNameProxyModel(QSortFilterProxyModel):
+    """
+    https://stackoverflow.com/a/20715646
+    """
+
+    def lessThan(self, left, right):
+        """"""
+        # If sorting by file names column
+        if self.sortColumn() == 0:
+            fsm = self.sourceModel()
+            asc = self.sortOrder() == Qt.AscendingOrder
+
+            leftFileInfo = fsm.fileInfo(left)
+            rightFileInfo = fsm.fileInfo(right)
+
+            # If DotAndDot move in the beginning
+            if fsm.data(left).toString() == '..':
+                return asc
+            if fsm.data(right).toString() == '..':
+                return not asc
+
+            # Move dirs upper
+            if not leftFileInfo.isDir() and rightFileInfo.isDir():
+                return not asc
+            if leftFileInfo.isDir() and not rightFileInfo.isDir():
+                return asc
+
+        return QSortFilterProxyModel.lessThan(self, left, right)
+
+
 class ProxyModel(QSortFilterProxyModel):
     """Proxy model: filters tree view"""
     def __init__(self, parent):
@@ -1298,6 +1328,7 @@ class ProxyModel(QSortFilterProxyModel):
             if index.data() == root_dir:
                 return osp.join(self.root_path, root_dir)
         return QSortFilterProxyModel.data(self, index, role)
+
 
 class FilteredDirView(DirView):
     """Filtered file/directory tree view"""
