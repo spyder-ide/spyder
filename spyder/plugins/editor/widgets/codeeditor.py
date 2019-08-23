@@ -75,6 +75,7 @@ from spyder.plugins.completion.decorators import (
     request, handles, class_register)
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.outlineexplorer.languages import PythonCFM
+from spyder.plugins.outlineexplorer.api import OutlineExplorerData as OED
 from spyder.py3compat import PY2, to_text_string, is_string
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils import icon_manager as ima
@@ -242,6 +243,7 @@ class CodeEditor(TextEditBaseWidget):
     sig_run_cell_and_advance = Signal()
     sig_run_cell = Signal()
     sig_re_run_last_cell = Signal()
+    sig_debug_cell = Signal()
     go_to_definition_regex = Signal(str, int, int)
     sig_cursor_position_changed = Signal(int, int)
     sig_new_file = Signal(str)
@@ -2115,6 +2117,43 @@ class CodeEditor(TextEditBaseWidget):
         self.show_code_analysis_results(line_number, data)
         return self.get_position('cursor')
 
+    def cell_list(self):
+        """Get the outline explorer data for all cells."""
+        for oedata in self.outlineexplorer_data_list():
+            if oedata.def_type == OED.CELL:
+                yield oedata
+
+    def get_cell_code(self, cell):
+        """
+        Get cell code for a given cell.
+
+        If the cell doesn't exist, raises an exception
+        """
+        selected_block = None
+        if is_string(cell):
+            for oedata in self.cell_list():
+                if oedata.def_name == cell:
+                    selected_block = oedata.block
+                    break
+        else:
+            if cell == 0:
+                selected_block = self.document().firstBlock()
+            else:
+                cell_list = list(self.cell_list())
+                if cell <= len(cell_list):
+                    selected_block = cell_list[cell - 1].block
+
+        if not selected_block:
+            raise RuntimeError("Cell {} not found.".format(repr(cell)))
+
+        cursor = QTextCursor(selected_block)
+        cell_code, _ = self.get_cell_as_executable_code(cursor)
+        return cell_code
+
+    def get_cell_count(self):
+        """Get number of cells in document."""
+        return 1 + len(list(self.cell_list()))
+
 
     #------Tasks management
     def go_to_next_todo(self):
@@ -3142,6 +3181,11 @@ class CodeEditor(TextEditBaseWidget):
             icon=ima.icon('run_selection'),
             shortcut=get_shortcut('editor', 'run selection'),
             triggered=self.sig_run_selection.emit)
+
+        self.debug_cell_action = create_action(
+            self, _("Debug cell"), icon=ima.icon('debug_cell'),
+            shortcut=get_shortcut('editor', 'debug cell'),
+            triggered=self.sig_debug_cell.emit)
 
         # Zoom actions
         zoom_in_action = create_action(

@@ -83,6 +83,8 @@ class DebuggingWidget(RichJupyterWidget):
     # --- Public API --------------------------------------------------
     def write_to_stdin(self, line):
         """Send raw characters to the IPython kernel through stdin"""
+        self._control.insert_text(line + '\n')
+        self._reading = False
         self.kernel_client.input(line)
 
     def get_spyder_breakpoints(self):
@@ -131,6 +133,7 @@ class DebuggingWidget(RichJupyterWidget):
         # before entering readline mode.
         self.kernel_client.iopub_channel.flush()
         self._input_ready = True
+        self._executing = False
 
         # While the widget thinks only one input is going on,
         # other functions can be sending messages to the kernel.

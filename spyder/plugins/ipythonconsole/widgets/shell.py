@@ -12,6 +12,7 @@ Shell Widget for the IPython Console
 import ast
 import os
 import uuid
+import re
 from textwrap import dedent
 
 # Third party imports
@@ -99,6 +100,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             'pdb_continue': self.pdb_continue,
             'get_breakpoints': self.get_spyder_breakpoints,
             'save_files': self.handle_save_files,
+            'run_cell': self.handle_run_cell,
+            'cell_count': self.handle_cell_count,
+            'current_filename': self.handle_current_filename,
         }
 
         for request_id in handlers:
@@ -454,18 +458,68 @@ the sympy module (e.g. plot)
                 self.silent_execute(command)
 
     # ---- Spyder-kernels methods -------------------------------------------
+    def get_editor(self, filename):
+        """Get editor for filename and set it as the current editor."""
+        editorstack = self.get_editorstack()
+        if editorstack is None:
+            return None
+
+        if not filename:
+            return None
+
+        index = editorstack.has_filename(filename)
+        if index is None:
+            return None
+
+        editor = editorstack.data[index].editor
+        editorstack.set_stack_index(index)
+        return editor
+
     def get_editorstack(self):
         """Get the current editorstack."""
         plugin = self.ipyclient.plugin
         if plugin.main.editor is not None:
             editor = plugin.main.editor
             return editor.get_current_editorstack()
+        raise RuntimeError('No editorstack found.')
 
     def handle_save_files(self):
         """Save the open files."""
+        self.get_editorstack().save()
+
+    def handle_run_cell(self, cell_name, filename):
+        """
+        Get cell code from cell name and file name.
+        """
         editorstack = self.get_editorstack()
-        if editorstack is not None:
-            editorstack.save()
+        editorstack.save()
+        editor = self.get_editor(filename)
+
+        if editor is None:
+            raise RuntimeError(
+                "File {} not open in the editor".format(filename))
+
+        editorstack.last_cell_call = (filename, cell_name)
+
+        # The file is open, load code from editor
+        return editor.get_cell_code(cell_name)
+
+    def handle_cell_count(self, filename):
+        """Get number of cells in file to loop."""
+        editorstack = self.get_editorstack()
+        editorstack.save()
+        editor = self.get_editor(filename)
+
+        if editor is None:
+            raise RuntimeError(
+                "File {} not open in the editor".format(filename))
+
+        # The file is open, get cell count from editor
+        return editor.get_cell_count()
+
+    def handle_current_filename(self):
+        """Get the current filename."""
+        return self.get_editorstack().get_current_finfo().filename
 
     # ---- Private methods (overrode by us) ---------------------------------
 
