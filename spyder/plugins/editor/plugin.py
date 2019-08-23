@@ -33,13 +33,14 @@ from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.config.gui import get_shortcut
 from spyder.config.manager import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
-                                 get_filter)
+                                 get_filter, is_ubuntu)
 from spyder.py3compat import PY2, qbytearray_to_str, to_text_string
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action, add_actions, MENU_SEPARATOR
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.findreplace import FindReplace
+from spyder.utils.sourcecode import shorten_paths
 from spyder.plugins.editor.confpage import EditorConfigPage
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
 from spyder.plugins.editor.widgets.editor import (EditorMainWindow, Printer,
@@ -1055,6 +1056,8 @@ class Editor(SpyderPluginWidget):
         self.main.switcher.add_mode('@', _('Go to Symbol in File'))
         self.main.switcher.sig_mode_selected.connect(
             self.handle_switcher_modes)
+        self.main.switcher.sig_item_selected.connect(
+            self.handle_switcher_selection)
 
     def update_font(self):
         """Update font from Preferences"""
@@ -1451,37 +1454,60 @@ class Editor(SpyderPluginWidget):
 
     #------ FileSwitcher API
     # TODO: Check need with Switcher
-    def get_current_tab_manager(self):
-        """Get the widget with the TabWidget attribute."""
-        return self.get_current_editorstack()
-
     def handle_switcher_modes(self, mode):
         """Handle switcher for registered modes."""
-        self.main.switcher.clear()
         if mode == '@':
             self.create_symbol_switcher()
         elif mode == ':':
             self.create_line_switcher()
+        elif mode == '':
+            # Each plugin that wants to attach to the switcher should do this?
+            self.create_editor_switcher()
+
+    def handle_switcher_selection(self, mode):
+        """Handle item selection of the switcher."""
+        for data in self.get_current_editorstack().data:
+            print(data)
 
     def create_editor_switcher(self):
         """Populate switcher with ."""
+        self.main.switcher.clear()
         self.main.switcher.set_placeholder_text('Select a ref to Checkout')
-        self.main.switcher.add_item(title='Create New Branch',
-                                    action_item=True,
-                                    icon=ima.icon('MessageBoxInformation'))
-        self.main.switcher.add_item(title='master', description='123123')
-        self.main.switcher.add_item(title='develop', description='1231232a')
-        self.main.switcher.add_separator()
-        self.main.switcher.add_item(title='other', description='q2211231232a')
+
+        if sys.platform == 'darwin':
+            scale_factor = 0.9
+        elif os.name == 'nt':
+            scale_factor = 0.8
+        elif is_ubuntu():
+            scale_factor = 0.7
+        else:
+            scale_factor = 0.9
+
+        paths = [data.filename for data in self.get_current_editorstack().data]
+        save_statuses = [data.newly_created
+                         for data in self.get_current_editorstack().data]
+
+        short_paths = shorten_paths(paths, save_statuses)
+
+        for idx, data in enumerate(self.get_current_editorstack().data):
+            path = data.filename
+            title = osp.basename(path)
+            icon = ima.get_icon_by_extension_or_type(path, scale_factor)
+            self.main.switcher.add_item(title=title,
+                                        description=short_paths[idx],
+                                        icon=icon,
+                                        section=self.get_plugin_title())
 
     def create_line_switcher(self):
         """Populate switcher with line info."""
+        self.main.switcher.clear()
         self.main.switcher.set_placeholder_text('Select line')
         self.main.switcher.add_item(title=_('Current line, type something'),
                                     action_item=True)
 
     def create_symbol_switcher(self):
         """Populate switcher with symbol info."""
+        self.main.switcher.clear()
         self.main.switcher.set_placeholder_text('Select symbol')
         self.main.switcher.add_item(title=_('Some symbol'))
         self.main.switcher.add_item(title=_('another symbol'))

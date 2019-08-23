@@ -3252,24 +3252,19 @@ class MainWindow(QMainWindow):
         return self.switcher
 
     def create_commands_switcher(self):
-        """."""
-        pass
+        """Create commands switcher."""
+        self.switcher.clear()
 
     def create_help_switcher(self):
-        """."""
-        pass
+        """Create help switcher."""
+        self.switcher.clear()
 
     def handle_base_switcher_modes(self, mode):
         """Handle switcher mode change."""
-        self.switcher.clear()
-        print(mode)
         if mode == '>':
             self.create_commands_switcher()
         elif mode == '?':
             self.create_help_switcher()
-        elif mode == '':
-            # Get list with all the plugins with tabs?
-            self.editor.create_editor_switcher()
 
     # ---- Check for Spyder Updates
     def _check_updates_ready(self):

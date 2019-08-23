@@ -16,8 +16,8 @@ import sys
 from qtpy.QtCore import (QEvent, QObject, QSize, QSortFilterProxyModel, Qt,
                          Signal, Slot)
 from qtpy.QtGui import QStandardItem, QStandardItemModel
-from qtpy.QtWidgets import (QApplication, QDialog, QLineEdit, QListWidgetItem,
-                            QVBoxLayout, QListView)
+from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
+                            QLineEdit, QListWidgetItem, QVBoxLayout, QListView)
 
 # Local imports
 from spyder.config.base import _
@@ -269,6 +269,10 @@ class SwitcherItem(SwitcherBaseItem):
 
         if icon:
             self.setIcon(icon)
+            # TODO: Change fixed icon size value
+            self._icon_width = 20
+        else:
+            self._icon_width = 0
 
         self._set_styles()
         self._set_rendered_text()
@@ -290,9 +294,12 @@ class SwitcherItem(SwitcherBaseItem):
             section = ''
 
         padding = self._PADDING
-        width = self._width
+        width = self._width - self._icon_width
         height = self._HEIGHT
+        self.setSizeHint(QSize(width, height))
+
         shortcut = '&lt;' + self._shortcut + '&gt;' if self._shortcut else ''
+
         text = self._TEMPLATE.format(width=width, height=height, title=title,
                                      section=section, description=description,
                                      padding=padding, shortcut=shortcut,
@@ -400,7 +407,7 @@ class SwitcherItem(SwitcherBaseItem):
         self._set_rendered_text()
 
     def set_action_item(self, value):
-        """Enable/disbale the action type for the item."""
+        """Enable/disable the action type for the item."""
         self._action_item = value
         self._set_rendered_text()
 
@@ -481,8 +488,9 @@ class Switcher(QDialog):
         self.list.setMinimumWidth(self._MIN_WIDTH)
         self.list.setItemDelegate(HTMLDelegate(self))
         self.list.setFocusPolicy(Qt.NoFocus)
-        self.list.setSelectionBehavior(self.list.SelectRows)
+        self.list.setSelectionBehavior(self.list.SelectItems)
         self.list.setSelectionMode(self.list.SingleSelection)
+        self.list.setVerticalScrollMode(QAbstractItemView.ScrollPerItem)
         self.proxy.setSourceModel(self.model)
         self.list.setModel(self.proxy)
 
@@ -515,10 +523,6 @@ class Switcher(QDialog):
     # --- API
     def clear(self):
         """Remove all items from the list and clear the search text."""
-        try:
-            self.sig_item_selected.disconnect()
-        except Exception:
-            pass
         self.set_placeholder_text('')
         self.model.beginResetModel()
         self.model.clear()
