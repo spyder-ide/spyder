@@ -1384,7 +1384,7 @@ class BrowseHistoryMixin(object):
             else:
                 cursor_position = self.get_position('cursor')
                 # Removing text from cursor to the end of the line
-                self.remove_text('cursor', 'eol')
+                self.remove_text('cursor', 'eof')
                 # Inserting history text
                 self.insert_text(text)
                 self.set_cursor_position(cursor_position)
