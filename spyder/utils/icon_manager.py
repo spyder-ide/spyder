@@ -145,6 +145,8 @@ _qtaargs = {
     'run_selection':           [('spyder.run-selection',), {'color': MAIN_FG_COLOR}],
     'run_cell':                [('spyder.cell-code', 'spyder.cell-border', 'spyder.cell-play'),
                                 {'options': [{'color': '#fff683'}, {'color': MAIN_FG_COLOR}, {'color': 'green'}]}],
+    'debug_cell':              [('spyder.cell-code', 'spyder.cell-border', 'spyder.cell-play'),
+                                {'options': [{'color': '#fff683'}, {'color': MAIN_FG_COLOR}, {'color': '#3775a9'}]}],
     'run_cell_advance':        [('spyder.cell-code', 'spyder.cell-border', 'spyder.cell-play', 'spyder.cell-next'),
                                 {'options': [{'color': '#fff683'}, {'color': MAIN_FG_COLOR,}, {'color': 'green'}, {'color': 'red'}]}],
     'todo_list':               [('fa.th-list', 'fa.check'), {'options': [{'color': '#999999'}, {'offset': (0.0, 0.2), 'color': '#3775a9', 'color_disabled': '#748fa6'}]}],
