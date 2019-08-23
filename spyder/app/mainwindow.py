@@ -3455,7 +3455,11 @@ def run_spyder(app, options, args):
         app.sig_open_external_file.connect(main.open_external_file)
         app._has_started = True
         if hasattr(app, '_pending_file_open'):
-            args = app._pending_file_open + args
+            if args:
+                args = app._pending_file_open + args
+            else:
+                args = app._pending_file_open
+
 
     # Open external files passed as args
     if args:
