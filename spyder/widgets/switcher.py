@@ -741,6 +741,10 @@ class Switcher(QDialog):
         # https://doc.qt.io/qt-5/qitemselectionmodel.html#SelectionFlag-enum
         selection_model.setCurrentIndex(index, selection_model.ClearAndSelect)
 
+        # Ensure that the selected item is visible
+        proxy_index = self.proxy.mapFromSource(index)
+        self.list.scrollTo(proxy_index, QAbstractItemView.EnsureVisible)
+
     def previous_row(self):
         """Select previous row in list widget."""
         steps = 1

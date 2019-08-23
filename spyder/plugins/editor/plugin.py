@@ -1464,11 +1464,6 @@ class Editor(SpyderPluginWidget):
             # Each plugin that wants to attach to the switcher should do this?
             self.create_editor_switcher()
 
-    def handle_switcher_selection(self, mode):
-        """Handle item selection of the switcher."""
-        for data in self.get_current_editorstack().data:
-            print(data)
-
     def create_editor_switcher(self):
         """Populate switcher with ."""
         self.main.switcher.clear()
@@ -1496,14 +1491,43 @@ class Editor(SpyderPluginWidget):
             self.main.switcher.add_item(title=title,
                                         description=short_paths[idx],
                                         icon=icon,
-                                        section=self.get_plugin_title())
+                                        section=self.get_plugin_title(),
+                                        data=data)
 
     def create_line_switcher(self):
         """Populate switcher with line info."""
+        # TODO: Refactor with base editor switcher
         self.main.switcher.clear()
         self.main.switcher.set_placeholder_text('Select line')
-        self.main.switcher.add_item(title=_('Current line, type something'),
-                                    action_item=True)
+
+        if sys.platform == 'darwin':
+            scale_factor = 0.9
+        elif os.name == 'nt':
+            scale_factor = 0.8
+        elif is_ubuntu():
+            scale_factor = 0.7
+        else:
+            scale_factor = 0.9
+
+        paths = [data.filename for data in self.get_current_editorstack().data]
+        save_statuses = [data.newly_created
+                         for data in self.get_current_editorstack().data]
+
+        short_paths = shorten_paths(paths, save_statuses)
+
+        for idx, data in enumerate(self.get_current_editorstack().data):
+            path = data.filename
+            title = osp.basename(path)
+            lines = data.editor.get_line_count()
+            icon = ima.get_icon_by_extension_or_type(path, scale_factor)
+            line_template_title = "{title} [{lines} {text}]"
+            title = line_template_title.format(title=title, lines=lines,
+                                               text=_("lines"))
+            self.main.switcher.add_item(title=title,
+                                        description=short_paths[idx],
+                                        icon=icon,
+                                        section=self.get_plugin_title(),
+                                        data=data)
 
     def create_symbol_switcher(self):
         """Populate switcher with symbol info."""
@@ -1511,6 +1535,34 @@ class Editor(SpyderPluginWidget):
         self.main.switcher.set_placeholder_text('Select symbol')
         self.main.switcher.add_item(title=_('Some symbol'))
         self.main.switcher.add_item(title=_('another symbol'))
+
+    def handle_switcher_selection(self, item, mode, search_text):
+        """Handle item selection of the switcher."""
+#        print([item.get_data(), mode, search_text])
+        if mode == '@':
+            self.create_symbol_switcher_handler(item)
+        elif mode == ':':
+            self.create_line_switcher_handler(item, search_text)
+        elif mode == '':
+            # Each plugin that wants to attach to the switcher should do this?
+            if item.get_section() == self.get_plugin_title():
+                data = item.get_data()
+                self.create_editor_switcher_handler(data)
+
+    def create_editor_switcher_handler(self, data):
+        """Populate switcher with FileInfo data."""
+        self.set_current_filename(data.filename)
+        self.main.switcher.hide()
+
+    def create_line_switcher_handler(self, item, search_text):
+        """Populate switcher with line info."""
+        # TODO: Think way to handle different filtring for line number
+        line_number = search_text.split(':')[0]
+        self.go_to_line(int(line_number))
+
+    def create_symbol_switcher_handler(self, item):
+        """Populate switcher with symbol info."""
+        pass
 
     #------ Refresh methods
     def refresh_file_dependent_actions(self):
