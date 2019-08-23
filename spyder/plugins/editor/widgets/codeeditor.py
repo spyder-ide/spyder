@@ -75,13 +75,15 @@ from spyder.plugins.completion.decorators import (
     request, handles, class_register)
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.outlineexplorer.languages import PythonCFM
-from spyder.py3compat import PY2, to_text_string
+from spyder.plugins.outlineexplorer.api import OutlineExplorerData as OED
+from spyder.py3compat import PY2, to_text_string, is_string
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
                                     mimedata2url)
 from spyder.utils.vcs import get_git_remotes, remote_to_url
+from spyder.utils.qstringhelpers import qstring_length
 
 
 try:
@@ -241,6 +243,7 @@ class CodeEditor(TextEditBaseWidget):
     sig_run_cell_and_advance = Signal()
     sig_run_cell = Signal()
     sig_re_run_last_cell = Signal()
+    sig_debug_cell = Signal()
     go_to_definition_regex = Signal(str, int, int)
     sig_cursor_position_changed = Signal(int, int)
     sig_new_file = Signal(str)
@@ -1536,7 +1539,7 @@ class CodeEditor(TextEditBaseWidget):
         extra_selections = []
         self.found_results = []
         for match in regobj.finditer(text):
-            pos1, pos2 = match.span()
+            pos1, pos2 = sh.get_span(match)
             selection = TextDecoration(self.textCursor())
             selection.format.setBackground(self.found_results_color)
             selection.cursor.setPosition(pos1)
@@ -2114,6 +2117,43 @@ class CodeEditor(TextEditBaseWidget):
         self.show_code_analysis_results(line_number, data)
         return self.get_position('cursor')
 
+    def cell_list(self):
+        """Get the outline explorer data for all cells."""
+        for oedata in self.outlineexplorer_data_list():
+            if oedata.def_type == OED.CELL:
+                yield oedata
+
+    def get_cell_code(self, cell):
+        """
+        Get cell code for a given cell.
+
+        If the cell doesn't exist, raises an exception
+        """
+        selected_block = None
+        if is_string(cell):
+            for oedata in self.cell_list():
+                if oedata.def_name == cell:
+                    selected_block = oedata.block
+                    break
+        else:
+            if cell == 0:
+                selected_block = self.document().firstBlock()
+            else:
+                cell_list = list(self.cell_list())
+                if cell <= len(cell_list):
+                    selected_block = cell_list[cell - 1].block
+
+        if not selected_block:
+            raise RuntimeError("Cell {} not found.".format(repr(cell)))
+
+        cursor = QTextCursor(selected_block)
+        cell_code, _ = self.get_cell_as_executable_code(cursor)
+        return cell_code
+
+    def get_cell_count(self):
+        """Get number of cells in document."""
+        return 1 + len(list(self.cell_list()))
+
 
     #------Tasks management
     def go_to_next_todo(self):
@@ -2255,7 +2295,7 @@ class CodeEditor(TextEditBaseWidget):
         Remove suffix from current line (there should not be any selection)
         """
         cursor = self.textCursor()
-        cursor.setPosition(cursor.position()-len(suffix),
+        cursor.setPosition(cursor.position() - qstring_length(suffix),
                            QTextCursor.KeepAnchor)
         if to_text_string(cursor.selectedText()) == suffix:
             cursor.removeSelectedText()
@@ -2354,6 +2394,72 @@ class CodeEditor(TextEditBaseWidget):
         if len(spaces) - 1 >= group:
             return len(spaces[group])
 
+    def __get_brackets(self, line_text, closing_brackets=[]):
+        """
+        Return unmatched opening brackets and left-over closing brackets.
+
+        (str, []) -> ([(pos, bracket)], [bracket], comment_pos)
+
+        Iterate through line_text to find unmatched brackets.
+
+        Returns three objects as a tuple:
+        1) bracket_stack:
+            a list of tuples of pos and char of each unmatched opening bracket
+        2) closing brackets:
+            this line's unmatched closing brackets + arg closing_brackets.
+            If this line ad no closing brackets, arg closing_brackets might
+            be matched with previously unmatched opening brackets in this line.
+        3) Pos at which a # comment begins. -1 if it doesn't.'
+        """
+        # Remove inline comment and check brackets
+        bracket_stack = []  # list containing this lines unmatched opening
+        # same deal, for closing though. Ignore if bracket stack not empty,
+        # since they are mismatched in that case.
+        bracket_unmatched_closing = []
+        comment_pos = -1
+        deactivate = None
+        escaped = False
+        pos, c = None, None
+        for pos, c in enumerate(line_text):
+            # Handle '\' inside strings
+            if escaped:
+                escaped = False
+            # Handle strings
+            elif deactivate:
+                if c == deactivate:
+                    deactivate = None
+                elif c == "\\":
+                    escaped = True
+            elif c in ["'", '"']:
+                deactivate = c
+            # Handle comments
+            elif c == "#":
+                comment_pos = pos
+                break
+            # Handle brackets
+            elif c in ('(', '[', '{'):
+                bracket_stack.append((pos, c))
+            elif c in (')', ']', '}'):
+                if bracket_stack and bracket_stack[-1][1] == \
+                        {')': '(', ']': '[', '}': '{'}[c]:
+                    bracket_stack.pop()
+                else:
+                    bracket_unmatched_closing.append(c)
+        del pos, deactivate, escaped
+        # If no closing brackets are left over from this line,
+        # check the ones from previous iterations' prevlines
+        if not bracket_unmatched_closing:
+            for c in list(closing_brackets):
+                if bracket_stack and bracket_stack[-1][1] == \
+                        {')': '(', ']': '[', '}': '{'}[c]:
+                    bracket_stack.pop()
+                    closing_brackets.remove(c)
+                else:
+                    break
+        del c
+        closing_brackets = bracket_unmatched_closing + closing_brackets
+        return (bracket_stack, closing_brackets, comment_pos)
+
     def fix_indent(self, *args, **kwargs):
         """Indent line according to the preferences"""
         if self.is_python_like():
@@ -2383,170 +2489,117 @@ class CodeEditor(TextEditBaseWidget):
     def fix_indent_smart(self, forward=True, comment_or_string=False):
         """
         Fix indentation (Python only, no text selection)
+
         forward=True: fix indent only if text is not enough indented
                       (otherwise force indent)
         forward=False: fix indent only if text is too much indented
                        (otherwise force unindent)
 
+        comment_or_string: Do not adjust indent level for
+            unmatched opening brackets and keywords
+
         Returns True if indent needed to be fixed
+
+        Assumes self.is_python_like() to return True
         """
         cursor = self.textCursor()
         block_nb = cursor.blockNumber()
         # find the line that contains our scope
-        diff_paren = 0
-        diff_brack = 0
-        diff_curly = 0
-        add_indent = False
+        line_in_block = False
+        visual_indent = False
+        add_indent = 0  # How many levels of indent to add
         prevline = None
         prevtext = ""
+
+        closing_brackets = []
         for prevline in range(block_nb-1, -1, -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
 
-            # Remove inline comment
-            inline_comment = prevtext.find('#')
-            if inline_comment != -1:
-                prevtext = prevtext[:inline_comment]
+            bracket_stack, closing_brackets, comment_pos = self.__get_brackets(
+                prevtext, closing_brackets)
+            if comment_pos > -1:
+                prevtext = prevtext[:comment_pos].rstrip()
 
-            if ((self.is_python_like() and
-               not prevtext.strip().startswith('#') and prevtext) or
-               prevtext):
+            if not prevtext:
+                continue
 
-                if not "return" in prevtext.strip().split()[:1] and \
-                    (prevtext.strip().endswith(')') or
-                     prevtext.strip().endswith(']') or
-                     prevtext.strip().endswith('}')):
+            if prevtext.endswith((':', '\\')):
+                # Presume a block was started
+                line_in_block = True  # add one level of indent to correct_indent
+                # Does this variable actually do *anything* of relevance?
+                # comment_or_string = True
 
-                    comment_or_string = True  # prevent further parsing
+            if bracket_stack or not closing_brackets:
+                break
 
-                elif prevtext.strip().endswith(':') and self.is_python_like():
-                    add_indent = True
-                    comment_or_string = True
-                if (prevtext.count(')') > prevtext.count('(')):
-                    diff_paren = prevtext.count(')') - prevtext.count('(')
-                elif (prevtext.count(']') > prevtext.count('[')):
-                    diff_brack = prevtext.count(']') - prevtext.count('[')
-                elif (prevtext.count('}') > prevtext.count('{')):
-                    diff_curly = prevtext.count('}') - prevtext.count('{')
-                elif diff_paren or diff_brack or diff_curly:
-                    diff_paren += prevtext.count(')') - prevtext.count('(')
-                    diff_brack += prevtext.count(']') - prevtext.count('[')
-                    diff_curly += prevtext.count('}') - prevtext.count('{')
-                    if not (diff_paren or diff_brack or diff_curly):
-                        break
+        # splits of prevtext happen a few times. Let's just do it once
+        words = re.split(r'[\s\(\[\{\}\]\)]', prevtext.lstrip())
+
+        if line_in_block:
+            add_indent += 1
+
+        if prevtext and not comment_or_string:
+            if bracket_stack:
+                # Hanging indent
+                if prevtext.endswith(('(', '[', '{')):
+                    add_indent += 1
+                    if words[0] in ('class', 'def', 'elif', 'except', 'for',
+                                    'if', 'while', 'with'):
+                        add_indent += 1
+                    elif not (  # I'm not sure this block should exist here
+                            (
+                                self.tab_stop_width_spaces
+                                if self.indent_chars == '\t' else
+                                len(self.indent_chars)
+                            ) * 2 < len(prevtext)):
+                        visual_indent = True
                 else:
-                    break
+                    # There's stuff after unmatched opening brackets
+                    visual_indent = True
+            elif (words[-1] in ('continue', 'break', 'pass',)
+                  or words[0] == "return" and not line_in_block
+                  ):
+                add_indent -= 1
 
         if prevline:
-            correct_indent = self.get_block_indentation(prevline)
+            prevline_indent = self.get_block_indentation(prevline)
         else:
-            correct_indent = 0
+            prevline_indent = 0
+
+        if visual_indent:  # can only be true if bracket_stack
+            correct_indent = bracket_stack[-1][0] + 1
+        elif add_indent:
+            # Indent
+            if self.indent_chars == '\t':
+                correct_indent = prevline_indent + self.tab_stop_width_spaces * add_indent
+            else:
+                correct_indent = prevline_indent + len(self.indent_chars) * add_indent
+        else:
+            correct_indent = prevline_indent
+
+        # TODO untangle this block
+        if prevline and not bracket_stack and not prevtext.endswith(':'):
+            cur_indent = self.get_block_indentation(block_nb - 1)
+            is_blank = not self.get_text_line(block_nb - 1).strip()
+            trailing_text = self.get_text_line(block_nb).strip()
+            # If brackets are matched and no block gets opened
+            # Match the above line's indent and nudge to the next multiple of 4
+
+            if cur_indent < prevline_indent and (trailing_text or is_blank):
+                # if line directly above is blank or there is text after cursor
+                # Ceiling division
+                correct_indent = -(-cur_indent // len(self.indent_chars)) * \
+                    len(self.indent_chars)
 
         indent = self.get_block_indentation(block_nb)
 
-        if add_indent:
-            if self.indent_chars == '\t':
-                correct_indent += self.tab_stop_width_spaces
-            else:
-                correct_indent += len(self.indent_chars)
-
-        if not comment_or_string:
-            if prevtext.endswith(':') and self.is_python_like():
-                # Indent
-                if self.indent_chars == '\t':
-                    correct_indent += self.tab_stop_width_spaces
-                else:
-                    correct_indent += len(self.indent_chars)
-            elif self.is_python_like() and \
-                (prevtext.endswith('continue') or
-                 prevtext.endswith('break') or
-                 prevtext.endswith('pass') or
-                 ("return" in prevtext.strip().split()[:1] and
-                  len(re.split(r'\(|\{|\[', prevtext)) ==
-                  len(re.split(r'\)|\}|\]', prevtext)))):
-                # Unindent
-                if self.indent_chars == '\t':
-                    correct_indent -= self.tab_stop_width_spaces
-                else:
-                    correct_indent -= len(self.indent_chars)
-            elif len(re.split(r'\(|\{|\[', prevtext)) > 1:
-
-                # Check if all braces are matching using a stack
-                stack = ['dummy']  # Dummy elemet to avoid index errors
-                deactivate = None
-                for c in prevtext:
-                    if deactivate is not None:
-                        if c == deactivate:
-                            deactivate = None
-                    elif c in ["'", '"']:
-                        deactivate = c
-                    elif c in ['(', '[','{']:
-                        stack.append(c)
-                    elif c == ')' and stack[-1] == '(':
-                        stack.pop()
-                    elif c == ']' and stack[-1] == '[':
-                        stack.pop()
-                    elif c == '}' and stack[-1] == '{':
-                        stack.pop()
-
-                if len(stack) == 1:  # all braces matching
-                    pass
-
-                # Hanging indent
-                # find out if the last one is (, {, or []})
-                # only if prevtext is long that the hanging indentation
-                elif (re.search(r'[\(|\{|\[]\s*$', prevtext) is not None and
-                      ((self.indent_chars == '\t' and
-                        self.tab_stop_width_spaces * 2 < len(prevtext)) or
-                       (self.indent_chars.startswith(' ') and
-                        len(self.indent_chars) * 2 < len(prevtext)))):
-                    if self.indent_chars == '\t':
-                        correct_indent += self.tab_stop_width_spaces * 2
-                    else:
-                        correct_indent += len(self.indent_chars) * 2
-                else:
-                    rlmap = {")":"(", "]":"[", "}":"{"}
-                    for par in rlmap:
-                        i_right = prevtext.rfind(par)
-                        if i_right != -1:
-                            prevtext = prevtext[:i_right]
-                            for _i in range(len(prevtext.split(par))):
-                                i_left = prevtext.rfind(rlmap[par])
-                                if i_left != -1:
-                                    prevtext = prevtext[:i_left]
-                                else:
-                                    break
-                    else:
-                        if prevtext.strip():
-                            if len(re.split(r'\(|\{|\[', prevtext)) > 1:
-                                #correct indent only if there are still opening brackets
-                                prevexpr = re.split(r'\(|\{|\[', prevtext)[-1]
-                                correct_indent = len(prevtext)-len(prevexpr)
-                            else:
-                                correct_indent = len(prevtext)
-
-        if not (diff_paren or diff_brack or diff_curly) and \
-           not prevtext.endswith(':') and prevline:
-            cur_indent = self.get_block_indentation(block_nb - 1)
-            is_blank = not self.get_text_line(block_nb - 1).strip()
-            prevline_indent = self.get_block_indentation(prevline)
-            trailing_text = self.get_text_line(block_nb).strip()
-
-            if cur_indent < prevline_indent and \
-               (trailing_text or is_blank):
-                if cur_indent % len(self.indent_chars) == 0:
-                    correct_indent = cur_indent
-                else:
-                    correct_indent = cur_indent \
-                                   + (len(self.indent_chars) -
-                                      cur_indent % len(self.indent_chars))
-
-        if (forward and indent >= correct_indent) or \
-           (not forward and indent <= correct_indent):
-            # No indentation fix is necessary
-            return False
-
-        if correct_indent >= 0:
+        if correct_indent >= 0 and not (
+                indent == correct_indent or
+                forward and indent > correct_indent or
+                not forward and indent < correct_indent
+                ):
+            # Insert the determined indent
             cursor = self.textCursor()
             cursor.movePosition(QTextCursor.StartOfBlock)
             if self.indent_chars == '\t':
@@ -2560,6 +2613,7 @@ class CodeEditor(TextEditBaseWidget):
                 indent_text = ' '*correct_indent
             cursor.insertText(indent_text)
             return True
+        return False
 
     @Slot()
     def clear_all_output(self):
@@ -3128,6 +3182,11 @@ class CodeEditor(TextEditBaseWidget):
             shortcut=get_shortcut('editor', 'run selection'),
             triggered=self.sig_run_selection.emit)
 
+        self.debug_cell_action = create_action(
+            self, _("Debug cell"), icon=ima.icon('debug_cell'),
+            shortcut=get_shortcut('editor', 'debug cell'),
+            triggered=self.sig_debug_cell.emit)
+
         # Zoom actions
         zoom_in_action = create_action(
             self, _("Zoom in"), icon=ima.icon('zoom_in'),
@@ -3412,7 +3471,7 @@ class CodeEditor(TextEditBaseWidget):
         while match:
             for key, value in list(match.groupdict().items()):
                 if value:
-                    start, end = match.span()
+                    start, end = sh.get_span(match)
 
                     # Get cursor selection if pattern found
                     cursor = self.cursorForPosition(coordinates)
@@ -3634,10 +3693,13 @@ class CodeEditor(TextEditBaseWidget):
         # remove spaces on the right
         text = cursor.selectedText()
         strip = text.rstrip()
+        # I think all the characters we can strip are in a single QChar.
+        # Therefore there shouldn't be any length problems.
+        N_strip = qstring_length(text[len(strip):])
 
-        if line_range[0] + len(strip) < line_range[1]:
+        if N_strip > 0:
             # Select text to remove
-            cursor.setPosition(line_range[0] + len(strip))
+            cursor.setPosition(line_range[1] - N_strip)
             cursor.setPosition(line_range[1],
                                QTextCursor.KeepAnchor)
             cursor.removeSelectedText()
@@ -3645,7 +3707,7 @@ class CodeEditor(TextEditBaseWidget):
             # Correct last change position
             self.last_change_position = line_range[1]
             self.last_position = self.textCursor().position()
-            return line_range[1] - (line_range[0] + len(strip))
+            return N_strip
         return 0
 
     def mouseMoveEvent(self, event):
