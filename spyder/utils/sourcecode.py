@@ -13,8 +13,14 @@ import os
 import os.path as osp
 import sys
 
+# Third party imports
+from qtpy.QtGui import QIcon
+
+# Local imports
 from spyder.config.base import _
 from spyder.py3compat import iteritems, PY2
+from spyder.utils import icon_manager as ima
+
 if PY2:
     from itertools import izip as zip
 
@@ -312,3 +318,68 @@ def shorten_paths(path_list, is_unsaved):
     recurse_level({i: pl for i, pl in enumerate(path_list) if pl})
 
     return [path.rstrip(os.sep) for path in new_path_list]
+
+
+def get_symbol_list(outlineexplorer_data_list):
+    """
+    Get the list of symbols present in the outline explorer data list.
+
+    Returns a list with line number, definition name, fold and token.
+    """
+    symbol_list = []
+    for oedata in outlineexplorer_data_list:
+        if oedata.is_class_or_function():
+            symbol_list.append((
+                oedata.block.firstLineNumber(),
+                oedata.def_name, oedata.fold_level,
+                oedata.get_token()))
+    return sorted(symbol_list)
+
+
+def get_python_symbol_icons(symbols):
+    """Return a list of icons for symbols of a python file."""
+    class_icon = ima.icon('class')
+    method_icon = ima.icon('method')
+    function_icon = ima.icon('function')
+    private_icon = ima.icon('private1')
+    super_private_icon = ima.icon('private2')
+
+    # line - 1, name, fold level
+    fold_levels = sorted(list(set([s[2] for s in symbols])))
+    parents = [None]*len(symbols)
+    icons = [None]*len(symbols)
+    indexes = []
+
+    parent = None
+    for level in fold_levels:
+        for index, item in enumerate(symbols):
+            line, name, fold_level, token = item
+            if index in indexes:
+                continue
+
+            if fold_level == level:
+                indexes.append(index)
+                parent = item
+            else:
+                parents[index] = parent
+
+    for index, item in enumerate(symbols):
+        parent = parents[index]
+
+        if item[-1] == 'def':
+            icons[index] = function_icon
+        elif item[-1] == 'class':
+            icons[index] = class_icon
+        else:
+            icons[index] = QIcon()
+
+        if parent is not None:
+            if parent[-1] == 'class':
+                if item[-1] == 'def' and item[1].startswith('__'):
+                    icons[index] = super_private_icon
+                elif item[-1] == 'def' and item[1].startswith('_'):
+                    icons[index] = private_icon
+                else:
+                    icons[index] = method_icon
+
+    return icons

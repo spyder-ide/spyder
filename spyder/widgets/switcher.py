@@ -582,8 +582,9 @@ class Switcher(QDialog):
             search_text = self.search_text()
 
         # Check exited mode
-        if mode and self.search_text() == '':
+        if self.search_text() == '':
             self._mode_on = ''
+            self.clear()
             self.sig_mode_selected.emit(self._mode_on)
             return
 
@@ -614,6 +615,7 @@ class Switcher(QDialog):
             item = self.model.item(idx)
 
             if not self._is_separator(item):
+                rich_title = rich_title.replace(" ", "&nbsp;")
                 item.set_rich_title(rich_title)
 
             item.set_score(score_value)

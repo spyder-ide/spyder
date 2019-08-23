@@ -40,7 +40,6 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action, add_actions, MENU_SEPARATOR
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.findreplace import FindReplace
-from spyder.utils.sourcecode import shorten_paths
 from spyder.plugins.editor.confpage import EditorConfigPage
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
 from spyder.plugins.editor.widgets.editor import (EditorMainWindow, Printer,
@@ -1470,8 +1469,21 @@ class Editor(SpyderPluginWidget):
         #    self.introspector.change_extra_path(
         #            self.main.get_spyder_pythonpath())
 
-    #------ FileSwitcher API
-    # TODO: Check need with Switcher
+    # ------ Switcher Setup
+    def get_file_icon(self, path):
+        """Get icon for file by extension."""
+
+        if sys.platform == 'darwin':
+            scale_factor = 0.9
+        elif os.name == 'nt':
+            scale_factor = 0.8
+        elif is_ubuntu():
+            scale_factor = 0.7
+        else:
+            scale_factor = 0.9
+
+        return ima.get_icon_by_extension_or_type(path, scale_factor)
+
     def handle_switcher_modes(self, mode):
         """Handle switcher for registered modes."""
         if mode == '@':
@@ -1484,28 +1496,19 @@ class Editor(SpyderPluginWidget):
 
     def create_editor_switcher(self):
         """Populate switcher with ."""
-        self.main.switcher.clear()
-        self.main.switcher.set_placeholder_text('Select a ref to Checkout')
-
-        if sys.platform == 'darwin':
-            scale_factor = 0.9
-        elif os.name == 'nt':
-            scale_factor = 0.8
-        elif is_ubuntu():
-            scale_factor = 0.7
-        else:
-            scale_factor = 0.9
+        self.main.switcher.set_placeholder_text(
+            _('Start typing the name of an open file'))
 
         paths = [data.filename for data in self.get_current_editorstack().data]
         save_statuses = [data.newly_created
                          for data in self.get_current_editorstack().data]
 
-        short_paths = shorten_paths(paths, save_statuses)
+        short_paths = sourcecode.shorten_paths(paths, save_statuses)
 
         for idx, data in enumerate(self.get_current_editorstack().data):
             path = data.filename
             title = osp.basename(path)
-            icon = ima.get_icon_by_extension_or_type(path, scale_factor)
+            icon = self.get_file_icon(path)
             self.main.switcher.add_item(title=title,
                                         description=short_paths[idx],
                                         icon=icon,
@@ -1514,57 +1517,82 @@ class Editor(SpyderPluginWidget):
 
     def create_line_switcher(self):
         """Populate switcher with line info."""
-        # TODO: Refactor with base editor switcher
         self.main.switcher.clear()
-        self.main.switcher.set_placeholder_text('Select line')
-
-        if sys.platform == 'darwin':
-            scale_factor = 0.9
-        elif os.name == 'nt':
-            scale_factor = 0.8
-        elif is_ubuntu():
-            scale_factor = 0.7
-        else:
-            scale_factor = 0.9
-
-        paths = [data.filename for data in self.get_current_editorstack().data]
-        save_statuses = [data.newly_created
-                         for data in self.get_current_editorstack().data]
-
-        short_paths = shorten_paths(paths, save_statuses)
-
-        for idx, data in enumerate(self.get_current_editorstack().data):
-            path = data.filename
-            title = osp.basename(path)
-            lines = data.editor.get_line_count()
-            icon = ima.get_icon_by_extension_or_type(path, scale_factor)
-            line_template_title = "{title} [{lines} {text}]"
-            title = line_template_title.format(title=title, lines=lines,
-                                               text=_("lines"))
-            self.main.switcher.add_item(title=title,
-                                        description=short_paths[idx],
-                                        icon=icon,
-                                        section=self.get_plugin_title(),
-                                        data=data)
+        self.main.switcher.set_placeholder_text(_('Select line'))
+        data = self.get_current_finfo()
+        path = data.filename
+        title = osp.basename(path)
+        lines = data.editor.get_line_count()
+        icon = self.get_file_icon(path)
+        line_template_title = "{title} [{lines} {text}]"
+        title = line_template_title.format(title=title, lines=lines,
+                                           text=_("lines"))
+        description = _('Go to line')
+        self.main.switcher.add_item(title=title,
+                                    description=description,
+                                    icon=icon,
+                                    section=self.get_plugin_title(),
+                                    data=data,
+                                    action_item=True)
+#       paths = [data.filename for data in self.get_current_editorstack().data]
+#        save_statuses = [data.newly_created
+#                         for data in self.get_current_editorstack().data]
+#
+#        short_paths = sourcecode.shorten_paths(paths, save_statuses)
+#
+#        for idx, data in enumerate(self.get_current_editorstack().data):
+#            path = data.filename
+#            title = osp.basename(path)
+#            lines = data.editor.get_line_count()
+#            icon = self.get_file_icon(path)
+#            line_template_title = "{title} [{lines} {text}]"
+#            title = line_template_title.format(title=title, lines=lines,
+#                                               text=_("lines"))
+#            description = short_paths[idx]
+#            self.main.switcher.add_item(title=title,
+#                                        description=description,
+#                                        icon=icon,
+#                                        section=self.get_plugin_title(),
+#                                        data=data,
+#                                        action_item=True)
 
     def create_symbol_switcher(self):
         """Populate switcher with symbol info."""
         self.main.switcher.clear()
-        self.main.switcher.set_placeholder_text('Select symbol')
-        self.main.switcher.add_item(title=_('Some symbol'))
-        self.main.switcher.add_item(title=_('another symbol'))
+        self.main.switcher.set_placeholder_text(_('Select symbol'))
+        oedata_list = (
+            self.get_current_editor().outlineexplorer_data_list())
+
+        symbols_list = sourcecode.get_symbol_list(oedata_list)
+        icons = sourcecode.get_python_symbol_icons(symbols_list)
+
+        for idx, symbol in enumerate(symbols_list):
+            title = symbol[1]
+            fold_level = symbol[2]
+            space = ' ' * fold_level
+            formated_title = '{space}{title}'.format(title=title,
+                                                     space=space)
+            line_number = symbol[0]
+            icon = icons[idx]
+            data = {'title': title,
+                    'line_number': line_number}
+            self.main.switcher.add_item(title=formated_title,
+                                        icon=icon,
+                                        section=self.get_plugin_title(),
+                                        data=data)
+        # Needed to update fold spaces in items titles
+        self.main.switcher.setup()
 
     def handle_switcher_selection(self, item, mode, search_text):
         """Handle item selection of the switcher."""
-#        print([item.get_data(), mode, search_text])
+        data = item.get_data()
         if mode == '@':
-            self.create_symbol_switcher_handler(item)
+            self.create_symbol_switcher_handler(data)
         elif mode == ':':
-            self.create_line_switcher_handler(item, search_text)
+            self.create_line_switcher_handler(data, search_text)
         elif mode == '':
             # Each plugin that wants to attach to the switcher should do this?
             if item.get_section() == self.get_plugin_title():
-                data = item.get_data()
                 self.create_editor_switcher_handler(data)
 
     def create_editor_switcher_handler(self, data):
@@ -1572,15 +1600,21 @@ class Editor(SpyderPluginWidget):
         self.set_current_filename(data.filename)
         self.main.switcher.hide()
 
-    def create_line_switcher_handler(self, item, search_text):
+    def create_line_switcher_handler(self, data, search_text):
         """Populate switcher with line info."""
-        # TODO: Think way to handle different filtring for line number
+        self.set_current_filename(data.filename)
         line_number = search_text.split(':')[0]
-        self.go_to_line(int(line_number))
+        try:
+            self.go_to_line(int(line_number))
+            self.main.switcher.hide()
+        except Exception:
+            # Invalid line number
+            pass
 
-    def create_symbol_switcher_handler(self, item):
+    def create_symbol_switcher_handler(self, data):
         """Populate switcher with symbol info."""
-        pass
+        line_number = data['line_number']
+        self.go_to_line(int(line_number))
 
     #------ Refresh methods
     def refresh_file_dependent_actions(self):

@@ -3223,14 +3223,12 @@ class MainWindow(QMainWindow):
             self.switcher.set_search_text('@')
         else:
             self.switcher.set_search_text('')
+            self.switcher.setup()
         self.switcher.show()
         # Note: the +1 pixel on the top makes it look better
         delta_top = (self.toolbars_menu.geometry().height() +
                      self.menuBar().geometry().height() + 1)
         self.switcher.set_position(delta_top)
-
-        # Set initial items
-        self.editor.create_editor_switcher()
 
     def open_symbolfinder(self):
         """Open symbol list management dialog box."""
@@ -3253,10 +3251,12 @@ class MainWindow(QMainWindow):
 
     def create_commands_switcher(self):
         """Create commands switcher."""
+        # TODO: Add swithcer commands
         self.switcher.clear()
 
     def create_help_switcher(self):
         """Create help switcher."""
+        # TODO: Add switcher help
         self.switcher.clear()
 
     def handle_base_switcher_modes(self, mode):
