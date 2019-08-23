@@ -3446,11 +3446,6 @@ def run_spyder(app, options, args):
         main.console.shell.interpreter.namespace['spy'] = \
                                                     Spy(app=app, window=main)
 
-    # Open external files passed as args
-    if args:
-        for a in args:
-            main.open_external_file(a)
-
     # Don't show icons in menus for Mac
     if sys.platform == 'darwin':
         QCoreApplication.setAttribute(Qt.AA_DontShowIconsInMenus, True)
@@ -3458,6 +3453,14 @@ def run_spyder(app, options, args):
     # Open external files with our Mac app
     if running_in_mac_app():
         app.sig_open_external_file.connect(main.open_external_file)
+        app._has_started = True
+        if hasattr(app, '_pending_file_open'):
+            args = app._pending_file_open + args
+
+    # Open external files passed as args
+    if args:
+        for a in args:
+            main.open_external_file(a)
 
     # To give focus again to the last focused widget after restoring
     # the window
