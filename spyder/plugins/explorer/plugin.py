@@ -119,7 +119,7 @@ class Explorer(SpyderPluginWidget):
 
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""
-        self.tabify(self.main.variableexplorer)
+        self.tabify(self.main.projects)
 
     def apply_plugin_settings(self, options):
         """Handle preference options update."""

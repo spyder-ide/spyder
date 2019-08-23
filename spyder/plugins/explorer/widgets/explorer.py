@@ -1556,6 +1556,11 @@ class ExplorerWidget(QWidget):
         self.treewidget.chdir(getcwd_or_home())
         self.treewidget.common_actions += [None, icontext_action]
 
+        for i in [1, 2, 3]:
+            self.treewidget.hideColumn(i)
+        # self.treewidget.setHeaderHidden(True)
+
+
         button_previous.setDefaultAction(previous_action)
         previous_action.setEnabled(False)
 
