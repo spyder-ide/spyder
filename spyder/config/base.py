@@ -500,10 +500,11 @@ if PY3:
 else:
     MAC_APP_NAME = 'Spyder-Py2.app'
 
+
 def running_in_mac_app(check_file=False):
     if sys.platform == "darwin":
         if check_file and MAC_APP_NAME not in __file__:
-                return False
+            return False
         return True
     else:
         return False
