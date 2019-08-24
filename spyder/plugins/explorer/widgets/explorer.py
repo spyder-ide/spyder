@@ -219,9 +219,10 @@ class DirView(QTreeView):
                  _("Sort by last modified")]
         header_actions = []
         for column, item in enumerate(items):
+            order = int(not self._last_order)
             action = create_action(
                 self, item, None, None,
-                triggered=lambda __, col=column, order=int(not self._last_order):
+                triggered=lambda x, col=column, order=order:
                     self.sortByColumn(col, order),
             )
             if column == self._last_column:
@@ -229,7 +230,7 @@ class DirView(QTreeView):
                 action.setCheckable(True)
                 action.setChecked(True)
                 action.setDisabled(False)
-            
+
             header_actions.append(action)
 
         add_actions(self.menu_header, header_actions)
