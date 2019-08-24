@@ -20,7 +20,7 @@ import sys
 import requests
 
 # Local imports
-from spyder.utils.programs import is_anaconda
+from spyder.utils.programs import is_anaconda, find_program
 
 
 # --- Helpers
@@ -91,3 +91,33 @@ def get_conda_forge_packages():
         packages = [p['name'] for p in packages]
 
     return packages
+
+
+def load_project_yml(path):
+    """"""
+    fpath = osp.join(path, 'anaconda-project.yml')
+    import yaml
+    with io.open(fpath, 'r') as fh:
+        data = yaml.load(fh)
+    return data
+
+
+def get_project_environment_variables(path):
+    """"""
+    data = load_project_yml(path)
+    variables = data.get('variables', {})
+    return variables
+
+
+def get_project_environment_packages(path):
+    """"""
+    data = load_project_yml(path)
+    packages = data.get('packages', [])
+    return packages
+
+
+def get_project_environment_commands(path):
+    """"""
+    data = load_project_yml(path)
+    commands = data.get('commands', [])
+    return commands

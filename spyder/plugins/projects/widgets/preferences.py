@@ -126,10 +126,13 @@ class VariablesTable(QTableWidget):
     def get_environment_variables(self):
         """"""
         variables = []
-        for idx in self.rowCount():
-            name = self.item(idx, 0)
-            value = self.item(idx, 1)
-            desc = self.item(idx, 2)
+        for row in self.rowCount():
+            name = self.item(row, 0)
+            name = name.text() if name else ''
+            value = self.item(row, 1)
+            value = value.text() if value else ''
+            desc = self.item(row, 2)
+            desc = desc.text() if desc else ''
 
             if name and value:
                 dic = {}
@@ -148,8 +151,8 @@ class PackagesTable(QTableWidget):
         """"""
         super(PackagesTable, self).__init__(parent=parent)
         # Widgets
-        self._pypi = get_pypi_packages()
-        self._conda_forge = get_conda_forge_packages()
+        self._pypi = []  # get_pypi_packages()
+        self._conda_forge = []  # get_conda_forge_packages()
         self._completer_delegate_pypi = CompleterDelegate(self, self._pypi)
         self._completer_delegate_conda = CompleterDelegate(self, self._conda_forge)
         self._combobox_delegate = ComboBoxDelegate(self, ['conda', 'pip'])
@@ -194,8 +197,41 @@ class PackagesTable(QTableWidget):
                 item.setFlags(Qt.ItemIsSelectable| Qt.ItemIsEnabled)
                 self.setItem(row, col, item)
 
+    def row_count(self):
+        count = 0
+        for row in range(self.rowCount()):
+            type_ = self.item(row, 0)
+            type_ = type_.text() if type_ else 'conda'
+            name = self.item(row, 1)
+            name = name.text() if name else ''
+
+            # If there is a name add the package
+            if type_ and name.strip():
+                count += 1
+
+        return count
+
     def get_package_specs(self):
-        """Return a dictionary of the current packages and versions."""
+        """Return a lits of the current packages and versions."""
+        packages = []
+        for row in range(self.rowCount()):
+            type_ = self.item(row, 0)
+            type_ = type_.text() if type_ else 'conda'
+            name = self.item(row, 1)
+            name = name.text() if name else ''
+            version = self.item(row, 2)
+            version = version.text() if version else ''
+            dic = {
+                'type': type_,
+                'name': name,
+                'version': version,
+            }
+
+            # If there is a name add the package
+            if name.strip():
+                packages.append(dic)
+
+        return packages
 
 
 class VariablesWidget(QWidget):
@@ -296,6 +332,7 @@ class PackagesWidget(QWidget):
         # Signals
         self.button_add.clicked.connect(lambda x=None: self.add_row())
         self.button_remove.clicked.connect(lambda x=None: self.remove_row())
+        self.table.cellChanged.connect(self.update_status)
 
     def add_row(self):
         """Add a new row to the bottom."""
@@ -303,6 +340,11 @@ class PackagesWidget(QWidget):
         self.table.setRowCount(count + 1)
         self.table.setCurrentCell(count, 0)
         self.table.setFocus()
+
+        item_type = QTableWidgetItem('conda')
+        self.table.setItem(count, 0, item_type)
+        self.table.setCurrentCell(count, 1)
+        self.update_status()
 
     def remove_row(self, row=None):
         """Remove currently selected row."""
@@ -312,14 +354,16 @@ class PackagesWidget(QWidget):
             row = self.table.rowCount()
         self.table.setCurrentCell(row - 1, 0)
         self.table.setFocus()
+        self.update_status()
 
     def add_packages(self, packages):
         """"""
         self.table.add_packages(packages)
+        self.update_status()
 
     def get_package_specs(self):
         """Return a dictionary of the current packages and versions."""
-        return {'name': 'version'}
+        return self.table.get_package_specs()
 
     def set_environment_path(self, path):
         """"""
@@ -340,14 +384,21 @@ class PackagesWidget(QWidget):
         """Clear all content rows from table."""
         self.table.clearContents()
         self.table.setRowCount(0)
+        self.update_status()
 
     def update_status(self):
         """Update status information on packages."""
-        count = self.table.rowCount()
+        # TODO: Check for duplicates?
+        count = self.table.row_count()
         if count == 0:
+            self.button_remove.setEnabled(False)
             self.label_information.setText('')
         else:
-            self.label_information.setText('{} packages in environment'.format(count))
+            self.button_remove.setEnabled(True)
+            plural = 's' if count != 1 else ''
+            text = _('{} package{plural} in environment').format(
+                count, plural=plural)
+            self.label_information.setText(text)
 
 
 # --- Project preferences dialog

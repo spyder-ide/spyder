@@ -12,6 +12,7 @@ updating the file tree explorer associated with a project
 """
 
 # Standard library imports
+import os
 import os.path as osp
 import shutil
 import functools
@@ -28,6 +29,7 @@ from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
+from spyder.utils.workers import WorkerManager
 from spyder.utils.qthelpers import add_actions, create_action, MENU_SEPARATOR
 from spyder.utils.misc import getcwd_or_home
 from spyder.plugins.projects.utils.watcher import WorkspaceWatcher
@@ -38,11 +40,18 @@ from spyder.plugins.completion.languageserver import (
     LSPRequestTypes, FileChangeType)
 from spyder.plugins.completion.decorators import (
     request, handles, class_register)
+from spyder.utils.vcs import git_clone
+
+
+class ProjectWorkerActions:
+    ADD_CONDA_PACKAGES = 'conda_add_packages'
+    CLONE_REPOSITORY = 'vcs_clone'
+    INIT_REPOSITORY = 'vcs_init'
 
 
 @class_register
 class Projects(SpyderPluginWidget):
-    """Projects plugin."""
+    """Project explorer plugin."""
 
     CONF_SECTION = 'project_explorer'
     sig_pythonpath_changed = Signal()
@@ -51,9 +60,16 @@ class Projects(SpyderPluginWidget):
     sig_project_closed = Signal(object)
 
     def __init__(self, parent=None):
-        """Initialization."""
+        """Project explorer plugin."""
         SpyderPluginWidget.__init__(self, parent)
 
+        # Variables
+        self.completions_available = False
+        self.current_active_project = None
+        self.latest_project = None
+        self.recent_projects = self.get_option('recent_projects', default=[])
+
+        # Widgets
         self.explorer = ProjectExplorerWidget(
             self,
             name_filters=self.get_option('name_filters'),
@@ -62,33 +78,34 @@ class Projects(SpyderPluginWidget):
             options_button=self.options_button,
             single_click_to_open=CONF.get('explorer', 'single_click_to_open'),
         )
+        self.watcher = WorkspaceWatcher(self)
+        self.worker_manager = WorkerManager(self)
 
+        # Widge steup
+        self.explorer.setup_project(self.get_active_project_path())
+
+        # Layout
         layout = QVBoxLayout()
         layout.addWidget(self.explorer)
         self.setLayout(layout)
 
-        self.recent_projects = self.get_option('recent_projects', default=[])
-        self.current_active_project = None
-        self.latest_project = None
-        self.watcher = WorkspaceWatcher(self)
-        self.completions_available = False
-        self.explorer.setup_project(self.get_active_project_path())
+        # Signals
         self.watcher.connect_signals(self)
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
-        """Return widget title"""
+        """Return widget title."""
         return _("Project")
 
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
-        this plugin's dockwidget is raised on top-level
+        this plugin's dockwidget is raised on top-level.
         """
         return self.explorer.treewidget
 
     def get_plugin_actions(self):
-        """Return a list of actions related to plugin"""
+        """Return a list of actions related to plugin."""
         self.new_project_action = create_action(self,
                                     _("New Project..."),
                                     triggered=self.create_new_project)
@@ -124,7 +141,7 @@ class Projects(SpyderPluginWidget):
         return []
 
     def register_plugin(self):
-        """Register plugin in Spyder's main window"""
+        """Register plugin in Spyder's main window."""
         ipyconsole = self.main.ipyconsole
         treewidget = self.explorer.treewidget
         lspmgr = self.main.completions
@@ -191,7 +208,7 @@ class Projects(SpyderPluginWidget):
             self.explorer.treewidget.set_single_click_to_open(value)
 
     def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
+        """Perform actions before parent main window is closed."""
         self.save_config()
         self.explorer.closing_widget()
         return True
@@ -286,25 +303,89 @@ class Projects(SpyderPluginWidget):
 
     @Slot()
     def create_new_project(self):
-        """Create new project"""
+        """Create new projec.t"""
         self.switch_to_plugin()
         active_project = self.current_active_project
         dlg = ProjectDialog(self)
         dlg.sig_project_creation_requested.connect(self._create_project)
+
+        # TODO: When to fire this signal?
         dlg.sig_project_creation_requested.connect(self.sig_project_created)
+
         if dlg.exec_():
             if (active_project is None
                     and self.get_option('visible_if_project_open')):
                 self.show_explorer()
             self.sig_pythonpath_changed.emit()
-            self.restart_consoles()
+            # self.restart_consoles()
 
     def _create_project(self, context):
         """Create a new project."""
         path = context.get('path')
-        self.open_project(path=path)
+        repository_url = context.get('repository_url')
+        repository_url = context.get('repository_init')  # Add this option!
+
+        # Make directory
+        if not osp.isdir(path):
+            os.makedirs(path)
+
+        self.open_project(path=path, restart_consoles=False)
         self.setup_menu_actions()
         self.add_to_recent(path)
+
+        # existing_env = context.get('conda_enviroment')
+        packages = context.get('packages')
+        from anaconda_project.api import AnacondaProject
+        aproj = AnacondaProject()
+        project = aproj.create_project(path, make_directory=False)
+        conda_pks = [p['name'] + p['version'] for p in packages if p['type'] == 'conda']
+
+        # TODO: pip packages not supported at the moment?
+        # pip_pks = [p['name'] + p['version'] for p in packages if p['type'] == 'pip']
+
+        # TODO: fix long process on plugin base to use a progress bar widget
+        status = self.main.statusBar()
+
+        if conda_pks:
+            status.showMessage(_('Creating project environment...'))
+
+            # Add spyder-kernels to be able to use the kernel
+            conda_pks.append('spyder-kernels')
+            # TODO: Packages to handle codestyle? linting?
+
+            worker = self.worker_manager.create_python_worker(
+                aproj.add_packages, project=project, env_spec_name=None,
+                packages=conda_pks, channels=['conda-forge'])
+            worker.sig_finished.connect(self._worker_finsihed)
+            worker.action = ProjectWorkerActions.ADD_CONDA_PACKAGES
+            worker.start()
+
+        if repository_url:
+            status.showMessage(_('Cloning repository...'))
+            worker = self.worker_manager.create_python_worker(
+                git_clone, path, repository_url)
+            worker.sig_finished.connect(self._worker_finsihed)
+            worker.action = ProjectWorkerActions.CLONE_REPOSITORY
+            worker.start()
+
+    def _worker_finsihed(self, worker, output, error):
+        """"""
+        status = self.main.statusBar()
+        message = ''
+
+        if worker.action == ProjectWorkerActions.ADD_CONDA_PACKAGES:
+            message = _('Restarting project console...')
+            self.restart_consoles()
+        elif worker.action == ProjectWorkerActions.CLONE_REPOSITORY:
+            message = _('Git clone complete...')
+        elif worker.action == ProjectWorkerActions.INIT_REPOSITORY:
+            message = _('Git init complete...')
+
+        status.showMessage(message, 5000)
+
+    def set_actions_enabled(self, value):
+        """"""
+        pass
 
     def open_project(self, path=None, restart_consoles=True,
                      save_previous_files=True):
@@ -357,7 +438,7 @@ class Projects(SpyderPluginWidget):
     def close_project(self):
         """
         Close current project and return to a window without an active
-        project
+        project.
         """
         if self.current_active_project:
             self.switch_to_plugin()

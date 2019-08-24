@@ -24,7 +24,7 @@ from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import (QButtonGroup, QComboBox, QDialog,
                             QDialogButtonBox, QGridLayout, QGroupBox,
                             QHBoxLayout, QLabel, QLineEdit, QPushButton,
-                            QRadioButton, QScrollArea, QTabWidget, QToolButton,
+                            QRadioButton, QScrollArea, QStackedWidget, QToolButton,
                             QVBoxLayout, QWidget)
 import requests
 
@@ -37,7 +37,11 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import programs
 from spyder.utils.programs import is_anaconda
 from spyder.utils.qthelpers import get_std_icon
-from spyder.utils.vcs import git_init, git_clone
+from spyder.plugins.projects.utils.conda import (get_conda_environments,
+                                                 get_conda_packages,
+                                                 get_conda_forge_packages,
+                                                 get_pypi_packages)
+from spyder.plugins.projects.widgets.preferences import PackagesWidget
 
 
 def is_writable(path):
@@ -81,7 +85,7 @@ class BaseProjectPage(QWidget):
 
     def create(self, context):
         """
-        Actions to execute for project creation.
+        Actions to execute on context for later project creation.
 
         This method has to return the context dictionary.
         """
@@ -89,68 +93,69 @@ class BaseProjectPage(QWidget):
 
 
 class GeneralProjectPage(BaseProjectPage):
+    """"""
+
+    sig_project_type_updated = Signal(str)
 
     def setup_page(self):
-        current_python_version = '.'.join([to_text_string(sys.version_info[0]),
-                                           to_text_string(sys.version_info[1])])
-        python_versions = ['2.7', '3.6', '3.7']
-        if current_python_version not in python_versions:
-            python_versions.append(current_python_version)
-            python_versions = sorted(python_versions)
-
+        """"""
         self.project_name = None
         self.location = get_home_dir()
 
         # Widgets
-        self.groupbox = QGroupBox()
+        self.groupbox = QButtonGroup()
         self.radio_new_dir = QRadioButton(_("New directory"))
         self.radio_from_dir = QRadioButton(_("Existing directory"))
+        self.radio_from_vcs = QRadioButton(_("Version control"))
 
-        self.label_project_name = QLabel(_('Project name'))
+        self.label_project_name_or_url = QLabel(_('Project name'))
         self.label_location = QLabel(_('Location'))
         self.label_project_type = QLabel(_('Project type'))
-        self.label_python_version = QLabel(_('Python version'))
+        self.label_project_preferences = QLabel(_('Preferences'))
 
-        self.text_project_name = QLineEdit()
+        self.text_project_name_or_url = QLineEdit()
         self.text_location = QLineEdit(get_home_dir())
         self.combo_project_type = QComboBox()
-        self.combo_python_version = QComboBox()
+        self.combo_project_preferences = QComboBox()
         self.button_select_location = QToolButton()
 
         # Widget setup
-        self.combo_python_version.addItems(python_versions)
+        self.groupbox.addButton(self.radio_new_dir)
+        self.groupbox.addButton(self.radio_from_dir)
+        self.groupbox.addButton(self.radio_from_vcs)
         self.radio_new_dir.setChecked(True)
         self.text_location.setEnabled(True)
         self.text_location.setReadOnly(True)
         self.button_select_location.setIcon(get_std_icon('DirOpenIcon'))
         self.combo_project_type.addItems(self._get_project_types())
-        self.combo_python_version.setCurrentIndex(
-            python_versions.index(current_python_version))
+
+        self.combo_project_preferences.addItem(
+            _('Use application preferences'), 'application')
+        self.combo_project_preferences.addItem(
+            _('Use project preferences'), 'project')
         self.setWindowTitle(_('Create new project'))
         self.setMinimumWidth(500)
-        self.label_python_version.setVisible(False)
-        self.combo_python_version.setVisible(False)
 
         # Layouts
         layout_top = QHBoxLayout()
         layout_top.addWidget(self.radio_new_dir)
         layout_top.addWidget(self.radio_from_dir)
+        layout_top.addWidget(self.radio_from_vcs)
         layout_top.addStretch(1)
-        self.groupbox.setLayout(layout_top)
 
         layout_grid = QGridLayout()
-        layout_grid.addWidget(self.label_project_name, 0, 0)
-        layout_grid.addWidget(self.text_project_name, 0, 1, 1, 2)
+        layout_grid.addWidget(self.label_project_name_or_url, 0, 0)
+        layout_grid.addWidget(self.text_project_name_or_url, 0, 1, 1, 2)
         layout_grid.addWidget(self.label_location, 1, 0)
         layout_grid.addWidget(self.text_location, 1, 1)
         layout_grid.addWidget(self.button_select_location, 1, 2)
         layout_grid.addWidget(self.label_project_type, 2, 0)
         layout_grid.addWidget(self.combo_project_type, 2, 1, 1, 2)
-        layout_grid.addWidget(self.label_python_version, 3, 0)
-        layout_grid.addWidget(self.combo_python_version, 3, 1, 1, 2)
+        layout_grid.addWidget(self.label_project_preferences, 3, 0)
+        layout_grid.addWidget(self.combo_project_preferences, 3, 1, 1, 2)
 
         layout = QVBoxLayout()
-        layout.addWidget(self.groupbox)
+        layout.addLayout(layout_top)
         layout.addSpacing(10)
         layout.addLayout(layout_grid)
         layout.addStretch()
@@ -158,9 +163,10 @@ class GeneralProjectPage(BaseProjectPage):
 
         # Signals and slots
         self.button_select_location.clicked.connect(self._select_location)
-        self.radio_from_dir.clicked.connect(self.validate)
-        self.radio_new_dir.clicked.connect(self.validate)
-        self.text_project_name.textChanged.connect(self.validate)
+        self.groupbox.buttonClicked.connect(self.validate)
+        self.text_project_name_or_url.textChanged.connect(self.validate)
+        self.combo_project_type.currentTextChanged.connect(
+            self.sig_project_type_updated)
 
     def _get_project_types(self):
         """Get all available project types."""
@@ -188,21 +194,58 @@ class GeneralProjectPage(BaseProjectPage):
 
     def validate(self):
         is_valid = False
-        self.text_project_name.setEnabled(self.radio_new_dir.isChecked())
-        name = self.text_project_name.text().strip()
+        # self.text_project_name_or_url.setEnabled(self.radio_new_dir.isChecked())
+        name_or_url = self.text_project_name_or_url.text().strip()
         path = None
         error = ''
 
-        if name and self.radio_new_dir.isChecked():
-            path = osp.join(self.location, name)
-            if osp.isdir(path):
-                error = _('Directory already exists!')
+        if self.radio_new_dir.isChecked():
+            self.label_project_name_or_url.setDisabled(False)
+            self.text_project_name_or_url.setDisabled(False)
+            self.text_project_name_or_url.setVisible(True)
+            self.label_project_name_or_url.setText(_('Project name    '))
+            path = osp.join(self.location, name_or_url)
+
+            if name_or_url == '':
+                error = _('Project name cannot be empty!')
                 is_valid = False
             else:
-                is_valid = True
-        elif self.radio_from_dir.isChecked():
+                if osp.isdir(path):
+                    error = _('Directory already exists!')
+                    is_valid = False
+                else:
+                    is_valid = True
+
+        if self.radio_from_dir.isChecked():
+            self.label_project_name_or_url.setDisabled(True)
+            self.text_project_name_or_url.setVisible(False)
+            self.text_project_name_or_url.setText('')
+            self.label_project_name_or_url.setText('<p>' + '&nbsp;'*26 + '</p>')
             path = self.location
             is_valid = True
+
+        if self.radio_from_vcs.isChecked():
+            self.label_project_name_or_url.setDisabled(False)
+            self.text_project_name_or_url.setDisabled(False)
+            self.text_project_name_or_url.setVisible(True)
+            self.label_project_name_or_url.setText(_('Repository URL'))
+            if name_or_url == '':
+                error = _('URL cannot be empty!')
+                is_valid = False
+            else:
+                if name_or_url.lower().endswith('.git'):
+                    try:
+                        r = requests.head(name_or_url)
+                        is_valid = r.status_code in [200, 301]
+                    except Exception as e:
+                        print(e)
+                        is_valid = False
+                        error = _('Write a valid url for the repository!')
+                else:
+                    is_valid = False
+                    error = _('Valid url for the repository must end in `.git`!')
+
+            path = self.location
 
         if path:
             self.text_location.setText(path)
@@ -212,17 +255,26 @@ class GeneralProjectPage(BaseProjectPage):
         return is_valid, error
 
     def get_name(self):
-        return _('Type')
+        """"""
+        return _('Create project from:')
 
     def create(self, context):
-        from anaconda_project.api import AnacondaProject
+        """"""
         path = self.text_location.text()
-        os.makedirs(path)
-        aproj = AnacondaProject()
-        project = aproj.create_project(path, make_directory=False)
+        pref_idx = self.combo_project_preferences.currentIndex()
+        preferences = self.combo_project_preferences.itemData(pref_idx) 
+
+        if self.radio_from_vcs.isChecked():
+            repo_url = self.text_project_name_or_url.text()
+        else:
+            repo_url = ''
 
         context['path'] = path
-        context['project'] = project
+        context['preferences'] = preferences
+        context['repository_url'] = repo_url
+
+        # Fix this to make language independent
+        context['project_type'] = self.combo_project_type.currentText()
 
         return context
 
@@ -230,6 +282,7 @@ class GeneralProjectPage(BaseProjectPage):
 class CondaProjectPage(BaseProjectPage):
 
     def setup_page(self):
+        """"""
         self.label = QLabel(_("Select which type of conda environment "
                                "you want to use:<br>"))
         self.button_group = QButtonGroup(self)
@@ -243,8 +296,10 @@ class CondaProjectPage(BaseProjectPage):
         )
         self.combobox = QComboBox(self)
         self.label_warning = QLabel()
+        self.packages = PackagesWidget(self)
 
         # Widget setup
+        self.packages.button_add.setDisabled(True)
         self.button_group.addButton(self.radio_use_project)
         self.button_group.addButton(self.radio_use_existing)
         envs = get_conda_environments()
@@ -260,125 +315,60 @@ class CondaProjectPage(BaseProjectPage):
         layout.addWidget(self.radio_use_existing, 2, 0)
         layout.addWidget(self.combobox, 2, 1)
         layout.addWidget(self.label_warning, 3, 0, 1, 2)
-        layout.setRowStretch(4, 1000)
+        layout.addWidget(self.packages, 4, 0, 1, 2)
+        # layout.setRowStretch(4, 1000)
  
         self.setLayout(layout)
 
         # Signals
         self.button_group.buttonClicked.connect(self.validate)
+        self.combobox.currentTextChanged.connect(self.validate)
 
     def get_name(self):
-        return _('Conda')
+        """"""
+        return _('Define Conda environment:')
 
     def validate(self):
+        """"""
         error = ''
         if self.radio_use_existing.isChecked():
             self.combobox.setEnabled(True)
-            self.label_warning.setText(_('This project is not reproducible!'))
+            self.packages.button_add.setDisabled(True)
+            self.label_warning.setText(_('<i>Warning: This project is not reproducible!</i>'))
+            prefix = self.combobox.itemData(self.combobox.currentIndex()) 
+            packages = get_conda_packages(prefix)
+            self.packages.clear()
+            self.packages.add_packages(packages)
             is_valid = True
             error = ''
         elif self.radio_use_project.isChecked():
             self.combobox.setEnabled(False)
+            self.packages.button_add.setDisabled(False)
+            self.packages.clear()
             self.label_warning.setText('')
             is_valid = True
             error = ''
         else:
             self.combobox.setEnabled(False)
+            self.packages.button_add.setDisabled(True)
             self.label_warning.setText('')
             is_valid = False
-            error = 'Select an option!'
+            error = _('Select an option!')
 
         self.sig_validated.emit(is_valid, error)
         return is_valid, error
 
     def create(self, context):
+        """"""
         if self.radio_use_existing.isChecked():
             env = self.combobox.currentData()
+            packages = []
         else:
             env = ''
+            packages = self.packages.get_package_specs()
     
         context['conda_enviroment'] = env
-
-        return context
-
-
-class VersionProjectPage(BaseProjectPage):
-
-    def setup_page(self):
-        self.button_group = QButtonGroup(self)
-        vcs_label = QLabel(_("Select the version control settings "
-                             "for the project:"))
-        self.radio_vcs_disabled = QRadioButton(_("Do not use version control"), self,)
-        self.radio_vcs_init = QRadioButton(
-            _("Initialize a local git repository for the project"), self,
-        )
-        self.radio_vcs_clone = QRadioButton(
-            _("Clone from existing git project"), self,
-        )
-        self.line_repository = QLineEdit()
-
-        # Widget setup
-        self.button_group.addButton(self.radio_vcs_disabled)
-        self.button_group.addButton(self.radio_vcs_init)
-        self.button_group.addButton(self.radio_vcs_clone)
-
-        # Layouts
-        layout = QVBoxLayout()
-        layout.addWidget(vcs_label)
-        layout.addWidget(self.radio_vcs_disabled)
-        layout.addWidget(self.radio_vcs_init)
-        layout.addWidget(self.radio_vcs_clone)
-        layout.addWidget(self.line_repository)
-        layout.addStretch(1)
-        self.setLayout(layout)
-
-        # Signals
-        self.button_group.buttonClicked.connect(self.validate)
-        self.line_repository.textChanged.connect(self.validate)
-
-    def validate(self):
-        error = ''
-        if self.radio_vcs_clone.isChecked():
-            self.line_repository.setEnabled(True)
-            repo = self.line_repository.text()
-            if repo:
-                try:
-                    r = requests.head(repo)
-                    is_valid = r.status_code in [200, 301]
-                except Exception as e:
-                    print(e)
-                    is_valid = False
-                    error = 'Write a valid url for the repository!'
-            else:
-                is_valid = False
-                error = 'Write a valid url for the repository!'
-        elif self.radio_vcs_init.isChecked():
-            is_valid = True
-            self.line_repository.setEnabled(False)
-        elif self.radio_vcs_disabled.isChecked():
-            is_valid = True
-            self.line_repository.setEnabled(False)
-        else:
-            is_valid = False
-            self.line_repository.setEnabled(False)
-            error = 'Select an option!'
-
-        self.sig_validated.emit(is_valid, error)
-        return is_valid, error
-
-    def get_name(self):
-        return _('Version')
-
-    def create(self, context):
-        path = context.get('path', None)
-        repo = self.line_repository.text()
-        context['repository'] = repo
-
-        if path:
-            if self.radio_vcs_init.isChecked():
-                git_init(path)
-            elif self.radio_vcs_clone.isChecked():
-                git_clone(path, repo)
+        context['packages'] = packages
 
         return context
 
@@ -392,12 +382,13 @@ class ProjectDialog(QDialog):
     def __init__(self, parent):
         """Project creation dialog."""
         super(ProjectDialog, self).__init__(parent=parent)
+        self._invalid_index_start = -1
 
         # Widgets 
+        self.label_title = QLabel()
         self.label_status = QLabel()
-        self.pages_widget = QTabWidget(self)
+        self.pages_widget = QStackedWidget(self)
         self.page_general = GeneralProjectPage(self)
-        self.page_vcs = VersionProjectPage(self)
         self.page_conda = CondaProjectPage(self) if is_anaconda() else None
         self.button_select_location = QToolButton()
         self.button_cancel = QPushButton(_('Cancel'))
@@ -415,20 +406,20 @@ class ProjectDialog(QDialog):
         self.button_cancel.setDefault(True)
         self.button_cancel.setAutoDefault(True)
         self.setWindowTitle(_('Create new project'))
-        for page in [self.page_general, self.page_conda, self.page_vcs]:
+        for page in [self.page_general, self.page_conda]:
             if page:
                 page.setup_page()
                 self.add_page(page)
-        self.pages_widget.setTabEnabled(1, False)
-        self.pages_widget.setTabEnabled(2, False)
 
         self.button_previous.setEnabled(False)
         self.button_next.setEnabled(False)
         self.button_create.setEnabled(False)
         self.button_create.setVisible(False)
+        self.setMinimumWidth(600)
 
         # Layouts
         layout = QVBoxLayout()
+        layout.addWidget(self.label_title)
         layout.addWidget(self.pages_widget)
         layout.addWidget(self.label_status)
         layout.addSpacing(20)
@@ -446,24 +437,30 @@ class ProjectDialog(QDialog):
         self.button_previous.clicked.connect(self.previous)
         self.button_create.clicked.connect(self.create_project)
         self.pages_widget.currentChanged.connect(self.validate)
+        self.page_general.sig_project_type_updated.connect(self.load_project_type)
+
+        self.validate()
 
     def _refresh_buttons(self):
         """Update visibility and enabled state for buttons."""
         idx = self.pages_widget.currentIndex()
         is_first = idx == 0
         is_last = idx == (self.pages_widget.count() - 1)
+
         if is_first:
             self.button_create.setVisible(False)
             self.button_previous.setEnabled(False)
             self.button_next.setVisible(True)
-            self.button_next.setEnabled(self.pages_widget.isTabEnabled(idx + 1))
+            self.button_next.setEnabled(self._invalid_index_start != 0)
         elif is_last:
             self.button_next.setVisible(False)
             self.button_create.setVisible(True)
+            self.button_previous.setEnabled(True)
         else:
             self.button_create.setVisible(False)
             self.button_previous.setEnabled(True)
-            self.button_next.setEnabled(self.pages_widget.isTabEnabled(idx + 1))
+            # Check if correct
+            self.button_next.setEnabled(idx < self._invalid_index_start)
             self.button_next.setVisible(True)
             self.button_create.setVisible(False)
 
@@ -473,27 +470,34 @@ class ProjectDialog(QDialog):
         """Check if all the tabs are valid."""
         for idx in range(self.pages_widget.count()):
             widget = self.pages_widget.widget(idx)
-            widget_enabled = self.pages_widget.isTabEnabled(idx)
 
             widget.blockSignals(True)
             valid, _ = widget.validate()
             widget.blockSignals(False)
  
-            if valid is False or not widget_enabled:
+            if valid is False:
                 return False
 
         return True
 
+    def load_project_type(self, project):
+        """"""
+        print(project)
+        # Remove the pages from 1 forward
+        # Update any conda specific packages
+        # Add any extra pages
+
     def add_page(self, widget):
         """Add a config page widget to the project dialog."""
-        count = self.pages_widget.count()
-        self.pages_widget.addTab(
-            widget, '{}: {}'.format(count + 1, widget.get_name()))
+        self.pages_widget.addWidget(widget)
         widget.sig_validated.connect(self.validate)
 
     def validate(self):
         """Validate the project options."""
         current_idx = self.pages_widget.currentIndex()
+        name = self.pages_widget.currentWidget().get_name()
+        self.label_title.setText('<b>{}</b>'.format(name))
+
         # Iterate from current tabs to see what pages need to be disabled
         for idx in range(self.pages_widget.count()):
             widget = self.pages_widget.widget(idx)
@@ -502,22 +506,15 @@ class ProjectDialog(QDialog):
             widget.blockSignals(False)
             if valid is False:
                 if current_idx == idx:
-                    self.label_status.setText(error)
+                    self.label_status.setText(
+                        '<b>' + _('Warning: ') + '</b>{0}'.format(error))
 
-                invalid_index_start = idx + 1
+                self._invalid_index_start = idx
                 break
             else:
                 self.label_status.setText('')
         else:
-            invalid_index_start = idx + 1
-
-        # All pages after this one are invalid
-        for idx in range(invalid_index_start, self.pages_widget.count()):
-            self.pages_widget.setTabEnabled(idx, False)
-
-        # All pages before this one are valid
-        for idx in range(invalid_index_start):
-            self.pages_widget.setTabEnabled(idx, True)
+            self._invalid_index_start = idx
 
         self._refresh_buttons()
 
@@ -525,7 +522,7 @@ class ProjectDialog(QDialog):
         """Go to next page."""
         idx = self.pages_widget.currentIndex()
         is_last = idx == (self.pages_widget.count() - 1)
-        if not is_last and self.pages_widget.isTabEnabled(idx + 1):
+        if not is_last and idx <= self._invalid_index_start:
             self.pages_widget.setCurrentIndex(idx + 1)
         self._refresh_buttons()
 
@@ -533,7 +530,7 @@ class ProjectDialog(QDialog):
         """Go to previous page."""
         idx = self.pages_widget.currentIndex()
         is_first = idx == 0
-        if not is_first and self.pages_widget.isTabEnabled(idx - 1):
+        if not is_first:
             self.pages_widget.setCurrentIndex(idx - 1)
         self._refresh_buttons()
 
@@ -547,8 +544,8 @@ class ProjectDialog(QDialog):
                 raise Exception(
                     'Project configuration context must be a dictionary!'
                 )
-        self.sig_project_creation_requested.emit(context)
         print(context)
+        self.sig_project_creation_requested.emit(context)
         self.accept()
 
 
