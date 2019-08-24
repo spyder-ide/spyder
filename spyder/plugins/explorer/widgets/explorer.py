@@ -156,8 +156,14 @@ class DirView(QTreeView):
         self.show_all = None
         self.single_click_to_open = False
         self.file_associations = {}
+        self._last_column = 0
+        self._last_order = True
+
+        header = self.header()
+        header.setContextMenuPolicy(Qt.CustomContextMenu)
 
         self.menu = None
+        self.menu_header = QMenu(self)
         self.common_actions = None
         self.__expanded_state = None
         self._to_be_loaded = None
@@ -166,6 +172,10 @@ class DirView(QTreeView):
         self._scrollbar_positions = None
         self.setSelectionMode(self.ExtendedSelection)
         self.shortcuts = self.create_shortcuts()
+
+        # Signals
+        header.customContextMenuRequested.connect(self.show_header_menu)
+        header.sectionClicked.connect(lambda x: self.sort_by_column())
 
     #---- Model
     def setup_fs_model(self):
@@ -187,10 +197,43 @@ class DirView(QTreeView):
         self.setAnimated(False)
         self.setSortingEnabled(True)
         self.sortByColumn(0, Qt.AscendingOrder)
+        self.setSortingEnabled(False)
         self.fsmodel.modelReset.connect(self.reset_icon_provider)
         self.reset_icon_provider()
         # Disable the view of .spyproject.
         self.filter_directories()
+
+    def sortByColumn(self, column, order=Qt.AscendingOrder):
+        """Override Qt method."""
+        header = self.header()
+        header.setSortIndicatorShown(True)
+        QTreeView.sortByColumn(self, column, order)
+        header.setSortIndicator(0, order)
+        self._last_column = column
+        self._last_order = not self._last_order
+
+    def show_header_menu(self, pos):
+        """"""
+        self.menu_header.clear()
+        items = [_('Sort by name'), _('Sort by size'), _("Sort by kind"),
+                 _("Sort by last modified")]
+        header_actions = []
+        for column, item in enumerate(items):
+            action = create_action(
+                self, item, None, None,
+                triggered=lambda __, col=column, order=int(not self._last_order):
+                    self.sortByColumn(col, order),
+            )
+            if column == self._last_column:
+                action.setDisabled(True)
+                action.setCheckable(True)
+                action.setChecked(True)
+                action.setDisabled(False)
+            
+            header_actions.append(action)
+
+        add_actions(self.menu_header, header_actions)
+        self.menu_header.popup(self.mapToGlobal(pos))
 
     def set_single_click_to_open(self, value):
         """Set single click to open items."""
@@ -1590,7 +1633,6 @@ class ExplorerWidget(QWidget):
         for i in [1, 2, 3]:
             self.treewidget.hideColumn(i)
         # self.treewidget.setHeaderHidden(True)
-
 
         button_previous.setDefaultAction(previous_action)
         previous_action.setEnabled(False)
