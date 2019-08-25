@@ -2619,7 +2619,7 @@ class EditorStack(QWidget):
             else:
                 cell_name = oe_data.oedata.cell_index()
         else:
-            if block.firstLineNumber() == 0:
+            if block.blockNumber() == 0:
                 # There is no name for the first cell, refer by cell number
                 cell_name = 0
             else:

@@ -71,7 +71,7 @@ class DocstringWriterExtension(object):
         """Get func def when the cursor is located on the first def line."""
         document = self.code_editor.document()
         cursor = QTextCursor(
-            document.findBlockByLineNumber(self.line_number_cursor - 1))
+            document.findBlockByNumber(self.line_number_cursor - 1))
 
         func_text = ''
         func_indent = ''

@@ -1605,10 +1605,10 @@ class CodeEditor(TextEditBaseWidget):
 
     def select_lines(self, linenumber_pressed, linenumber_released):
         """Select line(s) after a mouse press/mouse press drag event"""
-        find_block_by_line_number = self.document().findBlockByLineNumber
+        find_block_by_number = self.document().findBlockByNumber
         move_n_blocks = (linenumber_released - linenumber_pressed)
         start_line = linenumber_pressed
-        start_block = find_block_by_line_number(start_line - 1)
+        start_block = find_block_by_number(start_line - 1)
 
         cursor = self.textCursor()
         cursor.setPosition(start_block.position())
@@ -2475,7 +2475,7 @@ class CodeEditor(TextEditBaseWidget):
         """
         cursor = self.textCursor()
         block_nb = cursor.blockNumber()
-        prev_block = self.document().findBlockByLineNumber(block_nb-1)
+        prev_block = self.document().findBlockByNumber(block_nb-1)
         prevline = to_text_string(prev_block.text())
 
         indentation = re.match(r"\s*", prevline).group()
