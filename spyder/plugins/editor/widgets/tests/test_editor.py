@@ -102,7 +102,10 @@ def editor_folding_bot(base_editor_bot, qtbot):
             'class a():\n'  # fold-block level-0
             '    self.b = 1\n'
             '    print(self.b)\n'
-            '    \n'
+            '    def c():\n'
+            '        print(1)\n'
+            '        return\n'
+            '        \n'
             )
     finfo = editor_stack.new('foo.py', 'utf-8', text)
 
@@ -521,7 +524,7 @@ def test_unfold_when_searching(editor_folding_bot, qtbot):
 def test_unfold_goto(editor_folding_bot):
     editor_stack, editor, finder = editor_folding_bot
     folding_panel = editor.panels.get('FoldingPanel')
-    line_goto = editor.document().findBlockByLineNumber(3)
+    line_goto = editor.document().findBlockByLineNumber(5)
 
     # fold region
     block = editor.document().findBlockByLineNumber(1)
@@ -529,7 +532,7 @@ def test_unfold_goto(editor_folding_bot):
     assert not line_goto.isVisible()
 
     # unfolded when goto
-    editor.go_to_line(4)
+    editor.go_to_line(6)
     assert line_goto.isVisible()
 
 
@@ -838,4 +841,4 @@ def test_remove_autosave_file(editor_bot, mocker, qtbot):
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main(['test_editor.py'])
