@@ -21,6 +21,7 @@ from qtpy.QtCore import QTimer
 from spyder.config.base import _, get_conf_path
 from spyder.plugins.editor.widgets.autosaveerror import AutosaveErrorDialog
 from spyder.plugins.editor.widgets.recover import RecoveryDialog
+from spyder.utils.programs import is_spyder_process
 
 
 logger = logging.getLogger(__name__)
@@ -139,15 +140,20 @@ class AutosaveForPlugin(object):
         # In Python 3, easier to use os.scandir()
         for name in os.listdir(autosave_dir):
             full_name = osp.join(autosave_dir, name)
-            if re.fullmatch(r'pid[0-9]*\.txt', name):
-                logger.debug('Found pid file: {}'.format(full_name))
+            match = re.fullmatch(r'pid([0-9]*)\.txt', name)
+            if match:
+                pid_files.append(full_name)
+                logger.debug('Reading pid file: {}'.format(full_name))
                 with open(full_name) as pidfile:
                     txt = pidfile.read()
                     txt_as_dict = ast.literal_eval(txt)
-                    files_to_recover += list(txt_as_dict.items())
                     files_mentioned += [autosave for (orig, autosave)
                                         in txt_as_dict.items()]
-                    pid_files.append(full_name)
+                pid = int(match.group(1))
+                if is_spyder_process(pid):
+                    logger.debug('Ignoring files in {}'.format(full_name))
+                else:
+                    files_to_recover += list(txt_as_dict.items())
             else:
                 non_pid_files.append(full_name)
 

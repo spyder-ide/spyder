@@ -46,8 +46,7 @@ def test_autosave_component_timer_if_enabled(qtbot, mocker, enabled):
 
 
 def test_get_files_to_recover_with_empty_autosave_dir(mocker, tmpdir):
-    """Test that get_files_to_recover() does not break if there is no autosave
-    directory."""
+    """Test get_files_to_recover() when autosave dir contains no files."""
     mocker.patch('spyder.plugins.editor.utils.autosave.get_conf_path',
                  return_value=tmpdir)
     addon = AutosaveForPlugin(None)
@@ -57,11 +56,15 @@ def test_get_files_to_recover_with_empty_autosave_dir(mocker, tmpdir):
     assert result == ([], [])
 
 
-def test_get_files_to_recover_with_one_pid_file(mocker, tmpdir):
+@pytest.mark.parametrize('running', [True, False])
+def test_get_files_to_recover_with_one_pid_file(mocker, tmpdir, running):
     """Test get_files_to_recover() if autosave dir contains one pid file with
-    one autosave file."""
+    one autosave file. Depending on the value of running, """
     mocker.patch('spyder.plugins.editor.utils.autosave.get_conf_path',
                  return_value=tmpdir)
+    mock_is_spyder_process = mocker.patch(
+            'spyder.plugins.editor.utils.autosave.is_spyder_process',
+            return_value=running)
     pidfile = tmpdir.join('pid42.txt')
     autosavefile = tmpdir.join('foo.py')
     pidfile.write('{"original": ' + repr(str(autosavefile)) + '}')
@@ -70,8 +73,10 @@ def test_get_files_to_recover_with_one_pid_file(mocker, tmpdir):
 
     result = addon.get_files_to_recover()
 
-    expected = ([('original', str(autosavefile))], [str(pidfile)])
+    expected_files = [('original', str(autosavefile))] if not running else []
+    expected = (expected_files, [str(pidfile)])
     assert result == expected
+    mock_is_spyder_process.assert_called_with(42)
 
 
 def test_get_files_to_recover_with_non_pid_file(mocker, tmpdir):
