@@ -116,10 +116,14 @@ class DocumentProvider:
     @handles(LSPRequestTypes.DOCUMENT_HOVER)
     def process_hover(self, response):
         # logger.debug(response)
-        report = response['report']
-        text = report['description_text']
-        if len(text) == 0:
+        if response:
+            report = response['report']
+            text = report['description_text']
+            if len(text) == 0:
+                text = None
+        else:
             text = None
+
         return {'params': text}
 
     @send_request(method=LSPRequestTypes.DOCUMENT_SIGNATURE)
