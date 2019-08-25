@@ -474,7 +474,9 @@ def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or PY2, reason="It fails sometimes")
-def test_move_to_first_breakpoint(main_window, qtbot):
+@pytest.mark.parametrize(
+    "debugcell", [True, False])
+def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
     """Test that we move to the first breakpoint if there's one present."""
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -497,9 +499,28 @@ def test_move_to_first_breakpoint(main_window, qtbot):
     code_editor.debugger.toogle_breakpoint(line_number=10)
     qtbot.wait(500)
 
-    # Click the debug button
-    qtbot.mouseClick(debug_button, Qt.LeftButton)
-    qtbot.wait(1000)
+    if debugcell:
+        # Advance 2 cells
+        for i in range(2):
+            qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+            qtbot.wait(500)
+
+        # Debug the cell
+        qtbot.keyClick(code_editor, Qt.Key_Return,
+               modifier=Qt.AltModifier | Qt.ShiftModifier)
+        qtbot.waitUntil(
+            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+        # We need to press continue as we don't test yet if a breakpoint
+        # is in the cell
+        qtbot.keyClick(shell._control, 'c')
+        qtbot.keyClick(shell._control, Qt.Key_Enter)
+        qtbot.waitUntil(
+            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+
+    else:
+        # Click the debug button
+        qtbot.mouseClick(debug_button, Qt.LeftButton)
+        qtbot.wait(1000)
 
     # Verify that we are at first breakpoint
     shell.clear_console()
@@ -1950,4 +1971,4 @@ def test_report_comms_error(qtbot, main_window):
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main(['test_mainwindow.py::test_move_to_first_breakpoint', '--run-slow'])
