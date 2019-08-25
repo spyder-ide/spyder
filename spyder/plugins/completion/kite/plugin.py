@@ -113,6 +113,12 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
     @staticmethod
     def _is_proc_kite(proc):
         if os.name == 'nt' or sys.platform.startswith('linux'):
-            return 'kited' in proc.name()
+            try:
+                return 'kited' in proc.name()
+            except:
+                return False
         else:
-            return proc.name() == 'Kite'
+            try:
+                return proc.name() == 'Kite'
+            except:
+                return False
