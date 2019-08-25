@@ -331,8 +331,8 @@ def test():  # pragma: no cover
 
     app = qapplication()
     tempdir = tempfile.mkdtemp()
-    _, autosave_dir, autosave_mapping = make_temporary_files(tempdir)
-    dialog = RecoveryDialog(autosave_dir, autosave_mapping)
+    unused, unused, autosave_mapping = make_temporary_files(tempdir)
+    dialog = RecoveryDialog(autosave_mapping)
     dialog.exec_()
     print('files_to_open =', dialog.files_to_open)  # spyder: test-skip
     shutil.rmtree(tempdir)
