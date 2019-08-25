@@ -171,7 +171,8 @@ def test_save_autosave_mapping_with_nonempty_mapping(mocker, tmpdir):
 
 
 @pytest.mark.parametrize('pidfile_exists', [False, True])
-def test_save_autosave_mapping_with_empty_mapping(mocker, tmpdir, pidfile_exists):
+def test_save_autosave_mapping_with_empty_mapping(mocker, tmpdir,
+                                                  pidfile_exists):
     """Test that save_autosave_mapping() does not write the pidfile if the
     mapping is empty, and that is removes the pidfile if it exists."""
     mocker.patch('os.getpid', return_value=42)

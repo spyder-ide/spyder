@@ -116,7 +116,7 @@ class RecoveryDialog(QDialog):
             else:
                 orig_dict = None
             autosave_dict = gather_file_data(autosave)
-            if 'mtime' not in autosave_dict: # autosave file does not exist
+            if 'mtime' not in autosave_dict:  # autosave file does not exist
                 continue
             self.data.append((orig_dict, autosave_dict))
         self.data.sort(key=recovery_data_key_function)
