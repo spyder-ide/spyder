@@ -9,16 +9,15 @@
 # Standard library imports
 import logging
 
-# Qt imports
+# Third party imports
 from qtpy.QtCore import QObject, QThread, Signal, QTimer, QMutex
+import requests
 
 # Local imports
 from spyder.plugins.completion.kite import KITE_ENDPOINTS, KITE_REQUEST_MAPPING
 from spyder.plugins.completion.kite.decorators import class_register
 from spyder.plugins.completion.kite.providers import KiteMethodProviderMixIn
-
-# Other imports
-import requests
+from spyder.py3compat import ConnectionError, ConnectionRefusedError
 
 
 logger = logging.getLogger(__name__)
@@ -114,9 +113,7 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
                 try:
                     success, response = self.perform_http_request(
                         http_verb, path, params)
-                # TODO: Define these exceptions
-                # except (ConnectionRefusedError, ConnectionError):
-                except Exception:
+                except (ConnectionRefusedError, ConnectionError):
                     self.alive = False
                     self.endpoint = None
                     self.contact_retries = 0

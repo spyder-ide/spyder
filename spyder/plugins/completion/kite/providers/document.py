@@ -151,7 +151,7 @@ class DocumentProvider:
                 call_label = callee['repr']
                 signatures = call['signatures']
                 arg_idx = call['arg_index']
-    
+
                 signature = signatures[0]
                 parameters = []
                 names = []
@@ -162,10 +162,10 @@ class DocumentProvider:
                         'documentation': ''
                     })
                     names.append(arg['name'])
-    
+
                 func_args = ', '.join(names)
                 call_label = '{0}({1})'.format(call_label, func_args)
-    
+
                 base_signature = {
                     'label': call_label,
                     'documentation': documentation,
