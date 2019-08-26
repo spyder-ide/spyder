@@ -1519,7 +1519,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         command = "%s.show()" % name
         sw = self.shellwidget
         if sw._reading:
-            sw.kernel_client.input(command)
+            sw.pdb_execute(command)
         else:
             sw.execute(command)
 

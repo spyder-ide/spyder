@@ -482,9 +482,8 @@ class IPythonConsole(SpyderPluginWidget):
                     # still an execution taking place
                     # Fixes spyder-ide/spyder#7293.
                     pass
-                elif (client.shellwidget._reading and
-                      client.shellwidget.is_debugging()):
-                    client.shellwidget.write_to_stdin('!' + line)
+                elif (client.shellwidget.in_debug_loop()):
+                    client.shellwidget.pdb_execute('!' + line)
                 elif current_client:
                     self.execute_code(line, current_client, clear_variables)
                 else:
@@ -538,9 +537,8 @@ class IPythonConsole(SpyderPluginWidget):
                     # still an execution taking place
                     # Fixes spyder-ide/spyder#7293.
                     pass
-                elif (client.shellwidget._reading and
-                      client.shellwidget.is_debugging()):
-                    client.shellwidget.write_to_stdin('!' + line)
+                elif (client.shellwidget.in_debug_loop()):
+                    client.shellwidget.pdb_execute('!' + line)
                 else:
                     self.execute_code(line)
             except AttributeError:
@@ -607,13 +605,13 @@ class IPythonConsole(SpyderPluginWidget):
             self.activateWindow()
             self.get_current_client().get_control().setFocus()
 
-    def write_to_stdin(self, line):
+    def pdb_execute(self, line, hidden=False):
         sw = self.get_current_shellwidget()
         if sw is not None:
             # Needed to handle an error when kernel_client is None.
             # See spyder-ide/spyder#7578.
             try:
-                sw.write_to_stdin(line)
+                sw.pdb_execute(line, hidden)
             except AttributeError:
                 pass
 

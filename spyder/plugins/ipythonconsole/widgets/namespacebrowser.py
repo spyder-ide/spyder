@@ -123,7 +123,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         """Continue debugging."""
         # Run Pdb continue to get to the first breakpoint
         # Fixes 2034
-        self.write_to_stdin('continue')
+        self.pdb_execute('continue')
 
     # ---- Private API (overrode by us) ----------------------------
     def _handle_execute_reply(self, msg):

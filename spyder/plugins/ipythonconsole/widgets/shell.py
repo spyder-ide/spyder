@@ -109,7 +109,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self.spyder_kernel_comm.register_call_handler(
                 request_id, handlers[request_id])
 
-        self.spyder_kernel_comm.sig_debugging.connect(self._debugging_hook)
+        self.spyder_kernel_comm.sig_debug_loop.connect(self._debugging_hook)
 
     def call_kernel(self, interrupt=False, blocking=False, callback=None):
         """Send message to spyder."""
@@ -118,11 +118,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def set_kernel_client_and_manager(self, kernel_client, kernel_manager):
         """Set the kernel client and manager"""
-        self.spyder_kernel_comm.set_kernel_client(kernel_client)
         self.kernel_manager = kernel_manager
         self.kernel_client = kernel_client
-        if self.kernel_client is not None:
-            self.set_queued_input(self.kernel_client)
+        self.spyder_kernel_comm.set_shell(self)
 
     #---- Public API ----------------------------------------------------------
     def set_exit_callback(self):
@@ -255,7 +253,7 @@ the sympy module (e.g. plot)
 
     # --- To define additional shortcuts
     def clear_console(self):
-        if self._reading and self.is_debugging():
+        if self.is_waiting_pdb_input():
             self.dbg_exec_magic('clear')
         else:
             self.execute("%clear")
@@ -299,7 +297,7 @@ the sympy module (e.g. plot)
                 return
 
         try:
-            if self._reading and self.is_debugging():
+            if self.is_waiting_pdb_input():
                 self.dbg_exec_magic('reset', '-f')
             else:
                 if message:

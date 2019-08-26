@@ -68,11 +68,11 @@ def test_runcell(tmpdir, debug):
             # Continue
             process_msg('set_debug_state')
             process_msg('get_breakpoints')
-            assert kernel_comm._debugging
+            assert kernel_comm._debug_loop
             time.sleep(.5)
             client.input('c')
             process_msg('set_debug_state')
-            assert not kernel_comm._debugging
+            assert not kernel_comm._debug_loop
 
         msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
         assert msg['msg_type'] == 'execute_reply'

@@ -26,27 +26,27 @@ class KernelComm(CommBase, QObject):
     """
 
     _sig_got_reply = Signal()
-    sig_debugging = Signal(bool)
+    sig_debug_loop = Signal(bool)
     sig_exception_occurred = Signal(str, bool)
 
     def __init__(self):
         super(KernelComm, self).__init__()
 
-        self.kernel_client = None
-        self._debugging = False
+        self._shell = None
+        self._debug_loop = False
 
         self.register_call_handler(
             'set_debug_state', self._handle_debug_state)
         self.register_call_handler(
             '_async_error', self._async_error)
 
-    def set_kernel_client(self, kernel_client):
+    def set_shell(self, shell):
         """Register new kernel client and open comm."""
         self._register_comm(
             # Create new comm and send the highest protocol
-            kernel_client.comm_manager.new_comm(self._comm_name, data={
+            shell.kernel_client.comm_manager.new_comm(self._comm_name, data={
                 'pickle_protocol': pickle.HIGHEST_PROTOCOL}))
-        self.kernel_client = kernel_client
+        self._shell = shell
 
     def remote_call(self, interrupt=False, blocking=False, callback=None,
                     comm_id=None):
@@ -75,15 +75,15 @@ class KernelComm(CommBase, QObject):
         """
         Update by sending an input to pdb.
         """
-        if self._debugging and self.kernel_client:
+        if self._debug_loop and self._shell:
             cmd = (u"!get_ipython().kernel.frontend_comm" +
                    ".remote_call(blocking=True).pong()")
-            self.kernel_client.input(cmd)
+            self._shell.pdb_execute(cmd, hidden=True)
 
-    def _handle_debug_state(self, is_debugging):
+    def _handle_debug_state(self, in_debug_loop):
         """Update the debug state."""
-        self._debugging = is_debugging
-        self.sig_debugging.emit(is_debugging)
+        self._debug_loop = in_debug_loop
+        self.sig_debug_loop.emit(in_debug_loop)
 
     def _wait_reply(self, call_id, call_name, timeout):
         """Wait for the other side reply."""

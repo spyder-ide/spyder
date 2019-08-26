@@ -311,7 +311,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         if not self.shellwidget._reading:
             self.interrupt_kernel()
         else:
-            self.shellwidget.write_to_stdin('exit')
+            self.shellwidget.pdb_execute('exit', hidden=True)
 
     def show_kernel_error(self, error):
         """Show kernel initialization errors in infowidget."""
@@ -546,7 +546,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                     sw.kernel_manager.restart_kernel(
                         stderr=self.stderr_handle)
                     # Reopen comm
-                    sw.spyder_kernel_comm.set_kernel_client(sw.kernel_client)
+                    sw.spyder_kernel_comm.set_shell(sw)
 
                 except RuntimeError as e:
                     sw._append_plain_text(

@@ -57,23 +57,6 @@ class DebuggingWidget(RichJupyterWidget):
             line[-1] for line in self.pdb_history_file.get_tail(
                 self.PDB_HIST_MAX, include_latest=True)]
 
-    def set_queued_input(self, client):
-        """Change the kernel client input function queue calls."""
-        old_input = client.input
-
-        def queued_input(string):
-            """If input is not ready, save it in a queue."""
-            if not string.strip():
-                # Must get the last genuine command
-                string = self._last_pdb_cmd
-            if self._input_ready:
-                self._input_ready = False
-                return old_input(string)
-            elif self.is_debugging():
-                self._input_queue.append(string)
-
-        client.input = queued_input
-
     def _debugging_hook(self, debugging):
         """Catches debugging state."""
         # If debugging starts or stops, clear the input queue.
@@ -81,11 +64,28 @@ class DebuggingWidget(RichJupyterWidget):
         self._pdb_line_num = 0
 
     # --- Public API --------------------------------------------------
-    def write_to_stdin(self, line):
-        """Send raw characters to the IPython kernel through stdin"""
-        self._control.insert_text(line + '\n')
-        self._reading = False
-        self.kernel_client.input(line)
+    def pdb_execute(self, line, hidden=False):
+        """Send line to the pdb kernel if possible."""
+        if not self.is_waiting_pdb_input():
+            # We can't execute this if we are not waiting for pdb input
+            return
+        # Print the string to the console
+        if not hidden:
+            # This emulates an user interaction
+            self._control.insert_text(line + '\n')
+            self._reading = False
+            self._append_before_prompt_cursor.setPosition(
+                self._get_end_cursor().position())
+
+        if not line.strip():
+            # Must get the last genuine command
+            line = self._last_pdb_cmd
+
+        if self._input_ready:
+            self._input_ready = False
+            return self.kernel_client.input(line)
+
+        self._input_queue.append(line)
 
     def get_spyder_breakpoints(self):
         """Get spyder breakpoints."""
@@ -98,11 +98,11 @@ class DebuggingWidget(RichJupyterWidget):
 
     def dbg_exec_magic(self, magic, args=''):
         """Run an IPython magic while debugging."""
-        if not self.is_debugging():
+        if not self.is_waiting_pdb_input():
             return
         code = "!get_ipython().kernel.shell.run_line_magic('{}', '{}')".format(
                     magic, args)
-        self.kernel_client.input(code)
+        self.pdb_execute(code, hidden=True)
 
     def refresh_from_pdb(self, pdb_state):
         """
@@ -142,12 +142,21 @@ class DebuggingWidget(RichJupyterWidget):
         if len(self._input_queue) > 0:
             msg = self._input_queue[0]
             del self._input_queue[0]
-            self.kernel_client.input(msg)
+            self.pdb_execute(msg, hidden=True)
             return
 
         def callback(line):
-            if not self.is_debugging():
-                return self.kernel_client.input(line)
+            if not self.is_waiting_pdb_input():
+                if self._input_ready:
+                    # This is a regular input call
+                    self._input_ready = False
+                    self._reading = False
+                    self._append_before_prompt_cursor.setPosition(
+                        self._get_end_cursor().position())
+                    return self.kernel_client.input(line)
+                else:
+                    # This is an error. Raise?
+                    return
             line = line.strip()
 
             # Save history to browse it later
@@ -164,10 +173,8 @@ class DebuggingWidget(RichJupyterWidget):
             # plots while debugging
             if line.startswith('%plot '):
                 line = line.split()[-1]
-                code = "__spy_code__ = get_ipython().run_cell('%s')" % line
-                self.kernel_client.input(code)
-            else:
-                self.kernel_client.input(line)
+                line = "__spy_code__ = get_ipython().run_cell('%s')" % line
+            self.pdb_execute(line, hidden=True)
             self._highlighter.highlighting_on = False
         self._highlighter.highlighting_on = True
 
@@ -216,9 +223,14 @@ class DebuggingWidget(RichJupyterWidget):
             return super(DebuggingWidget,
                          self)._event_filter_console_keypress(event)
 
-    def is_debugging(self):
+    def in_debug_loop(self):
         """Check if we are debugging."""
-        return self.spyder_kernel_comm._debugging
+        return self.spyder_kernel_comm._debug_loop
+
+    def is_waiting_pdb_input(self):
+        """Check if we are waiting a pdb input."""
+        return (self.in_debug_loop() and self._previous_prompt is not None
+                and self._previous_prompt[0] == 'ipdb> ')
 
     def add_to_pdb_history(self, line_num, line):
         """Add command to history"""
