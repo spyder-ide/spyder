@@ -142,8 +142,9 @@ def main():
         levels = {'minimal': '2', 'verbose': '3'}
         os.environ['SPYDER_DEBUG'] = levels[options.debug_info]
 
-    if CONF.get('main', 'single_instance') and not options.new_instance \
-      and not options.reset_config_files and not running_in_mac_app(True):
+    if (CONF.get('main', 'single_instance') and not options.new_instance
+            and not options.reset_config_files
+            and not running_in_mac_app(check_file=True)):
         # Minimal delay (0.1-0.2 secs) to avoid that several
         # instances started at the same time step in their
         # own foots while trying to create the lock file
