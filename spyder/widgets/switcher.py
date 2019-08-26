@@ -614,7 +614,7 @@ class Switcher(QDialog):
             title, rich_title, score_value = score
             item = self.model.item(idx)
 
-            if not self._is_separator(item):
+            if not self._is_separator(item) and not item.is_action_item():
                 rich_title = rich_title.replace(" ", "&nbsp;")
                 item.set_rich_title(rich_title)
 

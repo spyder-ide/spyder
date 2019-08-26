@@ -411,7 +411,6 @@ class MainWindow(QMainWindow):
         self.tours_available = None
 
         # File switcher
-        # TODO: Change to Switcher
         self.switcher = None
 
         # Check for updates Thread and Worker, refereces needed to prevent
@@ -666,8 +665,7 @@ class MainWindow(QMainWindow):
                                "Use next layout")
         self.register_shortcut(self.toggle_previous_layout_action, "_",
                                "Use previous layout")
-        # File switcher shortcuts
-        # TODO: Change to Switcher
+        # Switcher shortcuts
         self.file_switcher_action = create_action(
                                     self,
                                     _('File switcher...'),
@@ -3214,7 +3212,6 @@ class MainWindow(QMainWindow):
     # ---- Global Switcher
     def open_switcher(self, symbol=False):
         """Open switcher dialog box."""
-        # TODO: Change to Switcher
         if self.switcher is not None and self.switcher.isVisible():
             self.switcher.hide()
             self.switcher.clear()
@@ -3232,7 +3229,6 @@ class MainWindow(QMainWindow):
 
     def open_symbolfinder(self):
         """Open symbol list management dialog box."""
-        # TODO: Change to Switcher
         self.open_switcher(symbol=True)
 
     def create_switcher(self):

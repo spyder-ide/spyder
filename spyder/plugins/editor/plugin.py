@@ -33,7 +33,7 @@ from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.config.gui import get_shortcut
 from spyder.config.manager import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
-                                 get_filter, is_ubuntu)
+                                 get_filter)
 from spyder.py3compat import PY2, qbytearray_to_str, to_text_string
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils import icon_manager as ima
@@ -1169,14 +1169,6 @@ class Editor(SpyderPluginWidget):
     def register_editorstack(self, editorstack):
         self.editorstacks.append(editorstack)
         self.register_widget_shortcuts(editorstack)
-        if len(self.editorstacks) > 1 and self.main is not None:
-            # The first editostack is registered automatically with Spyder's
-            # main window through the `register_plugin` method. Only additional
-            # editors added by splitting need to be registered.
-            # See spyder-ide/spyder#5057.
-            # TODO: Change for Switcher
-            self.main.fileswitcher.sig_goto_file.connect(
-                      editorstack.set_stack_index)
 
         if self.isAncestorOf(editorstack):
             # editorstack is a child of the Editor plugin
@@ -1470,20 +1462,6 @@ class Editor(SpyderPluginWidget):
         #            self.main.get_spyder_pythonpath())
 
     # ------ Switcher Setup
-    def get_file_icon(self, path):
-        """Get icon for file by extension."""
-
-        if sys.platform == 'darwin':
-            scale_factor = 0.9
-        elif os.name == 'nt':
-            scale_factor = 0.8
-        elif is_ubuntu():
-            scale_factor = 0.7
-        else:
-            scale_factor = 0.9
-
-        return ima.get_icon_by_extension_or_type(path, scale_factor)
-
     def handle_switcher_modes(self, mode):
         """Handle switcher for registered modes."""
         if mode == '@':
@@ -1508,7 +1486,7 @@ class Editor(SpyderPluginWidget):
         for idx, data in enumerate(self.get_current_editorstack().data):
             path = data.filename
             title = osp.basename(path)
-            icon = self.get_file_icon(path)
+            icon = sourcecode.get_file_icon(path)
             self.main.switcher.add_item(title=title,
                                         description=short_paths[idx],
                                         icon=icon,
@@ -1523,7 +1501,7 @@ class Editor(SpyderPluginWidget):
         path = data.filename
         title = osp.basename(path)
         lines = data.editor.get_line_count()
-        icon = self.get_file_icon(path)
+        icon = sourcecode.get_file_icon(path)
         line_template_title = "{title} [{lines} {text}]"
         title = line_template_title.format(title=title, lines=lines,
                                            text=_("lines"))
@@ -1587,21 +1565,21 @@ class Editor(SpyderPluginWidget):
         """Handle item selection of the switcher."""
         data = item.get_data()
         if mode == '@':
-            self.create_symbol_switcher_handler(data)
+            self.symbol_switcher_handler(data)
         elif mode == ':':
-            self.create_line_switcher_handler(data, search_text)
+            self.line_switcher_handler(data, search_text)
         elif mode == '':
             # Each plugin that wants to attach to the switcher should do this?
             if item.get_section() == self.get_plugin_title():
-                self.create_editor_switcher_handler(data)
+                self.editor_switcher_handler(data)
 
-    def create_editor_switcher_handler(self, data):
+    def editor_switcher_handler(self, data):
         """Populate switcher with FileInfo data."""
         self.set_current_filename(data.filename)
         self.main.switcher.hide()
 
-    def create_line_switcher_handler(self, data, search_text):
-        """Populate switcher with line info."""
+    def line_switcher_handler(self, data, search_text):
+        """Handle line switcher selection."""
         self.set_current_filename(data.filename)
         line_number = search_text.split(':')[0]
         try:
@@ -1611,8 +1589,8 @@ class Editor(SpyderPluginWidget):
             # Invalid line number
             pass
 
-    def create_symbol_switcher_handler(self, data):
-        """Populate switcher with symbol info."""
+    def symbol_switcher_handler(self, data):
+        """Handle symbol switcher selection."""
         line_number = data['line_number']
         self.go_to_line(int(line_number))
 

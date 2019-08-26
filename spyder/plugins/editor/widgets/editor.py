@@ -43,8 +43,8 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     mimedata2url, set_menu_icons)
 from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
-from spyder.widgets.fileswitcher import FileSwitcher
 from spyder.widgets.findreplace import FindReplace
+from spyder.widgets.switcher import Switcher
 from spyder.plugins.editor.utils.autosave import AutosaveForStack
 from spyder.plugins.editor.widgets import codeeditor
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget  # analysis:ignore
@@ -467,8 +467,7 @@ class EditorStack(QWidget):
         self.setLayout(layout)
 
         self.menu = None
-        # TODO: Change to Switcher>
-        self.fileswitcher_dlg = None
+        self.switcher_dlg = None
 #        self.filelist_btn = None
 #        self.previous_btn = None
 #        self.next_btn = None
@@ -482,15 +481,15 @@ class EditorStack(QWidget):
         self.find_widget = None
 
         self.data = []
-        # TODO: Change to Switcher
-        fileswitcher_action = create_action(self, _("File switcher..."),
-                icon=ima.icon('filelist'),
-                triggered=self.open_fileswitcher_dlg)
-        # TODO: Change to Switcher
+
+        switcher_action = create_action(self,
+                                        _("File switcher..."),
+                                        icon=ima.icon('filelist'),
+                                        triggered=self.open_switcher_dlg)
         symbolfinder_action = create_action(self,
-                _("Find symbols in file..."),
-                icon=ima.icon('symbol_find'),
-                triggered=self.open_symbolfinder_dlg)
+            _("Find symbols in file..."),
+            icon=ima.icon('symbol_find'),
+            triggered=self.open_symbolfinder_dlg)
         copy_to_cb_action = create_action(self, _("Copy path to clipboard"),
                 icon=ima.icon('editcopy'),
                 triggered=lambda:
@@ -511,7 +510,7 @@ class EditorStack(QWidget):
                                 triggered=self.show_in_external_file_explorer)
 
         self.menu_actions = actions + [external_fileexp_action,
-                                       None, fileswitcher_action,
+                                       None, switcher_action,
                                        symbolfinder_action,
                                        copy_to_cb_action, None, close_right,
                                        close_all_but_this, sort_tabs]
@@ -860,27 +859,144 @@ class EditorStack(QWidget):
         self.set_stack_index(other.get_stack_index())
 
     @Slot()
-    def open_fileswitcher_dlg(self):
+    @Slot(str)
+    def open_switcher_dlg(self, initial_text=''):
         """Open file list management dialog box"""
         if not self.tabs.count():
             return
-        # TODO: Change to Switcher
-        if self.fileswitcher_dlg is not None and \
-          self.fileswitcher_dlg.is_visible:
-            self.fileswitcher_dlg.hide()
-            self.fileswitcher_dlg.is_visible = False
+        if self.switcher_dlg is not None and self.switcher_dlg.isVisible():
+            self.switcher_dlg.hide()
+            self.switcher_dlg.clear()
             return
-        self.fileswitcher_dlg = FileSwitcher(self, self, self.tabs, self.data,
-                                             ima.icon('TextFileIcon'))
-        self.fileswitcher_dlg.sig_goto_file.connect(self.set_stack_index)
-        self.fileswitcher_dlg.show()
-        self.fileswitcher_dlg.is_visible = True
+        if self.switcher_dlg is None:
+            self.switcher_dlg = Switcher(self)
+            # Add base modes to the switcher
+            self.switcher_dlg.add_mode(':', _('Go to Line'))
+            self.switcher_dlg.add_mode('@', _('Go to Symbol in File'))
+            self.switcher_dlg.sig_mode_selected.connect(
+                self.handle_switcher_modes)
+            self.switcher_dlg.sig_item_selected.connect(
+                    self.handle_switcher_selection)
+
+        self.switcher_dlg.set_search_text(initial_text)
+        self.switcher_dlg.setup()
+        self.switcher_dlg.show()
+        # Note: the +1 pixel on the top makes it look better
+        delta_top = self.tabs.tabBar().geometry().height() + 1
+        self.switcher_dlg.set_position(delta_top)
 
     @Slot()
     def open_symbolfinder_dlg(self):
-        # TODO: Change to Switcher
-        self.open_fileswitcher_dlg()
-        self.fileswitcher_dlg.set_search_text('@')
+        self.open_switcher_dlg(initial_text='@')
+
+    def handle_switcher_modes(self, mode):
+        """Handle switcher for registered modes."""
+        if mode == '@':
+            self.create_symbol_switcher()
+        elif mode == ':':
+            self.create_line_switcher()
+        elif mode == '':
+            self.create_editor_switcher()
+
+    def create_editor_switcher(self):
+        """Populate switcher with ."""
+        self.switcher_dlg.set_placeholder_text(
+            _('Start typing the name of an open file'))
+
+        paths = [data.filename for data in self.data]
+        save_statuses = [data.newly_created for data in self.data]
+
+        short_paths = sourcecode.shorten_paths(paths, save_statuses)
+
+        for idx, data in enumerate(self.data):
+            path = data.filename
+            title = osp.basename(path)
+            icon = sourcecode.get_file_icon(path)
+            self.switcher_dlg.add_item(title=title,
+                                       description=short_paths[idx],
+                                       icon=icon,
+                                       section=self.get_plugin_title(),
+                                       data=data)
+
+    def create_line_switcher(self):
+        """Populate switcher with line info."""
+        self.switcher_dlg.clear()
+        self.switcher_dlg.set_placeholder_text(_('Select line'))
+        data = self.get_current_finfo()
+        path = data.filename
+        title = osp.basename(path)
+        lines = data.editor.get_line_count()
+        icon = sourcecode.get_file_icon(path)
+        line_template_title = "{title} [{lines} {text}]"
+        title = line_template_title.format(title=title, lines=lines,
+                                           text=_("lines"))
+        description = _('Go to line')
+        self.switcher_dlg.add_item(title=title,
+                                   description=description,
+                                   icon=icon,
+                                   section=self.get_plugin_title(),
+                                   data=data,
+                                   action_item=True)
+
+    def create_symbol_switcher(self):
+        """Populate switcher with symbol info."""
+        self.switcher_dlg.clear()
+        self.switcher_dlg.set_placeholder_text(_('Select symbol'))
+        oedata_list = (
+            self.get_current_editor().outlineexplorer_data_list())
+
+        symbols_list = sourcecode.get_symbol_list(oedata_list)
+        icons = sourcecode.get_python_symbol_icons(symbols_list)
+
+        for idx, symbol in enumerate(symbols_list):
+            title = symbol[1]
+            fold_level = symbol[2]
+            space = ' ' * fold_level
+            formated_title = '{space}{title}'.format(title=title,
+                                                     space=space)
+            line_number = symbol[0]
+            icon = icons[idx]
+            data = {'title': title,
+                    'line_number': line_number}
+            self.switcher_dlg.add_item(title=formated_title,
+                                       icon=icon,
+                                       section=self.get_plugin_title(),
+                                       data=data)
+        # Needed to update fold spaces in items titles
+        self.switcher_dlg.setup()
+
+    def handle_switcher_selection(self, item, mode, search_text):
+        """Handle item selection of the switcher."""
+        data = item.get_data()
+        if mode == '@':
+            self.symbol_switcher_handler(data)
+        elif mode == ':':
+            self.line_switcher_handler(data, search_text)
+        elif mode == '':
+            # Each plugin that wants to attach to the switcher should do this?
+            if item.get_section() == self.get_plugin_title():
+                self.editor_switcher_handler(data)
+
+    def editor_switcher_handler(self, data):
+        """Populate switcher with FileInfo data."""
+        self.set_current_filename(data.filename)
+        self.switcher_dlg.hide()
+
+    def line_switcher_handler(self, data, search_text):
+        """Handle line switcher selection."""
+        self.set_current_filename(data.filename)
+        line_number = search_text.split(':')[0]
+        try:
+            self.go_to_line(int(line_number))
+            self.switcher_dlg.hide()
+        except Exception:
+            # Invalid line number
+            pass
+
+    def symbol_switcher_handler(self, data):
+        """Handle symbol switcher selection."""
+        line_number = data['line_number']
+        self.go_to_line(int(line_number))
 
     def get_plugin_title(self):
         """Get the plugin title of the parent widget."""
@@ -888,11 +1004,6 @@ class EditorStack(QWidget):
         # See spyder-ide/spyder#9469.
         # TODO: Change to Switcher
         return self.parent().plugin.get_plugin_title()
-
-    def get_current_tab_manager(self):
-        """Get the widget with the TabWidget attribute."""
-        # TODO: Change to Switcher
-        return self
 
     def go_to_line(self, line=None):
         """Go to line dialog"""

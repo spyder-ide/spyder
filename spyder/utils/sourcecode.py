@@ -18,6 +18,7 @@ from qtpy.QtGui import QIcon
 
 # Local imports
 from spyder.config.base import _
+from spyder.config.utils import is_ubuntu
 from spyder.py3compat import iteritems, PY2
 from spyder.utils import icon_manager as ima
 
@@ -318,6 +319,21 @@ def shorten_paths(path_list, is_unsaved):
     recurse_level({i: pl for i, pl in enumerate(path_list) if pl})
 
     return [path.rstrip(os.sep) for path in new_path_list]
+
+
+def get_file_icon(path):
+    """Get icon for file by extension."""
+
+    if sys.platform == 'darwin':
+        scale_factor = 0.9
+    elif os.name == 'nt':
+        scale_factor = 0.8
+    elif is_ubuntu():
+        scale_factor = 0.7
+    else:
+        scale_factor = 0.9
+
+    return ima.get_icon_by_extension_or_type(path, scale_factor)
 
 
 def get_symbol_list(outlineexplorer_data_list):
