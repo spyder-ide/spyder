@@ -154,7 +154,7 @@ APPEARANCE = {
     #           Name             Color     Bold  Italic
     'spyder/dark/background':  "#19232D",
     'spyder/dark/currentline': "#3a424a",
-    'spyder/dark/currentcell': "#17172d",
+    'spyder/dark/currentcell': "#292d3e",
     'spyder/dark/occurrence':  "#509ea5",
     'spyder/dark/ctrlclick':   "#179ae0",
     'spyder/dark/sideareas':   "#222b35",
