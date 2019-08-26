@@ -969,21 +969,23 @@ def is_spyder_process(pid):
     Test whether given PID belongs to a Spyder process.
 
     This is checked by testing the first three command line arguments. This
-    function returns a bool. If there is no process with this PID, then the
-    function returns False.
+    function returns a bool. If there is no process with this PID or its
+    command line cannot be accessed (perhaps because the process is owned by
+    another user), then the function returns False.
     """
-    if not psutil.pid_exists(pid):
+    try:
+        p = psutil.Process(int(pid))
+
+        # Valid names for main script
+        names = set(['spyder', 'spyder3', 'spyder.exe', 'spyder3.exe',
+                     'bootstrap.py', 'spyder-script.py'])
+        if running_under_pytest():
+            names.add('runtests.py')
+
+        # Check the first three command line arguments
+        arguments = set(os.path.basename(arg) for arg in p.cmdline()[:3])
+        conditions = [names & arguments]
+        return any(conditions)
+
+    except (psutil.NoSuchProcess, psutil.AccessDenied):
         return False
-
-    p = psutil.Process(int(pid))
-
-    # Valid names for main script
-    names = set(['spyder', 'spyder3', 'spyder.exe', 'spyder3.exe',
-                 'bootstrap.py', 'spyder-script.py'])
-    if running_under_pytest():
-        names.add('runtests.py')
-
-    # Check the first three command line arguments
-    arguments = set(os.path.basename(arg) for arg in p.cmdline()[:3])
-    conditions = [names & arguments]
-    return any(conditions)
