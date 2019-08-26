@@ -242,7 +242,6 @@ a Python version equal or greater than 3.5 or 2.7.
 * **Numpydoc**: Used by Jedi to get function return types from Numpydocstrings.
 * **Cloudpickle**: Serialize variables in the IPython kernel to send to Spyder.
 * **spyder-kernels** 1.4.0+: Jupyter kernels for the Spyder console.
-* **jupyter_client** 5.2.5+: Client for Jupyter kernels.
 * **keyring**: Save Github credentials to report errors securely.
 * **QDarkStyle** 2.6.4+: A dark stylesheet for Qt applications, used for Spyder's dark theme.
 * **atomicwrites**: Atomic file writes.

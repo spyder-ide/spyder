@@ -71,20 +71,6 @@ except AttributeError:
 
 
 #-----------------------------------------------------------------------------
-# Auxiliary functions
-#-----------------------------------------------------------------------------
-def background(f):
-    """
-    Call a function in a simple thread, to prevent blocking
-
-    Taken from the Jupyter Qtconsole project
-    """
-    t = Thread(target=f)
-    t.start()
-    return t
-
-
-#-----------------------------------------------------------------------------
 # Client widget
 #-----------------------------------------------------------------------------
 class ClientWidget(QWidget, SaveHistoryMixin):
