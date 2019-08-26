@@ -648,7 +648,7 @@ class FileSwitcher(QDialog):
         for oedata in self.get_widget().outlineexplorer_data_list():
             if oedata.is_class_or_function():
                 symbol_list.append((
-                    oedata.block.firstLineNumber(),
+                    oedata.block.blockNumber(),
                     oedata.def_name, oedata.fold_level,
                     oedata.get_token()))
         return sorted(symbol_list)
