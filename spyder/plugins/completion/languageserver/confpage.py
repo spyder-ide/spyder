@@ -941,11 +941,11 @@ class LanguageServerConfigPage(GeneralConfigPage):
             'advanced/command_launch', alignment=Qt.Horizontal,
             word_wrap=False)
         self.advanced_host = self.create_lineedit(
-            _("IP Address and port to bind the server to: "),
-            'advanced/host', alignment=Qt.Horizontal,
+            _("IP Address and port to bind the server to: "), 'advanced/host',
+            placeholder='127.0.0.1', alignment=Qt.Horizontal,
             word_wrap=False)
         self.advanced_port = self.create_spinbox(
-            ":", "", 'advanced/port', min_=1, max_=65535, step=1)
+            ":", "", 'advanced/port', min_=0, max_=65535, step=1)
         self.external_server = self.create_checkbox(
             _("This is an external server"),
             'advanced/external')
