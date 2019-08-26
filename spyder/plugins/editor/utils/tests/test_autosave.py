@@ -48,7 +48,7 @@ def test_autosave_component_timer_if_enabled(qtbot, mocker, enabled):
 def test_get_files_to_recover_with_empty_autosave_dir(mocker, tmpdir):
     """Test get_files_to_recover() when autosave dir contains no files."""
     mocker.patch('spyder.plugins.editor.utils.autosave.get_conf_path',
-                 return_value=tmpdir)
+                 return_value=str(tmpdir))
     addon = AutosaveForPlugin(None)
 
     result = addon.get_files_to_recover()
@@ -61,7 +61,7 @@ def test_get_files_to_recover_with_one_pid_file(mocker, tmpdir, running):
     """Test get_files_to_recover() if autosave dir contains one pid file with
     one autosave file. Depending on the value of running, """
     mocker.patch('spyder.plugins.editor.utils.autosave.get_conf_path',
-                 return_value=tmpdir)
+                 return_value=str(tmpdir))
     mock_is_spyder_process = mocker.patch(
             'spyder.plugins.editor.utils.autosave.is_spyder_process',
             return_value=running)
@@ -83,7 +83,7 @@ def test_get_files_to_recover_with_non_pid_file(mocker, tmpdir):
     """Test get_files_to_recover() if autosave dir contains no pid file, but
     one Python file."""
     mocker.patch('spyder.plugins.editor.utils.autosave.get_conf_path',
-                 return_value=tmpdir)
+                 return_value=str(tmpdir))
     pythonfile = tmpdir.join('foo.py')
     pythonfile.write('bar = 1')
     addon = AutosaveForPlugin(None)
@@ -115,7 +115,7 @@ def test_try_recover(mocker, tmpdir, error_on_remove):
     mock_RecoveryDialog = mocker.patch(
             'spyder.plugins.editor.utils.autosave.RecoveryDialog')
     mocker.patch('spyder.plugins.editor.utils.autosave.get_conf_path',
-                 return_value=tmpdir)
+                 return_value=str(tmpdir))
     pidfile = tmpdir.join('pid42.txt')
     autosavefile = tmpdir.join('foo.py')
     pidfile.write('{"original": ' + repr(str(autosavefile)) + '}')
@@ -160,7 +160,7 @@ def test_save_autosave_mapping_with_nonempty_mapping(mocker, tmpdir):
     to the correct file if the mapping is not empty."""
     mocker.patch('os.getpid', return_value=42)
     mocker.patch('spyder.plugins.editor.utils.autosave.get_conf_path',
-                 return_value=tmpdir)
+                 return_value=str(tmpdir))
     addon = AutosaveForStack(None)
     addon.name_mapping = {'orig': 'autosave'}
 
@@ -177,7 +177,7 @@ def test_save_autosave_mapping_with_empty_mapping(mocker, tmpdir,
     mapping is empty, and that is removes the pidfile if it exists."""
     mocker.patch('os.getpid', return_value=42)
     mocker.patch('spyder.plugins.editor.utils.autosave.get_conf_path',
-                 return_value=tmpdir)
+                 return_value=str(tmpdir))
     addon = AutosaveForStack(None)
     addon.name_mapping = {}
     pidfile = tmpdir.join('pid42.txt')
@@ -197,7 +197,7 @@ def test_autosave_remove_autosave_file(mocker, exception):
     `file_hashes`."""
     mock_remove = mocker.patch('os.remove')
     if exception:
-        mock_remove.side_effect = EnvironmentError()
+        mock_remove.side_effect = OSError()
     mock_dialog = mocker.patch(
         'spyder.plugins.editor.utils.autosave.AutosaveErrorDialog')
     mock_stack = mocker.Mock()

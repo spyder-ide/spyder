@@ -140,7 +140,7 @@ class AutosaveForPlugin(object):
         # In Python 3, easier to use os.scandir()
         for name in os.listdir(autosave_dir):
             full_name = osp.join(autosave_dir, name)
-            match = re.fullmatch(r'pid([0-9]*)\.txt', name)
+            match = re.match(r'pid([0-9]*)\.txt\Z', name)
             if match:
                 pid_files.append(full_name)
                 logger.debug('Reading pid file: {}'.format(full_name))
