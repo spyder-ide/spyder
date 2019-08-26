@@ -503,7 +503,7 @@ else:
 
 def running_in_mac_app(check_file=False):
     """
-    Check if the app is running in mac.
+    Check if Spyder is running inside an app on macOS.
 
     If check_file is True, check if the app is a stand-alone app.
     This means this file is located inside 'Spyder.app' and not in the
