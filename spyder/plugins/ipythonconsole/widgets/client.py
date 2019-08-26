@@ -504,7 +504,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             self.shellwidget.spyder_kernel_comm.close()
             self.shellwidget.kernel_manager.shutdown_kernel(now=now)
         if self.shellwidget.kernel_client is not None:
-            self.shellwidget.kernel_client.shutdown()
+            self.shellwidget.kernel_client.stop_channels()
 
     def interrupt_kernel(self):
         """Interrupt the associanted Spyder kernel if it's running"""

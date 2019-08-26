@@ -214,6 +214,7 @@ install_requires = [
     'chardet>=2.0.0',
     'numpydoc',
     'spyder-kernels>=1.4.0,<1.5.0',
+    'jupyter_client >=5.2.5',
     'qdarkstyle>=2.7',
     'atomicwrites',
     'diff-match-patch',
