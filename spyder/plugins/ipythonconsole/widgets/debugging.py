@@ -184,8 +184,7 @@ class DebuggingWidget(RichJupyterWidget):
         # Check if this is a duplicate that we shouldn't reprint.
         # This can happen when sending commands to pdb from the frontend.
         print_prompt = (not self._reading
-                        or not (prompt, password) == self._previous_prompt
-                        or self._get_end_cursor().block().text() != prompt)
+                        or not (prompt, password) == self._previous_prompt)
 
         self._previous_prompt = (prompt, password)
 
