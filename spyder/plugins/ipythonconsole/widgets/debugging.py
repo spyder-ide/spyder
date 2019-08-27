@@ -182,7 +182,6 @@ class DebuggingWidget(RichJupyterWidget):
         self._executing = False
 
         prompt, password = msg['content']['prompt'], msg['content']['password']
-        position = self._prompt_pos
 
         # Check if this is a duplicate that we shouldn't reprint.
         # This can happen when sending commands to pdb from the frontend.
