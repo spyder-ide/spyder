@@ -219,7 +219,8 @@ class Projects(SpyderPluginWidget):
     # ------ Public API -------------------------------------------------------
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""
-        self.tabify(self.main.explorer)
+        # TODO: Uncomment for Spyder 5
+        # self.tabify(self.main.explorer)
 
     def setup_menu_actions(self):
         """Setup and update the menu actions."""

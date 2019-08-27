@@ -1655,14 +1655,14 @@ class MainWindow(QMainWindow):
         s_layout = {
             'widgets': [
                 # Column 0
-                [[explorer_file, explorer_project]],
+                [[explorer_project]],
                 # Column 1
                 [[editor]],
                 # Column 2
                 [[outline]],
                 # Column 3
                 [[help_plugin, explorer_variable, plots,     # Row 0
-                  helper, finder] + plugins,
+                  helper, explorer_file, finder] + plugins,
                  [console_int, console_ipy, history]]        # Row 1
                 ],
             'width fraction': [15,            # Column 0 width

@@ -117,9 +117,11 @@ class Explorer(SpyderPluginWidget):
         self.fileexplorer.treewidget.refresh(new_path,
                                              force_current=force_current)
 
-    # def on_first_registration(self):
-    #     """Action to be performed on first plugin registration"""
-    #     self.tabify(self.main.projects)
+    def on_first_registration(self):
+        """Action to be performed on first plugin registration."""
+        # TODO: Remove this for spyder 5
+        # self.tabify(self.main.projects)
+        self.tabify(self.main.variableexplorer)
 
     def apply_plugin_settings(self, options):
         """Handle preference options update."""

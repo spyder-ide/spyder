@@ -1300,36 +1300,6 @@ class DirView(QTreeView):
             self.setRowHidden(index.row(), index.parent(), True)
 
 
-class DirNameProxyModel(QSortFilterProxyModel):
-    """
-    https://stackoverflow.com/a/20715646
-    """
-
-    def lessThan(self, left, right):
-        """"""
-        # If sorting by file names column
-        if self.sortColumn() == 0:
-            fsm = self.sourceModel()
-            asc = self.sortOrder() == Qt.AscendingOrder
-
-            leftFileInfo = fsm.fileInfo(left)
-            rightFileInfo = fsm.fileInfo(right)
-
-            # If DotAndDot move in the beginning
-            if fsm.data(left).toString() == '..':
-                return asc
-            if fsm.data(right).toString() == '..':
-                return not asc
-
-            # Move dirs upper
-            if not leftFileInfo.isDir() and rightFileInfo.isDir():
-                return not asc
-            if leftFileInfo.isDir() and not rightFileInfo.isDir():
-                return asc
-
-        return QSortFilterProxyModel.lessThan(self, left, right)
-
-
 class ProxyModel(QSortFilterProxyModel):
     """Proxy model: filters tree view"""
     def __init__(self, parent):
@@ -1631,9 +1601,8 @@ class ExplorerWidget(QWidget):
         self.treewidget.chdir(getcwd_or_home())
         self.treewidget.common_actions += [None, icontext_action]
 
-        for i in [1, 2, 3]:
+        for i in [1, 2]:
             self.treewidget.hideColumn(i)
-        # self.treewidget.setHeaderHidden(True)
 
         button_previous.setDefaultAction(previous_action)
         previous_action.setEnabled(False)
