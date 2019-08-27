@@ -66,26 +66,28 @@ class DebuggingWidget(RichJupyterWidget):
     # --- Public API --------------------------------------------------
     def pdb_execute(self, line, hidden=False):
         """Send line to the pdb kernel if possible."""
-        if not self.is_waiting_pdb_input():
-            # We can't execute this if we are not waiting for pdb input
-            return
-        # Print the string to the console
-        if not hidden:
-            # This emulates an user interaction
-            self._control.insert_text(line + '\n')
-            self._reading = False
-            self._append_before_prompt_cursor.setPosition(
-                self._get_end_cursor().position())
-
         if not line.strip():
             # Must get the last genuine command
             line = self._last_pdb_cmd
 
+        if not self.is_waiting_pdb_input():
+            # We can't execute this if we are not waiting for pdb input
+            if self.in_debug_loop():
+                self._input_queue.append((line, hidden))
+            return
+
         if self._input_ready:
+            # Print the string to the console
+            if not hidden:
+                # This emulates an user interaction
+                self._control.insert_text(line + '\n')
+                self._reading = False
+                self._append_before_prompt_cursor.setPosition(
+                    self._get_end_cursor().position())
             self._input_ready = False
             return self.kernel_client.input(line)
 
-        self._input_queue.append(line)
+        self._input_queue.append((line, hidden))
 
     def get_spyder_breakpoints(self):
         """Get spyder breakpoints."""
@@ -122,7 +124,51 @@ class DebuggingWidget(RichJupyterWidget):
         if 'var_properties' in pdb_state:
             self.set_var_properties(pdb_state['var_properties'])
 
+    def set_pdb_state(self, pdb_state):
+        """Set current pdb state."""
+        if pdb_state is not None and isinstance(pdb_state, dict):
+            self.refresh_from_pdb(pdb_state)
+
+    def pdb_continue(self):
+        """Continue debugging."""
+        # Run Pdb continue to get to the first breakpoint
+        # Fixes 2034
+        self.pdb_execute('continue')
+
     # ---- Private API (overrode by us) ----------------------------
+    def _readline_callback(self, line):
+        """Callback used when the user inputs text in stdin."""
+        if not self.is_waiting_pdb_input():
+            if self._input_ready:
+                # This is a regular input call
+                self._input_ready = False
+                self._reading = False
+                self._append_before_prompt_cursor.setPosition(
+                    self._get_end_cursor().position())
+                return self.kernel_client.input(line)
+            else:
+                # This is an error. Raise?
+                return
+        line = line.strip()
+
+        # Save history to browse it later
+        self._pdb_line_num += 1
+        self.add_to_pdb_history(self._pdb_line_num, line)
+
+        if line:
+            self._last_pdb_cmd = line
+
+        # must match ConsoleWidget.do_execute
+        self._executing = True
+
+        # This is the Spyder addition: add a %plot magic to display
+        # plots while debugging
+        if line.startswith('%plot '):
+            line = line.split()[-1]
+            line = "__spy_code__ = get_ipython().run_cell('%s')" % line
+        self.pdb_execute(line, hidden=True)
+        self._highlighter.highlighting_on = False
+
     def _handle_input_request(self, msg):
         """Save history and add a %plot magic."""
         if self._hidden:
@@ -135,63 +181,32 @@ class DebuggingWidget(RichJupyterWidget):
         self._input_ready = True
         self._executing = False
 
+        prompt, password = msg['content']['prompt'], msg['content']['password']
+        position = self._prompt_pos
+
+        # Check if this is a duplicate that we shouldn't reprint.
+        # This can happen when sending commands to pdb from the frontend.
+        print_prompt = (not self._reading
+                        or not (prompt, password) == self._previous_prompt)
+
+        self._previous_prompt = (prompt, password)
+
+        if print_prompt:
+            self._highlighter.highlighting_on = True
+            # Reset reading in case it was interrupted
+            self._reading = False
+            self._readline(prompt=prompt, callback=self._readline_callback,
+                           password=password)
+
         # While the widget thinks only one input is going on,
         # other functions can be sending messages to the kernel.
         # This must be properly processed to avoid dropping messages.
         # If the kernel was not ready, the messages are queued.
-        if len(self._input_queue) > 0:
-            msg = self._input_queue[0]
+        if self.is_waiting_pdb_input() and len(self._input_queue) > 0:
+            args = self._input_queue[0]
             del self._input_queue[0]
-            self.pdb_execute(msg, hidden=True)
+            self.pdb_execute(*args)
             return
-
-        def callback(line):
-            if not self.is_waiting_pdb_input():
-                if self._input_ready:
-                    # This is a regular input call
-                    self._input_ready = False
-                    self._reading = False
-                    self._append_before_prompt_cursor.setPosition(
-                        self._get_end_cursor().position())
-                    return self.kernel_client.input(line)
-                else:
-                    # This is an error. Raise?
-                    return
-            line = line.strip()
-
-            # Save history to browse it later
-            self._pdb_line_num += 1
-            self.add_to_pdb_history(self._pdb_line_num, line)
-
-            if line:
-                self._last_pdb_cmd = line
-
-            # must match ConsoleWidget.do_execute
-            self._executing = True
-
-            # This is the Spyder addition: add a %plot magic to display
-            # plots while debugging
-            if line.startswith('%plot '):
-                line = line.split()[-1]
-                line = "__spy_code__ = get_ipython().run_cell('%s')" % line
-            self.pdb_execute(line, hidden=True)
-            self._highlighter.highlighting_on = False
-        self._highlighter.highlighting_on = True
-
-        prompt, password = msg['content']['prompt'], msg['content']['password']
-        position = self._prompt_pos
-
-        if (self._reading and
-                (prompt, password, position) == self._previous_prompt):
-            # This is a duplicate, don't reprint
-            # This can happen when sending commands to pdb from the frontend.
-            return
-
-        self._previous_prompt = (prompt, password, position)
-        # Reset reading in case it was interrupted
-        self._reading = False
-        self._readline(prompt=prompt, callback=callback,
-                       password=password)
 
     def _show_prompt(self, prompt=None, html=False, newline=True):
         """
@@ -226,6 +241,10 @@ class DebuggingWidget(RichJupyterWidget):
     def in_debug_loop(self):
         """Check if we are debugging."""
         return self.spyder_kernel_comm._debug_loop
+
+    def is_pdb_input_request(self, msg):
+        """Check if msg is an input request."""
+        return (self.in_debug_loop() and msg['content']['prompt'] == 'ipdb> ')
 
     def is_waiting_pdb_input(self):
         """Check if we are waiting a pdb input."""
