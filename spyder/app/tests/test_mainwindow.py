@@ -516,7 +516,6 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
         qtbot.keyClick(shell._control, Qt.Key_Enter)
         qtbot.waitUntil(
             lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
-
     else:
         # Click the debug button
         qtbot.mouseClick(debug_button, Qt.LeftButton)
@@ -1971,4 +1970,4 @@ def test_report_comms_error(qtbot, main_window):
 
 
 if __name__ == "__main__":
-    pytest.main(['test_mainwindow.py::test_move_to_first_breakpoint', '--run-slow'])
+    pytest.main()
