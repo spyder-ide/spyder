@@ -157,7 +157,8 @@ class AutosaveForPlugin(object):
             else:
                 non_pid_files.append(full_name)
 
-        # Add all files not mentioned in any pid file
+        # Add all files not mentioned in any pid file. This can only happen if
+        # the pid file somehow got corrupted.
         for filename in set(non_pid_files) - set(files_mentioned):
             files_to_recover.append((None, filename))
             logger.debug('Added unmentioned file: {}'.format(filename))
@@ -179,7 +180,7 @@ class AutosaveForPlugin(object):
         for pidfile in pidfiles:
             try:
                 os.remove(pidfile)
-            except OSError:
+            except (IOError, OSError):
                 pass
 
     def register_autosave_for_stack(self, autosave_for_stack):
@@ -257,7 +258,7 @@ class AutosaveForStack(object):
         else:
             try:
                 os.remove(pidfile_name)
-            except OSError:
+            except (IOError, OSError):
                 pass
 
     def remove_autosave_file(self, filename):

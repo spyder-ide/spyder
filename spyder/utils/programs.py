@@ -986,6 +986,5 @@ def is_spyder_process(pid):
         arguments = set(os.path.basename(arg) for arg in p.cmdline()[:3])
         conditions = [names & arguments]
         return any(conditions)
-
     except (psutil.NoSuchProcess, psutil.AccessDenied):
         return False
