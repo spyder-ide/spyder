@@ -208,10 +208,40 @@ def test_autosave_remove_autosave_file(mocker, exception):
     addon.file_hashes = {'autosave': 42}
 
     addon.remove_autosave_file(fileinfo.filename)
+
     assert addon.name_mapping == {}
     assert addon.file_hashes == {}
     mock_remove.assert_any_call('autosave')
     assert mock_dialog.called == exception
+
+
+def test_autosave_file_renamed(mocker, tmpdir):
+    """Test that AutosaveForStack.file_renamed removes the old autosave file,
+    creates a new one, and updates `name_mapping` and `file_hashes`."""
+    mock_remove = mocker.patch('os.remove')
+    mocker.patch('spyder.plugins.editor.utils.autosave.get_conf_path',
+                 return_value=str(tmpdir))
+    mock_editor = mocker.Mock()
+    mock_fileinfo = mocker.Mock(editor=mock_editor, filename='new_foo.py',
+                                newly_created=False)
+    mock_document = mocker.Mock()
+    mock_fileinfo.editor.document.return_value = mock_document
+    mock_stack = mocker.Mock(data=[mock_fileinfo])
+    mock_stack.has_filename.return_value = 0
+    mock_stack.compute_hash.return_value = 3
+    addon = AutosaveForStack(mock_stack)
+    old_autosavefile = str(tmpdir.join('old_foo.py'))
+    new_autosavefile = str(tmpdir.join('new_foo.py'))
+    addon.name_mapping = {'old_foo.py': old_autosavefile}
+    addon.file_hashes = {'old_foo.py': 1, old_autosavefile: 42}
+
+    addon.file_renamed('old_foo.py', 'new_foo.py')
+
+    mock_remove.assert_any_call(old_autosavefile)
+    mock_stack._write_to_file.assert_called_with(
+        mock_fileinfo, new_autosavefile)
+    assert addon.name_mapping == {'new_foo.py': new_autosavefile}
+    assert addon.file_hashes == {'new_foo.py': 1, new_autosavefile: 3}
 
 
 if __name__ == "__main__":

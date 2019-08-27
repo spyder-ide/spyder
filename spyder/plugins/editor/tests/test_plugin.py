@@ -172,6 +172,13 @@ def test_closing_editor_plugin_stops_autosave_timer(editor_plugin):
     assert not editor.autosave.timer.isActive()
 
 
+def test_renamed_propagates_to_autosave(editor_plugin, mocker):
+    editorstack = editor_plugin.get_current_editorstack()
+    mocker.patch.object(editorstack.autosave, 'file_renamed')
+    editor_plugin.renamed('src', 'dest')
+    editorstack.autosave.file_renamed.assert_called()
+
+
 def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
     """
     Test the previous and next cursor position feature of the Editor.
