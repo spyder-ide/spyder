@@ -71,20 +71,6 @@ except AttributeError:
 
 
 #-----------------------------------------------------------------------------
-# Auxiliary functions
-#-----------------------------------------------------------------------------
-def background(f):
-    """
-    Call a function in a simple thread, to prevent blocking
-
-    Taken from the Jupyter Qtconsole project
-    """
-    t = Thread(target=f)
-    t.start()
-    return t
-
-
-#-----------------------------------------------------------------------------
 # Client widget
 #-----------------------------------------------------------------------------
 class ClientWidget(QWidget, SaveHistoryMixin):
@@ -503,8 +489,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                 now = False
             self.shellwidget.spyder_kernel_comm.close()
             self.shellwidget.kernel_manager.shutdown_kernel(now=now)
+            self.shellwidget.pdb_history_file.save_thread.stop()
         if self.shellwidget.kernel_client is not None:
-            background(self.shellwidget.kernel_client.stop_channels)
+            self.shellwidget.kernel_client.stop_channels()
 
     def interrupt_kernel(self):
         """Interrupt the associanted Spyder kernel if it's running"""

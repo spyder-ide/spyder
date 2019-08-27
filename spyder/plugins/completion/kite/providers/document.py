@@ -82,18 +82,19 @@ class DocumentProvider:
     @handles(LSPRequestTypes.DOCUMENT_COMPLETION)
     def convert_completion_request(self, response):
         spyder_completions = []
-        completions = response['completions']
-        if completions is not None:
-            for completion in completions:
-                entry = {
-                    'kind': KITE_DOCUMENT_TYPES.get(
-                        completion['hint'], CompletionItemKind.TEXT),
-                    'insertText': completion['snippet']['text'],
-                    'filterText': completion['display'],
-                    'sortText': completion['display'][0],
-                    'documentation': completion['documentation']['text']
-                }
-                spyder_completions.append(entry)
+        if response is not None:
+            completions = response['completions']
+            if completions is not None:
+                for completion in completions:
+                    entry = {
+                        'kind': KITE_DOCUMENT_TYPES.get(
+                            completion['hint'], CompletionItemKind.TEXT),
+                        'insertText': completion['snippet']['text'],
+                        'filterText': completion['display'],
+                        'sortText': completion['display'][0],
+                        'documentation': completion['documentation']['text']
+                    }
+                    spyder_completions.append(entry)
         return {'params': spyder_completions}
 
     @send_request(method=LSPRequestTypes.DOCUMENT_HOVER)
@@ -115,11 +116,15 @@ class DocumentProvider:
 
     @handles(LSPRequestTypes.DOCUMENT_HOVER)
     def process_hover(self, response):
-        # logger.debug(response)
-        report = response['report']
-        text = report['description_text']
-        if len(text) == 0:
+        logger.debug(response)
+        if response is not None:
+            report = response['report']
+            text = report['description_text']
+            if len(text) == 0:
+                text = None
+        else:
             text = None
+
         return {'params': text}
 
     @send_request(method=LSPRequestTypes.DOCUMENT_SIGNATURE)
@@ -137,38 +142,39 @@ class DocumentProvider:
     @handles(LSPRequestTypes.DOCUMENT_SIGNATURE)
     def process_signature(self, response):
         params = None
-        calls = response['calls']
-        if len(calls) > 0:
-            call = calls[0]
-            callee = call['callee']
-            documentation = callee['synopsis']
-            call_label = callee['repr']
-            signatures = call['signatures']
-            arg_idx = call['arg_index']
+        if response is not None:
+            calls = response['calls']
+            if len(calls) > 0:
+                call = calls[0]
+                callee = call['callee']
+                documentation = callee['synopsis']
+                call_label = callee['repr']
+                signatures = call['signatures']
+                arg_idx = call['arg_index']
 
-            signature = signatures[0]
-            parameters = []
-            names = []
-            logger.debug(signature)
-            for arg in signature['args']:
-                parameters.append({
-                    'label': arg['name'],
-                    'documentation': ''
-                })
-                names.append(arg['name'])
+                signature = signatures[0]
+                parameters = []
+                names = []
+                logger.debug(signature)
+                for arg in signature['args']:
+                    parameters.append({
+                        'label': arg['name'],
+                        'documentation': ''
+                    })
+                    names.append(arg['name'])
 
-            func_args = ', '.join(names)
-            call_label = '{0}({1})'.format(call_label, func_args)
+                func_args = ', '.join(names)
+                call_label = '{0}({1})'.format(call_label, func_args)
 
-            base_signature = {
-                'label': call_label,
-                'documentation': documentation,
-                'parameters': parameters
-            }
-            # doc_signatures.append(base_signature)
-            params = {
-                'signatures': base_signature,
-                'activeSignature': 0,
-                'activeParameter': arg_idx
-            }
+                base_signature = {
+                    'label': call_label,
+                    'documentation': documentation,
+                    'parameters': parameters
+                }
+                # doc_signatures.append(base_signature)
+                params = {
+                    'signatures': base_signature,
+                    'activeSignature': 0,
+                    'activeParameter': arg_idx
+                }
         return {'params': params}

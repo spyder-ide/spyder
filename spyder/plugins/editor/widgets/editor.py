@@ -412,7 +412,8 @@ class EditorStack(QWidget):
     ending_long_process = Signal(str)
     redirect_stdio = Signal(bool)
     exec_in_extconsole = Signal(str, bool)
-    run_cell_in_ipyclient = Signal(str, str, str, bool)
+    run_cell_in_ipyclient = Signal(str, object, str, bool)
+    debug_cell_in_ipyclient = Signal(str, object, str, bool)
     update_plugin_title = Signal()
     editor_focus_changed = Signal()
     zoom_in = Signal()
@@ -592,6 +593,8 @@ class EditorStack(QWidget):
         # Autusave component
         self.autosave = AutosaveForStack(self)
 
+        self.last_cell_call = None
+
     @Slot()
     def show_in_external_file_explorer(self, fnames=None):
         """Show file in external file explorer"""
@@ -684,6 +687,10 @@ class EditorStack(QWidget):
                                       context="Editor",
                                       name="run cell",
                                       parent=self)
+        debug_cell = config_shortcut(self.debug_cell,
+                                     context="Editor",
+                                     name="debug cell",
+                                     parent=self)
         run_cell_and_advance = config_shortcut(self.run_cell_and_advance,
                                       context="Editor",
                                       name="run cell and advance",
@@ -726,7 +733,8 @@ class EditorStack(QWidget):
                 tabshift, run_selection, new_file, open_file, save_file,
                 save_all, save_as, close_all, prev_edit_pos, prev_cursor,
                 next_cursor, zoom_in_1, zoom_in_2, zoom_out, zoom_reset,
-                close_file_1, close_file_2, run_cell, run_cell_and_advance,
+                close_file_1, close_file_2, run_cell, debug_cell,
+                run_cell_and_advance,
                 go_to_next_cell, go_to_previous_cell, re_run_last_cell,
                 prev_warning, next_warning, split_vertically,
                 split_horizontally, close_split,
@@ -2331,6 +2339,7 @@ class EditorStack(QWidget):
                                          self.sig_save_bookmarks.emit(s1, s2))
         editor.sig_run_selection.connect(self.run_selection)
         editor.sig_run_cell.connect(self.run_cell)
+        editor.sig_debug_cell.connect(self.debug_cell)
         editor.sig_run_cell_and_advance.connect(self.run_cell_and_advance)
         editor.sig_re_run_last_cell.connect(self.re_run_last_cell)
         editor.sig_new_file.connect(self.sig_new_file.emit)
@@ -2545,10 +2554,19 @@ class EditorStack(QWidget):
             editor.append(editor.get_line_separator())
         editor.move_cursor_to_next('line', 'down')
 
-    def run_cell(self):
+    def run_cell(self, debug=False):
         """Run current cell."""
         text, block = self.get_current_editor().get_cell_as_executable_code()
-        self._run_cell_text(text, block)
+        finfo = self.get_current_finfo()
+        editor = self.get_current_editor()
+        cell_name = self._get_cell_name(block)
+        filename = finfo.filename
+
+        self._run_cell_text(text, editor, (filename, cell_name), debug)
+
+    def debug_cell(self):
+        """Debug current cell."""
+        self.run_cell(debug=True)
 
     def run_cell_and_advance(self):
         """Run current cell and advance to the next one"""
@@ -2577,25 +2595,38 @@ class EditorStack(QWidget):
 
     def re_run_last_cell(self):
         """Run the previous cell again."""
-        last_cell = (self.get_current_editor()
-                     .get_last_cell_as_executable_code())
-        if not last_cell:
+        if self.last_cell_call is None:
             return
-        self._run_cell_text(*last_cell)
+        filename, cell_name = self.last_cell_call
+        index = self.has_filename(filename)
+        if index is None:
+            return
+        editor = self.data[index].editor
+
+        try:
+            text = editor.get_cell_code(cell_name)
+        except RuntimeError:
+            return
+
+        self._run_cell_text(text, editor, (filename, cell_name))
 
     def _get_cell_name(self, block):
         """Get the cell name from the block."""
         oe_data = block.userData()
         if oe_data and oe_data.oedata:
-            cell_name = oe_data.oedata.def_name
+            if oe_data.oedata.has_name():
+                cell_name = oe_data.oedata.def_name
+            else:
+                cell_name = oe_data.oedata.cell_index()
         else:
-            if block.firstLineNumber() == 0:
-                cell_name = 'Cell at line 0'
+            if block.blockNumber() == 0:
+                # There is no name for the first cell, refer by cell number
+                cell_name = 0
             else:
                 raise RuntimeError('Not a cell?')
         return cell_name
 
-    def _run_cell_text(self, text, block):
+    def _run_cell_text(self, text, editor, cell_id, debug=False):
         """Run cell code in the console.
 
         Cell code is run in the console by copying it to the console if
@@ -2609,13 +2640,13 @@ class EditorStack(QWidget):
         line : int
             The starting line number of the cell in the file.
         """
-        finfo = self.get_current_finfo()
-        editor = self.get_current_editor()
-        cell_name = self._get_cell_name(block)
-        if finfo.editor.is_python() and text:
-            self.run_cell_in_ipyclient.emit(text, cell_name,
-                                            finfo.filename,
-                                            self.run_cell_copy)
+        (filename, cell_name) = cell_id
+        if editor.is_python() and text:
+            args = (text, cell_name, filename, self.run_cell_copy)
+            if debug:
+                self.debug_cell_in_ipyclient.emit(*args)
+            else:
+                self.run_cell_in_ipyclient.emit(*args)
         editor.setFocus()
 
     #------ Drag and drop

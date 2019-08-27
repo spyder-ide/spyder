@@ -84,7 +84,8 @@ class Editor(SpyderPluginWidget):
     # Signals
     run_in_current_ipyclient = Signal(str, str, str,
                                       bool, bool, bool, bool, bool)
-    run_cell_in_ipyclient = Signal(str, str, str, bool)
+    run_cell_in_ipyclient = Signal(str, object, str, bool)
+    debug_cell_in_ipyclient = Signal(str, object, str, bool)
     exec_in_extconsole = Signal(str, bool)
     redirect_stdio = Signal(bool)
     open_dir = Signal(str)
@@ -607,6 +608,16 @@ class Editor(SpyderPluginWidget):
                    triggered=self.run_cell_and_advance,
                    context=Qt.WidgetShortcut)
 
+        debug_cell_action = create_action(
+            self,
+            _("Debug cell"),
+            icon=ima.icon('debug_cell'),
+            shortcut=get_shortcut('editor', 'debug cell'),
+            tip=_("Debug current cell "
+                  "(Alt+Shift+Enter)"),
+            triggered=self.debug_cell,
+            context=Qt.WidgetShortcut)
+
         re_run_last_cell_action = create_action(self,
                    _("Re-run last cell"),
                    tip=_("Re run last cell "),
@@ -919,6 +930,7 @@ class Editor(SpyderPluginWidget):
         # menu
         debug_menu_actions = [
             debug_action,
+            debug_cell_action,
             debug_next_action,
             debug_step_action,
             debug_return_action,
@@ -998,6 +1010,7 @@ class Editor(SpyderPluginWidget):
             set_clear_breakpoint_action,
             set_cond_breakpoint_action,
             debug_action,
+            debug_cell_action,
             run_selected_action,
             run_cell_action,
             run_cell_advance_action,
@@ -1234,6 +1247,10 @@ class Editor(SpyderPluginWidget):
             lambda code, cell_name, filename, run_cell_copy:
             self.run_cell_in_ipyclient.emit(code, cell_name, filename,
                                             run_cell_copy))
+        editorstack.debug_cell_in_ipyclient.connect(
+            lambda code, cell_name, filename, run_cell_copy:
+            self.debug_cell_in_ipyclient.emit(code, cell_name, filename,
+                                              run_cell_copy))
         editorstack.update_plugin_title.connect(
                                    lambda: self.sig_update_plugin_title.emit())
         editorstack.editor_focus_changed.connect(self.save_focus_editorstack)
@@ -2440,6 +2457,12 @@ class Editor(SpyderPluginWidget):
         """Run current cell and advance to the next one"""
         editorstack = self.get_current_editorstack()
         editorstack.run_cell_and_advance()
+
+    @Slot()
+    def debug_cell(self):
+        '''Debug Current cell.'''
+        editorstack = self.get_current_editorstack()
+        editorstack.debug_cell()
 
     @Slot()
     def re_run_last_cell(self):

@@ -1317,7 +1317,7 @@ class MainWindow(QMainWindow):
         # In MacOS X 10.7 our app is not displayed after initialized (I don't
         # know why because this doesn't happen when started from the terminal),
         # so we need to resort to this hack to make it appear.
-        if running_in_mac_app():
+        if running_in_mac_app(check_file=True):
             idx = __file__.index(MAC_APP_NAME)
             app_path = __file__[:idx]
             subprocess.call(['open', app_path + MAC_APP_NAME])
@@ -3443,11 +3443,6 @@ def run_spyder(app, options, args):
         main.console.shell.interpreter.namespace['spy'] = \
                                                     Spy(app=app, window=main)
 
-    # Open external files passed as args
-    if args:
-        for a in args:
-            main.open_external_file(a)
-
     # Don't show icons in menus for Mac
     if sys.platform == 'darwin':
         QCoreApplication.setAttribute(Qt.AA_DontShowIconsInMenus, True)
@@ -3455,6 +3450,18 @@ def run_spyder(app, options, args):
     # Open external files with our Mac app
     if running_in_mac_app():
         app.sig_open_external_file.connect(main.open_external_file)
+        app._has_started = True
+        if hasattr(app, '_pending_file_open'):
+            if args:
+                args = app._pending_file_open + args
+            else:
+                args = app._pending_file_open
+
+
+    # Open external files passed as args
+    if args:
+        for a in args:
+            main.open_external_file(a)
 
     # To give focus again to the last focused widget after restoring
     # the window

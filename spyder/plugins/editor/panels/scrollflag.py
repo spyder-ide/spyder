@@ -218,7 +218,7 @@ class ScrollFlagArea(Panel):
             # When the vertical scrollbar is not visible, the flags are
             # vertically aligned with the center of their corresponding
             # text block with no scaling.
-            block = self.editor.document().findBlockByLineNumber(value)
+            block = self.editor.document().findBlockByNumber(value)
             top = self.editor.blockBoundingGeometry(block).translated(
                       self.editor.contentOffset()).top()
             bottom = top + self.editor.blockBoundingRect(block).height()
