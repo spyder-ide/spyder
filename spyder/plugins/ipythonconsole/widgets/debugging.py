@@ -85,6 +85,8 @@ class DebuggingWidget(RichJupyterWidget):
                 self._append_before_prompt_cursor.setPosition(
                     self._get_end_cursor().position())
             self._input_ready = False
+            # Match ConsoleWidget.do_execute
+            self._executing = True
             return self.kernel_client.input(line)
 
         self._input_queue.append((line, hidden))
@@ -158,9 +160,6 @@ class DebuggingWidget(RichJupyterWidget):
         if line:
             self._last_pdb_cmd = line
 
-        # must match ConsoleWidget.do_execute
-        self._executing = True
-
         # This is the Spyder addition: add a %plot magic to display
         # plots while debugging
         if line.startswith('%plot '):
@@ -179,7 +178,6 @@ class DebuggingWidget(RichJupyterWidget):
         # before entering readline mode.
         self.kernel_client.iopub_channel.flush()
         self._input_ready = True
-        self._executing = False
 
         prompt, password = msg['content']['prompt'], msg['content']['password']
 
@@ -196,6 +194,9 @@ class DebuggingWidget(RichJupyterWidget):
             self._reading = False
             self._readline(prompt=prompt, callback=self._readline_callback,
                            password=password)
+
+        if self.is_waiting_pdb_input():
+            self._executing = False
 
         # While the widget thinks only one input is going on,
         # other functions can be sending messages to the kernel.
