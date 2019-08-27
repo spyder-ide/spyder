@@ -1065,12 +1065,7 @@ class Editor(SpyderPluginWidget):
         self.add_dockwidget()
 
         # Add modes to switcher
-        self.main.switcher.add_mode(':', _('Go to Line'))
-        self.main.switcher.add_mode('@', _('Go to Symbol in File'))
-        self.main.switcher.sig_mode_selected.connect(
-            self.handle_switcher_modes)
-        self.main.switcher.sig_item_selected.connect(
-            self.handle_switcher_selection)
+        self.setup_switcher()
 
     def update_font(self):
         """Update font from Preferences"""
@@ -1462,6 +1457,15 @@ class Editor(SpyderPluginWidget):
         #            self.main.get_spyder_pythonpath())
 
     # ------ Switcher Setup
+    def setup_switcher(self):
+        """Setup switcher modes and signals."""
+        self.main.switcher.add_mode(':', _('Go to Line'))
+        self.main.switcher.add_mode('@', _('Go to Symbol in File'))
+        self.main.switcher.sig_mode_selected.connect(
+            self.handle_switcher_modes)
+        self.main.switcher.sig_item_selected.connect(
+            self.handle_switcher_selection)
+
     def handle_switcher_modes(self, mode):
         """Handle switcher for registered modes."""
         if mode == '@':
@@ -1487,8 +1491,12 @@ class Editor(SpyderPluginWidget):
             path = data.filename
             title = osp.basename(path)
             icon = sourcecode.get_file_icon(path)
+            # TODO: Handle of shorten paths based on font size
+            # and available space per item
+            if len(path) > 75:
+                path = short_paths[idx]
             self.main.switcher.add_item(title=title,
-                                        description=short_paths[idx],
+                                        description=path,
                                         icon=icon,
                                         section=self.get_plugin_title(),
                                         data=data)

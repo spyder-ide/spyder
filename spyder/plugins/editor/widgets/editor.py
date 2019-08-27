@@ -44,7 +44,6 @@ from spyder.utils.qthelpers import (add_actions, create_action,
 from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.widgets.findreplace import FindReplace
-from spyder.widgets.switcher import Switcher
 from spyder.plugins.editor.utils.autosave import AutosaveForStack
 from spyder.plugins.editor.widgets import codeeditor
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget  # analysis:ignore
@@ -486,7 +485,8 @@ class EditorStack(QWidget):
                                         _("File switcher..."),
                                         icon=ima.icon('filelist'),
                                         triggered=self.open_switcher_dlg)
-        symbolfinder_action = create_action(self,
+        symbolfinder_action = create_action(
+            self,
             _("Find symbols in file..."),
             icon=ima.icon('symbol_find'),
             triggered=self.open_symbolfinder_dlg)
@@ -869,6 +869,7 @@ class EditorStack(QWidget):
             self.switcher_dlg.clear()
             return
         if self.switcher_dlg is None:
+            from spyder.widgets.switcher import Switcher
             self.switcher_dlg = Switcher(self)
             # Add base modes to the switcher
             self.switcher_dlg.add_mode(':', _('Go to Line'))
@@ -882,7 +883,8 @@ class EditorStack(QWidget):
         self.switcher_dlg.setup()
         self.switcher_dlg.show()
         # Note: the +1 pixel on the top makes it look better
-        delta_top = self.tabs.tabBar().geometry().height() + 1
+        delta_top = (self.tabs.tabBar().geometry().height() +
+                     self.fname_label.geometry().height() + 1)
         self.switcher_dlg.set_position(delta_top)
 
     @Slot()
@@ -912,8 +914,12 @@ class EditorStack(QWidget):
             path = data.filename
             title = osp.basename(path)
             icon = sourcecode.get_file_icon(path)
+            # TODO: Handle of shorten paths based on font size
+            # and available space per item
+            if len(path) > 75:
+                path = short_paths[idx]
             self.switcher_dlg.add_item(title=title,
-                                       description=short_paths[idx],
+                                       description=path,
                                        icon=icon,
                                        section=self.get_plugin_title(),
                                        data=data)
