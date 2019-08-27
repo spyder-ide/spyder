@@ -25,7 +25,7 @@ PICKLESHARE_REQVER = '>=0.4'
 PYZMQ_REQVER = '>=17'
 CHARDET_REQVER = '>=2.0.0'
 NUMPYDOC_REQVER = '>=0.6.0'
-SPYDER_KERNELS_REQVER = '>=1.4.0, <1.5.0'
+SPYDER_KERNELS_REQVER = '>=1.4.0'
 QDARKSTYLE_REQVER = '>=2.7.0'
 ATOMICWRITES_REQVER = '>=0.0.0'
 DIFF_MATCH_PATCH_REQVER = '>=0.0.0'
@@ -34,7 +34,7 @@ KEYRING_REQVER = '>=12.0.0'
 PEXPECT_REQVER = '>=4.4.0'
 PARAMIKO_REQVER = '>=2.4.0'
 PYXDG_REQVER = '>=0.26'
-DEPENDENCIES = [
+DEPENDENCIES_BASE = [
     {'modname': "cloudpickle", 'package_name': "cloudpickle",
         'features': _("Serialize variables in the IPython kernel to send to "
                       "Spyder."), 'required_version': CLOUDPICKLE_REQVER},
@@ -146,12 +146,16 @@ class Dependency(object):
         else:
             return self.NOK
 
+
+DEPENDENCIES = []
+
+
 def add(modname, package_name, features, required_version,
         installed_version=None, optional=False):
     """Add Spyder dependency"""
     global DEPENDENCIES
     for dependency in DEPENDENCIES:
-        if dependency['modname'] == modname:
+        if dependency.modname == modname:
             raise ValueError("Dependency has already been registered: %s"\
                              % modname)
     DEPENDENCIES += [Dependency(modname, package_name, features,
@@ -198,6 +202,6 @@ def missing_dependencies():
 
 
 def declare_dependencies():
-    for dep in DEPENDENCIES:
+    for dep in DEPENDENCIES_BASE:
         add(dep['modname'], dep['package_name'],
             dep['features'], dep['required_version'])
