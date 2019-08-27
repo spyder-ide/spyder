@@ -22,7 +22,7 @@ class testBlock():
     def __init__(self, line_number):
         self._line = line_number - 1
 
-    def firstLineNumber(self):
+    def blockNumber(self):
         return self._line
 
 
@@ -83,7 +83,7 @@ def test_editor_outline_explorer(editor_outline_explorer_bot):
         a = right.__dict__
         b = left.__dict__
         b['color'] = None
-        assert a['block'].firstLineNumber() == b['block'].firstLineNumber()
+        assert a['block'].blockNumber() == b['block'].blockNumber()
         a['block'] = None
         b['block'] = None
         assert a == b

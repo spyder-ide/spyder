@@ -11,9 +11,8 @@ import os.path as osp
 import sys
 
 # Third party imports
-from qtpy.QtCore import (Signal, Slot, QEvent, QFileInfo, QObject, QRegExp,
-                         QSize, Qt)
-from qtpy.QtGui import (QIcon, QRegExpValidator, QTextCursor)
+from qtpy.QtCore import Signal, Slot, QEvent, QObject, QRegExp, QSize, Qt
+from qtpy.QtGui import QIcon, QRegExpValidator, QTextCursor
 from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLabel, QLineEdit,
                             QListWidget, QListWidgetItem, QVBoxLayout,
                             QMainWindow)
@@ -25,7 +24,7 @@ from spyder.config.utils import is_ubuntu
 from spyder.utils import icon_manager as ima
 from spyder.utils.stringmatching import get_search_scores
 from spyder.widgets.helperwidgets import HelperToolButton, HTMLDelegate
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 
 
 # --- Python Outline explorer helpers
@@ -475,7 +474,7 @@ class FileSwitcher(QDialog):
             left += geo.left()
             parent = parent.parent()
 
-        self.move(left, top)
+        self.move(round(left), top)
 
     def get_item_size(self, content):
         """
@@ -513,7 +512,7 @@ class FileSwitcher(QDialog):
                 max_entries = len(content)
             else:
                 max_entries = 15
-            max_height = height * max_entries * 1.7
+            max_height = round(height * max_entries * 1.7)
             self.list.setMinimumHeight(max_height)
 
             # Resize
@@ -649,7 +648,7 @@ class FileSwitcher(QDialog):
         for oedata in self.get_widget().outlineexplorer_data_list():
             if oedata.is_class_or_function():
                 symbol_list.append((
-                    oedata.block.firstLineNumber(),
+                    oedata.block.blockNumber(),
                     oedata.def_name, oedata.fold_level,
                     oedata.get_token()))
         return sorted(symbol_list)

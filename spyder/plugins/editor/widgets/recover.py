@@ -18,7 +18,6 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout, QLabel,
                             QMessageBox, QPushButton, QTableWidget,
                             QVBoxLayout, QWidget)
-
 # Local imports
 from spyder.config.base import _, running_under_pytest
 
@@ -52,7 +51,7 @@ def file_data_to_str(data):
         mtime_as_str = time.strftime('%Y-%m-%d %H:%M:%S',
                                      time.localtime(data['mtime']))
         res += '<br><i>{}</i>: {}'.format(_('Last modified'), mtime_as_str)
-        res += '<br><i>{}</i>: {} {}'.format(
+        res += u'<br><i>{}</i>: {} {}'.format(
                 _('Size'), data['size'], _('bytes'))
     except KeyError:
         res += '<br>' + _('<i>File no longer exists</i>')

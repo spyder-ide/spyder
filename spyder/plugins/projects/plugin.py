@@ -14,6 +14,7 @@ updating the file tree explorer associated with a project
 # Standard library imports
 import os.path as osp
 import shutil
+import functools
 
 # Third party imports
 from qtpy.compat import getexistingdirectory
@@ -22,7 +23,7 @@ from qtpy.QtWidgets import QMenu, QMessageBox, QVBoxLayout
 
 # Local imports
 from spyder.config.base import _, get_home_dir
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
@@ -33,8 +34,10 @@ from spyder.plugins.projects.utils.watcher import WorkspaceWatcher
 from spyder.plugins.projects.widgets.explorer import ProjectExplorerWidget
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
 from spyder.plugins.projects.widgets import EmptyProject
-from spyder.plugins.languageserver import LSPRequestTypes, FileChangeType
-from spyder.plugins.editor.utils.lsp import request, handles, class_register
+from spyder.plugins.completion.languageserver import (
+    LSPRequestTypes, FileChangeType)
+from spyder.plugins.completion.decorators import (
+    request, handles, class_register)
 
 
 @class_register
@@ -68,7 +71,7 @@ class Projects(SpyderPluginWidget):
         self.current_active_project = None
         self.latest_project = None
         self.watcher = WorkspaceWatcher(self)
-        self.lsp_ready = False
+        self.completions_available = False
         self.explorer.setup_project(self.get_active_project_path())
         self.watcher.connect_signals(self)
 
@@ -123,7 +126,7 @@ class Projects(SpyderPluginWidget):
         """Register plugin in Spyder's main window"""
         ipyconsole = self.main.ipyconsole
         treewidget = self.explorer.treewidget
-        lspmgr = self.main.lspmanager
+        lspmgr = self.main.completions
 
         self.add_dockwidget()
         self.explorer.sig_open_file.connect(self.main.open_file)
@@ -152,7 +155,9 @@ class Projects(SpyderPluginWidget):
             lambda v: self.main.workingdirectory.chdir(v))
         self.sig_project_loaded.connect(
             lambda v: self.main.set_window_title())
-        self.sig_project_loaded.connect(lspmgr.reinitialize_all_clients)
+        self.sig_project_loaded.connect(
+            functools.partial(lspmgr.project_path_update,
+                              update_kind='addition'))
         self.sig_project_loaded.connect(
             lambda v: self.main.editor.setup_open_files())
         self.sig_project_loaded.connect(self.update_explorer)
@@ -161,7 +166,9 @@ class Projects(SpyderPluginWidget):
                 self.get_last_working_dir()))
         self.sig_project_closed.connect(
             lambda v: self.main.set_window_title())
-        self.sig_project_closed.connect(lspmgr.reinitialize_all_clients)
+        self.sig_project_closed.connect(
+            functools.partial(lspmgr.project_path_update,
+                              update_kind='deletion'))
         self.sig_project_closed.connect(
             lambda v: self.main.editor.setup_open_files())
         self.recent_project_menu.aboutToShow.connect(self.setup_menu_actions)
@@ -202,6 +209,12 @@ class Projects(SpyderPluginWidget):
                 self._toggle_view_action.setChecked(True)
             self._visibility_changed(True)
 
+    def build_opener(self, project):
+        """Build function opening passed project"""
+        def opener(*args, **kwargs):
+            self.open_project(path=project)
+        return opener
+
     # ------ Public API -------------------------------------------------------
     def setup_menu_actions(self):
         """Setup and update the menu actions."""
@@ -215,14 +228,15 @@ class Projects(SpyderPluginWidget):
                         self,
                         name,
                         icon=ima.icon('project'),
-                        triggered=(
-                            lambda _, p=project: self.open_project(path=p))
-                        )
+                        triggered=self.build_opener(project),
+                    )
                     self.recent_projects_actions.append(action)
                 else:
                     self.recent_projects.remove(project)
-            self.recent_projects_actions += [None,
-                                             self.clear_recent_projects_action]
+            self.recent_projects_actions += [
+                None,
+                self.clear_recent_projects_action,
+            ]
         else:
             self.recent_projects_actions = [self.clear_recent_projects_action]
         add_actions(self.recent_project_menu, self.recent_projects_actions)
@@ -512,20 +526,20 @@ class Projects(SpyderPluginWidget):
 
     def register_lsp_server_settings(self, settings):
         """Enable LSP workspace functions."""
-        self.lsp_ready = True
+        self.completions_available = True
         if self.current_active_project:
             path = self.get_active_project_path()
             self.notify_project_open(path)
 
     def stop_lsp_services(self):
         """Disable LSP workspace functions."""
-        self.lsp_ready = False
+        self.completions_available = False
 
     def emit_request(self, method, params, requires_response):
         """Send request/notification/response to all LSP servers."""
         params['requires_response'] = requires_response
         params['response_instance'] = self
-        self.main.lspmanager.broadcast_request(method, params)
+        self.main.completions.broadcast_notification(method, params)
 
     @Slot(str, dict)
     def handle_response(self, method, params):

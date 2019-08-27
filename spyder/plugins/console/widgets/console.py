@@ -258,7 +258,7 @@ class ConsoleBaseWidget(TextEditBaseWidget):
                 else:
                     # Show error/warning messages in red
                     cursor.insertText(text, self.error_style.format)
-            self.exception_occurred.emit(text, is_traceback)
+                self.exception_occurred.emit(text, is_traceback)
         elif prompt:
             # Show prompt in green
             insert_text_to(cursor, text, self.prompt_style.format)

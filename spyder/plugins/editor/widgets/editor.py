@@ -17,7 +17,6 @@ import logging
 import os
 import os.path as osp
 import sys
-from collections import MutableSequence
 import unicodedata
 
 # Third party imports
@@ -36,12 +35,12 @@ from spyder.config.base import _, running_under_pytest
 from spyder.config.gui import config_shortcut, is_dark_interface, get_shortcut
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
-from spyder.py3compat import qbytearray_to_str, to_text_string
+from spyder.py3compat import qbytearray_to_str, to_text_string, MutableSequence
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, sourcecode, syntaxhighlighters
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, MENU_SEPARATOR,
-                                    mimedata2url)
+                                    mimedata2url, set_menu_icons)
 from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.widgets.fileswitcher import FileSwitcher
@@ -56,7 +55,7 @@ from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   ReadWriteStatus, VCSStatus)
 from spyder.plugins.editor.utils.findtasks import find_tasks
 from spyder.widgets.tabs import BaseTabs
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.plugins.explorer.widgets.explorer import (
     show_in_external_file_explorer)
 
@@ -413,7 +412,8 @@ class EditorStack(QWidget):
     ending_long_process = Signal(str)
     redirect_stdio = Signal(bool)
     exec_in_extconsole = Signal(str, bool)
-    run_cell_in_ipyclient = Signal(str, str, str, bool)
+    run_cell_in_ipyclient = Signal(str, object, str, bool)
+    debug_cell_in_ipyclient = Signal(str, object, str, bool)
     update_plugin_title = Signal()
     editor_focus_changed = Signal()
     zoom_in = Signal()
@@ -444,8 +444,7 @@ class EditorStack(QWidget):
     sig_prev_warning = Signal()
     sig_next_warning = Signal()
     sig_go_to_definition = Signal(str, int, int)
-    perform_lsp_request = Signal(str, str, dict)
-    sig_perform_fallback_request = Signal(dict)
+    sig_perform_completion_request = Signal(str, str, dict)
     sig_option_changed = Signal(str, object)  # config option needs changing
     sig_save_bookmark = Signal(int)
     sig_load_bookmark = Signal(int)
@@ -543,6 +542,7 @@ class EditorStack(QWidget):
         self.tabmode_enabled = False
         self.stripmode_enabled = False
         self.intelligent_backspace_enabled = True
+        self.automatic_completions_enabled = True
         self.underline_errors_enabled = False
         self.highlight_current_line_enabled = False
         self.highlight_current_cell_enabled = False
@@ -592,6 +592,8 @@ class EditorStack(QWidget):
 
         # Autusave component
         self.autosave = AutosaveForStack(self)
+
+        self.last_cell_call = None
 
     @Slot()
     def show_in_external_file_explorer(self, fnames=None):
@@ -685,6 +687,10 @@ class EditorStack(QWidget):
                                       context="Editor",
                                       name="run cell",
                                       parent=self)
+        debug_cell = config_shortcut(self.debug_cell,
+                                     context="Editor",
+                                     name="debug cell",
+                                     parent=self)
         run_cell_and_advance = config_shortcut(self.run_cell_and_advance,
                                       context="Editor",
                                       name="run cell and advance",
@@ -727,7 +733,8 @@ class EditorStack(QWidget):
                 tabshift, run_selection, new_file, open_file, save_file,
                 save_all, save_as, close_all, prev_edit_pos, prev_cursor,
                 next_cursor, zoom_in_1, zoom_in_2, zoom_out, zoom_reset,
-                close_file_1, close_file_2, run_cell, run_cell_and_advance,
+                close_file_1, close_file_2, run_cell, debug_cell,
+                run_cell_and_advance,
                 go_to_next_cell, go_to_previous_cell, re_run_last_cell,
                 prev_warning, next_warning, split_vertically,
                 split_horizontally, close_split,
@@ -793,6 +800,12 @@ class EditorStack(QWidget):
             layout.addWidget(tab_container)
         else:
             layout.addWidget(self.tabs)
+
+        # Show/hide icons in plugin menus for Mac
+        if sys.platform == 'darwin':
+            self.menu.aboutToHide.connect(
+                lambda menu=self.menu:
+                set_menu_icons(menu, False))
 
     @Slot()
     def update_fname_label(self):
@@ -907,10 +920,13 @@ class EditorStack(QWidget):
         editor = self.get_current_editor()
         editor.sig_display_object_info.connect(self.display_help)
         cursor = None
+        offset = editor.get_position('cursor')
         if pos:
             cursor = editor.get_last_hover_cursor()
+            offset = cursor.position()
         line, col = editor.get_cursor_line_column(cursor)
-        editor.request_hover(line, col, show_hint=False, clicked=bool(pos))
+        editor.request_hover(line, col, offset,
+                             show_hint=False, clicked=bool(pos))
 
     @Slot(str, bool)
     def display_help(self, help_text, clicked):
@@ -1124,6 +1140,12 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 finfo.editor.toggle_intelligent_backspace(state)
 
+    def set_automatic_completions_enabled(self, state):
+        self.automatic_completions_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.toggle_automatic_completions(state)
+
     def set_occurrence_highlighting_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'occurrence_highlighting')
         self.occurrence_highlighting_enabled = state
@@ -1303,7 +1325,6 @@ class EditorStack(QWidget):
             self.tabs.setTabText(index, tab_text)
         self.tabs.setTabToolTip(index, tab_tip)
 
-
     #------ Context menu
     def __setup_menu(self):
         """Setup tab context menu before showing it"""
@@ -1316,6 +1337,8 @@ class EditorStack(QWidget):
         add_actions(self.menu, list(actions) + self.__get_split_actions())
         self.close_action.setEnabled(self.is_closable)
 
+        if sys.platform == 'darwin':
+            set_menu_icons(self.menu, True)
 
     #------ Hor/Ver splitting
     def __get_split_actions(self):
@@ -1549,25 +1572,26 @@ class EditorStack(QWidget):
                 self.tabs.widget(index).language.lower())
         return set(languages)
 
-    def notify_server_ready(self, language, config):
+    def completion_server_ready(self, language):
         """Notify language server availability to code editors."""
         for index in range(self.get_stack_count()):
             editor = self.tabs.widget(index)
             if editor.language.lower() == language:
-                editor.start_lsp_services(config)
+                editor.start_completion_services()
+
+    def update_server_configuration(self, language, config):
+        """Update language server settings across all editors."""
+        for index in range(self.get_stack_count()):
+            editor = self.tabs.widget(index)
+            if editor.language.lower() == language:
+                editor.update_completion_configuration(config)
 
     def notify_server_down(self, language):
         """Notify language server unavailability to code editors."""
         for index in range(self.get_stack_count()):
             editor = self.tabs.widget(index)
             if editor.language.lower() == language:
-                editor.stop_lsp_services()
-
-    def notify_fallback_ready(self):
-        """Notify fallback availability to code editors."""
-        for index in range(self.get_stack_count()):
-            editor = self.tabs.widget(index)
-            editor.start_fallback()
+                editor.stop_completion_services()
 
     def close_all_files(self):
         """Close all opened scripts"""
@@ -1650,7 +1674,7 @@ class EditorStack(QWidget):
             # No file to save
             return True
         if unsaved_nb > 1:
-            buttons |= QMessageBox.YesToAll | QMessageBox.NoToAll
+            buttons |= int(QMessageBox.YesToAll | QMessageBox.NoToAll)
         yes_all = no_all = False
         for index in indexes:
             self.set_stack_index(index)
@@ -2006,7 +2030,7 @@ class EditorStack(QWidget):
 #            btn.setEnabled(count > 1)
 
         editor = self.get_current_editor()
-        if editor.lsp_ready and not editor.document_opened:
+        if editor.completions_available and not editor.document_opened:
             editor.document_did_open()
         if index != -1:
             editor.setFocus()
@@ -2315,6 +2339,7 @@ class EditorStack(QWidget):
                                          self.sig_save_bookmarks.emit(s1, s2))
         editor.sig_run_selection.connect(self.run_selection)
         editor.sig_run_cell.connect(self.run_cell)
+        editor.sig_debug_cell.connect(self.debug_cell)
         editor.sig_run_cell_and_advance.connect(self.run_cell_and_advance)
         editor.sig_re_run_last_cell.connect(self.re_run_last_cell)
         editor.sig_new_file.connect(self.sig_new_file.emit)
@@ -2334,6 +2359,7 @@ class EditorStack(QWidget):
             wrap=self.wrap_enabled, tab_mode=self.tabmode_enabled,
             strip_mode=self.stripmode_enabled,
             intelligent_backspace=self.intelligent_backspace_enabled,
+            automatic_completions=self.automatic_completions_enabled,
             highlight_current_line=self.highlight_current_line_enabled,
             highlight_current_cell=self.highlight_current_cell_enabled,
             occurrence_highlighting=self.occurrence_highlighting_enabled,
@@ -2358,12 +2384,12 @@ class EditorStack(QWidget):
         editor.sig_cursor_position_changed.connect(
                                            self.editor_cursor_position_changed)
         editor.textChanged.connect(self.start_stop_analysis_timer)
-        editor.sig_perform_lsp_request.connect(
-            lambda lang, method, params: self.perform_lsp_request.emit(
-                lang, method, params))
-        editor.sig_perform_fallback_request.connect(
-            lambda req: self.sig_perform_fallback_request.emit(req)
-        )
+
+        def perform_completion_request(lang, method, params):
+            self.sig_perform_completion_request.emit(lang, method, params)
+
+        editor.sig_perform_completion_request.connect(
+            perform_completion_request)
         editor.modificationChanged.connect(
             lambda state: self.modification_changed(state,
                 editor_id=id(editor)))
@@ -2528,10 +2554,19 @@ class EditorStack(QWidget):
             editor.append(editor.get_line_separator())
         editor.move_cursor_to_next('line', 'down')
 
-    def run_cell(self):
+    def run_cell(self, debug=False):
         """Run current cell."""
         text, block = self.get_current_editor().get_cell_as_executable_code()
-        self._run_cell_text(text, block)
+        finfo = self.get_current_finfo()
+        editor = self.get_current_editor()
+        cell_name = self._get_cell_name(block)
+        filename = finfo.filename
+
+        self._run_cell_text(text, editor, (filename, cell_name), debug)
+
+    def debug_cell(self):
+        """Debug current cell."""
+        self.run_cell(debug=True)
 
     def run_cell_and_advance(self):
         """Run current cell and advance to the next one"""
@@ -2560,25 +2595,38 @@ class EditorStack(QWidget):
 
     def re_run_last_cell(self):
         """Run the previous cell again."""
-        last_cell = (self.get_current_editor()
-                     .get_last_cell_as_executable_code())
-        if not last_cell:
+        if self.last_cell_call is None:
             return
-        self._run_cell_text(*last_cell)
+        filename, cell_name = self.last_cell_call
+        index = self.has_filename(filename)
+        if index is None:
+            return
+        editor = self.data[index].editor
+
+        try:
+            text = editor.get_cell_code(cell_name)
+        except RuntimeError:
+            return
+
+        self._run_cell_text(text, editor, (filename, cell_name))
 
     def _get_cell_name(self, block):
         """Get the cell name from the block."""
         oe_data = block.userData()
         if oe_data and oe_data.oedata:
-            cell_name = oe_data.oedata.def_name
+            if oe_data.oedata.has_name():
+                cell_name = oe_data.oedata.def_name
+            else:
+                cell_name = oe_data.oedata.cell_index()
         else:
-            if block.firstLineNumber() == 0:
-                cell_name = 'Cell at line 0'
+            if block.blockNumber() == 0:
+                # There is no name for the first cell, refer by cell number
+                cell_name = 0
             else:
                 raise RuntimeError('Not a cell?')
         return cell_name
 
-    def _run_cell_text(self, text, block):
+    def _run_cell_text(self, text, editor, cell_id, debug=False):
         """Run cell code in the console.
 
         Cell code is run in the console by copying it to the console if
@@ -2592,13 +2640,13 @@ class EditorStack(QWidget):
         line : int
             The starting line number of the cell in the file.
         """
-        finfo = self.get_current_finfo()
-        editor = self.get_current_editor()
-        cell_name = self._get_cell_name(block)
-        if finfo.editor.is_python() and text:
-            self.run_cell_in_ipyclient.emit(text, cell_name,
-                                            finfo.filename,
-                                            self.run_cell_copy)
+        (filename, cell_name) = cell_id
+        if editor.is_python() and text:
+            args = (text, cell_name, filename, self.run_cell_copy)
+            if debug:
+                self.debug_cell_in_ipyclient.emit(*args)
+            else:
+                self.run_cell_in_ipyclient.emit(*args)
         editor.setFocus()
 
     #------ Drag and drop
@@ -2673,6 +2721,7 @@ class EditorSplitter(QSplitter):
                         Defaults to plugin.unregister_editorstack() to
                         unregister the EditorStack with the Editor plugin.
         """
+
         QSplitter.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setChildrenCollapsible(False)

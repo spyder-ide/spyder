@@ -13,10 +13,12 @@ import random
 import sys
 
 # Third party imports
+from flaky import flaky
 import pytest
 import pytestqt
 
 from qtpy.QtCore import Qt
+from qtpy.QtGui import QTextCursor
 
 # Local imports
 from spyder.py3compat import PY2
@@ -31,6 +33,8 @@ LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
 def test_space_completion(lsp_codeeditor, qtbot):
     """Validate completion's space character handling."""
     code_editor, _ = lsp_codeeditor
+    code_editor.toggle_automatic_completions(False)
+
     completion = code_editor.completion_widget
 
     # Set cursor to start
@@ -45,14 +49,18 @@ def test_space_completion(lsp_codeeditor, qtbot):
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
+
     assert "import" in [x['label'] for x in sig.args[0]]
 
     assert code_editor.toPlainText() == 'from numpy import'
     assert not completion.isVisible()
 
+    code_editor.toggle_automatic_completions(True)
+
 
 @pytest.mark.slow
 @pytest.mark.first
+@flaky(max_runs=5)
 def test_hide_widget_completion(lsp_codeeditor, qtbot):
     """Validate hiding completion widget after a delimeter or operator."""
     code_editor, _ = lsp_codeeditor
@@ -61,6 +69,9 @@ def test_hide_widget_completion(lsp_codeeditor, qtbot):
     delimiters = ['(', ')', '[', ']', '{', '}', ',', ':', ';', '@', '=', '->',
                   '+=', '-=', '*=', '/=', '//=', '%=', '@=', '&=', '|=', '^=',
                   '>>=', '<<=', '**=']
+
+    code_editor.toggle_automatic_completions(False)
+
     # Set cursor to start
     code_editor.go_to_line(1)
 
@@ -84,6 +95,95 @@ def test_hide_widget_completion(lsp_codeeditor, qtbot):
     # Check the completion widget is not visible
     assert completion.isHidden() is True
 
+    code_editor.toggle_automatic_completions(True)
+
+
+@pytest.mark.slow
+@pytest.mark.first
+@flaky(max_runs=5)
+def test_automatic_completions(lsp_codeeditor, qtbot):
+    """Test on-the-fly completions."""
+    code_editor, _ = lsp_codeeditor
+    completion = code_editor.completion_widget
+
+    # Set cursor to start
+    code_editor.go_to_line(1)
+
+    # Complete f -> from
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyClicks(code_editor, 'f')
+
+    assert "from" in [x['label'] for x in sig.args[0]]
+    # qtbot.keyPress(code_editor, Qt.Key_Tab)
+
+    qtbot.keyClicks(code_editor, 'rom')
+
+    # Due to automatic completion, the completion widget may appear before
+    stop = False
+    while not stop:
+        try:
+            with qtbot.waitSignal(completion.sig_show_completions,
+                                  timeout=5000) as sig:
+                pass
+            code_editor.completion_widget.hide()
+        except Exception:
+            stop = True
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyClicks(code_editor, ' n')
+
+    assert "ntpath" in [x['label'] for x in sig.args[0]]
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyClicks(code_editor, 'ump')
+
+    assert "numpy" in [x['label'] for x in sig.args[0]]
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyClicks(code_editor, 'y')
+
+    # Due to automatic completion, the completion widget may appear before
+    stop = False
+    while not stop:
+        try:
+            with qtbot.waitSignal(completion.sig_show_completions,
+                                  timeout=5000) as sig:
+                pass
+            code_editor.completion_widget.hide()
+        except Exception:
+            stop = True
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyClicks(code_editor, ' imp')
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+
+    assert code_editor.toPlainText() == 'from numpy import'
+
+    # Due to automatic completion, the completion widget may appear before
+    stop = False
+    while not stop:
+        try:
+            with qtbot.waitSignal(completion.sig_show_completions,
+                                  timeout=5000) as sig:
+                pass
+            code_editor.completion_widget.hide()
+        except Exception:
+            stop = True
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyClicks(code_editor, ' r')
+
+    assert "random" in [x['label'] for x in sig.args[0]]
+
 
 @pytest.mark.slow
 @pytest.mark.first
@@ -91,6 +191,8 @@ def test_completions(lsp_codeeditor, qtbot):
     """Exercise code completion in several ways."""
     code_editor, _ = lsp_codeeditor
     completion = code_editor.completion_widget
+
+    code_editor.toggle_automatic_completions(False)
 
     # Set cursor to start
     code_editor.go_to_line(1)
@@ -113,32 +215,40 @@ def test_completions(lsp_codeeditor, qtbot):
     # enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
 
-    # Complete math.d() -> math.degrees()
-    qtbot.keyClicks(code_editor, 'math.d')
+    # Complete math.h() -> math.hypot()
+    qtbot.keyClicks(code_editor, 'math.h')
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
-    assert "degrees(x)" in [x['label'] for x in sig.args[0]]
+    if PY2:
+        assert "hypot(x, y)" in [x['label'] for x in sig.args[0]]
+    else:
+        assert [x['label'] for x in sig.args[0]][0] in ["hypot(x, y)",
+                                                        "hypot(*coordinates)"]
 
-    assert code_editor.toPlainText() == 'import math\nmath.degrees'
+    assert code_editor.toPlainText() == 'import math\nmath.hypot'
 
     # enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
 
-    # Complete math.d() -> math.degrees()
-    qtbot.keyClicks(code_editor, 'math.d(')
+    # Complete math.h() -> math.degrees()
+    qtbot.keyClicks(code_editor, 'math.h(')
     qtbot.keyPress(code_editor, Qt.Key_Left, delay=300)
-    qtbot.keyClicks(code_editor, 'e')
+    qtbot.keyClicks(code_editor, 'y')
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
-    assert "degrees(x)" in [x['label'] for x in sig.args[0]]
+    if PY2:
+        assert "hypot(x, y)" in [x['label'] for x in sig.args[0]]
+    else:
+        assert [x['label'] for x in sig.args[0]][0] in ["hypot(x, y)",
+                                                        "hypot(*coordinates)"]
 
     # right for () + enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Right, delay=300)
@@ -164,19 +274,19 @@ def test_completions(lsp_codeeditor, qtbot):
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
 
     # Check can get list back
-    qtbot.keyClicks(code_editor, 'math.c')
+    qtbot.keyClicks(code_editor, 'math.f')
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
-    assert completion.count() == 4
-    assert "ceil(x)" in [x['label'] for x in sig.args[0]]
-    qtbot.keyClicks(completion, 'e')
+    assert completion.count() == 6
+    assert "floor(x)" in [x['label'] for x in sig.args[0]]
+    qtbot.keyClicks(completion, 'l')
     assert completion.count() == 1
     qtbot.keyPress(completion, Qt.Key_Backspace)
-    assert completion.count() == 4
+    assert completion.count() == 6
 
     # enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
@@ -237,11 +347,12 @@ def test_completions(lsp_codeeditor, qtbot):
     except pytestqt.exceptions.TimeoutError:
         pass
 
-    assert code_editor.toPlainText() == 'import math\nmath.degrees\n'\
-                                        'math.degrees()\nmath.asin\n'\
-                                        'math.c\nmath.asin\n'\
+    assert code_editor.toPlainText() == 'import math\nmath.hypot\n'\
+                                        'math.hypot()\nmath.asin\n'\
+                                        'math.f\nmath.asin\n'\
                                         'math.asinangle\n'\
                                         'math.\n'
+    code_editor.toggle_automatic_completions(True)
 
 
 @pytest.mark.slow
@@ -251,6 +362,8 @@ def test_completions(lsp_codeeditor, qtbot):
 def test_fallback_completions(fallback_codeeditor, qtbot):
     code_editor, _ = fallback_codeeditor
     completion = code_editor.completion_widget
+
+    code_editor.toggle_automatic_completions(False)
 
     # Set cursor to start
     code_editor.go_to_line(1)
@@ -273,6 +386,7 @@ def test_fallback_completions(fallback_codeeditor, qtbot):
 
     # Insert another word
     qtbot.keyClicks(code_editor, 'another')
+
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
@@ -295,6 +409,8 @@ def test_fallback_completions(fallback_codeeditor, qtbot):
         qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
     word_set = {x['insertText'] for x in sig.args[0]}
     assert 'another' not in word_set
+
+    code_editor.toggle_automatic_completions(True)
 
 
 if __name__ == '__main__':

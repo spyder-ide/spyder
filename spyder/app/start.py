@@ -31,7 +31,7 @@ except:
 from spyder.app.cli_options import get_options
 from spyder.config.base import (get_conf_path, running_in_mac_app,
                                 running_under_pytest)
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.utils.external import lockfile
 from spyder.py3compat import is_unicode
 
@@ -142,8 +142,9 @@ def main():
         levels = {'minimal': '2', 'verbose': '3'}
         os.environ['SPYDER_DEBUG'] = levels[options.debug_info]
 
-    if CONF.get('main', 'single_instance') and not options.new_instance \
-      and not options.reset_config_files and not running_in_mac_app():
+    if (CONF.get('main', 'single_instance') and not options.new_instance
+            and not options.reset_config_files
+            and not running_in_mac_app(check_file=True)):
         # Minimal delay (0.1-0.2 secs) to avoid that several
         # instances started at the same time step in their
         # own foots while trying to create the lock file

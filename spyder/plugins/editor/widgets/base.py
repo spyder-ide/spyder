@@ -13,13 +13,12 @@
 
 # Standard library imports
 import os
-import os.path as osp
 import sys
 
 # Third party imports
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import QEvent, QEventLoop, QPoint, Qt, Signal, Slot
-from qtpy.QtGui import (QClipboard, QColor, QMouseEvent, QPalette, QTextFormat,
+from qtpy.QtCore import QEvent, QPoint, Qt, Signal, Slot
+from qtpy.QtGui import (QClipboard, QColor, QMouseEvent, QTextFormat,
                         QTextOption, QTextCursor)
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QListWidget,
                             QListWidgetItem, QMainWindow, QPlainTextEdit,
@@ -27,14 +26,14 @@ from qtpy.QtWidgets import (QAbstractItemView, QApplication, QListWidget,
 
 # Local imports
 from spyder.config.gui import get_font
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.py3compat import PY3, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.widgets.calltip import CallTipWidget, ToolTipWidget
 from spyder.widgets.mixins import BaseEditMixin
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
-from spyder.plugins.languageserver import CompletionItemKind
+from spyder.plugins.completion.languageserver import CompletionItemKind
 
 
 class CompletionWidget(QListWidget):
@@ -53,8 +52,6 @@ class CompletionWidget(QListWidget):
         self.completion_list = None
         self.completion_position = None
         self.automatic = False
-        # Text to be displayed if no match is found.
-        self.empty_text = 'No match'
 
     def setup_appearance(self, size, font):
         self.resize(*size)
@@ -63,8 +60,6 @@ class CompletionWidget(QListWidget):
     def is_empty(self):
         """Check if widget is empty."""
         if self.count() == 0:
-            return True
-        if self.count() == 1 and self.item(0).text() == self.empty_text:
             return True
         return False
 
@@ -103,8 +98,7 @@ class CompletionWidget(QListWidget):
             return
 
         # If only one, must be chosen if not automatic
-        single_match = (self.count() == 1 and
-                        self.item(0).text() != self.empty_text)
+        single_match = self.count() == 1
         if single_match and not self.automatic:
             self.item_selected()
             self.hide()
@@ -207,7 +201,7 @@ class CompletionWidget(QListWidget):
             self.scrollTo(self.currentIndex(),
                           QAbstractItemView.PositionAtTop)
         else:
-            self.addItem(QListWidgetItem(self.empty_text))
+            self.hide()
 
     def hide(self):
         """Hide the widget."""
@@ -410,8 +404,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.bracepos = None
         self.matched_p_color = QColor(Qt.green)
         self.unmatched_p_color = QColor(Qt.red)
-
-        self.last_cursor_cell = None
 
         self.decorations = TextDecorationsManager(self)
 
@@ -702,15 +694,15 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             super(TextEditBaseWidget, self).keyPressEvent(event)
 
     #------Text: get, set, ...
-    def get_selection_as_executable_code(self):
+    def get_selection_as_executable_code(self, cursor=None):
         """Return selected text as a processed text,
         to be executable in a Python/IPython interpreter"""
         ls = self.get_line_separator()
 
         _indent = lambda line: len(line)-len(line.lstrip())
 
-        line_from, line_to = self.get_selection_bounds()
-        text = self.get_selected_text()
+        line_from, line_to = self.get_selection_bounds(cursor)
+        text = self.get_selected_text(cursor)
         if not text:
             return
 
@@ -758,31 +750,23 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         return leading_lines_str + ls.join(lines)
 
-    def __exec_cell(self):
+    def __exec_cell(self, cursor=None):
+        """Get text and line number from cursor or current position."""
+        if cursor is None:
+            cursor = self.textCursor()
         ls = self.get_line_separator()
-        init_cursor = QTextCursor(self.textCursor())
-        start_pos, end_pos = self.__save_selection()
-        cursor, whole_file_selected = self.select_current_cell()
-        self.setTextCursor(cursor)
-        line_from, line_to = self.get_selection_bounds()
-        block = self.get_selection_first_block()
-        text = self.get_selection_as_executable_code()
-        self.last_cursor_cell = init_cursor
-        self.__restore_selection(start_pos, end_pos)
+        cursor, whole_file_selected = self.select_current_cell(cursor)
+        line_from, line_to = self.get_selection_bounds(cursor)
+        block = self.get_selection_first_block(cursor)
+        text = self.get_selection_as_executable_code(cursor)
+
         if text is not None:
             text = ls * line_from + text
         return text, block
 
-    def get_cell_as_executable_code(self):
-        """Return cell contents as executable code"""
-        return self.__exec_cell()
-
-    def get_last_cell_as_executable_code(self):
-        if self.last_cursor_cell:
-            self.setTextCursor(self.last_cursor_cell)
-            self.highlight_current_cell()
-            return self.__exec_cell()
-        return None
+    def get_cell_as_executable_code(self, cursor=None):
+        """Return cell contents as executable code."""
+        return self.__exec_cell(cursor)
 
     def is_cell_separator(self, cursor=None, block=None):
         """Return True if cursor (or text block) is on a block separator"""
@@ -798,12 +782,16 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         else:
             return text.lstrip().startswith(self.cell_separators)
 
-    def select_current_cell(self):
-        """Select cell under cursor
+    def select_current_cell(self, cursor=None):
+        """
+        Select cell under cursor.
+
         cell = group of lines separated by CELL_SEPARATORS
         returns the textCursor and a boolean indicating if the
-        entire file is selected"""
-        cursor = self.textCursor()
+        entire file is selected.
+        """
+        if cursor is None:
+            cursor = self.textCursor()
         cursor.movePosition(QTextCursor.StartOfBlock)
         cur_pos = prev_pos = cursor.position()
 

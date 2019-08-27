@@ -13,8 +13,7 @@ import sys
 # Third party imports
 from qtpy.QtCore import QUrl, Signal, Slot
 from qtpy.QtWidgets import (QActionGroup, QComboBox, QHBoxLayout,
-                            QLabel, QLineEdit, QMenu, QMessageBox,
-                            QToolButton, QVBoxLayout)
+                            QLabel, QLineEdit, QMessageBox)
 from qtpy.QtWebEngineWidgets import QWebEnginePage, WEBENGINE
 
 # Local imports
@@ -36,8 +35,9 @@ from spyder.plugins.help.utils.sphinxthread import SphinxThread
 from spyder.plugins.help.widgets import PlainText, RichText, ObjectComboBox
 
 # Sphinx dependency
-dependencies.add("sphinx", _("Show help for objects in the Editor and "
-                             "Consoles in a dedicated pane"),
+dependencies.add("sphinx", "sphinx",
+                 _("Show help for objects in the Editor and "
+                   "Consoles in a dedicated pane"),
                  required_version='>=0.6.6')
 
 

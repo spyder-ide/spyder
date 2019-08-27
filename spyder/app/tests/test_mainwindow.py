@@ -44,7 +44,7 @@ from spyder import __trouble_url__, __project_url__
 from spyder.app import start
 from spyder.app.mainwindow import MainWindow  # Tests fail without this import
 from spyder.config.base import get_home_dir, get_module_path
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.widgets.dock import TabFilter
 from spyder.preferences.runconfig import RunConfiguration
 from spyder.plugins.base import PluginWindow
@@ -54,6 +54,7 @@ from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.py3compat import PY2, to_text_string
 from spyder.utils.programs import is_module_installed
 from spyder.widgets.dock import DockTitleBar
+from spyder.utils.misc import remove_backslashes
 
 # For testing various Spyder urls
 if not PY2:
@@ -106,9 +107,10 @@ def get_thirdparty_plugin(main_window, plugin_title):
 
 def reset_run_code(qtbot, shell, code_editor, nsb):
     """Reset state after a run code test"""
+    qtbot.waitUntil(lambda: not shell._executing)
     with qtbot.waitSignal(shell.executed):
         shell.execute('%reset -f')
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 0, timeout=EVAL_TIMEOUT)
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 0, timeout=EVAL_TIMEOUT)
     code_editor.setFocus()
     qtbot.keyClick(code_editor, Qt.Key_Home, modifier=Qt.ControlModifier)
 
@@ -156,10 +158,7 @@ def main_window(request):
 
     # Check if we need to use introspection in a given test
     # (it's faster and less memory consuming not to use it!)
-    try:
-        use_introspection = request.node.get_marker('use_introspection')
-    except AttributeError:
-        use_introspection = False
+    use_introspection = request.node.get_closest_marker('use_introspection')
 
     if use_introspection:
         os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
@@ -170,10 +169,7 @@ def main_window(request):
             pass
 
     # Only use single_instance mode for tests that require it
-    try:
-        single_instance = request.node.get_marker('single_instance')
-    except AttributeError:
-        single_instance = False
+    single_instance = request.node.get_closest_marker('single_instance')
 
     if single_instance:
         CONF.set('main', 'single_instance', True)
@@ -438,10 +434,10 @@ def test_window_title(main_window, tmpdir):
 
 @pytest.mark.slow
 @pytest.mark.single_instance
-@pytest.mark.skipif(PY2 and os.environ.get('CI', None) is None,
-                    reason="It's not meant to be run outside of CIs in Python 2")
+@pytest.mark.skipif(os.environ.get('CI', None) is None,
+                    reason="It's not meant to be run outside of CIs")
 def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
-    """Test single instance mode and for %edit magic."""
+    """Test single instance mode and %edit magic."""
     editorstack = main_window.editor.get_current_editorstack()
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
@@ -478,7 +474,9 @@ def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or PY2, reason="It fails sometimes")
-def test_move_to_first_breakpoint(main_window, qtbot):
+@pytest.mark.parametrize(
+    "debugcell", [True, False])
+def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
     """Test that we move to the first breakpoint if there's one present."""
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -501,9 +499,27 @@ def test_move_to_first_breakpoint(main_window, qtbot):
     code_editor.debugger.toogle_breakpoint(line_number=10)
     qtbot.wait(500)
 
-    # Click the debug button
-    qtbot.mouseClick(debug_button, Qt.LeftButton)
-    qtbot.wait(1000)
+    if debugcell:
+        # Advance 2 cells
+        for i in range(2):
+            qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+            qtbot.wait(500)
+
+        # Debug the cell
+        qtbot.keyClick(code_editor, Qt.Key_Return,
+               modifier=Qt.AltModifier | Qt.ShiftModifier)
+        qtbot.waitUntil(
+            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+        # We need to press continue as we don't test yet if a breakpoint
+        # is in the cell
+        qtbot.keyClick(shell._control, 'c')
+        qtbot.keyClick(shell._control, Qt.Key_Enter)
+        qtbot.waitUntil(
+            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+    else:
+        # Click the debug button
+        qtbot.mouseClick(debug_button, Qt.LeftButton)
+        qtbot.wait(1000)
 
     # Verify that we are at first breakpoint
     shell.clear_console()
@@ -618,7 +634,7 @@ def test_dedicated_consoles(main_window, qtbot):
     assert main_window.ipyconsole.filenames == ['', test_file]
     assert main_window.ipyconsole.tabwidget.tabText(1) == 'script.py/A'
     qtbot.wait(500)
-    assert nsb.editor.model.rowCount() == 4
+    assert nsb.editor.source_model.rowCount() == 4
 
     # --- Assert only runfile text is present and there's no banner text ---
     # See spyder-ide/spyder#5301.
@@ -658,7 +674,7 @@ def test_connection_to_external_kernel(main_window, qtbot):
     main_window.variableexplorer._visibility_changed(True)
     nsb = main_window.variableexplorer.get_focus_widget()
     qtbot.wait(500)
-    assert nsb.editor.model.rowCount() == 0
+    assert nsb.editor.source_model.rowCount() == 0
 
     # Test with a kernel from Spyder
     spykm, spykc = start_new_kernel(spykernel=True)
@@ -673,7 +689,7 @@ def test_connection_to_external_kernel(main_window, qtbot):
     main_window.variableexplorer._visibility_changed(True)
     nsb = main_window.variableexplorer.get_focus_widget()
     qtbot.wait(500)
-    assert nsb.editor.model.rowCount() == 1
+    assert nsb.editor.source_model.rowCount() == 1
 
     # Shutdown the kernels
     spykm.shutdown_kernel(now=True)
@@ -694,7 +710,7 @@ def test_change_types_in_varexp(main_window, qtbot):
     # Edit object
     main_window.variableexplorer._visibility_changed(True)
     nsb = main_window.variableexplorer.get_focus_widget()
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() > 0, timeout=EVAL_TIMEOUT)
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() > 0, timeout=EVAL_TIMEOUT)
     nsb.editor.setFocus()
     nsb.editor.edit_item()
 
@@ -790,7 +806,7 @@ def test_run_cython_code(main_window, qtbot):
     nsb = main_window.variableexplorer.get_focus_widget()
 
     # Wait until an object appears
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 1,
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 1,
                     timeout=COMPILE_AND_EVAL_TIMEOUT)
 
     # Verify result
@@ -809,7 +825,7 @@ def test_run_cython_code(main_window, qtbot):
     qtbot.keyClick(code_editor, Qt.Key_F5)
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 1,
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 1,
                     timeout=COMPILE_AND_EVAL_TIMEOUT)
 
     # Verify result
@@ -907,7 +923,6 @@ def test_set_new_breakpoints(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(sys.platform == 'darwin', reason="It fails on macOS")
 def test_run_code(main_window, qtbot, tmpdir):
     """Test all the different ways we have to run code"""
     # ---- Setup ----
@@ -936,7 +951,7 @@ def test_run_code(main_window, qtbot, tmpdir):
     qtbot.keyClick(code_editor, Qt.Key_F5)
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 4,
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 4,
                     timeout=EVAL_TIMEOUT)
 
     # Verify result
@@ -954,7 +969,7 @@ def test_run_code(main_window, qtbot, tmpdir):
         qtbot.wait(200)
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 4,
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 4,
                     timeout=EVAL_TIMEOUT)
 
     # Verify result
@@ -966,17 +981,36 @@ def test_run_code(main_window, qtbot, tmpdir):
     reset_run_code(qtbot, shell, code_editor, nsb)
 
     # ---- Run cell and advance ----
-    # Run the three cells present in file
-    for _ in range(4):
+    # Run the five cells present in file
+    # Add an unnamed cell at the top of the file
+    qtbot.keyClicks(code_editor, 'a = 10')
+    qtbot.keyClick(code_editor, Qt.Key_Return)
+    qtbot.keyClick(code_editor, Qt.Key_Up)
+    for _ in range(5):
         qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
         qtbot.wait(500)
 
     # Check for errors and the runcell function
     assert 'runcell' in shell._control.toPlainText()
     assert 'Error:' not in shell._control.toPlainText()
+    control_text = shell._control.toPlainText()
+
+    # Rerun
+    shell.setFocus()
+    qtbot.keyClick(shell._control, Qt.Key_Up)
+    qtbot.wait(500)
+    qtbot.keyClick(shell._control, Qt.Key_Enter, modifier=Qt.ShiftModifier)
+    qtbot.wait(500)
+    code_editor.setFocus()
+
+    assert control_text != shell._control.toPlainText()
+    control_text = shell._control.toPlainText()[len(control_text):]
+    # Check for errors and the runcell function
+    assert 'runcell' in control_text
+    assert 'Error' not in control_text
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 4,
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 4,
                     timeout=EVAL_TIMEOUT)
 
     # Verify result
@@ -990,10 +1024,13 @@ def test_run_code(main_window, qtbot, tmpdir):
 
     # ---- Run cell ----
     # Run the first cell in file
-    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ControlModifier)
+    modifier = Qt.ControlModifier
+    if sys.platform == 'darwin':
+        modifier = Qt.MetaModifier
+    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=modifier)
 
     # Wait until the object has appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 1,
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 1,
                     timeout=EVAL_TIMEOUT)
 
     # Verify result
@@ -1001,19 +1038,35 @@ def test_run_code(main_window, qtbot, tmpdir):
 
     # Press Ctrl+Enter a second time to verify that we're *not* advancing
     # to the next cell
-    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ControlModifier)
-    assert nsb.editor.model.rowCount() == 1
+    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=modifier)
+    assert nsb.editor.source_model.rowCount() == 1
+
+    reset_run_code(qtbot, shell, code_editor, nsb)
+
+    # ---- Debug cell ------
+    qtbot.keyClick(code_editor, Qt.Key_Return,
+                   modifier=Qt.AltModifier | Qt.ShiftModifier)
+    qtbot.waitUntil(
+        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+    qtbot.keyClick(shell._control, 'c')
+    qtbot.keyClick(shell._control, Qt.Key_Enter)
+
+    # Wait until the object has appeared in the variable explorer
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 1,
+                    timeout=EVAL_TIMEOUT)
 
     reset_run_code(qtbot, shell, code_editor, nsb)
 
     # ---- Re-run last cell ----
-    # Run the first two cells in file
+    # Run the first three cells in file
+    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    qtbot.wait(500)
     qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
     qtbot.wait(500)
     qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
 
     # Wait until objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 2,
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 2,
                     timeout=EVAL_TIMEOUT)
 
     # Clean namespace
@@ -1021,14 +1074,14 @@ def test_run_code(main_window, qtbot, tmpdir):
         shell.execute('%reset -f')
 
     # Wait until there are no objects in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 0,
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 0,
                     timeout=EVAL_TIMEOUT)
 
     # Re-run last cell
     qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.AltModifier)
 
     # Wait until the object has appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 1,
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 1,
                     timeout=EVAL_TIMEOUT)
     assert shell.get_value('li') == [1, 2, 3]
 
@@ -1078,7 +1131,7 @@ def test_run_cell_copy(main_window, qtbot, tmpdir):
     assert 'Error:' not in shell._control.toPlainText()
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 4,
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 4,
                     timeout=EVAL_TIMEOUT)
 
     # Verify result
@@ -1182,7 +1235,7 @@ def test_issue_4066(main_window, qtbot):
 
     # Open editor associated with that object and get a reference to it
     nsb = main_window.variableexplorer.get_focus_widget()
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() > 0, timeout=EVAL_TIMEOUT)
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() > 0, timeout=EVAL_TIMEOUT)
     nsb.editor.setFocus()
     nsb.editor.edit_item()
     obj_editor_id = list(nsb.editor.delegate._editors.keys())[0]
@@ -1192,7 +1245,7 @@ def test_issue_4066(main_window, qtbot):
     main_window.ipyconsole.get_focus_widget().setFocus()
     with qtbot.waitSignal(shell.executed):
         shell.execute('del myobj')
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 0, timeout=EVAL_TIMEOUT)
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 0, timeout=EVAL_TIMEOUT)
 
     # Close editor
     ok_widget = obj_editor.btn_close
@@ -1223,7 +1276,7 @@ def test_varexp_edit_inline(main_window, qtbot):
     # Edit object
     main_window.variableexplorer._visibility_changed(True)
     nsb = main_window.variableexplorer.get_focus_widget()
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() > 0, timeout=EVAL_TIMEOUT)
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() > 0, timeout=EVAL_TIMEOUT)
     nsb.editor.setFocus()
     nsb.editor.edit_item()
 
@@ -1268,13 +1321,13 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
     qtbot.keyClicks(control, 'c')
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.wait(500)
-    assert nsb.editor.model.rowCount() == 1
+    assert nsb.editor.source_model.rowCount() == 1
 
     # Verify that n works
     qtbot.keyClicks(control, 'n')
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.wait(500)
-    assert nsb.editor.model.rowCount() == 2
+    assert nsb.editor.source_model.rowCount() == 2
 
     # Verify that doesn't go to sitecustomize.py with next and stops
     # the debugging session.
@@ -1286,7 +1339,7 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.wait(500)
 
-    assert nsb.editor.model.rowCount() == 3
+    assert nsb.editor.source_model.rowCount() == 3
 
     qtbot.keyClicks(control, 'n')
     qtbot.keyClick(control, Qt.Key_Enter)
@@ -1343,8 +1396,8 @@ def test_stop_dbg(main_window, qtbot):
     qtbot.mouseClick(stop_debug_button, Qt.LeftButton)
     qtbot.wait(1000)
 
-    # Assert that there is only one entry in the Variable Explorer
-    assert nsb.editor.model.rowCount() == 1
+    # Assert there are only two ipdb prompts in the console
+    assert shell._control.toPlainText().count('ipdb') == 2
 
     # Remove breakpoint and close test file
     main_window.editor.clear_all_breakpoints()
@@ -1367,10 +1420,6 @@ def test_change_cwd_dbg(main_window, qtbot):
     control = main_window.ipyconsole.get_focus_widget()
     control.setFocus()
 
-    # Import os to get cwd
-    with qtbot.waitSignal(shell.executed):
-        shell.execute('import os')
-
     # Click the debug button
     debug_action = main_window.debug_toolbar_actions[0]
     debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
@@ -1383,8 +1432,11 @@ def test_change_cwd_dbg(main_window, qtbot):
                                        refresh_explorer=True)
     qtbot.wait(1000)
 
+    shell.clear_console()
+    qtbot.wait(500)
+
     # Get cwd in console
-    qtbot.keyClicks(control, 'os.getcwd()')
+    qtbot.keyClicks(control, '!import os; os.getcwd()')
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.wait(1000)
 
@@ -1828,7 +1880,33 @@ def test_custom_layouts(main_window, qtbot):
                                 assert widget.isVisible()
 
 
-# @pytest.mark.slow
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_save_on_runfile(main_window, qtbot):
+    """Test that layout are showing the expected widgets visible."""
+    # Load test file
+    test_file = osp.join(LOCATION, 'script.py')
+    test_file_copy = test_file[:-3] + '_copy.py'
+    shutil.copyfile(test_file, test_file_copy)
+    main_window.editor.load(test_file_copy)
+    code_editor = main_window.editor.get_focus_widget()
+
+    # Verify result
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    qtbot.keyClicks(code_editor, 'test_var = 123', delay=100)
+    filename = code_editor.filename
+    with qtbot.waitSignal(shell.sig_prompt_ready):
+        shell.execute('runfile("{}")'.format(remove_backslashes(filename)))
+
+    assert shell.get_value('test_var') == 123
+    main_window.editor.close_file()
+    os.remove(test_file_copy)
+
+
+@pytest.mark.slow
 def test_pylint_follows_file(qtbot, tmpdir, main_window):
     """Test that file editor focus change updates pylint combobox filename."""
     for plugin in main_window.thirdparty_plugins:
@@ -1864,6 +1942,31 @@ def test_pylint_follows_file(qtbot, tmpdir, main_window):
         main_window.open_file(fh)
         qtbot.wait(200)
         assert fname == pylint_plugin.get_filename()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_report_comms_error(qtbot, main_window):
+    """Test if a comms error is correctly displayed."""
+    CONF.set('main', 'show_internal_errors', True)
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    # Create a bogus get_cwd
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('def get_cwd(): import foo')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("get_ipython().kernel.frontend_comm."
+                      "register_call_handler('get_cwd', get_cwd)")
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('ls')
+
+    error_dlg = main_window.console.error_dlg
+    assert error_dlg is not None
+    assert 'Exception in comms call get_cwd' in error_dlg.error_traceback
+    assert 'No module named' in error_dlg.error_traceback
+    main_window.console.close_error_dlg()
+    CONF.set('main', 'show_internal_errors', False)
 
 
 if __name__ == "__main__":
