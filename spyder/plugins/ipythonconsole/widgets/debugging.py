@@ -221,7 +221,7 @@ class DebuggingWidget(RichJupyterWidget):
     def _event_filter_console_keypress(self, event):
         """Handle Key_Up/Key_Down while debugging."""
         key = event.key()
-        if self._reading:
+        if self.is_waiting_pdb_input():
             self._control.current_prompt_pos = self._prompt_pos
             if key == Qt.Key_Up:
                 self._control.browse_history(backward=True)
@@ -242,10 +242,6 @@ class DebuggingWidget(RichJupyterWidget):
     def in_debug_loop(self):
         """Check if we are debugging."""
         return self.spyder_kernel_comm._debug_loop
-
-    def is_pdb_input_request(self, msg):
-        """Check if msg is an input request."""
-        return (self.in_debug_loop() and msg['content']['prompt'] == 'ipdb> ')
 
     def is_waiting_pdb_input(self):
         """Check if we are waiting a pdb input."""

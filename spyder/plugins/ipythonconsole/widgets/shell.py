@@ -257,6 +257,8 @@ the sympy module (e.g. plot)
             self.dbg_exec_magic('clear')
         else:
             self.execute("%clear")
+        # Stop reading as any input has been removed.
+        self._reading = False
 
     def _reset_namespace(self):
         warning = CONF.get('ipython_console', 'show_reset_namespace_warning')

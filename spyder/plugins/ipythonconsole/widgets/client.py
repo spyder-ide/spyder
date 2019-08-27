@@ -308,7 +308,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """Method to handle what to do when the stop button is pressed"""
         self.stop_button.setDisabled(True)
         # Interrupt computations or stop debugging
-        if not self.shellwidget._reading:
+        if not self.shellwidget.is_waiting_pdb_input():
             self.interrupt_kernel()
         else:
             self.shellwidget.pdb_execute('exit', hidden=True)
