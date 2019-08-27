@@ -711,7 +711,7 @@ def test_save_history_dbg(ipyconsole, qtbot):
 @pytest.mark.slow
 @pytest.mark.skipif(PY2, reason="insert is not the same in py2")
 def test_dbg_input(ipyconsole, qtbot):
-    """Test that browsing command history is working while debugging."""
+    """Test that spyder doesn't send pdb commands to unrelated input calls."""
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
