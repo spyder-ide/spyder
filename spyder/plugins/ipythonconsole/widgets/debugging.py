@@ -84,7 +84,7 @@ class DebuggingWidget(RichJupyterWidget):
 
                 # Print the text if it is programatically added.
                 if line.strip() != self.input_buffer.strip():
-                    self._append_plain_text(line + '/n')
+                    self._append_plain_text(line + '\n')
 
                 # Save history to browse it later
                 self._pdb_line_num += 1
@@ -100,29 +100,6 @@ class DebuggingWidget(RichJupyterWidget):
             return self.kernel_client.input(line)
 
         self._input_queue.append((line, hidden))
-
-    def _finalize_input_request(self):
-        """
-        Set the widget to a non-reading state.
-
-        Taken from ConsoleWidget.do_execute.
-        """
-        # Must set _reading to False before calling _prompt_finished
-        self._reading = False
-        self._prompt_finished()
-
-        # There is no prompt now, so before_prompt_position is eof
-        self._append_before_prompt_cursor.setPosition(
-            self._get_end_cursor().position())
-
-        # The maximum block count is only in effect during execution.
-        # This ensures that _prompt_pos does not become invalid due to
-        # text truncation.
-        self._control.document().setMaximumBlockCount(self.buffer_size)
-
-        # Setting a positive maximum block count will automatically
-        # disable the undo/redo history, but just to be safe:
-        self._control.setUndoRedoEnabled(False)
 
     def get_spyder_breakpoints(self):
         """Get spyder breakpoints."""
