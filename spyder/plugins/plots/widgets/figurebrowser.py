@@ -644,7 +644,7 @@ class ThumbnailScrollBar(QFrame):
         """
         if event.type() == QEvent.Resize:
             self._update_thumbnail_size()
-        return super().eventFilter(widget, event)
+        return super(ThumbnailScrollBar, self).eventFilter(widget, event)
 
     # ---- Save Figure
     def save_all_figures_as(self):
