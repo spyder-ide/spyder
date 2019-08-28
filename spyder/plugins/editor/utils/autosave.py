@@ -7,18 +7,21 @@
 """Autosave components for the Editor plugin and the EditorStack widget"""
 
 # Standard library imports
+import ast
 import logging
 import os
 import os.path as osp
+import pprint
+import re
 
 # Third party imports
 from qtpy.QtCore import QTimer
 
 # Local imports
 from spyder.config.base import _, get_conf_path
-from spyder.config.manager import CONF
 from spyder.plugins.editor.widgets.autosaveerror import AutosaveErrorDialog
 from spyder.plugins.editor.widgets.recover import RecoveryDialog
+from spyder.utils.programs import is_spyder_process
 
 
 logger = logging.getLogger(__name__)
@@ -106,33 +109,79 @@ class AutosaveForPlugin(object):
         """Stop the autosave timer."""
         self.timer.stop()
 
-    def single_instance(self):
-        """Return whether Spyder is running in single instance mode."""
-        single_instance = CONF.get('main', 'single_instance')
-        new_instance = self.editor.main.new_instance
-        return single_instance and not new_instance
-
     def do_autosave(self):
         """Instruct current editorstack to autosave files where necessary."""
-        if not self.single_instance():
-            logger.debug('Autosave disabled because not single instance')
-            return
         logger.debug('Autosave triggered')
         stack = self.editor.get_current_editorstack()
         stack.autosave.autosave_all()
         self.start_autosave_timer()
 
-    def try_recover_from_autosave(self):
-        """Offer to recover files from autosave."""
-        if not self.single_instance():
-            self.recover_files_to_open = []
-            return
+    def get_files_to_recover(self):
+        """
+        Get list of files to recover from pid files in autosave dir.
+
+        This returns a tuple `(files_to_recover, pid_files)`. In this tuple,
+        `files_to_recover` is a list of tuples containing the original file
+        names and the corresponding autosave file names, as recorded in the
+        pid files in the autosave directory. Any files in the autosave
+        directory which are not listed in a pid file, are also included, with
+        the original file name set to `None`. The second entry, `pid_files`,
+        is a list with the names of the pid files.
+        """
         autosave_dir = get_conf_path('autosave')
-        autosave_mapping = CONF.get('editor', 'autosave_mapping', {})
-        dialog = RecoveryDialog(autosave_dir, autosave_mapping,
-                                parent=self.editor)
+        if not os.access(autosave_dir, os.R_OK):
+            return [], []
+
+        files_to_recover = []
+        files_mentioned = []
+        pid_files = []
+        non_pid_files = []
+
+        # In Python 3, easier to use os.scandir()
+        for name in os.listdir(autosave_dir):
+            full_name = osp.join(autosave_dir, name)
+            match = re.match(r'pid([0-9]*)\.txt\Z', name)
+            if match:
+                pid_files.append(full_name)
+                logger.debug('Reading pid file: {}'.format(full_name))
+                with open(full_name) as pidfile:
+                    txt = pidfile.read()
+                    txt_as_dict = ast.literal_eval(txt)
+                    files_mentioned += [autosave for (orig, autosave)
+                                        in txt_as_dict.items()]
+                pid = int(match.group(1))
+                if is_spyder_process(pid):
+                    logger.debug('Ignoring files in {}'.format(full_name))
+                else:
+                    files_to_recover += list(txt_as_dict.items())
+            else:
+                non_pid_files.append(full_name)
+
+        # Add all files not mentioned in any pid file. This can only happen if
+        # the pid file somehow got corrupted.
+        for filename in set(non_pid_files) - set(files_mentioned):
+            files_to_recover.append((None, filename))
+            logger.debug('Added unmentioned file: {}'.format(filename))
+
+        return files_to_recover, pid_files
+
+    def try_recover_from_autosave(self):
+        """
+        Offer to recover files from autosave.
+
+        Read pid files to get a list of files that can possibly be recovered,
+        then ask the user what to do with these files, and finally remove
+        the pid files.
+        """
+        files_to_recover, pidfiles = self.get_files_to_recover()
+        dialog = RecoveryDialog(files_to_recover, parent=self.editor)
         dialog.exec_if_nonempty()
         self.recover_files_to_open = dialog.files_to_open[:]
+        for pidfile in pidfiles:
+            try:
+                os.remove(pidfile)
+            except (IOError, OSError):
+                pass
 
     def register_autosave_for_stack(self, autosave_for_stack):
         """
@@ -192,6 +241,26 @@ class AutosaveForStack(object):
                 autosave_filename = osp.join(autosave_dir, autosave_basename)
         return autosave_filename
 
+    def save_autosave_mapping(self):
+        """
+        Writes current autosave mapping to a pidNNN.txt file.
+
+        This function should be called after updating `self.autosave_mapping`.
+        The NNN in the file name is the pid of the Spyder process. If the
+        current autosave mapping is empty, then delete the file if it exists.
+        """
+        autosave_dir = get_conf_path('autosave')
+        my_pid = os.getpid()
+        pidfile_name = osp.join(autosave_dir, 'pid{}.txt'.format(my_pid))
+        if self.name_mapping:
+            with open(pidfile_name, 'w') as pidfile:
+                pidfile.write(pprint.pformat(self.name_mapping))
+        else:
+            try:
+                os.remove(pidfile_name)
+            except (IOError, OSError):
+                pass
+
     def remove_autosave_file(self, filename):
         """
         Remove autosave file for specified file.
@@ -210,8 +279,7 @@ class AutosaveForStack(object):
             msgbox.exec_if_enabled()
         del self.name_mapping[filename]
         del self.file_hashes[autosave_filename]
-        self.stack.sig_option_changed.emit(
-                'autosave_mapping', self.name_mapping)
+        self.save_autosave_mapping()
         logger.debug('Removing autosave file %s', autosave_filename)
 
     def get_autosave_filename(self, filename):
@@ -239,8 +307,7 @@ class AutosaveForStack(object):
             autosave_filename = self.create_unique_autosave_filename(
                     filename, autosave_dir)
             self.name_mapping[filename] = autosave_filename
-            self.stack.sig_option_changed.emit(
-                    'autosave_mapping', self.name_mapping)
+            self.save_autosave_mapping()
             logger.debug('New autosave file name')
         return autosave_filename
 

@@ -795,11 +795,9 @@ def test_autosave_updates_name_mapping(editor_bot, mocker, qtbot):
     assert editor_stack.autosave.name_mapping == {}
     mocker.patch.object(editor_stack, '_write_to_file')
     editor.set_text('spam\n')
-    with qtbot.wait_signal(editor_stack.sig_option_changed) as blocker:
-        editor_stack.autosave.maybe_autosave(0)
+    editor_stack.autosave.maybe_autosave(0)
     expected = {'foo.py': os.path.join(get_conf_path('autosave'), 'foo.py')}
     assert editor_stack.autosave.name_mapping == expected
-    assert blocker.args == ['autosave_mapping', expected]
 
 
 def test_maybe_autosave_handles_error(editor_bot, mocker):
@@ -826,18 +824,18 @@ def test_remove_autosave_file(editor_bot, mocker, qtbot):
     editor_stack, editor = editor_bot
     autosave = editor_stack.autosave
     editor.set_text('spam\n')
-    with qtbot.wait_signal(editor_stack.sig_option_changed) as blocker:
-        autosave.maybe_autosave(0)
+
+    autosave.maybe_autosave(0)
+
     autosave_filename = os.path.join(get_conf_path('autosave'), 'foo.py')
     assert os.access(autosave_filename, os.R_OK)
     expected = {'foo.py': autosave_filename}
     assert autosave.name_mapping == expected
-    assert blocker.args == ['autosave_mapping', expected]
-    with qtbot.wait_signal(editor_stack.sig_option_changed) as blocker:
-        autosave.remove_autosave_file(editor_stack.data[0].filename)
+
+    autosave.remove_autosave_file(editor_stack.data[0].filename)
+
     assert not os.access(autosave_filename, os.R_OK)
     assert autosave.name_mapping == {}
-    assert blocker.args == ['autosave_mapping', {}]
 
 
 if __name__ == "__main__":
