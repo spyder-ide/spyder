@@ -455,6 +455,8 @@ class Switcher(QDialog):
       SwitcherItem:      [title description    <shortcut> section]
     """
 
+    # Dismissed switcher
+    sig_rejected = Signal()
     # Search/Filter text changes
     sig_text_changed = Signal(TEXT_TYPES[-1])
     # List item selected, mode and cleaned search text
@@ -540,6 +542,10 @@ class Switcher(QDialog):
             self._modes[token] = description
         else:
             raise Exception('Token must be of length 1!')
+
+    def get_mode(self):
+        """Get the current mode the switcher is in."""
+        return self._mode_on
 
     def remove_mode(self, token):
         """Remove mode by token key."""
@@ -702,6 +708,11 @@ class Switcher(QDialog):
         """Override Qt method."""
         super(Switcher, self).accept()
 
+    def reject(self):
+        """Override Qt method."""
+        self.sig_rejected.emit()
+        super(Switcher, self).reject()
+
     def resizeEvent(self, event):
         """Override Qt method."""
         super(Switcher, self).resizeEvent(event)
@@ -736,6 +747,13 @@ class Switcher(QDialog):
     def current_row(self):
         """Return the current selected row in the list widget."""
         return self.list.currentIndex().row()
+
+    def current_item(self):
+        """Return the current selected item in the list widget."""
+        row = self.current_row()
+        model_index = self.proxy.mapToSource(self.proxy.index(row, 0))
+        item = self.model.item(model_index.row())
+        return item
 
     def set_current_row(self, row):
         """Set the current selected row in the list widget."""

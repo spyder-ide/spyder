@@ -1009,12 +1009,10 @@ class EditorStack(QWidget):
         """Get the plugin title of the parent widget."""
         # Needed for the editor stack to use its own fileswitcher instance.
         # See spyder-ide/spyder#9469.
-        # TODO: Change to Switcher
         return self.parent().plugin.get_plugin_title()
 
     def go_to_line(self, line=None):
         """Go to line dialog"""
-        # TODO: Change to Switcher
         if line is not None:
             # When this method is called from the flileswitcher, a line
             # number is specified, so there is no need for the dialog.
