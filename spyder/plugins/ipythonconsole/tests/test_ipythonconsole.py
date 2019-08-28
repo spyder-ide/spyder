@@ -726,8 +726,10 @@ def test_dbg_input(ipyconsole, qtbot):
 
     # Reach the 'name' input
     shell.pdb_execute('n')
+    qtbot.wait(100)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
     shell.pdb_execute('n')
+    qtbot.wait(100)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'name')
 
     # Execute some code and make sure that it doesn't work
