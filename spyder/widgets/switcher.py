@@ -78,7 +78,7 @@ class KeyPressFilter(QObject):
 class SwitcherBaseItem(QStandardItem):
     """Base List Item."""
 
-    _PADDING = 2
+    _PADDING = 3
     _WIDTH = 400
     _HEIGHT = None
     _STYLES = None
@@ -226,7 +226,7 @@ class SwitcherItem(SwitcherBaseItem):
     _TEMPLATE = '''<table width="{width}" max_width="{width}" height="{height}"
                           cellpadding="{padding}">
   <tr>
-    <td valign="bottom">
+    <td valign="middle">
       <span style="color:{title_color};font-size:{title_font_size}pt">
         {title}
       </span>&nbsp;
@@ -487,6 +487,7 @@ class Switcher(QDialog):
         self.edit.installEventFilter(self.filter)
         self.edit.setPlaceholderText(help_text if help_text else '')
         self.list.setMinimumWidth(self._MIN_WIDTH)
+        self.list.setSpacing(-2)
         self.list.setItemDelegate(HTMLDelegate(self))
         self.list.setFocusPolicy(Qt.NoFocus)
         self.list.setSelectionBehavior(self.list.SelectItems)

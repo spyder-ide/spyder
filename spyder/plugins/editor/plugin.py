@@ -1563,7 +1563,7 @@ class Editor(SpyderPluginWidget):
             line_number = symbol[0]
             icon = icons[idx]
             data = {'title': title,
-                    'line_number': line_number}
+                    'line_number': line_number + 1}
             self.main.switcher.add_item(title=formated_title,
                                         icon=icon,
                                         section=self.get_plugin_title(),
