@@ -702,8 +702,6 @@ class ThumbnailScrollBar(QFrame):
         Calculate the witdh the thumbnail's figure canvas need to have for the
         thumbnail to fit the scrollarea.
         """
-        # We create a fake thumbnail to get the width of the toolbar buttons
-        # and the spacing of the layout.
         figure_canvas_width = (
             self.scrollarea.width() -
             2 * self.lineWidth() -
