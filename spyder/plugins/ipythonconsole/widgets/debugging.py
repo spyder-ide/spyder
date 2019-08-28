@@ -86,6 +86,7 @@ class DebuggingWidget(RichJupyterWidget):
                     self._get_end_cursor().position())
             self._input_ready = False
             # Match ConsoleWidget.do_execute
+            self._input_buffer_executing = self.input_buffer
             self._executing = True
             return self.kernel_client.input(line)
 
