@@ -582,7 +582,7 @@ class IPythonConsole(SpyderPluginWidget):
         """Execute code instructions."""
         sw = self.get_current_shellwidget()
         if sw is not None:
-            if sw._reading:
+            if sw.is_waiting_pdb_input():
                 pass
             else:
                 if not current_client:

@@ -521,7 +521,7 @@ def test_move_to_first_breakpoint(main_window, qtbot):
     qtbot.wait(1000)
 
     # Verify that we are still on debugging
-    assert shell._reading
+    assert shell.is_waiting_pdb_input()
 
     # Remove breakpoint and close test file
     main_window.editor.clear_all_breakpoints()
