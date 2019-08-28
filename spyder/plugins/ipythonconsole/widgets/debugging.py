@@ -79,10 +79,18 @@ class DebuggingWidget(RichJupyterWidget):
         if self._input_ready:
             # Print the string to the console
             if not hidden:
+                if line.strip():
+                    self._last_pdb_cmd = line
+
+                # Print the text if it is programatically added.
                 if line.strip() != self.input_buffer.strip():
                     self._append_plain_text(line + '/n')
 
-                # Match
+                # Save history to browse it later
+                self._pdb_line_num += 1
+                self.add_to_pdb_history(self._pdb_line_num, line)
+
+                # Set executing to true and save the input buffer
                 self._input_buffer_executing = self.input_buffer
                 self._executing = True
 
@@ -99,9 +107,11 @@ class DebuggingWidget(RichJupyterWidget):
 
         Taken from ConsoleWidget.do_execute.
         """
-        self._prompt_finished()
-        self._input_ready = False
+        # Must set _reading to False before calling _prompt_finished
         self._reading = False
+        self._prompt_finished()
+
+        # There is no prompt now, so before_prompt_position is eof
         self._append_before_prompt_cursor.setPosition(
             self._get_end_cursor().position())
 
@@ -164,21 +174,9 @@ class DebuggingWidget(RichJupyterWidget):
     def _readline_callback(self, line):
         """Callback used when the user inputs text in stdin."""
         if not self.is_waiting_pdb_input():
-            if self._input_ready:
-                # This is a regular input call
-                self._finalize_input_request()
-                return self.kernel_client.input(line)
-            else:
-                # This is an error. Raise?
-                return
-        line = line.strip()
-
-        # Save history to browse it later
-        self._pdb_line_num += 1
-        self.add_to_pdb_history(self._pdb_line_num, line)
-
-        if line:
-            self._last_pdb_cmd = line
+            # This is a regular input call
+            self._finalize_input_request()
+            return self.kernel_client.input(line)
 
         # This is the Spyder addition: add a %plot magic to display
         # plots while debugging
@@ -188,7 +186,6 @@ class DebuggingWidget(RichJupyterWidget):
             self.pdb_execute(line, hidden=True)
         else:
             self.pdb_execute(line)
-        self._highlighter.highlighting_on = False
 
     def _handle_input_request(self, msg):
         """Save history and add a %plot magic."""
