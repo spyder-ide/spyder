@@ -79,18 +79,40 @@ class DebuggingWidget(RichJupyterWidget):
         if self._input_ready:
             # Print the string to the console
             if not hidden:
-                # This emulates an user interaction
-                self._control.insert_text(line + '\n')
-                self._reading = False
-                self._append_before_prompt_cursor.setPosition(
-                    self._get_end_cursor().position())
+                if line.strip() != self.input_buffer.strip():
+                    self._append_plain_text(line + '/n')
+
+                # Match
+                self._input_buffer_executing = self.input_buffer
+                self._executing = True
+
+                self._finalize_input_request()
+
             self._input_ready = False
-            # Match ConsoleWidget.do_execute
-            self._input_buffer_executing = self.input_buffer
-            self._executing = True
             return self.kernel_client.input(line)
 
         self._input_queue.append((line, hidden))
+
+    def _finalize_input_request(self):
+        """
+        Set the widget to a non-reading state.
+
+        Taken from ConsoleWidget.do_execute.
+        """
+        self._prompt_finished()
+        self._input_ready = False
+        self._reading = False
+        self._append_before_prompt_cursor.setPosition(
+            self._get_end_cursor().position())
+
+        # The maximum block count is only in effect during execution.
+        # This ensures that _prompt_pos does not become invalid due to
+        # text truncation.
+        self._control.document().setMaximumBlockCount(self.buffer_size)
+
+        # Setting a positive maximum block count will automatically
+        # disable the undo/redo history, but just to be safe:
+        self._control.setUndoRedoEnabled(False)
 
     def get_spyder_breakpoints(self):
         """Get spyder breakpoints."""
@@ -144,10 +166,7 @@ class DebuggingWidget(RichJupyterWidget):
         if not self.is_waiting_pdb_input():
             if self._input_ready:
                 # This is a regular input call
-                self._input_ready = False
-                self._reading = False
-                self._append_before_prompt_cursor.setPosition(
-                    self._get_end_cursor().position())
+                self._finalize_input_request()
                 return self.kernel_client.input(line)
             else:
                 # This is an error. Raise?
@@ -166,7 +185,9 @@ class DebuggingWidget(RichJupyterWidget):
         if line.startswith('%plot '):
             line = line.split()[-1]
             line = "__spy_code__ = get_ipython().run_cell('%s')" % line
-        self.pdb_execute(line, hidden=True)
+            self.pdb_execute(line, hidden=True)
+        else:
+            self.pdb_execute(line)
         self._highlighter.highlighting_on = False
 
     def _handle_input_request(self, msg):
