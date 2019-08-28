@@ -237,6 +237,19 @@ class DebuggingWidget(RichJupyterWidget):
                 return True
             elif key in (Qt.Key_Return, Qt.Key_Enter):
                 self._control.reset_search_pos()
+            elif key == Qt.Key_Tab:
+                # This is a bit hacky
+                # ConsoleWidget._get_input_buffer_cursor_prompt()
+                # Doesn't work if self._executing is True
+                # It might be True in case of hidden pdb_execute
+                executing = self._executing
+                self._executing = False
+                make_tab = self._tab_pressed()
+                self._executing = executing
+                if not make_tab:
+                    # interrput the kernel so it processes the event
+                    self.call_kernel(interrupt=True).pong()
+                    return True
             else:
                 self._control.hist_wholeline = False
             return super(DebuggingWidget,
