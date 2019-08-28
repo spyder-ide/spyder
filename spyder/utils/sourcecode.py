@@ -239,6 +239,7 @@ def shorten_paths(path_list, is_unsaved):
     # new_path using the drive
     path_list = path_list[:]  # Make a local copy
     new_path_list = []
+    common_prefix = osp.dirname(osp.commonprefix(path_list))
 
     for ii, (path, is_unsav) in enumerate(zip(path_list, is_unsaved)):
         if is_unsav:
@@ -318,7 +319,8 @@ def shorten_paths(path_list, is_unsaved):
 
     recurse_level({i: pl for i, pl in enumerate(path_list) if pl})
 
-    return [path.rstrip(os.sep) for path in new_path_list]
+    return ["...{}".format(path.rstrip(os.sep).split(common_prefix)[-1])
+            for path in new_path_list]
 
 
 def get_file_icon(path):

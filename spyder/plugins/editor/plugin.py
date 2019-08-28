@@ -1481,10 +1481,10 @@ class Editor(SpyderPluginWidget):
         self.main.switcher.set_placeholder_text(
             _('Start typing the name of an open file'))
 
-        paths = [data.filename for data in self.get_current_editorstack().data]
+        paths = [data.filename.lower()
+                 for data in self.get_current_editorstack().data]
         save_statuses = [data.newly_created
                          for data in self.get_current_editorstack().data]
-
         short_paths = sourcecode.shorten_paths(paths, save_statuses)
 
         for idx, data in enumerate(self.get_current_editorstack().data):
@@ -1493,8 +1493,10 @@ class Editor(SpyderPluginWidget):
             icon = sourcecode.get_file_icon(path)
             # TODO: Handle of shorten paths based on font size
             # and available space per item
-            if len(path) > 75:
+            if len(paths[idx]) > 90:
                 path = short_paths[idx]
+            else:
+                path = osp.dirname(data.filename.lower())
             self.main.switcher.add_item(title=title,
                                         description=path,
                                         icon=icon,

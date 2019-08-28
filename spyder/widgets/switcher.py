@@ -78,7 +78,7 @@ class KeyPressFilter(QObject):
 class SwitcherBaseItem(QStandardItem):
     """Base List Item."""
 
-    _PADDING = 5
+    _PADDING = 2
     _WIDTH = 400
     _HEIGHT = None
     _STYLES = None
@@ -114,7 +114,7 @@ class SwitcherBaseItem(QStandardItem):
     # --- API
     def set_width(self, value):
         """Set the content width."""
-        self._width = value - (self._padding * 3)
+        self._width = value - (self._padding * 2)
         self._set_rendered_text()
 
     def get_width(self):
@@ -208,7 +208,7 @@ class SwitcherItem(SwitcherBaseItem):
     """
 
     _FONT_SIZE = 10
-    _HEIGHT = 20
+    _HEIGHT = 15
     _STYLE_ATTRIBUTES = ['title_color', 'description_color', 'section_color',
                          'shortcut_color', 'title_font_size',
                          'description_font_size', 'section_font_size',
@@ -223,7 +223,7 @@ class SwitcherItem(SwitcherBaseItem):
         'section_font_size': _FONT_SIZE,
         'shortcut_font_size': _FONT_SIZE,
     }
-    _TEMPLATE = '''<table width="{width}" height="{height}"
+    _TEMPLATE = '''<table width="{width}" max_width="{width}" height="{height}"
                           cellpadding="{padding}">
   <tr>
     <td valign="bottom">
@@ -462,6 +462,7 @@ class Switcher(QDialog):
     sig_mode_selected = Signal(TEXT_TYPES[-1])
 
     _MIN_WIDTH = 500
+    _ITEM_WIDTH = _MIN_WIDTH - 20
 
     def __init__(self, parent, help_text=None, item_styles=ITEM_STYLES,
                  item_separator_styles=ITEM_SEPARATOR_STYLES):
@@ -514,7 +515,7 @@ class Switcher(QDialog):
     # --- Helper methods
     def _add_item(self, item):
         """Perform common actions when adding items."""
-        item.set_width(self._MIN_WIDTH)
+        item.set_width(self._ITEM_WIDTH)
         self.model.appendRow(item)
         self.set_current_row(0)
         self._visible_rows = self.model.rowCount()
