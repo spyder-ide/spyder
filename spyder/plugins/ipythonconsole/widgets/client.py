@@ -533,7 +533,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                     sw.kernel_manager.restart_kernel(
                         stderr=self.stderr_handle)
                     # Reopen comm
-                    sw.spyder_kernel_comm.set_shell(sw)
+                    sw.spyder_kernel_comm.open_comm(sw.kernel_client)
 
                 except RuntimeError as e:
                     sw._append_plain_text(

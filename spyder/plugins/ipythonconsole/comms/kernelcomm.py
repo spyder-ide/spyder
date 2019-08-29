@@ -26,27 +26,20 @@ class KernelComm(CommBase, QObject):
     """
 
     _sig_got_reply = Signal()
-    sig_debug_loop = Signal(bool)
     sig_exception_occurred = Signal(str, bool)
 
-    def __init__(self):
+    def __init__(self, interrupt_callback=None):
         super(KernelComm, self).__init__()
-
-        self._shell = None
-        self._debug_loop = False
-
-        self.register_call_handler(
-            'set_debug_state', self._handle_debug_state)
         self.register_call_handler(
             '_async_error', self._async_error)
+        self._interrupt_callback = interrupt_callback
 
-    def set_shell(self, shell):
-        """Register new kernel client and open comm."""
+    def open_comm(self, kernel_client):
+        """Open comm through the kernel client."""
         self._register_comm(
             # Create new comm and send the highest protocol
-            shell.kernel_client.comm_manager.new_comm(self._comm_name, data={
+            kernel_client.comm_manager.new_comm(self._comm_name, data={
                 'pickle_protocol': pickle.HIGHEST_PROTOCOL}))
-        self._shell = shell
 
     def remote_call(self, interrupt=False, blocking=False, callback=None,
                     comm_id=None):
@@ -62,28 +55,11 @@ class KernelComm(CommBase, QObject):
         """
         settings = call_dict['settings']
         if 'interrupt' in settings and settings['interrupt']:
-            self._signal_update_kernel()
+            if self._interrupt_callback is not None:
+                self._interrupt_callback()
 
         return super(KernelComm, self)._get_call_return_value(
             call_dict)
-
-    def _signal_update_kernel(self):
-        """Interrupt the kernel to give a chance to read other messages."""
-        self._pdb_update()
-
-    def _pdb_update(self):
-        """
-        Update by sending an input to pdb.
-        """
-        if self._debug_loop and self._shell:
-            cmd = (u"!get_ipython().kernel.frontend_comm" +
-                   ".remote_call(blocking=True).pong()")
-            self._shell.pdb_execute(cmd, hidden=True)
-
-    def _handle_debug_state(self, in_debug_loop):
-        """Update the debug state."""
-        self._debug_loop = in_debug_loop
-        self.sig_debug_loop.emit(in_debug_loop)
 
     def _wait_reply(self, call_id, call_name, timeout):
         """Wait for the other side reply."""

@@ -56,12 +56,23 @@ class DebuggingWidget(RichJupyterWidget):
         self._control.history = [
             line[-1] for line in self._pdb_history_file.get_tail(
                 self.PDB_HIST_MAX, include_latest=True)]
+        self._pdb_in_loop = False
 
-    def _debugging_hook(self, debugging):
-        """Catches debugging state."""
+    def _handle_debug_state(self, in_debug_loop):
+        """Update the debug state."""
+        self._pdb_in_loop = in_debug_loop
         # If debugging starts or stops, clear the input queue.
         self._pdb_input_queue = []
         self._pdb_line_num = 0
+
+    def _pdb_update(self):
+        """
+        Update by sending an input to pdb.
+        """
+        if self._pdb_in_loop:
+            cmd = (u"!get_ipython().kernel.frontend_comm" +
+                   ".remote_call(blocking=True).pong()")
+            self.pdb_execute(cmd, hidden=True)
 
     # --- Public API --------------------------------------------------
     def pdb_execute(self, line, hidden=False):
@@ -236,7 +247,7 @@ class DebuggingWidget(RichJupyterWidget):
 
     def in_debug_loop(self):
         """Check if we are debugging."""
-        return self.spyder_kernel_comm._debug_loop
+        return self._pdb_in_loop
 
     def is_waiting_pdb_input(self):
         """Check if we are waiting a pdb input."""

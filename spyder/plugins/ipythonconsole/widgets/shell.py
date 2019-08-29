@@ -90,7 +90,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # set in the qtconsole constructor. See spyder-ide/spyder#4806.
         self.set_bracket_matcher_color_scheme(self.syntax_style)
 
-        self.spyder_kernel_comm = KernelComm()
+        self.spyder_kernel_comm = KernelComm(
+            interrupt_callback=self._pdb_update)
         self.spyder_kernel_comm.sig_exception_occurred.connect(
             self.sig_exception_occurred)
         self.kernel_manager = None
@@ -103,13 +104,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             'run_cell': self.handle_run_cell,
             'cell_count': self.handle_cell_count,
             'current_filename': self.handle_current_filename,
+            'set_debug_state': self._handle_debug_state
         }
-
         for request_id in handlers:
             self.spyder_kernel_comm.register_call_handler(
                 request_id, handlers[request_id])
-
-        self.spyder_kernel_comm.sig_debug_loop.connect(self._debugging_hook)
 
     def call_kernel(self, interrupt=False, blocking=False, callback=None):
         """Send message to spyder."""
@@ -120,7 +119,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """Set the kernel client and manager"""
         self.kernel_manager = kernel_manager
         self.kernel_client = kernel_client
-        self.spyder_kernel_comm.set_shell(self)
+        self.spyder_kernel_comm.open_comm(kernel_client)
 
     #---- Public API ----------------------------------------------------------
     def set_exit_callback(self):
