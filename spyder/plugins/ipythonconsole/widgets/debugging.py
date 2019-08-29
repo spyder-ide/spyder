@@ -48,19 +48,19 @@ class DebuggingWidget(RichJupyterWidget):
             r'^(%s)?([ \t]*ipdb> |[ \t]*In \[\d+\]: |[ \t]*\ \ \ \.\.\.+: )'
             % re.escape(self.other_output_prefix))
         self._previous_prompt = None
-        self._input_queue = []
-        self._input_ready = False
-        self._last_pdb_cmd = ''
+        self._pdb_input_queue = []
+        self._pdb_input_ready = False
+        self._pdb_last_cmd = ''
         self._pdb_line_num = 0
-        self.pdb_history_file = PdbHistory()
+        self._pdb_history_file = PdbHistory()
         self._control.history = [
-            line[-1] for line in self.pdb_history_file.get_tail(
+            line[-1] for line in self._pdb_history_file.get_tail(
                 self.PDB_HIST_MAX, include_latest=True)]
 
     def _debugging_hook(self, debugging):
         """Catches debugging state."""
         # If debugging starts or stops, clear the input queue.
-        self._input_queue = []
+        self._pdb_input_queue = []
         self._pdb_line_num = 0
 
     # --- Public API --------------------------------------------------
@@ -68,19 +68,19 @@ class DebuggingWidget(RichJupyterWidget):
         """Send line to the pdb kernel if possible."""
         if not line.strip():
             # Must get the last genuine command
-            line = self._last_pdb_cmd
+            line = self._pdb_last_cmd
 
         if not self.is_waiting_pdb_input():
             # We can't execute this if we are not waiting for pdb input
             if self.in_debug_loop():
-                self._input_queue.append((line, hidden))
+                self._pdb_input_queue.append((line, hidden))
             return
 
-        if self._input_ready:
+        if self._pdb_input_ready:
             # Print the string to the console
             if not hidden:
                 if line.strip():
-                    self._last_pdb_cmd = line
+                    self._pdb_last_cmd = line
 
                 # Print the text if it is programatically added.
                 if line.strip() != self.input_buffer.strip():
@@ -96,10 +96,10 @@ class DebuggingWidget(RichJupyterWidget):
 
                 self._finalize_input_request()
 
-            self._input_ready = False
+            self._pdb_input_ready = False
             return self.kernel_client.input(line)
 
-        self._input_queue.append((line, hidden))
+        self._pdb_input_queue.append((line, hidden))
 
     def get_spyder_breakpoints(self):
         """Get spyder breakpoints."""
@@ -173,7 +173,6 @@ class DebuggingWidget(RichJupyterWidget):
         # Make sure that all output from the SUB channel has been processed
         # before entering readline mode.
         self.kernel_client.iopub_channel.flush()
-        self._input_ready = True
 
         prompt, password = msg['content']['prompt'], msg['content']['password']
 
@@ -192,15 +191,16 @@ class DebuggingWidget(RichJupyterWidget):
                            password=password)
 
         if self.is_waiting_pdb_input():
+            self._pdb_input_ready = True
             self._executing = False
 
         # While the widget thinks only one input is going on,
         # other functions can be sending messages to the kernel.
         # This must be properly processed to avoid dropping messages.
         # If the kernel was not ready, the messages are queued.
-        if self.is_waiting_pdb_input() and len(self._input_queue) > 0:
-            args = self._input_queue[0]
-            del self._input_queue[0]
+        if self.is_waiting_pdb_input() and len(self._pdb_input_queue) > 0:
+            args = self._pdb_input_queue[0]
+            del self._pdb_input_queue[0]
             self.pdb_execute(*args)
             return
 
@@ -251,7 +251,8 @@ class DebuggingWidget(RichJupyterWidget):
         line = line.strip()
 
         # If repeated line
-        if len(self._control.history) > 0 and self._control.history[-1] == line:
+        history = self._control.history
+        if len(history) > 0 and history[-1] == line:
             return
 
         cmd = line.split(" ")[0]
@@ -259,4 +260,4 @@ class DebuggingWidget(RichJupyterWidget):
         is_pdb_cmd = "do_" + cmd in dir(pdb.Pdb)
         if cmd and (not is_pdb_cmd or len(args) > 0):
             self._control.history.append(line)
-            self.pdb_history_file.store_inputs(line_num, line)
+            self._pdb_history_file.store_inputs(line_num, line)

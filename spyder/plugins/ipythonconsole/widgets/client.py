@@ -489,7 +489,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                 now = False
             self.shellwidget.spyder_kernel_comm.close()
             self.shellwidget.kernel_manager.shutdown_kernel(now=now)
-            self.shellwidget.pdb_history_file.save_thread.stop()
+            self.shellwidget._pdb_history_file.save_thread.stop()
         if self.shellwidget.kernel_client is not None:
             self.shellwidget.kernel_client.stop_channels()
 
