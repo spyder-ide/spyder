@@ -2219,6 +2219,10 @@ class Editor(SpyderPluginWidget):
     def current_file_changed(self, filename, position):
         self.add_cursor_position_to_history(to_text_string(filename), position,
                                             fc=True)
+        # Hide any open tooltips
+        current_stack = self.get_current_editorstack()
+        if current_stack is not None:
+            current_stack.hide_tooltip()
 
     @Slot()
     def go_to_last_edit_location(self):
