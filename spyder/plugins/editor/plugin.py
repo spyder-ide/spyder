@@ -1498,7 +1498,7 @@ class Editor(SpyderPluginWidget):
             icon = sourcecode.get_file_icon(path)
             # TODO: Handle of shorten paths based on font size
             # and available space per item
-            if len(paths[idx]) > 90:
+            if len(paths[idx]) > 75:
                 path = short_paths[idx]
             else:
                 path = osp.dirname(data.filename.lower())
@@ -1589,7 +1589,7 @@ class Editor(SpyderPluginWidget):
     def handle_switcher_item_change(self, current):
         """Handle item selection change."""
         mode = self.main.switcher.get_mode()
-        if mode == '@':
+        if mode == '@' and current is not None:
             line_number = int(current.get_data()['line_number'])
             self.go_to_line(line_number)
 

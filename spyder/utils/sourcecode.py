@@ -336,10 +336,8 @@ def get_file_icon(path):
         scale_factor = 0.9
     elif os.name == 'nt':
         scale_factor = 0.8
-    elif is_ubuntu():
-        scale_factor = 0.7
     else:
-        scale_factor = 0.9
+        scale_factor = 0.7
 
     return ima.get_icon_by_extension_or_type(path, scale_factor)
 
