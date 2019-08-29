@@ -558,6 +558,7 @@ class EditorStack(QWidget):
         self.run_cell_copy = False
         self.create_new_file_if_empty = True
         self.indent_guides = False
+        self.current_line = None
         ccs = 'Spyder'
         if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
             ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
@@ -872,12 +873,7 @@ class EditorStack(QWidget):
             from spyder.widgets.switcher import Switcher
             self.switcher_dlg = Switcher(self)
             # Add base modes to the switcher
-            self.switcher_dlg.add_mode(':', _('Go to Line'))
-            self.switcher_dlg.add_mode('@', _('Go to Symbol in File'))
-            self.switcher_dlg.sig_mode_selected.connect(
-                self.handle_switcher_modes)
-            self.switcher_dlg.sig_item_selected.connect(
-                    self.handle_switcher_selection)
+            self.setup_switcher()
 
         self.switcher_dlg.set_search_text(initial_text)
         self.switcher_dlg.setup()
@@ -890,6 +886,21 @@ class EditorStack(QWidget):
     @Slot()
     def open_symbolfinder_dlg(self):
         self.open_switcher_dlg(initial_text='@')
+
+    def setup_switcher(self):
+        """Setup switcher modes and signals."""
+        self.switcher_dlg.add_mode(':', _('Go to Line'))
+        self.switcher_dlg.add_mode('@', _('Go to Symbol in File'))
+        self.switcher_dlg.sig_mode_selected.connect(
+            self.handle_switcher_modes)
+        self.switcher_dlg.sig_item_selected.connect(
+                self.handle_switcher_selection)
+        self.switcher_dlg.sig_text_changed.connect(
+            self.handle_switcher_text)
+        self.switcher_dlg.sig_rejected.connect(
+            self.handle_switcher_rejection)
+        self.switcher_dlg.sig_item_changed.connect(
+            self.handle_switcher_item_change)
 
     def handle_switcher_modes(self, mode):
         """Handle switcher for registered modes."""
@@ -927,6 +938,7 @@ class EditorStack(QWidget):
 
     def create_line_switcher(self):
         """Populate switcher with line info."""
+        self.current_line = self.get_current_editor().get_cursor_line_number()
         self.switcher_dlg.clear()
         self.switcher_dlg.set_placeholder_text(_('Select line'))
         data = self.get_current_finfo()
@@ -947,10 +959,10 @@ class EditorStack(QWidget):
 
     def create_symbol_switcher(self):
         """Populate switcher with symbol info."""
+        self.current_line = self.get_current_editor().get_cursor_line_number()
         self.switcher_dlg.clear()
         self.switcher_dlg.set_placeholder_text(_('Select symbol'))
-        oedata_list = (
-            self.get_current_editor().outlineexplorer_data_list())
+        oedata_list = self.get_current_editor().outlineexplorer_data_list()
 
         symbols_list = sourcecode.get_symbol_list(oedata_list)
         icons = sourcecode.get_python_symbol_icons(symbols_list)
@@ -964,7 +976,7 @@ class EditorStack(QWidget):
             line_number = symbol[0]
             icon = icons[idx]
             data = {'title': title,
-                    'line_number': line_number}
+                    'line_number': line_number + 1}
             self.switcher_dlg.add_item(title=formated_title,
                                        icon=icon,
                                        section=self.get_plugin_title(),
@@ -984,18 +996,49 @@ class EditorStack(QWidget):
             if item.get_section() == self.get_plugin_title():
                 self.editor_switcher_handler(data)
 
+    def handle_switcher_text(self, search_text):
+        """Handle switcher search text for line mode."""
+        mode = self.switcher_dlg.get_mode()
+        if mode == ':':
+            item = self.switcher_dlg.current_item()
+            self.line_switcher_handler(item.get_data(), search_text,
+                                       visible=True)
+        elif self.current_line and mode == '':
+            self.go_to_line(self.current_line)
+            self.current_line = None
+
+    def handle_switcher_rejection(self):
+        """Do actions when the Switcher is rejected."""
+        # Reset current cursor line
+        if self.current_line:
+            self.go_to_line(self.current_line)
+            self.current_line = None
+
+    def handle_switcher_item_change(self, current):
+        """Handle item selection change."""
+        mode = self.switcher_dlg.get_mode()
+        if mode == '@':
+            line_number = int(current.get_data()['line_number'])
+            self.go_to_line(line_number)
+
     def editor_switcher_handler(self, data):
         """Populate switcher with FileInfo data."""
         self.set_current_filename(data.filename)
         self.switcher_dlg.hide()
+        self.switcher_dlg.set_search_text('')
 
-    def line_switcher_handler(self, data, search_text):
+    def line_switcher_handler(self, data, search_text, visible=False):
         """Handle line switcher selection."""
         self.set_current_filename(data.filename)
-        line_number = search_text.split(':')[0]
+        line_number = search_text.split(':')[-1]
         try:
-            self.go_to_line(int(line_number))
-            self.switcher_dlg.hide()
+            line_number = int(line_number)
+            self.go_to_line(line_number)
+            self.switcher_dlg.setVisible(visible)
+            # Closing the switcher
+            if not visible:
+                self.current_line = None
+                self.switcher_dlg.set_search_text('')
         except Exception:
             # Invalid line number
             pass
@@ -1004,6 +1047,9 @@ class EditorStack(QWidget):
         """Handle symbol switcher selection."""
         line_number = data['line_number']
         self.go_to_line(int(line_number))
+        self.current_line = None
+        self.switcher_dlg.hide()
+        self.switcher_dlg.set_search_text('')
 
     def get_plugin_title(self):
         """Get the plugin title of the parent widget."""

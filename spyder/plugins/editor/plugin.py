@@ -1510,8 +1510,7 @@ class Editor(SpyderPluginWidget):
 
     def create_line_switcher(self):
         """Populate switcher with line info."""
-        self.current_line = (
-                self.get_current_editor().get_cursor_line_number())
+        self.current_line = self.get_current_editor().get_cursor_line_number()
         self.main.switcher.clear()
         self.main.switcher.set_placeholder_text(_('Select line'))
         data = self.get_current_finfo()
@@ -1532,12 +1531,10 @@ class Editor(SpyderPluginWidget):
 
     def create_symbol_switcher(self):
         """Populate switcher with symbol info."""
-        self.current_line = (
-                self.get_current_editor().get_cursor_line_number())
+        self.current_line = self.get_current_editor().get_cursor_line_number()
         self.main.switcher.clear()
         self.main.switcher.set_placeholder_text(_('Select symbol'))
-        oedata_list = (
-            self.get_current_editor().outlineexplorer_data_list())
+        oedata_list = self.get_current_editor().outlineexplorer_data_list()
 
         symbols_list = sourcecode.get_symbol_list(oedata_list)
         icons = sourcecode.get_python_symbol_icons(symbols_list)
@@ -1623,6 +1620,7 @@ class Editor(SpyderPluginWidget):
         self.go_to_line(int(line_number))
         self.current_line = None
         self.main.switcher.hide()
+        self.main.switcher.set_search_text('')
 
     #------ Refresh methods
     def refresh_file_dependent_actions(self):
