@@ -130,7 +130,6 @@ class FigureBrowser(QWidget):
         main_widget = QSplitter()
         main_widget.addWidget(self.figviewer)
         main_widget.addWidget(self.thumbnails_sb)
-        main_widget.setStretchFactor(0, 1)
         main_widget.setFrameStyle(QScrollArea().frameStyle())
 
         self.tools_layout = QHBoxLayout()
