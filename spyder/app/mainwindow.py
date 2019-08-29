@@ -3213,8 +3213,8 @@ class MainWindow(QMainWindow):
     def open_switcher(self, symbol=False):
         """Open switcher dialog box."""
         if self.switcher is not None and self.switcher.isVisible():
-            self.switcher.hide()
             self.switcher.clear()
+            self.switcher.hide()
             return
         if symbol:
             self.switcher.set_search_text('@')

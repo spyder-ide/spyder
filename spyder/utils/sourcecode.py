@@ -319,8 +319,14 @@ def shorten_paths(path_list, is_unsaved):
 
     recurse_level({i: pl for i, pl in enumerate(path_list) if pl})
 
-    return ["...{}".format(path.rstrip(os.sep).split(common_prefix)[-1])
-            for path in new_path_list]
+    if common_prefix:
+        result_paths = ["...{}".format(
+                        path.rstrip(os.sep).split(common_prefix)[-1])
+                        for path in new_path_list]
+    else:
+        result_paths = [path.rstrip(os.sep) for path in new_path_list]
+
+    return result_paths
 
 
 def get_file_icon(path):

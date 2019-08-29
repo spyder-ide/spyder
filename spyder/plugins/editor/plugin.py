@@ -1468,6 +1468,8 @@ class Editor(SpyderPluginWidget):
             self.handle_switcher_selection)
         self.main.switcher.sig_text_changed.connect(self.handle_switcher_text)
         self.main.switcher.sig_rejected.connect(self.handle_switcher_rejection)
+        self.main.switcher.sig_item_changed.connect(
+            self.handle_switcher_item_change)
 
     def handle_switcher_modes(self, mode):
         """Handle switcher for registered modes."""
@@ -1530,6 +1532,8 @@ class Editor(SpyderPluginWidget):
 
     def create_symbol_switcher(self):
         """Populate switcher with symbol info."""
+        self.current_line = (
+                self.get_current_editor().get_cursor_line_number())
         self.main.switcher.clear()
         self.main.switcher.set_placeholder_text(_('Select symbol'))
         oedata_list = (
@@ -1552,7 +1556,7 @@ class Editor(SpyderPluginWidget):
                                         icon=icon,
                                         section=self.get_plugin_title(),
                                         data=data)
-        # Needed to update fold spaces in items titles
+        # Needed to update fold spaces for items titles
         self.main.switcher.setup()
 
     def handle_switcher_selection(self, item, mode, search_text):
@@ -1569,11 +1573,12 @@ class Editor(SpyderPluginWidget):
 
     def handle_switcher_text(self, search_text):
         """Handle switcher search text for line mode."""
-        if self.main.switcher.get_mode() == ':':
+        mode = self.main.switcher.get_mode()
+        if mode == ':':
             item = self.main.switcher.current_item()
             self.line_switcher_handler(item.get_data(), search_text,
                                        visible=True)
-        elif self.current_line:
+        elif self.current_line and mode == '':
             self.go_to_line(self.current_line)
             self.current_line = None
 
@@ -1582,6 +1587,14 @@ class Editor(SpyderPluginWidget):
         # Reset current cursor line
         if self.current_line:
             self.go_to_line(self.current_line)
+            self.current_line = None
+
+    def handle_switcher_item_change(self, current):
+        """Handle item selection change."""
+        mode = self.main.switcher.get_mode()
+        if mode == '@':
+            line_number = int(current.get_data()['line_number'])
+            self.go_to_line(line_number)
 
     def editor_switcher_handler(self, data):
         """Populate switcher with FileInfo data."""
@@ -1599,6 +1612,7 @@ class Editor(SpyderPluginWidget):
             # Closing the switcher
             if not visible:
                 self.current_line = None
+                self.main.switcher.set_search_text('')
         except Exception:
             # Invalid line number
             pass
@@ -1607,6 +1621,8 @@ class Editor(SpyderPluginWidget):
         """Handle symbol switcher selection."""
         line_number = data['line_number']
         self.go_to_line(int(line_number))
+        self.current_line = None
+        self.main.switcher.hide()
 
     #------ Refresh methods
     def refresh_file_dependent_actions(self):

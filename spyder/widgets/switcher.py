@@ -14,7 +14,7 @@ import sys
 
 # Third party imports
 from qtpy.QtCore import (QEvent, QObject, QSize, QSortFilterProxyModel, Qt,
-                         Signal, Slot)
+                         Signal, Slot, QModelIndex)
 from qtpy.QtGui import QStandardItem, QStandardItemModel
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
                             QLineEdit, QListWidgetItem, QVBoxLayout, QListView)
@@ -459,6 +459,8 @@ class Switcher(QDialog):
     sig_rejected = Signal()
     # Search/Filter text changes
     sig_text_changed = Signal(TEXT_TYPES[-1])
+    # Current item changed
+    sig_item_changed = Signal(object)
     # List item selected, mode and cleaned search text
     sig_item_selected = Signal(object, TEXT_TYPES[-1], TEXT_TYPES[-1], )
     sig_mode_selected = Signal(TEXT_TYPES[-1])
@@ -513,6 +515,8 @@ class Switcher(QDialog):
         self.edit.returnPressed.connect(self.enter)
         self.list.clicked.connect(self.enter)
         self.list.clicked.connect(self.edit.setFocus)
+        self.list.selectionModel().currentChanged.connect(
+            self.current_item_changed)
         self.edit.setFocus()
 
     # --- Helper methods
@@ -673,6 +677,7 @@ class Switcher(QDialog):
                     item.set_section_visible(True)
 
         self.proxy.sortBy('_score')
+        self.sig_item_changed.emit(self.current_item())
 
     def set_position(self, top):
         """Positions the dialog."""
@@ -689,6 +694,11 @@ class Switcher(QDialog):
                 parent = parent.parent()
 
             self.move(round(left), top)
+
+    @Slot(QModelIndex, QModelIndex)
+    def current_item_changed(self, current, previous):
+        """Handle item selection."""
+        self.sig_item_changed.emit(self.current_item())
 
     # --- Qt overrides
     # ------------------------------------------------------------------------
@@ -710,6 +720,7 @@ class Switcher(QDialog):
 
     def reject(self):
         """Override Qt method."""
+        self.set_search_text('')
         self.sig_rejected.emit()
         super(Switcher, self).reject()
 
