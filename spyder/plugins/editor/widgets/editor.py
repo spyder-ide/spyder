@@ -45,6 +45,7 @@ from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.editor.utils.autosave import AutosaveForStack
+from spyder.plugins.editor.utils.switcher import EditorSwitcherManager
 from spyder.plugins.editor.widgets import codeeditor
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget  # analysis:ignore
 from spyder.plugins.editor.widgets.codeeditor import Printer       # analysis:ignore
@@ -467,6 +468,7 @@ class EditorStack(QWidget):
 
         self.menu = None
         self.switcher_dlg = None
+        self.switcher_manager = None
 #        self.filelist_btn = None
 #        self.previous_btn = None
 #        self.next_btn = None
@@ -558,7 +560,6 @@ class EditorStack(QWidget):
         self.run_cell_copy = False
         self.create_new_file_if_empty = True
         self.indent_guides = False
-        self.current_line = None
         ccs = 'Spyder'
         if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
             ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
@@ -872,8 +873,11 @@ class EditorStack(QWidget):
         if self.switcher_dlg is None:
             from spyder.widgets.switcher import Switcher
             self.switcher_dlg = Switcher(self)
-            # Add base modes to the switcher
-            self.setup_switcher()
+            self.switcher_manager = EditorSwitcherManager(
+                self.switcher_dlg,
+                lambda: self.get_current_editor(),
+                lambda: self,
+                section=self.get_plugin_title())
 
         self.switcher_dlg.set_search_text(initial_text)
         self.switcher_dlg.setup()
@@ -886,170 +890,6 @@ class EditorStack(QWidget):
     @Slot()
     def open_symbolfinder_dlg(self):
         self.open_switcher_dlg(initial_text='@')
-
-    def setup_switcher(self):
-        """Setup switcher modes and signals."""
-        self.switcher_dlg.add_mode(':', _('Go to Line'))
-        self.switcher_dlg.add_mode('@', _('Go to Symbol in File'))
-        self.switcher_dlg.sig_mode_selected.connect(
-            self.handle_switcher_modes)
-        self.switcher_dlg.sig_item_selected.connect(
-                self.handle_switcher_selection)
-        self.switcher_dlg.sig_text_changed.connect(
-            self.handle_switcher_text)
-        self.switcher_dlg.sig_rejected.connect(
-            self.handle_switcher_rejection)
-        self.switcher_dlg.sig_item_changed.connect(
-            self.handle_switcher_item_change)
-
-    def handle_switcher_modes(self, mode):
-        """Handle switcher for registered modes."""
-        if mode == '@':
-            self.create_symbol_switcher()
-        elif mode == ':':
-            self.create_line_switcher()
-        elif mode == '':
-            self.create_editor_switcher()
-
-    def create_editor_switcher(self):
-        """Populate switcher with ."""
-        self.switcher_dlg.set_placeholder_text(
-            _('Start typing the name of an open file'))
-
-        paths = [data.filename.lower() for data in self.data]
-        save_statuses = [data.newly_created for data in self.data]
-        short_paths = sourcecode.shorten_paths(paths, save_statuses)
-
-        for idx, data in enumerate(self.data):
-            path = data.filename
-            title = osp.basename(path)
-            icon = sourcecode.get_file_icon(path)
-            # TODO: Handle of shorten paths based on font size
-            # and available space per item
-            if len(paths[idx]) > 75:
-                path = short_paths[idx]
-            else:
-                path = osp.dirname(data.filename.lower())
-            self.switcher_dlg.add_item(title=title,
-                                       description=path,
-                                       icon=icon,
-                                       section=self.get_plugin_title(),
-                                       data=data)
-
-    def create_line_switcher(self):
-        """Populate switcher with line info."""
-        self.current_line = self.get_current_editor().get_cursor_line_number()
-        self.switcher_dlg.clear()
-        self.switcher_dlg.set_placeholder_text(_('Select line'))
-        data = self.get_current_finfo()
-        path = data.filename
-        title = osp.basename(path)
-        lines = data.editor.get_line_count()
-        icon = sourcecode.get_file_icon(path)
-        line_template_title = "{title} [{lines} {text}]"
-        title = line_template_title.format(title=title, lines=lines,
-                                           text=_("lines"))
-        description = _('Go to line')
-        self.switcher_dlg.add_item(title=title,
-                                   description=description,
-                                   icon=icon,
-                                   section=self.get_plugin_title(),
-                                   data=data,
-                                   action_item=True)
-
-    def create_symbol_switcher(self):
-        """Populate switcher with symbol info."""
-        self.current_line = self.get_current_editor().get_cursor_line_number()
-        self.switcher_dlg.clear()
-        self.switcher_dlg.set_placeholder_text(_('Select symbol'))
-        oedata_list = self.get_current_editor().outlineexplorer_data_list()
-
-        symbols_list = sourcecode.get_symbol_list(oedata_list)
-        icons = sourcecode.get_python_symbol_icons(symbols_list)
-
-        for idx, symbol in enumerate(symbols_list):
-            title = symbol[1]
-            fold_level = symbol[2]
-            space = ' ' * fold_level
-            formated_title = '{space}{title}'.format(title=title,
-                                                     space=space)
-            line_number = symbol[0]
-            icon = icons[idx]
-            data = {'title': title,
-                    'line_number': line_number + 1}
-            self.switcher_dlg.add_item(title=formated_title,
-                                       icon=icon,
-                                       section=self.get_plugin_title(),
-                                       data=data)
-        # Needed to update fold spaces in items titles
-        self.switcher_dlg.setup()
-
-    def handle_switcher_selection(self, item, mode, search_text):
-        """Handle item selection of the switcher."""
-        data = item.get_data()
-        if mode == '@':
-            self.symbol_switcher_handler(data)
-        elif mode == ':':
-            self.line_switcher_handler(data, search_text)
-        elif mode == '':
-            # Each plugin that wants to attach to the switcher should do this?
-            if item.get_section() == self.get_plugin_title():
-                self.editor_switcher_handler(data)
-
-    def handle_switcher_text(self, search_text):
-        """Handle switcher search text for line mode."""
-        mode = self.switcher_dlg.get_mode()
-        if mode == ':':
-            item = self.switcher_dlg.current_item()
-            self.line_switcher_handler(item.get_data(), search_text,
-                                       visible=True)
-        elif self.current_line and mode == '':
-            self.go_to_line(self.current_line)
-            self.current_line = None
-
-    def handle_switcher_rejection(self):
-        """Do actions when the Switcher is rejected."""
-        # Reset current cursor line
-        if self.current_line:
-            self.go_to_line(self.current_line)
-            self.current_line = None
-
-    def handle_switcher_item_change(self, current):
-        """Handle item selection change."""
-        mode = self.switcher_dlg.get_mode()
-        if mode == '@' and current is not None:
-            line_number = int(current.get_data()['line_number'])
-            self.go_to_line(line_number)
-
-    def editor_switcher_handler(self, data):
-        """Populate switcher with FileInfo data."""
-        self.set_current_filename(data.filename)
-        self.switcher_dlg.hide()
-        self.switcher_dlg.set_search_text('')
-
-    def line_switcher_handler(self, data, search_text, visible=False):
-        """Handle line switcher selection."""
-        self.set_current_filename(data.filename)
-        line_number = search_text.split(':')[-1]
-        try:
-            line_number = int(line_number)
-            self.go_to_line(line_number)
-            self.switcher_dlg.setVisible(visible)
-            # Closing the switcher
-            if not visible:
-                self.current_line = None
-                self.switcher_dlg.set_search_text('')
-        except Exception:
-            # Invalid line number
-            pass
-
-    def symbol_switcher_handler(self, data):
-        """Handle symbol switcher selection."""
-        line_number = data['line_number']
-        self.go_to_line(int(line_number))
-        self.current_line = None
-        self.switcher_dlg.hide()
-        self.switcher_dlg.set_search_text('')
 
     def get_plugin_title(self):
         """Get the plugin title of the parent widget."""

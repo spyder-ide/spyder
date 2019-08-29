@@ -42,6 +42,7 @@ from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.editor.confpage import EditorConfigPage
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
+from spyder.plugins.editor.utils.switcher import EditorSwitcherManager
 from spyder.plugins.editor.widgets.editor import (EditorMainWindow, Printer,
                                                   EditorSplitter, EditorStack,)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
@@ -164,7 +165,6 @@ class Editor(SpyderPluginWidget):
         self.last_edit_cursor_pos = None
         self.cursor_pos_history = []
         self.cursor_pos_index = None
-        self.current_line = None
         self.__ignore_cursor_position = True
 
         # Completions setup
@@ -1066,7 +1066,11 @@ class Editor(SpyderPluginWidget):
         self.add_dockwidget()
 
         # Add modes to switcher
-        self.setup_switcher()
+        self.switcher_manager = EditorSwitcherManager(
+            self.main.switcher,
+            lambda: self.get_current_editor(),
+            lambda: self.get_current_editorstack(),
+            section=self.get_plugin_title())
 
     def update_font(self):
         """Update font from Preferences"""
@@ -1456,171 +1460,6 @@ class Editor(SpyderPluginWidget):
         #if self.introspector:
         #    self.introspector.change_extra_path(
         #            self.main.get_spyder_pythonpath())
-
-    # ------ Switcher Setup
-    def setup_switcher(self):
-        """Setup switcher modes and signals."""
-        self.main.switcher.add_mode(':', _('Go to Line'))
-        self.main.switcher.add_mode('@', _('Go to Symbol in File'))
-        self.main.switcher.sig_mode_selected.connect(
-            self.handle_switcher_modes)
-        self.main.switcher.sig_item_selected.connect(
-            self.handle_switcher_selection)
-        self.main.switcher.sig_text_changed.connect(self.handle_switcher_text)
-        self.main.switcher.sig_rejected.connect(self.handle_switcher_rejection)
-        self.main.switcher.sig_item_changed.connect(
-            self.handle_switcher_item_change)
-
-    def handle_switcher_modes(self, mode):
-        """Handle switcher for registered modes."""
-        if mode == '@':
-            self.create_symbol_switcher()
-        elif mode == ':':
-            self.create_line_switcher()
-        elif mode == '':
-            # Each plugin that wants to attach to the switcher should do this?
-            self.create_editor_switcher()
-
-    def create_editor_switcher(self):
-        """Populate switcher with ."""
-        self.main.switcher.set_placeholder_text(
-            _('Start typing the name of an open file'))
-
-        paths = [data.filename.lower()
-                 for data in self.get_current_editorstack().data]
-        save_statuses = [data.newly_created
-                         for data in self.get_current_editorstack().data]
-        short_paths = sourcecode.shorten_paths(paths, save_statuses)
-
-        for idx, data in enumerate(self.get_current_editorstack().data):
-            path = data.filename
-            title = osp.basename(path)
-            icon = sourcecode.get_file_icon(path)
-            # TODO: Handle of shorten paths based on font size
-            # and available space per item
-            if len(paths[idx]) > 75:
-                path = short_paths[idx]
-            else:
-                path = osp.dirname(data.filename.lower())
-            self.main.switcher.add_item(title=title,
-                                        description=path,
-                                        icon=icon,
-                                        section=self.get_plugin_title(),
-                                        data=data)
-
-    def create_line_switcher(self):
-        """Populate switcher with line info."""
-        self.current_line = self.get_current_editor().get_cursor_line_number()
-        self.main.switcher.clear()
-        self.main.switcher.set_placeholder_text(_('Select line'))
-        data = self.get_current_finfo()
-        path = data.filename
-        title = osp.basename(path)
-        lines = data.editor.get_line_count()
-        icon = sourcecode.get_file_icon(path)
-        line_template_title = "{title} [{lines} {text}]"
-        title = line_template_title.format(title=title, lines=lines,
-                                           text=_("lines"))
-        description = _('Go to line')
-        self.main.switcher.add_item(title=title,
-                                    description=description,
-                                    icon=icon,
-                                    section=self.get_plugin_title(),
-                                    data=data,
-                                    action_item=True)
-
-    def create_symbol_switcher(self):
-        """Populate switcher with symbol info."""
-        self.current_line = self.get_current_editor().get_cursor_line_number()
-        self.main.switcher.clear()
-        self.main.switcher.set_placeholder_text(_('Select symbol'))
-        oedata_list = self.get_current_editor().outlineexplorer_data_list()
-
-        symbols_list = sourcecode.get_symbol_list(oedata_list)
-        icons = sourcecode.get_python_symbol_icons(symbols_list)
-
-        for idx, symbol in enumerate(symbols_list):
-            title = symbol[1]
-            fold_level = symbol[2]
-            space = ' ' * fold_level
-            formated_title = '{space}{title}'.format(title=title,
-                                                     space=space)
-            line_number = symbol[0]
-            icon = icons[idx]
-            data = {'title': title,
-                    'line_number': line_number + 1}
-            self.main.switcher.add_item(title=formated_title,
-                                        icon=icon,
-                                        section=self.get_plugin_title(),
-                                        data=data)
-        # Needed to update fold spaces for items titles
-        self.main.switcher.setup()
-
-    def handle_switcher_selection(self, item, mode, search_text):
-        """Handle item selection of the switcher."""
-        data = item.get_data()
-        if mode == '@':
-            self.symbol_switcher_handler(data)
-        elif mode == ':':
-            self.line_switcher_handler(data, search_text)
-        elif mode == '':
-            # Each plugin that wants to attach to the switcher should do this?
-            if item.get_section() == self.get_plugin_title():
-                self.editor_switcher_handler(data)
-
-    def handle_switcher_text(self, search_text):
-        """Handle switcher search text for line mode."""
-        mode = self.main.switcher.get_mode()
-        if mode == ':':
-            item = self.main.switcher.current_item()
-            self.line_switcher_handler(item.get_data(), search_text,
-                                       visible=True)
-        elif self.current_line and mode == '':
-            self.go_to_line(self.current_line)
-            self.current_line = None
-
-    def handle_switcher_rejection(self):
-        """Do actions when the Switcher is rejected."""
-        # Reset current cursor line
-        if self.current_line:
-            self.go_to_line(self.current_line)
-            self.current_line = None
-
-    def handle_switcher_item_change(self, current):
-        """Handle item selection change."""
-        mode = self.main.switcher.get_mode()
-        if mode == '@' and current is not None:
-            line_number = int(current.get_data()['line_number'])
-            self.go_to_line(line_number)
-
-    def editor_switcher_handler(self, data):
-        """Populate switcher with FileInfo data."""
-        self.set_current_filename(data.filename)
-        self.main.switcher.hide()
-
-    def line_switcher_handler(self, data, search_text, visible=False):
-        """Handle line switcher selection."""
-        self.set_current_filename(data.filename)
-        line_number = search_text.split(':')[-1]
-        try:
-            line_number = int(line_number)
-            self.go_to_line(line_number)
-            self.main.switcher.setVisible(visible)
-            # Closing the switcher
-            if not visible:
-                self.current_line = None
-                self.main.switcher.set_search_text('')
-        except Exception:
-            # Invalid line number
-            pass
-
-    def symbol_switcher_handler(self, data):
-        """Handle symbol switcher selection."""
-        line_number = data['line_number']
-        self.go_to_line(int(line_number))
-        self.current_line = None
-        self.main.switcher.hide()
-        self.main.switcher.set_search_text('')
 
     #------ Refresh methods
     def refresh_file_dependent_actions(self):
