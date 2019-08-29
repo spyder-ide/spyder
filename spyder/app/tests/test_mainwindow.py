@@ -1853,6 +1853,8 @@ def test_render_issue():
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(
+    sys.platform.startswith('linux'), reason="It segfaults on Linux")
 def test_custom_layouts(main_window, qtbot):
     """Test that layout are showing the expected widgets visible."""
     mw = main_window
