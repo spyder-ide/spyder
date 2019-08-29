@@ -513,7 +513,7 @@ class FigureViewer(QScrollArea):
             new_height = int(fheight * self._scalestep ** self._scalefactor)
 
         # Auto fit plotting
-        # Scale the image to fit figviewer size while respect the ratio
+        # Scale the image to fit the figviewer size while respecting the ratio.
         else:
             size = self.size()
             style = self.style()
