@@ -1605,7 +1605,13 @@ def test_switcher(main_window, qtbot, tmpdir):
 
     # Assert that the full path of a file is shown in the fileswitcher
     file_a = tmpdir.join('test_file_a.py')
-    file_a.write('foo\n')
+    file_a.write('''
+def example_def():
+    pass
+
+def example_def_2():
+    pass
+''')
     main_window.editor.load(str(file_a))
 
     main_window.open_switcher()
@@ -1637,6 +1643,14 @@ def test_switcher(main_window, qtbot, tmpdir):
         qtbot.wait(200)
         assert switcher.count() == bool(expected_path)
         switcher.close()
+
+    # Assert symbol switcher works
+    main_window.editor.set_current_filename(str(file_a))
+    main_window.open_switcher()
+    qtbot.keyClicks(switcher.edit, '@')
+    qtbot.wait(200)
+    assert switcher.count() == 2
+    switcher.close()
 
 
 @pytest.mark.slow
