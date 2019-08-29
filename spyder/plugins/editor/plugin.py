@@ -2048,13 +2048,20 @@ class Editor(SpyderPluginWidget):
                 self.close_file_from_name(fname)
 
     def renamed(self, source, dest):
-        """File was renamed in file explorer widget or in project explorer"""
+        """
+        Propagate file rename to editor stacks and autosave component.
+
+        This function is called when a file is renamed in the file explorer
+        widget or the project explorer.
+        """
         filename = osp.abspath(to_text_string(source))
         index = self.editorstacks[0].has_filename(filename)
         if index is not None:
             for editorstack in self.editorstacks:
                 editorstack.rename_in_data(filename,
                                            new_filename=to_text_string(dest))
+        self.editorstacks[0].autosave.file_renamed(
+            filename, to_text_string(dest))
 
     def renamed_tree(self, source, dest):
         """Directory was renamed in file explorer or in project explorer."""
@@ -2219,6 +2226,10 @@ class Editor(SpyderPluginWidget):
     def current_file_changed(self, filename, position):
         self.add_cursor_position_to_history(to_text_string(filename), position,
                                             fc=True)
+        # Hide any open tooltips
+        current_stack = self.get_current_editorstack()
+        if current_stack is not None:
+            current_stack.hide_tooltip()
 
     @Slot()
     def go_to_last_edit_location(self):
