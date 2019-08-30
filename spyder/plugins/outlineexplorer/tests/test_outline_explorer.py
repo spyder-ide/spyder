@@ -37,7 +37,7 @@ class testBlock():
     def __init__(self, line_number):
         self._line = line_number - 1
 
-    def firstLineNumber(self):
+    def blockNumber(self):
         return self._line
 
 

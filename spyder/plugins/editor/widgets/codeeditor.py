@@ -1660,10 +1660,10 @@ class CodeEditor(TextEditBaseWidget):
 
     def select_lines(self, linenumber_pressed, linenumber_released):
         """Select line(s) after a mouse press/mouse press drag event"""
-        find_block_by_line_number = self.document().findBlockByLineNumber
+        find_block_by_number = self.document().findBlockByNumber
         move_n_blocks = (linenumber_released - linenumber_pressed)
         start_line = linenumber_pressed
-        start_block = find_block_by_line_number(start_line - 1)
+        start_block = find_block_by_number(start_line - 1)
 
         cursor = self.textCursor()
         cursor.setPosition(start_block.position())
@@ -2157,39 +2157,44 @@ class CodeEditor(TextEditBaseWidget):
         return warnings
 
     def go_to_next_warning(self):
-        """Go to next code analysis warning message
-        and return new cursor position"""
+        """
+        Go to next code warning message and return new cursor position.
+        """
         block = self.textCursor().block()
         line_count = self.document().blockCount()
-        while True:
-            if block.blockNumber()+1 < line_count:
+        for _ in range(line_count):
+            line_number = block.blockNumber() + 1
+            if line_number < line_count:
                 block = block.next()
             else:
                 block = self.document().firstBlock()
+
             data = block.userData()
             if data and data.code_analysis:
-                break
-        line_number = block.blockNumber()+1
-        self.go_to_line(line_number)
-        self.show_code_analysis_results(line_number, data)
-        return self.get_position('cursor')
+                line_number = block.blockNumber() + 1
+                self.go_to_line(line_number)
+                self.show_code_analysis_results(line_number, data)
+                return self.get_position('cursor')
 
     def go_to_previous_warning(self):
-        """Go to previous code analysis warning message
-        and return new cursor position"""
+        """
+        Go to previous code warning message and return new cursor position.
+        """
         block = self.textCursor().block()
-        while True:
-            if block.blockNumber() > 0:
+        line_count = self.document().blockCount()
+        for _ in range(line_count):
+            line_number = block.blockNumber() + 1
+            if line_number > 1:
                 block = block.previous()
             else:
                 block = self.document().lastBlock()
+
             data = block.userData()
             if data and data.code_analysis:
-                break
-        line_number = block.blockNumber()+1
-        self.go_to_line(line_number)
-        self.show_code_analysis_results(line_number, data)
-        return self.get_position('cursor')
+                line_number = block.blockNumber() + 1
+                self.go_to_line(line_number)
+                self.show_code_analysis_results(line_number, data)
+                return self.get_position('cursor')
 
     def cell_list(self):
         """Get the outline explorer data for all cells."""
@@ -2549,7 +2554,7 @@ class CodeEditor(TextEditBaseWidget):
         """
         cursor = self.textCursor()
         block_nb = cursor.blockNumber()
-        prev_block = self.document().findBlockByLineNumber(block_nb-1)
+        prev_block = self.document().findBlockByNumber(block_nb-1)
         prevline = to_text_string(prev_block.text())
 
         indentation = re.match(r"\s*", prevline).group()

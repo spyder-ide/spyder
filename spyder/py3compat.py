@@ -300,9 +300,16 @@ else:
 
     viewitems = operator.methodcaller("viewitems")
 
+
+# ============================================================================
+# Exceptions
+# ============================================================================
 if PY2:
+    ConnectionRefusedError = ConnectionError = OSError
     TimeoutError = RuntimeError
 else:
+    ConnectionError = ConnectionError
+    ConnectionRefusedError = ConnectionRefusedError
     TimeoutError = TimeoutError
 
 
