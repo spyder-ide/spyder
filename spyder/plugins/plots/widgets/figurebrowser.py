@@ -737,8 +737,13 @@ class ThumbnailScrollBar(QFrame):
         Update the thumbnails size so that their width fit that of
         the scrollarea.
         """
-        # NOTE: we hide the view widget while we update the thumbnails size
-        # to avoid flickering of this thumbnail scrollbar.
+        # NOTE: We hide temporarily the thumbnails to prevent a repaint of
+        # each thumbnail as soon as their size is updated in the loop, which
+        # causes some flickering of the thumbnail scrollbar resizing animation.
+        # Once the size of all the thumbnails has been updated, we show them
+        # back so that they are repainted all at once instead of one after the
+        # other. This is just a trick to make the resizing animation of the
+        # thumbnail scrollbar look smoother.
         self.view.hide()
         for thumbnail in self._thumbnails:
             self._setup_thumbnail_size(thumbnail)
