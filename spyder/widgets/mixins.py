@@ -54,6 +54,7 @@ class BaseEditMixin(object):
     _DEFAULT_LANGUAGE = 'python'
     _DEFAULT_MAX_LINES = 10
     _DEFAULT_MAX_WIDTH = 60
+    _DEFAULT_COMPLETION_HINT_MAX_WIDTH = 52
     _DEFAULT_MAX_HINT_LINES = 20
     _DEFAULT_MAX_HINT_WIDTH = 85
 
@@ -552,7 +553,6 @@ class BaseEditMixin(object):
             at_line=at_line,
             at_point=at_point,
         )
-
         # Format text
         tiptext = self._format_text(
             title=title,
@@ -579,7 +579,7 @@ class BaseEditMixin(object):
                   text_new_line=True, completion_doc=None):
         """Show code hint and crop text as needed."""
         # Check if signature and format
-        res = self._check_signature_and_format(text)
+        res = self._check_signature_and_format(text, max_width=max_width)
         html_signature, extra_text, _ = res
         point = self.get_word_start_pos(at_point)
 
