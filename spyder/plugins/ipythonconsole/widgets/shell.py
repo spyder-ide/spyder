@@ -185,6 +185,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if reset:
             self.reset(clear=True)
         if not dark_color:
+            # Needed to change the colors of the tracebacks
             self.silent_execute("%colors linux")
             self.call_kernel(
                 interrupt=True,
