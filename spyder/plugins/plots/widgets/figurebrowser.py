@@ -21,8 +21,8 @@ from qtpy.QtCore import Qt, Signal, QRect, QEvent, QPoint, QSize, QTimer, Slot
 from qtpy.QtGui import QPixmap, QPainter, QKeySequence
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu,
                             QVBoxLayout, QWidget, QGridLayout, QFrame,
-                            QScrollArea, QPushButton, QScrollBar, QSizePolicy,
-                            QSpinBox, QSplitter, QStyle)
+                            QScrollArea, QPushButton, QScrollBar, QSpinBox,
+                            QSplitter, QStyle)
 
 # ---- Local library imports
 from spyder.config.base import _
@@ -717,20 +717,11 @@ class ThumbnailScrollBar(QFrame):
 
     def _setup_thumbnail_size(self, thumbnail):
         """
-        Scale the thumbnail's canvas size, while respecting its associated
-        figure dimension ratio.
+        Scale the thumbnail's canvas size so that it fits the thumbnail
+        scrollbar's width.
         """
-        fwidth = thumbnail.canvas.fwidth
-        fheight = thumbnail.canvas.fheight
         max_canvas_size = self._calculate_figure_canvas_width(thumbnail)
-        if fwidth / fheight > 1:
-            canvas_width = max_canvas_size
-            canvas_height = canvas_width / fwidth * fheight
-        else:
-            canvas_height = max_canvas_size
-            canvas_width = canvas_height / fheight * fwidth
-        thumbnail.canvas.setFixedSize(int(canvas_width), int(canvas_height))
-        thumbnail.layout().setColumnMinimumWidth(0, max_canvas_size)
+        thumbnail.scale_canvas_size(max_canvas_size)
 
     def _update_thumbnail_size(self):
         """
@@ -924,6 +915,22 @@ class FigureThumbnail(QWidget):
                     "FigureCanvas{border: 1px solid %s;}" % colorname)
         else:
             self.canvas.setStyleSheet("FigureCanvas{}")
+
+    def scale_canvas_size(self, max_canvas_size):
+        """
+        Scale this thumbnail canvas size, while respecting its associated
+        figure dimension ratio.
+        """
+        fwidth = self.canvas.fwidth
+        fheight = self.canvas.fheight
+        if fwidth / fheight > 1:
+            canvas_width = max_canvas_size
+            canvas_height = canvas_width / fwidth * fheight
+        else:
+            canvas_height = max_canvas_size
+            canvas_width = canvas_height / fheight * fwidth
+        self.canvas.setFixedSize(int(canvas_width), int(canvas_height))
+        self.layout().setColumnMinimumWidth(0, max_canvas_size)
 
     def eventFilter(self, widget, event):
         """
